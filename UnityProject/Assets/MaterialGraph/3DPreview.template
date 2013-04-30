@@ -1,0 +1,50 @@
+Shader "${ShaderName}" 
+{
+	Properties 
+	{
+${ShaderPropertiesHeader}
+	}	
+	
+	SubShader 
+	{
+	/*
+${Tags}
+${Blending}
+${Culling}
+${ZTest}
+${ZWrite}
+*/
+
+		LOD 200
+		
+		CGPROGRAM
+		#pragma exclude_renderers ps3 flash xbox360 gles d3d11 d3d11_9x
+		#pragma target 3.0
+		#pragma surface surf Lambert ${VertexShaderDecl}
+		#pragma glsl
+		#pragma debug
+
+
+${ShaderFunctions}
+
+${ShaderPropertyUsages}
+
+		struct Input 
+		{
+${ShaderInputs}
+		};
+
+		void vert (inout appdata_full v, out Input o)
+		{
+			UNITY_INITIALIZE_OUTPUT(Input,o);
+${VertexShaderBody}
+		}
+	  
+		void surf (Input IN, inout SurfaceOutput o) 
+		{
+${PixelShaderBody}
+		}
+		ENDCG
+	} 
+	FallBack "Diffuse"
+}

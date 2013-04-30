@@ -1,0 +1,42 @@
+Shader "${ShaderName}" {
+	Properties {
+${ShaderPropertiesHeader}
+	}	
+	
+	SubShader {
+		Pass {
+			CGPROGRAM
+			#pragma exclude_renderers ps3 flash xbox360 gles d3d11 d3d11_9x
+			#pragma vertex vert
+			#pragma fragment frag
+			#include "UnityCG.cginc"
+
+
+${ShaderPropertyUsages}
+
+			struct v2f 
+			{
+				float4 pos : SV_POSITION;
+${ShaderInputs}
+			};
+
+
+${ShaderFunctions}
+
+			v2f vert (appdata_full v) 
+			{
+				v2f o;
+				o.pos = mul (UNITY_MATRIX_MVP, v.vertex);
+${VertexShaderBody}
+				return o;
+			}
+
+			half4 frag (v2f IN) : COLOR
+			{
+${PixelShaderBody}
+			}
+			ENDCG
+		}
+	}
+	Fallback Off
+}
