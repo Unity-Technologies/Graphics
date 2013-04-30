@@ -112,19 +112,19 @@
     <None Include="Assets\FirstShader.shader" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\unity\Editor\Graphs\UnityEditor.Graphs\UnityEditor.Graphs.csproj">
+    <ProjectReference Include="..\..\unity\Editor\Graphs\UnityEditor.Graphs\UnityEditor.Graphs.csproj">
       <Project>{9C582BFC-8049-42FD-83FF-550A2D7BE2BC}</Project>
       <Name>UnityEditor.Graphs</Name>
     </ProjectReference>
-    <ProjectReference Include="..\unity\Projects\CSharp\UnityEditor.csproj">
+    <ProjectReference Include="..\..\unity\Projects\CSharp\UnityEditor.csproj">
       <Project>{016C8D73-3641-47FB-8D33-7A015A7EC7DB}</Project>
       <Name>UnityEditor</Name>
     </ProjectReference>
-    <ProjectReference Include="..\unity\Projects\CSharp\UnityEngine.csproj">
+    <ProjectReference Include="..\..\unity\Projects\CSharp\UnityEngine.csproj">
       <Project>{F0499708-3EB6-4026-8362-97E6FFC4E7C8}</Project>
       <Name>UnityEngine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\unity\Runtime\Graphs\UnityEngine.Graphs\UnityEngine.Graphs.csproj">
+    <ProjectReference Include="..\..\unity\Runtime\Graphs\UnityEngine.Graphs\UnityEngine.Graphs.csproj">
       <Project>{10E97B21-AEA1-4E95-BC6B-717815F18EBE}</Project>
       <Name>UnityEngine.Graphs</Name>
     </ProjectReference>
