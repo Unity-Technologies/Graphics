@@ -1,0 +1,140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.20506</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{72B5B209-CCD1-A912-B242-B04CB7F2B011}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>
+    </RootNamespace>
+    <AssemblyName>Assembly-CSharp-Editor</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Temp\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;UNITY_WEBPLAYER;WEBPLUG;ENABLE_MICROPHONE;ENABLE_TEXTUREID_MAP;ENABLE_AUDIO_FMOD;ENABLE_MONO;ENABLE_TERRAIN;ENABLE_SUBSTANCE;ENABLE_GENERICS;ENABLE_MOVIES;ENABLE_WWW;ENABLE_IMAGEEFFECTS;ENABLE_WEBCAM;RENDER_SOFTWARE_CURSOR;ENABLE_NETWORK;ENABLE_PHYSICS;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_SHADOWS;ENABLE_AUDIO;ENABLE_DUCK_TYPING;ENABLE_SINGLE_INSTANCE_BUILD_SETTING;UNITY_4_2_0;UNITY_4_2;ENABLE_PROFILER;UNITY_EDITOR;UNITY_TEAM_LICENSE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>0169</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Temp\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>0169</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Assets\Editor\Material\BaseMaterialGraph.cs" />
+    <Compile Include="Assets\Editor\Material\BaseMaterialGraphGUI.cs" />
+    <Compile Include="Assets\Editor\Material\Editors\BaseMaterialNodeEditor.cs" />
+    <Compile Include="Assets\Editor\Material\Editors\PropertyNodeEditor.cs" />
+    <Compile Include="Assets\Editor\Material\Light\BaseLightFunction.cs" />
+    <Compile Include="Assets\Editor\Material\Light\SimpleSpecularFunction.cs" />
+    <Compile Include="Assets\Editor\Material\Light\WrapLambertFunction.cs" />
+    <Compile Include="Assets\Editor\Material\MaterialGraph.cs" />
+    <Compile Include="Assets\Editor\Material\MaterialGraphGUI.cs" />
+    <Compile Include="Assets\Editor\Material\MaterialSubGraph.cs" />
+    <Compile Include="Assets\Editor\Material\MaterialSubGraphGUI.cs" />
+    <Compile Include="Assets\Editor\Material\MaterialWindow.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\AbsoluteNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\AddNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\BaseMaterialNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\BlendNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\ClampNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\ColorNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\ColorizeNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\CombineNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\DivNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\DotNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\Extensions.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\FresnelNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\Function1Input.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\Function2Input.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\Function3Input.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\FunctionMultiInput.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\KaleidoscopeNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\LengthNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\MandelbrotNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\MaxNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\MinNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\MultiplyNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\NormalNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\NormalizeNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\PerlinNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\PixelShaderNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\PowerNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\PropertyNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\QuantizeNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\ReflectNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\ScreenPosNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SinNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SinTimeNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SlotDefaultValue.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SmoothStepNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SplatNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SubGraphIOBaseNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SubGraphInputsNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SubGraphNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SubGraphOutputsNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SubtractNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\SwizzleNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\TextureNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\TimeNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\UVNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\UnpackNormalNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\Vector4Node.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\ViewDirectionNode.cs" />
+    <Compile Include="Assets\Editor\Material\Nodes\WorldPosNode.cs" />
+    <Compile Include="Assets\Editor\Material\PixelGraph.cs" />
+    <Compile Include="Assets\Editor\Material\Prop\MaterialOptions.cs" />
+    <Compile Include="Assets\Editor\Material\Prop\MaterialProperties.cs" />
+    <Compile Include="Assets\Editor\Material\Prop\ShaderProperty.cs" />
+    <Compile Include="Assets\Editor\Material\Util\Interfaces.cs" />
+    <Compile Include="Assets\Editor\Material\Util\NodeUtils.cs" />
+    <Compile Include="Assets\Editor\Material\Util\ShaderGenerator.cs" />
+    <Compile Include="Assets\Editor\test.cs" />
+    <None Include="Assets\test.shader" />
+    <None Include="Assets\FirstShader.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\unity\Editor\Graphs\UnityEditor.Graphs\UnityEditor.Graphs.csproj">
+      <Project>{9C582BFC-8049-42FD-83FF-550A2D7BE2BC}</Project>
+      <Name>UnityEditor.Graphs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\unity\Projects\CSharp\UnityEditor.csproj">
+      <Project>{016C8D73-3641-47FB-8D33-7A015A7EC7DB}</Project>
+      <Name>UnityEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\unity\Projects\CSharp\UnityEngine.csproj">
+      <Project>{F0499708-3EB6-4026-8362-97E6FFC4E7C8}</Project>
+      <Name>UnityEngine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\unity\Runtime\Graphs\UnityEngine.Graphs\UnityEngine.Graphs.csproj">
+      <Project>{10E97B21-AEA1-4E95-BC6B-717815F18EBE}</Project>
+      <Name>UnityEngine.Graphs</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+	   Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
