@@ -1,0 +1,581 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!48 &4800000
+Shader:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Fresnel
+  m_Script: Shader "Graphs/Dummy" {Properties { _Color ("Main Color", Color) = (1,1,1,0)
+    }SubShader {    Tags { "Queue" = "Transparent" }    Pass {        Blend One One
+    ZWrite Off ColorMask RGB        Material { Diffuse [_Color] Ambient [_Color] }        Lighting
+    On        SetTexture [_Dummy] { combine primary double, primary }    }}}
+  m_PathName: 
+  m_Dependencies: []
+  m_ShaderIsBaked: 0
+  errors: []
+  m_DefaultTextures: {}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef5b9f0785847b04983f907c7f016a36, type: 3}
+  m_Name: Fresnel
+  m_EditorClassIdentifier: 
+  m_MaterialProperties: {fileID: 11400002}
+  m_MaterialOptions: {fileID: 11400004}
+  m_PixelGraph: {fileID: 11400006}
+  m_Shader: {fileID: 4800000}
+--- !u!114 &11400002
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cab057dbd683f5244aed9bd721e1973e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ShaderProperties:
+  - {fileID: 11400026}
+  - {fileID: 11400028}
+  previewState: 0
+  weirdName: 
+--- !u!114 &11400004
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edd99bcf0936ee84794c384dffae5501, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SrcBlend: 0
+  m_DstBlend: 1
+  m_CullMode: 0
+  m_ZTest: 2
+  m_ZWrite: 0
+  m_RenderQueue: 1
+  m_RenderType: 0
+  m_ShadowPass: 0
+  m_FullForwardShadows: 0
+  m_NoAmbient: 0
+  m_NoVertexLights: 0
+  m_NoLightmaps: 0
+  m_NoDirLightmap: 0
+  m_NoForwardAdd: 0
+  m_ApproxView: 0
+  m_HalfAsView: 0
+--- !u!114 &11400006
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 226075d30f5b2694caa212aa3e968148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nodes:
+  - {fileID: 11400008}
+  - {fileID: 11400010}
+  - {fileID: 11400012}
+  - {fileID: 11400014}
+  - {fileID: 11400016}
+  - {fileID: 11400018}
+  - {fileID: 11400020}
+  - {fileID: 11400022}
+  - {fileID: 11400024}
+  edges:
+  - m_FromNode: {fileID: 11400012}
+    m_ToNode: {fileID: 11400010}
+    m_FromSlotName: Normal
+    m_ToSlotName: Input2
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400014}
+    m_ToNode: {fileID: 11400010}
+    m_FromSlotName: ViewDirection
+    m_ToSlotName: Input1
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400010}
+    m_ToNode: {fileID: 11400016}
+    m_FromSlotName: Output
+    m_ToSlotName: Input1
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400018}
+    m_ToNode: {fileID: 11400020}
+    m_FromSlotName: Value
+    m_ToSlotName: Input
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400020}
+    m_ToNode: {fileID: 11400016}
+    m_FromSlotName: Output
+    m_ToSlotName: Input2
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400022}
+    m_ToNode: {fileID: 11400024}
+    m_FromSlotName: Color
+    m_ToSlotName: Input1
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400016}
+    m_ToNode: {fileID: 11400024}
+    m_FromSlotName: Output
+    m_ToSlotName: Input0
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400024}
+    m_ToNode: {fileID: 11400008}
+    m_FromSlotName: Output
+    m_ToSlotName: Emission
+    color: {r: 1, g: 1, b: 1, a: 1}
+  m_InvalidEdges: []
+  m_MasterNode: {fileID: 11400008}
+--- !u!114 &11400008
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38072936174514040b3e08813a3ec4e7, type: 3}
+  m_Name: PixelMaster
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Albedo
+    m_Name: Albedo
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Normal
+    m_Name: Normal
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Emission
+    m_Name: Emission
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Specular
+    m_Name: Specular
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Gloss
+    m_Name: Gloss
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Alpha
+    m_Name: Alpha
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 852
+    y: 240
+    width: 58
+    height: 121
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Albedo
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Normal
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Emission
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Specular
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Gloss
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Alpha
+    m_Node: {fileID: 11400008}
+  m_PrecisionNames:
+  - half
+  m_LightFunction: Lambert
+--- !u!114 &11400010
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06ab35c1dfe05414787df3ea2772d507, type: 3}
+  m_Name: FresnelNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 432
+    y: -36
+    width: 74
+    height: 129
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Output
+    m_Node: {fileID: 11400010}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input1
+    m_Node: {fileID: 11400010}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input2
+    m_Node: {fileID: 11400010}
+  m_PrecisionNames:
+  - half
+--- !u!114 &11400012
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b34601661908b3499c4c5e2ecd61f75, type: 3}
+  m_Name: Normal
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Normal
+    m_Name: Normal
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 264
+    y: 0
+    width: 74
+    height: 105
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Normal
+    m_Node: {fileID: 11400012}
+  m_PrecisionNames:
+  - half
+--- !u!114 &11400014
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30cf94a5e32cd254eb6eadf45e5cdfe3, type: 3}
+  m_Name: View Direction
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: View Direction
+    m_Name: ViewDirection
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 264
+    y: -120
+    width: 84
+    height: 105
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: ViewDirection
+    m_Node: {fileID: 11400014}
+  m_PrecisionNames:
+  - half
+--- !u!114 &11400016
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2957c4e08e061444a7444a1a03fb584, type: 3}
+  m_Name: PowerNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 564
+    y: 72
+    width: 74
+    height: 129
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Output
+    m_Node: {fileID: 11400016}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input1
+    m_Node: {fileID: 11400016}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input2
+    m_Node: {fileID: 11400016}
+  m_PrecisionNames:
+  - half
+--- !u!114 &11400018
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f34a640000e664d4f8b2e0795df7fad9, type: 3}
+  m_Name: V4Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 156
+    y: 132
+    width: 178
+    height: 80
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Value
+    m_Node: {fileID: 11400018}
+  m_PrecisionNames:
+  - half
+  m_BoundProperty: {fileID: 11400026}
+  m_Value: {x: 2.13000011, y: 0, z: 0, w: 0}
+--- !u!114 &11400020
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c740b99e5a743e84d8030d697cc6d0a1, type: 3}
+  m_Name: SplatNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input
+    m_Name: Input
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 360
+    y: 180
+    width: 118.867928
+    height: 137
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Output
+    m_Node: {fileID: 11400020}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input
+    m_Node: {fileID: 11400020}
+  m_PrecisionNames:
+  - half
+  m_SwizzleChannel: 0
+--- !u!114 &11400022
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 325c0e24c20746345a5f90dc201973f8, type: 3}
+  m_Name: ColorNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Color
+    m_Name: Color
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 576
+    y: 216
+    width: 58
+    height: 80
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Color
+    m_Node: {fileID: 11400022}
+  m_PrecisionNames:
+  - half
+  m_BoundProperty: {fileID: 11400028}
+  m_Color: {r: .746268749, g: 0, b: 1, a: 0}
+--- !u!114 &11400024
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 0
+    m_Name: Input0
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 696
+    y: 168
+    width: 74
+    height: 141
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Output
+    m_Node: {fileID: 11400024}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input0
+    m_Node: {fileID: 11400024}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input1
+    m_Node: {fileID: 11400024}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input2
+    m_Node: {fileID: 11400024}
+  m_PrecisionNames:
+  - half
+--- !u!114 &11400026
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23780b49142426e44a26228feb560cda, type: 3}
+  m_Name: FrenelPower
+  m_EditorClassIdentifier: 
+  m_PropertyDescription: 
+  m_DefaultVector: {x: 2.13000011, y: 0, z: 0, w: 0}
+--- !u!114 &11400028
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a50d0c305a31cc547a53206afda6204e, type: 3}
+  m_Name: FresnelColor
+  m_EditorClassIdentifier: 
+  m_PropertyDescription: 
+  m_DefaultColor: {r: .746268749, g: 0, b: 1, a: 0}
