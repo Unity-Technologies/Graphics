@@ -29,8 +29,8 @@ namespace UnityEditor.Graphs.Material
 			else
 				GUI.backgroundColor = Color.black;
 
-			if (Event.current.type == EventType.Repaint)
-				EditorGUIUtility.whiteTextureStyle.Draw(spacerLine, GUIContent.none, false, false, false, false);
+			//if (Event.current.type == EventType.Repaint)
+			//	EditorGUIUtility.whiteTextureStyle.Draw(spacerLine, GUIContent.none, false, false, false, false);
 
 			GUI.backgroundColor = oldBgColor;
 		}

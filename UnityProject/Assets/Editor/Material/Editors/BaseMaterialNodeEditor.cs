@@ -47,9 +47,9 @@ namespace UnityEditor.Graphs.Material
 		*/
 		private void DoSlotUI (BaseMaterialNode node, Slot slot)
 		{
-			GUILayout.BeginHorizontal (EditorStyles.inspectorBig);
-			GUILayout.BeginVertical ();
-			GUILayout.BeginHorizontal ();
+			GUILayout.BeginHorizontal (/*EditorStyles.inspectorBig*/);
+			GUILayout.BeginVertical();
+			GUILayout.BeginHorizontal();
 			GUILayout.Label ("Slot " + slot.title, EditorStyles.largeLabel);
 			GUILayout.FlexibleSpace();
 			GUILayout.EndHorizontal ();

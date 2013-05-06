@@ -48,6 +48,7 @@
     <Compile Include="Assets\Editor\Material\Light\WrapLambertFunction.cs" />
     <Compile Include="Assets\Editor\Material\MaterialGraph.cs" />
     <Compile Include="Assets\Editor\Material\MaterialGraphGUI.cs" />
+    <Compile Include="Assets\Editor\Material\MaterialOptions.cs" />
     <Compile Include="Assets\Editor\Material\MaterialSubGraph.cs" />
     <Compile Include="Assets\Editor\Material\MaterialSubGraphGUI.cs" />
     <Compile Include="Assets\Editor\Material\MaterialWindow.cs" />
@@ -101,15 +102,15 @@
     <Compile Include="Assets\Editor\Material\Nodes\ViewDirectionNode.cs" />
     <Compile Include="Assets\Editor\Material\Nodes\WorldPosNode.cs" />
     <Compile Include="Assets\Editor\Material\PixelGraph.cs" />
-    <Compile Include="Assets\Editor\Material\Prop\MaterialOptions.cs" />
+    <Compile Include="Assets\Editor\Material\Prop\ColorProperty.cs" />
     <Compile Include="Assets\Editor\Material\Prop\MaterialProperties.cs" />
     <Compile Include="Assets\Editor\Material\Prop\ShaderProperty.cs" />
+    <Compile Include="Assets\Editor\Material\Prop\TextureProperty.cs" />
+    <Compile Include="Assets\Editor\Material\Prop\VectorProperty.cs" />
     <Compile Include="Assets\Editor\Material\Util\Interfaces.cs" />
     <Compile Include="Assets\Editor\Material\Util\NodeUtils.cs" />
     <Compile Include="Assets\Editor\Material\Util\ShaderGenerator.cs" />
     <Compile Include="Assets\Editor\test.cs" />
-    <None Include="Assets\test.shader" />
-    <None Include="Assets\FirstShader.shader" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\unity\Editor\Graphs\UnityEditor.Graphs\UnityEditor.Graphs.csproj">
