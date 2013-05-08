@@ -131,7 +131,7 @@ namespace UnityEditor.Graphs.Material
 
 		static void DoHeader (string title)
 		{
-			GUILayout.BeginHorizontal (EditorStyles.inspectorBig);
+			GUILayout.BeginHorizontal (/*EditorStyles.inspectorBig*/);
 			GUILayout.BeginVertical ();
 			GUILayout.Label (title, EditorStyles.largeLabel);
 			GUILayout.EndVertical ();

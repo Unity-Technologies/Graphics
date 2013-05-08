@@ -30,7 +30,7 @@ namespace UnityEditor.Graphs.Material
 
 		public bool requiresRepaint
 		{
-			get { return m_ImAwake && nodes.Any (x => x is IRequiresTime); }
+			get { return isAwake && nodes.Any (x => x is IRequiresTime); }
 		}
 
 		public override void RemoveEdge (Edge e)
