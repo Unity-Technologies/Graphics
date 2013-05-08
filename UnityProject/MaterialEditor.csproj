@@ -39,6 +39,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Editor\Material\AssetCallbacks\CreateShaderGraph.cs" />
+    <Compile Include="Assets\Editor\Material\AssetCallbacks\CreateShaderSubGraph.cs" />
     <Compile Include="Assets\Editor\Material\BaseMaterialGraph.cs" />
     <Compile Include="Assets\Editor\Material\BaseMaterialGraphGUI.cs" />
     <Compile Include="Assets\Editor\Material\Editors\BaseMaterialNodeEditor.cs" />
@@ -129,6 +131,10 @@
       <Project>{10E97B21-AEA1-4E95-BC6B-717815F18EBE}</Project>
       <Name>UnityEngine.Graphs</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Editor\Material\AssetCallbacks\CreateShaderGraph.cs.meta" />
+    <None Include="Assets\Editor\Material\AssetCallbacks\CreateShaderSubGraph.cs.meta" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

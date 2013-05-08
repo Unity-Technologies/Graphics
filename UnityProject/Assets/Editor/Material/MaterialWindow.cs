@@ -1,7 +1,6 @@
 #define DEBUG_MAT_GEN
 
 using UnityEngine;
-using System.IO;
 
 namespace UnityEditor.Graphs.Material
 {
@@ -11,34 +10,6 @@ namespace UnityEditor.Graphs.Material
 		public static void OpenMenu ()
 		{
 			GetWindow<MaterialWindow>();
-		}
-
-		[MenuItem("Assets/Create/Shader Graph", false, 208)]
-		public static void CreateMaterialGraph()
-		{
-			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, DoCreateShaderGraphAsset, "New Shader Graph.ShaderGraph", null, null);
-		}
-
-		[MenuItem("Assets/Create/Shader Sub-Graph", false, 209)]
-		public static void CreateMaterialSubGraph()
-		{
-			ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, DoCreateShaderSubGraphAsset, "New Shader SubGraph.ShaderSubGraph", null, null);
-		}
-
-		private static void DoCreateShaderGraphAsset (int instanceId, string pathName, string resourceFile)
-		{
-			var graph = CreateInstance<MaterialGraph>();
-			graph.name = Path.GetFileName (pathName);
-			AssetDatabase.CreateAsset (graph, pathName);
-			graph.CreateSubAssets ();
-		}
-
-		private static void DoCreateShaderSubGraphAsset(int instanceId, string pathName, string resourceFile)
-		{
-			var graph = CreateInstance<MaterialSubGraph>();
-			graph.name = Path.GetFileName(pathName);
-			AssetDatabase.CreateAsset(graph, pathName);
-			graph.CreateSubAssets();
 		}
 
 		private MaterialGraph m_MaterialGraph;

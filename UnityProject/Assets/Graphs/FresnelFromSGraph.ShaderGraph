@@ -1,0 +1,1491 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!48 &4800000
+Shader:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: Fresnel
+  m_Script: "Shader \"Graph/FresnelFromSGraph\" \n{\n\tProperties \n\t{\n\t\tFresnelPower(\"FresnelPower\",
+    Vector) = (1.74,0,4.26,0)\n\t\tFresnelColor(\"FresnelColor\", Color) = (0,1,1,0)\n\n\t}\t\n\t\n\tSubShader
+    \n\t{\n\t\tTags {\n\t\t\t\"RenderType\"=\"Opaque\"\n\t\t\t\"Queue\"=\"Geometry\"\n\t\t}\n\n\t\tBlend
+    One Zero\n\n\t\tCull Back\n\n\t\tZTest LEqual\n\n\t\tZWrite On\n\n\n\t\tLOD 200\n\t\t\n\t\t\t\n/*
+    surface debug info:\n needs view direction\n*/\n/* surface debug info:\n*/\n\tPass
+    {\n\t\tName \"FORWARD\"\n\t\tTags { \"LightMode\" = \"ForwardBase\" }\n/* shader
+    source for this pass:\nCGPROGRAM\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+    fragmentoption ARB_precision_hint_fastest\n#pragma multi_compile_fwdbase\n#pragma
+    glsl\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#define
+    UNITY_PASS_FORWARDBASE\n#include \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include
+    \"AutoLight.cginc\"\n\n#define INTERNAL_DATA\n#define WorldReflectionVector(data,normal)
+    data.worldRefl\n#define WorldNormalVector(data,normal) normal\n#line 1\n#line
+    29\n\n\t\t#pragma exclude_renderers ps3 flash xbox360 gles d3d11 d3d11_9x\n\t\t#pragma
+    target 3.0\n\t\t//#pragma surface surf Lambert \n\t\t#pragma glsl\n\t\t#pragma
+    debug\n\n\n\n\t\tinline half4 unity_multiply_half (half4 arg1, half4 arg2)\n\t\t{\n\t\t\treturn
+    arg1 * arg2;\n\t\t}\n\t\t\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4
+    arg2)\n\t\t{\n\t\t\treturn (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\n\t\t}\n\t\t\n\t\tinline
+    half4 unity_absolute_half (half4 arg1)\n\t\t{\n\t\t\treturn abs(arg1);\n\t\t}\n\t\t\n\n\n\t\tfloat4
+    FresnelPower;\n\t\tfloat4 FresnelColor;\n\n\n\t\tstruct Input \n\t\t{\n\t\t\tfloat3
+    viewDir;\n\n\t\t};\n\n\t\tvoid vert (inout appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+    \ \n\t\tvoid surf (Input IN, inout SurfaceOutput o) \n\t\t{\n\t\t\thalf4 MultiplyNode_62270_Output
+    = unity_multiply_half (unity_multiply_half (FresnelPower, _SinTime), half4 (1,1,1,1));\n\t\t\t//
+    Subgraph for node SubGraph_591876\n\t\t\tfloat4 SubGraph_591876_I00 = float4(0);\n\t\t\t{\n\t\t\t\tfloat4
+    SubGraphInputs_326258_O00 = FresnelColor;\n\t\t\t\tfloat4 SubGraphInputs_326258_O01
+    = MultiplyNode_62270_Output;\n\t\t\t\thalf4 FresnelNode_354882_Output = unity_fresnel_half
+    (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\n\t\t\t\thalf4 SplatNode_396302_Output
+    = SubGraphInputs_326258_O01.zzzz;\n\t\t\t\thalf4 AbsoluteNode_731304_Output =
+    unity_absolute_half (SplatNode_396302_Output);\n\t\t\t\thalf4 PowerNode_376742_Output
+    = pow (FresnelNode_354882_Output, AbsoluteNode_731304_Output);\n\t\t\t\thalf4
+    MultiplyNode_370328_Output = unity_multiply_half (SubGraphInputs_326258_O00, PowerNode_376742_Output);\n\t\t\t\t\n\t\t\t\tSubGraph_591876_I00
+    = MultiplyNode_370328_Output;\n\t\t\t}\n\t\t\t// Subgraph ends\n\t\t\t\n\t\t\thalf4
+    MultiplyNode_658580_Output = unity_multiply_half (SubGraph_591876_I00, half4 (1,1,1,1));\n\t\t\to.Emission
+    = MultiplyNode_658580_Output;\n\n\t\t}\n\t\t#ifdef LIGHTMAP_OFF\nstruct v2f_surf
+    {\n  float4 pos : SV_POSITION;\n  float3 viewDir : TEXCOORD0;\n  fixed3 normal
+    : TEXCOORD1;\n  fixed3 vlight : TEXCOORD2;\n  LIGHTING_COORDS(3,4)\n};\n#endif\n#ifndef
+    LIGHTMAP_OFF\nstruct v2f_surf {\n  float4 pos : SV_POSITION;\n  float3 viewDir
+    : TEXCOORD0;\n  fixed3 normal : TEXCOORD1;\n  float2 lmap : TEXCOORD2;\n  LIGHTING_COORDS(3,4)\n};\n#endif\n#ifndef
+    LIGHTMAP_OFF\nfloat4 unity_LightmapST;\n#endif\nv2f_surf vert_surf (appdata_full
+    v) {\n  v2f_surf o;\n  o.pos = mul (UNITY_MATRIX_MVP, v.vertex);\n  #ifndef LIGHTMAP_OFF\n
+    \ o.lmap.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;\n  #endif\n
+    \ float3 worldN = mul((float3x3)_Object2World, SCALED_NORMAL);\n  o.normal = worldN;\n
+    \ float3 viewDirForLight = WorldSpaceViewDir( v.vertex );\n  o.viewDir = viewDirForLight;\n
+    \ #ifdef LIGHTMAP_OFF\n  float3 shlight = ShadeSH9 (float4(worldN,1.0));\n  o.vlight
+    = shlight;\n  #ifdef VERTEXLIGHT_ON\n  float3 worldPos = mul(_Object2World, v.vertex).xyz;\n
+    \ o.vlight += Shade4PointLights (\n    unity_4LightPosX0, unity_4LightPosY0, unity_4LightPosZ0,\n
+    \   unity_LightColor[0].rgb, unity_LightColor[1].rgb, unity_LightColor[2].rgb,
+    unity_LightColor[3].rgb,\n    unity_4LightAtten0, worldPos, worldN );\n  #endif
+    // VERTEXLIGHT_ON\n  #endif // LIGHTMAP_OFF\n  TRANSFER_VERTEX_TO_FRAGMENT(o);\n
+    \ return o;\n}\n#ifndef LIGHTMAP_OFF\nsampler2D unity_Lightmap;\n#ifndef DIRLIGHTMAP_OFF\nsampler2D
+    unity_LightmapInd;\n#endif\n#endif\nfixed4 frag_surf (v2f_surf IN) : COLOR {\n
+    \ #ifdef UNITY_COMPILER_HLSL\n  Input surfIN = (Input)0;\n  #else\n  Input surfIN;\n
+    \ #endif\n  surfIN.viewDir = IN.viewDir;\n  #ifdef UNITY_COMPILER_HLSL\n  SurfaceOutput
+    o = (SurfaceOutput)0;\n  #else\n  SurfaceOutput o;\n  #endif\n  o.Albedo = 0.0;\n
+    \ o.Emission = 0.0;\n  o.Specular = 0.0;\n  o.Alpha = 0.0;\n  o.Gloss = 0.0;\n
+    \ o.Normal = IN.normal;\n  surf (surfIN, o);\n  fixed atten = LIGHT_ATTENUATION(IN);\n
+    \ fixed4 c = 0;\n  #ifdef LIGHTMAP_OFF\n  c = LightingLambert (o, _WorldSpaceLightPos0.xyz,
+    atten);\n  #endif // LIGHTMAP_OFF || DIRLIGHTMAP_OFF\n  #ifdef LIGHTMAP_OFF\n
+    \ c.rgb += o.Albedo * IN.vlight;\n  #endif // LIGHTMAP_OFF\n  #ifndef LIGHTMAP_OFF\n
+    \ #ifndef DIRLIGHTMAP_OFF\n  fixed4 lmtex = tex2D(unity_Lightmap, IN.lmap.xy);\n
+    \ fixed4 lmIndTex = tex2D(unity_LightmapInd, IN.lmap.xy);\n  half3 lm = LightingLambert_DirLightmap(o,
+    lmtex, lmIndTex, 0).rgb;\n  #else // !DIRLIGHTMAP_OFF\n  fixed4 lmtex = tex2D(unity_Lightmap,
+    IN.lmap.xy);\n  fixed3 lm = DecodeLightmap (lmtex);\n  #endif // !DIRLIGHTMAP_OFF\n
+    \ #ifdef SHADOWS_SCREEN\n  #if defined(SHADER_API_GLES) && defined(SHADER_API_MOBILE)\n
+    \ c.rgb += o.Albedo * min(lm, atten*2);\n  #else\n  c.rgb += o.Albedo * max(min(lm,(atten*2)*lmtex.rgb),
+    lm*atten);\n  #endif\n  #else // SHADOWS_SCREEN\n  c.rgb += o.Albedo * lm;\n  #endif
+    // SHADOWS_SCREEN\n  c.a = o.Alpha;\n#endif // LIGHTMAP_OFF\n  c.rgb += o.Emission;\n
+    \ return c;\n}\n\nENDCG\n*/\nProgram \"vp\" {\n// Vertex combos: 12\n//   d3d9
+    - ALU: 13 to 65\nSubProgram \"opengl \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_OFF\"
+    \"DIRLIGHTMAP_OFF\" \"SHADOWS_OFF\" }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec3 xlv_TEXCOORD2;\nvarying
+    vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4 unity_Scale;\nuniform
+    mat4 _Object2World;\n\nuniform vec4 unity_SHC;\nuniform vec4 unity_SHBb;\nuniform
+    vec4 unity_SHBg;\nuniform vec4 unity_SHBr;\nuniform vec4 unity_SHAb;\nuniform
+    vec4 unity_SHAg;\nuniform vec4 unity_SHAr;\nuniform vec3 _WorldSpaceCameraPos;\nvoid
+    main ()\n{\n  mat3 tmpvar_1;\n  tmpvar_1[0] = _Object2World[0].xyz;\n  tmpvar_1[1]
+    = _Object2World[1].xyz;\n  tmpvar_1[2] = _Object2World[2].xyz;\n  vec3 tmpvar_2;\n
+    \ tmpvar_2 = (tmpvar_1 * (gl_Normal * unity_Scale.w));\n  vec4 tmpvar_3;\n  tmpvar_3.w
+    = 1.0;\n  tmpvar_3.xyz = tmpvar_2;\n  vec3 x2_4;\n  vec3 x1_5;\n  x1_5.x = dot
+    (unity_SHAr, tmpvar_3);\n  x1_5.y = dot (unity_SHAg, tmpvar_3);\n  x1_5.z = dot
+    (unity_SHAb, tmpvar_3);\n  vec4 tmpvar_6;\n  tmpvar_6 = (tmpvar_2.xyzz * tmpvar_2.yzzx);\n
+    \ x2_4.x = dot (unity_SHBr, tmpvar_6);\n  x2_4.y = dot (unity_SHBg, tmpvar_6);\n
+    \ x2_4.z = dot (unity_SHBb, tmpvar_6);\n  gl_Position = (gl_ModelViewProjectionMatrix
+    * gl_Vertex);\n  xlv_TEXCOORD0 = (_WorldSpaceCameraPos - (_Object2World * gl_Vertex).xyz);\n
+    \ xlv_TEXCOORD1 = tmpvar_2;\n  xlv_TEXCOORD2 = ((x1_5 + x2_4) + (unity_SHC.xyz
+    * ((tmpvar_2.x * tmpvar_2.x) - (tmpvar_2.y * tmpvar_2.y))));\n}\n\n\n#endif\n#ifdef
+    FRAGMENT\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4
+    FresnelColor;\nuniform vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n
+    \ vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot
+    (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD1)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n
+    \ gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords
+    { \"DIRECTIONAL\" \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_OFF\" }\nBind
+    \"vertex\" Vertex\nBind \"normal\" Normal\nMatrix 0 [glstate_matrix_mvp]\nVector
+    8 [_WorldSpaceCameraPos]\nVector 9 [unity_SHAr]\nVector 10 [unity_SHAg]\nVector
+    11 [unity_SHAb]\nVector 12 [unity_SHBr]\nVector 13 [unity_SHBg]\nVector 14 [unity_SHBb]\nVector
+    15 [unity_SHC]\nMatrix 4 [_Object2World]\nVector 16 [unity_Scale]\n\"vs_3_0\n;
+    30 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndef
+    c17, 1.00000000, 0, 0, 0\ndcl_position0 v0\ndcl_normal0 v1\nmul r1.xyz, v1, c16.w\ndp3
+    r3.w, r1, c5\ndp3 r2.w, r1, c6\ndp3 r0.x, r1, c4\nmov r0.y, r3.w\nmov r0.z, r2.w\nmul
+    r1, r0.xyzz, r0.yzzx\nmov r0.w, c17.x\ndp4 r2.z, r0, c11\ndp4 r2.y, r0, c10\ndp4
+    r2.x, r0, c9\nmul r0.y, r3.w, r3.w\ndp4 r3.z, r1, c14\ndp4 r3.y, r1, c13\ndp4
+    r3.x, r1, c12\nmad r0.y, r0.x, r0.x, -r0\nmul r1.xyz, r0.y, c15\nadd r2.xyz, r2,
+    r3\nadd o3.xyz, r2, r1\ndp4 r1.z, v0, c6\ndp4 r1.x, v0, c4\ndp4 r1.y, v0, c5\nadd
+    o1.xyz, -r1, c8\nmov o2.z, r2.w\nmov o2.y, r3.w\nmov o2.x, r0\ndp4 o0.w, v0, c3\ndp4
+    o0.z, v0, c2\ndp4 o0.y, v0, c1\ndp4 o0.x, v0, c0\n\"\n}\n\nSubProgram \"opengl
+    \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_OFF\"
+    }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec2 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD1;\nvarying
+    vec3 xlv_TEXCOORD0;\nuniform vec4 unity_LightmapST;\nuniform vec4 unity_Scale;\nuniform
+    mat4 _Object2World;\n\nuniform vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n  mat3
+    tmpvar_1;\n  tmpvar_1[0] = _Object2World[0].xyz;\n  tmpvar_1[1] = _Object2World[1].xyz;\n
+    \ tmpvar_1[2] = _Object2World[2].xyz;\n  gl_Position = (gl_ModelViewProjectionMatrix
+    * gl_Vertex);\n  xlv_TEXCOORD0 = (_WorldSpaceCameraPos - (_Object2World * gl_Vertex).xyz);\n
+    \ xlv_TEXCOORD1 = (tmpvar_1 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD2 =
+    ((gl_MultiTexCoord1.xy * unity_LightmapST.xy) + unity_LightmapST.zw);\n}\n\n\n#endif\n#ifdef
+    FRAGMENT\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4
+    FresnelColor;\nuniform vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n
+    \ vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot
+    (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD1)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n
+    \ gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords
+    { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_OFF\" }\nBind
+    \"vertex\" Vertex\nBind \"normal\" Normal\nBind \"texcoord1\" TexCoord1\nMatrix
+    0 [glstate_matrix_mvp]\nVector 8 [_WorldSpaceCameraPos]\nMatrix 4 [_Object2World]\nVector
+    9 [unity_Scale]\nVector 10 [unity_LightmapST]\n\"vs_3_0\n; 13 ALU\ndcl_position
+    o0\ndcl_texcoord0 o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_position0 v0\ndcl_normal0
+    v1\ndcl_texcoord1 v2\nmul r1.xyz, v1, c9.w\ndp4 r0.z, v0, c6\ndp4 r0.x, v0, c4\ndp4
+    r0.y, v0, c5\nadd o1.xyz, -r0, c8\ndp3 o2.z, r1, c6\ndp3 o2.y, r1, c5\ndp3 o2.x,
+    r1, c4\nmad o3.xy, v2, c10, c10.zwzw\ndp4 o0.w, v0, c3\ndp4 o0.z, v0, c2\ndp4
+    o0.y, v0, c1\ndp4 o0.x, v0, c0\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords {
+    \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"SHADOWS_OFF\" }\n\"!!GLSL\n#ifdef
+    VERTEX\nvarying vec2 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3
+    xlv_TEXCOORD0;\nuniform vec4 unity_LightmapST;\nuniform vec4 unity_Scale;\nuniform
+    mat4 _Object2World;\n\nuniform vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n  mat3
+    tmpvar_1;\n  tmpvar_1[0] = _Object2World[0].xyz;\n  tmpvar_1[1] = _Object2World[1].xyz;\n
+    \ tmpvar_1[2] = _Object2World[2].xyz;\n  gl_Position = (gl_ModelViewProjectionMatrix
+    * gl_Vertex);\n  xlv_TEXCOORD0 = (_WorldSpaceCameraPos - (_Object2World * gl_Vertex).xyz);\n
+    \ xlv_TEXCOORD1 = (tmpvar_1 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD2 =
+    ((gl_MultiTexCoord1.xy * unity_LightmapST.xy) + unity_LightmapST.zw);\n}\n\n\n#endif\n#ifdef
+    FRAGMENT\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4
+    FresnelColor;\nuniform vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n
+    \ vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot
+    (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD1)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n
+    \ gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords
+    { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"SHADOWS_OFF\" }\nBind \"vertex\"
+    Vertex\nBind \"normal\" Normal\nBind \"texcoord1\" TexCoord1\nMatrix 0 [glstate_matrix_mvp]\nVector
+    8 [_WorldSpaceCameraPos]\nMatrix 4 [_Object2World]\nVector 9 [unity_Scale]\nVector
+    10 [unity_LightmapST]\n\"vs_3_0\n; 13 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1
+    o2\ndcl_texcoord2 o3\ndcl_position0 v0\ndcl_normal0 v1\ndcl_texcoord1 v2\nmul
+    r1.xyz, v1, c9.w\ndp4 r0.z, v0, c6\ndp4 r0.x, v0, c4\ndp4 r0.y, v0, c5\nadd o1.xyz,
+    -r0, c8\ndp3 o2.z, r1, c6\ndp3 o2.y, r1, c5\ndp3 o2.x, r1, c4\nmad o3.xy, v2,
+    c10, c10.zwzw\ndp4 o0.w, v0, c3\ndp4 o0.z, v0, c2\ndp4 o0.y, v0, c1\ndp4 o0.x,
+    v0, c0\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_OFF\"
+    \"DIRLIGHTMAP_OFF\" \"SHADOWS_SCREEN\" }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec4
+    xlv_TEXCOORD3;\nvarying vec3 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD1;\nvarying
+    vec3 xlv_TEXCOORD0;\nuniform vec4 unity_Scale;\nuniform mat4 _Object2World;\n\nuniform
+    vec4 unity_SHC;\nuniform vec4 unity_SHBb;\nuniform vec4 unity_SHBg;\nuniform vec4
+    unity_SHBr;\nuniform vec4 unity_SHAb;\nuniform vec4 unity_SHAg;\nuniform vec4
+    unity_SHAr;\nuniform vec4 _ProjectionParams;\nuniform vec3 _WorldSpaceCameraPos;\nvoid
+    main ()\n{\n  vec4 tmpvar_1;\n  tmpvar_1 = (gl_ModelViewProjectionMatrix * gl_Vertex);\n
+    \ mat3 tmpvar_2;\n  tmpvar_2[0] = _Object2World[0].xyz;\n  tmpvar_2[1] = _Object2World[1].xyz;\n
+    \ tmpvar_2[2] = _Object2World[2].xyz;\n  vec3 tmpvar_3;\n  tmpvar_3 = (tmpvar_2
+    * (gl_Normal * unity_Scale.w));\n  vec4 tmpvar_4;\n  tmpvar_4.w = 1.0;\n  tmpvar_4.xyz
+    = tmpvar_3;\n  vec3 x2_5;\n  vec3 x1_6;\n  x1_6.x = dot (unity_SHAr, tmpvar_4);\n
+    \ x1_6.y = dot (unity_SHAg, tmpvar_4);\n  x1_6.z = dot (unity_SHAb, tmpvar_4);\n
+    \ vec4 tmpvar_7;\n  tmpvar_7 = (tmpvar_3.xyzz * tmpvar_3.yzzx);\n  x2_5.x = dot
+    (unity_SHBr, tmpvar_7);\n  x2_5.y = dot (unity_SHBg, tmpvar_7);\n  x2_5.z = dot
+    (unity_SHBb, tmpvar_7);\n  vec4 o_8;\n  vec4 tmpvar_9;\n  tmpvar_9 = (tmpvar_1
+    * 0.5);\n  vec2 tmpvar_10;\n  tmpvar_10.x = tmpvar_9.x;\n  tmpvar_10.y = (tmpvar_9.y
+    * _ProjectionParams.x);\n  o_8.xy = (tmpvar_10 + tmpvar_9.w);\n  o_8.zw = tmpvar_1.zw;\n
+    \ gl_Position = tmpvar_1;\n  xlv_TEXCOORD0 = (_WorldSpaceCameraPos - (_Object2World
+    * gl_Vertex).xyz);\n  xlv_TEXCOORD1 = tmpvar_3;\n  xlv_TEXCOORD2 = ((x1_6 + x2_5)
+    + (unity_SHC.xyz * ((tmpvar_3.x * tmpvar_3.x) - (tmpvar_3.y * tmpvar_3.y))));\n
+    \ xlv_TEXCOORD3 = o_8;\n}\n\n\n#endif\n#ifdef FRAGMENT\nvarying vec3 xlv_TEXCOORD1;\nvarying
+    vec3 xlv_TEXCOORD0;\nuniform vec4 FresnelColor;\nuniform vec4 FresnelPower;\nuniform
+    vec4 _SinTime;\nvoid main ()\n{\n  vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor
+    * pow (vec4((1.0 - dot (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD1)))),
+    abs((FresnelPower * _SinTime).zzzz))).xyz;\n  gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_SCREEN\"
+    }\nBind \"vertex\" Vertex\nBind \"normal\" Normal\nMatrix 0 [glstate_matrix_mvp]\nVector
+    8 [_WorldSpaceCameraPos]\nVector 9 [_ProjectionParams]\nVector 10 [_ScreenParams]\nVector
+    11 [unity_SHAr]\nVector 12 [unity_SHAg]\nVector 13 [unity_SHAb]\nVector 14 [unity_SHBr]\nVector
+    15 [unity_SHBg]\nVector 16 [unity_SHBb]\nVector 17 [unity_SHC]\nMatrix 4 [_Object2World]\nVector
+    18 [unity_Scale]\n\"vs_3_0\n; 35 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1
+    o2\ndcl_texcoord2 o3\ndcl_texcoord3 o4\ndef c19, 1.00000000, 0.50000000, 0, 0\ndcl_position0
+    v0\ndcl_normal0 v1\nmul r0.xyz, v1, c18.w\ndp3 r3.w, r0, c5\ndp3 r2.w, r0, c6\ndp3
+    r1.w, r0, c4\nmov r1.x, r3.w\nmov r1.y, r2.w\nmov r1.z, c19.x\nmul r0, r1.wxyy,
+    r1.xyyw\ndp4 r2.z, r1.wxyz, c13\ndp4 r2.y, r1.wxyz, c12\ndp4 r2.x, r1.wxyz, c11\ndp4
+    r1.z, r0, c16\ndp4 r1.y, r0, c15\ndp4 r1.x, r0, c14\nmul r3.x, r3.w, r3.w\nmad
+    r0.x, r1.w, r1.w, -r3\nadd r3.xyz, r2, r1\nmul r2.xyz, r0.x, c17\ndp4 r0.w, v0,
+    c3\ndp4 r0.z, v0, c2\ndp4 r0.x, v0, c0\ndp4 r0.y, v0, c1\nmul r1.xyz, r0.xyww,
+    c19.y\nmov o0, r0\nmul r1.y, r1, c9.x\nmov o4.zw, r0\ndp4 r0.z, v0, c6\ndp4 r0.x,
+    v0, c4\ndp4 r0.y, v0, c5\nadd o3.xyz, r3, r2\nmad o4.xy, r1.z, c10.zwzw, r1\nadd
+    o1.xyz, -r0, c8\nmov o2.z, r2.w\nmov o2.y, r3.w\nmov o2.x, r1.w\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\"
+    \"SHADOWS_SCREEN\" }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec4 xlv_TEXCOORD3;\nvarying
+    vec2 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform
+    vec4 unity_LightmapST;\nuniform vec4 unity_Scale;\nuniform mat4 _Object2World;\n\nuniform
+    vec4 _ProjectionParams;\nuniform vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n
+    \ vec4 tmpvar_1;\n  tmpvar_1 = (gl_ModelViewProjectionMatrix * gl_Vertex);\n  mat3
+    tmpvar_2;\n  tmpvar_2[0] = _Object2World[0].xyz;\n  tmpvar_2[1] = _Object2World[1].xyz;\n
+    \ tmpvar_2[2] = _Object2World[2].xyz;\n  vec4 o_3;\n  vec4 tmpvar_4;\n  tmpvar_4
+    = (tmpvar_1 * 0.5);\n  vec2 tmpvar_5;\n  tmpvar_5.x = tmpvar_4.x;\n  tmpvar_5.y
+    = (tmpvar_4.y * _ProjectionParams.x);\n  o_3.xy = (tmpvar_5 + tmpvar_4.w);\n  o_3.zw
+    = tmpvar_1.zw;\n  gl_Position = tmpvar_1;\n  xlv_TEXCOORD0 = (_WorldSpaceCameraPos
+    - (_Object2World * gl_Vertex).xyz);\n  xlv_TEXCOORD1 = (tmpvar_2 * (gl_Normal
+    * unity_Scale.w));\n  xlv_TEXCOORD2 = ((gl_MultiTexCoord1.xy * unity_LightmapST.xy)
+    + unity_LightmapST.zw);\n  xlv_TEXCOORD3 = o_3;\n}\n\n\n#endif\n#ifdef FRAGMENT\nvarying
+    vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4 FresnelColor;\nuniform
+    vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n  vec4 c_1;\n  c_1.w
+    = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot (normalize(xlv_TEXCOORD0),
+    normalize(xlv_TEXCOORD1)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n  gl_FragData[0]
+    = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"DIRECTIONAL\"
+    \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_SCREEN\" }\nBind \"vertex\" Vertex\nBind
+    \"normal\" Normal\nBind \"texcoord1\" TexCoord1\nMatrix 0 [glstate_matrix_mvp]\nVector
+    8 [_WorldSpaceCameraPos]\nVector 9 [_ProjectionParams]\nVector 10 [_ScreenParams]\nMatrix
+    4 [_Object2World]\nVector 11 [unity_Scale]\nVector 12 [unity_LightmapST]\n\"vs_3_0\n;
+    18 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_texcoord3
+    o4\ndef c13, 0.50000000, 0, 0, 0\ndcl_position0 v0\ndcl_normal0 v1\ndcl_texcoord1
+    v2\ndp4 r0.w, v0, c3\ndp4 r0.z, v0, c2\ndp4 r0.x, v0, c0\ndp4 r0.y, v0, c1\nmul
+    r1.xyz, r0.xyww, c13.x\nmov o0, r0\nmul r1.y, r1, c9.x\nmad o4.xy, r1.z, c10.zwzw,
+    r1\nmul r1.xyz, v1, c11.w\nmov o4.zw, r0\ndp4 r0.z, v0, c6\ndp4 r0.x, v0, c4\ndp4
+    r0.y, v0, c5\nadd o1.xyz, -r0, c8\ndp3 o2.z, r1, c6\ndp3 o2.y, r1, c5\ndp3 o2.x,
+    r1, c4\nmad o3.xy, v2, c12, c12.zwzw\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords
+    { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"SHADOWS_SCREEN\" }\n\"!!GLSL\n#ifdef
+    VERTEX\nvarying vec4 xlv_TEXCOORD3;\nvarying vec2 xlv_TEXCOORD2;\nvarying vec3
+    xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4 unity_LightmapST;\nuniform
+    vec4 unity_Scale;\nuniform mat4 _Object2World;\n\nuniform vec4 _ProjectionParams;\nuniform
+    vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n  vec4 tmpvar_1;\n  tmpvar_1 = (gl_ModelViewProjectionMatrix
+    * gl_Vertex);\n  mat3 tmpvar_2;\n  tmpvar_2[0] = _Object2World[0].xyz;\n  tmpvar_2[1]
+    = _Object2World[1].xyz;\n  tmpvar_2[2] = _Object2World[2].xyz;\n  vec4 o_3;\n
+    \ vec4 tmpvar_4;\n  tmpvar_4 = (tmpvar_1 * 0.5);\n  vec2 tmpvar_5;\n  tmpvar_5.x
+    = tmpvar_4.x;\n  tmpvar_5.y = (tmpvar_4.y * _ProjectionParams.x);\n  o_3.xy =
+    (tmpvar_5 + tmpvar_4.w);\n  o_3.zw = tmpvar_1.zw;\n  gl_Position = tmpvar_1;\n
+    \ xlv_TEXCOORD0 = (_WorldSpaceCameraPos - (_Object2World * gl_Vertex).xyz);\n
+    \ xlv_TEXCOORD1 = (tmpvar_2 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD2 =
+    ((gl_MultiTexCoord1.xy * unity_LightmapST.xy) + unity_LightmapST.zw);\n  xlv_TEXCOORD3
+    = o_3;\n}\n\n\n#endif\n#ifdef FRAGMENT\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3
+    xlv_TEXCOORD0;\nuniform vec4 FresnelColor;\nuniform vec4 FresnelPower;\nuniform
+    vec4 _SinTime;\nvoid main ()\n{\n  vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor
+    * pow (vec4((1.0 - dot (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD1)))),
+    abs((FresnelPower * _SinTime).zzzz))).xyz;\n  gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"SHADOWS_SCREEN\"
+    }\nBind \"vertex\" Vertex\nBind \"normal\" Normal\nBind \"texcoord1\" TexCoord1\nMatrix
+    0 [glstate_matrix_mvp]\nVector 8 [_WorldSpaceCameraPos]\nVector 9 [_ProjectionParams]\nVector
+    10 [_ScreenParams]\nMatrix 4 [_Object2World]\nVector 11 [unity_Scale]\nVector
+    12 [unity_LightmapST]\n\"vs_3_0\n; 18 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1
+    o2\ndcl_texcoord2 o3\ndcl_texcoord3 o4\ndef c13, 0.50000000, 0, 0, 0\ndcl_position0
+    v0\ndcl_normal0 v1\ndcl_texcoord1 v2\ndp4 r0.w, v0, c3\ndp4 r0.z, v0, c2\ndp4
+    r0.x, v0, c0\ndp4 r0.y, v0, c1\nmul r1.xyz, r0.xyww, c13.x\nmov o0, r0\nmul r1.y,
+    r1, c9.x\nmad o4.xy, r1.z, c10.zwzw, r1\nmul r1.xyz, v1, c11.w\nmov o4.zw, r0\ndp4
+    r0.z, v0, c6\ndp4 r0.x, v0, c4\ndp4 r0.y, v0, c5\nadd o1.xyz, -r0, c8\ndp3 o2.z,
+    r1, c6\ndp3 o2.y, r1, c5\ndp3 o2.x, r1, c4\nmad o3.xy, v2, c12, c12.zwzw\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\"
+    \"SHADOWS_OFF\" \"VERTEXLIGHT_ON\" }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec3 xlv_TEXCOORD2;\nvarying
+    vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4 unity_Scale;\nuniform
+    mat4 _Object2World;\n\nuniform vec4 unity_SHC;\nuniform vec4 unity_SHBb;\nuniform
+    vec4 unity_SHBg;\nuniform vec4 unity_SHBr;\nuniform vec4 unity_SHAb;\nuniform
+    vec4 unity_SHAg;\nuniform vec4 unity_SHAr;\nuniform vec4 unity_LightColor[4];\nuniform
+    vec4 unity_4LightAtten0;\nuniform vec4 unity_4LightPosZ0;\nuniform vec4 unity_4LightPosY0;\nuniform
+    vec4 unity_4LightPosX0;\nuniform vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n
+    \ mat3 tmpvar_1;\n  tmpvar_1[0] = _Object2World[0].xyz;\n  tmpvar_1[1] = _Object2World[1].xyz;\n
+    \ tmpvar_1[2] = _Object2World[2].xyz;\n  vec3 tmpvar_2;\n  tmpvar_2 = (tmpvar_1
+    * (gl_Normal * unity_Scale.w));\n  vec4 tmpvar_3;\n  tmpvar_3.w = 1.0;\n  tmpvar_3.xyz
+    = tmpvar_2;\n  vec3 x2_4;\n  vec3 x1_5;\n  x1_5.x = dot (unity_SHAr, tmpvar_3);\n
+    \ x1_5.y = dot (unity_SHAg, tmpvar_3);\n  x1_5.z = dot (unity_SHAb, tmpvar_3);\n
+    \ vec4 tmpvar_6;\n  tmpvar_6 = (tmpvar_2.xyzz * tmpvar_2.yzzx);\n  x2_4.x = dot
+    (unity_SHBr, tmpvar_6);\n  x2_4.y = dot (unity_SHBg, tmpvar_6);\n  x2_4.z = dot
+    (unity_SHBb, tmpvar_6);\n  vec3 tmpvar_7;\n  tmpvar_7 = (_Object2World * gl_Vertex).xyz;\n
+    \ vec4 tmpvar_8;\n  tmpvar_8 = (unity_4LightPosX0 - tmpvar_7.x);\n  vec4 tmpvar_9;\n
+    \ tmpvar_9 = (unity_4LightPosY0 - tmpvar_7.y);\n  vec4 tmpvar_10;\n  tmpvar_10
+    = (unity_4LightPosZ0 - tmpvar_7.z);\n  vec4 tmpvar_11;\n  tmpvar_11 = (((tmpvar_8
+    * tmpvar_8) + (tmpvar_9 * tmpvar_9)) + (tmpvar_10 * tmpvar_10));\n  vec4 tmpvar_12;\n
+    \ tmpvar_12 = (max (vec4(0.0, 0.0, 0.0, 0.0), ((((tmpvar_8 * tmpvar_2.x) + (tmpvar_9
+    * tmpvar_2.y)) + (tmpvar_10 * tmpvar_2.z)) * inversesqrt(tmpvar_11))) * (1.0/((1.0
+    + (tmpvar_11 * unity_4LightAtten0)))));\n  gl_Position = (gl_ModelViewProjectionMatrix
+    * gl_Vertex);\n  xlv_TEXCOORD0 = (_WorldSpaceCameraPos - (_Object2World * gl_Vertex).xyz);\n
+    \ xlv_TEXCOORD1 = tmpvar_2;\n  xlv_TEXCOORD2 = (((x1_5 + x2_4) + (unity_SHC.xyz
+    * ((tmpvar_2.x * tmpvar_2.x) - (tmpvar_2.y * tmpvar_2.y)))) + ((((unity_LightColor[0].xyz
+    * tmpvar_12.x) + (unity_LightColor[1].xyz * tmpvar_12.y)) + (unity_LightColor[2].xyz
+    * tmpvar_12.z)) + (unity_LightColor[3].xyz * tmpvar_12.w)));\n}\n\n\n#endif\n#ifdef
+    FRAGMENT\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4
+    FresnelColor;\nuniform vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n
+    \ vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot
+    (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD1)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n
+    \ gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords
+    { \"DIRECTIONAL\" \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_OFF\" \"VERTEXLIGHT_ON\"
+    }\nBind \"vertex\" Vertex\nBind \"normal\" Normal\nMatrix 0 [glstate_matrix_mvp]\nVector
+    8 [_WorldSpaceCameraPos]\nVector 9 [unity_4LightPosX0]\nVector 10 [unity_4LightPosY0]\nVector
+    11 [unity_4LightPosZ0]\nVector 12 [unity_4LightAtten0]\nVector 13 [unity_LightColor0]\nVector
+    14 [unity_LightColor1]\nVector 15 [unity_LightColor2]\nVector 16 [unity_LightColor3]\nVector
+    17 [unity_SHAr]\nVector 18 [unity_SHAg]\nVector 19 [unity_SHAb]\nVector 20 [unity_SHBr]\nVector
+    21 [unity_SHBg]\nVector 22 [unity_SHBb]\nVector 23 [unity_SHC]\nMatrix 4 [_Object2World]\nVector
+    24 [unity_Scale]\n\"vs_3_0\n; 59 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1
+    o2\ndcl_texcoord2 o3\ndef c25, 1.00000000, 0.00000000, 0, 0\ndcl_position0 v0\ndcl_normal0
+    v1\nmul r3.xyz, v1, c24.w\ndp3 r5.x, r3, c4\ndp4 r4.zw, v0, c5\nadd r2, -r4.z,
+    c10\ndp3 r4.z, r3, c5\ndp3 r3.z, r3, c6\ndp4 r3.w, v0, c4\nmul r0, r4.z, r2\nadd
+    r1, -r3.w, c9\ndp4 r4.xy, v0, c6\nmul r2, r2, r2\nmov r5.y, r4.z\nmov r5.z, r3\nmov
+    r5.w, c25.x\nmad r0, r5.x, r1, r0\nmad r2, r1, r1, r2\nadd r1, -r4.x, c11\nmad
+    r2, r1, r1, r2\nmad r0, r3.z, r1, r0\nmul r1, r2, c12\nadd r1, r1, c25.x\nrsq
+    r2.x, r2.x\nrsq r2.y, r2.y\nrsq r2.z, r2.z\nrsq r2.w, r2.w\nmul r0, r0, r2\ndp4
+    r2.z, r5, c19\ndp4 r2.y, r5, c18\ndp4 r2.x, r5, c17\nrcp r1.x, r1.x\nrcp r1.y,
+    r1.y\nrcp r1.w, r1.w\nrcp r1.z, r1.z\nmax r0, r0, c25.y\nmul r0, r0, r1\nmul r1.xyz,
+    r0.y, c14\nmad r1.xyz, r0.x, c13, r1\nmad r0.xyz, r0.z, c15, r1\nmad r1.xyz, r0.w,
+    c16, r0\nmul r0, r5.xyzz, r5.yzzx\nmul r1.w, r4.z, r4.z\ndp4 r5.w, r0, c22\ndp4
+    r5.z, r0, c21\ndp4 r5.y, r0, c20\nmad r1.w, r5.x, r5.x, -r1\nmul r0.xyz, r1.w,
+    c23\nadd r2.xyz, r2, r5.yzww\nadd r0.xyz, r2, r0\nmov r3.x, r4.w\nmov r3.y, r4\nadd
+    o3.xyz, r0, r1\nadd o1.xyz, -r3.wxyw, c8\nmov o2.z, r3\nmov o2.y, r4.z\nmov o2.x,
+    r5\ndp4 o0.w, v0, c3\ndp4 o0.z, v0, c2\ndp4 o0.y, v0, c1\ndp4 o0.x, v0, c0\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\"
+    \"SHADOWS_SCREEN\" \"VERTEXLIGHT_ON\" }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec4
+    xlv_TEXCOORD3;\nvarying vec3 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD1;\nvarying
+    vec3 xlv_TEXCOORD0;\nuniform vec4 unity_Scale;\nuniform mat4 _Object2World;\n\nuniform
+    vec4 unity_SHC;\nuniform vec4 unity_SHBb;\nuniform vec4 unity_SHBg;\nuniform vec4
+    unity_SHBr;\nuniform vec4 unity_SHAb;\nuniform vec4 unity_SHAg;\nuniform vec4
+    unity_SHAr;\nuniform vec4 unity_LightColor[4];\nuniform vec4 unity_4LightAtten0;\nuniform
+    vec4 unity_4LightPosZ0;\nuniform vec4 unity_4LightPosY0;\nuniform vec4 unity_4LightPosX0;\nuniform
+    vec4 _ProjectionParams;\nuniform vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n
+    \ vec4 tmpvar_1;\n  tmpvar_1 = (gl_ModelViewProjectionMatrix * gl_Vertex);\n  mat3
+    tmpvar_2;\n  tmpvar_2[0] = _Object2World[0].xyz;\n  tmpvar_2[1] = _Object2World[1].xyz;\n
+    \ tmpvar_2[2] = _Object2World[2].xyz;\n  vec3 tmpvar_3;\n  tmpvar_3 = (tmpvar_2
+    * (gl_Normal * unity_Scale.w));\n  vec4 tmpvar_4;\n  tmpvar_4.w = 1.0;\n  tmpvar_4.xyz
+    = tmpvar_3;\n  vec3 x2_5;\n  vec3 x1_6;\n  x1_6.x = dot (unity_SHAr, tmpvar_4);\n
+    \ x1_6.y = dot (unity_SHAg, tmpvar_4);\n  x1_6.z = dot (unity_SHAb, tmpvar_4);\n
+    \ vec4 tmpvar_7;\n  tmpvar_7 = (tmpvar_3.xyzz * tmpvar_3.yzzx);\n  x2_5.x = dot
+    (unity_SHBr, tmpvar_7);\n  x2_5.y = dot (unity_SHBg, tmpvar_7);\n  x2_5.z = dot
+    (unity_SHBb, tmpvar_7);\n  vec3 tmpvar_8;\n  tmpvar_8 = (_Object2World * gl_Vertex).xyz;\n
+    \ vec4 tmpvar_9;\n  tmpvar_9 = (unity_4LightPosX0 - tmpvar_8.x);\n  vec4 tmpvar_10;\n
+    \ tmpvar_10 = (unity_4LightPosY0 - tmpvar_8.y);\n  vec4 tmpvar_11;\n  tmpvar_11
+    = (unity_4LightPosZ0 - tmpvar_8.z);\n  vec4 tmpvar_12;\n  tmpvar_12 = (((tmpvar_9
+    * tmpvar_9) + (tmpvar_10 * tmpvar_10)) + (tmpvar_11 * tmpvar_11));\n  vec4 tmpvar_13;\n
+    \ tmpvar_13 = (max (vec4(0.0, 0.0, 0.0, 0.0), ((((tmpvar_9 * tmpvar_3.x) + (tmpvar_10
+    * tmpvar_3.y)) + (tmpvar_11 * tmpvar_3.z)) * inversesqrt(tmpvar_12))) * (1.0/((1.0
+    + (tmpvar_12 * unity_4LightAtten0)))));\n  vec4 o_14;\n  vec4 tmpvar_15;\n  tmpvar_15
+    = (tmpvar_1 * 0.5);\n  vec2 tmpvar_16;\n  tmpvar_16.x = tmpvar_15.x;\n  tmpvar_16.y
+    = (tmpvar_15.y * _ProjectionParams.x);\n  o_14.xy = (tmpvar_16 + tmpvar_15.w);\n
+    \ o_14.zw = tmpvar_1.zw;\n  gl_Position = tmpvar_1;\n  xlv_TEXCOORD0 = (_WorldSpaceCameraPos
+    - (_Object2World * gl_Vertex).xyz);\n  xlv_TEXCOORD1 = tmpvar_3;\n  xlv_TEXCOORD2
+    = (((x1_6 + x2_5) + (unity_SHC.xyz * ((tmpvar_3.x * tmpvar_3.x) - (tmpvar_3.y
+    * tmpvar_3.y)))) + ((((unity_LightColor[0].xyz * tmpvar_13.x) + (unity_LightColor[1].xyz
+    * tmpvar_13.y)) + (unity_LightColor[2].xyz * tmpvar_13.z)) + (unity_LightColor[3].xyz
+    * tmpvar_13.w)));\n  xlv_TEXCOORD3 = o_14;\n}\n\n\n#endif\n#ifdef FRAGMENT\nvarying
+    vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4 FresnelColor;\nuniform
+    vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n  vec4 c_1;\n  c_1.w
+    = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot (normalize(xlv_TEXCOORD0),
+    normalize(xlv_TEXCOORD1)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n  gl_FragData[0]
+    = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"DIRECTIONAL\"
+    \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_SCREEN\" \"VERTEXLIGHT_ON\" }\nBind
+    \"vertex\" Vertex\nBind \"normal\" Normal\nMatrix 0 [glstate_matrix_mvp]\nVector
+    8 [_WorldSpaceCameraPos]\nVector 9 [_ProjectionParams]\nVector 10 [_ScreenParams]\nVector
+    11 [unity_4LightPosX0]\nVector 12 [unity_4LightPosY0]\nVector 13 [unity_4LightPosZ0]\nVector
+    14 [unity_4LightAtten0]\nVector 15 [unity_LightColor0]\nVector 16 [unity_LightColor1]\nVector
+    17 [unity_LightColor2]\nVector 18 [unity_LightColor3]\nVector 19 [unity_SHAr]\nVector
+    20 [unity_SHAg]\nVector 21 [unity_SHAb]\nVector 22 [unity_SHBr]\nVector 23 [unity_SHBg]\nVector
+    24 [unity_SHBb]\nVector 25 [unity_SHC]\nMatrix 4 [_Object2World]\nVector 26 [unity_Scale]\n\"vs_3_0\n;
+    65 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_texcoord3
+    o4\ndef c27, 1.00000000, 0.00000000, 0.50000000, 0\ndcl_position0 v0\ndcl_normal0
+    v1\nmul r3.xyz, v1, c26.w\ndp3 r5.x, r3, c4\ndp4 r4.zw, v0, c5\nadd r2, -r4.z,
+    c12\ndp3 r4.z, r3, c5\ndp3 r3.z, r3, c6\ndp4 r3.w, v0, c4\nmul r0, r4.z, r2\nadd
+    r1, -r3.w, c11\ndp4 r4.xy, v0, c6\nmul r2, r2, r2\nmov r5.y, r4.z\nmov r5.z, r3\nmov
+    r5.w, c27.x\nmad r0, r5.x, r1, r0\nmad r2, r1, r1, r2\nadd r1, -r4.x, c13\nmad
+    r2, r1, r1, r2\nmad r0, r3.z, r1, r0\nmul r1, r2, c14\nadd r1, r1, c27.x\nrsq
+    r2.x, r2.x\nrsq r2.y, r2.y\nrsq r2.z, r2.z\nrsq r2.w, r2.w\nmul r0, r0, r2\ndp4
+    r2.z, r5, c21\ndp4 r2.y, r5, c20\ndp4 r2.x, r5, c19\nrcp r1.x, r1.x\nrcp r1.y,
+    r1.y\nrcp r1.w, r1.w\nrcp r1.z, r1.z\nmax r0, r0, c27.y\nmul r0, r0, r1\nmul r1.xyz,
+    r0.y, c16\nmad r1.xyz, r0.x, c15, r1\nmad r0.xyz, r0.z, c17, r1\nmad r1.xyz, r0.w,
+    c18, r0\nmul r0, r5.xyzz, r5.yzzx\nmul r1.w, r4.z, r4.z\ndp4 r5.w, r0, c24\ndp4
+    r5.z, r0, c23\ndp4 r5.y, r0, c22\nmad r1.w, r5.x, r5.x, -r1\nmul r0.xyz, r1.w,
+    c25\nadd r2.xyz, r2, r5.yzww\nadd r5.yzw, r2.xxyz, r0.xxyz\ndp4 r0.w, v0, c3\ndp4
+    r0.z, v0, c2\ndp4 r0.x, v0, c0\ndp4 r0.y, v0, c1\nmul r2.xyz, r0.xyww, c27.z\nadd
+    o3.xyz, r5.yzww, r1\nmov r1.x, r2\nmul r1.y, r2, c9.x\nmov r3.x, r4.w\nmov r3.y,
+    r4\nmad o4.xy, r2.z, c10.zwzw, r1\nmov o0, r0\nmov o4.zw, r0\nadd o1.xyz, -r3.wxyw,
+    c8\nmov o2.z, r3\nmov o2.y, r4.z\nmov o2.x, r5\n\"\n}\n\n}\nProgram \"fp\" {\n//
+    Fragment combos: 6\n//   d3d9 - ALU: 16 to 16\nSubProgram \"opengl \" {\nKeywords
+    { \"DIRECTIONAL\" \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_OFF\" }\n\"!!GLSL\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_OFF\"
+    }\nVector 0 [_SinTime]\nVector 1 [FresnelPower]\nVector 2 [FresnelColor]\n\"ps_3_0\n;
+    16 ALU\ndef c3, 1.00000000, 0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\ndcl_texcoord1
+    v1.xyz\ndp3_pp r0.w, v1, v1\nrsq_pp r1.x, r0.w\ndp3_pp r0.x, v0, v0\nrsq_pp r0.x,
+    r0.x\nmov_pp r0.w, c1.z\nmul_pp r0.xyz, r0.x, v0\nmul_pp r1.xyz, r1.x, v1\ndp3_pp
+    r0.x, r0, r1\nmul_pp r0.w, c0.z, r0\nabs_pp r1.y, r0.w\nadd_pp r1.x, -r0, c3\npow_pp
+    r0, r1.x, r1.y\nmul_pp oC0.xyz, r0.x, c2\nmov_pp oC0.w, c3.y\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\"
+    \"SHADOWS_OFF\" }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"DIRECTIONAL\"
+    \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_OFF\" }\nVector 0 [_SinTime]\nVector
+    1 [FresnelPower]\nVector 2 [FresnelColor]\n\"ps_3_0\n; 16 ALU\ndef c3, 1.00000000,
+    0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\ndcl_texcoord1 v1.xyz\ndp3_pp r0.w, v1,
+    v1\nrsq_pp r1.x, r0.w\ndp3_pp r0.x, v0, v0\nrsq_pp r0.x, r0.x\nmov_pp r0.w, c1.z\nmul_pp
+    r0.xyz, r0.x, v0\nmul_pp r1.xyz, r1.x, v1\ndp3_pp r0.x, r0, r1\nmul_pp r0.w, c0.z,
+    r0\nabs_pp r1.y, r0.w\nadd_pp r1.x, -r0, c3\npow_pp r0, r1.x, r1.y\nmul_pp oC0.xyz,
+    r0.x, c2\nmov_pp oC0.w, c3.y\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"DIRECTIONAL\"
+    \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"SHADOWS_OFF\" }\n\"!!GLSL\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"SHADOWS_OFF\"
+    }\nVector 0 [_SinTime]\nVector 1 [FresnelPower]\nVector 2 [FresnelColor]\n\"ps_3_0\n;
+    16 ALU\ndef c3, 1.00000000, 0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\ndcl_texcoord1
+    v1.xyz\ndp3_pp r0.w, v1, v1\nrsq_pp r1.x, r0.w\ndp3_pp r0.x, v0, v0\nrsq_pp r0.x,
+    r0.x\nmov_pp r0.w, c1.z\nmul_pp r0.xyz, r0.x, v0\nmul_pp r1.xyz, r1.x, v1\ndp3_pp
+    r0.x, r0, r1\nmul_pp r0.w, c0.z, r0\nabs_pp r1.y, r0.w\nadd_pp r1.x, -r0, c3\npow_pp
+    r0, r1.x, r1.y\nmul_pp oC0.xyz, r0.x, c2\nmov_pp oC0.w, c3.y\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\"
+    \"SHADOWS_SCREEN\" }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"DIRECTIONAL\"
+    \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_SCREEN\" }\nVector 0 [_SinTime]\nVector
+    1 [FresnelPower]\nVector 2 [FresnelColor]\n\"ps_3_0\n; 16 ALU\ndef c3, 1.00000000,
+    0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\ndcl_texcoord1 v1.xyz\ndp3_pp r0.w, v1,
+    v1\nrsq_pp r1.x, r0.w\ndp3_pp r0.x, v0, v0\nrsq_pp r0.x, r0.x\nmov_pp r0.w, c1.z\nmul_pp
+    r0.xyz, r0.x, v0\nmul_pp r1.xyz, r1.x, v1\ndp3_pp r0.x, r0, r1\nmul_pp r0.w, c0.z,
+    r0\nabs_pp r1.y, r0.w\nadd_pp r1.x, -r0, c3\npow_pp r0, r1.x, r1.y\nmul_pp oC0.xyz,
+    r0.x, c2\nmov_pp oC0.w, c3.y\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"DIRECTIONAL\"
+    \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_SCREEN\" }\n\"!!GLSL\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"SHADOWS_SCREEN\"
+    }\nVector 0 [_SinTime]\nVector 1 [FresnelPower]\nVector 2 [FresnelColor]\n\"ps_3_0\n;
+    16 ALU\ndef c3, 1.00000000, 0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\ndcl_texcoord1
+    v1.xyz\ndp3_pp r0.w, v1, v1\nrsq_pp r1.x, r0.w\ndp3_pp r0.x, v0, v0\nrsq_pp r0.x,
+    r0.x\nmov_pp r0.w, c1.z\nmul_pp r0.xyz, r0.x, v0\nmul_pp r1.xyz, r1.x, v1\ndp3_pp
+    r0.x, r0, r1\nmul_pp r0.w, c0.z, r0\nabs_pp r1.y, r0.w\nadd_pp r1.x, -r0, c3\npow_pp
+    r0, r1.x, r1.y\nmul_pp oC0.xyz, r0.x, c2\nmov_pp oC0.w, c3.y\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"SHADOWS_SCREEN\"
+    }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"DIRECTIONAL\" \"LIGHTMAP_ON\"
+    \"DIRLIGHTMAP_ON\" \"SHADOWS_SCREEN\" }\nVector 0 [_SinTime]\nVector 1 [FresnelPower]\nVector
+    2 [FresnelColor]\n\"ps_3_0\n; 16 ALU\ndef c3, 1.00000000, 0.00000000, 0, 0\ndcl_texcoord0
+    v0.xyz\ndcl_texcoord1 v1.xyz\ndp3_pp r0.w, v1, v1\nrsq_pp r1.x, r0.w\ndp3_pp r0.x,
+    v0, v0\nrsq_pp r0.x, r0.x\nmov_pp r0.w, c1.z\nmul_pp r0.xyz, r0.x, v0\nmul_pp
+    r1.xyz, r1.x, v1\ndp3_pp r0.x, r0, r1\nmul_pp r0.w, c0.z, r0\nabs_pp r1.y, r0.w\nadd_pp
+    r1.x, -r0, c3\npow_pp r0, r1.x, r1.y\nmul_pp oC0.xyz, r0.x, c2\nmov_pp oC0.w,
+    c3.y\n\"\n}\n\n}\n\t}\n\tPass {\n\t\tName \"FORWARD\"\n\t\tTags { \"LightMode\"
+    = \"ForwardAdd\" }\n\t\tZWrite Off Blend One One Fog { Color (0,0,0,0) }\n/* shader
+    source for this pass:\nCGPROGRAM\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+    fragmentoption ARB_precision_hint_fastest\n#pragma multi_compile_fwdadd\n#pragma
+    glsl\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#define
+    UNITY_PASS_FORWARDADD\n#include \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include
+    \"AutoLight.cginc\"\n\n#define INTERNAL_DATA\n#define WorldReflectionVector(data,normal)
+    data.worldRefl\n#define WorldNormalVector(data,normal) normal\n#line 1\n#line
+    29\n\n\t\t#pragma exclude_renderers ps3 flash xbox360 gles d3d11 d3d11_9x\n\t\t#pragma
+    target 3.0\n\t\t//#pragma surface surf Lambert \n\t\t#pragma glsl\n\t\t#pragma
+    debug\n\n\n\n\t\tinline half4 unity_multiply_half (half4 arg1, half4 arg2)\n\t\t{\n\t\t\treturn
+    arg1 * arg2;\n\t\t}\n\t\t\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4
+    arg2)\n\t\t{\n\t\t\treturn (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\n\t\t}\n\t\t\n\t\tinline
+    half4 unity_absolute_half (half4 arg1)\n\t\t{\n\t\t\treturn abs(arg1);\n\t\t}\n\t\t\n\n\n\t\tfloat4
+    FresnelPower;\n\t\tfloat4 FresnelColor;\n\n\n\t\tstruct Input \n\t\t{\n\t\t\tfloat3
+    viewDir;\n\n\t\t};\n\n\t\tvoid vert (inout appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+    \ \n\t\tvoid surf (Input IN, inout SurfaceOutput o) \n\t\t{\n\t\t\thalf4 MultiplyNode_62270_Output
+    = unity_multiply_half (unity_multiply_half (FresnelPower, _SinTime), half4 (1,1,1,1));\n\t\t\t//
+    Subgraph for node SubGraph_591876\n\t\t\tfloat4 SubGraph_591876_I00 = float4(0);\n\t\t\t{\n\t\t\t\tfloat4
+    SubGraphInputs_326258_O00 = FresnelColor;\n\t\t\t\tfloat4 SubGraphInputs_326258_O01
+    = MultiplyNode_62270_Output;\n\t\t\t\thalf4 FresnelNode_354882_Output = unity_fresnel_half
+    (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\n\t\t\t\thalf4 SplatNode_396302_Output
+    = SubGraphInputs_326258_O01.zzzz;\n\t\t\t\thalf4 AbsoluteNode_731304_Output =
+    unity_absolute_half (SplatNode_396302_Output);\n\t\t\t\thalf4 PowerNode_376742_Output
+    = pow (FresnelNode_354882_Output, AbsoluteNode_731304_Output);\n\t\t\t\thalf4
+    MultiplyNode_370328_Output = unity_multiply_half (SubGraphInputs_326258_O00, PowerNode_376742_Output);\n\t\t\t\t\n\t\t\t\tSubGraph_591876_I00
+    = MultiplyNode_370328_Output;\n\t\t\t}\n\t\t\t// Subgraph ends\n\t\t\t\n\t\t\thalf4
+    MultiplyNode_658580_Output = unity_multiply_half (SubGraph_591876_I00, half4 (1,1,1,1));\n\t\t\to.Emission
+    = MultiplyNode_658580_Output;\n\n\t\t}\n\t\tstruct v2f_surf {\n  float4 pos :
+    SV_POSITION;\n  fixed3 normal : TEXCOORD0;\n  half3 lightDir : TEXCOORD1;\n  LIGHTING_COORDS(2,3)\n};\nv2f_surf
+    vert_surf (appdata_full v) {\n  v2f_surf o;\n  o.pos = mul (UNITY_MATRIX_MVP,
+    v.vertex);\n  o.normal = mul((float3x3)_Object2World, SCALED_NORMAL);\n  float3
+    lightDir = WorldSpaceLightDir( v.vertex );\n  o.lightDir = lightDir;\n  TRANSFER_VERTEX_TO_FRAGMENT(o);\n
+    \ return o;\n}\nfixed4 frag_surf (v2f_surf IN) : COLOR {\n  #ifdef UNITY_COMPILER_HLSL\n
+    \ Input surfIN = (Input)0;\n  #else\n  Input surfIN;\n  #endif\n  #ifdef UNITY_COMPILER_HLSL\n
+    \ SurfaceOutput o = (SurfaceOutput)0;\n  #else\n  SurfaceOutput o;\n  #endif\n
+    \ o.Albedo = 0.0;\n  o.Emission = 0.0;\n  o.Specular = 0.0;\n  o.Alpha = 0.0;\n
+    \ o.Gloss = 0.0;\n  o.Normal = IN.normal;\n  surf (surfIN, o);\n  #ifndef USING_DIRECTIONAL_LIGHT\n
+    \ fixed3 lightDir = normalize(IN.lightDir);\n  #else\n  fixed3 lightDir = IN.lightDir;\n
+    \ #endif\n  fixed4 c = LightingLambert (o, lightDir, LIGHT_ATTENUATION(IN));\n
+    \ c.a = 0.0;\n  return c;\n}\n\nENDCG\n*/\nProgram \"vp\" {\n// Vertex combos:
+    5\n//   d3d9 - ALU: 9 to 17\nSubProgram \"opengl \" {\nKeywords { \"POINT\" }\n\"!!GLSL\n#ifdef
+    VERTEX\nvarying vec3 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3
+    xlv_TEXCOORD0;\nuniform mat4 _LightMatrix0;\nuniform vec4 unity_Scale;\nuniform
+    mat4 _Object2World;\n\nuniform vec4 _WorldSpaceLightPos0;\nvoid main ()\n{\n  mat3
+    tmpvar_1;\n  tmpvar_1[0] = _Object2World[0].xyz;\n  tmpvar_1[1] = _Object2World[1].xyz;\n
+    \ tmpvar_1[2] = _Object2World[2].xyz;\n  gl_Position = (gl_ModelViewProjectionMatrix
+    * gl_Vertex);\n  xlv_TEXCOORD0 = (tmpvar_1 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD1
+    = (_WorldSpaceLightPos0.xyz - (_Object2World * gl_Vertex).xyz);\n  xlv_TEXCOORD2
+    = (_LightMatrix0 * (_Object2World * gl_Vertex)).xyz;\n}\n\n\n#endif\n#ifdef FRAGMENT\nvoid
+    main ()\n{\n  vec4 c_1;\n  c_1.xyz = vec3(0.0, 0.0, 0.0);\n  c_1.w = 0.0;\n  gl_FragData[0]
+    = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"POINT\" }\nBind
+    \"vertex\" Vertex\nBind \"normal\" Normal\nMatrix 0 [glstate_matrix_mvp]\nVector
+    12 [_WorldSpaceLightPos0]\nMatrix 4 [_Object2World]\nVector 13 [unity_Scale]\nMatrix
+    8 [_LightMatrix0]\n\"vs_3_0\n; 16 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1
+    o2\ndcl_texcoord2 o3\ndcl_position0 v0\ndcl_normal0 v1\nmul r1.xyz, v1, c13.w\ndp4
+    r0.z, v0, c6\ndp4 r0.x, v0, c4\ndp4 r0.y, v0, c5\ndp4 r0.w, v0, c7\ndp4 o3.z,
+    r0, c10\ndp4 o3.y, r0, c9\ndp4 o3.x, r0, c8\ndp3 o1.z, r1, c6\ndp3 o1.y, r1, c5\ndp3
+    o1.x, r1, c4\nadd o2.xyz, -r0, c12\ndp4 o0.w, v0, c3\ndp4 o0.z, v0, c2\ndp4 o0.y,
+    v0, c1\ndp4 o0.x, v0, c0\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"DIRECTIONAL\"
+    }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform
+    vec4 unity_Scale;\nuniform mat4 _Object2World;\n\nuniform vec4 _WorldSpaceLightPos0;\nvoid
+    main ()\n{\n  mat3 tmpvar_1;\n  tmpvar_1[0] = _Object2World[0].xyz;\n  tmpvar_1[1]
+    = _Object2World[1].xyz;\n  tmpvar_1[2] = _Object2World[2].xyz;\n  gl_Position
+    = (gl_ModelViewProjectionMatrix * gl_Vertex);\n  xlv_TEXCOORD0 = (tmpvar_1 * (gl_Normal
+    * unity_Scale.w));\n  xlv_TEXCOORD1 = _WorldSpaceLightPos0.xyz;\n}\n\n\n#endif\n#ifdef
+    FRAGMENT\nvoid main ()\n{\n  vec4 c_1;\n  c_1.xyz = vec3(0.0, 0.0, 0.0);\n  c_1.w
+    = 0.0;\n  gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \"
+    {\nKeywords { \"DIRECTIONAL\" }\nBind \"vertex\" Vertex\nBind \"normal\" Normal\nMatrix
+    0 [glstate_matrix_mvp]\nVector 8 [_WorldSpaceLightPos0]\nMatrix 4 [_Object2World]\nVector
+    9 [unity_Scale]\n\"vs_3_0\n; 9 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1
+    o2\ndcl_position0 v0\ndcl_normal0 v1\nmul r0.xyz, v1, c9.w\ndp3 o1.z, r0, c6\ndp3
+    o1.y, r0, c5\ndp3 o1.x, r0, c4\nmov o2.xyz, c8\ndp4 o0.w, v0, c3\ndp4 o0.z, v0,
+    c2\ndp4 o0.y, v0, c1\ndp4 o0.x, v0, c0\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords
+    { \"SPOT\" }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec4 xlv_TEXCOORD2;\nvarying vec3
+    xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform mat4 _LightMatrix0;\nuniform
+    vec4 unity_Scale;\nuniform mat4 _Object2World;\n\nuniform vec4 _WorldSpaceLightPos0;\nvoid
+    main ()\n{\n  mat3 tmpvar_1;\n  tmpvar_1[0] = _Object2World[0].xyz;\n  tmpvar_1[1]
+    = _Object2World[1].xyz;\n  tmpvar_1[2] = _Object2World[2].xyz;\n  gl_Position
+    = (gl_ModelViewProjectionMatrix * gl_Vertex);\n  xlv_TEXCOORD0 = (tmpvar_1 * (gl_Normal
+    * unity_Scale.w));\n  xlv_TEXCOORD1 = (_WorldSpaceLightPos0.xyz - (_Object2World
+    * gl_Vertex).xyz);\n  xlv_TEXCOORD2 = (_LightMatrix0 * (_Object2World * gl_Vertex));\n}\n\n\n#endif\n#ifdef
+    FRAGMENT\nvoid main ()\n{\n  vec4 c_1;\n  c_1.xyz = vec3(0.0, 0.0, 0.0);\n  c_1.w
+    = 0.0;\n  gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \"
+    {\nKeywords { \"SPOT\" }\nBind \"vertex\" Vertex\nBind \"normal\" Normal\nMatrix
+    0 [glstate_matrix_mvp]\nVector 12 [_WorldSpaceLightPos0]\nMatrix 4 [_Object2World]\nVector
+    13 [unity_Scale]\nMatrix 8 [_LightMatrix0]\n\"vs_3_0\n; 17 ALU\ndcl_position o0\ndcl_texcoord0
+    o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_position0 v0\ndcl_normal0 v1\nmul
+    r1.xyz, v1, c13.w\ndp4 r0.z, v0, c6\ndp4 r0.x, v0, c4\ndp4 r0.y, v0, c5\ndp4 r0.w,
+    v0, c7\ndp4 o3.w, r0, c11\ndp4 o3.z, r0, c10\ndp4 o3.y, r0, c9\ndp4 o3.x, r0,
+    c8\ndp3 o1.z, r1, c6\ndp3 o1.y, r1, c5\ndp3 o1.x, r1, c4\nadd o2.xyz, -r0, c12\ndp4
+    o0.w, v0, c3\ndp4 o0.z, v0, c2\ndp4 o0.y, v0, c1\ndp4 o0.x, v0, c0\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"POINT_COOKIE\" }\n\"!!GLSL\n#ifdef VERTEX\nvarying
+    vec3 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nuniform
+    mat4 _LightMatrix0;\nuniform vec4 unity_Scale;\nuniform mat4 _Object2World;\n\nuniform
+    vec4 _WorldSpaceLightPos0;\nvoid main ()\n{\n  mat3 tmpvar_1;\n  tmpvar_1[0] =
+    _Object2World[0].xyz;\n  tmpvar_1[1] = _Object2World[1].xyz;\n  tmpvar_1[2] =
+    _Object2World[2].xyz;\n  gl_Position = (gl_ModelViewProjectionMatrix * gl_Vertex);\n
+    \ xlv_TEXCOORD0 = (tmpvar_1 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD1 =
+    (_WorldSpaceLightPos0.xyz - (_Object2World * gl_Vertex).xyz);\n  xlv_TEXCOORD2
+    = (_LightMatrix0 * (_Object2World * gl_Vertex)).xyz;\n}\n\n\n#endif\n#ifdef FRAGMENT\nvoid
+    main ()\n{\n  vec4 c_1;\n  c_1.xyz = vec3(0.0, 0.0, 0.0);\n  c_1.w = 0.0;\n  gl_FragData[0]
+    = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"POINT_COOKIE\"
+    }\nBind \"vertex\" Vertex\nBind \"normal\" Normal\nMatrix 0 [glstate_matrix_mvp]\nVector
+    12 [_WorldSpaceLightPos0]\nMatrix 4 [_Object2World]\nVector 13 [unity_Scale]\nMatrix
+    8 [_LightMatrix0]\n\"vs_3_0\n; 16 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1
+    o2\ndcl_texcoord2 o3\ndcl_position0 v0\ndcl_normal0 v1\nmul r1.xyz, v1, c13.w\ndp4
+    r0.z, v0, c6\ndp4 r0.x, v0, c4\ndp4 r0.y, v0, c5\ndp4 r0.w, v0, c7\ndp4 o3.z,
+    r0, c10\ndp4 o3.y, r0, c9\ndp4 o3.x, r0, c8\ndp3 o1.z, r1, c6\ndp3 o1.y, r1, c5\ndp3
+    o1.x, r1, c4\nadd o2.xyz, -r0, c12\ndp4 o0.w, v0, c3\ndp4 o0.z, v0, c2\ndp4 o0.y,
+    v0, c1\ndp4 o0.x, v0, c0\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"DIRECTIONAL_COOKIE\"
+    }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec2 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD1;\nvarying
+    vec3 xlv_TEXCOORD0;\nuniform mat4 _LightMatrix0;\nuniform vec4 unity_Scale;\nuniform
+    mat4 _Object2World;\n\nuniform vec4 _WorldSpaceLightPos0;\nvoid main ()\n{\n  mat3
+    tmpvar_1;\n  tmpvar_1[0] = _Object2World[0].xyz;\n  tmpvar_1[1] = _Object2World[1].xyz;\n
+    \ tmpvar_1[2] = _Object2World[2].xyz;\n  gl_Position = (gl_ModelViewProjectionMatrix
+    * gl_Vertex);\n  xlv_TEXCOORD0 = (tmpvar_1 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD1
+    = _WorldSpaceLightPos0.xyz;\n  xlv_TEXCOORD2 = (_LightMatrix0 * (_Object2World
+    * gl_Vertex)).xy;\n}\n\n\n#endif\n#ifdef FRAGMENT\nvoid main ()\n{\n  vec4 c_1;\n
+    \ c_1.xyz = vec3(0.0, 0.0, 0.0);\n  c_1.w = 0.0;\n  gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { \"DIRECTIONAL_COOKIE\" }\nBind \"vertex\" Vertex\nBind
+    \"normal\" Normal\nMatrix 0 [glstate_matrix_mvp]\nVector 12 [_WorldSpaceLightPos0]\nMatrix
+    4 [_Object2World]\nVector 13 [unity_Scale]\nMatrix 8 [_LightMatrix0]\n\"vs_3_0\n;
+    15 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_position0
+    v0\ndcl_normal0 v1\nmul r1.xyz, v1, c13.w\ndp4 r0.w, v0, c7\ndp4 r0.z, v0, c6\ndp4
+    r0.x, v0, c4\ndp4 r0.y, v0, c5\ndp4 o3.y, r0, c9\ndp4 o3.x, r0, c8\ndp3 o1.z,
+    r1, c6\ndp3 o1.y, r1, c5\ndp3 o1.x, r1, c4\nmov o2.xyz, c12\ndp4 o0.w, v0, c3\ndp4
+    o0.z, v0, c2\ndp4 o0.y, v0, c1\ndp4 o0.x, v0, c0\n\"\n}\n\n}\nProgram \"fp\" {\n//
+    Fragment combos: 5\n//   d3d9 - ALU: 1 to 1\nSubProgram \"opengl \" {\nKeywords
+    { \"POINT\" }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"POINT\" }\n\"ps_3_0\n;
+    1 ALU\ndef c0, 0.00000000, 0, 0, 0\nmov_pp oC0, c0.x\n\"\n}\n\nSubProgram \"opengl
+    \" {\nKeywords { \"DIRECTIONAL\" }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords
+    { \"DIRECTIONAL\" }\n\"ps_3_0\n; 1 ALU\ndef c0, 0.00000000, 0, 0, 0\nmov_pp oC0,
+    c0.x\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"SPOT\" }\n\"!!GLSL\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { \"SPOT\" }\n\"ps_3_0\n; 1 ALU\ndef c0, 0.00000000, 0,
+    0, 0\nmov_pp oC0, c0.x\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"POINT_COOKIE\"
+    }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"POINT_COOKIE\" }\n\"ps_3_0\n;
+    1 ALU\ndef c0, 0.00000000, 0, 0, 0\nmov_pp oC0, c0.x\n\"\n}\n\nSubProgram \"opengl
+    \" {\nKeywords { \"DIRECTIONAL_COOKIE\" }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9
+    \" {\nKeywords { \"DIRECTIONAL_COOKIE\" }\n\"ps_3_0\n; 1 ALU\ndef c0, 0.00000000,
+    0, 0, 0\nmov_pp oC0, c0.x\n\"\n}\n\n}\n\t}\n/* surface debug info:\n needs view
+    direction\n*/\n/* surface debug info:\n*/\n/* surface debug info:\n*/\n/* surface
+    debug info:\n needs view direction\n*/\n\tPass {\n\t\tName \"PREPASS\"\n\t\tTags
+    { \"LightMode\" = \"PrePassBase\" }\n\t\tFog {Mode Off}\n/* shader source for
+    this pass:\nCGPROGRAM\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+    fragmentoption ARB_precision_hint_fastest\n\n#pragma glsl\n#include \"HLSLSupport.cginc\"\n#include
+    \"UnityShaderVariables.cginc\"\n#define UNITY_PASS_PREPASSBASE\n#include \"UnityCG.cginc\"\n#include
+    \"Lighting.cginc\"\n\n#define INTERNAL_DATA\n#define WorldReflectionVector(data,normal)
+    data.worldRefl\n#define WorldNormalVector(data,normal) normal\n#line 1\n#line
+    29\n\n\t\t#pragma exclude_renderers ps3 flash xbox360 gles d3d11 d3d11_9x\n\t\t#pragma
+    target 3.0\n\t\t//#pragma surface surf Lambert \n\t\t#pragma glsl\n\t\t#pragma
+    debug\n\n\n\n\t\tinline half4 unity_multiply_half (half4 arg1, half4 arg2)\n\t\t{\n\t\t\treturn
+    arg1 * arg2;\n\t\t}\n\t\t\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4
+    arg2)\n\t\t{\n\t\t\treturn (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\n\t\t}\n\t\t\n\t\tinline
+    half4 unity_absolute_half (half4 arg1)\n\t\t{\n\t\t\treturn abs(arg1);\n\t\t}\n\t\t\n\n\n\t\tfloat4
+    FresnelPower;\n\t\tfloat4 FresnelColor;\n\n\n\t\tstruct Input \n\t\t{\n\t\t\tfloat3
+    viewDir;\n\n\t\t};\n\n\t\tvoid vert (inout appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+    \ \n\t\tvoid surf (Input IN, inout SurfaceOutput o) \n\t\t{\n\t\t\thalf4 MultiplyNode_62270_Output
+    = unity_multiply_half (unity_multiply_half (FresnelPower, _SinTime), half4 (1,1,1,1));\n\t\t\t//
+    Subgraph for node SubGraph_591876\n\t\t\tfloat4 SubGraph_591876_I00 = float4(0);\n\t\t\t{\n\t\t\t\tfloat4
+    SubGraphInputs_326258_O00 = FresnelColor;\n\t\t\t\tfloat4 SubGraphInputs_326258_O01
+    = MultiplyNode_62270_Output;\n\t\t\t\thalf4 FresnelNode_354882_Output = unity_fresnel_half
+    (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\n\t\t\t\thalf4 SplatNode_396302_Output
+    = SubGraphInputs_326258_O01.zzzz;\n\t\t\t\thalf4 AbsoluteNode_731304_Output =
+    unity_absolute_half (SplatNode_396302_Output);\n\t\t\t\thalf4 PowerNode_376742_Output
+    = pow (FresnelNode_354882_Output, AbsoluteNode_731304_Output);\n\t\t\t\thalf4
+    MultiplyNode_370328_Output = unity_multiply_half (SubGraphInputs_326258_O00, PowerNode_376742_Output);\n\t\t\t\t\n\t\t\t\tSubGraph_591876_I00
+    = MultiplyNode_370328_Output;\n\t\t\t}\n\t\t\t// Subgraph ends\n\t\t\t\n\t\t\thalf4
+    MultiplyNode_658580_Output = unity_multiply_half (SubGraph_591876_I00, half4 (1,1,1,1));\n\t\t\to.Emission
+    = MultiplyNode_658580_Output;\n\n\t\t}\n\t\tstruct v2f_surf {\n  float4 pos :
+    SV_POSITION;\n  fixed3 normal : TEXCOORD0;\n};\nv2f_surf vert_surf (appdata_full
+    v) {\n  v2f_surf o;\n  o.pos = mul (UNITY_MATRIX_MVP, v.vertex);\n  o.normal =
+    mul((float3x3)_Object2World, SCALED_NORMAL);\n  return o;\n}\nfixed4 frag_surf
+    (v2f_surf IN) : COLOR {\n  #ifdef UNITY_COMPILER_HLSL\n  Input surfIN = (Input)0;\n
+    \ #else\n  Input surfIN;\n  #endif\n  #ifdef UNITY_COMPILER_HLSL\n  SurfaceOutput
+    o = (SurfaceOutput)0;\n  #else\n  SurfaceOutput o;\n  #endif\n  o.Albedo = 0.0;\n
+    \ o.Emission = 0.0;\n  o.Specular = 0.0;\n  o.Alpha = 0.0;\n  o.Gloss = 0.0;\n
+    \ o.Normal = IN.normal;\n  surf (surfIN, o);\n  fixed4 res;\n  res.rgb = o.Normal
+    * 0.5 + 0.5;\n  res.a = o.Specular;\n  return res;\n}\n\nENDCG\n*/\nProgram \"vp\"
+    {\n// Vertex combos: 1\n//   d3d9 - ALU: 8 to 8\nSubProgram \"opengl \" {\nKeywords
+    { }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4 unity_Scale;\nuniform
+    mat4 _Object2World;\n\nvoid main ()\n{\n  mat3 tmpvar_1;\n  tmpvar_1[0] = _Object2World[0].xyz;\n
+    \ tmpvar_1[1] = _Object2World[1].xyz;\n  tmpvar_1[2] = _Object2World[2].xyz;\n
+    \ gl_Position = (gl_ModelViewProjectionMatrix * gl_Vertex);\n  xlv_TEXCOORD0 =
+    (tmpvar_1 * (gl_Normal * unity_Scale.w));\n}\n\n\n#endif\n#ifdef FRAGMENT\nvarying
+    vec3 xlv_TEXCOORD0;\nvoid main ()\n{\n  vec4 res_1;\n  res_1.xyz = ((xlv_TEXCOORD0
+    * 0.5) + 0.5);\n  res_1.w = 0.0;\n  gl_FragData[0] = res_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { }\nBind \"vertex\" Vertex\nBind \"normal\" Normal\nMatrix
+    0 [glstate_matrix_mvp]\nMatrix 4 [_Object2World]\nVector 8 [unity_Scale]\n\"vs_3_0\n;
+    8 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_position0 v0\ndcl_normal0 v1\nmul
+    r0.xyz, v1, c8.w\ndp3 o1.z, r0, c6\ndp3 o1.y, r0, c5\ndp3 o1.x, r0, c4\ndp4 o0.w,
+    v0, c3\ndp4 o0.z, v0, c2\ndp4 o0.y, v0, c1\ndp4 o0.x, v0, c0\n\"\n}\n\n}\nProgram
+    \"fp\" {\n// Fragment combos: 1\n//   d3d9 - ALU: 2 to 2\nSubProgram \"opengl
+    \" {\nKeywords { }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { }\n\"ps_3_0\n;
+    2 ALU\ndef c0, 0.50000000, 0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\nmad_pp oC0.xyz,
+    v0, c0.x, c0.x\nmov_pp oC0.w, c0.y\n\"\n}\n\n}\n\t}\n\tPass {\n\t\tName \"PREPASS\"\n\t\tTags
+    { \"LightMode\" = \"PrePassFinal\" }\n\t\tZWrite Off\n/* shader source for this
+    pass:\nCGPROGRAM\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+    fragmentoption ARB_precision_hint_fastest\n#pragma multi_compile_prepassfinal\n#pragma
+    glsl\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#define
+    UNITY_PASS_PREPASSFINAL\n#include \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n\n#define
+    INTERNAL_DATA\n#define WorldReflectionVector(data,normal) data.worldRefl\n#define
+    WorldNormalVector(data,normal) normal\n#line 1\n#line 29\n\n\t\t#pragma exclude_renderers
+    ps3 flash xbox360 gles d3d11 d3d11_9x\n\t\t#pragma target 3.0\n\t\t//#pragma surface
+    surf Lambert \n\t\t#pragma glsl\n\t\t#pragma debug\n\n\n\n\t\tinline half4 unity_multiply_half
+    (half4 arg1, half4 arg2)\n\t\t{\n\t\t\treturn arg1 * arg2;\n\t\t}\n\t\t\n\t\tinline
+    half4 unity_fresnel_half (half4 arg1, half4 arg2)\n\t\t{\n\t\t\treturn (1.0 -
+    dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\n\t\t}\n\t\t\n\t\tinline
+    half4 unity_absolute_half (half4 arg1)\n\t\t{\n\t\t\treturn abs(arg1);\n\t\t}\n\t\t\n\n\n\t\tfloat4
+    FresnelPower;\n\t\tfloat4 FresnelColor;\n\n\n\t\tstruct Input \n\t\t{\n\t\t\tfloat3
+    viewDir;\n\n\t\t};\n\n\t\tvoid vert (inout appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+    \ \n\t\tvoid surf (Input IN, inout SurfaceOutput o) \n\t\t{\n\t\t\thalf4 MultiplyNode_62270_Output
+    = unity_multiply_half (unity_multiply_half (FresnelPower, _SinTime), half4 (1,1,1,1));\n\t\t\t//
+    Subgraph for node SubGraph_591876\n\t\t\tfloat4 SubGraph_591876_I00 = float4(0);\n\t\t\t{\n\t\t\t\tfloat4
+    SubGraphInputs_326258_O00 = FresnelColor;\n\t\t\t\tfloat4 SubGraphInputs_326258_O01
+    = MultiplyNode_62270_Output;\n\t\t\t\thalf4 FresnelNode_354882_Output = unity_fresnel_half
+    (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\n\t\t\t\thalf4 SplatNode_396302_Output
+    = SubGraphInputs_326258_O01.zzzz;\n\t\t\t\thalf4 AbsoluteNode_731304_Output =
+    unity_absolute_half (SplatNode_396302_Output);\n\t\t\t\thalf4 PowerNode_376742_Output
+    = pow (FresnelNode_354882_Output, AbsoluteNode_731304_Output);\n\t\t\t\thalf4
+    MultiplyNode_370328_Output = unity_multiply_half (SubGraphInputs_326258_O00, PowerNode_376742_Output);\n\t\t\t\t\n\t\t\t\tSubGraph_591876_I00
+    = MultiplyNode_370328_Output;\n\t\t\t}\n\t\t\t// Subgraph ends\n\t\t\t\n\t\t\thalf4
+    MultiplyNode_658580_Output = unity_multiply_half (SubGraph_591876_I00, half4 (1,1,1,1));\n\t\t\to.Emission
+    = MultiplyNode_658580_Output;\n\n\t\t}\n\t\tstruct v2f_surf {\n  float4 pos :
+    SV_POSITION;\n  float3 viewDir : TEXCOORD0;\n  float4 screen : TEXCOORD1;\n  fixed3
+    normal : TEXCOORD2;\n#ifdef LIGHTMAP_OFF\n  float3 vlight : TEXCOORD3;\n#else\n
+    \ float2 lmap : TEXCOORD3;\n#ifdef DIRLIGHTMAP_OFF\n  float4 lmapFadePos : TEXCOORD4;\n#endif\n#endif\n};\n#ifndef
+    LIGHTMAP_OFF\nfloat4 unity_LightmapST;\n#endif\nv2f_surf vert_surf (appdata_full
+    v) {\n  v2f_surf o;\n  o.pos = mul (UNITY_MATRIX_MVP, v.vertex);\n  o.screen =
+    ComputeScreenPos (o.pos);\n#ifndef LIGHTMAP_OFF\n  o.lmap.xy = v.texcoord1.xy
+    * unity_LightmapST.xy + unity_LightmapST.zw;\n  #ifdef DIRLIGHTMAP_OFF\n    o.lmapFadePos.xyz
+    = (mul(_Object2World, v.vertex).xyz - unity_ShadowFadeCenterAndType.xyz) * unity_ShadowFadeCenterAndType.w;\n
+    \   o.lmapFadePos.w = (-mul(UNITY_MATRIX_MV, v.vertex).z) * (1.0 - unity_ShadowFadeCenterAndType.w);\n
+    \ #endif\n#else\n  float3 worldN = mul((float3x3)_Object2World, SCALED_NORMAL);\n
+    \ o.vlight = ShadeSH9 (float4(worldN,1.0));\n#endif\n  TANGENT_SPACE_ROTATION;\n
+    \ o.normal = mul (rotation, SCALED_NORMAL);\n  o.viewDir = mul (rotation, ObjSpaceViewDir(v.vertex));\n
+    \ return o;\n}\nsampler2D _LightBuffer;\n#if defined (SHADER_API_XBOX360) && defined
+    (HDR_LIGHT_PREPASS_ON)\nsampler2D _LightSpecBuffer;\n#endif\n#ifndef LIGHTMAP_OFF\nsampler2D
+    unity_Lightmap;\nsampler2D unity_LightmapInd;\nfloat4 unity_LightmapFade;\n#endif\nfixed4
+    unity_Ambient;\nfixed4 frag_surf (v2f_surf IN) : COLOR {\n  #ifdef UNITY_COMPILER_HLSL\n
+    \ Input surfIN = (Input)0;\n  #else\n  Input surfIN;\n  #endif\n  surfIN.viewDir
+    = IN.viewDir;\n  #ifdef UNITY_COMPILER_HLSL\n  SurfaceOutput o = (SurfaceOutput)0;\n
+    \ #else\n  SurfaceOutput o;\n  #endif\n  o.Albedo = 0.0;\n  o.Emission = 0.0;\n
+    \ o.Specular = 0.0;\n  o.Alpha = 0.0;\n  o.Gloss = 0.0;\n  o.Normal = IN.normal;\n
+    \ surf (surfIN, o);\n  half4 light = tex2Dproj (_LightBuffer, UNITY_PROJ_COORD(IN.screen));\n#if
+    defined (SHADER_API_GLES)\n  light = max(light, half4(0.001));\n#endif\n#ifndef
+    HDR_LIGHT_PREPASS_ON\n  light = -log2(light);\n#endif\n#if defined (SHADER_API_XBOX360)
+    && defined (HDR_LIGHT_PREPASS_ON)\n  light.w = tex2Dproj (_LightSpecBuffer, UNITY_PROJ_COORD(IN.screen)).r;\n#endif\n#ifndef
+    LIGHTMAP_OFF\n#ifdef DIRLIGHTMAP_OFF\n  fixed4 lmtex = tex2D(unity_Lightmap, IN.lmap.xy);\n
+    \ fixed4 lmtex2 = tex2D(unity_LightmapInd, IN.lmap.xy);\n  half lmFade = length
+    (IN.lmapFadePos) * unity_LightmapFade.z + unity_LightmapFade.w;\n  half3 lmFull
+    = DecodeLightmap (lmtex);\n  half3 lmIndirect = DecodeLightmap (lmtex2);\n  half3
+    lm = lerp (lmIndirect, lmFull, saturate(lmFade));\n  light.rgb += lm;\n#else\n
+    \ fixed4 lmtex = tex2D(unity_Lightmap, IN.lmap.xy);\n  fixed4 lmIndTex = tex2D(unity_LightmapInd,
+    IN.lmap.xy);\n  half4 lm = LightingLambert_DirLightmap(o, lmtex, lmIndTex, 0);\n
+    \ light += lm;\n#endif\n#else\n  light.rgb += IN.vlight;\n#endif\n  half4 c =
+    LightingLambert_PrePass (o, light);\n  c.rgb += o.Emission;\n  return c;\n}\n\nENDCG\n*/\nProgram
+    \"vp\" {\n// Vertex combos: 6\n//   d3d9 - ALU: 29 to 45\nSubProgram \"opengl
+    \" {\nKeywords { \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_OFF\"
+    }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec3 xlv_TEXCOORD3;\nvarying vec3 xlv_TEXCOORD2;\nvarying
+    vec4 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nattribute vec4 TANGENT;\nuniform
+    vec4 unity_Scale;\nuniform mat4 _World2Object;\nuniform mat4 _Object2World;\n\nuniform
+    vec4 unity_SHC;\nuniform vec4 unity_SHBb;\nuniform vec4 unity_SHBg;\nuniform vec4
+    unity_SHBr;\nuniform vec4 unity_SHAb;\nuniform vec4 unity_SHAg;\nuniform vec4
+    unity_SHAr;\nuniform vec4 _ProjectionParams;\nuniform vec3 _WorldSpaceCameraPos;\nvoid
+    main ()\n{\n  vec4 tmpvar_1;\n  tmpvar_1 = (gl_ModelViewProjectionMatrix * gl_Vertex);\n
+    \ vec4 o_2;\n  vec4 tmpvar_3;\n  tmpvar_3 = (tmpvar_1 * 0.5);\n  vec2 tmpvar_4;\n
+    \ tmpvar_4.x = tmpvar_3.x;\n  tmpvar_4.y = (tmpvar_3.y * _ProjectionParams.x);\n
+    \ o_2.xy = (tmpvar_4 + tmpvar_3.w);\n  o_2.zw = tmpvar_1.zw;\n  mat3 tmpvar_5;\n
+    \ tmpvar_5[0] = _Object2World[0].xyz;\n  tmpvar_5[1] = _Object2World[1].xyz;\n
+    \ tmpvar_5[2] = _Object2World[2].xyz;\n  vec3 tmpvar_6;\n  tmpvar_6 = (tmpvar_5
+    * (gl_Normal * unity_Scale.w));\n  vec4 tmpvar_7;\n  tmpvar_7.w = 1.0;\n  tmpvar_7.xyz
+    = tmpvar_6;\n  vec3 x2_8;\n  vec3 x1_9;\n  x1_9.x = dot (unity_SHAr, tmpvar_7);\n
+    \ x1_9.y = dot (unity_SHAg, tmpvar_7);\n  x1_9.z = dot (unity_SHAb, tmpvar_7);\n
+    \ vec4 tmpvar_10;\n  tmpvar_10 = (tmpvar_6.xyzz * tmpvar_6.yzzx);\n  x2_8.x =
+    dot (unity_SHBr, tmpvar_10);\n  x2_8.y = dot (unity_SHBg, tmpvar_10);\n  x2_8.z
+    = dot (unity_SHBb, tmpvar_10);\n  vec3 tmpvar_11;\n  vec3 tmpvar_12;\n  tmpvar_11
+    = TANGENT.xyz;\n  tmpvar_12 = (((gl_Normal.yzx * TANGENT.zxy) - (gl_Normal.zxy
+    * TANGENT.yzx)) * TANGENT.w);\n  mat3 tmpvar_13;\n  tmpvar_13[0].x = tmpvar_11.x;\n
+    \ tmpvar_13[0].y = tmpvar_12.x;\n  tmpvar_13[0].z = gl_Normal.x;\n  tmpvar_13[1].x
+    = tmpvar_11.y;\n  tmpvar_13[1].y = tmpvar_12.y;\n  tmpvar_13[1].z = gl_Normal.y;\n
+    \ tmpvar_13[2].x = tmpvar_11.z;\n  tmpvar_13[2].y = tmpvar_12.z;\n  tmpvar_13[2].z
+    = gl_Normal.z;\n  vec4 tmpvar_14;\n  tmpvar_14.w = 1.0;\n  tmpvar_14.xyz = _WorldSpaceCameraPos;\n
+    \ gl_Position = tmpvar_1;\n  xlv_TEXCOORD0 = (tmpvar_13 * (((_World2Object * tmpvar_14).xyz
+    * unity_Scale.w) - gl_Vertex.xyz));\n  xlv_TEXCOORD1 = o_2;\n  xlv_TEXCOORD2 =
+    (tmpvar_13 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD3 = ((x1_9 + x2_8) +
+    (unity_SHC.xyz * ((tmpvar_6.x * tmpvar_6.x) - (tmpvar_6.y * tmpvar_6.y))));\n}\n\n\n#endif\n#ifdef
+    FRAGMENT\nvarying vec3 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4
+    FresnelColor;\nuniform vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n
+    \ vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot
+    (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD2)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n
+    \ gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords
+    { \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_OFF\" }\nBind \"vertex\"
+    Vertex\nBind \"tangent\" TexCoord2\nBind \"normal\" Normal\nMatrix 0 [glstate_matrix_mvp]\nVector
+    12 [_WorldSpaceCameraPos]\nVector 13 [_ProjectionParams]\nVector 14 [_ScreenParams]\nVector
+    15 [unity_SHAr]\nVector 16 [unity_SHAg]\nVector 17 [unity_SHAb]\nVector 18 [unity_SHBr]\nVector
+    19 [unity_SHBg]\nVector 20 [unity_SHBb]\nVector 21 [unity_SHC]\nMatrix 4 [_Object2World]\nMatrix
+    8 [_World2Object]\nVector 22 [unity_Scale]\n\"vs_3_0\n; 45 ALU\ndcl_position o0\ndcl_texcoord0
+    o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_texcoord3 o4\ndef c23, 1.00000000,
+    0.50000000, 0, 0\ndcl_position0 v0\ndcl_tangent0 v1\ndcl_normal0 v2\nmul r2.xyz,
+    v2, c22.w\ndp3 r2.w, r2, c5\ndp3 r0.x, r2, c4\nmov r0.y, r2.w\ndp3 r0.z, r2, c6\nmul
+    r1, r0.xyzz, r0.yzzx\nmov r0.w, c23.x\ndp4 r3.z, r0, c17\ndp4 r3.y, r0, c16\ndp4
+    r3.x, r0, c15\nmul r0.y, r2.w, r2.w\nmad r0.w, r0.x, r0.x, -r0.y\ndp4 r4.z, r1,
+    c20\ndp4 r4.y, r1, c19\ndp4 r4.x, r1, c18\nadd r3.xyz, r3, r4\nmul r4.xyz, r0.w,
+    c21\nmov r0.xyz, v1\nmul r1.xyz, v2.zxyw, r0.yzxw\nmov r0.xyz, v1\nmad r0.xyz,
+    v2.yzxw, r0.zxyw, -r1\nmul r1.xyz, r0, v1.w\nmov r0.xyz, c12\nadd o4.xyz, r3,
+    r4\nmov r0.w, c23.x\ndp4 r3.z, r0, c10\ndp4 r3.x, r0, c8\ndp4 r3.y, r0, c9\nmad
+    r3.xyz, r3, c22.w, -v0\ndp4 r0.w, v0, c3\ndp4 r0.z, v0, c2\ndp3 o1.y, r3, r1\ndp3
+    o1.z, v2, r3\ndp4 r0.x, v0, c0\ndp4 r0.y, v0, c1\nmul r4.xyz, r0.xyww, c23.y\ndp3
+    o1.x, r3, v1\nmul r3.y, r4, c13.x\nmov r3.x, r4\nmad o2.xy, r4.z, c14.zwzw, r3\ndp3
+    o3.y, r1, r2\nmov o0, r0\nmov o2.zw, r0\ndp3 o3.z, v2, r2\ndp3 o3.x, v1, r2\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_OFF\"
+    }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec4 xlv_TEXCOORD4;\nvarying vec2 xlv_TEXCOORD3;\nvarying
+    vec3 xlv_TEXCOORD2;\nvarying vec4 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nattribute
+    vec4 TANGENT;\nuniform vec4 unity_LightmapST;\nuniform vec4 unity_Scale;\nuniform
+    mat4 _World2Object;\nuniform mat4 _Object2World;\n\n\nuniform vec4 unity_ShadowFadeCenterAndType;\nuniform
+    vec4 _ProjectionParams;\nuniform vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n
+    \ vec4 tmpvar_1;\n  vec4 tmpvar_2;\n  tmpvar_2 = (gl_ModelViewProjectionMatrix
+    * gl_Vertex);\n  vec4 o_3;\n  vec4 tmpvar_4;\n  tmpvar_4 = (tmpvar_2 * 0.5);\n
+    \ vec2 tmpvar_5;\n  tmpvar_5.x = tmpvar_4.x;\n  tmpvar_5.y = (tmpvar_4.y * _ProjectionParams.x);\n
+    \ o_3.xy = (tmpvar_5 + tmpvar_4.w);\n  o_3.zw = tmpvar_2.zw;\n  tmpvar_1.xyz =
+    (((_Object2World * gl_Vertex).xyz - unity_ShadowFadeCenterAndType.xyz) * unity_ShadowFadeCenterAndType.w);\n
+    \ tmpvar_1.w = (-((gl_ModelViewMatrix * gl_Vertex).z) * (1.0 - unity_ShadowFadeCenterAndType.w));\n
+    \ vec3 tmpvar_6;\n  vec3 tmpvar_7;\n  tmpvar_6 = TANGENT.xyz;\n  tmpvar_7 = (((gl_Normal.yzx
+    * TANGENT.zxy) - (gl_Normal.zxy * TANGENT.yzx)) * TANGENT.w);\n  mat3 tmpvar_8;\n
+    \ tmpvar_8[0].x = tmpvar_6.x;\n  tmpvar_8[0].y = tmpvar_7.x;\n  tmpvar_8[0].z
+    = gl_Normal.x;\n  tmpvar_8[1].x = tmpvar_6.y;\n  tmpvar_8[1].y = tmpvar_7.y;\n
+    \ tmpvar_8[1].z = gl_Normal.y;\n  tmpvar_8[2].x = tmpvar_6.z;\n  tmpvar_8[2].y
+    = tmpvar_7.z;\n  tmpvar_8[2].z = gl_Normal.z;\n  vec4 tmpvar_9;\n  tmpvar_9.w
+    = 1.0;\n  tmpvar_9.xyz = _WorldSpaceCameraPos;\n  gl_Position = tmpvar_2;\n  xlv_TEXCOORD0
+    = (tmpvar_8 * (((_World2Object * tmpvar_9).xyz * unity_Scale.w) - gl_Vertex.xyz));\n
+    \ xlv_TEXCOORD1 = o_3;\n  xlv_TEXCOORD2 = (tmpvar_8 * (gl_Normal * unity_Scale.w));\n
+    \ xlv_TEXCOORD3 = ((gl_MultiTexCoord1.xy * unity_LightmapST.xy) + unity_LightmapST.zw);\n
+    \ xlv_TEXCOORD4 = tmpvar_1;\n}\n\n\n#endif\n#ifdef FRAGMENT\nvarying vec3 xlv_TEXCOORD2;\nvarying
+    vec3 xlv_TEXCOORD0;\nuniform vec4 FresnelColor;\nuniform vec4 FresnelPower;\nuniform
+    vec4 _SinTime;\nvoid main ()\n{\n  vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor
+    * pow (vec4((1.0 - dot (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD2)))),
+    abs((FresnelPower * _SinTime).zzzz))).xyz;\n  gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_OFF\"
+    }\nBind \"vertex\" Vertex\nBind \"tangent\" TexCoord2\nBind \"normal\" Normal\nBind
+    \"texcoord1\" TexCoord1\nMatrix 0 [glstate_matrix_modelview0]\nMatrix 4 [glstate_matrix_mvp]\nVector
+    16 [_WorldSpaceCameraPos]\nVector 17 [_ProjectionParams]\nVector 18 [_ScreenParams]\nVector
+    19 [unity_ShadowFadeCenterAndType]\nMatrix 8 [_Object2World]\nMatrix 12 [_World2Object]\nVector
+    20 [unity_Scale]\nVector 21 [unity_LightmapST]\n\"vs_3_0\n; 38 ALU\ndcl_position
+    o0\ndcl_texcoord0 o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_texcoord3 o4\ndcl_texcoord4
+    o5\ndef c22, 1.00000000, 0.50000000, 0, 0\ndcl_position0 v0\ndcl_tangent0 v1\ndcl_normal0
+    v2\ndcl_texcoord1 v3\nmov r0.xyz, v1\nmul r1.xyz, v2.zxyw, r0.yzxw\nmov r0.xyz,
+    v1\nmad r0.xyz, v2.yzxw, r0.zxyw, -r1\nmul r1.xyz, r0, v1.w\nmov r0.xyz, c16\nmov
+    r0.w, c22.x\ndp4 r2.z, r0, c14\ndp4 r2.x, r0, c12\ndp4 r2.y, r0, c13\nmad r2.xyz,
+    r2, c20.w, -v0\ndp3 o1.y, r2, r1\ndp3 o1.z, v2, r2\ndp4 r0.w, v0, c7\ndp4 r0.z,
+    v0, c6\ndp4 r0.x, v0, c4\ndp4 r0.y, v0, c5\nmul r3.xyz, r0.xyww, c22.y\ndp3 o1.x,
+    r2, v1\nmov o0, r0\nmov o2.zw, r0\nmul r2.y, r3, c17.x\nmov r2.x, r3\nmad o2.xy,
+    r3.z, c18.zwzw, r2\nmul r2.xyz, v2, c20.w\ndp4 r0.z, v0, c10\ndp4 r0.x, v0, c8\ndp4
+    r0.y, v0, c9\nadd r0.xyz, r0, -c19\nmul o5.xyz, r0, c19.w\nmov r0.x, c19.w\nadd
+    r0.y, c22.x, -r0.x\ndp4 r0.x, v0, c2\ndp3 o3.y, r1, r2\ndp3 o3.z, v2, r2\ndp3
+    o3.x, v1, r2\nmad o4.xy, v3, c21, c21.zwzw\nmul o5.w, -r0.x, r0.y\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"HDR_LIGHT_PREPASS_OFF\"
+    }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec2 xlv_TEXCOORD3;\nvarying vec3 xlv_TEXCOORD2;\nvarying
+    vec4 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nattribute vec4 TANGENT;\nuniform
+    vec4 unity_LightmapST;\nuniform vec4 unity_Scale;\nuniform mat4 _World2Object;\n\nuniform
+    vec4 _ProjectionParams;\nuniform vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n
+    \ vec4 tmpvar_1;\n  tmpvar_1 = (gl_ModelViewProjectionMatrix * gl_Vertex);\n  vec4
+    o_2;\n  vec4 tmpvar_3;\n  tmpvar_3 = (tmpvar_1 * 0.5);\n  vec2 tmpvar_4;\n  tmpvar_4.x
+    = tmpvar_3.x;\n  tmpvar_4.y = (tmpvar_3.y * _ProjectionParams.x);\n  o_2.xy =
+    (tmpvar_4 + tmpvar_3.w);\n  o_2.zw = tmpvar_1.zw;\n  vec3 tmpvar_5;\n  vec3 tmpvar_6;\n
+    \ tmpvar_5 = TANGENT.xyz;\n  tmpvar_6 = (((gl_Normal.yzx * TANGENT.zxy) - (gl_Normal.zxy
+    * TANGENT.yzx)) * TANGENT.w);\n  mat3 tmpvar_7;\n  tmpvar_7[0].x = tmpvar_5.x;\n
+    \ tmpvar_7[0].y = tmpvar_6.x;\n  tmpvar_7[0].z = gl_Normal.x;\n  tmpvar_7[1].x
+    = tmpvar_5.y;\n  tmpvar_7[1].y = tmpvar_6.y;\n  tmpvar_7[1].z = gl_Normal.y;\n
+    \ tmpvar_7[2].x = tmpvar_5.z;\n  tmpvar_7[2].y = tmpvar_6.z;\n  tmpvar_7[2].z
+    = gl_Normal.z;\n  vec4 tmpvar_8;\n  tmpvar_8.w = 1.0;\n  tmpvar_8.xyz = _WorldSpaceCameraPos;\n
+    \ gl_Position = tmpvar_1;\n  xlv_TEXCOORD0 = (tmpvar_7 * (((_World2Object * tmpvar_8).xyz
+    * unity_Scale.w) - gl_Vertex.xyz));\n  xlv_TEXCOORD1 = o_2;\n  xlv_TEXCOORD2 =
+    (tmpvar_7 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD3 = ((gl_MultiTexCoord1.xy
+    * unity_LightmapST.xy) + unity_LightmapST.zw);\n}\n\n\n#endif\n#ifdef FRAGMENT\nvarying
+    vec3 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4 FresnelColor;\nuniform
+    vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n  vec4 c_1;\n  c_1.w
+    = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot (normalize(xlv_TEXCOORD0),
+    normalize(xlv_TEXCOORD2)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n  gl_FragData[0]
+    = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"LIGHTMAP_ON\"
+    \"DIRLIGHTMAP_ON\" \"HDR_LIGHT_PREPASS_OFF\" }\nBind \"vertex\" Vertex\nBind \"tangent\"
+    TexCoord2\nBind \"normal\" Normal\nBind \"texcoord1\" TexCoord1\nMatrix 0 [glstate_matrix_mvp]\nVector
+    8 [_WorldSpaceCameraPos]\nVector 9 [_ProjectionParams]\nVector 10 [_ScreenParams]\nMatrix
+    4 [_World2Object]\nVector 11 [unity_Scale]\nVector 12 [unity_LightmapST]\n\"vs_3_0\n;
+    29 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_texcoord3
+    o4\ndef c13, 1.00000000, 0.50000000, 0, 0\ndcl_position0 v0\ndcl_tangent0 v1\ndcl_normal0
+    v2\ndcl_texcoord1 v3\nmov r0.xyz, v1\nmul r1.xyz, v2.zxyw, r0.yzxw\nmov r0.xyz,
+    v1\nmad r0.xyz, v2.yzxw, r0.zxyw, -r1\nmul r1.xyz, r0, v1.w\nmov r0.xyz, c8\nmov
+    r0.w, c13.x\ndp4 r2.z, r0, c6\ndp4 r2.x, r0, c4\ndp4 r2.y, r0, c5\nmad r2.xyz,
+    r2, c11.w, -v0\ndp3 o1.y, r2, r1\ndp3 o1.z, v2, r2\ndp4 r0.w, v0, c3\ndp4 r0.z,
+    v0, c2\ndp3 o1.x, r2, v1\ndp4 r0.x, v0, c0\ndp4 r0.y, v0, c1\nmul r3.xyz, r0.xyww,
+    c13.y\nmul r2.y, r3, c9.x\nmov r2.x, r3\nmad o2.xy, r3.z, c10.zwzw, r2\nmul r2.xyz,
+    v2, c11.w\ndp3 o3.y, r1, r2\nmov o0, r0\nmov o2.zw, r0\ndp3 o3.z, v2, r2\ndp3
+    o3.x, v1, r2\nmad o4.xy, v3, c12, c12.zwzw\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords
+    { \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_ON\" }\n\"!!GLSL\n#ifdef
+    VERTEX\nvarying vec3 xlv_TEXCOORD3;\nvarying vec3 xlv_TEXCOORD2;\nvarying vec4
+    xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nattribute vec4 TANGENT;\nuniform
+    vec4 unity_Scale;\nuniform mat4 _World2Object;\nuniform mat4 _Object2World;\n\nuniform
+    vec4 unity_SHC;\nuniform vec4 unity_SHBb;\nuniform vec4 unity_SHBg;\nuniform vec4
+    unity_SHBr;\nuniform vec4 unity_SHAb;\nuniform vec4 unity_SHAg;\nuniform vec4
+    unity_SHAr;\nuniform vec4 _ProjectionParams;\nuniform vec3 _WorldSpaceCameraPos;\nvoid
+    main ()\n{\n  vec4 tmpvar_1;\n  tmpvar_1 = (gl_ModelViewProjectionMatrix * gl_Vertex);\n
+    \ vec4 o_2;\n  vec4 tmpvar_3;\n  tmpvar_3 = (tmpvar_1 * 0.5);\n  vec2 tmpvar_4;\n
+    \ tmpvar_4.x = tmpvar_3.x;\n  tmpvar_4.y = (tmpvar_3.y * _ProjectionParams.x);\n
+    \ o_2.xy = (tmpvar_4 + tmpvar_3.w);\n  o_2.zw = tmpvar_1.zw;\n  mat3 tmpvar_5;\n
+    \ tmpvar_5[0] = _Object2World[0].xyz;\n  tmpvar_5[1] = _Object2World[1].xyz;\n
+    \ tmpvar_5[2] = _Object2World[2].xyz;\n  vec3 tmpvar_6;\n  tmpvar_6 = (tmpvar_5
+    * (gl_Normal * unity_Scale.w));\n  vec4 tmpvar_7;\n  tmpvar_7.w = 1.0;\n  tmpvar_7.xyz
+    = tmpvar_6;\n  vec3 x2_8;\n  vec3 x1_9;\n  x1_9.x = dot (unity_SHAr, tmpvar_7);\n
+    \ x1_9.y = dot (unity_SHAg, tmpvar_7);\n  x1_9.z = dot (unity_SHAb, tmpvar_7);\n
+    \ vec4 tmpvar_10;\n  tmpvar_10 = (tmpvar_6.xyzz * tmpvar_6.yzzx);\n  x2_8.x =
+    dot (unity_SHBr, tmpvar_10);\n  x2_8.y = dot (unity_SHBg, tmpvar_10);\n  x2_8.z
+    = dot (unity_SHBb, tmpvar_10);\n  vec3 tmpvar_11;\n  vec3 tmpvar_12;\n  tmpvar_11
+    = TANGENT.xyz;\n  tmpvar_12 = (((gl_Normal.yzx * TANGENT.zxy) - (gl_Normal.zxy
+    * TANGENT.yzx)) * TANGENT.w);\n  mat3 tmpvar_13;\n  tmpvar_13[0].x = tmpvar_11.x;\n
+    \ tmpvar_13[0].y = tmpvar_12.x;\n  tmpvar_13[0].z = gl_Normal.x;\n  tmpvar_13[1].x
+    = tmpvar_11.y;\n  tmpvar_13[1].y = tmpvar_12.y;\n  tmpvar_13[1].z = gl_Normal.y;\n
+    \ tmpvar_13[2].x = tmpvar_11.z;\n  tmpvar_13[2].y = tmpvar_12.z;\n  tmpvar_13[2].z
+    = gl_Normal.z;\n  vec4 tmpvar_14;\n  tmpvar_14.w = 1.0;\n  tmpvar_14.xyz = _WorldSpaceCameraPos;\n
+    \ gl_Position = tmpvar_1;\n  xlv_TEXCOORD0 = (tmpvar_13 * (((_World2Object * tmpvar_14).xyz
+    * unity_Scale.w) - gl_Vertex.xyz));\n  xlv_TEXCOORD1 = o_2;\n  xlv_TEXCOORD2 =
+    (tmpvar_13 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD3 = ((x1_9 + x2_8) +
+    (unity_SHC.xyz * ((tmpvar_6.x * tmpvar_6.x) - (tmpvar_6.y * tmpvar_6.y))));\n}\n\n\n#endif\n#ifdef
+    FRAGMENT\nvarying vec3 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4
+    FresnelColor;\nuniform vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n
+    \ vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot
+    (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD2)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n
+    \ gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords
+    { \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_ON\" }\nBind \"vertex\"
+    Vertex\nBind \"tangent\" TexCoord2\nBind \"normal\" Normal\nMatrix 0 [glstate_matrix_mvp]\nVector
+    12 [_WorldSpaceCameraPos]\nVector 13 [_ProjectionParams]\nVector 14 [_ScreenParams]\nVector
+    15 [unity_SHAr]\nVector 16 [unity_SHAg]\nVector 17 [unity_SHAb]\nVector 18 [unity_SHBr]\nVector
+    19 [unity_SHBg]\nVector 20 [unity_SHBb]\nVector 21 [unity_SHC]\nMatrix 4 [_Object2World]\nMatrix
+    8 [_World2Object]\nVector 22 [unity_Scale]\n\"vs_3_0\n; 45 ALU\ndcl_position o0\ndcl_texcoord0
+    o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_texcoord3 o4\ndef c23, 1.00000000,
+    0.50000000, 0, 0\ndcl_position0 v0\ndcl_tangent0 v1\ndcl_normal0 v2\nmul r2.xyz,
+    v2, c22.w\ndp3 r2.w, r2, c5\ndp3 r0.x, r2, c4\nmov r0.y, r2.w\ndp3 r0.z, r2, c6\nmul
+    r1, r0.xyzz, r0.yzzx\nmov r0.w, c23.x\ndp4 r3.z, r0, c17\ndp4 r3.y, r0, c16\ndp4
+    r3.x, r0, c15\nmul r0.y, r2.w, r2.w\nmad r0.w, r0.x, r0.x, -r0.y\ndp4 r4.z, r1,
+    c20\ndp4 r4.y, r1, c19\ndp4 r4.x, r1, c18\nadd r3.xyz, r3, r4\nmul r4.xyz, r0.w,
+    c21\nmov r0.xyz, v1\nmul r1.xyz, v2.zxyw, r0.yzxw\nmov r0.xyz, v1\nmad r0.xyz,
+    v2.yzxw, r0.zxyw, -r1\nmul r1.xyz, r0, v1.w\nmov r0.xyz, c12\nadd o4.xyz, r3,
+    r4\nmov r0.w, c23.x\ndp4 r3.z, r0, c10\ndp4 r3.x, r0, c8\ndp4 r3.y, r0, c9\nmad
+    r3.xyz, r3, c22.w, -v0\ndp4 r0.w, v0, c3\ndp4 r0.z, v0, c2\ndp3 o1.y, r3, r1\ndp3
+    o1.z, v2, r3\ndp4 r0.x, v0, c0\ndp4 r0.y, v0, c1\nmul r4.xyz, r0.xyww, c23.y\ndp3
+    o1.x, r3, v1\nmul r3.y, r4, c13.x\nmov r3.x, r4\nmad o2.xy, r4.z, c14.zwzw, r3\ndp3
+    o3.y, r1, r2\nmov o0, r0\nmov o2.zw, r0\ndp3 o3.z, v2, r2\ndp3 o3.x, v1, r2\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_ON\"
+    }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec4 xlv_TEXCOORD4;\nvarying vec2 xlv_TEXCOORD3;\nvarying
+    vec3 xlv_TEXCOORD2;\nvarying vec4 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nattribute
+    vec4 TANGENT;\nuniform vec4 unity_LightmapST;\nuniform vec4 unity_Scale;\nuniform
+    mat4 _World2Object;\nuniform mat4 _Object2World;\n\n\nuniform vec4 unity_ShadowFadeCenterAndType;\nuniform
+    vec4 _ProjectionParams;\nuniform vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n
+    \ vec4 tmpvar_1;\n  vec4 tmpvar_2;\n  tmpvar_2 = (gl_ModelViewProjectionMatrix
+    * gl_Vertex);\n  vec4 o_3;\n  vec4 tmpvar_4;\n  tmpvar_4 = (tmpvar_2 * 0.5);\n
+    \ vec2 tmpvar_5;\n  tmpvar_5.x = tmpvar_4.x;\n  tmpvar_5.y = (tmpvar_4.y * _ProjectionParams.x);\n
+    \ o_3.xy = (tmpvar_5 + tmpvar_4.w);\n  o_3.zw = tmpvar_2.zw;\n  tmpvar_1.xyz =
+    (((_Object2World * gl_Vertex).xyz - unity_ShadowFadeCenterAndType.xyz) * unity_ShadowFadeCenterAndType.w);\n
+    \ tmpvar_1.w = (-((gl_ModelViewMatrix * gl_Vertex).z) * (1.0 - unity_ShadowFadeCenterAndType.w));\n
+    \ vec3 tmpvar_6;\n  vec3 tmpvar_7;\n  tmpvar_6 = TANGENT.xyz;\n  tmpvar_7 = (((gl_Normal.yzx
+    * TANGENT.zxy) - (gl_Normal.zxy * TANGENT.yzx)) * TANGENT.w);\n  mat3 tmpvar_8;\n
+    \ tmpvar_8[0].x = tmpvar_6.x;\n  tmpvar_8[0].y = tmpvar_7.x;\n  tmpvar_8[0].z
+    = gl_Normal.x;\n  tmpvar_8[1].x = tmpvar_6.y;\n  tmpvar_8[1].y = tmpvar_7.y;\n
+    \ tmpvar_8[1].z = gl_Normal.y;\n  tmpvar_8[2].x = tmpvar_6.z;\n  tmpvar_8[2].y
+    = tmpvar_7.z;\n  tmpvar_8[2].z = gl_Normal.z;\n  vec4 tmpvar_9;\n  tmpvar_9.w
+    = 1.0;\n  tmpvar_9.xyz = _WorldSpaceCameraPos;\n  gl_Position = tmpvar_2;\n  xlv_TEXCOORD0
+    = (tmpvar_8 * (((_World2Object * tmpvar_9).xyz * unity_Scale.w) - gl_Vertex.xyz));\n
+    \ xlv_TEXCOORD1 = o_3;\n  xlv_TEXCOORD2 = (tmpvar_8 * (gl_Normal * unity_Scale.w));\n
+    \ xlv_TEXCOORD3 = ((gl_MultiTexCoord1.xy * unity_LightmapST.xy) + unity_LightmapST.zw);\n
+    \ xlv_TEXCOORD4 = tmpvar_1;\n}\n\n\n#endif\n#ifdef FRAGMENT\nvarying vec3 xlv_TEXCOORD2;\nvarying
+    vec3 xlv_TEXCOORD0;\nuniform vec4 FresnelColor;\nuniform vec4 FresnelPower;\nuniform
+    vec4 _SinTime;\nvoid main ()\n{\n  vec4 c_1;\n  c_1.w = 0.0;\n  c_1.xyz = (FresnelColor
+    * pow (vec4((1.0 - dot (normalize(xlv_TEXCOORD0), normalize(xlv_TEXCOORD2)))),
+    abs((FresnelPower * _SinTime).zzzz))).xyz;\n  gl_FragData[0] = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram
+    \"d3d9 \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_ON\"
+    }\nBind \"vertex\" Vertex\nBind \"tangent\" TexCoord2\nBind \"normal\" Normal\nBind
+    \"texcoord1\" TexCoord1\nMatrix 0 [glstate_matrix_modelview0]\nMatrix 4 [glstate_matrix_mvp]\nVector
+    16 [_WorldSpaceCameraPos]\nVector 17 [_ProjectionParams]\nVector 18 [_ScreenParams]\nVector
+    19 [unity_ShadowFadeCenterAndType]\nMatrix 8 [_Object2World]\nMatrix 12 [_World2Object]\nVector
+    20 [unity_Scale]\nVector 21 [unity_LightmapST]\n\"vs_3_0\n; 38 ALU\ndcl_position
+    o0\ndcl_texcoord0 o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_texcoord3 o4\ndcl_texcoord4
+    o5\ndef c22, 1.00000000, 0.50000000, 0, 0\ndcl_position0 v0\ndcl_tangent0 v1\ndcl_normal0
+    v2\ndcl_texcoord1 v3\nmov r0.xyz, v1\nmul r1.xyz, v2.zxyw, r0.yzxw\nmov r0.xyz,
+    v1\nmad r0.xyz, v2.yzxw, r0.zxyw, -r1\nmul r1.xyz, r0, v1.w\nmov r0.xyz, c16\nmov
+    r0.w, c22.x\ndp4 r2.z, r0, c14\ndp4 r2.x, r0, c12\ndp4 r2.y, r0, c13\nmad r2.xyz,
+    r2, c20.w, -v0\ndp3 o1.y, r2, r1\ndp3 o1.z, v2, r2\ndp4 r0.w, v0, c7\ndp4 r0.z,
+    v0, c6\ndp4 r0.x, v0, c4\ndp4 r0.y, v0, c5\nmul r3.xyz, r0.xyww, c22.y\ndp3 o1.x,
+    r2, v1\nmov o0, r0\nmov o2.zw, r0\nmul r2.y, r3, c17.x\nmov r2.x, r3\nmad o2.xy,
+    r3.z, c18.zwzw, r2\nmul r2.xyz, v2, c20.w\ndp4 r0.z, v0, c10\ndp4 r0.x, v0, c8\ndp4
+    r0.y, v0, c9\nadd r0.xyz, r0, -c19\nmul o5.xyz, r0, c19.w\nmov r0.x, c19.w\nadd
+    r0.y, c22.x, -r0.x\ndp4 r0.x, v0, c2\ndp3 o3.y, r1, r2\ndp3 o3.z, v2, r2\ndp3
+    o3.x, v1, r2\nmad o4.xy, v3, c21, c21.zwzw\nmul o5.w, -r0.x, r0.y\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"HDR_LIGHT_PREPASS_ON\"
+    }\n\"!!GLSL\n#ifdef VERTEX\nvarying vec2 xlv_TEXCOORD3;\nvarying vec3 xlv_TEXCOORD2;\nvarying
+    vec4 xlv_TEXCOORD1;\nvarying vec3 xlv_TEXCOORD0;\nattribute vec4 TANGENT;\nuniform
+    vec4 unity_LightmapST;\nuniform vec4 unity_Scale;\nuniform mat4 _World2Object;\n\nuniform
+    vec4 _ProjectionParams;\nuniform vec3 _WorldSpaceCameraPos;\nvoid main ()\n{\n
+    \ vec4 tmpvar_1;\n  tmpvar_1 = (gl_ModelViewProjectionMatrix * gl_Vertex);\n  vec4
+    o_2;\n  vec4 tmpvar_3;\n  tmpvar_3 = (tmpvar_1 * 0.5);\n  vec2 tmpvar_4;\n  tmpvar_4.x
+    = tmpvar_3.x;\n  tmpvar_4.y = (tmpvar_3.y * _ProjectionParams.x);\n  o_2.xy =
+    (tmpvar_4 + tmpvar_3.w);\n  o_2.zw = tmpvar_1.zw;\n  vec3 tmpvar_5;\n  vec3 tmpvar_6;\n
+    \ tmpvar_5 = TANGENT.xyz;\n  tmpvar_6 = (((gl_Normal.yzx * TANGENT.zxy) - (gl_Normal.zxy
+    * TANGENT.yzx)) * TANGENT.w);\n  mat3 tmpvar_7;\n  tmpvar_7[0].x = tmpvar_5.x;\n
+    \ tmpvar_7[0].y = tmpvar_6.x;\n  tmpvar_7[0].z = gl_Normal.x;\n  tmpvar_7[1].x
+    = tmpvar_5.y;\n  tmpvar_7[1].y = tmpvar_6.y;\n  tmpvar_7[1].z = gl_Normal.y;\n
+    \ tmpvar_7[2].x = tmpvar_5.z;\n  tmpvar_7[2].y = tmpvar_6.z;\n  tmpvar_7[2].z
+    = gl_Normal.z;\n  vec4 tmpvar_8;\n  tmpvar_8.w = 1.0;\n  tmpvar_8.xyz = _WorldSpaceCameraPos;\n
+    \ gl_Position = tmpvar_1;\n  xlv_TEXCOORD0 = (tmpvar_7 * (((_World2Object * tmpvar_8).xyz
+    * unity_Scale.w) - gl_Vertex.xyz));\n  xlv_TEXCOORD1 = o_2;\n  xlv_TEXCOORD2 =
+    (tmpvar_7 * (gl_Normal * unity_Scale.w));\n  xlv_TEXCOORD3 = ((gl_MultiTexCoord1.xy
+    * unity_LightmapST.xy) + unity_LightmapST.zw);\n}\n\n\n#endif\n#ifdef FRAGMENT\nvarying
+    vec3 xlv_TEXCOORD2;\nvarying vec3 xlv_TEXCOORD0;\nuniform vec4 FresnelColor;\nuniform
+    vec4 FresnelPower;\nuniform vec4 _SinTime;\nvoid main ()\n{\n  vec4 c_1;\n  c_1.w
+    = 0.0;\n  c_1.xyz = (FresnelColor * pow (vec4((1.0 - dot (normalize(xlv_TEXCOORD0),
+    normalize(xlv_TEXCOORD2)))), abs((FresnelPower * _SinTime).zzzz))).xyz;\n  gl_FragData[0]
+    = c_1;\n}\n\n\n#endif\n\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"LIGHTMAP_ON\"
+    \"DIRLIGHTMAP_ON\" \"HDR_LIGHT_PREPASS_ON\" }\nBind \"vertex\" Vertex\nBind \"tangent\"
+    TexCoord2\nBind \"normal\" Normal\nBind \"texcoord1\" TexCoord1\nMatrix 0 [glstate_matrix_mvp]\nVector
+    8 [_WorldSpaceCameraPos]\nVector 9 [_ProjectionParams]\nVector 10 [_ScreenParams]\nMatrix
+    4 [_World2Object]\nVector 11 [unity_Scale]\nVector 12 [unity_LightmapST]\n\"vs_3_0\n;
+    29 ALU\ndcl_position o0\ndcl_texcoord0 o1\ndcl_texcoord1 o2\ndcl_texcoord2 o3\ndcl_texcoord3
+    o4\ndef c13, 1.00000000, 0.50000000, 0, 0\ndcl_position0 v0\ndcl_tangent0 v1\ndcl_normal0
+    v2\ndcl_texcoord1 v3\nmov r0.xyz, v1\nmul r1.xyz, v2.zxyw, r0.yzxw\nmov r0.xyz,
+    v1\nmad r0.xyz, v2.yzxw, r0.zxyw, -r1\nmul r1.xyz, r0, v1.w\nmov r0.xyz, c8\nmov
+    r0.w, c13.x\ndp4 r2.z, r0, c6\ndp4 r2.x, r0, c4\ndp4 r2.y, r0, c5\nmad r2.xyz,
+    r2, c11.w, -v0\ndp3 o1.y, r2, r1\ndp3 o1.z, v2, r2\ndp4 r0.w, v0, c3\ndp4 r0.z,
+    v0, c2\ndp3 o1.x, r2, v1\ndp4 r0.x, v0, c0\ndp4 r0.y, v0, c1\nmul r3.xyz, r0.xyww,
+    c13.y\nmul r2.y, r3, c9.x\nmov r2.x, r3\nmad o2.xy, r3.z, c10.zwzw, r2\nmul r2.xyz,
+    v2, c11.w\ndp3 o3.y, r1, r2\nmov o0, r0\nmov o2.zw, r0\ndp3 o3.z, v2, r2\ndp3
+    o3.x, v1, r2\nmad o4.xy, v3, c12, c12.zwzw\n\"\n}\n\n}\nProgram \"fp\" {\n// Fragment
+    combos: 6\n//   d3d9 - ALU: 16 to 16\nSubProgram \"opengl \" {\nKeywords { \"LIGHTMAP_OFF\"
+    \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_OFF\" }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9
+    \" {\nKeywords { \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_OFF\"
+    }\nVector 0 [_SinTime]\nVector 1 [FresnelPower]\nVector 2 [FresnelColor]\n\"ps_3_0\n;
+    16 ALU\ndef c3, 1.00000000, 0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\ndcl_texcoord2
+    v2.xyz\ndp3_pp r0.w, v2, v2\nrsq_pp r1.x, r0.w\ndp3_pp r0.x, v0, v0\nrsq_pp r0.x,
+    r0.x\nmov_pp r0.w, c1.z\nmul_pp r0.xyz, r0.x, v0\nmul_pp r1.xyz, r1.x, v2\ndp3_pp
+    r0.x, r0, r1\nmul_pp r0.w, c0.z, r0\nabs_pp r1.y, r0.w\nadd_pp r1.x, -r0, c3\npow_pp
+    r0, r1.x, r1.y\nmul_pp oC0.xyz, r0.x, c2\nmov_pp oC0.w, c3.y\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_OFF\"
+    }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\"
+    \"HDR_LIGHT_PREPASS_OFF\" }\nVector 0 [_SinTime]\nVector 1 [FresnelPower]\nVector
+    2 [FresnelColor]\n\"ps_3_0\n; 16 ALU\ndef c3, 1.00000000, 0.00000000, 0, 0\ndcl_texcoord0
+    v0.xyz\ndcl_texcoord2 v2.xyz\ndp3_pp r0.w, v2, v2\nrsq_pp r1.x, r0.w\ndp3_pp r0.x,
+    v0, v0\nrsq_pp r0.x, r0.x\nmov_pp r0.w, c1.z\nmul_pp r0.xyz, r0.x, v0\nmul_pp
+    r1.xyz, r1.x, v2\ndp3_pp r0.x, r0, r1\nmul_pp r0.w, c0.z, r0\nabs_pp r1.y, r0.w\nadd_pp
+    r1.x, -r0, c3\npow_pp r0, r1.x, r1.y\nmul_pp oC0.xyz, r0.x, c2\nmov_pp oC0.w,
+    c3.y\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\"
+    \"HDR_LIGHT_PREPASS_OFF\" }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords
+    { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"HDR_LIGHT_PREPASS_OFF\" }\nVector 0 [_SinTime]\nVector
+    1 [FresnelPower]\nVector 2 [FresnelColor]\n\"ps_3_0\n; 16 ALU\ndef c3, 1.00000000,
+    0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\ndcl_texcoord2 v2.xyz\ndp3_pp r0.w, v2,
+    v2\nrsq_pp r1.x, r0.w\ndp3_pp r0.x, v0, v0\nrsq_pp r0.x, r0.x\nmov_pp r0.w, c1.z\nmul_pp
+    r0.xyz, r0.x, v0\nmul_pp r1.xyz, r1.x, v2\ndp3_pp r0.x, r0, r1\nmul_pp r0.w, c0.z,
+    r0\nabs_pp r1.y, r0.w\nadd_pp r1.x, -r0, c3\npow_pp r0, r1.x, r1.y\nmul_pp oC0.xyz,
+    r0.x, c2\nmov_pp oC0.w, c3.y\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"LIGHTMAP_OFF\"
+    \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_ON\" }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9
+    \" {\nKeywords { \"LIGHTMAP_OFF\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_ON\"
+    }\nVector 0 [_SinTime]\nVector 1 [FresnelPower]\nVector 2 [FresnelColor]\n\"ps_3_0\n;
+    16 ALU\ndef c3, 1.00000000, 0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\ndcl_texcoord2
+    v2.xyz\ndp3_pp r0.w, v2, v2\nrsq_pp r1.x, r0.w\ndp3_pp r0.x, v0, v0\nrsq_pp r0.x,
+    r0.x\nmov_pp r0.w, c1.z\nmul_pp r0.xyz, r0.x, v0\nmul_pp r1.xyz, r1.x, v2\ndp3_pp
+    r0.x, r0, r1\nmul_pp r0.w, c0.z, r0\nabs_pp r1.y, r0.w\nadd_pp r1.x, -r0, c3\npow_pp
+    r0, r1.x, r1.y\nmul_pp oC0.xyz, r0.x, c2\nmov_pp oC0.w, c3.y\n\"\n}\n\nSubProgram
+    \"opengl \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\" \"HDR_LIGHT_PREPASS_ON\"
+    }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_OFF\"
+    \"HDR_LIGHT_PREPASS_ON\" }\nVector 0 [_SinTime]\nVector 1 [FresnelPower]\nVector
+    2 [FresnelColor]\n\"ps_3_0\n; 16 ALU\ndef c3, 1.00000000, 0.00000000, 0, 0\ndcl_texcoord0
+    v0.xyz\ndcl_texcoord2 v2.xyz\ndp3_pp r0.w, v2, v2\nrsq_pp r1.x, r0.w\ndp3_pp r0.x,
+    v0, v0\nrsq_pp r0.x, r0.x\nmov_pp r0.w, c1.z\nmul_pp r0.xyz, r0.x, v0\nmul_pp
+    r1.xyz, r1.x, v2\ndp3_pp r0.x, r0, r1\nmul_pp r0.w, c0.z, r0\nabs_pp r1.y, r0.w\nadd_pp
+    r1.x, -r0, c3\npow_pp r0, r1.x, r1.y\nmul_pp oC0.xyz, r0.x, c2\nmov_pp oC0.w,
+    c3.y\n\"\n}\n\nSubProgram \"opengl \" {\nKeywords { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\"
+    \"HDR_LIGHT_PREPASS_ON\" }\n\"!!GLSL\"\n}\n\nSubProgram \"d3d9 \" {\nKeywords
+    { \"LIGHTMAP_ON\" \"DIRLIGHTMAP_ON\" \"HDR_LIGHT_PREPASS_ON\" }\nVector 0 [_SinTime]\nVector
+    1 [FresnelPower]\nVector 2 [FresnelColor]\n\"ps_3_0\n; 16 ALU\ndef c3, 1.00000000,
+    0.00000000, 0, 0\ndcl_texcoord0 v0.xyz\ndcl_texcoord2 v2.xyz\ndp3_pp r0.w, v2,
+    v2\nrsq_pp r1.x, r0.w\ndp3_pp r0.x, v0, v0\nrsq_pp r0.x, r0.x\nmov_pp r0.w, c1.z\nmul_pp
+    r0.xyz, r0.x, v0\nmul_pp r1.xyz, r1.x, v2\ndp3_pp r0.x, r0, r1\nmul_pp r0.w, c0.z,
+    r0\nabs_pp r1.y, r0.w\nadd_pp r1.x, -r0, c3\npow_pp r0, r1.x, r1.y\nmul_pp oC0.xyz,
+    r0.x, c2\nmov_pp oC0.w, c3.y\n\"\n}\n\n}\n\t}\n\n#LINE 92\n\n\t} \n\tFallBack
+    \"Diffuse\"\n}"
+  m_PathName: 
+  m_Dependencies:
+  - {fileID: 7, guid: 0000000000000000f000000000000000, type: 0}
+  m_ShaderIsBaked: 0
+  errors: []
+  m_DefaultTextures: {}
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef5b9f0785847b04983f907c7f016a36, type: 3}
+  m_Name: FresnelFromSGraph
+  m_EditorClassIdentifier: 
+  m_MaterialProperties: {fileID: 11400002}
+  m_MaterialOptions: {fileID: 11400004}
+  m_PixelGraph: {fileID: 11400006}
+  m_Shader: {fileID: 4800000}
+--- !u!114 &11400002
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cab057dbd683f5244aed9bd721e1973e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ShaderProperties:
+  - {fileID: 11400026}
+  - {fileID: 11400028}
+  previewState: 0
+--- !u!114 &11400004
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edd99bcf0936ee84794c384dffae5501, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SrcBlend: 0
+  m_DstBlend: 1
+  m_CullMode: 0
+  m_ZTest: 2
+  m_ZWrite: 0
+  m_RenderQueue: 1
+  m_RenderType: 0
+  m_ShadowPass: 0
+  m_FullForwardShadows: 0
+  m_NoAmbient: 0
+  m_NoVertexLights: 0
+  m_NoLightmaps: 0
+  m_NoDirLightmap: 0
+  m_NoForwardAdd: 0
+  m_ApproxView: 0
+  m_HalfAsView: 0
+--- !u!114 &11400006
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 226075d30f5b2694caa212aa3e968148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nodes:
+  - {fileID: 11400008}
+  - {fileID: 11400018}
+  - {fileID: 11400022}
+  - {fileID: 11400030}
+  - {fileID: 11400032}
+  - {fileID: 11400010}
+  - {fileID: 11400012}
+  edges:
+  - m_FromNode: {fileID: 11400018}
+    m_ToNode: {fileID: 11400032}
+    m_FromSlotName: Value
+    m_ToSlotName: Input0
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400030}
+    m_ToNode: {fileID: 11400032}
+    m_FromSlotName: SinTime
+    m_ToSlotName: Input1
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400022}
+    m_ToNode: {fileID: 11400010}
+    m_FromSlotName: Color
+    m_ToSlotName: O00
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400032}
+    m_ToNode: {fileID: 11400010}
+    m_FromSlotName: Output
+    m_ToSlotName: O01
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400012}
+    m_ToNode: {fileID: 11400008}
+    m_FromSlotName: Output
+    m_ToSlotName: Emission
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11400010}
+    m_ToNode: {fileID: 11400012}
+    m_FromSlotName: I00
+    m_ToSlotName: Input0
+    color: {r: 1, g: 1, b: 1, a: 1}
+  m_InvalidEdges: []
+  m_MasterNode: {fileID: 11400008}
+--- !u!114 &11400008
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38072936174514040b3e08813a3ec4e7, type: 3}
+  m_Name: PixelMaster
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Albedo
+    m_Name: Albedo
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Normal
+    m_Name: Normal
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Emission
+    m_Name: Emission
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Specular
+    m_Name: Specular
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Gloss
+    m_Name: Gloss
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Alpha
+    m_Name: Alpha
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 588
+    y: 144
+    width: 58
+    height: 121
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Albedo
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Normal
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Emission
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Specular
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Gloss
+    m_Node: {fileID: 11400008}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Alpha
+    m_Node: {fileID: 11400008}
+  m_PrecisionNames:
+  - half
+  m_LightFunction: Lambert
+--- !u!114 &11400010
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 047e0841c1476e041935baac6d7bb652, type: 3}
+  m_Name: SubGraph
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Color
+    m_Name: O00
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Power
+    m_Name: O01
+    m_DataTypeString: 
+  - type: 1
+    m_Title: I00
+    m_Name: I00
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 300
+    y: 108
+    width: 118.867928
+    height: 87
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: O00
+    m_Node: {fileID: 11400010}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: O01
+    m_Node: {fileID: 11400010}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: I00
+    m_Node: {fileID: 11400010}
+  m_PrecisionNames:
+  - half
+  m_SubGraphAsset: {fileID: 11400000, guid: a003744971255eb418c9d90ad6a41b21, type: 2}
+--- !u!114 &11400012
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 0
+    m_Name: Input0
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 444
+    y: 144
+    width: 74
+    height: 129
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Output
+    m_Node: {fileID: 11400012}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input0
+    m_Node: {fileID: 11400012}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input1
+    m_Node: {fileID: 11400012}
+  m_PrecisionNames:
+  - half
+--- !u!114 &11400018
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f34a640000e664d4f8b2e0795df7fad9, type: 3}
+  m_Name: V4Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -96
+    y: 84
+    width: 178
+    height: 80
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Value
+    m_Node: {fileID: 11400018}
+  m_PrecisionNames:
+  - half
+  m_BoundProperty: {fileID: 11400026}
+  m_Value: {x: 1.74000001, y: 0, z: 4.26000023, w: 0}
+--- !u!114 &11400022
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 325c0e24c20746345a5f90dc201973f8, type: 3}
+  m_Name: ColorNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Color
+    m_Name: Color
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 156
+    y: 36
+    width: 58
+    height: 80
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Color
+    m_Node: {fileID: 11400022}
+  m_PrecisionNames:
+  - half
+  m_BoundProperty: {fileID: 11400028}
+  m_Color: {r: 0, g: 1, b: 1, a: 0}
+--- !u!114 &11400026
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23780b49142426e44a26228feb560cda, type: 3}
+  m_Name: FresnelPower
+  m_EditorClassIdentifier: 
+  m_PropertyDescription: FresnelPower
+  m_DefaultVector: {x: 1.74000001, y: 0, z: 4.26000023, w: 0}
+--- !u!114 &11400028
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a50d0c305a31cc547a53206afda6204e, type: 3}
+  m_Name: FresnelColor
+  m_EditorClassIdentifier: 
+  m_PropertyDescription: FresnelColor
+  m_DefaultColor: {r: 0, g: 1, b: 1, a: 0}
+--- !u!114 &11400030
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f80af444cd4235c419b356216d784b57, type: 3}
+  m_Name: Sin Time
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Sin Time
+    m_Name: SinTime
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 36
+    y: 228
+    width: 74
+    height: 105
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: SinTime
+    m_Node: {fileID: 11400030}
+  m_PrecisionNames:
+  - half
+--- !u!114 &11400032
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 0
+    m_Name: Input0
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 156
+    y: 168
+    width: 74
+    height: 141
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Output
+    m_Node: {fileID: 11400032}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input0
+    m_Node: {fileID: 11400032}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input1
+    m_Node: {fileID: 11400032}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input2
+    m_Node: {fileID: 11400032}
+  m_PrecisionNames:
+  - half

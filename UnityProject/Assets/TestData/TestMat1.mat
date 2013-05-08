@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: TestMat1
-  m_Shader: {fileID: 4800000, guid: 50986b93405b085409d7082137ae7752, type: 2}
+  m_Shader: {fileID: 4800000, guid: 764177c77373b424eaa9aa1a634a3cba, type: 2}
   m_ShaderKeywords: []
   m_SavedProperties:
     serializedVersion: 2
@@ -27,5 +27,17 @@ Material:
         second: {r: 1, g: 1, b: 1, a: 1}
       data:
         first:
+          name: FrenelPower
+        second: {r: 1.74000001, g: 0, b: 4.26000023, a: 0}
+      data:
+        first:
+          name: FresnelColor
+        second: {r: 0, g: 1, b: 1, a: 0}
+      data:
+        first:
           name: MyProp
         second: {r: 2.08999991, g: 0, b: 0, a: 0}
+      data:
+        first:
+          name: FresnelPower
+        second: {r: 1.74000001, g: 0, b: 4.26000023, a: 0}
