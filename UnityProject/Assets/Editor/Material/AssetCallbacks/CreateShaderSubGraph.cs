@@ -2,7 +2,7 @@ using System.IO;
 
 namespace UnityEditor.Graphs.Material
 {
-	public class CreateShaderSubGraph : EndNameEditActionCallback
+	/*public class CreateShaderSubGraph : EndNameEditActionCallback
 	{
 		[MenuItem("Assets/Create/Shader Sub-Graph", false, 209)]
 		public static void CreateMaterialSubGraph()
@@ -18,5 +18,5 @@ namespace UnityEditor.Graphs.Material
 			AssetDatabase.CreateAsset(graph, pathName);
 			graph.CreateSubAssets();
 		}
-	}
+	}*/
 }

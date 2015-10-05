@@ -12,8 +12,9 @@ namespace UnityEditor.Graphs.Material
 		private const string kAlbedoSlotName = "Albedo";
 		private const string kNormalSlotName = "Normal";
 		private const string kEmissionSlotName = "Emission";
-		private const string kSpecularSlotName = "Specular";
-		private const string kGlossSlotName = "Gloss";
+		private const string kMetallicSlotName = "Metallic";
+		private const string kSmoothnessSlotName = "Smoothness";
+		private const string kOcclusion = "Occlusion";
 		private const string kAlphaSlotName = "Alpha";
 
 		[SerializeField]
@@ -29,8 +30,9 @@ namespace UnityEditor.Graphs.Material
 			AddSlot (new Slot(SlotType.InputSlot, kAlbedoSlotName));
 			AddSlot (new Slot(SlotType.InputSlot, kNormalSlotName));
 			AddSlot (new Slot(SlotType.InputSlot, kEmissionSlotName));
-			AddSlot (new Slot(SlotType.InputSlot, kSpecularSlotName));
-			AddSlot (new Slot(SlotType.InputSlot, kGlossSlotName));
+			AddSlot (new Slot(SlotType.InputSlot, kMetallicSlotName));
+			AddSlot (new Slot(SlotType.InputSlot, kSmoothnessSlotName));
+			AddSlot (new Slot(SlotType.InputSlot, kOcclusion));
 			AddSlot (new Slot(SlotType.InputSlot, kAlphaSlotName));
 		}
 
@@ -126,20 +128,6 @@ namespace UnityEditor.Graphs.Material
 				lightFuncIndex = GetLightFunctions ().IndexOf (lightFunction);
 			lightFuncIndex = EditorGUILayout.Popup (lightFuncIndex, s_LightFunctions.Select(x => x.GetName ()).ToArray (), EditorStyles.popup);
 			m_LightFunction = GetLightFunctions ()[lightFuncIndex].GetName ();
-		}
-
-		public bool IsSpecularConnected ()
-		{
-			var specSlot = FindInputSlot (kSpecularSlotName);
-			var glossSlot = FindInputSlot(kGlossSlotName);
-			
-			if (specSlot == null || glossSlot == null)
-				return false;
-
-			if (specSlot.edges.Count > 0 || glossSlot.edges.Count > 0)
-				return true;
-
-			return false;
 		}
 	}
 }

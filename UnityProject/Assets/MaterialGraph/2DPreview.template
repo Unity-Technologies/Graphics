@@ -25,7 +25,7 @@ ${ShaderFunctions}
 
 			v2f vert (appdata_full v) 
 			{
-				v2f o;
+				v2f o = (v2f)0;
 				o.pos = mul (UNITY_MATRIX_MVP, v.vertex);
 ${VertexShaderBody}
 				return o;

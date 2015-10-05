@@ -18,4 +18,8 @@ namespace UnityEditor.Graphs.Material
 	{
 		public override string GetName () { return "BlinnPhong"; }
 	}
+	class PBRMetalicLightFunction : BaseLightFunction
+	{
+		public override string GetName () { return "Standard"; }
+	}
 }

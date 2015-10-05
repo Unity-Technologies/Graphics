@@ -86,16 +86,29 @@ namespace UnityEditor.Graphs.Material
 			return m_SlotDefaultValues.FirstOrDefault (x => x.slotName == slotName);
 		}
 
+	    private static Shader m_DefaultPreviewShader;
+	    private static Shader defaultPreviewShader
+	    {
+	        get
+	        {
+	            if (m_DefaultPreviewShader == null)
+                    m_DefaultPreviewShader = Shader.Find("Diffuse");
+
+	            return m_DefaultPreviewShader;
+	        }
+	    }
+
 		private UnityEngine.Material previewMaterial
 		{
 			get
 			{
 				if (m_Material == null)
-					m_Material = new UnityEngine.Material(Shader.Find("Diffuse")) { hideFlags = HideFlags.DontSave };
-
+                    m_Material = new UnityEngine.Material(defaultPreviewShader) { hideFlags = HideFlags.DontSave };
+				
 				return m_Material;
 			}
 		}
+
 		private PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
 
 		private bool needsUpdate
@@ -195,8 +208,8 @@ namespace UnityEditor.Graphs.Material
 				previewMaterial.SetVector("EDITOR_SIN_TIME", 
 					new Vector4( 
 						Mathf.Sin(time / 8.0f), 
-						Mathf.Sin(time / 4.0f), 
-						Mathf.Sin(time / 2.0f), 
+						Mathf.Sin(time / 4.0f),
+ 						Mathf.Sin(time / 2.0f), 
 						Mathf.Sin(time)));
 			}
 		}
@@ -210,9 +223,9 @@ namespace UnityEditor.Graphs.Material
 
 			MaterialWindow.DebugMaterialGraph (resultShader);
 
-			if (previewMaterial.shader.name != "Diffuse")
+			if (previewMaterial.shader != defaultPreviewShader)
 				DestroyImmediate(previewMaterial.shader, true);
-			previewMaterial.shader = UnityEditorInternal.InternalEditorUtility.CreateShaderAsset (resultShader);
+			previewMaterial.shader = UnityEditor.ShaderUtil.CreateShaderAsset (resultShader);
 			previewMaterial.shader.hideFlags = HideFlags.DontSave;
 			return true;
 		}

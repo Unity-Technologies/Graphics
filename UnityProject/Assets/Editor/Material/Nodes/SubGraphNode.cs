@@ -103,7 +103,7 @@ namespace UnityEditor.Graphs.Material
 				outputString.AddShaderChunk(
 					"float4 "
 					+ GetOutputVariableNameForSlot(slot, generationMode)
-					+ " = float4(0);", false);
+					+ " = float4(0, 0, 0, 0);", false);
 			}
 
 			// Step 2...
