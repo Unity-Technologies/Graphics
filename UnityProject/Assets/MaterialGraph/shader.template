@@ -39,7 +39,7 @@ ${ShaderInputs}
 ${VertexShaderBody}
 		}
 	  
-		void surf (Input IN, inout SurfaceOutput o) 
+		void surf (Input IN, inout SurfaceOutputStandard o) 
 		{
 ${PixelShaderBody}
 		}

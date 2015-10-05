@@ -72,7 +72,7 @@ namespace UnityEditor.Graphs.Material
 		
 		public void UpdateShaderSource (string src, Dictionary<string, Texture> defaultTexutres)
 		{
-			UnityEditorInternal.InternalEditorUtility.UpdateShaderAsset (m_Shader, src);
+			UnityEditor.ShaderUtil.UpdateShaderAsset (m_Shader, src);
 			EditorMaterialUtility.SetShaderDefaults (m_Shader, defaultTexutres.Keys.ToArray (), defaultTexutres.Values.ToArray ());
 		}
 
@@ -97,7 +97,7 @@ namespace UnityEditor.Graphs.Material
 					"}" +
 					"}";
 
-				m_Shader = UnityEditorInternal.InternalEditorUtility.CreateShaderAsset(shaderSource);
+				m_Shader = UnityEditor.ShaderUtil.CreateShaderAsset(shaderSource);
 				m_Shader.name = name;
 				m_Shader.hideFlags = HideFlags.HideInHierarchy;
 			}

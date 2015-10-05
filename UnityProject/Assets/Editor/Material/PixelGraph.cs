@@ -80,9 +80,6 @@ namespace UnityEditor.Graphs.Material
 			}
 
 			m_MasterNode.GenerateNodeCode(shaderBody, GenerationMode.SurfaceShader);
-
-			if (m_MasterNode.IsSpecularConnected())
-				shaderProperties.AddShaderProperty(new ColorPropertyChunk("_SpecColor", "Specular Color", Color.grey, false));
 		}
 
 		public void AddMasterNodeToAsset ()
