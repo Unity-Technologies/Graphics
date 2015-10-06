@@ -75,7 +75,7 @@ namespace UnityEditor.Graphs.Material
 				return;
 
 			if (uvSlot.edges.Count == 0)
-				UVNode.GenerateVertexToFragmentBlock (visitor);
+				UVNode.StaticGenerateVertexToFragmentBlock(visitor, generationMode);
 		}
 
 		public void GenerateVertexShaderBlock (ShaderGenerator visitor, GenerationMode generationMode)

@@ -21,7 +21,11 @@ namespace UnityEditor.Graphs.Material
 
 		public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
 		{
-			visitor.AddShaderChunk(precision + "4 screenPos;", true);
+            string temp = precision + "4 screenPos";
+            if (generationMode == GenerationMode.Preview2D)
+                temp += " : TEXCOORD1";
+		    temp += ";";
+			visitor.AddShaderChunk(temp, true);
 		}
 	}
 }

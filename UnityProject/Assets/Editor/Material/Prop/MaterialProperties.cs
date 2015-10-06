@@ -69,10 +69,6 @@ namespace UnityEditor.Graphs.Material
 					{
 						node.RefreshBoundProperty (property, nameChanged);
 					}
-					foreach (var node in nodes.Where(x => x is UVNode).Cast<UVNode>())
-					{
-						node.RefreshBoundProperty (property, nameChanged);
-					}
 				}
 				if (GUILayout.Button ("Remove"))
 				{
@@ -85,10 +81,6 @@ namespace UnityEditor.Graphs.Material
 			foreach (var prop in propsToRemove)
 			{
 				foreach (var node in nodes.Where(x => x is PropertyNode).Cast<PropertyNode>())
-				{
-					node.UnbindProperty (prop);
-				}
-				foreach (var node in nodes.Where(x => x is UVNode).Cast<UVNode>())
 				{
 					node.UnbindProperty (prop);
 				}

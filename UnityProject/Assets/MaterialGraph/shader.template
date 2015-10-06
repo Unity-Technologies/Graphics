@@ -16,7 +16,6 @@ ${ZWrite}
 		LOD 200
 		
 		CGPROGRAM
-		#pragma exclude_renderers ps3 flash xbox360 gles d3d11 d3d11_9x
 		#pragma target 3.0
 		#pragma surface surf ${LightingFunctionName} ${VertexShaderDecl}
 		#pragma glsl
