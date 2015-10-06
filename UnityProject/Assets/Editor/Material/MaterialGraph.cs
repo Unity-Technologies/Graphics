@@ -18,6 +18,12 @@ namespace UnityEditor.Graphs.Material
 		
 		[SerializeField]
 		private Shader m_Shader;
+
+	    public int GetShaderInstanceID()
+	    {
+            Debug.Log("Returning: " + m_Shader.GetInstanceID()); 
+	        return m_Shader.GetInstanceID();
+	    }
 		
 		public MaterialProperties materialProperties { get { return m_MaterialProperties; } }
 		public MaterialOptions materialOptions { get { return m_MaterialOptions; } }
@@ -99,7 +105,7 @@ namespace UnityEditor.Graphs.Material
 
 				m_Shader = UnityEditor.ShaderUtil.CreateShaderAsset(shaderSource);
 				m_Shader.name = name;
-				m_Shader.hideFlags = HideFlags.HideInHierarchy;
+				//m_Shader.hideFlags = HideFlags.HideInHierarchy;
 			}
 			AssetDatabase.AddObjectToAsset (m_Shader, this);
 

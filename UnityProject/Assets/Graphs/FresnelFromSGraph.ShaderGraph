@@ -13,17 +13,17 @@ Shader:
     200\n\t\t\n\t\t\n\t// ------------------------------------------------------------\n\t//
     Surface shader code generated out of a CGPROGRAM block:\n\t\n\n\t// ---- forward
     rendering base pass:\n\tPass {\n\t\tName \"FORWARD\"\n\t\tTags { \"LightMode\"
-    = \"ForwardBase\" }\n\nGpuProgramID 13266\nTags { \"ShadowSupport\" = \"True\"
-    }\nProgram \"vp\" {}\nProgram \"fp\" {}\n\n#LINE 276\n\n\n}\n\n\t// ---- forward
+    = \"ForwardBase\" }\n\nGpuProgramID 43742\nTags { \"ShadowSupport\" = \"True\"
+    }\nProgram \"vp\" {}\nProgram \"fp\" {}\n\n#LINE 264\n\n\n}\n\n\t// ---- forward
     rendering additive lights pass:\n\tPass {\n\t\tName \"FORWARD\"\n\t\tTags { \"LightMode\"
-    = \"ForwardAdd\" }\n\t\tZWrite Off Blend One One\n\nGpuProgramID 68436\nProgram
-    \"vp\" {}\nProgram \"fp\" {}\n\n#LINE 179\n\n\n}\n\n\t// ---- deferred shading
+    = \"ForwardAdd\" }\n\t\tZWrite Off Blend One One\n\nGpuProgramID 65895\nProgram
+    \"vp\" {}\nProgram \"fp\" {}\n\n#LINE 168\n\n\n}\n\n\t// ---- deferred shading
     pass:\n\tPass {\n\t\tName \"DEFERRED\"\n\t\tTags { \"LightMode\" = \"Deferred\"
-    }\n\nGpuProgramID 145839\nProgram \"vp\" {}\nProgram \"fp\" {}\n\n#LINE 249\n\n\n}\n\n\t//
+    }\n\nGpuProgramID 133405\nProgram \"vp\" {}\nProgram \"fp\" {}\n\n#LINE 238\n\n\n}\n\n\t//
     ---- meta information extraction pass:\n\tPass {\n\t\tName \"Meta\"\n\t\tTags
-    { \"LightMode\" = \"Meta\" }\n\t\tCull Off\n\nGpuProgramID 214433\nProgram \"vp\"
-    {}\nProgram \"fp\" {}\n\n#LINE 163\n\n\n}\n\n\t// ---- end of surface shader generated
-    code\n\n#LINE 98\n\n\t} \n\tFallBack \"Diffuse\"\n}"
+    { \"LightMode\" = \"Meta\" }\n\t\tCull Off\n\nGpuProgramID 250938\nProgram \"vp\"
+    {}\nProgram \"fp\" {}\n\n#LINE 152\n\n\n}\n\n\t// ---- end of surface shader generated
+    code\n\n#LINE 93\n\n\t} \n\tFallBack \"Diffuse\"\n}\n"
   m_PathName: 
   decompressedSize: 0
   m_SubProgramBlob: 
@@ -33,7 +33,7 @@ Shader:
   m_ShaderIsBaked: 0
   errors: []
   m_DefaultTextures:
-    Metal: {fileID: 2800000, guid: c0618a0ba9f71be46a901433f41dfb1b, type: 3}
+    Metal: {fileID: 0}
   m_CompileInfo:
     m_Snippets:
       426:
@@ -697,6 +697,554 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/Graphs
         m_PlatformMask: 4294966851
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: 52f816656dafeebcd2f4a2a9b873fb23
+        m_IsGLSL: 0
+        m_FromOther: 0
+        m_VariantsUser0:
+        - - __
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser1:
+        - - __
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0:
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+          - VERTEXLIGHT_ON
+        m_VariantsBuiltin1:
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 2
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2:
+        - SHADOWS_SOFT
+        - DIRLIGHTMAP_COMBINED
+        - DIRLIGHTMAP_SEPARATE
+        - DYNAMICLIGHTMAP_ON
+        m_TargetVariants3: []
+        m_TargetVariants4: []
+        m_TargetVariants5: []
+        m_NonStrippedUserKeywords: FOG_EXP FOG_EXP2 FOG_LINEAR
+        m_BuiltinKeywords: DIRECTIONAL DIRLIGHTMAP_COMBINED DIRLIGHTMAP_OFF DIRLIGHTMAP_SEPARATE
+          DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON LIGHTMAP_OFF LIGHTMAP_ON SHADOWS_NATIVE
+          SHADOWS_OFF SHADOWS_SCREEN VERTEXLIGHT_ON
+      2554:
+        m_Code: "#line 37 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
+          compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+          target 3.0\n#pragma glsl\n#pragma debug\n#pragma multi_compile_fog\n#pragma
+          multi_compile_fwdbase\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n//
+          Surface shader code generated based on:\n// writes to per-pixel normal:
+          no\n// writes to emission: YES\n// needs world space reflection vector:
+          no\n// needs world space normal vector: no\n// needs screen space position:
+          no\n// needs world space position: no\n// needs view direction: YES\n//
+          needs world space view direction: no\n// needs world space position for
+          lighting: YES\n// needs world space view direction for lighting: YES\n//
+          needs world space view direction for lightmaps: no\n// needs vertex color:
+          no\n// needs VFACE: no\n// passes tangent-to-world matrix to pixel shader:
+          no\n// reads from normal: YES\n// 0 texcoords actually used\n#define UNITY_PASS_FORWARDBASE\n#include
+          \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include \"UnityPBSLighting.cginc\"\n#include
+          \"AutoLight.cginc\"\n\n#define INTERNAL_DATA\n#define WorldReflectionVector(data,normal)
+          data.worldRefl\n#define WorldNormalVector(data,normal) normal\n\n// Original
+          surface shader snippet:\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line
+          27 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n\t\t//#pragma
+          target 3.0\n\t\t//#pragma surface surf Standard \n\t\t//#pragma glsl\n\t\t//#pragma
+          debug\n\n\n\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_absolute_half (half4 arg1)\r\n\t\t{\r\n\t\t\treturn abs(arg1);\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_multiply_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          arg1 * arg2;\r\n\t\t}\r\n\t\t\r\n\n\n\t\tfloat4 FresnelColor;\r\n\t\tfloat4
+          Power;\r\n\t\tsampler2D Metal;\r\n\t\tfloat4 Metal_ST;\r\n\n\n\t\tstruct
+          Input \n\t\t{\n\t\t\tfloat3 viewDir;\r\n\n\t\t};\n\n\t\tvoid vert (inout
+          appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+          \ \n\t\tvoid surf (Input IN, inout SurfaceOutputStandard o) \n\t\t{\n\t\t\t//
+          Subgraph for node SubGraph_7614\r\n\t\t\tfloat4 SubGraph_7614_I00 = float4(0,
+          0, 0, 0);\r\n\t\t\t{\r\n\t\t\t\tfloat4 SubGraphInputs_7628_O00 = FresnelColor;\r\n\t\t\t\tfloat4
+          SubGraphInputs_7628_O01 = Power;\r\n\t\t\t\thalf4 FresnelNode_7636_Output
+          = unity_fresnel_half (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\r\n\t\t\t\thalf4
+          SplatNode_7642_Output = SubGraphInputs_7628_O01.xxxx;\r\n\t\t\t\thalf4 AbsoluteNode_7644_Output
+          = unity_absolute_half (SplatNode_7642_Output);\r\n\t\t\t\thalf4 PowerNode_7640_Output
+          = pow (FresnelNode_7636_Output, AbsoluteNode_7644_Output);\r\n\t\t\t\thalf4
+          MultiplyNode_7638_Output = unity_multiply_half (SubGraphInputs_7628_O00,
+          PowerNode_7640_Output);\r\n\t\t\t\t\r\n\t\t\t\tSubGraph_7614_I00 = MultiplyNode_7638_Output;\r\n\t\t\t}\r\n\t\t\t//
+          Subgraph ends\r\n\t\t\t\r\n\t\t\thalf4 MultiplyNode_7616_Output = unity_multiply_half
+          (SubGraph_7614_I00, half4 (1,1,1,1));\r\n\t\t\to.Emission = MultiplyNode_7616_Output;\r\n\n\t\t}\n\t\t\n\n//
+          vertex-to-fragment interpolation data\n// no lightmaps:\n#ifdef LIGHTMAP_OFF\nstruct
+          v2f_surf {\n  float4 pos : SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n
+          \ float3 worldPos : TEXCOORD1;\n  #if UNITY_SHOULD_SAMPLE_SH\n  half3 sh
+          : TEXCOORD2; // SH\n  #endif\n  SHADOW_COORDS(3)\n  UNITY_FOG_COORDS(4)\n
+          \ #if SHADER_TARGET >= 30\n  float4 lmap : TEXCOORD5;\n  #endif\n};\n#endif\n//
+          with lightmaps:\n#ifndef LIGHTMAP_OFF\nstruct v2f_surf {\n  float4 pos :
+          SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n  float3 worldPos : TEXCOORD1;\n
+          \ float4 lmap : TEXCOORD2;\n  SHADOW_COORDS(3)\n  UNITY_FOG_COORDS(4)\n
+          \ #ifdef DIRLIGHTMAP_COMBINED\n  fixed3 tSpace0 : TEXCOORD5;\n  fixed3 tSpace1
+          : TEXCOORD6;\n  fixed3 tSpace2 : TEXCOORD7;\n  #endif\n};\n#endif\n\n//
+          vertex shader\nv2f_surf vert_surf (appdata_full v) {\n  v2f_surf o;\n  UNITY_INITIALIZE_OUTPUT(v2f_surf,o);\n
+          \ o.pos = mul (UNITY_MATRIX_MVP, v.vertex);\n  float3 worldPos = mul(_Object2World,
+          v.vertex).xyz;\n  fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);\n
+          \ #if !defined(LIGHTMAP_OFF) && defined(DIRLIGHTMAP_COMBINED)\n  fixed3
+          worldTangent = UnityObjectToWorldDir(v.tangent.xyz);\n  fixed tangentSign
+          = v.tangent.w * unity_WorldTransformParams.w;\n  fixed3 worldBinormal =
+          cross(worldNormal, worldTangent) * tangentSign;\n  #endif\n  #if !defined(LIGHTMAP_OFF)
+          && defined(DIRLIGHTMAP_COMBINED)\n  o.tSpace0 = float4(worldTangent.x, worldBinormal.x,
+          worldNormal.x, worldPos.x);\n  o.tSpace1 = float4(worldTangent.y, worldBinormal.y,
+          worldNormal.y, worldPos.y);\n  o.tSpace2 = float4(worldTangent.z, worldBinormal.z,
+          worldNormal.z, worldPos.z);\n  #endif\n  o.worldPos = worldPos;\n  o.worldNormal
+          = worldNormal;\n  #ifndef DYNAMICLIGHTMAP_OFF\n  o.lmap.zw = v.texcoord2.xy
+          * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;\n  #endif\n  #ifndef
+          LIGHTMAP_OFF\n  o.lmap.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;\n
+          \ #endif\n\n  // SH/ambient and vertex lights\n  #ifdef LIGHTMAP_OFF\n    #if
+          UNITY_SHOULD_SAMPLE_SH\n      #if UNITY_SAMPLE_FULL_SH_PER_PIXEL\n        o.sh
+          = 0;\n      #elif (SHADER_TARGET < 30)\n        o.sh = ShadeSH9 (float4(worldNormal,1.0));\n
+          \     #else\n        o.sh = ShadeSH3Order (half4(worldNormal, 1.0));\n      #endif\n
+          \     // Add approximated illumination from non-important point lights\n
+          \     #ifdef VERTEXLIGHT_ON\n        o.sh += Shade4PointLights (\n          unity_4LightPosX0,
+          unity_4LightPosY0, unity_4LightPosZ0,\n          unity_LightColor[0].rgb,
+          unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,\n
+          \         unity_4LightAtten0, worldPos, worldNormal);\n      #endif\n    #endif\n
+          \ #endif // LIGHTMAP_OFF\n\n  TRANSFER_SHADOW(o); // pass shadow coordinates
+          to pixel shader\n  UNITY_TRANSFER_FOG(o,o.pos); // pass fog coordinates
+          to pixel shader\n  return o;\n}\n\n// fragment shader\nfixed4 frag_surf
+          (v2f_surf IN) : SV_Target {\n  // prepare and unpack data\n  Input surfIN;\n
+          \ UNITY_INITIALIZE_OUTPUT(Input,surfIN);\n  surfIN.viewDir.x = 1.0;\n  float3
+          worldPos = IN.worldPos;\n  #ifndef USING_DIRECTIONAL_LIGHT\n    fixed3 lightDir
+          = normalize(UnityWorldSpaceLightDir(worldPos));\n  #else\n    fixed3 lightDir
+          = _WorldSpaceLightPos0.xyz;\n  #endif\n  fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));\n
+          \ fixed3 viewDir = worldViewDir;\n  surfIN.viewDir = viewDir;\n  #ifdef
+          UNITY_COMPILER_HLSL\n  SurfaceOutputStandard o = (SurfaceOutputStandard)0;\n
+          \ #else\n  SurfaceOutputStandard o;\n  #endif\n  o.Albedo = 0.0;\n  o.Emission
+          = 0.0;\n  o.Alpha = 0.0;\n  o.Occlusion = 1.0;\n  fixed3 normalWorldVertex
+          = fixed3(0,0,1);\n  o.Normal = IN.worldNormal;\n  normalWorldVertex = IN.worldNormal;\n\n
+          \ // call surface function\n  surf (surfIN, o);\n\n  // compute lighting
+          & shadowing factor\n  UNITY_LIGHT_ATTENUATION(atten, IN, worldPos)\n  fixed4
+          c = 0;\n\n  // Setup lighting environment\n  UnityGI gi;\n  UNITY_INITIALIZE_OUTPUT(UnityGI,
+          gi);\n  gi.indirect.diffuse = 0;\n  gi.indirect.specular = 0;\n  #if !defined(LIGHTMAP_ON)\n
+          \     gi.light.color = _LightColor0.rgb;\n      gi.light.dir = lightDir;\n
+          \     gi.light.ndotl = LambertTerm (o.Normal, gi.light.dir);\n  #endif\n
+          \ // Call GI (lightmaps/SH/reflections) lighting function\n  UnityGIInput
+          giInput;\n  UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);\n  giInput.light
+          = gi.light;\n  giInput.worldPos = worldPos;\n  giInput.worldViewDir = worldViewDir;\n
+          \ giInput.atten = atten;\n  #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)\n
+          \   giInput.lightmapUV = IN.lmap;\n  #else\n    giInput.lightmapUV = 0.0;\n
+          \ #endif\n  #if UNITY_SHOULD_SAMPLE_SH\n    giInput.ambient = IN.sh;\n  #else\n
+          \   giInput.ambient.rgb = 0.0;\n  #endif\n  giInput.probeHDR[0] = unity_SpecCube0_HDR;\n
+          \ giInput.probeHDR[1] = unity_SpecCube1_HDR;\n  #if UNITY_SPECCUBE_BLENDING
+          || UNITY_SPECCUBE_BOX_PROJECTION\n    giInput.boxMin[0] = unity_SpecCube0_BoxMin;
+          // .w holds lerp value for blending\n  #endif\n  #if UNITY_SPECCUBE_BOX_PROJECTION\n
+          \   giInput.boxMax[0] = unity_SpecCube0_BoxMax;\n    giInput.probePosition[0]
+          = unity_SpecCube0_ProbePosition;\n    giInput.boxMax[1] = unity_SpecCube1_BoxMax;\n
+          \   giInput.boxMin[1] = unity_SpecCube1_BoxMin;\n    giInput.probePosition[1]
+          = unity_SpecCube1_ProbePosition;\n  #endif\n  LightingStandard_GI(o, giInput,
+          gi);\n\n  // realtime lighting: call lighting function\n  c += LightingStandard
+          (o, worldViewDir, gi);\n  c.rgb += o.Emission;\n  UNITY_APPLY_FOG(IN.fogCoord,
+          c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
+        m_AssetPath: Assets/Graphs
+        m_PlatformMask: 4294967295
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -2816,6 +3364,554 @@ Shader:
         m_TargetVariants5: []
         m_NonStrippedUserKeywords: 
         m_BuiltinKeywords: SHADOWS_CUBE SHADOWS_DEPTH
+      43742:
+        m_Code: "#line 37 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
+          compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+          target 3.0\n#pragma glsl\n#pragma debug\n#pragma multi_compile_fog\n#pragma
+          multi_compile_fwdbase\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n//
+          Surface shader code generated based on:\n// writes to per-pixel normal:
+          no\n// writes to emission: YES\n// needs world space reflection vector:
+          no\n// needs world space normal vector: no\n// needs screen space position:
+          no\n// needs world space position: no\n// needs view direction: YES\n//
+          needs world space view direction: no\n// needs world space position for
+          lighting: YES\n// needs world space view direction for lighting: YES\n//
+          needs world space view direction for lightmaps: no\n// needs vertex color:
+          no\n// needs VFACE: no\n// passes tangent-to-world matrix to pixel shader:
+          no\n// reads from normal: YES\n// 0 texcoords actually used\n#define UNITY_PASS_FORWARDBASE\n#include
+          \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include \"UnityPBSLighting.cginc\"\n#include
+          \"AutoLight.cginc\"\n\n#define INTERNAL_DATA\n#define WorldReflectionVector(data,normal)
+          data.worldRefl\n#define WorldNormalVector(data,normal) normal\n\n// Original
+          surface shader snippet:\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line
+          27 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n\t\t//#pragma
+          target 3.0\n\t\t//#pragma surface surf Standard \n\t\t//#pragma glsl\n\t\t//#pragma
+          debug\n\n\n\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_absolute_half (half4 arg1)\r\n\t\t{\r\n\t\t\treturn abs(arg1);\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_multiply_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          arg1 * arg2;\r\n\t\t}\r\n\t\t\r\n\n\n\t\tfloat4 FresnelColor;\r\n\t\tfloat4
+          Power;\r\n\t\tsampler2D Metal;\r\n\t\tfloat4 Metal_ST;\r\n\n\n\t\tstruct
+          Input \n\t\t{\n\t\t\tfloat3 viewDir;\r\n\n\t\t};\n\n\t\tvoid vert (inout
+          appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+          \ \n\t\tvoid surf (Input IN, inout SurfaceOutputStandard o) \n\t\t{\n\t\t\t//
+          Subgraph for node SubGraph_7594\r\n\t\t\tfloat4 SubGraph_7594_I00 = float4(0,
+          0, 0, 0);\r\n\t\t\t{\r\n\t\t\t\tfloat4 SubGraphInputs_7600_O00 = FresnelColor;\r\n\t\t\t\tfloat4
+          SubGraphInputs_7600_O01 = Power;\r\n\t\t\t\thalf4 FresnelNode_7608_Output
+          = unity_fresnel_half (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\r\n\t\t\t\thalf4
+          SplatNode_7614_Output = SubGraphInputs_7600_O01.xxxx;\r\n\t\t\t\thalf4 AbsoluteNode_7616_Output
+          = unity_absolute_half (SplatNode_7614_Output);\r\n\t\t\t\thalf4 PowerNode_7612_Output
+          = pow (FresnelNode_7608_Output, AbsoluteNode_7616_Output);\r\n\t\t\t\thalf4
+          MultiplyNode_7610_Output = unity_multiply_half (SubGraphInputs_7600_O00,
+          PowerNode_7612_Output);\r\n\t\t\t\t\r\n\t\t\t\tSubGraph_7594_I00 = MultiplyNode_7610_Output;\r\n\t\t\t}\r\n\t\t\t//
+          Subgraph ends\r\n\t\t\t\r\n\t\t\thalf4 MultiplyNode_7596_Output = unity_multiply_half
+          (SubGraph_7594_I00, half4 (1,1,1,1));\r\n\t\t\to.Emission = MultiplyNode_7596_Output;\r\n\n\t\t}\n\t\t\n\n//
+          vertex-to-fragment interpolation data\n// no lightmaps:\n#ifdef LIGHTMAP_OFF\nstruct
+          v2f_surf {\n  float4 pos : SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n
+          \ float3 worldPos : TEXCOORD1;\n  #if UNITY_SHOULD_SAMPLE_SH\n  half3 sh
+          : TEXCOORD2; // SH\n  #endif\n  SHADOW_COORDS(3)\n  UNITY_FOG_COORDS(4)\n
+          \ #if SHADER_TARGET >= 30\n  float4 lmap : TEXCOORD5;\n  #endif\n};\n#endif\n//
+          with lightmaps:\n#ifndef LIGHTMAP_OFF\nstruct v2f_surf {\n  float4 pos :
+          SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n  float3 worldPos : TEXCOORD1;\n
+          \ float4 lmap : TEXCOORD2;\n  SHADOW_COORDS(3)\n  UNITY_FOG_COORDS(4)\n
+          \ #ifdef DIRLIGHTMAP_COMBINED\n  fixed3 tSpace0 : TEXCOORD5;\n  fixed3 tSpace1
+          : TEXCOORD6;\n  fixed3 tSpace2 : TEXCOORD7;\n  #endif\n};\n#endif\n\n//
+          vertex shader\nv2f_surf vert_surf (appdata_full v) {\n  v2f_surf o;\n  UNITY_INITIALIZE_OUTPUT(v2f_surf,o);\n
+          \ o.pos = mul (UNITY_MATRIX_MVP, v.vertex);\n  float3 worldPos = mul(_Object2World,
+          v.vertex).xyz;\n  fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);\n
+          \ #if !defined(LIGHTMAP_OFF) && defined(DIRLIGHTMAP_COMBINED)\n  fixed3
+          worldTangent = UnityObjectToWorldDir(v.tangent.xyz);\n  fixed tangentSign
+          = v.tangent.w * unity_WorldTransformParams.w;\n  fixed3 worldBinormal =
+          cross(worldNormal, worldTangent) * tangentSign;\n  #endif\n  #if !defined(LIGHTMAP_OFF)
+          && defined(DIRLIGHTMAP_COMBINED)\n  o.tSpace0 = float4(worldTangent.x, worldBinormal.x,
+          worldNormal.x, worldPos.x);\n  o.tSpace1 = float4(worldTangent.y, worldBinormal.y,
+          worldNormal.y, worldPos.y);\n  o.tSpace2 = float4(worldTangent.z, worldBinormal.z,
+          worldNormal.z, worldPos.z);\n  #endif\n  o.worldPos = worldPos;\n  o.worldNormal
+          = worldNormal;\n  #ifndef DYNAMICLIGHTMAP_OFF\n  o.lmap.zw = v.texcoord2.xy
+          * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;\n  #endif\n  #ifndef
+          LIGHTMAP_OFF\n  o.lmap.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;\n
+          \ #endif\n\n  // SH/ambient and vertex lights\n  #ifdef LIGHTMAP_OFF\n    #if
+          UNITY_SHOULD_SAMPLE_SH\n      #if UNITY_SAMPLE_FULL_SH_PER_PIXEL\n        o.sh
+          = 0;\n      #elif (SHADER_TARGET < 30)\n        o.sh = ShadeSH9 (float4(worldNormal,1.0));\n
+          \     #else\n        o.sh = ShadeSH3Order (half4(worldNormal, 1.0));\n      #endif\n
+          \     // Add approximated illumination from non-important point lights\n
+          \     #ifdef VERTEXLIGHT_ON\n        o.sh += Shade4PointLights (\n          unity_4LightPosX0,
+          unity_4LightPosY0, unity_4LightPosZ0,\n          unity_LightColor[0].rgb,
+          unity_LightColor[1].rgb, unity_LightColor[2].rgb, unity_LightColor[3].rgb,\n
+          \         unity_4LightAtten0, worldPos, worldNormal);\n      #endif\n    #endif\n
+          \ #endif // LIGHTMAP_OFF\n\n  TRANSFER_SHADOW(o); // pass shadow coordinates
+          to pixel shader\n  UNITY_TRANSFER_FOG(o,o.pos); // pass fog coordinates
+          to pixel shader\n  return o;\n}\n\n// fragment shader\nfixed4 frag_surf
+          (v2f_surf IN) : SV_Target {\n  // prepare and unpack data\n  Input surfIN;\n
+          \ UNITY_INITIALIZE_OUTPUT(Input,surfIN);\n  surfIN.viewDir.x = 1.0;\n  float3
+          worldPos = IN.worldPos;\n  #ifndef USING_DIRECTIONAL_LIGHT\n    fixed3 lightDir
+          = normalize(UnityWorldSpaceLightDir(worldPos));\n  #else\n    fixed3 lightDir
+          = _WorldSpaceLightPos0.xyz;\n  #endif\n  fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));\n
+          \ fixed3 viewDir = worldViewDir;\n  surfIN.viewDir = viewDir;\n  #ifdef
+          UNITY_COMPILER_HLSL\n  SurfaceOutputStandard o = (SurfaceOutputStandard)0;\n
+          \ #else\n  SurfaceOutputStandard o;\n  #endif\n  o.Albedo = 0.0;\n  o.Emission
+          = 0.0;\n  o.Alpha = 0.0;\n  o.Occlusion = 1.0;\n  fixed3 normalWorldVertex
+          = fixed3(0,0,1);\n  o.Normal = IN.worldNormal;\n  normalWorldVertex = IN.worldNormal;\n\n
+          \ // call surface function\n  surf (surfIN, o);\n\n  // compute lighting
+          & shadowing factor\n  UNITY_LIGHT_ATTENUATION(atten, IN, worldPos)\n  fixed4
+          c = 0;\n\n  // Setup lighting environment\n  UnityGI gi;\n  UNITY_INITIALIZE_OUTPUT(UnityGI,
+          gi);\n  gi.indirect.diffuse = 0;\n  gi.indirect.specular = 0;\n  #if !defined(LIGHTMAP_ON)\n
+          \     gi.light.color = _LightColor0.rgb;\n      gi.light.dir = lightDir;\n
+          \     gi.light.ndotl = LambertTerm (o.Normal, gi.light.dir);\n  #endif\n
+          \ // Call GI (lightmaps/SH/reflections) lighting function\n  UnityGIInput
+          giInput;\n  UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);\n  giInput.light
+          = gi.light;\n  giInput.worldPos = worldPos;\n  giInput.worldViewDir = worldViewDir;\n
+          \ giInput.atten = atten;\n  #if defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON)\n
+          \   giInput.lightmapUV = IN.lmap;\n  #else\n    giInput.lightmapUV = 0.0;\n
+          \ #endif\n  #if UNITY_SHOULD_SAMPLE_SH\n    giInput.ambient = IN.sh;\n  #else\n
+          \   giInput.ambient.rgb = 0.0;\n  #endif\n  giInput.probeHDR[0] = unity_SpecCube0_HDR;\n
+          \ giInput.probeHDR[1] = unity_SpecCube1_HDR;\n  #if UNITY_SPECCUBE_BLENDING
+          || UNITY_SPECCUBE_BOX_PROJECTION\n    giInput.boxMin[0] = unity_SpecCube0_BoxMin;
+          // .w holds lerp value for blending\n  #endif\n  #if UNITY_SPECCUBE_BOX_PROJECTION\n
+          \   giInput.boxMax[0] = unity_SpecCube0_BoxMax;\n    giInput.probePosition[0]
+          = unity_SpecCube0_ProbePosition;\n    giInput.boxMax[1] = unity_SpecCube1_BoxMax;\n
+          \   giInput.boxMin[1] = unity_SpecCube1_BoxMin;\n    giInput.probePosition[1]
+          = unity_SpecCube1_ProbePosition;\n  #endif\n  LightingStandard_GI(o, giInput,
+          gi);\n\n  // realtime lighting: call lighting function\n  c += LightingStandard
+          (o, worldViewDir, gi);\n  c.rgb += o.Emission;\n  UNITY_APPLY_FOG(IN.fogCoord,
+          c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
+        m_AssetPath: Assets/Graphs
+        m_PlatformMask: 4294967295
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: 52f816656dafeebcd2f4a2a9b873fb23
+        m_IsGLSL: 0
+        m_FromOther: 0
+        m_VariantsUser0:
+        - - __
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser1:
+        - - __
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0:
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+          - VERTEXLIGHT_ON
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+          - VERTEXLIGHT_ON
+        m_VariantsBuiltin1:
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_OFF
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        - - DIRECTIONAL
+          - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - SHADOWS_SCREEN
+          - SHADOWS_NATIVE
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 2
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2:
+        - SHADOWS_SOFT
+        - DIRLIGHTMAP_COMBINED
+        - DIRLIGHTMAP_SEPARATE
+        - DYNAMICLIGHTMAP_ON
+        m_TargetVariants3: []
+        m_TargetVariants4: []
+        m_TargetVariants5: []
+        m_NonStrippedUserKeywords: FOG_EXP FOG_EXP2 FOG_LINEAR
+        m_BuiltinKeywords: DIRECTIONAL DIRLIGHTMAP_COMBINED DIRLIGHTMAP_OFF DIRLIGHTMAP_SEPARATE
+          DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON LIGHTMAP_OFF LIGHTMAP_ON SHADOWS_NATIVE
+          SHADOWS_OFF SHADOWS_SCREEN VERTEXLIGHT_ON
       43837:
         m_Code: "#line 36 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
           compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
@@ -4445,6 +5541,124 @@ Shader:
         m_BuiltinKeywords: DIRECTIONAL DIRLIGHTMAP_COMBINED DIRLIGHTMAP_OFF DIRLIGHTMAP_SEPARATE
           DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON LIGHTMAP_OFF LIGHTMAP_ON SHADOWS_NATIVE
           SHADOWS_OFF SHADOWS_SCREEN VERTEXLIGHT_ON
+      65895:
+        m_Code: "#line 272 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
+          compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+          target 3.0\n#pragma glsl\n#pragma debug\n#pragma multi_compile_fog\n#pragma
+          multi_compile_fwdadd\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n//
+          Surface shader code generated based on:\n// writes to per-pixel normal:
+          no\n// writes to emission: YES\n// needs world space reflection vector:
+          no\n// needs world space normal vector: no\n// needs screen space position:
+          no\n// needs world space position: no\n// needs view direction: no\n// needs
+          world space view direction: no\n// needs world space position for lighting:
+          YES\n// needs world space view direction for lighting: YES\n// needs world
+          space view direction for lightmaps: no\n// needs vertex color: no\n// needs
+          VFACE: no\n// passes tangent-to-world matrix to pixel shader: no\n// reads
+          from normal: no\n// 0 texcoords actually used\n#define UNITY_PASS_FORWARDADD\n#include
+          \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include \"UnityPBSLighting.cginc\"\n#include
+          \"AutoLight.cginc\"\n\n#define INTERNAL_DATA\n#define WorldReflectionVector(data,normal)
+          data.worldRefl\n#define WorldNormalVector(data,normal) normal\n\n// Original
+          surface shader snippet:\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line
+          27 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n\t\t//#pragma
+          target 3.0\n\t\t//#pragma surface surf Standard \n\t\t//#pragma glsl\n\t\t//#pragma
+          debug\n\n\n\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_absolute_half (half4 arg1)\r\n\t\t{\r\n\t\t\treturn abs(arg1);\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_multiply_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          arg1 * arg2;\r\n\t\t}\r\n\t\t\r\n\n\n\t\tfloat4 FresnelColor;\r\n\t\tfloat4
+          Power;\r\n\t\tsampler2D Metal;\r\n\t\tfloat4 Metal_ST;\r\n\n\n\t\tstruct
+          Input \n\t\t{\n\t\t\tfloat3 viewDir;\r\n\n\t\t};\n\n\t\tvoid vert (inout
+          appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+          \ \n\t\tvoid surf (Input IN, inout SurfaceOutputStandard o) \n\t\t{\n\t\t\t//
+          Subgraph for node SubGraph_7594\r\n\t\t\tfloat4 SubGraph_7594_I00 = float4(0,
+          0, 0, 0);\r\n\t\t\t{\r\n\t\t\t\tfloat4 SubGraphInputs_7600_O00 = FresnelColor;\r\n\t\t\t\tfloat4
+          SubGraphInputs_7600_O01 = Power;\r\n\t\t\t\thalf4 FresnelNode_7608_Output
+          = unity_fresnel_half (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\r\n\t\t\t\thalf4
+          SplatNode_7614_Output = SubGraphInputs_7600_O01.xxxx;\r\n\t\t\t\thalf4 AbsoluteNode_7616_Output
+          = unity_absolute_half (SplatNode_7614_Output);\r\n\t\t\t\thalf4 PowerNode_7612_Output
+          = pow (FresnelNode_7608_Output, AbsoluteNode_7616_Output);\r\n\t\t\t\thalf4
+          MultiplyNode_7610_Output = unity_multiply_half (SubGraphInputs_7600_O00,
+          PowerNode_7612_Output);\r\n\t\t\t\t\r\n\t\t\t\tSubGraph_7594_I00 = MultiplyNode_7610_Output;\r\n\t\t\t}\r\n\t\t\t//
+          Subgraph ends\r\n\t\t\t\r\n\t\t\thalf4 MultiplyNode_7596_Output = unity_multiply_half
+          (SubGraph_7594_I00, half4 (1,1,1,1));\r\n\t\t\to.Emission = MultiplyNode_7596_Output;\r\n\n\t\t}\n\t\t\n\n//
+          vertex-to-fragment interpolation data\nstruct v2f_surf {\n  float4 pos :
+          SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n  float3 worldPos : TEXCOORD1;\n
+          \ SHADOW_COORDS(2)\n  UNITY_FOG_COORDS(3)\n};\n\n// vertex shader\nv2f_surf
+          vert_surf (appdata_full v) {\n  v2f_surf o;\n  UNITY_INITIALIZE_OUTPUT(v2f_surf,o);\n
+          \ o.pos = mul (UNITY_MATRIX_MVP, v.vertex);\n  float3 worldPos = mul(_Object2World,
+          v.vertex).xyz;\n  fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);\n
+          \ o.worldPos = worldPos;\n  o.worldNormal = worldNormal;\n\n  TRANSFER_SHADOW(o);
+          // pass shadow coordinates to pixel shader\n  UNITY_TRANSFER_FOG(o,o.pos);
+          // pass fog coordinates to pixel shader\n  return o;\n}\n\n// fragment shader\nfixed4
+          frag_surf (v2f_surf IN) : SV_Target {\n  // prepare and unpack data\n  Input
+          surfIN;\n  UNITY_INITIALIZE_OUTPUT(Input,surfIN);\n  surfIN.viewDir.x =
+          1.0;\n  float3 worldPos = IN.worldPos;\n  #ifndef USING_DIRECTIONAL_LIGHT\n
+          \   fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));\n  #else\n
+          \   fixed3 lightDir = _WorldSpaceLightPos0.xyz;\n  #endif\n  fixed3 worldViewDir
+          = normalize(UnityWorldSpaceViewDir(worldPos));\n  #ifdef UNITY_COMPILER_HLSL\n
+          \ SurfaceOutputStandard o = (SurfaceOutputStandard)0;\n  #else\n  SurfaceOutputStandard
+          o;\n  #endif\n  o.Albedo = 0.0;\n  o.Emission = 0.0;\n  o.Alpha = 0.0;\n
+          \ o.Occlusion = 1.0;\n  fixed3 normalWorldVertex = fixed3(0,0,1);\n  o.Normal
+          = IN.worldNormal;\n  normalWorldVertex = IN.worldNormal;\n\n  // call surface
+          function\n  surf (surfIN, o);\n  UNITY_LIGHT_ATTENUATION(atten, IN, worldPos)\n
+          \ fixed4 c = 0;\n\n  // Setup lighting environment\n  UnityGI gi;\n  UNITY_INITIALIZE_OUTPUT(UnityGI,
+          gi);\n  gi.indirect.diffuse = 0;\n  gi.indirect.specular = 0;\n  #if !defined(LIGHTMAP_ON)\n
+          \     gi.light.color = _LightColor0.rgb;\n      gi.light.dir = lightDir;\n
+          \     gi.light.ndotl = LambertTerm (o.Normal, gi.light.dir);\n  #endif\n
+          \ gi.light.color *= atten;\n  c += LightingStandard (o, worldViewDir, gi);\n
+          \ c.a = 0.0;\n  UNITY_APPLY_FOG(IN.fogCoord, c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n
+          \ return c;\n}\n\n"
+        m_AssetPath: Assets/Graphs
+        m_PlatformMask: 4294967295
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: 52f816656dafeebcd2f4a2a9b873fb23
+        m_IsGLSL: 0
+        m_FromOther: 0
+        m_VariantsUser0:
+        - - __
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser1:
+        - - __
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0:
+        - - POINT
+        - - DIRECTIONAL
+        - - SPOT
+        - - POINT_COOKIE
+        - - DIRECTIONAL_COOKIE
+        m_VariantsBuiltin1:
+        - - POINT
+        - - DIRECTIONAL
+        - - SPOT
+        - - POINT_COOKIE
+        - - DIRECTIONAL_COOKIE
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 2
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2:
+        - SHADOWS_SOFT
+        - DIRLIGHTMAP_COMBINED
+        - DIRLIGHTMAP_SEPARATE
+        - DYNAMICLIGHTMAP_ON
+        m_TargetVariants3: []
+        m_TargetVariants4: []
+        m_TargetVariants5: []
+        m_NonStrippedUserKeywords: FOG_EXP FOG_EXP2 FOG_LINEAR
+        m_BuiltinKeywords: DIRECTIONAL DIRECTIONAL_COOKIE POINT POINT_COOKIE SPOT
       68436:
         m_Code: "#line 284 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
           compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
@@ -5132,6 +6346,124 @@ Shader:
         m_TargetVariants5: []
         m_NonStrippedUserKeywords: FOG_EXP FOG_EXP2 FOG_LINEAR
         m_BuiltinKeywords: DIRECTIONAL DIRECTIONAL_COOKIE POINT POINT_COOKIE SPOT
+      95587:
+        m_Code: "#line 272 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
+          compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+          target 3.0\n#pragma glsl\n#pragma debug\n#pragma multi_compile_fog\n#pragma
+          multi_compile_fwdadd\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n//
+          Surface shader code generated based on:\n// writes to per-pixel normal:
+          no\n// writes to emission: YES\n// needs world space reflection vector:
+          no\n// needs world space normal vector: no\n// needs screen space position:
+          no\n// needs world space position: no\n// needs view direction: no\n// needs
+          world space view direction: no\n// needs world space position for lighting:
+          YES\n// needs world space view direction for lighting: YES\n// needs world
+          space view direction for lightmaps: no\n// needs vertex color: no\n// needs
+          VFACE: no\n// passes tangent-to-world matrix to pixel shader: no\n// reads
+          from normal: no\n// 0 texcoords actually used\n#define UNITY_PASS_FORWARDADD\n#include
+          \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include \"UnityPBSLighting.cginc\"\n#include
+          \"AutoLight.cginc\"\n\n#define INTERNAL_DATA\n#define WorldReflectionVector(data,normal)
+          data.worldRefl\n#define WorldNormalVector(data,normal) normal\n\n// Original
+          surface shader snippet:\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line
+          27 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n\t\t//#pragma
+          target 3.0\n\t\t//#pragma surface surf Standard \n\t\t//#pragma glsl\n\t\t//#pragma
+          debug\n\n\n\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_absolute_half (half4 arg1)\r\n\t\t{\r\n\t\t\treturn abs(arg1);\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_multiply_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          arg1 * arg2;\r\n\t\t}\r\n\t\t\r\n\n\n\t\tfloat4 FresnelColor;\r\n\t\tfloat4
+          Power;\r\n\t\tsampler2D Metal;\r\n\t\tfloat4 Metal_ST;\r\n\n\n\t\tstruct
+          Input \n\t\t{\n\t\t\tfloat3 viewDir;\r\n\n\t\t};\n\n\t\tvoid vert (inout
+          appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+          \ \n\t\tvoid surf (Input IN, inout SurfaceOutputStandard o) \n\t\t{\n\t\t\t//
+          Subgraph for node SubGraph_7614\r\n\t\t\tfloat4 SubGraph_7614_I00 = float4(0,
+          0, 0, 0);\r\n\t\t\t{\r\n\t\t\t\tfloat4 SubGraphInputs_7628_O00 = FresnelColor;\r\n\t\t\t\tfloat4
+          SubGraphInputs_7628_O01 = Power;\r\n\t\t\t\thalf4 FresnelNode_7636_Output
+          = unity_fresnel_half (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\r\n\t\t\t\thalf4
+          SplatNode_7642_Output = SubGraphInputs_7628_O01.xxxx;\r\n\t\t\t\thalf4 AbsoluteNode_7644_Output
+          = unity_absolute_half (SplatNode_7642_Output);\r\n\t\t\t\thalf4 PowerNode_7640_Output
+          = pow (FresnelNode_7636_Output, AbsoluteNode_7644_Output);\r\n\t\t\t\thalf4
+          MultiplyNode_7638_Output = unity_multiply_half (SubGraphInputs_7628_O00,
+          PowerNode_7640_Output);\r\n\t\t\t\t\r\n\t\t\t\tSubGraph_7614_I00 = MultiplyNode_7638_Output;\r\n\t\t\t}\r\n\t\t\t//
+          Subgraph ends\r\n\t\t\t\r\n\t\t\thalf4 MultiplyNode_7616_Output = unity_multiply_half
+          (SubGraph_7614_I00, half4 (1,1,1,1));\r\n\t\t\to.Emission = MultiplyNode_7616_Output;\r\n\n\t\t}\n\t\t\n\n//
+          vertex-to-fragment interpolation data\nstruct v2f_surf {\n  float4 pos :
+          SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n  float3 worldPos : TEXCOORD1;\n
+          \ SHADOW_COORDS(2)\n  UNITY_FOG_COORDS(3)\n};\n\n// vertex shader\nv2f_surf
+          vert_surf (appdata_full v) {\n  v2f_surf o;\n  UNITY_INITIALIZE_OUTPUT(v2f_surf,o);\n
+          \ o.pos = mul (UNITY_MATRIX_MVP, v.vertex);\n  float3 worldPos = mul(_Object2World,
+          v.vertex).xyz;\n  fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);\n
+          \ o.worldPos = worldPos;\n  o.worldNormal = worldNormal;\n\n  TRANSFER_SHADOW(o);
+          // pass shadow coordinates to pixel shader\n  UNITY_TRANSFER_FOG(o,o.pos);
+          // pass fog coordinates to pixel shader\n  return o;\n}\n\n// fragment shader\nfixed4
+          frag_surf (v2f_surf IN) : SV_Target {\n  // prepare and unpack data\n  Input
+          surfIN;\n  UNITY_INITIALIZE_OUTPUT(Input,surfIN);\n  surfIN.viewDir.x =
+          1.0;\n  float3 worldPos = IN.worldPos;\n  #ifndef USING_DIRECTIONAL_LIGHT\n
+          \   fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));\n  #else\n
+          \   fixed3 lightDir = _WorldSpaceLightPos0.xyz;\n  #endif\n  fixed3 worldViewDir
+          = normalize(UnityWorldSpaceViewDir(worldPos));\n  #ifdef UNITY_COMPILER_HLSL\n
+          \ SurfaceOutputStandard o = (SurfaceOutputStandard)0;\n  #else\n  SurfaceOutputStandard
+          o;\n  #endif\n  o.Albedo = 0.0;\n  o.Emission = 0.0;\n  o.Alpha = 0.0;\n
+          \ o.Occlusion = 1.0;\n  fixed3 normalWorldVertex = fixed3(0,0,1);\n  o.Normal
+          = IN.worldNormal;\n  normalWorldVertex = IN.worldNormal;\n\n  // call surface
+          function\n  surf (surfIN, o);\n  UNITY_LIGHT_ATTENUATION(atten, IN, worldPos)\n
+          \ fixed4 c = 0;\n\n  // Setup lighting environment\n  UnityGI gi;\n  UNITY_INITIALIZE_OUTPUT(UnityGI,
+          gi);\n  gi.indirect.diffuse = 0;\n  gi.indirect.specular = 0;\n  #if !defined(LIGHTMAP_ON)\n
+          \     gi.light.color = _LightColor0.rgb;\n      gi.light.dir = lightDir;\n
+          \     gi.light.ndotl = LambertTerm (o.Normal, gi.light.dir);\n  #endif\n
+          \ gi.light.color *= atten;\n  c += LightingStandard (o, worldViewDir, gi);\n
+          \ c.a = 0.0;\n  UNITY_APPLY_FOG(IN.fogCoord, c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n
+          \ return c;\n}\n\n"
+        m_AssetPath: Assets/Graphs
+        m_PlatformMask: 4294967295
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: 52f816656dafeebcd2f4a2a9b873fb23
+        m_IsGLSL: 0
+        m_FromOther: 0
+        m_VariantsUser0:
+        - - __
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser1:
+        - - __
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0:
+        - - POINT
+        - - DIRECTIONAL
+        - - SPOT
+        - - POINT_COOKIE
+        - - DIRECTIONAL_COOKIE
+        m_VariantsBuiltin1:
+        - - POINT
+        - - DIRECTIONAL
+        - - SPOT
+        - - POINT_COOKIE
+        - - DIRECTIONAL_COOKIE
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 2
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2:
+        - SHADOWS_SOFT
+        - DIRLIGHTMAP_COMBINED
+        - DIRLIGHTMAP_SEPARATE
+        - DYNAMICLIGHTMAP_ON
+        m_TargetVariants3: []
+        m_TargetVariants4: []
+        m_TargetVariants5: []
+        m_NonStrippedUserKeywords: FOG_EXP FOG_EXP2 FOG_LINEAR
+        m_BuiltinKeywords: DIRECTIONAL DIRECTIONAL_COOKIE POINT POINT_COOKIE SPOT
       98233:
         m_Code: "#line 268 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
           compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
@@ -5474,6 +6806,298 @@ Shader:
         m_TargetVariants5: []
         m_NonStrippedUserKeywords: FOG_EXP FOG_EXP2 FOG_LINEAR
         m_BuiltinKeywords: DIRECTIONAL DIRECTIONAL_COOKIE POINT POINT_COOKIE SPOT
+      133405:
+        m_Code: "#line 175 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
+          compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+          target 3.0\n#pragma glsl\n#pragma debug\n#pragma exclude_renderers nomrt\n#pragma
+          multi_compile_prepassfinal\n#pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2\n#include
+          \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n// Surface
+          shader code generated based on:\n// writes to per-pixel normal: no\n// writes
+          to emission: YES\n// needs world space reflection vector: no\n// needs world
+          space normal vector: no\n// needs screen space position: no\n// needs world
+          space position: no\n// needs view direction: YES\n// needs world space view
+          direction: no\n// needs world space position for lighting: YES\n// needs
+          world space view direction for lighting: YES\n// needs world space view
+          direction for lightmaps: no\n// needs vertex color: no\n// needs VFACE:
+          no\n// passes tangent-to-world matrix to pixel shader: no\n// reads from
+          normal: YES\n// 0 texcoords actually used\n#define UNITY_PASS_DEFERRED\n#include
+          \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include \"UnityPBSLighting.cginc\"\n\n#define
+          INTERNAL_DATA\n#define WorldReflectionVector(data,normal) data.worldRefl\n#define
+          WorldNormalVector(data,normal) normal\n\n// Original surface shader snippet:\n#include
+          \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line 27
+          \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n\t\t//#pragma
+          target 3.0\n\t\t//#pragma surface surf Standard \n\t\t//#pragma glsl\n\t\t//#pragma
+          debug\n\n\n\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_absolute_half (half4 arg1)\r\n\t\t{\r\n\t\t\treturn abs(arg1);\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_multiply_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          arg1 * arg2;\r\n\t\t}\r\n\t\t\r\n\n\n\t\tfloat4 FresnelColor;\r\n\t\tfloat4
+          Power;\r\n\t\tsampler2D Metal;\r\n\t\tfloat4 Metal_ST;\r\n\n\n\t\tstruct
+          Input \n\t\t{\n\t\t\tfloat3 viewDir;\r\n\n\t\t};\n\n\t\tvoid vert (inout
+          appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+          \ \n\t\tvoid surf (Input IN, inout SurfaceOutputStandard o) \n\t\t{\n\t\t\t//
+          Subgraph for node SubGraph_7594\r\n\t\t\tfloat4 SubGraph_7594_I00 = float4(0,
+          0, 0, 0);\r\n\t\t\t{\r\n\t\t\t\tfloat4 SubGraphInputs_7600_O00 = FresnelColor;\r\n\t\t\t\tfloat4
+          SubGraphInputs_7600_O01 = Power;\r\n\t\t\t\thalf4 FresnelNode_7608_Output
+          = unity_fresnel_half (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\r\n\t\t\t\thalf4
+          SplatNode_7614_Output = SubGraphInputs_7600_O01.xxxx;\r\n\t\t\t\thalf4 AbsoluteNode_7616_Output
+          = unity_absolute_half (SplatNode_7614_Output);\r\n\t\t\t\thalf4 PowerNode_7612_Output
+          = pow (FresnelNode_7608_Output, AbsoluteNode_7616_Output);\r\n\t\t\t\thalf4
+          MultiplyNode_7610_Output = unity_multiply_half (SubGraphInputs_7600_O00,
+          PowerNode_7612_Output);\r\n\t\t\t\t\r\n\t\t\t\tSubGraph_7594_I00 = MultiplyNode_7610_Output;\r\n\t\t\t}\r\n\t\t\t//
+          Subgraph ends\r\n\t\t\t\r\n\t\t\thalf4 MultiplyNode_7596_Output = unity_multiply_half
+          (SubGraph_7594_I00, half4 (1,1,1,1));\r\n\t\t\to.Emission = MultiplyNode_7596_Output;\r\n\n\t\t}\n\t\t\n\n//
+          vertex-to-fragment interpolation data\nstruct v2f_surf {\n  float4 pos :
+          SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n  float3 worldPos : TEXCOORD1;\n
+          \ half3 viewDir : TEXCOORD2;\n  float4 lmap : TEXCOORD3;\n#ifdef LIGHTMAP_OFF\n
+          \ #if UNITY_SHOULD_SAMPLE_SH\n    half3 sh : TEXCOORD4; // SH\n  #endif\n#else\n
+          \ #ifdef DIRLIGHTMAP_OFF\n    float4 lmapFadePos : TEXCOORD5;\n  #endif\n#endif\n};\n\n//
+          vertex shader\nv2f_surf vert_surf (appdata_full v) {\n  v2f_surf o;\n  UNITY_INITIALIZE_OUTPUT(v2f_surf,o);\n
+          \ o.pos = mul (UNITY_MATRIX_MVP, v.vertex);\n  float3 worldPos = mul(_Object2World,
+          v.vertex).xyz;\n  fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);\n
+          \ o.worldPos = worldPos;\n  o.worldNormal = worldNormal;\n  float3 viewDirForLight
+          = UnityWorldSpaceViewDir(worldPos);\n  o.viewDir = viewDirForLight;\n#ifndef
+          DYNAMICLIGHTMAP_OFF\n  o.lmap.zw = v.texcoord2.xy * unity_DynamicLightmapST.xy
+          + unity_DynamicLightmapST.zw;\n#else\n  o.lmap.zw = 0;\n#endif\n#ifndef
+          LIGHTMAP_OFF\n  o.lmap.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;\n
+          \ #ifdef DIRLIGHTMAP_OFF\n    o.lmapFadePos.xyz = (mul(_Object2World, v.vertex).xyz
+          - unity_ShadowFadeCenterAndType.xyz) * unity_ShadowFadeCenterAndType.w;\n
+          \   o.lmapFadePos.w = (-mul(UNITY_MATRIX_MV, v.vertex).z) * (1.0 - unity_ShadowFadeCenterAndType.w);\n
+          \ #endif\n#else\n  o.lmap.xy = 0;\n  #if UNITY_SHOULD_SAMPLE_SH\n    #if
+          UNITY_SAMPLE_FULL_SH_PER_PIXEL\n      o.sh = 0;\n    #elif (SHADER_TARGET
+          < 30)\n      o.sh = ShadeSH9 (float4(worldNormal,1.0));\n    #else\n      o.sh
+          = ShadeSH3Order (half4(worldNormal, 1.0));\n    #endif\n  #endif\n#endif\n
+          \ return o;\n}\n#ifdef LIGHTMAP_ON\nfloat4 unity_LightmapFade;\n#endif\nfixed4
+          unity_Ambient;\n\n// fragment shader\nvoid frag_surf (v2f_surf IN,\n    out
+          half4 outDiffuse : SV_Target0,\n    out half4 outSpecSmoothness : SV_Target1,\n
+          \   out half4 outNormal : SV_Target2,\n    out half4 outEmission : SV_Target3)
+          {\n  // prepare and unpack data\n  Input surfIN;\n  UNITY_INITIALIZE_OUTPUT(Input,surfIN);\n
+          \ surfIN.viewDir.x = 1.0;\n  float3 worldPos = IN.worldPos;\n  #ifndef USING_DIRECTIONAL_LIGHT\n
+          \   fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));\n  #else\n
+          \   fixed3 lightDir = _WorldSpaceLightPos0.xyz;\n  #endif\n  fixed3 worldViewDir
+          = normalize(UnityWorldSpaceViewDir(worldPos));\n  fixed3 viewDir = normalize(IN.viewDir);\n
+          \ surfIN.viewDir = viewDir;\n  #ifdef UNITY_COMPILER_HLSL\n  SurfaceOutputStandard
+          o = (SurfaceOutputStandard)0;\n  #else\n  SurfaceOutputStandard o;\n  #endif\n
+          \ o.Albedo = 0.0;\n  o.Emission = 0.0;\n  o.Alpha = 0.0;\n  o.Occlusion
+          = 1.0;\n  fixed3 normalWorldVertex = fixed3(0,0,1);\n  o.Normal = IN.worldNormal;\n
+          \ normalWorldVertex = IN.worldNormal;\n\n  // call surface function\n  surf
+          (surfIN, o);\nfixed3 originalNormal = o.Normal;\n  half atten = 1;\n\n  //
+          Setup lighting environment\n  UnityGI gi;\n  UNITY_INITIALIZE_OUTPUT(UnityGI,
+          gi);\n  gi.indirect.diffuse = 0;\n  gi.indirect.specular = 0;\n  gi.light.color
+          = 0;\n  gi.light.dir = half3(0,1,0);\n  gi.light.ndotl = LambertTerm (o.Normal,
+          gi.light.dir);\n  // Call GI (lightmaps/SH/reflections) lighting function\n
+          \ UnityGIInput giInput;\n  UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);\n
+          \ giInput.light = gi.light;\n  giInput.worldPos = worldPos;\n  giInput.worldViewDir
+          = worldViewDir;\n  giInput.atten = atten;\n  #if defined(LIGHTMAP_ON) ||
+          defined(DYNAMICLIGHTMAP_ON)\n    giInput.lightmapUV = IN.lmap;\n  #else\n
+          \   giInput.lightmapUV = 0.0;\n  #endif\n  #if UNITY_SHOULD_SAMPLE_SH\n
+          \   giInput.ambient = IN.sh;\n  #else\n    giInput.ambient.rgb = 0.0;\n
+          \ #endif\n  giInput.probeHDR[0] = unity_SpecCube0_HDR;\n  giInput.probeHDR[1]
+          = unity_SpecCube1_HDR;\n  #if UNITY_SPECCUBE_BLENDING || UNITY_SPECCUBE_BOX_PROJECTION\n
+          \   giInput.boxMin[0] = unity_SpecCube0_BoxMin; // .w holds lerp value for
+          blending\n  #endif\n  #if UNITY_SPECCUBE_BOX_PROJECTION\n    giInput.boxMax[0]
+          = unity_SpecCube0_BoxMax;\n    giInput.probePosition[0] = unity_SpecCube0_ProbePosition;\n
+          \   giInput.boxMax[1] = unity_SpecCube1_BoxMax;\n    giInput.boxMin[1] =
+          unity_SpecCube1_BoxMin;\n    giInput.probePosition[1] = unity_SpecCube1_ProbePosition;\n
+          \ #endif\n  LightingStandard_GI(o, giInput, gi);\n\n  // call lighting function
+          to output g-buffer\n  outEmission = LightingStandard_Deferred (o, worldViewDir,
+          gi, outDiffuse, outSpecSmoothness, outNormal);\n  #ifndef UNITY_HDR_ON\n
+          \ outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
+        m_AssetPath: Assets/Graphs
+        m_PlatformMask: 4294958079
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: 2c7234fa40cfa808fb7c88dc6135c609
+        m_IsGLSL: 0
+        m_FromOther: 0
+        m_VariantsUser0: []
+        m_VariantsUser1: []
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0:
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        m_VariantsBuiltin1:
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 2
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2:
+        - SHADOWS_SOFT
+        - DIRLIGHTMAP_COMBINED
+        - DIRLIGHTMAP_SEPARATE
+        - DYNAMICLIGHTMAP_ON
+        m_TargetVariants3: []
+        m_TargetVariants4: []
+        m_TargetVariants5: []
+        m_NonStrippedUserKeywords: 
+        m_BuiltinKeywords: DIRLIGHTMAP_COMBINED DIRLIGHTMAP_OFF DIRLIGHTMAP_SEPARATE
+          DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON HDR_LIGHT_PREPASS_OFF LIGHTMAP_OFF
+          LIGHTMAP_ON UNITY_HDR_ON
       145839:
         m_Code: "#line 186 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
           compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
@@ -6166,6 +7790,298 @@ Shader:
           \ outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/Graphs
         m_PlatformMask: 4294957635
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: 2c7234fa40cfa808fb7c88dc6135c609
+        m_IsGLSL: 0
+        m_FromOther: 0
+        m_VariantsUser0: []
+        m_VariantsUser1: []
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0:
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        m_VariantsBuiltin1:
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - HDR_LIGHT_PREPASS_OFF
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_OFF
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_COMBINED
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_OFF
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_OFF
+          - UNITY_HDR_ON
+        - - LIGHTMAP_ON
+          - DIRLIGHTMAP_SEPARATE
+          - DYNAMICLIGHTMAP_ON
+          - UNITY_HDR_ON
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 2
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2:
+        - SHADOWS_SOFT
+        - DIRLIGHTMAP_COMBINED
+        - DIRLIGHTMAP_SEPARATE
+        - DYNAMICLIGHTMAP_ON
+        m_TargetVariants3: []
+        m_TargetVariants4: []
+        m_TargetVariants5: []
+        m_NonStrippedUserKeywords: 
+        m_BuiltinKeywords: DIRLIGHTMAP_COMBINED DIRLIGHTMAP_OFF DIRLIGHTMAP_SEPARATE
+          DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON HDR_LIGHT_PREPASS_OFF LIGHTMAP_OFF
+          LIGHTMAP_ON UNITY_HDR_ON
+      153633:
+        m_Code: "#line 175 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
+          compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+          target 3.0\n#pragma glsl\n#pragma debug\n#pragma exclude_renderers nomrt\n#pragma
+          multi_compile_prepassfinal\n#pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2\n#include
+          \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n// Surface
+          shader code generated based on:\n// writes to per-pixel normal: no\n// writes
+          to emission: YES\n// needs world space reflection vector: no\n// needs world
+          space normal vector: no\n// needs screen space position: no\n// needs world
+          space position: no\n// needs view direction: YES\n// needs world space view
+          direction: no\n// needs world space position for lighting: YES\n// needs
+          world space view direction for lighting: YES\n// needs world space view
+          direction for lightmaps: no\n// needs vertex color: no\n// needs VFACE:
+          no\n// passes tangent-to-world matrix to pixel shader: no\n// reads from
+          normal: YES\n// 0 texcoords actually used\n#define UNITY_PASS_DEFERRED\n#include
+          \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include \"UnityPBSLighting.cginc\"\n\n#define
+          INTERNAL_DATA\n#define WorldReflectionVector(data,normal) data.worldRefl\n#define
+          WorldNormalVector(data,normal) normal\n\n// Original surface shader snippet:\n#include
+          \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line 27
+          \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n\t\t//#pragma
+          target 3.0\n\t\t//#pragma surface surf Standard \n\t\t//#pragma glsl\n\t\t//#pragma
+          debug\n\n\n\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_absolute_half (half4 arg1)\r\n\t\t{\r\n\t\t\treturn abs(arg1);\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_multiply_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          arg1 * arg2;\r\n\t\t}\r\n\t\t\r\n\n\n\t\tfloat4 FresnelColor;\r\n\t\tfloat4
+          Power;\r\n\t\tsampler2D Metal;\r\n\t\tfloat4 Metal_ST;\r\n\n\n\t\tstruct
+          Input \n\t\t{\n\t\t\tfloat3 viewDir;\r\n\n\t\t};\n\n\t\tvoid vert (inout
+          appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+          \ \n\t\tvoid surf (Input IN, inout SurfaceOutputStandard o) \n\t\t{\n\t\t\t//
+          Subgraph for node SubGraph_7614\r\n\t\t\tfloat4 SubGraph_7614_I00 = float4(0,
+          0, 0, 0);\r\n\t\t\t{\r\n\t\t\t\tfloat4 SubGraphInputs_7628_O00 = FresnelColor;\r\n\t\t\t\tfloat4
+          SubGraphInputs_7628_O01 = Power;\r\n\t\t\t\thalf4 FresnelNode_7636_Output
+          = unity_fresnel_half (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\r\n\t\t\t\thalf4
+          SplatNode_7642_Output = SubGraphInputs_7628_O01.xxxx;\r\n\t\t\t\thalf4 AbsoluteNode_7644_Output
+          = unity_absolute_half (SplatNode_7642_Output);\r\n\t\t\t\thalf4 PowerNode_7640_Output
+          = pow (FresnelNode_7636_Output, AbsoluteNode_7644_Output);\r\n\t\t\t\thalf4
+          MultiplyNode_7638_Output = unity_multiply_half (SubGraphInputs_7628_O00,
+          PowerNode_7640_Output);\r\n\t\t\t\t\r\n\t\t\t\tSubGraph_7614_I00 = MultiplyNode_7638_Output;\r\n\t\t\t}\r\n\t\t\t//
+          Subgraph ends\r\n\t\t\t\r\n\t\t\thalf4 MultiplyNode_7616_Output = unity_multiply_half
+          (SubGraph_7614_I00, half4 (1,1,1,1));\r\n\t\t\to.Emission = MultiplyNode_7616_Output;\r\n\n\t\t}\n\t\t\n\n//
+          vertex-to-fragment interpolation data\nstruct v2f_surf {\n  float4 pos :
+          SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n  float3 worldPos : TEXCOORD1;\n
+          \ half3 viewDir : TEXCOORD2;\n  float4 lmap : TEXCOORD3;\n#ifdef LIGHTMAP_OFF\n
+          \ #if UNITY_SHOULD_SAMPLE_SH\n    half3 sh : TEXCOORD4; // SH\n  #endif\n#else\n
+          \ #ifdef DIRLIGHTMAP_OFF\n    float4 lmapFadePos : TEXCOORD5;\n  #endif\n#endif\n};\n\n//
+          vertex shader\nv2f_surf vert_surf (appdata_full v) {\n  v2f_surf o;\n  UNITY_INITIALIZE_OUTPUT(v2f_surf,o);\n
+          \ o.pos = mul (UNITY_MATRIX_MVP, v.vertex);\n  float3 worldPos = mul(_Object2World,
+          v.vertex).xyz;\n  fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);\n
+          \ o.worldPos = worldPos;\n  o.worldNormal = worldNormal;\n  float3 viewDirForLight
+          = UnityWorldSpaceViewDir(worldPos);\n  o.viewDir = viewDirForLight;\n#ifndef
+          DYNAMICLIGHTMAP_OFF\n  o.lmap.zw = v.texcoord2.xy * unity_DynamicLightmapST.xy
+          + unity_DynamicLightmapST.zw;\n#else\n  o.lmap.zw = 0;\n#endif\n#ifndef
+          LIGHTMAP_OFF\n  o.lmap.xy = v.texcoord1.xy * unity_LightmapST.xy + unity_LightmapST.zw;\n
+          \ #ifdef DIRLIGHTMAP_OFF\n    o.lmapFadePos.xyz = (mul(_Object2World, v.vertex).xyz
+          - unity_ShadowFadeCenterAndType.xyz) * unity_ShadowFadeCenterAndType.w;\n
+          \   o.lmapFadePos.w = (-mul(UNITY_MATRIX_MV, v.vertex).z) * (1.0 - unity_ShadowFadeCenterAndType.w);\n
+          \ #endif\n#else\n  o.lmap.xy = 0;\n  #if UNITY_SHOULD_SAMPLE_SH\n    #if
+          UNITY_SAMPLE_FULL_SH_PER_PIXEL\n      o.sh = 0;\n    #elif (SHADER_TARGET
+          < 30)\n      o.sh = ShadeSH9 (float4(worldNormal,1.0));\n    #else\n      o.sh
+          = ShadeSH3Order (half4(worldNormal, 1.0));\n    #endif\n  #endif\n#endif\n
+          \ return o;\n}\n#ifdef LIGHTMAP_ON\nfloat4 unity_LightmapFade;\n#endif\nfixed4
+          unity_Ambient;\n\n// fragment shader\nvoid frag_surf (v2f_surf IN,\n    out
+          half4 outDiffuse : SV_Target0,\n    out half4 outSpecSmoothness : SV_Target1,\n
+          \   out half4 outNormal : SV_Target2,\n    out half4 outEmission : SV_Target3)
+          {\n  // prepare and unpack data\n  Input surfIN;\n  UNITY_INITIALIZE_OUTPUT(Input,surfIN);\n
+          \ surfIN.viewDir.x = 1.0;\n  float3 worldPos = IN.worldPos;\n  #ifndef USING_DIRECTIONAL_LIGHT\n
+          \   fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));\n  #else\n
+          \   fixed3 lightDir = _WorldSpaceLightPos0.xyz;\n  #endif\n  fixed3 worldViewDir
+          = normalize(UnityWorldSpaceViewDir(worldPos));\n  fixed3 viewDir = normalize(IN.viewDir);\n
+          \ surfIN.viewDir = viewDir;\n  #ifdef UNITY_COMPILER_HLSL\n  SurfaceOutputStandard
+          o = (SurfaceOutputStandard)0;\n  #else\n  SurfaceOutputStandard o;\n  #endif\n
+          \ o.Albedo = 0.0;\n  o.Emission = 0.0;\n  o.Alpha = 0.0;\n  o.Occlusion
+          = 1.0;\n  fixed3 normalWorldVertex = fixed3(0,0,1);\n  o.Normal = IN.worldNormal;\n
+          \ normalWorldVertex = IN.worldNormal;\n\n  // call surface function\n  surf
+          (surfIN, o);\nfixed3 originalNormal = o.Normal;\n  half atten = 1;\n\n  //
+          Setup lighting environment\n  UnityGI gi;\n  UNITY_INITIALIZE_OUTPUT(UnityGI,
+          gi);\n  gi.indirect.diffuse = 0;\n  gi.indirect.specular = 0;\n  gi.light.color
+          = 0;\n  gi.light.dir = half3(0,1,0);\n  gi.light.ndotl = LambertTerm (o.Normal,
+          gi.light.dir);\n  // Call GI (lightmaps/SH/reflections) lighting function\n
+          \ UnityGIInput giInput;\n  UNITY_INITIALIZE_OUTPUT(UnityGIInput, giInput);\n
+          \ giInput.light = gi.light;\n  giInput.worldPos = worldPos;\n  giInput.worldViewDir
+          = worldViewDir;\n  giInput.atten = atten;\n  #if defined(LIGHTMAP_ON) ||
+          defined(DYNAMICLIGHTMAP_ON)\n    giInput.lightmapUV = IN.lmap;\n  #else\n
+          \   giInput.lightmapUV = 0.0;\n  #endif\n  #if UNITY_SHOULD_SAMPLE_SH\n
+          \   giInput.ambient = IN.sh;\n  #else\n    giInput.ambient.rgb = 0.0;\n
+          \ #endif\n  giInput.probeHDR[0] = unity_SpecCube0_HDR;\n  giInput.probeHDR[1]
+          = unity_SpecCube1_HDR;\n  #if UNITY_SPECCUBE_BLENDING || UNITY_SPECCUBE_BOX_PROJECTION\n
+          \   giInput.boxMin[0] = unity_SpecCube0_BoxMin; // .w holds lerp value for
+          blending\n  #endif\n  #if UNITY_SPECCUBE_BOX_PROJECTION\n    giInput.boxMax[0]
+          = unity_SpecCube0_BoxMax;\n    giInput.probePosition[0] = unity_SpecCube0_ProbePosition;\n
+          \   giInput.boxMax[1] = unity_SpecCube1_BoxMax;\n    giInput.boxMin[1] =
+          unity_SpecCube1_BoxMin;\n    giInput.probePosition[1] = unity_SpecCube1_ProbePosition;\n
+          \ #endif\n  LightingStandard_GI(o, giInput, gi);\n\n  // call lighting function
+          to output g-buffer\n  outEmission = LightingStandard_Deferred (o, worldViewDir,
+          gi, outDiffuse, outSpecSmoothness, outNormal);\n  #ifndef UNITY_HDR_ON\n
+          \ outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
+        m_AssetPath: Assets/Graphs
+        m_PlatformMask: 4294958079
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -8030,6 +9946,101 @@ Shader:
         m_BuiltinKeywords: DIRLIGHTMAP_COMBINED DIRLIGHTMAP_OFF DIRLIGHTMAP_SEPARATE
           DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON HDR_LIGHT_PREPASS_OFF LIGHTMAP_OFF
           LIGHTMAP_ON UNITY_HDR_ON
+      206067:
+        m_Code: "#line 246 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
+          compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+          target 3.0\n#pragma glsl\n#pragma debug\n#pragma skip_variants FOG_LINEAR
+          FOG_EXP FOG_EXP2\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n//
+          Surface shader code generated based on:\n// writes to per-pixel normal:
+          no\n// writes to emission: YES\n// needs world space reflection vector:
+          no\n// needs world space normal vector: no\n// needs screen space position:
+          no\n// needs world space position: no\n// needs view direction: YES\n//
+          needs world space view direction: no\n// needs world space position for
+          lighting: YES\n// needs world space view direction for lighting: YES\n//
+          needs world space view direction for lightmaps: no\n// needs vertex color:
+          no\n// needs VFACE: no\n// passes tangent-to-world matrix to pixel shader:
+          no\n// reads from normal: YES\n// 0 texcoords actually used\n#define UNITY_PASS_META\n#include
+          \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include \"UnityPBSLighting.cginc\"\n\n#define
+          INTERNAL_DATA\n#define WorldReflectionVector(data,normal) data.worldRefl\n#define
+          WorldNormalVector(data,normal) normal\n\n// Original surface shader snippet:\n#include
+          \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line 27
+          \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n\t\t//#pragma
+          target 3.0\n\t\t//#pragma surface surf Standard \n\t\t//#pragma glsl\n\t\t//#pragma
+          debug\n\n\n\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_absolute_half (half4 arg1)\r\n\t\t{\r\n\t\t\treturn abs(arg1);\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_multiply_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          arg1 * arg2;\r\n\t\t}\r\n\t\t\r\n\n\n\t\tfloat4 FresnelColor;\r\n\t\tfloat4
+          Power;\r\n\t\tsampler2D Metal;\r\n\t\tfloat4 Metal_ST;\r\n\n\n\t\tstruct
+          Input \n\t\t{\n\t\t\tfloat3 viewDir;\r\n\n\t\t};\n\n\t\tvoid vert (inout
+          appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+          \ \n\t\tvoid surf (Input IN, inout SurfaceOutputStandard o) \n\t\t{\n\t\t\t//
+          Subgraph for node SubGraph_7614\r\n\t\t\tfloat4 SubGraph_7614_I00 = float4(0,
+          0, 0, 0);\r\n\t\t\t{\r\n\t\t\t\tfloat4 SubGraphInputs_7628_O00 = FresnelColor;\r\n\t\t\t\tfloat4
+          SubGraphInputs_7628_O01 = Power;\r\n\t\t\t\thalf4 FresnelNode_7636_Output
+          = unity_fresnel_half (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\r\n\t\t\t\thalf4
+          SplatNode_7642_Output = SubGraphInputs_7628_O01.xxxx;\r\n\t\t\t\thalf4 AbsoluteNode_7644_Output
+          = unity_absolute_half (SplatNode_7642_Output);\r\n\t\t\t\thalf4 PowerNode_7640_Output
+          = pow (FresnelNode_7636_Output, AbsoluteNode_7644_Output);\r\n\t\t\t\thalf4
+          MultiplyNode_7638_Output = unity_multiply_half (SubGraphInputs_7628_O00,
+          PowerNode_7640_Output);\r\n\t\t\t\t\r\n\t\t\t\tSubGraph_7614_I00 = MultiplyNode_7638_Output;\r\n\t\t\t}\r\n\t\t\t//
+          Subgraph ends\r\n\t\t\t\r\n\t\t\thalf4 MultiplyNode_7616_Output = unity_multiply_half
+          (SubGraph_7614_I00, half4 (1,1,1,1));\r\n\t\t\to.Emission = MultiplyNode_7616_Output;\r\n\n\t\t}\n\t\t\n#include
+          \"UnityMetaPass.cginc\"\n\n// vertex-to-fragment interpolation data\nstruct
+          v2f_surf {\n  float4 pos : SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n
+          \ float3 worldPos : TEXCOORD1;\n};\n\n// vertex shader\nv2f_surf vert_surf
+          (appdata_full v) {\n  v2f_surf o;\n  UNITY_INITIALIZE_OUTPUT(v2f_surf,o);\n
+          \ o.pos = UnityMetaVertexPosition(v.vertex, v.texcoord1.xy, v.texcoord2.xy,
+          unity_LightmapST, unity_DynamicLightmapST);\n  float3 worldPos = mul(_Object2World,
+          v.vertex).xyz;\n  fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);\n
+          \ o.worldPos = worldPos;\n  o.worldNormal = worldNormal;\n  return o;\n}\n\n//
+          fragment shader\nfixed4 frag_surf (v2f_surf IN) : SV_Target {\n  // prepare
+          and unpack data\n  Input surfIN;\n  UNITY_INITIALIZE_OUTPUT(Input,surfIN);\n
+          \ surfIN.viewDir.x = 1.0;\n  float3 worldPos = IN.worldPos;\n  #ifndef USING_DIRECTIONAL_LIGHT\n
+          \   fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));\n  #else\n
+          \   fixed3 lightDir = _WorldSpaceLightPos0.xyz;\n  #endif\n  fixed3 worldViewDir
+          = normalize(UnityWorldSpaceViewDir(worldPos));\n  fixed3 viewDir = worldViewDir;\n
+          \ surfIN.viewDir = viewDir;\n  #ifdef UNITY_COMPILER_HLSL\n  SurfaceOutputStandard
+          o = (SurfaceOutputStandard)0;\n  #else\n  SurfaceOutputStandard o;\n  #endif\n
+          \ o.Albedo = 0.0;\n  o.Emission = 0.0;\n  o.Alpha = 0.0;\n  o.Occlusion
+          = 1.0;\n  fixed3 normalWorldVertex = fixed3(0,0,1);\n  o.Normal = IN.worldNormal;\n
+          \ normalWorldVertex = IN.worldNormal;\n\n  // call surface function\n  surf
+          (surfIN, o);\n  UnityMetaInput metaIN;\n  UNITY_INITIALIZE_OUTPUT(UnityMetaInput,
+          metaIN);\n  metaIN.Albedo = o.Albedo;\n  metaIN.Emission = o.Emission;\n
+          \ return UnityMetaFragment(metaIN);\n}\n\n"
+        m_AssetPath: Assets/Graphs
+        m_PlatformMask: 4294967295
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: 41a6a35ec8e1e9a2ee891b8f0e5a5d1b
+        m_IsGLSL: 0
+        m_FromOther: 0
+        m_VariantsUser0: []
+        m_VariantsUser1: []
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0: []
+        m_VariantsBuiltin1: []
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 2
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2:
+        - SHADOWS_SOFT
+        - DIRLIGHTMAP_COMBINED
+        - DIRLIGHTMAP_SEPARATE
+        - DYNAMICLIGHTMAP_ON
+        m_TargetVariants3: []
+        m_TargetVariants4: []
+        m_TargetVariants5: []
+        m_NonStrippedUserKeywords: 
+        m_BuiltinKeywords: 
       209575:
         m_Code: "#line 214 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
           compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
@@ -8562,6 +10573,101 @@ Shader:
         m_TargetVariants5: []
         m_NonStrippedUserKeywords: FOG_EXP FOG_EXP2 FOG_LINEAR
         m_BuiltinKeywords: 
+      250938:
+        m_Code: "#line 246 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
+          compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
+          target 3.0\n#pragma glsl\n#pragma debug\n#pragma skip_variants FOG_LINEAR
+          FOG_EXP FOG_EXP2\n#include \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n//
+          Surface shader code generated based on:\n// writes to per-pixel normal:
+          no\n// writes to emission: YES\n// needs world space reflection vector:
+          no\n// needs world space normal vector: no\n// needs screen space position:
+          no\n// needs world space position: no\n// needs view direction: YES\n//
+          needs world space view direction: no\n// needs world space position for
+          lighting: YES\n// needs world space view direction for lighting: YES\n//
+          needs world space view direction for lightmaps: no\n// needs vertex color:
+          no\n// needs VFACE: no\n// passes tangent-to-world matrix to pixel shader:
+          no\n// reads from normal: YES\n// 0 texcoords actually used\n#define UNITY_PASS_META\n#include
+          \"UnityCG.cginc\"\n#include \"Lighting.cginc\"\n#include \"UnityPBSLighting.cginc\"\n\n#define
+          INTERNAL_DATA\n#define WorldReflectionVector(data,normal) data.worldRefl\n#define
+          WorldNormalVector(data,normal) normal\n\n// Original surface shader snippet:\n#include
+          \"HLSLSupport.cginc\"\n#include \"UnityShaderVariables.cginc\"\n#line 27
+          \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n\t\t//#pragma
+          target 3.0\n\t\t//#pragma surface surf Standard \n\t\t//#pragma glsl\n\t\t//#pragma
+          debug\n\n\n\n\t\tinline half4 unity_fresnel_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          (1.0 - dot (normalize (arg1.xyz), normalize (arg2.xyz))).xxxx;\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_absolute_half (half4 arg1)\r\n\t\t{\r\n\t\t\treturn abs(arg1);\r\n\t\t}\r\n\t\t\r\n\t\tinline
+          half4 unity_multiply_half (half4 arg1, half4 arg2)\r\n\t\t{\r\n\t\t\treturn
+          arg1 * arg2;\r\n\t\t}\r\n\t\t\r\n\n\n\t\tfloat4 FresnelColor;\r\n\t\tfloat4
+          Power;\r\n\t\tsampler2D Metal;\r\n\t\tfloat4 Metal_ST;\r\n\n\n\t\tstruct
+          Input \n\t\t{\n\t\t\tfloat3 viewDir;\r\n\n\t\t};\n\n\t\tvoid vert (inout
+          appdata_full v, out Input o)\n\t\t{\n\t\t\tUNITY_INITIALIZE_OUTPUT(Input,o);\n\n\t\t}\n\t
+          \ \n\t\tvoid surf (Input IN, inout SurfaceOutputStandard o) \n\t\t{\n\t\t\t//
+          Subgraph for node SubGraph_7594\r\n\t\t\tfloat4 SubGraph_7594_I00 = float4(0,
+          0, 0, 0);\r\n\t\t\t{\r\n\t\t\t\tfloat4 SubGraphInputs_7600_O00 = FresnelColor;\r\n\t\t\t\tfloat4
+          SubGraphInputs_7600_O01 = Power;\r\n\t\t\t\thalf4 FresnelNode_7608_Output
+          = unity_fresnel_half (float4 (IN.viewDir, 1), half4 (o.Normal, 1));\r\n\t\t\t\thalf4
+          SplatNode_7614_Output = SubGraphInputs_7600_O01.xxxx;\r\n\t\t\t\thalf4 AbsoluteNode_7616_Output
+          = unity_absolute_half (SplatNode_7614_Output);\r\n\t\t\t\thalf4 PowerNode_7612_Output
+          = pow (FresnelNode_7608_Output, AbsoluteNode_7616_Output);\r\n\t\t\t\thalf4
+          MultiplyNode_7610_Output = unity_multiply_half (SubGraphInputs_7600_O00,
+          PowerNode_7612_Output);\r\n\t\t\t\t\r\n\t\t\t\tSubGraph_7594_I00 = MultiplyNode_7610_Output;\r\n\t\t\t}\r\n\t\t\t//
+          Subgraph ends\r\n\t\t\t\r\n\t\t\thalf4 MultiplyNode_7596_Output = unity_multiply_half
+          (SubGraph_7594_I00, half4 (1,1,1,1));\r\n\t\t\to.Emission = MultiplyNode_7596_Output;\r\n\n\t\t}\n\t\t\n#include
+          \"UnityMetaPass.cginc\"\n\n// vertex-to-fragment interpolation data\nstruct
+          v2f_surf {\n  float4 pos : SV_POSITION;\n  half3 worldNormal : TEXCOORD0;\n
+          \ float3 worldPos : TEXCOORD1;\n};\n\n// vertex shader\nv2f_surf vert_surf
+          (appdata_full v) {\n  v2f_surf o;\n  UNITY_INITIALIZE_OUTPUT(v2f_surf,o);\n
+          \ o.pos = UnityMetaVertexPosition(v.vertex, v.texcoord1.xy, v.texcoord2.xy,
+          unity_LightmapST, unity_DynamicLightmapST);\n  float3 worldPos = mul(_Object2World,
+          v.vertex).xyz;\n  fixed3 worldNormal = UnityObjectToWorldNormal(v.normal);\n
+          \ o.worldPos = worldPos;\n  o.worldNormal = worldNormal;\n  return o;\n}\n\n//
+          fragment shader\nfixed4 frag_surf (v2f_surf IN) : SV_Target {\n  // prepare
+          and unpack data\n  Input surfIN;\n  UNITY_INITIALIZE_OUTPUT(Input,surfIN);\n
+          \ surfIN.viewDir.x = 1.0;\n  float3 worldPos = IN.worldPos;\n  #ifndef USING_DIRECTIONAL_LIGHT\n
+          \   fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));\n  #else\n
+          \   fixed3 lightDir = _WorldSpaceLightPos0.xyz;\n  #endif\n  fixed3 worldViewDir
+          = normalize(UnityWorldSpaceViewDir(worldPos));\n  fixed3 viewDir = worldViewDir;\n
+          \ surfIN.viewDir = viewDir;\n  #ifdef UNITY_COMPILER_HLSL\n  SurfaceOutputStandard
+          o = (SurfaceOutputStandard)0;\n  #else\n  SurfaceOutputStandard o;\n  #endif\n
+          \ o.Albedo = 0.0;\n  o.Emission = 0.0;\n  o.Alpha = 0.0;\n  o.Occlusion
+          = 1.0;\n  fixed3 normalWorldVertex = fixed3(0,0,1);\n  o.Normal = IN.worldNormal;\n
+          \ normalWorldVertex = IN.worldNormal;\n\n  // call surface function\n  surf
+          (surfIN, o);\n  UnityMetaInput metaIN;\n  UNITY_INITIALIZE_OUTPUT(UnityMetaInput,
+          metaIN);\n  metaIN.Albedo = o.Albedo;\n  metaIN.Emission = o.Emission;\n
+          \ return UnityMetaFragment(metaIN);\n}\n\n"
+        m_AssetPath: Assets/Graphs
+        m_PlatformMask: 4294967295
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: 41a6a35ec8e1e9a2ee891b8f0e5a5d1b
+        m_IsGLSL: 0
+        m_FromOther: 0
+        m_VariantsUser0: []
+        m_VariantsUser1: []
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0: []
+        m_VariantsBuiltin1: []
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 2
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2:
+        - SHADOWS_SOFT
+        - DIRLIGHTMAP_COMBINED
+        - DIRLIGHTMAP_SEPARATE
+        - DYNAMICLIGHTMAP_ON
+        m_TargetVariants3: []
+        m_TargetVariants4: []
+        m_TargetVariants5: []
+        m_NonStrippedUserKeywords: 
+        m_BuiltinKeywords: 
       254736:
         m_Code: "#line 245 \"\"\n#ifdef DUMMY_PREPROCESSOR_TO_WORK_AROUND_HLSL_COMPILER_LINE_HANDLING\n#endif\n\n//
           compile directives\n#pragma vertex vert_surf\n#pragma fragment frag_surf\n#pragma
@@ -9005,9 +11111,63 @@ Shader:
         m_TargetVariants5: []
         m_NonStrippedUserKeywords: 
         m_BuiltinKeywords: 
+      1862807:
+        m_Code: "#pragma vertex vert\n#pragma fragment frag\n#include \"UnityShaderVariables.cginc\"\n#pragma
+          multi_compile_fog\n#include \"UnityCG.cginc\"\n#define USING_FOG (defined(FOG_LINEAR)
+          || defined(FOG_EXP) || defined(FOG_EXP2))\n\n// uniforms\n\n// vertex shader
+          input data\nstruct appdata {\n  float3 pos : POSITION;\n  half4 color :
+          COLOR;\n};\n\n// vertex-to-fragment interpolators\nstruct v2f {\n  fixed4
+          color : COLOR0;\n  #if USING_FOG\n    fixed fog : TEXCOORD0;\n  #endif\n
+          \ float4 pos : SV_POSITION;\n};\n\n// vertex shader\nv2f vert (appdata IN)
+          {\n  v2f o;\n  half4 color = IN.color;\n  float3 eyePos = mul (UNITY_MATRIX_MV,
+          float4(IN.pos,1)).xyz;\n  half3 viewDir = 0.0;\n  o.color = saturate(color);\n
+          \ // compute texture coordinates\n  // fog\n  #if USING_FOG\n    float fogCoord
+          = length(eyePos.xyz); // radial fog distance\n    UNITY_CALC_FOG_FACTOR(fogCoord);\n
+          \   o.fog = saturate(unityFogFactor);\n  #endif\n  // transform position\n
+          \ o.pos = mul(UNITY_MATRIX_MVP, float4(IN.pos,1));\n  return o;\n}\n\n//
+          fragment shader\nfixed4 frag (v2f IN) : SV_Target {\n  fixed4 col;\n  col
+          = IN.color;\n  // fog\n  #if USING_FOG\n    col.rgb = lerp (unity_FogColor.rgb,
+          col.rgb, IN.fog);\n  #endif\n  return col;\n}\n"
+        m_AssetPath: 
+        m_PlatformMask: 4294967295
+        m_TypesMask: 3
+        m_IncludesHash:
+          serializedVersion: 2
+          Hash: 00000000000000000000000000000000
+        m_IsGLSL: 0
+        m_FromOther: 0
+        m_VariantsUser0:
+        - - _
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser1:
+        - - _
+          - FOG_LINEAR
+          - FOG_EXP
+          - FOG_EXP2
+        m_VariantsUser2: []
+        m_VariantsUser3: []
+        m_VariantsUser4: []
+        m_VariantsUser5: []
+        m_VariantsBuiltin0: []
+        m_VariantsBuiltin1: []
+        m_VariantsBuiltin2: []
+        m_VariantsBuiltin3: []
+        m_VariantsBuiltin4: []
+        m_VariantsBuiltin5: []
+        m_Target: 0
+        m_TargetVariants0: []
+        m_TargetVariants1: []
+        m_TargetVariants2: []
+        m_TargetVariants3: []
+        m_TargetVariants4: []
+        m_TargetVariants5: []
+        m_NonStrippedUserKeywords: FOG_EXP FOG_EXP2 FOG_LINEAR
+        m_BuiltinKeywords: 
     m_MeshComponentsFromSnippets: 11
     m_HasSurfaceShaders: 1
-    m_HasFixedFunctionShaders: 0
+    m_HasFixedFunctionShaders: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9083,7 +11243,6 @@ MonoBehaviour:
   - {fileID: 11400012}
   - {fileID: 11490432}
   - {fileID: 0}
-  - {fileID: 11484766}
   edges:
   - m_FromNode: {fileID: 11400010}
     m_ToNode: {fileID: 11400012}
@@ -9277,53 +11436,8 @@ MonoBehaviour:
   m_Name: Metal
   m_EditorClassIdentifier: 
   m_PropertyDescription: 
-  m_DefaultTexture: {fileID: 2800000, guid: c0618a0ba9f71be46a901433f41dfb1b, type: 3}
+  m_DefaultTexture: {fileID: 0}
   m_DefaultTextureType: 0
---- !u!114 &11484766
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5defdf1d05185a343bfebb2cdd827bd6, type: 3}
-  m_Name: Texture
-  m_EditorClassIdentifier: 
-  m_Slots:
-  - type: 1
-    m_Title: Output
-    m_Name: Output
-    m_DataTypeString: 
-  - type: 0
-    m_Title: UV
-    m_Name: UV
-    m_DataTypeString: 
-  m_Properties: []
-  m_GenericTypeString: 
-  color: 0
-  style: node
-  position:
-    serializedVersion: 2
-    x: 252
-    y: 312
-    width: 213
-    height: 139
-  showEmptySlots: 1
-  m_SlotDefaultValues:
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Output
-    m_Node: {fileID: 11484766}
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: UV
-    m_Node: {fileID: 11484766}
-  m_PrecisionNames:
-  - half
-  m_BoundProperty: {fileID: 11433322}
-  m_DefaultTexture: {fileID: 2800000, guid: c0618a0ba9f71be46a901433f41dfb1b, type: 3}
-  m_TextureType: 0
 --- !u!114 &11485774
 MonoBehaviour:
   m_ObjectHideFlags: 1
