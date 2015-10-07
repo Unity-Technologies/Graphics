@@ -23,6 +23,16 @@ namespace UnityEditor.Graphs.Material
 
         private static List<BaseLightFunction> s_LightFunctions;
 
+        protected override int previewWidth
+        {
+            get { return 300; }
+        }
+        
+        protected override int previewHeight
+        {
+            get { return 300; }
+        }
+
         public override void Init()
         {
             name = "PixelMaster";
@@ -135,7 +145,7 @@ namespace UnityEditor.Graphs.Material
             return GetOutputVariableNameForNode();
         }
 
-        public override void NodeUI(Graphs.GraphGUI host)
+        public override void NodeUI(GraphGUI host)
         {
             base.NodeUI(host);
             var lightFunctions = GetLightFunctions();
@@ -145,8 +155,31 @@ namespace UnityEditor.Graphs.Material
             if (lightFunction != null)
                 lightFuncIndex = lightFunctions.IndexOf(lightFunction);
 
+            EditorGUI.BeginChangeCheck();
             lightFuncIndex = EditorGUILayout.Popup(lightFuncIndex, lightFunctions.Select(x => x.GetLightFunctionName()).ToArray(), EditorStyles.popup);
             m_LightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
+            if (EditorGUI.EndChangeCheck())
+                RegeneratePreviewShaders();
+        }
+
+        public override bool hasPreview
+        {
+            get { return true; }
+        }
+
+        public override bool UpdatePreviewMaterial()
+        {
+            Dictionary<string, Texture> defaultTextures;
+            var shaderName = "Hidden/PreviewShader/" + name + "_" + Math.Abs(GetInstanceID());;
+            
+            var resultShader = ShaderGenerator.GenerateSurfaceShader(pixelGraph.owner, shaderName, true, out defaultTextures);
+            m_GeneratedShaderMode = PreviewMode.Preview3D;
+            if (previewMaterial.shader != defaultPreviewShader)
+                DestroyImmediate(previewMaterial.shader, true);
+            previewMaterial.shader = ShaderUtil.CreateShaderAsset(resultShader);
+            EditorMaterialUtility.SetShaderDefaults(previewMaterial.shader, defaultTextures.Keys.ToArray(), defaultTextures.Values.ToArray());
+            previewMaterial.shader.hideFlags = HideFlags.DontSave;
+            return true;
         }
     }
 }

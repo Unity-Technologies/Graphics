@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using System.Linq;
@@ -51,7 +52,9 @@ namespace UnityEditor.Graphs.Material
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Output Shader :)"))
             {
-                ShaderGenerator.GenerateSurfaceShader(graph);
+                Dictionary<string, Texture> defaultTextures;
+                var shader = ShaderGenerator.GenerateSurfaceShader(graph, graph.name, false, out defaultTextures);
+                graph.UpdateShaderSource(shader, defaultTextures);
             }
             GUILayout.EndArea();
         }

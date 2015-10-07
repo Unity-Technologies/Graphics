@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.Graphs.Material
@@ -86,7 +84,7 @@ namespace UnityEditor.Graphs.Material
             return value;
         }
 
-        public override void NodeUI(Graphs.GraphGUI host)
+        public override void NodeUI(GraphGUI host)
         {
             base.NodeUI(host);
 

@@ -1,6 +1,5 @@
-using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.Graphs.Material
@@ -20,7 +19,9 @@ namespace UnityEditor.Graphs.Material
         public SubGraphOutputsNode outputsNode { get { return m_OutputsNode; } }
 
         public override BaseMaterialNode masterNode { get { return outputsNode; } }
-
+        protected override void RecacheActiveNodes()
+        {
+        }
 
         public new void OnEnable()
         {

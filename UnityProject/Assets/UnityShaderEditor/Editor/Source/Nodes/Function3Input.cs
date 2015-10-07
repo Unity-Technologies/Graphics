@@ -38,7 +38,7 @@ namespace UnityEditor.Graphs.Material
 
             string input1Value = GetSlotValue(inputSlot1, generationMode);
             string input2Value = GetSlotValue(inputSlot2, generationMode);
-            string input3Value = GetSlotValue(inputSlot2, generationMode);
+            string input3Value = GetSlotValue(inputSlot3, generationMode);
 
             visitor.AddShaderChunk(precision + "4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(input1Value, input2Value, input3Value) + ";", true);
         }

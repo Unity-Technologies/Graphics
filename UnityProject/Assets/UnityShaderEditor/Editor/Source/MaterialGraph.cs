@@ -21,7 +21,6 @@ namespace UnityEditor.Graphs.Material
 
         public int GetShaderInstanceID()
         {
-            Debug.Log("Returning: " + m_Shader.GetInstanceID());
             return m_Shader.GetInstanceID();
         }
 
@@ -78,7 +77,7 @@ namespace UnityEditor.Graphs.Material
 
         public void UpdateShaderSource(string src, Dictionary<string, Texture> defaultTexutres)
         {
-            UnityEditor.ShaderUtil.UpdateShaderAsset(m_Shader, src);
+            ShaderUtil.UpdateShaderAsset(m_Shader, src);
             EditorMaterialUtility.SetShaderDefaults(m_Shader, defaultTexutres.Keys.ToArray(), defaultTexutres.Values.ToArray());
         }
 
@@ -91,23 +90,24 @@ namespace UnityEditor.Graphs.Material
             if (m_Shader == null)
             {
                 const string shaderSource = "Shader \"Graphs/Dummy\" {" +
-                    "Properties { _Color (\"Main Color\", Color) = (1,1,1,0) }" +
-                    "SubShader {" +
-                    "    Tags { \"Queue\" = \"Transparent\" }" +
-                    "    Pass {" +
-                    "        Blend One One ZWrite Off ColorMask RGB" +
-                    "        Material { Diffuse [_Color] Ambient [_Color] }" +
-                    "        Lighting On" +
-                    "        SetTexture [_Dummy] { combine primary double, primary }" +
-                    "    }" +
-                    "}" +
-                    "}";
+                                            "Properties { _Color (\"Main Color\", Color) = (1,1,1,0) }" +
+                                            "SubShader {" +
+                                            "    Tags { \"Queue\" = \"Transparent\" }" +
+                                            "    Pass {" +
+                                            "        Blend One One ZWrite Off ColorMask RGB" +
+                                            "        Material { Diffuse [_Color] Ambient [_Color] }" +
+                                            "        Lighting On" +
+                                            "        SetTexture [_Dummy] { combine primary double, primary }" +
+                                            "    }" +
+                                            "}" +
+                                            "}";
 
-                m_Shader = UnityEditor.ShaderUtil.CreateShaderAsset(shaderSource);
+                m_Shader = ShaderUtil.CreateShaderAsset(shaderSource);
                 m_Shader.name = name;
                 m_Shader.hideFlags = HideFlags.HideInHierarchy;
             }
             AssetDatabase.AddObjectToAsset(m_Shader, this);
+            m_PixelGraph.AddMasterNodeToAsset();
         }
     }
 }
