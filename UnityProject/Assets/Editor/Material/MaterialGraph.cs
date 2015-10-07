@@ -105,11 +105,9 @@ namespace UnityEditor.Graphs.Material
 
 				m_Shader = UnityEditor.ShaderUtil.CreateShaderAsset(shaderSource);
 				m_Shader.name = name;
-				//m_Shader.hideFlags = HideFlags.HideInHierarchy;
+				m_Shader.hideFlags = HideFlags.HideInHierarchy;
 			}
 			AssetDatabase.AddObjectToAsset (m_Shader, this);
-
-			m_PixelGraph.AddMasterNodeToAsset ();
 		}
 	}
 }

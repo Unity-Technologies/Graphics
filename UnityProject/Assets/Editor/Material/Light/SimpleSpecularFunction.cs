@@ -5,11 +5,11 @@ namespace UnityEditor.Graphs.Material
 {
 	class SimpleSpecularFunction : BaseLightFunction
 	{
-		public override string GetName () { return "SimpleSpecular"; }
-		public override void GenerateBody(ShaderGenerator visitor)
+		public override string GetLightFunctionName () { return "SimpleSpecular"; }
+		public override void GenerateLightFunctionBody(ShaderGenerator visitor)
 		{
 			var outputString = new ShaderGenerator ();
-			outputString.AddShaderChunk ("half4 Lighting" + GetName () + " (SurfaceOutput s, half3 lightDir, half3 viewDir, half atten)", false);
+			outputString.AddShaderChunk ("half4 Lighting" + GetLightFunctionName () + " (SurfaceOutput s, half3 lightDir, half3 viewDir, half atten)", false);
 			outputString.AddShaderChunk ("{", false);
 			outputString.Indent ();
 			outputString.AddShaderChunk ("half3 h = normalize (lightDir + viewDir);", false);
