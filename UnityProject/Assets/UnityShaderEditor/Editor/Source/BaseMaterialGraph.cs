@@ -31,6 +31,8 @@ namespace UnityEditor.Graphs.Material
         {
             get { return isAwake && nodes.Any(x => x is IRequiresTime); }
         }
+        
+        protected abstract void RecacheActiveNodes();
 
         public override void RemoveEdge(Edge e)
         {
@@ -39,7 +41,8 @@ namespace UnityEditor.Graphs.Material
             var toNode = e.toSlot.node as BaseMaterialNode;
             if (toNode == null)
                 return;
-
+            
+            RecacheActiveNodes();
             toNode.RegeneratePreviewShaders();
         }
 
@@ -52,6 +55,7 @@ namespace UnityEditor.Graphs.Material
             if (fromNode == null || toNode == null)
                 return edge;
 
+            RecacheActiveNodes();
             toNode.RegeneratePreviewShaders();
             fromNode.CollectChildNodesByExecutionOrder().ToList().ForEach(s => s.UpdatePreviewProperties());
 

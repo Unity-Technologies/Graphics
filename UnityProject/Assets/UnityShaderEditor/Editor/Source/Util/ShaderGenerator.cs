@@ -304,12 +304,15 @@ namespace UnityEditor.Graphs.Material
             return template;
         }
 
-        public static void GenerateSurfaceShader(MaterialGraph graph)
+        public static string GenerateSurfaceShader(MaterialGraph graph, string shaderName, bool isPreview, out Dictionary<string, Texture> defaultTextures)
         {
             var templateLocation = GetTemplatePath("shader.template");
 
             if (!File.Exists(templateLocation))
-                return;
+            {
+                defaultTextures = new Dictionary<string, Texture>();
+                return string.Empty;
+            }
 
             var templateText = File.ReadAllText(templateLocation);
 
@@ -330,7 +333,8 @@ namespace UnityEditor.Graphs.Material
                 shaderFunctionVisitor,
                 shaderPropertiesVisitor,
                 shaderPropertyUsagesVisitor,
-                vertexShaderBlock);
+                vertexShaderBlock,
+                isPreview);
 
             if (shaderInputVisitor.numberOfChunks == 0)
             {
@@ -350,7 +354,7 @@ namespace UnityEditor.Graphs.Material
             options.GetDepthTest(zTestVisitor);
             options.GetDepthWrite(zWriteVisitor);
 
-            var resultShader = templateText.Replace("${ShaderName}", graph.name);
+            var resultShader = templateText.Replace("${ShaderName}", shaderName);
             resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${LightingFunctionName}", shaderLightFunctionVisitor.GetPragmaString());
@@ -377,10 +381,11 @@ namespace UnityEditor.Graphs.Material
                 resultShader = resultShader.Replace("${VertexShaderBody}", "");
             }
 
-            //Build a map of default
-            graph.UpdateShaderSource(resultShader, shaderPropertiesVisitor.GetDefaultTexutres());
             MaterialWindow.DebugMaterialGraph("----------Shader-----------");
             MaterialWindow.DebugMaterialGraph(resultShader);
+            
+            defaultTextures = shaderPropertiesVisitor.GetDefaultTexutres();
+            return resultShader;
         }
 
         public int numberOfChunks

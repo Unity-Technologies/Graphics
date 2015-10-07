@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEditorInternal;
 using UnityEngine;
@@ -86,7 +85,8 @@ namespace UnityEditor.Graphs.Material
         }
 
         private static Shader m_DefaultPreviewShader;
-        private static Shader defaultPreviewShader
+
+        protected static Shader defaultPreviewShader
         {
             get
             {
@@ -97,7 +97,7 @@ namespace UnityEditor.Graphs.Material
             }
         }
 
-        private UnityEngine.Material previewMaterial
+        protected UnityEngine.Material previewMaterial
         {
             get
             {
@@ -108,12 +108,23 @@ namespace UnityEditor.Graphs.Material
             }
         }
 
-        private PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
+        protected PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
 
         private bool needsUpdate
         {
             get { return true; }
         }
+
+        protected virtual int previewWidth
+        {
+            get { return kPreviewWidth; }
+        }
+        
+        protected virtual int previewHeight
+        {
+            get { return kPreviewHeight; }
+        }
+
         #endregion
 
         public virtual void Init()
@@ -141,9 +152,9 @@ namespace UnityEditor.Graphs.Material
             if (!ShaderUtil.hardwareSupportsRectRenderTexture)
                 return;
 
-            GUILayout.BeginHorizontal(GUILayout.MinWidth(kPreviewWidth + 10), GUILayout.MinWidth(kPreviewHeight + 10));
+            GUILayout.BeginHorizontal(GUILayout.MinWidth(previewWidth + 10), GUILayout.MinWidth(previewHeight + 10));
             GUILayout.FlexibleSpace();
-            var rect = GUILayoutUtility.GetRect(kPreviewWidth, kPreviewHeight, GUILayout.ExpandWidth(false));
+            var rect = GUILayoutUtility.GetRect(previewWidth, previewHeight, GUILayout.ExpandWidth(false));
             var preview = RenderPreview(rect);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
@@ -218,14 +229,13 @@ namespace UnityEditor.Graphs.Material
         {
             MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + GetInstanceID());
 
-
             var resultShader = ShaderGenerator.GeneratePreviewShader(this, out m_GeneratedShaderMode);
 
             MaterialWindow.DebugMaterialGraph(resultShader);
 
             if (previewMaterial.shader != defaultPreviewShader)
                 DestroyImmediate(previewMaterial.shader, true);
-            previewMaterial.shader = UnityEditor.ShaderUtil.CreateShaderAsset(resultShader);
+            previewMaterial.shader = ShaderUtil.CreateShaderAsset(resultShader);
             previewMaterial.shader.hideFlags = HideFlags.DontSave;
             return true;
         }

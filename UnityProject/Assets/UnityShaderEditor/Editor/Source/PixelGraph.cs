@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -14,6 +13,23 @@ namespace UnityEditor.Graphs.Material
         public override BaseMaterialNode masterNode
         {
             get { return pixelMasterNode; }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+
+            if (m_PixelMasterNode == null)
+                m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof (PixelShaderNode)) as PixelShaderNode;
+
+            if (m_PixelMasterNode == null)
+            {
+                m_PixelMasterNode = CreateInstance<PixelShaderNode>();
+                m_PixelMasterNode.hideFlags = HideFlags.HideInHierarchy;
+                m_PixelMasterNode.Init();
+                m_PixelMasterNode.position = new Rect(700, m_PixelMasterNode.position.y, m_PixelMasterNode.position.width, m_PixelMasterNode.position.height);
+                AddMasterNodeNoAddToAsset(m_PixelMasterNode);
+            }
         }
 
         public PixelShaderNode pixelMasterNode
@@ -41,7 +57,7 @@ namespace UnityEditor.Graphs.Material
         {
             get
             {
-                if (m_ActiveNodes == null)
+               if (m_ActiveNodes == null)
                     m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
                 return m_ActiveNodes;
             }
@@ -66,40 +82,40 @@ namespace UnityEditor.Graphs.Material
             ShaderGenerator nodeFunction,
             PropertyGenerator shaderProperties,
             ShaderGenerator propertyUsages,
-            ShaderGenerator vertexShader)
+            ShaderGenerator vertexShader,
+            bool isPreview)
         {
             pixelMasterNode.GenerateLightFunction(lightFunction);
             pixelMasterNode.GenerateSurfaceOutput(surfaceOutput);
 
-            owner.materialProperties.GenerateSharedProperties(shaderProperties, propertyUsages, GenerationMode.SurfaceShader);
+            var genMode = isPreview ? GenerationMode.Preview3D : GenerationMode.SurfaceShader;
+
+            owner.materialProperties.GenerateSharedProperties(shaderProperties, propertyUsages, genMode);
 
             foreach (var node in activeNodes)
             {
-                if (node is IGeneratesFunction) (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, GenerationMode.SurfaceShader);
-                if (node is IGeneratesVertexToFragmentBlock) (node as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(inputStruct, GenerationMode.SurfaceShader);
-                if (node is IGeneratesVertexShaderBlock) (node as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(vertexShader, GenerationMode.SurfaceShader);
+                if (node is IGeneratesFunction) (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, genMode);
+                if (node is IGeneratesVertexToFragmentBlock) (node as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(inputStruct, genMode);
+                if (node is IGeneratesVertexShaderBlock) (node as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(vertexShader, genMode);
 
                 if (node is IGenerateProperties)
                 {
-                    (node as IGenerateProperties).GeneratePropertyBlock(shaderProperties, GenerationMode.SurfaceShader);
-                    (node as IGenerateProperties).GeneratePropertyUsages(propertyUsages, GenerationMode.SurfaceShader);
+                    (node as IGenerateProperties).GeneratePropertyBlock(shaderProperties, genMode);
+                    (node as IGenerateProperties).GeneratePropertyUsages(propertyUsages, genMode);
                 }
             }
 
-            pixelMasterNode.GenerateNodeCode(shaderBody, GenerationMode.SurfaceShader);
+            pixelMasterNode.GenerateNodeCode(shaderBody, genMode);
         }
 
-        public override void RemoveEdge(Edge e)
+        public void AddMasterNodeToAsset()
         {
-            base.RemoveEdge(e);
-            m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
+            AssetDatabase.AddObjectToAsset(pixelMasterNode, this);
         }
 
-        public override Edge Connect(Slot fromSlot, Slot toSlot)
+        protected override void RecacheActiveNodes()
         {
-            var ret = base.Connect(fromSlot, toSlot);
             m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
-            return ret;
         }
     }
 }
