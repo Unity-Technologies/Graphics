@@ -207,6 +207,24 @@ namespace UnityEditor.Graphs.Material
 			return sb.ToString();
 		}
 
+	    private static string GetTemplatePath(string templateName)
+	    {
+            var path = new List<string>
+		    {
+		        Application.dataPath,
+		        "UnityShaderEditor",
+		        "Editor",
+		        "Templates"
+		    };
+
+	        string result = path[0];
+	        for (int i = 1; i < path.Count; i++)
+	            result = Path.Combine(result, path[i]);
+
+	        result = Path.Combine(result, templateName);
+            return result;
+	    }
+
 		public static string GeneratePreviewShader(BaseMaterialNode node, out PreviewMode generatedShaderMode)
 		{
 			// figure out what kind of preview we want!
@@ -219,7 +237,7 @@ namespace UnityEditor.Graphs.Material
 				generatedShaderMode = PreviewMode.Preview3D;
 			}
 
-			string templateLocation = Path.Combine (Application.dataPath, Path.Combine ("MaterialGraph", generationMode == GenerationMode.Preview2D ? "2DPreview.template" : "3DPreview.template"));
+		    string templateLocation = GetTemplatePath(generationMode == GenerationMode.Preview2D ? "2DPreview.template" : "3DPreview.template");
 			if (!File.Exists (templateLocation))
 				return null;
 
@@ -289,8 +307,9 @@ namespace UnityEditor.Graphs.Material
 
 		public static void GenerateSurfaceShader(MaterialGraph graph)
 		{
-			string templateLocation = Path.Combine(Application.dataPath, Path.Combine("MaterialGraph", "shader.template"));
-			if (!File.Exists(templateLocation))
+			var templateLocation = GetTemplatePath("shader.template");
+			
+            if (!File.Exists(templateLocation))
 				return;
 
 			var templateText = File.ReadAllText(templateLocation);
