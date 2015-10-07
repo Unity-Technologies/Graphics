@@ -1,0 +1,4 @@
+syntax: glob
+UnityProject/Library
+UnityProject/Temp
+UnityProject/obj
