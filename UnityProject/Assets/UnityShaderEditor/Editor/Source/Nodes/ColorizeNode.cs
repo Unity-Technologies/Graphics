@@ -2,71 +2,71 @@ using UnityEngine;
 
 namespace UnityEditor.Graphs.Material
 {
-	[Title("Art/Colorize Node")]
-	class ColorizeNode : Function1Input, IGeneratesFunction
-	{
-		[SerializeField]
-		private Color m_Color = Color.blue;
-		[SerializeField]
-		private float m_Colorization = 0.0f;
-		[SerializeField]
-		private float m_Brightness = 1.0f;
-		[SerializeField]
-		private float m_Contrast = 1.0f;
+    [Title("Art/Colorize Node")]
+    class ColorizeNode : Function1Input, IGeneratesFunction
+    {
+        [SerializeField]
+        private Color m_Color = Color.blue;
+        [SerializeField]
+        private float m_Colorization = 0.0f;
+        [SerializeField]
+        private float m_Brightness = 1.0f;
+        [SerializeField]
+        private float m_Contrast = 1.0f;
 
-		public override void Init()
-		{
-			name = "ColorizeNode";
-			base.Init();
-		}
+        public override void Init()
+        {
+            name = "ColorizeNode";
+            base.Init();
+        }
 
-		protected override string GetFunctionName() {return ""; }
-		
-		protected override string GetFunctionCallBody (string inputValue)
-		{
-			return  "unity_colorize_"+precision+"("+inputValue+", "+precision+"4("+m_Color.r+", "+m_Color.g+", "+m_Color.b+", "+m_Color.a+"), "+m_Colorization+", "+m_Brightness+", "+m_Contrast+")";
-		}
+        protected override string GetFunctionName() {return ""; }
 
-		public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			var outputString = new ShaderGenerator ();
+        protected override string GetFunctionCallBody(string inputValue)
+        {
+            return "unity_colorize_" + precision + "(" + inputValue + ", " + precision + "4(" + m_Color.r + ", " + m_Color.g + ", " + m_Color.b + ", " + m_Color.a + "), " + m_Colorization + ", " + m_Brightness + ", " + m_Contrast + ")";
+        }
 
-			foreach (var thePrecisision in m_PrecisionNames)
-			{
-				outputString.AddShaderChunk ("inline " + thePrecisision + "4 unity_colorize_" + thePrecisision + " (" + thePrecisision + "4 arg1, " + thePrecisision + "4 color, " + thePrecisision + " amount, " + thePrecisision + " brightness, " + thePrecisision + " contrast)", false);
-				outputString.AddShaderChunk ("{", false);
-				outputString.Indent ();
-				outputString.AddShaderChunk (thePrecisision + "4 x = lerp(arg1, arg1 * color, amount);", false);
-				outputString.AddShaderChunk ("x *= brightness;", false);
-				outputString.AddShaderChunk ("x = pow(x, contrast);", false);
-				outputString.AddShaderChunk ("return x;", false);
-				outputString.Deindent ();
-				outputString.AddShaderChunk ("}", false);
-			}
+        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            var outputString = new ShaderGenerator();
 
-			visitor.AddShaderChunk (outputString.GetShaderString (0), true);
-		}
+            foreach (var thePrecisision in m_PrecisionNames)
+            {
+                outputString.AddShaderChunk("inline " + thePrecisision + "4 unity_colorize_" + thePrecisision + " (" + thePrecisision + "4 arg1, " + thePrecisision + "4 color, " + thePrecisision + " amount, " + thePrecisision + " brightness, " + thePrecisision + " contrast)", false);
+                outputString.AddShaderChunk("{", false);
+                outputString.Indent();
+                outputString.AddShaderChunk(thePrecisision + "4 x = lerp(arg1, arg1 * color, amount);", false);
+                outputString.AddShaderChunk("x *= brightness;", false);
+                outputString.AddShaderChunk("x = pow(x, contrast);", false);
+                outputString.AddShaderChunk("return x;", false);
+                outputString.Deindent();
+                outputString.AddShaderChunk("}", false);
+            }
 
-		static float Slider (string title, float value, float from, float to)
-		{
-			GUILayout.BeginHorizontal ();
-			GUILayout.Label (title);
-			value = GUILayout.HorizontalSlider(value, from, to, GUILayout.Width(64));
-			GUILayout.EndHorizontal ();
-			return value;
-		}
+            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        }
 
-		public override void NodeUI (Graphs.GraphGUI host) 
-		{
-			base.NodeUI(host);
+        static float Slider(string title, float value, float from, float to)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(title);
+            value = GUILayout.HorizontalSlider(value, from, to, GUILayout.Width(64));
+            GUILayout.EndHorizontal();
+            return value;
+        }
 
-			EditorGUI.BeginChangeCheck ();
-			m_Color = EditorGUILayout.ColorField("Tint", m_Color);
-			m_Colorization = Slider ("Colorization", m_Colorization, 0f, 1f);
-			m_Brightness = Slider ("Brightness", m_Brightness, 0f, 2f);
-			m_Contrast = Slider ("Contrast", m_Contrast, 0.3f, 4f);
-			if (EditorGUI.EndChangeCheck ())
-				RegeneratePreviewShaders ();
-		}		
-	}
+        public override void NodeUI(Graphs.GraphGUI host)
+        {
+            base.NodeUI(host);
+
+            EditorGUI.BeginChangeCheck();
+            m_Color = EditorGUILayout.ColorField("Tint", m_Color);
+            m_Colorization = Slider("Colorization", m_Colorization, 0f, 1f);
+            m_Brightness = Slider("Brightness", m_Brightness, 0f, 2f);
+            m_Contrast = Slider("Contrast", m_Contrast, 0.3f, 4f);
+            if (EditorGUI.EndChangeCheck())
+                RegeneratePreviewShaders();
+        }
+    }
 }

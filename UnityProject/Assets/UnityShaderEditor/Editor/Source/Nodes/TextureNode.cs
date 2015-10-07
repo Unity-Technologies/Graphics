@@ -4,156 +4,156 @@ using UnityEngine;
 
 namespace UnityEditor.Graphs.Material
 {
-	public enum TextureType
-	{
-		White,
-		Gray,
-		Black,
-		Bump
-	}
+    public enum TextureType
+    {
+        White,
+        Gray,
+        Black,
+        Bump
+    }
 
-	[Title("Input/Texture Node")]
-	public class TextureNode : PropertyNode, IGeneratesBodyCode, IGeneratesVertexShaderBlock, IGeneratesVertexToFragmentBlock
-	{
-		protected const string kOutputSlotName = "Output";
-		protected const string kUVSlotName = "UV";
+    [Title("Input/Texture Node")]
+    public class TextureNode : PropertyNode, IGeneratesBodyCode, IGeneratesVertexShaderBlock, IGeneratesVertexToFragmentBlock
+    {
+        protected const string kOutputSlotName = "Output";
+        protected const string kUVSlotName = "UV";
 
-		[SerializeField]
-		public Texture2D m_DefaultTexture;
+        [SerializeField]
+        public Texture2D m_DefaultTexture;
 
-		[SerializeField]
-		public TextureType m_TextureType;
+        [SerializeField]
+        public TextureType m_TextureType;
 
-		private List<string> m_TextureTypeNames;
+        private List<string> m_TextureTypeNames;
 
-		public override bool hasPreview { get { return false; } }
+        public override bool hasPreview { get { return false; } }
 
-		public override void Init ()
-		{
-			name = "Texture";
-			base.Init ();
-			AddSlot (new Slot (SlotType.OutputSlot, kOutputSlotName));
-			AddSlot (new Slot (SlotType.InputSlot, kUVSlotName));
-			
-			LoadTextureTypes();
-		}
+        public override void Init()
+        {
+            name = "Texture";
+            base.Init();
+            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
+            AddSlot(new Slot(SlotType.InputSlot, kUVSlotName));
 
-		private void LoadTextureTypes ()
-		{
-			if (m_TextureTypeNames == null)
-				m_TextureTypeNames = new List<string> (Enum.GetNames (typeof(TextureType)));
-		}
+            LoadTextureTypes();
+        }
 
-		// Node generations
-		public virtual void GenerateNodeCode (ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			var outputSlot = FindOutputSlot (kOutputSlotName);
-			if (outputSlot == null)
-				return;
+        private void LoadTextureTypes()
+        {
+            if (m_TextureTypeNames == null)
+                m_TextureTypeNames = new List<string>(Enum.GetNames(typeof(TextureType)));
+        }
 
-			var uvSlot = FindInputSlot (kUVSlotName);
-			if (uvSlot == null)
-				return;
+        // Node generations
+        public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            var outputSlot = FindOutputSlot(kOutputSlotName);
+            if (outputSlot == null)
+                return;
 
-			var uvName = "IN.meshUV0";
-			if (uvSlot.edges.Count > 0)
-			{
-				var fromNode = uvSlot.edges[0].fromSlot.node as BaseMaterialNode;
-				uvName = fromNode.GetOutputVariableNameForSlot(uvSlot.edges[0].fromSlot, generationMode);
-			}
+            var uvSlot = FindInputSlot(kUVSlotName);
+            if (uvSlot == null)
+                return;
 
-			string body = "tex2D (" + GetPropertyName () + ", " + uvName + ".xy)";
-			if (m_TextureType == TextureType.Bump)
-				body = precision+"4(UnpackNormal(" + body + "), 0)";
-			visitor.AddShaderChunk("float4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + body + ";", true);			
-		}
+            var uvName = "IN.meshUV0";
+            if (uvSlot.edges.Count > 0)
+            {
+                var fromNode = uvSlot.edges[0].fromSlot.node as BaseMaterialNode;
+                uvName = fromNode.GetOutputVariableNameForSlot(uvSlot.edges[0].fromSlot, generationMode);
+            }
 
-		public void GenerateVertexToFragmentBlock (ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			var uvSlot = FindInputSlot(kUVSlotName);
-			if (uvSlot == null)
-				return;
+            string body = "tex2D (" + GetPropertyName() + ", " + uvName + ".xy)";
+            if (m_TextureType == TextureType.Bump)
+                body = precision + "4(UnpackNormal(" + body + "), 0)";
+            visitor.AddShaderChunk("float4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + body + ";", true);
+        }
 
-			if (uvSlot.edges.Count == 0)
-				UVNode.StaticGenerateVertexToFragmentBlock(visitor, generationMode);
-		}
+        public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            var uvSlot = FindInputSlot(kUVSlotName);
+            if (uvSlot == null)
+                return;
 
-		public void GenerateVertexShaderBlock (ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			var uvSlot = FindInputSlot(kUVSlotName);
-			if (uvSlot == null)
-				return;
+            if (uvSlot.edges.Count == 0)
+                UVNode.StaticGenerateVertexToFragmentBlock(visitor, generationMode);
+        }
 
-			if (uvSlot.edges.Count == 0)
-				UVNode.GenerateVertexShaderBlock (visitor);
-		}
+        public void GenerateVertexShaderBlock(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            var uvSlot = FindInputSlot(kUVSlotName);
+            if (uvSlot == null)
+                return;
 
-		// Properties
-		public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-		{
-			if (HasBoundProperty())
-				return;
+            if (uvSlot.edges.Count == 0)
+                UVNode.GenerateVertexShaderBlock(visitor);
+        }
 
-			visitor.AddShaderProperty (new TexturePropertyChunk (GetPropertyName (), GetPropertyName (), m_DefaultTexture, m_TextureType, true));
-		}
+        // Properties
+        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
+        {
+            if (HasBoundProperty())
+                return;
 
-		public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-		{
-			if (HasBoundProperty())
-				return;
+            visitor.AddShaderProperty(new TexturePropertyChunk(GetPropertyName(), GetPropertyName(), m_DefaultTexture, m_TextureType, true));
+        }
 
-			visitor.AddShaderChunk ("sampler2D " + GetPropertyName () + ";", true);
-		}
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            if (HasBoundProperty())
+                return;
 
+            visitor.AddShaderChunk("sampler2D " + GetPropertyName() + ";", true);
+        }
 
-		// UI Shizz
-		public override void NodeUI(GraphGUI host)
-		{
-			LoadTextureTypes();
+        // UI Shizz
+        public override void NodeUI(GraphGUI host)
+        {
+            LoadTextureTypes();
 
-			base.NodeUI (host);
+            base.NodeUI(host);
 
-			EditorGUI.BeginChangeCheck ();
-			m_DefaultTexture = EditorGUILayout.ObjectField (GUIContent.none, m_DefaultTexture, typeof(Texture2D), false) as Texture2D;
-			m_TextureType = (TextureType)EditorGUILayout.Popup((int)m_TextureType, m_TextureTypeNames.ToArray(), EditorStyles.popup);
-			if (EditorGUI.EndChangeCheck())
-			{
-				var boundProp = boundProperty as TextureProperty; 
-				if (boundProp != null)
-				{
-					boundProp.defaultTexture = m_DefaultTexture;
-					boundProp.defaultTextureType = m_TextureType;
-				}
-				UpdatePreviewProperties ();
-			}
-		}
+            EditorGUI.BeginChangeCheck();
+            m_DefaultTexture = EditorGUILayout.ObjectField(GUIContent.none, m_DefaultTexture, typeof(Texture2D), false) as Texture2D;
+            m_TextureType = (TextureType)EditorGUILayout.Popup((int)m_TextureType, m_TextureTypeNames.ToArray(), EditorStyles.popup);
+            if (EditorGUI.EndChangeCheck())
+            {
+                var boundProp = boundProperty as TextureProperty;
+                if (boundProp != null)
+                {
+                    boundProp.defaultTexture = m_DefaultTexture;
+                    boundProp.defaultTextureType = m_TextureType;
+                }
+                UpdatePreviewProperties();
+            }
+        }
 
-		public override void BindProperty(ShaderProperty property, bool rebuildShaders)
-		{
-			base.BindProperty (property, rebuildShaders);
+        public override void BindProperty(ShaderProperty property, bool rebuildShaders)
+        {
+            base.BindProperty(property, rebuildShaders);
 
-			var texProp = property as TextureProperty;
-			if (texProp)
-			{
-				m_DefaultTexture = texProp.defaultTexture;
-				m_TextureType = texProp.defaultTextureType;
-			}
-			if (rebuildShaders)
-				RegeneratePreviewShaders ();
-			else
-				UpdatePreviewProperties ();
-		}
+            var texProp = property as TextureProperty;
+            if (texProp)
+            {
+                m_DefaultTexture = texProp.defaultTexture;
+                m_TextureType = texProp.defaultTextureType;
+            }
+            if (rebuildShaders)
+                RegeneratePreviewShaders();
+            else
+                UpdatePreviewProperties();
+        }
 
-		public override PreviewProperty GetPreviewProperty ()
-		{
-			MaterialWindow.DebugMaterialGraph ("Returning: " + GetPropertyName () + " " + m_DefaultTexture);
-			return new PreviewProperty {
-					m_Name = GetPropertyName (),
-					m_PropType = PropertyType.Texture2D,
-					m_Texture = m_DefaultTexture
-				};
-		}
+        public override PreviewProperty GetPreviewProperty()
+        {
+            MaterialWindow.DebugMaterialGraph("Returning: " + GetPropertyName() + " " + m_DefaultTexture);
+            return new PreviewProperty
+                   {
+                       m_Name = GetPropertyName(),
+                       m_PropType = PropertyType.Texture2D,
+                       m_Texture = m_DefaultTexture
+                   };
+        }
 
-		public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
-	}
+        public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
+    }
 }
