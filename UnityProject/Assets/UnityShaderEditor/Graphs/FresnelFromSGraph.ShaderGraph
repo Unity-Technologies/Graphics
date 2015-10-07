@@ -11242,7 +11242,6 @@ MonoBehaviour:
   - {fileID: 11400010}
   - {fileID: 11400012}
   - {fileID: 11490432}
-  - {fileID: 0}
   edges:
   - m_FromNode: {fileID: 11400010}
     m_ToNode: {fileID: 11400012}
