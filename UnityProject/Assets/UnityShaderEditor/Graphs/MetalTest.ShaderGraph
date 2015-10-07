@@ -41565,7 +41565,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef5b9f0785847b04983f907c7f016a36, type: 3}
-  m_Name: TestGraph2
+  m_Name: MetalTest
   m_EditorClassIdentifier: 
   m_MaterialProperties: {fileID: 11468610}
   m_MaterialOptions: {fileID: 11461844}
@@ -42051,7 +42051,7 @@ MonoBehaviour:
     m_Node: {fileID: 11450928}
   m_PrecisionNames:
   - half
-  m_LightFunctionClassName: UnityEditor.Graphs.Material.PBRSpecularLightFunction
+  m_LightFunctionClassName: UnityEditor.Graphs.Material.PBRMetalicLightFunction
 --- !u!114 &11461844
 MonoBehaviour:
   m_ObjectHideFlags: 1
