@@ -1,0 +1,38 @@
+# see editorconfig.org for usage and download of other editor plugins (emacs, notepad++, vim, etc..)
+#
+# installation:
+#
+#   * visual studio 2010+
+#       * Tools | Extensions and Updates -> Online -> EditorConfig
+#       * [https://github.com/editorconfig/editorconfig-visualstudio]
+#   * sublime text 2+
+#       * Tools | Command Palette... Install Package -> EditorConfig
+#       * [https://github.com/sindresorhus/editorconfig-sublime]
+
+root = true
+
+# | feature                     supported by
+# +----------------------------------------------------------------------------
+# |                             vstudio | sublime
+# | indent_style                X       | X
+# | indent_size                 X       | X
+# | tab_width                   X       |
+# | end_of_line                 X       | X
+# | charset                             | X
+# | trim_trailing_whitespace    X       | X
+# | insert_final_newline        X       | X
+
+[*]
+indent_style = space
+indent_size = 4
+tab_width = 4
+end_of_line = lf                    ; help with sharing files across os's (i.e. network share or through local vm)
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+
+[.hgignore]
+end_of_line = crlf
