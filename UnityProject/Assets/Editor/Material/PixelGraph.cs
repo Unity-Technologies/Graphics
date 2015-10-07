@@ -7,27 +7,33 @@ namespace UnityEditor.Graphs.Material
 {
 	class PixelGraph : BaseMaterialGraph, IGenerateGraphProperties
 	{
-		[SerializeField]
-		private PixelShaderNode m_MasterNode;
+		private PixelShaderNode m_PixelMasterNode;
 
 		public PreviewState previewState { get; set; }
 
 		public override BaseMaterialNode masterNode
 		{
-			get { return m_MasterNode; }
+			get { return pixelMasterNode; }
 		}
 
-		new void OnEnable ()
+		public PixelShaderNode pixelMasterNode
 		{
-			base.OnEnable ();
-			if (m_MasterNode == null)
-			{
-				m_MasterNode = CreateInstance<PixelShaderNode> ();
-				m_MasterNode.hideFlags = HideFlags.HideInHierarchy;
-				m_MasterNode.Init ();
-				m_MasterNode.position = new Rect(700, m_MasterNode.position.y, m_MasterNode.position.width, m_MasterNode.position.height);
-				AddMasterNodeNoAddToAsset (m_MasterNode);
-			}
+		    get
+		    {
+		        if (m_PixelMasterNode == null)
+		            m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof (PixelShaderNode)) as PixelShaderNode;
+
+		        if (m_PixelMasterNode == null)
+		        {
+		            m_PixelMasterNode = CreateInstance<PixelShaderNode>();
+		            m_PixelMasterNode.hideFlags = HideFlags.HideInHierarchy;
+		            m_PixelMasterNode.Init();
+		            m_PixelMasterNode.position = new Rect(700, pixelMasterNode.position.y, pixelMasterNode.position.width, pixelMasterNode.position.height);
+		            AddNode(m_PixelMasterNode);
+		        }
+
+		        return m_PixelMasterNode;
+		    }
 		}
 
 		private IEnumerable<BaseMaterialNode> m_ActiveNodes;
@@ -36,7 +42,7 @@ namespace UnityEditor.Graphs.Material
 			get
 			{
 				if (m_ActiveNodes == null)
-					m_ActiveNodes = m_MasterNode.CollectChildNodesByExecutionOrder();
+					m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
 				return m_ActiveNodes;
 			}
 		}
@@ -57,12 +63,14 @@ namespace UnityEditor.Graphs.Material
 			ShaderGenerator shaderBody,
 			ShaderGenerator inputStruct,
 			ShaderGenerator lightFunction,
+			ShaderGenerator surfaceOutput,
 			ShaderGenerator nodeFunction,
 			PropertyGenerator shaderProperties,
 			ShaderGenerator propertyUsages,
 			ShaderGenerator vertexShader)
 		{
-			m_MasterNode.GenerateLightFunction(lightFunction);
+			pixelMasterNode.GenerateLightFunction(lightFunction);
+			pixelMasterNode.GenerateSurfaceOutput(surfaceOutput);
 
 			owner.materialProperties.GenerateSharedProperties(shaderProperties, propertyUsages, GenerationMode.SurfaceShader);
 
@@ -79,24 +87,19 @@ namespace UnityEditor.Graphs.Material
 				}
 			}
 
-			m_MasterNode.GenerateNodeCode(shaderBody, GenerationMode.SurfaceShader);
-		}
-
-		public void AddMasterNodeToAsset ()
-		{
-			AssetDatabase.AddObjectToAsset (m_MasterNode, this);
+			pixelMasterNode.GenerateNodeCode(shaderBody, GenerationMode.SurfaceShader);
 		}
 
 		public override void RemoveEdge (Edge e)
 		{
 			base.RemoveEdge(e);
-			m_ActiveNodes = m_MasterNode.CollectChildNodesByExecutionOrder();
+			m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
 		}
 
 		public override Edge Connect (Slot fromSlot, Slot toSlot)
 		{
 			var ret = base.Connect(fromSlot, toSlot);
-			m_ActiveNodes = m_MasterNode.CollectChildNodesByExecutionOrder();
+			m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
 			return ret;
 		}
 	}

@@ -298,6 +298,7 @@ namespace UnityEditor.Graphs.Material
 			var shaderBodyVisitor = new ShaderGenerator();
 			var shaderInputVisitor = new ShaderGenerator();
 			var shaderLightFunctionVisitor = new ShaderGenerator();
+			var shaderOutputSurfaceVisitor = new ShaderGenerator();
 			var shaderFunctionVisitor = new ShaderGenerator();
 			var shaderPropertiesVisitor = new PropertyGenerator();
 			var shaderPropertyUsagesVisitor = new ShaderGenerator();
@@ -307,6 +308,7 @@ namespace UnityEditor.Graphs.Material
 				shaderBodyVisitor,
 				shaderInputVisitor,
 				shaderLightFunctionVisitor,
+				shaderOutputSurfaceVisitor,
 				shaderFunctionVisitor,
 				shaderPropertiesVisitor,
 				shaderPropertyUsagesVisitor,
@@ -335,6 +337,7 @@ namespace UnityEditor.Graphs.Material
 			resultShader = resultShader.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(2));
 			resultShader = resultShader.Replace("${LightingFunctionName}", shaderLightFunctionVisitor.GetPragmaString());
 			resultShader = resultShader.Replace("${LightingFunction}", shaderLightFunctionVisitor.GetShaderString(2));
+			resultShader = resultShader.Replace("${SurfaceOutputStructureName}", shaderOutputSurfaceVisitor.GetPragmaString());
 			resultShader = resultShader.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(2));
 			resultShader = resultShader.Replace("${ShaderInputs}", shaderInputVisitor.GetShaderString(3));
 			resultShader = resultShader.Replace("${PixelShaderBody}", shaderBodyVisitor.GetShaderString(3));

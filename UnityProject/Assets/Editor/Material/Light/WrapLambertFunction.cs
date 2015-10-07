@@ -5,11 +5,11 @@ namespace UnityEditor.Graphs.Material
 {
 	class WrapLambertFunction : BaseLightFunction
 	{
-		public override string GetName () { return "WrapLambert"; }
-		public override void GenerateBody(ShaderGenerator visitor)
+		public override string GetLightFunctionName () { return "WrapLambert"; }
+		public override void GenerateLightFunctionBody(ShaderGenerator visitor)
 		{
 			var outputString = new ShaderGenerator ();
-			outputString.AddShaderChunk ("half4 Lighting" + GetName () + " (SurfaceOutput s, half3 lightDir, half atten)", false);
+			outputString.AddShaderChunk ("half4 Lighting" + GetLightFunctionName () + " (SurfaceOutput s, half3 lightDir, half atten)", false);
 			outputString.AddShaderChunk ("{", false);
 			outputString.Indent ();
 			outputString.AddShaderChunk ("half NdotL = dot (s.Normal, lightDir);", false);

@@ -11260,7 +11260,6 @@ MonoBehaviour:
     m_ToSlotName: O01
     color: {r: 1, g: 1, b: 1, a: 1}
   m_InvalidEdges: []
-  m_MasterNode: {fileID: 0}
 --- !u!114 &11400010
 MonoBehaviour:
   m_ObjectHideFlags: 1

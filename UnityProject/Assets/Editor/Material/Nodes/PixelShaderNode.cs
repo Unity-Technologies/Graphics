@@ -9,16 +9,17 @@ namespace UnityEditor.Graphs.Material
 	[Title("Output/Pixel Shader")]
 	class PixelShaderNode : BaseMaterialNode, IGeneratesBodyCode
 	{
-		private const string kAlbedoSlotName = "Albedo";
-		private const string kNormalSlotName = "Normal";
-		private const string kEmissionSlotName = "Emission";
-		private const string kMetallicSlotName = "Metallic";
-		private const string kSmoothnessSlotName = "Smoothness";
-		private const string kOcclusion = "Occlusion";
-		private const string kAlphaSlotName = "Alpha";
+		public const string kAlbedoSlotName = "Albedo";
+		public const string kSpecularSlotName = "Specular";
+		public const string kNormalSlotName = "Normal";
+		public const string kEmissionSlotName = "Emission";
+		public const string kMetallicSlotName = "Metallic";
+		public const string kSmoothnessSlotName = "Smoothness";
+		public const string kOcclusion = "Occlusion";
+		public const string kAlphaSlotName = "Alpha";
 
 		[SerializeField]
-		private string m_LightFunction;
+		private string m_LightFunctionClassName;
 
 		private static List<BaseLightFunction> s_LightFunctions;
 
@@ -29,6 +30,7 @@ namespace UnityEditor.Graphs.Material
 
 			AddSlot (new Slot(SlotType.InputSlot, kAlbedoSlotName));
 			AddSlot (new Slot(SlotType.InputSlot, kNormalSlotName));
+			AddSlot (new Slot(SlotType.InputSlot, kSpecularSlotName));
 			AddSlot (new Slot(SlotType.InputSlot, kEmissionSlotName));
 			AddSlot (new Slot(SlotType.InputSlot, kMetallicSlotName));
 			AddSlot (new Slot(SlotType.InputSlot, kSmoothnessSlotName));
@@ -53,22 +55,36 @@ namespace UnityEditor.Graphs.Material
 			}
 			return s_LightFunctions;
 		}
-		
-		public virtual void GenerateLightFunction (ShaderGenerator visitor)
-		{
-			visitor.AddPragmaChunk (m_LightFunction);
 
-			var lightFunction = GetLightFunctions().FirstOrDefault(x => x.GetName() == m_LightFunction);
-			int lightFuncIndex = 0;
-			if (lightFunction != null)
-				lightFuncIndex = GetLightFunctions ().IndexOf (lightFunction);
+	    private BaseLightFunction GetLightFunction()
+	    {
+	        var lightFunctions = GetLightFunctions();
+	        var lightFunction = lightFunctions.FirstOrDefault(x => x.GetType().ToString() == m_LightFunctionClassName);
 
-			if (lightFuncIndex < s_LightFunctions.Count)
-			{
-				BaseLightFunction func = s_LightFunctions[lightFuncIndex];
-				func.GenerateBody (visitor);
-			}
+	        if (lightFunction == null && lightFunctions.Count > 0)
+	            lightFunction = lightFunctions[0];
+
+	        return lightFunction;
+	    }
+
+	    public virtual void GenerateLightFunction (ShaderGenerator visitor)
+	    {
+	        var lightFunction = GetLightFunction();
+			lightFunction.GenerateLightFunctionName(visitor);
+            lightFunction.GenerateLightFunctionBody (visitor);
 		}
+
+	    public void GenerateSurfaceOutput(ShaderGenerator visitor)
+	    {
+	        var lightFunction = GetLightFunction();
+	        lightFunction.GenerateSurfaceOutputStructureName(visitor);
+	    }
+
+	    public virtual IEnumerable<Slot> FilterSlotsForLightFunction()
+	    {
+	        var lightFunction = GetLightFunction();
+	        return lightFunction.FilterSlots(slots);
+	    }
 
 		public void GenerateNodeCode(ShaderGenerator shaderBody, GenerationMode generationMode)
 		{
@@ -101,7 +117,7 @@ namespace UnityEditor.Graphs.Material
 					(node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
 			}
 
-			foreach (var slot in slots)
+			foreach (var slot in FilterSlotsForLightFunction())
 			{
 				if (slot == normal)
 					continue;
@@ -122,12 +138,15 @@ namespace UnityEditor.Graphs.Material
 		public override void NodeUI (Graphs.GraphGUI host)
 		{
 			base.NodeUI(host);
-			var lightFunction = GetLightFunctions ().FirstOrDefault (x => x.GetName () == m_LightFunction);
-			int lightFuncIndex = 0;
+		    var lightFunctions = GetLightFunctions();
+		    var lightFunction = GetLightFunction();
+			
+            int lightFuncIndex = 0;
 			if (lightFunction != null)
-				lightFuncIndex = GetLightFunctions ().IndexOf (lightFunction);
-			lightFuncIndex = EditorGUILayout.Popup (lightFuncIndex, s_LightFunctions.Select(x => x.GetName ()).ToArray (), EditorStyles.popup);
-			m_LightFunction = GetLightFunctions ()[lightFuncIndex].GetName ();
+				lightFuncIndex = lightFunctions.IndexOf (lightFunction);
+
+			lightFuncIndex = EditorGUILayout.Popup (lightFuncIndex, lightFunctions.Select(x => x.GetLightFunctionName ()).ToArray (), EditorStyles.popup);
+		    m_LightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
 		}
-	}
+    }
 }
