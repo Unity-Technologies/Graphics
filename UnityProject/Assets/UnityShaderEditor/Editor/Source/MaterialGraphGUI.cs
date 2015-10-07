@@ -51,12 +51,7 @@ namespace UnityEditor.Graphs.Material
 			GUILayout.FlexibleSpace ();
 			if (GUILayout.Button ("Output Shader :)"))
 			{
-				var templateLocation = Path.Combine( Application.dataPath,
-				                       Path.Combine ("MaterialGraph",
-				                       "Shader.template"));
-
-				if (File.Exists(templateLocation))
-					ShaderGenerator.GenerateSurfaceShader (graph);
+			    ShaderGenerator.GenerateSurfaceShader (graph);
 			}
 			GUILayout.EndArea ();
 		}
