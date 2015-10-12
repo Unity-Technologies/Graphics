@@ -158,7 +158,9 @@ namespace UnityEditor.Graphs.Material
             var preview = RenderPreview(rect);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+            GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GUI.DrawTexture(rect, preview, ScaleMode.StretchToFill, false);
+            GL.sRGBWrite = false;
         }
 
         #region Nodes
@@ -202,29 +204,6 @@ namespace UnityEditor.Graphs.Material
         #endregion
 
         #region Previews
-
-        protected virtual void SetEditorPreviewMaterialValues()
-        {
-            if (!needsUpdate)
-                return;
-
-            if (previewMaterial.HasProperty("EDITOR_TIME"))
-            {
-                var time = (float)EditorApplication.timeSinceStartup;
-                previewMaterial.SetVector("EDITOR_TIME", new Vector4(time / 20.0f, time, time * 2.0f, time * 3));
-            }
-            if (previewMaterial.HasProperty("EDITOR_SIN_TIME"))
-            {
-                var time = (float)EditorApplication.timeSinceStartup;
-                previewMaterial.SetVector("EDITOR_SIN_TIME",
-                    new Vector4(
-                        Mathf.Sin(time / 8.0f),
-                        Mathf.Sin(time / 4.0f),
-                        Mathf.Sin(time / 2.0f),
-                        Mathf.Sin(time)));
-            }
-        }
-
         public virtual bool UpdatePreviewMaterial()
         {
             MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + GetInstanceID());
@@ -294,17 +273,15 @@ namespace UnityEditor.Graphs.Material
             var previewUtil = bmg.previewUtility;
             previewUtil.BeginPreview(targetSize, GUIStyle.none);
 
-            // update the time in the preview material
-            SetEditorPreviewMaterialValues();
-
             if (m_GeneratedShaderMode == PreviewMode.Preview3D)
             {
                 previewUtil.m_Camera.transform.position = -Vector3.forward * 5;
                 previewUtil.m_Camera.transform.rotation = Quaternion.identity;
+                EditorUtility.SetCameraAnimateMaterialsTime(previewUtil.m_Camera, Time.realtimeSinceStartup);
                 var amb = new Color(.2f, .2f, .2f, 0);
-                previewUtil.m_Light[0].intensity = .5f;
-                previewUtil.m_Light[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
-                previewUtil.m_Light[1].intensity = .5f;
+                previewUtil.m_Light[0].intensity = 1.0f;
+                previewUtil.m_Light[0].transform.rotation = Quaternion.Euler (50f, 50f, 0);
+                previewUtil.m_Light[1].intensity = 1.0f;
 
                 InternalEditorUtility.SetCustomLighting(previewUtil.m_Light, amb);
                 previewUtil.DrawMesh(s_Meshes[0], Vector3.zero, Quaternion.Euler(-20, 0, 0) * Quaternion.Euler(0, 0, 0), previewMaterial, 0);
@@ -316,7 +293,8 @@ namespace UnityEditor.Graphs.Material
             }
             else
             {
-                Graphics.Blit(null, previewMaterial);
+               EditorUtility.UpdateGlobalShaderProperties(Time.realtimeSinceStartup);
+               Graphics.Blit(null, previewMaterial);
             }
             return previewUtil.EndPreview();
         }
