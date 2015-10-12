@@ -21,7 +21,10 @@ namespace UnityEditor.Graphs.Material
             get
             {
                 if (m_PreviewUtility == null)
+                {
                     m_PreviewUtility = new PreviewRenderUtility();
+                    EditorUtility.SetCameraAnimateMaterials(m_PreviewUtility.m_Camera, true);
+                }
 
                 return m_PreviewUtility;
             }
