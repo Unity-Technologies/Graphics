@@ -10,7 +10,7 @@ namespace UnityEditor.Graphs.Material
     public class TitleAttribute : Attribute
     {
         public string m_Title;
-        public TitleAttribute(string title) { this.m_Title = title; }
+        public TitleAttribute(string title) { m_Title = title; }
     }
 
     public enum Precision
@@ -97,12 +97,15 @@ namespace UnityEditor.Graphs.Material
             }
         }
 
-        protected UnityEngine.Material previewMaterial
+        public UnityEngine.Material previewMaterial
         {
             get
             {
                 if (m_Material == null)
-                    m_Material = new UnityEngine.Material(defaultPreviewShader) { hideFlags = HideFlags.DontSave };
+                {
+                    m_Material = new UnityEngine.Material(defaultPreviewShader) {hideFlags = HideFlags.DontSave};
+                    UpdatePreviewMaterial();
+                }
 
                 return m_Material;
             }

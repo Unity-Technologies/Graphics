@@ -109,5 +109,13 @@ namespace UnityEditor.Graphs.Material
             AssetDatabase.AddObjectToAsset(m_Shader, this);
             m_PixelGraph.AddMasterNodeToAsset();
         }
+
+        public UnityEngine.Material GetMaterial()
+        {
+            if (m_PixelGraph == null)
+                return null;
+
+            return m_PixelGraph.GetMaterial();
+        }
     }
 }
