@@ -117,5 +117,13 @@ namespace UnityEditor.Graphs.Material
         {
             m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
         }
+
+        public UnityEngine.Material GetMaterial()
+        {
+            if (pixelMasterNode == null)
+                return null;
+
+            return pixelMasterNode.previewMaterial;
+        }
     }
 }
