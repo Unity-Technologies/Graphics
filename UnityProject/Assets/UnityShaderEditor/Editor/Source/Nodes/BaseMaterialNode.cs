@@ -44,7 +44,7 @@ namespace UnityEditor.MaterialGraph
         private const int kPreviewHeight = 64;
 
         [NonSerialized]
-        private UnityEngine.Material m_Material;
+        private Material m_Material;
 
         [SerializeField]
         private List<SlotDefaultValue> m_SlotDefaultValues;
@@ -99,15 +99,14 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public UnityEngine.Material previewMaterial
+        public Material previewMaterial
         {
             get
             {
                 if (m_Material == null)
                 {
-                    m_Material = new UnityEngine.Material(defaultPreviewShader) {hideFlags = HideFlags.DontSave};
+                    m_Material = new Material(defaultPreviewShader) {hideFlags = HideFlags.DontSave};
                     UpdatePreviewMaterial();
-                    UpdatePreviewProperties();
                 }
 
                 return m_Material;
@@ -212,17 +211,20 @@ namespace UnityEditor.MaterialGraph
         #region Previews
         public virtual bool UpdatePreviewMaterial()
         {
-            MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + GetInstanceID());
-
             var resultShader = ShaderGenerator.GeneratePreviewShader(this, out m_GeneratedShaderMode);
+            InternalUpdatePreviewShader(resultShader);
+            return true;
+        }
 
+        protected void InternalUpdatePreviewShader(string resultShader)
+        {
+            MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + GetInstanceID());
             MaterialWindow.DebugMaterialGraph(resultShader);
-
             if (previewMaterial.shader != defaultPreviewShader)
                 DestroyImmediate(previewMaterial.shader, true);
             previewMaterial.shader = ShaderUtil.CreateShaderAsset(resultShader);
+            UpdatePreviewProperties();
             previewMaterial.shader.hideFlags = HideFlags.DontSave;
-            return true;
         }
 
         // this function looks at all the nodes that have a
@@ -305,18 +307,18 @@ namespace UnityEditor.MaterialGraph
             return previewUtil.EndPreview();
         }
 
-        private void SetPreviewMaterialProperty(PreviewProperty previewProperty)
+        private static void SetPreviewMaterialProperty(PreviewProperty previewProperty, Material mat)
         {
             switch (previewProperty.m_PropType)
             {
                 case PropertyType.Texture2D:
-                    previewMaterial.SetTexture(previewProperty.m_Name, previewProperty.m_Texture);
+                    mat.SetTexture(previewProperty.m_Name, previewProperty.m_Texture);
                     break;
                 case PropertyType.Color:
-                    previewMaterial.SetColor(previewProperty.m_Name, previewProperty.m_Color);
+                    mat.SetColor(previewProperty.m_Name, previewProperty.m_Color);
                     break;
                 case PropertyType.Vector4:
-                    previewMaterial.SetVector(previewProperty.m_Name, previewProperty.m_Vector4);
+                    mat.SetVector(previewProperty.m_Name, previewProperty.m_Vector4);
                     break;
             }
         }
@@ -361,7 +363,7 @@ namespace UnityEditor.MaterialGraph
                 node.CollectPreviewMaterialProperties(pList);
 
             foreach (var prop in pList)
-                SetPreviewMaterialProperty (prop);
+                SetPreviewMaterialProperty (prop, previewMaterial);
         }
 
         #endregion

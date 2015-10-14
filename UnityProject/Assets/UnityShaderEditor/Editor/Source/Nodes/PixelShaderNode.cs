@@ -170,16 +170,11 @@ namespace UnityEditor.MaterialGraph
 
         public override bool UpdatePreviewMaterial()
         {
-            Dictionary<string, Texture> defaultTextures;
             var shaderName = "Hidden/PreviewShader/" + name + "_" + Math.Abs(GetInstanceID());;
-            
+            Dictionary<string, Texture> defaultTextures;
             var resultShader = ShaderGenerator.GenerateSurfaceShader(pixelGraph.owner, shaderName, true, out defaultTextures);
             m_GeneratedShaderMode = PreviewMode.Preview3D;
-            if (previewMaterial.shader != defaultPreviewShader)
-                DestroyImmediate(previewMaterial.shader, true);
-            previewMaterial.shader = ShaderUtil.CreateShaderAsset(resultShader);
-            EditorMaterialUtility.SetShaderDefaults(previewMaterial.shader, defaultTextures.Keys.ToArray(), defaultTextures.Values.ToArray());
-            previewMaterial.shader.hideFlags = HideFlags.DontSave;
+            InternalUpdatePreviewShader(resultShader);
             return true;
         }
     }

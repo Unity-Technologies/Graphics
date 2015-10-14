@@ -100,7 +100,7 @@ namespace UnityEditor.MaterialGraph
             foreach (var node in nodes)
             {
                 var pNode = node as BaseMaterialNode;
-                if (pNode != null)
+                if (pNode != null && pNode.hasPreview)
                 {
                     MaterialWindow.DebugMaterialGraph("Updating preview Properties on Node: " + pNode);
                     pNode.UpdatePreviewProperties();
