@@ -19,7 +19,6 @@ namespace UnityEditor.MaterialGraph
 
         public SubGraphOutputsNode outputsNode { get { return m_OutputsNode; } }
 
-        public override BaseMaterialNode masterNode { get { return outputsNode; } }
         protected override void RecacheActiveNodes()
         {
         }

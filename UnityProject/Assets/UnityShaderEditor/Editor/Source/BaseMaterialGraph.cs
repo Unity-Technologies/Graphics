@@ -13,8 +13,6 @@ namespace UnityEditor.MaterialGraph
 
     public abstract class BaseMaterialGraph : Graph
     {
-        public abstract BaseMaterialNode masterNode { get; }
-
         private PreviewRenderUtility m_PreviewUtility;
 
         public PreviewRenderUtility previewUtility
