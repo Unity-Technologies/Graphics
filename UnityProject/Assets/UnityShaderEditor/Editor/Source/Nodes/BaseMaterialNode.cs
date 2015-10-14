@@ -400,6 +400,9 @@ namespace UnityEditor.MaterialGraph
 
         public void AddSlot(Slot slot, Vector4 defaultValue)
         {
+            if (this[slot.name] != null)
+                return;
+
             base.AddSlot(slot);
 
             // slots are not serialzied but the default values are
