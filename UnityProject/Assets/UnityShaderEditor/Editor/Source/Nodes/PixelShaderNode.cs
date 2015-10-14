@@ -34,8 +34,10 @@ namespace UnityEditor.MaterialGraph
             get { return 300; }
         }
 
-        public void OnEnable()
+        public override void OnEnable()
         {
+            base.OnEnable();
+
             AddSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName));
             AddSlot(new Slot(SlotType.InputSlot, kNormalSlotName));
             AddSlot(new Slot(SlotType.InputSlot, kSpecularSlotName));
@@ -199,11 +201,16 @@ namespace UnityEditor.MaterialGraph
 
         public override bool UpdatePreviewMaterial()
         {
-            var shaderName = "Hidden/PreviewShader/" + name + "_" + Math.Abs(GetInstanceID());;
+            var shaderName = "Hidden/PreviewShader/" + name + "_" + Math.Abs(GetInstanceID());
             Dictionary<string, Texture> defaultTextures;
             var resultShader = ShaderGenerator.GenerateSurfaceShader(pixelGraph.owner, shaderName, true, out defaultTextures);
             m_GeneratedShaderMode = PreviewMode.Preview3D;
             InternalUpdatePreviewShader(resultShader);
+/*
+            //For the pixel shader node we also want to update the shader that uses it:
+            defaultTextures.Clear();
+            var shader = ShaderGenerator.GenerateSurfaceShader(pixelGraph.owner, pixelGraph.owner.name, false, out defaultTextures);
+            pixelGraph.owner.UpdateShaderSource(shader, defaultTextures);*/
             return true;
         }
     }

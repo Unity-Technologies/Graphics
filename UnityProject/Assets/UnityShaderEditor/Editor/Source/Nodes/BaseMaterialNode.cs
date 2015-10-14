@@ -137,7 +137,7 @@ namespace UnityEditor.MaterialGraph
             hideFlags = HideFlags.HideInHierarchy;
         }
 
-        void OnEnable()
+        public virtual void OnEnable()
         {
             if (m_SlotDefaultValues == null)
             {
@@ -411,9 +411,9 @@ namespace UnityEditor.MaterialGraph
             // if it has... do nothing.
             MaterialWindow.DebugMaterialGraph("Node ID: " + GetInstanceID());
             MaterialWindow.DebugMaterialGraph("Node Name: " + GetOutputVariableNameForNode());
+            Debug.Log("Slot name" + (slot != null ? slot.name : "Null"));
 
-            if (GetSlotDefaultValue(slot.name) == null)
-                SetSlotDefaultValue(slot.name, new SlotDefaultValue(defaultValue, this, slot.name, true));
+            SetSlotDefaultValue(slot.name, new SlotDefaultValue(defaultValue, this, slot.name, true));
 
             var slotthing = GetSlotDefaultValue(slot.name);
             MaterialWindow.DebugMaterialGraph("Slot Thing: " + slotthing.inputName);
