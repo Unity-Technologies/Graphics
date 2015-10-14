@@ -40,7 +40,7 @@ namespace UnityEditor.MaterialGraph
                 return m_ActiveNodes;
             }
         }
-
+        
         public void GenerateSharedProperties(PropertyGenerator shaderProperties, ShaderGenerator propertyUsages, GenerationMode generationMode)
         {
             owner.GenerateSharedProperties(shaderProperties, propertyUsages, generationMode);

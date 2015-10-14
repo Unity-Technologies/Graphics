@@ -34,11 +34,8 @@ namespace UnityEditor.MaterialGraph
             get { return 300; }
         }
 
-        public override void Init()
+        public void OnEnable()
         {
-            name = "PixelMaster";
-            base.Init();
-
             AddSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName));
             AddSlot(new Slot(SlotType.InputSlot, kNormalSlotName));
             AddSlot(new Slot(SlotType.InputSlot, kSpecularSlotName));
@@ -47,6 +44,38 @@ namespace UnityEditor.MaterialGraph
             AddSlot(new Slot(SlotType.InputSlot, kSmoothnessSlotName));
             AddSlot(new Slot(SlotType.InputSlot, kOcclusion));
             AddSlot(new Slot(SlotType.InputSlot, kAlphaSlotName));
+
+            // clear out slot names that do not match the slots 
+            // we support
+            RemoveSlotsNameNotMatching(
+                new[]
+                {
+                    kAlbedoSlotName, 
+                    kNormalSlotName, 
+                    kSpecularSlotName, 
+                    kEmissionSlotName, 
+                    kMetallicSlotName, 
+                    kSmoothnessSlotName, 
+                    kOcclusion, 
+                    kAlphaSlotName
+                });
+        }
+
+        private void RemoveSlotsNameNotMatching(string[] slotNames)
+        {
+            var invalidSlots = slots.Select(x => x.name).Except(slotNames);
+
+            foreach (var invalidSlot in invalidSlots)
+            {
+                Debug.LogWarningFormat("Removing Invalid Slot: {0}", invalidSlot);
+                RemoveSlot(this[invalidSlot]);
+            }
+        }
+
+        public override void Init()
+        {
+            name = "PixelMaster";
+            base.Init();
         }
 
         private static List<BaseLightFunction> GetLightFunctions()
