@@ -35204,11 +35204,6 @@ MonoBehaviour:
     m_ToSlotName: Input0
     color: {r: 1, g: 1, b: 1, a: 1}
   - m_FromNode: {fileID: 11468266}
-    m_ToNode: {fileID: 11445316}
-    m_FromSlotName: Output
-    m_ToSlotName: UV
-    color: {r: 1, g: 1, b: 1, a: 1}
-  - m_FromNode: {fileID: 11468266}
     m_ToNode: {fileID: 11472310}
     m_FromSlotName: Output
     m_ToSlotName: UV
@@ -35288,6 +35283,11 @@ MonoBehaviour:
     m_FromSlotName: Output
     m_ToSlotName: Input1
     color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11468266}
+    m_ToNode: {fileID: 11445316}
+    m_FromSlotName: Output
+    m_ToSlotName: UV
+    color: {r: 1, g: 1, b: 1, a: 1}
   m_InvalidEdges: []
 --- !u!114 &11445316
 MonoBehaviour:
@@ -35316,7 +35316,7 @@ MonoBehaviour:
   position:
     serializedVersion: 2
     x: 240
-    y: -300
+    y: -312
     width: 213
     height: 139
   showEmptySlots: 1
@@ -35331,8 +35331,8 @@ MonoBehaviour:
     m_Node: {fileID: 11445316}
   m_PrecisionNames:
   - half
-  m_BoundProperty: {fileID: 0}
-  m_DefaultTexture: {fileID: 2800000, guid: 330f42016073a97418a4aae5517e32c8, type: 3}
+  m_BoundProperty: {fileID: 11475776}
+  m_DefaultTexture: {fileID: 2800000, guid: 28bdf1ba8c076ef4e910b59cc1baf342, type: 3}
   m_TextureType: 0
 --- !u!114 &11445996
 MonoBehaviour:
@@ -35685,6 +35685,20 @@ MonoBehaviour:
   m_BoundProperty: {fileID: 0}
   m_DefaultTexture: {fileID: 2800000, guid: d5649239aacf54d4e8d6f656d15d30b0, type: 3}
   m_TextureType: 3
+--- !u!114 &11475776
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b793ff9211c8787428ec61378a5b39ac, type: 3}
+  m_Name: TextureProperty
+  m_EditorClassIdentifier: 
+  m_PropertyDescription: 
+  m_DefaultTexture: {fileID: 2800000, guid: 28bdf1ba8c076ef4e910b59cc1baf342, type: 3}
+  m_DefaultTextureType: 0
 --- !u!114 &11477068
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -35696,7 +35710,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cab057dbd683f5244aed9bd721e1973e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ShaderProperties: []
+  m_ShaderProperties:
+  - {fileID: 11475776}
   previewState: 0
 --- !u!114 &11480530
 MonoBehaviour:

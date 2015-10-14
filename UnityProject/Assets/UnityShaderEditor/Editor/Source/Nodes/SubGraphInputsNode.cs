@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace UnityEditor.Graphs.Material
 {
@@ -53,9 +54,9 @@ namespace UnityEditor.Graphs.Material
             }
         }
 
-        public override void UpdatePreviewProperties()
+        protected override void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
         {
-            base.UpdatePreviewProperties();
+            base.CollectPreviewMaterialProperties(properties);
             foreach (var slot in outputSlots)
             {
                 if (slot.edges.Count == 0)
@@ -71,7 +72,7 @@ namespace UnityEditor.Graphs.Material
                     m_PropType = PropertyType.Vector4,
                     m_Vector4 = defaultOutput.defaultValue
                 };
-                SetDependentPreviewMaterialProperty(pp);
+                properties.Add (pp);
             }
         }
     }

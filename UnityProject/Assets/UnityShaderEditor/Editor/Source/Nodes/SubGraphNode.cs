@@ -197,14 +197,10 @@ namespace UnityEditor.Graphs.Material
             m_SubGraphAsset.GeneratePropertyUsages(visitor, GenerationMode.SurfaceShader);
         }
 
-        public override void UpdatePreviewProperties()
+        protected override void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
         {
-            base.UpdatePreviewProperties();
-
-            var previewProperties = m_SubGraphAsset.GetPreviewProperties();
-
-            foreach (var prop in previewProperties)
-                SetDependentPreviewMaterialProperty(prop);
+            base.CollectPreviewMaterialProperties(properties);
+            properties.AddRange(m_SubGraphAsset.GetPreviewProperties());
         }
     }
 }

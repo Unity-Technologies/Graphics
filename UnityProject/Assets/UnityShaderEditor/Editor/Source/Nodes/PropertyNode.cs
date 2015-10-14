@@ -50,11 +50,10 @@ namespace UnityEditor.Graphs.Material
 
         public abstract PreviewProperty GetPreviewProperty();
 
-        public override void UpdatePreviewProperties()
+        protected override void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
         {
-            base.UpdatePreviewProperties();
-            MaterialWindow.DebugMaterialGraph("In Property Node: " + this);
-            SetDependentPreviewMaterialProperty(GetPreviewProperty());
+            base.CollectPreviewMaterialProperties(properties);
+            properties.Add(GetPreviewProperty());
         }
 
         public void UnbindProperty(ShaderProperty prop)

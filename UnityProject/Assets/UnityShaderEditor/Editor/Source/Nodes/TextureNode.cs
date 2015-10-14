@@ -124,6 +124,7 @@ namespace UnityEditor.Graphs.Material
                     boundProp.defaultTextureType = m_TextureType;
                 }
                 UpdatePreviewProperties();
+                ForwardPreviewMaterialPropertyUpdate();
             }
         }
 
@@ -140,7 +141,10 @@ namespace UnityEditor.Graphs.Material
             if (rebuildShaders)
                 RegeneratePreviewShaders();
             else
+            {
                 UpdatePreviewProperties();
+                ForwardPreviewMaterialPropertyUpdate();
+            }
         }
 
         public override PreviewProperty GetPreviewProperty()

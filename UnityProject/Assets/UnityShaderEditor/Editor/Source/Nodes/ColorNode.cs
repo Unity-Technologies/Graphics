@@ -68,6 +68,7 @@ namespace UnityEditor.Graphs.Material
                     boundProp.defaultColor = m_Color;
                 }
                 UpdatePreviewProperties();
+                ForwardPreviewMaterialPropertyUpdate();
             }
         }
 
@@ -84,7 +85,10 @@ namespace UnityEditor.Graphs.Material
             if (rebuildShaders)
                 RegeneratePreviewShaders();
             else
+            {
                 UpdatePreviewProperties();
+                ForwardPreviewMaterialPropertyUpdate();
+            }
         }
 
         public override PreviewProperty GetPreviewProperty()
