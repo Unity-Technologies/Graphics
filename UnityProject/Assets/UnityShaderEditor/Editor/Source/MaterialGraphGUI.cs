@@ -49,13 +49,6 @@ namespace UnityEditor.MaterialGraph
             else if (m_SelectedGUI == SelectedOptions.options)
                 graph.materialOptions.DoGUI();
 
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Output Shader :)"))
-            {
-                Dictionary<string, Texture> defaultTextures;
-                var shader = ShaderGenerator.GenerateSurfaceShader(graph, graph.name, false, out defaultTextures);
-                graph.UpdateShaderSource(shader, defaultTextures);
-            }
             GUILayout.EndArea();
         }
     }
