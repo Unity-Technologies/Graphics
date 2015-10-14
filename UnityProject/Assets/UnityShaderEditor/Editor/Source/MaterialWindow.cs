@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     class MaterialWindow : EditorWindow
     {

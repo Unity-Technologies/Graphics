@@ -3,8 +3,9 @@ using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.Graphs;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Output/Pixel Shader")]
     class PixelShaderNode : BaseMaterialNode, IGeneratesBodyCode

@@ -1,4 +1,4 @@
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Subtract Node")]
     class SubtractNode : Function2Input, IGeneratesFunction

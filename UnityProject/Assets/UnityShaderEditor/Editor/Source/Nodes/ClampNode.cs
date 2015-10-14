@@ -1,4 +1,4 @@
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Clamp Node")]
     class ClampNode : Function3Input, IGeneratesFunction

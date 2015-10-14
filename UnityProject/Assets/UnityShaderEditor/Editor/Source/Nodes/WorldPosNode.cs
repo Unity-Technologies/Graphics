@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Input/World Pos Node")]
     public class WorldPosNode : BaseMaterialNode, IGeneratesVertexToFragmentBlock

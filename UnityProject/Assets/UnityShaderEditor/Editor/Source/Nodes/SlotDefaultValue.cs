@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     /*  public static class SlotExtensions
         {

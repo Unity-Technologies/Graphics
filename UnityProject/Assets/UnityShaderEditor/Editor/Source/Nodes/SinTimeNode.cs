@@ -1,6 +1,7 @@
+using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Time/Sin Time Node")]
     public class SinTimeNode : BaseMaterialNode, IRequiresTime

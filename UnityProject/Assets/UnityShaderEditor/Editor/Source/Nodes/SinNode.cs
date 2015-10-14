@@ -1,4 +1,4 @@
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Sin Node")]
     class SinNode : Function1Input

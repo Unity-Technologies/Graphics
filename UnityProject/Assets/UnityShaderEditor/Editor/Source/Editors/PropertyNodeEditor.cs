@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [CustomEditor(typeof(PropertyNode), true)]
     class PropertyNodeEditor : Editor

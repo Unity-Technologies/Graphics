@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     public class TextureProperty : ShaderProperty
     {

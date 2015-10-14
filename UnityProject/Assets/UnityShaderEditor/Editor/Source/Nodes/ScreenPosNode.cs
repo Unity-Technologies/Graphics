@@ -1,4 +1,6 @@
-namespace UnityEditor.Graphs.Material
+using UnityEditor.Graphs;
+
+namespace UnityEditor.MaterialGraph
 {
     [Title("Input/Screen Pos Node")]
     public class ScreenPosNode : BaseMaterialNode, IGeneratesVertexToFragmentBlock

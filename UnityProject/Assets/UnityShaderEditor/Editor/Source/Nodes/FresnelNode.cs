@@ -1,4 +1,4 @@
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Fresnel Node")]
     class FresnelNode : Function2Input, IGeneratesFunction

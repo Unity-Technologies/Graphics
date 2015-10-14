@@ -1,4 +1,4 @@
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Dot Node")]
     class DotNode : Function2Input

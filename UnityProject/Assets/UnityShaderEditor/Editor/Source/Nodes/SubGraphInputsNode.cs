@@ -1,7 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEditor.Graphs;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     public class SubGraphInputsNode : SubGraphIOBaseNode, IGenerateProperties
     {

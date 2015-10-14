@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     public enum TextureType
     {

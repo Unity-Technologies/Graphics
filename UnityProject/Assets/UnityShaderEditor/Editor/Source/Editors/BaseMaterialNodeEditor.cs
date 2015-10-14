@@ -1,7 +1,8 @@
 using System;
+using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [CustomEditor(typeof(BaseMaterialNode), true)]
     class BaseMaterialNodeEditor : Editor

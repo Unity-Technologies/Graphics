@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Art/Colorize Node")]
     class ColorizeNode : Function1Input, IGeneratesFunction
