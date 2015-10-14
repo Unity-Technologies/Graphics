@@ -10,28 +10,6 @@ namespace UnityEditor.MaterialGraph
 
         public PreviewState previewState { get; set; }
 
-        public override BaseMaterialNode masterNode
-        {
-            get { return pixelMasterNode; }
-        }
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-
-            if (m_PixelMasterNode == null)
-                m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof (PixelShaderNode)) as PixelShaderNode;
-
-            if (m_PixelMasterNode == null)
-            {
-                m_PixelMasterNode = CreateInstance<PixelShaderNode>();
-                m_PixelMasterNode.hideFlags = HideFlags.HideInHierarchy;
-                m_PixelMasterNode.Init();
-                m_PixelMasterNode.position = new Rect(700, m_PixelMasterNode.position.y, m_PixelMasterNode.position.width, m_PixelMasterNode.position.height);
-                AddMasterNodeNoAddToAsset(m_PixelMasterNode);
-            }
-        }
-
         public PixelShaderNode pixelMasterNode
         {
             get
@@ -106,11 +84,6 @@ namespace UnityEditor.MaterialGraph
             }
 
             pixelMasterNode.GenerateNodeCode(shaderBody, genMode);
-        }
-
-        public void AddMasterNodeToAsset()
-        {
-            AssetDatabase.AddObjectToAsset(pixelMasterNode, this);
         }
 
         protected override void RecacheActiveNodes()

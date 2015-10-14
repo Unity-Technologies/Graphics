@@ -107,10 +107,9 @@ namespace UnityEditor.MaterialGraph
                 m_Shader.hideFlags = HideFlags.HideInHierarchy;
             }
             AssetDatabase.AddObjectToAsset(m_Shader, this);
-            m_PixelGraph.AddMasterNodeToAsset();
         }
 
-        public UnityEngine.Material GetMaterial()
+        public Material GetMaterial()
         {
             if (m_PixelGraph == null)
                 return null;
