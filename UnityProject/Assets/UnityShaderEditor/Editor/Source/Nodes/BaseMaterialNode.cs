@@ -42,6 +42,7 @@ namespace UnityEditor.Graphs.Material
         private const int kPreviewWidth = 64;
         private const int kPreviewHeight = 64;
 
+        [NonSerialized]
         private UnityEngine.Material m_Material;
 
         [SerializeField]
@@ -105,6 +106,7 @@ namespace UnityEditor.Graphs.Material
                 {
                     m_Material = new UnityEngine.Material(defaultPreviewShader) {hideFlags = HideFlags.DontSave};
                     UpdatePreviewMaterial();
+                    UpdatePreviewProperties();
                 }
 
                 return m_Material;
@@ -318,18 +320,18 @@ namespace UnityEditor.Graphs.Material
             }
         }
 
-        protected void SetDependentPreviewMaterialProperty(PreviewProperty previewProperty)
+        public void ForwardPreviewMaterialPropertyUpdate()
         {
             var dependentNodes = CollectDependentNodes();
 
             foreach (var node in dependentNodes)
             {
                 if (node.hasPreview)
-                    node.SetPreviewMaterialProperty(previewProperty);
+                    node.UpdatePreviewProperties();
             }
         }
 
-        public virtual void UpdatePreviewProperties()
+        protected virtual void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
         {
             foreach (var s in inputSlots)
             {
@@ -346,8 +348,19 @@ namespace UnityEditor.Graphs.Material
                     m_PropType = PropertyType.Vector4,
                     m_Vector4 = defaultInput.defaultValue
                 };
-                SetDependentPreviewMaterialProperty(pp);
+                properties.Add (pp);
             }
+        }
+
+        public void UpdatePreviewProperties()
+        {
+            var childrenNodes = CollectChildNodesByExecutionOrder();
+            var pList = new List<PreviewProperty>();
+            foreach (var node in childrenNodes)
+                node.CollectPreviewMaterialProperties(pList);
+
+            foreach (var prop in pList)
+                SetPreviewMaterialProperty (prop);
         }
 
         #endregion

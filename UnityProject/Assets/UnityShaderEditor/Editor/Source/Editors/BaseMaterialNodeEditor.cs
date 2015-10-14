@@ -69,12 +69,10 @@ namespace UnityEditor.Graphs.Material
                 slot.title = EditorGUILayout.TextField("Title", slot.title);
 
             var def = node.GetSlotDefaultValue(slot.name);
-            if (def != null)
+            if (def != null && def.OnGUI())
             {
-                if (def.OnGUI())
-                {
-                    node.UpdatePreviewProperties();
-                }
+                node.UpdatePreviewProperties();
+                node.ForwardPreviewMaterialPropertyUpdate();
             }
         }
 
