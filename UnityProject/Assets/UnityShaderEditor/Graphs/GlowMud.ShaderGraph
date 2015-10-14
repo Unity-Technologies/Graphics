@@ -34822,7 +34822,7 @@ MonoBehaviour:
     m_Node: {fileID: 11400400}
   m_PrecisionNames:
   - half
-  m_LightFunctionClassName: UnityEditor.Graphs.Material.PBRMetalicLightFunction
+  m_LightFunctionClassName: UnityEditor.MaterialGraph.PBRMetalicLightFunction
 --- !u!114 &11406334
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [CustomEditor(typeof (MaterialGraph), true)]
     internal class MaterialGraphEditor : Editor

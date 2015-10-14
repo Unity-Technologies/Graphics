@@ -1,6 +1,7 @@
+using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     abstract class Function1Input : BaseMaterialNode, IGeneratesBodyCode
     {

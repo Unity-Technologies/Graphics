@@ -1,4 +1,4 @@
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Quantize Node")]
     class QuantizeNode : Function2Input, IGeneratesFunction

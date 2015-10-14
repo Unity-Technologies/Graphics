@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Art/Combine Node")]
     class CombineNode : Function2Input, IGeneratesFunction

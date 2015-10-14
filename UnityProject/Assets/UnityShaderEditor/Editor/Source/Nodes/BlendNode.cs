@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Art/Blend Node")]
     class BlendNode : Function2Input, IGeneratesFunction

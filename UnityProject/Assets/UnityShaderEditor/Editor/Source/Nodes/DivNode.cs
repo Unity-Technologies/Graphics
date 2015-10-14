@@ -1,4 +1,4 @@
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Div Node")]
     class DivNode : Function2Input, IGeneratesFunction

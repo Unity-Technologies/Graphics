@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Reflect Node")]
     class ReflectNode : Function2Input, IGeneratesFunction

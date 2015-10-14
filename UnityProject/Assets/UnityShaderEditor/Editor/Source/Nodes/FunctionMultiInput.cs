@@ -1,8 +1,9 @@
 using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEditor.Graphs;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     abstract class FunctionMultiInput : BaseMaterialNode, IGeneratesBodyCode
     {

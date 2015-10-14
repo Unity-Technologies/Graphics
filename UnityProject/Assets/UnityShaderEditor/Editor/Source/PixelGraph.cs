@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     class PixelGraph : BaseMaterialGraph, IGenerateGraphProperties
     {
@@ -118,7 +118,7 @@ namespace UnityEditor.Graphs.Material
             m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
         }
 
-        public UnityEngine.Material GetMaterial()
+        public Material GetMaterial()
         {
             if (pixelMasterNode == null)
                 return null;

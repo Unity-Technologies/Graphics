@@ -1,7 +1,8 @@
 using System;
+using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Generate/Vector 4 Node")]
     class Vector4Node : PropertyNode, IGeneratesBodyCode

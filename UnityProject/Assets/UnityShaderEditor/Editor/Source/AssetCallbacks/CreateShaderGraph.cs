@@ -1,7 +1,7 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     public class CreateShaderGraph : EndNameEditAction
     {

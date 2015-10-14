@@ -3,7 +3,7 @@ using System.IO;
 using UnityEngine;
 using System.Linq;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     class MaterialGraphGUI : BaseMaterialGraphGUI
     {

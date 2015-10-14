@@ -1,4 +1,4 @@
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Math/SmoothStep Node")]
     class SmoothStepNode : Function3Input, IGeneratesFunction

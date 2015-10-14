@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     /*public class CreateShaderSubGraph : EndNameEditActionCallback
     {

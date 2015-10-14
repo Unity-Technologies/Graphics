@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Channels/Unpack Normal Node")]
     internal class UnpackNormalNode : Function1Input

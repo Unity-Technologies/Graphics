@@ -1,6 +1,7 @@
+using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Input/View Direction Node")]
     public class ViewDirectionNode : BaseMaterialNode, IGeneratesVertexToFragmentBlock

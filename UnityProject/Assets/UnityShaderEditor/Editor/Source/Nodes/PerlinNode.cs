@@ -1,6 +1,7 @@
+using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Fractal/Perlin Node")]
     class PerlinNode : TextureNode, IGeneratesFunction, IGeneratesBodyCode

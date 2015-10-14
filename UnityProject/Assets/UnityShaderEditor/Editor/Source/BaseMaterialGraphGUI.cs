@@ -1,8 +1,9 @@
 using System;
 using UnityEngine;
 using System.Reflection;
+using UnityEditor.Graphs;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     abstract class BaseMaterialGraphGUI : GraphGUI
     {

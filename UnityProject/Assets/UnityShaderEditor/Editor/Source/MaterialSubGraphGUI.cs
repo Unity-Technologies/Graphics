@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using System.Reflection;
+using UnityEditor.Graphs;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     class MaterialSubGraphGUI : BaseMaterialGraphGUI
     {

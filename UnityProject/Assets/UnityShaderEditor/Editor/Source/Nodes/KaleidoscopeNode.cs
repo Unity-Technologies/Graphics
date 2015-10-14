@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
+using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.Graphs.Material
+namespace UnityEditor.MaterialGraph
 {
     [Title("Fractal/Kaleidoscope Node")]
     class KaleidoscopeNode : BaseMaterialNode, IGeneratesFunction, IGeneratesBodyCode
