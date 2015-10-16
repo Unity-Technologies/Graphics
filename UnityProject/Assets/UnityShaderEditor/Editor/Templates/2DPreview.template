@@ -6,7 +6,6 @@ ${ShaderPropertiesHeader}
 	SubShader {
 		Pass {
 			CGPROGRAM
-			#pragma exclude_renderers ps3 flash xbox360 gles d3d11 d3d11_9x
 			#pragma vertex vert
 			#pragma fragment frag
 			#include "UnityCG.cginc"

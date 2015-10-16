@@ -412,7 +412,7 @@ Prefab:
     - target: {fileID: 2300002, guid: 242e9fbf6877c2f43890ea25e784d869, type: 2}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: e95d26fb0aa878646afae6b585018e7b, type: 2}
+      objectReference: {fileID: 2100000, guid: 9e90877ae4d2ac840b4ccd62a8151c37, type: 2}
     - target: {fileID: 21526384, guid: 242e9fbf6877c2f43890ea25e784d869, type: 2}
       propertyPath: m_BoxSize.y
       value: 0.1588468
