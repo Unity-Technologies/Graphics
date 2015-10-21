@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
+using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -9,36 +11,35 @@ namespace UnityEditor.MaterialGraph
     {
     }
 
-    public class DrawableMaterialNode : MoveableBox
+    public sealed class DrawableMaterialNode : MoveableBox
     {
         private Type m_OutputType;
+        public BaseMaterialNode m_Node;
 
         public DrawableMaterialNode(BaseMaterialNode node, float size, Type outputType, MaterialGraphDataSource data)
             : base(node.position.min, size)
         {
+            m_Node = node;
             m_Title = node.name;
             m_OutputType = outputType;
 
-            Vector3 pos = new Vector3(5.0f, 32.0f, 0.0f);
+            Vector3 pos = new Vector3(5.0f, 10.0f, 0.0f);
 
-            AddChild(new NodeAnchor(0, pos, typeof (int), this, data));
-            pos.y += 22;
-
-            AddChild(new NodeAnchor(1, pos, typeof (float), this, data));
-            pos.y += 22;
-
-            AddChild(new NodeAnchor(2, pos, typeof (Vector3), this, data));
-            pos.y += 22;
-
-            AddChild(new NodeAnchor(3, pos, typeof (Texture2D), this, data));
-            pos.y += 22;
-
-            AddChild(new NodeAnchor(4, pos, typeof (Color), this, data));
-            pos.y += 22;
-
+            // input slots
+            foreach (var slot in node.inputSlots)
+            {
+                pos.y += 22;
+                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data));
+            }
+            
             // output port
             pos.x = size - 20.0f;
-            AddChild(new NodeOutputAnchor(pos, m_OutputType, this, data));
+            foreach (var slot in node.outputSlots)
+            {
+                pos.y += 22;
+                AddChild(new NodeOutputAnchor(pos, typeof (Vector4), slot, data));
+            }
+
             pos.y += 22;
             scale = new Vector3(scale.x, pos.y + 12.0f, 0.0f);
         }
@@ -50,10 +51,9 @@ namespace UnityEditor.MaterialGraph
         protected object m_Source;
         protected Direction m_Direction;
         private MaterialGraphDataSource m_Data;
-        public DrawableMaterialNode m_Node;
-        public int m_PortIndex;
+        public Slot m_Slot;
 
-        public NodeAnchor(int portIndex, Vector3 position, Type type, DrawableMaterialNode node, MaterialGraphDataSource data)
+        public NodeAnchor(Vector3 position, Type type, Slot slot, MaterialGraphDataSource data)
         {
             m_Type = type;
             scale = new Vector3(15.0f, 15.0f, 1.0f);
@@ -65,8 +65,7 @@ namespace UnityEditor.MaterialGraph
             Type constructedClass = genericClass.MakeGenericType(type);
             m_Source = Activator.CreateInstance(constructedClass);
             m_Data = data;
-            m_Node = node;
-            m_PortIndex = portIndex;
+            m_Slot = slot;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
@@ -76,7 +75,7 @@ namespace UnityEditor.MaterialGraph
             base.Render(parentRect, canvas);
             EditorGUI.DrawRect(new Rect(translation.x, translation.y, scale.x, scale.y), anchorColor);
             Rect labelRect = new Rect(translation.x + scale.x + 10.0f, translation.y, parentRect.width, 20.0f);
-            GUI.Label(labelRect, m_Type.Name);
+            GUI.Label(labelRect, m_Slot.name);
         }
 
         // IConnect
@@ -125,8 +124,8 @@ namespace UnityEditor.MaterialGraph
 
     public class NodeOutputAnchor : NodeAnchor
     {
-        public NodeOutputAnchor(Vector3 position, Type type, DrawableMaterialNode node, MaterialGraphDataSource data)
-            : base(-1, position, type, node, data)
+        public NodeOutputAnchor(Vector3 position, Type type, Slot slot, MaterialGraphDataSource data)
+            : base(position, type, slot, data)
         {
             m_Direction = Direction.eOutput;
         }
@@ -140,7 +139,7 @@ namespace UnityEditor.MaterialGraph
             Vector2 sizeOfText = GUIStyle.none.CalcSize(new GUIContent(m_Type.Name));
 
             Rect labelRect = new Rect(translation.x - sizeOfText.x - 4.0f, translation.y, sizeOfText.x + 4.0f, sizeOfText.y + 4.0f);
-            GUI.Label(labelRect, m_Type.Name);
+            GUI.Label(labelRect, m_Slot.name);
         }
 
     };
