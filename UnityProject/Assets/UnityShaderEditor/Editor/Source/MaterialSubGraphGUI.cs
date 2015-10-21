@@ -7,6 +7,7 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
+    /*
     class MaterialSubGraphGUI : BaseMaterialGraphGUI
     {
         public override void NodeGUI(Node n)
@@ -29,5 +30,5 @@ namespace UnityEditor.MaterialGraph
 
             DragNodes();
         }
-    }
+    }*/
 }

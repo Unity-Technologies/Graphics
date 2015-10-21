@@ -13,7 +13,7 @@ namespace UnityEditor.MaterialGraph
             options
         }
 
-        private PixelGraph GetGraph() {return graph as PixelGraph; }
+        private PixelGraph GetGraph() {return null; }
         public MaterialGraph materialGraph;
 
         private SelectedOptions m_SelectedGUI = SelectedOptions.properties;

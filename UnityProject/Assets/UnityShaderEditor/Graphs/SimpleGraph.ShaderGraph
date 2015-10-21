@@ -129,7 +129,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef5b9f0785847b04983f907c7f016a36, type: 3}
-  m_Name: SImple
+  m_Name: SimpleGraph
   m_EditorClassIdentifier: 
   m_MaterialProperties: {fileID: 11464382}
   m_MaterialOptions: {fileID: 11415370}
