@@ -179,7 +179,7 @@ namespace UnityEditor.MaterialGraph
 
         public override void NodeUI(GraphGUI host)
         {
-            base.NodeUI(host);
+            base.NodeUI();
             var lightFunctions = GetLightFunctions();
             var lightFunction = GetLightFunction();
 

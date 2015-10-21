@@ -6,10 +6,10 @@ namespace UnityEditor.MaterialGraph
     public class SimpleBox : CanvasElement
 	{
 		protected string m_Title = "simpleBox";
-		public SimpleBox(Vector2 position, float size)
+		public SimpleBox(Vector2 position, float width)
 		{
 			translation = position;
-			scale = new Vector2(size, size);
+			scale = new Vector2(width, width);
 		}
 
 		public override void Render(Rect parentRect, Canvas2D canvas)
@@ -25,8 +25,8 @@ namespace UnityEditor.MaterialGraph
 
     public class MoveableBox : SimpleBox
 	{
-		public MoveableBox(Vector2 position, float size)
-			: base(position,size)
+		public MoveableBox(Vector2 position, float width)
+			: base(position,width)
 		{
 			m_Title = "Drag me!";
 			AddManipulator(new Draggable());
@@ -41,8 +41,8 @@ namespace UnityEditor.MaterialGraph
 
 	class ResizableBox : SimpleBox
 	{
-		public ResizableBox(Vector2 position, float size)
-			: base(position, size)
+		public ResizableBox(Vector2 position, float width)
+			: base(position, width)
 		{
 			m_Title = "Resize me!";
 			AddManipulator(new Resizable());
@@ -61,8 +61,8 @@ namespace UnityEditor.MaterialGraph
 		WWW www = null;
 		private float timeToNextPicture = 0.0f;
 
-		public WWWImageBox(Vector2 position, float size)
-			: base(position, size)
+		public WWWImageBox(Vector2 position, float width)
+			: base(position, width)
 		{
 			m_Title = "I cause repaints every frame!";
 			AddManipulator(new Draggable());
@@ -99,8 +99,8 @@ namespace UnityEditor.MaterialGraph
 		private bool m_Toggle = true;
 		private Texture2D m_aTexture = null;
 
-		public IMGUIControls(Vector2 position, float size)
-			: base(position, size)
+		public IMGUIControls(Vector2 position, float width)
+			: base(position, width)
 		{
 			m_Caps = Capabilities.Unselectable;
 

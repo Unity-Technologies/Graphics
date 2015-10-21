@@ -45,9 +45,9 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
-        public override void NodeUI(Graphs.GraphGUI host)
+        public override void NodeUI()
         {
-            base.NodeUI(host);
+            base.NodeUI();
 
             EditorGUI.BeginChangeCheck();
             m_Blend = GUILayout.HorizontalSlider(m_Blend, 0f, 1f, GUILayout.Width(64));
