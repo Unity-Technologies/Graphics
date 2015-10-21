@@ -16,9 +16,14 @@ namespace UnityEditor.MaterialGraph
         private Type m_OutputType;
         public BaseMaterialNode m_Node;
 
-        public DrawableMaterialNode(BaseMaterialNode node, float size, Type outputType, MaterialGraphDataSource data)
-            : base(node.position.min, size)
+        private Rect previewArea;
+
+        public DrawableMaterialNode(BaseMaterialNode node, float width, Type outputType, MaterialGraphDataSource data)
+            : base(node.position.min, width)
         {
+            
+            AddManipulator(new IMGUIContainer());
+
             m_Node = node;
             m_Title = node.name;
             m_OutputType = outputType;
@@ -33,15 +38,32 @@ namespace UnityEditor.MaterialGraph
             }
             
             // output port
-            pos.x = size - 20.0f;
+            pos.x = width;
             foreach (var slot in node.outputSlots)
             {
                 pos.y += 22;
                 AddChild(new NodeOutputAnchor(pos, typeof (Vector4), slot, data));
             }
-
             pos.y += 22;
-            scale = new Vector3(scale.x, pos.y + 12.0f, 0.0f);
+
+            if (node.hasPreview)
+            {
+                previewArea = new Rect(10, pos.y, width - 20, width - 20);
+                pos.y += width;
+            }
+
+            scale = new Vector3(pos.x, pos.y, 0.0f);
+        }
+
+        public override void Render(Rect parentRect, Canvas2D canvas)
+        {
+            base.Render(parentRect, canvas);
+            if (m_Node.hasPreview)
+            {
+                GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+                GUI.DrawTexture(previewArea, m_Node.RenderPreview(new Rect(0, 0, previewArea.width, previewArea.height)), ScaleMode.StretchToFill, false);
+                GL.sRGBWrite = false;
+            }
         }
     }
 

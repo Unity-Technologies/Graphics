@@ -111,7 +111,7 @@ namespace UnityEditor.MaterialGraph
         {
             LoadTextureTypes();
 
-            base.NodeUI(host);
+            base.NodeUI();
 
             EditorGUI.BeginChangeCheck();
             m_DefaultTexture = EditorGUILayout.ObjectField(GUIContent.none, m_DefaultTexture, typeof(Texture2D), false) as Texture2D;

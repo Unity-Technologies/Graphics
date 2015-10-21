@@ -145,9 +145,8 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public override void NodeUI(GraphGUI host)
+        public virtual void NodeUI()
         {
-            base.NodeUI(host);
             if (hasPreview)
                 OnPreviewGUI();
         }

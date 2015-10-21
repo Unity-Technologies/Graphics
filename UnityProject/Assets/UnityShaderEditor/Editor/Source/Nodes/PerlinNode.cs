@@ -87,7 +87,7 @@ namespace UnityEditor.MaterialGraph
 
         public override void NodeUI(GraphGUI host)
         {
-            base.NodeUI(host);
+            base.NodeUI();
 
             EditorGUI.BeginChangeCheck();
             m_Iterations = (int)Slider("Iterations", (float)m_Iterations, 1, 8);

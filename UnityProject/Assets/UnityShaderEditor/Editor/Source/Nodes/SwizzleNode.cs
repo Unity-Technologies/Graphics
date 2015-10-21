@@ -21,7 +21,7 @@ namespace UnityEditor.MaterialGraph
 
         public override void NodeUI(GraphGUI host)
         {
-            base.NodeUI(host);
+            base.NodeUI();
             string[] channelNames = { "X", "Y", "Z", "W" };
             string[] values = { "0", "1", "Input1.x", "Input1.y", "Input1.z", "Input1.w", "Input2.x", "Input2.y", "Input2.z", "Input2.w" };
             EditorGUI.BeginChangeCheck();

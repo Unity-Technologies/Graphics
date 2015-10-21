@@ -37,7 +37,7 @@ namespace UnityEditor.MaterialGraph
 
         public override void NodeUI(GraphGUI host)
         {
-            base.NodeUI(host);
+            base.NodeUI();
             string[] values = {"x", "y", "z", "w"};
             EditorGUI.BeginChangeCheck();
             m_SwizzleChannel = EditorGUILayout.Popup("Channel", m_SwizzleChannel, values);

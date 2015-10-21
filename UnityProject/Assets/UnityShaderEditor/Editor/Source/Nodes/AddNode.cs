@@ -37,9 +37,9 @@ namespace UnityEditor.MaterialGraph
             return Vector4.zero;
         }
 
-        public override void NodeUI(Graphs.GraphGUI host)
+        public override void NodeUI()
         {
-            base.NodeUI(host);
+            base.NodeUI();
 
             EditorGUI.BeginChangeCheck();
             m_DefaultValue = EditorGUILayout.FloatField("", m_DefaultValue, GUILayout.Width(64));

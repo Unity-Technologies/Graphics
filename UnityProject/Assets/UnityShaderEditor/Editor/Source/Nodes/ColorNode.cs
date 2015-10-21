@@ -55,9 +55,9 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(precision + "4 " + GetPropertyName() + " = " + precision + "4 (" + m_Color.r + ", " + m_Color.g + ", " + m_Color.b + ", " + m_Color.a + ");", true);
         }
 
-        public override void NodeUI(Graphs.GraphGUI host)
+        public override void NodeUI()
         {
-            base.NodeUI(host);
+            base.NodeUI();
 
             EditorGUI.BeginChangeCheck();
             m_Color = EditorGUILayout.ColorField(m_Color);

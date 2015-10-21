@@ -51,9 +51,9 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(precision + "4 " +  GetPropertyName() + " = " + precision + "4 (" + m_Value.x + ", " + m_Value.y + ", " + m_Value.z + ", " + m_Value.w + ");", true);
         }
 
-        public override void NodeUI(Graphs.GraphGUI host)
+        public override void NodeUI()
         {
-            base.NodeUI(host);
+            base.NodeUI();
 
             EditorGUI.BeginChangeCheck();
             m_Value = EditorGUILayout.Vector4Field("Value", m_Value, GUILayout.Width(170));
