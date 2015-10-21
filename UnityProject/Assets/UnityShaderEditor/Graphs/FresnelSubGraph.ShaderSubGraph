@@ -9,7 +9,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b00854e54a3ed940813fa47dec62d38, type: 3}
-  m_Name: Fresnel
+  m_Name: FresnelSubGraph
   m_EditorClassIdentifier: 
   nodes:
   - {fileID: 11400002}

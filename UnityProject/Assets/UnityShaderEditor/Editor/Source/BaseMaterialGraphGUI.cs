@@ -5,12 +5,12 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
-    abstract class BaseMaterialGraphGUI : GraphGUI
+    abstract class BaseMaterialGraphGUI : EditorWindow
     {
         internal const int kDefaultNodeWidth = 50;
         internal const int kDefaultNodeHeight = 80;
 
-        public override void OnGraphGUI()
+      /*  public override void OnGraphGUI()
         {
             m_Host.BeginWindows();
 
@@ -43,7 +43,7 @@ namespace UnityEditor.MaterialGraph
                 }
             }
         }
-
+        */
         private class AddNodeCreationObject : object
         {
             public Vector2 m_Pos;
@@ -61,7 +61,7 @@ namespace UnityEditor.MaterialGraph
             var node = (BaseMaterialNode)CreateInstance(posObj.m_Type);
             node.Init();
             node.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, node.position.width, node.position.height);
-            graph.AddNode(node);
+           // graph.AddNode(node);
         }
 
         public virtual bool CanAddToNodeMenu(Type type) { return true; }
