@@ -429,8 +429,8 @@ namespace UnityEditor
 
 			internal class Edge<T> : CanvasElement where T : CanvasElement, IConnect
 			{
-				private T Left = null;
-				private T Right = null;
+				private T m_Left = null;
+				private T m_Right = null;
 				private ICanvasDataSource m_Data;
 				public Edge(ICanvasDataSource data, T left, T right)
 				{
@@ -439,15 +439,25 @@ namespace UnityEditor
 					m_SupportsRenderToTexture = false;
 					left.AddDependency(this);
 					right.AddDependency(this);
-					Left = left;
-					Right = right;
+					m_Left = left;
+					m_Right = right;
 
 					UpdateModel(UpdateType.eUpdate);
 
 					KeyDown += OnDeleteEdge;
 				}
 
-				private bool OnDeleteEdge(CanvasElement element, Event e, Canvas2D canvas)
+			    public T Left
+			    {
+			        get { return m_Left; }
+			    }
+
+			    public T Right
+			    {
+			        get { return m_Right; }
+			    }
+
+			    private bool OnDeleteEdge(CanvasElement element, Event e, Canvas2D canvas)
 				{
 					if (e.type == EventType.Used)
 						return false;
@@ -469,8 +479,8 @@ namespace UnityEditor
 					// bounding box check succeeded, do more fine grained check by checking intersection between the rectangles' diagonal
 					// and the line segments
 
-					Vector3 from = Left.ConnectPosition();
-					Vector3 to = Right.ConnectPosition();
+					Vector3 from = m_Left.ConnectPosition();
+					Vector3 to = m_Right.ConnectPosition();
 
 					if (to.x < from.x)
 					{
@@ -508,8 +518,8 @@ namespace UnityEditor
 
 					// bounding box check succeeded, do more fine grained check by measuring distance to bezier points
 
-					Vector3 from = Left.ConnectPosition();
-					Vector3 to = Right.ConnectPosition();
+					Vector3 from = m_Left.ConnectPosition();
+					Vector3 to = m_Right.ConnectPosition();
 
 					if (to.x < from.x)
 					{
@@ -540,8 +550,8 @@ namespace UnityEditor
 				{
 					Color edgeColor = selected ? Color.yellow : Color.white;
 
-					Vector3 from = Left.ConnectPosition();
-					Vector3 to = Right.ConnectPosition();
+					Vector3 from = m_Left.ConnectPosition();
+					Vector3 to = m_Right.ConnectPosition();
 
 					if (to.x < from.x)
 					{
@@ -584,8 +594,8 @@ namespace UnityEditor
 
 				public override void UpdateModel(UpdateType t)
 				{
-					Vector3 from = Left.ConnectPosition();
-					Vector3 to = Right.ConnectPosition();
+					Vector3 from = m_Left.ConnectPosition();
+					Vector3 to = m_Right.ConnectPosition();
 
 					Rect r = new Rect();
 					r.min = new Vector2(Math.Min(from.x, to.x), Math.Min(from.y, to.y));
