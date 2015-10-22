@@ -38202,10 +38202,10 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: 1056
-    y: -24
-    width: 310
-    height: 445
+    x: 1053.9392
+    y: -22.969591
+    width: 312.0608
+    height: 443.9696
   showEmptySlots: 1
   m_SlotDefaultValues:
   - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
@@ -38350,10 +38350,10 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: -2742.6306
-    y: -1199.2351
-    width: 1940.6306
-    height: 1184.2351
+    x: -2476.4543
+    y: -376.32608
+    width: 1674.4543
+    height: 361.32608
   showEmptySlots: 1
   m_SlotDefaultValues:
   - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
@@ -38513,6 +38513,98 @@ MonoBehaviour:
   m_PrecisionNames:
   - half
   m_SwizzleChannel: 3
+--- !u!114 &11428364
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f80af444cd4235c419b356216d784b57, type: 3}
+  m_Name: Sin Time
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Sin Time
+    m_Name: SinTime
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -44.66852
+    y: -848.0728
+    width: 397.73764
+    height: 263.7843
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: SinTime
+    m_Node: {fileID: 11428364}
+  m_PrecisionNames:
+  - half
+--- !u!114 &11434830
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 0
+    m_Name: Input0
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: 425.1977
+    y: -656.4171
+    width: 0
+    height: 0
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Output
+    m_Node: {fileID: 11434830}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input0
+    m_Node: {fileID: 11434830}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input1
+    m_Node: {fileID: 11434830}
+  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+    m_Editable: 1
+    m_SlotName: Input2
+    m_Node: {fileID: 11434830}
+  m_PrecisionNames:
+  - half
 --- !u!114 &11441414
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -38582,6 +38674,8 @@ MonoBehaviour:
   - {fileID: 11451638}
   - {fileID: 11422894}
   - {fileID: 11459506}
+  - {fileID: 11428364}
+  - {fileID: 11434830}
   edges:
   - m_FromNode: {fileID: 11498308}
     m_ToNode: {fileID: 11406334}
@@ -38703,7 +38797,17 @@ MonoBehaviour:
     m_FromSlotName: Output
     m_ToSlotName: UV
     color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11428364}
+    m_ToNode: {fileID: 11434830}
+    m_FromSlotName: SinTime
+    m_ToSlotName: Input0
+    color: {r: 1, g: 1, b: 1, a: 1}
   - m_FromNode: {fileID: 11445316}
+    m_ToNode: {fileID: 11434830}
+    m_FromSlotName: Output
+    m_ToSlotName: Input1
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11434830}
     m_ToNode: {fileID: 11400400}
     m_FromSlotName: Output
     m_ToSlotName: Albedo
@@ -38834,10 +38938,10 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: -2537.4495
-    y: -1141.3364
-    width: 1731.4495
-    height: 1221.3364
+    x: -2271.2732
+    y: -318.42752
+    width: 1465.2732
+    height: 398.42755
   showEmptySlots: 1
   m_SlotDefaultValues:
   - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
@@ -38986,10 +39090,10 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: -2128.9863
-    y: -1195.1257
-    width: 1458.9863
-    height: 1276.1259
+    x: -1862.811
+    y: -372.2167
+    width: 1192.811
+    height: 453.2167
   showEmptySlots: 1
   m_SlotDefaultValues:
   - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}

@@ -1,7 +1,10 @@
 #define DEBUG_MAT_GEN
 
+using System;
+using System.Reflection;
 using UnityEditor.Experimental;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph
 {
@@ -76,9 +79,52 @@ namespace UnityEditor.MaterialGraph
                 // The following manipulator show how to work with canvas2d overlay and background rendering
                 m_Canvas.AddManipulator(new RectangleSelect());
                 m_Canvas.AddManipulator(new ScreenSpaceGrid());
+                m_Canvas.AddManipulator(new ContextualMenu(DoAddNodeMenu));
             }
 
             Rebuild();
+        }
+
+        private class AddNodeCreationObject : object
+        {
+            public Vector2 m_Pos;
+            public readonly Type m_Type;
+
+            public AddNodeCreationObject(Type t, Vector2 p) { m_Type = t; m_Pos = p; }
+        };
+
+        private void AddNode(object obj)
+        {
+            var posObj = obj as AddNodeCreationObject;
+            if (posObj == null)
+                return;
+
+            var node = (BaseMaterialNode)CreateInstance(posObj.m_Type);
+            node.Init();
+            node.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, node.position.width, node.position.height);
+            m_MaterialGraph.currentGraph.AddNode(node);
+
+            Rebuild();
+            Repaint();
+        }
+
+        public virtual bool CanAddToNodeMenu(Type type) { return true; }
+        protected bool DoAddNodeMenu(Event @event, Canvas2D parent, Object customData)
+        {
+            var gm = new GenericMenu();
+            foreach (Type type in Assembly.GetAssembly(typeof(BaseMaterialNode)).GetTypes())
+            {
+                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(BaseMaterialNode)) || type.IsSubclassOf(typeof(PropertyNode))))
+                {
+                    var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
+                    if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))
+                    {
+                        gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, m_Canvas.MouseToCanvas(@event.mousePosition)));
+                    }
+                }
+            }
+            gm.ShowAsContext();
+            return true;
         }
 
         private void Rebuild()
