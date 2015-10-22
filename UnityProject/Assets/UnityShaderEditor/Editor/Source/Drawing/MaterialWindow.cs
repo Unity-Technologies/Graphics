@@ -1,7 +1,6 @@
 #define DEBUG_MAT_GEN
 
 using UnityEditor.Experimental;
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -15,8 +14,6 @@ namespace UnityEditor.MaterialGraph
         }
 
         private MaterialGraph m_MaterialGraph;
-
-
         private Canvas2D m_Canvas = null;
         private EditorWindow m_HostWindow = null;
         private MaterialGraphDataSource m_DataSource;

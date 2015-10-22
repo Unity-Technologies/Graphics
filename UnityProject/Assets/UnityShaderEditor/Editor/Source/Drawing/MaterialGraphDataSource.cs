@@ -50,11 +50,28 @@ namespace UnityEditor.MaterialGraph
 
         public void DeleteElement(CanvasElement e)
         {
-            //m_Elements.Remove(e);
+            Debug.Log("Trying to delete " + e);
+            if (e is DrawableMaterialNode)
+            {
+                Debug.Log("Deleting node " + e + " " + ((DrawableMaterialNode) e).m_Node);
+                graph.currentGraph.RemoveNode(((DrawableMaterialNode) e).m_Node);
+            }
+            else if (e is Edge<NodeAnchor>)
+            {
+                //find the edge
+                var localEdge = (Edge<NodeAnchor>) e;
+                var edge = graph.currentGraph.edges.FirstOrDefault(x => x.fromSlot == localEdge.Left.m_Slot && x.toSlot == localEdge.Right.m_Slot);
+                graph.currentGraph.RemoveEdge(edge);
+            }
+
+            e.ParentCanvas().ReloadData();
         }
 
         public void Connect(NodeAnchor a, NodeAnchor b)
         {
+            Debug.Log("Connecting: " + a + " " + b);
+            var pixelGraph = graph.currentGraph;
+            pixelGraph.Connect(a.m_Slot, b.m_Slot);
             //m_Elements.Add();
         }
     }
