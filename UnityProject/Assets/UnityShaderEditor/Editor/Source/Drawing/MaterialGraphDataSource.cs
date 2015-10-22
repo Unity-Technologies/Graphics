@@ -65,14 +65,13 @@ namespace UnityEditor.MaterialGraph
             }
 
             e.ParentCanvas().ReloadData();
+            e.ParentCanvas().Repaint();
         }
 
         public void Connect(NodeAnchor a, NodeAnchor b)
         {
-            Debug.Log("Connecting: " + a + " " + b);
             var pixelGraph = graph.currentGraph;
             pixelGraph.Connect(a.m_Slot, b.m_Slot);
-            //m_Elements.Add();
         }
     }
 }

@@ -50,18 +50,46 @@ namespace UnityEditor.MaterialGraph
 
         public override Edge Connect(Slot fromSlot, Slot toSlot)
         {
-            var edge = base.Connect(fromSlot, toSlot);
+            Slot outputSlot = null;
+            Slot inputSlot = null;
+
+            // output must connect to input
+            if (fromSlot.isOutputSlot)
+                outputSlot = fromSlot;
+            else if (fromSlot.isInputSlot)
+                inputSlot = fromSlot;
+
+            if (toSlot.isOutputSlot)
+                outputSlot = toSlot;
+            else if (toSlot.isInputSlot)
+                inputSlot = toSlot;
+
+            if (inputSlot == null || outputSlot == null)
+                return null;
+
+            // remove any inputs that exits before adding
+            foreach (var edge in inputSlot.edges.ToArray())
+            {
+                Debug.Log("Removing edge:" + edge);
+                // call base here as we DO NOT want to
+                // do expensive shader regeneration
+                base.RemoveEdge(edge);
+            }
+            
+            var newEdge = base.Connect(fromSlot, toSlot);
+            
+            Debug.Log("Connected edge: " + newEdge);
             var toNode = toSlot.node as BaseMaterialNode;
             var fromNode = fromSlot.node as BaseMaterialNode;
 
             if (fromNode == null || toNode == null)
-                return edge;
+                return newEdge;
 
             RecacheActiveNodes();
             toNode.RegeneratePreviewShaders();
             fromNode.CollectChildNodesByExecutionOrder().ToList().ForEach(s => s.UpdatePreviewProperties());
 
-            return edge;
+            return newEdge;
         }
 
         public override void AddNode(Node node)
