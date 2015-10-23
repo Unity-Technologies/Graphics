@@ -8,23 +8,30 @@ namespace UnityEditor.MaterialGraph
 {
     public class MaterialGraphDataSource : ICanvasDataSource
     {
+        readonly List<DrawableMaterialNode> m_DrawableNodes = new List<DrawableMaterialNode>();
+        
         public MaterialGraph graph { get; set; }
+
+        public ICollection<DrawableMaterialNode> lastGeneratedNodes
+        {
+            get { return m_DrawableNodes; }
+        }
 
         public CanvasElement[] FetchElements()
         {
-            var drawableNodes = new List<DrawableMaterialNode>();
+            m_DrawableNodes.Clear();
             Debug.Log("trying to convert");
             var pixelGraph = graph.currentGraph;
             foreach (var node in pixelGraph.nodes)
             {
                 // add the nodes
                 var bmn = node as BaseMaterialNode;
-                drawableNodes.Add(new DrawableMaterialNode(bmn, (bmn is PixelShaderNode) ? 600.0f : 200.0f, typeof(Vector4), this));
+                m_DrawableNodes.Add(new DrawableMaterialNode(bmn, (bmn is PixelShaderNode) ? 600.0f : 200.0f, typeof(Vector4), this));
             }
 
             // Add the edges now
             var drawableEdges = new List<Edge<NodeAnchor>>();
-            foreach (var drawableMaterialNode in drawableNodes)
+            foreach (var drawableMaterialNode in m_DrawableNodes)
             {
                 var baseNode = drawableMaterialNode.m_Node;
                 foreach (var slot in baseNode.outputSlots)
@@ -33,7 +40,7 @@ namespace UnityEditor.MaterialGraph
 
                     foreach (var edge in slot.edges)
                     {
-                        var targetNode = drawableNodes.FirstOrDefault(x => x.m_Node == edge.toSlot.node);
+                        var targetNode = m_DrawableNodes.FirstOrDefault(x => x.m_Node == edge.toSlot.node);
                         var targetAnchor = (NodeAnchor)targetNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == edge.toSlot);
                         drawableEdges.Add(new Edge<NodeAnchor>(this, sourceAnchor, targetAnchor));
                     }
@@ -41,7 +48,7 @@ namespace UnityEditor.MaterialGraph
             }
             
             var toReturn = new List<CanvasElement>();
-            toReturn.AddRange(drawableNodes.Select(x => (CanvasElement)x));
+            toReturn.AddRange(m_DrawableNodes.Select(x => (CanvasElement)x));
             toReturn.AddRange(drawableEdges.Select(x => (CanvasElement)x));
             
             Debug.LogFormat("REturning {0} nodes", toReturn.Count);

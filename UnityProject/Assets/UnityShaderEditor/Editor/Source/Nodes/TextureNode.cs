@@ -106,17 +106,32 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk("sampler2D " + GetPropertyName() + ";", true);
         }
 
-        // UI Shizz
-        public override void NodeUI(GraphGUI host)
+        public override float GetNodeUIHeight(float width)
+        {
+            return EditorGUIUtility.singleLineHeight + width - 20;
+        }
+
+        public override bool NodeUI(Rect drawArea)
         {
             LoadTextureTypes();
 
-            base.NodeUI();
+            base.NodeUI(drawArea);
 
             EditorGUI.BeginChangeCheck();
-            m_DefaultTexture = EditorGUILayout.ObjectField(GUIContent.none, m_DefaultTexture, typeof(Texture2D), false) as Texture2D;
-            m_TextureType = (TextureType)EditorGUILayout.Popup((int)m_TextureType, m_TextureTypeNames.ToArray(), EditorStyles.popup);
-            if (EditorGUI.EndChangeCheck())
+            m_DefaultTexture = EditorGUI.ObjectField(new Rect(drawArea.x, drawArea.y, drawArea.width, drawArea.width), GUIContent.none, m_DefaultTexture, typeof (Texture2D), false) as Texture2D;
+            var texureChanged = EditorGUI.EndChangeCheck();
+
+            EditorGUI.BeginChangeCheck();
+            m_TextureType = (TextureType) EditorGUI.Popup(new Rect(drawArea.x, drawArea.y + drawArea.width, drawArea.width, EditorGUIUtility.singleLineHeight), (int) m_TextureType, m_TextureTypeNames.ToArray(), EditorStyles.popup);
+            var typeChanged = EditorGUI.EndChangeCheck();
+
+            if (typeChanged)
+            {
+                RegeneratePreviewShaders();
+                return true;
+            }
+
+            if (texureChanged)
             {
                 var boundProp = boundProperty as TextureProperty;
                 if (boundProp != null)
@@ -126,7 +141,9 @@ namespace UnityEditor.MaterialGraph
                 }
                 UpdatePreviewProperties();
                 ForwardPreviewMaterialPropertyUpdate();
+                return true;
             }
+            return false;
         }
 
         public override void BindProperty(ShaderProperty property, bool rebuildShaders)
@@ -158,7 +175,7 @@ namespace UnityEditor.MaterialGraph
                        m_Texture = m_DefaultTexture
                    };
         }
-
+        
         public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
     }
 }

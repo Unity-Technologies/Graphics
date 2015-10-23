@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEditor.Graphs;
 using UnityEngine;
 
@@ -19,16 +15,25 @@ namespace UnityEditor.MaterialGraph
             name = "SwizzleNode";
         }
 
-        public override void NodeUI(GraphGUI host)
+        public override float GetNodeUIHeight(float width)
         {
-            base.NodeUI();
-            string[] channelNames = { "X", "Y", "Z", "W" };
-            string[] values = { "0", "1", "Input1.x", "Input1.y", "Input1.z", "Input1.w", "Input2.x", "Input2.y", "Input2.z", "Input2.w" };
+            return EditorGUIUtility.singleLineHeight;
+        }
+
+        public override bool NodeUI(Rect drawArea)
+        {
+            base.NodeUI(drawArea);
+            string[] channelNames = {"X", "Y", "Z", "W"};
+            string[] values = {"0", "1", "Input1.x", "Input1.y", "Input1.z", "Input1.w", "Input2.x", "Input2.y", "Input2.z", "Input2.w"};
             EditorGUI.BeginChangeCheck();
             for (int n = 0; n < 4; n++)
-                m_SwizzleChannel[n] = EditorGUILayout.Popup(channelNames[n] + "=", m_SwizzleChannel[n], values);
+                m_SwizzleChannel[n] = EditorGUI.Popup(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), channelNames[n] + "=", m_SwizzleChannel[n], values);
             if (EditorGUI.EndChangeCheck())
+            {
                 RegeneratePreviewShaders();
+                return true;
+            }
+            return false;
         }
 
         protected override string GetFunctionName()

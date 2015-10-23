@@ -3,10 +3,9 @@ using UnityEngine;
 namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Add Node")]
-    class AddNode : FunctionMultiInput, IGeneratesFunction
+    public class AddNode : FunctionMultiInput, IGeneratesFunction
     {
-        [SerializeField]
-        private float m_DefaultValue = 0.0f;
+        [SerializeField] private float m_DefaultValue = 0.0f;
 
         public override void Init()
         {
@@ -14,7 +13,10 @@ namespace UnityEditor.MaterialGraph
             base.Init();
         }
 
-        protected override string GetFunctionName() {return "unity_add_" + precision; }
+        protected override string GetFunctionName()
+        {
+            return "unity_add_" + precision;
+        }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
@@ -32,19 +34,23 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
-        public override Vector4 GetNewSlotDefaultValue()
+        public override float GetNodeUIHeight(float width)
         {
-            return Vector4.zero;
+            return EditorGUIUtility.singleLineHeight;
         }
 
-        public override void NodeUI()
+        public override bool NodeUI(Rect drawArea)
         {
-            base.NodeUI();
+            base.NodeUI(drawArea);
 
             EditorGUI.BeginChangeCheck();
-            m_DefaultValue = EditorGUILayout.FloatField("", m_DefaultValue, GUILayout.Width(64));
+            m_DefaultValue = EditorGUI.FloatField(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), m_DefaultValue);
             if (EditorGUI.EndChangeCheck())
+            {
                 RegeneratePreviewShaders();
+                return true;
+            }
+            return false;
         }
     }
 }

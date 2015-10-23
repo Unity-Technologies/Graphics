@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental;
 using UnityEngine;
@@ -14,6 +13,7 @@ namespace UnityEditor.MaterialGraph
         public BaseMaterialNode m_Node;
 
         private Rect m_PreviewArea;
+        private Rect m_NodeUIRect;
 
         public DrawableMaterialNode(BaseMaterialNode node, float width, Type outputType, MaterialGraphDataSource data)
             : base(node.position.min, width)
@@ -23,7 +23,9 @@ namespace UnityEditor.MaterialGraph
             m_OutputType = outputType;
             m_Data = data;
 
-            Vector3 pos = new Vector3(5.0f, 10.0f, 0.0f);
+            const float yStart = 10.0f;
+            var vector3 = new Vector3(5.0f, yStart, 0.0f);
+            Vector3 pos = vector3;
 
             // input slots
             foreach (var slot in node.inputSlots)
@@ -31,26 +33,35 @@ namespace UnityEditor.MaterialGraph
                 pos.y += 22;
                 AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data));
             }
-            
+            var inputYMax = pos.y;
+
             // output port
             pos.x = width;
+            pos.y = yStart;
             foreach (var slot in node.outputSlots)
             {
                 pos.y += 22;
                 AddChild(new NodeOutputAnchor(pos, typeof (Vector4), slot, data));
             }
-            pos.y += 22;
+
+            pos.y = Mathf.Max(pos.y, inputYMax) + 22.0f;
+
+            var nodeUIHeight = m_Node.GetNodeUIHeight(width);
+            m_NodeUIRect = new Rect(10, pos.y, width - 20, nodeUIHeight);
+            pos.y += nodeUIHeight;
 
             if (node.hasPreview)
             { 
                 m_PreviewArea = new Rect(10, pos.y, width - 20, width - 20);
                 pos.y += width;
             }
-
-            scale = new Vector3(pos.x, pos.y, 0.0f);
+            
+            scale = new Vector3(pos.x, pos.y + 22.0f, 0.0f);
             
             KeyDown += OnDeleteNode;
             OnWidget += MarkDirtyIfNeedsTime;
+            
+            AddManipulator(new IMGUIContainer());
         }
 
         private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
@@ -86,6 +97,21 @@ namespace UnityEditor.MaterialGraph
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             base.Render(parentRect, canvas);
+            if (m_Node.NodeUI(m_NodeUIRect))
+            {
+                // if we were changed, we need to redraw all the
+                // dependent nodes.
+                var dependentNodes = m_Node.CollectDependentNodes();
+                foreach (var node in dependentNodes)
+                {
+                    foreach (var drawNode in m_Data.lastGeneratedNodes)
+                    {
+                        if (drawNode.m_Node == node)
+                            drawNode.Invalidate();
+                    }
+                }
+            }
+
             if (m_Node.hasPreview)
             {
                 GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);

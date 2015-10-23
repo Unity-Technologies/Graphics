@@ -44,16 +44,24 @@ namespace UnityEditor.MaterialGraph
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
-
-        public override void NodeUI()
+        public override float GetNodeUIHeight(float width)
         {
-            base.NodeUI();
+            return 2.0f * EditorGUIUtility.singleLineHeight;
+        }
+
+        public override bool NodeUI(Rect drawArea)
+        {
+            base.NodeUI(drawArea);
 
             EditorGUI.BeginChangeCheck();
-            m_Blend = GUILayout.HorizontalSlider(m_Blend, 0f, 1f, GUILayout.Width(64));
-            m_Operation = (Operation)EditorGUILayout.EnumPopup(m_Operation);
+            m_Blend = GUI.HorizontalSlider(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), m_Blend, 0f, 1f);
+            m_Operation = (Operation) EditorGUI.EnumPopup(new Rect(drawArea.x, drawArea.y + EditorGUIUtility.singleLineHeight, drawArea.width, EditorGUIUtility.singleLineHeight), m_Operation);
             if (EditorGUI.EndChangeCheck())
+            {
                 RegeneratePreviewShaders();
+                return true;
+            }
+            return false;
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)

@@ -84,10 +84,15 @@ namespace UnityEditor.MaterialGraph
             GUILayout.EndHorizontal();
             return value;
         }
-
-        public override void NodeUI(GraphGUI host)
+        /*
+        public override float GetNodeUIHeight()
         {
-            base.NodeUI();
+            return EditorGUIUtility.singleLineHeight;
+        }
+
+        public override bool NodeUI(Rect drawArea)
+        {
+            base.NodeUI(drawArea);
 
             EditorGUI.BeginChangeCheck();
             m_Iterations = (int)Slider("Iterations", (float)m_Iterations, 1, 8);
@@ -95,6 +100,6 @@ namespace UnityEditor.MaterialGraph
             m_Frequency = Slider("Frequency", m_Frequency, 0f, 5f);
             if (EditorGUI.EndChangeCheck())
                 RegeneratePreviewShaders();
-        }
+        }*/
     }
 }
