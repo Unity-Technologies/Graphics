@@ -33,7 +33,7 @@ namespace UnityEditor.MaterialGraph
                 pos.y += 22;
                 AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data));
             }
-            var inputYMax = pos.y;
+            var inputYMax = pos.y + 22;
 
             // output port
             pos.x = width;
@@ -43,8 +43,9 @@ namespace UnityEditor.MaterialGraph
                 pos.y += 22;
                 AddChild(new NodeOutputAnchor(pos, typeof (Vector4), slot, data));
             }
+            pos.y += 22;
 
-            pos.y = Mathf.Max(pos.y, inputYMax) + 22.0f;
+            pos.y = Mathf.Max(pos.y, inputYMax);
 
             var nodeUIHeight = m_Node.GetNodeUIHeight(width);
             m_NodeUIRect = new Rect(10, pos.y, width - 20, nodeUIHeight);
@@ -53,10 +54,10 @@ namespace UnityEditor.MaterialGraph
             if (node.hasPreview)
             { 
                 m_PreviewArea = new Rect(10, pos.y, width - 20, width - 20);
-                pos.y += width;
+                pos.y += width - 20.0f;
             }
             
-            scale = new Vector3(pos.x, pos.y + 22.0f, 0.0f);
+            scale = new Vector3(pos.x, pos.y + 10.0f, 0.0f);
             
             KeyDown += OnDeleteNode;
             OnWidget += MarkDirtyIfNeedsTime;
