@@ -53,7 +53,7 @@ namespace UnityEditor.MaterialGraph
 
         public override float GetNodeUIHeight(float width)
         {
-            return EditorGUIUtility.singleLineHeight;
+            return 2*EditorGUIUtility.singleLineHeight;
         }
 
         public override bool NodeUI(Rect drawArea)
