@@ -302,34 +302,40 @@ namespace UnityEditor
 				m.AttachTo(this);
 			}
 
-			public bool PrepareRender()
-			{
-				if (Event.current.type != EventType.Repaint)
-					return false;
+		    private void CreateTexture()
+		    {
+		        Rect textureRect = boundingRect;
+		        m_Texture = new Texture2D((int) textureRect.width, (int) textureRect.height, TextureFormat.ARGB32, true)
+		        {
+		            filterMode = FilterMode.Trilinear, 
+                    wrapMode = TextureWrapMode.Clamp
+		        };
+		    }
 
-				if (m_Dirty == true)
-				{
-					m_Texture = null;
-				}
+		    public bool PrepareRender()
+		    {
+		        if (Event.current.type != EventType.Repaint)
+		            return false;
 
-				if (texture != null)
-					return false;
+		        if (!m_Dirty || !m_SupportsRenderToTexture)
+		            return false;
 
-				if (!m_SupportsRenderToTexture)
-					return false;
+		        // if null create
+		        // if size is differnt destroy / create
+		        if (m_Texture == null)
+		            CreateTexture();
+		        else if ((int) boundingRect.width != m_Texture.width || (int) boundingRect.height != m_Texture.height)
+		        {
+		            Object.DestroyImmediate(m_Texture);
+		            CreateTexture();
+		        }
 
-				Layout();
+		        Layout();
+		        m_Dirty = false;
+		        return true;
+		    }
 
-				Rect textureRect = boundingRect;
-				m_Texture = new Texture2D((int)textureRect.width, (int)textureRect.height, TextureFormat.ARGB32, true);
-				m_Texture.filterMode = FilterMode.Trilinear;
-				m_Texture.wrapMode = TextureWrapMode.Clamp;
-				m_Dirty = false;
-
-				return true;
-			}
-
-			public void EndRender(float renderTextureHeight)
+		    public void EndRender(float renderTextureHeight)
 			{
 				Rect textureRect = boundingRect;
 				float origin = SystemInfo.graphicsDeviceVersion.StartsWith("Direct") ? 0 : renderTextureHeight - textureRect.height;

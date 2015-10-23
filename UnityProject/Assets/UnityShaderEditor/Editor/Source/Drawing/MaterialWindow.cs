@@ -119,7 +119,7 @@ namespace UnityEditor.MaterialGraph
                     var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
                     if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))
                     {
-                        gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, m_Canvas.MouseToCanvas(@event.mousePosition)));
+                        gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, parent.MouseToCanvas(@event.mousePosition)));
                     }
                 }
             }
@@ -133,9 +133,7 @@ namespace UnityEditor.MaterialGraph
                 return;
 
             m_DataSource.graph = m_MaterialGraph;
-            m_Canvas.Clear();
             m_Canvas.ReloadData();
-            m_Canvas.ZSort();
         }
 
         void OnGUI()
