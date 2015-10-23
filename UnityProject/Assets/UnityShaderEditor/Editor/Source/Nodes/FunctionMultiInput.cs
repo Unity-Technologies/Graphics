@@ -5,7 +5,7 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
-    abstract class FunctionMultiInput : BaseMaterialNode, IGeneratesBodyCode
+    public abstract class FunctionMultiInput : BaseMaterialNode, IGeneratesBodyCode
     {
         private const string kOutputSlotName = "Output";
         private const string kBaseInputSlotName = "Input";

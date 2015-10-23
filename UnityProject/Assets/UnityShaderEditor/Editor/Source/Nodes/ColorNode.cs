@@ -55,22 +55,28 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(precision + "4 " + GetPropertyName() + " = " + precision + "4 (" + m_Color.r + ", " + m_Color.g + ", " + m_Color.b + ", " + m_Color.a + ");", true);
         }
 
-        public override void NodeUI()
+        public override float GetNodeUIHeight(float width)
         {
-            base.NodeUI();
+            return EditorGUIUtility.singleLineHeight;
+        }
 
+        public override bool NodeUI(Rect drawArea)
+        {
+            base.NodeUI(drawArea);
+            
             EditorGUI.BeginChangeCheck();
-            m_Color = EditorGUILayout.ColorField(m_Color);
+            m_Color = EditorGUI.ColorField(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), m_Color);
             if (EditorGUI.EndChangeCheck())
             {
                 var boundProp = boundProperty as ColorProperty;
                 if (boundProp != null)
-                {
                     boundProp.defaultColor = m_Color;
-                }
+
                 UpdatePreviewProperties();
                 ForwardPreviewMaterialPropertyUpdate();
+                return true;
             }
+            return false;
         }
 
         public override void BindProperty(ShaderProperty property, bool rebuildShaders)

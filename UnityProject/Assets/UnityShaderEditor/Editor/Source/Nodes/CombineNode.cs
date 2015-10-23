@@ -67,7 +67,7 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
-        public override void NodeUI()
+       /* public override void NodeUI()
         {
             base.NodeUI();
 
@@ -75,7 +75,7 @@ namespace UnityEditor.MaterialGraph
             m_Operation = (Operation)EditorGUILayout.EnumPopup(m_Operation);
             if (EditorGUI.EndChangeCheck())
                 RegeneratePreviewShaders();
-        }
+        }*/
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {

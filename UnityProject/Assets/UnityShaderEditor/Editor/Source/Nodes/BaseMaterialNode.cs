@@ -145,12 +145,16 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public virtual void NodeUI()
+        public virtual float GetNodeUIHeight(float width)
         {
-            if (hasPreview)
-                OnPreviewGUI();
+            return 0;
         }
 
+        public virtual bool NodeUI(Rect drawArea)
+        {
+            return false;
+        }
+        
         protected virtual void OnPreviewGUI()
         {
             if (!ShaderUtil.hardwareSupportsRectRenderTexture)

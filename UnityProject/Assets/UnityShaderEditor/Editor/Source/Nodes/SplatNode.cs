@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -35,14 +30,23 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public override void NodeUI(GraphGUI host)
+        public override float GetNodeUIHeight(float width)
         {
-            base.NodeUI();
+            return EditorGUIUtility.singleLineHeight;
+        }
+
+        public override bool NodeUI(Rect drawArea)
+        {
+            base.NodeUI(drawArea);
             string[] values = {"x", "y", "z", "w"};
             EditorGUI.BeginChangeCheck();
-            m_SwizzleChannel = EditorGUILayout.Popup("Channel", m_SwizzleChannel, values);
+            m_SwizzleChannel = EditorGUI.Popup(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), "Channel", m_SwizzleChannel, values);
             if (EditorGUI.EndChangeCheck())
+            {
                 RegeneratePreviewShaders();
+                return true;
+            }
+            return false;
         }
 
         protected override string GetFunctionName()

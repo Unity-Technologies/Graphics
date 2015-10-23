@@ -56,7 +56,7 @@ namespace UnityEditor.MaterialGraph
             return value;
         }
 
-        public override void NodeUI()
+        /*public override void NodeUI()
         {
             base.NodeUI();
 
@@ -67,6 +67,6 @@ namespace UnityEditor.MaterialGraph
             m_Contrast = Slider("Contrast", m_Contrast, 0.3f, 4f);
             if (EditorGUI.EndChangeCheck())
                 RegeneratePreviewShaders();
-        }
+        }*/
     }
 }

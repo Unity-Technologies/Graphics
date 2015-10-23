@@ -51,12 +51,17 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(precision + "4 " +  GetPropertyName() + " = " + precision + "4 (" + m_Value.x + ", " + m_Value.y + ", " + m_Value.z + ", " + m_Value.w + ");", true);
         }
 
-        public override void NodeUI()
+        public override float GetNodeUIHeight(float width)
         {
-            base.NodeUI();
+            return EditorGUIUtility.singleLineHeight;
+        }
+
+        public override bool NodeUI(Rect drawArea)
+        {
+            base.NodeUI(drawArea);
 
             EditorGUI.BeginChangeCheck();
-            m_Value = EditorGUILayout.Vector4Field("Value", m_Value, GUILayout.Width(170));
+            m_Value = EditorGUI.Vector4Field(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), "Value", m_Value);
             if (EditorGUI.EndChangeCheck())
             {
                 var boundProp = boundProperty as VectorProperty;
@@ -66,7 +71,9 @@ namespace UnityEditor.MaterialGraph
                 }
                 UpdatePreviewProperties();
                 ForwardPreviewMaterialPropertyUpdate();
+                return true;
             }
+            return false;
         }
 
         public override void BindProperty(ShaderProperty property, bool rebuildShaders)

@@ -83,7 +83,7 @@ namespace UnityEditor.MaterialGraph
             return value;
         }
 
-        public override void NodeUI()
+        /*public override void NodeUI()
         {
             base.NodeUI();
 
@@ -91,6 +91,6 @@ namespace UnityEditor.MaterialGraph
             m_Iterations = (int)Slider("Iterations", (float)m_Iterations, 1, 50);
             if (EditorGUI.EndChangeCheck())
                 RegeneratePreviewShaders();
-        }
+        }*/
     }
 }

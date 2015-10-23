@@ -177,9 +177,13 @@ namespace UnityEditor.MaterialGraph
             return GetOutputVariableNameForNode();
         }
 
-        public override void NodeUI(GraphGUI host)
+        public override float GetNodeUIHeight(float width)
         {
-            base.NodeUI();
+            return EditorGUIUtility.singleLineHeight;
+        }
+
+        public override bool NodeUI(Rect drawArea)
+        {
             var lightFunctions = GetLightFunctions();
             var lightFunction = GetLightFunction();
 
@@ -188,10 +192,14 @@ namespace UnityEditor.MaterialGraph
                 lightFuncIndex = lightFunctions.IndexOf(lightFunction);
 
             EditorGUI.BeginChangeCheck();
-            lightFuncIndex = EditorGUILayout.Popup(lightFuncIndex, lightFunctions.Select(x => x.GetLightFunctionName()).ToArray(), EditorStyles.popup);
+            lightFuncIndex = EditorGUI.Popup(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), lightFuncIndex, lightFunctions.Select(x => x.GetLightFunctionName()).ToArray(), EditorStyles.popup);
             m_LightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
             if (EditorGUI.EndChangeCheck())
+            {
                 RegeneratePreviewShaders();
+                return true;
+            }
+            return false;
         }
 
         public override bool hasPreview
