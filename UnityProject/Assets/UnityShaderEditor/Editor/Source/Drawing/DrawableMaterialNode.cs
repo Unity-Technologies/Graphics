@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Experimental;
 using UnityEngine;
 
@@ -48,6 +50,15 @@ namespace UnityEditor.MaterialGraph
             scale = new Vector3(pos.x, pos.y, 0.0f);
             
             KeyDown += OnDeleteNode;
+            OnWidget += MarkDirtyIfNeedsTime;
+        }
+
+        private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
+        {
+            var childrenNodes = m_Node.CollectChildNodesByExecutionOrder();
+            if (childrenNodes.Any(x => x is IRequiresTime))
+                Invalidate();
+            return true;
         }
 
         private bool OnDeleteNode(CanvasElement element, Event e, Canvas2D canvas)
