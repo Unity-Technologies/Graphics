@@ -129,7 +129,7 @@ namespace UnityEditor.MaterialGraph
 
         private void Rebuild()
         {
-            if (m_Canvas == null)
+            if (m_Canvas == null || m_MaterialGraph == null)
                 return;
 
             m_DataSource.graph = m_MaterialGraph;
