@@ -29,6 +29,7 @@ namespace UnityEditor.MaterialGraph
         public Color m_Color;
         public Texture2D m_Texture;
         public Vector4 m_Vector4;
+        public float m_Float;
     }
 
     public enum PreviewMode
@@ -322,6 +323,9 @@ namespace UnityEditor.MaterialGraph
                     break;
                 case PropertyType.Vector4:
                     mat.SetVector(previewProperty.m_Name, previewProperty.m_Vector4);
+                    break;
+                case PropertyType.Float:
+                    mat.SetFloat(previewProperty.m_Name, previewProperty.m_Float);
                     break;
             }
         }
