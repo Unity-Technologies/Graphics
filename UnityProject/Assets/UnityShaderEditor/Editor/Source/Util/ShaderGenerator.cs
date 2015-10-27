@@ -83,9 +83,30 @@ namespace UnityEditor.MaterialGraph
         }
     }
 
+    public class FloatPropertyChunk : PropertyChunk
+    {
+        private readonly float m_DefaultValue;
+        public FloatPropertyChunk(string propertyName, string propertyDescription, float defaultValue, bool hidden)
+            : base(propertyName, propertyDescription, hidden)
+        {
+            m_DefaultValue = defaultValue;
+        }
+
+        public override string GetPropertyString()
+        {
+            var result = new StringBuilder();
+            result.Append(m_PropertyName);
+            result.Append("(\"");
+            result.Append(m_PropertyDescription);
+            result.Append("\", Float) = ");
+            result.Append(m_DefaultValue);
+            return result.ToString();
+        }
+    }
+
     public class VectorPropertyChunk : PropertyChunk
     {
-        private Vector4 m_DefaultVector;
+        private readonly Vector4 m_DefaultVector;
         public VectorPropertyChunk(string propertyName, string propertyDescription, Vector4 defaultVector, bool hidden)
             : base(propertyName, propertyDescription, hidden)
         {
