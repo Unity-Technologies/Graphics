@@ -3,14 +3,14 @@ using UnityEngine;
 namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Add Node")]
-    public class AddNode : FunctionMultiInput, IGeneratesFunction
+    public class AddNode : Function2Input, IGeneratesFunction
     {
         [SerializeField] private float m_DefaultValue = 0.0f;
 
-        public override void Init()
+        public override void OnCreate()
         {
             name = "AddNode";
-            base.Init();
+            base.OnCreate();
         }
 
         protected override string GetFunctionName()

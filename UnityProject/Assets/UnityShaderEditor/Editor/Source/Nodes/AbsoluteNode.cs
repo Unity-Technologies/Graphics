@@ -3,10 +3,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Absolute Node")]
     class AbsoluteNode : Function1Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "AbsoluteNode";
-            base.Init();
+            base.OnCreate();
         }
 
         protected override string GetFunctionName() {return "unity_absolute_" + precision; }

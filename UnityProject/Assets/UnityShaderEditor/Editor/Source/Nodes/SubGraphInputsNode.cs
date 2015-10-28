@@ -6,17 +6,17 @@ namespace UnityEditor.MaterialGraph
 {
     public class SubGraphInputsNode : SubGraphIOBaseNode, IGenerateProperties
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "SubGraphInputs";
             title = "Inputs";
             position = new Rect(BaseMaterialGraphGUI.kDefaultNodeWidth * 4, BaseMaterialGraphGUI.kDefaultNodeHeight * 2, Mathf.Max(300, position.width), position.height);
-            base.Init();
+            base.OnCreate();
         }
 
         public override void AddSlot()
         {
-            AddSlot(new Slot(SlotType.OutputSlot, GenerateSlotName(SlotType.OutputSlot)));
+            //AddSlot(new Slot(SlotType.OutputSlot, GenerateSlotName(SlotType.OutputSlot)));
         }
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)

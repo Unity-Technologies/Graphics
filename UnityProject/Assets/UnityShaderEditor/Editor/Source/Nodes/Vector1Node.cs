@@ -12,11 +12,16 @@ namespace UnityEditor.MaterialGraph
 
         private const string kOutputSlotName = "Value";
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();
             name = "V1Node";
-            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), null));
         }
 
         public override PropertyType propertyType
@@ -25,12 +30,7 @@ namespace UnityEditor.MaterialGraph
         }
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (HasBoundProperty() || !generationMode.IsPreview())
-                return;
-
-            visitor.AddShaderProperty(new FloatPropertyChunk(GetPropertyName(), GetPropertyName(), m_Value, true));
-        }
+        {}
 
         public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
         {

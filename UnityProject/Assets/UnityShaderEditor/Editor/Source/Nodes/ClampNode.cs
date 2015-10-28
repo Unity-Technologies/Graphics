@@ -3,10 +3,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Clamp Node")]
     class ClampNode : Function3Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "ClampNode";
-            base.Init();
+            base.OnCreate();;
         }
 
         protected override string GetFunctionName() {return "unity_clamp_" + precision; }

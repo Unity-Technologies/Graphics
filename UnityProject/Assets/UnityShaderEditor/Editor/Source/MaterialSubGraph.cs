@@ -30,7 +30,7 @@ namespace UnityEditor.MaterialGraph
             {
                 m_InputsNode = CreateInstance<SubGraphInputsNode>();
                 m_InputsNode.hideFlags = HideFlags.HideInHierarchy;
-                m_InputsNode.Init();
+                m_InputsNode.OnCreate();
                 AddMasterNodeNoAddToAsset(m_InputsNode);
             }
 
@@ -38,7 +38,7 @@ namespace UnityEditor.MaterialGraph
             {
                 m_OutputsNode = CreateInstance<SubGraphOutputsNode>();
                 m_OutputsNode.hideFlags = HideFlags.HideInHierarchy;
-                m_OutputsNode.Init();
+                m_OutputsNode.OnCreate();
                 AddMasterNodeNoAddToAsset(m_OutputsNode);
             }
         }

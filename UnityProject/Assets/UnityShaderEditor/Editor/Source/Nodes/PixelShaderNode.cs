@@ -38,14 +38,14 @@ namespace UnityEditor.MaterialGraph
         {
             base.OnEnable();
 
-            AddSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName));
-            AddSlot(new Slot(SlotType.InputSlot, kNormalSlotName));
-            AddSlot(new Slot(SlotType.InputSlot, kSpecularSlotName));
-            AddSlot(new Slot(SlotType.InputSlot, kEmissionSlotName));
-            AddSlot(new Slot(SlotType.InputSlot, kMetallicSlotName));
-            AddSlot(new Slot(SlotType.InputSlot, kSmoothnessSlotName));
-            AddSlot(new Slot(SlotType.InputSlot, kOcclusion));
-            AddSlot(new Slot(SlotType.InputSlot, kAlphaSlotName));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kNormalSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSpecularSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kEmissionSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kMetallicSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSmoothnessSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kOcclusion), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlphaSlotName), null));
 
             // clear out slot names that do not match the slots 
             // we support
@@ -63,21 +63,10 @@ namespace UnityEditor.MaterialGraph
                 });
         }
 
-        private void RemoveSlotsNameNotMatching(string[] slotNames)
-        {
-            var invalidSlots = slots.Select(x => x.name).Except(slotNames);
-
-            foreach (var invalidSlot in invalidSlots)
-            {
-                Debug.LogWarningFormat("Removing Invalid Slot: {0}", invalidSlot);
-                RemoveSlot(this[invalidSlot]);
-            }
-        }
-
-        public override void Init()
+        public override void OnCreate()
         {
             name = "PixelMaster";
-            base.Init();
+            base.OnCreate();
         }
 
         private static List<BaseLightFunction> GetLightFunctions()

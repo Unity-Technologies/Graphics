@@ -5,10 +5,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Power Node")]
     class PowerNode : Function2Input
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "PowerNode";
-            base.Init();
+            base.OnCreate();;
         }
 
         protected override string GetFunctionName() { return "pow"; }

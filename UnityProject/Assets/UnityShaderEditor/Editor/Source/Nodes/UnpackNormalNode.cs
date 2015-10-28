@@ -10,9 +10,9 @@ namespace UnityEditor.MaterialGraph
             get { return false; }
         }
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();;
             name = "UnpackNormalNode";
         }
 

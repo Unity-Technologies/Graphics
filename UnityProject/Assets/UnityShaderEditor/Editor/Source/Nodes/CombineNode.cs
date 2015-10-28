@@ -5,10 +5,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Art/Combine Node")]
     class CombineNode : Function2Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "CombineNode";
-            base.Init();
+            base.OnCreate();
         }
 
         // Based on information from:

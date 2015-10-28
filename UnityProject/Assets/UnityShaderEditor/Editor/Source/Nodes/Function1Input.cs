@@ -9,12 +9,31 @@ namespace UnityEditor.MaterialGraph
         {
             get { return true; }
         }
-
-        public override void Init()
+        
+        public override void OnEnable()
         {
-            base.Init();
-            AddSlot(new Slot(SlotType.OutputSlot, GetOutputSlotName()));
-            AddSlot(new Slot(SlotType.InputSlot, GetInputSlotName()));
+            base.OnEnable();
+            AddSlot(GetInputSlot());
+            AddSlot(GetOutputSlot());
+            RemoveSlotsNameNotMatching(validSlots);
+        }
+
+        protected string[] validSlots
+        {
+            get { return new[] {GetInputSlotName(), GetOutputSlotName()}; }
+        }
+
+        protected virtual MaterialGraphSlot GetInputSlot()
+        {
+            var slot = new Slot(SlotType.InputSlot, GetInputSlotName());
+            return new MaterialGraphSlot(slot, new SlotDefaultValue(this, slot.name, GetNewSlotDefaultValue(), SlotValueType.Vector4Dynamic));
+        }
+
+        protected virtual MaterialGraphSlot GetOutputSlot()
+        {
+            var slot = new Slot(SlotType.OutputSlot, GetOutputSlotName());
+            return new MaterialGraphSlot(slot, null);
+
         }
 
         protected virtual string GetInputSlotName() {return "Input"; }

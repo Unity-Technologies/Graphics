@@ -1,26 +1,74 @@
-using System.Linq;
 using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    abstract class Function3Input : BaseMaterialNode, IGeneratesBodyCode
+    internal abstract class Function3Input : BaseMaterialNode, IGeneratesBodyCode
     {
-        public override bool hasPreview { get { return true; } }
-
-        public override void Init()
+        public override bool hasPreview
         {
-            base.Init();
-            AddSlot(new Slot(SlotType.OutputSlot, GetOutputSlotName()));
-            AddSlot(new Slot(SlotType.InputSlot, GetInputSlot1Name()));
-            AddSlot(new Slot(SlotType.InputSlot, GetInputSlot2Name()));
-            AddSlot(new Slot(SlotType.InputSlot, GetInputSlot3Name()));
+            get { return true; }
         }
 
-        protected virtual string GetInputSlot1Name() { return "Input1"; }
-        protected virtual string GetInputSlot2Name() { return "Input2"; }
-        protected virtual string GetInputSlot3Name() { return "Input3"; }
-        protected virtual string GetOutputSlotName() { return "Output"; }
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AddSlot(GetInputSlot1());
+            AddSlot(GetInputSlot2());
+            AddSlot(GetInputSlot3());
+            AddSlot(GetOutputSlot());
+            RemoveSlotsNameNotMatching(validSlots);
+        }
+
+        protected string[] validSlots
+        {
+            get { return new[] {GetInputSlot1Name(), GetInputSlot2Name(), GetInputSlot3Name(), GetOutputSlotName()}; }
+        }
+
+        protected virtual MaterialGraphSlot GetInputSlot1()
+        {
+            var slot = new Slot(SlotType.InputSlot, GetInputSlot1Name());
+            return new MaterialGraphSlot(slot, new SlotDefaultValue(this, slot.name, GetNewSlotDefaultValue(), SlotValueType.Vector4Dynamic));
+        }
+
+        protected virtual MaterialGraphSlot GetInputSlot2()
+        {
+            var slot = new Slot(SlotType.InputSlot, GetInputSlot2Name());
+            return new MaterialGraphSlot(slot, new SlotDefaultValue(this, slot.name, GetNewSlotDefaultValue(), SlotValueType.Vector4Dynamic));
+        }
+
+        protected virtual MaterialGraphSlot GetInputSlot3()
+        {
+            var slot = new Slot(SlotType.InputSlot, GetInputSlot3Name());
+            return new MaterialGraphSlot(slot, new SlotDefaultValue(this, slot.name, GetNewSlotDefaultValue(), SlotValueType.Vector4Dynamic));
+
+        }
+
+        protected virtual MaterialGraphSlot GetOutputSlot()
+        {
+            var slot = new Slot(SlotType.OutputSlot, GetOutputSlotName());
+            return new MaterialGraphSlot(slot, null);
+        }
+
+        protected virtual string GetInputSlot1Name()
+        {
+            return "Input1";
+        }
+
+        protected virtual string GetInputSlot2Name()
+        {
+            return "Input2";
+        }
+
+        protected virtual string GetInputSlot3Name()
+        {
+            return "Input3";
+        }
+
+        protected virtual string GetOutputSlotName()
+        {
+            return "Output";
+        }
 
         protected abstract string GetFunctionName();
 

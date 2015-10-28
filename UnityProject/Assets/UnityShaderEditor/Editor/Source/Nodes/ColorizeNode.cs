@@ -14,10 +14,10 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         private float m_Contrast = 1.0f;
 
-        public override void Init()
+        public override void OnCreate()
         {
             name = "ColorizeNode";
-            base.Init();
+            base.OnCreate();
         }
 
         protected override string GetFunctionName() {return ""; }

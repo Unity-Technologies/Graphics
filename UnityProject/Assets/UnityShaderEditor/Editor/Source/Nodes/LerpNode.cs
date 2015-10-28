@@ -3,10 +3,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Lerp Node")]
     class LerpNode : Function3Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "LerpNode";
-            base.Init();
+            base.OnCreate();
         }
 
         protected override string GetFunctionName() {return "unity_lerp_" + precision; }

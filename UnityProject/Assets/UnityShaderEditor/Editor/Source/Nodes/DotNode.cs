@@ -3,10 +3,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Dot Node")]
     class DotNode : Function2Input
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "DotNode";
-            base.Init();
+            base.OnCreate();;
         }
 
         protected override string GetFunctionName() { return "dot"; }

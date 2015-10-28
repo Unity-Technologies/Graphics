@@ -5,10 +5,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Reflect Node")]
     class ReflectNode : Function2Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "ReflectNode";
-            base.Init();
+            base.OnCreate();;
         }
 
         protected override string GetInputSlot1Name() {return "Normal"; }

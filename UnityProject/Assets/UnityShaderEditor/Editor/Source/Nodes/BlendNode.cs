@@ -5,10 +5,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Art/Blend Node")]
     class BlendNode : Function2Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "BlendNode";
-            base.Init();
+            base.OnCreate();
         }
 
         public enum Operation

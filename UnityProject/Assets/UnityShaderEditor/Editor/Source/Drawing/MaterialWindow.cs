@@ -100,7 +100,7 @@ namespace UnityEditor.MaterialGraph
                 return;
 
             var node = (BaseMaterialNode)CreateInstance(posObj.m_Type);
-            node.Init();
+            node.OnCreate();
             node.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, node.position.width, node.position.height);
             m_MaterialGraph.currentGraph.AddNode(node);
 

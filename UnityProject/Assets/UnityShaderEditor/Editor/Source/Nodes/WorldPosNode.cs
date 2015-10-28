@@ -14,11 +14,16 @@ namespace UnityEditor.MaterialGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();
             name = "WorldPos";
-            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), null));
         }
 
         public override string GetOutputVariableNameForSlot(Slot slot, GenerationMode generationMode)

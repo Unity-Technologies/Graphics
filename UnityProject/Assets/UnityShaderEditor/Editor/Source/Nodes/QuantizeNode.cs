@@ -3,10 +3,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Quantize Node")]
     class QuantizeNode : Function2Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "QuantizeNode";
-            base.Init();
+            base.OnCreate();;
         }
 
         protected override string GetFunctionName() {return "unity_quantize_" + precision; }

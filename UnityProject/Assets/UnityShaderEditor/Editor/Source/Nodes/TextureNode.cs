@@ -29,14 +29,18 @@ namespace UnityEditor.MaterialGraph
 
         public override bool hasPreview { get { return false; } }
 
-        public override void Init()
+        public override void OnCreate()
         {
             name = "Texture";
-            base.Init();
-            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
-            AddSlot(new Slot(SlotType.InputSlot, kUVSlotName));
+            base.OnCreate();
+           LoadTextureTypes();
+        }
 
-            LoadTextureTypes();
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kUVSlotName), null));
         }
 
         private void LoadTextureTypes()
@@ -91,12 +95,7 @@ namespace UnityEditor.MaterialGraph
 
         // Properties
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (HasBoundProperty())
-                return;
-
-            visitor.AddShaderProperty(new TexturePropertyChunk(GetPropertyName(), GetPropertyName(), m_DefaultTexture, m_TextureType, true));
-        }
+        {}
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {

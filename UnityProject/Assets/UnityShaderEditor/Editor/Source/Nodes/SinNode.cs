@@ -3,10 +3,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Sin Node")]
     class SinNode : Function1Input
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "SinNode";
-            base.Init();
+            base.OnCreate();;
         }
 
         protected override string GetFunctionName() {return "sin"; }

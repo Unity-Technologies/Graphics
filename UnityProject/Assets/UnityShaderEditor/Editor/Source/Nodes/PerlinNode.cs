@@ -17,10 +17,10 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         private float m_Frequency = 2.0f;
 
-        public override void Init()
+        public override void OnCreate()
         {
             name = "Perlin";
-            base.Init();
+            base.OnCreate();
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)

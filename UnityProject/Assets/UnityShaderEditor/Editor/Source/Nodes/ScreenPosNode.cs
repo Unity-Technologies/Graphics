@@ -9,11 +9,16 @@ namespace UnityEditor.MaterialGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public override void Init()
+        public override void OnCreate()
         {
             name = "ScreenPos";
-            base.Init();
-            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
+            base.OnCreate();
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kOutputSlotName), null));
         }
 
         public override string GetOutputVariableNameForSlot(Slot slot, GenerationMode generationMode)

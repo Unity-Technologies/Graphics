@@ -7,14 +7,21 @@ namespace UnityEditor.MaterialGraph
     [Title("Generate/Vector 4 Node")]
     class Vector4Node : PropertyNode, IGeneratesBodyCode
     {
+        private const string kOutputSlotName = "Value";
+
         [SerializeField]
         private Vector4 m_Value;
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
-            name = "V4Node";
-            AddSlot(new Slot(SlotType.OutputSlot, "Value"));
+            base.OnCreate();
+            name = "V4Node"; 
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), null));
         }
 
         public override PropertyType propertyType
@@ -23,12 +30,7 @@ namespace UnityEditor.MaterialGraph
         }
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (HasBoundProperty() || !generationMode.IsPreview())
-                return;
-
-            visitor.AddShaderProperty(new VectorPropertyChunk(GetPropertyName(), GetPropertyName(), m_Value, true));
-        }
+        {}
 
         public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
         {
