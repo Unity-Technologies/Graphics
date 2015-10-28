@@ -3,10 +3,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Div Node")]
     class DivNode : Function2Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "DivNode";
-            base.Init();
+            base.OnCreate();;
         }
 
         protected override string GetFunctionName() {return "unity_div_" + precision; }

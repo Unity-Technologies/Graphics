@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -127,10 +128,13 @@ namespace UnityEditor.MaterialGraph
         }*/
 
     [Serializable]
-    public enum DefaultSlotType
+    public enum SlotValueType
     {
-        Vector,
-        Texture
+        Vector4Dynamic,
+        Vector4,
+        Vector3,
+        Vector2,
+        Vector1
     }
 
     [Serializable]
@@ -143,11 +147,11 @@ namespace UnityEditor.MaterialGraph
             get { return m_DefaultVector; }
         }
 
-        [SerializeField]
-        private bool m_Editable;
-        public bool editable
+        [SerializeField] 
+        private SlotValueType m_SlotValueType;
+        public SlotValueType slotValueType
         {
-            get { return m_Editable; }
+            get { return m_SlotValueType; }
         }
 
         [SerializeField]
@@ -164,26 +168,23 @@ namespace UnityEditor.MaterialGraph
             get { return m_Node.GetOutputVariableNameForNode(); }
         }
 
-        public SlotDefaultValue(Vector4 value, BaseMaterialNode theNode, string theSlotName, bool isEditable)
+        public SlotDefaultValue(BaseMaterialNode node, string slotName, Vector4 value, SlotValueType valueType)
         {
-            m_Editable = isEditable;
-            m_SlotName = theSlotName;
-            m_Node = theNode;
-
+            m_SlotValueType = valueType;
             m_DefaultVector = value;
-        }
-
-        public string inputName
-        {
-            get { return nodeName + "_" + slotName; }
+            m_SlotName = slotName;
+            m_Node = node;
         }
 
         public void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
-            if (!generationMode.IsPreview())
-                return;
-
-            visitor.AddShaderProperty(new VectorPropertyChunk(inputName, inputName, m_DefaultVector, false));
+            // no need to generate a property block.
+            // we can just set the uniforms.
+        }
+ 
+        public string inputName
+        {
+            get { return nodeName + "_" + slotName; }
         }
 
         public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)

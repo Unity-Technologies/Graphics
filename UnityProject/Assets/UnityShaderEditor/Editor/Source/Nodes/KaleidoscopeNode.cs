@@ -18,14 +18,14 @@ namespace UnityEditor.MaterialGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public override void Init()
+        public override void OnCreate()
         {
             name = "KaleidoscopeNode";
-            base.Init();
-            AddSlot(new Slot(SlotType.InputSlot, kPointInputName));
-            AddSlot(new Slot(SlotType.InputSlot, kConstant1InputName));
-            AddSlot(new Slot(SlotType.InputSlot, kConstant2InputName));
-            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
+            base.OnCreate();
+           // AddSlot(new Slot(SlotType.InputSlot, kPointInputName));
+            //AddSlot(new Slot(SlotType.InputSlot, kConstant1InputName));
+            //AddSlot(new Slot(SlotType.InputSlot, kConstant2InputName));
+            //AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)

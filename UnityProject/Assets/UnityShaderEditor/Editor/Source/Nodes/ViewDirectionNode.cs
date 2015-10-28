@@ -14,11 +14,16 @@ namespace UnityEditor.MaterialGraph
             get { return PreviewMode.Preview3D; }
         }
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();
             name = "View Direction";
-            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), null));
         }
 
         public override string GetOutputVariableNameForSlot(Slot slot, GenerationMode generationMode)

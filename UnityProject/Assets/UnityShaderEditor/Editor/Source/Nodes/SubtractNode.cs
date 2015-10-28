@@ -3,9 +3,9 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Subtract Node")]
     class SubtractNode : Function2Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();;
             name = "SubtractNode";
         }
 

@@ -28,9 +28,9 @@ namespace UnityEditor.MaterialGraph
 
         public const int kMaxSlots = 16;
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();
             name = "SubGraph";
             position = new Rect(position.x, position.y, Mathf.Max(300, position.width), position.height);
         }
@@ -74,10 +74,10 @@ namespace UnityEditor.MaterialGraph
             foreach (var slot in innerOutputSlots)
             {
                 var s = current.FirstOrDefault(n => n.name == slot.name);
-                if (s == null)
-                    AddSlot(new Slot(type, slot.name, slot.title));
-                else
+                if (s != null)
                     s.title = slot.title;
+               // else
+               //     AddSlot(new Slot(type, slot.name, slot.title));
             }
 
             var danglingSlots = current.Except(innerOutputSlots, (ls, rs) =>  ls.name == rs.name).ToArray();

@@ -8,9 +8,9 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         private int m_SwizzleChannel;
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();
             name = "SplatNode";
             m_SwizzleChannel = 0;
         }

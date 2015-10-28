@@ -5,16 +5,16 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
-    public abstract class FunctionMultiInput : BaseMaterialNode, IGeneratesBodyCode
+    /*public abstract class FunctionMultiInput : BaseMaterialNode, IGeneratesBodyCode
     {
         private const string kOutputSlotName = "Output";
         private const string kBaseInputSlotName = "Input";
 
         public override bool hasPreview { get { return true; } }
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();
             AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
 
             AddSlot(new Slot(SlotType.InputSlot, GetInputSlotName(0)));
@@ -80,5 +80,5 @@ namespace UnityEditor.MaterialGraph
                 functionCall = GetFunctionName() + " (" + functionCall + ", " + inputValues[q] + ")";
             return functionCall;
         }
-    }
+    }*/
 }

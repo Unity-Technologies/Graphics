@@ -65,10 +65,7 @@ namespace UnityEditor.MaterialGraph
             SlotDefaultValue defaultValue = node.GetSlotDefaultValue(slot.name);
             if (defaultValue == null)
                 return;
-
-            if (defaultValue.editable)
-                slot.title = EditorGUILayout.TextField("Title", slot.title);
-
+            
             var def = node.GetSlotDefaultValue(slot.name);
             if (def != null && def.OnGUI())
             {

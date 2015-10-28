@@ -5,9 +5,9 @@ namespace UnityEditor.MaterialGraph
 {
     public class SubGraphOutputsNode : SubGraphIOBaseNode
     {
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();
             name = "SubGraphOutputs";
             title = "Outputs";
             position = new Rect(BaseMaterialGraphGUI.kDefaultNodeWidth * 8, BaseMaterialGraphGUI.kDefaultNodeHeight * 2, Mathf.Max(300, position.width), position.height);
@@ -15,7 +15,7 @@ namespace UnityEditor.MaterialGraph
 
         public override void AddSlot()
         {
-            AddSlot(new Slot(SlotType.InputSlot, GenerateSlotName(SlotType.InputSlot)));
+            //AddSlot(new Slot(SlotType.InputSlot, GenerateSlotName(SlotType.InputSlot)));
         }
     }
 }

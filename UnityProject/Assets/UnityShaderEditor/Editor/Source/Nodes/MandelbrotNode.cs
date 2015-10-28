@@ -17,13 +17,13 @@ namespace UnityEditor.MaterialGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public override void Init()
+        public override void OnCreate()
         {
             name = "MandelbrotNode";
-            base.Init();
-            AddSlot(new Slot(SlotType.InputSlot, kPointInputName));
-            AddSlot(new Slot(SlotType.InputSlot, kConstantInputName));
-            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
+            base.OnCreate();
+            //AddSlot(new Slot(SlotType.InputSlot, kPointInputName));
+            //AddSlot(new Slot(SlotType.InputSlot, kConstantInputName));
+            //AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)

@@ -3,10 +3,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Normalize Node")]
     class NormalizeNode : Function1Input
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "NormalizeNode";
-            base.Init();
+            base.OnCreate();;
         }
 
         protected override string GetFunctionName() { return "normalize"; }

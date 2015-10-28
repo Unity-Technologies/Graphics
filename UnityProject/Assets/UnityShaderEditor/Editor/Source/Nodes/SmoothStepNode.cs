@@ -3,9 +3,9 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/SmoothStep Node")]
     class SmoothStepNode : Function3Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();;
             name = "SmoothStepNode";
         }
 

@@ -3,10 +3,10 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Fresnel Node")]
     class FresnelNode : Function2Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "FresnelNode";
-            base.Init();
+            base.OnCreate();;
         }
 
         protected override string GetFunctionName() { return "unity_fresnel_" + precision; }

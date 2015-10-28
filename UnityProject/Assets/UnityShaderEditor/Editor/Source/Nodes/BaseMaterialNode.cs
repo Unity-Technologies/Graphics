@@ -38,6 +38,38 @@ namespace UnityEditor.MaterialGraph
         Preview3D
     }
 
+    [Serializable]
+    class SlotDefaultValueKVP
+    {
+        [SerializeField]
+        public string slotName;
+        [SerializeField]
+        public SlotDefaultValue defaultValue;
+
+        public SlotDefaultValueKVP(string slotName, SlotDefaultValue defaultValue)
+        {
+            this.slotName = slotName;
+            this.defaultValue = defaultValue;
+        }
+    } 
+    
+    public struct MaterialGraphSlot
+    {
+        public Slot slot;
+        public SlotDefaultValue defaultValue;
+
+        public MaterialGraphSlot(Slot slot, SlotDefaultValue defaultValue)
+        {
+            this.slot = slot;
+            this.defaultValue = defaultValue;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0} - {1} - {2}", slot.name, slot.isInputSlot, defaultValue);
+        }
+    }
+
     public abstract class BaseMaterialNode : Node, IGenerateProperties
     {
         #region Fields
@@ -48,7 +80,7 @@ namespace UnityEditor.MaterialGraph
         private Material m_Material;
 
         [SerializeField]
-        private List<SlotDefaultValue> m_SlotDefaultValues;
+        private List<SlotDefaultValueKVP> m_SlotDefaultValues;
         #endregion
 
         #region Properties
@@ -64,15 +96,23 @@ namespace UnityEditor.MaterialGraph
         // lookup custom slot properties
         public void SetSlotDefaultValue(string slotName, SlotDefaultValue defaultValue)
         {
-            var existingValue = m_SlotDefaultValues.FirstOrDefault(x => x.slotName == slotName);
-
-            if (existingValue != null)
-                m_SlotDefaultValues.Remove(existingValue);
+            m_SlotDefaultValues.RemoveAll(x => x.slotName == slotName);
 
             if (defaultValue == null)
                 return;
 
-            m_SlotDefaultValues.Add(defaultValue);
+            Debug.LogFormat("Configuring Default: {0} on {1}.{2}", defaultValue, this, slotName);
+            m_SlotDefaultValues.Add(new SlotDefaultValueKVP(slotName, defaultValue));
+        }
+        
+        private void UpdateDefaultSlotValueIfNull(string slotName, SlotDefaultValue defaultValue)
+        {
+            var found = m_SlotDefaultValues.FirstOrDefault(x => x.slotName == slotName);
+
+            if (found == null || found.defaultValue == null)
+                SetSlotDefaultValue(slotName, defaultValue);
+
+            m_SlotDefaultValues.Add(new SlotDefaultValueKVP(slotName, defaultValue));
         }
 
         public string precision
@@ -84,19 +124,20 @@ namespace UnityEditor.MaterialGraph
 
         public SlotDefaultValue GetSlotDefaultValue(string slotName)
         {
-            return m_SlotDefaultValues.FirstOrDefault(x => x.slotName == slotName);
+            var found = m_SlotDefaultValues.FirstOrDefault(x => x.slotName == slotName);
+            return found != null ? found.defaultValue : null;
         }
 
-        private static Shader m_DefaultPreviewShader;
+        private static Shader s_DefaultPreviewShader;
 
         protected static Shader defaultPreviewShader
         {
             get
             {
-                if (m_DefaultPreviewShader == null)
-                    m_DefaultPreviewShader = Shader.Find("Diffuse");
+                if (s_DefaultPreviewShader == null)
+                    s_DefaultPreviewShader = Shader.Find("Diffuse");
 
-                return m_DefaultPreviewShader;
+                return s_DefaultPreviewShader;
             }
         }
 
@@ -133,7 +174,7 @@ namespace UnityEditor.MaterialGraph
 
         #endregion
 
-        public virtual void Init()
+        public virtual void OnCreate()
         {
             hideFlags = HideFlags.HideInHierarchy;
         }
@@ -142,7 +183,7 @@ namespace UnityEditor.MaterialGraph
         {
             if (m_SlotDefaultValues == null)
             {
-                m_SlotDefaultValues = new List<SlotDefaultValue>();
+                m_SlotDefaultValues = new List<SlotDefaultValueKVP>();
             }
         }
 
@@ -394,23 +435,30 @@ namespace UnityEditor.MaterialGraph
         {
             return name + "_" + Math.Abs(GetInstanceID());
         }
-
         public virtual Vector4 GetNewSlotDefaultValue()
         {
             return Vector4.one;
         }
 
+        [Obsolete ("This call is not supported for Material Graph. Use: AddSlot(MaterialGraphSlot mgSlot)", true)]
         public new void AddSlot(Slot slot)
         {
-            AddSlot(slot, GetNewSlotDefaultValue());
+            throw new NotSupportedException("Material graph requires the use of: AddSlot(MaterialGraphSlot mgSlot)");
         }
-
-        public void AddSlot(Slot slot, Vector4 defaultValue)
+        
+        public void AddSlot(MaterialGraphSlot mgSlot)
         {
-            if (this[slot.name] != null)
+            if (mgSlot.slot == null)
                 return;
 
-            base.AddSlot(slot);
+            Debug.Log(mgSlot);
+
+            var slot = mgSlot.slot;
+
+            if (this[slot.name] == null)
+            {
+                base.AddSlot(slot);
+            }
 
             // slots are not serialzied but the default values are
             // because of this we need to see if the default has
@@ -418,12 +466,8 @@ namespace UnityEditor.MaterialGraph
             // if it has... do nothing.
             MaterialWindow.DebugMaterialGraph("Node ID: " + GetInstanceID());
             MaterialWindow.DebugMaterialGraph("Node Name: " + GetOutputVariableNameForNode());
-            Debug.Log("Slot name" + (slot != null ? slot.name : "Null"));
 
-            SetSlotDefaultValue(slot.name, new SlotDefaultValue(defaultValue, this, slot.name, true));
-
-            var slotthing = GetSlotDefaultValue(slot.name);
-            MaterialWindow.DebugMaterialGraph("Slot Thing: " + slotthing.inputName);
+            SetSlotDefaultValue(slot.name, mgSlot.defaultValue);
         }
 
         public override void RemoveSlot(Slot slot)
@@ -437,35 +481,23 @@ namespace UnityEditor.MaterialGraph
             var slotsToCheck = type == SlotType.InputSlot ? inputSlots.ToArray() : outputSlots.ToArray();
             string format = type == SlotType.InputSlot ? "I{0:00}" : "O{0:00}";
             int index = slotsToCheck.Length;
-            var name = string.Format(format, index);
-            if (slotsToCheck.All(x => x.name != name))
-                return name;
+            var slotName = string.Format(format, index);
+            if (slotsToCheck.All(x => x.name != slotName))
+                return slotName;
             index = 0;
             do
             {
-                name = string.Format(format, index++);
+                slotName = string.Format(format, index++);
             }
-            while (slotsToCheck.Any(x => x.name == name));
+            while (slotsToCheck.Any(x => x.name == slotName));
 
-            return name;
+            return slotName;
         }
 
         #endregion
 
         public virtual void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (!generationMode.IsPreview())
-                return;
-
-            foreach (var inputSlot in inputSlots)
-            {
-                if (inputSlot.edges.Count > 0)
-                    continue;
-
-                var defaultForSlot = GetSlotDefaultValue(inputSlot.name);
-                defaultForSlot.GeneratePropertyBlock(visitor, generationMode);
-            }
-        }
+        {}
 
         public virtual void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
@@ -478,7 +510,8 @@ namespace UnityEditor.MaterialGraph
                     continue;
 
                 var defaultForSlot = GetSlotDefaultValue(inputSlot.name);
-                defaultForSlot.GeneratePropertyUsages(visitor, generationMode);
+                if (defaultForSlot != null)
+                    defaultForSlot.GeneratePropertyUsages(visitor, generationMode);
             }
         }
 
@@ -510,9 +543,28 @@ namespace UnityEditor.MaterialGraph
             else
             {
                 var defaultValue = GetSlotDefaultValue(inputSlot.name);
+                Debug.LogFormat("Searching for {0} on {1}", inputSlot.name, this);
                 inputValue = defaultValue.GetDefaultValue(generationMode);
             }
             return inputValue;
+        }
+
+        protected void RemoveSlotsNameNotMatching(string[] slotNames)
+        {
+            var invalidSlots = slots.Select(x => x.name).Except(slotNames);
+
+            foreach (var invalidSlot in invalidSlots)
+            {
+                Debug.LogWarningFormat("Removing Invalid Slot: {0}", invalidSlot);
+                RemoveSlot(this[invalidSlot]);
+            }
+
+            var invalidSlotDefaults = m_SlotDefaultValues.Select(x => x.slotName).Except(slotNames);
+            foreach (var invalidSlot in invalidSlotDefaults.ToList())
+            {
+                Debug.LogWarningFormat("Removing Invalid Slot Default: {0}", invalidSlot);
+                m_SlotDefaultValues.RemoveAll(x => x.slotName == invalidSlot);
+            }
         }
     }
 }

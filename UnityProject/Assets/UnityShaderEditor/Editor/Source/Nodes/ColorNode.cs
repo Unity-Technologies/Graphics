@@ -13,11 +13,16 @@ namespace UnityEditor.MaterialGraph
 
         private const string kOutputSlotName = "Color";
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
+            base.OnCreate();
             name = "ColorNode";
-            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), null));
         }
 
         public override PropertyType propertyType
@@ -26,12 +31,7 @@ namespace UnityEditor.MaterialGraph
         }
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (HasBoundProperty() || !generationMode.IsPreview())
-                return;
-
-            visitor.AddShaderProperty(new ColorPropertyChunk(GetPropertyName(), GetPropertyName(), m_Color, true));
-        }
+        {}
 
         public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
         {

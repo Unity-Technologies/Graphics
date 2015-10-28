@@ -1,5 +1,4 @@
 using UnityEditor.Graphs;
-using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
@@ -8,11 +7,16 @@ namespace UnityEditor.MaterialGraph
     {
         private const string kOutputSlotName = "SinTime";
 
-        public override void Init()
+        public override void OnCreate()
         {
-            base.Init();
-            name = "Sin Time";
-            AddSlot(new Slot(SlotType.OutputSlot, kOutputSlotName));
+            base.OnCreate();
+            name = "Sin Time"; 
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), null));
         }
 
         public override bool hasPreview

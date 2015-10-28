@@ -21,7 +21,7 @@ namespace UnityEditor.MaterialGraph
                 {
                     m_PixelMasterNode = CreateInstance<PixelShaderNode>();
                     m_PixelMasterNode.hideFlags = HideFlags.HideInHierarchy;
-                    m_PixelMasterNode.Init();
+                    m_PixelMasterNode.OnCreate();
                     m_PixelMasterNode.position = new Rect(700, pixelMasterNode.position.y, pixelMasterNode.position.width, pixelMasterNode.position.height);
                     AddNode(m_PixelMasterNode);
                 }

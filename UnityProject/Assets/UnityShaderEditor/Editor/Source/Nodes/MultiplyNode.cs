@@ -3,12 +3,12 @@ using UnityEngine;
 namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Multiply Node")]
-    class MultiplyNode : FunctionMultiInput, IGeneratesFunction
+    class MultiplyNode : Function2Input, IGeneratesFunction
     {
-        public override void Init()
+        public override void OnCreate()
         {
             name = "MultiplyNode";
-            base.Init();
+            base.OnCreate();
         }
 
         protected override string GetFunctionName() { return "unity_multiply_" + precision; }
