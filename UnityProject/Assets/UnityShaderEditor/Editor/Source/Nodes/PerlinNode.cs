@@ -1,4 +1,3 @@
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -55,7 +54,7 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
-        public override void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+      /*  public override void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputSlot = FindOutputSlot(kOutputSlotName);
             if (outputSlot == null)
@@ -75,7 +74,7 @@ namespace UnityEditor.MaterialGraph
             string body = "unity_perlin_" + precision + "(" + GetPropertyName() + ", " + m_Iterations + ", " + m_Decay + ", " + m_Frequency + ", " + uvName + ".xy)";
             visitor.AddShaderChunk("float4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + body + ";", true);
         }
-
+        */
         static float Slider(string title, float value, float from, float to)
         {
             GUILayout.BeginHorizontal();

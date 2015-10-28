@@ -62,8 +62,8 @@ namespace UnityEditor.MaterialGraph
 
         private static void DoMaterialSlotUIBody(BaseMaterialNode node, Slot slot)
         {
-            SlotDefaultValue defaultValue = node.GetSlotDefaultValue(slot.name);
-            if (defaultValue == null)
+            SlotValue value = node.GetSlotDefaultValue(slot.name);
+            if (value == null)
                 return;
             
             var def = node.GetSlotDefaultValue(slot.name);

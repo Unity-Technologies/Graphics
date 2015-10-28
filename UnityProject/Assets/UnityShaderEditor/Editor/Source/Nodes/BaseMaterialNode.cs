@@ -44,29 +44,29 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         public string slotName;
         [SerializeField]
-        public SlotDefaultValue defaultValue;
+        public SlotValue value;
 
-        public SlotDefaultValueKVP(string slotName, SlotDefaultValue defaultValue)
+        public SlotDefaultValueKVP(string slotName, SlotValue value)
         {
             this.slotName = slotName;
-            this.defaultValue = defaultValue;
+            this.value = value;
         }
     } 
     
     public struct MaterialGraphSlot
     {
         public Slot slot;
-        public SlotDefaultValue defaultValue;
+        public SlotValueType valueType;
 
-        public MaterialGraphSlot(Slot slot, SlotDefaultValue defaultValue)
+        public MaterialGraphSlot(Slot slot, SlotValueType valueType)
         {
             this.slot = slot;
-            this.defaultValue = defaultValue;
+            this.valueType = valueType;
         }
 
         public override string ToString()
         {
-            return string.Format("{0} - {1} - {2}", slot.name, slot.isInputSlot, defaultValue);
+            return string.Format("{0} - {1} - {2}", slot.name, slot.isInputSlot, valueType);
         }
     }
 
@@ -94,7 +94,7 @@ namespace UnityEditor.MaterialGraph
         public bool isSelected { get; set; }
 
         // lookup custom slot properties
-        public void SetSlotDefaultValue(string slotName, SlotDefaultValue defaultValue)
+        public void SetSlotDefaultValue(string slotName, SlotValue defaultValue)
         {
             m_SlotDefaultValues.RemoveAll(x => x.slotName == slotName);
 
@@ -105,16 +105,6 @@ namespace UnityEditor.MaterialGraph
             m_SlotDefaultValues.Add(new SlotDefaultValueKVP(slotName, defaultValue));
         }
         
-        private void UpdateDefaultSlotValueIfNull(string slotName, SlotDefaultValue defaultValue)
-        {
-            var found = m_SlotDefaultValues.FirstOrDefault(x => x.slotName == slotName);
-
-            if (found == null || found.defaultValue == null)
-                SetSlotDefaultValue(slotName, defaultValue);
-
-            m_SlotDefaultValues.Add(new SlotDefaultValueKVP(slotName, defaultValue));
-        }
-
         public string precision
         {
             get { return "half"; }
@@ -122,10 +112,10 @@ namespace UnityEditor.MaterialGraph
 
         public string[] m_PrecisionNames = {"half"};
 
-        public SlotDefaultValue GetSlotDefaultValue(string slotName)
+        public SlotValue GetSlotDefaultValue(string slotName)
         {
             var found = m_SlotDefaultValues.FirstOrDefault(x => x.slotName == slotName);
-            return found != null ? found.defaultValue : null;
+            return found != null ? found.value : null;
         }
 
         private static Shader s_DefaultPreviewShader;
@@ -435,7 +425,7 @@ namespace UnityEditor.MaterialGraph
         {
             return name + "_" + Math.Abs(GetInstanceID());
         }
-        public virtual Vector4 GetNewSlotDefaultValue()
+        public virtual Vector4 GetNewSlotDefaultValue(SlotValueType type)
         {
             return Vector4.one;
         }
@@ -460,6 +450,10 @@ namespace UnityEditor.MaterialGraph
                 base.AddSlot(slot);
             }
 
+            var slotValue = GetSlotDefaultValue(slot.name);
+            if (slotValue == null || !slotValue.IsValid())
+                SetSlotDefaultValue(slot.name, new SlotValue(this, slot.name, GetNewSlotDefaultValue(mgSlot.valueType)));
+
             // slots are not serialzied but the default values are
             // because of this we need to see if the default has
             // already been set
@@ -467,7 +461,6 @@ namespace UnityEditor.MaterialGraph
             MaterialWindow.DebugMaterialGraph("Node ID: " + GetInstanceID());
             MaterialWindow.DebugMaterialGraph("Node Name: " + GetOutputVariableNameForNode());
 
-            SetSlotDefaultValue(slot.name, mgSlot.defaultValue);
         }
 
         public override void RemoveSlot(Slot slot)
@@ -508,6 +501,8 @@ namespace UnityEditor.MaterialGraph
             {
                 if (inputSlot.edges.Count > 0)
                     continue;
+
+                Debug.LogFormat("On {0} and trying to genereate for {1}", this, inputSlot);
 
                 var defaultForSlot = GetSlotDefaultValue(inputSlot.name);
                 if (defaultForSlot != null)
@@ -553,7 +548,7 @@ namespace UnityEditor.MaterialGraph
         {
             var invalidSlots = slots.Select(x => x.name).Except(slotNames);
 
-            foreach (var invalidSlot in invalidSlots)
+            foreach (var invalidSlot in invalidSlots.ToList())
             {
                 Debug.LogWarningFormat("Removing Invalid Slot: {0}", invalidSlot);
                 RemoveSlot(this[invalidSlot]);

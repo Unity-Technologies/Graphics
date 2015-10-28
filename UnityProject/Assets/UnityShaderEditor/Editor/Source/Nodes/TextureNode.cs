@@ -16,7 +16,11 @@ namespace UnityEditor.MaterialGraph
     [Title("Input/Texture Node")]
     public class TextureNode : PropertyNode, IGeneratesBodyCode, IGeneratesVertexShaderBlock, IGeneratesVertexToFragmentBlock
     {
-        protected const string kOutputSlotName = "Output";
+        protected const string kOutputSlotRGBAName = "RGBA";
+        protected const string kOutputSlotRName = "R";
+        protected const string kOutputSlotGName = "G";
+        protected const string kOutputSlotBName = "B";
+        protected const string kOutputSlotAName = "A";
         protected const string kUVSlotName = "UV";
 
         [SerializeField]
@@ -33,14 +37,26 @@ namespace UnityEditor.MaterialGraph
         {
             name = "Texture";
             base.OnCreate();
-           LoadTextureTypes();
+            LoadTextureTypes();
         }
 
         public override void OnEnable()
         {
             base.OnEnable();
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), null));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kUVSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotRGBAName), SlotValueType.Vector4));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotRName), SlotValueType.Vector1));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotGName), SlotValueType.Vector1));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotBName), SlotValueType.Vector1));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotAName), SlotValueType.Vector1));
+            
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kUVSlotName), SlotValueType.Vector2));
+
+            RemoveSlotsNameNotMatching(validSlots);
+        }
+
+        protected string[] validSlots
+        {
+            get { return new[] {kOutputSlotRGBAName, kOutputSlotRName, kOutputSlotGName, kOutputSlotBName, kOutputSlotAName, kUVSlotName}; }
         }
 
         private void LoadTextureTypes()
@@ -52,10 +68,6 @@ namespace UnityEditor.MaterialGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputSlot = FindOutputSlot(kOutputSlotName);
-            if (outputSlot == null)
-                return;
-
             var uvSlot = FindInputSlot(kUVSlotName);
             if (uvSlot == null)
                 return;
@@ -70,7 +82,31 @@ namespace UnityEditor.MaterialGraph
             string body = "tex2D (" + GetPropertyName() + ", " + uvName + ".xy)";
             if (m_TextureType == TextureType.Bump)
                 body = precision + "4(UnpackNormal(" + body + "), 0)";
-            visitor.AddShaderChunk("float4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + body + ";", true);
+            visitor.AddShaderChunk("float4 " + GetOutputVariableNameForNode() + " = " + body + ";", true);
+        }
+
+        public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
+        {
+            string slotOutput;
+            switch (s.name)
+            {
+                case kOutputSlotRName:
+                    slotOutput = ".r";
+                    break;
+                case kOutputSlotGName:
+                    slotOutput = ".g";
+                    break;
+                case kOutputSlotBName:
+                    slotOutput = ".b";
+                    break;
+                case kOutputSlotAName:
+                    slotOutput = ".a";
+                    break;
+                default:
+                    slotOutput = "";
+                    break;
+            }
+            return GetOutputVariableNameForNode() + slotOutput;
         }
 
         public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
