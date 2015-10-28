@@ -41,7 +41,7 @@ namespace UnityEditor.MaterialGraph
         public virtual string GetPropertyName()
         {
             if (m_BoundProperty == null)
-                return name + "_" + Math.Abs(GetInstanceID());
+                return name + "_" + Math.Abs(GetInstanceID()) + "_Uniform";
 
             return m_BoundProperty.name;
         }

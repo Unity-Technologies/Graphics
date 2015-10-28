@@ -16,7 +16,7 @@ namespace UnityEditor.MaterialGraph
         public override void OnEnable()
         {
             base.OnEnable();
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), SlotValueType.Vector4));
         }
 
         public override bool hasPreview

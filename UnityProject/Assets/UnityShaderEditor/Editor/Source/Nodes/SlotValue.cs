@@ -46,7 +46,7 @@ namespace UnityEditor.MaterialGraph
                     return null;
                 var properties = node[slot];
                 if (properties != null && properties.supportsDefault)
-                    return properties.defaultValue;
+                    return properties.value;
                 return null;
             }
 
@@ -78,10 +78,10 @@ namespace UnityEditor.MaterialGraph
                     return;
                 var properties = node[slot];
                 if (properties != null && properties.supportsDefault) {
-                    Object.DestroyImmediate (properties.defaultValue, true);
-                    properties.defaultValue = value;
+                    Object.DestroyImmediate (properties.value, true);
+                    properties.value = value;
                 } else {
-                    properties = new SlotProperties() {defaultValue = value};
+                    properties = new SlotProperties() {value = value};
                     slot.SetPropertiesForSlot (properties);
                 }
             }
@@ -93,13 +93,13 @@ namespace UnityEditor.MaterialGraph
                     return;
                 int index = node.m_SlotPropertiesIndexes.FindIndex (x => x == slot.name);
                 var oldValue = index > -1 ? node.m_SlotProperties[index] : null;
-                if (oldValue != null && oldValue.defaultValue != null)
-                    Object.DestroyImmediate (oldValue.defaultValue, true);
+                if (oldValue != null && oldValue.value != null)
+                    Object.DestroyImmediate (oldValue.value, true);
 
                 if (property == null && index > -1)
                 {
                     if (oldValue != null)
-                        oldValue.defaultValue = null;
+                        oldValue.value = null;
                     node.m_SlotPropertiesIndexes.RemoveAt (index);
                     node.m_SlotProperties.RemoveAt (index);
                 }
@@ -138,20 +138,13 @@ namespace UnityEditor.MaterialGraph
     }
 
     [Serializable]
-    public class SlotDefaultValue : IGenerateProperties
+    public class SlotValue : IGenerateProperties
     {
         [SerializeField]
         private Vector4 m_DefaultVector;
         public Vector4 defaultValue
         {
             get { return m_DefaultVector; }
-        }
-
-        [SerializeField] 
-        private SlotValueType m_SlotValueType;
-        public SlotValueType slotValueType
-        {
-            get { return m_SlotValueType; }
         }
 
         [SerializeField]
@@ -168,12 +161,16 @@ namespace UnityEditor.MaterialGraph
             get { return m_Node.GetOutputVariableNameForNode(); }
         }
 
-        public SlotDefaultValue(BaseMaterialNode node, string slotName, Vector4 value, SlotValueType valueType)
+        public SlotValue(BaseMaterialNode node, string slotName, Vector4 value)
         {
-            m_SlotValueType = valueType;
             m_DefaultVector = value;
             m_SlotName = slotName;
             m_Node = node;
+        }
+
+        public bool IsValid()
+        {
+            return !string.IsNullOrEmpty(m_SlotName) && m_Node != null;
         }
 
         public void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)

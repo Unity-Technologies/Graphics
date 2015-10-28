@@ -13,11 +13,6 @@ namespace UnityEditor.MaterialGraph
 
         protected override string GetFunctionName() { return "unity_multiply_" + precision; }
 
-        public override Vector4 GetNewSlotDefaultValue()
-        {
-            return Vector4.one;
-        }
-
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();

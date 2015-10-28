@@ -28,26 +28,26 @@ namespace UnityEditor.MaterialGraph
         protected virtual MaterialGraphSlot GetInputSlot1()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlot1Name());
-            return new MaterialGraphSlot(slot, new SlotDefaultValue(this, slot.name, GetNewSlotDefaultValue(), SlotValueType.Vector4Dynamic));
+            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
         }
 
         protected virtual MaterialGraphSlot GetInputSlot2()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlot2Name());
-            return new MaterialGraphSlot(slot, new SlotDefaultValue(this, slot.name, GetNewSlotDefaultValue(), SlotValueType.Vector4Dynamic));
+            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
         }
 
         protected virtual MaterialGraphSlot GetInputSlot3()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlot3Name());
-            return new MaterialGraphSlot(slot, new SlotDefaultValue(this, slot.name, GetNewSlotDefaultValue(), SlotValueType.Vector4Dynamic));
+            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
 
         }
 
         protected virtual MaterialGraphSlot GetOutputSlot()
         {
             var slot = new Slot(SlotType.OutputSlot, GetOutputSlotName());
-            return new MaterialGraphSlot(slot, null);
+            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
         }
 
         protected virtual string GetInputSlot1Name()

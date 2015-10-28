@@ -38,14 +38,14 @@ namespace UnityEditor.MaterialGraph
         {
             base.OnEnable();
 
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName), null));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kNormalSlotName), null));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSpecularSlotName), null));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kEmissionSlotName), null));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kMetallicSlotName), null));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSmoothnessSlotName), null));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kOcclusion), null));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlphaSlotName), null));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName), SlotValueType.Vector3));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kNormalSlotName), SlotValueType.Vector3));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSpecularSlotName), SlotValueType.Vector1));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kEmissionSlotName), SlotValueType.Vector3));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kMetallicSlotName), SlotValueType.Vector1));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSmoothnessSlotName), SlotValueType.Vector1));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kOcclusion), SlotValueType.Vector1));
+            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlphaSlotName), SlotValueType.Vector1));
 
             // clear out slot names that do not match the slots 
             // we support
