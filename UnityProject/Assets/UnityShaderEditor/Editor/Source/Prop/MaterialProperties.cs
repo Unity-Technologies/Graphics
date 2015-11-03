@@ -141,7 +141,7 @@ namespace UnityEditor.MaterialGraph
             foreach (var property in m_ShaderProperties)
             {
                 property.GeneratePropertyBlock(shaderProperties, generationMode);
-                property.GeneratePropertyUsages(propertyUsages, generationMode);
+                property.GeneratePropertyUsages(propertyUsages, generationMode, ConcreteSlotValueType.Vector4);
             }
         }
     }

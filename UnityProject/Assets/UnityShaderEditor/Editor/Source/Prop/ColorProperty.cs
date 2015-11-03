@@ -36,7 +36,7 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderProperty(new ColorPropertyChunk(name, m_PropertyDescription, m_DefaultColor, false));
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
             visitor.AddShaderChunk("float4 " + name + ";", true);
         }

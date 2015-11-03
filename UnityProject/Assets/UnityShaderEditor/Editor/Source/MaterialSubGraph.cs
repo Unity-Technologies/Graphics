@@ -23,6 +23,11 @@ namespace UnityEditor.MaterialGraph
         {
         }
 
+        protected override void UpdateNodeErrorState()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public new void OnEnable()
         {
             base.OnEnable();
@@ -187,10 +192,10 @@ namespace UnityEditor.MaterialGraph
                 n.GeneratePropertyBlock(visitor, generationMode);
         }
 
-        public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
             foreach (var n in GetCollectedNodes().OfType<IGenerateProperties>())
-                n.GeneratePropertyUsages(visitor, generationMode);
+                n.GeneratePropertyUsages(visitor, generationMode, slotValueType);
         }
 
         // Returns a list of preview properties that need to be set

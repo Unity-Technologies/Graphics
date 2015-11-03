@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -245,6 +246,62 @@ namespace UnityEditor.MaterialGraph
             return result;
         }
 
+        private static string AdaptNodeOutput(BaseMaterialNode node, GenerationMode mode, ConcreteSlotValueType previewChannelConcreteType)
+        {
+            var outputSlot = node.outputSlots.FirstOrDefault();
+            if (outputSlot == null)
+                return string.Empty;
+
+            var outputConcreteType = node.GetConcreteOutputSlotValueType(outputSlot);
+
+            var rawOutput = node.GetOutputVariableNameForSlot(node.outputSlots.FirstOrDefault(), mode);
+            if (outputConcreteType == previewChannelConcreteType)
+                return rawOutput;
+
+            switch (previewChannelConcreteType)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return string.Format("({0}).x", rawOutput);
+                case ConcreteSlotValueType.Vector2:
+                    switch (outputConcreteType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("half2(({0}).x, 0.0f)", rawOutput);
+                        case ConcreteSlotValueType.Vector3:
+                        case ConcreteSlotValueType.Vector4:
+                            return string.Format("half2(({0}).x, ({0}).y)", rawOutput);
+                        default:
+                            return string.Empty;
+                    }
+                case ConcreteSlotValueType.Vector3:
+                    switch (outputConcreteType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("half3(({0}).x, 0.0f, 0.0f)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("half3(({0}).x, ({0}).y, 0.0f)", rawOutput);
+                        case ConcreteSlotValueType.Vector4:
+                            return string.Format("half3(({0}).x, ({0}).y, ({0}).z)", rawOutput);
+                        default:
+                            return string.Empty;
+                    }
+                case ConcreteSlotValueType.Vector4:
+                    switch (outputConcreteType)
+                    {
+                        case ConcreteSlotValueType.Vector1:
+                            return string.Format("half4(({0}).x, 0.0f, 0.0f, 0.0f)", rawOutput);
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("half4(({0}).x, ({0}).y, 0.0f, 0.0f)", rawOutput);
+                        case ConcreteSlotValueType.Vector3:
+                            return string.Format("half4(({0}).x, ({0}).y, ({0}).z, 0.0f)", rawOutput);
+                        default:
+                            return string.Empty;
+                    }
+                default:
+                    return string.Empty;
+            }
+        }
+
         public static string GeneratePreviewShader(BaseMaterialNode node, out PreviewMode generatedShaderMode)
         {
             // figure out what kind of preview we want!
@@ -288,9 +345,8 @@ namespace UnityEditor.MaterialGraph
                     (activeNode as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(vertexShaderBlock, generationMode);
 
                 activeNode.GeneratePropertyBlock(shaderPropertiesVisitor, generationMode);
-                activeNode.GeneratePropertyUsages(shaderPropertyUsagesVisitor, generationMode);
+                activeNode.GeneratePropertyUsages(shaderPropertyUsagesVisitor, generationMode, ConcreteSlotValueType.Vector4);
             }
-
 
             if (shaderInputVisitor.numberOfChunks == 0)
             {
@@ -298,9 +354,9 @@ namespace UnityEditor.MaterialGraph
             }
 
             if (generationMode == GenerationMode.Preview2D)
-                shaderBodyVisitor.AddShaderChunk("return " + node.GetOutputVariableNameForSlot(node.outputSlots.FirstOrDefault(), generationMode) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutput(node, generationMode, ConcreteSlotValueType.Vector4) + ";", true);
             else
-                shaderBodyVisitor.AddShaderChunk("o.Emission = " + node.GetOutputVariableNameForSlot(node.outputSlots.FirstOrDefault(), generationMode) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutput(node, generationMode, ConcreteSlotValueType.Vector3) + ";", true);
 
             template = template.Replace("${ShaderName}", shaderName);
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));

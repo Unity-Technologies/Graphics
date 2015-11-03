@@ -33,7 +33,7 @@ namespace UnityEditor.MaterialGraph
         {
             get { return isAwake && nodes.Any(x => x is IRequiresTime); }
         }
-        
+
         protected abstract void RecacheActiveNodes();
 
         public override void RemoveEdge(Edge e)
@@ -45,6 +45,7 @@ namespace UnityEditor.MaterialGraph
                 return;
             
             RecacheActiveNodes();
+            UpdateNodeErrorState();
             toNode.RegeneratePreviewShaders();
         }
 
@@ -70,7 +71,7 @@ namespace UnityEditor.MaterialGraph
             // remove any inputs that exits before adding
             foreach (var edge in inputSlot.edges.ToArray())
             {
-                Debug.Log("Removing edge:" + edge);
+                Debug.Log("Removing existing edge:" + edge);
                 // call base here as we DO NOT want to
                 // do expensive shader regeneration
                 base.RemoveEdge(edge);
@@ -86,11 +87,14 @@ namespace UnityEditor.MaterialGraph
                 return newEdge;
 
             RecacheActiveNodes();
+            UpdateNodeErrorState();
             toNode.RegeneratePreviewShaders();
             fromNode.CollectChildNodesByExecutionOrder().ToList().ForEach(s => s.UpdatePreviewProperties());
 
             return newEdge;
         }
+
+        protected abstract void UpdateNodeErrorState();
 
         public override void AddNode(Node node)
         {

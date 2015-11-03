@@ -198,6 +198,9 @@ namespace UnityEditor.MaterialGraph
 
         public override bool UpdatePreviewMaterial()
         {
+            if (hasError)
+                return false;
+
             var shaderName = "Hidden/PreviewShader/" + name + "_" + Math.Abs(GetInstanceID());
             Dictionary<string, Texture> defaultTextures;
             var resultShader = ShaderGenerator.GenerateSurfaceShader(pixelGraph.owner, shaderName, true, out defaultTextures);

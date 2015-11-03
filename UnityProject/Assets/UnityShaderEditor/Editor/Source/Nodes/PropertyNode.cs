@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    public abstract class PropertyNode : BaseMaterialNode, IGenerateProperties
+    public abstract class PropertyNode : BaseMaterialNode
     {
         [SerializeField]
         private ShaderProperty m_BoundProperty;

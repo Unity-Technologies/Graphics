@@ -62,7 +62,7 @@ namespace UnityEditor.MaterialGraph
             else
             {
                 var defaultValue = GetSlotDefaultValue(inputSlot.name);
-                inputValue = defaultValue.GetDefaultValue(generationMode);
+                inputValue = defaultValue.GetDefaultValue(generationMode, concreteInputSlotValueTypes[inputSlot.name]);
             }
 
             visitor.AddShaderChunk(precision + "4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(inputValue) + ";", true);

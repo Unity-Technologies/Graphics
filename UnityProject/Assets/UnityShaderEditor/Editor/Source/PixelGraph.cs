@@ -79,7 +79,7 @@ namespace UnityEditor.MaterialGraph
                 if (node is IGenerateProperties)
                 {
                     (node as IGenerateProperties).GeneratePropertyBlock(shaderProperties, genMode);
-                    (node as IGenerateProperties).GeneratePropertyUsages(propertyUsages, genMode);
+                    (node as IGenerateProperties).GeneratePropertyUsages(propertyUsages, genMode, ConcreteSlotValueType.Vector4);
                 }
             }
 
@@ -97,6 +97,14 @@ namespace UnityEditor.MaterialGraph
                 return null;
 
             return pixelMasterNode.previewMaterial;
+        }
+
+        protected override void UpdateNodeErrorState()
+        {
+            var bmns = nodes.Where(x => x is BaseMaterialNode).Cast<BaseMaterialNode>().ToList();
+
+            foreach (var node in bmns)
+                node.errorsCalculated = false;
         }
     }
 }

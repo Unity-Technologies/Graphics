@@ -12,7 +12,7 @@ namespace UnityEditor.MaterialGraph
             set { m_DefaultVector = (Vector4)value; }
         }
 
-        public Color defaultVector
+        public Vector4 defaultVector
         {
             get { return m_DefaultVector; }
             set { m_DefaultVector = value; }
@@ -36,7 +36,7 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderProperty(new VectorPropertyChunk(name, m_PropertyDescription, m_DefaultVector, false));
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
             visitor.AddShaderChunk("float4 " + name + ";", true);
         }

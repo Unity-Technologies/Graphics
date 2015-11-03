@@ -37,9 +37,9 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
-            base.GeneratePropertyUsages(visitor, generationMode);
+            base.GeneratePropertyUsages(visitor, generationMode, slotValueType);
 
             if (!generationMode.IsPreview())
                 return;
@@ -51,7 +51,7 @@ namespace UnityEditor.MaterialGraph
 
                 var defaultValue = GetSlotDefaultValue(slot.name);
                 if (defaultValue != null)
-                    defaultValue.GeneratePropertyUsages(visitor, generationMode);
+                    defaultValue.GeneratePropertyUsages(visitor, generationMode, slotValueType);
             }
         }
 

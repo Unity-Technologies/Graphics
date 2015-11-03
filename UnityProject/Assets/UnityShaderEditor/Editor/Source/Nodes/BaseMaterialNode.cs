@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEditor.Graphs;
 using UnityEditorInternal;
 using UnityEngine;
@@ -81,6 +82,10 @@ namespace UnityEditor.MaterialGraph
 
         [SerializeField]
         private List<SlotDefaultValueKVP> m_SlotDefaultValues;
+
+        private readonly Dictionary<string, SlotValueType> m_SlotValueTypes = new Dictionary<string, SlotValueType>();
+        private readonly Dictionary<string, ConcreteSlotValueType> m_ConcreteInputSlotValueTypes = new Dictionary<string, ConcreteSlotValueType>();
+        private readonly Dictionary<string, ConcreteSlotValueType> m_ConcreteOutputSlotValueTypes = new Dictionary<string, ConcreteSlotValueType>();
         #endregion
 
         #region Properties
@@ -101,8 +106,15 @@ namespace UnityEditor.MaterialGraph
             if (defaultValue == null)
                 return;
 
-            Debug.LogFormat("Configuring Default: {0} on {1}.{2}", defaultValue, this, slotName);
             m_SlotDefaultValues.Add(new SlotDefaultValueKVP(slotName, defaultValue));
+        }
+
+        protected void SetSlotDefaultValueType(string slot, SlotValueType slotType)
+        {
+            if (string.IsNullOrEmpty(slot))
+                return;
+
+            m_SlotValueTypes.Add(slot, slotType);
         }
         
         public string precision
@@ -160,6 +172,39 @@ namespace UnityEditor.MaterialGraph
         protected virtual int previewHeight
         {
             get { return kPreviewHeight; }
+        }
+
+        public bool errorsCalculated { get; set; }
+
+        private bool m_HasError;
+        public bool hasError
+        {
+            get
+            {
+                if (!errorsCalculated)
+                    UpdateConcreteSlotValueTypes();
+                return m_HasError;
+            }
+        }
+
+        public Dictionary<string, ConcreteSlotValueType> concreteInputSlotValueTypes
+        {
+            get
+            {
+                if (!errorsCalculated)
+                    UpdateConcreteSlotValueTypes();
+                return m_ConcreteInputSlotValueTypes;
+            }
+        }
+
+        public Dictionary<string, ConcreteSlotValueType> concreteOutputSlotValueTypes
+        {
+            get
+            {
+                if (!errorsCalculated)
+                    UpdateConcreteSlotValueTypes();
+                return m_ConcreteOutputSlotValueTypes;
+            }
         }
 
         #endregion
@@ -246,6 +291,9 @@ namespace UnityEditor.MaterialGraph
         #region Previews
         public virtual bool UpdatePreviewMaterial()
         {
+            if (hasError)
+                return false;
+
             var resultShader = ShaderGenerator.GeneratePreviewShader(this, out m_GeneratedShaderMode);
             InternalUpdatePreviewShader(resultShader);
             return true;
@@ -273,8 +321,7 @@ namespace UnityEditor.MaterialGraph
         }
 
         private static Mesh[] s_Meshes = { null, null, null, null };
-
-
+        
         /// <summary>
         /// RenderPreview gets called in OnPreviewGUI. Nodes can override
         /// RenderPreview and do their own rendering to the render texture
@@ -352,6 +399,9 @@ namespace UnityEditor.MaterialGraph
                 case PropertyType.Color:
                     mat.SetColor(previewProperty.m_Name, previewProperty.m_Color);
                     break;
+                case PropertyType.Vector2:
+                    mat.SetVector(previewProperty.m_Name, previewProperty.m_Vector4);
+                    break;
                 case PropertyType.Vector4:
                     mat.SetVector(previewProperty.m_Name, previewProperty.m_Vector4);
                     break;
@@ -400,6 +450,9 @@ namespace UnityEditor.MaterialGraph
             foreach (var node in childrenNodes)
                 node.CollectPreviewMaterialProperties(pList);
 
+            if (!hasPreview)
+                return;
+
             foreach (var prop in pList)
                 SetPreviewMaterialProperty (prop, previewMaterial);
         }
@@ -440,9 +493,7 @@ namespace UnityEditor.MaterialGraph
         {
             if (mgSlot.slot == null)
                 return;
-
-            Debug.Log(mgSlot);
-
+            
             var slot = mgSlot.slot;
 
             if (this[slot.name] == null)
@@ -454,6 +505,8 @@ namespace UnityEditor.MaterialGraph
             if (slotValue == null || !slotValue.IsValid())
                 SetSlotDefaultValue(slot.name, new SlotValue(this, slot.name, GetNewSlotDefaultValue(mgSlot.valueType)));
 
+            SetSlotDefaultValueType(slot.name, mgSlot.valueType);
+
             // slots are not serialzied but the default values are
             // because of this we need to see if the default has
             // already been set
@@ -462,7 +515,7 @@ namespace UnityEditor.MaterialGraph
             MaterialWindow.DebugMaterialGraph("Node Name: " + GetOutputVariableNameForNode());
 
         }
-
+        
         public override void RemoveSlot(Slot slot)
         {
             SetSlotDefaultValue(slot.name, null);
@@ -492,7 +545,7 @@ namespace UnityEditor.MaterialGraph
         public virtual void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {}
 
-        public virtual void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public virtual void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
             if (!generationMode.IsPreview())
                 return;
@@ -501,12 +554,10 @@ namespace UnityEditor.MaterialGraph
             {
                 if (inputSlot.edges.Count > 0)
                     continue;
-
-                Debug.LogFormat("On {0} and trying to genereate for {1}", this, inputSlot);
-
+                
                 var defaultForSlot = GetSlotDefaultValue(inputSlot.name);
                 if (defaultForSlot != null)
-                    defaultForSlot.GeneratePropertyUsages(visitor, generationMode);
+                    defaultForSlot.GeneratePropertyUsages(visitor, generationMode, concreteInputSlotValueTypes[inputSlot.name]);
             }
         }
 
@@ -538,8 +589,7 @@ namespace UnityEditor.MaterialGraph
             else
             {
                 var defaultValue = GetSlotDefaultValue(inputSlot.name);
-                Debug.LogFormat("Searching for {0} on {1}", inputSlot.name, this);
-                inputValue = defaultValue.GetDefaultValue(generationMode);
+                inputValue = defaultValue.GetDefaultValue(generationMode, concreteInputSlotValueTypes[inputSlot.name]);
             }
             return inputValue;
         }
@@ -559,6 +609,177 @@ namespace UnityEditor.MaterialGraph
             {
                 Debug.LogWarningFormat("Removing Invalid Slot Default: {0}", invalidSlot);
                 m_SlotDefaultValues.RemoveAll(x => x.slotName == invalidSlot);
+            }
+        }
+        
+        public ConcreteSlotValueType GetConcreteOutputSlotValueType(Slot slot)
+        {
+            return m_ConcreteOutputSlotValueTypes[slot.name];
+        }
+        public ConcreteSlotValueType GetConcreteInputSlotValueType(Slot slot)
+        {
+            return m_ConcreteInputSlotValueTypes[slot.name];
+        }
+
+        private ConcreteSlotValueType MaximumChannels(ConcreteSlotValueType @from, ConcreteSlotValueType to)
+        {
+            // if we have a singe channel input
+            // return the other channel.
+            if (@from == ConcreteSlotValueType.Vector1 || to == ConcreteSlotValueType.Vector1)
+                return @from > to ? @from : to;
+
+            if (ImplicitConversionExists(@from, to))
+                return to;
+
+            return ConcreteSlotValueType.Error;
+        }
+
+        private static ConcreteSlotValueType ToConcreteType(SlotValueType svt)
+        {
+            switch (svt)
+            {
+                case SlotValueType.Vector1:
+                    return ConcreteSlotValueType.Vector1;
+                case SlotValueType.Vector2:
+                    return ConcreteSlotValueType.Vector2;
+                case SlotValueType.Vector3:
+                    return ConcreteSlotValueType.Vector3;
+                case SlotValueType.Vector4:
+                    return ConcreteSlotValueType.Vector4;
+            }
+            return ConcreteSlotValueType.Error;
+        }
+
+        private static bool ImplicitConversionExists (ConcreteSlotValueType from, ConcreteSlotValueType to)
+        {
+            return (from >= to);
+        }
+
+        protected virtual ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
+        {
+            var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
+            if (concreteSlotValueTypes.Any(x => x == ConcreteSlotValueType.Error))
+                return ConcreteSlotValueType.Error;
+
+            var inputTypesDistinct = concreteSlotValueTypes.Distinct().ToList();
+            switch (inputTypesDistinct.Count)
+            {
+                case 0:
+                    return ConcreteSlotValueType.Vector1;
+                case 1:
+                    return inputTypesDistinct.FirstOrDefault();
+                case 2:
+                    return MaximumChannels(inputTypesDistinct[0], inputTypesDistinct[1]);
+                default:
+                    return ConcreteSlotValueType.Error;
+            }
+        }
+
+        public void UpdateConcreteSlotValueTypes()
+        {
+            if (errorsCalculated)
+                return;
+
+            // all children nodes needs to be updated first
+            // so do that here
+            foreach (var inputSlot in inputSlots)
+            {
+                foreach (var edge in inputSlot.edges)
+                {
+                    var outputSlot = edge.fromSlot;
+                    var outputNode = (BaseMaterialNode) outputSlot.node;
+                    outputNode.UpdateConcreteSlotValueTypes();
+                }
+            }
+
+            m_ConcreteInputSlotValueTypes.Clear(); 
+            m_ConcreteOutputSlotValueTypes.Clear();
+
+            var dynamicInputSlotsToCompare = new Dictionary<string, ConcreteSlotValueType>();
+            var skippedDynamicSlots = new List<Slot>();
+            
+            // iterate the input slots
+            foreach (var inputSlot in inputSlots)
+            {
+                var inputType = m_SlotValueTypes[inputSlot.name];
+                // if there is a connection
+                if (inputSlot.edges.Count == 0)
+                {
+                    if (inputType != SlotValueType.Vector4Dynamic)
+                        m_ConcreteInputSlotValueTypes.Add(inputSlot.name, ToConcreteType(inputType));
+                    else
+                        skippedDynamicSlots.Add(inputSlot);
+                    continue;
+                }
+
+                // get the output details
+                var outputSlot = inputSlot.edges[0].fromSlot;
+                var outputNode = (BaseMaterialNode) outputSlot.node;
+                var outputConcreteType = outputNode.GetConcreteOutputSlotValueType(outputSlot);
+
+                // if we have a standard connection... just check the types work!
+                if (inputType != SlotValueType.Vector4Dynamic)
+                {
+                    var inputConcreteType = ToConcreteType(inputType);
+                    m_ConcreteInputSlotValueTypes.Add(inputSlot.name, MaximumChannels (outputConcreteType, inputConcreteType));
+                    continue;
+                }
+
+                // dynamic input... depends on output from other node.
+                // we need to compare ALL dynamic inputs to make sure they
+                // are compatable.
+                dynamicInputSlotsToCompare.Add(inputSlot.name, outputConcreteType);
+            }
+
+            // we can now figure out the dynamic type
+            // from here set all the 
+            var dynamicType = ConvertDynamicInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
+            foreach (var dynamicKvP in dynamicInputSlotsToCompare)
+                m_ConcreteInputSlotValueTypes.Add(dynamicKvP.Key, dynamicType);
+            foreach (var skippedSlot in skippedDynamicSlots)
+                m_ConcreteInputSlotValueTypes.Add(skippedSlot.name, dynamicType);
+
+            bool inputError = m_ConcreteInputSlotValueTypes.Any(x => x.Value == ConcreteSlotValueType.Error);
+
+            // configure the output slots now
+            // their type will either be the default output type
+            // or the above dynanic type for dynamic nodes
+            // or error if there is an input erro
+            foreach (var outputSlot in outputSlots)
+            {
+                if (inputError)
+                {
+                    m_ConcreteOutputSlotValueTypes.Add(outputSlot.name, ConcreteSlotValueType.Error);
+                    continue;
+                }
+
+                if (m_SlotValueTypes[outputSlot.name] == SlotValueType.Vector4Dynamic)
+                {
+                    m_ConcreteOutputSlotValueTypes.Add(outputSlot.name, dynamicType);
+                    continue;
+                }
+
+                m_ConcreteOutputSlotValueTypes.Add(outputSlot.name, ToConcreteType(m_SlotValueTypes[outputSlot.name]));
+            }
+
+            m_HasError = inputError || m_ConcreteOutputSlotValueTypes.Values.Any(x => x == ConcreteSlotValueType.Error);
+            errorsCalculated = true;
+        }
+
+        public static string ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType slotValue)
+        {
+            switch (slotValue)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return string.Empty;
+                case ConcreteSlotValueType.Vector2:
+                    return "2";
+                case ConcreteSlotValueType.Vector3:
+                    return "3";
+                case ConcreteSlotValueType.Vector4:
+                    return "4";
+                default:
+                    return "Error";
             }
         }
     }

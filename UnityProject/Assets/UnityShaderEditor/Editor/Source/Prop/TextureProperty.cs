@@ -45,7 +45,7 @@ namespace UnityEditor.MaterialGraph
                     m_DefaultTextureType, false));
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
             visitor.AddShaderChunk("sampler2D " + name + ";", true);
             visitor.AddShaderChunk("float4 " + name + "_ST;", true);

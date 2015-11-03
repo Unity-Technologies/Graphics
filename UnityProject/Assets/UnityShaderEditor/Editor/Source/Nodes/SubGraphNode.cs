@@ -130,7 +130,7 @@ namespace UnityEditor.MaterialGraph
                 var slotDefaultValue = GetSlotDefaultValue(slot.name);
                 if (slotDefaultValue != null)
                 {
-                    varValue = slotDefaultValue.GetDefaultValue(generationMode);
+                    varValue = slotDefaultValue.GetDefaultValue(generationMode, concreteInputSlotValueTypes[slot.name]);
                 }
                 bool externallyWired = slot.edges.Count > 0;
                 if (externallyWired)
@@ -192,10 +192,10 @@ namespace UnityEditor.MaterialGraph
             m_SubGraphAsset.GeneratePropertyBlock(visitor, GenerationMode.SurfaceShader);
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
-            base.GeneratePropertyUsages(visitor, generationMode);
-            m_SubGraphAsset.GeneratePropertyUsages(visitor, GenerationMode.SurfaceShader);
+            base.GeneratePropertyUsages(visitor, generationMode, slotValueType);
+            m_SubGraphAsset.GeneratePropertyUsages(visitor, GenerationMode.SurfaceShader, slotValueType);
         }
 
         protected override void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
