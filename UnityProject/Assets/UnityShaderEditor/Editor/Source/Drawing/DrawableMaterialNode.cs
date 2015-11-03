@@ -22,6 +22,7 @@ namespace UnityEditor.MaterialGraph
             m_Title = node.name;
             m_OutputType = outputType;
             m_Data = data;
+            error = node.hasError;
 
             const float yStart = 10.0f;
             var vector3 = new Vector3(5.0f, yStart, 0.0f);

@@ -136,6 +136,15 @@ namespace UnityEditor.MaterialGraph
         Vector2,
         Vector1
     }
+    
+    public enum ConcreteSlotValueType
+    {
+        Vector4 = 4,
+        Vector3 = 3,
+        Vector2 = 2,
+        Vector1 = 1,
+        Error = 0
+    }
 
     [Serializable]
     public class SlotValue : IGenerateProperties
@@ -184,20 +193,33 @@ namespace UnityEditor.MaterialGraph
             get { return nodeName + "_" + slotName; }
         }
 
-        public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk("float4 " + inputName + ";", true);
+            visitor.AddShaderChunk("float" + BaseMaterialNode.ConvertConcreteSlotValueTypeToString(slotValueType) + " " + inputName + ";", true);
         }
 
-        public string GetDefaultValue(GenerationMode generationMode)
+        public string GetDefaultValue(GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
-            if (!generationMode.IsPreview())
-                return "half4 (" + m_DefaultVector.x + "," + m_DefaultVector.y + "," + m_DefaultVector.z + "," + m_DefaultVector.w + ")";
-            else
+            if (generationMode.IsPreview()) 
                 return inputName;
+            
+            switch (slotValueType)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return m_DefaultVector.x.ToString();
+                case ConcreteSlotValueType.Vector2:
+                    return "half2 (" + m_DefaultVector.x + "," + m_DefaultVector.y + ")";
+                case ConcreteSlotValueType.Vector3:
+                    return "half3 (" + m_DefaultVector.x + "," + m_DefaultVector.y + "," + m_DefaultVector.z + ")";
+                case ConcreteSlotValueType.Vector4:
+                    return "half4 (" + m_DefaultVector.x + "," + m_DefaultVector.y + "," + m_DefaultVector.z + "," + m_DefaultVector.w + ")";
+                default:
+                    return "error";
+            }
+            return inputName;
         }
 
         public bool OnGUI()

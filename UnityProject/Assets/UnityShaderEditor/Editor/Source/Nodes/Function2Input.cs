@@ -74,12 +74,28 @@ namespace UnityEditor.MaterialGraph
 
             string input1Value = GetSlotValue(inputSlot1, generationMode);
             string input2Value = GetSlotValue(inputSlot2, generationMode);
-            visitor.AddShaderChunk(precision + "4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(input1Value, input2Value) + ";", true);
+            visitor.AddShaderChunk(precision + outputDimension + " " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(input1Value, input2Value) + ";", true);
         }
 
         protected virtual string GetFunctionCallBody(string input1Value, string input2Value)
         {
             return GetFunctionName() + " (" + input1Value + ", " + input2Value + ")";
+        }
+
+
+        public string outputDimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(concreteOutputSlotValueTypes[GetOutputSlotName()]); }
+        }
+
+        public string input1Dimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(concreteInputSlotValueTypes[GetInputSlot1Name()]); }
+        }
+
+        public string input2Dimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(concreteInputSlotValueTypes[GetInputSlot2Name()]); }
         }
     }
 }

@@ -38,7 +38,7 @@ namespace UnityEditor.MaterialGraph
             return GetPropertyName();
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
             if (HasBoundProperty() || !generationMode.IsPreview())
                 return;

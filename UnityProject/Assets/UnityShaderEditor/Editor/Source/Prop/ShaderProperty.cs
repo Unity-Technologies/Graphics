@@ -7,6 +7,7 @@ namespace UnityEditor.MaterialGraph
         Color,
         Texture2D,
         Float,
+        Vector2,
         Vector4
     }
 
@@ -30,7 +31,7 @@ namespace UnityEditor.MaterialGraph
 
         public abstract PropertyType propertyType { get; }
         public abstract void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode);
-        public abstract void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode);
+        public abstract void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType);
         public abstract string GenerateDefaultValue();
     }
 }

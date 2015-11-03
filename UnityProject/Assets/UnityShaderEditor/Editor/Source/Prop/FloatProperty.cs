@@ -36,14 +36,14 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderProperty(new FloatPropertyChunk(name, m_PropertyDescription, m_DefaultValue, false));
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
-            visitor.AddShaderChunk("float4 " + name + ";", true);
+            visitor.AddShaderChunk("float " + name + ";", true);
         }
 
         public override string GenerateDefaultValue()
         {
-            return "half4 (" + m_DefaultValue + "," + m_DefaultValue + "," + m_DefaultValue + "," + m_DefaultValue + ")";
+            return m_DefaultValue.ToString();
         }
     }
 }

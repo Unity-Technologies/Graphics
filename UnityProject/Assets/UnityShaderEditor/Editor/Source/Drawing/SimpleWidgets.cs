@@ -7,6 +7,8 @@ namespace UnityEditor.MaterialGraph
     {
         protected string m_Title = "simpleBox";
 
+        protected bool error = false;
+
         public SimpleBox(Vector2 position, float width)
         {
             translation = position;
@@ -17,7 +19,7 @@ namespace UnityEditor.MaterialGraph
         {
             Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
             Color selectedColor = new Color(1.0f, 0.7f, 0.0f, 0.7f);
-            EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), selected ? selectedColor : backgroundColor);
+            EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), error ? Color.red : selected ? selectedColor : backgroundColor);
             GUI.Label(new Rect(0, 0, scale.x, 26f), GUIContent.none, new GUIStyle("preToolbar"));
             GUI.Label(new Rect(10, 2, scale.x - 20.0f, 16.0f), m_Title, EditorStyles.toolbarTextField);
             base.Render(parentRect, canvas);
