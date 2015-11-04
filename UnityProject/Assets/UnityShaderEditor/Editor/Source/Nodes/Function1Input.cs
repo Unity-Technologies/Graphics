@@ -26,13 +26,13 @@ namespace UnityEditor.MaterialGraph
         protected virtual MaterialGraphSlot GetInputSlot()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlotName());
-            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
+            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
         }
 
         protected virtual MaterialGraphSlot GetOutputSlot()
         {
             var slot = new Slot(SlotType.OutputSlot, GetOutputSlotName());
-            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
+            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
         }
 
         protected virtual string GetInputSlotName() {return "Input"; }
@@ -65,12 +65,22 @@ namespace UnityEditor.MaterialGraph
                 inputValue = defaultValue.GetDefaultValue(generationMode, concreteInputSlotValueTypes[inputSlot.name]);
             }
 
-            visitor.AddShaderChunk(precision + "4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(inputValue) + ";", true);
+            visitor.AddShaderChunk(precision + outputDimension + " " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(inputValue) + ";", true);
         }
 
         protected virtual string GetFunctionCallBody(string inputValue)
         {
             return GetFunctionName() + " (" + inputValue + ")";
+        }
+
+        public string outputDimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(concreteOutputSlotValueTypes[GetOutputSlotName()]); }
+        }
+
+        public string input1Dimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(concreteInputSlotValueTypes[GetInputSlotName()]); }
         }
     }
 }

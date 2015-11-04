@@ -266,7 +266,7 @@ namespace UnityEditor.MaterialGraph
                     switch (outputConcreteType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("half2(({0}).x, 0.0f)", rawOutput);
+                            return string.Format("half2(({0}).x, ({0}).x)", rawOutput);
                         case ConcreteSlotValueType.Vector3:
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("half2(({0}).x, ({0}).y)", rawOutput);
@@ -277,7 +277,7 @@ namespace UnityEditor.MaterialGraph
                     switch (outputConcreteType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("half3(({0}).x, 0.0f, 0.0f)", rawOutput);
+                            return string.Format("half3(({0}).x, ({0}).x, ({0}).x)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
                             return string.Format("half3(({0}).x, ({0}).y, 0.0f)", rawOutput);
                         case ConcreteSlotValueType.Vector4:
@@ -289,7 +289,7 @@ namespace UnityEditor.MaterialGraph
                     switch (outputConcreteType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("half4(({0}).x, 0.0f, 0.0f, 0.0f)", rawOutput);
+                            return string.Format("half4(({0}).x, ({0}).x, ({0}).x, ({0}).x)", rawOutput);
                         case ConcreteSlotValueType.Vector2:
                             return string.Format("half4(({0}).x, ({0}).y, 0.0f, 0.0f)", rawOutput);
                         case ConcreteSlotValueType.Vector3:

@@ -19,7 +19,6 @@ MonoBehaviour:
   - {fileID: 11400010}
   - {fileID: 11400012}
   - {fileID: 11400014}
-  - {fileID: 11400016}
   - {fileID: 11400018}
   edges:
   - m_FromNode: {fileID: 11400006}
@@ -51,21 +50,6 @@ MonoBehaviour:
     m_ToNode: {fileID: 11400014}
     m_FromSlotName: Output
     m_ToSlotName: Input2
-    color: {r: 1, g: 1, b: 1, a: 1}
-  - m_FromNode: {fileID: 11400016}
-    m_ToNode: {fileID: 11400018}
-    m_FromSlotName: Output
-    m_ToSlotName: Input
-    color: {r: 1, g: 1, b: 1, a: 1}
-  - m_FromNode: {fileID: 11400002}
-    m_ToNode: {fileID: 11400012}
-    m_FromSlotName: O00
-    m_ToSlotName: Input0
-    color: {r: 1, g: 1, b: 1, a: 1}
-  - m_FromNode: {fileID: 11400002}
-    m_ToNode: {fileID: 11400016}
-    m_FromSlotName: O01
-    m_ToSlotName: Input
     color: {r: 1, g: 1, b: 1, a: 1}
   m_InvalidEdges: []
   m_InputsNode: {fileID: 11400002}
@@ -102,14 +86,16 @@ MonoBehaviour:
     height: 80
   showEmptySlots: 1
   m_SlotDefaultValues:
-  - m_DefaultVector: {x: 1, y: 0.5, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: O00
-    m_Node: {fileID: 11400002}
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: O01
-    m_Node: {fileID: 11400002}
+  - slotName: 
+    value:
+      m_DefaultVector: {x: 0, y: 0, z: 0, w: 0}
+      m_SlotName: 
+      m_Node: {fileID: 0}
+  - slotName: 
+    value:
+      m_DefaultVector: {x: 0, y: 0, z: 0, w: 0}
+      m_SlotName: 
+      m_Node: {fileID: 0}
   m_PrecisionNames:
   - half
 --- !u!114 &11400004
@@ -140,10 +126,11 @@ MonoBehaviour:
     height: 80
   showEmptySlots: 1
   m_SlotDefaultValues:
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: I00
-    m_Node: {fileID: 11400004}
+  - slotName: 
+    value:
+      m_DefaultVector: {x: 0, y: 0, z: 0, w: 0}
+      m_SlotName: 
+      m_Node: {fileID: 0}
   m_PrecisionNames:
   - half
 --- !u!114 &11400006
@@ -174,10 +161,16 @@ MonoBehaviour:
     height: 105
   showEmptySlots: 1
   m_SlotDefaultValues:
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: ViewDirection
-    m_Node: {fileID: 11400006}
+  - slotName: 
+    value:
+      m_DefaultVector: {x: 0, y: 0, z: 0, w: 0}
+      m_SlotName: 
+      m_Node: {fileID: 0}
+  - slotName: ViewDirection
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: ViewDirection
+      m_Node: {fileID: 11400006}
   m_PrecisionNames:
   - half
 --- !u!114 &11400008
@@ -208,10 +201,16 @@ MonoBehaviour:
     height: 105
   showEmptySlots: 1
   m_SlotDefaultValues:
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Normal
-    m_Node: {fileID: 11400008}
+  - slotName: 
+    value:
+      m_DefaultVector: {x: 0, y: 0, z: 0, w: 0}
+      m_SlotName: 
+      m_Node: {fileID: 0}
+  - slotName: Normal
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Normal
+      m_Node: {fileID: 11400008}
   m_PrecisionNames:
   - half
 --- !u!114 &11400010
@@ -250,18 +249,21 @@ MonoBehaviour:
     height: 129
   showEmptySlots: 1
   m_SlotDefaultValues:
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Output
-    m_Node: {fileID: 11400010}
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Input1
-    m_Node: {fileID: 11400010}
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Input2
-    m_Node: {fileID: 11400010}
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 11400010}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 11400010}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 11400010}
   m_PrecisionNames:
   - half
 --- !u!114 &11400012
@@ -281,12 +283,12 @@ MonoBehaviour:
     m_Name: Output
     m_DataTypeString: 
   - type: 0
-    m_Title: Input 0
-    m_Name: Input0
-    m_DataTypeString: 
-  - type: 0
     m_Title: Input 1
     m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
     m_DataTypeString: 
   m_Properties: []
   m_GenericTypeString: 
@@ -300,18 +302,21 @@ MonoBehaviour:
     height: 129
   showEmptySlots: 1
   m_SlotDefaultValues:
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Output
-    m_Node: {fileID: 11400012}
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Input0
-    m_Node: {fileID: 11400012}
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Input1
-    m_Node: {fileID: 11400012}
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 11400012}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 11400012}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 11400012}
   m_PrecisionNames:
   - half
 --- !u!114 &11400014
@@ -350,18 +355,21 @@ MonoBehaviour:
     height: 129
   showEmptySlots: 1
   m_SlotDefaultValues:
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Output
-    m_Node: {fileID: 11400014}
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Input1
-    m_Node: {fileID: 11400014}
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Input2
-    m_Node: {fileID: 11400014}
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 11400014}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 11400014}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 11400014}
   m_PrecisionNames:
   - half
 --- !u!114 &11400016
@@ -439,13 +447,15 @@ MonoBehaviour:
     height: 117
   showEmptySlots: 1
   m_SlotDefaultValues:
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Output
-    m_Node: {fileID: 11400018}
-  - m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
-    m_Editable: 1
-    m_SlotName: Input
-    m_Node: {fileID: 11400018}
+  - slotName: Input
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input
+      m_Node: {fileID: 11400018}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 11400018}
   m_PrecisionNames:
   - half

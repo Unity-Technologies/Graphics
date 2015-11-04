@@ -16,7 +16,7 @@ namespace UnityEditor.MaterialGraph
             var outputString = new ShaderGenerator();
             foreach (var precision in m_PrecisionNames)
             {
-                outputString.AddShaderChunk("inline " + precision + "4 unity_absolute_" + precision + " (" + precision + "4 arg1)", false);
+                outputString.AddShaderChunk("inline " + precision + outputDimension + " unity_absolute_" + precision + " (" + precision + outputDimension + " arg1)", false);
                 outputString.AddShaderChunk("{", false);
                 outputString.Indent();
                 outputString.AddShaderChunk("return abs(arg1);", false);

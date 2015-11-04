@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEditor.Experimental;
+using UnityEditor.Experimental.Graph;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -32,7 +33,7 @@ namespace UnityEditor.MaterialGraph
             foreach (var slot in node.inputSlots)
             {
                 pos.y += 22;
-                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data));
+                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data, Direction.eInput));
             }
             var inputYMax = pos.y + 22;
 
@@ -42,7 +43,7 @@ namespace UnityEditor.MaterialGraph
             foreach (var slot in node.outputSlots)
             {
                 pos.y += 22;
-                AddChild(new NodeOutputAnchor(pos, typeof (Vector4), slot, data));
+                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data, Direction.eOutput));
             }
             pos.y += 22;
 

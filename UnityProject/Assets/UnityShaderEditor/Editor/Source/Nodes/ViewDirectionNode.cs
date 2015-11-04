@@ -31,7 +31,7 @@ namespace UnityEditor.MaterialGraph
             if (generationMode == GenerationMode.Preview2D)
                 Debug.LogError("Trying to generate 2D preview on a node that does not support it!");
 
-            return "float4 (IN.viewDir, 1)";
+            return "IN.viewDir";
         }
 
         public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)

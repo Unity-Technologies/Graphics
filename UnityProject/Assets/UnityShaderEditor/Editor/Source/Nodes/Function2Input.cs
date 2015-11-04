@@ -28,19 +28,19 @@ namespace UnityEditor.MaterialGraph
         protected virtual MaterialGraphSlot GetInputSlot1()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlot1Name());
-            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
+            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
         }
 
         protected virtual MaterialGraphSlot GetInputSlot2()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlot2Name());
-            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
+            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
         }
 
         protected virtual MaterialGraphSlot GetOutputSlot()
         {
             var slot = new Slot(SlotType.OutputSlot, GetOutputSlotName());
-            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
+            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
         }
         
         protected virtual string GetInputSlot1Name()
@@ -59,6 +59,13 @@ namespace UnityEditor.MaterialGraph
         }
 
         protected abstract string GetFunctionName();
+
+        protected virtual string GetFunctionPrototype(string arg1Name, string arg2Name)
+        {
+            return "inline " + precision + outputDimension + " " + GetFunctionName() + " (" 
+                + precision + input1Dimension + " " + arg1Name + ", " 
+                + precision + input2Dimension + " " + arg2Name + ")";
+        }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
@@ -81,7 +88,6 @@ namespace UnityEditor.MaterialGraph
         {
             return GetFunctionName() + " (" + input1Value + ", " + input2Value + ")";
         }
-
 
         public string outputDimension
         {

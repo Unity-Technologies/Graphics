@@ -28,26 +28,25 @@ namespace UnityEditor.MaterialGraph
         protected virtual MaterialGraphSlot GetInputSlot1()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlot1Name());
-            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
+            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
         }
 
         protected virtual MaterialGraphSlot GetInputSlot2()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlot2Name());
-            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
+            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
         }
 
         protected virtual MaterialGraphSlot GetInputSlot3()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlot3Name());
-            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
-
+            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
         }
 
         protected virtual MaterialGraphSlot GetOutputSlot()
         {
             var slot = new Slot(SlotType.OutputSlot, GetOutputSlotName());
-            return new MaterialGraphSlot(slot, SlotValueType.Vector4Dynamic);
+            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
         }
 
         protected virtual string GetInputSlot1Name()
@@ -72,6 +71,14 @@ namespace UnityEditor.MaterialGraph
 
         protected abstract string GetFunctionName();
 
+        protected virtual string GetFunctionPrototype(string arg1Name, string arg2Name, string arg3Name)
+        {
+            return "inline " + precision + outputDimension + " " + GetFunctionName() + " (" 
+                + precision + input1Dimension + " " + arg1Name + ", " 
+                + precision + input2Dimension + " " + arg2Name + ", "
+                + precision + input3Dimension + " " + arg3Name + ")";
+        }
+
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputSlot = FindOutputSlot(GetOutputSlotName());
@@ -89,12 +96,37 @@ namespace UnityEditor.MaterialGraph
             string input2Value = GetSlotValue(inputSlot2, generationMode);
             string input3Value = GetSlotValue(inputSlot3, generationMode);
 
-            visitor.AddShaderChunk(precision + "4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(input1Value, input2Value, input3Value) + ";", true);
+            visitor.AddShaderChunk(precision + outputDimension + " " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(input1Value, input2Value, input3Value) + ";", true);
         }
 
         protected virtual string GetFunctionCallBody(string inputValue1, string inputValue2, string inputValue3)
         {
             return GetFunctionName() + " (" + inputValue1 + ", " + inputValue2 + ", " + inputValue3 + ")";
+        }
+
+                protected virtual string GetFunctionCallBody(string inputValue)
+        {
+            return GetFunctionName() + " (" + inputValue + ")";
+        }
+
+        public string outputDimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(concreteOutputSlotValueTypes[GetOutputSlotName()]); }
+        }
+
+        public string input1Dimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(concreteInputSlotValueTypes[GetInputSlot1Name()]); }
+        }
+
+        public string input2Dimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(concreteInputSlotValueTypes[GetInputSlot2Name()]); }
+        }
+
+        public string input3Dimension
+        {
+            get { return ConvertConcreteSlotValueTypeToString(concreteInputSlotValueTypes[GetInputSlot3Name()]); }
         }
     }
 }
