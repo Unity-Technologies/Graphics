@@ -58,17 +58,20 @@ namespace UnityEditor.MaterialGraph
         public void DeleteElement(CanvasElement e)
         {
             Debug.Log("Trying to delete " + e);
-            if (e is DrawableMaterialNode)
-            {
-                Debug.Log("Deleting node " + e + " " + ((DrawableMaterialNode) e).m_Node);
-                graph.currentGraph.RemoveNode(((DrawableMaterialNode) e).m_Node);
-            }
-            else if (e is Edge<NodeAnchor>)
+  
+            if (e is Edge<NodeAnchor>)
             {
                 //find the edge
                 var localEdge = (Edge<NodeAnchor>) e;
                 var edge = graph.currentGraph.edges.FirstOrDefault(x => x.fromSlot == localEdge.Left.m_Slot && x.toSlot == localEdge.Right.m_Slot);
+                
+                Debug.Log("Deleting edge " + edge + " " + ((DrawableMaterialNode) e).m_Node);
                 graph.currentGraph.RemoveEdge(edge);
+            }
+            else if (e is DrawableMaterialNode)
+            {
+                Debug.Log("Deleting node " + e + " " + ((DrawableMaterialNode) e).m_Node);
+                graph.currentGraph.RemoveNode(((DrawableMaterialNode) e).m_Node);
             }
 
             e.ParentCanvas().ReloadData();
