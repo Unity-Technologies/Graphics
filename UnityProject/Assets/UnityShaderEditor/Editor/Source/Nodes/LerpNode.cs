@@ -1,3 +1,5 @@
+using UnityEditor.Graphs;
+
 namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Lerp Node")]
@@ -16,7 +18,7 @@ namespace UnityEditor.MaterialGraph
             var outputString = new ShaderGenerator();
             foreach (var precision in m_PrecisionNames)
             {
-                outputString.AddShaderChunk("inline " + precision + "4 unity_lerp_" + precision + " (" + precision + "4 first, " + precision + "4 second, " + precision + "4 s)", false);
+                outputString.AddShaderChunk(GetFunctionPrototype("first", "second", "s"), false);
                 outputString.AddShaderChunk("{", false);
                 outputString.Indent();
                 outputString.AddShaderChunk("return lerp(first, second, s);", false);

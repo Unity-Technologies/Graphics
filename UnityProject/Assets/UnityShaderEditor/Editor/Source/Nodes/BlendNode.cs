@@ -22,8 +22,7 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         private float m_Blend = 0.5f;
 
-        private static readonly string[] kOpNames = new[]
-        {
+        private static readonly string[] kOpNames = {
             "normal",
             "add"
         };
@@ -37,10 +36,11 @@ namespace UnityEditor.MaterialGraph
         protected void AddOperationBody(ShaderGenerator visitor, string name, string body, string precision)
         {
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk("inline " + precision + "4 unity_blend_" + name + "_" + precision + " (" + precision + "4 arg1, " + precision + "4 arg2, " + precision + " blend)", false);
+            outputString.AddShaderChunk("inline " + precision + outputDimension +" unity_blend_" + name + "_" + precision + " (" + precision + outputDimension + " arg1, " + precision + outputDimension + " arg2, " + precision + " blend)", false);
             outputString.AddShaderChunk("{", false); outputString.Indent();
             outputString.AddShaderChunk(body, false);
-            outputString.Deindent(); outputString.AddShaderChunk("}", false);
+            outputString.Deindent();
+            outputString.AddShaderChunk("}", false);
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }

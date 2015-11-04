@@ -30,7 +30,7 @@ namespace UnityEditor.MaterialGraph
             if (generationMode == GenerationMode.Preview2D)
                 Debug.LogError("Trying to generate 2D preview on a node that does not support it!");
 
-            return generationMode.Is2DPreview() ? "half4 (IN.Normal, 1)" : "half4 (o.Normal, 1)";
+            return generationMode.Is2DPreview() ? "IN.Normal" : "o.Normal";
         }
     }
 }

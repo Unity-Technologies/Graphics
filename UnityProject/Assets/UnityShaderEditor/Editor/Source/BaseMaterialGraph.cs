@@ -77,11 +77,11 @@ namespace UnityEditor.MaterialGraph
                 base.RemoveEdge(edge);
             }
             
-            var newEdge = base.Connect(fromSlot, toSlot);
+            var newEdge = base.Connect(outputSlot, inputSlot);
             
             Debug.Log("Connected edge: " + newEdge);
-            var toNode = toSlot.node as BaseMaterialNode;
-            var fromNode = fromSlot.node as BaseMaterialNode;
+            var toNode = inputSlot.node as BaseMaterialNode;
+            var fromNode = outputSlot.node as BaseMaterialNode;
 
             if (fromNode == null || toNode == null)
                 return newEdge;

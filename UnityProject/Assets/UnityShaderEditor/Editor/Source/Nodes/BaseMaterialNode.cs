@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor.Graphs;
 using UnityEditorInternal;
 using UnityEngine;
@@ -147,6 +146,7 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
+                UpdateConcreteSlotValueTypes();
                 if (m_Material == null)
                 {
                     m_Material = new Material(defaultPreviewShader) {hideFlags = HideFlags.DontSave};
@@ -174,8 +174,15 @@ namespace UnityEditor.MaterialGraph
             get { return kPreviewHeight; }
         }
 
-        public bool errorsCalculated { get; set; }
+        [NonSerialized]
+        private bool m_ErrorsCalculated;
+        public bool errorsCalculated
+        {
+            get { return m_ErrorsCalculated; }
+            set { m_ErrorsCalculated = value; }
+        }
 
+        [NonSerialized]
         private bool m_HasError;
         public bool hasError
         {
@@ -192,7 +199,7 @@ namespace UnityEditor.MaterialGraph
             get
             {
                 if (!errorsCalculated)
-                    UpdateConcreteSlotValueTypes();
+                    UpdateConcreteSlotValueTypes(); 
                 return m_ConcreteInputSlotValueTypes;
             }
         }
@@ -614,20 +621,15 @@ namespace UnityEditor.MaterialGraph
         
         public ConcreteSlotValueType GetConcreteOutputSlotValueType(Slot slot)
         {
-            return m_ConcreteOutputSlotValueTypes[slot.name];
+            return concreteOutputSlotValueTypes[slot.name];
         }
         public ConcreteSlotValueType GetConcreteInputSlotValueType(Slot slot)
         {
-            return m_ConcreteInputSlotValueTypes[slot.name];
+            return concreteInputSlotValueTypes[slot.name];
         }
 
-        private ConcreteSlotValueType MaximumChannels(ConcreteSlotValueType @from, ConcreteSlotValueType to)
+        private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType @from, ConcreteSlotValueType to)
         {
-            // if we have a singe channel input
-            // return the other channel.
-            if (@from == ConcreteSlotValueType.Vector1 || to == ConcreteSlotValueType.Vector1)
-                return @from > to ? @from : to;
-
             if (ImplicitConversionExists(@from, to))
                 return to;
 
@@ -668,11 +670,15 @@ namespace UnityEditor.MaterialGraph
                     return ConcreteSlotValueType.Vector1;
                 case 1:
                     return inputTypesDistinct.FirstOrDefault();
-                case 2:
-                    return MaximumChannels(inputTypesDistinct[0], inputTypesDistinct[1]);
                 default:
-                    return ConcreteSlotValueType.Error;
+                    // find the 'minumum' channel width excluding 1 as it can promote
+                    inputTypesDistinct.RemoveAll(x => x == ConcreteSlotValueType.Vector1);
+                    var ordered = inputTypesDistinct.OrderBy(x => x);
+                    if (ordered.Any())
+                        return ordered.FirstOrDefault();
+                    break;
             }
+            return ConcreteSlotValueType.Error;
         }
 
         public void UpdateConcreteSlotValueTypes()
@@ -705,7 +711,7 @@ namespace UnityEditor.MaterialGraph
                 // if there is a connection
                 if (inputSlot.edges.Count == 0)
                 {
-                    if (inputType != SlotValueType.Vector4Dynamic)
+                    if (inputType != SlotValueType.Dynamic)
                         m_ConcreteInputSlotValueTypes.Add(inputSlot.name, ToConcreteType(inputType));
                     else
                         skippedDynamicSlots.Add(inputSlot);
@@ -718,10 +724,10 @@ namespace UnityEditor.MaterialGraph
                 var outputConcreteType = outputNode.GetConcreteOutputSlotValueType(outputSlot);
 
                 // if we have a standard connection... just check the types work!
-                if (inputType != SlotValueType.Vector4Dynamic)
+                if (inputType != SlotValueType.Dynamic)
                 {
                     var inputConcreteType = ToConcreteType(inputType);
-                    m_ConcreteInputSlotValueTypes.Add(inputSlot.name, MaximumChannels (outputConcreteType, inputConcreteType));
+                    m_ConcreteInputSlotValueTypes.Add(inputSlot.name, FindCommonChannelType (outputConcreteType, inputConcreteType));
                     continue;
                 }
 
@@ -753,7 +759,7 @@ namespace UnityEditor.MaterialGraph
                     continue;
                 }
 
-                if (m_SlotValueTypes[outputSlot.name] == SlotValueType.Vector4Dynamic)
+                if (m_SlotValueTypes[outputSlot.name] == SlotValueType.Dynamic)
                 {
                     m_ConcreteOutputSlotValueTypes.Add(outputSlot.name, dynamicType);
                     continue;

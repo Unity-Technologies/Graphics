@@ -130,7 +130,7 @@ namespace UnityEditor.MaterialGraph
     [Serializable]
     public enum SlotValueType
     {
-        Vector4Dynamic,
+        Dynamic,
         Vector4,
         Vector3,
         Vector2,
