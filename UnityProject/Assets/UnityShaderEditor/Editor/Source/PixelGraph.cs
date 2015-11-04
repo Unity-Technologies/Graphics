@@ -98,13 +98,5 @@ namespace UnityEditor.MaterialGraph
 
             return pixelMasterNode.previewMaterial;
         }
-
-        protected override void UpdateNodeErrorState()
-        {
-            var bmns = nodes.Where(x => x is BaseMaterialNode).Cast<BaseMaterialNode>().ToList();
-
-            foreach (var node in bmns)
-                node.errorsCalculated = false;
-        }
     }
 }

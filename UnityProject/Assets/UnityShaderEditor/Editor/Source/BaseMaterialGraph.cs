@@ -45,7 +45,7 @@ namespace UnityEditor.MaterialGraph
                 return;
             
             RecacheActiveNodes();
-            UpdateNodeErrorState();
+            InvalidateAllNodes();
             toNode.RegeneratePreviewShaders();
         }
 
@@ -87,14 +87,18 @@ namespace UnityEditor.MaterialGraph
                 return newEdge;
 
             RecacheActiveNodes();
-            UpdateNodeErrorState();
+            InvalidateAllNodes();
             toNode.RegeneratePreviewShaders();
-            fromNode.CollectChildNodesByExecutionOrder().ToList().ForEach(s => s.UpdatePreviewProperties());
-
             return newEdge;
         }
 
-        protected abstract void UpdateNodeErrorState();
+        protected virtual void InvalidateAllNodes()
+        {
+            var bmns = nodes.Where(x => x is BaseMaterialNode).Cast<BaseMaterialNode>().ToList();
+
+            foreach (var node in bmns)
+                node.InvalidateNode();
+        }
 
         public override void AddNode(Node node)
         {
