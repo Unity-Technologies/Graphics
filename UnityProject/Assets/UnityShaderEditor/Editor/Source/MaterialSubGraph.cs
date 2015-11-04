@@ -23,11 +23,6 @@ namespace UnityEditor.MaterialGraph
         {
         }
 
-        protected override void UpdateNodeErrorState()
-        {
-            throw new System.NotImplementedException();
-        }
-
         public new void OnEnable()
         {
             base.OnEnable();

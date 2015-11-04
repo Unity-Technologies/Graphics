@@ -146,7 +146,7 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                UpdateConcreteSlotValueTypes();
+                BuildValidateNode();
                 if (m_Material == null)
                 {
                     m_Material = new Material(defaultPreviewShader) {hideFlags = HideFlags.DontSave};
@@ -175,11 +175,15 @@ namespace UnityEditor.MaterialGraph
         }
 
         [NonSerialized]
-        private bool m_ErrorsCalculated;
-        public bool errorsCalculated
+        private bool m_NodeInValidState;
+        public bool nodeInValidState
         {
-            get { return m_ErrorsCalculated; }
-            set { m_ErrorsCalculated = value; }
+            get { return m_NodeInValidState; }
+        }
+
+        public void InvalidateNode()
+        {
+            m_NodeInValidState = false;
         }
 
         [NonSerialized]
@@ -188,8 +192,8 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                if (!errorsCalculated)
-                    UpdateConcreteSlotValueTypes();
+                if (!nodeInValidState)
+                    BuildValidateNode();
                 return m_HasError;
             }
         }
@@ -198,8 +202,8 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                if (!errorsCalculated)
-                    UpdateConcreteSlotValueTypes(); 
+                if (!nodeInValidState)
+                    BuildValidateNode(); 
                 return m_ConcreteInputSlotValueTypes;
             }
         }
@@ -208,8 +212,8 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                if (!errorsCalculated)
-                    UpdateConcreteSlotValueTypes();
+                if (!nodeInValidState)
+                    BuildValidateNode();
                 return m_ConcreteOutputSlotValueTypes;
             }
         }
@@ -315,16 +319,6 @@ namespace UnityEditor.MaterialGraph
             previewMaterial.shader = ShaderUtil.CreateShaderAsset(resultShader);
             UpdatePreviewProperties();
             previewMaterial.shader.hideFlags = HideFlags.DontSave;
-        }
-
-        // this function looks at all the nodes that have a
-        // dependency on this node. They will then have their
-        // preview regenerated.
-        public void RegeneratePreviewShaders()
-        {
-            CollectDependentNodes()
-            .Where(x => x.hasPreview)
-            .All(s => s.UpdatePreviewMaterial());
         }
 
         private static Mesh[] s_Meshes = { null, null, null, null };
@@ -450,15 +444,25 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
+        // this function looks at all the nodes that have a
+        // dependency on this node. They will then have their
+        // preview regenerated.
+        public void RegeneratePreviewShaders()
+        {
+            var dependentNodesWithPreview = CollectDependentNodes().Where(x => x.hasPreview);
+            foreach (var dependentNode in dependentNodesWithPreview)
+                dependentNode.UpdatePreviewMaterial();
+        }
+
         public void UpdatePreviewProperties()
         {
+            if (!hasPreview)
+                return;
+
             var childrenNodes = CollectChildNodesByExecutionOrder();
             var pList = new List<PreviewProperty>();
             foreach (var node in childrenNodes)
                 node.CollectPreviewMaterialProperties(pList);
-
-            if (!hasPreview)
-                return;
 
             foreach (var prop in pList)
                 SetPreviewMaterialProperty (prop, previewMaterial);
@@ -681,9 +685,9 @@ namespace UnityEditor.MaterialGraph
             return ConcreteSlotValueType.Error;
         }
 
-        public void UpdateConcreteSlotValueTypes()
+        public void BuildValidateNode()
         {
-            if (errorsCalculated)
+            if (nodeInValidState)
                 return;
 
             // all children nodes needs to be updated first
@@ -694,7 +698,7 @@ namespace UnityEditor.MaterialGraph
                 {
                     var outputSlot = edge.fromSlot;
                     var outputNode = (BaseMaterialNode) outputSlot.node;
-                    outputNode.UpdateConcreteSlotValueTypes();
+                    outputNode.BuildValidateNode();
                 }
             }
 
@@ -769,7 +773,7 @@ namespace UnityEditor.MaterialGraph
             }
 
             m_HasError = inputError || m_ConcreteOutputSlotValueTypes.Values.Any(x => x == ConcreteSlotValueType.Error);
-            errorsCalculated = true;
+            m_NodeInValidState = true;
         }
 
         public static string ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType slotValue)
