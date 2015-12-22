@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
@@ -120,6 +121,15 @@ namespace UnityEditor.MaterialGraph
                 GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
                 GUI.DrawTexture(m_PreviewArea, m_Node.RenderPreview(new Rect(0, 0, m_PreviewArea.width, m_PreviewArea.height)), ScaleMode.StretchToFill, false);
                 GL.sRGBWrite = false;
+            }
+        }
+        
+        public static void OnGUI(List<CanvasElement> selection)
+        {
+            foreach (var selected in selection.Where(x => x is DrawableMaterialNode).Cast<DrawableMaterialNode>())
+            {
+                selected.m_Node.OnGUI();
+                break;
             }
         }
     }

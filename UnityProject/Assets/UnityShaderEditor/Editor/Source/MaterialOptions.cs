@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -108,6 +107,9 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         private bool m_HalfAsView;
 
+        [SerializeField]
+        private bool m_Expanded;
+
         public void Init()
         {
             srcBlend = BlendMode.One;
@@ -161,19 +163,20 @@ namespace UnityEditor.MaterialGraph
         private Vector2 m_ScrollPos;
         public void DoGUI()
         {
-            m_ScrollPos = GUILayout.BeginScrollView(m_ScrollPos);
             GUILayout.BeginVertical();
+            m_Expanded = MaterialGraphStyles.Header("Options", m_Expanded);
 
-            srcBlend = (BlendMode)EditorGUILayout.EnumPopup("Src Blend", srcBlend);
-            dstBlend = (BlendMode)EditorGUILayout.EnumPopup("Dst Blend", dstBlend);
-            cullMode = (CullMode)EditorGUILayout.EnumPopup("Cull Mode", cullMode);
-            zTest = (ZTest)EditorGUILayout.EnumPopup("Z Test", zTest);
-            zWrite = (ZWrite)EditorGUILayout.EnumPopup("Z Write", zWrite);
-            renderQueue = (RenderQueue)EditorGUILayout.EnumPopup("Render Queue", renderQueue);
-            renderType = (RenderType)EditorGUILayout.EnumPopup("Render Type", renderType);
-
+            if (m_Expanded)
+            {
+                srcBlend = (BlendMode) EditorGUILayout.EnumPopup("Src Blend", srcBlend);
+                dstBlend = (BlendMode) EditorGUILayout.EnumPopup("Dst Blend", dstBlend);
+                cullMode = (CullMode) EditorGUILayout.EnumPopup("Cull Mode", cullMode);
+                zTest = (ZTest) EditorGUILayout.EnumPopup("Z Test", zTest);
+                zWrite = (ZWrite) EditorGUILayout.EnumPopup("Z Write", zWrite);
+                renderQueue = (RenderQueue) EditorGUILayout.EnumPopup("Render Queue", renderQueue);
+                renderType = (RenderType) EditorGUILayout.EnumPopup("Render Type", renderType);
+            }
             GUILayout.EndVertical();
-            GUILayout.EndScrollView();
         }
 
         public BlendMode srcBlend { get { return m_SrcBlend; } set { m_SrcBlend = value; } }

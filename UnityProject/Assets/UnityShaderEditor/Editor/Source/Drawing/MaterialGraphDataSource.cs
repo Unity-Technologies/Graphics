@@ -65,7 +65,7 @@ namespace UnityEditor.MaterialGraph
                 var localEdge = (Edge<NodeAnchor>) e;
                 var edge = graph.currentGraph.edges.FirstOrDefault(x => x.fromSlot == localEdge.Left.m_Slot && x.toSlot == localEdge.Right.m_Slot);
                 
-                Debug.Log("Deleting edge " + edge + " " + ((DrawableMaterialNode) e).m_Node);
+                Debug.Log("Deleting edge " + edge);
                 graph.currentGraph.RemoveEdge(edge);
             }
             else if (e is DrawableMaterialNode)

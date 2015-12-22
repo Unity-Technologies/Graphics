@@ -219,7 +219,6 @@ namespace UnityEditor.MaterialGraph
                 default:
                     return "error";
             }
-            return inputName;
         }
 
         public bool OnGUI()
