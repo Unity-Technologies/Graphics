@@ -96,7 +96,9 @@ namespace UnityEditor.MaterialGraph
             if (pixelMasterNode == null)
                 return null;
 
-            return pixelMasterNode.previewMaterial;
+            var material = pixelMasterNode.previewMaterial;
+            BaseMaterialNode.UpdateMaterialProperties(pixelMasterNode, material);
+            return material;
         }
     }
 }

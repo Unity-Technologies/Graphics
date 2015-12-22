@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditorInternal;
 using UnityEngine;
 
@@ -100,7 +98,7 @@ namespace UnityEditor.MaterialGraph
             if (materialGraph == null)
                 return;
 
-            UnityEngine.Material mat = materialGraph.GetMaterial();
+            Material mat = materialGraph.GetMaterial();
             m_PreviewUtility.m_Camera.transform.position = -Vector3.forward * 5;
             m_PreviewUtility.m_Camera.transform.rotation = Quaternion.identity;
             m_PreviewUtility.m_Light[0].intensity = 1.0f;

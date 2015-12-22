@@ -206,11 +206,6 @@ namespace UnityEditor.MaterialGraph
             var resultShader = ShaderGenerator.GenerateSurfaceShader(pixelGraph.owner, shaderName, true, out defaultTextures);
             m_GeneratedShaderMode = PreviewMode.Preview3D;
             InternalUpdatePreviewShader(resultShader);
-
-            //For the pixel shader node we also want to update the shader that uses it:
-            defaultTextures.Clear();
-            var shader = ShaderGenerator.GenerateSurfaceShader(pixelGraph.owner, pixelGraph.owner.name, false, out defaultTextures);
-            pixelGraph.owner.UpdateShaderSource(shader, defaultTextures);
             return true;
         }
     }

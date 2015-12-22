@@ -25,7 +25,7 @@ namespace UnityEditor.MaterialGraph
             base.Render(parentRect, canvas);
         }
     }
-
+    
     public class MoveableBox : SimpleBox
     {
         public MoveableBox(Vector2 position, float width)
@@ -33,12 +33,6 @@ namespace UnityEditor.MaterialGraph
         {
             m_Title = "Drag me!";
             AddManipulator(new Draggable());
-        }
-
-        public override void Render(Rect parentRect, Canvas2D canvas)
-        {
-            base.Render(parentRect, canvas);
-
         }
     }
 
@@ -50,11 +44,6 @@ namespace UnityEditor.MaterialGraph
             m_Title = "Resize me!";
             AddManipulator(new Resizable());
             AddManipulator(new Draggable());
-        }
-
-        public override void Render(Rect parentRect, Canvas2D canvas)
-        {
-            base.Render(parentRect, canvas);
         }
     }
 

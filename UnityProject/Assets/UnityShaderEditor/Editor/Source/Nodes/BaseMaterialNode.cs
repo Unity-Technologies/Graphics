@@ -152,7 +152,6 @@ namespace UnityEditor.MaterialGraph
                     m_Material = new Material(defaultPreviewShader) {hideFlags = HideFlags.DontSave};
                     UpdatePreviewMaterial();
                 }
-
                 return m_Material;
             }
         }
@@ -454,18 +453,23 @@ namespace UnityEditor.MaterialGraph
                 dependentNode.UpdatePreviewMaterial();
         }
 
-        public void UpdatePreviewProperties()
+        public static void UpdateMaterialProperties(BaseMaterialNode target, Material material)
         {
-            if (!hasPreview)
-                return;
-
-            var childrenNodes = CollectChildNodesByExecutionOrder();
+            var childrenNodes = target.CollectChildNodesByExecutionOrder();
             var pList = new List<PreviewProperty>();
             foreach (var node in childrenNodes)
                 node.CollectPreviewMaterialProperties(pList);
 
             foreach (var prop in pList)
-                SetPreviewMaterialProperty (prop, previewMaterial);
+                SetPreviewMaterialProperty(prop, material);
+        }
+
+        public void UpdatePreviewProperties()
+        {
+            if (!hasPreview)
+                return;
+
+            UpdateMaterialProperties(this, previewMaterial);
         }
 
         #endregion
@@ -792,5 +796,42 @@ namespace UnityEditor.MaterialGraph
                     return "Error";
             }
         }
+
+        public virtual void OnGUI()
+        {
+           EditorGUILayout.LabelField("Preview Mode: " + previewMode);
+
+            foreach (var slot in slots)
+                DoSlotUI(this, slot);
+        }
+
+        private static void DoSlotUI(BaseMaterialNode node, Slot slot)
+        {
+            GUILayout.BeginHorizontal(/*EditorStyles.inspectorBig*/);
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Slot " + slot.title, EditorStyles.largeLabel);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+
+            DoMaterialSlotUIBody(node, slot);
+        }
+
+        private static void DoMaterialSlotUIBody(BaseMaterialNode node, Slot slot)
+        {
+            SlotValue value = node.GetSlotDefaultValue(slot.name);
+            if (value == null)
+                return;
+
+            var def = node.GetSlotDefaultValue(slot.name);
+            if (def != null && def.OnGUI())
+            {
+                node.UpdatePreviewProperties();
+                node.ForwardPreviewMaterialPropertyUpdate();
+            }
+        }
     }
+
 }

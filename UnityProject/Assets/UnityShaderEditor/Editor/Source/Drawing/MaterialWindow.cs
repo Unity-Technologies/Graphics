@@ -20,6 +20,8 @@ namespace UnityEditor.MaterialGraph
         private Canvas2D m_Canvas = null;
         private EditorWindow m_HostWindow = null;
         private MaterialGraphDataSource m_DataSource;
+        private Vector2 m_ScrollPos;
+        private bool m_NodeExpanded;
 
         private bool shouldRepaint
         {
@@ -151,7 +153,26 @@ namespace UnityEditor.MaterialGraph
             }
 
             //m_Canvas.dataSource = m_ActiveGraph;
-            m_Canvas.OnGUI(this, new Rect(0, 0, position.width, position.height));
+            m_Canvas.OnGUI(this, new Rect(0, 0, position.width - 250, position.height));
+            RenderOptions(m_MaterialGraph);
+        }
+
+        public void RenderOptions(MaterialGraph graph)
+        {
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
+            m_ScrollPos = GUILayout.BeginScrollView(m_ScrollPos, EditorStyles.textArea, GUILayout.Width(250), GUILayout.ExpandHeight(true));
+            graph.materialOptions.DoGUI();
+            EditorGUILayout.Separator();
+            graph.materialProperties.DoGUI(graph.currentGraph.nodes);
+
+            m_NodeExpanded = MaterialGraphStyles.Header("Selected", m_NodeExpanded);
+            if (m_NodeExpanded)
+                DrawableMaterialNode.OnGUI(m_Canvas.Selection);
+
+            GUILayout.EndScrollView();
+            EditorGUILayout.EndHorizontal();
         }
 
         public static void DebugMaterialGraph(string s)

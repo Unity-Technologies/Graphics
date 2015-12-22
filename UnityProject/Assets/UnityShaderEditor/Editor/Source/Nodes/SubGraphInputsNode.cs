@@ -10,7 +10,7 @@ namespace UnityEditor.MaterialGraph
         {
             name = "SubGraphInputs";
             title = "Inputs";
-            position = new Rect(BaseMaterialGraphGUI.kDefaultNodeWidth * 4, BaseMaterialGraphGUI.kDefaultNodeHeight * 2, Mathf.Max(300, position.width), position.height);
+         //   position = new Rect(BaseMaterialGraphGUI.kDefaultNodeWidth * 4, BaseMaterialGraphGUI.kDefaultNodeHeight * 2, Mathf.Max(300, position.width), position.height);
             base.OnCreate();
         }
 

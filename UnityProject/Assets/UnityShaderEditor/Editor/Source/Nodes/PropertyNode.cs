@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -62,6 +63,29 @@ namespace UnityEditor.MaterialGraph
             {
                 m_BoundProperty = null;
                 RegeneratePreviewShaders();
+            }
+        }
+
+        public override void OnGUI()
+        {
+            base.OnGUI();
+            
+            // find available properties
+            var allowedBindings = FindValidPropertyBindings().ToList();
+
+            var names = new List<string> { "none" };
+            names.AddRange(allowedBindings.Select(x => x.name));
+            var currentIndex = names.IndexOf(boundProperty == null ? "none" : boundProperty.name);
+
+            EditorGUI.BeginChangeCheck();
+            currentIndex = EditorGUILayout.Popup("Bound Property", currentIndex, names.ToArray());
+            if (EditorGUI.EndChangeCheck())
+            {
+                ShaderProperty selected = null;
+                if (currentIndex > 0)
+                    selected = allowedBindings[currentIndex - 1];
+
+                BindProperty(selected, true);
             }
         }
     }

@@ -10,7 +10,7 @@ namespace UnityEditor.MaterialGraph
             base.OnCreate();
             name = "SubGraphOutputs";
             title = "Outputs";
-            position = new Rect(BaseMaterialGraphGUI.kDefaultNodeWidth * 8, BaseMaterialGraphGUI.kDefaultNodeHeight * 2, Mathf.Max(300, position.width), position.height);
+            //position = new Rect(BaseMaterialGraphGUI.kDefaultNodeWidth * 8, BaseMaterialGraphGUI.kDefaultNodeHeight * 2, Mathf.Max(300, position.width), position.height);
         }
 
         public override void AddSlot()

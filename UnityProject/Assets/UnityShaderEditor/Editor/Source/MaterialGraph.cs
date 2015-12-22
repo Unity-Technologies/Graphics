@@ -17,11 +17,12 @@ namespace UnityEditor.MaterialGraph
         private PixelGraph m_PixelGraph;
 
         [SerializeField]
-        private Shader m_Shader;
-
+        private bool m_Expanded;
+        
         public int GetShaderInstanceID()
         {
-            return m_Shader.GetInstanceID();
+            return -1;
+            //return m_Shader.GetInstanceID();
         }
 
         public MaterialProperties materialProperties { get { return m_MaterialProperties; } }
@@ -75,45 +76,20 @@ namespace UnityEditor.MaterialGraph
             m_PixelGraph.previewState = (PreviewState)sender;
         }
 
-        public void UpdateShaderSource(string src, Dictionary<string, Texture> defaultTexutres)
-        {
-            ShaderUtil.UpdateShaderAsset(m_Shader, src);
-            EditorMaterialUtility.SetShaderDefaults(m_Shader, defaultTexutres.Keys.ToArray(), defaultTexutres.Values.ToArray());
-        }
-
         public void CreateSubAssets()
         {
             AssetDatabase.AddObjectToAsset(m_MaterialProperties, this);
             AssetDatabase.AddObjectToAsset(m_MaterialOptions, this);
             AssetDatabase.AddObjectToAsset(m_PixelGraph, this);
-
-            if (m_Shader == null)
-            {
-                const string shaderSource = "Shader \"Graphs/Dummy\" {" +
-                                            "Properties { _Color (\"Main Color\", Color) = (1,1,1,0) }" +
-                                            "SubShader {" +
-                                            "    Tags { \"Queue\" = \"Transparent\" }" +
-                                            "    Pass {" +
-                                            "        Blend One One ZWrite Off ColorMask RGB" +
-                                            "        Material { Diffuse [_Color] Ambient [_Color] }" +
-                                            "        Lighting On" +
-                                            "        SetTexture [_Dummy] { combine primary double, primary }" +
-                                            "    }" +
-                                            "}" +
-                                            "}";
-
-                m_Shader = ShaderUtil.CreateShaderAsset(shaderSource);
-                m_Shader.name = name;
-                m_Shader.hideFlags = HideFlags.HideInHierarchy;
-            }
-            AssetDatabase.AddObjectToAsset(m_Shader, this);
         }
 
+
+        private Material m_Material;
         public Material GetMaterial()
         {
             if (m_PixelGraph == null)
                 return null;
-
+            
             return m_PixelGraph.GetMaterial();
         }
     }

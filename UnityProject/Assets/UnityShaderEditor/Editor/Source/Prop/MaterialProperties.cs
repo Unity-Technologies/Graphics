@@ -19,43 +19,16 @@ namespace UnityEditor.MaterialGraph
 
         [SerializeField]
         List<ShaderProperty> m_ShaderProperties = new List<ShaderProperty>();
-
+        
         [SerializeField]
-        public int previewState;
-
-        //static GUIContent[] previewOptions;
-
-        public event EventHandler OnChangePreviewState;
-
-        /*static MaterialProperties ()
-        {
-            previewOptions = Enum.GetNames (typeof (PreviewState)).Select (x => new GUIContent (x)).ToArray ();
-        }*/
-
-        public void OnEnable()
-        {
-            if (OnChangePreviewState != null)
-                OnChangePreviewState((PreviewState)previewState, null);
-        }
-
+        private bool m_Expanded;
+        
         public void DoGUI(List<Node> nodes)
         {
-            //m_ScrollPos1 = BeginArea ("Options", m_ScrollPos1);
+            m_Expanded = MaterialGraphStyles.Header("Properties", m_Expanded);
 
-            /*GUILayout.BeginHorizontal ();
-            GUILayout.Label ("Preview", EditorStyles.largeLabel);
-            EditorGUI.BeginChangeCheck ();
-            previewState = EditorGUILayout.CycleButton (previewState, previewOptions, EditorStyles.miniButton);
-            if (EditorGUI.EndChangeCheck () && OnChangePreviewState != null)
-                OnChangePreviewState ((PreviewState)previewState, null);
-            GUILayout.EndHorizontal ();*/
-
-            //EndArea ();
-
-            m_ScrollPos = BeginArea("Exposed Properties", m_ScrollPos);
-
-            if (GUILayout.Button("Add Property"))
-                AddProperty();
+            if (!m_Expanded)
+                return;
 
             var propsToRemove = new List<ShaderProperty>();
             foreach (var property in m_ShaderProperties)
@@ -67,27 +40,24 @@ namespace UnityEditor.MaterialGraph
                 if (nameChanged || valuesChanged)
                 {
                     foreach (var node in nodes.Where(x => x is PropertyNode).Cast<PropertyNode>())
-                    {
                         node.RefreshBoundProperty(property, nameChanged);
-                    }
                 }
+
                 if (GUILayout.Button("Remove"))
-                {
                     propsToRemove.Add(property);
-                }
                 EditorGUILayout.Separator();
             }
-            EndArea();
 
             foreach (var prop in propsToRemove)
             {
                 foreach (var node in nodes.Where(x => x is PropertyNode).Cast<PropertyNode>())
-                {
                     node.UnbindProperty(prop);
-                }
 
                 m_ShaderProperties.Remove(prop);
             }
+
+            if (GUILayout.Button("Add"))
+                AddProperty();
         }
 
         private void AddProperty()
@@ -106,29 +76,6 @@ namespace UnityEditor.MaterialGraph
             createdProperty.hideFlags = HideFlags.HideInHierarchy;
             m_ShaderProperties.Add(createdProperty);
             AssetDatabase.AddObjectToAsset(createdProperty, this);
-        }
-
-        static Vector2 BeginArea(string title, Vector2 scrollPos)
-        {
-            DoHeader(title);
-            scrollPos = GUILayout.BeginScrollView(scrollPos);
-            GUILayout.BeginVertical();
-            return scrollPos;
-        }
-
-        static void EndArea()
-        {
-            GUILayout.EndVertical();
-            GUILayout.EndScrollView();
-        }
-
-        static void DoHeader(string title)
-        {
-            GUILayout.BeginHorizontal(/*EditorStyles.inspectorBig*/);
-            GUILayout.BeginVertical();
-            GUILayout.Label(title, EditorStyles.largeLabel);
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
         }
 
         public IEnumerable<ShaderProperty> GetPropertiesForPropertyType(PropertyType propertyType)
