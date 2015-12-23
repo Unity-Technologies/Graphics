@@ -52,7 +52,15 @@ namespace UnityEditor.MaterialGraph
             return result.ToString();
         }
 
-        public Texture defaultTexture { get { return m_DefaultTexture; } }
+        public Texture defaultTexture
+        {
+            get
+            {
+                int i = 0;
+                ++i;
+                return m_DefaultTexture;
+            }
+        }
     }
 
     public class ColorPropertyChunk : PropertyChunk
@@ -157,14 +165,18 @@ namespace UnityEditor.MaterialGraph
             return sb.ToString();
         }
 
-        public Dictionary<string, Texture> GetDefaultTexutres()
+        public Dictionary<string, int> GetDefaultTexutres()
         {
-            var result = new Dictionary<string, Texture>();
+            var result = new Dictionary<string, int>();
 
             foreach (var prop in m_Properties.OfType<TexturePropertyChunk>())
             {
                 if (prop.propertyName != null)
-                    result.Add(prop.propertyName, prop.defaultTexture);
+                {
+                    var tex = prop.defaultTexture.GetInstanceID();
+
+                    result.Add(prop.propertyName, tex);
+                }
             }
             return result;
         }
@@ -381,13 +393,13 @@ namespace UnityEditor.MaterialGraph
             return template;
         }
 
-        public static string GenerateSurfaceShader(MaterialGraph graph, string shaderName, bool isPreview, out Dictionary<string, Texture> defaultTextures)
+        public static string GenerateSurfaceShader(MaterialGraph graph, string shaderName, bool isPreview, out Dictionary<string, int> defaultTextures)
         {
             var templateLocation = GetTemplatePath("shader.template");
 
             if (!File.Exists(templateLocation))
             {
-                defaultTextures = new Dictionary<string, Texture>();
+                defaultTextures = new Dictionary<string, int>();
                 return string.Empty;
             }
 

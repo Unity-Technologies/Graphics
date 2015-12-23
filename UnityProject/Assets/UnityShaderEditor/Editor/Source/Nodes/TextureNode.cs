@@ -131,7 +131,12 @@ namespace UnityEditor.MaterialGraph
 
         // Properties
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {}
+        {
+            if (HasBoundProperty())
+                return;
+
+            visitor.AddShaderProperty(new TexturePropertyChunk(GetPropertyName(), GetPropertyName(), m_DefaultTexture, m_TextureType, true));
+        }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {

@@ -162,6 +162,7 @@ namespace UnityEditor.MaterialGraph
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
 
+            EditorGUILayout.BeginVertical();
             m_ScrollPos = GUILayout.BeginScrollView(m_ScrollPos, EditorStyles.textArea, GUILayout.Width(250), GUILayout.ExpandHeight(true));
             graph.materialOptions.DoGUI();
             EditorGUILayout.Separator();
@@ -170,8 +171,12 @@ namespace UnityEditor.MaterialGraph
             m_NodeExpanded = MaterialGraphStyles.Header("Selected", m_NodeExpanded);
             if (m_NodeExpanded)
                 DrawableMaterialNode.OnGUI(m_Canvas.Selection);
-
+      
             GUILayout.EndScrollView();
+            if (GUILayout.Button("Export"))
+                m_DataSource.Export(false);
+
+            GUILayout.EndVertical();
             EditorGUILayout.EndHorizontal();
         }
 
