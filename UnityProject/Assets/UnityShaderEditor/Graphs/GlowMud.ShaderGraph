@@ -172,6 +172,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -736,6 +737,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -1301,6 +1303,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -1867,6 +1870,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -2433,6 +2437,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -2997,6 +3002,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -3559,6 +3565,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -4117,6 +4124,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -4679,6 +4687,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -5243,6 +5252,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -5809,6 +5819,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -6372,6 +6383,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -6937,6 +6949,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -7500,6 +7513,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -8063,6 +8077,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -8628,6 +8643,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -9191,6 +9207,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -9756,6 +9773,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -10321,6 +10339,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -10866,6 +10885,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -11431,6 +11451,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -11983,6 +12004,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -12548,6 +12570,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -13111,6 +13134,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -13675,6 +13699,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -14239,6 +14264,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -14801,6 +14827,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -15351,6 +15378,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -15915,6 +15943,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -16480,6 +16509,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -17028,6 +17058,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -17586,6 +17617,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -18137,6 +18169,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -18702,6 +18735,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -19265,6 +19299,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -19831,6 +19866,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -20397,6 +20433,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -20964,6 +21001,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -21528,6 +21566,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -22094,6 +22133,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -22657,6 +22697,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -23223,6 +23264,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -23787,6 +23829,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -24342,6 +24385,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -24906,6 +24950,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -25466,6 +25511,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -26019,6 +26065,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -26558,6 +26605,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -27122,6 +27170,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -27686,6 +27735,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -28250,6 +28300,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -28789,6 +28840,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -29353,6 +29405,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -29916,6 +29969,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -30409,6 +30463,7 @@ Shader:
           \ return col;\n}\n\n// texenvs\n//! TexEnv0: 02030000 01070004 [_Dummy]\n"
         m_AssetPath: 
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -30577,6 +30632,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -31141,6 +31197,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -31706,6 +31763,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -32272,6 +32330,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -32834,6 +32893,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -33399,6 +33459,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -33961,6 +34022,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -34525,6 +34587,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -35088,6 +35151,7 @@ Shader:
           \ UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -35654,6 +35718,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -36181,6 +36246,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -36324,6 +36390,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -36467,6 +36534,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -36612,6 +36680,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -36756,6 +36825,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -36898,6 +36968,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -37015,6 +37086,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -37159,6 +37231,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -37302,6 +37375,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -37443,6 +37517,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -37584,6 +37659,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -37728,6 +37804,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -37871,6 +37948,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -38013,6 +38091,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -38156,6 +38235,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -38298,6 +38378,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -38427,6 +38508,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -38570,6 +38652,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -38713,6 +38796,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -38855,6 +38939,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -39000,6 +39085,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -39134,6 +39220,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -39279,6 +39366,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -39421,6 +39509,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -39564,6 +39653,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -39706,6 +39796,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -39847,6 +39938,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -39989,6 +40081,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -40133,6 +40226,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -40275,6 +40369,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -40385,6 +40480,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -40528,6 +40624,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -40672,6 +40769,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -40809,6 +40907,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -40952,6 +41051,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -41062,6 +41162,7 @@ Shader:
           \ return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -41207,6 +41308,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -41350,6 +41452,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -41473,6 +41576,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -41616,6 +41720,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -41760,6 +41865,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -41904,6 +42010,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -42039,6 +42146,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -42183,6 +42291,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -42320,6 +42429,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -42450,6 +42560,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -42582,6 +42693,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -42725,6 +42837,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -42869,6 +42982,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -43012,6 +43126,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -43156,6 +43271,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -43300,6 +43416,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -43441,6 +43558,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -43583,6 +43701,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -43728,6 +43847,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -43872,6 +43992,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -44016,6 +44137,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -44155,6 +44277,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -44300,6 +44423,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -44416,6 +44540,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -44561,6 +44686,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -44704,6 +44830,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -44847,6 +44974,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -44990,6 +45118,7 @@ Shader:
           c); // apply fog\n  UNITY_OPAQUE_ALPHA(c.a);\n  return c;\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -45165,6 +45294,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -45472,6 +45602,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -45787,6 +45918,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -46105,6 +46237,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -46424,6 +46557,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -46742,6 +46876,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -47062,6 +47197,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -47379,6 +47515,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -47692,6 +47829,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -48009,6 +48147,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -48327,6 +48466,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -48645,6 +48785,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -48965,6 +49106,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -49282,6 +49424,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -49602,6 +49745,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -49920,6 +50064,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -50204,6 +50349,7 @@ Shader:
           \ outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -50523,6 +50669,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -50827,6 +50974,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -51144,6 +51292,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -51462,6 +51611,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -51781,6 +51931,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -52100,6 +52251,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -52418,6 +52570,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -52714,6 +52867,7 @@ Shader:
           \ outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -53032,6 +53186,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -53349,6 +53504,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -53662,6 +53818,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -53979,6 +54136,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -54299,6 +54457,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -54588,6 +54747,7 @@ Shader:
           \ outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -54908,6 +55068,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -55225,6 +55386,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -55542,6 +55704,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -55860,6 +56023,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -56180,6 +56344,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -56499,6 +56664,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -56817,6 +56983,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -57137,6 +57304,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -57421,6 +57589,7 @@ Shader:
           \ outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -57740,6 +57909,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -58054,6 +58224,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -58374,6 +58545,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -58693,6 +58865,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -59012,6 +59185,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -59329,6 +59503,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -59639,6 +59814,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -59945,6 +60121,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -60263,6 +60440,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -60581,6 +60759,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -60898,6 +61077,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -61218,6 +61398,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -61538,6 +61719,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -61854,6 +62036,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -62172,6 +62355,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -62491,6 +62675,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -62808,6 +62993,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -63100,6 +63286,7 @@ Shader:
           \ outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -63417,6 +63604,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -63735,6 +63923,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -64055,6 +64244,7 @@ Shader:
           UNITY_HDR_ON\n  outEmission.rgb = exp2(-outEmission.rgb);\n  #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -64374,6 +64564,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -64693,6 +64884,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -65003,6 +65195,7 @@ Shader:
           \ #endif\n  UNITY_OPAQUE_ALPHA(outDiffuse.a);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294958079
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -65249,6 +65442,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -65364,6 +65558,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -65480,6 +65675,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -65594,6 +65790,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -65709,6 +65906,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -65823,6 +66021,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -65941,6 +66140,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -66055,6 +66255,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -66169,6 +66370,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -66287,6 +66489,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -66405,6 +66608,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -66522,6 +66726,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -66629,6 +66834,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -66742,6 +66948,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -66857,6 +67064,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -66961,6 +67169,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -67075,6 +67284,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -67192,6 +67402,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -67310,6 +67521,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -67424,6 +67636,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -67539,6 +67752,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -67657,6 +67871,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -67775,6 +67990,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -67889,6 +68105,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -68003,6 +68220,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -68120,6 +68338,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -68235,6 +68454,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -68346,6 +68566,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -68464,6 +68685,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -68579,6 +68801,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -68694,6 +68917,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -68809,6 +69033,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -68925,6 +69150,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -69040,6 +69266,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -69157,6 +69384,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -69273,6 +69501,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -69371,6 +69600,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -69488,6 +69718,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -69602,6 +69833,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -69718,6 +69950,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -69829,6 +70062,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -69936,6 +70170,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -70050,6 +70285,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -70141,6 +70377,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -70255,6 +70492,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -70371,6 +70609,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -70486,6 +70725,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -70601,6 +70841,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -70717,6 +70958,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -70834,6 +71076,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -70948,6 +71191,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -71032,6 +71276,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -71148,6 +71393,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -71264,6 +71510,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -71379,6 +71626,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -71470,6 +71718,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -71586,6 +71835,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -71697,6 +71947,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -71798,6 +72049,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -71901,6 +72153,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -72017,6 +72270,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -72129,6 +72383,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -72244,6 +72499,7 @@ Shader:
           = o.Albedo;\n  metaIN.Emission = o.Emission;\n  return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -72361,6 +72617,7 @@ Shader:
           \ return UnityMetaFragment(metaIN);\n}\n\n"
         m_AssetPath: Assets/UnityShaderEditor/Graphs
         m_PlatformMask: 4294967295
+        m_HardwareTierVariantsMask: 72393
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
@@ -72409,7 +72666,7 @@ MonoBehaviour:
   m_MaterialProperties: {fileID: 11477068}
   m_MaterialOptions: {fileID: 11495838}
   m_PixelGraph: {fileID: 11443428}
-  m_Shader: {fileID: 4869196}
+  m_Expanded: 0
 --- !u!114 &11400012
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -72502,9 +72759,9 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: 1053.9392
+    x: 1055.9392
     y: -22.969591
-    width: 312.0608
+    width: 310.0608
     height: 443.9696
   showEmptySlots: 1
   m_SlotDefaultValues:
@@ -72733,9 +72990,9 @@ MonoBehaviour:
   position:
     serializedVersion: 2
     x: -2192.8857
-    y: -300.22763
+    y: -301.62698
     width: 1390.8857
-    height: 285.22763
+    height: 286.62698
   showEmptySlots: 1
   m_SlotDefaultValues:
   - slotName: 
@@ -73143,11 +73400,6 @@ MonoBehaviour:
     m_FromSlotName: Output
     m_ToSlotName: UV
     color: {r: 1, g: 1, b: 1, a: 1}
-  - m_FromNode: {fileID: 11445996}
-    m_ToNode: {fileID: 11400400}
-    m_FromSlotName: Output
-    m_ToSlotName: Emission
-    color: {r: 1, g: 1, b: 1, a: 1}
   - m_FromNode: {fileID: 11417724}
     m_ToNode: {fileID: 11470962}
     m_FromSlotName: Output
@@ -73198,11 +73450,6 @@ MonoBehaviour:
     m_FromSlotName: Output
     m_ToSlotName: Input1
     color: {r: 1, g: 1, b: 1, a: 1}
-  - m_FromNode: {fileID: 11445316}
-    m_ToNode: {fileID: 11400400}
-    m_FromSlotName: RGBA
-    m_ToSlotName: Albedo
-    color: {r: 1, g: 1, b: 1, a: 1}
   - m_FromNode: {fileID: 11472310}
     m_ToNode: {fileID: 11400400}
     m_FromSlotName: RGBA
@@ -73236,7 +73483,17 @@ MonoBehaviour:
   - m_FromNode: {fileID: 11461240}
     m_ToNode: {fileID: 11417724}
     m_FromSlotName: RGBA
-    m_ToSlotName: Input2
+    m_ToSlotName: Input1
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11445316}
+    m_ToNode: {fileID: 11400400}
+    m_FromSlotName: RGBA
+    m_ToSlotName: Albedo
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11445996}
+    m_ToNode: {fileID: 11400400}
+    m_FromSlotName: Output
+    m_ToSlotName: Emission
     color: {r: 1, g: 1, b: 1, a: 1}
   m_InvalidEdges: []
 --- !u!114 &11445316
@@ -73352,10 +73609,10 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: 594.5603
-    y: 421.239
-    width: -100.5603
-    height: 235.76099
+    x: 598.6916
+    y: 429.5013
+    width: -104.69159
+    height: 227.49869
   showEmptySlots: 1
   m_SlotDefaultValues:
   - slotName: Input1
@@ -73483,10 +73740,10 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: -2191.899
-    y: -399.64313
-    width: -94.51318
-    height: -131.48297
+    x: -2194.6567
+    y: -403.09222
+    width: -91.75537
+    height: -128.03387
   showEmptySlots: 1
   m_SlotDefaultValues:
   - slotName: Value
@@ -73540,10 +73797,10 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: -284.10104
-    y: 20.946762
-    width: 737.10095
-    height: 250.05312
+    x: -288.10104
+    y: 22.946762
+    width: 741.10095
+    height: 248.05312
   showEmptySlots: 1
   m_SlotDefaultValues:
   - slotName: RGBA
@@ -73826,10 +74083,10 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: -277.83142
-    y: -723.366
-    width: 730.83154
-    height: 706.366
+    x: -276.83142
+    y: -724.366
+    width: 729.83154
+    height: 707.366
   showEmptySlots: 1
   m_SlotDefaultValues:
   - slotName: RGBA
@@ -73894,7 +74151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ShaderProperties:
   - {fileID: 11475776}
-  previewState: 0
+  m_Expanded: 0
 --- !u!114 &11480530
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -74082,6 +74339,7 @@ MonoBehaviour:
   m_NoForwardAdd: 0
   m_ApproxView: 0
   m_HalfAsView: 0
+  m_Expanded: 0
 --- !u!114 &11497078
 MonoBehaviour:
   m_ObjectHideFlags: 1

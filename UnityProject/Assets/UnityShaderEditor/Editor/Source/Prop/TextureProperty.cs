@@ -41,8 +41,7 @@ namespace UnityEditor.MaterialGraph
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderProperty(new TexturePropertyChunk(name, m_PropertyDescription, m_DefaultTexture,
-                    m_DefaultTextureType, false));
+            visitor.AddShaderProperty(new TexturePropertyChunk(name, m_PropertyDescription, m_DefaultTexture, m_DefaultTextureType, false));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)

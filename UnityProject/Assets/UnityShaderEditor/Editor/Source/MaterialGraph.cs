@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -82,8 +83,7 @@ namespace UnityEditor.MaterialGraph
             AssetDatabase.AddObjectToAsset(m_MaterialOptions, this);
             AssetDatabase.AddObjectToAsset(m_PixelGraph, this);
         }
-
-
+        
         private Material m_Material;
         public Material GetMaterial()
         {
@@ -91,6 +91,35 @@ namespace UnityEditor.MaterialGraph
                 return null;
             
             return m_PixelGraph.GetMaterial();
+        }
+
+        public void ExportShader(string path)
+        {
+            Dictionary<string, int> defaultTextures;
+            var shaderString = ShaderGenerator.GenerateSurfaceShader(this, name, false, out defaultTextures);
+            File.WriteAllText(path, shaderString);
+            AssetDatabase.Refresh(); // Investigate if this is optimal
+
+            var shader = AssetDatabase.LoadAssetAtPath(path, typeof(Shader)) as Shader;
+            if (shader == null)
+                return;
+
+            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
+            if (shaderImporter == null)
+                return;
+
+            var textureNames = new List<string>();
+            var textures = new List<Texture>();
+            foreach (var textureInfo in defaultTextures)
+            {
+                var texture = EditorUtility.InstanceIDToObject(textureInfo.Value) as Texture;
+                if (texture == null)
+                    continue;
+                textureNames.Add(textureInfo.Key);
+                textures.Add(texture);
+            }
+            shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
+            shaderImporter.SaveAndReimport();
         }
     }
 }
