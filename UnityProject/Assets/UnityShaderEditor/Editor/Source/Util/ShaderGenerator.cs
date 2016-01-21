@@ -29,12 +29,14 @@ namespace UnityEditor.MaterialGraph
     {
         private readonly Texture m_DefaultTexture;
         private readonly TextureType m_DefaultTextureType;
+        private readonly bool m_Modifiable;
 
-        public TexturePropertyChunk(string propertyName, string propertyDescription, Texture defaultTexture, TextureType defaultTextureType, bool hidden)
+        public TexturePropertyChunk(string propertyName, string propertyDescription, Texture defaultTexture, TextureType defaultTextureType, bool hidden, bool modifiable)
             : base(propertyName, propertyDescription, hidden)
         {
             m_DefaultTexture = defaultTexture;
             m_DefaultTextureType = defaultTextureType;
+	        m_Modifiable = modifiable;
         }
 
         public override string GetPropertyString()
@@ -42,6 +44,8 @@ namespace UnityEditor.MaterialGraph
             var result = new StringBuilder();
             if (m_Hidden)
                 result.Append("[HideInInspector] ");
+            if (!m_Modifiable)
+                result.Append("[NonModifiableTextureData] ");
 
             result.Append(m_PropertyName);
             result.Append("(\"");
@@ -56,9 +60,14 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                int i = 0;
-                ++i;
                 return m_DefaultTexture;
+            }
+        }
+        public bool modifiable
+        {
+            get
+            {
+                return m_Modifiable;
             }
         }
     }
@@ -143,6 +152,13 @@ namespace UnityEditor.MaterialGraph
 
     public class PropertyGenerator
     {
+        public struct TextureInfo
+        {
+            public string name;
+            public int textureId;
+            public bool modifiable;
+        }
+
         private readonly List<PropertyChunk> m_Properties = new List<PropertyChunk>();
 
         public void AddShaderProperty(PropertyChunk chunk)
@@ -165,17 +181,21 @@ namespace UnityEditor.MaterialGraph
             return sb.ToString();
         }
 
-        public Dictionary<string, int> GetDefaultTexutres()
+        public List<TextureInfo> GetConfiguredTexutres()
         {
-            var result = new Dictionary<string, int>();
+            var result = new List<TextureInfo>();
 
             foreach (var prop in m_Properties.OfType<TexturePropertyChunk>())
             {
                 if (prop.propertyName != null)
                 {
-                    var tex = prop.defaultTexture.GetInstanceID();
-
-                    result.Add(prop.propertyName, tex);
+                    var textureInfo = new TextureInfo
+                    {
+                        name = prop.propertyName,
+                        textureId = prop.defaultTexture.GetInstanceID(),
+                        modifiable = prop.modifiable
+                    };
+                    result.Add(textureInfo);
                 }
             }
             return result;
@@ -393,13 +413,13 @@ namespace UnityEditor.MaterialGraph
             return template;
         }
 
-        public static string GenerateSurfaceShader(MaterialGraph graph, string shaderName, bool isPreview, out Dictionary<string, int> defaultTextures)
+        public static string GenerateSurfaceShader(MaterialGraph graph, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTxtures)
         {
             var templateLocation = GetTemplatePath("shader.template");
 
             if (!File.Exists(templateLocation))
             {
-                defaultTextures = new Dictionary<string, int>();
+                configuredTxtures = new List<PropertyGenerator.TextureInfo>();
                 return string.Empty;
             }
 
@@ -473,7 +493,7 @@ namespace UnityEditor.MaterialGraph
             MaterialWindow.DebugMaterialGraph("----------Shader-----------");
             MaterialWindow.DebugMaterialGraph(resultShader);
             
-            defaultTextures = shaderPropertiesVisitor.GetDefaultTexutres();
+            configuredTxtures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return resultShader;
         }
 

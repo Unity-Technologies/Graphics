@@ -95,11 +95,11 @@ namespace UnityEditor.MaterialGraph
 
         public void ExportShader(string path)
         {
-            Dictionary<string, int> defaultTextures;
-            var shaderString = ShaderGenerator.GenerateSurfaceShader(this, name, false, out defaultTextures);
+            List<PropertyGenerator.TextureInfo> configuredTextures;
+            var shaderString = ShaderGenerator.GenerateSurfaceShader(this, name, false, out configuredTextures);
             File.WriteAllText(path, shaderString);
             AssetDatabase.Refresh(); // Investigate if this is optimal
-
+             
             var shader = AssetDatabase.LoadAssetAtPath(path, typeof(Shader)) as Shader;
             if (shader == null)
                 return;
@@ -110,15 +110,28 @@ namespace UnityEditor.MaterialGraph
 
             var textureNames = new List<string>();
             var textures = new List<Texture>();
-            foreach (var textureInfo in defaultTextures)
+            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable))
             {
-                var texture = EditorUtility.InstanceIDToObject(textureInfo.Value) as Texture;
+                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
                 if (texture == null)
                     continue;
-                textureNames.Add(textureInfo.Key);
+                textureNames.Add(textureInfo.name);
                 textures.Add(texture);
             }
             shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
+
+            textureNames.Clear();
+            textures.Clear();
+            foreach (var textureInfo in configuredTextures.Where(x => !x.modifiable))
+            {
+                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
+                if (texture == null)
+                    continue;
+                textureNames.Add(textureInfo.name);
+                textures.Add(texture);
+            }
+            shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
+
             shaderImporter.SaveAndReimport();
         }
     }

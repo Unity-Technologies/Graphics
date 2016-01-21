@@ -71,9 +71,7 @@ namespace UnityEditor.MaterialGraph
                 var boundProp = boundProperty as ColorProperty;
                 if (boundProp != null)
                     boundProp.defaultColor = m_Color;
-
-                UpdatePreviewProperties();
-                ForwardPreviewMaterialPropertyUpdate();
+                
                 return true;
             }
             return false;
@@ -91,11 +89,6 @@ namespace UnityEditor.MaterialGraph
 
             if (rebuildShaders)
                 RegeneratePreviewShaders();
-            else
-            {
-                UpdatePreviewProperties();
-                ForwardPreviewMaterialPropertyUpdate();
-            }
         }
 
         public override PreviewProperty GetPreviewProperty()
