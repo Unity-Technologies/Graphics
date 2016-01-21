@@ -192,7 +192,7 @@ namespace UnityEditor.MaterialGraph
                     var textureInfo = new TextureInfo
                     {
                         name = prop.propertyName,
-                        textureId = prop.defaultTexture.GetInstanceID(),
+                        textureId = prop.defaultTexture != null ? prop.defaultTexture.GetInstanceID() : 0,
                         modifiable = prop.modifiable
                     };
                     result.Add(textureInfo);
@@ -361,9 +361,6 @@ namespace UnityEditor.MaterialGraph
 
             var shaderName = "Hidden/PreviewShader/" + node.GetOutputVariableNameForSlot(node.outputSlots.First(), generationMode);
             var activeNodeList = node.CollectChildNodesByExecutionOrder();
-
-            if (node.graph is IGenerateGraphProperties)
-                (node.graph as IGenerateGraphProperties).GenerateSharedProperties(shaderPropertiesVisitor, shaderPropertyUsagesVisitor, generationMode);
 
             foreach (var activeNode in activeNodeList)
             {

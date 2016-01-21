@@ -4,12 +4,10 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    class PixelGraph : BaseMaterialGraph, IGenerateGraphProperties
+    class PixelGraph : BaseMaterialGraph
     {
         private PixelShaderNode m_PixelMasterNode;
-
-        public PreviewState previewState { get; set; }
-
+        
         public PixelShaderNode pixelMasterNode
         {
             get
@@ -40,16 +38,6 @@ namespace UnityEditor.MaterialGraph
                 return m_ActiveNodes;
             }
         }
-        
-        public void GenerateSharedProperties(PropertyGenerator shaderProperties, ShaderGenerator propertyUsages, GenerationMode generationMode)
-        {
-            owner.GenerateSharedProperties(shaderProperties, propertyUsages, generationMode);
-        }
-
-        public IEnumerable<ShaderProperty> GetPropertiesForPropertyType(PropertyType propertyType)
-        {
-            return owner.GetPropertiesForPropertyType(propertyType);
-        }
 
         public MaterialGraph owner { get; set; }
         public void GenerateSurfaceShader(
@@ -67,9 +55,7 @@ namespace UnityEditor.MaterialGraph
             pixelMasterNode.GenerateSurfaceOutput(surfaceOutput);
 
             var genMode = isPreview ? GenerationMode.Preview3D : GenerationMode.SurfaceShader;
-
-            owner.materialProperties.GenerateSharedProperties(shaderProperties, propertyUsages, genMode);
-
+            
             foreach (var node in activeNodes)
             {
                 if (node is IGeneratesFunction) (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, genMode);

@@ -28,36 +28,27 @@ namespace UnityEditor.MaterialGraph
         {
             get { return PropertyType.Float; }
         }
-
+        
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {}
-
-        public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
         {
-            return GetPropertyName();
+            if (exposed)
+                visitor.AddShaderProperty(new FloatPropertyChunk(GetPropertyName(), description, m_Value, false));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType valueType)
         {
-            if (HasBoundProperty() || !generationMode.IsPreview())
-                return;
-
-            visitor.AddShaderChunk("float " + GetPropertyName() + ";", true);
+            if (exposed || generationMode.IsPreview())
+               visitor.AddShaderChunk("float " + GetPropertyName() + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (HasBoundProperty() || generationMode.IsPreview())
+            if (exposed || generationMode.IsPreview())
                 return;
-
+            
             visitor.AddShaderChunk(precision + " " + GetPropertyName() + " = " + m_Value + ";", true);
         }
-
-        public override float GetNodeUIHeight(float width)
-        {
-            return 2*EditorGUIUtility.singleLineHeight;
-        }
-
+        
         public override bool NodeUI(Rect drawArea)
         {
             base.NodeUI(drawArea);
@@ -66,26 +57,9 @@ namespace UnityEditor.MaterialGraph
             m_Value = EditorGUI.FloatField(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), "Value", m_Value);
             if (EditorGUI.EndChangeCheck())
             {
-                var boundProp = boundProperty as FloatProperty;
-                if (boundProp != null)
-                    boundProp.defaultValue = m_Value;
                 return true;
             }
             return false;
-        }
-
-        public override void BindProperty(ShaderProperty property, bool rebuildShaders)
-        {
-            base.BindProperty(property, rebuildShaders);
-
-            var vectorProp = property as FloatProperty;
-            if (vectorProp)
-            {
-                m_Value = vectorProp.defaultValue;
-            }
-
-            if (rebuildShaders)
-                RegeneratePreviewShaders();
         }
 
         public override PreviewProperty GetPreviewProperty()

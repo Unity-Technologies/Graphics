@@ -21,6 +21,16 @@ namespace UnityEditor.MaterialGraph
         Fixed = 2,
     }
 
+    public enum PropertyType
+    {
+        Color,
+        Texture2D,
+        Float,
+        Vector2,
+        Vector3,
+        Vector4
+    }
+
     public class PreviewProperty
     {
         public string m_Name;
@@ -36,6 +46,12 @@ namespace UnityEditor.MaterialGraph
     {
         Preview2D,
         Preview3D
+    }
+
+    public enum DrawMode
+    {
+        Full,
+        Collapsed
     }
 
     [Serializable]
@@ -82,6 +98,9 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         private List<SlotDefaultValueKVP> m_SlotDefaultValues;
 
+        [SerializeField]
+        private DrawMode m_DrawMode = DrawMode.Full;
+
         private readonly Dictionary<string, SlotValueType> m_SlotValueTypes = new Dictionary<string, SlotValueType>();
         private readonly Dictionary<string, ConcreteSlotValueType> m_ConcreteInputSlotValueTypes = new Dictionary<string, ConcreteSlotValueType>();
         private readonly Dictionary<string, ConcreteSlotValueType> m_ConcreteOutputSlotValueTypes = new Dictionary<string, ConcreteSlotValueType>();
@@ -94,6 +113,12 @@ namespace UnityEditor.MaterialGraph
         // Nodes that want to have a preview area can override this and return true
         public virtual bool hasPreview { get { return false; } }
         public virtual PreviewMode previewMode { get { return PreviewMode.Preview2D; } }
+
+        public DrawMode drawMode
+        {
+            get { return m_DrawMode; }
+            set { m_DrawMode = value; }
+        }
 
         public bool isSelected { get; set; }
 
@@ -157,12 +182,7 @@ namespace UnityEditor.MaterialGraph
         }
 
         protected PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
-
-        private bool needsUpdate
-        {
-            get { return true; }
-        }
-
+        
         protected virtual int previewWidth
         {
             get { return kPreviewWidth; }
@@ -401,6 +421,9 @@ namespace UnityEditor.MaterialGraph
                     mat.SetColor(previewProperty.m_Name, previewProperty.m_Color);
                     break;
                 case PropertyType.Vector2:
+                    mat.SetVector(previewProperty.m_Name, previewProperty.m_Vector4);
+                    break;
+                case PropertyType.Vector3:
                     mat.SetVector(previewProperty.m_Name, previewProperty.m_Vector4);
                     break;
                 case PropertyType.Vector4:
@@ -789,9 +812,8 @@ namespace UnityEditor.MaterialGraph
 
         public virtual void OnGUI()
         {
-           EditorGUILayout.LabelField("Preview Mode: " + previewMode);
-
-            foreach (var slot in slots)
+            GUILayout.Label("Slot Defaults", EditorStyles.boldLabel);
+            foreach (var slot in slots.Where(x => x.isInputSlot && x.edges.Count == 0))
                 DoSlotUI(this, slot);
         }
 

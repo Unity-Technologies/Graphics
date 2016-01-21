@@ -29,6 +29,7 @@ Shader:
   m_Dependencies:
   - {fileID: 7, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 6, guid: 0000000000000000f000000000000000, type: 0}
+  m_NonModifiableTextures: {}
   m_ShaderIsBaked: 0
   errors: []
   m_DefaultTextures: {}
@@ -1216,7 +1217,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 5a9889c008f4a588caf68a68cf97e6c7
+          Hash: 46ebc5795b09a23cf030498b1cb17fd9
         m_IsGLSL: 0
         m_FromOther: 1
         m_VariantsUser0:
@@ -3170,7 +3171,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: cf3b6ee4c7109c36eb9b750947d2a0f0
+          Hash: 738f319c99d8aa8292d1f7520c8b922d
         m_IsGLSL: 0
         m_FromOther: 1
         m_VariantsUser0: []
@@ -7166,7 +7167,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 5a9889c008f4a588caf68a68cf97e6c7
+          Hash: 46ebc5795b09a23cf030498b1cb17fd9
         m_IsGLSL: 0
         m_FromOther: 1
         m_VariantsUser0:
@@ -10963,7 +10964,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 3256300b287076da8182f61f7e9b58f4
+          Hash: 08aad5a7f8e10c1de3313cd9da4d2add
         m_IsGLSL: 0
         m_FromOther: 1
         m_VariantsUser0: []
@@ -12668,7 +12669,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 3256300b287076da8182f61f7e9b58f4
+          Hash: 08aad5a7f8e10c1de3313cd9da4d2add
         m_IsGLSL: 0
         m_FromOther: 1
         m_VariantsUser0:
@@ -13161,7 +13162,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 3256300b287076da8182f61f7e9b58f4
+          Hash: 08aad5a7f8e10c1de3313cd9da4d2add
         m_IsGLSL: 0
         m_FromOther: 1
         m_VariantsUser0: []
@@ -13400,7 +13401,7 @@ Shader:
         m_TypesMask: 3
         m_IncludesHash:
           serializedVersion: 2
-          Hash: 4bb694398f4a8095e47a599d488d0706
+          Hash: 64144d10dc2e79470b160642e134f1b5
         m_IsGLSL: 0
         m_FromOther: 1
         m_VariantsUser0: []
@@ -13443,7 +13444,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef5b9f0785847b04983f907c7f016a36, type: 3}
   m_Name: LayeredTarp
   m_EditorClassIdentifier: 
-  m_MaterialProperties: {fileID: 11487156}
   m_MaterialOptions: {fileID: 11406038}
   m_PixelGraph: {fileID: 11479744}
   m_Expanded: 0
@@ -13525,9 +13525,11 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: UV
       m_Node: {fileID: 11400992}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
-  m_BoundProperty: {fileID: 0}
+  m_Description: 
+  m_Exposed: 0
   m_DefaultTexture: {fileID: 2800000, guid: 1734aefbb51846643ae250665f33f6ca, type: 3}
   m_TextureType: 3
 --- !u!114 &11406038
@@ -13654,6 +13656,7 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: Alpha
       m_Node: {fileID: 11416828}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
   m_LightFunctionClassName: UnityEditor.MaterialGraph.PBRSpecularLightFunction
@@ -13687,10 +13690,10 @@ MonoBehaviour:
   style: node
   position:
     serializedVersion: 2
-    x: 291.73352
-    y: 151.97438
-    width: 730.2665
-    height: -26.974396
+    x: 341.73352
+    y: 107.97438
+    width: 680.2665
+    height: 17.025604
   showEmptySlots: 1
   m_SlotDefaultValues:
   - slotName: Input1
@@ -13708,6 +13711,7 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: Output
       m_Node: {fileID: 11429502}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
   m_DefaultValue: 0
@@ -13762,6 +13766,7 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: Output
       m_Node: {fileID: 11443630}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
 --- !u!114 &11448176
@@ -13842,9 +13847,11 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: UV
       m_Node: {fileID: 11448176}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
-  m_BoundProperty: {fileID: 0}
+  m_Description: 
+  m_Exposed: 0
   m_DefaultTexture: {fileID: 2800000, guid: 7a898a3a5ba9f8642b21c27bcc225d3e, type: 3}
   m_TextureType: 0
 --- !u!114 &11452850
@@ -13925,9 +13932,11 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: UV
       m_Node: {fileID: 11452850}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
-  m_BoundProperty: {fileID: 0}
+  m_Description: 
+  m_Exposed: 0
   m_DefaultTexture: {fileID: 2800000, guid: 06ca5507e7192eb4a8011dc7cdb6db95, type: 3}
   m_TextureType: 0
 --- !u!114 &11454916
@@ -13981,6 +13990,7 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: Output
       m_Node: {fileID: 11454916}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
 --- !u!114 &11455774
@@ -14034,6 +14044,7 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: Output
       m_Node: {fileID: 11455774}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
 --- !u!114 &11456574
@@ -14074,9 +14085,11 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: Value
       m_Node: {fileID: 11456574}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
-  m_BoundProperty: {fileID: 0}
+  m_Description: 
+  m_Exposed: 0
   m_Value: {x: 2, y: 2, z: 2, w: 2}
 --- !u!114 &11457338
 MonoBehaviour:
@@ -14116,6 +14129,7 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: UV
       m_Node: {fileID: 11457338}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
 --- !u!114 &11479744
@@ -14143,11 +14157,6 @@ MonoBehaviour:
   - {fileID: 11443630}
   - {fileID: 11456574}
   edges:
-  - m_FromNode: {fileID: 11429502}
-    m_ToNode: {fileID: 11416828}
-    m_FromSlotName: Output
-    m_ToSlotName: Albedo
-    color: {r: 1, g: 1, b: 1, a: 1}
   - m_FromNode: {fileID: 11443630}
     m_ToNode: {fileID: 11496282}
     m_FromSlotName: Output
@@ -14187,6 +14196,11 @@ MonoBehaviour:
     m_ToNode: {fileID: 11429502}
     m_FromSlotName: RGBA
     m_ToSlotName: Input2
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 11429502}
+    m_ToNode: {fileID: 11416828}
+    m_FromSlotName: Output
+    m_ToSlotName: Albedo
     color: {r: 1, g: 1, b: 1, a: 1}
   - m_FromNode: {fileID: 11400992}
     m_ToNode: {fileID: 11416828}
@@ -14242,9 +14256,11 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: Color
       m_Node: {fileID: 11486954}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
-  m_BoundProperty: {fileID: 0}
+  m_Description: 
+  m_Exposed: 0
   m_Color: {r: 1, g: 0.68275857, b: 0, a: 0}
 --- !u!114 &11487156
 MonoBehaviour:
@@ -14258,7 +14274,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ShaderProperties:
-  - {fileID: 114000013639360892}
+  - {fileID: -842150451}
   m_Expanded: 0
 --- !u!114 &11489308
 MonoBehaviour:
@@ -14381,9 +14397,11 @@ MonoBehaviour:
       m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
       m_SlotName: UV
       m_Node: {fileID: 11496282}
+  m_DrawMode: 0
   m_PrecisionNames:
   - half
-  m_BoundProperty: {fileID: 0}
+  m_Description: 
+  m_Exposed: 0
   m_DefaultTexture: {fileID: 2800000, guid: ca7ba913502c8bb44a66350131805326, type: 3}
   m_TextureType: 0
 --- !u!114 &114000013639360892

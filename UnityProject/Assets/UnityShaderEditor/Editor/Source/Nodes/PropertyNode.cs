@@ -1,92 +1,58 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
     public abstract class PropertyNode : BaseMaterialNode
     {
+        //[SerializeField]
+        //private string m_Name;
+
         [SerializeField]
-        private ShaderProperty m_BoundProperty;
+        private string m_Description;
+
+        [SerializeField]
+        private bool m_Exposed;
 
         public bool exposed
         {
-            get { return m_BoundProperty != null; }
+            get { return m_Exposed; }
         }
 
-        protected virtual bool HasBoundProperty() { return m_BoundProperty != null; }
-        public ShaderProperty boundProperty { get { return m_BoundProperty; } }
-
-        public virtual void BindProperty(ShaderProperty property, bool rebuildShaders)
+        public string description
         {
-            m_BoundProperty = property;
-        }
-
-        public virtual void RefreshBoundProperty(ShaderProperty toRefresh, bool rebuildShader)
-        {
-            if (m_BoundProperty != null && m_BoundProperty == toRefresh)
-            {
-                BindProperty(toRefresh, rebuildShader);
-            }
-        }
-
-        public IEnumerable<ShaderProperty> FindValidPropertyBindings()
-        {
-            if (graph is IGenerateGraphProperties)
-                return (graph as IGenerateGraphProperties).GetPropertiesForPropertyType(propertyType);
-
-            return new ShaderProperty[0];
+            get { return m_Description; } 
         }
 
         public virtual string GetPropertyName()
         {
-            if (m_BoundProperty == null)
+           // var validExposedName = !string.IsNullOrEmpty(m_Name);
+            //if (!validExposedName)
                 return name + "_" + Math.Abs(GetInstanceID()) + "_Uniform";
 
-            return m_BoundProperty.name;
+           // return m_Name + "_Uniform";
         }
 
         public abstract PropertyType propertyType { get; }
 
         public abstract PreviewProperty GetPreviewProperty();
+        
+        public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
+        {
+            return GetPropertyName();
+        }
+        
+        public override float GetNodeUIHeight(float width)
+        {
+            return 2 * EditorGUIUtility.singleLineHeight;
+        }
 
         protected override void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
             properties.Add(GetPreviewProperty());
-        }
-
-        public void UnbindProperty(ShaderProperty prop)
-        {
-            if (m_BoundProperty != null && m_BoundProperty == prop)
-            {
-                m_BoundProperty = null;
-                RegeneratePreviewShaders();
-            }
-        }
-
-        public override void OnGUI()
-        {
-            base.OnGUI();
-            
-            // find available properties
-            var allowedBindings = FindValidPropertyBindings().ToList();
-
-            var names = new List<string> { "none" };
-            names.AddRange(allowedBindings.Select(x => x.name));
-            var currentIndex = names.IndexOf(boundProperty == null ? "none" : boundProperty.name);
-
-            EditorGUI.BeginChangeCheck();
-            currentIndex = EditorGUILayout.Popup("Bound Property", currentIndex, names.ToArray());
-            if (EditorGUI.EndChangeCheck())
-            {
-                ShaderProperty selected = null;
-                if (currentIndex > 0)
-                    selected = allowedBindings[currentIndex - 1];
-
-                BindProperty(selected, true);
-            }
         }
     }
 }

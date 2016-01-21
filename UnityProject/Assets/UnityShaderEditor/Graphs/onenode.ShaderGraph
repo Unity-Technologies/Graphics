@@ -1,0 +1,1198 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef5b9f0785847b04983f907c7f016a36, type: 3}
+  m_Name: onenode
+  m_EditorClassIdentifier: 
+  m_MaterialOptions: {fileID: 114000013174214232}
+  m_PixelGraph: {fileID: 114000011260327158}
+  m_Expanded: 0
+--- !u!114 &114000010010564348
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1350e4a38ff5ae44a9d8627d33b48de8, type: 3}
+  m_Name: V3Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -433.98932
+    y: -164.82298
+    width: -20.952026
+    height: 97.42682
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Value
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Value
+      m_Node: {fileID: 114000010010564348}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Value: {x: 0, y: 0, z: 0}
+--- !u!114 &114000010228356922
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -134
+    y: 403
+    width: -1455.825
+    height: -1038.5721
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 114000010228356922}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 0.82, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 114000010228356922}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 114000010228356922}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+--- !u!114 &114000010357703500
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c4299b09d95d64c99884296038ceeb, type: 3}
+  m_Name: V1Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -61.654663
+    y: 239.35852
+    width: 0
+    height: 0
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Value
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Value
+      m_Node: {fileID: 114000010357703500}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Value: 0
+--- !u!114 &114000010584198446
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -46.37728
+    y: -71.586555
+    width: -8.380802
+    height: 42.9516
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 114000010584198446}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 114000010584198446}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 114000010584198446}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+--- !u!114 &114000010747796670
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 325c0e24c20746345a5f90dc201973f8, type: 3}
+  m_Name: ColorNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Color
+    m_Name: Color
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -2198.1956
+    y: -634.1339
+    width: 501.58447
+    height: 61.054443
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Color
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Color
+      m_Node: {fileID: 114000010747796670}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Color: {r: 0.9485294, g: 0, b: 0, a: 0}
+--- !u!114 &114000011083112430
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -368.43347
+    y: 230.98161
+    width: 40
+    height: -130
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 114000011083112430}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 114000011083112430}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 114000011083112430}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+--- !u!114 &114000011094705482
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cab057dbd683f5244aed9bd721e1973e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ShaderProperties: []
+  m_Expanded: 1
+--- !u!114 &114000011260327158
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 226075d30f5b2694caa212aa3e968148, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nodes:
+  - {fileID: 114000012283327738}
+  - {fileID: 114000013750769278}
+  - {fileID: 114000013961627964}
+  - {fileID: 114000013372506088}
+  - {fileID: 114000012877373664}
+  - {fileID: 114000013011740246}
+  - {fileID: 114000011083112430}
+  edges:
+  - m_FromNode: {fileID: 114000013961627964}
+    m_ToNode: {fileID: 114000013372506088}
+    m_FromSlotName: UV
+    m_ToSlotName: Input1
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 114000012877373664}
+    m_ToNode: {fileID: 114000013372506088}
+    m_FromSlotName: Value
+    m_ToSlotName: Input2
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 114000013372506088}
+    m_ToNode: {fileID: 114000013750769278}
+    m_FromSlotName: Output
+    m_ToSlotName: UV
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 114000013011740246}
+    m_ToNode: {fileID: 114000011083112430}
+    m_FromSlotName: RGBA
+    m_ToSlotName: Input1
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 114000013750769278}
+    m_ToNode: {fileID: 114000011083112430}
+    m_FromSlotName: RGBA
+    m_ToSlotName: Input2
+    color: {r: 1, g: 1, b: 1, a: 1}
+  - m_FromNode: {fileID: 114000011083112430}
+    m_ToNode: {fileID: 114000012283327738}
+    m_FromSlotName: Output
+    m_ToSlotName: Emission
+    color: {r: 1, g: 1, b: 1, a: 1}
+  m_InvalidEdges: []
+--- !u!114 &114000011685761828
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -1627.6111
+    y: -638.5834
+    width: -122.63281
+    height: 329.3906
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 114000011685761828}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 114000011685761828}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 114000011685761828}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+--- !u!114 &114000011734183740
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b793ff9211c8787428ec61378a5b39ac, type: 3}
+  m_Name: TextureProperty
+  m_EditorClassIdentifier: 
+  m_PropertyDescription: 
+  m_DefaultTexture: {fileID: 2800000, guid: ca7ba913502c8bb44a66350131805326, type: 3}
+  m_DefaultTextureType: 0
+--- !u!114 &114000011957100934
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8361d1f9d12a489438c0b1e2e48c8542, type: 3}
+  m_Name: V2Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -110.65466
+    y: 84.35852
+    width: -532
+    height: -70
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Value
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Value
+      m_Node: {fileID: 114000011957100934}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Value: {x: 0, y: 0}
+--- !u!114 &114000012229364398
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c4299b09d95d64c99884296038ceeb, type: 3}
+  m_Name: V1Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -429.9431
+    y: -60.159134
+    width: 111.18979
+    height: 125.8082
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Value
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Value
+      m_Node: {fileID: 114000012229364398}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Value: 0
+--- !u!114 &114000012263634436
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -1776.808
+    y: -595.39923
+    width: -201.66455
+    height: 106.46478
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 114000012263634436}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 114000012263634436}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 114000012263634436}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+--- !u!114 &114000012283327738
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38072936174514040b3e08813a3ec4e7, type: 3}
+  m_Name: PixelMaster
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Albedo
+    m_Name: Albedo
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Normal
+    m_Name: Normal
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Specular
+    m_Name: Specular
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Emission
+    m_Name: Emission
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Metallic
+    m_Name: Metallic
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Smoothness
+    m_Name: Smoothness
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Occlusion
+    m_Name: Occlusion
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Alpha
+    m_Name: Alpha
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -38
+    y: 182
+    width: -1726.6111
+    height: -708.07947
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Albedo
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Albedo
+      m_Node: {fileID: 114000012283327738}
+  - slotName: Normal
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Normal
+      m_Node: {fileID: 114000012283327738}
+  - slotName: Specular
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Specular
+      m_Node: {fileID: 114000012283327738}
+  - slotName: Emission
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Emission
+      m_Node: {fileID: 114000012283327738}
+  - slotName: Metallic
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Metallic
+      m_Node: {fileID: 114000012283327738}
+  - slotName: Smoothness
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Smoothness
+      m_Node: {fileID: 114000012283327738}
+  - slotName: Occlusion
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Occlusion
+      m_Node: {fileID: 114000012283327738}
+  - slotName: Alpha
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Alpha
+      m_Node: {fileID: 114000012283327738}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_LightFunctionClassName: UnityEditor.MaterialGraph.PBRMetalicLightFunction
+--- !u!114 &114000012734897638
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 909ffbb62e82bfb4abbeeb93022c6e9b, type: 3}
+  m_Name: BlendNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -1564.1111
+    y: -427.07947
+    width: 0
+    height: 0
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 114000012734897638}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 114000012734897638}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 114000012734897638}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Operation: 0
+  m_Blend: 0.5
+--- !u!114 &114000012877373664
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c4299b09d95d64c99884296038ceeb, type: 3}
+  m_Name: V1Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -1340.5684
+    y: 354.3737
+    width: -1326.4316
+    height: -994.37366
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Value
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Value
+      m_Node: {fileID: 114000012877373664}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Value: 2
+--- !u!114 &114000013011740246
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5defdf1d05185a343bfebb2cdd827bd6, type: 3}
+  m_Name: Texture
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: RGBA
+    m_Name: RGBA
+    m_DataTypeString: 
+  - type: 1
+    m_Title: R
+    m_Name: R
+    m_DataTypeString: 
+  - type: 1
+    m_Title: G
+    m_Name: G
+    m_DataTypeString: 
+  - type: 1
+    m_Title: B
+    m_Name: B
+    m_DataTypeString: 
+  - type: 1
+    m_Title: A
+    m_Name: A
+    m_DataTypeString: 
+  - type: 0
+    m_Title: UV
+    m_Name: UV
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -798.20917
+    y: -113.802986
+    width: 190.7757
+    height: 163.78464
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: RGBA
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: RGBA
+      m_Node: {fileID: 114000013011740246}
+  - slotName: R
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: R
+      m_Node: {fileID: 114000013011740246}
+  - slotName: G
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: G
+      m_Node: {fileID: 114000013011740246}
+  - slotName: B
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: B
+      m_Node: {fileID: 114000013011740246}
+  - slotName: A
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: A
+      m_Node: {fileID: 114000013011740246}
+  - slotName: UV
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: UV
+      m_Node: {fileID: 114000013011740246}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_DefaultTexture: {fileID: 2800000, guid: ca7ba913502c8bb44a66350131805326, type: 3}
+  m_TextureType: 0
+--- !u!114 &114000013174214232
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edd99bcf0936ee84794c384dffae5501, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SrcBlend: 0
+  m_DstBlend: 1
+  m_CullMode: 0
+  m_ZTest: 2
+  m_ZWrite: 0
+  m_RenderQueue: 1
+  m_RenderType: 0
+  m_ShadowPass: 0
+  m_FullForwardShadows: 0
+  m_NoAmbient: 0
+  m_NoVertexLights: 0
+  m_NoLightmaps: 0
+  m_NoDirLightmap: 0
+  m_NoForwardAdd: 0
+  m_ApproxView: 0
+  m_HalfAsView: 0
+  m_Expanded: 0
+--- !u!114 &114000013372506088
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 088fb5bde3ece0f4190136b3ab43f7c4, type: 3}
+  m_Name: MultiplyNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 0
+    m_Title: Input 1
+    m_Name: Input1
+    m_DataTypeString: 
+  - type: 0
+    m_Title: Input 2
+    m_Name: Input2
+    m_DataTypeString: 
+  - type: 1
+    m_Title: Output
+    m_Name: Output
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -1063.6244
+    y: 340.5433
+    width: -1158.3756
+    height: -1210.5431
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Input1
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input1
+      m_Node: {fileID: 114000013372506088}
+  - slotName: Input2
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Input2
+      m_Node: {fileID: 114000013372506088}
+  - slotName: Output
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Output
+      m_Node: {fileID: 114000013372506088}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+--- !u!114 &114000013408816424
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c4299b09d95d64c99884296038ceeb, type: 3}
+  m_Name: V1Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -2236.5757
+    y: -470.2528
+    width: 196.32251
+    height: 248.1097
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Value
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Value
+      m_Node: {fileID: 114000013408816424}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Value: 1.39
+--- !u!114 &114000013670212126
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 325c0e24c20746345a5f90dc201973f8, type: 3}
+  m_Name: ColorNode
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Color
+    m_Name: Color
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -2065.323
+    y: -254.55545
+    width: 0
+    height: 0
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Color
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Color
+      m_Node: {fileID: 114000013670212126}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Color: {r: 0.8308824, g: 0.3115809, b: 0.45125517, a: 0}
+--- !u!114 &114000013750769278
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5defdf1d05185a343bfebb2cdd827bd6, type: 3}
+  m_Name: Texture
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: RGBA
+    m_Name: RGBA
+    m_DataTypeString: 
+  - type: 1
+    m_Title: R
+    m_Name: R
+    m_DataTypeString: 
+  - type: 1
+    m_Title: G
+    m_Name: G
+    m_DataTypeString: 
+  - type: 1
+    m_Title: B
+    m_Name: B
+    m_DataTypeString: 
+  - type: 1
+    m_Title: A
+    m_Name: A
+    m_DataTypeString: 
+  - type: 0
+    m_Title: UV
+    m_Name: UV
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -784
+    y: 344
+    width: -1289.3154
+    height: -717.01434
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: RGBA
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: RGBA
+      m_Node: {fileID: 114000013750769278}
+  - slotName: R
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: R
+      m_Node: {fileID: 114000013750769278}
+  - slotName: G
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: G
+      m_Node: {fileID: 114000013750769278}
+  - slotName: B
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: B
+      m_Node: {fileID: 114000013750769278}
+  - slotName: A
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: A
+      m_Node: {fileID: 114000013750769278}
+  - slotName: UV
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: UV
+      m_Node: {fileID: 114000013750769278}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_DefaultTexture: {fileID: 2800000, guid: 4c91c938176a28e44b22f5398fd5184f, type: 3}
+  m_TextureType: 0
+--- !u!114 &114000013815820562
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c4299b09d95d64c99884296038ceeb, type: 3}
+  m_Name: V1Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -390.41013
+    y: 481.73672
+    width: -1680.1887
+    height: -772.6444
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Value
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Value
+      m_Node: {fileID: 114000013815820562}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Value: 0.71
+--- !u!114 &114000013961627964
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c05002dbfc8cd14cb3b544630cf1017, type: 3}
+  m_Name: UV
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: UV
+    m_Name: UV
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -1340.6244
+    y: 91.54341
+    width: -1000.3756
+    height: -871.5434
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: UV
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: UV
+      m_Node: {fileID: 114000013961627964}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+--- !u!114 &114000014023493652
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f34a640000e664d4f8b2e0795df7fad9, type: 3}
+  m_Name: V4Node
+  m_EditorClassIdentifier: 
+  m_Slots:
+  - type: 1
+    m_Title: Value
+    m_Name: Value
+    m_DataTypeString: 
+  m_Properties: []
+  m_GenericTypeString: 
+  color: 0
+  style: node
+  position:
+    serializedVersion: 2
+    x: -114.65466
+    y: -24.64148
+    width: 246
+    height: -145
+  showEmptySlots: 1
+  m_SlotDefaultValues:
+  - slotName: Value
+    value:
+      m_DefaultVector: {x: 1, y: 1, z: 1, w: 1}
+      m_SlotName: Value
+      m_Node: {fileID: 114000014023493652}
+  m_DrawMode: 0
+  m_PrecisionNames:
+  - half
+  m_Description: 
+  m_Exposed: 0
+  m_Value: {x: 0, y: 0, z: 0, w: 0}
