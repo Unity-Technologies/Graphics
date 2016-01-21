@@ -6,11 +6,8 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    public class MaterialGraph : ScriptableObject, IGenerateGraphProperties
+    public class MaterialGraph : ScriptableObject
     {
-        [SerializeField]
-        private MaterialProperties m_MaterialProperties;
-
         [SerializeField]
         private MaterialOptions m_MaterialOptions;
 
@@ -25,30 +22,14 @@ namespace UnityEditor.MaterialGraph
             return -1;
             //return m_Shader.GetInstanceID();
         }
-
-        public MaterialProperties materialProperties { get { return m_MaterialProperties; } }
+        
         public MaterialOptions materialOptions { get { return m_MaterialOptions; } }
 
         public BaseMaterialGraph currentGraph { get { return m_PixelGraph; } }
-
-        public void GenerateSharedProperties(PropertyGenerator shaderProperties, ShaderGenerator propertyUsages, GenerationMode generationMode)
-        {
-            m_MaterialProperties.GenerateSharedProperties(shaderProperties, propertyUsages, generationMode);
-        }
-
-        public IEnumerable<ShaderProperty> GetPropertiesForPropertyType(PropertyType propertyType)
-        {
-            return m_MaterialProperties.GetPropertiesForPropertyType(propertyType);
-        }
+        
 
         public void OnEnable()
         {
-            if (m_MaterialProperties == null)
-            {
-                m_MaterialProperties = CreateInstance<MaterialProperties>();
-                m_MaterialProperties.hideFlags = HideFlags.HideInHierarchy;
-            }
-
             if (m_MaterialOptions == null)
             {
                 m_MaterialOptions = CreateInstance<MaterialOptions>();
@@ -71,15 +52,9 @@ namespace UnityEditor.MaterialGraph
             //      if (m_MaterialProperties != null)
             //      m_MaterialProperties.OnChangePreviewState -= OnChangePreviewState;
         }
-
-        void OnChangePreviewState(object sender, EventArgs eventArgs)
-        {
-            m_PixelGraph.previewState = (PreviewState)sender;
-        }
-
+        
         public void CreateSubAssets()
         {
-            AssetDatabase.AddObjectToAsset(m_MaterialProperties, this);
             AssetDatabase.AddObjectToAsset(m_MaterialOptions, this);
             AssetDatabase.AddObjectToAsset(m_PixelGraph, this);
         }

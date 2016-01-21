@@ -31,7 +31,7 @@ namespace UnityEditor.MaterialGraph
 
         private List<string> m_TextureTypeNames;
 
-        public override bool hasPreview { get { return false; } }
+        public override bool hasPreview { get { return true; } }
 
         public override void OnCreate()
         {
@@ -132,23 +132,17 @@ namespace UnityEditor.MaterialGraph
         // Properties
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
-            if (HasBoundProperty())
-                return;
-
-            visitor.AddShaderProperty(new TexturePropertyChunk(GetPropertyName(), GetPropertyName(), m_DefaultTexture, m_TextureType, false, false));
+            visitor.AddShaderProperty(new TexturePropertyChunk(GetPropertyName(), GetPropertyName(), m_DefaultTexture, m_TextureType, false, exposed));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
-            if (HasBoundProperty())
-                return;
-
             visitor.AddShaderChunk("sampler2D " + GetPropertyName() + ";", true);
         }
 
         public override float GetNodeUIHeight(float width)
         {
-            return EditorGUIUtility.singleLineHeight + width - 20;
+            return EditorGUIUtility.singleLineHeight * 2;
         }
 
         public override bool NodeUI(Rect drawArea)
@@ -158,11 +152,12 @@ namespace UnityEditor.MaterialGraph
             base.NodeUI(drawArea);
 
             EditorGUI.BeginChangeCheck();
-            m_DefaultTexture = EditorGUI.ObjectField(new Rect(drawArea.x, drawArea.y, drawArea.width, drawArea.width), GUIContent.none, m_DefaultTexture, typeof (Texture2D), false) as Texture2D;
+            m_DefaultTexture = EditorGUI.MiniThumbnailObjectField( new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), new GUIContent("Texture"), m_DefaultTexture, typeof(Texture2D), null) as Texture2D;
             var texureChanged = EditorGUI.EndChangeCheck();
 
+            drawArea.y += EditorGUIUtility.singleLineHeight;
             EditorGUI.BeginChangeCheck();
-            m_TextureType = (TextureType) EditorGUI.Popup(new Rect(drawArea.x, drawArea.y + drawArea.width, drawArea.width, EditorGUIUtility.singleLineHeight), (int) m_TextureType, m_TextureTypeNames.ToArray(), EditorStyles.popup);
+            m_TextureType = (TextureType) EditorGUI.Popup(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), (int) m_TextureType, m_TextureTypeNames.ToArray(), EditorStyles.popup);
             var typeChanged = EditorGUI.EndChangeCheck();
 
             if (typeChanged)
@@ -171,36 +166,11 @@ namespace UnityEditor.MaterialGraph
                 return true;
             }
 
-            if (texureChanged)
-            {
-                var boundProp = boundProperty as TextureProperty;
-                if (boundProp != null)
-                {
-                    boundProp.defaultTexture = m_DefaultTexture;
-                    boundProp.defaultTextureType = m_TextureType;
-                }
-                return true;
-            }
-            return false;
-        }
-
-        public override void BindProperty(ShaderProperty property, bool rebuildShaders)
-        {
-            base.BindProperty(property, rebuildShaders);
-
-            var texProp = property as TextureProperty;
-            if (texProp)
-            {
-                m_DefaultTexture = texProp.defaultTexture;
-                m_TextureType = texProp.defaultTextureType;
-            }
-            if (rebuildShaders)
-                RegeneratePreviewShaders();
+            return texureChanged;
         }
 
         public override PreviewProperty GetPreviewProperty()
         {
-            MaterialWindow.DebugMaterialGraph("Returning: " + GetPropertyName() + " " + m_DefaultTexture);
             return new PreviewProperty
                    {
                        m_Name = GetPropertyName(),

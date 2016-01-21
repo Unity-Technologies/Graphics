@@ -5,12 +5,6 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    public interface IGenerateGraphProperties
-    {
-        void GenerateSharedProperties(PropertyGenerator shaderProperties, ShaderGenerator propertyUsages, GenerationMode generationMode);
-        IEnumerable<ShaderProperty> GetPropertiesForPropertyType(PropertyType propertyType);
-    }
-
     public abstract class BaseMaterialGraph : Graph
     {
         private PreviewRenderUtility m_PreviewUtility;

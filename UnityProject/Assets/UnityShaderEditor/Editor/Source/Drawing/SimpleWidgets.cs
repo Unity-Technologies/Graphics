@@ -6,6 +6,7 @@ namespace UnityEditor.MaterialGraph
     public class SimpleBox : CanvasElement
     {
         protected string m_Title = "simpleBox";
+        protected bool m_Expanded = true;
 
         protected bool error = false;
 
@@ -22,6 +23,7 @@ namespace UnityEditor.MaterialGraph
             EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), error ? Color.red : selected ? selectedColor : backgroundColor);
             GUI.Label(new Rect(0, 0, scale.x, 26f), GUIContent.none, new GUIStyle("preToolbar"));
             GUI.Label(new Rect(10, 2, scale.x - 20.0f, 16.0f), m_Title, EditorStyles.toolbarTextField);
+            
             base.Render(parentRect, canvas);
         }
     }
