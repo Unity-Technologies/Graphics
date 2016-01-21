@@ -54,9 +54,15 @@ namespace UnityEditor.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
+            var validSlots = ListPool<Slot>.Get();
+            GetValidInputSlots(validSlots);
+
             var outputSlot = outputSlots.FirstOrDefault(x => x.name == kOutputSlotName);
-            var pointInput = GetValidInputSlots().FirstOrDefault(x => x.name == kPointInputName);
-            var constantInput = GetValidInputSlots().FirstOrDefault(x => x.name == kConstantInputName);
+            var pointInput = validSlots.FirstOrDefault(x => x.name == kPointInputName);
+            var constantInput = validSlots.FirstOrDefault(x => x.name == kConstantInputName);
+
+            ListPool<Slot>.Release(validSlots);
+
             if (outputSlot == null || pointInput == null || constantInput == null)
             {
                 Debug.LogError("Invalid slot configuration on node: " + name);

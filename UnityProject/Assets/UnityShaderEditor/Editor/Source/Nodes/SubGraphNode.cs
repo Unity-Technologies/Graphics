@@ -20,8 +20,9 @@ namespace UnityEditor.MaterialGraph
             {
                 if (subGraphAsset == null)
                     return PreviewMode.Preview2D;
-
-                var preview3D = subGraphAsset.outputsNode.CollectChildNodesByExecutionOrder().Any(x => x.previewMode == PreviewMode.Preview3D);
+                var nodes = ListPool<BaseMaterialNode>.Get();
+                var preview3D = subGraphAsset.outputsNode.CollectChildNodesByExecutionOrder(nodes).Any(x => x.previewMode == PreviewMode.Preview3D);
+                ListPool <BaseMaterialNode >.Release(nodes);
                 return preview3D ? PreviewMode.Preview3D : PreviewMode.Preview2D;
             }
         }
@@ -45,11 +46,11 @@ namespace UnityEditor.MaterialGraph
             return string.Format("O{0:00}", n);
         }
 
-        public override IEnumerable<Slot> GetValidInputSlots()
+       /* public override IEnumerable<Slot> GetValidInputSlots()
         {
             // We only want to return the input slots that are internally wired to an output slot
             return base.GetValidInputSlots().Where(slot => m_SubGraphAsset.InputInternallyWired(slot.name, this)).ToList();
-        }
+        }*/
 
         public override void NodeUI(GraphGUI host)
         {

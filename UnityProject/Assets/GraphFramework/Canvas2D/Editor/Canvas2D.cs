@@ -189,15 +189,16 @@ namespace UnityEditor
 					rect.xMax = rect.xMin + m_Scale.x;
 					rect.yMax = rect.yMin + m_Scale.y;
 
-					foreach (CanvasElement e in m_Children)
-					{
-						Rect childRect = e.boundingRect;
-						childRect.x += rect.x;
-						childRect.y += rect.y;
-						rect = RectUtils.Encompass(rect, childRect);
-					}
+				    for (int i = 0; i < m_Children.Count; i++)
+				    {
+				        CanvasElement e = m_Children[i];
+				        Rect childRect = e.boundingRect;
+				        childRect.x += rect.x;
+				        childRect.y += rect.y;
+				        rect = RectUtils.Encompass(rect, childRect);
+				    }
 
-					return rect;
+				    return rect;
 				}
 			}
 
@@ -433,35 +434,32 @@ namespace UnityEditor
 				screenRect.min = parent.MouseToCanvas(parent.clientRect.min);
 				screenRect.max = parent.MouseToCanvas(new Vector2(Screen.width, Screen.height));
 				Rect thisRect = boundingRect;
-				foreach (CanvasElement e in visibleList)
-				{
-					if (e.texture != null)
-					{
-						float ratio = 1.0f;
-						Rect r = new Rect(e.translation.x, e.translation.y, e.texture.width, e.texture.height);
-						if (r.y < screenRect.y)
-						{
-							float overlap = (screenRect.y - r.y);
-							r.y = screenRect.y;
-							r.height -= overlap;
-							if (r.height < 0.0f)
-							{
-								r.height = 0.0f;
-							}
-							ratio = r.height / e.texture.height;
-						}
+			    for (int i = 0; i < visibleList.Count; i++)
+			    {
+			        CanvasElement e = visibleList[i];
+			        if (e.texture != null)
+			        {
+			            float ratio = 1.0f;
+			            Rect r = new Rect(e.translation.x, e.translation.y, e.texture.width, e.texture.height);
+			            if (r.y < screenRect.y)
+			            {
+			                float overlap = (screenRect.y - r.y);
+			                r.y = screenRect.y;
+			                r.height -= overlap;
+			                if (r.height < 0.0f)
+			                    r.height = 0.0f;
+			                ratio = r.height / e.texture.height;
+			            }
 
-						Graphics.DrawTexture(r, e.texture, new Rect(0, 0, 1.0f, ratio), 0, 0, 0, 0);
-					}
-					else
-					{
-						e.Render(thisRect, parent);
-					}
+			            Graphics.DrawTexture(r, e.texture, new Rect(0, 0, 1.0f, ratio), 0, 0, 0, 0);
+			        }
+			        else
+			            e.Render(thisRect, parent);
 
-					e.RenderWidgets(parent);
-				}
+			        e.RenderWidgets(parent);
+			    }
 
-				if (OnWidget != null)
+			    if (OnWidget != null)
 					OnWidget(this, Event.current, parent);
 			}
 

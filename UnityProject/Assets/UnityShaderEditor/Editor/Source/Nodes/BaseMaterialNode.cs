@@ -293,14 +293,7 @@ namespace UnityEditor.MaterialGraph
         // which child nodes it depends on for it's calculation.
         // Results are returned depth first so by processing each node in
         // order you can generate a valid code block.
-        public IEnumerable<BaseMaterialNode> CollectChildNodesByExecutionOrder(Slot slotToUse = null, bool includeSelf = true)
-        {
-            var nodeList = new List<BaseMaterialNode>();
-            CollectChildNodesByExecutionOrder(nodeList, slotToUse, includeSelf);
-            return nodeList;
-        }
-
-        public IEnumerable<BaseMaterialNode> CollectChildNodesByExecutionOrder(List<BaseMaterialNode> nodeList, Slot slotToUse = null, bool includeSelf = true)
+        public List<BaseMaterialNode> CollectChildNodesByExecutionOrder(List<BaseMaterialNode> nodeList, Slot slotToUse = null, bool includeSelf = true)
         {
             if (slotToUse != null && !slots.Contains(slotToUse))
             {
@@ -331,8 +324,7 @@ namespace UnityEditor.MaterialGraph
 
         protected void InternalUpdatePreviewShader(string resultShader)
         {
-            MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + GetInstanceID());
-            MaterialWindow.DebugMaterialGraph(resultShader);
+            MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + GetInstanceID() + "\n" + resultShader);
             if (previewMaterial.shader != defaultPreviewShader)
                 DestroyImmediate(previewMaterial.shader, true);
             previewMaterial.shader = ShaderUtil.CreateShaderAsset(resultShader);
@@ -437,8 +429,12 @@ namespace UnityEditor.MaterialGraph
         
         protected virtual void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
         {
-            foreach (var s in inputSlots)
+            var validSlots = ListPool<Slot>.Get();
+            GetValidInputSlots(validSlots);
+
+            for (int index = 0; index < validSlots.Count; index++)
             {
+                var s = validSlots[index];
                 if (s.edges.Count > 0)
                     continue;
 
@@ -452,8 +448,10 @@ namespace UnityEditor.MaterialGraph
                     m_PropType = PropertyType.Vector4,
                     m_Vector4 = defaultInput.defaultValue
                 };
-                properties.Add (pp);
+                properties.Add(pp);
             }
+
+            ListPool<Slot>.Release(validSlots);
         }
 
         // this function looks at all the nodes that have a
@@ -468,13 +466,21 @@ namespace UnityEditor.MaterialGraph
 
         public static void UpdateMaterialProperties(BaseMaterialNode target, Material material)
         {
-            var childrenNodes = target.CollectChildNodesByExecutionOrder();
-            var pList = new List<PreviewProperty>();
-            foreach (var node in childrenNodes)
+            var childNodes = ListPool<BaseMaterialNode>.Get();
+            target.CollectChildNodesByExecutionOrder(childNodes);
+
+            var pList = ListPool<PreviewProperty>.Get();
+            for (int index = 0; index < childNodes.Count; index++)
+            {
+                var node = childNodes[index];
                 node.CollectPreviewMaterialProperties(pList);
+            }
 
             foreach (var prop in pList)
                 SetPreviewMaterialProperty(prop, material);
+
+            ListPool<BaseMaterialNode>.Release(childNodes);
+            ListPool<PreviewProperty>.Release(pList);
         }
 
         public void UpdatePreviewProperties()
@@ -489,9 +495,14 @@ namespace UnityEditor.MaterialGraph
 
         #region Slots
 
-        public virtual IEnumerable<Slot> GetValidInputSlots()
+        public virtual void GetValidInputSlots(List<Slot> slotsToFill)
         {
-            return inputSlots;
+            for (int i = 0; i < slots.Count; ++i)
+            {
+                var slot = slots[i];
+                if (slot != null && slot.isInputSlot)
+                    slotsToFill.Add(slot);
+            }
         }
 
         public virtual string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
@@ -534,14 +545,6 @@ namespace UnityEditor.MaterialGraph
                 SetSlotDefaultValue(slot.name, new SlotValue(this, slot.name, GetNewSlotDefaultValue(mgSlot.valueType)));
 
             SetSlotDefaultValueType(slot.name, mgSlot.valueType);
-
-            // slots are not serialzied but the default values are
-            // because of this we need to see if the default has
-            // already been set
-            // if it has... do nothing.
-            MaterialWindow.DebugMaterialGraph("Node ID: " + GetInstanceID());
-            MaterialWindow.DebugMaterialGraph("Node Name: " + GetOutputVariableNameForNode());
-
         }
         
         public override void RemoveSlot(Slot slot)

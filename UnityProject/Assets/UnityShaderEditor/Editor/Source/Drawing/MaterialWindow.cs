@@ -39,16 +39,12 @@ namespace UnityEditor.MaterialGraph
 
         void OnSelectionChange()
         {
-            DebugMaterialGraph("Got OnSelection Change: " + Selection.activeObject);
-
             if (Selection.activeObject == null || !EditorUtility.IsPersistent(Selection.activeObject))
                 return;
 
             if (Selection.activeObject is MaterialGraph)
             {
                 var selection = Selection.activeObject as MaterialGraph;
-                DebugMaterialGraph("Selection: " + selection);
-                DebugMaterialGraph("Existing: " + m_MaterialGraph);
                 if (selection != m_MaterialGraph)
                 {
                     m_MaterialGraph = selection;

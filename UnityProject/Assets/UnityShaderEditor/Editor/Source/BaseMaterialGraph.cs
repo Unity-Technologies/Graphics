@@ -111,17 +111,13 @@ namespace UnityEditor.MaterialGraph
 
         public void GeneratePreviewShaders()
         {
-            MaterialWindow.DebugMaterialGraph("Generating preview shaders on: " + name);
-
             // 2 passes...
             // 1 create the shaders
             foreach (var node in nodes)
             {
                 var bmn = node as BaseMaterialNode;
                 if (bmn != null && bmn.hasPreview)
-                {
                     bmn.UpdatePreviewMaterial();
-                }
             }
 
             // 2 set the properties
@@ -129,10 +125,7 @@ namespace UnityEditor.MaterialGraph
             {
                 var pNode = node as BaseMaterialNode;
                 if (pNode != null && pNode.hasPreview)
-                {
-                    MaterialWindow.DebugMaterialGraph("Updating preview Properties on Node: " + pNode);
                     pNode.UpdatePreviewProperties();
-                }
             }
         }
     }

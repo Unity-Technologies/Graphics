@@ -77,9 +77,11 @@ namespace UnityEditor.MaterialGraph
 
         private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
         {
-            var childrenNodes = m_Node.CollectChildNodesByExecutionOrder();
+            var childrenNodes = ListPool<BaseMaterialNode>.Get();
+            m_Node.CollectChildNodesByExecutionOrder(childrenNodes);
             if (childrenNodes.Any(x => x is IRequiresTime))
                 Invalidate();
+            ListPool<BaseMaterialNode>.Release(childrenNodes);
             return true;
         }
 
