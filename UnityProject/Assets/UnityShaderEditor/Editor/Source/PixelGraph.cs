@@ -28,13 +28,16 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        private IEnumerable<BaseMaterialNode> m_ActiveNodes;
+        private List<BaseMaterialNode> m_ActiveNodes;
         public IEnumerable<BaseMaterialNode> activeNodes
         {
             get
             {
-               if (m_ActiveNodes == null)
-                    m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
+                if (m_ActiveNodes == null)
+                {
+                    m_ActiveNodes = new List<BaseMaterialNode>();
+                    pixelMasterNode.CollectChildNodesByExecutionOrder(m_ActiveNodes);
+                }
                 return m_ActiveNodes;
             }
         }
@@ -74,7 +77,8 @@ namespace UnityEditor.MaterialGraph
 
         protected override void RecacheActiveNodes()
         {
-            m_ActiveNodes = pixelMasterNode.CollectChildNodesByExecutionOrder();
+            m_ActiveNodes.Clear();
+            pixelMasterNode.CollectChildNodesByExecutionOrder(m_ActiveNodes);
         }
 
         public Material GetMaterial()

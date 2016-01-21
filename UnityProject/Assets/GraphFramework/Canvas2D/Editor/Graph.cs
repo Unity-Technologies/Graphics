@@ -563,33 +563,6 @@ namespace UnityEditor
 					Vector3[] points, tangents;
 					EdgeConnector<T>.GetTangents(from, to, out points, out tangents);
 					Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 5f);
-
-					// little widget on the middle of the edge
-					Vector3[] allPoints = Handles.MakeBezierPoints(points[0], points[1], tangents[0], tangents[1], 20);
-					Color oldColor = Handles.color;
-					Handles.color = Color.blue;
-					Handles.DrawSolidDisc(allPoints[10], new Vector3(0.0f, 0.0f, -1.0f), 6f);
-					Handles.color = edgeColor;
-					Handles.DrawWireDisc(allPoints[10], new Vector3(0.0f, 0.0f, -1.0f), 6f);
-					Handles.DrawWireDisc(allPoints[10], new Vector3(0.0f, 0.0f, -1.0f), 5f);
-
-					// dot on top of anchor showing it's connected
-					Handles.color = new Color(0.3f, 0.4f, 1.0f, 1.0f);
-					Handles.DrawSolidDisc(from, new Vector3(0.0f, 0.0f, -1.0f), 4f);
-					Handles.DrawSolidDisc(to, new Vector3(0.0f, 0.0f, -1.0f), 4f);
-
-					/*if (EditorApplication.isPlaying)
-					{
-						Handles.color = Color.red;
-						Handles.DrawSolidDisc(allPoints[m_RealtimeFeedbackPointIndex], new Vector3(0.0f, 0.0f, -1.0f), 6f);
-
-						m_RealtimeFeedbackPointIndex++;
-						if (m_RealtimeFeedbackPointIndex >= 20)
-						{
-							m_RealtimeFeedbackPointIndex = 0;
-						}
-					}*/
-					Handles.color = oldColor;
 				}
 
 				public override void UpdateModel(UpdateType t)

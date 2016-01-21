@@ -96,9 +96,13 @@ namespace UnityEditor.MaterialGraph
                 {
                     if (edge.toSlot.node == toNode && !foundUsedInputSlots.Contains(edge.toSlot))
                     {
-                        var validInputSlotsAtTarget = (edge.toSlot.node as BaseMaterialNode).GetValidInputSlots();
-                        if (validInputSlotsAtTarget.Contains(edge.toSlot))
+                        var validSlots = ListPool<Slot>.Get();
+                        (edge.toSlot.node as BaseMaterialNode).GetValidInputSlots(validSlots);
+                        
+                        if (validSlots.Contains(edge.toSlot))
                             foundUsedInputSlots.Add(edge.toSlot);
+
+                        ListPool<Slot>.Release(validSlots);
                     }
                     else
                         FindValidInputsToNodeFromNode(toNode, edge.toSlot.node, foundUsedInputSlots);
@@ -136,7 +140,8 @@ namespace UnityEditor.MaterialGraph
 
         private IEnumerable<BaseMaterialNode> GetCollectedNodes()
         {
-            return outputsNode.CollectChildNodesByExecutionOrder();
+            return null;
+            //return outputsNode.CollectChildNodesByExecutionOrder();
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, SubGraphNode generatingFor)

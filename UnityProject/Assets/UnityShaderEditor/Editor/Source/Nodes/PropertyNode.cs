@@ -30,7 +30,7 @@ namespace UnityEditor.MaterialGraph
         {
            // var validExposedName = !string.IsNullOrEmpty(m_Name);
             //if (!validExposedName)
-                return name + "_" + Math.Abs(GetInstanceID()) + "_Uniform";
+                return string.Format("{0}_{1}_Uniform", name, Math.Abs(GetInstanceID()));
 
            // return m_Name + "_Uniform";
         }

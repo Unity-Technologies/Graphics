@@ -121,17 +121,19 @@ namespace UnityEditor.MaterialGraph
         {
             // do the normal slot first so that it can be used later in the shader :)
             var normal = FindInputSlot(kNormalSlotName);
-            var nodes = new List<BaseMaterialNode>();
+            var nodes = ListPool<BaseMaterialNode>.Get();
             CollectChildNodesByExecutionOrder(nodes, normal, false);
 
-            foreach (var node in nodes)
+            for (int index = 0; index < nodes.Count; index++)
             {
+                var node = nodes[index];
                 if (node is IGeneratesBodyCode)
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
 
-            foreach (var edge in normal.edges)
+            for (int index = 0; index < normal.edges.Count; index++)
             {
+                var edge = normal.edges[index];
                 var node = edge.fromSlot.node as BaseMaterialNode;
                 shaderBody.AddShaderChunk("o." + normal.name + " = " + node.GetOutputVariableNameForSlot(edge.fromSlot, generationMode) + ";", true);
             }
@@ -147,6 +149,8 @@ namespace UnityEditor.MaterialGraph
                 if (node is IGeneratesBodyCode)
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
+
+           ListPool<BaseMaterialNode>.Release(nodes);
 
             foreach (var slot in FilterSlotsForLightFunction())
             {

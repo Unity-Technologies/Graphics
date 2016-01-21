@@ -337,10 +337,11 @@ namespace UnityEditor.MaterialGraph
         public static string GeneratePreviewShader(BaseMaterialNode node, out PreviewMode generatedShaderMode)
         {
             // figure out what kind of preview we want!
-            var childNodes = node.CollectChildNodesByExecutionOrder();
+            var activeNodeList = ListPool<BaseMaterialNode>.Get();
+            node.CollectChildNodesByExecutionOrder(activeNodeList);
             var generationMode = GenerationMode.Preview2D;
             generatedShaderMode = PreviewMode.Preview2D;
-            if (childNodes.Any(x => x.previewMode == PreviewMode.Preview3D))
+            if (activeNodeList.Any(x => x.previewMode == PreviewMode.Preview3D))
             {
                 generationMode = GenerationMode.Preview3D;
                 generatedShaderMode = PreviewMode.Preview3D;
@@ -360,8 +361,7 @@ namespace UnityEditor.MaterialGraph
             var vertexShaderBlock = new ShaderGenerator();
 
             var shaderName = "Hidden/PreviewShader/" + node.GetOutputVariableNameForSlot(node.outputSlots.First(), generationMode);
-            var activeNodeList = node.CollectChildNodesByExecutionOrder();
-
+           
             foreach (var activeNode in activeNodeList)
             {
                 if (activeNode is IGeneratesFunction)
@@ -486,10 +486,7 @@ namespace UnityEditor.MaterialGraph
                 resultShader = resultShader.Replace("${VertexShaderDecl}", "");
                 resultShader = resultShader.Replace("${VertexShaderBody}", "");
             }
-
-            MaterialWindow.DebugMaterialGraph("----------Shader-----------");
-            MaterialWindow.DebugMaterialGraph(resultShader);
-            
+                        
             configuredTxtures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return resultShader;
         }

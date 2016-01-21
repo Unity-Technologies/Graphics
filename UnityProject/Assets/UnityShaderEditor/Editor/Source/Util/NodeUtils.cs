@@ -31,16 +31,21 @@ namespace UnityEditor.MaterialGraph
             if (bmn == null)
                 return;
 
-            foreach (var inputSlot in bmn.GetValidInputSlots())
+            var validSlots = ListPool<Slot>.Get();
+            bmn.GetValidInputSlots(validSlots);
+            for (int index = 0; index < validSlots.Count; index++)
             {
-                foreach (var edge in inputSlot.edges)
+                var inputSlot = validSlots[index];
+                for (int i = 0; i < inputSlot.edges.Count; i++)
                 {
+                    var edge = inputSlot.edges[i];
                     if (edge.fromSlot.node == fromNode && !foundUsedOutputSlots.Contains(edge.fromSlot))
                         foundUsedOutputSlots.Add(edge.fromSlot);
                     else
                         RecurseNodesToFindValidOutputSlots(fromNode, edge.fromSlot.node, foundUsedOutputSlots);
                 }
             }
+            ListPool<Slot>.Release(validSlots);
         }
 
         public static void CollectChildNodesByExecutionOrder(ICollection<BaseMaterialNode> nodeList, BaseMaterialNode node, Slot slotToUse)
@@ -51,22 +56,33 @@ namespace UnityEditor.MaterialGraph
             if (nodeList.Contains(node))
                 return;
 
-            var validSlots = node.GetValidInputSlots().ToList();
+            var validSlots = ListPool<Slot>.Get();
+            node.GetValidInputSlots(validSlots);
             if (slotToUse != null && !validSlots.Contains(slotToUse))
-                return;
-
-            var slotsToUse = slotToUse == null ? validSlots : new List<Slot> {slotToUse};
-
-            foreach (var slot in slotsToUse)
             {
-                foreach (var edge in slot.edges)
+                ListPool<Slot>.Release(validSlots);
+                return;
+            }
+
+            if (slotToUse != null)
+            {
+                validSlots.Clear();
+                validSlots.Add(slotToUse);
+            }
+            
+            for (int index = 0; index < validSlots.Count; index++)
+            {
+                var slot = validSlots[index];
+                for (int i = 0; i < slot.edges.Count; i++)
                 {
+                    var edge = slot.edges[i];
                     var inputNode = edge.fromSlot.node as BaseMaterialNode;
                     CollectChildNodesByExecutionOrder(nodeList, inputNode, null);
                 }
             }
 
             nodeList.Add(node);
+            ListPool<Slot>.Release(validSlots);
         }
 
         public static void CollectDependentNodes(ICollection<BaseMaterialNode> nodeList, BaseMaterialNode node)
