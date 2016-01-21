@@ -71,8 +71,6 @@ namespace UnityEditor.MaterialGraph
                 {
                     boundProp.defaultVector = m_Value;
                 }
-                UpdatePreviewProperties();
-                ForwardPreviewMaterialPropertyUpdate();
                 return true;
             }
             return false;
@@ -90,11 +88,6 @@ namespace UnityEditor.MaterialGraph
 
             if (rebuildShaders)
                 RegeneratePreviewShaders();
-            else
-            {
-                UpdatePreviewProperties();
-                ForwardPreviewMaterialPropertyUpdate();
-            }
         }
 
         public override PreviewProperty GetPreviewProperty()

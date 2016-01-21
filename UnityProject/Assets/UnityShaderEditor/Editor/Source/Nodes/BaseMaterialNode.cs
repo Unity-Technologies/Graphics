@@ -316,7 +316,6 @@ namespace UnityEditor.MaterialGraph
             if (previewMaterial.shader != defaultPreviewShader)
                 DestroyImmediate(previewMaterial.shader, true);
             previewMaterial.shader = ShaderUtil.CreateShaderAsset(resultShader);
-            UpdatePreviewProperties();
             previewMaterial.shader.hideFlags = HideFlags.DontSave;
         }
 
@@ -328,6 +327,8 @@ namespace UnityEditor.MaterialGraph
         /// </summary>
         public Texture RenderPreview(Rect targetSize)
         {
+            UpdatePreviewProperties();
+
             if (s_Meshes[0] == null)
             {
                 GameObject handleGo = (GameObject)EditorGUIUtility.LoadRequired("Previews/PreviewMaterials.fbx");
@@ -410,18 +411,7 @@ namespace UnityEditor.MaterialGraph
                     break;
             }
         }
-
-        public void ForwardPreviewMaterialPropertyUpdate()
-        {
-            var dependentNodes = CollectDependentNodes();
-
-            foreach (var node in dependentNodes)
-            {
-                if (node.hasPreview)
-                    node.UpdatePreviewProperties();
-            }
-        }
-
+        
         protected virtual void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
         {
             foreach (var s in inputSlots)
@@ -662,7 +652,7 @@ namespace UnityEditor.MaterialGraph
 
         private static bool ImplicitConversionExists (ConcreteSlotValueType from, ConcreteSlotValueType to)
         {
-            return (from >= to);
+            return from >= to || from == ConcreteSlotValueType.Vector1;
         }
 
         protected virtual ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
@@ -826,11 +816,7 @@ namespace UnityEditor.MaterialGraph
                 return;
 
             var def = node.GetSlotDefaultValue(slot.name);
-            if (def != null && def.OnGUI())
-            {
-                node.UpdatePreviewProperties();
-                node.ForwardPreviewMaterialPropertyUpdate();
-            }
+            def.OnGUI();
         }
     }
 

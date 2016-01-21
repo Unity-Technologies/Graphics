@@ -68,11 +68,7 @@ namespace UnityEditor.MaterialGraph
             {
                 var boundProp = boundProperty as FloatProperty;
                 if (boundProp != null)
-                {
                     boundProp.defaultValue = m_Value;
-                }
-                UpdatePreviewProperties();
-                ForwardPreviewMaterialPropertyUpdate();
                 return true;
             }
             return false;
@@ -90,11 +86,6 @@ namespace UnityEditor.MaterialGraph
 
             if (rebuildShaders)
                 RegeneratePreviewShaders();
-            else
-            {
-                UpdatePreviewProperties();
-                ForwardPreviewMaterialPropertyUpdate();
-            }
         }
 
         public override PreviewProperty GetPreviewProperty()

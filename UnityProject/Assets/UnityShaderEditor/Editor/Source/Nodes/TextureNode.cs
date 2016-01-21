@@ -135,7 +135,7 @@ namespace UnityEditor.MaterialGraph
             if (HasBoundProperty())
                 return;
 
-            visitor.AddShaderProperty(new TexturePropertyChunk(GetPropertyName(), GetPropertyName(), m_DefaultTexture, m_TextureType, true));
+            visitor.AddShaderProperty(new TexturePropertyChunk(GetPropertyName(), GetPropertyName(), m_DefaultTexture, m_TextureType, false, false));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
@@ -179,8 +179,6 @@ namespace UnityEditor.MaterialGraph
                     boundProp.defaultTexture = m_DefaultTexture;
                     boundProp.defaultTextureType = m_TextureType;
                 }
-                UpdatePreviewProperties();
-                ForwardPreviewMaterialPropertyUpdate();
                 return true;
             }
             return false;
@@ -198,11 +196,6 @@ namespace UnityEditor.MaterialGraph
             }
             if (rebuildShaders)
                 RegeneratePreviewShaders();
-            else
-            {
-                UpdatePreviewProperties();
-                ForwardPreviewMaterialPropertyUpdate();
-            }
         }
 
         public override PreviewProperty GetPreviewProperty()
