@@ -50,7 +50,7 @@ namespace UnityEditor
 			protected Vector3 m_Scale = Vector3.one;
 			protected bool m_Selected = false;
 			protected bool m_Collapsed = false;
-			protected Texture2D m_Texture = null;
+			protected RenderTexture m_Texture = null;
 			protected CanvasElement m_Parent = null;
 			protected Object m_Target = null;
 			protected bool m_SupportsRenderToTexture = true;
@@ -226,7 +226,7 @@ namespace UnityEditor
 				set { m_zIndex = value; }
 			}
 
-			public Texture2D texture
+			public Texture texture
 			{
 				get { return m_Texture; }
 			}
@@ -305,13 +305,10 @@ namespace UnityEditor
 		    private void CreateTexture()
 		    {
 		        Rect textureRect = boundingRect;
-		        m_Texture = new Texture2D((int) textureRect.width, (int) textureRect.height, TextureFormat.ARGB32, true)
-		        {
-		            filterMode = FilterMode.Trilinear, 
-                    wrapMode = TextureWrapMode.Clamp
-		        };
+		        m_Texture = new RenderTexture((int) textureRect.width, (int) textureRect.height, 0, RenderTextureFormat.ARGB32);
 		    }
 
+		    private RenderTexture m_OldActive;
 		    public bool PrepareRender()
 		    {
 		        if (Event.current.type != EventType.Repaint)
@@ -330,6 +327,9 @@ namespace UnityEditor
 		            CreateTexture();
 		        }
 
+		        m_OldActive = RenderTexture.active;
+		        RenderTexture.active = m_Texture;
+
 		        Layout();
 		        m_Dirty = false;
 		        return true;
@@ -337,10 +337,7 @@ namespace UnityEditor
 
 		    public void EndRender(float renderTextureHeight)
 			{
-				Rect textureRect = boundingRect;
-				float origin = SystemInfo.graphicsDeviceVersion.StartsWith("Direct") ? 0 : renderTextureHeight - textureRect.height;
-				m_Texture.ReadPixels(new Rect(0, origin, textureRect.width, textureRect.height), 0, 0);
-				m_Texture.Apply();
+		        RenderTexture.active = m_OldActive;
 			}
 
 			bool Collide(Vector2 p)
