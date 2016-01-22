@@ -517,12 +517,6 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public struct OutputSlotVariable
-        {
-            public string name;
-            public ConcreteSlotValueType slotType;
-        }
-
         public virtual string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
         {
             if (s.isInputSlot) Debug.LogError("Attempting to use input slot (" + s + ") for output!");
@@ -632,8 +626,7 @@ namespace UnityEditor.MaterialGraph
             string inputValue;
             if (pointInputConnected)
             {
-                var dataProvider = inputSlot.edges[0].fromSlot.node as BaseMaterialNode;
-                inputValue = dataProvider.GetOutputVariableNameForSlot(inputSlot.edges[0].fromSlot, generationMode);
+                inputValue = ShaderGenerator.AdaptNodeOutput(inputSlot.edges[0].fromSlot, generationMode, concreteInputSlotValueTypes[inputSlot.name]);
             }
             else
             {
