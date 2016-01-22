@@ -74,14 +74,9 @@ namespace UnityEditor.MaterialGraph
 
             var uvName = "IN.meshUV0.xy";
             if (uvSlot.edges.Count > 0)
-            {
-                var fromNode = uvSlot.edges[0].fromSlot.node as BaseMaterialNode;
-                uvName = fromNode.GetOutputVariableNameForSlot(uvSlot.edges[0].fromSlot, generationMode);
+                uvName = ShaderGenerator.AdaptNodeOutput(uvSlot.edges[0].fromSlot, generationMode, ConcreteSlotValueType.Vector2);
 
-                if ()
-            }
-
-            string body = "tex2D (" + propertyName + ", " + uvName + ".xy)";
+            string body = "tex2D (" + propertyName + ", " + uvName + ")";
             if (m_TextureType == TextureType.Bump)
                 body = precision + "4(UnpackNormal(" + body + "), 0)";
             visitor.AddShaderChunk("float4 " + GetOutputVariableNameForNode() + " = " + body + ";", true);

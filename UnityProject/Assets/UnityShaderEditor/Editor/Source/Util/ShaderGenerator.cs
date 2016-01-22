@@ -278,59 +278,60 @@ namespace UnityEditor.MaterialGraph
             return result;
         }
 
-        private static string AdaptNodeOutput(BaseMaterialNode node, GenerationMode mode, ConcreteSlotValueType previewChannelConcreteType)
+        public static string AdaptNodeOutput(BaseMaterialNode node, GenerationMode mode, ConcreteSlotValueType convertToType)
         {
             var outputSlot = node.outputSlots.FirstOrDefault();
-            if (outputSlot == null)
+            return AdaptNodeOutput(outputSlot, mode, convertToType);
+        }
+
+        private const string kErrorString = @"ERROR!";
+        public static string AdaptNodeOutput(Slot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType)
+        {
+           if (outputSlot == null)
                 return string.Empty;
 
-            var outputConcreteType = node.GetConcreteOutputSlotValueType(outputSlot);
+            var node = outputSlot.node as BaseMaterialNode;
+            var convertFromType = node.GetConcreteOutputSlotValueType(outputSlot);
 
             var rawOutput = node.GetOutputVariableNameForSlot(node.outputSlots.FirstOrDefault(), mode);
-            if (outputConcreteType == previewChannelConcreteType)
+            if (convertFromType == convertToType)
                 return rawOutput;
 
-            switch (previewChannelConcreteType)
+            switch (convertToType)
             {
                 case ConcreteSlotValueType.Vector1:
                     return string.Format("({0}).x", rawOutput);
                 case ConcreteSlotValueType.Vector2:
-                    switch (outputConcreteType)
+                    switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("half2(({0}).x, ({0}).x)", rawOutput);
+                            return string.Format("({0})", rawOutput);
                         case ConcreteSlotValueType.Vector3:
                         case ConcreteSlotValueType.Vector4:
-                            return string.Format("half2(({0}).x, ({0}).y)", rawOutput);
+                            return string.Format("({0}.xy)", rawOutput);
                         default:
-                            return string.Empty;
+                            return kErrorString;
                     }
                 case ConcreteSlotValueType.Vector3:
-                    switch (outputConcreteType)
+                    switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("half3(({0}).x, ({0}).x, ({0}).x)", rawOutput);
-                        case ConcreteSlotValueType.Vector2:
-                            return string.Format("half3(({0}).x, ({0}).y, 0.0f)", rawOutput);
+                            return string.Format("({0})", rawOutput);
                         case ConcreteSlotValueType.Vector4:
-                            return string.Format("half3(({0}).x, ({0}).y, ({0}).z)", rawOutput);
+                            return string.Format("({0}.xyz)", rawOutput);
                         default:
-                            return string.Empty;
+                            return kErrorString;
                     }
                 case ConcreteSlotValueType.Vector4:
-                    switch (outputConcreteType)
+                    switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("half4(({0}).x, ({0}).x, ({0}).x, ({0}).x)", rawOutput);
-                        case ConcreteSlotValueType.Vector2:
-                            return string.Format("half4(({0}).x, ({0}).y, 0.0f, 0.0f)", rawOutput);
-                        case ConcreteSlotValueType.Vector3:
-                            return string.Format("half4(({0}).x, ({0}).y, ({0}).z, 0.0f)", rawOutput);
+                            return string.Format("({0})", rawOutput);
                         default:
-                            return string.Empty;
+                            return kErrorString;
                     }
                 default:
-                    return string.Empty;
+                    return kErrorString;
             }
         }
 

@@ -51,20 +51,7 @@ namespace UnityEditor.MaterialGraph
                 return;
             }
 
-            bool inputConnected = inputSlot.edges.Count > 0;
-
-            string inputValue;
-            if (inputConnected)
-            {
-                var inputDateProvider = inputSlot.edges[0].fromSlot.node as BaseMaterialNode;
-                inputValue = inputDateProvider.GetOutputVariableNameForSlot(inputSlot.edges[0].fromSlot, generationMode);
-            }
-            else
-            {
-                var defaultValue = GetSlotDefaultValue(inputSlot.name);
-                inputValue = defaultValue.GetDefaultValue(generationMode, concreteInputSlotValueTypes[inputSlot.name]);
-            }
-
+            var inputValue = GetSlotValue(inputSlot, generationMode);
             visitor.AddShaderChunk(precision + outputDimension + " " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(inputValue) + ";", true);
         }
 
