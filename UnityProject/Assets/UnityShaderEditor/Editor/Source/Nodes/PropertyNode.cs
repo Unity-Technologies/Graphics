@@ -54,5 +54,11 @@ namespace UnityEditor.MaterialGraph
             base.CollectPreviewMaterialProperties(properties);
             properties.Add(GetPreviewProperty());
         }
+
+        public override void OnGUI()
+        {
+            m_Exposed = EditorGUILayout.Toggle("Exposed Property", m_Exposed);
+            base.OnGUI();
+        }
     }
 }
