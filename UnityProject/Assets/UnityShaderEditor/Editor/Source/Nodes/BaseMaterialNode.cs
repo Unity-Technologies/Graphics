@@ -715,17 +715,9 @@ namespace UnityEditor.MaterialGraph
             }
             return ConcreteSlotValueType.Error;
         }
-
-        private static int fcuckingtest = 0;
+        
         public void ValidateNode()
         {
-            fcuckingtest++;
-
-            if (fcuckingtest == 100)
-            {
-                Debug.Log("stack");
-            }
-
             if (!nodeNeedsValidation)
                 return;
 

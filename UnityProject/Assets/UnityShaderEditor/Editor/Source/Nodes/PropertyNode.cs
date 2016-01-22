@@ -65,17 +65,9 @@ namespace UnityEditor.MaterialGraph
             base.CollectPreviewMaterialProperties(properties);
             properties.Add(GetPreviewProperty());
         }
-
-        private static int fcuckingtest = 0;
+        
         protected override bool CalculateNodeHasError()
         {
-            fcuckingtest++;
-
-            if (fcuckingtest == 100)
-            {
-                Debug.Log("stack");
-            }
-
             if (!exposed)
                 return false;
 
