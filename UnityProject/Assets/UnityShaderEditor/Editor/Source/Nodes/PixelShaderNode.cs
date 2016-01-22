@@ -189,7 +189,7 @@ namespace UnityEditor.MaterialGraph
             m_LightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
             if (EditorGUI.EndChangeCheck())
             {
-                RegeneratePreviewShaders();
+                pixelGraph.RevalidateGraph();
                 return true;
             }
             return false;
@@ -200,7 +200,7 @@ namespace UnityEditor.MaterialGraph
             get { return true; }
         }
 
-        public override bool UpdatePreviewMaterial()
+        protected override bool UpdatePreviewMaterial()
         {
             if (hasError)
                 return false;
@@ -209,7 +209,7 @@ namespace UnityEditor.MaterialGraph
             List<PropertyGenerator.TextureInfo> defaultTextures;
             var resultShader = ShaderGenerator.GenerateSurfaceShader(pixelGraph.owner, shaderName, true, out defaultTextures);
             m_GeneratedShaderMode = PreviewMode.Preview3D;
-            InternalUpdatePreviewShader(resultShader);
+            hasError = !InternalUpdatePreviewShader(resultShader);
             return true;
         }
     }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphs;
 using UnityEngine;
@@ -27,9 +26,7 @@ namespace UnityEditor.MaterialGraph
         {
             get { return isAwake && nodes.Any(x => x is IRequiresTime); }
         }
-
-        protected abstract void RecacheActiveNodes();
-
+        
         public override void RemoveEdge(Edge e)
         {
             base.RemoveEdge(e);
@@ -38,9 +35,7 @@ namespace UnityEditor.MaterialGraph
             if (toNode == null)
                 return;
             
-            RecacheActiveNodes();
-            InvalidateAllNodes();
-            toNode.RegeneratePreviewShaders();
+            RevalidateGraph();
         }
 
         public override Edge Connect(Slot fromSlot, Slot toSlot)
@@ -79,54 +74,34 @@ namespace UnityEditor.MaterialGraph
 
             if (fromNode == null || toNode == null)
                 return newEdge;
-
-            RecacheActiveNodes();
-            InvalidateAllNodes();
-            toNode.RegeneratePreviewShaders();
+            
+            RevalidateGraph();
             return newEdge;
         }
 
-        protected virtual void InvalidateAllNodes()
+        public virtual void RevalidateGraph()
         {
             var bmns = nodes.Where(x => x is BaseMaterialNode).Cast<BaseMaterialNode>().ToList();
 
             foreach (var node in bmns)
                 node.InvalidateNode();
+
+            foreach (var node in bmns)
+            {
+                node.ValidateNode();
+            }
         }
 
         public override void AddNode(Node node)
         {
             base.AddNode(node);
             AssetDatabase.AddObjectToAsset(node, this);
-
-            var bmn = node as BaseMaterialNode;
-            if (bmn != null && bmn.hasPreview)
-                bmn.UpdatePreviewMaterial();
+            RevalidateGraph();
         }
 
         protected void AddMasterNodeNoAddToAsset(Node node)
         {
             base.AddNode(node);
-        }
-
-        public void GeneratePreviewShaders()
-        {
-            // 2 passes...
-            // 1 create the shaders
-            foreach (var node in nodes)
-            {
-                var bmn = node as BaseMaterialNode;
-                if (bmn != null && bmn.hasPreview)
-                    bmn.UpdatePreviewMaterial();
-            }
-
-            // 2 set the properties
-            foreach (var node in nodes)
-            {
-                var pNode = node as BaseMaterialNode;
-                if (pNode != null && pNode.hasPreview)
-                    pNode.UpdatePreviewProperties();
-            }
         }
     }
 }

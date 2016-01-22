@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor.Graphs;
 using UnityEditorInternal;
 using UnityEngine;
@@ -88,6 +89,7 @@ namespace UnityEditor.MaterialGraph
 
     public abstract class BaseMaterialNode : Node, IGenerateProperties
     {
+
         #region Fields
         private const int kPreviewWidth = 64;
         private const int kPreviewHeight = 64;
@@ -100,6 +102,14 @@ namespace UnityEditor.MaterialGraph
 
         [SerializeField]
         private DrawMode m_DrawMode = DrawMode.Full;
+
+        public delegate void NeedsRepaint();
+        public NeedsRepaint onNeedsRepaint;
+        public void ExecuteRepaint()
+        {
+            if (onNeedsRepaint != null)
+                onNeedsRepaint();
+        } 
 
         private readonly Dictionary<string, SlotValueType> m_SlotValueTypes = new Dictionary<string, SlotValueType>();
         private readonly Dictionary<string, ConcreteSlotValueType> m_ConcreteInputSlotValueTypes = new Dictionary<string, ConcreteSlotValueType>();
@@ -171,7 +181,7 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                BuildValidateNode();
+                ValidateNode();
                 if (m_Material == null)
                 {
                     m_Material = new Material(defaultPreviewShader) {hideFlags = HideFlags.DontSave};
@@ -194,15 +204,15 @@ namespace UnityEditor.MaterialGraph
         }
 
         [NonSerialized]
-        private bool m_NodeInValidState;
-        public bool nodeInValidState
+        private bool m_NodeNeedsValidation= true;
+        public bool nodeNeedsValidation
         {
-            get { return m_NodeInValidState; }
+            get { return m_NodeNeedsValidation; }
         }
 
         public void InvalidateNode()
         {
-            m_NodeInValidState = false;
+            m_NodeNeedsValidation = true;
         }
 
         [NonSerialized]
@@ -211,9 +221,17 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                if (!nodeInValidState)
-                    BuildValidateNode();
+                if (nodeNeedsValidation)
+                    ValidateNode();
                 return m_HasError;
+            }
+            protected set
+            {
+                if (m_HasError != value)
+                {
+                    m_HasError = value;
+                    ExecuteRepaint();
+                }
             }
         }
 
@@ -221,8 +239,8 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                if (!nodeInValidState)
-                    BuildValidateNode(); 
+                if (nodeNeedsValidation)
+                    ValidateNode(); 
                 return m_ConcreteInputSlotValueTypes;
             }
         }
@@ -231,8 +249,8 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                if (!nodeInValidState)
-                    BuildValidateNode();
+                if (nodeNeedsValidation)
+                    ValidateNode();
                 return m_ConcreteOutputSlotValueTypes;
             }
         }
@@ -312,23 +330,27 @@ namespace UnityEditor.MaterialGraph
         #endregion
 
         #region Previews
-        public virtual bool UpdatePreviewMaterial()
+
+        protected virtual bool UpdatePreviewMaterial()
         {
             if (hasError)
                 return false;
 
             var resultShader = ShaderGenerator.GeneratePreviewShader(this, out m_GeneratedShaderMode);
-            InternalUpdatePreviewShader(resultShader);
-            return true;
+            return InternalUpdatePreviewShader(resultShader);
         }
 
-        protected void InternalUpdatePreviewShader(string resultShader)
+        protected bool InternalUpdatePreviewShader(string resultShader)
         {
             MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + GetInstanceID() + "\n" + resultShader);
             if (previewMaterial.shader != defaultPreviewShader)
                 DestroyImmediate(previewMaterial.shader, true);
             previewMaterial.shader = ShaderUtil.CreateShaderAsset(resultShader);
             previewMaterial.shader.hideFlags = HideFlags.DontSave;
+
+            var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
+            var result = hasErrorsCall.Invoke(null, new object[] {previewMaterial.shader});
+            return (int)result == 0;
         }
 
         private static Mesh[] s_Meshes = { null, null, null, null };
@@ -454,16 +476,6 @@ namespace UnityEditor.MaterialGraph
             ListPool<Slot>.Release(validSlots);
         }
 
-        // this function looks at all the nodes that have a
-        // dependency on this node. They will then have their
-        // preview regenerated.
-        public void RegeneratePreviewShaders()
-        {
-            var dependentNodesWithPreview = CollectDependentNodes().Where(x => x.hasPreview);
-            foreach (var dependentNode in dependentNodesWithPreview)
-                dependentNode.UpdatePreviewMaterial();
-        }
-
         public static void UpdateMaterialProperties(BaseMaterialNode target, Material material)
         {
             var childNodes = ListPool<BaseMaterialNode>.Get();
@@ -503,6 +515,12 @@ namespace UnityEditor.MaterialGraph
                 if (slot != null && slot.isInputSlot)
                     slotsToFill.Add(slot);
             }
+        }
+
+        public struct OutputSlotVariable
+        {
+            public string name;
+            public ConcreteSlotValueType slotType;
         }
 
         public virtual string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
@@ -705,10 +723,20 @@ namespace UnityEditor.MaterialGraph
             return ConcreteSlotValueType.Error;
         }
 
-        public void BuildValidateNode()
+        private static int fcuckingtest = 0;
+        public void ValidateNode()
         {
-            if (nodeInValidState)
+            fcuckingtest++;
+
+            if (fcuckingtest == 100)
+            {
+                Debug.Log("stack");
+            }
+
+            if (!nodeNeedsValidation)
                 return;
+
+            bool isInError = false;
 
             // all children nodes needs to be updated first
             // so do that here
@@ -718,7 +746,9 @@ namespace UnityEditor.MaterialGraph
                 {
                     var outputSlot = edge.fromSlot;
                     var outputNode = (BaseMaterialNode) outputSlot.node;
-                    outputNode.BuildValidateNode();
+                    outputNode.ValidateNode();
+                    if (outputNode.hasError)
+                        isInError |= true;
                 }
             }
 
@@ -791,9 +821,25 @@ namespace UnityEditor.MaterialGraph
 
                 m_ConcreteOutputSlotValueTypes.Add(outputSlot.name, ToConcreteType(m_SlotValueTypes[outputSlot.name]));
             }
+            
+            isInError |= inputError;
+            isInError |= m_ConcreteOutputSlotValueTypes.Values.Any(x => x == ConcreteSlotValueType.Error);
+            isInError |= CalculateNodeHasError();
+            m_NodeNeedsValidation = false;
+            hasError = isInError;
 
-            m_HasError = inputError || m_ConcreteOutputSlotValueTypes.Values.Any(x => x == ConcreteSlotValueType.Error);
-            m_NodeInValidState = true;
+            if (!hasError)
+            {
+                bool valid = UpdatePreviewMaterial();
+                if (!valid)
+                    hasError = true;
+            }
+        }
+
+        //True if error
+        protected virtual bool CalculateNodeHasError()
+        {
+            return false;
         }
 
         public static string ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType slotValue)
@@ -813,14 +859,17 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public virtual void OnGUI()
+        public virtual bool OnGUI()
         {
             GUILayout.Label("Slot Defaults", EditorStyles.boldLabel);
+            bool modified = false;
             foreach (var slot in slots.Where(x => x.isInputSlot && x.edges.Count == 0))
-                DoSlotUI(this, slot);
+                modified |= DoSlotUI(this, slot);
+
+            return modified;
         }
 
-        private static void DoSlotUI(BaseMaterialNode node, Slot slot)
+        private static bool DoSlotUI(BaseMaterialNode node, Slot slot)
         {
             GUILayout.BeginHorizontal(/*EditorStyles.inspectorBig*/);
             GUILayout.BeginVertical();
@@ -831,17 +880,17 @@ namespace UnityEditor.MaterialGraph
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
 
-            DoMaterialSlotUIBody(node, slot);
+            return DoMaterialSlotUIBody(node, slot);
         }
 
-        private static void DoMaterialSlotUIBody(BaseMaterialNode node, Slot slot)
+        private static bool DoMaterialSlotUIBody(BaseMaterialNode node, Slot slot)
         {
             SlotValue value = node.GetSlotDefaultValue(slot.name);
             if (value == null)
-                return;
+                return false;
 
             var def = node.GetSlotDefaultValue(slot.name);
-            def.OnGUI();
+            return def.OnGUI();
         }
     }
 

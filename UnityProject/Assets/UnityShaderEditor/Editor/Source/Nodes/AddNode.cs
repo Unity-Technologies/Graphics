@@ -5,8 +5,6 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Add Node")]
     public class AddNode : Function2Input, IGeneratesFunction
     {
-        [SerializeField] private float m_DefaultValue;
-
         public override void OnCreate()
         {
             name = "AddNode";
@@ -37,20 +35,6 @@ namespace UnityEditor.MaterialGraph
         public override float GetNodeUIHeight(float width)
         {
             return EditorGUIUtility.singleLineHeight;
-        }
-
-        public override bool NodeUI(Rect drawArea)
-        {
-            base.NodeUI(drawArea);
-
-            EditorGUI.BeginChangeCheck();
-            m_DefaultValue = EditorGUI.FloatField(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), m_DefaultValue);
-            if (EditorGUI.EndChangeCheck())
-            {
-                RegeneratePreviewShaders();
-                return true;
-            }
-            return false;
         }
     }
 }

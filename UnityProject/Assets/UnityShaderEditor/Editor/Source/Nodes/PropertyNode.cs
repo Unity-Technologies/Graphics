@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Graphs;
 using UnityEngine;
 
@@ -7,8 +8,8 @@ namespace UnityEditor.MaterialGraph
 {
     public abstract class PropertyNode : BaseMaterialNode
     {
-        //[SerializeField]
-        //private string m_Name;
+        [SerializeField]
+        private string m_PropertyName;
 
         [SerializeField]
         private string m_Description;
@@ -23,16 +24,26 @@ namespace UnityEditor.MaterialGraph
 
         public string description
         {
-            get { return m_Description; } 
+            get
+            {
+                if (string.IsNullOrEmpty(m_Description))
+                    return propertyName;
+
+                return m_Description;
+            }
+            set { m_Description = value; }
         }
 
-        public virtual string GetPropertyName()
+        public virtual string propertyName
         {
-           // var validExposedName = !string.IsNullOrEmpty(m_Name);
-            //if (!validExposedName)
-                return string.Format("{0}_{1}_Uniform", name, Math.Abs(GetInstanceID()));
+            get
+            {
+                if (!exposed || string.IsNullOrEmpty(m_PropertyName))
+                    return string.Format("{0}_{1}_Uniform", name, Math.Abs(GetInstanceID()));
 
-           // return m_Name + "_Uniform";
+                return m_PropertyName + "_Uniform";
+            }
+            set { m_PropertyName = value; }
         }
 
         public abstract PropertyType propertyType { get; }
@@ -41,7 +52,7 @@ namespace UnityEditor.MaterialGraph
         
         public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
         {
-            return GetPropertyName();
+            return propertyName;
         }
         
         public override float GetNodeUIHeight(float width)
@@ -55,10 +66,55 @@ namespace UnityEditor.MaterialGraph
             properties.Add(GetPreviewProperty());
         }
 
-        public override void OnGUI()
+        private static int fcuckingtest = 0;
+        protected override bool CalculateNodeHasError()
         {
+            fcuckingtest++;
+
+            if (fcuckingtest == 100)
+            {
+                Debug.Log("stack");
+            }
+
+            if (!exposed)
+                return false;
+
+            var allNodes = pixelGraph.nodes;
+            foreach (var n in allNodes.OfType<PropertyNode>())
+            {
+                if (n == this)
+                    continue;;
+
+                if (n.propertyName == propertyName)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public override bool OnGUI()
+        {
+            EditorGUI.BeginChangeCheck();
             m_Exposed = EditorGUILayout.Toggle("Exposed Property", m_Exposed);
-            base.OnGUI();
+            if (m_Exposed)
+                m_PropertyName = EditorGUILayout.DelayedTextField("Property Name", m_PropertyName);
+
+            var modified = EditorGUI.EndChangeCheck();
+            if (modified)
+            {
+                var bmg = (graph as BaseMaterialGraph);
+                if (bmg == null)
+                    return false;
+
+                bmg.RevalidateGraph();
+            }
+
+            if (m_Exposed)
+                m_Description = EditorGUILayout.TextField("Description", m_Description);
+            
+            modified |= base.OnGUI();
+            return modified;
         }
     }
 }

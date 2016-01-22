@@ -30,12 +30,15 @@ namespace UnityEditor.MaterialGraph
         }
         
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {}
+        {
+            if (exposed)
+                visitor.AddShaderProperty(new VectorPropertyChunk(propertyName, description, m_Value, false));
+        }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType valueType)
         {
             if (exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk("float2 " + GetPropertyName() + ";", true);
+                visitor.AddShaderChunk("float2 " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -43,7 +46,7 @@ namespace UnityEditor.MaterialGraph
             if (exposed || generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "2 " +  GetPropertyName() + " = " + precision + "2 (" + m_Value.x + ", " + m_Value.y + ");", true);
+            visitor.AddShaderChunk(precision + "2 " +  propertyName + " = " + precision + "2 (" + m_Value.x + ", " + m_Value.y + ");", true);
         }
         
         public override bool NodeUI(Rect drawArea)
@@ -63,7 +66,7 @@ namespace UnityEditor.MaterialGraph
         {
             return new PreviewProperty
                    {
-                       m_Name = GetPropertyName(),
+                       m_Name = propertyName,
                        m_PropType = PropertyType.Vector2,
                        m_Vector4 = m_Value
                    };
