@@ -58,7 +58,7 @@ namespace UnityEditor.MaterialGraph
             m_Operation = (Operation) EditorGUI.EnumPopup(new Rect(drawArea.x, drawArea.y + EditorGUIUtility.singleLineHeight, drawArea.width, EditorGUIUtility.singleLineHeight), m_Operation);
             if (EditorGUI.EndChangeCheck())
             {
-                RegeneratePreviewShaders();
+                pixelGraph.RevalidateGraph();
                 return true;
             }
             return false;

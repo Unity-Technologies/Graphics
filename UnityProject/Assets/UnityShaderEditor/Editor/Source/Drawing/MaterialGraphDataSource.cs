@@ -26,7 +26,7 @@ namespace UnityEditor.MaterialGraph
             {
                 // add the nodes
                 var bmn = node as BaseMaterialNode;
-                m_DrawableNodes.Add(new DrawableMaterialNode(bmn, (bmn is PixelShaderNode) ? 600.0f : 200.0f, typeof(Vector4), this));
+                m_DrawableNodes.Add(new DrawableMaterialNode(bmn, (bmn is PixelShaderNode) ? 600.0f : 200.0f, this));
             }
 
             // Add the edges now

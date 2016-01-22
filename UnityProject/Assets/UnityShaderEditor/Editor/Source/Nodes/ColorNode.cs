@@ -32,13 +32,13 @@ namespace UnityEditor.MaterialGraph
         
         public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
         {
-            return GetPropertyName();
+            return propertyName;
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
             if (exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk("float4 " + GetPropertyName() + ";", true);
+                visitor.AddShaderChunk("float4 " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -47,7 +47,7 @@ namespace UnityEditor.MaterialGraph
             if (exposed || generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "4 " + GetPropertyName() + " = " + precision + "4 (" + m_Color.r + ", " + m_Color.g + ", " + m_Color.b + ", " + m_Color.a + ");", true);
+            visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + precision + "4 (" + m_Color.r + ", " + m_Color.g + ", " + m_Color.b + ", " + m_Color.a + ");", true);
         }
         
 
@@ -67,7 +67,7 @@ namespace UnityEditor.MaterialGraph
         {
             return new PreviewProperty
                    {
-                       m_Name = GetPropertyName(),
+                       m_Name = propertyName,
                        m_PropType = PropertyType.Color,
                        m_Color = m_Color
                    };

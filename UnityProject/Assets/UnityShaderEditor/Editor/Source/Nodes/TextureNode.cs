@@ -72,14 +72,16 @@ namespace UnityEditor.MaterialGraph
             if (uvSlot == null)
                 return;
 
-            var uvName = "IN.meshUV0";
+            var uvName = "IN.meshUV0.xy";
             if (uvSlot.edges.Count > 0)
             {
                 var fromNode = uvSlot.edges[0].fromSlot.node as BaseMaterialNode;
                 uvName = fromNode.GetOutputVariableNameForSlot(uvSlot.edges[0].fromSlot, generationMode);
+
+                if ()
             }
 
-            string body = "tex2D (" + GetPropertyName() + ", " + uvName + ".xy)";
+            string body = "tex2D (" + propertyName + ", " + uvName + ".xy)";
             if (m_TextureType == TextureType.Bump)
                 body = precision + "4(UnpackNormal(" + body + "), 0)";
             visitor.AddShaderChunk("float4 " + GetOutputVariableNameForNode() + " = " + body + ";", true);
@@ -132,12 +134,12 @@ namespace UnityEditor.MaterialGraph
         // Properties
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderProperty(new TexturePropertyChunk(GetPropertyName(), GetPropertyName(), m_DefaultTexture, m_TextureType, false, exposed));
+            visitor.AddShaderProperty(new TexturePropertyChunk(propertyName, description, m_DefaultTexture, m_TextureType, false, exposed));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
-            visitor.AddShaderChunk("sampler2D " + GetPropertyName() + ";", true);
+            visitor.AddShaderChunk("sampler2D " + propertyName + ";", true);
         }
 
         public override float GetNodeUIHeight(float width)
@@ -162,7 +164,7 @@ namespace UnityEditor.MaterialGraph
 
             if (typeChanged)
             {
-                RegeneratePreviewShaders();
+                pixelGraph.RevalidateGraph();
                 return true;
             }
 
@@ -173,7 +175,7 @@ namespace UnityEditor.MaterialGraph
         {
             return new PreviewProperty
                    {
-                       m_Name = GetPropertyName(),
+                       m_Name = propertyName,
                        m_PropType = PropertyType.Texture2D,
                        m_Texture = m_DefaultTexture
                    };

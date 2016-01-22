@@ -48,7 +48,6 @@ namespace UnityEditor.MaterialGraph
                 if (selection != m_MaterialGraph)
                 {
                     m_MaterialGraph = selection;
-                    m_MaterialGraph.currentGraph.GeneratePreviewShaders();
                 }
             }
             
@@ -112,7 +111,7 @@ namespace UnityEditor.MaterialGraph
             var gm = new GenericMenu();
             foreach (Type type in Assembly.GetAssembly(typeof(BaseMaterialNode)).GetTypes())
             {
-                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(BaseMaterialNode)) || type.IsSubclassOf(typeof(PropertyNode))))
+                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(BaseMaterialNode))))
                 {
                     var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
                     if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))

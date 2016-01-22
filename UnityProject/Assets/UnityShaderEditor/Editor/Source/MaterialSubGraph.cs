@@ -18,11 +18,7 @@ namespace UnityEditor.MaterialGraph
         public SubGraphInputsNode inputsNode { get { return m_InputsNode; } }
 
         public SubGraphOutputsNode outputsNode { get { return m_OutputsNode; } }
-
-        protected override void RecacheActiveNodes()
-        {
-        }
-
+        
         public new void OnEnable()
         {
             base.OnEnable();

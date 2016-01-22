@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental;
@@ -10,23 +9,20 @@ namespace UnityEditor.MaterialGraph
 
     public sealed class DrawableMaterialNode : CanvasElement
     {
-        private string m_Title;
         private readonly MaterialGraphDataSource m_Data;
         public BaseMaterialNode m_Node;
-        private bool m_Error;
 
         private Rect m_PreviewArea;
         private Rect m_NodeUIRect;
 
-        public DrawableMaterialNode(BaseMaterialNode node, float width, Type outputType, MaterialGraphDataSource data)
+        public DrawableMaterialNode(BaseMaterialNode node, float width, MaterialGraphDataSource data)
         {
             translation = node.position.min;
             scale = new Vector2(width, width);
 
             m_Node = node;
-            m_Title = node.name;
             m_Data = data;
-            m_Error = node.hasError;
+            m_Node.onNeedsRepaint += Invalidate;
 
             const float yStart = 10.0f;
             var vector3 = new Vector3(5.0f, yStart, 0.0f);
@@ -111,9 +107,9 @@ namespace UnityEditor.MaterialGraph
         {
             Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
             Color selectedColor = new Color(1.0f, 0.7f, 0.0f, 0.7f);
-            EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), m_Error ? Color.red : selected ? selectedColor : backgroundColor);
+            EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), m_Node.hasError ? Color.red : selected ? selectedColor : backgroundColor);
             GUI.Label(new Rect(0, 0, scale.x, 26f), GUIContent.none, new GUIStyle("preToolbar"));
-            GUI.Label(new Rect(10, 2, scale.x - 20.0f, 16.0f), m_Title, EditorStyles.toolbarTextField);
+            GUI.Label(new Rect(10, 2, scale.x - 20.0f, 16.0f), m_Node.name, EditorStyles.toolbarTextField);
             if (GUI.Button(new Rect(scale.x - 20f, 3f, 14f, 14f), m_Node.drawMode == DrawMode.Full ? "-" : "+"))
             {
                 m_Node.drawMode = m_Node.drawMode == DrawMode.Full ? DrawMode.Collapsed : DrawMode.Full;
@@ -126,15 +122,7 @@ namespace UnityEditor.MaterialGraph
             {
                 // if we were changed, we need to redraw all the
                 // dependent nodes.
-                var dependentNodes = m_Node.CollectDependentNodes();
-                foreach (var node in dependentNodes)
-                {
-                    foreach (var drawNode in m_Data.lastGeneratedNodes)
-                    {
-                        if (drawNode.m_Node == node)
-                            drawNode.Invalidate();
-                    }
-                }
+                RepaintDependentNodes(m_Node);
             }
 
             if (m_Node.hasPreview 
@@ -149,13 +137,22 @@ namespace UnityEditor.MaterialGraph
             
             base.Render(parentRect, canvas);
         }
-        
+
+        private static void RepaintDependentNodes(BaseMaterialNode bmn)
+        {
+            var dependentNodes = bmn.CollectDependentNodes();
+            foreach (var node in dependentNodes)
+                node.onNeedsRepaint();
+        }
+
         public static void OnGUI(List<CanvasElement> selection)
         {
-            foreach (var selected in selection.Where(x => x is DrawableMaterialNode).Cast<DrawableMaterialNode>())
+            var drawableMaterialNode = selection.Where(x => x is DrawableMaterialNode).Cast<DrawableMaterialNode>().FirstOrDefault();
+            if (drawableMaterialNode != null && drawableMaterialNode.m_Node.OnGUI())
             {
-                selected.m_Node.OnGUI();
-                break;
+                // if we were changed, we need to redraw all the
+                // dependent nodes.
+                RepaintDependentNodes(drawableMaterialNode.m_Node);
             }
         }
     }

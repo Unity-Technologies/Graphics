@@ -30,7 +30,7 @@ namespace UnityEditor.MaterialGraph
                 m_SwizzleChannel[n] = EditorGUI.Popup(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), channelNames[n] + "=", m_SwizzleChannel[n], values);
             if (EditorGUI.EndChangeCheck())
             {
-                RegeneratePreviewShaders();
+                pixelGraph.RevalidateGraph();
                 return true;
             }
             return false;

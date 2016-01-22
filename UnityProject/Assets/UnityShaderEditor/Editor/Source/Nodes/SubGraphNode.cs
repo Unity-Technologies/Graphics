@@ -66,7 +66,7 @@ namespace UnityEditor.MaterialGraph
         {
             RefreshSlots(SlotType.InputSlot, inputSlots.ToList(), sender.inputsNode.slots, (s) => true);
             RefreshSlots(SlotType.OutputSlot, outputSlots.ToList(), sender.outputsNode.slots, sender.OutputInternallyWired);
-            RegeneratePreviewShaders();
+            pixelGraph.RevalidateGraph();
         }
 
         private void RefreshSlots(SlotType type, IEnumerable<Slot> current, IEnumerable<Slot> updated, Func<string, bool> slotFilter)

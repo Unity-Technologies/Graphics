@@ -15,7 +15,7 @@ namespace UnityEditor.MaterialGraph
 
         public override bool HasPreviewGUI()
         {
-            return true;
+            return false;
         }
 
         private void Init()
