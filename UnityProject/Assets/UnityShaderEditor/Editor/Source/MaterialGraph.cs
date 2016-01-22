@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,9 +12,6 @@ namespace UnityEditor.MaterialGraph
 
         [SerializeField]
         private PixelGraph m_PixelGraph;
-
-        [SerializeField]
-        private bool m_Expanded;
         
         public int GetShaderInstanceID()
         {
