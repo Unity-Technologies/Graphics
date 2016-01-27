@@ -70,8 +70,8 @@ namespace UnityEditor.MaterialGraph
                 m_Canvas.AddManipulator(new Zoomable());
 
                 // allow framing the selection when hitting "F" (frame) or "A" (all). Basically shows how to trap a key and work with the canvas selection
-                m_Canvas.AddManipulator(new Frame(Frame.FrameType.eAll));
-                m_Canvas.AddManipulator(new Frame(Frame.FrameType.eSelection));
+                m_Canvas.AddManipulator(new Frame(Frame.FrameType.All));
+                m_Canvas.AddManipulator(new Frame(Frame.FrameType.Selection));
 
                 // The following manipulator show how to work with canvas2d overlay and background rendering
                 m_Canvas.AddManipulator(new RectangleSelect());
@@ -164,7 +164,7 @@ namespace UnityEditor.MaterialGraph
 
             m_NodeExpanded = MaterialGraphStyles.Header("Selected", m_NodeExpanded);
             if (m_NodeExpanded)
-                DrawableMaterialNode.OnGUI(m_Canvas.Selection);
+                DrawableMaterialNode.OnGUI(m_Canvas.selection);
       
             GUILayout.EndScrollView();
             if (GUILayout.Button("Export"))

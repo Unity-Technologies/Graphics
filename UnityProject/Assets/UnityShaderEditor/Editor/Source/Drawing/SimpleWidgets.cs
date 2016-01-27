@@ -101,7 +101,7 @@ namespace UnityEditor.MaterialGraph
             m_Title = "modal";
             AddManipulator(new Draggable());
             AddManipulator(new Resizable());
-            AddManipulator(new IMGUIContainer());
+            AddManipulator(new ImguiContainer());
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)

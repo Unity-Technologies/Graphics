@@ -55,7 +55,7 @@ namespace UnityEditor.MaterialGraph
             EditorGUI.DrawRect(new Rect(translation.x, translation.y, scale.x, scale.y), anchorColor);
             string text = m_Slot.name;
             Rect labelRect;
-            if (m_Direction == Direction.eInput)
+            if (m_Direction == Direction.Input)
             {
                 text += " " + ConcreteSlotValueTypeAsString(((BaseMaterialNode) m_Slot.node).GetConcreteInputSlotValueType(m_Slot));
                 labelRect = new Rect(translation.x + scale.x + 10.0f, translation.y, parentRect.width, 20.0f);
