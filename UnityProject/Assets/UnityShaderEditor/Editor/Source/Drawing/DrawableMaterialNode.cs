@@ -32,7 +32,7 @@ namespace UnityEditor.MaterialGraph
             foreach (var slot in node.inputSlots)
             {
                 pos.y += 22;
-                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data, Direction.eInput));
+                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data, Direction.Input));
             }
             var inputYMax = pos.y + 22;
 
@@ -46,7 +46,7 @@ namespace UnityEditor.MaterialGraph
                     continue;
 
                 pos.y += 22;
-                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data, Direction.eOutput));
+                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data, Direction.Output));
             }
             pos.y += 22;
 
@@ -67,7 +67,7 @@ namespace UnityEditor.MaterialGraph
             KeyDown += OnDeleteNode;
             OnWidget += MarkDirtyIfNeedsTime;
             
-            AddManipulator(new IMGUIContainer());
+            AddManipulator(new ImguiContainer());
             AddManipulator(new Draggable());
         }
 
