@@ -854,7 +854,7 @@ namespace UnityEditor.MaterialGraph
             return modified;
         }
 
-        private static bool DoSlotUI(BaseMaterialNode node, Slot slot)
+        public static bool DoSlotUI(BaseMaterialNode node, Slot slot)
         {
             GUILayout.BeginHorizontal(/*EditorStyles.inspectorBig*/);
             GUILayout.BeginVertical();

@@ -227,5 +227,11 @@ namespace UnityEditor.MaterialGraph
             m_DefaultVector = EditorGUILayout.Vector4Field("Value", m_DefaultVector);
             return EditorGUI.EndChangeCheck();
         }
+        public bool OnGUI(Rect rect)
+        {
+            EditorGUI.BeginChangeCheck();
+            m_DefaultVector = EditorGUI.Vector4Field(rect, GUIContent.none, m_DefaultVector);
+            return EditorGUI.EndChangeCheck();
+        }
     }
 }

@@ -138,7 +138,7 @@ namespace UnityEditor.MaterialGraph
             base.Render(parentRect, canvas);
         }
 
-        private static void RepaintDependentNodes(BaseMaterialNode bmn)
+        public static void RepaintDependentNodes(BaseMaterialNode bmn)
         {
             var dependentNodes = bmn.CollectDependentNodes();
             foreach (var node in dependentNodes)

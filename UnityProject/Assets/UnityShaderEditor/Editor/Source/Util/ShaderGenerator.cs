@@ -278,17 +278,11 @@ namespace UnityEditor.MaterialGraph
             return result;
         }
 
-        public static string AdaptNodeOutput(BaseMaterialNode node, GenerationMode mode, ConcreteSlotValueType convertToType)
-        {
-            var outputSlot = node.outputSlots.FirstOrDefault();
-            return AdaptNodeOutput(outputSlot, mode, convertToType);
-        }
-
         private const string kErrorString = @"ERROR!";
         public static string AdaptNodeOutput(Slot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType)
         {
            if (outputSlot == null)
-                return string.Empty;
+                return kErrorString;
 
             var node = outputSlot.node as BaseMaterialNode;
             var convertFromType = node.GetConcreteOutputSlotValueType(outputSlot);
@@ -327,6 +321,46 @@ namespace UnityEditor.MaterialGraph
                     {
                         case ConcreteSlotValueType.Vector1:
                             return string.Format("({0})", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
+                default:
+                    return kErrorString;
+            }
+        }
+
+        private static string AdaptNodeOutputForPreview(Slot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType)
+        {
+           if (outputSlot == null)
+                return kErrorString;
+
+            var node = outputSlot.node as BaseMaterialNode;
+            var convertFromType = node.GetConcreteOutputSlotValueType(outputSlot);
+
+            // if we are in a normal situation, just convert!
+            if (convertFromType >= convertToType || convertFromType == ConcreteSlotValueType.Vector1)
+                return AdaptNodeOutput(outputSlot, mode, convertToType);
+
+            var rawOutput = node.GetOutputVariableNameForSlot(node.outputSlots.FirstOrDefault(), mode);
+
+            // otherwise we need to pad output for the preview!
+            switch (convertToType)
+            {
+                case ConcreteSlotValueType.Vector3:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("half3({0}.x, {0}.y, 0.0)", rawOutput);
+                        default:
+                            return kErrorString;
+                    }
+                case ConcreteSlotValueType.Vector4:
+                    switch (convertFromType)
+                    {
+                        case ConcreteSlotValueType.Vector2:
+                            return string.Format("half4({0}.x, {0}.y, 0.0, 0.0)", rawOutput);
+                        case ConcreteSlotValueType.Vector3:
+                            return string.Format("half4({0}.x, {0}.y, {0}.z, 0.0)", rawOutput);
                         default:
                             return kErrorString;
                     }
@@ -384,9 +418,9 @@ namespace UnityEditor.MaterialGraph
             }
 
             if (generationMode == GenerationMode.Preview2D)
-                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutput(node, generationMode, ConcreteSlotValueType.Vector4) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node.outputSlots.FirstOrDefault(), generationMode, ConcreteSlotValueType.Vector4) + ";", true);
             else
-                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutput(node, generationMode, ConcreteSlotValueType.Vector3) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node.outputSlots.FirstOrDefault(), generationMode, ConcreteSlotValueType.Vector3) + ";", true);
 
             template = template.Replace("${ShaderName}", shaderName);
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
