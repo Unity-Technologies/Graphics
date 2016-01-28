@@ -47,9 +47,27 @@ namespace UnityEditor.MaterialGraph
                 }
             }
             
+            // Add proxy inputs for when edges are not connect
+            var nullInputSlots = new List<NullInputProxy>();
+            foreach (var drawableMaterialNode in m_DrawableNodes)
+            {
+                var baseNode = drawableMaterialNode.m_Node;
+                // grab the input slots where there are no edges
+                foreach (var slot in baseNode.inputSlots.Where(x => x.edges.Count == 0))
+                {
+                    // if there is no anchor, continue
+                    // this can happen if we are in collapsed mode
+                    var sourceAnchor = (NodeAnchor)drawableMaterialNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor)x).m_Slot == slot);
+                    if (sourceAnchor == null)
+                        continue;
+
+                    nullInputSlots.Add(new NullInputProxy(slot, sourceAnchor));
+                }
+            }
             var toReturn = new List<CanvasElement>();
             toReturn.AddRange(m_DrawableNodes.Select(x => (CanvasElement)x));
             toReturn.AddRange(drawableEdges.Select(x => (CanvasElement)x));
+            toReturn.AddRange(nullInputSlots.Select(x => (CanvasElement)x));
             
             Debug.LogFormat("REturning {0} nodes", toReturn.Count);
             return toReturn.ToArray();
