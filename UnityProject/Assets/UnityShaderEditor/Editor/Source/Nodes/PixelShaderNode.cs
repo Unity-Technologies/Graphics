@@ -194,6 +194,10 @@ namespace UnityEditor.MaterialGraph
             }
             return false;
         }
+        public override IEnumerable<Slot> GetDrawableInputProxies()
+        {
+            return new List<Slot>();
+        }
 
         public override bool hasPreview
         {

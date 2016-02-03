@@ -45,10 +45,7 @@ namespace UnityEditor.MaterialGraph
             var bmn = (BaseMaterialNode) m_InputSlot.node;
 
             var rect = new Rect(0, 0, scale.x, scale.y);
-            EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
-            var def = bmn.GetSlotDefaultValue(m_InputSlot.name);
-            var changed = def.OnGUI(rect);
-
+            var changed = bmn.DrawSlotDefaultInput(rect, m_InputSlot);
             if (changed)
                 DrawableMaterialNode.RepaintDependentNodes(bmn);
         }

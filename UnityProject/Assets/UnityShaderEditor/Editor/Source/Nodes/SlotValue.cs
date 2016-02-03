@@ -227,11 +227,49 @@ namespace UnityEditor.MaterialGraph
             m_DefaultVector = EditorGUILayout.Vector4Field("Value", m_DefaultVector);
             return EditorGUI.EndChangeCheck();
         }
-        public bool OnGUI(Rect rect)
+
+        public bool OnGUI(Rect rect, ConcreteSlotValueType inputSlotType)
         {
             EditorGUI.BeginChangeCheck();
-            m_DefaultVector = EditorGUI.Vector4Field(rect, GUIContent.none, m_DefaultVector);
+
+            var rectXmax = rect.xMax;
+            switch (inputSlotType)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    rect.x = rectXmax - 50;
+                    rect.width = 50;
+                    EditorGUIUtility.labelWidth = 15;
+                    EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
+                    m_DefaultVector.x = EditorGUI.FloatField(rect, "X", m_DefaultVector.x);
+                    break;
+                case ConcreteSlotValueType.Vector2:
+                    rect.x = rectXmax - 90;
+                    rect.width = 90;
+                    EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
+                    var result2 = new Vector4(m_DefaultVector.x, m_DefaultVector.y);
+                    result2 = EditorGUI.Vector2Field(rect, GUIContent.none, result2);
+                    m_DefaultVector.x = result2.x;
+                    m_DefaultVector.y = result2.y;
+                    break;
+                case ConcreteSlotValueType.Vector3:
+                    rect.x = rectXmax - 140;
+                    rect.width = 140;
+                    EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
+                    var result3 = new Vector3(m_DefaultVector.x, m_DefaultVector.y, m_DefaultVector.z);
+                    result3 = EditorGUI.Vector3Field(rect, GUIContent.none, result3);
+                    m_DefaultVector.x = result3.x;
+                    m_DefaultVector.y = result3.y;
+                    m_DefaultVector.z = result3.z;
+                    break;
+                default:
+                    rect.x = rectXmax - 190;
+                    rect.width = 190;
+                    EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
+                    m_DefaultVector = EditorGUI.Vector4Field(rect, GUIContent.none, m_DefaultVector);
+                    break;
+            }
             return EditorGUI.EndChangeCheck();
         }
+        
     }
 }

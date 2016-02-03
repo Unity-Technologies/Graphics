@@ -30,12 +30,12 @@ namespace UnityEditor.MaterialGraph
         public override void RemoveEdge(Edge e)
         {
             base.RemoveEdge(e);
-
-            var toNode = e.toSlot.node as BaseMaterialNode;
-            if (toNode == null)
-                return;
-            
             RevalidateGraph();
+        }
+
+        public void RemoveEdgeNoRevalidate(Edge e)
+        {
+            base.RemoveEdge(e);
         }
 
         public override Edge Connect(Slot fromSlot, Slot toSlot)

@@ -53,7 +53,7 @@ namespace UnityEditor.MaterialGraph
             {
                 var baseNode = drawableMaterialNode.m_Node;
                 // grab the input slots where there are no edges
-                foreach (var slot in baseNode.inputSlots.Where(x => x.edges.Count == 0))
+                foreach (var slot in baseNode.GetDrawableInputProxies())
                 {
                     // if there is no anchor, continue
                     // this can happen if we are in collapsed mode
@@ -75,25 +75,46 @@ namespace UnityEditor.MaterialGraph
 
         public void DeleteElement(CanvasElement e)
         {
-            Debug.Log("Trying to delete " + e);
-  
-            if (e is Edge<NodeAnchor>)
+            // do nothing here, we want to use the 'correct' 
+            // delete elements.
+        }
+
+        public void DeleteElements(List<CanvasElement> elements)
+        {
+            // delete selected edges first
+            foreach (var e in elements.Where(x => x is Edge<NodeAnchor>))
             {
                 //find the edge
                 var localEdge = (Edge<NodeAnchor>) e;
                 var edge = graph.currentGraph.edges.FirstOrDefault(x => x.fromSlot == localEdge.Left.m_Slot && x.toSlot == localEdge.Right.m_Slot);
-                
+
                 Debug.Log("Deleting edge " + edge);
-                graph.currentGraph.RemoveEdge(edge);
+                graph.currentGraph.RemoveEdgeNoRevalidate(edge);
             }
-            else if (e is DrawableMaterialNode)
+
+            // now delete edges that the selected nodes use
+            foreach (var e in elements.Where(x => x is DrawableMaterialNode))
+            {
+                var node = ((DrawableMaterialNode) e).m_Node;
+
+                foreach (var slot in node.slots)
+                {
+                    for (int index = slot.edges.Count -1; index >= 0; --index)
+                    {
+                        var edge = slot.edges[index];
+                        Debug.Log("Deleting edge " + edge);
+                        graph.currentGraph.RemoveEdgeNoRevalidate(edge);
+                    }
+                }
+            }
+
+            // now delete the nodes
+            foreach (var e in elements.Where(x => x is DrawableMaterialNode))
             {
                 Debug.Log("Deleting node " + e + " " + ((DrawableMaterialNode) e).m_Node);
                 graph.currentGraph.RemoveNode(((DrawableMaterialNode) e).m_Node);
             }
-
-            e.ParentCanvas().ReloadData();
-            e.ParentCanvas().Repaint();
+            graph.currentGraph.RevalidateGraph();
         }
 
         public void Connect(NodeAnchor a, NodeAnchor b)
