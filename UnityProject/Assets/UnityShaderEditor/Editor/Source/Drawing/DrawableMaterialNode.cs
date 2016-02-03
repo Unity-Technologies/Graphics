@@ -63,8 +63,6 @@ namespace UnityEditor.MaterialGraph
             }
             
             scale = new Vector3(pos.x, pos.y + 10.0f, 0.0f);
-            
-            KeyDown += OnDeleteNode;
             OnWidget += MarkDirtyIfNeedsTime;
             
             AddManipulator(new ImguiContainer());
@@ -79,19 +77,6 @@ namespace UnityEditor.MaterialGraph
                 Invalidate();
             ListPool<BaseMaterialNode>.Release(childrenNodes);
             return true;
-        }
-
-        private bool OnDeleteNode(CanvasElement element, Event e, Canvas2D canvas)
-        {
-            if (e.type == EventType.Used)
-                return false;
-
-            if (e.keyCode == KeyCode.Delete)
-            {
-                m_Data.DeleteElement(this);
-                return true;
-            }
-            return false;
         }
         
         public override void UpdateModel(UpdateType t)

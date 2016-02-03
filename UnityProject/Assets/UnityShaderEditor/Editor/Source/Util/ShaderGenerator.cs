@@ -299,7 +299,7 @@ namespace UnityEditor.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0})", rawOutput);
+                            return string.Format("({0}.xx)", rawOutput);
                         case ConcreteSlotValueType.Vector3:
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xy)", rawOutput);
@@ -310,7 +310,7 @@ namespace UnityEditor.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0})", rawOutput);
+                            return string.Format("({0}.xxx)", rawOutput);
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xyz)", rawOutput);
                         default:
@@ -320,7 +320,7 @@ namespace UnityEditor.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0})", rawOutput);
+                            return string.Format("({0}.xxxx)", rawOutput);
                         default:
                             return kErrorString;
                     }

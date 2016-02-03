@@ -77,6 +77,8 @@ namespace UnityEditor.MaterialGraph
                 m_Canvas.AddManipulator(new RectangleSelect());
                 m_Canvas.AddManipulator(new ScreenSpaceGrid());
                 m_Canvas.AddManipulator(new ContextualMenu(DoAddNodeMenu));
+                
+                m_Canvas.AddManipulator(new DeleteSelected(m_DataSource.DeleteElements, m_Canvas));
             }
 
             Rebuild();

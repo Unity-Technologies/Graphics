@@ -177,5 +177,22 @@ namespace UnityEditor.MaterialGraph
         }
         
         public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
+
+        public override bool DrawSlotDefaultInput(Rect rect, Slot inputSlot)
+        {
+            var uvSlot = FindInputSlot(kUVSlotName);
+            if (uvSlot != inputSlot)
+                return base.DrawSlotDefaultInput(rect, inputSlot);
+
+
+            var rectXmax = rect.xMax;
+            rect.x = rectXmax - 70;
+            rect.width = 70;
+
+            EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
+            GUI.Label(rect, "From Mesh");
+
+            return false;
+        }
     }
 }

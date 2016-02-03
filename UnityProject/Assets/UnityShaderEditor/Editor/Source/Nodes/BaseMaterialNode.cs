@@ -877,6 +877,18 @@ namespace UnityEditor.MaterialGraph
             var def = node.GetSlotDefaultValue(slot.name);
             return def.OnGUI();
         }
+
+        public virtual bool DrawSlotDefaultInput(Rect rect, Slot inputSlot)
+        {
+            var def = GetSlotDefaultValue(inputSlot.name);
+            var inputSlotType = GetConcreteInputSlotValueType(inputSlot);
+            return def.OnGUI(rect, inputSlotType);
+        }
+
+        public virtual IEnumerable<Slot> GetDrawableInputProxies()
+        {
+            return inputSlots.Where(x => x.edges.Count == 0);
+        }
     }
 
 }
