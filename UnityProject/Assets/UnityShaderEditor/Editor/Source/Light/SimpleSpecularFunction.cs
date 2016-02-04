@@ -1,11 +1,15 @@
-using System;
-using UnityEngine;
+using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
     class SimpleSpecularFunction : BaseLightFunction
     {
+        public const string kAlbedoSlotName = "Albedo";
+        public const string kAlphaSlotName = "Alpha";
+
         public override string GetLightFunctionName() { return "SimpleSpecular"; }
+        public override string GetSurfaceOutputStructureName() {return "SurfaceOutput";}
+
         public override void GenerateLightFunctionBody(ShaderGenerator visitor)
         {
             var outputString = new ShaderGenerator();
@@ -23,6 +27,23 @@ namespace UnityEditor.MaterialGraph
             outputString.AddShaderChunk("}", false);
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+        }
+
+        public override void DoSlotsForConfiguration(PixelShaderNode node)
+        {
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName), SlotValueType.Vector3));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kNormalSlotName), SlotValueType.Vector3));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlphaSlotName), SlotValueType.Vector1));
+
+            // clear out slot names that do not match the slots 
+            // we support
+            node.RemoveSlotsNameNotMatching(
+                new[]
+                {
+                    kAlbedoSlotName,
+                    kNormalSlotName,
+                    kAlphaSlotName
+                });
         }
     }
 }

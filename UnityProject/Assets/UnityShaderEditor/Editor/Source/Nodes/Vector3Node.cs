@@ -49,15 +49,15 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(precision + "3 " +  propertyName + " = " + precision + "3 (" + m_Value.x + ", " + m_Value.y + ", " + m_Value.z + ");", true);
         }
         
-        public override bool NodeUI(Rect drawArea)
+        public override GUIModificationType NodeUI(Rect drawArea)
         {
             base.NodeUI(drawArea);
 
             EditorGUI.BeginChangeCheck();
             m_Value = EditorGUI.Vector3Field(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), "Value", m_Value);
             if (EditorGUI.EndChangeCheck())
-                return true;
-            return false;
+                return GUIModificationType.Repaint;
+            return GUIModificationType.None;
         }
         
         public override PreviewProperty GetPreviewProperty()

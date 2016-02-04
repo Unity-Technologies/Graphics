@@ -8,16 +8,8 @@ using UnityEditor.Graphs;
 namespace UnityEditor.MaterialGraph
 {
     [Title("Output/Pixel Shader")]
-    class PixelShaderNode : BaseMaterialNode, IGeneratesBodyCode
+     public class PixelShaderNode : BaseMaterialNode, IGeneratesBodyCode
     {
-        public const string kAlbedoSlotName = "Albedo";
-        public const string kSpecularSlotName = "Specular";
-        public const string kNormalSlotName = "Normal";
-        public const string kEmissionSlotName = "Emission";
-        public const string kMetallicSlotName = "Metallic";
-        public const string kSmoothnessSlotName = "Smoothness";
-        public const string kOcclusion = "Occlusion";
-        public const string kAlphaSlotName = "Alpha";
 
         [SerializeField]
         private string m_LightFunctionClassName;
@@ -40,29 +32,8 @@ namespace UnityEditor.MaterialGraph
         {
             base.OnEnable();
 
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName), SlotValueType.Vector3));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kNormalSlotName), SlotValueType.Vector3));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSpecularSlotName), SlotValueType.Vector3));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kEmissionSlotName), SlotValueType.Vector3));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kMetallicSlotName), SlotValueType.Vector1));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSmoothnessSlotName), SlotValueType.Vector1));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kOcclusion), SlotValueType.Vector1));
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlphaSlotName), SlotValueType.Vector1));
-
-            // clear out slot names that do not match the slots 
-            // we support
-            RemoveSlotsNameNotMatching(
-                new[]
-                {
-                    kAlbedoSlotName, 
-                    kNormalSlotName, 
-                    kSpecularSlotName, 
-                    kEmissionSlotName, 
-                    kMetallicSlotName, 
-                    kSmoothnessSlotName, 
-                    kOcclusion, 
-                    kAlphaSlotName
-                });
+            var lightFunction = GetLightFunction();
+            lightFunction.DoSlotsForConfiguration(this);
         }
 
         public override void OnCreate()
@@ -112,19 +83,15 @@ namespace UnityEditor.MaterialGraph
             var lightFunction = GetLightFunction();
             lightFunction.GenerateSurfaceOutputStructureName(visitor);
         }
-
-        public virtual IEnumerable<Slot> FilterSlotsForLightFunction()
-        {
-            var lightFunction = GetLightFunction();
-            return lightFunction.FilterSlots(slots);
-        }
-
+        
         public void GenerateNodeCode(ShaderGenerator shaderBody, GenerationMode generationMode)
         {
+            var lightFunction = GetLightFunction();
+            var firstPassSlotName = lightFunction.GetFirstPassSlotName();
             // do the normal slot first so that it can be used later in the shader :)
-            var normal = FindInputSlot(kNormalSlotName);
+            var firstPassSlot = FindInputSlot(firstPassSlotName);
             var nodes = ListPool<BaseMaterialNode>.Get();
-            CollectChildNodesByExecutionOrder(nodes, normal, false);
+            CollectChildNodesByExecutionOrder(nodes, firstPassSlot, false);
 
             for (int index = 0; index < nodes.Count; index++)
             {
@@ -133,11 +100,11 @@ namespace UnityEditor.MaterialGraph
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
 
-            for (int index = 0; index < normal.edges.Count; index++)
+            for (int index = 0; index < firstPassSlot.edges.Count; index++)
             {
-                var edge = normal.edges[index];
+                var edge = firstPassSlot.edges[index];
                 var node = edge.fromSlot.node as BaseMaterialNode;
-                shaderBody.AddShaderChunk("o." + normal.name + " = " + node.GetOutputVariableNameForSlot(edge.fromSlot, generationMode) + ";", true);
+                shaderBody.AddShaderChunk("o." + firstPassSlot.name + " = " + node.GetOutputVariableNameForSlot(edge.fromSlot, generationMode) + ";", true);
             }
 
             // track the last index of nodes... they have already been processed :)
@@ -154,9 +121,9 @@ namespace UnityEditor.MaterialGraph
 
            ListPool<BaseMaterialNode>.Release(nodes);
 
-            foreach (var slot in FilterSlotsForLightFunction())
+            foreach (var slot in inputSlots)
             {
-                if (slot == normal)
+                if (slot == firstPassSlot)
                     continue;
 
                 foreach (var edge in slot.edges)
@@ -177,7 +144,7 @@ namespace UnityEditor.MaterialGraph
             return EditorGUIUtility.singleLineHeight;
         }
 
-        public override bool NodeUI(Rect drawArea)
+        public override GUIModificationType NodeUI(Rect drawArea)
         {
             var lightFunctions = GetLightFunctions();
             var lightFunction = GetLightFunction();
@@ -191,10 +158,12 @@ namespace UnityEditor.MaterialGraph
             m_LightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
             if (EditorGUI.EndChangeCheck())
             {
+                var function = GetLightFunction();
+                function.DoSlotsForConfiguration(this);
                 pixelGraph.RevalidateGraph();
-                return true;
+                return GUIModificationType.ModelChanged;
             }
-            return false;
+            return GUIModificationType.None;
         }
         public override IEnumerable<Slot> GetDrawableInputProxies()
         {

@@ -103,11 +103,18 @@ namespace UnityEditor.MaterialGraph
                 return;
             }
 
-            if (m_Node.NodeUI(m_NodeUIRect))
+            var modificationType = m_Node.NodeUI(m_NodeUIRect);
+            if (modificationType== GUIModificationType.Repaint)
             {
                 // if we were changed, we need to redraw all the
                 // dependent nodes.
                 RepaintDependentNodes(m_Node);
+            }
+            else if (modificationType == GUIModificationType.ModelChanged)
+            {
+                ParentCanvas().ReloadData();
+                ParentCanvas().Repaint();
+                return;
             }
 
             if (m_Node.hasPreview 

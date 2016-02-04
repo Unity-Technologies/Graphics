@@ -49,7 +49,7 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(precision + "2 " +  propertyName + " = " + precision + "2 (" + m_Value.x + ", " + m_Value.y + ");", true);
         }
         
-        public override bool NodeUI(Rect drawArea)
+        public override GUIModificationType NodeUI(Rect drawArea)
         {
             base.NodeUI(drawArea);
 
@@ -57,9 +57,9 @@ namespace UnityEditor.MaterialGraph
             m_Value = EditorGUI.Vector2Field(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), "Value", m_Value);
             if (EditorGUI.EndChangeCheck())
             {
-                return true;
+                return GUIModificationType.Repaint;
             }
-            return false;
+            return GUIModificationType.None;
         }
         
         public override PreviewProperty GetPreviewProperty()
