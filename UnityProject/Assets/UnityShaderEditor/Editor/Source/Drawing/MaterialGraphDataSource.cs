@@ -96,6 +96,8 @@ namespace UnityEditor.MaterialGraph
             foreach (var e in elements.Where(x => x is DrawableMaterialNode))
             {
                 var node = ((DrawableMaterialNode) e).m_Node;
+                if (!node.canDeleteNode)
+                    continue;
 
                 foreach (var slot in node.slots)
                 {
@@ -111,8 +113,12 @@ namespace UnityEditor.MaterialGraph
             // now delete the nodes
             foreach (var e in elements.Where(x => x is DrawableMaterialNode))
             {
-                Debug.Log("Deleting node " + e + " " + ((DrawableMaterialNode) e).m_Node);
-                graph.currentGraph.RemoveNode(((DrawableMaterialNode) e).m_Node);
+                var node = ((DrawableMaterialNode)e).m_Node;
+                if (!node.canDeleteNode)
+                    continue;
+
+                Debug.Log("Deleting node " + e + " " + node);
+                graph.currentGraph.RemoveNode(node);
             }
             graph.currentGraph.RevalidateGraph();
         }

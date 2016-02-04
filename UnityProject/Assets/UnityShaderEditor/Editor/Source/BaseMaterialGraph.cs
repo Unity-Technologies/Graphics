@@ -38,6 +38,16 @@ namespace UnityEditor.MaterialGraph
             base.RemoveEdge(e);
         }
 
+        public override void RemoveNode(Node node, bool destroyNode = false)
+        {
+            if (node is BaseMaterialNode)
+            {
+                if (!((BaseMaterialNode) node).canDeleteNode)
+                    return;
+            }
+            base.RemoveNode(node, destroyNode);
+        }
+
         public override Edge Connect(Slot fromSlot, Slot toSlot)
         {
             Slot outputSlot = null;

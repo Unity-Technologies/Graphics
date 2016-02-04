@@ -2,7 +2,7 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
-    [Title("Time/Sin Time Node")]
+    [Title("Input/Sine Time Node")]
     public class SinTimeNode : BaseMaterialNode, IRequiresTime
     {
         private const string kOutputSlotName = "SinTime";
@@ -10,7 +10,7 @@ namespace UnityEditor.MaterialGraph
         public override void OnCreate()
         {
             base.OnCreate();
-            name = "Sin Time"; 
+            name = "Sine Time"; 
         }
 
         public override void OnEnable()

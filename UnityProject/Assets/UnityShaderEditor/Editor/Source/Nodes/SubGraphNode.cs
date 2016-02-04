@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    [Title("Sub-graph/Sub-graph Node")]
+    //[Title("Sub-graph/Sub-graph Node")]
     public class SubGraphNode : BaseMaterialNode, IGeneratesBodyCode, IGeneratesVertexToFragmentBlock, IGeneratesFunction, IGeneratesVertexShaderBlock
     {
         [SerializeField]

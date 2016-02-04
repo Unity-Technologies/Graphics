@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    [Title("Generate/Vector 2 Node")]
+    [Title("Input/Vector 2 Node")]
     class Vector2Node : PropertyNode, IGeneratesBodyCode
     {
         private const string kOutputSlotName = "Value";

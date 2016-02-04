@@ -93,12 +93,25 @@ namespace UnityEditor.MaterialGraph
         #region Fields
         private const int kPreviewWidth = 64;
         private const int kPreviewHeight = 64;
-
-        [NonSerialized]
-        private Material m_Material;
-
+        
         [SerializeField]
         private List<SlotDefaultValueKVP> m_SlotDefaultValues;
+
+        [SerializeField]
+        private string m_GUID = string.Empty;
+
+        protected string guid
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(m_GUID))
+                {
+                    var newGUID = Guid.NewGuid();
+                    m_GUID = newGUID.ToString("N");
+                }
+                return m_GUID;
+            }
+        }
 
         [SerializeField]
         private DrawMode m_DrawMode = DrawMode.Full;
@@ -162,6 +175,7 @@ namespace UnityEditor.MaterialGraph
         public string[] m_PrecisionNames = {"half"};
 
         protected virtual bool generateDefaultInputs { get { return true; } }
+        public virtual bool canDeleteNode { get { return true; } }
         
         public SlotValue GetSlotDefaultValue(string slotName)
         {
@@ -169,30 +183,29 @@ namespace UnityEditor.MaterialGraph
             return found != null ? found.value : null;
         }
 
-        private static Shader s_DefaultPreviewShader;
+        [SerializeField]
+        private int m_LastShaderHash;
 
-        protected static Shader defaultPreviewShader
-        {
-            get
-            {
-                if (s_DefaultPreviewShader == null)
-                    s_DefaultPreviewShader = Shader.Find("Diffuse");
+        [SerializeField]
+        private Shader m_PreviewShader;
 
-                return s_DefaultPreviewShader;
-            }
-        }
+        [SerializeField]
+        private Material m_PreviewMaterial;
 
         public Material previewMaterial
         {
             get
             {
                 ValidateNode();
-                if (m_Material == null)
+                if (m_PreviewMaterial == null)
                 {
-                    m_Material = new Material(defaultPreviewShader) {hideFlags = HideFlags.DontSave};
-                    UpdatePreviewMaterial();
+                    UpdatePreviewShader();
+                    m_PreviewMaterial = new Material(m_PreviewShader) {hideFlags = HideFlags.HideInHierarchy};
+                    m_PreviewMaterial.hideFlags = HideFlags.HideInHierarchy;
+                    AssetDatabase.AddObjectToAsset(m_PreviewMaterial, this);
+                    
                 }
-                return m_Material;
+                return m_PreviewMaterial;
             }
         }
 
@@ -336,7 +349,7 @@ namespace UnityEditor.MaterialGraph
 
         #region Previews
 
-        protected virtual bool UpdatePreviewMaterial()
+        protected virtual bool UpdatePreviewShader()
         {
             if (hasError)
                 return false;
@@ -347,14 +360,26 @@ namespace UnityEditor.MaterialGraph
 
         protected bool InternalUpdatePreviewShader(string resultShader)
         {
-            MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + GetInstanceID() + "\n" + resultShader);
-            if (previewMaterial.shader != defaultPreviewShader)
-                DestroyImmediate(previewMaterial.shader, true);
-            previewMaterial.shader = ShaderUtil.CreateShaderAsset(resultShader);
-            previewMaterial.shader.hideFlags = HideFlags.DontSave;
+            MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + guid + "\n" + resultShader);
+            if (m_PreviewShader == null)
+            {
+                m_PreviewShader = ShaderUtil.CreateShaderAsset(resultShader);
+                m_PreviewShader.hideFlags = HideFlags.HideInHierarchy;
+                AssetDatabase.AddObjectToAsset(m_PreviewShader, this);
+                m_LastShaderHash = resultShader.GetHashCode();
+            }
+            else
+            {
+                var hash = resultShader.GetHashCode();
+                if (hash != m_LastShaderHash)
+                {
+                    ShaderUtil.UpdateShaderAsset(m_PreviewShader, resultShader);
+                    m_LastShaderHash = hash;
+                }
+            }
 
             var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
-            var result = hasErrorsCall.Invoke(null, new object[] {previewMaterial.shader});
+            var result = hasErrorsCall.Invoke(null, new object[] {m_PreviewShader});
             return (int)result == 0;
         }
 
@@ -532,7 +557,7 @@ namespace UnityEditor.MaterialGraph
 
         public virtual string GetOutputVariableNameForNode()
         {
-            return name + "_" + Math.Abs(GetInstanceID());
+            return name + "_" + guid;
         }
         public virtual Vector4 GetNewSlotDefaultValue(SlotValueType type)
         {
@@ -830,7 +855,7 @@ namespace UnityEditor.MaterialGraph
 
             if (!hasError)
             {
-                bool valid = UpdatePreviewMaterial();
+                bool valid = UpdatePreviewShader();
                 if (!valid)
                     hasError = true;
             }
