@@ -20,7 +20,7 @@ namespace UnityEditor.MaterialGraph
             return EditorGUIUtility.singleLineHeight;
         }
 
-        public override bool NodeUI(Rect drawArea)
+        public override GUIModificationType NodeUI(Rect drawArea)
         {
             base.NodeUI(drawArea);
             string[] channelNames = {"X", "Y", "Z", "W"};
@@ -31,9 +31,9 @@ namespace UnityEditor.MaterialGraph
             if (EditorGUI.EndChangeCheck())
             {
                 pixelGraph.RevalidateGraph();
-                return true;
+                return GUIModificationType.Repaint;
             }
-            return false;
+            return GUIModificationType.None;
         }
 
         protected override string GetFunctionName()

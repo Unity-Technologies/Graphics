@@ -74,7 +74,7 @@ namespace UnityEditor.MaterialGraph
 
             var uvName = "IN.meshUV0.xy";
             if (uvSlot.edges.Count > 0)
-                uvName = ShaderGenerator.AdaptNodeOutput(uvSlot.edges[0].fromSlot, generationMode, ConcreteSlotValueType.Vector2);
+                uvName = ShaderGenerator.AdaptNodeOutput(uvSlot.edges[0].fromSlot, generationMode, ConcreteSlotValueType.Vector2, true);
 
             string body = "tex2D (" + propertyName + ", " + uvName + ")";
             if (m_TextureType == TextureType.Bump)
@@ -142,7 +142,7 @@ namespace UnityEditor.MaterialGraph
             return EditorGUIUtility.singleLineHeight * 2;
         }
 
-        public override bool NodeUI(Rect drawArea)
+        public override GUIModificationType NodeUI(Rect drawArea)
         {
             LoadTextureTypes();
 
@@ -160,10 +160,10 @@ namespace UnityEditor.MaterialGraph
             if (typeChanged)
             {
                 pixelGraph.RevalidateGraph();
-                return true;
+                return GUIModificationType.Repaint;
             }
 
-            return texureChanged;
+            return texureChanged ? GUIModificationType.Repaint : GUIModificationType.None;
         }
 
         public override PreviewProperty GetPreviewProperty()

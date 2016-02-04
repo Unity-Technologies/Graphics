@@ -1,10 +1,11 @@
-using System.Collections.Generic;
 using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
     public abstract class BaseLightFunction
     {
+        public const string kNormalSlotName = "Normal";
+
         public virtual string GetLightFunctionName() { return ""; }
         public virtual string GetSurfaceOutputStructureName() { return ""; }
         public virtual void GenerateLightFunctionBody(ShaderGenerator visitor) {}
@@ -19,63 +20,85 @@ namespace UnityEditor.MaterialGraph
             visitor.AddPragmaChunk(GetSurfaceOutputStructureName());
         }
 
-        public virtual IEnumerable<Slot> FilterSlots(List<Slot> slots)
+        public abstract void DoSlotsForConfiguration(PixelShaderNode node);
+
+        public virtual string GetFirstPassSlotName()
         {
-            return new List<Slot>();
+            return kNormalSlotName;
         }
     }
 
     class PBRMetalicLightFunction : BaseLightFunction
     {
+        public const string kAlbedoSlotName = "Albedo";
+        public const string kEmissionSlotName = "Emission";
+        public const string kMetallicSlotName = "Metallic";
+        public const string kSmoothnessSlotName = "Smoothness";
+        public const string kOcclusion = "Occlusion";
+        public const string kAlphaSlotName = "Alpha";
+
         public override string GetLightFunctionName() { return "Standard"; }
         public override string GetSurfaceOutputStructureName() { return "SurfaceOutputStandard"; }
-
-        public override IEnumerable<Slot> FilterSlots(List<Slot> slots)
+        public override void DoSlotsForConfiguration(PixelShaderNode node)
         {
-            var rSlots =  new List<Slot>();
-            foreach (var slot in slots)
-            {
-                switch (slot.name)
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName), SlotValueType.Vector3));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kNormalSlotName), SlotValueType.Vector3));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kEmissionSlotName), SlotValueType.Vector3));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kMetallicSlotName), SlotValueType.Vector1));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSmoothnessSlotName), SlotValueType.Vector1));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kOcclusion), SlotValueType.Vector1));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlphaSlotName), SlotValueType.Vector1));
+
+            // clear out slot names that do not match the slots 
+            // we support
+            node.RemoveSlotsNameNotMatching(
+                new[]
                 {
-                    case PixelShaderNode.kAlbedoSlotName:
-                    case PixelShaderNode.kNormalSlotName:
-                    case PixelShaderNode.kEmissionSlotName:
-                    case PixelShaderNode.kMetallicSlotName:
-                    case PixelShaderNode.kSmoothnessSlotName:
-                    case PixelShaderNode.kOcclusion:
-                    case PixelShaderNode.kAlphaSlotName:
-                        rSlots.Add(slot);
-                        break;
-                }
-            }
-            return rSlots;
+                    kAlbedoSlotName,
+                    kNormalSlotName,
+                    kEmissionSlotName,
+                    kMetallicSlotName,
+                    kSmoothnessSlotName,
+                    kOcclusion,
+                    kAlphaSlotName
+                });
         }
     }
 
     class PBRSpecularLightFunction : BaseLightFunction
     {
+        public const string kAlbedoSlotName = "Albedo";
+        public const string kSpecularSlotName = "Specular";
+        public const string kEmissionSlotName = "Emission";
+        public const string kSmoothnessSlotName = "Smoothness";
+        public const string kOcclusion = "Occlusion";
+        public const string kAlphaSlotName = "Alpha";
+
         public override string GetLightFunctionName() { return "StandardSpecular"; }
         public override string GetSurfaceOutputStructureName() { return "SurfaceOutputStandardSpecular"; }
-
-        public override IEnumerable<Slot> FilterSlots(List<Slot> slots)
+        public override void DoSlotsForConfiguration(PixelShaderNode node)
         {
-            var rSlots =  new List<Slot>();
-            foreach (var slot in slots)
-            {
-                switch (slot.name)
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlbedoSlotName), SlotValueType.Vector3));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kNormalSlotName), SlotValueType.Vector3));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSpecularSlotName), SlotValueType.Vector3));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kEmissionSlotName), SlotValueType.Vector3));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kSmoothnessSlotName), SlotValueType.Vector1));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kOcclusion), SlotValueType.Vector1));
+            node.AddSlot(new MaterialGraphSlot(new Slot(SlotType.InputSlot, kAlphaSlotName), SlotValueType.Vector1));
+
+            // clear out slot names that do not match the slots 
+            // we support
+            node.RemoveSlotsNameNotMatching(
+                new[]
                 {
-                    case PixelShaderNode.kAlbedoSlotName:
-                    case PixelShaderNode.kSpecularSlotName:
-                    case PixelShaderNode.kNormalSlotName:
-                    case PixelShaderNode.kEmissionSlotName:
-                    case PixelShaderNode.kSmoothnessSlotName:
-                    case PixelShaderNode.kOcclusion:
-                    case PixelShaderNode.kAlphaSlotName:
-                        rSlots.Add(slot);
-                        break;
-                }
-            }
-            return rSlots;
+                    kAlbedoSlotName,
+                    kNormalSlotName,
+                    kSpecularSlotName,
+                    kEmissionSlotName,
+                    kSmoothnessSlotName,
+                    kOcclusion,
+                    kAlphaSlotName
+                });
         }
     }
 }

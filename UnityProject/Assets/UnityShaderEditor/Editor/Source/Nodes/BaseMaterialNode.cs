@@ -148,7 +148,10 @@ namespace UnityEditor.MaterialGraph
             if (string.IsNullOrEmpty(slot))
                 return;
 
-            m_SlotValueTypes.Add(slot, slotType);
+            if (m_SlotValueTypes.ContainsKey(slot))
+                m_SlotValueTypes[slot] = slotType;
+            else
+                m_SlotValueTypes.Add(slot, slotType);
         }
         
         public string precision
@@ -277,9 +280,9 @@ namespace UnityEditor.MaterialGraph
             return 0;
         }
 
-        public virtual bool NodeUI(Rect drawArea)
+        public virtual GUIModificationType NodeUI(Rect drawArea)
         {
-            return false;
+            return GUIModificationType.None;
         }
         
         protected virtual void OnPreviewGUI()
@@ -641,7 +644,7 @@ namespace UnityEditor.MaterialGraph
             return inputValue;
         }
 
-        protected void RemoveSlotsNameNotMatching(string[] slotNames)
+        public void RemoveSlotsNameNotMatching(string[] slotNames)
         {
             var invalidSlots = slots.Select(x => x.name).Except(slotNames);
 
@@ -661,11 +664,18 @@ namespace UnityEditor.MaterialGraph
         
         public ConcreteSlotValueType GetConcreteOutputSlotValueType(Slot slot)
         {
-            return concreteOutputSlotValueTypes[slot.name];
+            if (concreteOutputSlotValueTypes.ContainsKey(slot.name))
+                return concreteOutputSlotValueTypes[slot.name];
+
+            return ConcreteSlotValueType.Error;
         }
+
         public ConcreteSlotValueType GetConcreteInputSlotValueType(Slot slot)
         {
-            return concreteInputSlotValueTypes[slot.name];
+            if (concreteInputSlotValueTypes.ContainsKey(slot.name))
+                return concreteInputSlotValueTypes[slot.name];
+
+            return ConcreteSlotValueType.Error;
         }
 
         private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType @from, ConcreteSlotValueType to)
@@ -896,4 +906,10 @@ namespace UnityEditor.MaterialGraph
         }
     }
 
+    public enum GUIModificationType
+    {
+        None,
+        Repaint,
+        ModelChanged
+    }
 }

@@ -279,7 +279,7 @@ namespace UnityEditor.MaterialGraph
         }
 
         private const string kErrorString = @"ERROR!";
-        public static string AdaptNodeOutput(Slot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType)
+        public static string AdaptNodeOutput(Slot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType, bool textureSampleUVHack = false)
         {
            if (outputSlot == null)
                 return kErrorString;
@@ -299,7 +299,7 @@ namespace UnityEditor.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}.xx)", rawOutput);
+                            return string.Format("({0}{1})", rawOutput, textureSampleUVHack ? ".xx" : string.Empty);
                         case ConcreteSlotValueType.Vector3:
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xy)", rawOutput);
@@ -310,7 +310,7 @@ namespace UnityEditor.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}.xxx)", rawOutput);
+                            return string.Format("({0}{1})", rawOutput, textureSampleUVHack ? ".xxx" : string.Empty);
                         case ConcreteSlotValueType.Vector4:
                             return string.Format("({0}.xyz)", rawOutput);
                         default:
@@ -320,7 +320,7 @@ namespace UnityEditor.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector1:
-                            return string.Format("({0}.xxxx)", rawOutput);
+                            return string.Format("({0}{1})", rawOutput, textureSampleUVHack ? ".xxxx" : string.Empty);
                         default:
                             return kErrorString;
                     }

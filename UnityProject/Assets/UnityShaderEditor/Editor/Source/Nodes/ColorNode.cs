@@ -51,16 +51,16 @@ namespace UnityEditor.MaterialGraph
         }
         
 
-        public override bool NodeUI(Rect drawArea)
+        public override GUIModificationType NodeUI(Rect drawArea)
         {
             base.NodeUI(drawArea);
             
             EditorGUI.BeginChangeCheck();
             m_Color = EditorGUI.ColorField(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), m_Color);
             if (EditorGUI.EndChangeCheck())
-                return true;
+                return GUIModificationType.Repaint;
 
-            return false;
+            return GUIModificationType.None;
         }
 
         public override PreviewProperty GetPreviewProperty()

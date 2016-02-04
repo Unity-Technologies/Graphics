@@ -49,7 +49,7 @@ namespace UnityEditor.MaterialGraph
             return 2.0f * EditorGUIUtility.singleLineHeight;
         }
 
-        public override bool NodeUI(Rect drawArea)
+        public override GUIModificationType NodeUI(Rect drawArea)
         {
             base.NodeUI(drawArea);
 
@@ -59,9 +59,9 @@ namespace UnityEditor.MaterialGraph
             if (EditorGUI.EndChangeCheck())
             {
                 pixelGraph.RevalidateGraph();
-                return true;
+                return GUIModificationType.Repaint;
             }
-            return false;
+            return GUIModificationType.None;
         }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
