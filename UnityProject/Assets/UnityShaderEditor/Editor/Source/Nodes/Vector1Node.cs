@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    [Title("Generate/Vector 1 Node")]
+    [Title("Input/Vector 1 Node")]
     class Vector1Node : PropertyNode, IGeneratesBodyCode
     {
         [SerializeField]

@@ -39,7 +39,7 @@ namespace UnityEditor.MaterialGraph
             get
             {
                 if (!exposed || string.IsNullOrEmpty(m_PropertyName))
-                    return string.Format("{0}_{1}_Uniform", name, Math.Abs(GetInstanceID()));
+                    return string.Format("{0}_{1}_Uniform", name, guid);
 
                 return m_PropertyName + "_Uniform";
             }

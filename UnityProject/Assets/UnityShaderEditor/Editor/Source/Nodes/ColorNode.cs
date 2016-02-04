@@ -1,11 +1,9 @@
-using System;
-using System.Linq;
 using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    [Title("Generate/Color Node")]
+    [Title("Input/Color Node")]
     class ColorNode : PropertyNode, IGeneratesBodyCode
     {
         [SerializeField]

@@ -7,10 +7,9 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
-    [Title("Output/Pixel Shader")]
-     public class PixelShaderNode : BaseMaterialNode, IGeneratesBodyCode
+    //[Title("Output/Pixel Shader")]
+    public class PixelShaderNode : BaseMaterialNode, IGeneratesBodyCode
     {
-
         [SerializeField]
         private string m_LightFunctionClassName;
 
@@ -27,6 +26,8 @@ namespace UnityEditor.MaterialGraph
         }
 
         protected override bool generateDefaultInputs { get { return false; } }
+
+        public override bool canDeleteNode { get { return false; } }
 
         public override void OnEnable()
         {
@@ -175,12 +176,12 @@ namespace UnityEditor.MaterialGraph
             get { return true; }
         }
 
-        protected override bool UpdatePreviewMaterial()
+        protected override bool UpdatePreviewShader()
         {
             if (hasError)
                 return false;
 
-            var shaderName = "Hidden/PreviewShader/" + name + "_" + Math.Abs(GetInstanceID());
+            var shaderName = "Hidden/PreviewShader/" + name + "_" + guid;
             List<PropertyGenerator.TextureInfo> defaultTextures;
             var resultShader = ShaderGenerator.GenerateSurfaceShader(pixelGraph.owner, shaderName, true, out defaultTextures);
             m_GeneratedShaderMode = PreviewMode.Preview3D;

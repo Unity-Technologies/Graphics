@@ -2,7 +2,7 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
-    [Title("Time/Time Node")]
+    [Title("Input/Time Node")]
     public class TimeNode : BaseMaterialNode, IRequiresTime
     {
         private const string kOutputSlotName = "Time";
