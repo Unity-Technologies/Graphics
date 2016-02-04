@@ -34,6 +34,8 @@ namespace UnityEditor.MaterialGraph
             get { return 300; }
         }
 
+        protected override bool generateDefaultInputs { get { return false; } }
+
         public override void OnEnable()
         {
             base.OnEnable();

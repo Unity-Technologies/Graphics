@@ -158,6 +158,8 @@ namespace UnityEditor.MaterialGraph
 
         public string[] m_PrecisionNames = {"half"};
 
+        protected virtual bool generateDefaultInputs { get { return true; } }
+        
         public SlotValue GetSlotDefaultValue(string slotName)
         {
             var found = m_SlotDefaultValues.FirstOrDefault(x => x.slotName == slotName);
@@ -590,6 +592,9 @@ namespace UnityEditor.MaterialGraph
 
         public virtual void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
         {
+            if (!generateDefaultInputs)
+                return;
+
             if (!generationMode.IsPreview())
                 return;
 
