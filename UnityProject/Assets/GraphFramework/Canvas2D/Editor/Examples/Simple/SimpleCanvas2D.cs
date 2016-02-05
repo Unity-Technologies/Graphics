@@ -4,7 +4,7 @@ using UnityEditor.Experimental;
 #pragma warning disable 0414
 #pragma warning disable 0219
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     internal class SimpleCanvas2D : EditorWindow
     {

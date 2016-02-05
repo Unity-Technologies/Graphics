@@ -1,13 +1,10 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental;
-using Object = UnityEngine.Object;
 
 #pragma warning disable 0414
 #pragma warning disable 0219
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     internal class AnimationCanvas2D : EditorWindow
     {

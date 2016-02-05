@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEditor.Experimental;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     class SimpleBox : CanvasElement
     {
