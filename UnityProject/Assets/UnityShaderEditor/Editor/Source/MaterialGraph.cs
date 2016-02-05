@@ -49,7 +49,7 @@ namespace UnityEditor.MaterialGraph
             //      m_MaterialProperties.OnChangePreviewState -= OnChangePreviewState;
         }
         
-        public void CreateSubAssets()
+        public void AddSubAssetsToAsset()
         {
             AssetDatabase.AddObjectToAsset(m_MaterialOptions, this);
             AssetDatabase.AddObjectToAsset(m_PixelGraph, this);

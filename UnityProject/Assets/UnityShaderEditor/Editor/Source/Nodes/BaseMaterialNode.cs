@@ -184,7 +184,7 @@ namespace UnityEditor.MaterialGraph
         }
 
         [SerializeField]
-        private int m_LastShaderHash;
+        private string m_LastShader;
 
         [SerializeField]
         private Shader m_PreviewShader;
@@ -366,15 +366,15 @@ namespace UnityEditor.MaterialGraph
                 m_PreviewShader = ShaderUtil.CreateShaderAsset(resultShader);
                 m_PreviewShader.hideFlags = HideFlags.HideInHierarchy;
                 AssetDatabase.AddObjectToAsset(m_PreviewShader, this);
-                m_LastShaderHash = resultShader.GetHashCode();
+                m_LastShader = resultShader;
             }
             else
             {
                 var hash = resultShader.GetHashCode();
-                if (hash != m_LastShaderHash)
+                if (string.CompareOrdinal(resultShader, m_LastShader) != 0)
                 {
                     ShaderUtil.UpdateShaderAsset(m_PreviewShader, resultShader);
-                    m_LastShaderHash = hash;
+                    m_LastShader = resultShader;
                 }
             }
 
