@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental;
-using UnityEditor.Experimental.Graph;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     internal class NodalDataSource : ICanvasDataSource
     {

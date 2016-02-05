@@ -1,9 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEditor.Experimental;
-using UnityEditor.Experimental.Graph;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     class PortSource<T>
     {

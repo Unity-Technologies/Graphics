@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     internal class SimpleDataSource : ICanvasDataSource
     {
