@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental
 			
 			this.NodeRect = new Rect(position.x, position.y, size.x, size.y);
 			this.m_Caps = Capabilities.Normal;
-			AddNodeBlock(new VFXEdNodeBlock(new Vector2(0, 0), new Vector2(this.scale.x, 64), dataSource, "Node Block Example"));
+			AddNodeBlock(new VFXEdNodeBlock(VFXEditor.BlockLibrary.GetRandomBlock(),new Vector2(0, 0), scale.x, dataSource));
 		}
 
 		public void AddNodeBlock(VFXEdNodeBlock block)

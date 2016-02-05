@@ -2,11 +2,12 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental;
 using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 
 namespace UnityEditor.Experimental
 {
-
 	public class VFXEditor : EditorWindow
 	{
 
@@ -56,6 +57,7 @@ namespace UnityEditor.Experimental
 				return m_Metrics;
 			}
 		}
+		
 		public static VFXEditorStyles Styles
 		{
 			get
@@ -64,8 +66,19 @@ namespace UnityEditor.Experimental
 				return m_Styles;
 			}
 		}
+
+		public static VFXBlockLibraryCollection BlockLibrary
+		{
+			get
+			{
+				InitializeBlockLibrary();
+				return s_BlockLibrary;
+			}
+		}
+
 		private static VFXEditorMetrics m_Metrics;
 		private static VFXEditorStyles m_Styles;
+		private static VFXBlockLibraryCollection s_BlockLibrary;
 		/* end Singletons */
 
 		private VFXEdCanvas m_Canvas = null;
@@ -82,6 +95,18 @@ namespace UnityEditor.Experimental
 		private Vector2 m_DebugInfoScroll = Vector2.zero;
 		private bool m_CannotPreview = true;
 		private VFXAsset m_CurrentAsset;
+
+		private VFXBlockLibraryCollection m_BlockLibrary;
+
+		private static void InitializeBlockLibrary()
+		{
+			if (s_BlockLibrary == null)
+			{
+				s_BlockLibrary = new VFXBlockLibraryCollection();
+				s_BlockLibrary.Load();
+			}
+		}
+
 		private void InitializeCanvas()
 		{
 			if (m_Canvas == null)
@@ -153,6 +178,10 @@ namespace UnityEditor.Experimental
 			Event currentEvent = Event.current;
 
 			m_HostWindow = this;
+
+			if (s_BlockLibrary == null)
+				InitializeBlockLibrary();
+
 			if (m_Canvas == null)
 			{
 				InitializeCanvas();
@@ -202,6 +231,7 @@ namespace UnityEditor.Experimental
 			{
 				m_Canvas = null;
 				InitializeCanvas();
+				s_BlockLibrary = null;
 			}
 			if (GUILayout.Button("Tools", EditorStyles.toolbarDropDown))
 			{
@@ -293,6 +323,52 @@ namespace UnityEditor.Experimental
 		#endregion
 	}
 
+	public class VFXBlockLibraryCollection
+	{
+		private List<VFXBlock> m_Blocks;
+
+		public VFXBlockLibraryCollection()
+		{
+			m_Blocks = new List<VFXBlock>();
+		}
+
+		public void Load()
+		{
+			m_Blocks.Clear();
+
+			string[] guids = AssetDatabase.FindAssets("t:VFXBlockLibrary");
+			VFXBlockLibrary[] blockLibraries = new VFXBlockLibrary[guids.Length];
+
+			for (int i = 0; i < guids.Length; ++i)
+			{
+				blockLibraries[i] = AssetDatabase.LoadAssetAtPath<VFXBlockLibrary>(AssetDatabase.GUIDToAssetPath(guids[i]));
+				for (int j = 0; j < blockLibraries[i].GetNbBlocks(); ++j)
+				{
+					VFXBlock block = blockLibraries[i].GetBlock(j);
+					Debug.Log("Found block: " + block.m_Name + " " + block.m_Params.Length);
+					for (int k = 0; k < block.m_Params.Length; ++k)
+					{
+						Debug.Log("\t" + block.m_Params[k]);
+						Debug.Log("\t" + block.m_Params[k].m_Name);
+					}
+
+					m_Blocks.Add(block);
+				}
+			}
+		}
+
+		// Just for test
+		public VFXBlock GetRandomBlock()
+		{
+			int index = Random.Range(0, m_Blocks.Count);
+			return m_Blocks[index];
+		}
+
+		public ReadOnlyCollection<VFXBlock> GetBlocks()
+		{
+			return new ReadOnlyCollection<VFXBlock>(m_Blocks);
+		}
+	}
 
 	public class VFXEditorMetrics
 	{
