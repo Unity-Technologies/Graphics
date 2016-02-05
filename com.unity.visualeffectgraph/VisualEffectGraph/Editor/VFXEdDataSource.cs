@@ -11,7 +11,6 @@ namespace UnityEditor.Experimental
 	internal class VFXEdDataSource : ScriptableObject, ICanvasDataSource
 	{
 		private List<CanvasElement> m_Elements = new List<CanvasElement>();
-		private VFXAsset m_Asset;
 
 
 		public VFXEdDataSource()
@@ -21,10 +20,6 @@ namespace UnityEditor.Experimental
 			// TODO : Add deserialization logic, and provide default layout for non-selected assets.
 		}
 
-		public VFXEdDataSource(VFXAsset asset)
-		{
-			this.m_Asset = asset;
-		}
 
 		public void AddNode(VFXEdNode n)
 		{

@@ -10,14 +10,20 @@ namespace UnityEditor.Experimental
 {
 	internal class VFXEdNode : CanvasElement
 	{
-		public string Title;
 
-		internal List<VFXEdFlowAnchor> Inputs
+		public string title
+		{
+			get { return m_Title; }
+		}
+
+		private string m_Title;
+
+		internal List<VFXEdFlowAnchor> inputs
 		{
 			get { return m_Inputs; }
 		}
 
-		internal List<VFXEdFlowAnchor> Outputs
+		internal List<VFXEdFlowAnchor> outputs
 		{
 			get { return m_Outputs; }
 		}
@@ -31,26 +37,26 @@ namespace UnityEditor.Experimental
 
 		public VFXEdNode (Vector2 canvasposition, Vector2 size, VFXEdDataSource dataSource)
 		{
-			this.m_DataSource = dataSource;
-			this.translation = canvasposition;
-			this.Title = "(Generic Node)";
-			this.scale = new Vector2(size.x, size.y+46);
+			m_DataSource = dataSource;
+			translation = canvasposition;
+			m_Title = "(Generic Node)";
+			scale = new Vector2(size.x, size.y+46);
 
-			this.m_Inputs = new List<VFXEdFlowAnchor>();
-			this.m_Outputs = new List<VFXEdFlowAnchor>();
+			m_Inputs = new List<VFXEdFlowAnchor>();
+			m_Outputs = new List<VFXEdFlowAnchor>();
 
-			this.m_NodeClientArea = new VFXEdNodeClientArea(Vector2.zero, size, dataSource, this.Title);
-			this.m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this, m_DataSource, Direction.Input));
-			this.m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), this, m_DataSource, Direction.Output));
+			m_NodeClientArea = new VFXEdNodeClientArea(Vector2.zero, size, dataSource, title);
+			m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this, m_DataSource, Direction.Input));
+			m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), this, m_DataSource, Direction.Output));
 
-			this.AddChild(this.Inputs[0]);
-			this.AddChild(this.Outputs[0]);
-			this.AddChild(m_NodeClientArea);
+			AddChild(inputs[0]);
+			AddChild(outputs[0]);
+			AddChild(m_NodeClientArea);
 
-			this.AddManipulator(new Draggable());
-			this.AddManipulator(new NodeDelete());
+			AddManipulator(new Draggable());
+			AddManipulator(new NodeDelete());
 
-			this.AllEvents += ManageSelection;
+			AllEvents += ManageSelection;
 
 		}
 
@@ -58,7 +64,7 @@ namespace UnityEditor.Experimental
 		{
 			if (selected)
 			{
-				foreach(CanvasElement ce in this.m_NodeClientArea.NodeBlockContainer.Children())
+				foreach(CanvasElement ce in m_NodeClientArea.NodeBlockContainer.Children())
 				{
 					if(ce.GetType()== typeof(VFXEdNodeBlock))
 					{
@@ -68,7 +74,7 @@ namespace UnityEditor.Experimental
 			}
 			else
 			{
-				foreach (CanvasElement ce in this.m_NodeClientArea.NodeBlockContainer.Children())
+				foreach (CanvasElement ce in m_NodeClientArea.NodeBlockContainer.Children())
 				{
 					if (ce.GetType() == typeof(VFXEdNodeBlock))
 					{
@@ -84,17 +90,17 @@ namespace UnityEditor.Experimental
 		{
 			base.Layout();
 
-			this.scale = new Vector2(this.scale.x, m_NodeClientArea.scale.y + 50);
+			scale = new Vector2(scale.x, m_NodeClientArea.scale.y + 50);
 			//Inputs
-			for (int i = 0 ; i < this.Inputs.Count ; i++)
+			for (int i = 0 ; i < inputs.Count ; i++)
 			{
-				Inputs[i].translation = new Vector2((i+1)* (this.scale.x / (this.Inputs.Count + 1))-32,0.0f);
+				inputs[i].translation = new Vector2((i+1)* (scale.x / (inputs.Count + 1))-32,0.0f);
 			}
 			
 			//Outputs
-			for (int i = 0 ; i < this.Outputs.Count; i++)
+			for (int i = 0 ; i < outputs.Count; i++)
 			{
-				Outputs[i].translation = new Vector2((i + 1) * (this.scale.x / (this.Outputs.Count + 1))-32, m_NodeClientArea.scale.y+12);
+				outputs[i].translation = new Vector2((i + 1) * (scale.x / (outputs.Count + 1))-32, m_NodeClientArea.scale.y+12);
 			}
 
 

@@ -59,7 +59,7 @@ namespace UnityEditor.Experimental
 
 			if (element.GetType() == typeof(VFXEdNodeBlock))
 			{
-				this.m_ClickPosition = canvas.MouseToCanvas(e.mousePosition);
+				m_ClickPosition = canvas.MouseToCanvas(e.mousePosition);
 				canvas.StartCapture(this, element);
 				e.Use();
 				return true;
@@ -102,6 +102,7 @@ namespace UnityEditor.Experimental
 			}
 			canvas.Layout();
 			canvas.Repaint();
+
 			targetDropContainer = null;
 			initialDropContainer = null;
 

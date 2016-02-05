@@ -356,15 +356,15 @@ namespace UnityEditor.Experimental
 		{
 			if (parent is Canvas2D)
 			{
-				return new Rect(0, 0, this.scale.x, this.scale.y);
+				return new Rect(0, 0, scale.x, scale.y);
 			} 
 			else
 			{
 				Rect r = parent.GetDrawableRect();
-				r.x += this.translation.x;
-				r.y += this.translation.y;
-				r.width = this.scale.x;
-				r.height = this.scale.y;
+				r.x += translation.x;
+				r.y += translation.y;
+				r.width = scale.x;
+				r.height = scale.y;
 				return r;
 			}
 			 
@@ -433,11 +433,11 @@ namespace UnityEditor.Experimental
 		// THOMASI: CHANGING PARENTS
 		public virtual void SetParent(CanvasElement e)
 		{
-			CanvasElement parent = this.parent;
+			CanvasElement p = parent;
 			e.AddChild(this);
 
-			if(parent != null)
-				parent.RemoveChild(this);
+			if(p != null)
+				p.RemoveChild(this);
 
 
 		}

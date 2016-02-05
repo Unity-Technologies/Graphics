@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental
 		[MenuItem("VFXEditor/Export Skin")]
 		public static void ExportSkin()
 		{
-			VFXEditor.Styles.ExportGUISkin();
+			VFXEditor.styles.ExportGUISkin();
 		}
 
 		[MenuItem("Assets/Create/VFX Asset")]
@@ -49,21 +49,21 @@ namespace UnityEditor.Experimental
 		}
 
 		/* Singletons */
-		public static VFXEditorMetrics Metrics
+		public static VFXEditorMetrics metrics
 		{
 			get
 			{
-				if (m_Metrics == null) m_Metrics = new VFXEditorMetrics();
-				return m_Metrics;
+				if (s_Metrics == null) s_Metrics = new VFXEditorMetrics();
+				return s_Metrics;
 			}
 		}
 		
-		public static VFXEditorStyles Styles
+		public static VFXEditorStyles styles
 		{
 			get
 			{
-				if (m_Styles == null) m_Styles = new VFXEditorStyles();
-				return m_Styles;
+				if (s_Styles == null) s_Styles = new VFXEditorStyles();
+				return s_Styles;
 			}
 		}
 
@@ -76,8 +76,8 @@ namespace UnityEditor.Experimental
 			}
 		}
 
-		private static VFXEditorMetrics m_Metrics;
-		private static VFXEditorStyles m_Styles;
+		private static VFXEditorMetrics s_Metrics;
+		private static VFXEditorStyles s_Styles;
 		private static VFXBlockLibraryCollection s_BlockLibrary;
 		/* end Singletons */
 
@@ -92,7 +92,6 @@ namespace UnityEditor.Experimental
 		private bool m_bShowPreview = false;
 		private bool m_bShowLibrary = false;
 		private bool m_bShowDebugInfo = true;
-		private Vector2 m_DebugInfoScroll = Vector2.zero;
 		private bool m_CannotPreview = true;
 		private VFXAsset m_CurrentAsset;
 
@@ -131,7 +130,7 @@ namespace UnityEditor.Experimental
 				m_Canvas.AddManipulator(new ScreenSpaceGrid());
 			}
 
-			if (this.m_Icon == null) this.m_Icon = EditorGUIUtility.Load("edicon.psd") as Texture;
+			if (m_Icon == null) m_Icon = EditorGUIUtility.Load("edicon.psd") as Texture;
 
 			Undo.undoRedoPerformed += OnUndoRedo;
 
@@ -155,11 +154,11 @@ namespace UnityEditor.Experimental
 
 		private void InitializeMenu(Event e)
 		{
-			this.m_Menu = new GenericMenu();
+			m_Menu = new GenericMenu();
 			m_Menu.AddItem(new GUIContent("Add New Node"), false, AddGenericNode, e);
 			m_Menu.AddSeparator("");
-			m_Menu.AddItem(new GUIContent("MenuItem"), false, null, "Item1");
-			m_Menu.AddItem(new GUIContent("MenuItem1"), false, null, "Item1");
+			m_Menu.AddItem(new GUIContent("NodeBlocks/Test1"), false, null, "Item1");
+			m_Menu.AddItem(new GUIContent("NodeBlocks/Test2"), false, null, "Item2");
 
 		}
 
@@ -191,7 +190,7 @@ namespace UnityEditor.Experimental
 			{
 				InitializeMenu(currentEvent);
 			}
-			this.titleContent = new GUIContent("VFX Editor", this.m_Icon);
+			titleContent = new GUIContent("VFX Editor", m_Icon);
 			//GUI.Toolbar(new Rect(0, 0, position.width, 24),0);
 			DrawToolbar(new Rect(0, 0, position.width, EditorStyles.toolbar.fixedHeight));
 			Rect canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height);
@@ -211,8 +210,8 @@ namespace UnityEditor.Experimental
 		void AddGenericNode(object o)
 		{
 			Event e = o as Event;
-			this.m_DataSource.AddNode(new VFXEdNode(this.m_Canvas.MouseToCanvas(e.mousePosition), new Vector2(220, 180), this.m_DataSource));
-			this.m_Canvas.ReloadData();
+			m_DataSource.AddNode(new VFXEdNode(m_Canvas.MouseToCanvas(e.mousePosition), new Vector2(220, 180), m_DataSource));
+			m_Canvas.ReloadData();
 		}
 
 		void DrawToolbar(Rect rect)
@@ -282,7 +281,6 @@ namespace UnityEditor.Experimental
 			BeginWindows();
 				if (m_bShowLibrary) GUI.Window(0, m_LibraryRect, DrawLibraryWindowContent, "NodeBlock Library");
 				if (m_bShowPreview) GUI.Window(1, m_PreviewRect, DrawPreviewWindowContent, "Preview");
-				if (m_bShowDebugInfo) GUI.Window(2, m_LibraryRect, DrawDebugWindowContent, "VFX Editor DebugInfo");
 			EndWindows();
 		}
 		void DrawLibraryWindowContent(int windowID)
@@ -299,12 +297,6 @@ namespace UnityEditor.Experimental
 		}
 
 
-		void DrawDebugWindowContent(int windowID)
-		{
-			GUILayout.BeginScrollView(m_DebugInfoScroll, EditorStyles.label);
-			GUILayout.Label(m_Canvas.ShowDebug());
-			GUILayout.EndScrollView();
-		}
 		void DrawPreviewWindowContent(int windowID)
 		{
 			if (m_CannotPreview)
@@ -404,70 +396,70 @@ namespace UnityEditor.Experimental
 
 		public VFXEditorStyles()
 		{
-			this.Node = new GUIStyle();
-			this.Node.name = "Node";
-			this.Node.normal.background = EditorGUIUtility.Load("NodeBase.psd") as Texture2D;
-			this.Node.border = new RectOffset(9, 36, 41, 13);
+			Node = new GUIStyle();
+			Node.name = "Node";
+			Node.normal.background = EditorGUIUtility.Load("NodeBase.psd") as Texture2D;
+			Node.border = new RectOffset(9, 36, 41, 13);
 
-			this.NodeSelected = new GUIStyle(this.Node);
-			this.NodeSelected.name = "NodeSelected";
-			this.NodeSelected.normal.background = EditorGUIUtility.Load("NodeBase_Selected.psd") as Texture2D;
+			NodeSelected = new GUIStyle(Node);
+			NodeSelected.name = "NodeSelected";
+			NodeSelected.normal.background = EditorGUIUtility.Load("NodeBase_Selected.psd") as Texture2D;
 
-			this.NodeTitle = new GUIStyle();
-			this.NodeTitle.fontSize = 12;
-			this.NodeTitle.fontStyle = FontStyle.Bold;
-			this.NodeTitle.padding = new RectOffset(32, 32, 12, 0);
-			this.NodeTitle.alignment = TextAnchor.MiddleCenter;
-			this.NodeTitle.normal.textColor = Color.white;
+			NodeTitle = new GUIStyle();
+			NodeTitle.fontSize = 12;
+			NodeTitle.fontStyle = FontStyle.Bold;
+			NodeTitle.padding = new RectOffset(32, 32, 12, 0);
+			NodeTitle.alignment = TextAnchor.MiddleCenter;
+			NodeTitle.normal.textColor = Color.white;
 
-			this.NodeInfoText = new GUIStyle();
-			this.NodeInfoText.fontSize = 12;
-			this.NodeInfoText.fontStyle = FontStyle.Italic;
-			this.NodeInfoText.padding = new RectOffset(12, 12, 12, 12);
-			this.NodeInfoText.alignment = TextAnchor.MiddleCenter;
-			this.NodeInfoText.normal.textColor = Color.white;
+			NodeInfoText = new GUIStyle();
+			NodeInfoText.fontSize = 12;
+			NodeInfoText.fontStyle = FontStyle.Italic;
+			NodeInfoText.padding = new RectOffset(12, 12, 12, 12);
+			NodeInfoText.alignment = TextAnchor.MiddleCenter;
+			NodeInfoText.normal.textColor = Color.white;
 
-			this.NodeBlock = new GUIStyle();
-			this.NodeBlock.name = "NodeBlock";
-			this.NodeBlock.normal.background = EditorGUIUtility.Load("NodeBlock_Flow_Unselected.psd") as Texture2D;
-			this.NodeBlock.border = new RectOffset(4, 26, 12, 4);
+			NodeBlock = new GUIStyle();
+			NodeBlock.name = "NodeBlock";
+			NodeBlock.normal.background = EditorGUIUtility.Load("NodeBlock_Flow_Unselected.psd") as Texture2D;
+			NodeBlock.border = new RectOffset(4, 26, 12, 4);
 
-			this.NodeBlockSelected = new GUIStyle();
-			this.NodeBlockSelected.name = "NodeBlockSelected";
-			this.NodeBlockSelected.normal.background = EditorGUIUtility.Load("NodeBlock_Flow_Selected.psd") as Texture2D;
-			this.NodeBlockSelected.border = new RectOffset(4, 26, 12, 4);
+			NodeBlockSelected = new GUIStyle();
+			NodeBlockSelected.name = "NodeBlockSelected";
+			NodeBlockSelected.normal.background = EditorGUIUtility.Load("NodeBlock_Flow_Selected.psd") as Texture2D;
+			NodeBlockSelected.border = new RectOffset(4, 26, 12, 4);
 
-			this.NodeBlockTitle = new GUIStyle();
-			this.NodeBlockTitle.fontSize = 12;
-			this.NodeBlockTitle.padding = new RectOffset(4, 4, 4, 4);
-			this.NodeBlockTitle.alignment = TextAnchor.MiddleLeft;
-			this.NodeBlockTitle.normal.textColor = Color.white;
+			NodeBlockTitle = new GUIStyle();
+			NodeBlockTitle.fontSize = 12;
+			NodeBlockTitle.padding = new RectOffset(4, 4, 4, 4);
+			NodeBlockTitle.alignment = TextAnchor.MiddleLeft;
+			NodeBlockTitle.normal.textColor = Color.white;
 
-			this.ConnectorLeft = new GUIStyle();
-			this.ConnectorLeft.name = "ConnectorLeft";
-			this.ConnectorLeft.normal.background = EditorGUIUtility.Load("Connector_Left.psd") as Texture2D;
-			this.ConnectorLeft.border = new RectOffset(16, 0, 16, 0);
+			ConnectorLeft = new GUIStyle();
+			ConnectorLeft.name = "ConnectorLeft";
+			ConnectorLeft.normal.background = EditorGUIUtility.Load("Connector_Left.psd") as Texture2D;
+			ConnectorLeft.border = new RectOffset(16, 0, 16, 0);
 
-			this.ConnectorRight = new GUIStyle();
-			this.ConnectorRight.name = "ConnectorRight";
-			this.ConnectorRight.normal.background = EditorGUIUtility.Load("Connector_Right.psd") as Texture2D;
-			this.ConnectorRight.border = new RectOffset(0,16, 16, 0);
+			ConnectorRight = new GUIStyle();
+			ConnectorRight.name = "ConnectorRight";
+			ConnectorRight.normal.background = EditorGUIUtility.Load("Connector_Right.psd") as Texture2D;
+			ConnectorRight.border = new RectOffset(0,16, 16, 0);
 
-			this.FlowConnectorIn = new GUIStyle();
-			this.FlowConnectorIn.name = "FlowConnectorIn";
-			this.FlowConnectorIn.normal.background = EditorGUIUtility.Load("LayoutFlow_In.psd") as Texture2D;
-			this.FlowConnectorIn.active.background = EditorGUIUtility.Load("LayoutFlow_In_Glow.psd") as Texture2D;
-			this.FlowConnectorIn.overflow = new RectOffset(15, 15, 12, 16);
+			FlowConnectorIn = new GUIStyle();
+			FlowConnectorIn.name = "FlowConnectorIn";
+			FlowConnectorIn.normal.background = EditorGUIUtility.Load("LayoutFlow_In.psd") as Texture2D;
+			FlowConnectorIn.active.background = EditorGUIUtility.Load("LayoutFlow_In_Glow.psd") as Texture2D;
+			FlowConnectorIn.overflow = new RectOffset(15, 15, 12, 16);
 
-			this.FlowConnectorOut = new GUIStyle();
-			this.FlowConnectorOut.name = "FlowConnectorOut";
-			this.FlowConnectorOut.normal.background = EditorGUIUtility.Load("LayoutFlow_Out.psd") as Texture2D;
-			this.FlowConnectorOut.active.background = EditorGUIUtility.Load("LayoutFlow_Out_Glow.psd") as Texture2D;
-			this.FlowConnectorOut.overflow = new RectOffset(15, 15, 15, 15);
+			FlowConnectorOut = new GUIStyle();
+			FlowConnectorOut.name = "FlowConnectorOut";
+			FlowConnectorOut.normal.background = EditorGUIUtility.Load("LayoutFlow_Out.psd") as Texture2D;
+			FlowConnectorOut.active.background = EditorGUIUtility.Load("LayoutFlow_Out_Glow.psd") as Texture2D;
+			FlowConnectorOut.overflow = new RectOffset(15, 15, 15, 15);
 
-			this.Foldout = "IN Foldout";
+			Foldout = "IN Foldout";
 
-			this.FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
+			FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
 
 		}
 
@@ -475,13 +467,13 @@ namespace UnityEditor.Experimental
 		{
 			GUISkin s = ScriptableObject.CreateInstance<GUISkin>();
 			s.customStyles = new GUIStyle[7];
-			s.customStyles[0] = this.Node;
-			s.customStyles[1] = this.NodeTitle;
-			s.customStyles[2] = this.NodeBlock;
-			s.customStyles[3] = this.ConnectorLeft;
-			s.customStyles[4] = this.ConnectorRight;
-			s.customStyles[5] = this.FlowConnectorIn;
-			s.customStyles[6] = this.FlowConnectorOut;
+			s.customStyles[0] = Node;
+			s.customStyles[1] = NodeTitle;
+			s.customStyles[2] = NodeBlock;
+			s.customStyles[3] = ConnectorLeft;
+			s.customStyles[4] = ConnectorRight;
+			s.customStyles[5] = FlowConnectorIn;
+			s.customStyles[6] = FlowConnectorOut;
 
 			AssetDatabase.CreateAsset(s, "Assets/VFXEditor/VFXEditor.guiskin");
 		}

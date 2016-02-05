@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental
 			}
 
 			// Prepare undo
-			(canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting Node" + (element as VFXEdNode).Title);
+			(canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting Node" + (element as VFXEdNode).title);
 
 			// Delete Edges
 			VFXEdNode node = element as VFXEdNode;
@@ -54,11 +54,11 @@ namespace UnityEditor.Experimental
 			{
 				if(ce is Edge<VFXEdFlowAnchor>)
 				{
-					 if(node.Inputs.Contains((ce as Edge<VFXEdFlowAnchor>).Left) || node.Inputs.Contains((ce as Edge<VFXEdFlowAnchor>).Right))
+					 if(node.inputs.Contains((ce as Edge<VFXEdFlowAnchor>).Left) || node.inputs.Contains((ce as Edge<VFXEdFlowAnchor>).Right))
 					{
 						todelete.Add(ce);
 					}
-					if (node.Outputs.Contains((ce as Edge<VFXEdFlowAnchor>).Left) || node.Outputs.Contains((ce as Edge<VFXEdFlowAnchor>).Right))
+					if (node.outputs.Contains((ce as Edge<VFXEdFlowAnchor>).Left) || node.outputs.Contains((ce as Edge<VFXEdFlowAnchor>).Right))
 					{
 						todelete.Add(ce);
 					}

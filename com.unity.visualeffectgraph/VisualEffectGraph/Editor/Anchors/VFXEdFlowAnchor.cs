@@ -14,7 +14,6 @@ namespace UnityEditor.Experimental
 		protected object m_Source;
 		protected Direction m_Direction;
 		private VFXEdDataSource m_Data;
-		public VFXEdNode m_Node;
 		public int m_PortIndex;
 
 		public VFXEdFlowAnchor(int portIndex, Type type, VFXEdNode node, VFXEdDataSource data, Direction direction)
@@ -29,13 +28,12 @@ namespace UnityEditor.Experimental
 			Type constructedClass = genericClass.MakeGenericType(type);
 			m_Source = Activator.CreateInstance(constructedClass);
 			m_Data = data;
-			m_Node = node;
 			m_PortIndex = portIndex;
 		}
 
 		public override void Layout()
 		{
-			this.scale = new Vector3(64.0f, 32.0f, 1.0f);
+			scale = new Vector3(64.0f, 32.0f, 1.0f);
 			base.Layout();
 		}
 
@@ -46,11 +44,11 @@ namespace UnityEditor.Experimental
 			switch (m_Direction)
 			{
 				case Direction.Input:
-					GUI.DrawTexture(GetDrawableRect(), VFXEditor.Styles.FlowConnectorIn.normal.background);
+					GUI.DrawTexture(GetDrawableRect(), VFXEditor.styles.FlowConnectorIn.normal.background);
 					break;
 
 				case Direction.Output:
-					GUI.DrawTexture(GetDrawableRect(), VFXEditor.Styles.FlowConnectorOut.normal.background);
+					GUI.DrawTexture(GetDrawableRect(), VFXEditor.styles.FlowConnectorOut.normal.background);
 					break;
 
 				default:
@@ -67,13 +65,13 @@ namespace UnityEditor.Experimental
 			switch (m_Direction)
 			{
 				case Direction.Input:
-					o = VFXEditor.Styles.FlowConnectorIn.overflow;
-					GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.Styles.FlowConnectorIn.active.background);
+					o = VFXEditor.styles.FlowConnectorIn.overflow;
+					GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.styles.FlowConnectorIn.active.background);
 					break;
 
 				case Direction.Output:
-					o = VFXEditor.Styles.FlowConnectorOut.overflow;
-					GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.Styles.FlowConnectorOut.active.background);
+					o = VFXEditor.styles.FlowConnectorOut.overflow;
+					GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.styles.FlowConnectorOut.active.background);
 					break;
 
 				default:

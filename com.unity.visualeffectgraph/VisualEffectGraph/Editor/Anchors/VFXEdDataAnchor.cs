@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental
 
 		public override void Render(Rect parentRect, Canvas2D canvas)
 		{
-			var anchorColor = Color.yellow;
+			Color anchorColor = Color.yellow;
 			anchorColor.a = 0.7f;
 			base.Render(parentRect, canvas);
 			EditorGUI.DrawRect(new Rect(translation.x, translation.y, scale.x, scale.y), anchorColor);
