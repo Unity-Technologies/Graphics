@@ -7,13 +7,19 @@ namespace UnityEditor.Experimental
     {
         private readonly float m_Spacing = 50f;
         private readonly int m_ThickLines = 10;
-        private readonly Color m_LineColor = new Color(0f, 0f, 0f, 0.18f);
-        private readonly Color m_ThickLineColor = new Color(0f, 0f, 0f, 0.38f);
-        private readonly Color m_Background = new Color(0.17f, 0.17f, 0.17f, 1.0f);
-        //private Color m_Background = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+        private Color m_LineColor = new Color(0f, 0f, 0f, 0.18f);
+        private Color m_ThickLineColor = new Color(0f, 0f, 0f, 0.38f);
+        private Color m_Background = new Color(0.17f, 0.17f, 0.17f, 1.0f);
 
         public ScreenSpaceGrid()
         {}
+
+        public ScreenSpaceGrid(Color lineColor, Color thickLineColor, Color backgroundColor)
+        {
+            m_LineColor = lineColor;
+            m_ThickLineColor = thickLineColor;
+            m_Background = backgroundColor;
+        }
 
         public ScreenSpaceGrid(float spacing, int thickLineFrequency, Color lineColor, Color thickLineColor, Color background)
         {
@@ -61,7 +67,7 @@ namespace UnityEditor.Experimental
 
         private bool DrawGrid(CanvasElement element, Event e, Canvas2D canvas)
         {
-            Rect clientRect = new Rect(0, canvas.clientRect.y, Screen.width, Screen.height);
+            Rect clientRect = new Rect(0, canvas.clientRect.y, canvas.clientRect.width, canvas.clientRect.height);
 
             // background
             UIHelpers.ApplyWireMaterial();

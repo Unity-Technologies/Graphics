@@ -85,7 +85,7 @@ namespace UnityEditor.Experimental.Graph
                 Vector2 segmentA = new Vector2(allPoints[a].x, allPoints[a].y);
                 Vector2 segmentB = new Vector2(allPoints[a + 1].x, allPoints[a + 1].y);
 
-                if (RectUtils.IntersectsSegment(rect, segmentA, segmentB))
+                if (UnityEditorInternal.Experimental.RectUtils.IntersectsSegment(rect, segmentA, segmentB))
                     return true;
             }
 

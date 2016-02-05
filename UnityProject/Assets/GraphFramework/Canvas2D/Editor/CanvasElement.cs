@@ -8,14 +8,15 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    public class CanvasElement : IBounds
+    public class CanvasElement : UnityEditorInternal.Experimental.IBounds
     {
         [Flags]
         public enum Capabilities
         {
             Normal,
             Unselectable,
-            DoesNotCollapse
+            DoesNotCollapse,
+            Floating
         }
 
         protected int m_ZIndex;
@@ -119,6 +120,9 @@ namespace UnityEditor.Experimental
 
         public Canvas2D ParentCanvas()
         {
+            if (this is Canvas2D)
+                return this as Canvas2D;
+
             CanvasElement e = FindTopMostParent();
             if (e is Canvas2D)
                 return e as Canvas2D;
@@ -183,9 +187,24 @@ namespace UnityEditor.Experimental
                     Rect childRect = e.boundingRect;
                     childRect.x += rect.x;
                     childRect.y += rect.y;
-                    rect = RectUtils.Encompass(rect, childRect);
+                    rect = UnityEditorInternal.Experimental.RectUtils.Encompass(rect, childRect);
                 }
 
+                if ((m_Caps & Capabilities.Floating) != 0)
+                {
+                    var canvas2d = ParentCanvas();
+                    var matrix = Matrix4x4.TRS(canvas2d.translation, Quaternion.identity, canvas2d.scale).inverse;
+                    Vector3 topCorner = new Vector3(rect.x, rect.y, 0.0f);
+                    topCorner = matrix.MultiplyPoint(topCorner);
+
+                    Vector3 bottomCorner = new Vector3(rect.xMax, rect.yMax, 0.0f);
+                    bottomCorner = matrix.MultiplyPoint(bottomCorner);
+
+                    rect.x = topCorner.x;
+                    rect.y = topCorner.y;
+                    rect.width = bottomCorner.x - topCorner.x;
+                    rect.height = bottomCorner.y - topCorner.y;
+                }
                 return rect;
             }
         }
@@ -239,7 +258,7 @@ namespace UnityEditor.Experimental
 
         public virtual bool Intersects(Rect rect)
         {
-            if (RectUtils.Contains(rect, canvasBoundingRect))
+            if (UnityEditorInternal.Experimental.RectUtils.Contains(rect, canvasBoundingRect))
             {
                 return true;
             }
@@ -294,6 +313,8 @@ namespace UnityEditor.Experimental
         private void CreateTexture()
         {
             Rect textureRect = boundingRect;
+            textureRect.width = Mathf.Max(textureRect.width, 1.0f);
+            textureRect.height = Mathf.Max(textureRect.height, 1.0f);
             m_Texture = new RenderTexture((int)textureRect.width, (int)textureRect.height, 0, RenderTextureFormat.ARGB32);
         }
 
@@ -307,11 +328,13 @@ namespace UnityEditor.Experimental
             if (!m_Dirty || !m_SupportsRenderToTexture)
                 return false;
 
+            var bounds = boundingRect;
+
             // if null create
             // if size is differnt destroy / create
             if (m_Texture == null)
                 CreateTexture();
-            else if ((int)boundingRect.width != m_Texture.width || (int)boundingRect.height != m_Texture.height)
+            else if ((int)bounds.width != m_Texture.width || (int)bounds.height != m_Texture.height)
             {
                 Object.DestroyImmediate(m_Texture);
                 CreateTexture();
@@ -417,12 +440,12 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public virtual void OnRenderList(List<CanvasElement> visibleList, Canvas2D parent)
+        public virtual void OnRenderList(List<CanvasElement> visibleList, Canvas2D parent, bool renderWidgets)
         {
             Rect screenRect = new Rect
             {
                 min = parent.MouseToCanvas(parent.clientRect.min),
-                max = parent.MouseToCanvas(new Vector2(Screen.width, Screen.height))
+                max = parent.MouseToCanvas(new Vector2(parent.clientRect.width, parent.clientRect.height))
             };
             Rect thisRect = boundingRect;
             for (int i = 0; i < visibleList.Count; i++)
@@ -430,7 +453,8 @@ namespace UnityEditor.Experimental
                 CanvasElement e = visibleList[i];
                 if (e.texture != null)
                 {
-                    float ratio = 1.0f;
+                    float ratioY = 1.0f;
+                    float ratioX = 1.0f;
                     Rect r = new Rect(e.translation.x, e.translation.y, e.texture.width, e.texture.height);
                     if (r.y < screenRect.y)
                     {
@@ -439,10 +463,19 @@ namespace UnityEditor.Experimental
                         r.height -= overlap;
                         if (r.height < 0.0f)
                             r.height = 0.0f;
-                        ratio = r.height / e.texture.height;
+                        ratioY = r.height / e.texture.height;
                     }
 
-                    Graphics.DrawTexture(r, e.texture, new Rect(0, 0, 1.0f, ratio), 0, 0, 0, 0);
+                    if (r.xMax > screenRect.xMax)
+                    {
+                        float overlap = r.xMax - screenRect.xMax;
+                        r.width -= overlap;
+                        if (r.width < 0.0f)
+                            r.width = 0.0f;
+                        ratioX = r.width / e.texture.width;
+                    }
+
+                    Graphics.DrawTexture(r, e.texture, new Rect(0, 0, ratioX, ratioY), 0, 0, 0, 0);
                 }
                 else
                     e.Render(thisRect, parent);
@@ -450,7 +483,7 @@ namespace UnityEditor.Experimental
                 e.RenderWidgets(parent);
             }
 
-            if (OnWidget != null)
+            if (OnWidget != null && renderWidgets)
                 OnWidget(this, Event.current, parent);
         }
 

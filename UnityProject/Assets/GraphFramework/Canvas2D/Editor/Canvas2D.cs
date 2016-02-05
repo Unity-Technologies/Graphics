@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental
         protected List<CanvasElement> m_Elements = new List<CanvasElement>();
         protected List<CanvasElement> m_Selection = new List<CanvasElement>();
 
-        private QuadTree<CanvasElement> m_QuadTree = new QuadTree<CanvasElement>();
+        private UnityEditorInternal.Experimental.QuadTree<CanvasElement> m_QuadTree = new UnityEditorInternal.Experimental.QuadTree<CanvasElement>();
         private Rect m_CanvasRect;
         private Vector2 m_ViewOffset;
         private Vector2 m_ViewOffsetUnscaled;
@@ -37,6 +37,7 @@ namespace UnityEditor.Experimental
         private ModalWindowProc m_CurrentModalWindow;
         private Rect m_CurrentModalWindowRect;
         private List<CanvasAnimation> m_Animations = new List<CanvasAnimation>();
+        private bool m_MustRebuildQuadTree = true;
 
         public ICanvasDataSource dataSource
         {
@@ -219,21 +220,27 @@ namespace UnityEditor.Experimental
 
             Event evt = Event.current;
 
-            /*Rect canvasGLArea = clientRectangle;
-                canvasGLArea.height += canvasGLArea.y;
-                GL.Viewport(canvasGLArea);*/
-
-            if (evt.type == EventType.Layout)
+            if (m_MustRebuildQuadTree)
             {
+                RebuildQuadTree();
+            }
+
+            if (evt.type == EventType.Repaint)
+            {
+                // tick animations
                 for (int a = 0; a < m_Animations.Count; a++)
                     m_Animations[a].Tick();
 
                 if (OnLayout != null)
                     OnLayout(this, Event.current, this);
-            }
 
-            if (evt.type == EventType.Repaint)
-            {
+                if (m_Animations.Count > 0)
+                {
+                    RebuildQuadTree();
+                    Repaint();
+                }
+
+                // render
                 RecreateRenderTexture();
 
                 if (OnBackground != null)
@@ -259,7 +266,7 @@ namespace UnityEditor.Experimental
 
             if (evt.isMouse || evt.isKey)
             {
-                if (!clientRectangle.Contains(evt.mousePosition))
+                if (m_CaptureSession == null && !clientRectangle.Contains(evt.mousePosition))
                     return;
             }
 
@@ -310,6 +317,7 @@ namespace UnityEditor.Experimental
             screenRect.max = MouseToCanvas(new Vector2(Screen.width, Screen.height));
 
             List<CanvasElement> visibleElements = m_QuadTree.ContainedBy(screenRect).OrderBy(c => c.zIndex).ToList();
+            //List<CanvasElement> visibleFloatingElements = m_QuadTree.ContainedBy(screenRect).Where(c => (c.caps & Capabilities.Floating) != 0).OrderBy(c => c.zIndex).ToList();
 
             // update render textures
             RenderTexture prev = RenderTexture.active;
@@ -343,7 +351,7 @@ namespace UnityEditor.Experimental
                 m_QuadTree.DebugDraw();
             }
 
-            OnRenderList(visibleElements, this);
+            OnRenderList(visibleElements.Where(c => (c.caps & Capabilities.Floating) == 0).ToList(), this, true);
 
             //m_ShowDebug = true;
             if (m_ShowDebug)
@@ -357,6 +365,9 @@ namespace UnityEditor.Experimental
             GUI.EndClip();
 
             GUI.matrix = m;
+
+            OnRenderList(visibleElements.Where(c => (c.caps & Capabilities.Floating) != 0).ToList(), this, false);
+
 
             if (m_ShowDebug)
             {
@@ -397,12 +408,27 @@ namespace UnityEditor.Experimental
             foreach (CanvasElement c in m_Children)
             {
                 Rect childRect = c.boundingRect;
-                childRect = RectUtils.Inflate(childRect, 1.1f);
-                m_CanvasRect = RectUtils.Encompass(m_CanvasRect, childRect);
+                /* if ((c.caps & Capabilities.Floating) != 0)
+                 {
+                     var matrix = Matrix4x4.TRS(m_Translation, Quaternion.identity, m_Scale).inverse;
+                     Vector3 topCorner = new Vector3(childRect.x, childRect.y, 0.0f);
+                     topCorner = matrix.MultiplyPoint(topCorner);
+
+                     Vector3 bottomCorner = new Vector3(childRect.xMax, childRect.yMax, 0.0f);
+                     bottomCorner = matrix.MultiplyPoint(bottomCorner);
+
+                     childRect.x = topCorner.x;
+                     childRect.y = topCorner.y;
+                     childRect.width = bottomCorner.x - topCorner.x;
+                     childRect.height = bottomCorner.y - topCorner.y;
+                 }*/
+                childRect = UnityEditorInternal.Experimental.RectUtils.Inflate(childRect, 1.1f);
+                m_CanvasRect = UnityEditorInternal.Experimental.RectUtils.Encompass(m_CanvasRect, childRect);
             }
 
             m_QuadTree.SetSize(m_CanvasRect);
             m_QuadTree.Insert(m_Children);
+            m_MustRebuildQuadTree = false;
         }
 
         public bool OnEvent(Event evt)
@@ -568,6 +594,9 @@ namespace UnityEditor.Experimental
             {
                 EndCapture();
             }
+
+            m_MustRebuildQuadTree = true;
+
             return wasUsed;
         }
 
