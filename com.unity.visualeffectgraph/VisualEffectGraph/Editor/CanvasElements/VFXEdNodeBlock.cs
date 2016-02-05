@@ -47,10 +47,10 @@ namespace UnityEditor.Experimental
 
 			GUI.Box(r, "", VFXEditor.styles.NodeBlock);
 			GUI.Box(new Rect(r.x +4, r.y + 4, 16, 16), "", VFXEditor.styles.Foldout);
-			GUI.Label(new Rect(r.x + 16, r.y, r.width, 24), m_Block.m_Name, VFXEditor.Styles.NodeBlockTitle);
+			GUI.Label(new Rect(r.x + 16, r.y, r.width, 24), m_Block.m_Name, VFXEditor.styles.NodeBlockTitle);
 
 			for (int i = 0; i < m_Block.m_Params.Length; ++i)
-				GUI.Label(new Rect(r.x + 8, r.y + DEFAULT_HEIGHT + i * PARAM_HEIGHT, r.width, PARAM_HEIGHT - 2), m_Block.m_Params[i].m_Name, VFXEditor.Styles.NodeBlockTitle);
+				GUI.Label(new Rect(r.x + 8, r.y + DEFAULT_HEIGHT + i * PARAM_HEIGHT, r.width, PARAM_HEIGHT - 2), m_Block.m_Params[i].m_Name, VFXEditor.styles.NodeBlockTitle);
 
 			base.Render(parentRect, canvas);
 		}
