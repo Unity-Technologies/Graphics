@@ -433,10 +433,11 @@ namespace UnityEditor.Experimental
 		// THOMASI: CHANGING PARENTS
 		public virtual void SetParent(CanvasElement e)
 		{
+			CanvasElement p = parent;
 			e.AddChild(this);
 
-			if(parent != null)
-				parent.RemoveChild(this);
+			if(p != null)
+				p.RemoveChild(this);
 
 
 		}

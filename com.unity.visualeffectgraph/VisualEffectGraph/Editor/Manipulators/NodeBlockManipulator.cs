@@ -102,6 +102,7 @@ namespace UnityEditor.Experimental
 			}
 			canvas.Layout();
 			canvas.Repaint();
+
 			targetDropContainer = null;
 			initialDropContainer = null;
 
