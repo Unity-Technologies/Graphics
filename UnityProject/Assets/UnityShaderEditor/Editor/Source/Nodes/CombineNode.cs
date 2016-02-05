@@ -44,7 +44,7 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         private Operation m_Operation;
 
-        private static readonly string[] kOpNames = new string[] {
+        private static readonly string[] kOpNames = {
             "darken", "mul", "cburn", "lburn",
             "lighten", "screen", "cdodge", "ldodge",
             "overlay", "softl", "hardl", "vividl", "linearl", "pinl", "hardmix",
@@ -67,15 +67,24 @@ namespace UnityEditor.MaterialGraph
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
-       /* public override void NodeUI()
+        public override float GetNodeUIHeight(float width)
         {
-            base.NodeUI();
+            return EditorGUIUtility.singleLineHeight * 1;
+        }
+
+        public override GUIModificationType NodeUI(Rect drawArea)
+        {
+            base.NodeUI(drawArea);
 
             EditorGUI.BeginChangeCheck();
-            m_Operation = (Operation)EditorGUILayout.EnumPopup(m_Operation);
+            m_Operation = (Operation)EditorGUI.EnumPopup(drawArea, m_Operation);
             if (EditorGUI.EndChangeCheck())
-                RegeneratePreviewShaders();
-        }*/
+            {
+                pixelGraph.RevalidateGraph();
+                return GUIModificationType.Repaint;
+            }
+            return GUIModificationType.None;
+        }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {

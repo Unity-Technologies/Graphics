@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
+using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -69,14 +70,16 @@ namespace UnityEditor.MaterialGraph
             toReturn.AddRange(drawableEdges.Select(x => (CanvasElement)x));
             toReturn.AddRange(nullInputSlots.Select(x => (CanvasElement)x));
             
-            Debug.LogFormat("REturning {0} nodes", toReturn.Count);
+            //toReturn.Add(new FloatingPreview(new Rect(Screen.width - 300, Screen.height - 300, 300, 300), pixelGraph.nodes.FirstOrDefault(x => x is PixelShaderNode)));
+
+            Debug.LogFormat("Returning {0} nodes", toReturn.Count);
             return toReturn.ToArray();
         }
 
         public void DeleteElement(CanvasElement e)
         {
-            // do nothing here, we want to use the 'correct' 
-            // delete elements.
+            // do nothing here, we want to use delete elements.
+            // delete elements ensures that edges are deleted before nodes.
         }
 
         public void DeleteElements(List<CanvasElement> elements)
@@ -138,6 +141,38 @@ namespace UnityEditor.MaterialGraph
                 graph.ExportShader(path);
             else
                 EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
+        }
+    }
+
+    public class FloatingPreview : CanvasElement
+    {
+        private BaseMaterialNode m_Node;
+
+        public FloatingPreview(Rect position, Node node)
+        {
+            m_Node = node as BaseMaterialNode;
+            m_Translation = new Vector2(position.x, position.y);
+            m_Scale = new Vector3(position.width, position.height, 1);
+            m_Caps |= Capabilities.Floating | Capabilities.Unselectable;
+        }
+
+        public override void Render(Rect parentRect, Canvas2D canvas)
+        {
+            var drawArea = new Rect(0, 0, scale.x, scale.y);
+            Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
+            EditorGUI.DrawRect(drawArea, backgroundColor);
+
+            drawArea.width -= 10;
+            drawArea.height -= 10;
+            drawArea.x += 5;
+            drawArea.y += 5;
+
+            GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+            GUI.DrawTexture(drawArea, m_Node.RenderPreview(new Rect(0, 0, drawArea.width, drawArea.height)), ScaleMode.StretchToFill, false);
+            GL.sRGBWrite = false;
+
+            Invalidate();
+            canvas.Repaint();
         }
     }
 }

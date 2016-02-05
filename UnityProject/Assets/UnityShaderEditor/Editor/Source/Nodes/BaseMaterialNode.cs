@@ -358,9 +358,29 @@ namespace UnityEditor.MaterialGraph
             return InternalUpdatePreviewShader(resultShader);
         }
 
+        private static bool ShaderHasError(Shader shader)
+        {
+            var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
+            var result = hasErrorsCall.Invoke(null, new object[] { shader });
+            return (int)result != 0;
+        }
+
         protected bool InternalUpdatePreviewShader(string resultShader)
         {
             MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + guid + "\n" + resultShader);
+
+            // workaround for some internal shader compiler weirdness
+            // if we are in error we sometimes to not properly clean 
+            // clean out the error flags and will stay in error, even
+            // if we are now valid
+            if (m_PreviewShader && ShaderHasError(m_PreviewShader))
+            {
+                DestroyImmediate(m_PreviewShader, true);
+                DestroyImmediate(m_PreviewMaterial, true);
+                m_PreviewShader = null;
+                m_PreviewMaterial = null;
+            }
+
             if (m_PreviewShader == null)
             {
                 m_PreviewShader = ShaderUtil.CreateShaderAsset(resultShader);
@@ -370,7 +390,6 @@ namespace UnityEditor.MaterialGraph
             }
             else
             {
-                var hash = resultShader.GetHashCode();
                 if (string.CompareOrdinal(resultShader, m_LastShader) != 0)
                 {
                     ShaderUtil.UpdateShaderAsset(m_PreviewShader, resultShader);
@@ -378,9 +397,7 @@ namespace UnityEditor.MaterialGraph
                 }
             }
 
-            var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
-            var result = hasErrorsCall.Invoke(null, new object[] {m_PreviewShader});
-            return (int)result == 0;
+            return !ShaderHasError(m_PreviewShader);
         }
 
         private static Mesh[] s_Meshes = { null, null, null, null };

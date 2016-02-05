@@ -109,6 +109,12 @@ namespace UnityEditor.MaterialGraph
             RevalidateGraph();
         }
 
+        public void AddNodeNoValidate(Node node)
+        {
+            base.AddNode(node);
+            AssetDatabase.AddObjectToAsset(node, this);
+        }
+
         protected void AddMasterNodeNoAddToAsset(Node node)
         {
             base.AddNode(node);

@@ -42,17 +42,12 @@ namespace UnityEditor.MaterialGraph
 
             m_PixelGraph.owner = this;
         }
-
-        public void OnDisable()
-        {
-            //      if (m_MaterialProperties != null)
-            //      m_MaterialProperties.OnChangePreviewState -= OnChangePreviewState;
-        }
         
         public void AddSubAssetsToAsset()
         {
             AssetDatabase.AddObjectToAsset(m_MaterialOptions, this);
             AssetDatabase.AddObjectToAsset(m_PixelGraph, this);
+            m_PixelGraph.AddSubAssetsToAsset();
         }
         
         private Material m_Material;

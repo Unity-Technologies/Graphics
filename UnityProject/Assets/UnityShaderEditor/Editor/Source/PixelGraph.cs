@@ -12,20 +12,35 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                if (m_PixelMasterNode == null)
-                    m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof(PixelShaderNode)) as PixelShaderNode;
-
-                if (m_PixelMasterNode == null)
-                {
-                    m_PixelMasterNode = CreateInstance<PixelShaderNode>();
-                    m_PixelMasterNode.hideFlags = HideFlags.HideInHierarchy;
-                    m_PixelMasterNode.OnCreate();
-                    m_PixelMasterNode.position = new Rect(700, pixelMasterNode.position.y, pixelMasterNode.position.width, pixelMasterNode.position.height);
-                    AddNode(m_PixelMasterNode);
-                }
-
+                ConfigureMasterNode(true);
                 return m_PixelMasterNode;
             }
+        }
+
+        private void ConfigureMasterNode(bool addToAsset)
+        {
+            if (m_PixelMasterNode == null)
+                m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof(PixelShaderNode)) as PixelShaderNode;
+
+            if (m_PixelMasterNode == null)
+            {
+                m_PixelMasterNode = CreateInstance<PixelShaderNode>();
+                m_PixelMasterNode.OnCreate();
+                m_PixelMasterNode.position = new Rect(700, m_PixelMasterNode.position.y, m_PixelMasterNode.position.width, m_PixelMasterNode.position.height);
+                if (addToAsset)
+                    AddNode(m_PixelMasterNode);
+            }
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            ConfigureMasterNode(false);
+        }
+        
+        public void AddSubAssetsToAsset()
+        {
+            AddNodeNoValidate(m_PixelMasterNode);
         }
 
         private List<BaseMaterialNode> m_ActiveNodes = new List<BaseMaterialNode>();
