@@ -10,30 +10,26 @@ namespace UnityEditor.Experimental
 {
 	internal class VFXEdNodeClientArea : CanvasElement
 	{
-		public string Title;
-		private VFXEdDataSource m_DataSource;
-		public Rect NodeRect;
+		private string m_Title;
 
-		public VFXEdNodeBlockContainer NodeBlockContainer { get { return this.m_NodeBlockContainer; } }
+		public VFXEdNodeBlockContainer NodeBlockContainer { get { return m_NodeBlockContainer; } }
 		private VFXEdNodeBlockContainer m_NodeBlockContainer;
 
 		public VFXEdNodeClientArea(Vector2 position, Vector2 size, VFXEdDataSource dataSource, string name)
 		{
-			this.translation = new Vector3(0.0f, 24.0f, 0.0f);
-			this.m_DataSource = dataSource;
-			this.Title = name;
-			this.scale = new Vector2(size.x, size.y);
-			this.NodeRect = new Rect(0, 24, size.x, size.y);
-			this.m_Caps = Capabilities.Normal;
-			this.m_NodeBlockContainer = new VFXEdNodeBlockContainer(new Vector2(7, 30), new Vector2(size.x - 15, size.y - 40), dataSource, name);
-			this.AddChild(m_NodeBlockContainer);
+			translation = new Vector3(0.0f, 24.0f, 0.0f);
+			m_Title = name;
+			scale = new Vector2(size.x, size.y);
+			m_Caps = Capabilities.Normal;
+			m_NodeBlockContainer = new VFXEdNodeBlockContainer(new Vector2(7, 30), new Vector2(size.x - 15, size.y - 40), dataSource, name);
+			AddChild(m_NodeBlockContainer);
 		}
 
 
 		public override void Layout()
 		{
 			base.Layout();
-			this.scale = new Vector2(this.scale.x, m_NodeBlockContainer.scale.y + 41);
+			scale = new Vector2(scale.x, m_NodeBlockContainer.scale.y + 41);
 		}
 
 
@@ -41,12 +37,12 @@ namespace UnityEditor.Experimental
 		{
 			Rect r = GetDrawableRect();
 
-			if (this.selected)
-				GUI.Box(r, "", VFXEditor.Styles.NodeSelected);
+			if (selected)
+				GUI.Box(r, "", VFXEditor.styles.NodeSelected);
 			else
-				GUI.Box(r, "", VFXEditor.Styles.Node);
+				GUI.Box(r, "", VFXEditor.styles.Node);
 
-			GUI.Label(new Rect(0, r.y, r.width, 24), this.Title, VFXEditor.Styles.NodeTitle);
+			GUI.Label(new Rect(0, r.y, r.width, 24), m_Title, VFXEditor.styles.NodeTitle);
 
 			base.Render(parentRect, canvas);
 		}
