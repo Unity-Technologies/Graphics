@@ -1,0 +1,116 @@
+Shader "Graph/ComplexGraph" 
+{
+	Properties 
+	{
+		myFLoat_Uniform("myFLoat_Uniform", Float) = 2
+		albedo_Uniform("albedo_Uniform", 2D) = "white" {}
+		[NonModifiableTextureData] Texture_10c0255547c543d7887276099a342a72_Uniform("Texture_10c0255547c543d7887276099a342a72_Uniform", 2D) = "bump" {}
+		[NonModifiableTextureData] Texture_69e565a689fa4073bab48943efdb9e04_Uniform("Texture_69e565a689fa4073bab48943efdb9e04_Uniform", 2D) = "white" {}
+		[NonModifiableTextureData] Texture_5f0a30ebf1334209b0016ef7a073a0cd_Uniform("Texture_5f0a30ebf1334209b0016ef7a073a0cd_Uniform", 2D) = "white" {}
+		[NonModifiableTextureData] Texture_3abdbbc22d2b48bc8068ba2349409fb8_Uniform("Texture_3abdbbc22d2b48bc8068ba2349409fb8_Uniform", 2D) = "white" {}
+		[NonModifiableTextureData] Texture_07e0e512479c4234aad6ec6e287e86d8_Uniform("Texture_07e0e512479c4234aad6ec6e287e86d8_Uniform", 2D) = "white" {}
+
+	}	
+	
+	SubShader 
+	{
+		Tags {
+			"RenderType"="Opaque"
+			"Queue"="Geometry"
+		}
+
+		Blend One Zero
+
+		Cull Back
+
+		ZTest LEqual
+
+		ZWrite Off
+
+
+		LOD 200
+		
+		CGPROGRAM
+		#pragma target 3.0
+		#pragma surface surf Standard vertex:vert
+		#pragma glsl
+		#pragma debug
+
+
+
+		inline half4 unity_multiply_half (half4 arg1, half4 arg2)
+		{
+			return arg1 * arg2;
+		}
+		
+		inline half4 unity_absolute_half (half4 arg1)
+		{
+			return abs(arg1);
+		}
+		
+		inline half4 unity_subtract_half (half4 arg1, half4 arg2)
+		{
+			return arg1 - arg2;
+		}
+		
+		inline half4 unity_lerp_half (half4 first, half4 second, half4 s)
+		{
+			return lerp(first, second, s);
+		}
+		
+
+
+		float myFLoat_Uniform;
+		sampler2D albedo_Uniform;
+		sampler2D Texture_10c0255547c543d7887276099a342a72_Uniform;
+		sampler2D Texture_69e565a689fa4073bab48943efdb9e04_Uniform;
+		sampler2D Texture_5f0a30ebf1334209b0016ef7a073a0cd_Uniform;
+		sampler2D Texture_3abdbbc22d2b48bc8068ba2349409fb8_Uniform;
+		sampler2D Texture_07e0e512479c4234aad6ec6e287e86d8_Uniform;
+
+
+		struct Input 
+		{
+			half4 meshUV0;
+
+		};
+
+		void vert (inout appdata_full v, out Input o)
+		{
+			UNITY_INITIALIZE_OUTPUT(Input,o);
+			o.meshUV0 = v.texcoord;
+
+		}
+	  
+		void surf (Input IN, inout SurfaceOutputStandard o) 
+		{
+			half4 UV_16f56a3066194ad4af76bbc8e315d6b9_UV = IN.meshUV0;
+			half4 MultiplyNode_291dae80ce1f428cb3fc18e928d9f879_Output = unity_multiply_half ((myFLoat_Uniform), UV_16f56a3066194ad4af76bbc8e315d6b9_UV);
+			float4 Texture_10c0255547c543d7887276099a342a72 = half4(UnpackNormal(tex2D (Texture_10c0255547c543d7887276099a342a72_Uniform, (MultiplyNode_291dae80ce1f428cb3fc18e928d9f879_Output.xy))), 0);
+			o.Normal = Texture_10c0255547c543d7887276099a342a72;
+			float4 Texture_aa92d11a1bda471680329a830bae6a3d = tex2D (albedo_Uniform, (MultiplyNode_291dae80ce1f428cb3fc18e928d9f879_Output.xy));
+			half4 AbsoluteNode_16eb35bd53f04ade87493ee19d968789_Output = unity_absolute_half (_SinTime);
+			float4 Texture_69e565a689fa4073bab48943efdb9e04 = tex2D (Texture_69e565a689fa4073bab48943efdb9e04_Uniform, (MultiplyNode_291dae80ce1f428cb3fc18e928d9f879_Output.xy));
+			half4 SubtractNode_77729a276cee4b949a9be817ccfdc93b_Output = unity_subtract_half (Texture_69e565a689fa4073bab48943efdb9e04, half4 (1,1,1,1));
+			half V1Node_91eeb73b16a14439b4f946b05bcd1b53_Uniform = 6.5;
+			half V1Node_e6c0fba0ae724af0ba98b5be74ceb7d7_Uniform = 7.27;
+			half4 AbsoluteNode_3afec43528c74dca8fb0a11cc3675030_Output = unity_absolute_half (_SinTime);
+			half4 AbsoluteNode_da0a24e6efec477b8f52a0ea6d148204_Output = unity_absolute_half (AbsoluteNode_3afec43528c74dca8fb0a11cc3675030_Output);
+			half4 LerpNode_c9b121a756654241988583f975ae0e77_Output = unity_lerp_half ((V1Node_91eeb73b16a14439b4f946b05bcd1b53_Uniform), (V1Node_e6c0fba0ae724af0ba98b5be74ceb7d7_Uniform), AbsoluteNode_da0a24e6efec477b8f52a0ea6d148204_Output);
+			half4 PowerNode_9bd6515d540045e4bdfbd50c1b836422_Output = pow (SubtractNode_77729a276cee4b949a9be817ccfdc93b_Output, LerpNode_c9b121a756654241988583f975ae0e77_Output);
+			half4 MultiplyNode_e3bfab336bc64776a85585b58986329a_Output = unity_multiply_half (AbsoluteNode_16eb35bd53f04ade87493ee19d968789_Output, PowerNode_9bd6515d540045e4bdfbd50c1b836422_Output);
+			float4 Texture_5f0a30ebf1334209b0016ef7a073a0cd = tex2D (Texture_5f0a30ebf1334209b0016ef7a073a0cd_Uniform, (MultiplyNode_291dae80ce1f428cb3fc18e928d9f879_Output.xy));
+			float4 Texture_3abdbbc22d2b48bc8068ba2349409fb8 = tex2D (Texture_3abdbbc22d2b48bc8068ba2349409fb8_Uniform, (MultiplyNode_291dae80ce1f428cb3fc18e928d9f879_Output.xy));
+			float4 Texture_07e0e512479c4234aad6ec6e287e86d8 = tex2D (Texture_07e0e512479c4234aad6ec6e287e86d8_Uniform, IN.meshUV0.xy);
+			o.Albedo = Texture_aa92d11a1bda471680329a830bae6a3d;
+			o.Emission = MultiplyNode_e3bfab336bc64776a85585b58986329a_Output;
+			o.Metallic = Texture_5f0a30ebf1334209b0016ef7a073a0cd;
+			o.Smoothness = Texture_3abdbbc22d2b48bc8068ba2349409fb8;
+			o.Occlusion = Texture_3abdbbc22d2b48bc8068ba2349409fb8.a;
+			o.Alpha = Texture_07e0e512479c4234aad6ec6e287e86d8.r;
+
+		}
+		ENDCG
+	} 
+	FallBack "Diffuse"
+}
