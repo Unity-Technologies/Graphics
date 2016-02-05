@@ -44,9 +44,15 @@ namespace UnityEditor.Experimental
                 return false;
             }
 
+            // THOMASI : SELECT ON START DRAG
+            if (canvas.selection.Count == 0)
+            {
+                canvas.AddToSelection(element);
+            }
+            // END THOMASI
             canvas.StartCapture(this, element);
-
             e.Use();
+
             return true;
         }
 
@@ -86,8 +92,9 @@ namespace UnityEditor.Experimental
             float scaleFactorY = element == canvas ? 1.0f : 1.0f / canvas.scale.y;
 
             Vector3 tx = element.translation;
-            tx.x += e.delta.x * scaleFactorX;
-            tx.y += e.delta.y * scaleFactorY;
+            // THOMASI : FLOORED VALUES (FOR TEXT RENDERING ISSUES)
+            tx.x += Mathf.Floor(e.delta.x * scaleFactorX);
+            tx.y += Mathf.Floor(e.delta.y * scaleFactorY);
             element.translation = tx;
             element.UpdateModel(UpdateType.Candidate);
             e.Use();

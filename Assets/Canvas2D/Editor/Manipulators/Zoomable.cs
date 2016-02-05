@@ -90,6 +90,10 @@ namespace UnityEditor.Experimental
             currentScale.y *= scale;
             currentScale.z = 1.0f;
 
+            // THOMASI : FLOORED VALUES (FOR TEXT RENDERING ISSUES)
+            currentTranslation.x = Mathf.Floor(currentTranslation.x);
+            currentTranslation.y = Mathf.Floor(currentTranslation.y);
+
             bool outOfZoomBounds = false;
             if (((currentScale.x < m_MinimumZoom) || (currentScale.x > m_MaximumZoom)) ||
                 ((currentScale.y < m_MinimumZoom) || (currentScale.y > m_MaximumZoom)))

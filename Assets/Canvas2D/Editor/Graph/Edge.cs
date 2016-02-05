@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Graph
         public Edge(ICanvasDataSource data, T left, T right)
         {
             m_Data = data;
-            zIndex = 9999;
+            zIndex = -9;
             m_SupportsRenderToTexture = false;
             left.AddDependency(this);
             right.AddDependency(this);
@@ -145,6 +145,8 @@ namespace UnityEditor.Experimental.Graph
             Vector3[] points, tangents;
             EdgeConnector<T>.GetTangents(from, to, out points, out tangents);
             Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 5f);
+
+
 
             // little widget on the middle of the edge
             Vector3[] allPoints = Handles.MakeBezierPoints(points[0], points[1], tangents[0], tangents[1], 20);

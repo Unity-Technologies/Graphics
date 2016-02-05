@@ -250,5 +250,38 @@ namespace UnityEditor.Experimental.Graph
             tangents[0] = start + new Vector2((end.x - start.x) * weight + minTangent, y) * cleverness;
             tangents[1] = end + new Vector2((end.x - start.x) * -weight2 - minTangent, -y) * cleverness;
         }
-    };
+
+
+		// THOMASI : WIP VERTICAL TANGENTS
+		public static void GetTangentsVertical(Vector2 start, Vector2 end, out Vector3[] points, out Vector3[] tangents)
+		{
+			points = new Vector3[] { start, end };
+			tangents = new Vector3[2];
+
+			const float minTangent = 30;
+
+			float weight = (start.x < end.x) ? .3f : .7f;
+			weight = .5f;
+			float weight2 = 1 - weight;
+			float x = 0;
+
+			if (start.y > end.y)
+			{
+				weight2 = weight = -.25f;
+				float aspect = (start.x - end.x) / (start.y - end.y);
+				if (Mathf.Abs(aspect) > .5f)
+				{
+					float asp = (Mathf.Abs(aspect) - .5f) / 8;
+					asp = Mathf.Sqrt(asp);
+					x = Mathf.Min(asp * 80, 80);
+					if (start.y > end.y)
+						x = -x;
+				}
+			}
+			float cleverness = Mathf.Clamp01(((start - end).magnitude - 10) / 50);
+
+			tangents[0] = start + new Vector2(x,(end.y - start.y) * weight + minTangent) * cleverness;
+			tangents[1] = end + new Vector2(-x,(end.y - start.y) * -weight2 - minTangent) * cleverness;
+		}
+	};
 }

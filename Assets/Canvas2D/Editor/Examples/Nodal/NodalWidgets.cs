@@ -18,7 +18,7 @@ namespace UnityEditor
             m_Title = "Some Operator";
             m_OutputType = outputType;
 
-            Vector3 pos = new Vector3(5.0f, 32.0f, 0.0f);
+            Vector3 pos = new Vector3(-5.0f, 32.0f, 0.0f);
 
             AddChild(new NodeAnchor(0, pos, typeof(int), this, data));
             pos.y += 22;

@@ -199,7 +199,7 @@ namespace UnityEditor.Experimental
             ScrollWheel += NoOp;
             m_HostWindow = host;
             m_DataSource = dataSource;
-
+            
             RecreateRenderTexture();
         }
 
