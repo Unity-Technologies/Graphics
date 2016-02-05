@@ -27,31 +27,54 @@ namespace UnityEditor.Experimental
             m_ElementBeingAnimated.Invalidate();
         }
 
-        public CanvasAnimation Lerp(string prop, object from, object to)
+        public CanvasAnimation Lerp(string[] props, object[] from, object[] to)
         {
-            FieldInfo fi = GetFieldBeingAnimated(prop);
-            if (fi.FieldType != from.GetType())
+            if ((props.Length != from.Length) ||
+                (props.Length != from.Length))
             {
-                Debug.LogError("Cannot set a " + from.GetType() + " to " + prop + " because it is a " + fi.FieldType);
+                Debug.LogError("Invalid call to Lerp, parameter count do not match");
                 return this;
             }
 
-            var propData = new PropertyData(fi, from, to);
+            int count = props.Length;
 
-            switch (fi.FieldType.Name)
+            CanvasAnimation currentAnimation = this;
+
+            for (int c = 0; c < count; c++)
             {
-                case "Single":
-                    AddCallback(LerpFloat, propData);
-                    break;
-                case "Vector3":
-                    AddCallback(LerpVector3, propData);
-                    break;
-                default:
-                    Debug.LogError("No handler found to lerp " + fi.FieldType.Name);
-                    break;
+                if (c > 0)
+                {
+                    // begin a parallel animation
+                    currentAnimation = m_ElementBeingAnimated.ParentCanvas().Animate(m_ElementBeingAnimated);
+                }
+
+                FieldInfo fi = GetFieldBeingAnimated(props[c]);
+                if (fi.FieldType != from[c].GetType())
+                {
+                    Debug.LogError("Cannot set a " + from[c].GetType() + " to " + props[c] + " because it is a " + fi.FieldType);
+                    return this;
+                }
+
+                var propData = new PropertyData(fi, from[c], to[c]);
+
+                switch (fi.FieldType.Name)
+                {
+                    case "Single":
+                        currentAnimation.AddCallback(LerpFloat, propData); break;
+                    case "Vector3":
+                        currentAnimation.AddCallback(LerpVector3, propData); break;
+                    default:
+                        Debug.LogError("No handler found to lerp " + fi.FieldType.Name);
+                        break;
+                }
             }
 
             return this;
+        }
+
+        public CanvasAnimation Lerp(string prop, object from, object to)
+        {
+            return Lerp(new string[] { prop }, new object[] { from }, new object[] { to });
         }
 
         private void LerpFloat(CanvasElement element, CanvasAnimation owner, object userData)

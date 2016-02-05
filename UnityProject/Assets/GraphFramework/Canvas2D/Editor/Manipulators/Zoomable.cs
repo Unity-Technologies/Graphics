@@ -106,6 +106,8 @@ namespace UnityEditor.Experimental
                 element.translation = currentTranslation;
             }
 
+            element.ParentCanvas().RebuildQuadTree();
+
             e.Use();
             return true;
         }
