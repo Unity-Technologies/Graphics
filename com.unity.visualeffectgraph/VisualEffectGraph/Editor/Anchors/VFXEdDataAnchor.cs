@@ -49,6 +49,11 @@ namespace UnityEditor.Experimental
 			return m_Direction;
 		}
 
+		public Orientation GetOrientation()
+		{
+			return Orientation.Horizontal;
+		}
+
 		public void Highlight(bool highlighted)
 		{
 		}
