@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental
         protected List<CanvasElement> m_Elements = new List<CanvasElement>();
         protected List<CanvasElement> m_Selection = new List<CanvasElement>();
 
-        private QuadTree<CanvasElement> m_QuadTree = new QuadTree<CanvasElement>();
+        private UnityEditorInternal.Experimental.QuadTree<CanvasElement> m_QuadTree = new UnityEditorInternal.Experimental.QuadTree<CanvasElement>();
         private Rect m_CanvasRect;
         private Vector2 m_ViewOffset;
         private Vector2 m_ViewOffsetUnscaled;
@@ -37,6 +37,7 @@ namespace UnityEditor.Experimental
         private ModalWindowProc m_CurrentModalWindow;
         private Rect m_CurrentModalWindowRect;
         private List<CanvasAnimation> m_Animations = new List<CanvasAnimation>();
+        private bool m_MustRebuildQuadTree = true;
 
         public ICanvasDataSource dataSource
         {
@@ -157,35 +158,33 @@ namespace UnityEditor.Experimental
 
         public Vector2 MouseToCanvas(Vector2 lhs)
         {
-            return new Vector2((lhs.x - m_Translation.x) / m_Scale.x, (lhs.y - m_Translation.y) / m_Scale.y) + (m_ViewOffset / 2.0f);
+            return new Vector2((lhs.x - m_Translation.x) / m_Scale.x, (lhs.y - m_Translation.y) / m_Scale.y); // +(m_ViewOffset / 2.0f);
         }
 
         public Vector2 CanvasToScreen(Vector2 lhs)
         {
-            return new Vector2((lhs.x * m_Scale.x) + m_Translation.x, (lhs.y * m_Scale.y) + m_Translation.y);
+            return new Vector2(((lhs.x) * m_Scale.x) + (m_Translation.x), ((lhs.y) * m_Scale.y) + (m_Translation.y));
         }
 
         public Rect CanvasToScreen(Rect r)
         {
             Vector3 t = m_Translation;
-            t -= new Vector3(m_ViewOffsetUnscaled.x / 2.0f, m_ViewOffsetUnscaled.y / 2.0f, 0.0f);
-            Matrix4x4 mm = Matrix4x4.TRS(t, Quaternion.identity, m_Scale);
-
-
-            Vector3 offset = new Vector3(0.0f, 0.0f, 0.0f);
+            var inverseScale = new Vector2(1.0f / m_Scale.x, 1.0f / m_Scale.y);
+            Matrix4x4 scaleMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, m_Scale);
+            Matrix4x4 txMatrix = Matrix4x4.TRS(m_Translation, Quaternion.identity, Vector3.one);
+            Matrix4x4 mm = txMatrix * scaleMatrix;
 
             Vector3[] points =
-            {
-                new Vector3(r.xMin, r.yMin, 0.0f),
-                new Vector3(r.xMax, r.yMin, 0.0f),
-                new Vector3(r.xMax, r.yMax, 0.0f),
-                new Vector3(r.xMin, r.yMax, 0.0f)
-            };
+				{
+					new Vector3(r.xMin, r.yMin, 0.0f),
+					new Vector3(r.xMax, r.yMin, 0.0f),
+					new Vector3(r.xMax, r.yMax, 0.0f),
+					new Vector3(r.xMin, r.yMax, 0.0f)
+				};
 
             for (int a = 0; a < 4; a++)
             {
                 points[a] = mm.MultiplyPoint(points[a]);
-                points[a] += offset;
             }
 
             return new Rect(points[0].x, points[0].y, points[2].x - points[0].x, points[2].y - points[0].y);
@@ -219,21 +218,30 @@ namespace UnityEditor.Experimental
 
             Event evt = Event.current;
 
-            /*Rect canvasGLArea = clientRectangle;
-                canvasGLArea.height += canvasGLArea.y;
-                GL.Viewport(canvasGLArea);*/
-
-            if (evt.type == EventType.Layout)
+            if (m_MustRebuildQuadTree)
             {
-                for (int a = 0; a < m_Animations.Count; a++)
-                    m_Animations[a].Tick();
-
-                if (OnLayout != null)
-                    OnLayout(this, Event.current, this);
+                RebuildQuadTree();
             }
+
+			if (evt.type == EventType.Layout)
+			{
+				if (OnLayout != null)
+					OnLayout(this, Event.current, this);
+			}
 
             if (evt.type == EventType.Repaint)
             {
+                // tick animations
+                for (int a = 0; a < m_Animations.Count; a++)
+                    m_Animations[a].Tick();
+
+                if (m_Animations.Count > 0)
+                {
+					m_MustRebuildQuadTree = true;
+                    Repaint();
+                }
+
+                // render
                 RecreateRenderTexture();
 
                 if (OnBackground != null)
@@ -259,7 +267,7 @@ namespace UnityEditor.Experimental
 
             if (evt.isMouse || evt.isKey)
             {
-                if (!clientRectangle.Contains(evt.mousePosition))
+                if (m_CaptureSession == null && !clientRectangle.Contains(evt.mousePosition))
                     return;
             }
 
@@ -268,9 +276,9 @@ namespace UnityEditor.Experimental
             // sync selection globally on MouseUp and KeyEvents
             bool syncSelection = evt.type == EventType.MouseUp || evt.isKey;
 
-            OnEvent(evt);
-
-            if (syncSelection)
+			OnEvent(evt);
+            
+			if (syncSelection)
             {
                 SyncUnitySelection();
             }
@@ -310,6 +318,7 @@ namespace UnityEditor.Experimental
             screenRect.max = MouseToCanvas(new Vector2(Screen.width, Screen.height));
 
             List<CanvasElement> visibleElements = m_QuadTree.ContainedBy(screenRect).OrderBy(c => c.zIndex).ToList();
+            //List<CanvasElement> visibleFloatingElements = m_QuadTree.ContainedBy(screenRect).Where(c => (c.caps & Capabilities.Floating) != 0).OrderBy(c => c.zIndex).ToList();
 
             // update render textures
             RenderTexture prev = RenderTexture.active;
@@ -334,7 +343,9 @@ namespace UnityEditor.Experimental
             //m_Scale = Vector3.one;
             GUI.matrix = Matrix4x4.TRS(m_Translation, Quaternion.identity, m_Scale);
 
-            m_ViewOffset = new Vector2(0.0f, -(extents.yMin - m_ScreenHeightOffset) * (1.0f / m_Scale.y));
+			float inverseScale = 1.0f / m_Scale.y;
+
+			m_ViewOffset = new Vector2(0.0f, -(extents.yMin - (m_ScreenHeightOffset / 2.0f)) * inverseScale);
             m_ViewOffsetUnscaled = new Vector2(0.0f, -(extents.yMin - m_ScreenHeightOffset));
             GUI.BeginClip(extents, Vector2.zero, m_ViewOffset, true);
 
@@ -343,7 +354,7 @@ namespace UnityEditor.Experimental
                 m_QuadTree.DebugDraw();
             }
 
-            OnRenderList(visibleElements, this);
+            OnRenderList(visibleElements.Where(c => (c.caps & Capabilities.Floating) == 0).ToList(), this, true);
 
             //m_ShowDebug = true;
             if (m_ShowDebug)
@@ -357,6 +368,9 @@ namespace UnityEditor.Experimental
             GUI.EndClip();
 
             GUI.matrix = m;
+
+            OnRenderList(visibleElements.Where(c => (c.caps & Capabilities.Floating) != 0).ToList(), this, false);
+
 
             if (m_ShowDebug)
             {
@@ -397,16 +411,40 @@ namespace UnityEditor.Experimental
             foreach (CanvasElement c in m_Children)
             {
                 Rect childRect = c.boundingRect;
-                childRect = RectUtils.Inflate(childRect, 1.1f);
-                m_CanvasRect = RectUtils.Encompass(m_CanvasRect, childRect);
+                /* if ((c.caps & Capabilities.Floating) != 0)
+                 {
+                     var matrix = Matrix4x4.TRS(m_Translation, Quaternion.identity, m_Scale).inverse;
+                     Vector3 topCorner = new Vector3(childRect.x, childRect.y, 0.0f);
+                     topCorner = matrix.MultiplyPoint(topCorner);
+
+                     Vector3 bottomCorner = new Vector3(childRect.xMax, childRect.yMax, 0.0f);
+                     bottomCorner = matrix.MultiplyPoint(bottomCorner);
+
+                     childRect.x = topCorner.x;
+                     childRect.y = topCorner.y;
+                     childRect.width = bottomCorner.x - topCorner.x;
+                     childRect.height = bottomCorner.y - topCorner.y;
+                 }*/
+                childRect = UnityEditorInternal.Experimental.RectUtils.Inflate(childRect, 1.1f);
+                m_CanvasRect = UnityEditorInternal.Experimental.RectUtils.Encompass(m_CanvasRect, childRect);
             }
 
             m_QuadTree.SetSize(m_CanvasRect);
             m_QuadTree.Insert(m_Children);
+            m_MustRebuildQuadTree = false;
         }
 
         public bool OnEvent(Event evt)
         {
+			if (evt.type == EventType.Layout)
+			{
+				for (int c = 0; c < m_Children.Count; c++)
+				{
+					m_Children[c].DispatchEvents(evt, this);
+				}
+				return true;
+			}
+
             bool logEvent = false;
             if ((evt.type != EventType.Repaint) && (evt.type != EventType.Layout))
             {
@@ -568,6 +606,9 @@ namespace UnityEditor.Experimental
             {
                 EndCapture();
             }
+
+            m_MustRebuildQuadTree = true;
+
             return wasUsed;
         }
 
