@@ -6,6 +6,18 @@ namespace UnityEditor.Experimental
     {
         private bool m_Active;
         private Vector2 m_Start;
+        private Vector2 m_MinimumScale;
+        private GUIStyle style = new GUIStyle("WindowBottomResize");
+
+        public Resizable()
+        {
+            m_MinimumScale = new Vector2(0.1f, 0.1f);
+        }
+
+        public Resizable(Vector2 minimumScale)
+        {
+            m_MinimumScale = minimumScale;
+        }
 
         public bool GetCaps(ManipulatorCapability cap)
         {
@@ -47,8 +59,8 @@ namespace UnityEditor.Experimental
             Vector2 diff = newPosition - m_Start;
             m_Start = newPosition;
             Vector3 newScale = element.scale;
-            newScale.x = Mathf.Max(0.1f, newScale.x + diff.x);
-            newScale.y = Mathf.Max(0.1f, newScale.y + diff.y);
+            newScale.x = Mathf.Max(m_MinimumScale.x, newScale.x + diff.x);
+            newScale.y = Mathf.Max(m_MinimumScale.y, newScale.y + diff.y);
 
             element.scale = newScale;
 
@@ -72,8 +84,6 @@ namespace UnityEditor.Experimental
 
         private bool DrawResizeWidget(CanvasElement element, Event e, Canvas2D parent)
         {
-            GUIStyle style = new GUIStyle("WindowBottomResize");
-
             Rect r = element.boundingRect;
             Rect widget = r;
             widget.min = new Vector2(r.max.x - 10.0f, r.max.y - 7.0f);

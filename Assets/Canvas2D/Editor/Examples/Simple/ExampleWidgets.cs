@@ -38,6 +38,101 @@ namespace UnityEditor
         }
     }
 
+    class FloatingBox : CanvasElement
+    {
+        public FloatingBox(Vector2 position, float size)
+        {
+            m_Translation = position;
+            m_Scale = new Vector3(size, size, size);
+            m_Caps |= Capabilities.Floating;
+            AddManipulator(new Draggable());
+        }
+
+        public override void Render(Rect parentRect, Canvas2D canvas)
+        {
+            Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
+            Color selectedColor = new Color(1.0f, 0.7f, 0.0f, 0.7f);
+            EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), selected ? selectedColor : backgroundColor);
+            GUI.Label(new Rect(0, 0, m_Scale.x, 20.0f), "Floating Minimap");
+            foreach (var child in canvas.Children())
+            {
+                if ((child.caps & Capabilities.Floating) != 0)
+                    continue;
+                var rect = child.canvasBoundingRect;
+                rect.x /= canvas.clientRect.width;
+                rect.width /= canvas.clientRect.width;
+                rect.y /= canvas.clientRect.height;
+                rect.height /= canvas.clientRect.height;
+
+                rect.x *= m_Scale.x / 2.0f;
+                rect.y *= m_Scale.y / 2.0f;
+                rect.width *= m_Scale.x / 2.0f;
+                rect.height *= m_Scale.y / 2.0f;
+                rect.y += 20;
+                EditorGUI.DrawRect(rect, Color.grey);
+            }
+
+            Invalidate();
+            canvas.Repaint();
+        }
+    }
+
+    class InvisibleBorderContainer : CanvasElement
+    {
+        private bool m_NormalizedDragRegion = false;
+        private Draggable m_DragManipulator = null;
+        public InvisibleBorderContainer(Vector2 position, float size, bool normalizedDragRegion)
+        {
+            translation = position;
+            scale = new Vector2(size, size);
+            m_NormalizedDragRegion = normalizedDragRegion;
+            if (normalizedDragRegion)
+            {
+                m_DragManipulator = new Draggable(new Rect(0.1f, 0.1f, 0.9f, 0.9f), true);
+                AddManipulator(m_DragManipulator);
+            }
+            else
+            {
+                float padding = size / 10.0f;
+                m_DragManipulator = new Draggable(new Rect(padding, padding, size - (padding * 2), size - (padding * 2)), false);
+                AddManipulator(m_DragManipulator);
+            }
+        }
+
+        public override void Render(Rect parentRect, Canvas2D canvas)
+        {
+            EditorGUI.DrawRect(new Rect(0, 0, m_Scale.x, m_Scale.y), m_Selected ? Color.blue : new Color(0.0f, 0.0f, 0.0f, 0.5f));
+            Rect activeDragRect = m_DragManipulator.ComputeDragRegion(this, false);
+            EditorGUI.DrawRect(new Rect(activeDragRect.x - boundingRect.x, activeDragRect.y - boundingRect.y, activeDragRect.width, activeDragRect.height), Color.green);
+
+            GUI.Label(new Rect(0, (m_Scale.y * 0.5f) - 10.0f, 100, 20), "normalized:" + m_NormalizedDragRegion);
+
+            base.Render(parentRect, canvas);
+        }
+    }
+
+    class Circle : CanvasElement
+    {
+        public Circle(Vector2 position, float size)
+        {
+            translation = position;
+            scale = new Vector2(size, size);
+            AddManipulator(new Draggable());
+        }
+
+        public override void Render(Rect parentRect, Canvas2D canvas)
+        {
+            base.Render(parentRect, canvas);
+            Handles.DrawSolidDisc(new Vector3(scale.x / 2.0f, scale.x / 2.0f, 0.0f), new Vector3(0.0f, 0.0f, -1.0f), scale.x / 2.0f);
+        }
+
+        public override bool Contains(Vector2 point)
+        {
+            Rect canvasRect = canvasBoundingRect;
+            return Vector2.Distance(canvasRect.center, point) <= (scale.x / 2.0f);
+        }
+    }
+
     class ResizableBox : SimpleBox
     {
         public ResizableBox(Vector2 position, float size)
