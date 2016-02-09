@@ -39,7 +39,6 @@ namespace UnityEditor.Experimental
 
 		public override void Render(Rect parentRect, Canvas2D canvas)
 		{
-
 			base.Render(parentRect, canvas);
 			switch (m_Direction)
 			{
@@ -54,8 +53,6 @@ namespace UnityEditor.Experimental
 				default:
 					break;
 			}
-
-
 		}
 
 		public void RenderOverlay(Canvas2D canvas)
@@ -77,7 +74,6 @@ namespace UnityEditor.Experimental
 				default:
 					break;
 			}
-
 		}
 
 		// IConnect
@@ -95,8 +91,6 @@ namespace UnityEditor.Experimental
 		{
 
 		}
-
-
 
 		public object Source()
 		{
