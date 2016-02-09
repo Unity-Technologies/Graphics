@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental
 		public void OnEnable()
 		{
 			VFXEditor.BlockLibrary.Load(); // Force a reload
-			AddNode(new VFXEdNode(Vector2.zero, new Vector2(320.0f, 180.0f), this));	
+			AddNode(new VFXEdNode(Vector2.zero, new Vector2(360.0f, 180.0f), this));	
 		}
 
 		public void AddNode(VFXEdNode n)

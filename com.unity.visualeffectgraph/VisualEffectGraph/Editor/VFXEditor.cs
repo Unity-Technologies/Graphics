@@ -215,7 +215,7 @@ namespace UnityEditor.Experimental
 		void AddGenericNode(object o)
 		{
 			Event e = o as Event;
-			m_DataSource.AddNode(new VFXEdNode(m_Canvas.MouseToCanvas(e.mousePosition), new Vector2(220, 180), m_DataSource));
+			m_DataSource.AddNode(new VFXEdNode(m_Canvas.MouseToCanvas(e.mousePosition), new Vector2(360, 180), m_DataSource));
 			m_Canvas.ReloadData();
 		}
 
