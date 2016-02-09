@@ -139,7 +139,6 @@ namespace UnityEditor.Experimental
 
 		void OnUndoRedo()
 		{
-			Debug.Log("OnUndoRedo");
 			m_Canvas.ReloadData();
 			m_Canvas.Repaint();
 		}
@@ -157,8 +156,14 @@ namespace UnityEditor.Experimental
 			m_Menu = new GenericMenu();
 			m_Menu.AddItem(new GUIContent("Add New Node"), false, AddGenericNode, e);
 			m_Menu.AddSeparator("");
-			m_Menu.AddItem(new GUIContent("NodeBlocks/Test1"), false, null, "Item1");
-			m_Menu.AddItem(new GUIContent("NodeBlocks/Test2"), false, null, "Item2");
+
+			ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
+
+			foreach (VFXBlock block in blocks)
+			{
+				m_Menu.AddItem(new GUIContent("NodeBlocks/"+block.m_Name), false, null, block.m_Name);
+			}
+
 
 		}
 
@@ -331,10 +336,12 @@ namespace UnityEditor.Experimental
 
 			string[] guids = AssetDatabase.FindAssets("t:VFXBlockLibrary");
 			VFXBlockLibrary[] blockLibraries = new VFXBlockLibrary[guids.Length];
+			//Debug.Log("Found " + guids.Length + " VFXBlockLibrary assets");
 
 			for (int i = 0; i < guids.Length; ++i)
 			{
 				blockLibraries[i] = AssetDatabase.LoadAssetAtPath<VFXBlockLibrary>(AssetDatabase.GUIDToAssetPath(guids[i]));
+				//Debug.Log("Found " + blockLibraries[i].GetNbBlocks() + " VFXBlocks in library " + i);
 				for (int j = 0; j < blockLibraries[i].GetNbBlocks(); ++j)
 				{
 					VFXBlock block = blockLibraries[i].GetBlock(j);
@@ -343,8 +350,8 @@ namespace UnityEditor.Experimental
 					/*Debug.Log("Found block: " + block.m_Name + " " + block.m_Params.Length);
 					for (int k = 0; k < block.m_Params.Length; ++k)
 					{
-						Debug.Log("\t" + block.m_Params[k]);
-						Debug.Log("\t" + block.m_Params[k].m_Name);
+						//Debug.Log("\t" + block.m_Params[k]);
+						//Debug.Log("\t" + block.m_Params[k].m_Name);
 					}*/	
 				}
 			}
@@ -355,8 +362,18 @@ namespace UnityEditor.Experimental
 		// Just for test
 		public VFXBlock GetRandomBlock()
 		{
-			int index = Random.Range(0, m_Blocks.Count);
-			return m_Blocks[index];
+			if (m_Blocks.Count > 0)
+			{
+				int index = Random.Range(0, m_Blocks.Count);
+				return m_Blocks[index];
+			}
+			else
+			{
+				VFXBlock block = new VFXBlock();
+				block.m_Name = "EmptyNode";
+				block.m_Params = new VFXParam[0];
+				return block;
+			}
 		}
 
 		public ReadOnlyCollection<VFXBlock> GetBlocks()
@@ -372,7 +389,6 @@ namespace UnityEditor.Experimental
 		public static int NodeWidth = 320;
 		public static int PreviewWindowWidth = 480;
 		public static int PreviewWindowHeight = 320;
-		
 	}
 
 	public class VFXEditorStyles
@@ -382,10 +398,12 @@ namespace UnityEditor.Experimental
 		public GUIStyle NodeTitle;
 		public GUIStyle NodeInfoText;
 
-
 		public GUIStyle NodeBlock;
 		public GUIStyle NodeBlockSelected;
 		public GUIStyle NodeBlockTitle;
+		public GUIStyle NodeBlockParameter;
+		public GUIStyle NodeBlockDropSeparator;
+
 
 		public GUIStyle ConnectorLeft;
 		public GUIStyle ConnectorRight;
@@ -393,9 +411,11 @@ namespace UnityEditor.Experimental
 		public GUIStyle FlowConnectorIn;
 		public GUIStyle FlowConnectorOut;
 
+		public GUIStyle ConnectorOverlay;
 		public GUIStyle Foldout;
 
 		public Texture2D FlowEdgeOpacity;
+
 
 		public VFXEditorStyles()
 		{
@@ -409,34 +429,46 @@ namespace UnityEditor.Experimental
 			NodeSelected.normal.background = EditorGUIUtility.Load("NodeBase_Selected.psd") as Texture2D;
 
 			NodeTitle = new GUIStyle();
-			NodeTitle.fontSize = 12;
+			NodeTitle.fontSize = 14;
 			NodeTitle.fontStyle = FontStyle.Bold;
-			NodeTitle.padding = new RectOffset(32, 32, 12, 0);
+			NodeTitle.padding = new RectOffset(32, 32, 10, 0);
 			NodeTitle.alignment = TextAnchor.MiddleCenter;
-			NodeTitle.normal.textColor = Color.white;
+			NodeTitle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
 
 			NodeInfoText = new GUIStyle();
 			NodeInfoText.fontSize = 12;
 			NodeInfoText.fontStyle = FontStyle.Italic;
 			NodeInfoText.padding = new RectOffset(12, 12, 12, 12);
 			NodeInfoText.alignment = TextAnchor.MiddleCenter;
-			NodeInfoText.normal.textColor = Color.white;
+			NodeInfoText.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
 
 			NodeBlock = new GUIStyle();
 			NodeBlock.name = "NodeBlock";
 			NodeBlock.normal.background = EditorGUIUtility.Load("NodeBlock_Flow_Unselected.psd") as Texture2D;
-			NodeBlock.border = new RectOffset(4, 26, 12, 4);
+			NodeBlock.border = new RectOffset(8, 26, 12, 4);
 
 			NodeBlockSelected = new GUIStyle();
 			NodeBlockSelected.name = "NodeBlockSelected";
 			NodeBlockSelected.normal.background = EditorGUIUtility.Load("NodeBlock_Flow_Selected.psd") as Texture2D;
-			NodeBlockSelected.border = new RectOffset(4, 26, 12, 4);
+			NodeBlockSelected.border = new RectOffset(8, 26, 12, 4);
 
 			NodeBlockTitle = new GUIStyle();
-			NodeBlockTitle.fontSize = 12;
+			NodeBlockTitle.fontSize = 11;
+			NodeBlockTitle.fontStyle = FontStyle.Bold;
 			NodeBlockTitle.padding = new RectOffset(4, 4, 4, 4);
 			NodeBlockTitle.alignment = TextAnchor.MiddleLeft;
-			NodeBlockTitle.normal.textColor = Color.white;
+			NodeBlockTitle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
+
+			NodeBlockParameter = new GUIStyle();
+			NodeBlockParameter.fontSize = 11;
+			NodeBlockParameter.padding = new RectOffset(4, 4, 4, 4);
+			NodeBlockParameter.alignment = TextAnchor.MiddleLeft;
+			NodeBlockParameter.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
+
+			NodeBlockDropSeparator = new GUIStyle();
+			NodeBlockDropSeparator.name = "NodeBlockDropSeparator";
+			NodeBlockDropSeparator.normal.background = EditorGUIUtility.Load("NodeBlock_DropSeparator.psd") as Texture2D;
+			NodeBlockDropSeparator.border = new RectOffset(0, 24, 0, 8);
 
 			ConnectorLeft = new GUIStyle();
 			ConnectorLeft.name = "ConnectorLeft";
@@ -451,14 +483,15 @@ namespace UnityEditor.Experimental
 			FlowConnectorIn = new GUIStyle();
 			FlowConnectorIn.name = "FlowConnectorIn";
 			FlowConnectorIn.normal.background = EditorGUIUtility.Load("LayoutFlow_In.psd") as Texture2D;
-			FlowConnectorIn.active.background = EditorGUIUtility.Load("LayoutFlow_In_Glow.psd") as Texture2D;
-			FlowConnectorIn.overflow = new RectOffset(15, 15, 12, 16);
 
 			FlowConnectorOut = new GUIStyle();
 			FlowConnectorOut.name = "FlowConnectorOut";
 			FlowConnectorOut.normal.background = EditorGUIUtility.Load("LayoutFlow_Out.psd") as Texture2D;
-			FlowConnectorOut.active.background = EditorGUIUtility.Load("LayoutFlow_Out_Glow.psd") as Texture2D;
-			FlowConnectorOut.overflow = new RectOffset(15, 15, 15, 15);
+
+			ConnectorOverlay = new GUIStyle();
+			ConnectorOverlay.name = "ConnectorOverlay";
+			ConnectorOverlay.normal.background = EditorGUIUtility.Load("ConnectorOverlay.psd") as Texture2D;
+			ConnectorOverlay.overflow = new RectOffset(64, 64, 64, 64);
 
 			Foldout = "IN Foldout";
 

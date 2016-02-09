@@ -10,8 +10,9 @@ namespace UnityEditor.Experimental
 		private bool bActuallyDrag = false;
 		private float m_SnapDistance = 32.0f;
 		private Vector2 m_ClickPosition;
-		private VFXEdNodeBlockContainer targetDropContainer = null;
-		private VFXEdNodeBlockContainer initialDropContainer = null;
+		private VFXEdNodeBlockContainer m_targetDropContainer = null;
+		private VFXEdNodeBlockContainer m_initialDropContainer = null;
+		private int m_initialDropContainerIndex = 0;
 		
 		public NodeBlockManipulator()
 		{
@@ -55,6 +56,13 @@ namespace UnityEditor.Experimental
 				return false;
 			}
 
+			if((canvas as VFXEdCanvas).SelectedNodeBlock != (element as VFXEdNodeBlock))
+			{
+				(canvas as VFXEdCanvas).SelectedNodeBlock = (element as VFXEdNodeBlock);
+				(element as VFXEdNodeBlock).Invalidate();
+			}
+			
+
 			bActuallyDrag = false;
 
 			if (element.GetType() == typeof(VFXEdNodeBlock))
@@ -87,24 +95,26 @@ namespace UnityEditor.Experimental
 
 			element.selected = false;
 
-			if (targetDropContainer != null && targetDropContainer != initialDropContainer)
-			{
-				targetDropContainer.AddNodeBlock(element as VFXEdNodeBlock);
-				targetDropContainer.Highlight = false;
-				
-				targetDropContainer.Invalidate();
+			if (m_targetDropContainer != null) {
+
+				if(m_targetDropContainer != m_initialDropContainer)
+				{
+					m_targetDropContainer.AcceptDrop(element as VFXEdNodeBlock);
+				}
+				else
+				{
+					m_initialDropContainer.AcceptDrop(element as VFXEdNodeBlock);
+				}
 			}
 			else
 			{
-				initialDropContainer.AddNodeBlock(element as VFXEdNodeBlock);
-				initialDropContainer.Highlight = false;
-				initialDropContainer.Invalidate();
+				m_initialDropContainer.RevertDrop(element as VFXEdNodeBlock, m_initialDropContainerIndex);
 			}
 			canvas.Layout();
 			canvas.Repaint();
 
-			targetDropContainer = null;
-			initialDropContainer = null;
+			m_targetDropContainer = null;
+			m_initialDropContainer = null;
 
 			element.UpdateModel(UpdateType.Update);
 			e.Use();
@@ -130,7 +140,6 @@ namespace UnityEditor.Experimental
 			// Drag Snapping Check
 			if (bActuallyDrag)
 			{
-
 				float scaleFactorX = element == canvas ? 1.0f : 1.0f / canvas.scale.x;
 				float scaleFactorY = element == canvas ? 1.0f : 1.0f / canvas.scale.y;
 
@@ -141,17 +150,21 @@ namespace UnityEditor.Experimental
 				element.UpdateModel(UpdateType.Candidate);
 
 				// Query for dropping on NodeBlock Containers
-
 				VFXEdNodeBlockContainer container = null;
 				Vector2 dropPosition = canvas.MouseToCanvas(e.mousePosition);
 				foreach (CanvasElement ce in canvas.elements)
 				{
 					if (container == null) container = FindContainer(ce, dropPosition);
 				}
+
 				if (container != null)
 				{
-					targetDropContainer = container;
+					m_targetDropContainer = container;
 					canvas.Repaint();
+				}
+				else
+				{
+					m_targetDropContainer = null;
 				}
 
 				e.Use();
@@ -164,11 +177,14 @@ namespace UnityEditor.Experimental
 				{
 					VFXEdNodeBlock n = element as VFXEdNodeBlock;
 					CanvasElement parent = n.parent;
+					VFXEdNodeBlockContainer container = parent as VFXEdNodeBlockContainer;
+					m_initialDropContainerIndex = container.GetBlockIndex(n);
+					container.RemoveNodeBlock(n);
 					n.SetParent(canvas);
 					n.translation = canvas.MouseToCanvas(e.mousePosition) - new Vector2(n.scale.x / 2, n.scale.y / 2);
 					parent.Invalidate();
 					canvas.Repaint();
-					initialDropContainer = parent as VFXEdNodeBlockContainer;
+					m_initialDropContainer = parent as VFXEdNodeBlockContainer;
 					n.zIndex = 999;
 					bActuallyDrag = true;
 					n.selected = true;
@@ -188,14 +204,16 @@ namespace UnityEditor.Experimental
 					if (e.Contains(canvasHitPosition))
 					{
 						VFXEdNodeBlockContainer container = (e as VFXEdNodeBlockContainer);
-						container.Highlight = true;
+						container.CaptureDrop = true;
+						container.UpdateCaptureDrop(canvasHitPosition);
+						container.Layout();
 						container.Invalidate();
 						return e as VFXEdNodeBlockContainer;
 					}
 					else
 					{
 						VFXEdNodeBlockContainer container = (e as VFXEdNodeBlockContainer);
-						container.Highlight = false;
+						container.CaptureDrop = false;
 						container.Invalidate();
 					}
 				}

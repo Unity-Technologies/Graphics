@@ -8,7 +8,7 @@ if (age <= lifetime)
 
 #block ApplyForce
 #arg float3 velocity [inout|param]
-#arg float3 force [public]
+#arg float3 force [public] 
 
 velocity += force * deltaTime;
 
@@ -33,7 +33,7 @@ const float3 FIELD_SIZE = float3(5,5,5);
 float3 vectorFieldCoord = (position / FIELD_SIZE) + float3(0.5,-0.0,0.5);
 vectorFieldCoord.y = 1 - vectorFieldCoord.y;
 vectorFieldCoord = min(float3(0.95,0.95,0.95),max(float3(0.05,0.05,0.05),vectorFieldCoord));
-velocity += (VectorField.SampleLevel(samplerVectorField,vectorFieldCoord,0.0).xyz - 0.5) * 2 * 0.8; 
+velocity += (VectorField.SampleLevel(samplerVectorField,vectorFieldCoord,0.0).xyz - 0.5) * 2 * 0.8;
 
 #block InitRandomVelocity
 #arg float3 velocity [inout|param]

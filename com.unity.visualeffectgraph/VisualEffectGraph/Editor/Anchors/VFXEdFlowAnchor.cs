@@ -40,6 +40,7 @@ namespace UnityEditor.Experimental
 		public override void Render(Rect parentRect, Canvas2D canvas)
 		{
 			base.Render(parentRect, canvas);
+			GUI.color = new Color(0.8f, 0.8f, 0.8f);
 			switch (m_Direction)
 			{
 				case Direction.Input:
@@ -53,6 +54,7 @@ namespace UnityEditor.Experimental
 				default:
 					break;
 			}
+			GUI.color = Color.white;
 		}
 
 		public void RenderOverlay(Canvas2D canvas)
@@ -62,13 +64,14 @@ namespace UnityEditor.Experimental
 			switch (m_Direction)
 			{
 				case Direction.Input:
-					o = VFXEditor.styles.FlowConnectorIn.overflow;
-					GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.styles.FlowConnectorIn.active.background);
+					o = VFXEditor.styles.ConnectorOverlay.overflow;
+					GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.styles.ConnectorOverlay.normal.background);
 					break;
 
 				case Direction.Output:
-					o = VFXEditor.styles.FlowConnectorOut.overflow;
-					GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.styles.FlowConnectorOut.active.background);
+					o = VFXEditor.styles.ConnectorOverlay.overflow;
+					GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.styles.ConnectorOverlay.normal.background);
+
 					break;
 
 				default:
