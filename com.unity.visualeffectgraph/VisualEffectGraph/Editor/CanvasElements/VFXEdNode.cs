@@ -28,6 +28,8 @@ namespace UnityEditor.Experimental
 			get { return m_Outputs; }
 		}
 
+		public VFXEdNodeClientArea ClientArea { get { return m_NodeClientArea; } }
+
 		private VFXEdDataSource m_DataSource;
 		private VFXEdNodeClientArea m_NodeClientArea;
 		private List<VFXEdFlowAnchor> m_Inputs;
@@ -64,23 +66,11 @@ namespace UnityEditor.Experimental
 		{
 			if (selected)
 			{
-				foreach(CanvasElement ce in m_NodeClientArea.NodeBlockContainer.Children())
-				{
-					if(ce.GetType()== typeof(VFXEdNodeBlock))
-					{
-						(ce as VFXEdNodeBlock).DisableDrag();
-					}
-				}
+				(parent as VFXEdCanvas).SetSelectedNodeBlock(null);
 			}
 			else
 			{
-				foreach (CanvasElement ce in m_NodeClientArea.NodeBlockContainer.Children())
-				{
-					if (ce.GetType() == typeof(VFXEdNodeBlock))
-					{
-						(ce as VFXEdNodeBlock).EnableDrag();
-					}
-				}
+
 			}
 
 			return false;
