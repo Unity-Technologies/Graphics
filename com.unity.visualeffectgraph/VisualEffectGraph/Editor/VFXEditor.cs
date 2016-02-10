@@ -228,7 +228,11 @@ namespace UnityEditor.Experimental
 			}
 			GUILayout.FlexibleSpace();
 			m_Canvas.showQuadTree = GUILayout.Toggle(m_Canvas.showQuadTree, "Canvas2D Debug Info", EditorStyles.toolbarButton);
-			m_bShowDebugInfo = GUILayout.Toggle(m_bShowDebugInfo, "VFXEditor Debug Info", EditorStyles.toolbarButton);
+			if(GUILayout.Button("Refresh Canvas", EditorStyles.toolbarButton))
+			{
+				m_Canvas.DeepInvalidate();
+				m_Canvas.Repaint();
+			}
 			GUILayout.FlexibleSpace();
 			if (GUILayout.Button("Reset", EditorStyles.toolbarButton))
 			{

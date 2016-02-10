@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental
 			if (e.type == EventType.Used)
 				return false;
 
-			if (e.keyCode != KeyCode.Delete && e.modifiers != EventModifiers.None)
+			if (e.keyCode != KeyCode.Delete)
 			{
 				return false;
 			}

@@ -24,22 +24,75 @@ namespace UnityEditor.Experimental
 
 		public void AttachTo(CanvasElement element)
 		{
-			element.MouseDown += ToggleCollapse;
+
+			element.DoubleClick += ManageDoubleClick;
+			element.MouseDown += ManageMouseDown;
+			element.MouseUp += ManageMouseUp;
+			element.MouseDrag += ManageMouseDrag;
+
 		}
 
-		private bool ToggleCollapse(CanvasElement element, Event e, Canvas2D parent)
+		private bool ManageMouseDrag(CanvasElement element, Event e, Canvas2D parent)
 		{
-			if((element.parent as VFXEdNodeBlock).IsSelectedNodeBlock(parent as VFXEdCanvas))
+			if ((element as VFXEdNodeBlockCollapser).Highlight == true)
+				(element as VFXEdNodeBlockCollapser).Highlight = false;
+			return true;
+
+		}
+
+		private bool ManageMouseUp(CanvasElement element, Event e, Canvas2D parent)
+		{
+			if (e.type == EventType.Used) return false;
+	
+			(element as VFXEdNodeBlockCollapser).Highlight = false;
+
+			parent.Layout();
+			element.parent.Invalidate();
+			element.Invalidate();
+			e.Use();
+			return true;
+		}
+
+		private bool ManageMouseDown(CanvasElement element, Event e, Canvas2D parent)
+		{
+			if (e.type == EventType.Used) return false;
+
+			(element as VFXEdNodeBlockCollapser).Highlight = true;
+
+			Rect ActiveArea = VFXEditorMetrics.NodeBlockCollapserArrowRect;
+			ActiveArea.position += element.canvasBoundingRect.position;
+
+			if (ActiveArea.Contains(parent.MouseToCanvas(e.mousePosition)))
 			{
+				(element as VFXEdNodeBlockCollapser).Highlight = true;
 				(element.parent as VFXEdNodeBlock).collapsed = !(element.parent as VFXEdNodeBlock).collapsed;
-				e.Use();
 				parent.Layout();
 				element.parent.Invalidate();
+				e.Use();
 				return true;
 			}
-			else return false;
-			
+			else
+			{
+				(element as VFXEdNodeBlockCollapser).Highlight = false;
+				parent.Layout();
+				element.parent.Invalidate();
+				return false;
+			}
 
+
+		}
+
+		private bool ManageDoubleClick(CanvasElement element, Event e, Canvas2D parent)
+		{
+			if (e.type == EventType.Used) return false;
+
+			(element.parent as VFXEdNodeBlock).collapsed = !(element.parent as VFXEdNodeBlock).collapsed;
+			(element as VFXEdNodeBlockCollapser).Highlight = true;
+			parent.Layout();
+			element.parent.Invalidate();
+			e.Use();
+
+			return true;
 		}
 	};
 }

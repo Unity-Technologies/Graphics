@@ -10,7 +10,7 @@
 				SetSelectedNodeBlock(value);
 			}
 		}
-		private VFXEdNodeBlock m_SelectedNodeBlock;		public VFXEdCanvas(Object target, EditorWindow host, ICanvasDataSource dataSource) : base (target, host, dataSource)		{			AllEvents += onEvents;		}
+		private VFXEdNodeBlock m_SelectedNodeBlock;		public VFXEdCanvas(Object target, EditorWindow host, ICanvasDataSource dataSource) : base (target, host, dataSource)		{			MouseDown += ManageSelection;		}
 
 		public void SetSelectedNodeBlock(VFXEdNodeBlock block)
 		{
@@ -19,9 +19,12 @@
 			m_SelectedNodeBlock = block;
 		}
 
-		public bool onEvents(CanvasElement element, Event e, Canvas2D parent)
+		public bool ManageSelection(CanvasElement element, Event e, Canvas2D parent)
 		{
-			if(e.type == EventType.MouseDown && element is Canvas2D)
+			if (e.type == EventType.Used) return false;
+
+			// Unselecting
+			if (e.type == EventType.MouseDown && e.button == 0 && element is Canvas2D && SelectedNodeBlock != null)
 			{
 				SetSelectedNodeBlock(null);
 				return true;

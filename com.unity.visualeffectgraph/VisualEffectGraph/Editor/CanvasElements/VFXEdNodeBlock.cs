@@ -27,6 +27,7 @@ namespace UnityEditor.Experimental
 			m_NodeBlockManipulator = new NodeBlockManipulator();
 			AddManipulator(m_NodeBlockManipulator);
 			AddManipulator(new NodeBlockDelete());
+			AddManipulator(new ImguiContainer());
 
 		}
 
@@ -88,9 +89,10 @@ namespace UnityEditor.Experimental
 		{
 			Rect r = GetDrawableRect();
 
-			if(parent is VFXEdNodeBlockContainer)
+			if (parent is VFXEdNodeBlockContainer)
 			{
 				if (IsSelectedNodeBlock(canvas as VFXEdCanvas))
+					
 					GUI.Box(r, "", VFXEditor.styles.NodeBlockSelected);
 				else
 					GUI.Box(r, "", VFXEditor.styles.NodeBlock);
@@ -102,7 +104,6 @@ namespace UnityEditor.Experimental
 				GUI.Box(r, "", VFXEditor.styles.NodeBlockSelected);
 				GUI.color = c;
 			}
-
 			//GUI.Label(new Rect(r.x + 16, r.y, r.width, 24), m_Block.m_Name, VFXEditor.styles.NodeBlockTitle);
 
 			if (!collapsed)

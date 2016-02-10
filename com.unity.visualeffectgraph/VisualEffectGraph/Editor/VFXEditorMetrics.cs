@@ -17,9 +17,9 @@ namespace UnityEditor.Experimental
 		public static readonly float DataEdgeWidth = 5.0f;
 
 
-		public static readonly float NodeBlockHeaderHeight = 32.0f;
-		public static readonly float NodeBlockParameterHeight = 32.0f;
-		public static readonly float NodeBlockAdditionalHeight = 32.0f;
+		public static readonly float NodeBlockHeaderHeight = 32f;
+		public static readonly float NodeBlockParameterHeight = 20f;
+		public static readonly float NodeBlockAdditionalHeight = 14f;
 
 
 		public static readonly Rect NodeBlockCollapserArrowRect = new Rect(new Vector2(4f,4f), new Vector2(24f,24f));

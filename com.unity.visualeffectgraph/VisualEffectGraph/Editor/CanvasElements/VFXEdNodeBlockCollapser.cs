@@ -10,6 +10,12 @@ namespace UnityEditor.Experimental
 {
 	internal class VFXEdNodeBlockCollapser : CanvasElement
 	{
+		public bool Highlight
+		{
+			get { return m_Highlight; }
+			set { m_Highlight = value; }
+		}
+		private bool m_Highlight;
 
 		private NodeBlockCollapse m_NodeBlockCollapseManipulator;
 		private string m_Name;
@@ -42,24 +48,33 @@ namespace UnityEditor.Experimental
 
 			Rect labelrect = drawablerect;
 			labelrect.min += VFXEditorMetrics.NodeBlockCollapserLabelPosition;
-			EditorGUI.DrawRect(drawablerect, new Color(1.0f, 1.0f, 1.0f, 0.05f));
+
+			if (Highlight)
+			{
+				EditorGUI.DrawRect(drawablerect, new Color(1.0f, 1.0f, 1.0f, 0.2f));
+			}
+			else
+			{
+				GUI.color = new Color(1.0f, 1.0f, 1.0f, 0.75f);
+			}
+
 
 			if (collapsed)
 			{
-				GUI.Box(arrowrect, "",VFXEditor.styles.CollapserClosed);
+				GUI.Box(arrowrect, "", VFXEditor.styles.CollapserClosed);
 			}
 			else
 			{
 				GUI.Box(arrowrect, "", VFXEditor.styles.CollapserOpen);
 			}
+				
+
+			if (!Highlight) GUI.color = Color.white;
 
 			GUI.Label(labelrect, m_Name, VFXEditor.styles.NodeBlockTitle);
-
-			//GUI.Label(new Rect(drawablerect.x + 16, drawablerect.y, drawablerect.width, 24), m_Name, VFXEditor.styles.NodeBlockTitle);
 			base.Render(parentRect, canvas);
 		}
 
-		private VFXBlock m_Block;
 	}
 }
 

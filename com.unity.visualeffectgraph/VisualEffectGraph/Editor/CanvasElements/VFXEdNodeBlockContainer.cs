@@ -137,7 +137,6 @@ namespace UnityEditor.Experimental
 			Invalidate();
 		}
 
-
 		public override void Layout()
 		{
 			base.Layout();

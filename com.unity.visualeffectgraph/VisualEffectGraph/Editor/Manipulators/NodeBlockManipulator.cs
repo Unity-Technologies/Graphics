@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental
 				return false;
 			}
 
-			if((canvas as VFXEdCanvas).SelectedNodeBlock != (element as VFXEdNodeBlock))
+			if ((canvas as VFXEdCanvas).SelectedNodeBlock != (element as VFXEdNodeBlock))
 			{
 				(canvas as VFXEdCanvas).SelectedNodeBlock = (element as VFXEdNodeBlock);
 				(element as VFXEdNodeBlock).Invalidate();

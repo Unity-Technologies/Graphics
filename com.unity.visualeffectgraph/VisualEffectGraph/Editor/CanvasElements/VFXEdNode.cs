@@ -70,10 +70,6 @@ namespace UnityEditor.Experimental
 			{
 				(parent as VFXEdCanvas).SetSelectedNodeBlock(null);
 			}
-			else
-			{
-
-			}
 
 			return false;
 		}
