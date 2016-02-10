@@ -15,10 +15,6 @@ namespace UnityEditor.Experimental
 
 		private NodeBlockManipulator m_NodeBlockManipulator;
 		
-		private const float DEFAULT_HEIGHT = 26.0f;
-		private const float PARAM_HEIGHT = 20.0f;
-		private const float PARAM_ADDITIONAL_HEIGHT = 14.0f;
-
 		public VFXEdNodeBlock(VFXBlock block, Vector2 position, float width, VFXEdDataSource dataSource)
 		{
 			m_Block = block;
@@ -26,7 +22,7 @@ namespace UnityEditor.Experimental
 			translation = new Vector3(0.0f, 0.0f, 0.0f);
 			m_Caps = Capabilities.Normal;
 
-			AddChild(new VFXEdNodeBlockCollapser(new Vector2(4.0f, 4.0f), dataSource));
+			AddChild(new VFXEdNodeBlockCollapser(width, dataSource, m_Name));
 
 			m_NodeBlockManipulator = new NodeBlockManipulator();
 			AddManipulator(m_NodeBlockManipulator);
@@ -37,13 +33,13 @@ namespace UnityEditor.Experimental
 		// Retrieve the height of a given param
 		private float GetParamHeight(VFXParam param)
 		{
-			float height = PARAM_HEIGHT;
+			float height = VFXEditorMetrics.NodeBlockParameterHeight;
 			switch (param.m_Type)
 			{
 				case VFXParam.Type.kTypeFloat2:
 				case VFXParam.Type.kTypeFloat3:
 				case VFXParam.Type.kTypeFloat4:
-					height += PARAM_ADDITIONAL_HEIGHT;
+					height += VFXEditorMetrics.NodeBlockAdditionalHeight;
 					break;
 
 				default: break;
@@ -54,7 +50,7 @@ namespace UnityEditor.Experimental
 		// Retrieve the total height of a block
 		private float GetHeight()
 		{
-			float height = DEFAULT_HEIGHT;
+			float height = VFXEditorMetrics.NodeBlockHeaderHeight;
 			for (int i = 0; i < m_Block.m_Params.Length; ++i)
 				height += GetParamHeight(m_Block.m_Params[i]);
 			return height;
@@ -64,7 +60,7 @@ namespace UnityEditor.Experimental
 		{
 			if(collapsed)
 			{
-				scale = new Vector2(scale.x, DEFAULT_HEIGHT);
+				scale = new Vector2(scale.x, VFXEditorMetrics.NodeBlockHeaderHeight);
 			}
 			else
 			{
@@ -75,16 +71,29 @@ namespace UnityEditor.Experimental
 
 		}
 
+		public bool IsSelectedNodeBlock(VFXEdCanvas canvas)
+		{
+			if (parent is VFXEdNodeBlockContainer)
+			{
+				return canvas.SelectedNodeBlock == this;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+
 		public override void Render(Rect parentRect, Canvas2D canvas)
 		{
 			Rect r = GetDrawableRect();
 
 			if(parent is VFXEdNodeBlockContainer)
 			{
-				if ((canvas as VFXEdCanvas).SelectedNodeBlock != this)
-					GUI.Box(r, "", VFXEditor.styles.NodeBlock);
-				else
+				if (IsSelectedNodeBlock(canvas as VFXEdCanvas))
 					GUI.Box(r, "", VFXEditor.styles.NodeBlockSelected);
+				else
+					GUI.Box(r, "", VFXEditor.styles.NodeBlock);
 			}
 			else // If currently dragged...
 			{
@@ -94,11 +103,11 @@ namespace UnityEditor.Experimental
 				GUI.color = c;
 			}
 
-			GUI.Label(new Rect(r.x + 16, r.y, r.width, 24), m_Block.m_Name, VFXEditor.styles.NodeBlockTitle);
+			//GUI.Label(new Rect(r.x + 16, r.y, r.width, 24), m_Block.m_Name, VFXEditor.styles.NodeBlockTitle);
 
 			if (!collapsed)
 			{
-			float currentY = r.y + DEFAULT_HEIGHT;
+			float currentY = r.y + VFXEditorMetrics.NodeBlockHeaderHeight;
 			for (int i = 0; i < m_Block.m_Params.Length; ++i)
 			{
 				VFXParam.Type paramType = m_Block.m_Params[i].m_Type;

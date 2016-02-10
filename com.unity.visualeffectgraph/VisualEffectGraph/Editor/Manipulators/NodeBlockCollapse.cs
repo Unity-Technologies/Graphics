@@ -29,15 +29,17 @@ namespace UnityEditor.Experimental
 
 		private bool ToggleCollapse(CanvasElement element, Event e, Canvas2D parent)
 		{
-			Rect r = element.boundingRect;
-
-			(element.parent as VFXEdNodeBlock).collapsed = !(element.parent as VFXEdNodeBlock).collapsed;
-			Debug.Log((element.parent as VFXEdNodeBlock).collapsed);
-			e.Use();
-			parent.Layout();
-			element.parent.Invalidate();
-			return true;
+			if((element.parent as VFXEdNodeBlock).IsSelectedNodeBlock(parent as VFXEdCanvas))
+			{
+				(element.parent as VFXEdNodeBlock).collapsed = !(element.parent as VFXEdNodeBlock).collapsed;
+				e.Use();
+				parent.Layout();
+				element.parent.Invalidate();
+				return true;
+			}
+			else return false;
 			
+
 		}
 	};
 }

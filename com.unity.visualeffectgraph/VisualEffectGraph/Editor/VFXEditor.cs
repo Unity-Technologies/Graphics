@@ -112,7 +112,6 @@ namespace UnityEditor.Experimental
 			{
 				m_DataSource = ScriptableObject.CreateInstance<VFXEdDataSource>();
 				m_Canvas = new VFXEdCanvas(this, m_HostWindow, m_DataSource);
-				// m_Canvas.showQuadTree = true;
 
 				// draggable manipulator allows to move the canvas around. Note that individual elements can have the draggable manipulator on themselves
 				m_Canvas.AddManipulator(new Draggable(2, EventModifiers.None));
@@ -198,7 +197,7 @@ namespace UnityEditor.Experimental
 			titleContent = new GUIContent("VFX Editor", m_Icon);
 			//GUI.Toolbar(new Rect(0, 0, position.width, 24),0);
 			DrawToolbar(new Rect(0, 0, position.width, EditorStyles.toolbar.fixedHeight));
-			Rect canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height);
+			Rect canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height-EditorStyles.toolbar.fixedHeight);
 			m_Canvas.OnGUI(this, canvasRect);
 			DrawWindows(canvasRect);
 			

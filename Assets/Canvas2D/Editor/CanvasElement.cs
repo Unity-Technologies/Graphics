@@ -417,7 +417,8 @@ namespace UnityEditor.Experimental
 
 		public virtual void DebugDraw()
 		{
-			Handles.DrawSolidRectangleWithOutline(canvasBoundingRect, new Color(1.0f, 0.0f, 0.0f, 0.2f), new Color(1.0f, 0.0f, 0.0f, 0.4f));
+			// THOMASI : Modified Debug Opacity for better readability while displaying more stacked elements.
+			Handles.DrawSolidRectangleWithOutline(canvasBoundingRect, new Color(1.0f, 0.0f, 0.0f, 0.1f), new Color(1.0f, 0.0f, 0.0f, 0.4f));
 			foreach (CanvasElement e in m_Children)
 			{
 				e.DebugDraw();
@@ -476,13 +477,14 @@ namespace UnityEditor.Experimental
 			m_Children.Clear();
 			return this;
 		}
+
 		// END THOMASI
 		// THOMASI : REMOVING CHILD ELEMENT
 		public virtual void RemoveChild(CanvasElement e)
 		{
 			if(m_Children.Contains(e))
 			{
-				m_Children.Remove(e.RemoveAllChildren());
+				m_Children.Remove(e);
 			}
 			
 		}

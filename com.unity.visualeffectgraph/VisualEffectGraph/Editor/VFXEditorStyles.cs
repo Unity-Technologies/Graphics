@@ -10,6 +10,8 @@ namespace UnityEditor.Experimental
 {
 	public class VFXEditorStyles
 	{
+		public GUIStyle Empty;
+
 		public GUIStyle Node;
 		public GUIStyle NodeSelected;
 		public GUIStyle NodeTitle;
@@ -29,13 +31,22 @@ namespace UnityEditor.Experimental
 		public GUIStyle FlowConnectorOut;
 
 		public GUIStyle ConnectorOverlay;
-		public GUIStyle Foldout;
+
+		public GUIStyle CollapserOpen;
+		public GUIStyle CollapserClosed;
+
 
 		public Texture2D FlowEdgeOpacity;
 
 
 		public VFXEditorStyles()
 		{
+			Empty = new GUIStyle();
+			Empty.border = new RectOffset();
+			Empty.padding = new RectOffset();
+			Empty.margin = new RectOffset();
+
+
 			Node = new GUIStyle();
 			Node.name = "Node";
 			Node.normal.background = EditorGUIUtility.Load("NodeBase.psd") as Texture2D;
@@ -110,7 +121,14 @@ namespace UnityEditor.Experimental
 			ConnectorOverlay.normal.background = EditorGUIUtility.Load("ConnectorOverlay.psd") as Texture2D;
 			ConnectorOverlay.overflow = new RectOffset(64, 64, 64 - 32, 64 - 16);
 
-			Foldout = "IN Foldout";
+			CollapserOpen = new GUIStyle();
+			CollapserOpen.name = "CollapserOpen";
+			CollapserOpen.normal.background = EditorGUIUtility.Load("Collapser_Open.psd") as Texture2D;
+
+			CollapserClosed = new GUIStyle();
+			CollapserClosed.name = "CollapserClosed";
+			CollapserClosed.normal.background = EditorGUIUtility.Load("Collapser_Closed.psd") as Texture2D;
+
 
 			FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
 
@@ -119,7 +137,7 @@ namespace UnityEditor.Experimental
 		public void ExportGUISkin()
 		{
 			GUISkin s = ScriptableObject.CreateInstance<GUISkin>();
-			s.customStyles = new GUIStyle[7];
+			s.customStyles = new GUIStyle[20];
 			s.customStyles[0] = Node;
 			s.customStyles[1] = NodeTitle;
 			s.customStyles[2] = NodeBlock;
@@ -127,6 +145,10 @@ namespace UnityEditor.Experimental
 			s.customStyles[4] = ConnectorRight;
 			s.customStyles[5] = FlowConnectorIn;
 			s.customStyles[6] = FlowConnectorOut;
+			s.customStyles[7] = CollapserOpen;
+			s.customStyles[8] = CollapserClosed;
+
+
 
 			AssetDatabase.CreateAsset(s, "Assets/VFXEditor/VFXEditor.guiskin");
 		}
