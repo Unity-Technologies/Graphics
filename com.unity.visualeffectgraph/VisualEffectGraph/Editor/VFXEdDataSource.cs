@@ -12,14 +12,11 @@ namespace UnityEditor.Experimental
 	{
 		private List<CanvasElement> m_Elements = new List<CanvasElement>();
 
-
-		public VFXEdDataSource()
+		public void OnEnable()
 		{
-			// WIP Default layout (assetless), would have to deserialize selected asset here
-			AddNode(new VFXEdNode(Vector2.zero, new Vector2(320.0f,180.0f),this));
-			// TODO : Add deserialization logic, and provide default layout for non-selected assets.
+			VFXEditor.BlockLibrary.Load(); // Force a reload
+			AddNode(new VFXEdNode(Vector2.zero, new Vector2(360.0f, 180.0f), this));	
 		}
-
 
 		public void AddNode(VFXEdNode n)
 		{

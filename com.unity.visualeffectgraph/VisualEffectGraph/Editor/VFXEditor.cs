@@ -215,7 +215,7 @@ namespace UnityEditor.Experimental
 		void AddGenericNode(object o)
 		{
 			Event e = o as Event;
-			m_DataSource.AddNode(new VFXEdNode(m_Canvas.MouseToCanvas(e.mousePosition), new Vector2(220, 180), m_DataSource));
+			m_DataSource.AddNode(new VFXEdNode(m_Canvas.MouseToCanvas(e.mousePosition), new Vector2(360, 180), m_DataSource));
 			m_Canvas.ReloadData();
 		}
 
@@ -331,6 +331,7 @@ namespace UnityEditor.Experimental
 
 		public void Load()
 		{
+			AssetDatabase.Refresh();
 			m_Blocks.Clear();
 
 			string[] guids = AssetDatabase.FindAssets("t:VFXBlockLibrary");
@@ -344,16 +345,18 @@ namespace UnityEditor.Experimental
 				for (int j = 0; j < blockLibraries[i].GetNbBlocks(); ++j)
 				{
 					VFXBlock block = blockLibraries[i].GetBlock(j);
-					//Debug.Log("Found block: " + block.m_Name + " " + block.m_Params.Length);
+					m_Blocks.Add(block);
+
+					/*Debug.Log("Found block: " + block.m_Name + " " + block.m_Params.Length);
 					for (int k = 0; k < block.m_Params.Length; ++k)
 					{
 						//Debug.Log("\t" + block.m_Params[k]);
 						//Debug.Log("\t" + block.m_Params[k].m_Name);
-					}
-
-					m_Blocks.Add(block);
+					}*/	
 				}
 			}
+
+			Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
 		}
 
 		// Just for test

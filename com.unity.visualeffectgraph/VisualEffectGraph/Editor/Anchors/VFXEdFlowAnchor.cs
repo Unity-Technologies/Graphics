@@ -39,7 +39,6 @@ namespace UnityEditor.Experimental
 
 		public override void Render(Rect parentRect, Canvas2D canvas)
 		{
-
 			base.Render(parentRect, canvas);
 			GUI.color = new Color(0.8f, 0.8f, 0.8f);
 			switch (m_Direction)
@@ -56,8 +55,6 @@ namespace UnityEditor.Experimental
 					break;
 			}
 			GUI.color = Color.white;
-
-
 		}
 
 		public void RenderOverlay(Canvas2D canvas)
@@ -80,7 +77,6 @@ namespace UnityEditor.Experimental
 				default:
 					break;
 			}
-
 		}
 
 		// IConnect
@@ -98,8 +94,6 @@ namespace UnityEditor.Experimental
 		{
 
 		}
-
-
 
 		public object Source()
 		{
