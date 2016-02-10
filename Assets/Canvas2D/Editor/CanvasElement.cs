@@ -13,10 +13,10 @@ namespace UnityEditor.Experimental
 		[Flags]
 		public enum Capabilities
 		{
-			Normal,
-			Unselectable,
-            DoesNotCollapse,
-            Floating
+			Normal				= 1 << 0,
+			Unselectable		= 1 << 1,
+			DoesNotCollapse		= 1 << 2,
+			Floating			= 1 << 3,
 		}
 
 		protected int m_ZIndex;
@@ -390,8 +390,8 @@ namespace UnityEditor.Experimental
 				r.height = scale.y;
 				return r;
 			}
-			 
 		}
+		// END THOMASI
 
 		public void AddDependency(CanvasElement e)
 		{
@@ -453,7 +453,7 @@ namespace UnityEditor.Experimental
 		}
 
 
-		// THOMASI: CHANGING PARENTS
+		// THOMASI: SWITCHING PARENTS
 		public virtual void SetParent(CanvasElement e)
 		{
 			CanvasElement p = parent;
@@ -464,7 +464,7 @@ namespace UnityEditor.Experimental
 
 
 		}
-
+		// END THOMASI
 		// THOMASI : REMOVE ALL CHILDREN
 		public virtual CanvasElement RemoveAllChildren()
 		{
@@ -476,7 +476,7 @@ namespace UnityEditor.Experimental
 			m_Children.Clear();
 			return this;
 		}
-
+		// END THOMASI
 		// THOMASI : REMOVING CHILD ELEMENT
 		public virtual void RemoveChild(CanvasElement e)
 		{
@@ -486,7 +486,7 @@ namespace UnityEditor.Experimental
 			}
 			
 		}
-		
+		// END THOMASI
 
 		public virtual void Layout()
 		{

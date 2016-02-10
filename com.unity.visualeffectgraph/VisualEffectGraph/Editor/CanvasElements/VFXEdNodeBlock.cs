@@ -23,21 +23,36 @@ namespace UnityEditor.Experimental
 			m_Block = block;
 			m_Name = block.m_Name;
 			translation = new Vector3(0.0f, 0.0f, 0.0f);
-			scale = new Vector2(width, DEFAULT_HEIGHT + m_Block.m_Params.Length * PARAM_HEIGHT);
-			
 			m_Caps = Capabilities.Normal;
+
+			AddChild(new VFXEdNodeBlockCollapser(new Vector2(4.0f, 4.0f), dataSource));
+
 			m_NodeBlockManipulator = new NodeBlockManipulator();
 			AddManipulator(m_NodeBlockManipulator);
 			AddManipulator(new NodeBlockDelete());
-		}
-	
 
+		}
+
+
+
+		public override void Layout()
+		{
+			if(collapsed)
+			{
+				scale = new Vector2(scale.x, DEFAULT_HEIGHT);
+			}
+			else
+			{
+				scale = new Vector2(scale.x, DEFAULT_HEIGHT + m_Block.m_Params.Length * PARAM_HEIGHT);
+			}
+
+			base.Layout();
+
+		}
 
 		public override void Render(Rect parentRect, Canvas2D canvas)
 		{
 			Rect r = GetDrawableRect();
-
-			// TODO : Manage Nodeblock Selection properly
 
 			if(parent is VFXEdNodeBlockContainer)
 			{
@@ -55,13 +70,13 @@ namespace UnityEditor.Experimental
 
 			}
 
-
-			//GUI.Box(r, "", VFXEditor.styles.NodeBlock);
-			GUI.Box(new Rect(r.x +4, r.y + 4, 16, 16), "", VFXEditor.styles.Foldout);
 			GUI.Label(new Rect(r.x + 16, r.y, r.width, 24), m_Block.m_Name, VFXEditor.styles.NodeBlockTitle);
 
-			for (int i = 0; i < m_Block.m_Params.Length; ++i)
-				GUI.Label(new Rect(r.x + 8, r.y + DEFAULT_HEIGHT + i * PARAM_HEIGHT, r.width, PARAM_HEIGHT - 2), m_Block.m_Params[i].m_Name, VFXEditor.styles.NodeBlockParameter);
+			if(!collapsed)
+			{
+				for (int i = 0; i < m_Block.m_Params.Length; ++i)
+					GUI.Label(new Rect(r.x + 8, r.y + DEFAULT_HEIGHT + i * PARAM_HEIGHT, r.width, PARAM_HEIGHT - 2), m_Block.m_Params[i].m_Name, VFXEditor.styles.NodeBlockParameter);
+			}
 
 			base.Render(parentRect, canvas);
 		}

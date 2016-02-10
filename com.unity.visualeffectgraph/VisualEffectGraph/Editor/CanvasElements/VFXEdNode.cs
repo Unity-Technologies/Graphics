@@ -44,8 +44,10 @@ namespace UnityEditor.Experimental
 			m_Title = "(Generic Node)";
 			scale = new Vector2(size.x, size.y+46);
 
+
 			m_Inputs = new List<VFXEdFlowAnchor>();
 			m_Outputs = new List<VFXEdFlowAnchor>();
+
 
 			m_NodeClientArea = new VFXEdNodeClientArea(Vector2.zero, size, dataSource, title);
 			m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this, m_DataSource, Direction.Input));
@@ -55,7 +57,7 @@ namespace UnityEditor.Experimental
 			AddChild(outputs[0]);
 			AddChild(m_NodeClientArea);
 
-			AddManipulator(new Draggable());
+			AddManipulator(new Draggable(m_NodeClientArea.elementRect,false));
 			AddManipulator(new NodeDelete());
 
 			AllEvents += ManageSelection;

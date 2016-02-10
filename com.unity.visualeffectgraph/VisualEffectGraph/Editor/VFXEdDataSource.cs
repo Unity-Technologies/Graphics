@@ -53,7 +53,7 @@ namespace UnityEditor.Experimental
 
 		public void ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)
 		{
-			m_Elements.Add(new Edge<VFXEdFlowAnchor>(this, a, b));
+			m_Elements.Add(new FlowEdge<VFXEdFlowAnchor>(this, a, b));
 		}
 	}
 }

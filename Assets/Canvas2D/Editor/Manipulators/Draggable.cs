@@ -65,7 +65,15 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            canvas.StartCapture(this, element);
+			// THOMASI : BETTER FEELING IF SELECTED UPON STARTDRAG
+			if (canvas.selection.Count == 0)
+			{
+				canvas.AddToSelection(element);
+			}
+			// END THOMASI
+
+
+			canvas.StartCapture(this, element);
             e.Use();
 
             return true;
@@ -134,9 +142,12 @@ namespace UnityEditor.Experimental
             }
 
             Vector3 tx = element.translation;
+
             // THOMASI : FLOORED VALUES (FOR TEXT RENDERING ISSUES)
             tx.x += Mathf.Floor(e.delta.x * scaleFactorX);
             tx.y += Mathf.Floor(e.delta.y * scaleFactorY);
+            // END THOMASI
+
             element.translation = tx;
             element.UpdateModel(UpdateType.Candidate);
             e.Use();
