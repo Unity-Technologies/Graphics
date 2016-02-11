@@ -77,17 +77,18 @@ namespace UnityEditor.Experimental
         {
             base.Layout();
 
-            scale = new Vector2(scale.x, m_NodeClientArea.scale.y + 50);
-            //Inputs
+            scale = new Vector2(scale.x, m_NodeClientArea.scale.y + VFXEditorMetrics.NodeHeightOffset);
+
+            // Flow Inputs
             for (int i = 0; i < inputs.Count; i++)
             {
-                inputs[i].translation = new Vector2((i + 1) * (scale.x / (inputs.Count + 1)) - 32, 0.0f);
+                inputs[i].translation = new Vector2((i + 1) * (scale.x / (inputs.Count + 1)) - VFXEditorMetrics.FlowAnchorSize.y, 0.0f);
             }
 
-            //Outputs
+            // Flow Outputs
             for (int i = 0; i < outputs.Count; i++)
             {
-                outputs[i].translation = new Vector2((i + 1) * (scale.x / (outputs.Count + 1)) - 32, m_NodeClientArea.scale.y + 12);
+                outputs[i].translation = new Vector2((i + 1) * (scale.x / (outputs.Count + 1)) - VFXEditorMetrics.FlowAnchorSize.y, m_NodeClientArea.scale.y + (VFXEditorMetrics.FlowAnchorSize.y-20));
             }
 
 

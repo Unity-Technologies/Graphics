@@ -16,14 +16,14 @@ namespace UnityEditor.Experimental
 
         private NodeBlockManipulator m_NodeBlockManipulator;
 
-        public VFXEdNodeBlock(VFXBlock block, Vector2 position, float width, VFXEdDataSource dataSource)
+        public VFXEdNodeBlock(VFXBlock block, float width, VFXEdDataSource dataSource)
         {
             m_Block = block;
             m_Name = block.m_Name;
-            translation = new Vector3(0.0f, 0.0f, 0.0f);
+            translation = Vector3.zero; // zeroed by default, will be relayouted later.
             m_Caps = Capabilities.Normal;
 
-            AddChild(new VFXEdNodeBlockCollapser(width, dataSource, m_Name));
+            AddChild(new VFXEdNodeBlockHeader(width, dataSource, m_Name));
 
             m_NodeBlockManipulator = new NodeBlockManipulator();
             AddManipulator(m_NodeBlockManipulator);
@@ -106,17 +106,17 @@ namespace UnityEditor.Experimental
                 GUI.Box(r, "", VFXEditor.styles.NodeBlockSelected);
                 GUI.color = c;
             }
-            //GUI.Label(new Rect(r.x + 16, r.y, r.width, 24), m_Block.m_Name, VFXEditor.styles.NodeBlockTitle);
 
             if (!collapsed)
             {
                 float currentY = r.y + VFXEditorMetrics.NodeBlockHeaderHeight;
+                float posX = VFXEditorMetrics.NodeBlockParameterLabelPosition.x;
                 for (int i = 0; i < m_Block.m_Params.Length; ++i)
                 {
                     VFXParam.Type paramType = m_Block.m_Params[i].m_Type;
-                    Rect rect = new Rect(r.x + 8, currentY, r.width - 10, 0);
-
-                    rect.height = GetParamHeight(m_Block.m_Params[i]) - 2;
+                    
+                    Rect rect = new Rect(r.x + posX, currentY, r.width - posX, GetParamHeight(m_Block.m_Params[i]) - 2);
+                    GUI.Box(new Rect(r.x, currentY, VFXEditorMetrics.DataAnchorSize.x,VFXEditorMetrics.DataAnchorSize.y), "", VFXEditor.styles.ConnectorLeft);
                     currentY += rect.height;
 
                     switch (paramType)

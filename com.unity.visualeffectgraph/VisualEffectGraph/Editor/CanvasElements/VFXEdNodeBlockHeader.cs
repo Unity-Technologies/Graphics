@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdNodeBlockCollapser : CanvasElement
+    internal class VFXEdNodeBlockHeader : CanvasElement
     {
         public bool Highlight
         {
@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental
         private NodeBlockCollapse m_NodeBlockCollapseManipulator;
         private string m_Name;
 
-        public VFXEdNodeBlockCollapser(float width, VFXEdDataSource dataSource, string Text)
+        public VFXEdNodeBlockHeader(float width, VFXEdDataSource dataSource, string Text)
         {
             translation = Vector3.zero;
             this.scale = new Vector2(width, VFXEditorMetrics.NodeBlockHeaderHeight);

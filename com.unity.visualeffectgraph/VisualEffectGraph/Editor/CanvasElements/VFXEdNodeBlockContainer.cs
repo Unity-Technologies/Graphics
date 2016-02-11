@@ -36,14 +36,14 @@ namespace UnityEditor.Experimental
         private List<VFXEdNodeBlock> m_NodeBlocks;
 
 
-        public VFXEdNodeBlockContainer(Vector2 position, Vector2 size, VFXEdDataSource dataSource, string name)
+        public VFXEdNodeBlockContainer(Vector2 size, VFXEdDataSource dataSource, string name)
         {
-            translation = position;
-            scale = new Vector2(size.x, size.y);
+            translation = VFXEditorMetrics.NodeBlockContainerPosition;
+            scale = size + VFXEditorMetrics.NodeBlockContainerSizeOffset;
             m_NodeBlocks = new List<VFXEdNodeBlock>();
 
             m_Caps = Capabilities.Normal;
-            AddNodeBlock(new VFXEdNodeBlock(VFXEditor.BlockLibrary.GetRandomBlock(), new Vector2(0, 0), scale.x, dataSource));
+            AddNodeBlock(new VFXEdNodeBlock(VFXEditor.BlockLibrary.GetRandomBlock(), scale.x, dataSource));
         }
 
 
@@ -64,16 +64,16 @@ namespace UnityEditor.Experimental
 
                 if (localmousepos.y >= curY && localmousepos.y < (curY + b.scale.y / 2))
                 {
-                    dropInfo.highlightRect = new Rect(offset.x, offset.y + curY, scale.x, 16.0f);
-                    curY += 8.0f;
+                    dropInfo.highlightRect = new Rect(offset.x, offset.y + curY, scale.x, VFXEditorMetrics.NodeBlockContainerSeparatorHeight);
+                    curY += VFXEditorMetrics.NodeBlockContainerSeparatorOffset;
                     curY += b.scale.y;
                     dropInfo.DropIndex = curIdx;
                 }
                 else if (localmousepos.y >= (curY + b.scale.y / 2) && localmousepos.y < (curY + b.scale.y))
                 {
                     curY += b.scale.y;
-                    dropInfo.highlightRect = new Rect(offset.x, offset.y + curY, scale.x, 16.0f);
-                    curY += 8.0f;
+                    dropInfo.highlightRect = new Rect(offset.x, offset.y + curY, scale.x, VFXEditorMetrics.NodeBlockContainerSeparatorHeight);
+                    curY += VFXEditorMetrics.NodeBlockContainerSeparatorOffset;
                     dropInfo.DropIndex = curIdx + 1;
                 }
                 else
@@ -155,20 +155,18 @@ namespace UnityEditor.Experimental
                     // Insert space for separator if capturing drop
                     if (CaptureDrop && dropInfo.DropIndex == curIdx)
                     {
-                        curY += 8.0f;
+                        curY += VFXEditorMetrics.NodeBlockContainerSeparatorHeight;
                     }
-
                     b.translation = new Vector3(0.0f, curY, 0.0f);
                     b.scale = new Vector2(scale.x, b.scale.y);
                     curY += b.scale.y;
                     curIdx++;
                 }
-
                 scale = new Vector2(scale.x, curY);
             }
             else
             {
-                scale = new Vector2(scale.x, 80.0f);
+                scale = new Vector2(scale.x, VFXEditorMetrics.NodeBlockContainerEmptyHeight);
             }
         }
 
