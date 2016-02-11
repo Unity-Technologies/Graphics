@@ -18,6 +18,17 @@
         public VFXEdCanvas(Object target, EditorWindow host, ICanvasDataSource dataSource) : base(target, host, dataSource)
         {
             MouseDown += ManageSelection;
+            ContextClick += ManageRightClick;
+        }
+
+        private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)
+        {
+            if (e.type == EventType.Used)
+                return false;
+
+            VFXEdContextMenu.CanvasMenu(this, parent.MouseToCanvas(e.mousePosition), dataSource as VFXEdDataSource).ShowAsContext();
+            e.Use();
+            return true;
         }
 
         public void SetSelectedNodeBlock(VFXEdNodeBlock block)

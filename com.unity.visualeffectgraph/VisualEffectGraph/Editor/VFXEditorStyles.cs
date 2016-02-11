@@ -34,6 +34,10 @@ namespace UnityEditor.Experimental
 
         public GUIStyle CollapserOpen;
         public GUIStyle CollapserClosed;
+        public GUIStyle CollapserDisabled;
+
+        public GUIStyle Context;
+
 
 
         public Texture2D FlowEdgeOpacity;
@@ -81,7 +85,7 @@ namespace UnityEditor.Experimental
             NodeBlockSelected.border = new RectOffset(8, 26, 12, 4);
 
             NodeBlockTitle = new GUIStyle();
-            NodeBlockTitle.fontSize = 11;
+            NodeBlockTitle.fontSize = 12;
             NodeBlockTitle.fontStyle = FontStyle.Bold;
             NodeBlockTitle.padding = new RectOffset(4, 4, 4, 4);
             NodeBlockTitle.alignment = TextAnchor.MiddleLeft;
@@ -129,6 +133,14 @@ namespace UnityEditor.Experimental
             CollapserClosed.name = "CollapserClosed";
             CollapserClosed.normal.background = EditorGUIUtility.Load("Collapser_Closed.psd") as Texture2D;
 
+            CollapserDisabled = new GUIStyle();
+            CollapserDisabled.name = "CollapserDisabled";
+            CollapserDisabled.normal.background = EditorGUIUtility.Load("Collapser_Disabled.psd") as Texture2D;
+
+            Context = new GUIStyle();
+            Context.name = "Context";
+            Context.normal.background = EditorGUIUtility.Load("Context.psd") as Texture2D;
+            Context.border = new RectOffset(8, 9, 9, 12);
 
             FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
 

@@ -15,7 +15,6 @@ namespace UnityEditor.Experimental
         public void OnEnable()
         {
             VFXEditor.BlockLibrary.Load(); // Force a reload
-            AddNode(new VFXEdNode(Vector2.zero, new Vector2(360.0f, 180.0f), this));
         }
 
         public void AddNode(VFXEdNode n)
@@ -51,6 +50,35 @@ namespace UnityEditor.Experimental
         public void ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)
         {
             m_Elements.Add(new FlowEdge<VFXEdFlowAnchor>(this, a, b));
+        }
+
+        
+        public void AddGenericNode(object o)
+        {
+            VFXEdSpawnData data = o as VFXEdSpawnData;
+            VFXEdNode node = new VFXEdNode(data.mousePosition, this);
+            node.AddNodeBlock(VFXEditor.BlockLibrary.GetRandomBlock());
+            AddNode(node);
+            data.targetCanvas.ReloadData();
+
+        }
+
+        public void AddEmptyNode(object o)
+        {
+            VFXEdSpawnData data = o as VFXEdSpawnData;
+            VFXEdNode node = new VFXEdNode(data.mousePosition, this);
+            AddNode(node);
+            data.targetCanvas.ReloadData();
+
+        }
+
+        public void AddSpecificNode(object o)
+        {
+            VFXEdSpawnData data = o as VFXEdSpawnData;
+            VFXEdNode node = new VFXEdNode(data.mousePosition, this);
+            node.AddNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName));
+            AddNode(node);
+            data.targetCanvas.ReloadData();
         }
     }
 }
