@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental.Graph.Examples
 {
