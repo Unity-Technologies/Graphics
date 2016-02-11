@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEditorInternal;
-using UnityEditorInternal.Experimental;
 using Object = UnityEngine.Object;
 
 //#pragma warning disable 0414
@@ -158,35 +156,33 @@ namespace UnityEditor.Experimental
 
         public Vector2 MouseToCanvas(Vector2 lhs)
         {
-            return new Vector2((lhs.x - m_Translation.x) / m_Scale.x, (lhs.y - m_Translation.y) / m_Scale.y) + (m_ViewOffset / 2.0f);
+            return new Vector2((lhs.x - m_Translation.x) / m_Scale.x, (lhs.y - m_Translation.y) / m_Scale.y); // +(m_ViewOffset / 2.0f);
         }
 
         public Vector2 CanvasToScreen(Vector2 lhs)
         {
-            return new Vector2((lhs.x * m_Scale.x) + m_Translation.x, (lhs.y * m_Scale.y) + m_Translation.y);
+            return new Vector2(((lhs.x) * m_Scale.x) + (m_Translation.x), ((lhs.y) * m_Scale.y) + (m_Translation.y));
         }
 
         public Rect CanvasToScreen(Rect r)
         {
             Vector3 t = m_Translation;
-            t -= new Vector3(m_ViewOffsetUnscaled.x / 2.0f, m_ViewOffsetUnscaled.y / 2.0f, 0.0f);
-            Matrix4x4 mm = Matrix4x4.TRS(t, Quaternion.identity, m_Scale);
-
-
-            Vector3 offset = new Vector3(0.0f, 0.0f, 0.0f);
+            var inverseScale = new Vector2(1.0f / m_Scale.x, 1.0f / m_Scale.y);
+            Matrix4x4 scaleMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, m_Scale);
+            Matrix4x4 txMatrix = Matrix4x4.TRS(m_Translation, Quaternion.identity, Vector3.one);
+            Matrix4x4 mm = txMatrix * scaleMatrix;
 
             Vector3[] points =
-            {
-                new Vector3(r.xMin, r.yMin, 0.0f),
-                new Vector3(r.xMax, r.yMin, 0.0f),
-                new Vector3(r.xMax, r.yMax, 0.0f),
-                new Vector3(r.xMin, r.yMax, 0.0f)
-            };
+				{
+					new Vector3(r.xMin, r.yMin, 0.0f),
+					new Vector3(r.xMax, r.yMin, 0.0f),
+					new Vector3(r.xMax, r.yMax, 0.0f),
+					new Vector3(r.xMin, r.yMax, 0.0f)
+				};
 
             for (int a = 0; a < 4; a++)
             {
                 points[a] = mm.MultiplyPoint(points[a]);
-                points[a] += offset;
             }
 
             return new Rect(points[0].x, points[0].y, points[2].x - points[0].x, points[2].y - points[0].y);
@@ -225,18 +221,21 @@ namespace UnityEditor.Experimental
                 RebuildQuadTree();
             }
 
+			if (evt.type == EventType.Layout)
+			{
+				if (OnLayout != null)
+					OnLayout(this, Event.current, this);
+			}
+
             if (evt.type == EventType.Repaint)
             {
                 // tick animations
                 for (int a = 0; a < m_Animations.Count; a++)
                     m_Animations[a].Tick();
 
-                if (OnLayout != null)
-                    OnLayout(this, Event.current, this);
-
                 if (m_Animations.Count > 0)
                 {
-                    RebuildQuadTree();
+					m_MustRebuildQuadTree = true;
                     Repaint();
                 }
 
@@ -275,9 +274,9 @@ namespace UnityEditor.Experimental
             // sync selection globally on MouseUp and KeyEvents
             bool syncSelection = evt.type == EventType.MouseUp || evt.isKey;
 
-            OnEvent(evt);
-
-            if (syncSelection)
+			OnEvent(evt);
+            
+			if (syncSelection)
             {
                 SyncUnitySelection();
             }
@@ -342,7 +341,9 @@ namespace UnityEditor.Experimental
             //m_Scale = Vector3.one;
             GUI.matrix = Matrix4x4.TRS(m_Translation, Quaternion.identity, m_Scale);
 
-            m_ViewOffset = new Vector2(0.0f, -(extents.yMin - m_ScreenHeightOffset) * (1.0f / m_Scale.y));
+			float inverseScale = 1.0f / m_Scale.y;
+
+			m_ViewOffset = new Vector2(0.0f, -(extents.yMin - (m_ScreenHeightOffset / 2.0f)) * inverseScale);
             m_ViewOffsetUnscaled = new Vector2(0.0f, -(extents.yMin - m_ScreenHeightOffset));
             GUI.BeginClip(extents, Vector2.zero, m_ViewOffset, true);
 
@@ -433,6 +434,15 @@ namespace UnityEditor.Experimental
 
         public bool OnEvent(Event evt)
         {
+			if (evt.type == EventType.Layout)
+			{
+				for (int c = 0; c < m_Children.Count; c++)
+				{
+					m_Children[c].DispatchEvents(evt, this);
+				}
+				return true;
+			}
+
             bool logEvent = false;
             if ((evt.type != EventType.Repaint) && (evt.type != EventType.Layout))
             {

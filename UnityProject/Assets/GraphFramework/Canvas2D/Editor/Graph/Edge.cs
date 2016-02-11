@@ -1,7 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEditorInternal;
-using UnityEditorInternal.Experimental;
 
 //#pragma warning disable 0414
 //#pragma warning disable 0219
@@ -10,9 +8,9 @@ namespace UnityEditor.Experimental.Graph
 {
     internal class Edge<T> : CanvasElement where T : CanvasElement, IConnect
     {
-        private T m_Left;
-        private T m_Right;
-        private ICanvasDataSource m_Data;
+        protected T m_Left;
+        protected T m_Right;
+        protected ICanvasDataSource m_Data;
 
         public Edge(ICanvasDataSource data, T left, T right)
         {
@@ -63,16 +61,10 @@ namespace UnityEditor.Experimental.Graph
 
             Vector3 from = m_Left.ConnectPosition();
             Vector3 to = m_Right.ConnectPosition();
-
-            if (to.x < from.x)
-            {
-                Vector3 t = from;
-                from = to;
-                to = t;
-            }
+            Orientation orientation = m_Left.GetOrientation();
 
             Vector3[] points, tangents;
-            EdgeConnector<T>.GetTangents(from, to, out points, out tangents);
+            EdgeConnector<T>.GetTangents(m_Left.GetDirection(), orientation, from, to, out points, out tangents);
             Vector3[] allPoints = Handles.MakeBezierPoints(points[0], points[1], tangents[0], tangents[1], 20);
 
             for (int a = 0; a < allPoints.Length; a++)
@@ -102,16 +94,10 @@ namespace UnityEditor.Experimental.Graph
 
             Vector3 from = m_Left.ConnectPosition();
             Vector3 to = m_Right.ConnectPosition();
-
-            if (to.x < from.x)
-            {
-                Vector3 t = from;
-                from = to;
-                to = t;
-            }
+            Orientation orientation = m_Left.GetOrientation();
 
             Vector3[] points, tangents;
-            EdgeConnector<T>.GetTangents(from, to, out points, out tangents);
+            EdgeConnector<T>.GetTangents(m_Left.GetDirection(), orientation, from, to, out points, out tangents);
             Vector3[] allPoints = Handles.MakeBezierPoints(points[0], points[1], tangents[0], tangents[1], 20);
 
             float minDistance = Mathf.Infinity;
@@ -134,16 +120,10 @@ namespace UnityEditor.Experimental.Graph
 
             Vector3 from = m_Left.ConnectPosition();
             Vector3 to = m_Right.ConnectPosition();
-
-            if (to.x < from.x)
-            {
-                Vector3 t = from;
-                from = to;
-                to = t;
-            }
+            Orientation orientation = m_Left.GetOrientation();
 
             Vector3[] points, tangents;
-            EdgeConnector<T>.GetTangents(from, to, out points, out tangents);
+            EdgeConnector<T>.GetTangents(m_Left.GetDirection(), orientation, from, to, out points, out tangents);
             Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 5f);
 
             // little widget on the middle of the edge
@@ -159,18 +139,6 @@ namespace UnityEditor.Experimental.Graph
             Handles.color = new Color(0.3f, 0.4f, 1.0f, 1.0f);
             Handles.DrawSolidDisc(from, new Vector3(0.0f, 0.0f, -1.0f), 4f);
             Handles.DrawSolidDisc(to, new Vector3(0.0f, 0.0f, -1.0f), 4f);
-
-            /*if (EditorApplication.isPlaying)
-                    {
-                        Handles.color = Color.red;
-                        Handles.DrawSolidDisc(allPoints[m_RealtimeFeedbackPointIndex], new Vector3(0.0f, 0.0f, -1.0f), 6f);
-
-                        m_RealtimeFeedbackPointIndex++;
-                        if (m_RealtimeFeedbackPointIndex >= 20)
-                        {
-                            m_RealtimeFeedbackPointIndex = 0;
-                        }
-                    }*/
             Handles.color = oldColor;
         }
 
