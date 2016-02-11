@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental
 				d = source.GetDirection();
 			}
 
-			DrawCustomEdgeConnector(parent, d, from, to, new Color(1.0f,1.0f,1.0f,0.25f));
+			DrawCustomEdgeConnector(parent, d, from, to, new Color(1.0f, 1.0f, 1.0f, 0.25f));
 
 		}
 	}
