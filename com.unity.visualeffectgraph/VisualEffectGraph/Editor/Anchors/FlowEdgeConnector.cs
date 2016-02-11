@@ -8,16 +8,16 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-	internal class FlowEdgeConnector : EdgeConnector<VFXEdFlowAnchor>
-	{
-		public FlowEdgeConnector() : base(FlowEdge<VFXEdFlowAnchor>.DrawCustomEdgeConnector)
-		{
-			
-		}
-		
-	}
+    internal class FlowEdgeConnector : EdgeConnector<VFXEdFlowAnchor>
+    {
+        public FlowEdgeConnector() : base(FlowEdge<VFXEdFlowAnchor>.DrawCustomEdgeConnector)
+        {
 
-	
+        }
+
+    }
+
+
 }
 
 

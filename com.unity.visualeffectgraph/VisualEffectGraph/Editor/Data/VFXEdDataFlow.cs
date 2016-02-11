@@ -8,9 +8,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-	public class VFXEdDataFlow
-	{
+    public class VFXEdDataFlow
+    {
 
-	}
+    }
 
 }
