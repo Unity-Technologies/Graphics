@@ -1,30 +1,32 @@
-#block AgeReap
-#arg float age [inout|param]
+#block Age Reap 2
+#icon mypath/myicon.png
+#category category1/subcategory
+#arg float age [param]
 #arg float lifetime [param]
 
 age += deltaTime;
 if (age <= lifetime)
 	KILL;
 
-#block ApplyForce
+#block Apply Force
 #arg float3 velocity [inout|param]
 #arg float3 force [public] 
 
 velocity += force * deltaTime;
 
-#block ApplyDrag
+#block Apply Drag
 #arg float3 velocity [inout|param]
 #arg float multiplier [public]
 
 velocity *= max(0.0,(1.0 - multiplier * deltaTime * dot(velocity,velocity))); // drag
 
-#block IntegrateVelocity
+#block Integrate Velocity
 #arg float3 position [inout|param]
 #arg float3 velocity [param]
 
 position += velocity * deltaTime;
 
-#block ApplyVectorFieldForce
+#block Apply VectorField Force
 #arg float3 position [param]
 #arg float3 velocity [inout|param]
 #arg Texture3D VectorField [public]
@@ -35,7 +37,7 @@ vectorFieldCoord.y = 1 - vectorFieldCoord.y;
 vectorFieldCoord = min(float3(0.95,0.95,0.95),max(float3(0.05,0.05,0.05),vectorFieldCoord));
 velocity += (VectorField.SampleLevel(samplerVectorField,vectorFieldCoord,0.0).xyz - 0.5) * 2 * 0.8;
 
-#block InitRandomVelocity
+#block Init Random Velocity
 #arg float3 velocity [inout|param]
 #arg float offset [public]
 #arg float multiplier [public] 
