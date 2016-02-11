@@ -153,21 +153,6 @@ namespace UnityEditor.Experimental
         }
 
 
-        private void InitializeMenu(Event e)
-        {
-            m_Menu = new GenericMenu();
-            m_Menu.AddItem(new GUIContent("Add New Node"), false, AddGenericNode, e);
-            m_Menu.AddSeparator("");
-
-            ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
-
-            foreach (VFXBlock block in blocks)
-            {
-                m_Menu.AddItem(new GUIContent("NodeBlocks/" + block.m_Name), false, null, block.m_Name);
-            }
-
-
-        }
 
         private void Rebuild()
         {
@@ -193,33 +178,14 @@ namespace UnityEditor.Experimental
                 InitializeCanvas();
             }
 
-            if (m_Menu == null)
-            {
-                InitializeMenu(currentEvent);
-            }
             titleContent = new GUIContent("VFX Editor", m_Icon);
             //GUI.Toolbar(new Rect(0, 0, position.width, 24),0);
             DrawToolbar(new Rect(0, 0, position.width, EditorStyles.toolbar.fixedHeight));
             Rect canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height - EditorStyles.toolbar.fixedHeight);
             m_Canvas.OnGUI(this, canvasRect);
             DrawWindows(canvasRect);
-
-            if (currentEvent.type == EventType.ContextClick)
-            {
-                Vector2 mousePos = currentEvent.mousePosition;
-                if (canvasRect.Contains(mousePos))
-                {
-                    m_Menu.ShowAsContext();
-                }
-            }
         }
 
-        void AddGenericNode(object o)
-        {
-            Event e = o as Event;
-            m_DataSource.AddNode(new VFXEdNode(m_Canvas.MouseToCanvas(e.mousePosition), new Vector2(360, 180), m_DataSource));
-            m_Canvas.ReloadData();
-        }
 
         void DrawToolbar(Rect rect)
         {
@@ -382,6 +348,11 @@ namespace UnityEditor.Experimental
                 block.m_Params = new VFXParam[0];
                 return block;
             }
+        }
+
+        public VFXBlock GetBlock(string name)
+        {
+            return m_Blocks.Find(block => block.m_Name.Equals(name));
         }
 
         public ReadOnlyCollection<VFXBlock> GetBlocks()

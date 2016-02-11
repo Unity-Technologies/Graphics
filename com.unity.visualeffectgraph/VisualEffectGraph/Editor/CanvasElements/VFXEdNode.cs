@@ -22,7 +22,6 @@ namespace UnityEditor.Experimental
         {
             get { return m_Inputs; }
         }
-
         internal List<VFXEdFlowAnchor> outputs
         {
             get { return m_Outputs; }
@@ -30,6 +29,10 @@ namespace UnityEditor.Experimental
 
         public VFXEdNodeClientArea ClientArea
         { get { return m_NodeClientArea; } }
+        public VFXEdNodeBlockContainer NodeBlockContainer {
+            get { return m_NodeClientArea.NodeBlockContainer; }
+        }
+
 
         private VFXEdDataSource m_DataSource;
         private VFXEdNodeClientArea m_NodeClientArea;
@@ -38,17 +41,17 @@ namespace UnityEditor.Experimental
 
 
 
-        public VFXEdNode(Vector2 canvasposition, Vector2 size, VFXEdDataSource dataSource)
+        public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource)
         {
             m_DataSource = dataSource;
             translation = canvasposition;
             m_Title = "(Generic Node)";
-            scale = new Vector2(size.x, size.y + 46);
+            scale = new Vector2(VFXEditorMetrics.NodeDefaultWidth, 100);
 
             m_Inputs = new List<VFXEdFlowAnchor>();
             m_Outputs = new List<VFXEdFlowAnchor>();
 
-            m_NodeClientArea = new VFXEdNodeClientArea(Vector2.zero, size, dataSource, title);
+            m_NodeClientArea = new VFXEdNodeClientArea(VFXEditorMetrics.NodeClientAreaOffset.Add(new Rect(Vector2.zero, scale)), dataSource, title);
             m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this, m_DataSource, Direction.Input));
             m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), this, m_DataSource, Direction.Output));
 
@@ -61,6 +64,21 @@ namespace UnityEditor.Experimental
 
             AllEvents += ManageSelection;
 
+            Layout();
+
+        }
+
+        public void MenuAddNodeBlock(object o) {
+
+            VFXEdSpawnData data = o as VFXEdSpawnData;
+            VFXEdNodeBlock block = new VFXEdNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName), m_DataSource);
+            AddNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName));
+            data.targetCanvas.ReloadData();
+            Layout();
+        }
+
+        public void AddNodeBlock(VFXBlock block) {
+            NodeBlockContainer.AddNodeBlock(new VFXEdNodeBlock(block, m_DataSource));
         }
 
         private bool ManageSelection(CanvasElement element, Event e, Canvas2D parent)
@@ -79,6 +97,8 @@ namespace UnityEditor.Experimental
 
             scale = new Vector2(scale.x, m_NodeClientArea.scale.y + VFXEditorMetrics.NodeHeightOffset);
 
+            
+
             // Flow Inputs
             for (int i = 0; i < inputs.Count; i++)
             {
@@ -96,6 +116,13 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
+            if(parent is VFXEdCanvas) {
+                GUI.color = new Color(0.5f, 0.75f, 1.0f, 0.75f);
+                GUI.Box(VFXEditorMetrics.NodeImplicitContextOffset.Add(new Rect(0, 0, scale.x, scale.y)), "", VFXEditor.styles.Context);
+                GUI.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+            }
+
+
             base.Render(parentRect, canvas);
         }
 

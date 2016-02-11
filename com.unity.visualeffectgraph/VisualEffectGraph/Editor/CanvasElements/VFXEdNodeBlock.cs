@@ -16,14 +16,14 @@ namespace UnityEditor.Experimental
 
         private NodeBlockManipulator m_NodeBlockManipulator;
 
-        public VFXEdNodeBlock(VFXBlock block, float width, VFXEdDataSource dataSource)
+        public VFXEdNodeBlock(VFXBlock block, VFXEdDataSource dataSource)
         {
             m_Block = block;
             m_Name = block.m_Name;
             translation = Vector3.zero; // zeroed by default, will be relayouted later.
             m_Caps = Capabilities.Normal;
 
-            AddChild(new VFXEdNodeBlockHeader(width, dataSource, m_Name, block.m_Params.Length > 0 ? true : false));
+            AddChild(new VFXEdNodeBlockHeader(dataSource, m_Name, block.m_Params.Length > 0 ? true : false));
 
             m_NodeBlockManipulator = new NodeBlockManipulator();
             AddManipulator(m_NodeBlockManipulator);

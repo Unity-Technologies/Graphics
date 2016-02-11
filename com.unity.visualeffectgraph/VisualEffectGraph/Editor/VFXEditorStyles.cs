@@ -36,6 +36,8 @@ namespace UnityEditor.Experimental
         public GUIStyle CollapserClosed;
         public GUIStyle CollapserDisabled;
 
+        public GUIStyle Context;
+
 
 
         public Texture2D FlowEdgeOpacity;
@@ -135,6 +137,10 @@ namespace UnityEditor.Experimental
             CollapserDisabled.name = "CollapserDisabled";
             CollapserDisabled.normal.background = EditorGUIUtility.Load("Collapser_Disabled.psd") as Texture2D;
 
+            Context = new GUIStyle();
+            Context.name = "Context";
+            Context.normal.background = EditorGUIUtility.Load("Context.psd") as Texture2D;
+            Context.border = new RectOffset(8, 9, 9, 12);
 
             FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
 

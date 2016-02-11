@@ -16,13 +16,12 @@ namespace UnityEditor.Experimental
         private NodeBlockCollapse m_NodeBlockCollapseManipulator;
         private string m_Name;
 
-        public VFXEdNodeBlockHeader(float width, VFXEdDataSource dataSource, string Text, bool Collapseable)
+        public VFXEdNodeBlockHeader(VFXEdDataSource dataSource, string Text, bool Collapseable)
         {
             translation = Vector3.zero;
-            this.scale = new Vector2(width, VFXEditorMetrics.NodeBlockHeaderHeight);
+            scale = new Vector2(100, VFXEditorMetrics.NodeBlockHeaderHeight);
 
             m_Name = Text;
-            scale = new Vector2(width, VFXEditorMetrics.NodeBlockHeaderHeight);
 
             m_Collapseable = Collapseable;
 
@@ -37,7 +36,7 @@ namespace UnityEditor.Experimental
 
         public override void Layout()
         {
-            scale = new Vector2(this.scale.x, VFXEditorMetrics.NodeBlockHeaderHeight);
+            scale = new Vector2(parent.scale.x, VFXEditorMetrics.NodeBlockHeaderHeight);
             base.Layout();
         }
 

@@ -34,6 +34,7 @@ namespace UnityEditor.Experimental
 
         private DropInfo dropInfo;
         private List<VFXEdNodeBlock> m_NodeBlocks;
+        private VFXEdDataSource m_DataSource;
 
 
         public VFXEdNodeBlockContainer(Vector2 size, VFXEdDataSource dataSource, string name)
@@ -41,11 +42,20 @@ namespace UnityEditor.Experimental
             translation = VFXEditorMetrics.NodeBlockContainerPosition;
             scale = size + VFXEditorMetrics.NodeBlockContainerSizeOffset;
             m_NodeBlocks = new List<VFXEdNodeBlock>();
-
+            m_DataSource = dataSource;
             m_Caps = Capabilities.Normal;
-            AddNodeBlock(new VFXEdNodeBlock(VFXEditor.BlockLibrary.GetRandomBlock(), scale.x, dataSource));
+            this.ContextClick += ManageRightClick;
         }
 
+        private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)
+        {
+            if (e.type == EventType.Used)
+                return false;
+
+            VFXEdContextMenu.NodeBlockMenu(ParentCanvas() as VFXEdCanvas, element.parent.parent as VFXEdNode, parent.MouseToCanvas(e.mousePosition), m_DataSource).ShowAsContext();
+            e.Use();
+            return true;
+        }
 
         public void UpdateCaptureDrop(Vector2 MousePosition)
         {
@@ -155,7 +165,7 @@ namespace UnityEditor.Experimental
                     // Insert space for separator if capturing drop
                     if (CaptureDrop && dropInfo.DropIndex == curIdx)
                     {
-                        curY += VFXEditorMetrics.NodeBlockContainerSeparatorHeight;
+                        curY += VFXEditorMetrics.NodeBlockContainerSeparatorOffset;
                     }
                     b.translation = new Vector3(0.0f, curY, 0.0f);
                     b.scale = new Vector2(scale.x, b.scale.y);

@@ -16,13 +16,14 @@ namespace UnityEditor.Experimental
         { get { return m_NodeBlockContainer; } }
         private VFXEdNodeBlockContainer m_NodeBlockContainer;
 
-        public VFXEdNodeClientArea(Vector2 position, Vector2 size, VFXEdDataSource dataSource, string name)
+        public VFXEdNodeClientArea(Rect clientRect, VFXEdDataSource dataSource, string name)
         {
             translation = VFXEditorMetrics.NodeClientAreaPosition;
             m_Title = name;
-            scale = new Vector2(size.x, size.y);
+            translation = clientRect.position;
+            scale = new Vector2(clientRect.width, clientRect.height);
             m_Caps = Capabilities.Normal;
-            m_NodeBlockContainer = new VFXEdNodeBlockContainer(size, dataSource, name);
+            m_NodeBlockContainer = new VFXEdNodeBlockContainer(clientRect.size, dataSource, name);
             AddChild(m_NodeBlockContainer);
         }
 
