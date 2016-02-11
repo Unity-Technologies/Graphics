@@ -10,26 +10,30 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdNodeBlockHeader : CanvasElement
     {
-        public bool Highlight
-        {
-            get { return m_Highlight; }
-            set { m_Highlight = value; }
-        }
-        private bool m_Highlight;
+
+        private bool m_Collapseable;
 
         private NodeBlockCollapse m_NodeBlockCollapseManipulator;
         private string m_Name;
 
-        public VFXEdNodeBlockHeader(float width, VFXEdDataSource dataSource, string Text)
+        public VFXEdNodeBlockHeader(float width, VFXEdDataSource dataSource, string Text, bool Collapseable)
         {
             translation = Vector3.zero;
             this.scale = new Vector2(width, VFXEditorMetrics.NodeBlockHeaderHeight);
+
             m_Name = Text;
             scale = new Vector2(width, VFXEditorMetrics.NodeBlockHeaderHeight);
 
-            m_NodeBlockCollapseManipulator = new NodeBlockCollapse();
-            AddManipulator(m_NodeBlockCollapseManipulator);
+            m_Collapseable = Collapseable;
+
+            if (m_Collapseable)
+            {
+                m_NodeBlockCollapseManipulator = new NodeBlockCollapse();
+                AddManipulator(m_NodeBlockCollapseManipulator);
+            }
+
         }
+
 
         public override void Layout()
         {
@@ -49,28 +53,21 @@ namespace UnityEditor.Experimental
             Rect labelrect = drawablerect;
             labelrect.min += VFXEditorMetrics.NodeBlockCollapserLabelPosition;
 
-            if (Highlight)
+            if (m_Collapseable)
             {
-                EditorGUI.DrawRect(drawablerect, new Color(1.0f, 1.0f, 1.0f, 0.2f));
+                if (collapsed)
+                {
+                    GUI.Box(arrowrect, "", VFXEditor.styles.CollapserClosed);
+                }
+                else
+                {
+                    GUI.Box(arrowrect, "", VFXEditor.styles.CollapserOpen);
+                }
             }
             else
             {
-                GUI.color = new Color(1.0f, 1.0f, 1.0f, 0.75f);
+                GUI.Box(arrowrect, "", VFXEditor.styles.CollapserDisabled);
             }
-
-
-            if (collapsed)
-            {
-                GUI.Box(arrowrect, "", VFXEditor.styles.CollapserClosed);
-            }
-            else
-            {
-                GUI.Box(arrowrect, "", VFXEditor.styles.CollapserOpen);
-            }
-
-
-            if (!Highlight)
-                GUI.color = Color.white;
 
             GUI.Label(labelrect, m_Name, VFXEditor.styles.NodeBlockTitle);
             base.Render(parentRect, canvas);
