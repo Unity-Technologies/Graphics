@@ -7,6 +7,7 @@ namespace UnityEditor.Experimental
         private bool m_Active;
         private Vector2 m_Start;
         private Vector2 m_MinimumScale;
+        private GUIStyle style = new GUIStyle("WindowBottomResize");
 
         public Resizable()
         {
@@ -83,8 +84,6 @@ namespace UnityEditor.Experimental
 
         private bool DrawResizeWidget(CanvasElement element, Event e, Canvas2D parent)
         {
-            GUIStyle style = new GUIStyle("WindowBottomResize");
-
             Rect r = element.boundingRect;
             Rect widget = r;
             widget.min = new Vector2(r.max.x - 10.0f, r.max.y - 7.0f);

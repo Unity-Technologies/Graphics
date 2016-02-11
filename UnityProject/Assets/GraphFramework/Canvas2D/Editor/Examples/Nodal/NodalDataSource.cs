@@ -16,7 +16,12 @@ namespace UnityEditor.Experimental.Graph.Examples
             m_Elements.Add(new Node(new Vector2(210.0f, 0.0f), 200.0f, typeof(int), this));
             m_Elements.Add(new Node(new Vector2(420.0f, 0.0f), 200.0f, typeof(Color), this));
             m_Elements.Add(new Node(new Vector2(0.0f, 210.0f), 200.0f, typeof(float), this));
-            m_Elements.Add(new FloatingBox(new Vector2(210.0f, 210.0f), 200.0f));
+			m_Elements.Add(new FloatingBox(new Vector2(210.0f, 210.0f), 200.0f));
+            
+            m_Elements.Add(new VerticalNode(new Vector2(210.0f, 420.0f), 100.0f, typeof(float), this));
+            m_Elements.Add(new VerticalNode(new Vector2(320.0f, 420.0f), 100.0f, typeof(float), this));
+            m_Elements.Add(new VerticalNode(new Vector2(430.0f, 420.0f), 100.0f, typeof(float), this));
+			
         }
 
         public CanvasElement[] FetchElements()
@@ -31,7 +36,7 @@ namespace UnityEditor.Experimental.Graph.Examples
 
         public void Connect(NodeAnchor a, NodeAnchor b)
         {
-            m_Elements.Add(new Edge<NodeAnchor>(this, a, b));
+            m_Elements.Add(new CustomEdge<NodeAnchor>(this, a, b));
         }
     }
 }

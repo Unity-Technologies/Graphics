@@ -7,6 +7,7 @@ namespace UnityEditor.Experimental.Graph.Examples
     {
     }
 
+  
     class Node : MoveableBox
     {
         Type m_OutputType;
@@ -18,24 +19,24 @@ namespace UnityEditor.Experimental.Graph.Examples
 
             Vector3 pos = new Vector3(5.0f, 32.0f, 0.0f);
 
-            AddChild(new NodeAnchor(0, pos, typeof(int), this, data));
+            AddChild(new NodeAnchor(0, pos, typeof(int), data, null));
             pos.y += 22;
 
-            AddChild(new NodeAnchor(1, pos, typeof(float), this, data));
+            AddChild(new NodeAnchor(1, pos, typeof(float), data, null));
             pos.y += 22;
 
-            AddChild(new NodeAnchor(2, pos, typeof(Vector3), this, data));
+            AddChild(new NodeAnchor(2, pos, typeof(Vector3), data, null));
             pos.y += 22;
 
-            AddChild(new NodeAnchor(3, pos, typeof(Texture2D), this, data));
+            AddChild(new NodeAnchor(3, pos, typeof(Texture2D), data, null));
             pos.y += 22;
 
-            AddChild(new NodeAnchor(4, pos, typeof(Color), this, data));
+            AddChild(new NodeAnchor(4, pos, typeof(Color), data, null));
             pos.y += 22;
 
             // output port
             pos.x = size - 20.0f;
-            AddChild(new NodeOutputAnchor(pos, m_OutputType, this, data));
+            AddChild(new NodeOutputAnchor(pos, m_OutputType, data));
             pos.y += 22;
             scale = new Vector3(scale.x, pos.y + 12.0f, 0.0f);
         }
@@ -52,22 +53,22 @@ namespace UnityEditor.Experimental.Graph.Examples
         protected object m_Source;
         protected Direction m_Direction;
         private NodalDataSource m_Data;
-        public Node m_Node;
+        protected Orientation m_Orientation = Orientation.Horizontal;
         public int m_PortIndex;
-
-        public NodeAnchor(int portIndex, Vector3 position, Type type, Node node,  NodalDataSource data)
+        static public float kNodeSize = 15.0f;
+        
+        public NodeAnchor(int portIndex, Vector3 position, Type type, NodalDataSource data, EdgeRenderMethod customEdgeDrawMethod)
         {
             m_Type = type;
-            scale = new Vector3(15.0f, 15.0f, 1.0f);
+            scale = new Vector3(kNodeSize, kNodeSize, 1.0f);
             translation = position;
-            AddManipulator(new EdgeConnector<NodeAnchor>());
+            AddManipulator(new EdgeConnector<NodeAnchor>(customEdgeDrawMethod));
             m_Direction = Direction.Input;
 
             Type genericClass = typeof(PortSource<>);
             Type constructedClass = genericClass.MakeGenericType(type);
             m_Source = Activator.CreateInstance(constructedClass);
             m_Data = data;
-            m_Node = node;
             m_PortIndex = portIndex;
         }
 
@@ -77,7 +78,17 @@ namespace UnityEditor.Experimental.Graph.Examples
             anchorColor.a = 0.7f;
             base.Render(parentRect, canvas);
             EditorGUI.DrawRect(new Rect(translation.x, translation.y, scale.x, scale.y), anchorColor);
+            
             Rect labelRect = new Rect(translation.x + scale.x + 10.0f, translation.y, parentRect.width, 20.0f);
+            if (m_Orientation == Orientation.Vertical)
+            {
+                float yPosition = translation.y + 20.0f;
+                if ((yPosition) > parent.boundingRect.height)
+                {
+                    yPosition = translation.y - 20.0f;
+                }
+                labelRect = new Rect(translation.x, yPosition, 200.0f, 20.0f);
+            }
             GUI.Label(labelRect, m_Type.Name);
         }
 
@@ -85,6 +96,11 @@ namespace UnityEditor.Experimental.Graph.Examples
         public Direction GetDirection()
         {
             return m_Direction;
+        }
+
+        public Orientation GetOrientation()
+        {
+            return m_Orientation;
         }
 
         public void Highlight(bool highlighted)
@@ -125,8 +141,8 @@ namespace UnityEditor.Experimental.Graph.Examples
     };
     internal class NodeOutputAnchor : NodeAnchor
     {
-        public NodeOutputAnchor(Vector3 position, Type type, Node node, NodalDataSource data)
-            : base(-1, position, type, node, data)
+        public NodeOutputAnchor(Vector3 position, Type type, NodalDataSource data)
+            : base(-1, position, type, data, null)
         {
             m_Direction = Direction.Output;
         }

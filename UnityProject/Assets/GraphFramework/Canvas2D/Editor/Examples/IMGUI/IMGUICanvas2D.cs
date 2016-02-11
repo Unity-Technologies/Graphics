@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 #pragma warning disable 0414
@@ -5,22 +6,31 @@ using UnityEngine;
 
 namespace UnityEditor.Experimental.Graph.Examples
 {
-    internal class SimpleCanvas2D : EditorWindow
+    internal class IMGUICanvas2D : EditorWindow
     {
-        [MenuItem("Window/Canvas2D/SimpleCanvas2D")]
+        [MenuItem("Window/Canvas2D/IMGUI Coexistence Example")]
         public static void ShowWindow()
         {
-            EditorWindow.GetWindow(typeof(SimpleCanvas2D));
+            GetWindow(typeof(IMGUICanvas2D));
         }
 
         private Canvas2D m_Canvas = null;
         private EditorWindow m_HostWindow = null;
+        private List<CanvasElement> m_Data = new List<CanvasElement>();
+
+        public void AddElement(CanvasElement e)
+        {
+            m_Data.Add(e);
+            m_Canvas.ReloadData();
+
+            var scaling = e.scale;
+        }
 
         private void InitializeCanvas()
         {
             if (m_Canvas == null)
             {
-                m_Canvas = new Canvas2D(this, m_HostWindow, new SimpleDataSource());
+                m_Canvas = new Canvas2D(this, m_HostWindow, new IMGUIDataSource(m_Data));
 
                 // draggable manipulator allows to move the canvas around. Note that individual elements can have the draggable manipulator on themselves
                 m_Canvas.AddManipulator(new Draggable(2, EventModifiers.None));
@@ -36,6 +46,8 @@ namespace UnityEditor.Experimental.Graph.Examples
                 // The following manipulator show how to work with canvas2d overlay and background rendering
                 m_Canvas.AddManipulator(new RectangleSelect());
                 m_Canvas.AddManipulator(new ScreenSpaceGrid());
+
+                AddElement(new IMGUIExampleWidget(new Vector2(0.0f, 250.0f), 300.0f));
             }
 
             Rebuild();

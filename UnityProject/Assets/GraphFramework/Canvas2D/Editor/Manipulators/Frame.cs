@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental
                     parent.Animate(parent)
                     .Lerp(new string[] { "m_Scale", "m_Translation" },
                         new object[] { parent.scale, parent.translation },
-                        new object[] { frameScaling, frameTranslation });
+                        new object[] { frameScaling, frameTranslation }, 0.08f);
                 }
 
                 e.Use();

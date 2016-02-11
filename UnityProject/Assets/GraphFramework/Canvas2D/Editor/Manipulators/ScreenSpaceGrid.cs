@@ -89,6 +89,8 @@ namespace UnityEditor.Experimental
             from = tx.MultiplyPoint(from);
             to = tx.MultiplyPoint(to);
 
+			Handles.DrawWireDisc(from, new Vector3(0.0f, 0.0f, -1.0f), 6f);
+
             float thickGridLineX = from.x;
             float thickGridLineY = from.y;
 
