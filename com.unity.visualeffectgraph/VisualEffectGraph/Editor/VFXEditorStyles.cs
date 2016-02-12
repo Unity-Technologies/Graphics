@@ -8,7 +8,7 @@ using System.IO;
 
 namespace UnityEditor.Experimental
 {
-    public class VFXEditorStyles
+    internal class VFXEditorStyles
     {
         public GUIStyle Empty;
 
@@ -42,8 +42,10 @@ namespace UnityEditor.Experimental
 
 
         private Dictionary<string, Texture2D> m_icons;
+        private Dictionary<VFXEdContext, Color> m_ContextColors;
 
-        public Texture2D GetIcon(string name) {
+
+        internal Texture2D GetIcon(string name) {
 
             if(!m_icons.ContainsKey(name)) {
                 Texture2D icon = EditorGUIUtility.Load("icons/"+name+".png") as Texture2D;
@@ -54,8 +56,12 @@ namespace UnityEditor.Experimental
             return m_icons[name];
         }
 
+        internal Color GetContextColor(VFXEdContext c) {
+            return m_ContextColors[c];
+        }
 
-        public VFXEditorStyles()
+
+        internal VFXEditorStyles()
         {
             Empty = new GUIStyle();
             Empty.border = new RectOffset();
@@ -75,7 +81,7 @@ namespace UnityEditor.Experimental
             NodeTitle = new GUIStyle();
             NodeTitle.fontSize = 14;
             NodeTitle.fontStyle = FontStyle.Bold;
-            NodeTitle.padding = new RectOffset(32, 32, 10, 0);
+            NodeTitle.padding = new RectOffset(32, 0, 10, 0);
             NodeTitle.alignment = TextAnchor.MiddleCenter;
             NodeTitle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
 
@@ -158,6 +164,15 @@ namespace UnityEditor.Experimental
 
             m_icons = new Dictionary<string, Texture2D>();
             GetIcon("Default");
+
+
+            m_ContextColors = new Dictionary<VFXEdContext, Color>();
+            
+            m_ContextColors.Add(VFXEdContext.None,          new Color(0.750f, 0.750f, 0.750f, 1.0f));
+            m_ContextColors.Add(VFXEdContext.Initialize,    new Color(0.403f, 0.345f, 0.215f, 1.0f));
+            m_ContextColors.Add(VFXEdContext.Update,        new Color(0.215f, 0.301f, 0.403f, 1.0f));
+            m_ContextColors.Add(VFXEdContext.Output,        new Color(0.364f, 0.278f, 0.388f, 1.0f));
+
 
         }
 

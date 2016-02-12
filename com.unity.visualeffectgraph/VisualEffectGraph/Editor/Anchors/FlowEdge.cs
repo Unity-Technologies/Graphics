@@ -5,13 +5,13 @@ using UnityEditor.Experimental.Graph;
 
 namespace UnityEditor.Experimental
 {
-    class FlowEdge<T> : Edge<T> where T : CanvasElement, IConnect
+    class FlowEdge<T> : Edge<T> where T : VFXEdFlowAnchor
     {
-        Color edgeColor = Color.gray;
+        private Color m_edgeColor = Color.gray;
         public FlowEdge(ICanvasDataSource data, T source, T target)
             : base(data, source, target)
         {
-
+            m_edgeColor = VFXEditor.styles.GetContextColor(source.context);
         }
 
 
@@ -23,11 +23,11 @@ namespace UnityEditor.Experimental
 
             Vector3[] points, tangents;
             EdgeConnector<T>.GetTangents(m_Left.GetDirection(), orientation, from, to, out points, out tangents);
-            Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
+            Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], m_edgeColor, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
 
         }
 
-        public static void DrawCustomEdgeConnector(Canvas2D parent, Direction direction, Vector3 from, Vector3 to, Color color)
+        public static void DrawFlowEdgeConnector(Canvas2D parent, Direction direction, Vector3 from, Vector3 to, Color color)
         {
             Vector3[] points, tangents;
             if (Vector3.Distance(from, to) > 10.0f)
@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental
         }
 
 
-        public static void DrawCustomEdgeConnector(Canvas2D parent, IConnect source, IConnect target, Vector3 from, Vector3 to)
+        public static void DrawFlowEdgeConnector(Canvas2D parent, IConnect source, IConnect target, Vector3 from, Vector3 to)
         {
 
             Direction d;
@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental
                 d = source.GetDirection();
             }
 
-            DrawCustomEdgeConnector(parent, d, from, to, new Color(1.0f, 1.0f, 1.0f, 0.25f));
+            DrawFlowEdgeConnector(parent, d, from, to, new Color(1.0f, 1.0f, 1.0f, 0.25f));
 
         }
     }

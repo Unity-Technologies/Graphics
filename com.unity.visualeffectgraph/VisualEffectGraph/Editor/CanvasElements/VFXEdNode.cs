@@ -38,22 +38,22 @@ namespace UnityEditor.Experimental
         private VFXEdNodeClientArea m_NodeClientArea;
         private List<VFXEdFlowAnchor> m_Inputs;
         private List<VFXEdFlowAnchor> m_Outputs;
+        private VFXEdContext m_Context;
 
 
-
-        public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource)
+        public VFXEdNode(Vector2 canvasposition, VFXEdContext context, VFXEdDataSource dataSource)
         {
             m_DataSource = dataSource;
             translation = canvasposition;
-            m_Title = "(Generic Node)";
+            m_Title = context.ToString();
             scale = new Vector2(VFXEditorMetrics.NodeDefaultWidth, 100);
-
+            m_Context = context;
             m_Inputs = new List<VFXEdFlowAnchor>();
             m_Outputs = new List<VFXEdFlowAnchor>();
 
             m_NodeClientArea = new VFXEdNodeClientArea(VFXEditorMetrics.NodeClientAreaOffset.Add(new Rect(Vector2.zero, scale)), dataSource, title);
-            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this, m_DataSource, Direction.Input));
-            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), this, m_DataSource, Direction.Output));
+            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this,m_Context, m_DataSource, Direction.Input));
+            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), this,m_Context, m_DataSource, Direction.Output));
 
             AddChild(inputs[0]);
             AddChild(outputs[0]);
@@ -117,11 +117,13 @@ namespace UnityEditor.Experimental
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             if(parent is VFXEdCanvas) {
-                GUI.color = new Color(0.5f, 0.75f, 1.0f, 0.75f);
+
+                Color c =  VFXEditor.styles.GetContextColor(m_Context);
+                float a = 0.7f;
+                GUI.color = new Color(c.r/a, c.g/a, c.b/a, a);
                 GUI.Box(VFXEditorMetrics.NodeImplicitContextOffset.Add(new Rect(0, 0, scale.x, scale.y)), "", VFXEditor.styles.Context);
                 GUI.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
             }
-
 
             base.Render(parentRect, canvas);
         }

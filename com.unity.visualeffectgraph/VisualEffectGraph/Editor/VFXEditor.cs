@@ -59,7 +59,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public static VFXEditorStyles styles
+        internal static VFXEditorStyles styles
         {
             get
             {
