@@ -15,12 +15,13 @@ namespace UnityEditor.Experimental
 
         private NodeBlockCollapse m_NodeBlockCollapseManipulator;
         private string m_Name;
+        private Texture2D m_Icon;
 
-        public VFXEdNodeBlockHeader(VFXEdDataSource dataSource, string Text, bool Collapseable)
+        public VFXEdNodeBlockHeader(VFXEdDataSource dataSource, string Text,Texture2D icon,  bool Collapseable)
         {
             translation = Vector3.zero;
             scale = new Vector2(100, VFXEditorMetrics.NodeBlockHeaderHeight);
-
+            m_Icon = icon;
             m_Name = Text;
 
             m_Collapseable = Collapseable;
@@ -45,12 +46,17 @@ namespace UnityEditor.Experimental
         {
             Rect drawablerect = GetDrawableRect();
 
-            Rect arrowrect = VFXEditorMetrics.NodeBlockCollapserArrowRect;
+            Rect arrowrect = VFXEditorMetrics.NodeBlockHeaderFoldoutRect;
             arrowrect.min = arrowrect.min + drawablerect.min;
-            arrowrect.size = VFXEditorMetrics.NodeBlockCollapserArrowRect.size;
+            arrowrect.size = VFXEditorMetrics.NodeBlockHeaderFoldoutRect.size;
+
+            Rect iconrect = VFXEditorMetrics.NodeBlockHeaderIconRect;
+            iconrect.min = iconrect.min + drawablerect.min;
+            iconrect.size = VFXEditorMetrics.NodeBlockHeaderIconRect.size;
 
             Rect labelrect = drawablerect;
-            labelrect.min += VFXEditorMetrics.NodeBlockCollapserLabelPosition;
+            labelrect.min += VFXEditorMetrics.NodeBlockHeaderLabelPosition;
+
 
             if (m_Collapseable)
             {
@@ -67,7 +73,7 @@ namespace UnityEditor.Experimental
             {
                 GUI.Box(arrowrect, "", VFXEditor.styles.CollapserDisabled);
             }
-
+            GUI.Box(iconrect, m_Icon, VFXEditor.styles.Empty);
             GUI.Label(labelrect, m_Name, VFXEditor.styles.NodeBlockTitle);
             base.Render(parentRect, canvas);
         }

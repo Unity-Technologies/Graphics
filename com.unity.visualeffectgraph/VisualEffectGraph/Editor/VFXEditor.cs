@@ -198,6 +198,10 @@ namespace UnityEditor.Experimental
                 m_Canvas.DeepInvalidate();
                 m_Canvas.Repaint();
             }
+            if (GUILayout.Button("Reload Library", EditorStyles.toolbarButton))
+            {
+                BlockLibrary.Load();
+            }
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Reset", EditorStyles.toolbarButton))
             {

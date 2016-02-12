@@ -38,9 +38,21 @@ namespace UnityEditor.Experimental
 
         public GUIStyle Context;
 
-
-
         public Texture2D FlowEdgeOpacity;
+
+
+        private Dictionary<string, Texture2D> m_icons;
+
+        public Texture2D GetIcon(string name) {
+
+            if(!m_icons.ContainsKey(name)) {
+                Texture2D icon = EditorGUIUtility.Load("icons/"+name+".png") as Texture2D;
+                if (icon == null)
+                    throw new FileNotFoundException("Could not find file : icons/" + name + ".png");
+                m_icons.Add(name, icon);
+            }
+            return m_icons[name];
+        }
 
 
         public VFXEditorStyles()
@@ -144,6 +156,9 @@ namespace UnityEditor.Experimental
 
             FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
 
+            m_icons = new Dictionary<string, Texture2D>();
+            GetIcon("Default");
+
         }
 
         public void ExportGUISkin()
@@ -160,10 +175,10 @@ namespace UnityEditor.Experimental
             s.customStyles[7] = CollapserOpen;
             s.customStyles[8] = CollapserClosed;
 
-
-
             AssetDatabase.CreateAsset(s, "Assets/VFXEditor/VFXEditor.guiskin");
         }
+
+
     }
 
 

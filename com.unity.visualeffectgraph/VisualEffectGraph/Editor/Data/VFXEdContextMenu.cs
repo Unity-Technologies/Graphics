@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental
 
             foreach (VFXBlock block in blocks)
             {
-                output.AddItem(new GUIContent("New Node .../" + block.m_Name), false, source.AddSpecificNode, new VFXEdSpawnData(canvas, canvasClickPosition, block.m_Name, SpawnType.NodeBlock));
+                output.AddItem(new GUIContent("New Node.. /" + block.m_Category + block.m_Name), false, source.AddSpecificNode, new VFXEdSpawnData(canvas, canvasClickPosition, block.m_Name, SpawnType.NodeBlock));
             }
 
             return output;
@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental
 
             foreach (VFXBlock block in blocks)
             {
-                output.AddItem(new GUIContent(block.m_Name), false, node.MenuAddNodeBlock, new VFXEdSpawnData(canvas, canvasClickPosition, block.m_Name, SpawnType.NodeBlock));
+                output.AddItem(new GUIContent(block.m_Category + block.m_Name), false, node.MenuAddNodeBlock, new VFXEdSpawnData(canvas, canvasClickPosition, block.m_Name, SpawnType.NodeBlock));
             }
 
             return output;
