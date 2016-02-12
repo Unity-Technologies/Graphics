@@ -86,14 +86,12 @@ namespace UnityEditor.Experimental
         private VFXEdCanvas m_Canvas = null;
         private EditorWindow m_HostWindow = null;
         private Texture m_Icon = null;
-        private GenericMenu m_Menu = null;
         private Rect m_LibraryRect;
         private Rect m_PreviewRect;
         private VFXEdDataSource m_DataSource;
 
         private bool m_bShowPreview = false;
         private bool m_bShowLibrary = false;
-        private bool m_bShowDebugInfo = true;
         private bool m_CannotPreview = true;
         private VFXAsset m_CurrentAsset;
 
@@ -166,8 +164,6 @@ namespace UnityEditor.Experimental
 
         void OnGUI()
         {
-            Event currentEvent = Event.current;
-
             m_HostWindow = this;
 
             if (s_BlockLibrary == null)
