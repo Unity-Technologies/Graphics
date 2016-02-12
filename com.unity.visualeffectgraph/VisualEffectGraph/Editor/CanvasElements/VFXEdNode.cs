@@ -43,6 +43,26 @@ namespace UnityEditor.Experimental
 
         public VFXEdNode(Vector2 canvasposition, VFXEdContext context, VFXEdDataSource dataSource)
         {
+			// TODO Use only one enum
+			VFXContextModel.Type type;
+			switch (context)
+			{
+				case VFXEdContext.Initialize:
+					type = VFXContextModel.Type.kTypeInit;
+					break;
+				case VFXEdContext.Update:
+					type = VFXContextModel.Type.kTypeUpdate;
+					break;
+				case VFXEdContext.Output:
+					type = VFXContextModel.Type.kTypeOutput;
+					break;
+				default:
+					type = VFXContextModel.Type.kTypeNone;
+					break;
+			}
+			m_Model = new VFXContextModel(type);
+			
+
             m_DataSource = dataSource;
             translation = canvasposition;
             m_Title = context.ToString();
@@ -128,7 +148,11 @@ namespace UnityEditor.Experimental
             base.Render(parentRect, canvas);
         }
 
-
+		public VFXContextModel Model
+		{
+			get { return m_Model; }
+		}
+		private VFXContextModel m_Model;
     }
 }
 

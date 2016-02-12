@@ -10,15 +10,18 @@ namespace UnityEditor.Experimental
 		public void Add(VFXElementModel child, int index = -1,bool notify = true)
 		{
 			if (!CanAttach(child,index))
-				throw new ArgumentException();
+				throw new ArgumentException("Cannot attach " + child + " to " + this);
 
 			child.Detach(notify && child.m_Owner != this); // Dont notify if the owner is already this to avoid double invalidation
 			
-			m_Children.Insert(index, child);
+			int realIndex = index == -1 ? m_Children.Count : index;
+			m_Children.Insert(realIndex, child);
 			child.m_Owner = this;
 			
 			if (notify)
 				Invalidate();
+
+			Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
 		}
 
 		public void Remove(VFXElementModel child, bool notify = true)
@@ -31,6 +34,8 @@ namespace UnityEditor.Experimental
 			
 			if (notify)
 				Invalidate();
+
+			Debug.Log("Detach " + child + " to " + this);
 		}
 
 		public void Attach(VFXElementModel owner, bool notify = true)
@@ -53,7 +58,7 @@ namespace UnityEditor.Experimental
 		public abstract void Invalidate();
 
 		protected VFXElementModel m_Owner;
-		protected List<VFXElementModel> m_Children;
+		protected List<VFXElementModel> m_Children = new List<VFXElementModel>();
 	}
 
 	public abstract class VFXElementModelTyped<OwnerType, ChildrenType> : VFXElementModel

@@ -25,11 +25,15 @@ namespace UnityEditor.Experimental
 			if (base.CanAttach(element, index))
 				return false;
 
+			VFXContextModel.Type contextType = (element as VFXContextModel).GetContextType();
+			if (contextType == VFXContextModel.Type.kTypeNone)
+				return false;
+
 			// Check if context types are inserted in the right order
 			int realIndex = index == -1 ? m_Children.Count : index;
-			if (realIndex > 0 && GetChild(realIndex - 1).GetContextType() > (element as VFXContextModel).GetContextType())
+			if (realIndex > 0 && GetChild(realIndex - 1).GetContextType() > contextType)
 				return false;
-			if (realIndex < m_Children.Count && GetChild(realIndex).GetContextType() < (element as VFXContextModel).GetContextType())
+			if (realIndex < m_Children.Count && GetChild(realIndex).GetContextType() < contextType)
 				return false;
 
 			return true;
@@ -66,12 +70,13 @@ namespace UnityEditor.Experimental
 	{
 		public enum Type
 		{
+			kTypeNone,
 			kTypeInit,
 			kTypeUpdate,
-			kTypeRender,
+			kTypeOutput,
 		};
 
-		public const uint s_NbTypes = (uint)Type.kTypeRender + 1;
+		public const uint s_NbTypes = (uint)Type.kTypeOutput + 1;
 
 		public VFXContextModel(Type type)
 		{
@@ -80,14 +85,17 @@ namespace UnityEditor.Experimental
 
 		public override bool CanAttach(VFXElementModel element, int index)
 		{
-			return base.CanAttach(element, index);
-			// TODO Check if the block is comptatible with the context
+			return base.CanAttach(element, index) && m_Type != Type.kTypeNone;
+			// TODO Check if the block is compatible with the context
 		}
 
 		public override void Invalidate()
 		{
 			// TODO
 			// Recompute parameters field
+
+			if (m_Owner != null && m_Type != Type.kTypeNone)
+				m_Owner.Invalidate();
 		}
 
 		public Type GetContextType()
@@ -106,20 +114,24 @@ namespace UnityEditor.Experimental
 				m_Owner.Invalidate();
 		}
 
-		VFXBlockModel(VFXBlock desc)
+		public VFXBlockModel(VFXBlock desc)
 		{
 			m_BlockDesc = desc;
 		}
 
-		public void SetDesc(VFXBlock blockDesc)
+		public VFXBlock Desc
 		{
-			if (blockDesc == null)
-				throw new ArgumentNullException();
-
-			if (m_BlockDesc == null || !m_BlockDesc.m_Hash.Equals(blockDesc.m_Hash)) // block desc has changed
+			get { return m_BlockDesc; }
+			set
 			{
-				m_BlockDesc = blockDesc;
-				Invalidate();
+				if (value == null)
+					throw new ArgumentNullException();
+
+				if (m_BlockDesc == null || !m_BlockDesc.m_Hash.Equals(value.m_Hash)) // block desc has changed
+				{
+					m_BlockDesc = value;
+					Invalidate();
+				}
 			}
 		}
 

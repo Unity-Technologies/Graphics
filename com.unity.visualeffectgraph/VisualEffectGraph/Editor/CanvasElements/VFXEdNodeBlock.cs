@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental
 
         public VFXEdNodeBlock(VFXBlock block, VFXEdDataSource dataSource)
         {
-            m_Block = block;
+			m_Model = new VFXBlockModel(block);
             m_Name = block.m_Name;
             translation = Vector3.zero; // zeroed by default, will be relayouted later.
             m_Caps = Capabilities.Normal;
@@ -54,8 +54,8 @@ namespace UnityEditor.Experimental
         private float GetHeight()
         {
             float height = VFXEditorMetrics.NodeBlockHeaderHeight;
-            for (int i = 0; i < m_Block.m_Params.Length; ++i)
-                height += GetParamHeight(m_Block.m_Params[i]);
+            for (int i = 0; i < m_Model.Desc.m_Params.Length; ++i)
+				height += GetParamHeight(m_Model.Desc.m_Params[i]);
             return height;
         }
 
@@ -111,39 +111,39 @@ namespace UnityEditor.Experimental
             {
                 float currentY = r.y + VFXEditorMetrics.NodeBlockHeaderHeight;
                 float posX = VFXEditorMetrics.NodeBlockParameterLabelPosition.x;
-                for (int i = 0; i < m_Block.m_Params.Length; ++i)
+                for (int i = 0; i < m_Model.Desc.m_Params.Length; ++i)
                 {
-                    VFXParam.Type paramType = m_Block.m_Params[i].m_Type;
-                    
-                    Rect rect = new Rect(r.x + posX, currentY, r.width - posX, GetParamHeight(m_Block.m_Params[i]) - 2);
+					VFXParam.Type paramType = m_Model.Desc.m_Params[i].m_Type;
+
+					Rect rect = new Rect(r.x + posX, currentY, r.width - posX, GetParamHeight(m_Model.Desc.m_Params[i]) - 2);
                     GUI.Box(new Rect(r.x, currentY, VFXEditorMetrics.DataAnchorSize.x,VFXEditorMetrics.DataAnchorSize.y), "", VFXEditor.styles.ConnectorLeft);
                     currentY += rect.height;
 
                     switch (paramType)
                     {
                         case VFXParam.Type.kTypeFloat:
-                            EditorGUI.FloatField(rect, m_Block.m_Params[i].m_Name, 0.0f);
+							EditorGUI.FloatField(rect, m_Model.Desc.m_Params[i].m_Name, 0.0f);
                             break;
 
                         case VFXParam.Type.kTypeFloat2:
-                            EditorGUI.Vector2Field(rect, m_Block.m_Params[i].m_Name, new Vector2());
+							EditorGUI.Vector2Field(rect, m_Model.Desc.m_Params[i].m_Name, new Vector2());
                             break;
 
                         case VFXParam.Type.kTypeFloat3:
-                            EditorGUI.Vector3Field(rect, m_Block.m_Params[i].m_Name, new Vector3());
+							EditorGUI.Vector3Field(rect, m_Model.Desc.m_Params[i].m_Name, new Vector3());
                             break;
 
                         case VFXParam.Type.kTypeFloat4:
-                            EditorGUI.Vector4Field(rect, m_Block.m_Params[i].m_Name, new Vector4());
+							EditorGUI.Vector4Field(rect, m_Model.Desc.m_Params[i].m_Name, new Vector4());
                             break;
 
                         case VFXParam.Type.kTypeInt:
                         case VFXParam.Type.kTypeUint:
-                            EditorGUI.IntField(rect, m_Block.m_Params[i].m_Name, 0);
+							EditorGUI.IntField(rect, m_Model.Desc.m_Params[i].m_Name, 0);
                             break;
 
                         default: // TODO Texture
-                            GUI.Label(rect, VFXParam.GetNameFromType(paramType) + " " + m_Block.m_Params[i].m_Name, VFXEditor.styles.NodeBlockParameter);
+							GUI.Label(rect, VFXParam.GetNameFromType(paramType) + " " + m_Model.Desc.m_Params[i].m_Name, VFXEditor.styles.NodeBlockParameter);
                             break;
                     }
 
@@ -153,7 +153,11 @@ namespace UnityEditor.Experimental
             base.Render(parentRect, canvas);
         }
 
-        private VFXBlock m_Block;
+		public VFXBlockModel Model
+		{
+			get { return m_Model; }
+		}
+        private VFXBlockModel m_Model;
     }
 }
 
