@@ -52,21 +52,11 @@ namespace UnityEditor.Experimental
             m_Elements.Add(new FlowEdge<VFXEdFlowAnchor>(this, a, b));
         }
 
-        
-        public void AddGenericNode(object o)
-        {
-            VFXEdSpawnData data = o as VFXEdSpawnData;
-            VFXEdNode node = new VFXEdNode(data.mousePosition, this);
-            node.AddNodeBlock(VFXEditor.BlockLibrary.GetRandomBlock());
-            AddNode(node);
-            data.targetCanvas.ReloadData();
-
-        }
 
         public void AddEmptyNode(object o)
         {
             VFXEdSpawnData data = o as VFXEdSpawnData;
-            VFXEdNode node = new VFXEdNode(data.mousePosition, this);
+            VFXEdNode node = new VFXEdNode(data.mousePosition,data.context, this);
             AddNode(node);
             data.targetCanvas.ReloadData();
 
@@ -75,7 +65,7 @@ namespace UnityEditor.Experimental
         public void AddSpecificNode(object o)
         {
             VFXEdSpawnData data = o as VFXEdSpawnData;
-            VFXEdNode node = new VFXEdNode(data.mousePosition, this);
+            VFXEdNode node = new VFXEdNode(data.mousePosition, data.context, this);
             node.AddNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName));
             AddNode(node);
             data.targetCanvas.ReloadData();

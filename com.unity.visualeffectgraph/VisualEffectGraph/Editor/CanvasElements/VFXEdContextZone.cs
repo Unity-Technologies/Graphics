@@ -8,9 +8,17 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    public class VFXEdDataFlow
+    internal class VFXEdContextZone : CanvasElement
     {
 
     }
 
+    internal enum VFXEdContext {
+        None,
+        Initialize,
+        Update,
+        Output
+    }
 }
+
+

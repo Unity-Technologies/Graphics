@@ -14,15 +14,16 @@ namespace UnityEditor.Experimental
 
             GenericMenu output = new GenericMenu();
 
-            output.AddItem(new GUIContent("New Node (Empty)"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", SpawnType.NodeBlock));
-            output.AddItem(new GUIContent("New Node (Random)"), false, source.AddGenericNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", SpawnType.NodeBlock));
+            output.AddItem(new GUIContent("New Node/Initialize"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Initialize ,SpawnType.NodeBlock));
+            output.AddItem(new GUIContent("New Node/Update"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Update ,SpawnType.NodeBlock));
+            output.AddItem(new GUIContent("New Node/Output"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Output ,SpawnType.NodeBlock));
             output.AddSeparator("");
 
             ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
 
             foreach (VFXBlock block in blocks)
             {
-                output.AddItem(new GUIContent("New Node .../" + block.m_Name), false, source.AddSpecificNode, new VFXEdSpawnData(canvas, canvasClickPosition, block.m_Name, SpawnType.NodeBlock));
+                output.AddItem(new GUIContent("New Node with... /" + block.m_Category + block.m_Name), false, source.AddSpecificNode, new VFXEdSpawnData(canvas, canvasClickPosition, block.m_Name, VFXEdContext.None, SpawnType.NodeBlock));
             }
 
             return output;
@@ -35,7 +36,7 @@ namespace UnityEditor.Experimental
 
             foreach (VFXBlock block in blocks)
             {
-                output.AddItem(new GUIContent(block.m_Name), false, node.MenuAddNodeBlock, new VFXEdSpawnData(canvas, canvasClickPosition, block.m_Name, SpawnType.NodeBlock));
+                output.AddItem(new GUIContent(block.m_Category + block.m_Name), false, node.MenuAddNodeBlock, new VFXEdSpawnData(canvas, canvasClickPosition, block.m_Name, VFXEdContext.None, SpawnType.NodeBlock));
             }
 
             return output;

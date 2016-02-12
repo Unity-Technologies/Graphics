@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental
 {
     internal class FlowEdgeConnector : EdgeConnector<VFXEdFlowAnchor>
     {
-        public FlowEdgeConnector() : base(FlowEdge<VFXEdFlowAnchor>.DrawCustomEdgeConnector)
+        public FlowEdgeConnector() : base(FlowEdge<VFXEdFlowAnchor>.DrawFlowEdgeConnector)
         {
 
         }

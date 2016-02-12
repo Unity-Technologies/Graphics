@@ -15,15 +15,18 @@ namespace UnityEditor.Experimental
         protected Direction m_Direction;
         private VFXEdDataSource m_Data;
         public int m_PortIndex;
+        public VFXEdContext context { get {return m_Context;}}
+        private VFXEdContext m_Context;
+        
 
-        public VFXEdFlowAnchor(int portIndex, Type type, VFXEdNode node, VFXEdDataSource data, Direction direction)
+        public VFXEdFlowAnchor(int portIndex, Type type, VFXEdNode node, VFXEdContext context, VFXEdDataSource data, Direction direction)
         {
             m_Type = type;
             scale = new Vector3(64.0f, 32.0f, 1.0f);
 
             AddManipulator(new FlowEdgeConnector());
             m_Direction = direction;
-
+            m_Context = context;
             Type genericClass = typeof(PortSource<>);
             Type constructedClass = genericClass.MakeGenericType(type);
             m_Source = Activator.CreateInstance(constructedClass);
@@ -40,7 +43,7 @@ namespace UnityEditor.Experimental
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             base.Render(parentRect, canvas);
-            GUI.color = new Color(0.8f, 0.8f, 0.8f);
+            GUI.color = VFXEditor.styles.GetContextColor(m_Context);
             switch (m_Direction)
             {
                 case Direction.Input:
@@ -60,11 +63,12 @@ namespace UnityEditor.Experimental
         public void RenderOverlay(Canvas2D canvas)
         {
             RectOffset o;
-
+            GUI.color = VFXEditor.styles.GetContextColor(m_Context)*2;
             switch (m_Direction)
             {
                 case Direction.Input:
                     o = VFXEditor.styles.ConnectorOverlay.overflow;
+                    
                     GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.styles.ConnectorOverlay.normal.background);
                     break;
 
@@ -77,6 +81,7 @@ namespace UnityEditor.Experimental
                 default:
                     break;
             }
+            GUI.color = Color.white;
         }
 
         // IConnect

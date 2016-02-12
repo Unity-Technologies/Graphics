@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental
                 return false;
 
 
-            Rect ActiveArea = VFXEditorMetrics.NodeBlockCollapserArrowRect;
+            Rect ActiveArea = VFXEditorMetrics.NodeBlockHeaderFoldoutRect;
             ActiveArea.position += element.canvasBoundingRect.position;
 
             if (ActiveArea.Contains(parent.MouseToCanvas(e.mousePosition)))
