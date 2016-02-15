@@ -15,6 +15,7 @@ namespace UnityEditor.Experimental
 
     internal enum VFXEdContext {
         None,
+        Trigger,
         Initialize,
         Update,
         Output

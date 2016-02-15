@@ -86,13 +86,13 @@ namespace UnityEditor.Experimental
             NodeTitle = new GUIStyle();
             NodeTitle.fontSize = 14;
             NodeTitle.fontStyle = FontStyle.Bold;
-            NodeTitle.padding = new RectOffset(32, 0, 10, 0);
+            NodeTitle.padding = new RectOffset(0, 0, 10, 0);
             NodeTitle.alignment = TextAnchor.MiddleCenter;
             NodeTitle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
 
             NodeInfoText = new GUIStyle();
             NodeInfoText.fontSize = 12;
-            NodeInfoText.fontStyle = FontStyle.Italic;
+            NodeInfoText.fontStyle = FontStyle.Normal;
             NodeInfoText.padding = new RectOffset(12, 12, 12, 12);
             NodeInfoText.alignment = TextAnchor.MiddleCenter;
             NodeInfoText.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
@@ -109,7 +109,7 @@ namespace UnityEditor.Experimental
             NodeParametersTitle.fontSize = 14;
             NodeParametersTitle.normal.textColor = new Color(0.25f, 0.25f, 0.25f);
             NodeParametersTitle.fontStyle = FontStyle.Bold;
-            NodeParametersTitle.padding = new RectOffset(32, 0, 10, 0);
+            NodeParametersTitle.padding = new RectOffset(0, 0, 10, 0);
             NodeParametersTitle.alignment = TextAnchor.MiddleCenter;
 
 
@@ -189,10 +189,12 @@ namespace UnityEditor.Experimental
 
             m_ContextColors = new Dictionary<VFXEdContext, Color>();
             
-            m_ContextColors.Add(VFXEdContext.None,          new Color(0.750f, 0.750f, 0.750f, 1.0f));
+            m_ContextColors.Add(VFXEdContext.None,          new Color(0.500f, 0.500f, 0.500f, 1.0f));
+            m_ContextColors.Add(VFXEdContext.Trigger,       new Color(0.750f, 0.750f, 0.750f, 1.0f));
             m_ContextColors.Add(VFXEdContext.Initialize,    new Color(0.403f, 0.345f, 0.215f, 1.0f));
             m_ContextColors.Add(VFXEdContext.Update,        new Color(0.215f, 0.301f, 0.403f, 1.0f));
             m_ContextColors.Add(VFXEdContext.Output,        new Color(0.364f, 0.278f, 0.388f, 1.0f));
+
 
 
         }

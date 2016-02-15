@@ -15,6 +15,12 @@ namespace UnityEditor.Experimental
 		{
 			get { return m_Model; }
 		}
+
+        public VFXEdContext context
+        {
+			get { return m_Context; }
+        }
+
 		protected VFXContextModel m_Model;
         protected VFXEdContext m_Context;
 
@@ -55,6 +61,7 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
+            Rect r = m_ClientArea;
 
             if(parent is VFXEdCanvas) {
 
@@ -64,6 +71,13 @@ namespace UnityEditor.Experimental
                 GUI.Box(VFXEditorMetrics.NodeImplicitContextOffset.Add(new Rect(0, 0, scale.x, scale.y)), "", VFXEditor.styles.Context);
                 GUI.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
             }
+           
+
+            GUI.Box(r, "", VFXEditor.styles.Node);
+            GUI.Label(new Rect(0, r.y, r.width, 24), title, VFXEditor.styles.NodeTitle);
+
+
+
             base.Render(parentRect, canvas);
 
 

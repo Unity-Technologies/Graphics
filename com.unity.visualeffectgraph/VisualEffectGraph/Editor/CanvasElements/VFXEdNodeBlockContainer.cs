@@ -44,18 +44,10 @@ namespace UnityEditor.Experimental
             m_NodeBlocks = new List<VFXEdNodeBlock>();
             m_DataSource = dataSource;
             m_Caps = Capabilities.Normal;
-            this.ContextClick += ManageRightClick;
+            
         }
 
-        private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)
-        {
-            if (e.type == EventType.Used)
-                return false;
 
-            VFXEdContextMenu.NodeBlockMenu(ParentCanvas() as VFXEdCanvas, element.parent.parent as VFXEdNode, parent.MouseToCanvas(e.mousePosition), m_DataSource).ShowAsContext();
-            e.Use();
-            return true;
-        }
 
         public void UpdateCaptureDrop(Vector2 MousePosition)
         {
