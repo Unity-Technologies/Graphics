@@ -26,6 +26,7 @@ namespace UnityEditor.Experimental
     internal enum SpawnType
     {
         Node,
+        DataNode,
         NodeBlock,
         Context,
         Comment,

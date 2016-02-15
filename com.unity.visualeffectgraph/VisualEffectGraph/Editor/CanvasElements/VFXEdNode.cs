@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdNode : CanvasElement
+    internal abstract class VFXEdNode : CanvasElement
     {
 
         public string title
@@ -16,67 +16,45 @@ namespace UnityEditor.Experimental
             get { return m_Title; }
         }
 
-        private string m_Title;
-
-        internal List<VFXEdFlowAnchor> inputs
+        public List<VFXEdFlowAnchor> inputs
         {
             get { return m_Inputs; }
         }
-        internal List<VFXEdFlowAnchor> outputs
+
+        public List<VFXEdFlowAnchor> outputs
         {
             get { return m_Outputs; }
         }
 
         public VFXEdNodeClientArea ClientArea
-        { get { return m_NodeClientArea; } }
-        public VFXEdNodeBlockContainer NodeBlockContainer {
+        {
+            get { return m_NodeClientArea; }
+        }
+
+        public VFXEdNodeBlockContainer NodeBlockContainer
+        {
             get { return m_NodeClientArea.NodeBlockContainer; }
         }
 
+        protected string m_Title;
+        protected VFXEdDataSource m_DataSource;
+        protected VFXEdNodeClientArea m_NodeClientArea;
+        protected List<VFXEdFlowAnchor> m_Inputs;
+        protected List<VFXEdFlowAnchor> m_Outputs;
 
-        private VFXEdDataSource m_DataSource;
-        private VFXEdNodeClientArea m_NodeClientArea;
-        private List<VFXEdFlowAnchor> m_Inputs;
-        private List<VFXEdFlowAnchor> m_Outputs;
-        private VFXEdContext m_Context;
-
-
-        public VFXEdNode(Vector2 canvasposition, VFXEdContext context, VFXEdDataSource dataSource)
+        public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource)
         {
-			// TODO Use only one enum
-			VFXContextModel.Type type;
-			switch (context)
-			{
-				case VFXEdContext.Initialize:
-					type = VFXContextModel.Type.kTypeInit;
-					break;
-				case VFXEdContext.Update:
-					type = VFXContextModel.Type.kTypeUpdate;
-					break;
-				case VFXEdContext.Output:
-					type = VFXContextModel.Type.kTypeOutput;
-					break;
-				default:
-					type = VFXContextModel.Type.kTypeNone;
-					break;
-			}
-			m_Model = new VFXContextModel(type);
-			
 
             m_DataSource = dataSource;
             translation = canvasposition;
-            m_Title = context.ToString();
+
             scale = new Vector2(VFXEditorMetrics.NodeDefaultWidth, 100);
-            m_Context = context;
+
             m_Inputs = new List<VFXEdFlowAnchor>();
             m_Outputs = new List<VFXEdFlowAnchor>();
 
-            m_NodeClientArea = new VFXEdNodeClientArea(VFXEditorMetrics.NodeClientAreaOffset.Add(new Rect(Vector2.zero, scale)), dataSource, title);
-            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this,m_Context, m_DataSource, Direction.Input));
-            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), this,m_Context, m_DataSource, Direction.Output));
+            m_NodeClientArea = new VFXEdNodeClientArea(VFXEditorMetrics.NodeClientAreaOffset.Add(new Rect(Vector2.zero, scale)), dataSource);
 
-            AddChild(inputs[0]);
-            AddChild(outputs[0]);
             AddChild(m_NodeClientArea);
 
             AddManipulator(new Draggable(m_NodeClientArea.elementRect, false));
@@ -136,23 +114,10 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            if(parent is VFXEdCanvas) {
-
-                Color c =  VFXEditor.styles.GetContextColor(m_Context);
-                float a = 0.7f;
-                GUI.color = new Color(c.r/a, c.g/a, c.b/a, a);
-                GUI.Box(VFXEditorMetrics.NodeImplicitContextOffset.Add(new Rect(0, 0, scale.x, scale.y)), "", VFXEditor.styles.Context);
-                GUI.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-            }
-
             base.Render(parentRect, canvas);
         }
 
-		public VFXContextModel Model
-		{
-			get { return m_Model; }
-		}
-		private VFXContextModel m_Model;
+
     }
 }
 

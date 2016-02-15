@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental
         private VFXEdDataSource m_DataSource;
 
 
-        public VFXEdNodeBlockContainer(Vector2 size, VFXEdDataSource dataSource, string name)
+        public VFXEdNodeBlockContainer(Vector2 size, VFXEdDataSource dataSource)
         {
             translation = VFXEditorMetrics.NodeBlockContainerPosition;
             scale = size + VFXEditorMetrics.NodeBlockContainerSizeOffset;
@@ -109,8 +109,8 @@ namespace UnityEditor.Experimental
             block.translation = Vector3.zero;
             Layout();
 
-			// Update the model
-			VFXEdNode nodeParent = FindParent<VFXEdNode>();
+			// Update the model if inside a Context Node
+			VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
 			if (nodeParent != null)
 				try
 				{

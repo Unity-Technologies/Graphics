@@ -10,20 +10,18 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdNodeClientArea : CanvasElement
     {
-        private string m_Title;
 
         public VFXEdNodeBlockContainer NodeBlockContainer
         { get { return m_NodeBlockContainer; } }
         private VFXEdNodeBlockContainer m_NodeBlockContainer;
 
-        public VFXEdNodeClientArea(Rect clientRect, VFXEdDataSource dataSource, string name)
+        public VFXEdNodeClientArea(Rect clientRect, VFXEdDataSource dataSource)
         {
             translation = VFXEditorMetrics.NodeClientAreaPosition;
-            m_Title = name;
             translation = clientRect.position;
             scale = new Vector2(clientRect.width, clientRect.height);
             m_Caps = Capabilities.Normal;
-            m_NodeBlockContainer = new VFXEdNodeBlockContainer(clientRect.size, dataSource, name);
+            m_NodeBlockContainer = new VFXEdNodeBlockContainer(clientRect.size, dataSource);
             AddChild(m_NodeBlockContainer);
         }
 
@@ -39,12 +37,29 @@ namespace UnityEditor.Experimental
         {
             Rect r = GetDrawableRect();
 
-            if (selected)
-                GUI.Box(r, "", VFXEditor.styles.NodeSelected);
-            else
+            if (FindParent<VFXEdDataNode>() == null)
+            {
                 GUI.Box(r, "", VFXEditor.styles.Node);
 
-            GUI.Label(new Rect(0, r.y, r.width, 24), m_Title, VFXEditor.styles.NodeTitle);
+                GUI.Label(new Rect(0, r.y, r.width, 24), FindParent<VFXEdNode>().title, VFXEditor.styles.NodeTitle);
+
+            } else {
+
+                VFXEdDataNode n = FindParent<VFXEdDataNode>();
+                if(n.exposed)
+                {
+                    GUI.Box(r, "", VFXEditor.styles.NodeParameters);
+                    GUI.Label(new Rect(0, r.y, r.width, 24), "Parameter Interface", VFXEditor.styles.NodeParametersTitle);
+                }
+                else
+                {
+                    GUI.Box(r, "", VFXEditor.styles.NodeData);
+                    GUI.Label(new Rect(0, r.y, r.width, 24), "Local Constants", VFXEditor.styles.NodeParametersTitle);
+                }
+            }
+
+            if (selected)
+                    GUI.Box(r, "", VFXEditor.styles.NodeSelected);
 
             base.Render(parentRect, canvas);
         }
