@@ -78,6 +78,24 @@ namespace UnityEditor.Experimental
             }
         }
 
+        // DEBUG OUTPUT
+        public static void Log(string s) {
+            DebugLines.Add(s);
+        }
+        public static void ClearLog() {
+            DebugLines.Clear();
+        }
+        private static List<string> DebugLines = new List<string>();
+        private static string GetDebugOutput() {
+            string output = "";
+            foreach (string s in VFXEditor.DebugLines) {
+                output += s + "\n";
+            }
+            return output;
+                
+        }
+        // END DEBUG OUTPUT
+
         private static VFXEditorMetrics s_Metrics;
         private static VFXEditorStyles s_Styles;
         private static VFXBlockLibraryCollection s_BlockLibrary;
@@ -94,6 +112,10 @@ namespace UnityEditor.Experimental
         private bool m_bShowLibrary = false;
         private bool m_CannotPreview = true;
         private VFXAsset m_CurrentAsset;
+
+        private bool m_bShowDebug = false;
+        private Vector2 m_DebugLogScroll = Vector2.zero;
+
 
         private VFXBlockLibraryCollection m_BlockLibrary;
 
@@ -175,7 +197,7 @@ namespace UnityEditor.Experimental
             }
 
             titleContent = new GUIContent("VFX Editor", m_Icon);
-            //GUI.Toolbar(new Rect(0, 0, position.width, 24),0);
+
             DrawToolbar(new Rect(0, 0, position.width, EditorStyles.toolbar.fixedHeight));
             Rect canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height - EditorStyles.toolbar.fixedHeight);
             m_Canvas.OnGUI(this, canvasRect);
@@ -187,28 +209,34 @@ namespace UnityEditor.Experimental
         {
             GUI.BeginGroup(rect);
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            if (GUILayout.Button("Create...", EditorStyles.toolbarButton))
-            {
-
-            }
-            GUILayout.FlexibleSpace();
-            m_Canvas.showQuadTree = GUILayout.Toggle(m_Canvas.showQuadTree, "Canvas2D Debug Info", EditorStyles.toolbarButton);
-            if (GUILayout.Button("Refresh Canvas", EditorStyles.toolbarButton))
+            GUI.color = Color.green * 4;
+            GUILayout.Label("Canvas2D : ",EditorStyles.toolbarButton);
+            GUI.color = Color.white;
+            m_Canvas.showQuadTree = GUILayout.Toggle(m_Canvas.showQuadTree, "Debug Info", EditorStyles.toolbarButton);
+            if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
             {
                 m_Canvas.DeepInvalidate();
                 m_Canvas.Repaint();
             }
+
+            GUILayout.Space(50.0f);
+            GUI.color = Color.yellow * 4;
+            GUILayout.Label("VFXEditor :",EditorStyles.toolbarButton);
+            GUI.color = Color.white;
             if (GUILayout.Button("Reload Library", EditorStyles.toolbarButton))
             {
                 BlockLibrary.Load();
             }
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Reset", EditorStyles.toolbarButton))
+            if (GUILayout.Button("Editor Reset", EditorStyles.toolbarButton))
             {
                 m_Canvas = null;
                 InitializeCanvas();
                 s_BlockLibrary = null;
             }
+            m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "Debug Window", EditorStyles.toolbarButton);
+            
+
+            GUILayout.FlexibleSpace();
             if (GUILayout.Button("Tools", EditorStyles.toolbarDropDown))
             {
                 GenericMenu toolsMenu = new GenericMenu();
@@ -223,7 +251,6 @@ namespace UnityEditor.Experimental
                 EditorGUIUtility.ExitGUI();
             }
 
-            m_bShowLibrary = GUILayout.Toggle(m_bShowLibrary, "NodeBlock Library", EditorStyles.toolbarButton);
             m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);
 
             GUILayout.EndHorizontal();
@@ -235,12 +262,6 @@ namespace UnityEditor.Experimental
         void DrawWindows(Rect canvasRect)
         {
             // Calculate Rect's
-            m_LibraryRect = new Rect(
-                                                canvasRect.xMax - (VFXEditorMetrics.LibraryWindowWidth + 2 * VFXEditorMetrics.WindowPadding),
-                                                canvasRect.yMin + VFXEditorMetrics.WindowPadding,
-                                                VFXEditorMetrics.LibraryWindowWidth,
-                                                canvasRect.height - (4 * VFXEditorMetrics.WindowPadding)
-                                            );
 
             m_PreviewRect = new Rect(
                                             canvasRect.xMax - (VFXEditorMetrics.PreviewWindowWidth + 2 * VFXEditorMetrics.WindowPadding),
@@ -249,6 +270,7 @@ namespace UnityEditor.Experimental
                                             VFXEditorMetrics.PreviewWindowHeight
                                        );
 
+            Rect debugRect = new Rect(40, 40, 450, canvasRect.height - 80);
 
             if (m_bShowPreview)
             {
@@ -256,25 +278,19 @@ namespace UnityEditor.Experimental
             }
 
             BeginWindows();
-            if (m_bShowLibrary)
-                GUI.Window(0, m_LibraryRect, DrawLibraryWindowContent, "NodeBlock Library");
             if (m_bShowPreview)
-                GUI.Window(1, m_PreviewRect, DrawPreviewWindowContent, "Preview");
+                GUI.Window(0, m_PreviewRect, DrawPreviewWindowContent, "Preview");
+            if(m_bShowDebug) 
+                GUI.Window(1, debugRect, DrawDebugWindowContent, "VFXEditor Debug");
             EndWindows();
         }
-        void DrawLibraryWindowContent(int windowID)
-        {
-            GUILayout.BeginScrollView(Vector2.zero);
 
-            for (int i = 0; i < 10; i++)
-            {
-                GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                GUILayout.Box("Test Item " + i.ToString(), EditorStyles.toolbarButton);
-                GUILayout.EndHorizontal();
-            }
+        void DrawDebugWindowContent(int windowID) {
+            GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
+            GUILayout.Label(VFXEditor.GetDebugOutput());
             GUILayout.EndScrollView();
         }
-
+        
 
         void DrawPreviewWindowContent(int windowID)
         {
@@ -321,12 +337,6 @@ namespace UnityEditor.Experimental
                     VFXBlock block = blockLibraries[i].GetBlock(j);
                     m_Blocks.Add(block);
 
-                    /*Debug.Log("Found block: " + block.m_Name + " " + block.m_Params.Length);
-					for (int k = 0; k < block.m_Params.Length; ++k)
-					{
-						//Debug.Log("\t" + block.m_Params[k]);
-						//Debug.Log("\t" + block.m_Params[k].m_Name);
-					}*/
                 }
             }
 
