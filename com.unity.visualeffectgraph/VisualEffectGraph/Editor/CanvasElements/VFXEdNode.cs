@@ -39,12 +39,7 @@ namespace UnityEditor.Experimental
         protected VFXEdNodeBlockContainer m_NodeBlockContainer;
         protected Rect m_ClientArea;
         public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource)
-        {
-			// Create a dummy System to hold the newly created context
-			VFXSystemModel systemModel = new VFXSystemModel();
-			systemModel.AddChild(m_Model);
-			VFXEditor.AssetModel.AddChild(systemModel);
-			
+        {	
             m_DataSource = dataSource;
             translation = canvasposition;
 

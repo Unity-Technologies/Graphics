@@ -67,22 +67,26 @@ namespace UnityEditor.Experimental
             foreach (CanvasElement ce in todelete)
                 canvas.dataSource.DeleteElement(ce);
 
-			// Update the model
-			VFXSystemModel owner = node.Model.GetOwner();
-			if (owner != null)
+			// Update the model if it is a context node
+			var contextNode = node as VFXEdContextNode;
+			if (contextNode != null)
 			{
-				int nbChildren = owner.GetNbChildren();
-				int index = owner.GetIndex(node.Model);
-
-				node.Model.Detach();
-				if (index != 0 && index != nbChildren - 1)
+				VFXSystemModel owner = contextNode.Model.GetOwner();
+				if (owner != null)
 				{
-					// if the node is in the middle of a system, we need to create a new system
-					VFXSystemModel newSystem = new VFXSystemModel();
-					while (owner.GetNbChildren() > index)
-						owner.GetChild(index).Attach(newSystem);
-					newSystem.Attach(VFXEditor.AssetModel);
-				}				
+					int nbChildren = owner.GetNbChildren();
+					int index = owner.GetIndex(contextNode.Model);
+
+					contextNode.Model.Detach();
+					if (index != 0 && index != nbChildren - 1)
+					{
+						// if the node is in the middle of a system, we need to create a new system
+						VFXSystemModel newSystem = new VFXSystemModel();
+						while (owner.GetNbChildren() > index)
+							owner.GetChild(index).Attach(newSystem);
+						newSystem.Attach(VFXEditor.AssetModel);
+					}
+				}
 			}
 			
             // Finally 

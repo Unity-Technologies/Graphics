@@ -49,8 +49,8 @@ namespace UnityEditor.Experimental
 
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)
         {
-			VFXContextModel model0 = a.FindParent<VFXEdNode>().Model;
-			VFXContextModel model1 = b.FindParent<VFXEdNode>().Model;
+			VFXContextModel model0 = a.FindParent<VFXEdContextNode>().Model;
+			VFXContextModel model1 = b.FindParent<VFXEdContextNode>().Model;
 
 			if (a.GetDirection() == Direction.Input)
 			{

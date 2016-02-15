@@ -14,7 +14,6 @@ namespace UnityEditor.Experimental
             m_edgeColor = VFXEditor.styles.GetContextColor(source.context);
         }
 
-
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             Vector3 from = m_Left.ConnectPosition();
