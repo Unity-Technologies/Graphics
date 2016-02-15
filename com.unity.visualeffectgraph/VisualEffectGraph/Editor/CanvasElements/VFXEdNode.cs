@@ -62,7 +62,11 @@ namespace UnityEditor.Experimental
 			}
 			m_Model = new VFXContextModel(type);
 			
-
+			// Create a dummy System to hold the newly created context
+			VFXSystemModel systemModel = new VFXSystemModel();
+			systemModel.AddChild(m_Model);
+			VFXEditor.AssetModel.AddChild(systemModel);
+			
             m_DataSource = dataSource;
             translation = canvasposition;
             m_Title = context.ToString();

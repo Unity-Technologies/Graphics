@@ -116,9 +116,8 @@ namespace UnityEditor.Experimental
                 return;
 
             VFXEdFlowAnchor otherConnector = other as VFXEdFlowAnchor;
-            m_Data.ConnectFlow(this, otherConnector);
-
-            ParentCanvas().ReloadData();
+            if (m_Data.ConnectFlow(this, otherConnector))
+				ParentCanvas().ReloadData();
         }
 
     }

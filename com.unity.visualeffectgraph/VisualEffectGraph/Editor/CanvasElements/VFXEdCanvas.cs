@@ -1,7 +1,12 @@
-﻿using UnityEngine;using UnityEditor;using System.Collections;using Object = UnityEngine.Object;namespace UnityEditor.Experimental{
+﻿using UnityEngine;
+using UnityEditor;
+using System.Collections;
+using Object = UnityEngine.Object;
+
+namespace UnityEditor.Experimental
+{
     internal class VFXEdCanvas : Canvas2D
     {
-
         public VFXEdNodeBlock SelectedNodeBlock
         {
             get
@@ -19,6 +24,9 @@
         {
             MouseDown += ManageSelection;
             ContextClick += ManageRightClick;
+
+			// Debug
+			KeyDown += DumpModel;
         }
 
         private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)
@@ -51,4 +59,28 @@
             }
             return false;
         }
-    }}
+
+		private bool DumpModel(CanvasElement element, Event e, Canvas2D parent)
+		{
+			if (e.character == 'd')
+			{
+				VFXEditor.Log("Nb Systems: " + VFXEditor.AssetModel.GetNbChildren());
+				for (int i = 0; i < VFXEditor.AssetModel.GetNbChildren(); ++i)
+				{
+					VFXSystemModel system = VFXEditor.AssetModel.GetChild(i);
+					VFXEditor.Log("\tSystem " + i);
+					for (int j = 0; j < system.GetNbChildren(); ++j)
+					{
+						VFXEditor.Log("\t\tContext " + j + " " + system.GetChild(j).GetContextType());
+					}
+				}
+
+				Repaint();
+				return true;
+			}
+
+			return false;
+		}
+    }
+
+}

@@ -20,9 +20,9 @@ namespace UnityEditor.Experimental
 
 	public class VFXSystemModel : VFXElementModelTyped<VFXAssetModel, VFXContextModel>
 	{
-		public override bool CanAttach(VFXElementModel element, int index)
+		public override bool CanAddChild(VFXElementModel element, int index)
 		{
-			if (base.CanAttach(element, index))
+			if (!base.CanAddChild(element, index))
 				return false;
 
 			VFXContextModel.Type contextType = (element as VFXContextModel).GetContextType();
@@ -33,8 +33,38 @@ namespace UnityEditor.Experimental
 			int realIndex = index == -1 ? m_Children.Count : index;
 			if (realIndex > 0 && GetChild(realIndex - 1).GetContextType() > contextType)
 				return false;
-			if (realIndex < m_Children.Count && GetChild(realIndex).GetContextType() < contextType)
+			//if (realIndex < m_Children.Count && GetChild(realIndex).GetContextType() < contextType)
+			//	return false;
+
+			return true;
+		}
+
+		public static bool ConnectContext(VFXContextModel context0,VFXContextModel context1)
+		{
+			if (context0 == context1)
 				return false;
+
+			VFXSystemModel system0 = context0.GetOwner();
+			VFXSystemModel system1 = context1.GetOwner();
+
+			int context0Index = system0.m_Children.IndexOf(context0);
+			int context1Index = system1.m_Children.IndexOf(context1);
+
+			if (!system0.CanAddChild(context1, context0Index + 1))
+				return false;
+
+			// If context0 is not the last one in system0, we need to reattach following contexts to a new one
+			if (system0.GetNbChildren() > context0Index + 1)
+			{
+				VFXSystemModel newSystem = new VFXSystemModel();
+				while (system0.GetNbChildren() > context0Index + 1)
+					system0.m_Children[context0Index + 1].Attach(newSystem);
+				VFXEditor.AssetModel.AddChild(newSystem);
+			}
+		
+			// Then we append context1 and all following contexts to system0
+			while (system1.GetNbChildren() > context1Index)
+				system1.m_Children[context1Index].Attach(system0);
 
 			return true;
 		}
@@ -83,9 +113,9 @@ namespace UnityEditor.Experimental
 			m_Type = type;
 		}
 
-		public override bool CanAttach(VFXElementModel element, int index)
+		public override bool CanAddChild(VFXElementModel element, int index)
 		{
-			return base.CanAttach(element, index) && m_Type != Type.kTypeNone;
+			return base.CanAddChild(element, index) && m_Type != Type.kTypeNone;
 			// TODO Check if the block is compatible with the context
 		}
 
@@ -135,7 +165,7 @@ namespace UnityEditor.Experimental
 			}
 		}
 
-		public override bool CanAttach(VFXElementModel element, int index)
+		public override bool CanAddChild(VFXElementModel element, int index)
 		{
 			return false; // Nothing can be attached to Blocks !
 		}

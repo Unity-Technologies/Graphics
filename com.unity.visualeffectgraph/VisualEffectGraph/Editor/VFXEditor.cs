@@ -78,6 +78,16 @@ namespace UnityEditor.Experimental
             }
         }
 
+		public static VFXAssetModel AssetModel
+		{
+			get
+			{
+				if (s_AssetModel == null)
+					s_AssetModel = new VFXAssetModel();
+				return s_AssetModel;
+			}
+		}
+
         // DEBUG OUTPUT
         public static void Log(string s) {
             DebugLines.Add(s);
@@ -99,6 +109,7 @@ namespace UnityEditor.Experimental
         private static VFXEditorMetrics s_Metrics;
         private static VFXEditorStyles s_Styles;
         private static VFXBlockLibraryCollection s_BlockLibrary;
+		private static VFXAssetModel s_AssetModel;
         /* end Singletons */
 
         private VFXEdCanvas m_Canvas = null;
@@ -204,6 +215,12 @@ namespace UnityEditor.Experimental
             DrawWindows(canvasRect);
         }
 
+		void OnDestroy()
+		{
+			s_BlockLibrary = null;
+			s_AssetModel = null;
+			ClearLog();
+		}
 
         void DrawToolbar(Rect rect)
         {
@@ -286,7 +303,8 @@ namespace UnityEditor.Experimental
         }
 
         void DrawDebugWindowContent(int windowID) {
-            GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
+			m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, false);
+			GUILayout.Label(m_DebugLogScroll.ToString());
             GUILayout.Label(VFXEditor.GetDebugOutput());
             GUILayout.EndScrollView();
         }
