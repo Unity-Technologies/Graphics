@@ -96,13 +96,7 @@ namespace UnityEditor.Experimental
 
         public void AddNodeBlock(VFXEdNodeBlock block)
         {
-            if (block.parent == null)
-                AddChild(block);
-            else
-                block.SetParent(this);
-            m_NodeBlocks.Add(block);
-            block.translation = Vector3.zero;
-            Layout();
+			AddNodeBlock(block, m_NodeBlocks.Count);
         }
 
         public void AddNodeBlock(VFXEdNodeBlock block, int index)
@@ -114,6 +108,19 @@ namespace UnityEditor.Experimental
             m_NodeBlocks.Insert(index, block);
             block.translation = Vector3.zero;
             Layout();
+
+			// Update the model
+			VFXEdNode nodeParent = FindParent<VFXEdNode>();
+			if (nodeParent != null)
+				try
+				{
+					nodeParent.Model.Add(block.Model,index);
+				}
+				catch (Exception e)
+				{
+					Debug.LogError(e.ToString());
+				}
+				
         }
 
         public int GetBlockIndex(VFXEdNodeBlock block)
