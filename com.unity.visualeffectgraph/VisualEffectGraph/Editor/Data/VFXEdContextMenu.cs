@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental
 
             GenericMenu output = new GenericMenu();
 
-            output.AddItem(new GUIContent("New Node/Trigger"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Trigger ,SpawnType.Node));
+            output.AddItem(new GUIContent("New Node/Trigger"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.None ,SpawnType.TriggerNode));
             output.AddItem(new GUIContent("New Node/Initialize"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Initialize ,SpawnType.Node));
             output.AddItem(new GUIContent("New Node/Update"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Update ,SpawnType.Node));
             output.AddItem(new GUIContent("New Node/Output"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Output ,SpawnType.Node));

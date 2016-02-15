@@ -58,6 +58,9 @@ namespace UnityEditor.Experimental
             VFXEdSpawnData data = o as VFXEdSpawnData;
             VFXEdNode node = null;
             switch(data.spawnType) {
+                case SpawnType.TriggerNode:
+                    node = new VFXEdTriggerNode(data.mousePosition, this);
+                    break;
                 case SpawnType.DataNode:
                     node = new VFXEdDataNode(data.mousePosition, this);
                     break;
