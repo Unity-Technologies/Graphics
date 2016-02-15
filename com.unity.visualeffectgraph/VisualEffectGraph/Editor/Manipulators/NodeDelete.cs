@@ -82,9 +82,7 @@ namespace UnityEditor.Experimental
 					while (owner.GetNbChildren() > index)
 						owner.GetChild(index).Attach(newSystem);
 					newSystem.Attach(VFXEditor.AssetModel);
-				}
-
-				
+				}				
 			}
 			
             // Finally 

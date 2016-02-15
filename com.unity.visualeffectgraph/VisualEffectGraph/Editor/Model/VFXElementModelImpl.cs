@@ -45,10 +45,7 @@ namespace UnityEditor.Experimental
 				return false;
 
 			VFXSystemModel system0 = context0.GetOwner();
-			VFXSystemModel system1 = context1.GetOwner();
-
-			int context0Index = system0.m_Children.IndexOf(context0);
-			int context1Index = system1.m_Children.IndexOf(context1);
+			int context0Index = system0.m_Children.IndexOf(context0);		
 
 			if (!system0.CanAddChild(context1, context0Index + 1))
 				return false;
@@ -61,6 +58,9 @@ namespace UnityEditor.Experimental
 					system0.m_Children[context0Index + 1].Attach(newSystem);
 				VFXEditor.AssetModel.AddChild(newSystem);
 			}
+
+			VFXSystemModel system1 = context1.GetOwner();
+			int context1Index = system1.m_Children.IndexOf(context1);
 		
 			// Then we append context1 and all following contexts to system0
 			while (system1.GetNbChildren() > context1Index)
