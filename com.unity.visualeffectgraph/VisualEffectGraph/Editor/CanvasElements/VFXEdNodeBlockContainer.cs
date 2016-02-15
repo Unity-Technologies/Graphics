@@ -37,25 +37,17 @@ namespace UnityEditor.Experimental
         private VFXEdDataSource m_DataSource;
 
 
-        public VFXEdNodeBlockContainer(Vector2 size, VFXEdDataSource dataSource, string name)
+        public VFXEdNodeBlockContainer(Vector2 size, VFXEdDataSource dataSource)
         {
             translation = VFXEditorMetrics.NodeBlockContainerPosition;
             scale = size + VFXEditorMetrics.NodeBlockContainerSizeOffset;
             m_NodeBlocks = new List<VFXEdNodeBlock>();
             m_DataSource = dataSource;
             m_Caps = Capabilities.Normal;
-            this.ContextClick += ManageRightClick;
+            
         }
 
-        private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)
-        {
-            if (e.type == EventType.Used)
-                return false;
 
-            VFXEdContextMenu.NodeBlockMenu(ParentCanvas() as VFXEdCanvas, element.parent.parent as VFXEdNode, parent.MouseToCanvas(e.mousePosition), m_DataSource).ShowAsContext();
-            e.Use();
-            return true;
-        }
 
         public void UpdateCaptureDrop(Vector2 MousePosition)
         {
@@ -109,8 +101,8 @@ namespace UnityEditor.Experimental
             block.translation = Vector3.zero;
             Layout();
 
-			// Update the model
-			VFXEdNode nodeParent = FindParent<VFXEdNode>();
+			// Update the model if inside a Context Node
+			VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
 			if (nodeParent != null)
 				try
 				{

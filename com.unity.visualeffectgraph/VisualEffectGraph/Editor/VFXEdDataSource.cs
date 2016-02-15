@@ -80,20 +80,21 @@ namespace UnityEditor.Experimental
         public void AddEmptyNode(object o)
         {
             VFXEdSpawnData data = o as VFXEdSpawnData;
-            VFXEdNode node = new VFXEdNode(data.mousePosition,data.context, this);
-            AddNode(node);
-            data.targetCanvas.ReloadData();
+            VFXEdNode node = null;
+            switch(data.spawnType) {
+                case SpawnType.DataNode:
+                    node = new VFXEdDataNode(data.mousePosition, this);
+                    break;
+                case SpawnType.Node:
+                    node = new VFXEdContextNode(data.mousePosition,data.context, this);
+                    break;
+                default: break;
+            }
 
+            if(node != null) AddNode(node);
+            data.targetCanvas.ReloadData();
         }
 
-        public void AddSpecificNode(object o)
-        {
-            VFXEdSpawnData data = o as VFXEdSpawnData;
-            VFXEdNode node = new VFXEdNode(data.mousePosition, data.context, this);
-            node.AddNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName));
-            AddNode(node);
-            data.targetCanvas.ReloadData();
-        }
     }
 }
 

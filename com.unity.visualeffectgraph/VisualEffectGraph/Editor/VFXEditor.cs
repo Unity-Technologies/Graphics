@@ -303,10 +303,11 @@ namespace UnityEditor.Experimental
         }
 
         void DrawDebugWindowContent(int windowID) {
-			m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, false);
-			GUILayout.Label(m_DebugLogScroll.ToString());
-            GUILayout.Label(VFXEditor.GetDebugOutput());
-            GUILayout.EndScrollView();
+
+                m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
+                GUILayout.Label(VFXEditor.GetDebugOutput());
+                GUILayout.EndScrollView();
+
         }
         
 
@@ -331,7 +332,7 @@ namespace UnityEditor.Experimental
     public class VFXBlockLibraryCollection
     {
         private List<VFXBlock> m_Blocks;
-
+        
         public VFXBlockLibraryCollection()
         {
             m_Blocks = new List<VFXBlock>();
