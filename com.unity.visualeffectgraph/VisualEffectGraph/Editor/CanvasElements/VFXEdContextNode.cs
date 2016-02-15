@@ -49,6 +49,11 @@ namespace UnityEditor.Experimental
             m_Title = context.ToString();
             m_Context = context;
 
+			// Create a dummy System to hold the newly created context
+			VFXSystemModel systemModel = new VFXSystemModel();
+			systemModel.AddChild(m_Model);
+			VFXEditor.AssetModel.AddChild(systemModel);
+
             m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this,m_Context, m_DataSource, Direction.Input));
             m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), this,m_Context, m_DataSource, Direction.Output));
 

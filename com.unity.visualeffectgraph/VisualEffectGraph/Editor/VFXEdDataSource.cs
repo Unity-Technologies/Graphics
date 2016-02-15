@@ -44,14 +44,38 @@ namespace UnityEditor.Experimental
 
         public void Connect(VFXEdDataAnchor a, VFXEdDataAnchor b)
         {
-            m_Elements.Add(new Edge<VFXEdDataAnchor>(this, a, b));
+			m_Elements.Add(new Edge<VFXEdDataAnchor>(this, a, b));
         }
 
-        public void ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)
+        public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)
         {
-            m_Elements.Add(new FlowEdge<VFXEdFlowAnchor>(this, a, b));
-        }
+			VFXContextModel model0 = a.FindParent<VFXEdContextNode>().Model;
+			VFXContextModel model1 = b.FindParent<VFXEdContextNode>().Model;
 
+			if (a.GetDirection() == Direction.Input)
+			{
+				VFXContextModel tmp = model0;
+				model0 = model1;
+				model1 = tmp; 
+			}
+
+			if (!VFXSystemModel.ConnectContext(model0, model1))
+				return false;
+
+			var edgesToErase = new List<FlowEdge<VFXEdFlowAnchor>>();
+			foreach (CanvasElement element in  m_Elements)
+			{
+				FlowEdge<VFXEdFlowAnchor> edge = element as FlowEdge<VFXEdFlowAnchor>;
+				if (edge != null && (edge.Left == a || edge.Right == a || edge.Left == b || edge.Right == b))
+					edgesToErase.Add(edge);
+			}
+
+			foreach (var edge in edgesToErase)
+				m_Elements.Remove(edge);
+
+            m_Elements.Add(new FlowEdge<VFXEdFlowAnchor>(this, a, b));
+			return true;
+        }
 
         public void AddEmptyNode(object o)
         {

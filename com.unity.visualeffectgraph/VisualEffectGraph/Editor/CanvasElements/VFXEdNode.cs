@@ -39,8 +39,7 @@ namespace UnityEditor.Experimental
         protected VFXEdNodeBlockContainer m_NodeBlockContainer;
         protected Rect m_ClientArea;
         public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource)
-        {
-
+        {	
             m_DataSource = dataSource;
             translation = canvasposition;
 

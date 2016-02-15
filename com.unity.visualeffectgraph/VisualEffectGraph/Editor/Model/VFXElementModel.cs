@@ -7,9 +7,9 @@ namespace UnityEditor.Experimental
 {
 	public abstract class VFXElementModel
 	{
-		public void Add(VFXElementModel child, int index = -1,bool notify = true)
+		public void AddChild(VFXElementModel child, int index = -1,bool notify = true)
 		{
-			if (!CanAttach(child,index))
+			if (!CanAddChild(child, index))
 				throw new ArgumentException("Cannot attach " + child + " to " + this);
 
 			child.Detach(notify && child.m_Owner != this); // Dont notify if the owner is already this to avoid double invalidation
@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental
 			if (owner == null)
 				throw new ArgumentNullException();
 
-			owner.Add(this, -1, notify);
+			owner.AddChild(this, -1, notify);
 		}
 
 		public void Detach(bool notify = true)
@@ -54,8 +54,18 @@ namespace UnityEditor.Experimental
 			m_Owner.Remove(this, notify);
 		}
 
-		public abstract bool CanAttach(VFXElementModel element,int index);
+		public abstract bool CanAddChild(VFXElementModel element, int index);
 		public abstract void Invalidate();
+
+		public int GetNbChildren()
+		{
+			return m_Children.Count;
+		}
+
+		public int GetIndex(VFXElementModel element)
+		{
+			return m_Children.IndexOf(element);
+		}
 
 		protected VFXElementModel m_Owner;
 		protected List<VFXElementModel> m_Children = new List<VFXElementModel>();
@@ -65,7 +75,7 @@ namespace UnityEditor.Experimental
 		where OwnerType : VFXElementModel
 		where ChildrenType : VFXElementModel
 	{
-		public override bool CanAttach(VFXElementModel element,int index)
+		public override bool CanAddChild(VFXElementModel element, int index)
 		{
 			return index >= -1 && index <= m_Children.Count && element is ChildrenType;
 		}

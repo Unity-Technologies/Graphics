@@ -106,7 +106,7 @@ namespace UnityEditor.Experimental
 			if (nodeParent != null)
 				try
 				{
-					nodeParent.Model.Add(block.Model,index);
+					nodeParent.Model.AddChild(block.Model,index);
 				}
 				catch (Exception e)
 				{
@@ -122,7 +122,6 @@ namespace UnityEditor.Experimental
 
         public void RemoveNodeBlock(VFXEdNodeBlock block)
         {
-
             if (m_NodeBlocks.Contains(block))
             {
                 if ((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock == block)
@@ -132,9 +131,11 @@ namespace UnityEditor.Experimental
                 m_NodeBlocks.Remove(block);
                 m_Children.Remove(block);
 
+				// update model
+				block.Model.Detach();
+
                 Layout();
                 Invalidate();
-
             }
         }
 
