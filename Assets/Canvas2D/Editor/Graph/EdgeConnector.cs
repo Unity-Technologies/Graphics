@@ -243,43 +243,44 @@ namespace UnityEditor.Experimental.Graph
 
         public static void GetTangents(Direction direction, Orientation orientation, Vector2 start, Vector2 end, out Vector3[] points, out Vector3[] tangents)
         {
-            if (direction == Direction.Output)
-            {
-                Vector2 t = end;
-                end = start;
-                start = t;
-            }
+			if (direction == Direction.Output)
+			{
+				Vector2 t = end;
+				end = start;
+				start = t;
+			}
 
-            bool invert = false;
-            if (end.x < start.x)
-            {
-                Vector3 t = start;
-                start = end;
-                end = t;
-                invert = true;
-            }
+			bool invert = false;
+			if ((end.x < start.x && orientation == Orientation.Horizontal) || (end.y < start.y && orientation == Orientation.Vertical))
+			{
+				Vector3 t = start;
+				start = end;
+				end = t;
+				invert = true;
+			}
 
-            points = new Vector3[] {start, end};
-            tangents = new Vector3[2];
+			points = new Vector3[] { start, end };
+			tangents = new Vector3[2];
 
-            const float minTangent = 30;
+			const float minTangent = 30;
 
-            float weight = .5f;
-            float weight2 = 1 - weight;
-            float y = 0;
+			float weight = .5f;
+			float weight2 = 1 - weight;
+			float y = 0;
 
-            float cleverness = Mathf.Clamp01(((start - end).magnitude - 10) / 50);
+			float cleverness = Mathf.Clamp01(((start - end).magnitude - 10) / 50);
 
-            if (orientation == Orientation.Horizontal)
-            {
-                tangents[0] = start + new Vector2((end.x - start.x) * weight + minTangent, y) * cleverness;
-                tangents[1] = end + new Vector2((end.x - start.x) * -weight2 - minTangent, -y) * cleverness;
-            } else 
-            {
-                float inverse = (invert) ? 1.0f : -1.0f;
-                tangents[0] = start + new Vector2(y, inverse* ((end.x - start.x) * weight + minTangent)) * cleverness;
-                tangents[1] = end + new Vector2(-y, inverse * ((end.x - start.x) * -weight2 - minTangent)) * cleverness;
-            }
+			if (orientation == Orientation.Horizontal)
+			{
+				tangents[0] = start + new Vector2((end.x - start.x) * weight + minTangent, y) * cleverness;
+				tangents[1] = end + new Vector2((end.x - start.x) * -weight2 - minTangent, -y) * cleverness;
+			}
+			else
+			{
+				float inverse = (invert) ? 1.0f : -1.0f;
+				tangents[0] = start + new Vector2(y, inverse * ((end.y - start.y) * weight + minTangent)) * cleverness;
+				tangents[1] = end + new Vector2(-y, inverse * ((end.y - start.y) * -weight2 - minTangent)) * cleverness;
+			}
         }
 
 
