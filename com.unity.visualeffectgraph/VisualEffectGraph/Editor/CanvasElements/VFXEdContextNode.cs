@@ -29,30 +29,30 @@ namespace UnityEditor.Experimental
             : base (canvasPosition, dataSource)
         {
             // TODO Use only one enum
-			VFXContextModel.Type type;
-			switch (context)
-			{
-				case VFXEdContext.Initialize:
-					type = VFXContextModel.Type.kTypeInit;
-					break;
-				case VFXEdContext.Update:
-					type = VFXContextModel.Type.kTypeUpdate;
-					break;
-				case VFXEdContext.Output:
-					type = VFXContextModel.Type.kTypeOutput;
-					break;
-				default:
-					type = VFXContextModel.Type.kTypeNone;
-					break;
-			}
-			m_Model = new VFXContextModel(type);
+            VFXContextModel.Type type;
+            switch (context)
+            {
+                case VFXEdContext.Initialize:
+                    type = VFXContextModel.Type.kTypeInit;
+                    break;
+                case VFXEdContext.Update:
+                    type = VFXContextModel.Type.kTypeUpdate;
+                    break;
+                case VFXEdContext.Output:
+                    type = VFXContextModel.Type.kTypeOutput;
+                    break;
+                default:
+                    type = VFXContextModel.Type.kTypeNone;
+                    break;
+            }
+            m_Model = new VFXContextModel(type);
             m_Title = context.ToString();
             m_Context = context;
 
-			// Create a dummy System to hold the newly created context
-			VFXSystemModel systemModel = new VFXSystemModel();
-			systemModel.AddChild(m_Model);
-			VFXEditor.AssetModel.AddChild(systemModel);
+            // Create a dummy System to hold the newly created context
+            VFXSystemModel systemModel = new VFXSystemModel();
+            systemModel.AddChild(m_Model);
+            VFXEditor.AssetModel.AddChild(systemModel);
 
             m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), m_Context, m_DataSource, Direction.Input));
             m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), m_Context, m_DataSource, Direction.Output));

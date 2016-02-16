@@ -41,10 +41,27 @@ namespace UnityEditor.Experimental
         public void DeleteElement(CanvasElement e)
         {
             Canvas2D canvas = e.ParentCanvas();
+
+            // Handle model update when deleting edge here
+            var edge = e as FlowEdge<VFXEdFlowAnchor>;
+            if (edge != null)
+            {
+                VFXEdFlowAnchor anchor = edge.Right;
+                var node = anchor.FindParent<VFXEdContextNode>();
+
+                VFXSystemModel owner = node.Model.GetOwner();
+                int index = owner.GetIndex(node.Model);
+
+                VFXSystemModel newSystem = new VFXSystemModel();
+                while (owner.GetNbChildren() > index)
+                    owner.GetChild(index).Attach(newSystem);
+                newSystem.Attach(VFXEditor.AssetModel);
+            }
+
+
             m_Elements.Remove(e);
             canvas.ReloadData();
             canvas.Repaint();
-
         }
 
         public void Connect(VFXEdDataAnchor a, VFXEdDataAnchor b)
