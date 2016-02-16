@@ -5,89 +5,89 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Experimental
 {
-	public abstract class VFXElementModel
-	{
-		public void AddChild(VFXElementModel child, int index = -1,bool notify = true)
-		{
-			if (!CanAddChild(child, index))
-				throw new ArgumentException("Cannot attach " + child + " to " + this);
+    public abstract class VFXElementModel
+    {
+        public void AddChild(VFXElementModel child, int index = -1, bool notify = true)
+        {
+            if (!CanAddChild(child, index))
+                throw new ArgumentException("Cannot attach " + child + " to " + this);
 
-			child.Detach(notify && child.m_Owner != this); // Dont notify if the owner is already this to avoid double invalidation
-			
-			int realIndex = index == -1 ? m_Children.Count : index;
-			m_Children.Insert(realIndex, child);
-			child.m_Owner = this;
-			
-			if (notify)
-				Invalidate();
+            child.Detach(notify && child.m_Owner != this); // Dont notify if the owner is already this to avoid double invalidation
 
-			Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
-		}
+            int realIndex = index == -1 ? m_Children.Count : index;
+            m_Children.Insert(realIndex, child);
+            child.m_Owner = this;
 
-		public void Remove(VFXElementModel child, bool notify = true)
-		{
-			if (child.m_Owner != this)
-				return;
+            if (notify)
+                Invalidate();
 
-			m_Children.Remove(child);
-			child.m_Owner = null;
-			
-			if (notify)
-				Invalidate();
+            Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
+        }
 
-			Debug.Log("Detach " + child + " to " + this);
-		}
+        public void Remove(VFXElementModel child, bool notify = true)
+        {
+            if (child.m_Owner != this)
+                return;
 
-		public void Attach(VFXElementModel owner, bool notify = true)
-		{
-			if (owner == null)
-				throw new ArgumentNullException();
+            m_Children.Remove(child);
+            child.m_Owner = null;
 
-			owner.AddChild(this, -1, notify);
-		}
+            if (notify)
+                Invalidate();
 
-		public void Detach(bool notify = true)
-		{
-			if (m_Owner == null)
-				return;
+            Debug.Log("Detach " + child + " to " + this);
+        }
 
-			m_Owner.Remove(this, notify);
-		}
+        public void Attach(VFXElementModel owner, bool notify = true)
+        {
+            if (owner == null)
+                throw new ArgumentNullException();
 
-		public abstract bool CanAddChild(VFXElementModel element, int index);
-		public abstract void Invalidate();
+            owner.AddChild(this, -1, notify);
+        }
 
-		public int GetNbChildren()
-		{
-			return m_Children.Count;
-		}
+        public void Detach(bool notify = true)
+        {
+            if (m_Owner == null)
+                return;
 
-		public int GetIndex(VFXElementModel element)
-		{
-			return m_Children.IndexOf(element);
-		}
+            m_Owner.Remove(this, notify);
+        }
 
-		protected VFXElementModel m_Owner;
-		protected List<VFXElementModel> m_Children = new List<VFXElementModel>();
-	}
+        public abstract bool CanAddChild(VFXElementModel element, int index);
+        public abstract void Invalidate();
 
-	public abstract class VFXElementModelTyped<OwnerType, ChildrenType> : VFXElementModel
-		where OwnerType : VFXElementModel
-		where ChildrenType : VFXElementModel
-	{
-		public override bool CanAddChild(VFXElementModel element, int index)
-		{
-			return index >= -1 && index <= m_Children.Count && element is ChildrenType;
-		}
+        public int GetNbChildren()
+        {
+            return m_Children.Count;
+        }
 
-		public ChildrenType GetChild(int index)
-		{
-			return m_Children[index] as ChildrenType;
-		}
+        public int GetIndex(VFXElementModel element)
+        {
+            return m_Children.IndexOf(element);
+        }
 
-		public OwnerType GetOwner()
-		{
-			return m_Owner as OwnerType;
-		}
-	}
+        protected VFXElementModel m_Owner;
+        protected List<VFXElementModel> m_Children = new List<VFXElementModel>();
+    }
+
+    public abstract class VFXElementModelTyped<OwnerType, ChildrenType> : VFXElementModel
+        where OwnerType : VFXElementModel
+        where ChildrenType : VFXElementModel
+    {
+        public override bool CanAddChild(VFXElementModel element, int index)
+        {
+            return index >= -1 && index <= m_Children.Count && element is ChildrenType;
+        }
+
+        public ChildrenType GetChild(int index)
+        {
+            return m_Children[index] as ChildrenType;
+        }
+
+        public OwnerType GetOwner()
+        {
+            return m_Owner as OwnerType;
+        }
+    }
 }
