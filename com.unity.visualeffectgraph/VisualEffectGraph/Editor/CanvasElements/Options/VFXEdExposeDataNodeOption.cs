@@ -27,7 +27,10 @@ namespace UnityEditor.Experimental
 
             Rect iconRect = VFXEditor.styles.NodeOption.padding.Remove(GetDrawableRect());
             iconRect = new RectOffset(4, 4, 4, 4).Remove(iconRect);
-            GUI.DrawTexture(iconRect, VFXEditor.styles.GetIcon("Config"));
+            if (!Enabled)
+                GUI.color = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+            GUI.DrawTexture(iconRect, VFXEditor.styles.GetIcon("Config"),ScaleMode.ScaleToFit,true,0);
+            GUI.color = Color.white;
         }
     }
 }

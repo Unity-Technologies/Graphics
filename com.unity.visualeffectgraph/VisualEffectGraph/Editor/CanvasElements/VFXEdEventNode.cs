@@ -22,8 +22,8 @@ namespace UnityEditor.Experimental
             m_Outputs.Add(new VFXEdFlowAnchor(0, typeof(float), VFXEdContext.Trigger, m_DataSource, Direction.Output));
             m_Output = m_Outputs[0];
             AddChild(m_Output);
-
-
+            ZSort();
+            Layout();
         }
 
         public override void Layout()

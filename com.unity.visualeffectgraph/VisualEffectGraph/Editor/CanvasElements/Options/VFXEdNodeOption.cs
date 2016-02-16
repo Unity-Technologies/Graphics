@@ -28,6 +28,7 @@ namespace UnityEditor.Experimental
             {
                 m_bEnabled = !m_bEnabled;
                 e.Use();
+                element.Invalidate();
                 return true;
             }
 

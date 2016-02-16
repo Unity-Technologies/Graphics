@@ -16,10 +16,9 @@ namespace UnityEditor.Experimental
             : base (canvasposition, dataSource)
         {
             m_Title = "Data Node";
-
             m_ExposeOption = new VFXEdExposeDataNodeOption();
             this.AddChild(m_ExposeOption);
-            this.AddManipulator(new ImguiContainer());
+            Layout();
         }
 
         public override void Layout()
@@ -28,6 +27,16 @@ namespace UnityEditor.Experimental
             m_ExposeOption.translation = m_ClientArea.position + new Vector2(8.0f,-4.0f);
         }
 
+        public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool AcceptNodeBlock(VFXEdNodeBlock block)
+        {
+            // TODO : Add VFXEdDataNodeBlock
+            return false;
+        }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {

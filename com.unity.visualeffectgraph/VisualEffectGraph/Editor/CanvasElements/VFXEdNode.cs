@@ -22,7 +22,6 @@ namespace UnityEditor.Experimental
             get { return m_NodeBlockContainer; }
         }
 
-        
         protected string m_Title;
 
 
@@ -40,11 +39,8 @@ namespace UnityEditor.Experimental
             m_NodeBlockContainer = new VFXEdNodeBlockContainer(this.scale, dataSource);
             AddChild(m_NodeBlockContainer);
 
-            
-
-            AllEvents += ManageSelection;
+            MouseDown += ManageSelection;
             this.ContextClick += ManageRightClick;
-            //Layout();
 
         }
 
@@ -59,27 +55,31 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public void MenuAddNodeBlock(object o) {
-
+        public void MenuAddNodeBlock(object o)
+        {
             VFXEdSpawnData data = o as VFXEdSpawnData;
-            VFXEdNodeBlock block = new VFXEdNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName), m_DataSource);
             AddNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName));
             data.targetCanvas.ReloadData();
             Layout();
         }
 
-        public void AddNodeBlock(VFXBlock block) {
-            NodeBlockContainer.AddNodeBlock(new VFXEdNodeBlock(block, m_DataSource));
+        public void AddNodeBlock(VFXBlock block)
+        {
+            NodeBlockContainer.AddNodeBlock(new VFXEdProcessingNodeBlock(block, m_DataSource));
         }
+
+        public abstract bool AcceptNodeBlock(VFXEdNodeBlock block);
+
+        public abstract void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index);
 
 
 
         private bool ManageSelection(CanvasElement element, Event e, Canvas2D parent)
         {
+
             if (selected)
             {
                 (parent as VFXEdCanvas).SetSelectedNodeBlock(null);
-                
             }
 
             return false;

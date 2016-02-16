@@ -48,14 +48,17 @@ namespace UnityEditor.Experimental
             {
                 VFXEdFlowAnchor anchor = edge.Right;
                 var node = anchor.FindParent<VFXEdContextNode>();
+                if(node != null)
+                {
+                    VFXSystemModel owner = node.Model.GetOwner();
+                    int index = owner.GetIndex(node.Model);
 
-                VFXSystemModel owner = node.Model.GetOwner();
-                int index = owner.GetIndex(node.Model);
+                    VFXSystemModel newSystem = new VFXSystemModel();
+                    while (owner.GetNbChildren() > index)
+                        owner.GetChild(index).Attach(newSystem);
+                    newSystem.Attach(VFXEditor.AssetModel);
+                }
 
-                VFXSystemModel newSystem = new VFXSystemModel();
-                while (owner.GetNbChildren() > index)
-                    owner.GetChild(index).Attach(newSystem);
-                newSystem.Attach(VFXEditor.AssetModel);
             }
 
 

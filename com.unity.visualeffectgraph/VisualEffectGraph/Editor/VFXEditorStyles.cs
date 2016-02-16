@@ -33,6 +33,8 @@ namespace UnityEditor.Experimental
         public GUIStyle NodeBlockParameter;
         public GUIStyle NodeBlockDropSeparator;
 
+        public GUIStyle ForbidDrop;
+        
 
         public GUIStyle ConnectorLeft;
         public GUIStyle ConnectorRight;
@@ -159,6 +161,11 @@ namespace UnityEditor.Experimental
             NodeBlockDropSeparator.name = "NodeBlockDropSeparator";
             NodeBlockDropSeparator.normal.background = EditorGUIUtility.Load("NodeBlock_DropSeparator.psd") as Texture2D;
             NodeBlockDropSeparator.border = new RectOffset(0, 24, 0, 8);
+
+            ForbidDrop = new GUIStyle();
+            ForbidDrop.name = "ForbidDrop";
+            ForbidDrop.normal.background = EditorGUIUtility.Load("Forbidden.psd") as Texture2D;
+
 
             ConnectorLeft = new GUIStyle();
             ConnectorLeft.name = "ConnectorLeft";

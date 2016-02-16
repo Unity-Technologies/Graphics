@@ -64,6 +64,19 @@ namespace UnityEditor.Experimental
 
         }
 
+        public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
+        {
+            Model.AddChild((nodeblock as VFXEdProcessingNodeBlock).Model,index);
+        }
+
+        public override bool AcceptNodeBlock(VFXEdNodeBlock block)
+        {
+            if (block is VFXEdProcessingNodeBlock)
+                return true;
+            else
+                return false;
+        }
+
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             Rect r = m_ClientArea;

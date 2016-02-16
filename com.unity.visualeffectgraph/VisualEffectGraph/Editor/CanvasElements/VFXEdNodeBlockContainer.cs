@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdNodeBlockContainer : CanvasElement
+    internal class VFXEdNodeBlockContainer: CanvasElement
     {
 
         internal class DropInfo
@@ -44,9 +44,7 @@ namespace UnityEditor.Experimental
             m_NodeBlocks = new List<VFXEdNodeBlock>();
             m_DataSource = dataSource;
             m_Caps = Capabilities.Normal;
-            
         }
-
 
 
         public void UpdateCaptureDrop(Vector2 MousePosition)
@@ -88,7 +86,7 @@ namespace UnityEditor.Experimental
 
         public void AddNodeBlock(VFXEdNodeBlock block)
         {
-			AddNodeBlock(block, m_NodeBlocks.Count);
+            AddNodeBlock(block, m_NodeBlocks.Count);
         }
 
         public void AddNodeBlock(VFXEdNodeBlock block, int index)
@@ -101,18 +99,18 @@ namespace UnityEditor.Experimental
             block.translation = Vector3.zero;
             Layout();
 
-			// Update the model if inside a Context Node
-			VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
-			if (nodeParent != null)
-				try
-				{
-					nodeParent.Model.AddChild(block.Model,index);
-				}
-				catch (Exception e)
-				{
-					Debug.LogError(e.ToString());
-				}
-				
+            // Update the model if inside a Context Node
+            VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
+            if (nodeParent != null)
+                try
+                {
+                    nodeParent.OnAddNodeBlock(block, index);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e.ToString());
+                }
+
         }
 
         public int GetBlockIndex(VFXEdNodeBlock block)
@@ -131,13 +129,13 @@ namespace UnityEditor.Experimental
                 m_NodeBlocks.Remove(block);
                 m_Children.Remove(block);
 
-				// update model
-				block.Model.Detach();
+                block.OnRemoved();
 
                 Layout();
                 Invalidate();
             }
         }
+
 
         public void AcceptDrop(VFXEdNodeBlock block)
         {
@@ -181,6 +179,7 @@ namespace UnityEditor.Experimental
         }
 
 
+
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             Rect r = GetDrawableRect();
@@ -201,6 +200,15 @@ namespace UnityEditor.Experimental
             {
                 GUI.Box(dropInfo.highlightRect, "", VFXEditor.styles.NodeBlockDropSeparator);
             }
+        }
+
+        public bool RenderOverlayForbiddenDrop(CanvasElement element, Event e, Canvas2D canvas)
+        {
+            GUI.color = Color.white;
+            Vector2 pos = canvas.CanvasToScreen(canvasBoundingRect.center);
+            Rect r = new Rect(pos - new Vector2(64f, 64f), new Vector2(128f, 128f));
+            GUI.DrawTexture(r, VFXEditor.styles.ForbidDrop.normal.background);
+            return false;
         }
 
     }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental
             if (notify)
                 Invalidate(InvalidationCause.kModelChanged);
 
-            Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
+           // Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
         }
 
         public void Remove(VFXElementModel child, bool notify = true)
@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental
             if (notify)
                 Invalidate(InvalidationCause.kModelChanged);
 
-            Debug.Log("Detach " + child + " to " + this);
+           // Debug.Log("Detach " + child + " to " + this);
         }
 
         public void Attach(VFXElementModel owner, bool notify = true)

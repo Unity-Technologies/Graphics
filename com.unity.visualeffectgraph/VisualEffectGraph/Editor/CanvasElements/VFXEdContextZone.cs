@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdContextZone : CanvasElement
     {
-
+        // TODO : Add logic to group same nodes into context zone
     }
 
     internal enum VFXEdContext {

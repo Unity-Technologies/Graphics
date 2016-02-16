@@ -11,13 +11,6 @@ namespace UnityEditor.Experimental
     internal class VFXEdTriggerNode : VFXEdNode
     {
 
-        public VFXContextModel Model
-        {
-            get { return m_Model; }
-        }
-
-        protected VFXContextModel m_Model;
-
         internal VFXEdTriggerNode(Vector2 canvasPosition, VFXEdDataSource dataSource) 
             : base (canvasPosition, dataSource)
         {
@@ -32,6 +25,17 @@ namespace UnityEditor.Experimental
             ZSort();
             Layout();
 
+        }
+
+        public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool AcceptNodeBlock(VFXEdNodeBlock block)
+        {
+            // TODO : Add VFXEdTriggerNodeBlock
+            return false;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
