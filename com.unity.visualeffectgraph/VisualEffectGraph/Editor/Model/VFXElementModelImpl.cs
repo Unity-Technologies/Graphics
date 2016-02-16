@@ -174,19 +174,29 @@ namespace UnityEditor.Experimental
             return false; // Nothing can be attached to Blocks !
         }
 
-        public void BindParam(VFXParamValue param,int index)
+        public void BindParam(VFXParamValue param,int index,bool reentrant = false)
         {
             if (index < 0 || index >= m_BlockDesc.m_Params.Length || param.ValueType != m_BlockDesc.m_Params[index].m_Type)
                 throw new ArgumentException();
+
+            if (!reentrant)
+            {
+                if (m_ParamValues[index] != null)
+                    m_ParamValues[index].Unbind(this, index, true);
+                param.Bind(this, index, true);
+            }
 
             m_ParamValues[index] = param;
             Invalidate(InvalidationCause.kParamChanged);
         }
 
-        public void UnbindParam(int index)
+        public void UnbindParam(int index, bool reentrant = false)
         {
             if (index < 0 || index >= m_BlockDesc.m_Params.Length)
                 throw new ArgumentException();
+
+            if (!reentrant && m_ParamValues[index] != null)
+                m_ParamValues[index].Unbind(this, index, true);
 
             m_ParamValues[index] = VFXParamValue.Create(m_BlockDesc.m_Params[index].m_Type);
             Invalidate(InvalidationCause.kParamChanged);
