@@ -54,8 +54,8 @@ namespace UnityEditor.Experimental
 			systemModel.AddChild(m_Model);
 			VFXEditor.AssetModel.AddChild(systemModel);
 
-            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this,m_Context, m_DataSource, Direction.Input));
-            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), this,m_Context, m_DataSource, Direction.Output));
+            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), m_Context, m_DataSource, Direction.Input));
+            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), m_Context, m_DataSource, Direction.Output));
 
             AddChild(inputs[0]);
             AddChild(outputs[0]);

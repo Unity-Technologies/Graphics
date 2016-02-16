@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental
         private VFXEdContext m_Context;
         
 
-        public VFXEdFlowAnchor(int portIndex, Type type, VFXEdNode node, VFXEdContext context, VFXEdDataSource data, Direction direction)
+        public VFXEdFlowAnchor(int portIndex, Type type, VFXEdContext context, VFXEdDataSource data, Direction direction)
         {
             m_Type = type;
             scale = new Vector3(64.0f, 32.0f, 1.0f);

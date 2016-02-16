@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal abstract class VFXEdNode : CanvasElement 
+    internal abstract class VFXEdNode : VFXEdNodeBase 
     {
 
         public string title
@@ -16,15 +16,6 @@ namespace UnityEditor.Experimental
             get { return m_Title; }
         }
 
-        public List<VFXEdFlowAnchor> inputs
-        {
-            get { return m_Inputs; }
-        }
-
-        public List<VFXEdFlowAnchor> outputs
-        {
-            get { return m_Outputs; }
-        }
 
         public VFXEdNodeBlockContainer NodeBlockContainer
         {
@@ -33,15 +24,13 @@ namespace UnityEditor.Experimental
 
         
         protected string m_Title;
-        protected VFXEdDataSource m_DataSource;
-        protected List<VFXEdFlowAnchor> m_Inputs;
-        protected List<VFXEdFlowAnchor> m_Outputs;
+
+
         protected VFXEdNodeBlockContainer m_NodeBlockContainer;
-        protected Rect m_ClientArea;
-        public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource)
+
+        public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource) : base(canvasposition, dataSource)
         {	
             m_DataSource = dataSource;
-            translation = canvasposition;
 
             scale = new Vector2(VFXEditorMetrics.NodeDefaultWidth, 100);
 
@@ -51,14 +40,11 @@ namespace UnityEditor.Experimental
             m_NodeBlockContainer = new VFXEdNodeBlockContainer(this.scale, dataSource);
             AddChild(m_NodeBlockContainer);
 
-            m_ClientArea = new Rect(0, 0, scale.x, scale.y);
-
-            AddManipulator(new Draggable());
-            AddManipulator(new NodeDelete());
+            
 
             AllEvents += ManageSelection;
             this.ContextClick += ManageRightClick;
-            Layout();
+            //Layout();
 
         }
 
@@ -106,10 +92,14 @@ namespace UnityEditor.Experimental
             float inputheight = 0.0f;
             if (inputs.Count > 0)
                 inputheight = VFXEditorMetrics.FlowAnchorSize.y;
+            else
+                inputheight = 16.0f;
 
             float outputheight = 0.0f;
             if (outputs.Count > 0)
                 outputheight = VFXEditorMetrics.FlowAnchorSize.y;
+            else
+                outputheight = 16.0f;
 
             m_ClientArea = new Rect(0.0f, inputheight, this.scale.x, m_NodeBlockContainer.scale.y+ VFXEditorMetrics.NodeHeaderHeight);
             m_ClientArea = VFXEditorMetrics.NodeClientAreaOffset.Add(m_ClientArea);
@@ -138,11 +128,9 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            
-            base.Render(parentRect, canvas);
             if (selected)
                     GUI.Box(m_ClientArea, "", VFXEditor.styles.NodeSelected);
-
+            base.Render(parentRect, canvas);
         }
 
 

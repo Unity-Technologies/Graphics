@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental
 {
     class FlowEdge<T> : Edge<T> where T : VFXEdFlowAnchor
     {
-        public Color EdgeColor { get { return new Color(m_edgeColor.r,m_edgeColor.g,m_edgeColor.b,0.25f); } }
+        public Color EdgeColor { get { return new Color(m_edgeColor.r,m_edgeColor.g,m_edgeColor.b,0.5f); } }
         public Color EdgeColorSelected { get { return m_edgeColor; } }
 
 

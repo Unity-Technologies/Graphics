@@ -10,6 +10,8 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEditorStyles
     {
+        public Font ImpactFont;
+
         public GUIStyle Empty;
 
         public GUIStyle Node;
@@ -21,6 +23,9 @@ namespace UnityEditor.Experimental
         public GUIStyle NodeParametersTitle;
 
         public GUIStyle NodeInfoText;
+
+        public GUIStyle NodeOption;
+
 
         public GUIStyle NodeBlock;
         public GUIStyle NodeBlockSelected;
@@ -43,10 +48,11 @@ namespace UnityEditor.Experimental
 
         public GUIStyle Context;
 
+        public GUIStyle EventNode;
+        public GUIStyle EventNodeText;
+
         public Texture2D FlowEdgeOpacity;
         public Texture2D FlowEdgeOpacitySelected;
-
-
 
         private Dictionary<string, Texture2D> m_icons;
         private Dictionary<VFXEdContext, Color> m_ContextColors;
@@ -70,6 +76,8 @@ namespace UnityEditor.Experimental
 
         internal VFXEditorStyles()
         {
+            ImpactFont = EditorGUIUtility.Load("Font/BebasNeue.otf") as Font;
+
             Empty = new GUIStyle();
             Empty.border = new RectOffset();
             Empty.padding = new RectOffset();
@@ -85,6 +93,7 @@ namespace UnityEditor.Experimental
             NodeSelected.name = "NodeSelected";
             NodeSelected.normal.background = EditorGUIUtility.Load("NodeBase_Selected.psd") as Texture2D;
 
+
             NodeTitle = new GUIStyle();
             NodeTitle.fontSize = 14;
             NodeTitle.fontStyle = FontStyle.Bold;
@@ -93,11 +102,19 @@ namespace UnityEditor.Experimental
             NodeTitle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
 
             NodeInfoText = new GUIStyle();
+            NodeInfoText.name = "NodeInfoText";
             NodeInfoText.fontSize = 12;
             NodeInfoText.fontStyle = FontStyle.Normal;
             NodeInfoText.padding = new RectOffset(12, 12, 12, 12);
             NodeInfoText.alignment = TextAnchor.MiddleCenter;
             NodeInfoText.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
+
+            NodeOption = new GUIStyle();
+            NodeOption.name = "NodeOption";
+            NodeOption.padding = new RectOffset(4, 4, 2, 6);
+            NodeOption.normal.background = EditorGUIUtility.Load("NodeOption_Background.psd") as Texture2D;
+
+
 
             NodeData = new GUIStyle(Node);
             NodeData.name = "NodeData";
@@ -183,8 +200,21 @@ namespace UnityEditor.Experimental
             Context.normal.background = EditorGUIUtility.Load("Context.psd") as Texture2D;
             Context.border = new RectOffset(8, 9, 9, 12);
 
+            EventNode = new GUIStyle();
+            EventNode.name = "EventNode";
+            EventNode.normal.background = EditorGUIUtility.Load("BlockBase.psd") as Texture2D;
+            EventNode.border = new RectOffset(9, 9, 9, 12);
+
+            EventNodeText = new GUIStyle();
+            EventNodeText.name = "EventNodeText";
+            EventNodeText.font = ImpactFont;
+            EventNodeText.fontSize = 64;
+            EventNodeText.alignment = TextAnchor.MiddleCenter;
+            EventNodeText.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
+
             FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
             FlowEdgeOpacitySelected = EditorGUIUtility.Load("FlowEdge_Selected.psd") as Texture2D;
+
 
 
             m_icons = new Dictionary<string, Texture2D>();
@@ -193,8 +223,8 @@ namespace UnityEditor.Experimental
 
             m_ContextColors = new Dictionary<VFXEdContext, Color>();
             
-            m_ContextColors.Add(VFXEdContext.None,          new Color(0.500f, 0.500f, 0.500f, 1.0f));
-            m_ContextColors.Add(VFXEdContext.Trigger,       new Color(0.750f, 0.750f, 0.750f, 1.0f));
+            m_ContextColors.Add(VFXEdContext.None,          new Color(0.500f, 0.000f, 0.000f, 1.0f));
+            m_ContextColors.Add(VFXEdContext.Trigger,       new Color(0.500f, 0.500f, 0.500f, 1.0f));
             m_ContextColors.Add(VFXEdContext.Initialize,    new Color(0.403f, 0.345f, 0.215f, 1.0f));
             m_ContextColors.Add(VFXEdContext.Update,        new Color(0.215f, 0.301f, 0.403f, 1.0f));
             m_ContextColors.Add(VFXEdContext.Output,        new Color(0.364f, 0.278f, 0.388f, 1.0f));

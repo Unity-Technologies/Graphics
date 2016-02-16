@@ -38,16 +38,16 @@ namespace UnityEditor.Experimental
                 return false;
             }
 
-            if (!(element is VFXEdNode) || !element.selected)
+            if (!(element is VFXEdNodeBase) || !element.selected)
             {
                 return false;
             }
 
             // Prepare undo
-            (canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting Node" + (element as VFXEdNode).title);
+            (canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting Node" + (element as VFXEdNodeBase).ToString());
 
             // Delete Edges
-            VFXEdNode node = element as VFXEdNode;
+            VFXEdNodeBase node = element as VFXEdNodeBase;
             List<CanvasElement> todelete = new List<CanvasElement>();
 
             foreach (CanvasElement ce in canvas.dataSource.FetchElements())
