@@ -9,13 +9,25 @@ namespace UnityEditor.Experimental
     {
         public override void Invalidate(InvalidationCause cause)
         {
-            // Nothing
+            m_NeedsCheck = true;
         }
 
-        public void Dump()
+        public void Update()
         {
-            // TODO log debug info
+            if (m_NeedsCheck)
+            {
+                VFXEditor.Log("\n**** VFXAsset is dirty ****");
+                for (int i = 0; i < GetNbChildren(); ++i)
+                {
+                    VFXEditor.Log("Recompile system " + i + " if needed ");
+                    if (!GetChild(i).RecompileIfNeeded())
+                        VFXEditor.Log("No need to recompile");
+                }
+                m_NeedsCheck = false;
+            }    
         }
+
+        private bool m_NeedsCheck = false;
     }
 
     public class VFXSystemModel : VFXElementModelTyped<VFXAssetModel, VFXContextModel>
@@ -77,19 +89,22 @@ namespace UnityEditor.Experimental
                 return;
             }
 
-            // TODO
-            // gather attributes and check if attributes layout has changed
-
             m_Dirty = true;
+
+            if (m_Owner != null)
+                m_Owner.Invalidate(cause);
         }
 
-        public void RecompileIfNeeded()
+        public bool RecompileIfNeeded()
         {
             if (m_Dirty)
             {
-                // TODO Recompile
+                VFXModelCompiler.CompileSystem(this);
                 m_Dirty = false;
+                return true;
             }
+
+            return false;
         }
 
         private bool m_Dirty = true;
@@ -121,9 +136,6 @@ namespace UnityEditor.Experimental
 
         public override void Invalidate(InvalidationCause cause)
         {
-            // TODO
-            // Recompute parameters field
-
             if (m_Owner != null && m_Type != Type.kTypeNone)
                 m_Owner.Invalidate(cause);
         }
@@ -167,6 +179,11 @@ namespace UnityEditor.Experimental
                     Invalidate(InvalidationCause.kModelChanged);
                 }
             }
+        }
+
+        public VFXParamValue GetParamValue(int index)
+        {
+            return m_ParamValues[index];
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)

@@ -90,18 +90,15 @@ namespace UnityEditor.Experimental
 
         // DEBUG OUTPUT
         public static void Log(string s) {
-            DebugLines.Add(s);
+            DebugLines += s;
+            DebugLines += "\n";
         }
         public static void ClearLog() {
-            DebugLines.Clear();
+            DebugLines = "";
         }
-        private static List<string> DebugLines = new List<string>();
+        private static string DebugLines = "";
         private static string GetDebugOutput() {
-            string output = "";
-            foreach (string s in VFXEditor.DebugLines) {
-                output += s + "\n";
-            }
-            return output;
+            return DebugLines;
                 
         }
         // END DEBUG OUTPUT
@@ -206,6 +203,8 @@ namespace UnityEditor.Experimental
             {
                 InitializeCanvas();
             }
+
+            AssetModel.Update();
 
             titleContent = new GUIContent("VFX Editor", m_Icon);
 

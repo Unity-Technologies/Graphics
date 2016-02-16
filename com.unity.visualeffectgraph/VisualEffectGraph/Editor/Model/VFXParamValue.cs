@@ -81,8 +81,6 @@ namespace UnityEditor.Experimental
     {
         private T m_Value = default(T);
 
-        public void test() {}
-
         public T Value
         {
             get { return m_Value; }
@@ -95,6 +93,11 @@ namespace UnityEditor.Experimental
                         binding.m_Model.Invalidate(VFXElementModel.InvalidationCause.kParamChanged);
                 }
             }
+        }
+
+        public override string ToString()
+        {
+            return m_Value.ToString();
         }
     }
 
