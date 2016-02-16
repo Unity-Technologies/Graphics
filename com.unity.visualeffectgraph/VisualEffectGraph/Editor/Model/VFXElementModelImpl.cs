@@ -147,6 +147,10 @@ namespace UnityEditor.Experimental
 		public VFXBlockModel(VFXBlock desc)
 		{
 			m_BlockDesc = desc;
+			int nbParams = desc.m_Params.Length;
+			m_ParamValues = new VFXParamValue[nbParams];
+			for (int i = 0; i < nbParams; ++i)
+				m_ParamValues[i] = VFXParamValue.Create(desc.m_Params[i].m_Type); // Create default bindings
 		}
 
 		public VFXBlock Desc
@@ -171,6 +175,6 @@ namespace UnityEditor.Experimental
 		}
 
 		private VFXBlock m_BlockDesc;
-		// TODO Store the uniform here ?
+		private VFXParamValue[] m_ParamValues;
 	}
 }

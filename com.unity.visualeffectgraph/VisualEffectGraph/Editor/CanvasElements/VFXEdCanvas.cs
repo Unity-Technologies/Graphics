@@ -71,7 +71,10 @@ namespace UnityEditor.Experimental
 					VFXEditor.Log("\tSystem " + i);
 					for (int j = 0; j < system.GetNbChildren(); ++j)
 					{
-						VFXEditor.Log("\t\tContext " + j + " " + system.GetChild(j).GetContextType());
+						VFXContextModel context = system.GetChild(j);
+						VFXEditor.Log("\t\tContext " + j + " " + context.GetContextType());
+						for (int k = 0; k < context.GetNbChildren(); ++k)
+							VFXEditor.Log("\t\t\t" + k + " " + context.GetChild(k).Desc.m_Name);
 					}
 				}
 
