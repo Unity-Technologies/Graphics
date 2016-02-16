@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental
 {
     public class VFXAssetModel : VFXElementModelTyped<VFXElementModel, VFXSystemModel>
     {
-        public override void Invalidate()
+        public override void Invalidate(InvalidationCause cause)
         {
             // Nothing
         }
@@ -69,7 +69,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void Invalidate()
+        public override void Invalidate(InvalidationCause cause)
         {
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
@@ -119,13 +119,13 @@ namespace UnityEditor.Experimental
             // TODO Check if the block is compatible with the context
         }
 
-        public override void Invalidate()
+        public override void Invalidate(InvalidationCause cause)
         {
             // TODO
             // Recompute parameters field
 
             if (m_Owner != null && m_Type != Type.kTypeNone)
-                m_Owner.Invalidate();
+                m_Owner.Invalidate(cause);
         }
 
         public Type GetContextType()
@@ -138,10 +138,10 @@ namespace UnityEditor.Experimental
 
     public class VFXBlockModel : VFXElementModelTyped<VFXContextModel, VFXElementModel>
     {
-        public override void Invalidate()
+        public override void Invalidate(InvalidationCause cause)
         {
             if (m_Owner != null)
-                m_Owner.Invalidate();
+                m_Owner.Invalidate(cause);
         }
 
         public VFXBlockModel(VFXBlock desc)
@@ -164,7 +164,7 @@ namespace UnityEditor.Experimental
                 if (m_BlockDesc == null || !m_BlockDesc.m_Hash.Equals(value.m_Hash)) // block desc has changed
                 {
                     m_BlockDesc = value;
-                    Invalidate();
+                    Invalidate(InvalidationCause.kModelChanged);
                 }
             }
         }
@@ -172,6 +172,24 @@ namespace UnityEditor.Experimental
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             return false; // Nothing can be attached to Blocks !
+        }
+
+        public void BindParam(VFXParamValue param,int index)
+        {
+            if (index < 0 || index >= m_BlockDesc.m_Params.Length || param.ValueType != m_BlockDesc.m_Params[index].m_Type)
+                throw new ArgumentException();
+
+            m_ParamValues[index] = param;
+            Invalidate(InvalidationCause.kParamChanged);
+        }
+
+        public void UnbindParam(int index)
+        {
+            if (index < 0 || index >= m_BlockDesc.m_Params.Length)
+                throw new ArgumentException();
+
+            m_ParamValues[index] = VFXParamValue.Create(m_BlockDesc.m_Params[index].m_Type);
+            Invalidate(InvalidationCause.kParamChanged);
         }
 
         private VFXBlock m_BlockDesc;

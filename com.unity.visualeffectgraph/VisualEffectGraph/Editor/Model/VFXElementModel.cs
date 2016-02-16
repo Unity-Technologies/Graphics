@@ -7,6 +7,12 @@ namespace UnityEditor.Experimental
 {
     public abstract class VFXElementModel
     {
+        public enum InvalidationCause
+        {
+            kModelChanged,
+            kParamChanged,
+        }
+
         public void AddChild(VFXElementModel child, int index = -1, bool notify = true)
         {
             if (!CanAddChild(child, index))
@@ -19,7 +25,7 @@ namespace UnityEditor.Experimental
             child.m_Owner = this;
 
             if (notify)
-                Invalidate();
+                Invalidate(InvalidationCause.kModelChanged);
 
             Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
         }
@@ -33,7 +39,7 @@ namespace UnityEditor.Experimental
             child.m_Owner = null;
 
             if (notify)
-                Invalidate();
+                Invalidate(InvalidationCause.kModelChanged);
 
             Debug.Log("Detach " + child + " to " + this);
         }
@@ -55,7 +61,7 @@ namespace UnityEditor.Experimental
         }
 
         public abstract bool CanAddChild(VFXElementModel element, int index);
-        public abstract void Invalidate();
+        public abstract void Invalidate(InvalidationCause cause);
 
         public int GetNbChildren()
         {

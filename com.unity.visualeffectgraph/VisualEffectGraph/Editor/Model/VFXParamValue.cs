@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental
     public abstract class VFXParamValue
     {
         private VFXParam.Type m_Type;
-        private List<VFXBlockModel> m_BoundModels = new List<VFXBlockModel>();
+        protected List<VFXBlockModel> m_BoundModels = new List<VFXBlockModel>();
 
         public VFXParam.Type ValueType
         {
@@ -40,7 +40,14 @@ namespace UnityEditor.Experimental
         public T Value
         {
             get { return m_Value; }
-            set { m_Value = value; } // TODO Propagate the change ?
+            set {
+                if (!m_Value.Equals(value))
+                {
+                    m_Value = value;
+                    foreach (var model in m_BoundModels)
+                        model.Invalidate(VFXElementModel.InvalidationCause.kParamChanged);
+                } 
+            }
         }
     }
 
