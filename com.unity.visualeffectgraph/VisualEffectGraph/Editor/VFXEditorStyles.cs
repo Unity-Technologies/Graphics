@@ -44,6 +44,8 @@ namespace UnityEditor.Experimental
         public GUIStyle Context;
 
         public Texture2D FlowEdgeOpacity;
+        public Texture2D FlowEdgeOpacitySelected;
+
 
 
         private Dictionary<string, Texture2D> m_icons;
@@ -182,6 +184,8 @@ namespace UnityEditor.Experimental
             Context.border = new RectOffset(8, 9, 9, 12);
 
             FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
+            FlowEdgeOpacitySelected = EditorGUIUtility.Load("FlowEdge_Selected.psd") as Texture2D;
+
 
             m_icons = new Dictionary<string, Texture2D>();
             GetIcon("Default");

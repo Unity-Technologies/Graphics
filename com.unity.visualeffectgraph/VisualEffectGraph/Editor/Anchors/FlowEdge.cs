@@ -7,11 +7,22 @@ namespace UnityEditor.Experimental
 {
     class FlowEdge<T> : Edge<T> where T : VFXEdFlowAnchor
     {
+        public Color EdgeColor { get { return new Color(m_edgeColor.r,m_edgeColor.g,m_edgeColor.b,0.25f); } }
+        public Color EdgeColorSelected { get { return m_edgeColor; } }
+
+
+
         private Color m_edgeColor = Color.gray;
         public FlowEdge(ICanvasDataSource data, T source, T target)
             : base(data, source, target)
         {
             m_edgeColor = VFXEditor.styles.GetContextColor(source.context);
+            caps = Capabilities.Normal;
+        }
+
+        public override bool Contains(Vector2 canvasPosition)
+        {
+            return base.Contains(canvasPosition);
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
@@ -22,7 +33,14 @@ namespace UnityEditor.Experimental
 
             Vector3[] points, tangents;
             EdgeConnector<T>.GetTangents(m_Left.GetDirection(), orientation, from, to, out points, out tangents);
-            Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], m_edgeColor, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
+
+            if (selected)
+            {
+                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], EdgeColorSelected, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
+                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], Color.white, VFXEditor.styles.FlowEdgeOpacitySelected, VFXEditorMetrics.FlowEdgeWidth);
+            }
+            else 
+                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], EdgeColor, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
 
         }
 
