@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental
         private string m_Name;
         private Texture2D m_Icon;
 
-        public VFXEdNodeBlockHeader(VFXEdDataSource dataSource, string Text,Texture2D icon,  bool Collapseable)
+        public VFXEdNodeBlockHeader(string Text, Texture2D icon, bool Collapseable)
         {
             translation = Vector3.zero;
             scale = new Vector2(100, VFXEditorMetrics.NodeBlockHeaderHeight);

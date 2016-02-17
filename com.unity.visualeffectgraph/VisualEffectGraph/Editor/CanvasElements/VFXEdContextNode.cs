@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Experimental;
@@ -64,6 +65,21 @@ namespace UnityEditor.Experimental
 
         }
 
+        protected override void ShowNodeBlockMenu(Vector2 canvasClickPosition)
+        {
+             GenericMenu menu = new GenericMenu();
+
+                ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
+
+                foreach (VFXBlock block in blocks)
+                {
+                // TODO : Only add item if block is compatible with current context.
+                    menu.AddItem(new GUIContent(block.m_Category + block.m_Name), false, AddNodeBlock, new VFXEdProcessingNodeBlock(block));
+                }
+
+            menu.ShowAsContext();
+        }
+
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
         {
             Model.AddChild((nodeblock as VFXEdProcessingNodeBlock).Model,index);
@@ -71,10 +87,7 @@ namespace UnityEditor.Experimental
 
         public override bool AcceptNodeBlock(VFXEdNodeBlock block)
         {
-            if (block is VFXEdProcessingNodeBlock)
-                return true;
-            else
-                return false;
+            return block is VFXEdProcessingNodeBlock;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)

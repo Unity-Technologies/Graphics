@@ -18,7 +18,7 @@ namespace UnityEditor.Experimental
         private VFXBlockModel m_Model;
         private VFXParamValue[] m_Params;
 
-        public VFXEdProcessingNodeBlock(VFXBlock block, VFXEdDataSource dataSource) : base(dataSource)
+        public VFXEdProcessingNodeBlock(VFXBlock block) : base()
         {
             m_Model = new VFXBlockModel(block);
             m_Params = new VFXParamValue[block.m_Params.Length];
@@ -29,7 +29,7 @@ namespace UnityEditor.Experimental
             }
             m_Name = block.m_Name;
 
-            AddChild(new VFXEdNodeBlockHeader(dataSource, m_Name, VFXEditor.styles.GetIcon(block.m_IconPath == "" ? "Default" : block.m_IconPath), block.m_Params.Length > 0 ? true : false));
+            AddChild(new VFXEdNodeBlockHeader(m_Name, VFXEditor.styles.GetIcon(block.m_IconPath == "" ? "Default" : block.m_IconPath), block.m_Params.Length > 0));
             AddManipulator(new ImguiContainer());
 
             Layout();
@@ -41,30 +41,12 @@ namespace UnityEditor.Experimental
             Model.Detach();
         }
 
-        // Retrieve the height of a given param
-        protected override float GetParamHeight(VFXParam param)
-        {
-            float height = VFXEditorMetrics.NodeBlockParameterHeight;
-            switch (param.m_Type)
-            {
-                case VFXParam.Type.kTypeFloat2:
-                case VFXParam.Type.kTypeFloat3:
-                case VFXParam.Type.kTypeFloat4:
-                    height += VFXEditorMetrics.NodeBlockAdditionalHeight;
-                    break;
-
-                default:
-                    break;
-            }
-            return height;
-        }
-
         // Retrieve the total height of a block
         protected override float GetHeight()
         {
             float height = VFXEditorMetrics.NodeBlockHeaderHeight;
             for (int i = 0; i < m_Model.Desc.m_Params.Length; ++i)
-                height += GetParamHeight(m_Model.Desc.m_Params[i]);
+                height += GetParamHeight(m_Model.Desc.m_Params[i].m_Type);
             return height;
         }
 
@@ -82,7 +64,7 @@ namespace UnityEditor.Experimental
                 {
                     VFXParam.Type paramType = m_Model.Desc.m_Params[i].m_Type;
 
-                    Rect rect = new Rect(r.x + posX, currentY, r.width - posX, GetParamHeight(m_Model.Desc.m_Params[i]) - 2);
+                    Rect rect = new Rect(r.x + posX, currentY, r.width - posX, GetParamHeight(m_Model.Desc.m_Params[i].m_Type) - 2);
                     GUI.Box(new Rect(r.x, currentY, VFXEditorMetrics.DataAnchorSize.x, VFXEditorMetrics.DataAnchorSize.y), "", VFXEditor.styles.ConnectorLeft);
                     currentY += rect.height;
 

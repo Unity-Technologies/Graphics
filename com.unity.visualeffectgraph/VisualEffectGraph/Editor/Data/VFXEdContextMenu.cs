@@ -14,41 +14,18 @@ namespace UnityEditor.Experimental
 
             GenericMenu output = new GenericMenu();
 
-            output.AddItem(new GUIContent("New Node/Event"), false, source.AddEventNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.None ,SpawnType.Event));
-            output.AddItem(new GUIContent("New Node/Trigger"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.None ,SpawnType.TriggerNode));
+            output.AddItem(new GUIContent("New Node/Event/On Start"), false, source.SpawnNode, new VFXEdEventNodeSpawner(source, canvas, canvasClickPosition,"Start"));
+            output.AddItem(new GUIContent("New Node/Event/On Stop"), false, source.SpawnNode, new VFXEdEventNodeSpawner(source, canvas, canvasClickPosition,"Stop"));
+            output.AddItem(new GUIContent("New Node/Event/On Pause"), false, source.SpawnNode, new VFXEdEventNodeSpawner(source, canvas, canvasClickPosition,"Pause"));
+
+            output.AddItem(new GUIContent("New Node/Trigger"), false, source.SpawnNode, new VFXEdTriggerNodeSpawner(source, canvas, canvasClickPosition));
             output.AddSeparator("New Node/");
-            output.AddItem(new GUIContent("New Node/Initialize"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Initialize ,SpawnType.Node));
-            output.AddItem(new GUIContent("New Node/Update"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Update ,SpawnType.Node));
-            output.AddItem(new GUIContent("New Node/Output"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.Output ,SpawnType.Node));
+            output.AddItem(new GUIContent("New Node/Initialize"), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, VFXEdContext.Initialize));
+            output.AddItem(new GUIContent("New Node/Update"), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, VFXEdContext.Update));
+            output.AddItem(new GUIContent("New Node/Output"), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, VFXEdContext.Output));
             output.AddSeparator("New Node/");
-            output.AddItem(new GUIContent("New Node/Data Node"), false, source.AddEmptyNode, new VFXEdSpawnData(canvas, canvasClickPosition, "", VFXEdContext.None ,SpawnType.DataNode));
+            output.AddItem(new GUIContent("New Node/Data Node"), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition));
             
-
-            return output;
-        }
-
-        internal static GenericMenu NodeBlockMenu(VFXEdCanvas canvas, VFXEdNode node, Vector2 canvasClickPosition, VFXEdDataSource source ) {
-
-            GenericMenu output = new GenericMenu();
-
-
-            if(node is VFXEdContextNode) {
-
-                ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
-                VFXEdContext context = (node as VFXEdContextNode).context;
-
-                foreach (VFXBlock block in blocks)
-                {
-                // TODO : Only add item if block is compatible with current context.
-                output.AddItem(new GUIContent(block.m_Category + block.m_Name), false, node.MenuAddNodeBlock, new VFXEdSpawnData(canvas, canvasClickPosition, block.m_Name, context, SpawnType.NodeBlock));
-                }
-            } 
-            else // For data/parameters
-            {
-
-            }
-
-
 
             return output;
         }

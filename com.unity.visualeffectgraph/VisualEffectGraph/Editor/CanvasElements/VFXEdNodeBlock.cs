@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental
 
         private NodeBlockManipulator m_NodeBlockManipulator;
 
-        public VFXEdNodeBlock(VFXEdDataSource dataSource)
+        public VFXEdNodeBlock()
         {
             
             translation = Vector3.zero; // zeroed by default, will be relayouted later.
@@ -25,11 +25,26 @@ namespace UnityEditor.Experimental
             AddManipulator(m_NodeBlockManipulator);
             AddManipulator(new NodeBlockDelete());
 
-
         }
 
-        // Retrieve the height of a given param
-        protected abstract float GetParamHeight(VFXParam param);
+        protected static float GetParamHeight(VFXParam.Type type)
+        {
+            float height = VFXEditorMetrics.NodeBlockParameterHeight;
+            switch (type)
+            {
+                case VFXParam.Type.kTypeFloat2:
+                case VFXParam.Type.kTypeFloat3:
+                case VFXParam.Type.kTypeFloat4:
+                case VFXParam.Type.kTypeTexture2D:
+                case VFXParam.Type.kTypeTexture3D:
+                    height += VFXEditorMetrics.NodeBlockAdditionalHeight;
+                    break;
+                default:
+                    break;
+            }
+            return height;
+        }
+
         // Retrieve the full height of the block
         protected abstract float GetHeight();
 
@@ -85,7 +100,6 @@ namespace UnityEditor.Experimental
 
             base.Render(parentRect, canvas);
         }
-
 
     }
 }

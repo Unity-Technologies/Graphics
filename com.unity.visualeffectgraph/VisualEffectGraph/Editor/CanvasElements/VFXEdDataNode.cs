@@ -27,15 +27,28 @@ namespace UnityEditor.Experimental
             m_ExposeOption.translation = m_ClientArea.position + new Vector2(8.0f,-4.0f);
         }
 
+        protected override void ShowNodeBlockMenu(Vector2 canvasClickPosition)
+        {
+           GenericMenu menu = new GenericMenu();
+
+                List<VFXDataBlock> blocks = VFXEditor.DataBlockLibrary.GetBlocks();
+
+                foreach (VFXDataBlock block in blocks)
+                {
+                    menu.AddItem(new GUIContent(block.path), false, AddNodeBlock, new VFXEdDataNodeBlock(block));
+                }
+
+            menu.ShowAsContext();
+        }
+
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
         {
-            throw new NotImplementedException();
+            
         }
 
         public override bool AcceptNodeBlock(VFXEdNodeBlock block)
         {
-            // TODO : Add VFXEdDataNodeBlock
-            return false;
+            return block is VFXEdDataNodeBlock;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)

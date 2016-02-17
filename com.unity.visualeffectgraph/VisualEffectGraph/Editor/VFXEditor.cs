@@ -78,6 +78,14 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public static VFXDataBlockLibraryCollection DataBlockLibrary
+        {
+            get
+            {
+                InitializeDataBlockLibrary();
+                return s_DataBlockLibrary;
+            }
+        }
 		public static VFXAssetModel AssetModel
 		{
 			get
@@ -106,6 +114,7 @@ namespace UnityEditor.Experimental
         private static VFXEditorMetrics s_Metrics;
         private static VFXEditorStyles s_Styles;
         private static VFXBlockLibraryCollection s_BlockLibrary;
+        private static VFXDataBlockLibraryCollection s_DataBlockLibrary;
 		private static VFXAssetModel s_AssetModel;
         /* end Singletons */
 
@@ -132,6 +141,15 @@ namespace UnityEditor.Experimental
             {
                 s_BlockLibrary = new VFXBlockLibraryCollection();
                 s_BlockLibrary.Load();
+            }
+        }
+
+        private static void InitializeDataBlockLibrary()
+        {
+            if (s_DataBlockLibrary == null)
+            {
+                s_DataBlockLibrary = new VFXDataBlockLibraryCollection();
+                s_DataBlockLibrary.Load();
             }
         }
 
@@ -215,12 +233,13 @@ namespace UnityEditor.Experimental
             DrawWindows(canvasRect);
         }
 
-		void OnDestroy()
-		{
-			s_BlockLibrary = null;
-			s_AssetModel = null;
-			ClearLog();
-		}
+        void OnDestroy()
+        {
+            s_BlockLibrary = null;
+            s_DataBlockLibrary = null;
+            s_AssetModel = null;
+            ClearLog();
+        }
 
         void DrawToolbar(Rect rect)
         {
