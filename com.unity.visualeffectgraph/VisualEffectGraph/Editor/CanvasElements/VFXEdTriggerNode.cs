@@ -11,27 +11,31 @@ namespace UnityEditor.Experimental
     internal class VFXEdTriggerNode : VFXEdNode
     {
 
-        public VFXContextModel Model
-        {
-            get { return m_Model; }
-        }
-
-        protected VFXContextModel m_Model;
-
         internal VFXEdTriggerNode(Vector2 canvasPosition, VFXEdDataSource dataSource) 
             : base (canvasPosition, dataSource)
         {
 
             m_Title = "Trigger";
 
-            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), this, VFXEdContext.None, m_DataSource, Direction.Input));
-            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), this, VFXEdContext.Trigger, m_DataSource, Direction.Output));
+            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), VFXEdContext.Trigger, m_DataSource, Direction.Input));
+            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), VFXEdContext.Trigger, m_DataSource, Direction.Output));
 
             AddChild(inputs[0]);
             AddChild(outputs[0]);
             ZSort();
             Layout();
 
+        }
+
+        public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool AcceptNodeBlock(VFXEdNodeBlock block)
+        {
+            // TODO : Add VFXEdTriggerNodeBlock
+            return false;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)

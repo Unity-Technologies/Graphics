@@ -117,8 +117,7 @@ namespace UnityEditor.Experimental
         private VFXEdDataSource m_DataSource;
 
         private bool m_bShowPreview = false;
-        private bool m_bShowLibrary = false;
-        private bool m_CannotPreview = true;
+        private bool m_CannotPreview = false;
         private VFXAsset m_CurrentAsset;
 
         private bool m_bShowDebug = false;
@@ -177,7 +176,9 @@ namespace UnityEditor.Experimental
         {
             if (Selection.activeObject != null)
                 if (Selection.activeObject.GetType() == typeof(VFXAsset))
-                    Debug.Log("Selection Changed : " + Selection.activeObject);
+                {
+                  //  Debug.Log("Selection Changed : " + Selection.activeObject);
+                }
         }
 
 
@@ -358,7 +359,7 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
+            // Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
         }
 
         // Just for test

@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal abstract class VFXEdNode : CanvasElement 
+    internal abstract class VFXEdNode : VFXEdNodeBase 
     {
 
         public string title
@@ -16,32 +16,20 @@ namespace UnityEditor.Experimental
             get { return m_Title; }
         }
 
-        public List<VFXEdFlowAnchor> inputs
-        {
-            get { return m_Inputs; }
-        }
-
-        public List<VFXEdFlowAnchor> outputs
-        {
-            get { return m_Outputs; }
-        }
 
         public VFXEdNodeBlockContainer NodeBlockContainer
         {
             get { return m_NodeBlockContainer; }
         }
 
-        
         protected string m_Title;
-        protected VFXEdDataSource m_DataSource;
-        protected List<VFXEdFlowAnchor> m_Inputs;
-        protected List<VFXEdFlowAnchor> m_Outputs;
+
+
         protected VFXEdNodeBlockContainer m_NodeBlockContainer;
-        protected Rect m_ClientArea;
-        public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource)
+
+        public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource) : base(canvasposition, dataSource)
         {	
             m_DataSource = dataSource;
-            translation = canvasposition;
 
             scale = new Vector2(VFXEditorMetrics.NodeDefaultWidth, 100);
 
@@ -51,14 +39,8 @@ namespace UnityEditor.Experimental
             m_NodeBlockContainer = new VFXEdNodeBlockContainer(this.scale, dataSource);
             AddChild(m_NodeBlockContainer);
 
-            m_ClientArea = new Rect(0, 0, scale.x, scale.y);
-
-            AddManipulator(new Draggable());
-            AddManipulator(new NodeDelete());
-
-            AllEvents += ManageSelection;
+            MouseDown += ManageSelection;
             this.ContextClick += ManageRightClick;
-            Layout();
 
         }
 
@@ -73,27 +55,31 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public void MenuAddNodeBlock(object o) {
-
+        public void MenuAddNodeBlock(object o)
+        {
             VFXEdSpawnData data = o as VFXEdSpawnData;
-            VFXEdNodeBlock block = new VFXEdNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName), m_DataSource);
             AddNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName));
             data.targetCanvas.ReloadData();
             Layout();
         }
 
-        public void AddNodeBlock(VFXBlock block) {
-            NodeBlockContainer.AddNodeBlock(new VFXEdNodeBlock(block, m_DataSource));
+        public void AddNodeBlock(VFXBlock block)
+        {
+            NodeBlockContainer.AddNodeBlock(new VFXEdProcessingNodeBlock(block, m_DataSource));
         }
+
+        public abstract bool AcceptNodeBlock(VFXEdNodeBlock block);
+
+        public abstract void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index);
 
 
 
         private bool ManageSelection(CanvasElement element, Event e, Canvas2D parent)
         {
+
             if (selected)
             {
                 (parent as VFXEdCanvas).SetSelectedNodeBlock(null);
-                
             }
 
             return false;
@@ -106,10 +92,14 @@ namespace UnityEditor.Experimental
             float inputheight = 0.0f;
             if (inputs.Count > 0)
                 inputheight = VFXEditorMetrics.FlowAnchorSize.y;
+            else
+                inputheight = 16.0f;
 
             float outputheight = 0.0f;
             if (outputs.Count > 0)
                 outputheight = VFXEditorMetrics.FlowAnchorSize.y;
+            else
+                outputheight = 16.0f;
 
             m_ClientArea = new Rect(0.0f, inputheight, this.scale.x, m_NodeBlockContainer.scale.y+ VFXEditorMetrics.NodeHeaderHeight);
             m_ClientArea = VFXEditorMetrics.NodeClientAreaOffset.Add(m_ClientArea);
@@ -138,11 +128,9 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            
-            base.Render(parentRect, canvas);
             if (selected)
                     GUI.Box(m_ClientArea, "", VFXEditor.styles.NodeSelected);
-
+            base.Render(parentRect, canvas);
         }
 
 

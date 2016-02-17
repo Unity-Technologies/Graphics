@@ -10,14 +10,32 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdDataNode : VFXEdNode
     {
-        public bool exposed { get { return m_Exposed; } }
-        protected bool m_Exposed;
-
+        public bool exposed { get { return m_ExposeOption.Enabled; } }
+        protected VFXEdExposeDataNodeOption m_ExposeOption;
         internal VFXEdDataNode(Vector2 canvasposition, VFXEdDataSource dataSource) 
             : base (canvasposition, dataSource)
         {
             m_Title = "Data Node";
-            this.AddManipulator(new ImguiContainer());
+            m_ExposeOption = new VFXEdExposeDataNodeOption();
+            this.AddChild(m_ExposeOption);
+            Layout();
+        }
+
+        public override void Layout()
+        {
+            base.Layout();
+            m_ExposeOption.translation = m_ClientArea.position + new Vector2(8.0f,-4.0f);
+        }
+
+        public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool AcceptNodeBlock(VFXEdNodeBlock block)
+        {
+            // TODO : Add VFXEdDataNodeBlock
+            return false;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
@@ -36,7 +54,6 @@ namespace UnityEditor.Experimental
             }  
 
             base.Render(parentRect, canvas);
-            m_Exposed = GUI.Toggle(new Rect(r.x+12, r.y+8, 16, 24), m_Exposed, "");
         }
     }
 }

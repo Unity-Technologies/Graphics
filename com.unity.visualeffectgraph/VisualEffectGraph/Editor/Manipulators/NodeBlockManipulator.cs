@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 namespace UnityEditor.Experimental
 {
@@ -13,13 +14,15 @@ namespace UnityEditor.Experimental
         private VFXEdNodeBlockContainer m_targetDropContainer = null;
         private VFXEdNodeBlockContainer m_initialDropContainer = null;
         private int m_initialDropContainerIndex = 0;
+        private VFXEdNodeBlock m_Block;
 
-        public NodeBlockManipulator()
+
+        public NodeBlockManipulator(VFXEdNodeBlock block)
         {
+            m_Block = block;
             m_ActivatorButton = 0;
             m_ActivatorModifiers = EventModifiers.None;
         }
-
 
         public NodeBlockManipulator(int button, EventModifiers activator)
         {
@@ -31,7 +34,6 @@ namespace UnityEditor.Experimental
         {
             if (cap == ManipulatorCapability.MultiSelection)
                 return true;
-
             return false;
         }
 
@@ -62,10 +64,9 @@ namespace UnityEditor.Experimental
                 (element as VFXEdNodeBlock).Invalidate();
             }
 
-
             bActuallyDrag = false;
 
-            if (element.GetType() == typeof(VFXEdNodeBlock))
+            if (element is VFXEdNodeBlock)
             {
                 m_ClickPosition = canvas.MouseToCanvas(e.mousePosition);
                 canvas.StartCapture(this, element);
@@ -111,6 +112,15 @@ namespace UnityEditor.Experimental
             {
                 m_initialDropContainer.RevertDrop(element as VFXEdNodeBlock, m_initialDropContainerIndex);
             }
+
+            // Revert forbidden overlays
+            foreach (CanvasElement ce in canvas.elements)
+            {
+                foreach(VFXEdNodeBlockContainer container in ce.FindChildren<VFXEdNodeBlockContainer>()) {
+                    canvas.OnOverlay -= container.RenderOverlayForbiddenDrop;
+                }
+            }
+
             canvas.Layout();
             canvas.Repaint();
 
@@ -132,7 +142,7 @@ namespace UnityEditor.Experimental
                 return false;
             }
 
-            if (element.GetType() != typeof(VFXEdNodeBlock))
+            if (!(element is VFXEdNodeBlock))
             {
                 return false;
             }
@@ -203,9 +213,14 @@ namespace UnityEditor.Experimental
             {
                 if (e is VFXEdNodeBlockContainer)
                 {
-                    if (e.Contains(canvasHitPosition))
+                    VFXEdNodeBlockContainer container = (e as VFXEdNodeBlockContainer);
+                    container.ParentCanvas().OnOverlay -= container.RenderOverlayForbiddenDrop;
+
+                    bool acceptable = container.FindParent<VFXEdNode>().AcceptNodeBlock(m_Block);
+                    if(!acceptable) container.ParentCanvas().OnOverlay += container.RenderOverlayForbiddenDrop;
+
+                    if (container.Contains(canvasHitPosition) && acceptable)
                     {
-                        VFXEdNodeBlockContainer container = (e as VFXEdNodeBlockContainer);
                         container.CaptureDrop = true;
                         container.UpdateCaptureDrop(canvasHitPosition);
                         container.Layout();
@@ -214,7 +229,6 @@ namespace UnityEditor.Experimental
                     }
                     else
                     {
-                        VFXEdNodeBlockContainer container = (e as VFXEdNodeBlockContainer);
                         container.CaptureDrop = false;
                         container.Invalidate();
                     }
