@@ -96,6 +96,15 @@ namespace UnityEditor.Experimental
 			}
 		}
 
+        public static VFXEdSpawnTemplateLibrary SpawnTemplates
+        {
+            get
+            {
+                InitializeSpawnTemplateLibrary();
+                return s_SpawnTemplates;
+            }
+        }
+
         // DEBUG OUTPUT
         public static void Log(string s) {
             DebugLines += s;
@@ -116,6 +125,8 @@ namespace UnityEditor.Experimental
         private static VFXBlockLibraryCollection s_BlockLibrary;
         private static VFXDataBlockLibraryCollection s_DataBlockLibrary;
 		private static VFXAssetModel s_AssetModel;
+
+        private static VFXEdSpawnTemplateLibrary s_SpawnTemplates;
         /* end Singletons */
 
         private VFXEdCanvas m_Canvas = null;
@@ -150,6 +161,15 @@ namespace UnityEditor.Experimental
             {
                 s_DataBlockLibrary = new VFXDataBlockLibraryCollection();
                 s_DataBlockLibrary.Load();
+            }
+        }
+
+        private static void InitializeSpawnTemplateLibrary()
+        {
+            if (s_SpawnTemplates == null)
+            {
+                s_SpawnTemplates = new VFXEdSpawnTemplateLibrary();
+                s_SpawnTemplates.Load();
             }
         }
 
@@ -270,7 +290,9 @@ namespace UnityEditor.Experimental
                 s_BlockLibrary = null;
             }
             m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "Debug Window", EditorStyles.toolbarButton);
-            
+
+            if (GUILayout.Button("Clear Debug Log", EditorStyles.toolbarButton))
+                ClearLog();
 
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Tools", EditorStyles.toolbarDropDown))

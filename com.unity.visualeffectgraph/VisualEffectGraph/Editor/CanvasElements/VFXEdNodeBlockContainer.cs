@@ -116,7 +116,7 @@ namespace UnityEditor.Experimental
             return m_NodeBlocks.IndexOf(block);
         }
 
-        public void RemoveNodeBlock(VFXEdNodeBlock block)
+        public void DetachNodeBlock(VFXEdNodeBlock block)
         {
             if (m_NodeBlocks.Contains(block))
             {
@@ -124,14 +124,20 @@ namespace UnityEditor.Experimental
                 {
                     (ParentCanvas() as VFXEdCanvas).SelectedNodeBlock = null;
                 }
+
                 m_NodeBlocks.Remove(block);
                 m_Children.Remove(block);
-
-                block.OnRemoved();
 
                 Layout();
                 Invalidate();
             }
+        }
+
+
+        public void RemoveNodeBlock(VFXEdNodeBlock block)
+        {
+                DetachNodeBlock(block);
+                block.OnRemoved();
         }
 
 

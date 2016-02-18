@@ -2,7 +2,7 @@
 // AGE/LIFETIME BLOCKS
 //---------------------------------------------------------------------
 
-#block Set Lifetime Constant
+#block Set Lifetime (Constant)
 #icon Time
 #category Time/
 #arg float lifetime [inout|param]
@@ -10,7 +10,7 @@
 
 lifetime = max(value,0.0f);
 
-#block Set Lifetime Random
+#block Set Lifetime (Random)
 #icon Time
 #category Time/
 #arg float lifetime [inout|param]
@@ -23,7 +23,7 @@ lifetime = max(minLifetime + RAND * (maxLifetime-minLifetime),0.0f);
 // COLOR BLOCKS
 //---------------------------------------------------------------------
 
-#block Set Color Constant
+#block Set Color (Constant)
 #icon Color
 #category Color/
 #arg float3 color [inout|param]
@@ -31,7 +31,7 @@ lifetime = max(minLifetime + RAND * (maxLifetime-minLifetime),0.0f);
 
 color = value;
 
-#block Set Color Random
+#block Set Color (Random)
 #icon Color
 #category Color/
 #arg float3 color [inout|param]
