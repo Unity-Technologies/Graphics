@@ -109,19 +109,19 @@ namespace UnityEditor.Experimental
     {
         VFXEdContextNode m_Node;
         VFXBlock m_Block;
-        string m_EventName;
+        VFXEdDataSource m_DataSource;
 
-        public VFXEdProcessingNodeBlockSpawner(Vector2 position, VFXBlock block, VFXEdContextNode node)
+        public VFXEdProcessingNodeBlockSpawner(Vector2 position, VFXBlock block, VFXEdContextNode node, VFXEdDataSource datasource)
             : base (position)
         {
             m_Block = block;
             m_Node = node;
+            m_DataSource = datasource;
         }
 
         public override void Spawn()
         {
-            m_Node.AddNodeBlock(new VFXEdProcessingNodeBlock(m_Block));
-           
+            m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdProcessingNodeBlock(m_Block,m_DataSource));
         }
 
     }
@@ -130,18 +130,19 @@ namespace UnityEditor.Experimental
     {
         VFXEdDataNode m_Node;
         VFXDataBlock m_DataBlock;
-        string m_EventName;
+        VFXEdDataSource m_DataSource;
 
-        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node)
+        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node, VFXEdDataSource datasource)
             : base (position)
         {
             m_DataBlock = datablock;
             m_Node = node;
+            m_DataSource = datasource;
         }
 
         public override void Spawn()
         {
-            m_Node.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock));
+            m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock,m_DataSource));
            
         }
 

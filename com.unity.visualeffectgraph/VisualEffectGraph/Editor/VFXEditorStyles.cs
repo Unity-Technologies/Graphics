@@ -56,6 +56,9 @@ namespace UnityEditor.Experimental
         public Texture2D FlowEdgeOpacity;
         public Texture2D FlowEdgeOpacitySelected;
 
+        public Texture2D DataEdgeOpacity;
+        public Texture2D DataEdgeOpacitySelected;
+
         private Dictionary<string, Texture2D> m_icons;
         private Dictionary<VFXEdContext, Color> m_ContextColors;
 
@@ -222,6 +225,8 @@ namespace UnityEditor.Experimental
             FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
             FlowEdgeOpacitySelected = EditorGUIUtility.Load("FlowEdge_Selected.psd") as Texture2D;
 
+            DataEdgeOpacity = EditorGUIUtility.Load("DataEdge.psd") as Texture2D;
+            DataEdgeOpacitySelected = EditorGUIUtility.Load("DataEdge_Selected.psd") as Texture2D;
 
 
             m_icons = new Dictionary<string, Texture2D>();

@@ -17,7 +17,6 @@ namespace UnityEditor.Experimental
         public int m_PortIndex;
         public VFXEdContext context { get {return m_Context;}}
         private VFXEdContext m_Context;
-        
 
         public VFXEdFlowAnchor(int portIndex, Type type, VFXEdContext context, VFXEdDataSource data, Direction direction)
         {
@@ -27,6 +26,7 @@ namespace UnityEditor.Experimental
             AddManipulator(new FlowEdgeConnector());
             m_Direction = direction;
             m_Context = context;
+
             Type genericClass = typeof(PortSource<>);
             Type constructedClass = genericClass.MakeGenericType(type);
             m_Source = Activator.CreateInstance(constructedClass);

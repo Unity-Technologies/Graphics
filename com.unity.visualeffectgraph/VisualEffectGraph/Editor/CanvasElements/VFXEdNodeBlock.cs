@@ -13,11 +13,14 @@ namespace UnityEditor.Experimental
         public string name{ get { return m_Name; } }
         protected string m_Name;
 
+        protected VFXEdNodeBlockParameterField[] m_Fields;
+
+        protected VFXEdDataSource m_DataSource;
         private NodeBlockManipulator m_NodeBlockManipulator;
 
-        public VFXEdNodeBlock()
+        public VFXEdNodeBlock(VFXEdDataSource dataSource)
         {
-            
+            m_DataSource = dataSource;
             translation = Vector3.zero; // zeroed by default, will be relayouted later.
             m_Caps = Capabilities.Normal;
 
@@ -27,29 +30,13 @@ namespace UnityEditor.Experimental
 
         }
 
-        protected static float GetParamHeight(VFXParam.Type type)
-        {
-            float height = VFXEditorMetrics.NodeBlockParameterHeight;
-            switch (type)
-            {
-                case VFXParam.Type.kTypeFloat2:
-                case VFXParam.Type.kTypeFloat3:
-                case VFXParam.Type.kTypeFloat4:
-                case VFXParam.Type.kTypeTexture2D:
-                case VFXParam.Type.kTypeTexture3D:
-                    height += VFXEditorMetrics.NodeBlockAdditionalHeight;
-                    break;
-                default:
-                    break;
-            }
-            return height;
-        }
-
         // Retrieve the full height of the block
         protected abstract float GetHeight();
 
         public override void Layout()
         {
+            base.Layout();
+
             if (collapsed)
             {
                 scale = new Vector2(scale.x, VFXEditorMetrics.NodeBlockHeaderHeight);
@@ -59,7 +46,14 @@ namespace UnityEditor.Experimental
                 scale = new Vector2(scale.x, GetHeight());
             }
 
-            base.Layout();
+            float curY = VFXEditorMetrics.NodeBlockHeaderHeight;
+
+            foreach(VFXEdNodeBlockParameterField field in m_Fields)
+            {
+                field.translation = new Vector2(0.0f, curY);
+                curY += field.scale.y;
+            }
+
 
         }
 
@@ -75,7 +69,22 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public abstract void OnRemoved();
+        public virtual void OnRemoved()
+        {
+            List<VFXEdDataAnchor> anchors = new List<VFXEdDataAnchor>();
+            foreach(VFXEdNodeBlockParameterField field in m_Fields)
+            {
+                if (field.Input != null)
+                    anchors.Add(field.Input);
+                if (field.Output != null)
+                    anchors.Add(field.Output);
+            }
+            foreach(VFXEdDataAnchor anchor in anchors)
+            {
+                m_DataSource.RemoveDataConnectionsTo(anchor);
+            }
+            ParentCanvas().ReloadData();
+        }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {

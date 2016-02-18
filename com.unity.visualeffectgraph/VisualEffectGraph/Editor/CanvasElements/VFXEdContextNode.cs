@@ -74,7 +74,7 @@ namespace UnityEditor.Experimental
                 foreach (VFXBlock block in blocks)
                 {
                 // TODO : Only add item if block is compatible with current context.
-                    menu.AddItem(new GUIContent(block.m_Category + block.m_Name), false, AddNodeBlock, new VFXEdProcessingNodeBlock(block));
+                    menu.AddItem(new GUIContent(block.m_Category + block.m_Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
                 }
 
             menu.ShowAsContext();

@@ -33,6 +33,22 @@ namespace UnityEditor.Experimental
             m_Elements.Add(e);
         }
 
+        public void RemoveDataConnectionsTo(VFXEdDataAnchor anchor)
+        {
+            var edgesToErase = new List<DataEdge<VFXEdDataAnchor>>();
+
+            foreach (CanvasElement element in m_Elements)
+            {
+                DataEdge<VFXEdDataAnchor> edge = element as DataEdge<VFXEdDataAnchor>;
+                if (edge != null && (edge.Left == anchor || edge.Right == anchor))
+                    edgesToErase.Add(edge);
+            }
+
+            foreach(DataEdge<VFXEdDataAnchor> edge in edgesToErase) {
+                m_Elements.Remove(edge);
+            }
+        }
+
         public void DeleteElement(CanvasElement e)
         {
             Canvas2D canvas = e.ParentCanvas();
@@ -62,9 +78,9 @@ namespace UnityEditor.Experimental
             canvas.Repaint();
         }
 
-        public void Connect(VFXEdDataAnchor a, VFXEdDataAnchor b)
+        public void ConnectData(VFXEdDataAnchor a, VFXEdDataAnchor b)
         {
-            m_Elements.Add(new Edge<VFXEdDataAnchor>(this, a, b));
+            m_Elements.Add(new DataEdge<VFXEdDataAnchor>(this, a, b));
         }
 
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)

@@ -39,6 +39,8 @@ namespace UnityEditor.Experimental
         // NODE BLOCKS
 
         public static readonly float NodeBlockHeaderHeight = 32f;
+        public static readonly float NodeBlockFooterHeight = 8f;
+
         public static readonly float NodeBlockParameterHeight = 20f;
         public static readonly float NodeBlockAdditionalHeight = 18f;
 
@@ -58,7 +60,7 @@ namespace UnityEditor.Experimental
         public static readonly Color DataAnchorDefaultColor = new Color(0.8f, 0.8f, 0.8f);
 
         public static readonly float FlowEdgeWidth = 40.0f;
-        public static readonly float DataEdgeWidth = 5.0f;
+        public static readonly float DataEdgeWidth = 8.0f;
 
         // EVENT NODES
         public static readonly Vector2 EventNodeDefaultScale = new Vector2(240, 120f);

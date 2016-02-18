@@ -58,13 +58,10 @@ namespace UnityEditor.Experimental
 
         public void AddNodeBlock(object o)
         {
-            VFXEdNodeBlock block = o as VFXEdNodeBlock;
-
-            if (block != null && AcceptNodeBlock(block))
+            VFXEdSpawner spawner = o as VFXEdSpawner;
+            if(spawner != null)
             {
-                    NodeBlockContainer.AddNodeBlock(block);
-                    ParentCanvas().ReloadData();
-                    Layout();
+                spawner.Spawn();
             }
 
         }
