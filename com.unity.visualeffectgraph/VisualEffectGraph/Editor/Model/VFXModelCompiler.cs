@@ -176,7 +176,7 @@ namespace UnityEditor.Experimental
                         buffer.Add(pairedAttribs[pairedAttribs.Count - 1]);
                         buffer.Add(pairedAttribs[pairedAttribs.Count - 2]);
                         pairedAttribs.RemoveAt(pairedAttribs.Count - 1);
-                        pairedAttribs.RemoveAt(pairedAttribs.Count - 2);
+                        pairedAttribs.RemoveAt(pairedAttribs.Count - 1);
                     }
                 }
 
@@ -233,11 +233,11 @@ namespace UnityEditor.Experimental
             }
 
             // Log result
-            VFXEditor.Log("Number init blocks: " + initBlocks.Count);
-            VFXEditor.Log("Number update blocks: " + updateBlocks.Count);
-            VFXEditor.Log("Number global uniforms: " + globalUniforms.Count);
-            VFXEditor.Log("Number init uniforms: " + initUniforms.Count);
-            VFXEditor.Log("Number update uniforms: " + updateUniforms.Count);
+            VFXEditor.Log("Nb init blocks: " + initBlocks.Count);
+            VFXEditor.Log("Nb update blocks: " + updateBlocks.Count);
+            VFXEditor.Log("Nb global uniforms: " + globalUniforms.Count);
+            VFXEditor.Log("Nb init uniforms: " + initUniforms.Count);
+            VFXEditor.Log("Nb update uniforms: " + updateUniforms.Count);
         }
 
         public static HashSet<VFXParamValue> CollectUniforms(List<VFXBlockModel> blocks)
