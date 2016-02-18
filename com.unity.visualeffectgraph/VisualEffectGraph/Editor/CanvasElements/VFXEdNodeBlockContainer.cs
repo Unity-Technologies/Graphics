@@ -34,15 +34,13 @@ namespace UnityEditor.Experimental
 
         private DropInfo dropInfo;
         private List<VFXEdNodeBlock> m_NodeBlocks;
-        private VFXEdDataSource m_DataSource;
 
 
-        public VFXEdNodeBlockContainer(Vector2 size, VFXEdDataSource dataSource)
+        public VFXEdNodeBlockContainer(Vector2 size)
         {
             translation = VFXEditorMetrics.NodeBlockContainerPosition;
             scale = size + VFXEditorMetrics.NodeBlockContainerSizeOffset;
             m_NodeBlocks = new List<VFXEdNodeBlock>();
-            m_DataSource = dataSource;
             m_Caps = Capabilities.Normal;
         }
 

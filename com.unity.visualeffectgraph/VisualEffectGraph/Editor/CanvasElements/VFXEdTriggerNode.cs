@@ -17,14 +17,21 @@ namespace UnityEditor.Experimental
 
             m_Title = "Trigger";
 
-            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), VFXEdContext.Trigger, m_DataSource, Direction.Input));
-            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), VFXEdContext.Trigger, m_DataSource, Direction.Output));
+            m_Inputs.Add(new VFXEdFlowAnchor(0, typeof(float), VFXEdContext.Trigger, m_DataSource, Direction.Input));
+            m_Outputs.Add(new VFXEdFlowAnchor(1, typeof(float), VFXEdContext.Trigger, m_DataSource, Direction.Output));
 
             AddChild(inputs[0]);
             AddChild(outputs[0]);
             ZSort();
             Layout();
 
+        }
+
+        protected override void ShowNodeBlockMenu(Vector2 canvasClickPosition)
+        {
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent("Not implemented yet"), false, null);
+            menu.ShowAsContext();
         }
 
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)

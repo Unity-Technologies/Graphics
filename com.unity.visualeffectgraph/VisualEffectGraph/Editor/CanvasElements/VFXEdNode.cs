@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental
             m_Inputs = new List<VFXEdFlowAnchor>();
             m_Outputs = new List<VFXEdFlowAnchor>();
 
-            m_NodeBlockContainer = new VFXEdNodeBlockContainer(this.scale, dataSource);
+            m_NodeBlockContainer = new VFXEdNodeBlockContainer(this.scale);
             AddChild(m_NodeBlockContainer);
 
             MouseDown += ManageSelection;
@@ -44,28 +44,26 @@ namespace UnityEditor.Experimental
 
         }
 
+        protected abstract void ShowNodeBlockMenu(Vector2 canvasClickPosition);
 
         private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)
         {
             if (e.type == EventType.Used)
                 return false;
-            
-            VFXEdContextMenu.NodeBlockMenu(parent as VFXEdCanvas, this, parent.MouseToCanvas(e.mousePosition), m_DataSource).ShowAsContext();
+
+            ShowNodeBlockMenu(parent.MouseToCanvas(e.mousePosition));
             e.Use();
             return true;
         }
 
-        public void MenuAddNodeBlock(object o)
+        public void AddNodeBlock(object o)
         {
-            VFXEdSpawnData data = o as VFXEdSpawnData;
-            AddNodeBlock(VFXEditor.BlockLibrary.GetBlock(data.libraryName));
-            data.targetCanvas.ReloadData();
-            Layout();
-        }
+            VFXEdSpawner spawner = o as VFXEdSpawner;
+            if(spawner != null)
+            {
+                spawner.Spawn();
+            }
 
-        public void AddNodeBlock(VFXBlock block)
-        {
-            NodeBlockContainer.AddNodeBlock(new VFXEdProcessingNodeBlock(block, m_DataSource));
         }
 
         public abstract bool AcceptNodeBlock(VFXEdNodeBlock block);

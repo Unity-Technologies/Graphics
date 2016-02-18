@@ -16,16 +16,7 @@ namespace UnityEditor.Experimental
         {
             VFXEditor.BlockLibrary.Load(); // Force a reload
         }
-
-        public void AddNode(VFXEdNode n)
-        {
-            m_Elements.Add(n);
-        }
-
-        public void AddEventNode(VFXEdEventNode n)
-        {
-            m_Elements.Add(n);
-        }
+        
 
         public void UndoSnapshot(string Message)
         {
@@ -36,6 +27,26 @@ namespace UnityEditor.Experimental
         public CanvasElement[] FetchElements()
         {
             return m_Elements.ToArray();
+        }
+
+        public void AddElement(CanvasElement e) {
+            m_Elements.Add(e);
+        }
+
+        public void RemoveDataConnectionsTo(VFXEdDataAnchor anchor)
+        {
+            var edgesToErase = new List<DataEdge<VFXEdDataAnchor>>();
+
+            foreach (CanvasElement element in m_Elements)
+            {
+                DataEdge<VFXEdDataAnchor> edge = element as DataEdge<VFXEdDataAnchor>;
+                if (edge != null && (edge.Left == anchor || edge.Right == anchor))
+                    edgesToErase.Add(edge);
+            }
+
+            foreach(DataEdge<VFXEdDataAnchor> edge in edgesToErase) {
+                m_Elements.Remove(edge);
+            }
         }
 
         public void DeleteElement(CanvasElement e)
@@ -67,9 +78,9 @@ namespace UnityEditor.Experimental
             canvas.Repaint();
         }
 
-        public void Connect(VFXEdDataAnchor a, VFXEdDataAnchor b)
+        public void ConnectData(VFXEdDataAnchor a, VFXEdDataAnchor b)
         {
-            m_Elements.Add(new Edge<VFXEdDataAnchor>(this, a, b));
+            m_Elements.Add(new DataEdge<VFXEdDataAnchor>(this, a, b));
         }
 
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)
@@ -111,46 +122,20 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public void AddEventNode(object o)
+
+        /// <summary>
+        /// Spawn node is called from context menu, object is expected to be a VFXEdSpawner
+        /// </summary>
+        /// <param name="o"> param that should be a VFXEdSpawner</param>
+        public void SpawnNode(object o)
         {
-            VFXEdSpawnData data = o as VFXEdSpawnData;
-            VFXEdEventNode node = null;
-            switch (data.spawnType)
+            VFXEdSpawner spawner = o as VFXEdSpawner;
+            if(spawner != null)
             {
-                case SpawnType.Event:
-                    node = new VFXEdEventNode(data.mousePosition, this, "Event");
-                    break;
-                default:
-                    break;
+                spawner.Spawn();
             }
-            if (node != null)
-                AddEventNode(node);
-            data.targetCanvas.ReloadData();
         }
 
-        public void AddEmptyNode(object o)
-        {
-            VFXEdSpawnData data = o as VFXEdSpawnData;
-            VFXEdNode node = null;
-            switch (data.spawnType)
-            {
-                case SpawnType.TriggerNode:
-                    node = new VFXEdTriggerNode(data.mousePosition, this);
-                    break;
-                case SpawnType.DataNode:
-                    node = new VFXEdDataNode(data.mousePosition, this);
-                    break;
-                case SpawnType.Node:
-                    node = new VFXEdContextNode(data.mousePosition, data.context, this);
-                    break;
-                default:
-                    break;
-            }
-
-            if (node != null)
-                AddNode(node);
-            data.targetCanvas.ReloadData();
-        }
 
     }
 }

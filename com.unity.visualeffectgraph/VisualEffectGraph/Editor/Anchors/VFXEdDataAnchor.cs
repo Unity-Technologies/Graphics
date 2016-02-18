@@ -14,33 +14,66 @@ namespace UnityEditor.Experimental
         protected object m_Source;
         protected Direction m_Direction;
         private VFXEdDataSource m_Data;
-        public VFXEdNode m_Node;
-        public int m_PortIndex;
 
-        public VFXEdDataAnchor(int portIndex, Vector3 position, Type type, VFXEdNode node, VFXEdDataSource data)
+        public VFXEdDataAnchor(Vector3 position, VFXParam.Type type, VFXEdDataSource data, Direction direction)
         {
-            m_Type = type;
+            m_Type = GetParamType(type);
             scale = new Vector3(15.0f, 15.0f, 1.0f);
             translation = position;
-            AddManipulator(new EdgeConnector<NodeAnchor>());
-            m_Direction = Direction.Input;
+            AddManipulator(new DataEdgeConnector());
+            m_Direction = direction;
 
             Type genericClass = typeof(PortSource<>);
-            Type constructedClass = genericClass.MakeGenericType(type);
+            Type constructedClass = genericClass.MakeGenericType(m_Type);
             m_Source = Activator.CreateInstance(constructedClass);
+            
             m_Data = data;
-            m_Node = node;
-            m_PortIndex = portIndex;
+            zIndex = -998;
+        }
+
+        private static Type GetParamType(VFXParam.Type type)
+        {
+            switch(type)
+            {
+                case VFXParam.Type.kTypeInt: return typeof(int);
+                case VFXParam.Type.kTypeUint: return typeof(uint);
+                case VFXParam.Type.kTypeFloat: return typeof(float);
+                case VFXParam.Type.kTypeFloat2: return typeof(Vector2);
+                case VFXParam.Type.kTypeFloat3: return typeof(Vector3);
+                case VFXParam.Type.kTypeFloat4: return typeof(Vector4);
+                case VFXParam.Type.kTypeTexture2D: return typeof(Texture2D);
+                case VFXParam.Type.kTypeTexture3D: return typeof(Texture3D);
+                case VFXParam.Type.kTypeUnknown:
+                default: return typeof(void);
+            }
+        }
+
+        public override void Layout()
+        {
+            scale = new Vector3(16.0f, 16.0f, 1.0f);
+            base.Layout();
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            Color anchorColor = Color.yellow;
-            anchorColor.a = 0.7f;
-            base.Render(parentRect, canvas);
-            EditorGUI.DrawRect(new Rect(translation.x, translation.y, scale.x, scale.y), anchorColor);
-            Rect labelRect = new Rect(translation.x + scale.x + 10.0f, translation.y, parentRect.width, 20.0f);
-            GUI.Label(labelRect, m_Type.Name);
+            if(!collapsed)
+            {
+                Rect r = GetDrawableRect();
+                switch (m_Direction)
+                {
+                    case Direction.Input:
+                        GUI.DrawTexture(r, VFXEditor.styles.ConnectorLeft.normal.background);
+                        break;
+
+                    case Direction.Output:
+                        GUI.DrawTexture(r, VFXEditor.styles.ConnectorRight.normal.background);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            
         }
 
         // IConnect
@@ -56,6 +89,7 @@ namespace UnityEditor.Experimental
 
         public void Highlight(bool highlighted)
         {
+
         }
 
         public void RenderOverlay(Canvas2D canvas)
@@ -85,9 +119,12 @@ namespace UnityEditor.Experimental
                 return;
 
             VFXEdDataAnchor otherConnector = other as VFXEdDataAnchor;
-            m_Data.Connect(this, otherConnector);
 
-            ParentCanvas().ReloadData();
+            if(otherConnector !=  null)
+            {
+                m_Data.ConnectData(this, otherConnector);
+                ParentCanvas().ReloadData();
+            }
         }
 
     }
