@@ -21,6 +21,63 @@ namespace UnityEditor.Experimental
             }
         }
 
+        private class AttributeBuffer
+        {
+            public AttributeBuffer(int index, int usage)
+            {
+                m_Index = index;
+                m_Usage = usage;
+                m_Attribs = new List<VFXAttrib>();
+            }
+
+            public void Add(VFXAttrib attrib)
+            {
+                m_Attribs.Add(attrib);
+            }
+
+            public int Index
+            {
+                get { return m_Index; }
+            }
+
+            public int Usage
+            {
+                get { return m_Usage; }
+            }
+
+            public int Count
+            {
+                get { return m_Attribs.Count; }
+            }
+
+            public VFXAttrib this[int index]
+            {
+                get { return m_Attribs[index]; }
+            }
+
+            public bool Used(VFXContextModel.Type type)
+            {
+                return (0x3 << ((int)type - 1)) != 0;
+            }
+
+            public bool Writable(VFXContextModel.Type type) 
+            {
+                return (0x2 << ((int)type - 1)) != 0;
+            }
+
+            public int GetSizeInBytes()
+            {
+                int size = 0;
+                foreach (VFXAttrib attrib in m_Attribs)
+                    size += VFXParam.GetSizeFromType(attrib.m_Param.m_Type);
+                return size;
+            }
+
+            int m_Index;
+            int m_Usage;
+            List<VFXAttrib> m_Attribs;
+        }
+
         // TODO atm it only validates the system
         public static void CompileSystem(VFXSystemModel system)
         {
@@ -92,7 +149,8 @@ namespace UnityEditor.Experimental
             {
                 if ((attrib.Value & 0x3) == 0) // Unitialized attribute
                 {
-                    VFXEditor.Log("WARNING: " + attrib.Key.m_Param.m_Name + " is not initialized. Use default value");
+                    if (attrib.Key.m_Param.m_Name != "seed" || attrib.Key.m_Param.m_Name != "age") // Dont log anything for those as initialization is implicit
+                        VFXEditor.Log("WARNING: " + attrib.Key.m_Param.m_Name + " is not initialized. Use default value");
                     unitializedAttribs.Add(attrib.Key);
                 }
                 // TODO attrib to remove (when written and never used for instance) ! But must also remove blocks using them...
@@ -123,7 +181,8 @@ namespace UnityEditor.Experimental
             }
 
             // Derive SOA based on usage with optimal size of 16 bytes
-            var buffers = new List<List<VFXAttrib>>();
+            var buffers = new List<AttributeBuffer>();
+            int currentBufferIndex = 0;
             foreach (var attribsByUsage in sortedAttribs)
             {
                 // handle 16 bytes attrib
@@ -131,7 +190,7 @@ namespace UnityEditor.Experimental
                 int index = currentAttribs.Count - 1;
                 while (index >= 0)
                 {
-                    var buffer = new List<VFXAttrib>();
+                    var buffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
                     buffer.Add(currentAttribs[index]);
                     buffers.Add(buffer);
                     currentAttribs.RemoveAt(index--);
@@ -143,7 +202,7 @@ namespace UnityEditor.Experimental
                 index = currentAttribs.Count - 1;
                 while (index >= 0)
                 {
-                    var buffer = new List<VFXAttrib>();
+                    var buffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
                     buffer.Add(currentAttribs[index]);
                     buffers.Add(buffer);
                     currentAttribs.RemoveAt(index--);
@@ -161,7 +220,7 @@ namespace UnityEditor.Experimental
                 index = currentAttribs.Count - 1;
                 while (index >= 0)
                 {
-                    var buffer = new List<VFXAttrib>();
+                    var buffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
                     buffer.Add(currentAttribs[index]);
                     buffers.Add(buffer);
                     currentAttribs.RemoveAt(index--);
@@ -184,7 +243,7 @@ namespace UnityEditor.Experimental
                 currentAttribs = attribsByUsage.Value[0];
                 index = currentAttribs.Count - 1;
                 int currentCount = 0;
-                var currentBuffer = new List<VFXAttrib>();
+                var currentBuffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
                 while (index >= 0)
                 {
                     currentBuffer.Add(currentAttribs[index]);
@@ -194,14 +253,29 @@ namespace UnityEditor.Experimental
                     if (currentCount == 4 || index < 0)
                     {
                         buffers.Add(currentBuffer);
-                        currentBuffer = new List<VFXAttrib>();
+                        currentBuffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
                         currentCount = 0;
                     }
                 }
             }
 
+            // TODO Try to merge R and RW buffers used in the same context in case of holes
+            // for instance, for a given context flag
+            // R : X -> 1 byte
+            // RW : XXX0 -> 3 bytes
+            // => Merge this to one buffer
+
             if (buffers.Count > 7)
+            {
+                // TODO : Merge appropriate buffers in that case
                 VFXEditor.Log("ERROR: too many buffers used (max is 7 + 1 reserved)");
+            }
+
+            // Associate attrib to buffer
+            var attribToBuffer = new Dictionary<VFXAttrib, AttributeBuffer>(new AttribComparer());
+            foreach (var buffer in buffers)
+                for (int i = 0; i < buffer.Count; ++i)
+                    attribToBuffer.Add(buffer[i], buffer);
 
             VFXEditor.Log("Nb Attributes : " + attribs.Count);
             VFXEditor.Log("Nb Attribute buffers: " + buffers.Count);
@@ -212,6 +286,7 @@ namespace UnityEditor.Experimental
                 {
                     str += buffers[i][j].m_Param.m_Name + "|";
                 }
+                str += " " + buffers[i].GetSizeInBytes() + "bytes";
                 VFXEditor.Log(str);
             }
                 
@@ -232,12 +307,20 @@ namespace UnityEditor.Experimental
                 updateUniforms.Remove(uniform);
             }
 
+            // Associate VFXParamValue to generated name
+            var paramToName = new Dictionary<VFXParamValue, string>();
+            GenerateUniformName(paramToName, globalUniforms, "global");
+            GenerateUniformName(paramToName, initUniforms, "init");
+            GenerateUniformName(paramToName, updateUniforms, "update");
+
             // Log result
             VFXEditor.Log("Nb init blocks: " + initBlocks.Count);
             VFXEditor.Log("Nb update blocks: " + updateBlocks.Count);
             VFXEditor.Log("Nb global uniforms: " + globalUniforms.Count);
             VFXEditor.Log("Nb init uniforms: " + initUniforms.Count);
             VFXEditor.Log("Nb update uniforms: " + updateUniforms.Count);
+
+
         }
 
         public static HashSet<VFXParamValue> CollectUniforms(List<VFXBlockModel> blocks)
@@ -251,7 +334,18 @@ namespace UnityEditor.Experimental
             return uniforms;
         }
 
-        // Collect all attributs from blocks and fills them in attribs
+        public static void GenerateUniformName(Dictionary<VFXParamValue, string> paramToName, HashSet<VFXParamValue> uniforms, string prefix)
+        {
+            int counter = 0;
+            foreach (var uniform in uniforms)
+            {
+                string name = prefix + "Uniform" + counter;
+                paramToName.Add(uniform, name);
+                ++counter;
+            }
+        }
+
+        // Collect all attributes from blocks and fills them in attribs
         public static void CollectAttributes(Dictionary<VFXAttrib, int> attribs, List<VFXBlockModel> blocks, int index)
         {
             foreach (VFXBlockModel block in blocks)
