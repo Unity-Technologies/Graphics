@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental
 
             VFXDataBlock floatblock = new VFXDataBlock("Float", "type_float", "Generic types");
             floatblock.AddParameter("Value", VFXParam.Type.kTypeFloat);
-            m_DataBlocks.Add(intblock);
+            m_DataBlocks.Add(floatblock);
 
             VFXDataBlock v2block = new VFXDataBlock("Vector2", "type_vector2", "Generic types");
             v2block.AddParameter("Value", VFXParam.Type.kTypeFloat2);

@@ -8,12 +8,12 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdContextZone : CanvasElement
+    public class VFXEdContextZone : CanvasElement
     {
         // TODO : Add logic to group same nodes into context zone
     }
 
-    internal enum VFXEdContext {
+    public enum VFXEdContext {
         None,
         Trigger,
         Initialize,

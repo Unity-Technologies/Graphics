@@ -26,6 +26,13 @@ namespace UnityEditor.Experimental
             output.AddSeparator("New Node/");
             output.AddItem(new GUIContent("New Node/Data Node"), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition));
             
+            output.AddSeparator("");
+            foreach(VFXEdSpawnTemplate t in VFXEditor.SpawnTemplates.Templates)
+            {
+                output.AddItem(new GUIContent("Templates/" + t.Path), false, VFXEditor.SpawnTemplates.SpawnFromMenu, new VFXEdTemplateSpawner(t.Path, source, canvas, canvasClickPosition));
+            }
+
+
 
             return output;
         }

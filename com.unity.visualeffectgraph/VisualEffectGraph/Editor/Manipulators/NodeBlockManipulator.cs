@@ -191,7 +191,7 @@ namespace UnityEditor.Experimental
                     CanvasElement parent = n.parent;
                     VFXEdNodeBlockContainer container = parent as VFXEdNodeBlockContainer;
                     m_initialDropContainerIndex = container.GetBlockIndex(n);
-                    container.RemoveNodeBlock(n);
+                    container.DetachNodeBlock(n);
                     n.SetParent(canvas);
                     n.translation = canvas.MouseToCanvas(e.mousePosition) - new Vector2(n.scale.x / 2, n.scale.y / 2);
                     parent.Invalidate();
