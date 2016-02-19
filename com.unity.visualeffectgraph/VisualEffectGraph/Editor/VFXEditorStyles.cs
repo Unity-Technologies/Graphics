@@ -29,6 +29,8 @@ namespace UnityEditor.Experimental
 
         public GUIStyle NodeBlock;
         public GUIStyle NodeBlockSelected;
+        public GUIStyle DataNodeBlock;
+        public GUIStyle DataNodeBlockSelected;
         public GUIStyle NodeBlockTitle;
         public GUIStyle NodeBlockParameter;
         public GUIStyle NodeBlockDropSeparator;
@@ -55,12 +57,21 @@ namespace UnityEditor.Experimental
 
         public Texture2D FlowEdgeOpacity;
         public Texture2D FlowEdgeOpacitySelected;
+        public Color FlowEdgeTint = HexColor("#AFAFAFAF");
+        public Color FlowEdgeSelectedTint = HexColor("#FFFFFFFF");
+
 
         public Texture2D DataEdgeOpacity;
         public Texture2D DataEdgeOpacitySelected;
+        public Color DataEdgeTint = HexColor("#AFAFAF80");
+        public Color DataEdgeSelectedTint = HexColor("#FFFFFFFF");
+
 
         private Dictionary<string, Texture2D> m_icons;
         private Dictionary<VFXEdContext, Color> m_ContextColors;
+
+        private Dictionary<VFXParam.Type, Color> m_TypeColors;
+
 
 
         internal Texture2D GetIcon(string name) {
@@ -74,8 +85,24 @@ namespace UnityEditor.Experimental
             return m_icons[name];
         }
 
-        internal Color GetContextColor(VFXEdContext c) {
-            return m_ContextColors[c];
+        internal Color GetContextColor(VFXEdContext c)
+        {
+            if (m_ContextColors.ContainsKey(c))
+            {
+                return m_ContextColors[c];
+            }
+            else
+                return Color.magenta;
+        }
+
+        internal Color GetTypeColor(VFXParam.Type t)
+        {
+            if (m_TypeColors.ContainsKey(t))
+            {
+                return m_TypeColors[t];
+            }
+            else
+                return Color.magenta;
         }
 
 
@@ -146,6 +173,16 @@ namespace UnityEditor.Experimental
             NodeBlockSelected.name = "NodeBlockSelected";
             NodeBlockSelected.normal.background = EditorGUIUtility.Load("NodeBlock_Flow_Selected.psd") as Texture2D;
             NodeBlockSelected.border = new RectOffset(8, 26, 12, 4);
+
+            DataNodeBlock = new GUIStyle();
+            DataNodeBlock.name = "DataNodeBlock";
+            DataNodeBlock.normal.background = EditorGUIUtility.Load("NodeBlock_Unselected.psd") as Texture2D;
+            DataNodeBlock.border = new RectOffset(8, 8, 24, 4);
+
+            DataNodeBlockSelected = new GUIStyle();
+            DataNodeBlockSelected.name = "DataNodeBlockSelected";
+            DataNodeBlockSelected.normal.background = EditorGUIUtility.Load("NodeBlock_Selected.psd") as Texture2D;
+            DataNodeBlockSelected.border = new RectOffset(8, 8, 24, 4);
 
             NodeBlockTitle = new GUIStyle();
             NodeBlockTitle.fontSize = 12;
@@ -235,14 +272,28 @@ namespace UnityEditor.Experimental
 
             m_ContextColors = new Dictionary<VFXEdContext, Color>();
             
-            m_ContextColors.Add(VFXEdContext.None,          new Color(0.500f, 0.000f, 0.000f, 1.0f));
-            m_ContextColors.Add(VFXEdContext.Trigger,       new Color(0.500f, 0.500f, 0.500f, 1.0f));
-            m_ContextColors.Add(VFXEdContext.Initialize,    new Color(0.403f, 0.345f, 0.215f, 1.0f));
-            m_ContextColors.Add(VFXEdContext.Update,        new Color(0.215f, 0.301f, 0.403f, 1.0f));
-            m_ContextColors.Add(VFXEdContext.Output,        new Color(0.364f, 0.278f, 0.388f, 1.0f));
+            m_ContextColors.Add(VFXEdContext.None,          HexColor("#FF0000FF"));
+            m_ContextColors.Add(VFXEdContext.Trigger,       HexColor("#808080FF"));
+            m_ContextColors.Add(VFXEdContext.Initialize,    HexColor("#665736FF")); 
+            m_ContextColors.Add(VFXEdContext.Update,        HexColor("#364C66FF"));
+            m_ContextColors.Add(VFXEdContext.Output,        HexColor("#5c4662FF"));
 
+            m_TypeColors = new Dictionary<VFXParam.Type, Color>();
+            m_TypeColors.Add(VFXParam.Type.kTypeInt,        HexColor("#23a95cFF"));
+            m_TypeColors.Add(VFXParam.Type.kTypeFloat,      HexColor("#8ccf0cFF"));
+            m_TypeColors.Add(VFXParam.Type.kTypeFloat2,     HexColor("#d5cd00FF"));
+            m_TypeColors.Add(VFXParam.Type.kTypeFloat3,     HexColor("#ffb400FF"));
+            m_TypeColors.Add(VFXParam.Type.kTypeFloat4,     HexColor("#ff7300FF"));
+            m_TypeColors.Add(VFXParam.Type.kTypeTexture2D,  HexColor("#cf0ca3FF"));
+            m_TypeColors.Add(VFXParam.Type.kTypeTexture3D,  HexColor("#830ccfFF"));
+            m_TypeColors.Add(VFXParam.Type.kTypeUnknown,    HexColor("#FF00FFFF"));
 
+        }
 
+        static Color HexColor(string hex) {
+            Color output;
+            ColorUtility.TryParseHtmlString(hex, out output);
+            return output;
         }
 
         public void ExportGUISkin()

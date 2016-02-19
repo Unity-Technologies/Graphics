@@ -10,6 +10,8 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdDataAnchor : CanvasElement, IConnect
     {
+        public VFXParam.Type ParamType { get { return m_ParamType; } }
+        protected VFXParam.Type m_ParamType;
         protected Type m_Type;
         protected object m_Source;
         protected Direction m_Direction;
@@ -17,6 +19,7 @@ namespace UnityEditor.Experimental
 
         public VFXEdDataAnchor(Vector3 position, VFXParam.Type type, VFXEdDataSource data, Direction direction)
         {
+            m_ParamType = type;
             m_Type = GetParamType(type);
             scale = new Vector3(15.0f, 15.0f, 1.0f);
             translation = position;

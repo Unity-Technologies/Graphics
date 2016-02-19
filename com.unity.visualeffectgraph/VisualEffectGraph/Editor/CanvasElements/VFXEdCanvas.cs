@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using System.Collections;
 using Object = UnityEngine.Object;
@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental
             if (e.type == EventType.Used)
                 return false;
 
-            VFXEdContextMenu.CanvasMenu(this, parent.MouseToCanvas(e.mousePosition), dataSource as VFXEdDataSource).ShowAsContext();
+            VFXEdContextMenu.CanvasMenu(this, parent.MouseToCanvas(e.mousePosition), dataSource as VFXEdDataSource);
             e.Use();
             return true;
         }

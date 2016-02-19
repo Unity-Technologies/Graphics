@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental
 {
     internal class DataEdgeConnector : EdgeConnector<VFXEdDataAnchor>
     {
-        public DataEdgeConnector() : base(DataEdge<VFXEdDataAnchor>.DrawDataEdgeConnector)
+        public DataEdgeConnector() : base(DataEdge.DrawDataEdgeConnector)
         {
 
         }
