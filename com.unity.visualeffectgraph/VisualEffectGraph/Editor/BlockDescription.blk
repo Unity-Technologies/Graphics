@@ -133,7 +133,7 @@ size = value;
 #arg float minSize [public] 
 #arg float maxSize [public] 
 
-float s = lerp(minSize,maxSize,RAND)
+float s = lerp(minSize,maxSize,RAND);
 size = float2( s,s);
 
 #block Apply Random Scale (Conserve Ratio)
@@ -143,7 +143,7 @@ size = float2( s,s);
 #arg float minScale [public] 
 #arg float maxScale [public] 
 
-float s = lerp(minScale,maxScale,RAND)
+float s = lerp(minScale,maxScale,RAND);
 size *= s;
 
 #block Apply Random Scale

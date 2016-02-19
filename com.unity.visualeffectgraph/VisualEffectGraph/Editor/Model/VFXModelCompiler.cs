@@ -2,6 +2,8 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
@@ -57,12 +59,12 @@ namespace UnityEditor.Experimental
 
             public bool Used(VFXContextModel.Type type)
             {
-                return (0x3 << ((int)type - 1)) != 0;
+                return (m_Usage & (0x3 << (((int)type - 1) * 2))) != 0;
             }
 
             public bool Writable(VFXContextModel.Type type) 
             {
-                return (0x2 << ((int)type - 1)) != 0;
+                return (m_Usage & (0x2 << (((int)type - 1) * 2))) != 0;
             }
 
             public int GetSizeInBytes()
@@ -133,7 +135,7 @@ namespace UnityEditor.Experimental
                 VFXAttrib seedAttrib = new VFXAttrib();
                 VFXParam seedParam = new VFXParam();
                 seedParam.m_Name = "seed";
-                seedParam.m_Type = VFXParam.Type.kTypeInt;
+                seedParam.m_Type = VFXParam.Type.kTypeUint;
                 seedAttrib.m_Param = seedParam;
                 seedAttrib.m_Writable = true;
 
@@ -144,12 +146,12 @@ namespace UnityEditor.Experimental
             CollectAttributes(attribs, updateBlocks, 1);
 
             // Find unitialized attribs and remove 
-            List<VFXAttrib> unitializedAttribs = new List<VFXAttrib>();
+            List<VFXAttrib> unitializedAttribs = new List<VFXAttrib>(); 
             foreach (var attrib in attribs)
             {
                 if ((attrib.Value & 0x3) == 0) // Unitialized attribute
                 {
-                    if (attrib.Key.m_Param.m_Name != "seed" || attrib.Key.m_Param.m_Name != "age") // Dont log anything for those as initialization is implicit
+                    if (attrib.Key.m_Param.m_Name != "seed" && attrib.Key.m_Param.m_Name != "age") // Dont log anything for those as initialization is implicit
                         VFXEditor.Log("WARNING: " + attrib.Key.m_Param.m_Name + " is not initialized. Use default value");
                     unitializedAttribs.Add(attrib.Key);
                 }
@@ -190,7 +192,7 @@ namespace UnityEditor.Experimental
                 int index = currentAttribs.Count - 1;
                 while (index >= 0)
                 {
-                    var buffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
+                    var buffer = new AttributeBuffer(currentBufferIndex++,attribsByUsage.Key);
                     buffer.Add(currentAttribs[index]);
                     buffers.Add(buffer);
                     currentAttribs.RemoveAt(index--);
@@ -202,7 +204,7 @@ namespace UnityEditor.Experimental
                 index = currentAttribs.Count - 1;
                 while (index >= 0)
                 {
-                    var buffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
+                    var buffer = new AttributeBuffer(currentBufferIndex++, attribsByUsage.Key);
                     buffer.Add(currentAttribs[index]);
                     buffers.Add(buffer);
                     currentAttribs.RemoveAt(index--);
@@ -220,7 +222,7 @@ namespace UnityEditor.Experimental
                 index = currentAttribs.Count - 1;
                 while (index >= 0)
                 {
-                    var buffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
+                    var buffer = new AttributeBuffer(currentBufferIndex++, attribsByUsage.Key);
                     buffer.Add(currentAttribs[index]);
                     buffers.Add(buffer);
                     currentAttribs.RemoveAt(index--);
@@ -243,9 +245,12 @@ namespace UnityEditor.Experimental
                 currentAttribs = attribsByUsage.Value[0];
                 index = currentAttribs.Count - 1;
                 int currentCount = 0;
-                var currentBuffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
+                AttributeBuffer currentBuffer = null;                    
                 while (index >= 0)
                 {
+                    if (currentBuffer == null)
+                        currentBuffer = new AttributeBuffer(currentBufferIndex++, attribsByUsage.Key);
+
                     currentBuffer.Add(currentAttribs[index]);
                     currentAttribs.RemoveAt(index--);
                     ++currentCount;
@@ -253,7 +258,7 @@ namespace UnityEditor.Experimental
                     if (currentCount == 4 || index < 0)
                     {
                         buffers.Add(currentBuffer);
-                        currentBuffer = new AttributeBuffer(attribsByUsage.Key, currentBufferIndex++);
+                        currentBuffer = null;
                         currentCount = 0;
                     }
                 }
@@ -320,7 +325,22 @@ namespace UnityEditor.Experimental
             VFXEditor.Log("Nb init uniforms: " + initUniforms.Count);
             VFXEditor.Log("Nb update uniforms: " + updateUniforms.Count);
 
-
+            ShaderMetaData shaderMetaData = new ShaderMetaData();
+            shaderMetaData.initBlocks = initBlocks;
+            shaderMetaData.updateBlocks = updateBlocks;
+            shaderMetaData.hasRand = initHasRand || updateHasRand;
+            shaderMetaData.attributeBuffers = buffers;
+            shaderMetaData.attribToBuffer = attribToBuffer;
+            shaderMetaData.globalUniforms = globalUniforms;
+            shaderMetaData.initUniforms = initUniforms;
+            shaderMetaData.updateUniforms = updateUniforms;
+            shaderMetaData.paramToName = paramToName;
+   
+            string shaderSource = WriteComputeShader(shaderMetaData);
+           
+            VFXEditor.Log("\n**** SHADER CODE ****");
+            VFXEditor.Log(shaderSource);
+            VFXEditor.Log("\n*********************");
         }
 
         public static HashSet<VFXParamValue> CollectUniforms(List<VFXBlockModel> blocks)
@@ -357,6 +377,339 @@ namespace UnityEditor.Experimental
                     int currentUsage = (0x1 | (attr.m_Writable ? 0x2 : 0x0)) << (index * 2);
                     attribs[attr] = usage | currentUsage;
                 }
+        }
+
+        private class ShaderMetaData
+        {
+            public List<VFXBlockModel> initBlocks = new List<VFXBlockModel>();
+            public List<VFXBlockModel> updateBlocks = new List<VFXBlockModel>();
+
+            public bool hasKill = true;
+            public bool hasRand;
+
+            public List<AttributeBuffer> attributeBuffers = new List<AttributeBuffer>();
+            public Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer = new Dictionary<VFXAttrib, AttributeBuffer>(new AttribComparer());
+
+            public HashSet<VFXParamValue> globalUniforms = new HashSet<VFXParamValue>();
+            public HashSet<VFXParamValue> initUniforms = new HashSet<VFXParamValue>();
+            public HashSet<VFXParamValue> updateUniforms = new HashSet<VFXParamValue>();
+     
+            public Dictionary<VFXParamValue, string> paramToName = new Dictionary<VFXParamValue, string>();
+        }
+
+        private static string WriteComputeShader(ShaderMetaData data)
+        {
+            const int NB_THREAD_PER_GROUP = 256;
+
+            bool hasInit = data.initBlocks.Count > 0;
+            bool hasUpdate = data.updateBlocks.Count > 0;
+
+            StringBuilder buffer = new StringBuilder();
+
+            if (hasInit)
+                buffer.AppendLine("#pragma kernel CSVFXInit");
+            if (hasUpdate)
+                buffer.AppendLine("#pragma kernel CSVFXUpdate");
+            buffer.AppendLine();
+            
+            buffer.Append("#define NB_THREADS_PER_GROUP ");
+            buffer.Append(NB_THREAD_PER_GROUP);
+            buffer.AppendLine();
+            buffer.AppendLine();
+            
+            buffer.AppendLine("#include \"HLSLSupport.cginc\"");
+            buffer.AppendLine();
+
+            buffer.AppendLine("CBUFFER_START(GlobalInfo)");
+            buffer.AppendLine("\tfloat deltaTime;");
+            buffer.AppendLine("\tuint maxNb;");
+            buffer.AppendLine("CBUFFER_END");
+            buffer.AppendLine();
+
+            if (hasInit)
+            {
+                buffer.AppendLine("CBUFFER_START(SpawnInfo)");
+                buffer.AppendLine("\tuint nbSpawned;");
+                buffer.AppendLine("CBUFFER_END");
+                buffer.AppendLine();
+            } 
+
+            // Uniforms buffer
+            WriteCBuffer(buffer, "GlobalUniforms", data.globalUniforms, data.paramToName);
+            WriteCBuffer(buffer, "initUniforms", data.initUniforms, data.paramToName);
+            WriteCBuffer(buffer, "updateUniforms", data.updateUniforms, data.paramToName);
+
+            // Write samplers
+            // TODO
+
+            // Write attribute struct
+            foreach (var attribBuffer in data.attributeBuffers)
+                WriteAttributeBuffer(buffer, attribBuffer);
+
+            // Write attribute buffer
+            foreach (var attribBuffer in data.attributeBuffers)
+            {
+                buffer.Append("RWStructuredBuffer<Attribute");
+                buffer.Append(attribBuffer.Index);
+                buffer.Append("> attribBuffer");
+                buffer.Append(attribBuffer.Index);
+                buffer.AppendLine(";");
+
+                if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate) && !attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate))
+                {
+                    buffer.Append("StructuredBuffer<Attribute");
+                    buffer.Append(attribBuffer.Index);
+                    buffer.Append("> attribBuffer");
+                    buffer.Append(attribBuffer.Index);
+                    buffer.AppendLine("_RO;");
+                }
+            }
+            if (data.attributeBuffers.Count > 0)
+                buffer.AppendLine();
+
+            // Write deadlists
+            if (data.hasKill)
+            {
+                buffer.AppendLine("RWStructuredBuffer<uint> flags;");
+                buffer.AppendLine("ConsumeStructuredBuffer<uint> deadListIn;");
+                buffer.AppendLine("AppendStructuredBuffer<uint> deadListOut;");
+                buffer.AppendLine();
+            }
+
+            // Write functions
+            if (data.hasRand)
+            {
+                buffer.AppendLine("float rand(inout uint seed)");
+                buffer.AppendLine("{");
+                buffer.AppendLine("\tseed = seed * 22695477 + 1;");
+                buffer.AppendLine("\treturn float(seed & 0xFFFF) / 65536.0;");
+                buffer.AppendLine("}");
+                buffer.AppendLine();
+            }
+
+            var functionNames = new Dictionary<Hash128,string>();
+            foreach (var block in data.initBlocks)
+                WriteFunction(buffer, block, functionNames);
+            foreach (var block in data.updateBlocks)
+                WriteFunction(buffer, block, functionNames);
+
+            // Write init kernel
+            if (hasInit)
+            {
+                buffer.AppendLine("[numthreads(NB_THREADS_PER_GROUP,1,1)]");
+                buffer.AppendLine("void CSVFXInit(uint3 id : SV_DispatchThreadID)");
+                buffer.AppendLine("{");
+                buffer.AppendLine("\tif (id.x < nbSpawned)");
+                buffer.AppendLine("\t{");
+                if (data.hasKill)
+                    buffer.AppendLine("\t\tuint index = deadListIn.Consume();");
+                else
+                    buffer.AppendLine("\t\tuint index = id.x;");
+
+                foreach (var attribBuffer in data.attributeBuffers)
+                {
+                    buffer.Append("\t\tAttribute");
+                    buffer.Append(attribBuffer.Index);
+                    buffer.Append(" attrib");
+                    buffer.Append(attribBuffer.Index);
+                    buffer.AppendLine(";");
+                }
+                buffer.AppendLine();
+
+                foreach (var block in data.initBlocks)
+                {
+                    buffer.Append("\t\t");
+                    buffer.Append(functionNames[block.Desc.m_Hash]);
+                    buffer.Append("(");
+
+                    char separator = '\0';
+                    foreach (var arg in block.Desc.m_Attribs)
+                    {
+                        buffer.Append(separator);
+                        separator = ',';
+
+                        int index = data.attribToBuffer[arg].Index;
+                        buffer.Append("attrib");
+                        buffer.Append(index);
+                        buffer.Append(".");
+                        buffer.Append(arg.m_Param.m_Name);
+                    }
+
+                    for (int i = 0; i < block.Desc.m_Params.Length; ++i)
+                    {
+                        buffer.Append(separator);
+                        separator = ',';
+                        buffer.Append(data.paramToName[block.GetParamValue(i)]);
+                    }
+
+                    if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
+                    {
+                        buffer.Append(separator);
+
+                        // TODO Not the best way to do that...
+                        VFXAttrib randAttrib = new VFXAttrib();
+                        VFXParam randParam = new VFXParam();
+                        randParam.m_Name = "seed";
+                        randParam.m_Type = VFXParam.Type.kTypeUint;
+                        randAttrib.m_Param = randParam;
+
+                        int index = data.attribToBuffer[randAttrib].Index;
+                        buffer.Append("attrib");
+                        buffer.Append(index);
+                        buffer.Append(".");
+                        buffer.Append(randParam.m_Name);
+                    }
+
+                    buffer.AppendLine(");");
+                }
+                buffer.AppendLine();
+
+                foreach (var attribBuffer in data.attributeBuffers)
+                {
+                    buffer.Append("\t\tattribBuffer");
+                    buffer.Append(attribBuffer.Index);
+                    buffer.Append("[index] = attrib");
+                    buffer.Append(attribBuffer.Index);
+                    buffer.AppendLine(";");
+                }
+
+                if (data.hasKill)
+                {
+                    buffer.AppendLine();
+                    buffer.AppendLine("\t\tflags[index] = 1;");
+                }
+
+                buffer.AppendLine("\t}");
+                buffer.AppendLine("}");
+                buffer.AppendLine();
+            }
+
+            // Write update kernel
+            if (hasUpdate)
+            {
+                buffer.AppendLine("[numthreads(NB_THREADS_PER_GROUP,1,1)]");
+                buffer.AppendLine("void CSVFXUpdate(uint3 id : SV_DispatchThreadID)");
+                buffer.AppendLine("{");
+                buffer.AppendLine("\t//TODO Not yet done !!!");
+                buffer.AppendLine("}");
+            }
+
+            return buffer.ToString();
+        }
+
+        private static void WriteAttributeBuffer(StringBuilder buffer, AttributeBuffer attributeBuffer)
+        {
+            buffer.Append("struct ");
+            buffer.Append("Attribute");
+            buffer.Append(attributeBuffer.Index);
+            buffer.AppendLine(";");
+            buffer.AppendLine("{");
+            for (int i = 0; i < attributeBuffer.Count; ++i)
+            {
+                buffer.Append('\t');
+                WriteType(buffer,attributeBuffer[i].m_Param.m_Type);
+                buffer.Append(" ");
+                buffer.Append(attributeBuffer[i].m_Param.m_Name);
+                buffer.AppendLine(";");
+            }
+
+            if (attributeBuffer.GetSizeInBytes() == 3)
+                buffer.AppendLine("\tint _PADDING_;");
+
+            buffer.AppendLine("}");
+            buffer.AppendLine();
+        }
+
+        private static void WriteCBuffer(StringBuilder buffer, string cbufferName, HashSet<VFXParamValue> uniforms, Dictionary<VFXParamValue, string> uniformsToName)
+        {
+            if (uniforms.Count > 0)
+            {
+                buffer.Append("CBUFFER_START(");
+                buffer.Append(cbufferName);
+                buffer.AppendLine(")");
+                foreach (var uniform in uniforms)
+                {
+                    buffer.Append('\t');
+                    WriteType(buffer,uniform.ValueType);
+                    buffer.Append(" ");
+                    buffer.Append(uniformsToName[uniform]);
+                    buffer.AppendLine(";");
+                }
+                buffer.AppendLine("CBUFFER_END");
+                buffer.AppendLine();
+            }
+        }
+
+        private static void WriteType(StringBuilder buffer,VFXParam.Type type)
+        {
+            buffer.Append(VFXParam.GetNameFromType(type));
+        }
+
+        private static void WriteFunction(StringBuilder buffer, VFXBlockModel block, Dictionary<Hash128, string> functions)
+        {
+            if (!functions.ContainsKey(block.Desc.m_Hash)) // if not already defined
+            {
+                // generate function name
+                string name = new string((from c in block.Desc.m_Name where char.IsLetterOrDigit(c) select c).ToArray());
+                functions[block.Desc.m_Hash] = name;
+
+                string source = block.Desc.m_Source;
+
+                // function signature
+                buffer.Append("void ");
+                buffer.Append(name);
+                buffer.Append("(");
+
+                char separator = '\0';
+                foreach (var arg in block.Desc.m_Attribs)
+                {
+                    buffer.Append(separator);
+                    separator = ',';
+
+                    if (arg.m_Writable)
+                        buffer.Append("inout ");
+                    WriteType(buffer, arg.m_Param.m_Type);
+                    buffer.Append(" ");
+                    buffer.Append(arg.m_Param.m_Name);
+                }
+
+                foreach (var arg in block.Desc.m_Params)
+                {
+                    buffer.Append(separator);
+                    separator = ',';
+
+                    WriteType(buffer, arg.m_Type);
+                    buffer.Append(" ");
+                    buffer.Append(arg.m_Name);
+                }
+
+                if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
+                {
+                    buffer.Append(separator);
+                    buffer.Append("inout uint seed");
+                    source = source.Replace("RAND", "rand(seed)"); 
+                }
+
+                if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
+                {
+                    buffer.Append(separator);
+                    buffer.Append("inout bool kill");
+                    source = source.Replace("KILL", "kill = true"); 
+                }
+
+                buffer.AppendLine(")");
+
+                // function body
+                buffer.AppendLine("{");
+
+                // Add tab for formatting
+                //source = source.Replace("\n", "\n\t");
+                buffer.Append(source);
+                buffer.AppendLine();
+
+                buffer.AppendLine("}");
+                buffer.AppendLine();
+            }
         }
     }
 }
