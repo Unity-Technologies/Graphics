@@ -55,6 +55,16 @@ namespace UnityEditor.Experimental
             return height;
         }
 
+        protected override GUIStyle GetNodeBlockStyle()
+        {
+            return VFXEditor.styles.NodeBlock;
+        }
+
+        protected override GUIStyle GetNodeBlockSelectedStyle()
+        {
+            return VFXEditor.styles.NodeBlockSelected;
+        }
+
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             base.Render(parentRect, canvas);

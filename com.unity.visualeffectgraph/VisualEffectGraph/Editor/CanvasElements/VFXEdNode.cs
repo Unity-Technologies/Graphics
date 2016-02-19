@@ -66,6 +66,11 @@ namespace UnityEditor.Experimental
 
         }
 
+        public override void OnRemove()
+        {
+            NodeBlockContainer.ClearNodeBlocks();
+        }
+
         public abstract bool AcceptNodeBlock(VFXEdNodeBlock block);
 
         public abstract void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index);

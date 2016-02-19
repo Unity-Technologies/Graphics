@@ -65,6 +65,29 @@ namespace UnityEditor.Experimental
 
         }
 
+        public override void OnRemove()
+        {
+            base.OnRemove();
+
+            VFXSystemModel owner = Model.GetOwner();
+            if (owner != null)
+            {
+                int nbChildren = owner.GetNbChildren();
+                int index = owner.GetIndex(Model);
+
+                Model.Detach();
+                if (index != 0 && index != nbChildren - 1)
+                {
+                    // if the node is in the middle of a system, we need to create a new system
+                    VFXSystemModel newSystem = new VFXSystemModel();
+                    while (owner.GetNbChildren() > index)
+                        owner.GetChild(index).Attach(newSystem);
+                    newSystem.Attach(VFXEditor.AssetModel);
+                }
+            }
+
+        }
+
         protected override void ShowNodeBlockMenu(Vector2 canvasClickPosition)
         {
              GenericMenu menu = new GenericMenu();

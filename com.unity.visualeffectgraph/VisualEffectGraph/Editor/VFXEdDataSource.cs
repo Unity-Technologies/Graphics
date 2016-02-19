@@ -35,16 +35,16 @@ namespace UnityEditor.Experimental
 
         public void RemoveDataConnectionsTo(VFXEdDataAnchor anchor)
         {
-            var edgesToErase = new List<DataEdge<VFXEdDataAnchor>>();
+            var edgesToErase = new List<DataEdge>();
 
             foreach (CanvasElement element in m_Elements)
             {
-                DataEdge<VFXEdDataAnchor> edge = element as DataEdge<VFXEdDataAnchor>;
+                DataEdge edge = element as DataEdge;
                 if (edge != null && (edge.Left == anchor || edge.Right == anchor))
                     edgesToErase.Add(edge);
             }
 
-            foreach(DataEdge<VFXEdDataAnchor> edge in edgesToErase) {
+            foreach(DataEdge edge in edgesToErase) {
                 m_Elements.Remove(edge);
             }
         }
@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental
             Canvas2D canvas = e.ParentCanvas();
 
             // Handle model update when deleting edge here
-            var edge = e as FlowEdge<VFXEdFlowAnchor>;
+            var edge = e as FlowEdge;
             if (edge != null)
             {
                 VFXEdFlowAnchor anchor = edge.Right;
@@ -78,9 +78,43 @@ namespace UnityEditor.Experimental
             canvas.Repaint();
         }
 
+        public void RemoveConnectedEdges<T, U>(U anchor) 
+            where T : Edge<U> 
+            where U : CanvasElement, IConnect 
+        {
+            var edgesToRemove = GetConnectedEdges<T,U>(anchor);
+
+            foreach (var edge in edgesToRemove)
+                m_Elements.Remove(edge);
+        }
+
+        public List<T> GetConnectedEdges<T, U>(U anchor) 
+            where T : Edge<U> 
+            where U : CanvasElement, IConnect 
+        {
+            var edges = new List<T>();
+            foreach (CanvasElement element in m_Elements)
+            {
+                T edge = element as T;
+                if (edge != null && (edge.Left == anchor || edge.Right == anchor))
+                    edges.Add(edge);
+            }
+            return edges;
+        }
+
+
         public void ConnectData(VFXEdDataAnchor a, VFXEdDataAnchor b)
         {
-            m_Elements.Add(new DataEdge<VFXEdDataAnchor>(this, a, b));
+            if (a.GetDirection() == Direction.Input)
+            {
+                VFXEdDataAnchor tmp = a;
+                a = b;
+                b = tmp;
+            }
+
+            RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
+
+            m_Elements.Add(new DataEdge(this, a, b));
         }
 
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)
@@ -107,18 +141,10 @@ namespace UnityEditor.Experimental
 
             }
 
-            var edgesToErase = new List<FlowEdge<VFXEdFlowAnchor>>();
-            foreach (CanvasElement element in m_Elements)
-            {
-                FlowEdge<VFXEdFlowAnchor> edge = element as FlowEdge<VFXEdFlowAnchor>;
-                if (edge != null && (edge.Left == a || edge.Right == a || edge.Left == b || edge.Right == b))
-                    edgesToErase.Add(edge);
-            }
+            RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(a);
+            RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(b);
 
-            foreach (var edge in edgesToErase)
-                m_Elements.Remove(edge);
-
-            m_Elements.Add(new FlowEdge<VFXEdFlowAnchor>(this, a, b));
+            m_Elements.Add(new FlowEdge(this, a, b));
             return true;
         }
 

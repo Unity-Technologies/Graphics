@@ -40,21 +40,24 @@ namespace UnityEditor.Experimental
             if (collapsed)
             {
                 scale = new Vector2(scale.x, VFXEditorMetrics.NodeBlockHeaderHeight);
+
+                // if collapsed, rejoin all connectors on the middle of the header
+                foreach(VFXEdNodeBlockParameterField field in m_Fields)
+                {
+                    field.translation = new Vector2(0.0f, (VFXEditorMetrics.NodeBlockHeaderHeight-VFXEditorMetrics.DataAnchorSize.y)/2);
+                }
             }
             else
             {
                 scale = new Vector2(scale.x, GetHeight());
+                float curY = VFXEditorMetrics.NodeBlockHeaderHeight;
+
+                foreach(VFXEdNodeBlockParameterField field in m_Fields)
+                {
+                    field.translation = new Vector2(0.0f, curY);
+                    curY += field.scale.y;
+                }
             }
-
-            float curY = VFXEditorMetrics.NodeBlockHeaderHeight;
-
-            foreach(VFXEdNodeBlockParameterField field in m_Fields)
-            {
-                field.translation = new Vector2(0.0f, curY);
-                curY += field.scale.y;
-            }
-
-
         }
 
         public bool IsSelectedNodeBlock(VFXEdCanvas canvas)
@@ -86,6 +89,9 @@ namespace UnityEditor.Experimental
             ParentCanvas().ReloadData();
         }
 
+        protected abstract GUIStyle GetNodeBlockSelectedStyle();
+        protected abstract GUIStyle GetNodeBlockStyle();
+
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             Rect r = GetDrawableRect();
@@ -94,9 +100,9 @@ namespace UnityEditor.Experimental
             {
                 if (IsSelectedNodeBlock(canvas as VFXEdCanvas))
 
-                    GUI.Box(r, "", VFXEditor.styles.NodeBlockSelected);
+                    GUI.Box(r, "", GetNodeBlockSelectedStyle());
                 else
-                    GUI.Box(r, "", VFXEditor.styles.NodeBlock);
+                    GUI.Box(r, "", GetNodeBlockStyle());
             }
             else // If currently dragged...
             {

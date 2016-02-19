@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdContextMenu
     {
-        internal static GenericMenu CanvasMenu(VFXEdCanvas canvas, Vector2 canvasClickPosition, VFXEdDataSource source ) {
+        internal static void CanvasMenu(VFXEdCanvas canvas, Vector2 canvasClickPosition, VFXEdDataSource source ) {
 
             GenericMenu output = new GenericMenu();
 
@@ -32,9 +32,7 @@ namespace UnityEditor.Experimental
                 output.AddItem(new GUIContent("Templates/" + t.Path), false, VFXEditor.SpawnTemplates.SpawnFromMenu, new VFXEdTemplateSpawner(t.Path, source, canvas, canvasClickPosition));
             }
 
-
-
-            return output;
+            output.ShowAsContext();
         }
 
     }

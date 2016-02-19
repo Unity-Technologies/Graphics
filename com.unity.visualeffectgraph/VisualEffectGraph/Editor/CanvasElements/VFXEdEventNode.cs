@@ -35,6 +35,11 @@ namespace UnityEditor.Experimental
             m_Output.translation = new Vector2((s.x / 2) - (m_Output.scale.x / 2), s.y - VFXEditor.styles.NodeSelected.border.bottom);
         }
 
+        public override void OnRemove()
+        {
+
+        }
+
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             base.Render(parentRect, canvas);

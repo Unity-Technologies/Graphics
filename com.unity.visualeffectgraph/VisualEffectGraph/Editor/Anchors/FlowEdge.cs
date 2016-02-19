@@ -5,18 +5,17 @@ using UnityEditor.Experimental.Graph;
 
 namespace UnityEditor.Experimental
 {
-    class FlowEdge<T> : Edge<T> where T : VFXEdFlowAnchor
+    class FlowEdge : Edge<VFXEdFlowAnchor>
     {
-        public Color EdgeColor { get { return new Color(m_edgeColor.r,m_edgeColor.g,m_edgeColor.b,0.5f); } }
-        public Color EdgeColorSelected { get { return m_edgeColor; } }
+        private Color m_edgeColor;
+        private Color m_edgeColorSelected;
 
-
-
-        private Color m_edgeColor = Color.gray;
-        public FlowEdge(ICanvasDataSource data, T source, T target)
+        public FlowEdge(ICanvasDataSource data, VFXEdFlowAnchor source, VFXEdFlowAnchor target)
             : base(data, source, target)
         {
-            m_edgeColor = VFXEditor.styles.GetContextColor(source.context);
+            m_edgeColor = VFXEditor.styles.GetContextColor(source.context) * VFXEditor.styles.FlowEdgeTint;
+            m_edgeColorSelected = VFXEditor.styles.GetContextColor(source.context) * VFXEditor.styles.FlowEdgeSelectedTint;
+
             caps = Capabilities.Normal;
         }
 
@@ -32,15 +31,15 @@ namespace UnityEditor.Experimental
             Orientation orientation = m_Left.GetOrientation();
 
             Vector3[] points, tangents;
-            EdgeConnector<T>.GetTangents(m_Left.GetDirection(), orientation, from, to, out points, out tangents);
+            EdgeConnector<VFXEdFlowAnchor>.GetTangents(m_Left.GetDirection(), orientation, from, to, out points, out tangents);
 
             if (selected)
             {
-                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], EdgeColorSelected, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
+                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], m_edgeColorSelected, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
                 Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], Color.white, VFXEditor.styles.FlowEdgeOpacitySelected, VFXEditorMetrics.FlowEdgeWidth);
             }
             else 
-                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], EdgeColor, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
+                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], m_edgeColor, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
 
         }
 
@@ -49,7 +48,7 @@ namespace UnityEditor.Experimental
             Vector3[] points, tangents;
             if (Vector3.Distance(from, to) > 10.0f)
             {
-                EdgeConnector<T>.GetTangents(direction, Orientation.Vertical, from, to, out points, out tangents);
+                EdgeConnector<VFXEdFlowAnchor>.GetTangents(direction, Orientation.Vertical, from, to, out points, out tangents);
                 Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], color, VFXEditor.styles.FlowEdgeOpacity, VFXEditorMetrics.FlowEdgeWidth);
             }
         }

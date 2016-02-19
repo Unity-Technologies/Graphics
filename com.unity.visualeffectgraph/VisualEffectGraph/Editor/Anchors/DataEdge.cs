@@ -5,13 +5,19 @@ using UnityEditor.Experimental.Graph;
 
 namespace UnityEditor.Experimental
 {
-    class DataEdge<T> : Edge<T> where T : VFXEdDataAnchor
+    class DataEdge : Edge<VFXEdDataAnchor>
     {
 
-        private Color m_edgeColor = Color.gray;
-        public DataEdge(ICanvasDataSource data, T source, T target)
+        private VFXParam.Type m_Type;
+        private Color m_Color;
+        private Color m_SelectedColor;
+        public DataEdge(ICanvasDataSource data, VFXEdDataAnchor source, VFXEdDataAnchor target)
             : base(data, source, target)
         {
+            m_Type = source.ParamType;
+            m_SelectedColor = VFXEditor.styles.GetTypeColor(m_Type) * VFXEditor.styles.DataEdgeSelectedTint;
+            m_Color = VFXEditor.styles.GetTypeColor(m_Type) * VFXEditor.styles.DataEdgeTint ;
+
             caps = Capabilities.Normal;
         }
 
@@ -27,15 +33,15 @@ namespace UnityEditor.Experimental
             Orientation orientation = m_Left.GetOrientation();
 
             Vector3[] points, tangents;
-            EdgeConnector<T>.GetTangents(m_Left.GetDirection(), orientation, from, to, out points, out tangents);
+            EdgeConnector<VFXEdDataAnchor>.GetTangents(m_Left.GetDirection(), orientation, from, to, out points, out tangents);
 
             if (selected)
             {
-                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], Color.yellow, VFXEditor.styles.DataEdgeOpacity, VFXEditorMetrics.DataEdgeWidth);
-                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], Color.white, VFXEditor.styles.DataEdgeOpacitySelected, VFXEditorMetrics.DataEdgeWidth);
+                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], m_SelectedColor, VFXEditor.styles.DataEdgeOpacity, VFXEditorMetrics.DataEdgeWidth);
+                //Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], Color.white, VFXEditor.styles.DataEdgeOpacitySelected, VFXEditorMetrics.DataEdgeWidth);
             }
             else 
-                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], Color.white, VFXEditor.styles.DataEdgeOpacity, VFXEditorMetrics.DataEdgeWidth);
+                Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], m_Color, VFXEditor.styles.DataEdgeOpacity, VFXEditorMetrics.DataEdgeWidth);
 
         }
 
@@ -44,7 +50,7 @@ namespace UnityEditor.Experimental
             Vector3[] points, tangents;
             if (Vector3.Distance(from, to) > 10.0f)
             {
-                EdgeConnector<T>.GetTangents(direction, Orientation.Horizontal, from, to, out points, out tangents);
+                EdgeConnector<VFXEdDataAnchor>.GetTangents(direction, Orientation.Horizontal, from, to, out points, out tangents);
                 Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], color, VFXEditor.styles.DataEdgeOpacity, VFXEditorMetrics.DataEdgeWidth);
             }
         }
