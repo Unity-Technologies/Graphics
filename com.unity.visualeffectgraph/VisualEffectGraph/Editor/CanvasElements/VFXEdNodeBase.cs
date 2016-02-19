@@ -39,5 +39,7 @@ namespace UnityEditor.Experimental
 
         }
 
+        public abstract void OnRemove();
+
     }
 }

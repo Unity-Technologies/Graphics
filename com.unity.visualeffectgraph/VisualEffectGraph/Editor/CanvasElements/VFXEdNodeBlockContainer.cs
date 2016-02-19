@@ -140,6 +140,21 @@ namespace UnityEditor.Experimental
                 block.OnRemoved();
         }
 
+        public void ClearNodeBlocks()
+        {
+            List<VFXEdNodeBlock> todelete = new List<VFXEdNodeBlock>();
+            foreach (VFXEdNodeBlock block in m_NodeBlocks)
+            {
+                todelete.Add(block);
+            }
+
+            foreach (VFXEdNodeBlock block in todelete)
+            {
+                RemoveNodeBlock(block);
+            }
+
+        }
+
 
         public void AcceptDrop(VFXEdNodeBlock block)
         {
