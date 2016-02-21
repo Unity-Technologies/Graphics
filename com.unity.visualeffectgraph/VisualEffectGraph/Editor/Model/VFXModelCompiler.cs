@@ -88,6 +88,7 @@ namespace UnityEditor.Experimental
             List<VFXBlockModel> updateBlocks = new List<VFXBlockModel>();
             bool initHasRand = false;
             bool updateHasRand = false;
+            bool updateHasKill = false;
 
             // Collapses the contexts into one big init and update
             for (int i = 0; i < system.GetNbChildren(); ++i)
@@ -105,17 +106,22 @@ namespace UnityEditor.Experimental
                     continue;
 
                 bool hasRand = false;
+                bool hasKill = false;
                 for (int j = 0; j < context.GetNbChildren(); ++j)
                 {
                     VFXBlockModel blockModel = context.GetChild(j);
                     hasRand |= (blockModel.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0;
+                    hasKill |= (blockModel.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0;
                     currentList.Add(blockModel);
                 }
 
                 switch (context.GetContextType())
                 {
                     case VFXContextModel.Type.kTypeInit: initHasRand |= hasRand; break;
-                    case VFXContextModel.Type.kTypeUpdate: updateHasRand |= hasRand; break;
+                    case VFXContextModel.Type.kTypeUpdate: 
+                        updateHasRand |= hasRand;
+                        updateHasKill |= hasKill;
+                        break;
                 }
             }
 
@@ -329,6 +335,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.initBlocks = initBlocks;
             shaderMetaData.updateBlocks = updateBlocks;
             shaderMetaData.hasRand = initHasRand || updateHasRand;
+            shaderMetaData.hasKill = updateHasKill;
             shaderMetaData.attributeBuffers = buffers;
             shaderMetaData.attribToBuffer = attribToBuffer;
             shaderMetaData.globalUniforms = globalUniforms;
@@ -496,15 +503,14 @@ namespace UnityEditor.Experimental
             // Write init kernel
             if (hasInit)
             {
-                buffer.AppendLine("[numthreads(NB_THREADS_PER_GROUP,1,1)]");
-                buffer.AppendLine("void CSVFXInit(uint3 id : SV_DispatchThreadID)");
-                buffer.AppendLine("{");
+                WriteKernelHeader(buffer,"CSVFXInit");
                 buffer.AppendLine("\tif (id.x < nbSpawned)");
                 buffer.AppendLine("\t{");
                 if (data.hasKill)
                     buffer.AppendLine("\t\tuint index = deadListIn.Consume();");
                 else
-                    buffer.AppendLine("\t\tuint index = id.x;");
+                    buffer.AppendLine("\t\tuint index = id.x; // TODO Not working! Needs to add the current count as offset");
+                buffer.AppendLine();
 
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
@@ -517,51 +523,7 @@ namespace UnityEditor.Experimental
                 buffer.AppendLine();
 
                 foreach (var block in data.initBlocks)
-                {
-                    buffer.Append("\t\t");
-                    buffer.Append(functionNames[block.Desc.m_Hash]);
-                    buffer.Append("(");
-
-                    char separator = '\0';
-                    foreach (var arg in block.Desc.m_Attribs)
-                    {
-                        buffer.Append(separator);
-                        separator = ',';
-
-                        int index = data.attribToBuffer[arg].Index;
-                        buffer.Append("attrib");
-                        buffer.Append(index);
-                        buffer.Append(".");
-                        buffer.Append(arg.m_Param.m_Name);
-                    }
-
-                    for (int i = 0; i < block.Desc.m_Params.Length; ++i)
-                    {
-                        buffer.Append(separator);
-                        separator = ',';
-                        buffer.Append(data.paramToName[block.GetParamValue(i)]);
-                    }
-
-                    if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
-                    {
-                        buffer.Append(separator);
-
-                        // TODO Not the best way to do that...
-                        VFXAttrib randAttrib = new VFXAttrib();
-                        VFXParam randParam = new VFXParam();
-                        randParam.m_Name = "seed";
-                        randParam.m_Type = VFXParam.Type.kTypeUint;
-                        randAttrib.m_Param = randParam;
-
-                        int index = data.attribToBuffer[randAttrib].Index;
-                        buffer.Append("attrib");
-                        buffer.Append(index);
-                        buffer.Append(".");
-                        buffer.Append(randParam.m_Name);
-                    }
-
-                    buffer.AppendLine(");");
-                }
+                    WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
                 buffer.AppendLine();
 
                 foreach (var attribBuffer in data.attributeBuffers)
@@ -587,11 +549,68 @@ namespace UnityEditor.Experimental
             // Write update kernel
             if (hasUpdate)
             {
-                buffer.AppendLine("[numthreads(NB_THREADS_PER_GROUP,1,1)]");
-                buffer.AppendLine("void CSVFXUpdate(uint3 id : SV_DispatchThreadID)");
-                buffer.AppendLine("{");
-                buffer.AppendLine("\t//TODO Not yet done !!!");
+                WriteKernelHeader(buffer,"CSVFXUpdate");
+
+                buffer.Append("\tif (id.x < maxNb");
+                if (data.hasKill)
+                    buffer.AppendLine(" && flags[id.x] == 1)");
+                else
+                    buffer.AppendLine(")");
+                buffer.AppendLine("\t{");
+                buffer.AppendLine("\t\tuint index = id.x;");
+
+                if (data.hasKill)
+                    buffer.AppendLine("\t\tbool kill = false;");
+                
+                buffer.AppendLine();
+
+                foreach (var attribBuffer in data.attributeBuffers)
+                {
+                    if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate))
+                    {
+                        buffer.Append("\t\tAttribute");
+                        buffer.Append(attribBuffer.Index);
+                        buffer.Append(" attrib");
+                        buffer.Append(attribBuffer.Index);
+                        buffer.Append(" = attribBuffer");
+                        buffer.Append(attribBuffer.Index);
+                        if (!attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate))
+                            buffer.Append("_RO");
+                        buffer.AppendLine("[index];");
+                    }
+                }
+                buffer.AppendLine();
+
+                foreach (var block in data.updateBlocks)
+                    WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
+                buffer.AppendLine();
+
+                if (data.hasKill)
+                {
+                    buffer.AppendLine("\t\tif (kill)");
+                    buffer.AppendLine("\t\t{");
+                    buffer.AppendLine("\t\t\tflags[index] = 0;");
+                    buffer.AppendLine("\t\t\tDeadListOut.Append(index);");
+                    buffer.AppendLine("\t\t\treturn;");
+                    buffer.AppendLine("\t\t}");
+                    buffer.AppendLine();
+                }
+
+                foreach (var attribBuffer in data.attributeBuffers)
+                {
+                    if (attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate))
+                    {
+                        buffer.Append("\t\tattribBuffer");
+                        buffer.Append(attribBuffer.Index);
+                        buffer.Append("[index] = attrib");
+                        buffer.Append(attribBuffer.Index);
+                        buffer.AppendLine(";");
+                    }
+                }
+
+                buffer.AppendLine("\t}");
                 buffer.AppendLine("}");
+                buffer.AppendLine();
             }
 
             return buffer.ToString();
@@ -710,6 +729,73 @@ namespace UnityEditor.Experimental
                 buffer.AppendLine("}");
                 buffer.AppendLine();
             }
+        }
+
+        private static void WriteFunctionCall(
+            StringBuilder buffer,
+            VFXBlockModel block,
+            Dictionary<Hash128, string> functions,
+            Dictionary<VFXParamValue, string> paramToName,
+            Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer)
+        {
+            buffer.Append("\t\t");
+            buffer.Append(functions[block.Desc.m_Hash]);
+            buffer.Append("(");
+
+            char separator = '\0';
+            foreach (var arg in block.Desc.m_Attribs)
+            {
+                buffer.Append(separator);
+                separator = ',';
+
+                int index = attribToBuffer[arg].Index;
+                buffer.Append("attrib");
+                buffer.Append(index);
+                buffer.Append(".");
+                buffer.Append(arg.m_Param.m_Name);
+            }
+
+            for (int i = 0; i < block.Desc.m_Params.Length; ++i)
+            {
+                buffer.Append(separator);
+                separator = ',';
+                buffer.Append(paramToName[block.GetParamValue(i)]);
+            }
+
+            if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
+            {
+                buffer.Append(separator);
+
+                // TODO Not the best way to do that...
+                VFXAttrib randAttrib = new VFXAttrib();
+                VFXParam randParam = new VFXParam();
+                randParam.m_Name = "seed";
+                randParam.m_Type = VFXParam.Type.kTypeUint;
+                randAttrib.m_Param = randParam;
+
+                int index = attribToBuffer[randAttrib].Index;
+                buffer.Append("attrib");
+                buffer.Append(index);
+                buffer.Append(".");
+                buffer.Append(randParam.m_Name);
+            }
+
+            if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
+            {
+                buffer.Append(separator);
+                buffer.Append("kill");
+            }
+
+            buffer.AppendLine(");");
+        }
+
+        private static void WriteKernelHeader(StringBuilder buffer,string name)
+        {
+            buffer.AppendLine("[numthreads(NB_THREADS_PER_GROUP,1,1)]");
+            buffer.Append("void ");
+            buffer.Append(name);
+            buffer.AppendLine("(uint3 id : SV_DispatchThreadID)");
+            buffer.AppendLine("{");
         }
     }
 }
