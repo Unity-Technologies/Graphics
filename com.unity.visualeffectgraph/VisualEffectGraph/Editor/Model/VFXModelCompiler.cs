@@ -348,6 +348,14 @@ namespace UnityEditor.Experimental
             VFXEditor.Log("\n**** SHADER CODE ****");
             VFXEditor.Log(shaderSource);
             VFXEditor.Log("\n*********************");
+
+
+            // Write to file
+            string shaderPath = Application.dataPath + "/VFXEditor/Generated/";
+            System.IO.Directory.CreateDirectory(shaderPath);
+            shaderPath += "VFX.compute";
+            System.IO.File.WriteAllText(shaderPath, shaderSource);
+            AssetDatabase.LoadAllAssetsAtPath(shaderPath);
         }
 
         public static HashSet<VFXParamValue> CollectUniforms(List<VFXBlockModel> blocks)
@@ -518,7 +526,15 @@ namespace UnityEditor.Experimental
                     buffer.Append(attribBuffer.Index);
                     buffer.Append(" attrib");
                     buffer.Append(attribBuffer.Index);
-                    buffer.AppendLine(";");
+                    
+                    // No initialization
+                    //buffer.AppendLine(";");
+
+                    // TODO tmp
+                    // Initialize to avoid warning as error while compiling
+                    buffer.Append(" = (Attribute");
+                    buffer.Append(attribBuffer.Index);
+                    buffer.AppendLine(")0;");
                 }
                 buffer.AppendLine();
 
@@ -590,7 +606,7 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine("\t\tif (kill)");
                     buffer.AppendLine("\t\t{");
                     buffer.AppendLine("\t\t\tflags[index] = 0;");
-                    buffer.AppendLine("\t\t\tDeadListOut.Append(index);");
+                    buffer.AppendLine("\t\t\tdeadListOut.Append(index);");
                     buffer.AppendLine("\t\t\treturn;");
                     buffer.AppendLine("\t\t}");
                     buffer.AppendLine();
@@ -621,7 +637,7 @@ namespace UnityEditor.Experimental
             buffer.Append("struct ");
             buffer.Append("Attribute");
             buffer.Append(attributeBuffer.Index);
-            buffer.AppendLine(";");
+            buffer.AppendLine();
             buffer.AppendLine("{");
             for (int i = 0; i < attributeBuffer.Count; ++i)
             {
@@ -635,7 +651,7 @@ namespace UnityEditor.Experimental
             if (attributeBuffer.GetSizeInBytes() == 3)
                 buffer.AppendLine("\tint _PADDING_;");
 
-            buffer.AppendLine("}");
+            buffer.AppendLine("};");
             buffer.AppendLine();
         }
 
@@ -679,7 +695,7 @@ namespace UnityEditor.Experimental
                 buffer.Append(name);
                 buffer.Append("(");
 
-                char separator = '\0';
+                char separator = ' ';
                 foreach (var arg in block.Desc.m_Attribs)
                 {
                     buffer.Append(separator);
@@ -742,7 +758,7 @@ namespace UnityEditor.Experimental
             buffer.Append(functions[block.Desc.m_Hash]);
             buffer.Append("(");
 
-            char separator = '\0';
+            char separator = ' ';
             foreach (var arg in block.Desc.m_Attribs)
             {
                 buffer.Append(separator);
