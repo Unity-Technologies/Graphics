@@ -12,7 +12,6 @@ namespace UnityEditor.Experimental
     {
         public string name{ get { return m_Name; } }
         protected string m_Name;
-
         protected VFXEdNodeBlockParameterField[] m_Fields;
 
         protected VFXEdDataSource m_DataSource;

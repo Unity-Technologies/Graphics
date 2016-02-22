@@ -14,22 +14,32 @@ namespace UnityEditor.Experimental
         public string category { get { return m_Category; } }
         public string name {get { return m_Name; } }
         public string path { get { return category +"/"+m_Name; } }
-        public Dictionary<string, VFXParam.Type> Parameters { get { return m_Parameters; } }
+        public List<VFXDataParam> Parameters { get { return m_Parameters; } }
 
         private Texture2D m_Icon;
         private string m_Category;
         private string m_Name;
-        private Dictionary<string, VFXParam.Type> m_Parameters;
+        private List<VFXDataParam> m_Parameters;
 
         public VFXDataBlock(string name, string iconname, string category ) {
             m_Name = name;
             m_Icon = VFXEditor.styles.GetIcon(iconname);
             m_Category = category;
-            m_Parameters = new Dictionary<string, VFXParam.Type>();
+            m_Parameters = new List<VFXDataParam>();
         }
 
         public void AddParameter(string name, VFXParam.Type type) {
-            m_Parameters.Add(name, type);
+            m_Parameters.Add(new VFXDataParam(name, type));
+        }
+    }
+
+    public class VFXDataParam {
+        public string m_name;
+        public VFXParam.Type m_type;
+        public VFXDataParam(string name, VFXParam.Type type)
+        {
+            m_name = name;
+            m_type = type;
         }
     }
 

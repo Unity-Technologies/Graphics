@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental
                 SetSelectedNodeBlock(value);
             }
         }
+
         private VFXEdNodeBlock m_SelectedNodeBlock;
 
         public VFXEdCanvas(Object target, EditorWindow host, ICanvasDataSource dataSource)
@@ -42,9 +43,14 @@ namespace UnityEditor.Experimental
 
         public void SetSelectedNodeBlock(VFXEdNodeBlock block)
         {
-            if (m_SelectedNodeBlock != null)
-                m_SelectedNodeBlock.parent.Invalidate();
             m_SelectedNodeBlock = block;
+
+            if (m_SelectedNodeBlock != null)
+            {
+                m_SelectedNodeBlock.parent.Invalidate();
+                ClearSelection();
+                AddToSelection(m_SelectedNodeBlock);
+            }
         }
 
         public bool ManageSelection(CanvasElement element, Event e, Canvas2D parent)
