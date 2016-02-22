@@ -490,16 +490,6 @@ namespace UnityEditor.Experimental
         }
 
         // END THOMASI
-        // THOMASI : REMOVING CHILD ELEMENT
-        public virtual void RemoveChild(CanvasElement e)
-        {
-            if (m_Children.Contains(e))
-            {
-                m_Children.Remove(e);
-            }
-
-        }
-        // END THOMASI
 
         public virtual void Layout()
         {

@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
+using UnityEditor.Experimental.Graph.Examples; // TODO Dont use that anymore
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
