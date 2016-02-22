@@ -13,6 +13,11 @@ namespace UnityEditor.Experimental
         CanvasAnimationCallback m_CurrentCallback;
         PropertyData m_CurrentData;
 
+        public CanvasElement elementBeingAnimated
+        {
+            get { return m_ElementBeingAnimated; }
+        }
+
         public CanvasAnimation(CanvasElement e)
         {
             m_ElementBeingAnimated = e;
@@ -78,7 +83,7 @@ namespace UnityEditor.Experimental
         {
             return Lerp(prop, from, to, 0.08f);
         }
-        
+
         public CanvasAnimation Lerp(string prop, object from, object to, float speed)
         {
             return Lerp(new string[] { prop }, new object[] { from }, new object[] { to }, speed);

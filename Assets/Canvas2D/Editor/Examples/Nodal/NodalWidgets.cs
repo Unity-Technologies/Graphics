@@ -1,15 +1,13 @@
 using System;
 using UnityEngine;
-using UnityEditor.Experimental;
-using UnityEditor.Experimental.Graph;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     class PortSource<T>
     {
     }
 
-  
+
     class Node : MoveableBox
     {
         Type m_OutputType;
@@ -58,7 +56,7 @@ namespace UnityEditor
         protected Orientation m_Orientation = Orientation.Horizontal;
         public int m_PortIndex;
         static public float kNodeSize = 15.0f;
-        
+
         public NodeAnchor(int portIndex, Vector3 position, Type type, NodalDataSource data, EdgeRenderMethod customEdgeDrawMethod)
         {
             m_Type = type;
@@ -80,7 +78,7 @@ namespace UnityEditor
             anchorColor.a = 0.7f;
             base.Render(parentRect, canvas);
             EditorGUI.DrawRect(new Rect(translation.x, translation.y, scale.x, scale.y), anchorColor);
-            
+
             Rect labelRect = new Rect(translation.x + scale.x + 10.0f, translation.y, parentRect.width, 20.0f);
             if (m_Orientation == Orientation.Vertical)
             {

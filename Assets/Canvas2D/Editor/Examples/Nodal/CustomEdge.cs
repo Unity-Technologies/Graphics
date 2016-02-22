@@ -1,9 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEditor.Experimental;
-using UnityEditor.Experimental.Graph;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     class CustomEdge<T> : Edge<T> where T : CanvasElement, IConnect
     {
@@ -17,11 +15,11 @@ namespace UnityEditor
             m_EdgeTexture = Resources.Load("edge") as Texture2D;
         }
 
-
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            Vector3 from = m_Left.ConnectPosition();
-            Vector3 to = m_Right.ConnectPosition();
+            Vector3 from = (canvas.ProjectToScreen(m_Left.ConnectPosition()));
+            Vector3 to = (canvas.ProjectToScreen(m_Right.ConnectPosition()));
+            
             Orientation orientation = m_Left.GetOrientation();
 
             Vector3[] points, tangents;
@@ -59,8 +57,9 @@ namespace UnityEditor
 
         static void DrawCustomEdgeConnector(Canvas2D parent, IConnect source, IConnect target, Vector3 from, Vector3 to)
         {
+            from = parent.ProjectToScreen(from);
+            to = parent.ProjectToScreen(to);
             Handles.DrawAAPolyLine(15.0f, new[] { from, to });
         }
     }
-
 }

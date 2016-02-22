@@ -29,8 +29,9 @@ namespace UnityEditor.Experimental
             parent.ClearSelection();
             if (e.button == 0)
             {
-                element.OnWidget += DrawSelection;
+                parent.OnOverlay += DrawSelection;
                 m_Start = parent.MouseToCanvas(e.mousePosition);
+                var convert = parent.CanvasToScreen(m_Start);
                 m_End = m_Start;
                 m_SelectionActive = true;
                 e.Use();
@@ -48,7 +49,7 @@ namespace UnityEditor.Experimental
 
             if (m_SelectionActive)
             {
-                element.OnWidget -= DrawSelection;
+                parent.OnOverlay -= DrawSelection;
                 m_End = parent.MouseToCanvas(e.mousePosition);
 
                 Rect selection = new Rect();
@@ -91,9 +92,12 @@ namespace UnityEditor.Experimental
             if (!m_SelectionActive)
                 return false;
 
+            var screenStart = parent.CanvasToScreen(m_Start);
+            var screenEnd = parent.CanvasToScreen(m_End);
+
             Rect r = new Rect();
-            r.min = new Vector2(Math.Min(m_Start.x, m_End.x), Math.Min(m_Start.y, m_End.y));
-            r.max = new Vector2(Math.Max(m_Start.x, m_End.x), Math.Max(m_Start.y, m_End.y));
+            r.min = new Vector2(Math.Min(screenStart.x, screenEnd.x), Math.Min(screenStart.y, screenEnd.y));
+            r.max = new Vector2(Math.Max(screenStart.x, screenEnd.x), Math.Max(screenStart.y, screenEnd.y));
 
             Color lineColor = new Color(1.0f, 0.6f, 0.0f, 1.0f);
             float segmentSize = 5f;
@@ -110,6 +114,9 @@ namespace UnityEditor.Experimental
             DrawDottedLine(points[1], points[2], segmentSize, lineColor);
             DrawDottedLine(points[2], points[3], segmentSize, lineColor);
             DrawDottedLine(points[3], points[0], segmentSize, lineColor);
+
+            GUI.Label(new Rect(screenStart.x, screenStart.y-18.0f, 200.0f, 20.0f), m_Start.ToString());
+            GUI.Label(new Rect(screenEnd.x - 80.0f, screenEnd.y + 5.0f, 200.0f, 20.0f), m_End.ToString());
 
             return true;
         }

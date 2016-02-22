@@ -1,13 +1,10 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental;
-using Object = UnityEngine.Object;
 
 #pragma warning disable 0414
 #pragma warning disable 0219
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     internal class AnimationCanvas2D : EditorWindow
     {
@@ -30,7 +27,6 @@ namespace UnityEditor
             m_Canvas.ReloadData();
 
             var scaling = e.scale;
-            m_Canvas.Animate(e).Lerp("m_Scale", new Vector3(0.1f, 0.1f, 0.1f), scaling);
         }
 
         private void InitializeCanvas()
@@ -102,6 +98,7 @@ namespace UnityEditor
             {
                 m_Data.Clear();
                 Rebuild();
+                
             }
 
             GUILayout.Space(3f);
@@ -112,6 +109,7 @@ namespace UnityEditor
                 AddElement(new FlexBox(spawnPosition, 250.0f));
             }
 
+            
             m_Canvas.showQuadTree = GUILayout.Toggle(m_Canvas.showQuadTree, new GUIContent("Show Debug Info", "Turns debug info on and off"));
 
             GUILayout.EndArea();
