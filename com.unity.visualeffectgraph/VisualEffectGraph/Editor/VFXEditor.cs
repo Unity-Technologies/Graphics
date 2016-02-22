@@ -267,7 +267,26 @@ namespace UnityEditor.Experimental
             titleContent = new GUIContent("VFX Editor", m_Icon);
 
             DrawToolbar(new Rect(0, 0, position.width, EditorStyles.toolbar.fixedHeight));
-            Rect canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height - EditorStyles.toolbar.fixedHeight);
+
+
+            Rect canvasRect;
+            
+            if(m_bShowDebug)
+            {
+                GUILayout.BeginArea(new Rect(position.width-600, EditorStyles.toolbar.fixedHeight, 600, position.height -EditorStyles.toolbar.fixedHeight));
+                m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
+                List<string> debugOutput = VFXEditor.GetDebugOutput();
+                foreach (string str in debugOutput)
+                GUILayout.Label(str);
+                GUILayout.EndScrollView();
+                GUILayout.EndArea();
+                canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width-600, position.height - EditorStyles.toolbar.fixedHeight);
+            }
+            else
+            {
+                canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height - EditorStyles.toolbar.fixedHeight);
+            }
+
             m_Canvas.OnGUI(this, canvasRect);
             DrawWindows(canvasRect);
         }
@@ -357,21 +376,9 @@ namespace UnityEditor.Experimental
             BeginWindows();
             if (m_bShowPreview)
                 GUI.Window(0, m_PreviewRect, DrawPreviewWindowContent, "Preview");
-            if(m_bShowDebug) 
-                GUI.Window(1, debugRect, DrawDebugWindowContent, "VFXEditor Debug");
             EndWindows();
         }
 
-        void DrawDebugWindowContent(int windowID) {
-
-                m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
-                List<string> debugOutput = VFXEditor.GetDebugOutput();
-                foreach (string str in debugOutput)
-                    GUILayout.Label(str);
-                GUILayout.EndScrollView();
-
-        }
-        
 
         void DrawPreviewWindowContent(int windowID)
         {
