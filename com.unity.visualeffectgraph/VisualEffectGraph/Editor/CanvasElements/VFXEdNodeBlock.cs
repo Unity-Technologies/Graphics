@@ -83,7 +83,7 @@ namespace UnityEditor.Experimental
             }
             foreach(VFXEdDataAnchor anchor in anchors)
             {
-                m_DataSource.RemoveDataConnectionsTo(anchor);
+                m_DataSource.RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(anchor);
             }
             ParentCanvas().ReloadData();
         }

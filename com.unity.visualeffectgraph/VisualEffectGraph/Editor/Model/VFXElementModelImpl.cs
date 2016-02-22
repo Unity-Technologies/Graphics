@@ -9,7 +9,16 @@ namespace UnityEditor.Experimental
     {
         public override void Invalidate(InvalidationCause cause)
         {
-            m_NeedsCheck = true;
+            switch(cause)
+            {
+                case InvalidationCause.kModelChanged:
+                    m_NeedsCheck = true;
+                    break;
+                case InvalidationCause.kParamChanged:
+                    m_ReloadUniforms = true;
+                    break;
+            }
+
         }
 
         public void Update()
@@ -24,10 +33,17 @@ namespace UnityEditor.Experimental
                         VFXEditor.Log("No need to recompile");
                 }
                 m_NeedsCheck = false;
-            }    
+            }
+
+            if (m_ReloadUniforms)
+            {
+                VFXEditor.Log("Uniforms have been modified");
+                m_ReloadUniforms = false;
+            }
         }
 
         private bool m_NeedsCheck = false;
+        private bool m_ReloadUniforms = false;
     }
 
     public class VFXSystemModel : VFXElementModelTyped<VFXAssetModel, VFXContextModel>
@@ -89,7 +105,8 @@ namespace UnityEditor.Experimental
                 return;
             }
 
-            m_Dirty = true;
+            if (cause == InvalidationCause.kModelChanged)
+                m_Dirty = true;
 
             if (m_Owner != null)
                 m_Owner.Invalidate(cause);
@@ -204,7 +221,7 @@ namespace UnityEditor.Experimental
             }
 
             m_ParamValues[index] = param;
-            Invalidate(InvalidationCause.kParamChanged);
+            Invalidate(InvalidationCause.kModelChanged);
         }
 
         public void UnbindParam(int index, bool reentrant = false)
@@ -216,7 +233,7 @@ namespace UnityEditor.Experimental
                 m_ParamValues[index].Unbind(this, index, true);
 
             m_ParamValues[index] = VFXParamValue.Create(m_BlockDesc.m_Params[index].m_Type);
-            Invalidate(InvalidationCause.kParamChanged);
+            Invalidate(InvalidationCause.kModelChanged);
         }
 
         private VFXBlock m_BlockDesc;

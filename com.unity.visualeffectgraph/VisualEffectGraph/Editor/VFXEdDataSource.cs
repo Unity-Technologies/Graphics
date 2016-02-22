@@ -33,22 +33,6 @@ namespace UnityEditor.Experimental
             m_Elements.Add(e);
         }
 
-        public void RemoveDataConnectionsTo(VFXEdDataAnchor anchor)
-        {
-            var edgesToErase = new List<DataEdge>();
-
-            foreach (CanvasElement element in m_Elements)
-            {
-                DataEdge edge = element as DataEdge;
-                if (edge != null && (edge.Left == anchor || edge.Right == anchor))
-                    edgesToErase.Add(edge);
-            }
-
-            foreach(DataEdge edge in edgesToErase) {
-                m_Elements.Remove(edge);
-            }
-        }
-
         public void DeleteElement(CanvasElement e)
         {
             Canvas2D canvas = e.ParentCanvas();
@@ -77,7 +61,7 @@ namespace UnityEditor.Experimental
                 VFXEdDataAnchor anchor = dataEdge.Right;
                 var node = anchor.FindParent<VFXEdProcessingNodeBlock>();
                 if (node != null)
-                    node.Model.UnbindParam(anchor.Index);
+                    node.Model.BindParam(node.ParamValues[anchor.Index], anchor.Index); // Rebind the default param value
             }
 
             m_Elements.Remove(e);
@@ -92,7 +76,7 @@ namespace UnityEditor.Experimental
             var edgesToRemove = GetConnectedEdges<T,U>(anchor);
 
             foreach (var edge in edgesToRemove)
-                m_Elements.Remove(edge);
+                DeleteElement(edge);
         }
 
         public List<T> GetConnectedEdges<T, U>(U anchor) 
@@ -122,9 +106,8 @@ namespace UnityEditor.Experimental
             VFXParamValue paramValue = a.FindParent<VFXEdNodeBlockParameterField>().Value;
             VFXBlockModel model = b.FindParent<VFXEdProcessingNodeBlock>().Model;
 
-            model.BindParam(paramValue, b.Index);
-
             RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
+            model.BindParam(paramValue, b.Index);
 
             m_Elements.Add(new DataEdge(this, a, b));
         }
@@ -138,6 +121,9 @@ namespace UnityEditor.Experimental
                 b = tmp;
             }
 
+            RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(a);
+            RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(b);
+
             VFXEdContextNode context0 = a.FindParent<VFXEdContextNode>();
             VFXEdContextNode context1 = b.FindParent<VFXEdContextNode>();
 
@@ -149,11 +135,7 @@ namespace UnityEditor.Experimental
 
                 if (!VFXSystemModel.ConnectContext(model0, model1))
                     return false;
-
             }
-
-            RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(a);
-            RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(b);
 
             m_Elements.Add(new FlowEdge(this, a, b));
             return true;
