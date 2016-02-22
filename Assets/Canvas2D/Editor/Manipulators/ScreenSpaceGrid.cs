@@ -67,7 +67,7 @@ namespace UnityEditor.Experimental
 
         private bool DrawGrid(CanvasElement element, Event e, Canvas2D canvas)
         {
-            Rect clientRect = new Rect(0, canvas.clientRect.y, canvas.clientRect.width, canvas.clientRect.height);
+            Rect clientRect = new Rect(canvas.clientRect.x, canvas.clientRect.y, canvas.clientRect.width, canvas.clientRect.height);
 
             // background
             UIHelpers.ApplyWireMaterial();
@@ -80,8 +80,8 @@ namespace UnityEditor.Experimental
             GL.Vertex(Clip(clientRect, new Vector3(clientRect.x, clientRect.y + clientRect.height, 0.0f)));
             GL.End();
 
-            Vector3 from = new Vector3(0.0f, 0.0f, 0.0f);
-            Vector3 to = new Vector3(0.0f, clientRect.height, 0.0f);
+            Vector3 from = new Vector3(clientRect.x, clientRect.y, 0.0f);
+            Vector3 to = new Vector3(clientRect.x, clientRect.height, 0.0f);
 
             Matrix4x4 tx = Matrix4x4.TRS(canvas.translation, Quaternion.identity, Vector3.one);
 
@@ -89,44 +89,44 @@ namespace UnityEditor.Experimental
             from = tx.MultiplyPoint(from);
             to = tx.MultiplyPoint(to);
 
-			Handles.DrawWireDisc(from, new Vector3(0.0f, 0.0f, -1.0f), 6f);
-
             float thickGridLineX = from.x;
             float thickGridLineY = from.y;
 
             from.x = (from.x % (m_Spacing * (canvas.scale.x)) - (m_Spacing * (canvas.scale.x)));
             to.x = from.x;
 
-            from.y = 0.0f;
+            from.y = clientRect.y;
             to.y = clientRect.y + clientRect.height;
+
+            Color oldHandlesColor = Handles.color;
+            Handles.color = m_LineColor;
 
             while (from.x < clientRect.width)
             {
                 from.x += m_Spacing * (canvas.scale.x);
                 to.x += m_Spacing * (canvas.scale.x);
-                GL.Begin(GL.LINES);
-                GL.Color(m_LineColor);
-                GL.Vertex(Clip(clientRect, from));
-                GL.Vertex(Clip(clientRect, to));
-                GL.End();
+
+                var f = Clip(clientRect, from);
+                var t = Clip(clientRect, to);
+                Handles.DrawAAPolyLine(2.0f, new[] { f, t });
             }
 
+            Handles.color = m_ThickLineColor;
             float thickLineSpacing = (m_Spacing * m_ThickLines);
             from.x = to.x = (thickGridLineX % (thickLineSpacing * (canvas.scale.x)) - (thickLineSpacing * (canvas.scale.x)));
-            while (from.x < clientRect.width)
+            while (from.x < clientRect.width + thickLineSpacing)
             {
-                GL.Begin(GL.LINES);
-                GL.Color(m_ThickLineColor);
-                GL.Vertex(Clip(clientRect, from));
-                GL.Vertex(Clip(clientRect, to));
-                GL.End();
+                var f = Clip(clientRect, from);
+                var t = Clip(clientRect, to);
+                Handles.DrawAAPolyLine(2.0f, new[] { f, t });
+           
                 from.x += (m_Spacing * (canvas.scale.x) * m_ThickLines);
                 to.x += (m_Spacing * (canvas.scale.x) * m_ThickLines);
             }
 
             // horizontal lines
-            from = new Vector3(0.0f, 0.0f, 0.0f);
-            to = new Vector3(clientRect.width, 0.0f, 0.0f);
+            from = new Vector3(clientRect.x, clientRect.y, 0.0f);
+            to = new Vector3(clientRect.x + clientRect.width, clientRect.y, 0.0f);
 
             from = tx.MultiplyPoint(from);
             to = tx.MultiplyPoint(to);
@@ -134,32 +134,36 @@ namespace UnityEditor.Experimental
             from.y = (from.y % (m_Spacing * (canvas.scale.y)) - (m_Spacing * (canvas.scale.y)));
             to.y = from.y;
             from.x = 0.0f;
-            to.x = clientRect.width;
+            to.x += clientRect.width;
 
+            oldHandlesColor = Handles.color;
+            Handles.color = m_ThickLineColor;
             while (from.y < clientRect.height)
             {
                 from.y += m_Spacing * (canvas.scale.y);
                 to.y += m_Spacing * (canvas.scale.y);
-                GL.Begin(GL.LINES);
-                GL.Color(m_LineColor);
-                GL.Vertex(Clip(clientRect, from));
-                GL.Vertex(Clip(clientRect, to));
-                GL.End();
+
+                var f = Clip(clientRect, from);
+                var t = Clip(clientRect, to);
+                Handles.DrawAAPolyLine(2.0f, new[] { f, t });
             }
 
             thickLineSpacing = (m_Spacing * m_ThickLines);
             from.y = to.y = (thickGridLineY % (thickLineSpacing * (canvas.scale.y)) - (thickLineSpacing * (canvas.scale.y)));
-            while (from.y < clientRect.height)
+            oldHandlesColor = Handles.color;
+            Handles.color = m_ThickLineColor;
+            while (from.y < clientRect.height + thickLineSpacing)
             {
-                GL.Begin(GL.LINES);
-                GL.Color(m_ThickLineColor);
-                GL.Vertex(Clip(clientRect, from));
-                GL.Vertex(Clip(clientRect, to));
-                GL.End();
+                var f = Clip(clientRect, from);
+                var t = Clip(clientRect, to);
+                Handles.DrawAAPolyLine(2.0f, new[] { f, t });
+
                 from.y += (m_Spacing * (canvas.scale.y) * m_ThickLines);
                 to.y += (m_Spacing * (canvas.scale.y) * m_ThickLines);
             }
+
+            Handles.color = oldHandlesColor;
             return true;
         }
     };
-}
+} 

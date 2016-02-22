@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEditorInternal;
-using UnityEditorInternal.Experimental;
 using Object = UnityEngine.Object;
 
 //#pragma warning disable 0414
@@ -38,6 +36,7 @@ namespace UnityEditor.Experimental
         private Rect m_CurrentModalWindowRect;
         private List<CanvasAnimation> m_Animations = new List<CanvasAnimation>();
         private bool m_MustRebuildQuadTree = true;
+        private Canvas2DCoordinateSystem m_CurrentCoordinateSystem = Canvas2DCoordinateSystem.Screen;
 
         public ICanvasDataSource dataSource
         {
@@ -59,6 +58,11 @@ namespace UnityEditor.Experimental
         public Rect clientRect
         {
             get { return m_ClientRectangle; }
+        }
+
+        public Canvas2DCoordinateSystem coordinateSystem
+        {
+            get { return m_CurrentCoordinateSystem; }
         }
 
         public Vector2 viewOffset
@@ -158,16 +162,45 @@ namespace UnityEditor.Experimental
 
         public Vector2 MouseToCanvas(Vector2 lhs)
         {
-            return new Vector2((lhs.x - m_Translation.x) / m_Scale.x, (lhs.y - m_Translation.y) / m_Scale.y); // +(m_ViewOffset / 2.0f);
+            Vector2 canvasPosition = Vector2.zero;
+            canvasPosition.x = (lhs.x - m_Translation.x) / m_Scale.x;
+            canvasPosition.y = (lhs.y - m_Translation.y) / m_Scale.y;
+
+            canvasPosition.x += m_ViewOffset.x;
+            canvasPosition.y += m_ViewOffset.y * 2.0f;
+            return canvasPosition;
         }
 
-        public Vector2 CanvasToScreen(Vector2 lhs)
+        public Vector2 ProjectToScreen(Vector2 v)
         {
-            return new Vector2(((lhs.x) * m_Scale.x) + (m_Translation.x), ((lhs.y) * m_Scale.y) + (m_Translation.y));
+            v.x += (clientRect.x * (1.0f / scale.x));
+            v.y += (clientRect.y * (1.0f / scale.y)) + (kOffsetDueToEditorWindowTab * (1.0f / scale.y));
+            return v;
+        }
+        public Vector3 ProjectToScreen(Vector3 v)
+        {
+            Vector2 v2 = ProjectToScreen(new Vector2(v.x, v.y));
+            v.x = v2.x;
+            v.y = v2.y;
+            return v;
+        }
+         
+        public Vector2 CanvasToScreen(Vector2 canvasPosition)
+        {
+            Vector2 screenPosition = canvasPosition;
+            screenPosition.x -= m_ViewOffset.x;
+            screenPosition.y -= m_ViewOffset.y * 2.0f;
+
+            screenPosition.x = (screenPosition.x * m_Scale.x + m_Translation.x);
+            screenPosition.y = (screenPosition.y * m_Scale.y + m_Translation.y);
+            return screenPosition;
         }
 
         public Rect CanvasToScreen(Rect r)
         {
+            r.x -= m_ViewOffset.x;
+            r.y -= m_ViewOffset.y * 2.0f;
+
             Vector3 t = m_Translation;
             var inverseScale = new Vector2(1.0f / m_Scale.x, 1.0f / m_Scale.y);
             Matrix4x4 scaleMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, m_Scale);
@@ -175,12 +208,12 @@ namespace UnityEditor.Experimental
             Matrix4x4 mm = txMatrix * scaleMatrix;
 
             Vector3[] points =
-				{
-					new Vector3(r.xMin, r.yMin, 0.0f),
-					new Vector3(r.xMax, r.yMin, 0.0f),
-					new Vector3(r.xMax, r.yMax, 0.0f),
-					new Vector3(r.xMin, r.yMax, 0.0f)
-				};
+            {
+                new Vector3(r.xMin, r.yMin, 0.0f),
+                new Vector3(r.xMax, r.yMin, 0.0f),
+                new Vector3(r.xMax, r.yMax, 0.0f),
+                new Vector3(r.xMin, r.yMax, 0.0f)
+            };
 
             for (int a = 0; a < 4; a++)
             {
@@ -223,11 +256,11 @@ namespace UnityEditor.Experimental
                 RebuildQuadTree();
             }
 
-			if (evt.type == EventType.Layout)
-			{
-				if (OnLayout != null)
-					OnLayout(this, Event.current, this);
-			}
+            if (evt.type == EventType.Layout)
+            {
+                if (OnLayout != null)
+                    OnLayout(this, Event.current, this);
+            }
 
             if (evt.type == EventType.Repaint)
             {
@@ -237,7 +270,7 @@ namespace UnityEditor.Experimental
 
                 if (m_Animations.Count > 0)
                 {
-					m_MustRebuildQuadTree = true;
+                    m_MustRebuildQuadTree = true;
                     Repaint();
                 }
 
@@ -276,9 +309,9 @@ namespace UnityEditor.Experimental
             // sync selection globally on MouseUp and KeyEvents
             bool syncSelection = evt.type == EventType.MouseUp || evt.isKey;
 
-			OnEvent(evt);
-            
-			if (syncSelection)
+            OnEvent(evt);
+
+            if (syncSelection)
             {
                 SyncUnitySelection();
             }
@@ -311,7 +344,11 @@ namespace UnityEditor.Experimental
 
         private void OnRender(EditorWindow parent, Rect clientRectangle)
         {
-            m_ScreenHeightOffset = clientRectangle.y - 42;
+            m_ScreenHeightOffset = clientRectangle.y;
+            float inverseScale = 1.0f / m_Scale.y;
+            m_ViewOffset = new Vector2(-clientRectangle.x * inverseScale, -(clientRectangle.yMin - (m_ScreenHeightOffset / 2.0f)) * inverseScale);
+            m_ViewOffsetUnscaled = new Vector2(-clientRectangle.x, -(clientRectangle.yMin - m_ScreenHeightOffset));
+
             // query quad tree for the list of elements visible
             Rect screenRect = new Rect();
             screenRect.min = MouseToCanvas(new Vector2(0.0f, 0.0f));
@@ -338,20 +375,16 @@ namespace UnityEditor.Experimental
             }
             RenderTexture.active = prev;
 
-            Rect extents = clientRectangle;
             Matrix4x4 m = GUI.matrix;
-            //m_Scale = Vector3.one;
+            
+            // move to Canvas coordinate system
             GUI.matrix = Matrix4x4.TRS(m_Translation, Quaternion.identity, m_Scale);
-
-			float inverseScale = 1.0f / m_Scale.y;
-
-			m_ViewOffset = new Vector2(0.0f, -(extents.yMin - (m_ScreenHeightOffset / 2.0f)) * inverseScale);
-            m_ViewOffsetUnscaled = new Vector2(0.0f, -(extents.yMin - m_ScreenHeightOffset));
-            GUI.BeginClip(extents, Vector2.zero, m_ViewOffset, true);
+            GUI.BeginClip(clientRectangle, Vector2.zero, Vector2.zero, true);
+            m_CurrentCoordinateSystem = Canvas2DCoordinateSystem.Canvas;
 
             if (m_ShowDebug)
             {
-                m_QuadTree.DebugDraw();
+                m_QuadTree.DebugDraw(clientRect.min);
             }
 
             OnRenderList(visibleElements.Where(c => (c.caps & Capabilities.Floating) == 0).ToList(), this, true);
@@ -368,6 +401,8 @@ namespace UnityEditor.Experimental
             GUI.EndClip();
 
             GUI.matrix = m;
+            // back to screen coordinate system
+            m_CurrentCoordinateSystem = Canvas2DCoordinateSystem.Screen;
 
             OnRenderList(visibleElements.Where(c => (c.caps & Capabilities.Floating) != 0).ToList(), this, false);
 
@@ -393,7 +428,30 @@ namespace UnityEditor.Experimental
                 GUI.color = c;
 
                 Handles.DrawSolidRectangleWithOutline(debugRect, new Color(1.0f, 0.5f, 0.0f, 1.0f), new Color(1.0f, 0.5f, 0.0f, 1.0f));
+
+                foreach (var children in m_Children)
+                {
+                    Rect screenSpaceRect = CanvasToScreen(children.canvasBoundingRect);
+                    EditorGUI.DrawRect(screenSpaceRect, new Color(1.0f, 0.0f, 0.0f, 0.7f));
+                }
             }
+        }
+
+        public override void RemoveChild(CanvasElement e)
+        {
+            if (!m_Children.Contains(e))
+                return;
+
+            var animationArray = m_Animations.ToArray();
+            for (int a = 0; a < animationArray.Length; a++)
+            {
+                if (animationArray[a].elementBeingAnimated == e)
+                    animationArray[a].Done();
+            }
+            // end all animations for that element
+
+            base.RemoveChild(e);
+            RebuildQuadTree();
         }
 
         public override void AddChild(CanvasElement e)
@@ -411,20 +469,6 @@ namespace UnityEditor.Experimental
             foreach (CanvasElement c in m_Children)
             {
                 Rect childRect = c.boundingRect;
-                /* if ((c.caps & Capabilities.Floating) != 0)
-                 {
-                     var matrix = Matrix4x4.TRS(m_Translation, Quaternion.identity, m_Scale).inverse;
-                     Vector3 topCorner = new Vector3(childRect.x, childRect.y, 0.0f);
-                     topCorner = matrix.MultiplyPoint(topCorner);
-
-                     Vector3 bottomCorner = new Vector3(childRect.xMax, childRect.yMax, 0.0f);
-                     bottomCorner = matrix.MultiplyPoint(bottomCorner);
-
-                     childRect.x = topCorner.x;
-                     childRect.y = topCorner.y;
-                     childRect.width = bottomCorner.x - topCorner.x;
-                     childRect.height = bottomCorner.y - topCorner.y;
-                 }*/
                 childRect = UnityEditorInternal.Experimental.RectUtils.Inflate(childRect, 1.1f);
                 m_CanvasRect = UnityEditorInternal.Experimental.RectUtils.Encompass(m_CanvasRect, childRect);
             }
@@ -436,14 +480,14 @@ namespace UnityEditor.Experimental
 
         public bool OnEvent(Event evt)
         {
-			if (evt.type == EventType.Layout)
-			{
-				for (int c = 0; c < m_Children.Count; c++)
-				{
-					m_Children[c].DispatchEvents(evt, this);
-				}
-				return true;
-			}
+            if (evt.type == EventType.Layout)
+            {
+                for (int c = 0; c < m_Children.Count; c++)
+                {
+                    m_Children[c].DispatchEvents(evt, this);
+                }
+                return true;
+            }
 
             bool logEvent = false;
             if ((evt.type != EventType.Repaint) && (evt.type != EventType.Layout))

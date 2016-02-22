@@ -1,21 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.IO.Pipes;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Cryptography;
-using System.Text;
-using System.IO;
-using System.Reflection;
 using UnityEngine;
-using UnityEditor.Animations;
-using UnityEditor.Experimental;
-using UnityEditorInternal;
-using UnityEngine.Experimental.Director;
-using Object = UnityEngine.Object;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     class ColoredBlockUI : CanvasElement
     {

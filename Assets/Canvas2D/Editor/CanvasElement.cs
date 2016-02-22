@@ -13,11 +13,13 @@ namespace UnityEditor.Experimental
         [Flags]
         public enum Capabilities
         {
-            Normal,
-            Unselectable,
-            DoesNotCollapse,
-            Floating
+            Normal = 1 << 0,
+            Unselectable = 1 << 1,
+            DoesNotCollapse = 1 << 2,
+            Floating = 1 << 3,
         }
+
+        static protected float kOffsetDueToEditorWindowTab = 24.0f;
 
         protected int m_ZIndex;
         protected List<CanvasElement> m_Children = new List<CanvasElement>();
@@ -127,6 +129,9 @@ namespace UnityEditor.Experimental
             if (e is Canvas2D)
                 return e as Canvas2D;
 
+            if (e == null)
+                return null;
+
             return e.parent as Canvas2D;
         }
 
@@ -194,9 +199,9 @@ namespace UnityEditor.Experimental
                 {
                     var canvas2d = ParentCanvas();
                     var matrix = Matrix4x4.TRS(canvas2d.translation, Quaternion.identity, canvas2d.scale).inverse;
-                    Vector3 topCorner = new Vector3(rect.x, rect.y, 0.0f);
-                    topCorner = matrix.MultiplyPoint(topCorner);
 
+                    Vector3 topCorner = (new Vector3(rect.x, rect.y, 0.0f));
+                    topCorner = matrix.MultiplyPoint(topCorner);
                     Vector3 bottomCorner = new Vector3(rect.xMax, rect.yMax, 0.0f);
                     bottomCorner = matrix.MultiplyPoint(bottomCorner);
 
@@ -422,6 +427,12 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public virtual void RemoveChild(CanvasElement e)
+        {
+            e.parent = null;
+            m_Children.Remove(e);
+        }
+
         public virtual void AddChild(CanvasElement e)
         {
             e.parent = this;
@@ -445,7 +456,7 @@ namespace UnityEditor.Experimental
             Rect screenRect = new Rect
             {
                 min = parent.MouseToCanvas(parent.clientRect.min),
-                max = parent.MouseToCanvas(new Vector2(parent.clientRect.width, parent.clientRect.height))
+                max = parent.MouseToCanvas(parent.clientRect.max)
             };
             Rect thisRect = boundingRect;
             for (int i = 0; i < visibleList.Count; i++)
@@ -453,29 +464,54 @@ namespace UnityEditor.Experimental
                 CanvasElement e = visibleList[i];
                 if (e.texture != null)
                 {
-                    float ratioY = 1.0f;
-                    float ratioX = 1.0f;
+                    Vector2 uvMin = Vector2.zero;
+                    Vector2 uvMax = Vector2.one;
+
                     Rect r = new Rect(e.translation.x, e.translation.y, e.texture.width, e.texture.height);
-                    if (r.y < screenRect.y)
+
+                    if ((e.caps & Capabilities.Floating) == 0)
                     {
-                        float overlap = (screenRect.y - r.y);
-                        r.y = screenRect.y;
-                        r.height -= overlap;
-                        if (r.height < 0.0f)
-                            r.height = 0.0f;
-                        ratioY = r.height / e.texture.height;
+                        // Crop element rect against visible canvas rect
+                        float cropMinX = Mathf.Max(screenRect.x - r.x, 0.0f);
+                        float cropMinY = Mathf.Max(screenRect.y - r.y, 0.0f);
+                        float cropMaxX = Mathf.Max(r.max.x - screenRect.max.x, 0.0f);
+                        float cropMaxY = Mathf.Max(r.max.y - screenRect.max.y, 0.0f);
+
+                        r.x += cropMinX;
+                        r.width -= cropMinX;
+                        r.y += cropMinY;
+                        r.height -= cropMinY;
+                        r.width -= cropMaxX;
+                        r.height -= cropMaxY;
+
+                        // Adjust UVs to account for cropping
+                        float offsetMinUVx = -(cropMinX / e.texture.width);
+                        float offsetMinUVy = -(cropMinY / e.texture.height);
+                        float offsetMaxUVx = (cropMaxX / e.texture.width);
+                        float offsetMaxUVy = (cropMaxY / e.texture.height);
+
+                        // left
+                        uvMin.x -= offsetMinUVx;
+                        uvMax.x += offsetMinUVx;
+                        // top
+                        uvMax.y = 1.0f + offsetMinUVy;
+                        // right
+                        uvMax.x -= offsetMaxUVx;
+
+                        uvMin.y += offsetMaxUVy;
+                        uvMax.y -= offsetMaxUVy;
+
+                        // Project to screen coordinates
+                        r.x += (parent.clientRect.x * (1.0f / parent.scale.x));
+                        r.y += (parent.clientRect.y * (1.0f / parent.scale.y)) + (kOffsetDueToEditorWindowTab * (1.0f / parent.scale.y));
+                    }
+                    else
+                    {
+                        r.x += (parent.clientRect.x);
+                        r.y += (parent.clientRect.y);
                     }
 
-                    if (r.xMax > screenRect.xMax)
-                    {
-                        float overlap = r.xMax - screenRect.xMax;
-                        r.width -= overlap;
-                        if (r.width < 0.0f)
-                            r.width = 0.0f;
-                        ratioX = r.width / e.texture.width;
-                    }
-
-                    Graphics.DrawTexture(r, e.texture, new Rect(0, 0, ratioX, ratioY), 0, 0, 0, 0);
+                    Graphics.DrawTexture(r, e.texture, new Rect(uvMin, uvMax), 0, 0, 0, 0);
                 }
                 else
                     e.Render(thisRect, parent);

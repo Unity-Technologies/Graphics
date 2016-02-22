@@ -34,11 +34,23 @@ namespace UnityEditor.Experimental
         {
             element.ScrollWheel += OnZoom;
             element.KeyDown += OnKeyDown;
+            element.MouseDrag += OnMouseLeftClickZoom;
 
             if (m_Type == ZoomType.LastClick)
             {
                 element.MouseDown += OnMouseDown;
             }
+        }
+
+        private bool OnMouseLeftClickZoom(CanvasElement element, Event e, Canvas2D parent)
+        {
+            if (e.modifiers != EventModifiers.Alt)
+                return false;
+
+            if (e.button != 1)
+                return false;
+
+            return OnZoom(element, e, parent);
         }
 
         private bool OnMouseDown(CanvasElement element, Event e, Canvas2D parent)
@@ -57,6 +69,7 @@ namespace UnityEditor.Experimental
             if (e.keyCode == KeyCode.R)
             {
                 element.scale = Vector3.one;
+                element.translation = Vector3.zero;
                 e.Use();
                 return true;
             }

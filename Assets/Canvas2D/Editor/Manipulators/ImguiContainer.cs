@@ -19,6 +19,10 @@ namespace UnityEditor.Experimental
             if (evt.type == EventType.Repaint)
                 return false;
 
+            if (evt.type == EventType.MouseDown)
+            {
+                int a = 10;
+            }
             EventType et = Event.current.type;
 
             Matrix4x4 old = GUI.matrix;

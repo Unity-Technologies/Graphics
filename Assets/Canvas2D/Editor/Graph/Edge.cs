@@ -1,7 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEditorInternal;
-using UnityEditorInternal.Experimental;
 
 //#pragma warning disable 0414
 //#pragma warning disable 0219
@@ -120,8 +118,8 @@ namespace UnityEditor.Experimental.Graph
         {
             Color edgeColor = selected ? Color.yellow : Color.white;
 
-            Vector3 from = m_Left.ConnectPosition();
-            Vector3 to = m_Right.ConnectPosition();
+            Vector3 from = canvas.ProjectToScreen(m_Left.ConnectPosition());
+            Vector3 to = canvas.ProjectToScreen(m_Right.ConnectPosition());
             Orientation orientation = m_Left.GetOrientation();
 
             Vector3[] points, tangents;
