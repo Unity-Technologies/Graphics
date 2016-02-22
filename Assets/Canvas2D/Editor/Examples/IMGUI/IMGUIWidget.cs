@@ -1,22 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.IO.Pipes;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Security.Cryptography;
-using System.Text;
-using System.IO;
-using System.Reflection;
 using UnityEngine;
-using UnityEditor.Animations;
-using UnityEditor.Experimental;
-using UnityEditorInternal;
-using UnityEngine.Experimental.Director;
-using Object = UnityEngine.Object;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
+    class IMGUINested : CanvasElement
+    {
+        public IMGUINested()
+        {
+            AddManipulator(new ImguiContainer());
+        }
+
+        public override void Render(Rect parentRect, Canvas2D canvas)
+        {
+            if (GUI.Button(new Rect(0, 0, 100, 20), "nested"))
+            {
+                Debug.Log("pressed nested button");
+            }
+        }
+    }
+
     class IMGUIExampleWidget : CanvasElement
     {
         private int m_ControlInteger = 0;
@@ -32,6 +33,11 @@ namespace UnityEditor
             AddManipulator(new Draggable());
             AddManipulator(new Resizable(new Vector2(200, 100.0f)));
             AddManipulator(new ImguiContainer());
+
+            var child = new IMGUINested();
+            child.translation = new Vector3(0, 0, 0.0f);
+            child.scale = new Vector3(100, 100, 100);
+            AddChild(child);
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
@@ -41,6 +47,10 @@ namespace UnityEditor
             Color selectedColor = new Color(1.0f, 0.7f, 0.0f, 0.7f);
             EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), selected ? selectedColor : backgroundColor);
 
+            //GUI.BeginGroup(new Rect(10, 0, 100, 100));
+            //base.Render(parentRect, canvas);
+           // GUI.EndGroup();
+           // return;
             GUILayout.BeginVertical();
             GUILayout.Label("Layout begins here");
             if (GUILayout.Button("Layout Buttton" + m_ControlInteger, GUILayout.Width(150)))
@@ -73,5 +83,4 @@ namespace UnityEditor
             GUI.Label(new Rect(0, y + 90.0f, 120, 30), "No-layout ends here");
         }
     }
-
 }

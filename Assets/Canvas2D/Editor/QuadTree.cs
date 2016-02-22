@@ -79,9 +79,9 @@ namespace UnityEditorInternal.Experimental
             return m_Root.GetElementsIncludingChildren();
         }
 
-        public void DebugDraw()
+        public void DebugDraw(Vector2 offset)
         {
-            m_Root.DebugDraw(m_ScreenSpaceOffset);
+            m_Root.DebugDraw(offset);
         }
     }
 }

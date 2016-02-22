@@ -27,6 +27,7 @@ namespace UnityEditor.Experimental.Graph
         {
             m_DrawMethod = null;
         }
+
         public bool GetCaps(ManipulatorCapability cap)
         {
             return false;
@@ -220,7 +221,7 @@ namespace UnityEditor.Experimental.Graph
             IConnect thisCnx = element as IConnect;
             Vector3[] points, tangents;
             IConnect cnx = element as IConnect;
-            GetTangents(thisCnx.GetDirection(), cnx.GetOrientation(), m_Start, m_End, out points, out tangents);
+            GetTangents(thisCnx.GetDirection(), cnx.GetOrientation(), canvas.ProjectToScreen(m_Start), canvas.ProjectToScreen(m_End), out points, out tangents);
             Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], m_Color, null, 5f);
 
             // little widget on the middle of the edge
@@ -274,11 +275,11 @@ namespace UnityEditor.Experimental.Graph
 			{
 				tangents[0] = start + new Vector2((end.x - start.x) * weight + minTangent, y) * cleverness;
 				tangents[1] = end + new Vector2((end.x - start.x) * -weight2 - minTangent, -y) * cleverness;
-			}
-			else
+            }
+            else
 			{
 				float inverse = (invert) ? 1.0f : -1.0f;
-				tangents[0] = start + new Vector2(y, inverse * ((end.y - start.y) * weight + minTangent)) * cleverness;
+                tangents[0] = start + new Vector2(y, inverse * ((end.x - start.x) * weight + minTangent)) * cleverness;
 				tangents[1] = end + new Vector2(-y, inverse * ((end.y - start.y) * -weight2 - minTangent)) * cleverness;
 			}
         }
