@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental
             int i = 0;
             foreach(KeyValuePair<string, VFXParam.Type> kvp in m_DataBlock.Parameters) {
                 m_Params[i] = VFXParamValue.Create(kvp.Value);
-                m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, kvp.Key, m_Params[i], true, Direction.Output);
+                m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, kvp.Key, m_Params[i], true, Direction.Output, i);
                 AddChild(m_Fields[i]);
                 i++;
             }

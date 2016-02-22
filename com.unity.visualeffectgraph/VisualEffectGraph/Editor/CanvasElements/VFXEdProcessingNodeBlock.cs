@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental
             for (int i = 0; i < m_Params.Length; ++i)
             {
                 m_Params[i] = VFXParamValue.Create(block.m_Params[i].m_Type);
-                m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, block.m_Params[i].m_Name, m_Params[i], true, Direction.Input);
+                m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, block.m_Params[i].m_Name, m_Params[i], true, Direction.Input, i);
                 AddChild(m_Fields[i]);
                 m_Model.BindParam(m_Params[i], i);
             }

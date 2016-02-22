@@ -59,7 +59,7 @@ namespace UnityEditor.Experimental
             {
                 VFXEdFlowAnchor anchor = edge.Right;
                 var node = anchor.FindParent<VFXEdContextNode>();
-                if(node != null)
+                if (node != null)
                 {
                     VFXSystemModel owner = node.Model.GetOwner();
                     int index = owner.GetIndex(node.Model);
@@ -69,9 +69,16 @@ namespace UnityEditor.Experimental
                         owner.GetChild(index).Attach(newSystem);
                     newSystem.Attach(VFXEditor.AssetModel);
                 }
-
             }
 
+            var dataEdge = e as DataEdge;
+            if (dataEdge != null)
+            {
+                VFXEdDataAnchor anchor = dataEdge.Right;
+                var node = anchor.FindParent<VFXEdProcessingNodeBlock>();
+                if (node != null)
+                    node.Model.UnbindParam(anchor.Index);
+            }
 
             m_Elements.Remove(e);
             canvas.ReloadData();
@@ -112,6 +119,11 @@ namespace UnityEditor.Experimental
                 b = tmp;
             }
 
+            VFXParamValue paramValue = a.FindParent<VFXEdNodeBlockParameterField>().Value;
+            VFXBlockModel model = b.FindParent<VFXEdProcessingNodeBlock>().Model;
+
+            model.BindParam(paramValue, b.Index);
+
             RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
 
             m_Elements.Add(new DataEdge(this, a, b));
@@ -128,7 +140,6 @@ namespace UnityEditor.Experimental
 
             VFXEdContextNode context0 = a.FindParent<VFXEdContextNode>();
             VFXEdContextNode context1 = b.FindParent<VFXEdContextNode>();
-
 
             if (context0 != null && context1 != null)
             {

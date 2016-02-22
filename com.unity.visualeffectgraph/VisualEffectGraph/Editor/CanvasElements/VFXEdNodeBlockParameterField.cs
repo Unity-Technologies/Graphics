@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental
         private VFXEdDataAnchor m_Input;
         private VFXEdDataAnchor m_Output;
 
-        public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, VFXParamValue value, bool bConnectable, Direction paramDirection)
+        public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, VFXParamValue value, bool bConnectable, Direction paramDirection, int index)
         {
             m_Name = name;
             m_Value = value;
@@ -36,17 +36,17 @@ namespace UnityEditor.Experimental
                 switch(paramDirection)
                 {
                     case Direction.Input:
-                        m_Input = new VFXEdDataAnchor(Vector3.zero, Type, datasource, Direction.Input);
+                        m_Input = new VFXEdDataAnchor(Vector3.zero, Type, datasource, Direction.Input, index);
                         AddChild(m_Input);
                         break;
                     case Direction.Output:
-                        m_Output = new VFXEdDataAnchor(Vector3.zero, Type, datasource, Direction.Output);
+                        m_Output = new VFXEdDataAnchor(Vector3.zero, Type, datasource, Direction.Output, index);
                         AddChild(m_Output);
                         break;
                     case Direction.Bidirectional:
-                        m_Input = new VFXEdDataAnchor(Vector3.zero, Type, datasource, Direction.Input);
+                        m_Input = new VFXEdDataAnchor(Vector3.zero, Type, datasource, Direction.Input, index);
                         AddChild(m_Input);
-                        m_Output = new VFXEdDataAnchor(Vector3.zero, Type, datasource, Direction.Output);
+                        m_Output = new VFXEdDataAnchor(Vector3.zero, Type, datasource, Direction.Output, index);
                         AddChild(m_Output);
                         break;
                     default:

@@ -16,8 +16,10 @@ namespace UnityEditor.Experimental
         protected object m_Source;
         protected Direction m_Direction;
         private VFXEdDataSource m_Data;
+        private int m_ParamIndex;
+        public int Index { get { return m_ParamIndex; } }
 
-        public VFXEdDataAnchor(Vector3 position, VFXParam.Type type, VFXEdDataSource data, Direction direction)
+        public VFXEdDataAnchor(Vector3 position, VFXParam.Type type, VFXEdDataSource data, Direction direction, int index)
         {
             m_ParamType = type;
             m_Type = GetParamType(type);
@@ -25,6 +27,7 @@ namespace UnityEditor.Experimental
             translation = position;
             AddManipulator(new DataEdgeConnector());
             m_Direction = direction;
+            m_ParamIndex = index;
 
             Type genericClass = typeof(PortSource<>);
             Type constructedClass = genericClass.MakeGenericType(m_Type);
