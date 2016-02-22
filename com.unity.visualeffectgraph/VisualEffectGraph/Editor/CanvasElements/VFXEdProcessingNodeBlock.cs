@@ -15,21 +15,31 @@ namespace UnityEditor.Experimental
         {
             get { return m_Model; }
         }
+
+        public VFXParamValue[] ParamValues {get { return m_ParamValues; } }
+        public VFXParam[] Params {get { return m_Params; } }
+
         private VFXBlockModel m_Model;
-        private VFXParamValue[] m_Params;
+        private VFXParam[] m_Params;
+        private VFXParamValue[] m_ParamValues;
 
         public VFXEdProcessingNodeBlock(VFXBlock block, VFXEdDataSource dataSource) : base(dataSource)
         {
             m_Model = new VFXBlockModel(block);
-            m_Params = new VFXParamValue[block.m_Params.Length];
+            m_ParamValues = new VFXParamValue[block.m_Params.Length];
+            m_Params = block.m_Params;
             m_Fields = new VFXEdNodeBlockParameterField[block.m_Params.Length];
 
-            for (int i = 0; i < m_Params.Length; ++i)
+            // For selection
+            target = ScriptableObject.CreateInstance<VFXEdProcessingNodeBlockTarget>();
+            (target as VFXEdProcessingNodeBlockTarget).targetNodeBlock = this;
+            
+            for (int i = 0; i < m_ParamValues.Length; ++i)
             {
-                m_Params[i] = VFXParamValue.Create(block.m_Params[i].m_Type);
-                m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, block.m_Params[i].m_Name, m_Params[i], true, Direction.Input);
+                m_ParamValues[i] = VFXParamValue.Create(block.m_Params[i].m_Type);
+                m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, block.m_Params[i].m_Name, m_ParamValues[i], true, Direction.Input);
                 AddChild(m_Fields[i]);
-                m_Model.BindParam(m_Params[i], i);
+                m_Model.BindParam(m_ParamValues[i], i);
             }
 
             m_Name = block.m_Name;
