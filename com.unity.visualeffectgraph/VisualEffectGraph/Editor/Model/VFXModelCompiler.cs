@@ -141,7 +141,7 @@ namespace UnityEditor.Experimental
                 VFXAttrib seedAttrib = new VFXAttrib();
                 VFXParam seedParam = new VFXParam();
                 seedParam.m_Name = "seed";
-                seedParam.m_Type = VFXParam.Type.kTypeUint;
+                seedParam.m_Type = VFXParam.Type.kTypeInt;
                 seedAttrib.m_Param = seedParam;
                 seedAttrib.m_Writable = true;
 
@@ -485,7 +485,7 @@ namespace UnityEditor.Experimental
             // Write deadlists
             if (data.hasKill)
             {
-                buffer.AppendLine("RWStructuredBuffer<uint> flags;");
+                buffer.AppendLine("RWStructuredBuffer<int> flags;");
                 buffer.AppendLine("ConsumeStructuredBuffer<uint> deadListIn;");
                 buffer.AppendLine("AppendStructuredBuffer<uint> deadListOut;");
                 buffer.AppendLine();
@@ -494,7 +494,7 @@ namespace UnityEditor.Experimental
             // Write functions
             if (data.hasRand)
             {
-                buffer.AppendLine("float rand(inout uint seed)");
+                buffer.AppendLine("float rand(inout int seed)");
                 buffer.AppendLine("{");
                 buffer.AppendLine("\tseed = seed * 22695477 + 1;");
                 buffer.AppendLine("\treturn float(seed & 0xFFFF) / 65536.0;");
@@ -649,7 +649,7 @@ namespace UnityEditor.Experimental
             }
 
             if (attributeBuffer.GetSizeInBytes() == 3)
-                buffer.AppendLine("\tint _PADDING_;");
+                buffer.AppendLine("\tfloat _PADDING_;");
 
             buffer.AppendLine("};");
             buffer.AppendLine();
@@ -721,7 +721,7 @@ namespace UnityEditor.Experimental
                 if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
                 {
                     buffer.Append(separator);
-                    buffer.Append("inout uint seed");
+                    buffer.Append("inout int seed");
                     source = source.Replace("RAND", "rand(seed)"); 
                 }
 
@@ -786,7 +786,7 @@ namespace UnityEditor.Experimental
                 VFXAttrib randAttrib = new VFXAttrib();
                 VFXParam randParam = new VFXParam();
                 randParam.m_Name = "seed";
-                randParam.m_Type = VFXParam.Type.kTypeUint;
+                randParam.m_Type = VFXParam.Type.kTypeInt;
                 randAttrib.m_Param = randParam;
 
                 int index = attribToBuffer[randAttrib].Index;

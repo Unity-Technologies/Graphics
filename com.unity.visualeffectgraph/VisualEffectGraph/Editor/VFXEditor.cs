@@ -107,16 +107,35 @@ namespace UnityEditor.Experimental
 
         // DEBUG OUTPUT
         public static void Log(string s) {
-            DebugLines += s;
-            DebugLines += "\n";
+            int currentIndex = DebugLines.Count - 1;
+
+            if (currentIndex == -1)
+            {
+                DebugLines.Add("");
+                ++currentIndex;
+            }
+
+            string currentStr = DebugLines[currentIndex];
+
+            if (currentStr.Length + s.Length > 16384 - 1) // Max number handled for single string rendering (due to 16 bit index buffer and no automatic splitting)
+            {
+                // TODO Dont handle the case where there s more than 16384 char for s
+                ++currentIndex;
+                currentStr = "";
+                DebugLines.Add(currentStr);
+            }
+
+            currentStr += s;
+            currentStr += "\n";
+            DebugLines[currentIndex] = currentStr;
         }
+
         public static void ClearLog() {
-            DebugLines = "";
+            DebugLines = new List<string>();
         }
-        private static string DebugLines = "";
-        private static string GetDebugOutput() {
-            return DebugLines;
-                
+        private static List<string> DebugLines = new List<string>();
+        private static List<string> GetDebugOutput() {
+            return DebugLines;       
         }
         // END DEBUG OUTPUT
 
@@ -346,7 +365,9 @@ namespace UnityEditor.Experimental
         void DrawDebugWindowContent(int windowID) {
 
                 m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
-                GUILayout.Label(VFXEditor.GetDebugOutput());
+                List<string> debugOutput = VFXEditor.GetDebugOutput();
+                foreach (string str in debugOutput)
+                    GUILayout.Label(str);
                 GUILayout.EndScrollView();
 
         }
