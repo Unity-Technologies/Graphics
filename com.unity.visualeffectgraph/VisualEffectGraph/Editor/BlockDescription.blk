@@ -198,7 +198,7 @@ velocity += value * deltaTime;
 #arg float lifetime [param]
 
 age += deltaTime;
-if (age <= lifetime)
+if (age >= lifetime)
 	KILL;
 
 #block Apply Velocity to Positions

@@ -8,6 +8,93 @@ using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
 {
+    public class VFXSystemRuntimeData
+    {
+        public Dictionary<VFXParamValue,string> uniforms = new Dictionary<VFXParamValue,string>();
+        
+        ComputeShader simulationShader;
+        public ComputeShader SimulationShader { get { return simulationShader; } }
+
+        public Material m_Material = null;
+
+        int initKernel = -1;
+        public int InitKernel { get { return initKernel; } }
+        int updateKernel = -1;
+        public int UpdateKernel { get { return updateKernel; } }
+
+        private List<ComputeBuffer> buffers = new List<ComputeBuffer>();
+
+        public VFXSystemRuntimeData(ComputeShader shader)
+        {
+            simulationShader = shader;
+            initKernel = simulationShader.FindKernel("CSVFXInit");
+            updateKernel = simulationShader.FindKernel("CSVFXUpdate");
+        }
+
+        public void AddBuffer(int kernelIndex, string name, ComputeBuffer buffer)
+        {
+            simulationShader.SetBuffer(kernelIndex,name,buffer);
+            buffers.Add(buffer);
+        }
+
+        public void DisposeBuffers()
+        {
+            foreach (var buffer in buffers)
+                buffer.Dispose();
+        }
+
+        public void UpdateAllUniforms()
+        {
+            foreach (var uniform in uniforms)
+                UpdateUniform(uniform.Key);
+        }
+
+        public void UpdateUniform(VFXParamValue paramValue)
+        {
+            string uniformName = uniforms[paramValue];
+            switch (paramValue.ValueType)
+            {
+                case VFXParam.Type.kTypeFloat:
+                    simulationShader.SetFloat(uniformName,paramValue.GetValue<float>());
+                    break;
+                case VFXParam.Type.kTypeFloat2:
+                {
+                    float[] buffer = new float[2];
+                    Vector2 value = paramValue.GetValue<Vector2>();
+                    buffer[0] = value.x;
+                    buffer[1] = value.y;
+                    simulationShader.SetFloats(uniformName,buffer);
+                    break;
+                }
+                case VFXParam.Type.kTypeFloat3:
+                {
+                    float[] buffer = new float[3];
+                    Vector3 value = paramValue.GetValue<Vector3>();
+                    buffer[0] = value.x;
+                    buffer[1] = value.y;
+                    buffer[2] = value.z;
+                    simulationShader.SetFloats(uniformName,buffer);
+                    break;
+                }
+                case VFXParam.Type.kTypeFloat4:
+                    simulationShader.SetVector(uniformName,paramValue.GetValue<Vector4>());
+                    break;
+                case VFXParam.Type.kTypeInt:
+                    simulationShader.SetInt(uniformName,paramValue.GetValue<int>());
+                    break;
+                case VFXParam.Type.kTypeUint:
+                    simulationShader.SetInt(uniformName,(int)paramValue.GetValue<uint>());
+                    break;
+
+                case VFXParam.Type.kTypeTexture2D:
+                case VFXParam.Type.kTypeTexture3D:
+                case VFXParam.Type.kTypeUnknown:
+                    // Not yet implemented
+                    break;
+            }
+        }
+    }
+
     public static class VFXModelCompiler
     {
         private class AttribComparer : IEqualityComparer<VFXAttrib>
@@ -80,8 +167,7 @@ namespace UnityEditor.Experimental
             List<VFXAttrib> m_Attribs;
         }
 
-        // TODO atm it only validates the system
-        public static void CompileSystem(VFXSystemModel system)
+        public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
             // BLOCKS
             List<VFXBlockModel> initBlocks = new List<VFXBlockModel>();
@@ -129,7 +215,7 @@ namespace UnityEditor.Experimental
             {
                 // Invalid system, not compiled
                 VFXEditor.Log("System is invalid: Empty");
-                return;
+                return null;
             }
 
             // ATTRIBUTES (TODO Refactor the code !)
@@ -297,7 +383,7 @@ namespace UnityEditor.Experimental
                 {
                     str += buffers[i][j].m_Param.m_Name + "|";
                 }
-                str += " " + buffers[i].GetSizeInBytes() + "bytes";
+                str += " " + (buffers[i].GetSizeInBytes() * 4) + "bytes";
                 VFXEditor.Log(str);
             }
                 
@@ -344,18 +430,88 @@ namespace UnityEditor.Experimental
             shaderMetaData.paramToName = paramToName;
    
             string shaderSource = WriteComputeShader(shaderMetaData);
+            string outputShaderSource = WriteOutputShader(shaderMetaData);
            
             VFXEditor.Log("\n**** SHADER CODE ****");
             VFXEditor.Log(shaderSource);
+            VFXEditor.Log(outputShaderSource);
             VFXEditor.Log("\n*********************");
-
 
             // Write to file
             string shaderPath = Application.dataPath + "/VFXEditor/Generated/";
             System.IO.Directory.CreateDirectory(shaderPath);
-            shaderPath += "VFX.compute";
-            System.IO.File.WriteAllText(shaderPath, shaderSource);
-            AssetDatabase.LoadAllAssetsAtPath(shaderPath);
+            System.IO.File.WriteAllText(shaderPath + "VFX.compute", shaderSource);
+            System.IO.File.WriteAllText(shaderPath + "VFX.shader", outputShaderSource);
+
+            ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/VFXEditor/Generated/VFX.compute");
+            Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>("Assets/VFXEditor/Generated/VFX.shader");
+            VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader);
+
+            // Find position buffer
+            VFXAttrib posAttrib = new VFXAttrib();
+            VFXParam param = new VFXParam();
+            param.m_Name = "position";
+            param.m_Type = VFXParam.Type.kTypeFloat3;
+            posAttrib.m_Param = param;
+
+            AttributeBuffer posBuffer = null;
+            attribToBuffer.TryGetValue(posAttrib,out posBuffer);
+
+            if (posBuffer == null || outputShader == null) // No position buffer, we escape
+                return null;
+
+            rtData.m_Material = new Material(outputShader);
+
+            // Create buffer for system
+            foreach (var attribBuffer in shaderMetaData.attributeBuffers)
+            {
+                string bufferName = "attribBuffer" + attribBuffer.Index;
+                int structSize = attribBuffer.GetSizeInBytes();
+                if (structSize == 3)
+                    structSize = 4;
+                ComputeBuffer computeBuffer = new ComputeBuffer(1 << 20, structSize * 4, ComputeBufferType.GPUMemory);
+                if (attribBuffer.Used(VFXContextModel.Type.kTypeInit))
+                    rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextModel.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
+                if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate))
+                    rtData.AddBuffer(rtData.UpdateKernel, bufferName + (attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate) ? "" : "_RO"), computeBuffer);
+                if (attribBuffer == posBuffer)
+                    rtData.m_Material.SetBuffer("pointBuffer", computeBuffer);
+                //computeBuffer.Dispose();
+            }
+
+            if (shaderMetaData.hasKill)
+            {
+                ComputeBuffer flagBuffer = new ComputeBuffer(1 << 20,4, ComputeBufferType.GPUMemory);
+                ComputeBuffer deadList = new ComputeBuffer(1 << 20, 4, ComputeBufferType.Append);
+
+                const int NB_PARTICLES = 1 << 20;
+                uint[] deadIdx = new uint[NB_PARTICLES];
+                for (int i = 0; i < NB_PARTICLES; ++i)
+                {
+                    deadIdx[i] = NB_PARTICLES - (uint)i - 1;
+                }
+                deadList.SetData(deadIdx);
+                deadList.SetCounterValue((uint)NB_PARTICLES);
+
+                if (rtData.InitKernel != -1)
+                {
+                    rtData.AddBuffer(rtData.InitKernel, "flags", flagBuffer);
+                    rtData.AddBuffer(rtData.InitKernel, "deadListIn", deadList);
+                }
+                if (rtData.UpdateKernel != -1)
+                {
+                    rtData.AddBuffer(rtData.UpdateKernel,"flags",flagBuffer);
+                    rtData.AddBuffer(rtData.UpdateKernel, "deadListOut", deadList);
+                }
+            }
+
+            // Add uniforms mapping
+            rtData.uniforms = shaderMetaData.paramToName;
+
+            // Finally set uniforms
+            rtData.UpdateAllUniforms();
+
+            return rtData;
         }
 
         public static HashSet<VFXParamValue> CollectUniforms(List<VFXBlockModel> blocks)
@@ -399,7 +555,7 @@ namespace UnityEditor.Experimental
             public List<VFXBlockModel> initBlocks = new List<VFXBlockModel>();
             public List<VFXBlockModel> updateBlocks = new List<VFXBlockModel>();
 
-            public bool hasKill = true;
+            public bool hasKill;
             public bool hasRand;
 
             public List<AttributeBuffer> attributeBuffers = new List<AttributeBuffer>();
@@ -410,6 +566,54 @@ namespace UnityEditor.Experimental
             public HashSet<VFXParamValue> updateUniforms = new HashSet<VFXParamValue>();
      
             public Dictionary<VFXParamValue, string> paramToName = new Dictionary<VFXParamValue, string>();
+        }
+
+        private static string WriteOutputShader(ShaderMetaData data)
+        {
+            StringBuilder buffer = new StringBuilder();
+            buffer.AppendLine("Shader \"Custom/PointShader\"");
+            buffer.AppendLine("{");
+	        buffer.AppendLine("\tSubShader"); 
+	        buffer.AppendLine("\t{");	
+		    buffer.AppendLine("\t\tPass");
+		    buffer.AppendLine("\t\t{");
+			buffer.AppendLine("\t\t\tCGPROGRAM");
+			buffer.AppendLine("\t\t\t#pragma target 5.0");
+            buffer.AppendLine();
+			buffer.AppendLine("\t\t\t#pragma vertex vert");
+			buffer.AppendLine("\t\t\t#pragma fragment frag");
+            buffer.AppendLine();
+			buffer.AppendLine("\t\t\t#include \"UnityCG.cginc\"");
+            buffer.AppendLine();
+			buffer.AppendLine("\t\t\tStructuredBuffer<float4> pointBuffer;");
+            buffer.AppendLine();
+			buffer.AppendLine("\t\t\tstruct ps_input {");
+			buffer.AppendLine("\t\t\t float4 pos : SV_POSITION;");
+			buffer.AppendLine("\t\t\t float4 col : COLOR0;");
+			buffer.AppendLine("\t\t\t};");
+            buffer.AppendLine();
+			buffer.AppendLine("\t\t\tps_input vert (uint id : SV_VertexID)");
+			buffer.AppendLine("\t\t\t{");
+			buffer.AppendLine("\t\t\tps_input o;");
+			buffer.AppendLine("\t\t\tfloat3 worldPos = pointBuffer[id].xyz;");
+			buffer.AppendLine("\t\t\to.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
+			buffer.AppendLine("\t\t\to.col = float4(1,1,1,1);");
+			buffer.AppendLine("\t\t\treturn o;");
+			buffer.AppendLine("\t\t\t}");
+            buffer.AppendLine();
+			buffer.AppendLine("\t\t\t//Pixel function returns a solid color for each point.");
+			buffer.AppendLine("\t\t\tfloat4 frag (ps_input i) : COLOR");
+			buffer.AppendLine("\t\t\t{");
+			buffer.AppendLine("\t\t\t return i.col;");
+			buffer.AppendLine("\t\t\t}");
+            buffer.AppendLine();
+			buffer.AppendLine("\t\t\tENDCG");
+		    buffer.AppendLine("\t\t}");
+	        buffer.AppendLine("\t}");
+	        buffer.AppendLine("\tFallBack Off");
+            buffer.AppendLine("}");
+
+            return buffer.ToString();
         }
 
         private static string WriteComputeShader(ShaderMetaData data)
@@ -437,7 +641,7 @@ namespace UnityEditor.Experimental
 
             buffer.AppendLine("CBUFFER_START(GlobalInfo)");
             buffer.AppendLine("\tfloat deltaTime;");
-            buffer.AppendLine("\tuint maxNb;");
+            buffer.AppendLine("\tuint nbMax;");
             buffer.AppendLine("CBUFFER_END");
             buffer.AppendLine();
 
@@ -567,7 +771,7 @@ namespace UnityEditor.Experimental
             {
                 WriteKernelHeader(buffer,"CSVFXUpdate");
 
-                buffer.Append("\tif (id.x < maxNb");
+                buffer.Append("\tif (id.x < nbMax");
                 if (data.hasKill)
                     buffer.AppendLine(" && flags[id.x] == 1)");
                 else
