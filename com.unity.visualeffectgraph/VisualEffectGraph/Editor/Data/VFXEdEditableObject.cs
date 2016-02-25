@@ -21,7 +21,13 @@ namespace UnityEditor.Experimental
 
     }
 
+    internal class VFXEdContextNodeTarget : VFXEdEditableObject
+    {
+        [SerializeField]
+        public VFXEdContextNode targetNode;
+        public VFXEdContextNodeTarget() { }
 
+    }
 
     [CustomEditor(typeof(VFXEdProcessingNodeBlockTarget))]
     internal class VFXEdProcessingNodeBlockTargetEditor : Editor
@@ -34,7 +40,7 @@ namespace UnityEditor.Experimental
             serializedObject.Update();
 
             EditorGUILayout.BeginVertical();
-            GUILayout.Label(safeTarget.targetNodeBlock.name);
+            GUILayout.Label(safeTarget.targetNodeBlock.name, VFXEditor.styles.InspectorHeader);
 
             int i = 0;
             foreach(VFXParamValue p in safeTarget.targetNodeBlock.ParamValues)
@@ -77,7 +83,7 @@ namespace UnityEditor.Experimental
             serializedObject.Update();
 
             EditorGUILayout.BeginVertical();
-            GUILayout.Label(safeTarget.targetNodeBlock.name);
+            GUILayout.Label(safeTarget.targetNodeBlock.name, VFXEditor.styles.InspectorHeader);
 
             int i = 0;
             foreach(VFXParamValue p in safeTarget.targetNodeBlock.ParamValues)
@@ -105,6 +111,82 @@ namespace UnityEditor.Experimental
             serializedObject.ApplyModifiedProperties();
             safeTarget.targetNodeBlock.Invalidate();
             safeTarget.targetNodeBlock.ParentCanvas().Repaint();
+        }
+    }
+
+    [CustomEditor(typeof(VFXEdContextNodeTarget))]
+    internal class VFXEdContextNodeTargetEditor : Editor
+    {
+        // TODO : remove here and stor inside VFXSystemModel
+        Bounds bounds = new Bounds(Vector3.zero, new Vector3(50, 50, 50));
+        int maxparticles = 16384;
+
+
+        bool bDebugVisible = true;
+        
+        public VFXContextModel model { get { return (target as VFXEdContextNodeTarget).targetNode.Model; } }
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+            Color c = GUI.color;
+            EditorGUILayout.BeginVertical();
+
+            GUILayout.Label(new GUIContent("Solver Parameters"), VFXEditor.styles.InspectorHeader);
+            EditorGUI.indentLevel++;
+            EditorGUILayout.BoundsField( new GUIContent("Bounding Box"),bounds);
+            EditorGUILayout.Space();
+            maxparticles = EditorGUILayout.IntSlider(new GUIContent("Max Particles"), maxparticles, 64, 32768);
+            EditorGUILayout.Space();
+            EditorGUI.indentLevel--;
+
+
+            bDebugVisible = GUILayout.Toggle(bDebugVisible, new GUIContent("Debug Information"), VFXEditor.styles.InspectorHeader);
+
+            if(bDebugVisible)
+            {
+
+                EditorGUILayout.Space();
+
+                GUI.color = Color.green;
+                GUILayout.Label(model.GetOwner().ToString());
+                GUI.color = c;
+
+                EditorGUI.indentLevel++;
+                for(int i = 0; i < model.GetOwner().GetNbChildren(); i++)
+                {
+                    VFXContextModel context = model.GetOwner().GetChild(i);
+                    GUI.color = Color.yellow;
+                    EditorGUILayout.LabelField(new GUIContent(context.GetContextType().ToString()));
+                    GUI.color = c;
+                    EditorGUI.indentLevel++;
+
+                    for(int j = 0; j < context.GetNbChildren(); j++)
+                    {
+                        VFXBlockModel block = context.GetChild(j);
+                    
+                        EditorGUILayout.LabelField(new GUIContent(block.Desc.m_Name));
+                        EditorGUI.indentLevel++;
+
+                        for(int k = 0; k < block.Desc.m_Params.Length; k++)
+                        {
+                            EditorGUILayout.BeginHorizontal();
+                            EditorGUILayout.LabelField(new GUIContent( block.Desc.m_Params[k].m_Name + " (" +block.Desc.m_Params[k].m_Type.ToString()+ ")"));
+                            EditorGUILayout.LabelField(new GUIContent( block.GetParamValue(k).ToString()));
+                            EditorGUILayout.EndHorizontal();
+
+                        }
+                        EditorGUI.indentLevel--;
+                    } 
+                    EditorGUI.indentLevel--;
+                }
+                EditorGUI.indentLevel--;
+            }
+            
+            EditorGUILayout.EndVertical();
+
+            serializedObject.ApplyModifiedProperties();
+
         }
     }
 

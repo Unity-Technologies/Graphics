@@ -55,6 +55,8 @@ namespace UnityEditor.Experimental
         public GUIStyle EventNode;
         public GUIStyle EventNodeText;
 
+        public GUIStyle InspectorHeader;
+
         public Texture2D FlowEdgeOpacity;
         public Texture2D FlowEdgeOpacitySelected;
         public Color FlowEdgeTint = HexColor("#AFAFAFAF");
@@ -63,8 +65,17 @@ namespace UnityEditor.Experimental
 
         public Texture2D DataEdgeOpacity;
         public Texture2D DataEdgeOpacitySelected;
+
+        public Texture2D ToolbarPlay;
+        public Texture2D ToolbarRestart;
+        public Texture2D ToolbarStop;
+        public Texture2D ToolbarPause;
+        public Texture2D ToolbarFrameAdvance;
+
         public Color DataEdgeTint = HexColor("#AFAFAF80");
         public Color DataEdgeSelectedTint = HexColor("#FFFFFFFF");
+
+
 
 
         private Dictionary<string, Texture2D> m_icons;
@@ -259,11 +270,25 @@ namespace UnityEditor.Experimental
             EventNodeText.alignment = TextAnchor.MiddleCenter;
             EventNodeText.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
 
+            InspectorHeader = new GUIStyle("ShurikenModuleTitle");
+            InspectorHeader.fontSize = 12;
+            InspectorHeader.fontStyle = FontStyle.Bold;
+            InspectorHeader.border = new RectOffset(4, 4, 4, 4);
+            InspectorHeader.overflow = new RectOffset(4, 4, 4, 4);
+            InspectorHeader.margin = new RectOffset(4, 4, 4, 8);
+
             FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
             FlowEdgeOpacitySelected = EditorGUIUtility.Load("FlowEdge_Selected.psd") as Texture2D;
 
             DataEdgeOpacity = EditorGUIUtility.Load("DataEdge.psd") as Texture2D;
             DataEdgeOpacitySelected = EditorGUIUtility.Load("DataEdge_Selected.psd") as Texture2D;
+
+            ToolbarPlay = EditorGUIUtility.Load("ToolbarIcons.Play.png") as Texture2D;
+            ToolbarRestart = EditorGUIUtility.Load("ToolbarIcons.Restart.png") as Texture2D;
+            ToolbarPause = EditorGUIUtility.Load("ToolbarIcons.Pause.png") as Texture2D;
+            ToolbarStop = EditorGUIUtility.Load("ToolbarIcons.Stop.png") as Texture2D;
+            ToolbarFrameAdvance = EditorGUIUtility.Load("ToolbarIcons.FrameAdvance.png") as Texture2D;
+
 
 
             m_icons = new Dictionary<string, Texture2D>();

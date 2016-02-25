@@ -198,8 +198,6 @@ namespace UnityEditor.Experimental
             {
                 m_DataSource = ScriptableObject.CreateInstance<VFXEdDataSource>();
                 m_Canvas = new VFXEdCanvas(this, m_HostWindow, m_DataSource);
-
-
             }
 
             if (m_Icon == null)
@@ -290,6 +288,27 @@ namespace UnityEditor.Experimental
         {
             GUI.BeginGroup(rect);
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+            // TODO : Add ifs to control effect
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton);
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.toolbarButton);
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.toolbarButton);
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.toolbarButton);
+            if (GUILayout.Button("PlayRate", EditorStyles.toolbarDropDown))
+            {
+                GenericMenu toolsMenu = new GenericMenu();
+                // TODO : Change null's to callbacks to set playrate
+                toolsMenu.AddItem(new GUIContent("100% (RealTime)"),false, null);
+                toolsMenu.AddItem(new GUIContent("50%"),false, null);
+                toolsMenu.AddItem(new GUIContent("25%"),false, null);
+                toolsMenu.AddItem(new GUIContent("10%"),false, null);
+                toolsMenu.AddItem(new GUIContent("1%"),false, null);
+
+                toolsMenu.DropDown(new Rect(0, 0, 0, 16));
+                EditorGUIUtility.ExitGUI();
+            }
+            GUILayout.Space(50.0f);
             GUI.color = Color.green * 4;
             GUILayout.Label("Canvas2D : ",EditorStyles.toolbarButton);
             GUI.color = Color.white;

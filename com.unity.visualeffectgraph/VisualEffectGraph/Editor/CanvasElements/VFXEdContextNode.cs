@@ -48,6 +48,8 @@ namespace UnityEditor.Experimental
             }
             m_Model = new VFXContextModel(type);
             m_Title = context.ToString();
+            target = new VFXEdContextNodeTarget();
+            (target as VFXEdContextNodeTarget).targetNode = this;
             m_Context = context;
 
             // Create a dummy System to hold the newly created context
