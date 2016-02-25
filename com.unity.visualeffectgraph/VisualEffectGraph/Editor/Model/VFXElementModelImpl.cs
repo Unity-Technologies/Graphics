@@ -66,7 +66,8 @@ namespace UnityEditor.Experimental
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
                     VFXSystemRuntimeData rtData = GetChild(i).RtData;
-                    rtData.UpdateAllUniforms();
+                    if (rtData != null)
+                        rtData.UpdateAllUniforms();
                 }
                 m_ReloadUniforms = false;
             }
@@ -143,6 +144,7 @@ namespace UnityEditor.Experimental
         {
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
+                Dispose();
                 Detach();
                 return;
             }
@@ -159,7 +161,10 @@ namespace UnityEditor.Experimental
             if (m_Dirty)
             {
                 if (rtData != null)
+                {
                     rtData.DisposeBuffers();
+                    UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
+                }
                 rtData = VFXModelCompiler.CompileSystem(this);
                 m_Dirty = false;
                 return true;

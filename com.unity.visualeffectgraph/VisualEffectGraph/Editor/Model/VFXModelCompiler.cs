@@ -27,8 +27,12 @@ namespace UnityEditor.Experimental
         public VFXSystemRuntimeData(ComputeShader shader)
         {
             simulationShader = shader;
-            initKernel = simulationShader.FindKernel("CSVFXInit");
-            updateKernel = simulationShader.FindKernel("CSVFXUpdate");
+
+            // FindKernel throws instead of setting value to -1
+            try { initKernel = simulationShader.FindKernel("CSVFXInit"); }
+            catch(Exception e) { initKernel = -1; }
+            try { updateKernel = simulationShader.FindKernel("CSVFXUpdate"); }
+            catch(Exception e) { updateKernel = -1; }
         }
 
         public void AddBuffer(int kernelIndex, string name, ComputeBuffer buffer)
@@ -40,7 +44,11 @@ namespace UnityEditor.Experimental
         public void DisposeBuffers()
         {
             foreach (var buffer in buffers)
+            {
+                VFXEditor.Log("Dispose buffer "+buffer.ToString());
+                buffer.Release();
                 buffer.Dispose();
+            }
         }
 
         public void UpdateAllUniforms()
@@ -224,13 +232,7 @@ namespace UnityEditor.Experimental
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
             {
-                VFXAttrib seedAttrib = new VFXAttrib();
-                VFXParam seedParam = new VFXParam();
-                seedParam.m_Name = "seed";
-                seedParam.m_Type = VFXParam.Type.kTypeInt;
-                seedAttrib.m_Param = seedParam;
-                seedAttrib.m_Writable = true;
-
+                VFXAttrib seedAttrib = new VFXAttrib("seed", VFXParam.Type.kTypeUint,true);
                 attribs[seedAttrib] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
             }
 
@@ -445,20 +447,20 @@ namespace UnityEditor.Experimental
 
             ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/VFXEditor/Generated/VFX.compute");
             Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>("Assets/VFXEditor/Generated/VFX.shader");
+            AssetDatabase.Refresh();
+
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader);
 
             // Find position buffer
-            VFXAttrib posAttrib = new VFXAttrib();
-            VFXParam param = new VFXParam();
-            param.m_Name = "position";
-            param.m_Type = VFXParam.Type.kTypeFloat3;
-            posAttrib.m_Param = param;
-
             AttributeBuffer posBuffer = null;
-            attribToBuffer.TryGetValue(posAttrib,out posBuffer);
+            attribToBuffer.TryGetValue(new VFXAttrib("position", VFXParam.Type.kTypeFloat3), out posBuffer);
 
             if (posBuffer == null || outputShader == null) // No position buffer, we escape
                 return null;
+
+            // Find color buffer
+            AttributeBuffer colorBuffer = null;
+            attribToBuffer.TryGetValue(new VFXAttrib("color", VFXParam.Type.kTypeFloat3), out colorBuffer);
 
             rtData.m_Material = new Material(outputShader);
 
@@ -476,6 +478,8 @@ namespace UnityEditor.Experimental
                     rtData.AddBuffer(rtData.UpdateKernel, bufferName + (attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate) ? "" : "_RO"), computeBuffer);
                 if (attribBuffer == posBuffer)
                     rtData.m_Material.SetBuffer("pointBuffer", computeBuffer);
+                if (attribBuffer == colorBuffer)
+                    rtData.m_Material.SetBuffer("colorBuffer", computeBuffer);
                 //computeBuffer.Dispose();
             }
 
@@ -570,13 +574,20 @@ namespace UnityEditor.Experimental
 
         private static string WriteOutputShader(ShaderMetaData data)
         {
+            bool hasColorAttribute = data.attribToBuffer.ContainsKey(new VFXAttrib("color", VFXParam.Type.kTypeFloat3));
+
             StringBuilder buffer = new StringBuilder();
             buffer.AppendLine("Shader \"Custom/PointShader\"");
             buffer.AppendLine("{");
 	        buffer.AppendLine("\tSubShader"); 
-	        buffer.AppendLine("\t{");	
-		    buffer.AppendLine("\t\tPass");
-		    buffer.AppendLine("\t\t{");
+	        buffer.AppendLine("\t{");
+
+            buffer.AppendLine("\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+            buffer.AppendLine("\t\tPass");
+            buffer.AppendLine("\t\t{");
+            buffer.AppendLine("\t\tBlend SrcAlpha One");
+            buffer.AppendLine("\t\tZTest LEqual");
+            buffer.AppendLine("\t\tZWrite Off");
 			buffer.AppendLine("\t\t\tCGPROGRAM");
 			buffer.AppendLine("\t\t\t#pragma target 5.0");
             buffer.AppendLine();
@@ -586,25 +597,39 @@ namespace UnityEditor.Experimental
 			buffer.AppendLine("\t\t\t#include \"UnityCG.cginc\"");
             buffer.AppendLine();
 			buffer.AppendLine("\t\t\tStructuredBuffer<float4> pointBuffer;");
+
+            if (hasColorAttribute)
+                buffer.AppendLine("\t\t\tStructuredBuffer<float4> colorBuffer;");
+
             buffer.AppendLine();
 			buffer.AppendLine("\t\t\tstruct ps_input {");
 			buffer.AppendLine("\t\t\t float4 pos : SV_POSITION;");
-			buffer.AppendLine("\t\t\t float4 col : COLOR0;");
+
+            if (hasColorAttribute)
+			    buffer.AppendLine("\t\t\t float4 col : COLOR0;");
+
 			buffer.AppendLine("\t\t\t};");
             buffer.AppendLine();
 			buffer.AppendLine("\t\t\tps_input vert (uint id : SV_VertexID)");
 			buffer.AppendLine("\t\t\t{");
-			buffer.AppendLine("\t\t\tps_input o;");
-			buffer.AppendLine("\t\t\tfloat3 worldPos = pointBuffer[id].xyz;");
-			buffer.AppendLine("\t\t\to.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
-			buffer.AppendLine("\t\t\to.col = float4(1,1,1,1);");
-			buffer.AppendLine("\t\t\treturn o;");
+			buffer.AppendLine("\t\t\t\tps_input o;");
+            buffer.AppendLine("\t\t\t\tfloat3 worldPos = pointBuffer[id].xyz;");
+            buffer.AppendLine("\t\t\t\to.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
+            
+            if (hasColorAttribute)
+                buffer.AppendLine("\t\t\t\to.col = float4(colorBuffer[id].xyz,0.5);");
+            
+            buffer.AppendLine("\t\t\t\treturn o;");
 			buffer.AppendLine("\t\t\t}");
             buffer.AppendLine();
-			buffer.AppendLine("\t\t\t//Pixel function returns a solid color for each point.");
 			buffer.AppendLine("\t\t\tfloat4 frag (ps_input i) : COLOR");
 			buffer.AppendLine("\t\t\t{");
-			buffer.AppendLine("\t\t\t return i.col;");
+
+            if (hasColorAttribute)
+                buffer.AppendLine("\t\t\t\treturn i.col;");
+            else
+                buffer.AppendLine("\t\t\t\treturn float4(1.0,1.0,1.0,0.5);");
+
 			buffer.AppendLine("\t\t\t}");
             buffer.AppendLine();
 			buffer.AppendLine("\t\t\tENDCG");
@@ -649,6 +674,7 @@ namespace UnityEditor.Experimental
             {
                 buffer.AppendLine("CBUFFER_START(SpawnInfo)");
                 buffer.AppendLine("\tuint nbSpawned;");
+                buffer.AppendLine("\tuint spawnIndex;");
                 buffer.AppendLine("CBUFFER_END");
                 buffer.AppendLine();
             } 
@@ -698,12 +724,21 @@ namespace UnityEditor.Experimental
             // Write functions
             if (data.hasRand)
             {
-                buffer.AppendLine("float rand(inout int seed)");
+                buffer.AppendLine("float rand(inout uint seed)");
                 buffer.AppendLine("{");
-                buffer.AppendLine("\tseed = seed * 22695477 + 1;");
-                buffer.AppendLine("\treturn float(seed & 0xFFFF) / 65536.0;");
+                buffer.AppendLine("\tseed = 1664525 * seed + 1013904223;");
+                buffer.AppendLine("\treturn float(seed) / 4294967296.0;");
                 buffer.AppendLine("}");
                 buffer.AppendLine();
+
+              /*  buffer.AppendLine("float rand(inout uint seed)");
+                buffer.AppendLine("{");
+                buffer.AppendLine("\tseed ^= (seed << 13);");
+                buffer.AppendLine("\tseed ^= (seed >> 17);");
+                buffer.AppendLine("\tseed ^= (seed << 5);");
+                buffer.AppendLine("\treturn float(seed) / 4294967296.0;");
+                buffer.AppendLine("}");
+                buffer.AppendLine();*/
             }
 
             var functionNames = new Dictionary<Hash128,string>();
@@ -741,6 +776,24 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine(")0;");
                 }
                 buffer.AppendLine();
+
+                // Init random
+                if (data.hasRand)
+                {
+                    // Find rand attribute
+                    VFXAttrib randAttrib = new VFXAttrib("seed", VFXParam.Type.kTypeUint);
+                    int bufferIndex = data.attribToBuffer[randAttrib].Index;
+                    buffer.AppendLine("\t\tuint seed = id.x + spawnIndex;");
+                    buffer.AppendLine("\t\tseed = (seed ^ 61) ^ (seed >> 16);");
+                    buffer.AppendLine("\t\tseed *= 9;");
+                    buffer.AppendLine("\t\tseed = seed ^ (seed >> 4);");
+                    buffer.AppendLine("\t\tseed *= 0x27d4eb2d;");
+                    buffer.AppendLine("\t\tseed = seed ^ (seed >> 15);");
+                    buffer.Append("\t\tattrib");
+                    buffer.Append(bufferIndex);
+                    buffer.AppendLine(".seed = seed;");       
+                    buffer.AppendLine();
+                }
 
                 foreach (var block in data.initBlocks)
                     WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
@@ -925,7 +978,7 @@ namespace UnityEditor.Experimental
                 if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
                 {
                     buffer.Append(separator);
-                    buffer.Append("inout int seed");
+                    buffer.Append("inout uint seed");
                     source = source.Replace("RAND", "rand(seed)"); 
                 }
 
@@ -990,7 +1043,7 @@ namespace UnityEditor.Experimental
                 VFXAttrib randAttrib = new VFXAttrib();
                 VFXParam randParam = new VFXParam();
                 randParam.m_Name = "seed";
-                randParam.m_Type = VFXParam.Type.kTypeInt;
+                randParam.m_Type = VFXParam.Type.kTypeUint;
                 randAttrib.m_Param = randParam;
 
                 int index = attribToBuffer[randAttrib].Index;
