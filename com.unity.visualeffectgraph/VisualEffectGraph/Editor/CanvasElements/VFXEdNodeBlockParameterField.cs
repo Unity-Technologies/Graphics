@@ -83,7 +83,7 @@ namespace UnityEditor.Experimental
         {
 
             float height = VFXEditorMetrics.NodeBlockParameterHeight;
-            switch (type)
+            /*switch (type)
             {
                 case VFXParam.Type.kTypeFloat2:
                 case VFXParam.Type.kTypeFloat3:
@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental
                     break;
                 default:
                     break;
-            }
+            }*/
             return height;
         }
 
@@ -103,36 +103,42 @@ namespace UnityEditor.Experimental
             if(!collapsed)
             {
                 Rect r = GetDrawableRect();
-                Rect fieldrect = new RectOffset(32,32,0,0).Remove(r);
+
+                Rect fieldrect = VFXEditorMetrics.ParameterFieldRectOffset.Remove(r);
+                Rect labelrect = new Rect(fieldrect.x, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.height);
+                Rect editrect = new Rect(fieldrect.x +
+                VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.height);
+
+                EditorGUI.LabelField(labelrect, m_Name);
 
                 switch (Type)
                 {
                     case VFXParam.Type.kTypeFloat:
-                        m_Value.SetValue(EditorGUI.FloatField(fieldrect, m_Name, m_Value.GetValue<float>()));
+                        m_Value.SetValue(EditorGUI.FloatField(editrect, "", m_Value.GetValue<float>()));
                         break;
 
                     case VFXParam.Type.kTypeFloat2:
-                        m_Value.SetValue(EditorGUI.Vector2Field(fieldrect, m_Name, m_Value.GetValue<Vector2>()));
+                        m_Value.SetValue(EditorGUI.Vector2Field(editrect, "", m_Value.GetValue<Vector2>()));
                         break;
 
                     case VFXParam.Type.kTypeFloat3:
-                        m_Value.SetValue(EditorGUI.Vector3Field(fieldrect, m_Name, m_Value.GetValue<Vector3>()));
+                        m_Value.SetValue(EditorGUI.Vector3Field(editrect, "", m_Value.GetValue<Vector3>()));
                         break;
 
                     case VFXParam.Type.kTypeFloat4:
-                        m_Value.SetValue(EditorGUI.Vector4Field(fieldrect, m_Name, m_Value.GetValue<Vector4>()));
+                        m_Value.SetValue(EditorGUI.Vector4Field(editrect, "", m_Value.GetValue<Vector4>()));
                         break;
 
                     case VFXParam.Type.kTypeInt:
-                        m_Value.SetValue(EditorGUI.IntField(fieldrect, m_Name, m_Value.GetValue<int>()));
+                        m_Value.SetValue(EditorGUI.IntField(editrect, "", m_Value.GetValue<int>()));
                         break;
 
                     case VFXParam.Type.kTypeUint:
-                        m_Value.SetValue<uint>((uint)EditorGUI.IntField(fieldrect, m_Name, (int)m_Value.GetValue<uint>()));
+                        m_Value.SetValue<uint>((uint)EditorGUI.IntField(editrect, "", (int)m_Value.GetValue<uint>()));
                         break;
 
                     default: // TODO Texture
-                        GUI.Label(fieldrect, VFXParam.GetNameFromType(Type) + " " + m_Name, VFXEditor.styles.NodeBlockParameter);
+                        GUI.Label(editrect, VFXParam.GetNameFromType(Type) + " " + "", VFXEditor.styles.NodeBlockParameter);
                         break;
                 }
             }

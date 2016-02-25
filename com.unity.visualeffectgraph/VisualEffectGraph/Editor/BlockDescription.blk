@@ -53,7 +53,7 @@ color = lerp(value1,value2,RAND);
 velocity += force * deltaTime;
 
 #block Apply Drag
-#icon Force
+#icon Drag
 #category Forces/
 #arg float3 velocity [inout|param]
 #arg float multiplier [public]
@@ -61,7 +61,7 @@ velocity += force * deltaTime;
 velocity *= max(0.0,(1.0 - multiplier * deltaTime * dot(velocity,velocity))); // drag
 
 #block Apply VectorField Force
-#icon Volume
+#icon VectorField
 #category Forces/
 #arg float3 position [param]
 #arg float3 velocity [inout|param]

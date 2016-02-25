@@ -54,8 +54,9 @@ namespace UnityEditor.Experimental
                 foreach(VFXEdNodeBlockParameterField field in m_Fields)
                 {
                     field.translation = new Vector2(0.0f, curY);
-                    curY += field.scale.y;
+                    curY += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
                 }
+
             }
         }
 

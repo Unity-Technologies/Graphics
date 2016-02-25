@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental
         {
             float height = VFXEditorMetrics.NodeBlockHeaderHeight;
             foreach(VFXEdNodeBlockParameterField field in m_Fields) {
-                height += field.scale.y;
+                height += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
             }
             height += VFXEditorMetrics.NodeBlockFooterHeight;
             return height;

@@ -199,20 +199,7 @@ namespace UnityEditor.Experimental
                 m_DataSource = ScriptableObject.CreateInstance<VFXEdDataSource>();
                 m_Canvas = new VFXEdCanvas(this, m_HostWindow, m_DataSource);
 
-                // draggable manipulator allows to move the canvas around. Note that individual elements can have the draggable manipulator on themselves
-                m_Canvas.AddManipulator(new Draggable(2, EventModifiers.None));
-                m_Canvas.AddManipulator(new Draggable(0, EventModifiers.Alt));
 
-                // make the canvas zoomable
-                m_Canvas.AddManipulator(new Zoomable(Zoomable.ZoomType.AroundMouse));
-
-                // allow framing the selection when hitting "F" (frame) or "A" (all). Basically shows how to trap a key and work with the canvas selection
-                m_Canvas.AddManipulator(new Frame(Frame.FrameType.All));
-                m_Canvas.AddManipulator(new Frame(Frame.FrameType.Selection));
-
-                // The following manipulator show how to work with canvas2d overlay and background rendering
-                m_Canvas.AddManipulator(new RectangleSelect());
-                m_Canvas.AddManipulator(new ScreenSpaceGrid());
             }
 
             if (m_Icon == null)

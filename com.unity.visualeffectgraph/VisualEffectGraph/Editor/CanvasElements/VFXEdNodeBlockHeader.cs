@@ -73,7 +73,8 @@ namespace UnityEditor.Experimental
             {
                 GUI.Box(arrowrect, "", VFXEditor.styles.CollapserDisabled);
             }
-            GUI.Box(iconrect, m_Icon, VFXEditor.styles.Empty);
+            //GUI.Box(iconrect, m_Icon, VFXEditor.styles.Empty);
+            GUI.DrawTexture(iconrect, m_Icon);
             GUI.Label(labelrect, m_Name, VFXEditor.styles.NodeBlockTitle);
             base.Render(parentRect, canvas);
         }

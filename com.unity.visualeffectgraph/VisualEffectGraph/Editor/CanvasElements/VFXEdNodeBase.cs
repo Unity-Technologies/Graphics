@@ -32,6 +32,7 @@ namespace UnityEditor.Experimental
             m_Inputs = new List<VFXEdFlowAnchor>();
             m_Outputs = new List<VFXEdFlowAnchor>();
 
+
             m_ClientArea = new Rect(0, 0, scale.x, scale.y);
 
             AddManipulator(new Draggable());

@@ -177,12 +177,12 @@ namespace UnityEditor.Experimental
             DataNodeBlock = new GUIStyle();
             DataNodeBlock.name = "DataNodeBlock";
             DataNodeBlock.normal.background = EditorGUIUtility.Load("NodeBlock_Unselected.psd") as Texture2D;
-            DataNodeBlock.border = new RectOffset(8, 8, 24, 4);
+            DataNodeBlock.border = new RectOffset(8, 8, 4, 4);
 
             DataNodeBlockSelected = new GUIStyle();
             DataNodeBlockSelected.name = "DataNodeBlockSelected";
             DataNodeBlockSelected.normal.background = EditorGUIUtility.Load("NodeBlock_Selected.psd") as Texture2D;
-            DataNodeBlockSelected.border = new RectOffset(8, 8, 24, 4);
+            DataNodeBlockSelected.border = new RectOffset(8, 8, 4, 4);
 
             NodeBlockTitle = new GUIStyle();
             NodeBlockTitle.fontSize = 12;
