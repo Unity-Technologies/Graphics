@@ -75,6 +75,11 @@ namespace UnityEditor.Experimental
             if (m_Bindings.Remove(binding) && reentrant)
                 model.UnbindParam(index, true);
         }
+
+        public bool IsBound()
+        {
+            return m_Bindings.Count > 0;
+        }
     }
 
     public abstract class VFXParamValue<T> : VFXParamValue

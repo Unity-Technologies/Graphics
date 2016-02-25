@@ -79,20 +79,15 @@ namespace UnityEditor.Experimental
                 scale = Vector2.zero;
         }
 
+        public bool IsConnected()
+        {
+            return !Value.IsBound();
+        }
+
         protected static float GetParamHeight(VFXParam.Type type)
         {
 
             float height = VFXEditorMetrics.NodeBlockParameterHeight;
-            /*switch (type)
-            {
-                case VFXParam.Type.kTypeFloat2:
-                case VFXParam.Type.kTypeFloat3:
-                case VFXParam.Type.kTypeFloat4:
-                    height += VFXEditorMetrics.NodeBlockAdditionalHeight;
-                    break;
-                default:
-                    break;
-            }*/
             return height;
         }
 
@@ -108,6 +103,10 @@ namespace UnityEditor.Experimental
                 Rect labelrect = new Rect(fieldrect.x, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.height);
                 Rect editrect = new Rect(fieldrect.x +
                 VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.height);
+
+
+                if (IsConnected())
+                    GUI.color = new Color(1.0f, 1.0f, 1.0f, 0.25f);
 
                 EditorGUI.LabelField(labelrect, m_Name);
 
@@ -141,6 +140,8 @@ namespace UnityEditor.Experimental
                         GUI.Label(editrect, VFXParam.GetNameFromType(Type) + " " + "", VFXEditor.styles.NodeBlockParameter);
                         break;
                 }
+
+                GUI.color = Color.white;
             }
         }
     }

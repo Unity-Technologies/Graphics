@@ -92,18 +92,80 @@ namespace UnityEditor.Experimental
 
         protected override void ShowNodeBlockMenu(Vector2 canvasClickPosition)
         {
-             GenericMenu menu = new GenericMenu();
+            GenericMenu menu = new GenericMenu();
 
-                ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
+            ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
+                
+            // Add New...
+            foreach (VFXBlock block in blocks)
+            {
+                // TODO : Only add item if block is compatible with current context.
+                menu.AddItem(new GUIContent("Add New/"+block.m_Category + block.m_Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+            }
+            
 
+            // Replace Current...
+            if (OwnsBlock((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock))
+            {
+                menu.AddSeparator("");
                 foreach (VFXBlock block in blocks)
                 {
-                // TODO : Only add item if block is compatible with current context.
-                    menu.AddItem(new GUIContent(block.m_Category + block.m_Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                    // TODO : Only add item if block is compatible with current context.
+                    menu.AddItem(new GUIContent("Replace By/"+block.m_Category + block.m_Name), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
                 }
+            }
+
+            // TODO : Layout Functions
+            menu.AddSeparator("");
+            menu.AddItem(new GUIContent("Layout/Blocks/Collapse UnConnected"), false, CollapseUnconnected);
+            menu.AddItem(new GUIContent("Layout/Blocks/Collapse Connected"), false, CollapseConnected);
+            menu.AddItem(new GUIContent("Layout/Blocks/Collapse All"), false, CollapseAll );
+            menu.AddItem(new GUIContent("Layout/Blocks/Expand All"), false, ExpandAll);
+            menu.AddItem(new GUIContent("Layout/Node/Layout Neighbors"), false, null);
+            menu.AddItem(new GUIContent("Layout/Node/Align with Previous"), false, null);
+            menu.AddItem(new GUIContent("Layout/Node/Align with Next"), false, null);
 
             menu.ShowAsContext();
         }
+
+
+        public void CollapseUnconnected()
+        {
+            foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
+            {
+                block.collapsed = !block.IsConnected();
+            }
+            Layout();
+        }
+
+        public void CollapseConnected()
+        {
+            foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
+            {
+                block.collapsed = block.IsConnected();
+            }
+            Layout();
+        }
+
+
+        public void CollapseAll()
+        {
+            foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
+            {
+                block.collapsed = true;
+            }
+            Layout();
+        }
+
+        public void ExpandAll()
+        {
+            foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
+            {
+                block.collapsed = false;
+            }
+            Layout();
+        }
+
 
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
         {

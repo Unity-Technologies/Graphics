@@ -32,9 +32,15 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public  List<VFXEdNodeBlock> nodeBlocks { get { return m_NodeBlocks; } }
+
         private DropInfo dropInfo;
         private List<VFXEdNodeBlock> m_NodeBlocks;
 
+        public bool OwnsBlock(VFXEdNodeBlock item)
+        {
+            return m_NodeBlocks.Contains(item);
+        }
 
         public VFXEdNodeBlockContainer(Vector2 size)
         {

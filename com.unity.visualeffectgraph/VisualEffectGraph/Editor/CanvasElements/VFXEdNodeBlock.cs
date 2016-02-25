@@ -29,6 +29,16 @@ namespace UnityEditor.Experimental
 
         }
 
+        public bool IsConnected()
+        {
+            foreach(VFXEdNodeBlockParameterField field in m_Fields)
+            {
+                if (field.IsConnected())
+                    return true;
+            }
+            return false;
+        }
+
         // Retrieve the full height of the block
         protected abstract float GetHeight();
 

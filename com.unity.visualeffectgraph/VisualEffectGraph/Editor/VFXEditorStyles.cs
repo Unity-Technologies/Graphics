@@ -203,7 +203,7 @@ namespace UnityEditor.Experimental
             NodeBlockTitle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
 
             NodeBlockParameter = new GUIStyle();
-            NodeBlockParameter.fontSize = 11;
+            NodeBlockParameter.fontSize = 12;
             NodeBlockParameter.padding = new RectOffset(4, 4, 4, 4);
             NodeBlockParameter.alignment = TextAnchor.MiddleLeft;
             NodeBlockParameter.normal.textColor = new Color(0.8f, 0.8f, 0.8f);

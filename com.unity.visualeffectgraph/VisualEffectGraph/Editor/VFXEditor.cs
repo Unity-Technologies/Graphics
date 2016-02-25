@@ -258,14 +258,46 @@ namespace UnityEditor.Experimental
             
             if(m_bShowDebug)
             {
-                GUILayout.BeginArea(new Rect(position.width-600, EditorStyles.toolbar.fixedHeight, 600, position.height -EditorStyles.toolbar.fixedHeight));
+                GUILayout.BeginArea(new Rect(position.width-VFXEditorMetrics.DebugWindowWidth, EditorStyles.toolbar.fixedHeight, VFXEditorMetrics.DebugWindowWidth, position.height -EditorStyles.toolbar.fixedHeight));
+                GUILayout.BeginVertical();
+
+                // Debug Window Toolbar
+                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+                GUI.color = Color.green * 4;
+                GUILayout.Label("Canvas2D : ",EditorStyles.toolbarButton);
+                GUI.color = Color.white;
+                m_Canvas.showQuadTree = GUILayout.Toggle(m_Canvas.showQuadTree, "Debug", EditorStyles.toolbarButton);
+                if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
+                {
+                    m_Canvas.DeepInvalidate();
+                    m_Canvas.Repaint();
+                }
+
+                GUILayout.FlexibleSpace();
+                GUI.color = Color.yellow * 4;
+                GUILayout.Label("VFXEditor :",EditorStyles.toolbarButton);
+                GUI.color = Color.white;
+
+                if (GUILayout.Button("Reload Library", EditorStyles.toolbarButton))
+                {
+                    BlockLibrary.Load();
+                }
+
+                if (GUILayout.Button("Clear Log", EditorStyles.toolbarButton))
+                    ClearLog();
+
+                GUILayout.EndHorizontal();
                 m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
                 List<string> debugOutput = VFXEditor.GetDebugOutput();
+
                 foreach (string str in debugOutput)
-                GUILayout.Label(str);
+                    GUILayout.Label(str);
+
                 GUILayout.EndScrollView();
+                GUILayout.EndVertical();
                 GUILayout.EndArea();
-                canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width-600, position.height - EditorStyles.toolbar.fixedHeight);
+                canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width-VFXEditorMetrics.DebugWindowWidth, position.height - EditorStyles.toolbar.fixedHeight);
             }
             else
             {
@@ -300,7 +332,7 @@ namespace UnityEditor.Experimental
                 GenericMenu toolsMenu = new GenericMenu();
                 // TODO : Change null's to callbacks to set playrate
                 toolsMenu.AddItem(new GUIContent("100% (RealTime)"),false, null);
-                toolsMenu.AddItem(new GUIContent("50%"),false, null);
+                toolsMenu.AddItem(new GUIContent("50%" ),false, null);
                 toolsMenu.AddItem(new GUIContent("25%"),false, null);
                 toolsMenu.AddItem(new GUIContent("10%"),false, null);
                 toolsMenu.AddItem(new GUIContent("1%"),false, null);
@@ -308,51 +340,10 @@ namespace UnityEditor.Experimental
                 toolsMenu.DropDown(new Rect(0, 0, 0, 16));
                 EditorGUIUtility.ExitGUI();
             }
-            GUILayout.Space(50.0f);
-            GUI.color = Color.green * 4;
-            GUILayout.Label("Canvas2D : ",EditorStyles.toolbarButton);
-            GUI.color = Color.white;
-            m_Canvas.showQuadTree = GUILayout.Toggle(m_Canvas.showQuadTree, "Debug Info", EditorStyles.toolbarButton);
-            if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
-            {
-                m_Canvas.DeepInvalidate();
-                m_Canvas.Repaint();
-            }
 
-            GUILayout.Space(50.0f);
-            GUI.color = Color.yellow * 4;
-            GUILayout.Label("VFXEditor :",EditorStyles.toolbarButton);
-            GUI.color = Color.white;
-            if (GUILayout.Button("Reload Library", EditorStyles.toolbarButton))
-            {
-                BlockLibrary.Load();
-            }
-            if (GUILayout.Button("Editor Reset", EditorStyles.toolbarButton))
-            {
-                m_Canvas = null;
-                InitializeCanvas();
-                s_BlockLibrary = null;
-            }
-            m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "Debug Window", EditorStyles.toolbarButton);
-
-            if (GUILayout.Button("Clear Debug Log", EditorStyles.toolbarButton))
-                ClearLog();
 
             GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Tools", EditorStyles.toolbarDropDown))
-            {
-                GenericMenu toolsMenu = new GenericMenu();
-                if (Selection.activeGameObject != null)
-                    toolsMenu.AddItem(new GUIContent("Optimize Selected"), false, null);
-                else
-                    toolsMenu.AddDisabledItem(new GUIContent("Optimize Selected"));
-                toolsMenu.AddSeparator("");
-                toolsMenu.AddItem(new GUIContent("Help..."), false, null);
-                // Offset menu from right of editor window
-                toolsMenu.DropDown(new Rect(Screen.width - 216 - 40, 0, 0, 16));
-                EditorGUIUtility.ExitGUI();
-            }
-
+            m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "DEBUG PANEL", EditorStyles.toolbarButton);
             m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);
 
             GUILayout.EndHorizontal();
@@ -372,7 +363,6 @@ namespace UnityEditor.Experimental
                                             VFXEditorMetrics.PreviewWindowHeight
                                        );
 
-            Rect debugRect = new Rect(40, 40, 450, canvasRect.height - 80);
 
             if (m_bShowPreview)
             {

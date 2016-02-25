@@ -121,7 +121,9 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdProcessingNodeBlock(m_Block,m_DataSource));
+            m_Node.NodeBlockContainer.CaptureDrop = true;
+            m_Node.NodeBlockContainer.UpdateCaptureDrop(m_canvasPosition);
+            m_Node.NodeBlockContainer.AcceptDrop(new VFXEdProcessingNodeBlock(m_Block, m_DataSource));
         }
 
     }
