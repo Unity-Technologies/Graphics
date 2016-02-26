@@ -7,6 +7,20 @@ namespace UnityEditor.Experimental
 {
     public class VFXAssetModel : VFXElementModelTyped<VFXElementModel, VFXSystemModel>
     {
+        public VFXAssetModel()
+        {     
+            gameObject = new GameObject("VFX");
+            gameObject.hideFlags = HideFlags.DontSaveInEditor;
+            component = gameObject.AddComponent<VFXComponent>();
+        }
+
+        public void Dispose()
+        {
+            UnityEngine.Object.DestroyImmediate(gameObject);
+            for (int i = 0; i < GetNbChildren(); ++i)
+                GetChild(i).Dispose();
+        }
+
         public override void Invalidate(InvalidationCause cause)
         {
             switch(cause)
@@ -18,7 +32,6 @@ namespace UnityEditor.Experimental
                     m_ReloadUniforms = true;
                     break;
             }
-
         }
 
         public void Update()
@@ -32,22 +45,52 @@ namespace UnityEditor.Experimental
                     if (!GetChild(i).RecompileIfNeeded())
                         VFXEditor.Log("No need to recompile");
                 }
+
+                // tmp
+                for (int i = 0; i < GetNbChildren(); ++i)
+                {
+                    VFXSystemRuntimeData rtData = GetChild(i).RtData;
+                    if (rtData != null)
+                    {
+                        component.simulationShader = rtData.SimulationShader;
+                        component.material = rtData.m_Material;
+                    }
+                }
+
                 m_NeedsCheck = false;
             }
 
             if (m_ReloadUniforms)
             {
                 VFXEditor.Log("Uniforms have been modified");
+                for (int i = 0; i < GetNbChildren(); ++i)
+                {
+                    VFXSystemRuntimeData rtData = GetChild(i).RtData;
+                    if (rtData != null)
+                        rtData.UpdateAllUniforms();
+                }
                 m_ReloadUniforms = false;
             }
         }
 
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
+
+        private VFXComponent component;
+        private GameObject gameObject;
     }
 
     public class VFXSystemModel : VFXElementModelTyped<VFXAssetModel, VFXContextModel>
     {
+        public void Dispose()
+        {
+            if (rtData != null)
+            {
+                rtData.DisposeBuffers();
+                UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
+            }
+        }
+
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             if (!base.CanAddChild(element, index))
@@ -101,6 +144,7 @@ namespace UnityEditor.Experimental
         {
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
+                Dispose();
                 Detach();
                 return;
             }
@@ -116,7 +160,12 @@ namespace UnityEditor.Experimental
         {
             if (m_Dirty)
             {
-                VFXModelCompiler.CompileSystem(this);
+                if (rtData != null)
+                {
+                    rtData.DisposeBuffers();
+                    UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
+                }
+                rtData = VFXModelCompiler.CompileSystem(this);
                 m_Dirty = false;
                 return true;
             }
@@ -125,6 +174,11 @@ namespace UnityEditor.Experimental
         }
 
         private bool m_Dirty = true;
+        private VFXSystemRuntimeData rtData;
+        public VFXSystemRuntimeData RtData
+        {
+            get { return rtData; }
+        }
     }
 
 

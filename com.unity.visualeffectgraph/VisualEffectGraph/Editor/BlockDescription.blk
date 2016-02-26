@@ -14,8 +14,8 @@ lifetime = max(value,0.0f);
 #icon Time
 #category Time/
 #arg float lifetime [inout|param]
-#arg float MinLifetime [public]
-#arg float MaxLifetime [public]
+#arg float minLifetime [public]
+#arg float maxLifetime [public]
 
 lifetime = max(minLifetime + RAND * (maxLifetime-minLifetime),0.0f);
 
@@ -39,6 +39,18 @@ color = value;
 #arg float3 value2 [public] 
 
 color = lerp(value1,value2,RAND);
+
+#block Color Over Lifetime
+#icon Color
+#category Color/
+#arg float3 color [inout|param]
+#arg float age [param] 
+#arg float lifetime [param] 
+#arg float3 start [public] 
+#arg float3 end [public] 
+
+float ratio = saturate(age / lifetime);
+color = lerp(start,end,ratio);
 
 #---------------------------------------------------------------------
 # FORCE BLOCKS
@@ -103,8 +115,29 @@ position = float3(  lerp(minValue.x,maxValue.x,RAND),
 #arg float3 center [public] 
 #arg float radius [public] 
 
-float3 p = normalize(float3(RAND*2.0-1.0,RAND*2.0-1.0,RAND*2.0-1.0)) * RAND;
+float3 p = normalize(float3(RAND*2.0-1.0,RAND*2.0-1.0,RAND*2.0-1.0)) * RAND * radius;
 position = center + p;
+
+#---------------------------------------------------------------------
+# COLLISION BLOCKS
+#---------------------------------------------------------------------
+
+#block Collision with Plane
+#icon Position
+#category Collision/
+#arg float3 position [param]
+#arg float3 velocity [inout|param]
+#arg float3 normal [public]
+#arg float3 center [public]
+#arg float elasticity [public]
+
+const float EPSILON = 1e-5;
+
+float distToPlane = dot(normal,position - center);
+float projectedVelocity = dot(normal,velocity);
+
+if (sign(projectedVelocity) != sign(distToPlane) && deltaTime * abs(projectedVelocity) + EPSILON > abs(distToPlane))
+	velocity -= ((1 + elasticity) * projectedVelocity) * normal; // Collision
 
 #---------------------------------------------------------------------
 # SIZE BLOCKS
@@ -198,7 +231,7 @@ velocity += value * deltaTime;
 #arg float lifetime [param]
 
 age += deltaTime;
-if (age <= lifetime)
+if (age >= lifetime)
 	KILL;
 
 #block Apply Velocity to Positions
