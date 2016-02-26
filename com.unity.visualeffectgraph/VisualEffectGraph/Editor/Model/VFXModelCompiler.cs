@@ -507,6 +507,9 @@ namespace UnityEditor.Experimental
                     rtData.AddBuffer(rtData.UpdateKernel,"flags",flagBuffer);
                     rtData.AddBuffer(rtData.UpdateKernel, "deadListOut", deadList);
                 }
+
+                // bind flags to vertex shader
+                rtData.m_Material.SetBuffer("flags", flagBuffer);
             }
 
             // Add uniforms mapping
@@ -601,6 +604,10 @@ namespace UnityEditor.Experimental
             if (hasColorAttribute)
                 buffer.AppendLine("\t\t\tStructuredBuffer<float4> colorBuffer;");
 
+            if (data.hasKill)
+                buffer.AppendLine("\t\t\tStructuredBuffer<int> flags;");
+
+
             buffer.AppendLine();
 			buffer.AppendLine("\t\t\tstruct ps_input {");
 			buffer.AppendLine("\t\t\t float4 pos : SV_POSITION;");
@@ -613,11 +620,33 @@ namespace UnityEditor.Experimental
 			buffer.AppendLine("\t\t\tps_input vert (uint id : SV_VertexID)");
 			buffer.AppendLine("\t\t\t{");
 			buffer.AppendLine("\t\t\t\tps_input o;");
+
+            if (data.hasKill)
+            {
+                buffer.AppendLine("\t\t\t\tif (flags[id] == 1)");
+                buffer.AppendLine("\t\t\t\t{");
+            }
+
             buffer.AppendLine("\t\t\t\tfloat3 worldPos = pointBuffer[id].xyz;");
             buffer.AppendLine("\t\t\t\to.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
             
             if (hasColorAttribute)
                 buffer.AppendLine("\t\t\t\to.col = float4(colorBuffer[id].xyz,0.5);");
+
+            if (data.hasKill)
+            {
+                // clip the vertex if not alive
+                buffer.AppendLine("\t\t\t\t}");
+                buffer.AppendLine("\t\t\t\telse");
+                buffer.AppendLine("\t\t\t\t{");
+                buffer.AppendLine("\t\t\t\to.pos = -1.0;");
+                
+                if (hasColorAttribute)
+                    buffer.AppendLine("\t\t\t\to.col = 0;");
+
+                buffer.AppendLine("\t\t\t\t}");
+                buffer.AppendLine();
+            }
             
             buffer.AppendLine("\t\t\t\treturn o;");
 			buffer.AppendLine("\t\t\t}");
@@ -660,7 +689,8 @@ namespace UnityEditor.Experimental
             buffer.Append(NB_THREAD_PER_GROUP);
             buffer.AppendLine();
             buffer.AppendLine();
-            
+
+            buffer.AppendLine("#include \"UnityCG.cginc\"");
             buffer.AppendLine("#include \"HLSLSupport.cginc\"");
             buffer.AppendLine();
 

@@ -85,6 +85,19 @@ vectorFieldCoord.y = 1 - vectorFieldCoord.y;
 vectorFieldCoord = min(float3(0.95,0.95,0.95),max(float3(0.05,0.05,0.05),vectorFieldCoord));
 velocity += (VectorField.SampleLevel(samplerVectorField,vectorFieldCoord,0.0).xyz - 0.5) * 2 * 0.8;
 
+#block Attractor
+#icon Force
+#category Forces/
+#arg float3 position [param]
+#arg float3 velocity [inout|param]
+#arg float3 center [public]
+#arg float force [public]
+#arg float offset [public]
+
+float3 dir = center - position;
+float sqrDist = dot(dir,dir) + offset;
+velocity += normalize(dir) * (deltaTime * force / sqrDist);
+
 #---------------------------------------------------------------------
 # POSITION BLOCKS
 #---------------------------------------------------------------------
@@ -108,6 +121,8 @@ position = float3(  lerp(minValue.x,maxValue.x,RAND),
 					lerp(minValue.y,maxValue.y,RAND),
 					lerp(minValue.z,maxValue.z,RAND));
 
+#TODO Factorize these 2 blocks when boolean switches are implemented !
+					
 #block Set Position (Sphere)
 #icon Position
 #category Position/
@@ -115,8 +130,28 @@ position = float3(  lerp(minValue.x,maxValue.x,RAND),
 #arg float3 center [public] 
 #arg float radius [public] 
 
-float3 p = normalize(float3(RAND*2.0-1.0,RAND*2.0-1.0,RAND*2.0-1.0)) * RAND * radius;
-position = center + p;
+float u1 = 2.0 * RAND - 1.0;
+float u2 = UNITY_TWO_PI * RAND;
+float u3 = pow(RAND,1.0/3.0);
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+sincosTheta *= sqrt(1.0 - u1*u1);
+position = float3(sincosTheta,u1) * (u3 * radius) + center;
+
+#block Set Position (Sphere Surface)
+#icon Position
+#category Position/
+#arg float3 position [inout|param]
+#arg float3 center [public] 
+#arg float radius [public] 
+
+float u1 = 2.0 * RAND - 1.0;
+float u2 = UNITY_TWO_PI * RAND;
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+sincosTheta *= sqrt(1.0 - u1*u1);
+position = (float3(sincosTheta,u1) * radius) + center;
+
 
 #---------------------------------------------------------------------
 # COLLISION BLOCKS
@@ -240,3 +275,17 @@ if (age >= lifetime)
 #arg float3 velocity [param]
 
 position += velocity * deltaTime;
+
+#block Test Compile Failure
+#icon Position
+#category Tests/
+#arg float test [public]
+
+this wont compile !;
+
+#block Test Missing Icon
+#icon missing__
+#category Tests/
+#arg float test [public]
+
+float a = 1; // Dummy
