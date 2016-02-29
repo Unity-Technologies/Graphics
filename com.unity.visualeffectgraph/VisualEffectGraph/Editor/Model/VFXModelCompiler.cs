@@ -232,6 +232,9 @@ namespace UnityEditor.Experimental
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
             {
+                // TODO tmp
+                updateHasRand = true;
+
                 VFXAttrib seedAttrib = new VFXAttrib("seed", VFXParam.Type.kTypeUint,true);
                 attribs[seedAttrib] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
             }
@@ -825,6 +828,9 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine();
                 }
 
+                buffer.AppendLine("\t\tfloat DT = deltaTime;");
+                buffer.AppendLine();
+
                 foreach (var block in data.initBlocks)
                     WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
                 buffer.AppendLine();
@@ -867,6 +873,8 @@ namespace UnityEditor.Experimental
                 
                 buffer.AppendLine();
 
+               
+
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
                     if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate))
@@ -881,6 +889,26 @@ namespace UnityEditor.Experimental
                             buffer.Append("_RO");
                         buffer.AppendLine("[index];");
                     }
+                }
+                buffer.AppendLine();
+
+                // TMP
+                // Do we have access to the age ?
+                VFXAttrib ageAttrib = new VFXAttrib("age", VFXParam.Type.kTypeFloat);
+                AttributeBuffer ageBuffer;
+                AttributeBuffer randBuffer;
+                data.attribToBuffer.TryGetValue(new VFXAttrib("age", VFXParam.Type.kTypeFloat), out ageBuffer);
+                data.attribToBuffer.TryGetValue(new VFXAttrib("seed", VFXParam.Type.kTypeUint), out randBuffer);
+
+                buffer.AppendLine("\t\tfloat DT = deltaTime;");
+                if (ageBuffer != null && ageBuffer.Used(VFXContextModel.Type.kTypeUpdate) && randBuffer != null && randBuffer.Used(VFXContextModel.Type.kTypeUpdate))
+                {
+                    buffer.Append("\t\tif (attrib");
+                    buffer.Append(ageBuffer.Index);
+                    buffer.AppendLine(".age == 0.0)");
+                    buffer.Append("\t\t\tDT *= rand(attrib");
+                    buffer.Append(randBuffer.Index);
+                    buffer.AppendLine(".seed);");
                 }
                 buffer.AppendLine();
 
@@ -1008,16 +1036,21 @@ namespace UnityEditor.Experimental
                 if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
                 {
                     buffer.Append(separator);
+                    separator = ',';
                     buffer.Append("inout uint seed");
-                    source = source.Replace("RAND", "rand(seed)"); 
+                    source = source.Replace("RAND", "rand(seed)"); // TODO Not needed anymore (done in the importer)
                 }
 
                 if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
                 {
                     buffer.Append(separator);
+                    separator = ',';
                     buffer.Append("inout bool kill");
-                    source = source.Replace("KILL", "kill = true"); 
+                    source = source.Replace("KILL", "kill = true"); // TODO Not needed anymore (done in the importer)
                 }
+
+                buffer.Append(separator);
+                buffer.Append("float DT");
 
                 buffer.AppendLine(")");
 
@@ -1068,6 +1101,7 @@ namespace UnityEditor.Experimental
             if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
             {
                 buffer.Append(separator);
+                separator = ',';
 
                 // TODO Not the best way to do that...
                 VFXAttrib randAttrib = new VFXAttrib();
@@ -1086,8 +1120,13 @@ namespace UnityEditor.Experimental
             if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
             {
                 buffer.Append(separator);
+                separator = ',';
                 buffer.Append("kill");
             }
+
+            buffer.Append(separator);
+            buffer.Append("DT");
+
 
             buffer.AppendLine(");");
         }

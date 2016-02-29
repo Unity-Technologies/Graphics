@@ -62,7 +62,7 @@ color = lerp(start,end,ratio);
 #arg float3 velocity [inout|param]
 #arg float3 force [public] 
 
-velocity += force * deltaTime;
+velocity += force * DT;
 
 #block Apply Drag
 #icon Drag
@@ -70,7 +70,7 @@ velocity += force * deltaTime;
 #arg float3 velocity [inout|param]
 #arg float multiplier [public]
 
-velocity *= max(0.0,(1.0 - multiplier * deltaTime * dot(velocity,velocity))); // drag
+velocity *= max(0.0,(1.0 - multiplier * DT * dot(velocity,velocity))); // drag
 
 #block Apply VectorField Force
 #icon VectorField
@@ -96,7 +96,7 @@ velocity += (VectorField.SampleLevel(samplerVectorField,vectorFieldCoord,0.0).xy
 
 float3 dir = center - position;
 float sqrDist = dot(dir,dir) + offset;
-velocity += normalize(dir) * (deltaTime * force / sqrDist);
+velocity += normalize(dir) * (DT * force / sqrDist);
 
 #---------------------------------------------------------------------
 # POSITION BLOCKS
@@ -152,6 +152,35 @@ sincos(u2,sincosTheta.x,sincosTheta.y);
 sincosTheta *= sqrt(1.0 - u1*u1);
 position = (float3(sincosTheta,u1) * radius) + center;
 
+#block Set Position (Cylinder)
+#icon Position
+#category Position/
+#arg float3 position [inout|param]
+#arg float3 center [public] 
+#arg float radius [public]
+#arg float height [public]
+
+float u1 = 1.0 * RAND - 0.5;
+float u2 = UNITY_TWO_PI * RAND;
+float u3 = sqrt(RAND);
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+position = (float3(sincosTheta * u3,u1 * height) * radius).xzy + center;
+
+#block Set Position (Cylinder Surface)
+#icon Position
+#category Position/
+#arg float3 position [inout|param]
+#arg float3 center [public] 
+#arg float radius [public]
+#arg float height [public]
+
+float u1 = 1.0 * RAND - 0.5;
+float u2 = UNITY_TWO_PI * RAND;
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+position = float3(sincosTheta * radius,u1 * height).xzy + center;
+
 
 #---------------------------------------------------------------------
 # COLLISION BLOCKS
@@ -168,11 +197,12 @@ position = (float3(sincosTheta,u1) * radius) + center;
 
 const float EPSILON = 1e-5;
 
-float distToPlane = dot(normal,position - center);
-float projectedVelocity = dot(normal,velocity);
+float3 n = normalize(normal); // TODO ensure normal is normalized prior to call
+float distToPlane = dot(n,position - center);
+float projectedVelocity = dot(n,velocity);
 
-if (sign(projectedVelocity) != sign(distToPlane) && deltaTime * abs(projectedVelocity) + EPSILON > abs(distToPlane))
-	velocity -= ((1 + elasticity) * projectedVelocity) * normal; // Collision
+if (sign(projectedVelocity) != sign(distToPlane) && DT * abs(projectedVelocity) + EPSILON > abs(distToPlane))
+	velocity -= ((1 + elasticity) * projectedVelocity) * n; // Collision
 
 #---------------------------------------------------------------------
 # SIZE BLOCKS
@@ -235,7 +265,6 @@ size *= float2(lerp(minScale.x,maxScale.x,RAND),lerp(minScale.y,maxScale.y,RAND)
 
 velocity = value;
 
-
 #block Set Velocity (Random)
 #icon Velocity
 #category Velocity/
@@ -246,6 +275,21 @@ velocity = value;
 velocity = float3(	offset + RAND * multiplier,
 					offset + RAND * multiplier,
 					offset + RAND * multiplier);
+					
+#block Set Velocity (Spherical)
+#icon Velocity
+#category Velocity/
+#arg float3 velocity [inout|param]
+#arg float2 angle [public]
+#arg float2 speed [public]
+
+float2 z = cos(radians(angle));
+float u1 = lerp(z.x,z.y,RAND);
+float u2 = UNITY_TWO_PI * RAND;
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+sincosTheta *= sqrt(1.0 - u1*u1);
+velocity = float3(sincosTheta,u1).xzy * lerp(speed.x,speed.y,RAND);
 
 #block Add Velocity (Constant)
 #icon Velocity
@@ -253,7 +297,7 @@ velocity = float3(	offset + RAND * multiplier,
 #arg float3 velocity [inout|param]
 #arg float3 value [public]
 
-velocity += value * deltaTime;
+velocity += value * DT;
 
 #---------------------------------------------------------------------
 # COMMMON BLOCKS (UNCATEGORIZED)
@@ -274,7 +318,7 @@ if (age >= lifetime)
 #arg float3 position [inout|param]
 #arg float3 velocity [param]
 
-position += velocity * deltaTime;
+position += velocity * DT;
 
 #block Test Compile Failure
 #icon Position
