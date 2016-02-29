@@ -229,18 +229,20 @@ namespace UnityEditor.Experimental
             // ATTRIBUTES (TODO Refactor the code !)
             Dictionary<VFXAttrib, int> attribs = new Dictionary<VFXAttrib, int>(new AttribComparer());
 
+            CollectAttributes(attribs, initBlocks, 0);
+            CollectAttributes(attribs, updateBlocks, 1);
+
+            initHasRand |= attribs.ContainsKey(new VFXAttrib("phase", VFXParam.Type.kTypeFloat)); // phase needs rand as initialization
+
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
             {
                 // TODO tmp
                 updateHasRand = true;
 
-                VFXAttrib seedAttrib = new VFXAttrib("seed", VFXParam.Type.kTypeUint,true);
+                VFXAttrib seedAttrib = new VFXAttrib("seed", VFXParam.Type.kTypeUint, true);
                 attribs[seedAttrib] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
             }
-
-            CollectAttributes(attribs, initBlocks, 0);
-            CollectAttributes(attribs, updateBlocks, 1);
 
             // Find unitialized attribs and remove 
             List<VFXAttrib> unitializedAttribs = new List<VFXAttrib>(); 
@@ -248,7 +250,7 @@ namespace UnityEditor.Experimental
             {
                 if ((attrib.Value & 0x3) == 0) // Unitialized attribute
                 {
-                    if (attrib.Key.m_Param.m_Name != "seed" && attrib.Key.m_Param.m_Name != "age") // Dont log anything for those as initialization is implicit
+                    if (attrib.Key.m_Param.m_Name != "seed" || attrib.Key.m_Param.m_Name != "age") // Dont log anything for those as initialization is implicit
                         VFXEditor.Log("WARNING: " + attrib.Key.m_Param.m_Name + " is not initialized. Use default value");
                     unitializedAttribs.Add(attrib.Key);
                 }
@@ -363,9 +365,9 @@ namespace UnityEditor.Experimental
 
             // TODO Try to merge R and RW buffers used in the same context in case of holes
             // for instance, for a given context flag
-            // R : X -> 1 byte
-            // RW : XXX0 -> 3 bytes
-            // => Merge this to one buffer
+            // R : X -> 4 bytes
+            // RW : XXX0 -> 12 bytes
+            // => Merge this to one buffer of 16
 
             if (buffers.Count > 7)
             {
@@ -797,10 +799,7 @@ namespace UnityEditor.Experimental
                     buffer.Append("\t\tAttribute");
                     buffer.Append(attribBuffer.Index);
                     buffer.Append(" attrib");
-                    buffer.Append(attribBuffer.Index);
-                    
-                    // No initialization
-                    //buffer.AppendLine(";");
+                    buffer.Append(attribBuffer.Index);              
 
                     // TODO tmp
                     // Initialize to avoid warning as error while compiling
@@ -814,8 +813,7 @@ namespace UnityEditor.Experimental
                 if (data.hasRand)
                 {
                     // Find rand attribute
-                    VFXAttrib randAttrib = new VFXAttrib("seed", VFXParam.Type.kTypeUint);
-                    int bufferIndex = data.attribToBuffer[randAttrib].Index;
+                    int bufferIndex = data.attribToBuffer[new VFXAttrib("seed", VFXParam.Type.kTypeUint)].Index;
                     buffer.AppendLine("\t\tuint seed = id.x + spawnIndex;");
                     buffer.AppendLine("\t\tseed = (seed ^ 61) ^ (seed >> 16);");
                     buffer.AppendLine("\t\tseed *= 9;");
@@ -828,12 +826,43 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine();
                 }
 
-                buffer.AppendLine("\t\tfloat DT = deltaTime;");
+                // Init phase
+                if (data.attribToBuffer.ContainsKey(new VFXAttrib("phase",VFXParam.Type.kTypeFloat)))
+                {
+                    int phaseIndex = data.attribToBuffer[new VFXAttrib("phase", VFXParam.Type.kTypeFloat)].Index;
+                    int randIndex = data.attribToBuffer[new VFXAttrib("seed", VFXParam.Type.kTypeUint)].Index;
+
+                    buffer.Append("\t\tattrib");
+                    buffer.Append(phaseIndex);
+                    buffer.Append(".phase = rand(attrib");
+                    buffer.Append(randIndex);
+                    buffer.AppendLine(".seed);");
+                    buffer.AppendLine();
+                }
+
+                // tmp
+                buffer.AppendLine("\t\tfloat3 prevVelocity = (float3)0.0;");
                 buffer.AppendLine();
 
                 foreach (var block in data.initBlocks)
                     WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
                 buffer.AppendLine();
+
+                if (data.attribToBuffer.ContainsKey(new VFXAttrib("phase", VFXParam.Type.kTypeFloat)))
+                {
+                    int phaseIndex = data.attribToBuffer[new VFXAttrib("phase", VFXParam.Type.kTypeFloat)].Index;
+                    int positionIndex = data.attribToBuffer[new VFXAttrib("position", VFXParam.Type.kTypeFloat3)].Index;
+                    int velocityIndex = data.attribToBuffer[new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3)].Index;
+
+                    buffer.Append("\t\tattrib");
+                    buffer.Append(positionIndex);
+                    buffer.Append(".position -= ");
+                    buffer.Append("attrib");
+                    buffer.Append(velocityIndex);
+                    buffer.Append(".velocity * attrib");
+                    buffer.Append(phaseIndex);
+                    buffer.AppendLine(".phase * deltaTime;");
+                }
 
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
@@ -872,9 +901,7 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine("\t\tbool kill = false;");
                 
                 buffer.AppendLine();
-
-               
-
+         
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
                     if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate))
@@ -892,24 +919,15 @@ namespace UnityEditor.Experimental
                 }
                 buffer.AppendLine();
 
-                // TMP
-                // Do we have access to the age ?
-                VFXAttrib ageAttrib = new VFXAttrib("age", VFXParam.Type.kTypeFloat);
-                AttributeBuffer ageBuffer;
-                AttributeBuffer randBuffer;
-                data.attribToBuffer.TryGetValue(new VFXAttrib("age", VFXParam.Type.kTypeFloat), out ageBuffer);
-                data.attribToBuffer.TryGetValue(new VFXAttrib("seed", VFXParam.Type.kTypeUint), out randBuffer);
-
-                buffer.AppendLine("\t\tfloat DT = deltaTime;");
-                if (ageBuffer != null && ageBuffer.Used(VFXContextModel.Type.kTypeUpdate) && randBuffer != null && randBuffer.Used(VFXContextModel.Type.kTypeUpdate))
+                // tmp
+                if (data.attribToBuffer.ContainsKey(new VFXAttrib("phase", VFXParam.Type.kTypeFloat)))
                 {
-                    buffer.Append("\t\tif (attrib");
-                    buffer.Append(ageBuffer.Index);
-                    buffer.AppendLine(".age == 0.0)");
-                    buffer.Append("\t\t\tDT *= rand(attrib");
-                    buffer.Append(randBuffer.Index);
-                    buffer.AppendLine(".seed);");
+                    buffer.Append("\t\tfloat3 prevVelocity = attrib");
+                    buffer.Append(data.attribToBuffer[new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3)].Index);
+                    buffer.AppendLine(".velocity;");
                 }
+                else
+                    buffer.AppendLine("\t\tfloat3 prevVelocity = (float3)0.0;");
                 buffer.AppendLine();
 
                 foreach (var block in data.updateBlocks)
@@ -1050,7 +1068,7 @@ namespace UnityEditor.Experimental
                 }
 
                 buffer.Append(separator);
-                buffer.Append("float DT");
+                buffer.Append("float3 PREVIOUS_velocity");
 
                 buffer.AppendLine(")");
 
@@ -1125,7 +1143,7 @@ namespace UnityEditor.Experimental
             }
 
             buffer.Append(separator);
-            buffer.Append("DT");
+            buffer.Append("prevVelocity");
 
 
             buffer.AppendLine(");");

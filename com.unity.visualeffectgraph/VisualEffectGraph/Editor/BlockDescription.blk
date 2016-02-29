@@ -62,7 +62,7 @@ color = lerp(start,end,ratio);
 #arg float3 velocity [inout|param]
 #arg float3 force [public] 
 
-velocity += force * DT;
+velocity += force * deltaTime;
 
 #block Apply Drag
 #icon Drag
@@ -70,7 +70,7 @@ velocity += force * DT;
 #arg float3 velocity [inout|param]
 #arg float multiplier [public]
 
-velocity *= max(0.0,(1.0 - multiplier * DT * dot(velocity,velocity))); // drag
+velocity *= max(0.0,(1.0 - multiplier * deltaTime * dot(velocity,velocity))); // drag
 
 #block Apply VectorField Force
 #icon VectorField
@@ -96,7 +96,7 @@ velocity += (VectorField.SampleLevel(samplerVectorField,vectorFieldCoord,0.0).xy
 
 float3 dir = center - position;
 float sqrDist = dot(dir,dir) + offset;
-velocity += normalize(dir) * (DT * force / sqrDist);
+velocity += normalize(dir) * (deltaTime * force / sqrDist);
 
 #---------------------------------------------------------------------
 # POSITION BLOCKS
@@ -201,7 +201,7 @@ float3 n = normalize(normal); // TODO ensure normal is normalized prior to call
 float distToPlane = dot(n,position - center);
 float projectedVelocity = dot(n,velocity);
 
-if (sign(projectedVelocity) != sign(distToPlane) && DT * abs(projectedVelocity) + EPSILON > abs(distToPlane))
+if (sign(projectedVelocity) != sign(distToPlane) && deltaTime * abs(projectedVelocity) + EPSILON > abs(distToPlane))
 	velocity -= ((1 + elasticity) * projectedVelocity) * n; // Collision
 
 #---------------------------------------------------------------------
@@ -297,7 +297,7 @@ velocity = float3(sincosTheta,u1).xzy * lerp(speed.x,speed.y,RAND);
 #arg float3 velocity [inout|param]
 #arg float3 value [public]
 
-velocity += value * DT;
+velocity += value * deltaTime;
 
 #---------------------------------------------------------------------
 # COMMMON BLOCKS (UNCATEGORIZED)
@@ -318,7 +318,15 @@ if (age >= lifetime)
 #arg float3 position [inout|param]
 #arg float3 velocity [param]
 
-position += velocity * DT;
+position += velocity * deltaTime;
+
+#block Apply Velocity To Positions (With Phase)
+#icon Position
+#arg float3 position [inout|param]
+#arg float3 velocity [param]
+#arg float phase [param]
+
+position += lerp(velocity,PREVIOUS_velocity,phase) * deltaTime;
 
 #block Test Compile Failure
 #icon Position
