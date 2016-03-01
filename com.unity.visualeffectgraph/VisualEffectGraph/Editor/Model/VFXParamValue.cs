@@ -37,6 +37,7 @@ namespace UnityEditor.Experimental
             get { return m_Type; }
         }
 
+        // Create from VFXParam.Type
         public static VFXParamValue Create(VFXParam.Type type)
         {
             switch (type)
@@ -52,6 +53,22 @@ namespace UnityEditor.Experimental
                 default:
                     throw new ArgumentException("Invalid parameter type");
             }
+        }
+
+        // Create from concrete type
+        public static VFXParamValue Create<T>()
+        {
+            Type t = typeof(T);
+            if (t == typeof(float))     return new VFXParamValueFloat();
+            if (t == typeof(Vector2))   return new VFXParamValueFloat2();
+            if (t == typeof(Vector3))   return new VFXParamValueFloat3();
+            if (t == typeof(Vector4))   return new VFXParamValueFloat4();
+            if (t == typeof(int))       return new VFXParamValueInt();
+            if (t == typeof(uint))      return new VFXParamValueUint();
+            if (t == typeof(Texture2D)) return new VFXParamValueTexture2D();
+            if (t == typeof(Texture3D)) return new VFXParamValueTexture3D();
+
+            throw new ArgumentException("Invalid parameter type");
         }
 
         //TODO: Problem is that implicit cast between types will not work here !
