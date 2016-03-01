@@ -695,12 +695,16 @@ namespace UnityEditor.Experimental
             buffer.AppendLine();
             buffer.AppendLine();
 
+            // tmp
+            buffer.AppendLine("#define deltaTime (1.0/60.0)");
+            buffer.AppendLine();
+
             buffer.AppendLine("#include \"UnityCG.cginc\"");
             buffer.AppendLine("#include \"HLSLSupport.cginc\"");
             buffer.AppendLine();
 
             buffer.AppendLine("CBUFFER_START(GlobalInfo)");
-            buffer.AppendLine("\tfloat deltaTime;");
+            //buffer.AppendLine("\tfloat deltaTime;");
             buffer.AppendLine("\tuint nbMax;");
             buffer.AppendLine("CBUFFER_END");
             buffer.AppendLine();
@@ -840,29 +844,9 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine();
                 }
 
-                // tmp
-                buffer.AppendLine("\t\tfloat3 prevVelocity = (float3)0.0;");
-                buffer.AppendLine();
-
                 foreach (var block in data.initBlocks)
                     WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
                 buffer.AppendLine();
-
-                if (data.attribToBuffer.ContainsKey(new VFXAttrib("phase", VFXParam.Type.kTypeFloat)))
-                {
-                    int phaseIndex = data.attribToBuffer[new VFXAttrib("phase", VFXParam.Type.kTypeFloat)].Index;
-                    int positionIndex = data.attribToBuffer[new VFXAttrib("position", VFXParam.Type.kTypeFloat3)].Index;
-                    int velocityIndex = data.attribToBuffer[new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3)].Index;
-
-                    buffer.Append("\t\tattrib");
-                    buffer.Append(positionIndex);
-                    buffer.Append(".position -= ");
-                    buffer.Append("attrib");
-                    buffer.Append(velocityIndex);
-                    buffer.Append(".velocity * attrib");
-                    buffer.Append(phaseIndex);
-                    buffer.AppendLine(".phase * deltaTime;");
-                }
 
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
@@ -917,17 +901,6 @@ namespace UnityEditor.Experimental
                         buffer.AppendLine("[index];");
                     }
                 }
-                buffer.AppendLine();
-
-                // tmp
-                if (data.attribToBuffer.ContainsKey(new VFXAttrib("phase", VFXParam.Type.kTypeFloat)))
-                {
-                    buffer.Append("\t\tfloat3 prevVelocity = attrib");
-                    buffer.Append(data.attribToBuffer[new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3)].Index);
-                    buffer.AppendLine(".velocity;");
-                }
-                else
-                    buffer.AppendLine("\t\tfloat3 prevVelocity = (float3)0.0;");
                 buffer.AppendLine();
 
                 foreach (var block in data.updateBlocks)
@@ -1067,9 +1040,6 @@ namespace UnityEditor.Experimental
                     source = source.Replace("KILL", "kill = true"); // TODO Not needed anymore (done in the importer)
                 }
 
-                buffer.Append(separator);
-                buffer.Append("float3 PREVIOUS_velocity");
-
                 buffer.AppendLine(")");
 
                 // function body
@@ -1141,10 +1111,6 @@ namespace UnityEditor.Experimental
                 separator = ',';
                 buffer.Append("kill");
             }
-
-            buffer.Append(separator);
-            buffer.Append("prevVelocity");
-
 
             buffer.AppendLine(");");
         }
