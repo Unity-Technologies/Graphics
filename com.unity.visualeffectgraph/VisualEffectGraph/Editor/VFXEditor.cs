@@ -214,15 +214,6 @@ namespace UnityEditor.Experimental
             m_Canvas.Repaint();
         }
 
-        void OnSelectionChange()
-        {
-            if (Selection.activeObject != null)
-                if (Selection.activeObject.GetType() == typeof(VFXAsset))
-                {
-                  //  Debug.Log("Selection Changed : " + Selection.activeObject);
-                }
-        }
-
 
 
         private void Rebuild()
