@@ -8,6 +8,15 @@ using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
 {
+    public static class CommonAttrib
+    {
+        public static VFXAttrib Seed =      new VFXAttrib("seed", VFXParam.Type.kTypeUint);
+        public static VFXAttrib Position =  new VFXAttrib("position", VFXParam.Type.kTypeFloat3);
+        public static VFXAttrib Velocity =  new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3);
+        public static VFXAttrib Color =     new VFXAttrib("color", VFXParam.Type.kTypeFloat3);
+        public static VFXAttrib Phase =     new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
+    }
+
     public class VFXSystemRuntimeData
     {
         public Dictionary<VFXParamValue,string> uniforms = new Dictionary<VFXParamValue,string>();
@@ -234,15 +243,11 @@ namespace UnityEditor.Experimental
  
             if (VFXEditor.AssetModel.PhaseShift)     
             {
-                VFXAttrib positionAttrib = new VFXAttrib("position", VFXParam.Type.kTypeFloat3);
-                VFXAttrib velocityAttrib = new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3);
-
-                if (attribs.ContainsKey(positionAttrib) && attribs.ContainsKey(velocityAttrib))
+                if (attribs.ContainsKey(CommonAttrib.Position) && attribs.ContainsKey(CommonAttrib.Velocity))
                 {
-                    VFXAttrib phaseAttrib = new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
-                    attribs[phaseAttrib] = 0x7; // Add phase attribute   
-                    attribs[positionAttrib] = attribs[positionAttrib] | 0xF; // Ensure position is writable in init and update
-                    attribs[velocityAttrib] = attribs[velocityAttrib] | 0x5; // Ensure velocity is readable in init and update
+                    attribs[CommonAttrib.Phase] = 0x7; // Add phase attribute   
+                    attribs[CommonAttrib.Position] = attribs[CommonAttrib.Position] | 0xF; // Ensure position is writable in init and update
+                    attribs[CommonAttrib.Velocity] = attribs[CommonAttrib.Velocity] | 0x5; // Ensure velocity is readable in init and update
 
                     initHasRand = true; // phase needs rand as initialization
                 }
@@ -256,11 +261,8 @@ namespace UnityEditor.Experimental
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
             {
-                // TODO tmp
                 updateHasRand = true;
-
-                VFXAttrib seedAttrib = new VFXAttrib("seed", VFXParam.Type.kTypeUint, true);
-                attribs[seedAttrib] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
+                attribs[CommonAttrib.Seed] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
             }
 
             // Find unitialized attribs and remove 
@@ -477,14 +479,14 @@ namespace UnityEditor.Experimental
 
             // Find position buffer
             AttributeBuffer posBuffer = null;
-            attribToBuffer.TryGetValue(new VFXAttrib("position", VFXParam.Type.kTypeFloat3), out posBuffer);
+            attribToBuffer.TryGetValue(CommonAttrib.Position, out posBuffer);
 
             if (posBuffer == null || outputShader == null) // No position buffer, we escape
                 return null;
 
             // Find color buffer
             AttributeBuffer colorBuffer = null;
-            attribToBuffer.TryGetValue(new VFXAttrib("color", VFXParam.Type.kTypeFloat3), out colorBuffer);
+            attribToBuffer.TryGetValue(CommonAttrib.Color, out colorBuffer);
 
             rtData.m_Material = new Material(outputShader);
 
@@ -601,7 +603,7 @@ namespace UnityEditor.Experimental
 
         private static string WriteOutputShader(ShaderMetaData data)
         {
-            bool hasColorAttribute = data.attribToBuffer.ContainsKey(new VFXAttrib("color", VFXParam.Type.kTypeFloat3));
+            bool hasColorAttribute = data.attribToBuffer.ContainsKey(CommonAttrib.Color);
 
             StringBuilder buffer = new StringBuilder();
             buffer.AppendLine("Shader \"Custom/PointShader\"");
@@ -838,35 +840,31 @@ namespace UnityEditor.Experimental
                 if (data.hasRand)
                 {
                     // Find rand attribute
-                    int bufferIndex = data.attribToBuffer[new VFXAttrib("seed", VFXParam.Type.kTypeUint)].Index;
                     buffer.AppendLine("\t\tuint seed = id.x + spawnIndex;");
                     buffer.AppendLine("\t\tseed = (seed ^ 61) ^ (seed >> 16);");
                     buffer.AppendLine("\t\tseed *= 9;");
                     buffer.AppendLine("\t\tseed = seed ^ (seed >> 4);");
                     buffer.AppendLine("\t\tseed *= 0x27d4eb2d;");
                     buffer.AppendLine("\t\tseed = seed ^ (seed >> 15);");
-                    buffer.Append("\t\tattrib");
-                    buffer.Append(bufferIndex);
-                    buffer.AppendLine(".seed = seed;");       
+                    buffer.Append("\t\t");
+                    WriteAttrib(buffer, CommonAttrib.Seed, data);      
+                    buffer.AppendLine(" = seed;");       
                     buffer.AppendLine();
                 }
 
                 // Init phase
                 if (HasPhaseShift)
                 {
-                    int phaseIndex = data.attribToBuffer[new VFXAttrib("phase", VFXParam.Type.kTypeFloat)].Index;
-                    int randIndex = data.attribToBuffer[new VFXAttrib("seed", VFXParam.Type.kTypeUint)].Index;
-
-                    buffer.Append("\t\tattrib");
-                    buffer.Append(phaseIndex);
-                    buffer.Append(".phase = rand(attrib");
-                    buffer.Append(randIndex);
-                    buffer.AppendLine(".seed);");
+                    buffer.Append("\t\t");
+                    WriteAttrib(buffer, CommonAttrib.Phase, data);
+                    buffer.Append(" = rand(");
+                    WriteAttrib(buffer, CommonAttrib.Seed, data);
+                    buffer.AppendLine(");");
                     buffer.AppendLine();
                 }
 
                 foreach (var block in data.initBlocks)
-                    WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
+                    WriteFunctionCall(buffer, block, functionNames, data);
                 buffer.AppendLine();
 
                 // Remove phase shift
@@ -939,7 +937,7 @@ namespace UnityEditor.Experimental
                 }
 
                 foreach (var block in data.updateBlocks)
-                    WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
+                    WriteFunctionCall(buffer, block, functionNames, data);
                 buffer.AppendLine();
 
                 // Remove phase shift
@@ -1101,9 +1099,11 @@ namespace UnityEditor.Experimental
             StringBuilder buffer,
             VFXBlockModel block,
             Dictionary<Hash128, string> functions,
-            Dictionary<VFXParamValue, string> paramToName,
-            Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer)
+            ShaderMetaData data)
         {
+            Dictionary<VFXParamValue, string> paramToName = data.paramToName;
+            Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer = data.attribToBuffer;
+
             buffer.Append("\t\t");
             buffer.Append(functions[block.Desc.m_Hash]);
             buffer.Append("(");
@@ -1133,18 +1133,7 @@ namespace UnityEditor.Experimental
                 buffer.Append(separator);
                 separator = ',';
 
-                // TODO Not the best way to do that...
-                VFXAttrib randAttrib = new VFXAttrib();
-                VFXParam randParam = new VFXParam();
-                randParam.m_Name = "seed";
-                randParam.m_Type = VFXParam.Type.kTypeUint;
-                randAttrib.m_Param = randParam;
-
-                int index = attribToBuffer[randAttrib].Index;
-                buffer.Append("attrib");
-                buffer.Append(index);
-                buffer.Append(".");
-                buffer.Append(randParam.m_Name);
+                WriteAttrib(buffer, CommonAttrib.Seed, data);
             }
 
             if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
@@ -1169,20 +1158,24 @@ namespace UnityEditor.Experimental
 
         private static void WritePhaseShift(char op,StringBuilder buffer,ShaderMetaData data)
         {
-            int phaseIndex = data.attribToBuffer[new VFXAttrib("phase", VFXParam.Type.kTypeFloat)].Index;
-            int positionIndex = data.attribToBuffer[new VFXAttrib("position", VFXParam.Type.kTypeFloat3)].Index;
-            int velocityIndex = data.attribToBuffer[new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3)].Index;
-
-            buffer.Append("\t\tattrib");
-            buffer.Append(positionIndex);
-            buffer.Append(".position ");
+            buffer.Append("\t\t");
+            WriteAttrib(buffer, CommonAttrib.Position, data);
+            buffer.Append(" ");
             buffer.Append(op);
-            buffer.Append("= (attrib");
-            buffer.Append(phaseIndex);
-            buffer.Append(".phase * deltaTime) * ");
+            buffer.Append("= (");
+            WriteAttrib(buffer, CommonAttrib.Phase, data);
+            buffer.Append(" * deltaTime) * ");
+            WriteAttrib(buffer, CommonAttrib.Velocity, data);
+            buffer.AppendLine(";");
+        }
+
+        private static void WriteAttrib(StringBuilder buffer,VFXAttrib attrib,ShaderMetaData data)
+        {
+            int attribIndex = data.attribToBuffer[attrib].Index;
             buffer.Append("attrib");
-            buffer.Append(velocityIndex);
-            buffer.AppendLine(".velocity;");
+            buffer.Append(attribIndex);
+            buffer.Append(".");
+            buffer.Append(attrib.m_Param.m_Name);
         }
 
         private static void WriteKernelHeader(StringBuilder buffer,string name)
