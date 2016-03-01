@@ -52,6 +52,14 @@ color = lerp(value1,value2,RAND);
 float ratio = saturate(age / lifetime);
 color = lerp(start,end,ratio);
 
+#block Phase To Color
+#icon Color
+#category Debug/
+#arg float3 color [inout|param]
+#arg float phase [param] 
+
+color = float3(phase,1 - phase,0.0); 
+
 #---------------------------------------------------------------------
 # FORCE BLOCKS
 #---------------------------------------------------------------------
@@ -319,14 +327,6 @@ if (age >= lifetime)
 #arg float3 velocity [param]
 
 position += velocity * deltaTime;
-
-#block Apply Velocity To Positions (With Phase)
-#icon Position
-#arg float3 position [inout|param]
-#arg float3 velocity [param]
-#arg float phase [param]
-
-position += lerp(velocity,PREVIOUS_velocity,phase) * deltaTime;
 
 #block Test Compile Failure
 #icon Position

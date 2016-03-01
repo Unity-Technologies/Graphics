@@ -45,6 +45,7 @@ namespace UnityEditor.Experimental
 
             // Debug
             KeyDown += DumpModel;
+            KeyDown += TogglePhaseShift;
         }
 
         private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)
@@ -86,6 +87,18 @@ namespace UnityEditor.Experimental
                 SetSelectedNodeBlock(null);
                 return true;
             }
+            return false;
+        }
+
+        private bool TogglePhaseShift(CanvasElement element, Event e, Canvas2D parent)
+        {
+            if (e.character == 'p')
+            {
+                VFXEditor.AssetModel.PhaseShift = !VFXEditor.AssetModel.PhaseShift;
+                Repaint();
+                return true;
+            }
+
             return false;
         }
 
