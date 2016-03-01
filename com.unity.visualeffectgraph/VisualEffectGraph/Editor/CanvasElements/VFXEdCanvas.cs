@@ -95,6 +95,7 @@ namespace UnityEditor.Experimental
             if (e.character == 'p')
             {
                 VFXEditor.AssetModel.PhaseShift = !VFXEditor.AssetModel.PhaseShift;
+                Repaint();
                 return true;
             }
 
