@@ -62,7 +62,7 @@ namespace UnityEditor.Experimental
             {
                 if(m_Params[i].m_Name == name)
                 {
-                    m_ParamValues[i] = Value.Clone(); 
+                    m_ParamValues[i].SetValue(Value); 
                 }
             }
         }

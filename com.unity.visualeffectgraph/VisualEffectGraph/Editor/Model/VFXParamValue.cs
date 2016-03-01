@@ -71,7 +71,15 @@ namespace UnityEditor.Experimental
             throw new ArgumentException("Invalid parameter type");
         }
 
+        public static VFXParamValue Create<T>(T value)
+        {
+            VFXParamValue v = Create<T>();
+            v.SetValue(value);
+            return v;
+        }
+
         public abstract VFXParamValue Clone();
+        public abstract void SetValue(VFXParamValue other);
 
         //TODO: Problem is that implicit cast between types will not work here !
         public T GetValue<T>()              { return ((VFXParamValue<T>)this).Value; }
@@ -124,6 +132,11 @@ namespace UnityEditor.Experimental
             VFXParamValue<T> param = (VFXParamValue<T>)MemberwiseClone();
             param.m_Bindings.Clear();
             return param;
+        }
+
+        public override void SetValue(VFXParamValue other)
+        {
+            SetValue<T>(other.GetValue<T>());
         }
 
         public override string ToString()

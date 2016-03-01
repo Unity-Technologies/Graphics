@@ -194,17 +194,32 @@ namespace UnityEditor.Experimental
             fulltemplate.AddNode("output", VFXEdContext.Output);
 
             fulltemplate.AddNodeBlock("init", "Set Lifetime (Random)");
-            fulltemplate.AddNodeBlock("init", "Set Color (Constant)");
-            fulltemplate.AddNodeBlock("init", "Set Position (Sphere)");
-            fulltemplate.AddNodeBlock("init", "Set Velocity (Constant)");
+            fulltemplate.AddNodeBlock("init", "Set Velocity (Spherical)");
+            fulltemplate.AddNodeBlock("init", "Add Velocity (Constant)");
             fulltemplate.AddNodeBlock("init", "Set Size Constant (Square)");
 
+            fulltemplate.AddNodeBlock("update", "Color Over Lifetime");
             fulltemplate.AddNodeBlock("update", "Apply Force");
             fulltemplate.AddNodeBlock("update", "Apply Drag");
+            fulltemplate.AddNodeBlock("update", "Collision with Plane");
             fulltemplate.AddNodeBlock("update", "Age and Reap");
             fulltemplate.AddNodeBlock("update", "Apply Velocity to Positions");
-
-            //fulltemplate.SetNodeBlockParameter("init","Set Lifetime (Random)","minLifetime");
+            
+            fulltemplate.SetNodeBlockParameter("init","Set Lifetime (Random)","minLifetime", VFXParamValue.Create(4.0f));
+            fulltemplate.SetNodeBlockParameter("init","Set Lifetime (Random)","maxLifetime", VFXParamValue.Create(5.5f));
+            fulltemplate.SetNodeBlockParameter("init","Set Velocity (Spherical)","angle", VFXParamValue.Create(new Vector2(80.0f,80.0f)));
+            fulltemplate.SetNodeBlockParameter("init","Set Velocity (Spherical)","speed", VFXParamValue.Create(new Vector2(1.0f,1.0f)));
+            fulltemplate.SetNodeBlockParameter("init","Add Velocity (Constant)","value", VFXParamValue.Create(new Vector3(50.0f,0.0f,0.0f)));
+            fulltemplate.SetNodeBlockParameter("init","Set Size Constant (Square)","value", VFXParamValue.Create(1.5f));
+            
+            fulltemplate.SetNodeBlockParameter("update","Color Over Lifetime","start", VFXParamValue.Create(new Vector3(1.0f,0.0f,1.0f)));
+            fulltemplate.SetNodeBlockParameter("update","Color Over Lifetime","end", VFXParamValue.Create(new Vector3(0.0f,1.0f,1.0f)));
+            fulltemplate.SetNodeBlockParameter("update","Apply Force","force", VFXParamValue.Create(new Vector3(0.0f,-5.0f,0.0f)));
+            fulltemplate.SetNodeBlockParameter("update","Apply Drag","multiplier", VFXParamValue.Create(0.02f));
+            fulltemplate.SetNodeBlockParameter("update","Collision with Plane","normal", VFXParamValue.Create(new Vector3(0.0f,1.0f,0.0f)));
+            fulltemplate.SetNodeBlockParameter("update","Collision with Plane","center", VFXParamValue.Create(new Vector3(0.0f,-1.0f,0.0f)));
+            fulltemplate.SetNodeBlockParameter("update","Collision with Plane","elasticity", VFXParamValue.Create(0.95f));
+            
 
             fulltemplate.AddConnection("init", "update");
             fulltemplate.AddConnection("update", "output");
