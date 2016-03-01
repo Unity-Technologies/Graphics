@@ -54,6 +54,8 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public abstract VFXParamValue Clone();
+
         //TODO: Problem is that implicit cast between types will not work here !
         public T GetValue<T>()              { return ((VFXParamValue<T>)this).Value; }
         public void SetValue<T>(T value)    { ((VFXParamValue<T>)this).Value = value; }
@@ -91,13 +93,20 @@ namespace UnityEditor.Experimental
             get { return m_Value; }
             set
             {
-                if (!m_Value.Equals(value))
+                if ((m_Value == null && value != null) || (m_Value != null && !m_Value.Equals(value)))
                 {
                     m_Value = value;
                     foreach (var binding in m_Bindings)
                         binding.m_Model.Invalidate(VFXElementModel.InvalidationCause.kParamChanged);
                 }
             }
+        }
+
+        public override VFXParamValue Clone()
+        {
+            VFXParamValue<T> param = (VFXParamValue<T>)MemberwiseClone();
+            param.m_Bindings.Clear();
+            return param;
         }
 
         public override string ToString()

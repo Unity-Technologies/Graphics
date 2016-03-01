@@ -10,15 +10,15 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdNodeBlockParameterField : CanvasElement
     {
-        public VFXParamValue Value { get { return m_Value; } }
+        public VFXParamValue Value { get { return m_ParamValue; } }
         public bool Visible { get { return m_Visible; } set { m_Visible = value; } }
         public string Name { get { return m_Name; } }
-        public VFXParam.Type Type { get { return m_Value.ValueType; } }
+        public VFXParam.Type Type { get { return m_ParamValue.ValueType; } }
         public VFXEdDataAnchor Input { get { return m_Input; } }
         public VFXEdDataAnchor Output { get { return m_Output; } }
 
         protected string m_Name;
-        protected VFXParamValue m_Value;
+        protected VFXParamValue m_ParamValue;
         protected bool m_Visible;
         private VFXEdDataAnchor m_Input;
         private VFXEdDataAnchor m_Output;
@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental
         public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, VFXParamValue value, bool bConnectable, Direction paramDirection, int index)
         {
             m_Name = name;
-            m_Value = value;
+            m_ParamValue = value;
 
             m_Input = null;
             m_Output = null;
@@ -113,29 +113,35 @@ namespace UnityEditor.Experimental
                 switch (Type)
                 {
                     case VFXParam.Type.kTypeFloat:
-                        m_Value.SetValue(EditorGUI.FloatField(editrect, "", m_Value.GetValue<float>()));
+                        m_ParamValue.SetValue(EditorGUI.FloatField(editrect, "", m_ParamValue.GetValue<float>()));
                         break;
 
                     case VFXParam.Type.kTypeFloat2:
-                        m_Value.SetValue(EditorGUI.Vector2Field(editrect, "", m_Value.GetValue<Vector2>()));
+                        m_ParamValue.SetValue(EditorGUI.Vector2Field(editrect, "", m_ParamValue.GetValue<Vector2>()));
                         break;
 
                     case VFXParam.Type.kTypeFloat3:
-                        m_Value.SetValue(EditorGUI.Vector3Field(editrect, "", m_Value.GetValue<Vector3>()));
+                        m_ParamValue.SetValue(EditorGUI.Vector3Field(editrect, "", m_ParamValue.GetValue<Vector3>()));
                         break;
 
                     case VFXParam.Type.kTypeFloat4:
-                        m_Value.SetValue(EditorGUI.Vector4Field(editrect, "", m_Value.GetValue<Vector4>()));
+                        m_ParamValue.SetValue(EditorGUI.Vector4Field(editrect, "", m_ParamValue.GetValue<Vector4>()));
                         break;
 
                     case VFXParam.Type.kTypeInt:
-                        m_Value.SetValue(EditorGUI.IntField(editrect, "", m_Value.GetValue<int>()));
+                        m_ParamValue.SetValue(EditorGUI.IntField(editrect, "", m_ParamValue.GetValue<int>()));
                         break;
 
                     case VFXParam.Type.kTypeUint:
-                        m_Value.SetValue<uint>((uint)EditorGUI.IntField(editrect, "", (int)m_Value.GetValue<uint>()));
+                        m_ParamValue.SetValue<uint>((uint)EditorGUI.IntField(editrect, "", (int)m_ParamValue.GetValue<uint>()));
                         break;
 
+                    case VFXParam.Type.kTypeTexture2D:
+                        m_ParamValue.SetValue<Texture2D>((Texture2D)EditorGUI.ObjectField(editrect, m_ParamValue.GetValue<Texture2D>(),typeof(Texture2D)));
+                        break;
+                    case VFXParam.Type.kTypeTexture3D:
+                        m_ParamValue.SetValue<Texture3D>((Texture3D)EditorGUI.ObjectField(editrect, m_ParamValue.GetValue<Texture3D>(),typeof(Texture3D)));
+                        break;
                     default: // TODO Texture
                         GUI.Label(editrect, VFXParam.GetNameFromType(Type) + " " + "", VFXEditor.styles.NodeBlockParameter);
                         break;

@@ -36,7 +36,12 @@ namespace UnityEditor.Experimental
 
         public void AddNodeBlock(string nodename, string blockname)
         {
-            m_Nodes[nodename].nodeBlocks.Add(new NodeBlockInfo(blockname));
+            m_Nodes[nodename].nodeBlocks.Add(blockname, new NodeBlockInfo(blockname));
+        }
+
+        public void SetNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
+        {
+            m_Nodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
         }
 
         public void AddConnection(string nodeA, string nodeB)
@@ -50,10 +55,10 @@ namespace UnityEditor.Experimental
 
             Vector2 CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth/2,80.0f);
 
-            foreach(KeyValuePair<string,NodeInfo> kvp in m_Nodes)
+            foreach(KeyValuePair<string,NodeInfo> node_kvp in m_Nodes)
             {
                 VFXEdNode node = null;
-                switch(kvp.Value.Context)
+                switch(node_kvp.Value.Context)
                 {
                     case VFXEdContext.Trigger:
                         node = new VFXEdTriggerNode(CurrentPos, datasource);
@@ -61,7 +66,7 @@ namespace UnityEditor.Experimental
                     case VFXEdContext.Initialize:
                     case VFXEdContext.Update:
                     case VFXEdContext.Output:
-                        node = new VFXEdContextNode(CurrentPos, kvp.Value.Context, datasource);
+                        node = new VFXEdContextNode(CurrentPos, node_kvp.Value.Context, datasource);
                         break;
                     default:
                         break;
@@ -70,12 +75,18 @@ namespace UnityEditor.Experimental
                 if(node != null)
                 {
                     datasource.AddElement(node);
-                    spawnedNodes.Add(kvp.Value, node);
+                    spawnedNodes.Add(node_kvp.Value, node);
                 }
 
-                foreach(NodeBlockInfo nodeblock in kvp.Value.nodeBlocks)
+                foreach(KeyValuePair<string,NodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
                 {
-                    node.NodeBlockContainer.AddNodeBlock(new VFXEdProcessingNodeBlock(VFXEditor.BlockLibrary.GetBlock(nodeblock.BlockName), datasource));
+                    VFXEdProcessingNodeBlock block = new VFXEdProcessingNodeBlock(VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockName), datasource);
+                    
+                    foreach (KeyValuePair <string,VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                    {
+                        block.SetParameterValue(param_kvp.Key, param_kvp.Value);
+                    }
+                    node.NodeBlockContainer.AddNodeBlock(block);
                 }
 
                 node.Layout();
@@ -93,24 +104,34 @@ namespace UnityEditor.Experimental
 
         private class NodeInfo
         {
-            public List<NodeBlockInfo> nodeBlocks;
+            public Dictionary<string, NodeBlockInfo> nodeBlocks;
             public VFXEdContext Context {get { return m_Context; } }
             private VFXEdContext m_Context;
             
             public NodeInfo(VFXEdContext context)
             {
                 m_Context = context;
-                nodeBlocks = new List<NodeBlockInfo>();
+                nodeBlocks = new Dictionary<string, NodeBlockInfo>();
             }
         }
         private class NodeBlockInfo
         {
             public string BlockName { get { return m_BlockName; } }
+            public Dictionary<string, VFXParamValue> ParameterOverrides { get { return m_ParameterOverrides; } }
+
+            private Dictionary<string, VFXParamValue> m_ParameterOverrides;
             private string m_BlockName;
             public NodeBlockInfo(string blockname) {
                 m_BlockName = blockname;
+                m_ParameterOverrides = new Dictionary<string, VFXParamValue>();
+            }
+            
+            public void AddParameterOverride(string name, VFXParamValue ParamValue)
+            {
+                m_ParameterOverrides.Add(name, ParamValue);
             }
         }
+
         private class FlowConnection
         {
             public readonly NodeInfo Previous;
@@ -172,9 +193,9 @@ namespace UnityEditor.Experimental
             fulltemplate.AddNode("update", VFXEdContext.Update);
             fulltemplate.AddNode("output", VFXEdContext.Output);
 
-            fulltemplate.AddNodeBlock("init", "Set Lifetime (Constant)");
+            fulltemplate.AddNodeBlock("init", "Set Lifetime (Random)");
             fulltemplate.AddNodeBlock("init", "Set Color (Constant)");
-            fulltemplate.AddNodeBlock("init", "Set Position (Point)");
+            fulltemplate.AddNodeBlock("init", "Set Position (Sphere)");
             fulltemplate.AddNodeBlock("init", "Set Velocity (Constant)");
             fulltemplate.AddNodeBlock("init", "Set Size Constant (Square)");
 
@@ -182,6 +203,8 @@ namespace UnityEditor.Experimental
             fulltemplate.AddNodeBlock("update", "Apply Drag");
             fulltemplate.AddNodeBlock("update", "Age and Reap");
             fulltemplate.AddNodeBlock("update", "Apply Velocity to Positions");
+
+            //fulltemplate.SetNodeBlockParameter("init","Set Lifetime (Random)","minLifetime");
 
             fulltemplate.AddConnection("init", "update");
             fulltemplate.AddConnection("update", "output");
@@ -196,7 +219,6 @@ namespace UnityEditor.Experimental
             init.AddNodeBlock("init", "Set Position (Point)");
             init.AddNodeBlock("init", "Set Velocity (Constant)");
             init.AddNodeBlock("init", "Set Size Constant (Square)");
-
             m_Templates.Add(init);
 
 

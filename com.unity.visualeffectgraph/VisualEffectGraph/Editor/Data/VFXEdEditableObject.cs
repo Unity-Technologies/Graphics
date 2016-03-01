@@ -55,8 +55,8 @@ namespace UnityEditor.Experimental
                     case VFXParam.Type.kTypeFloat3: p.SetValue<Vector3>(EditorGUILayout.Vector3Field("",p.GetValue<Vector3>())); break;
                     case VFXParam.Type.kTypeFloat4: p.SetValue<Vector4>(EditorGUILayout.Vector4Field("",p.GetValue<Vector4>())); break;
                     case VFXParam.Type.kTypeInt: p.SetValue<int>(EditorGUILayout.IntSlider(p.GetValue<int>(),-1000,1000)); break;
-                    case VFXParam.Type.kTypeTexture2D: GUILayout.Label("Texture2D"); break;
-                    case VFXParam.Type.kTypeTexture3D: GUILayout.Label("Texture3D"); break;
+                    case VFXParam.Type.kTypeTexture2D: p.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(p.GetValue<Texture2D>(),typeof(Texture2D)));  break;
+                    case VFXParam.Type.kTypeTexture3D: p.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(p.GetValue<Texture3D>(),typeof(Texture3D)));  break;
                     case VFXParam.Type.kTypeUint: p.SetValue<uint>((uint)EditorGUILayout.IntSlider((int)p.GetValue<uint>(),0,1000)); break;
                     case VFXParam.Type.kTypeUnknown: break;
                     default: break;
@@ -97,8 +97,8 @@ namespace UnityEditor.Experimental
                     case VFXParam.Type.kTypeFloat3: p.SetValue<Vector3>(EditorGUILayout.Vector3Field("",p.GetValue<Vector3>())); break;
                     case VFXParam.Type.kTypeFloat4: p.SetValue<Vector4>(EditorGUILayout.Vector4Field("",p.GetValue<Vector4>())); break;
                     case VFXParam.Type.kTypeInt: p.SetValue<int>(EditorGUILayout.IntSlider(p.GetValue<int>(),-1000,1000)); break;
-                    case VFXParam.Type.kTypeTexture2D: GUILayout.Label("Texture2D"); break;
-                    case VFXParam.Type.kTypeTexture3D: GUILayout.Label("Texture3D"); break;
+                    case VFXParam.Type.kTypeTexture2D: p.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(p.GetValue<Texture2D>(),typeof(Texture2D)));  break;
+                    case VFXParam.Type.kTypeTexture3D: p.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(p.GetValue<Texture3D>(),typeof(Texture3D)));  break;
                     case VFXParam.Type.kTypeUint: p.SetValue<uint>((uint)EditorGUILayout.IntSlider((int)p.GetValue<uint>(),0,1000)); break;
                     case VFXParam.Type.kTypeUnknown: break;
                     default: break;
