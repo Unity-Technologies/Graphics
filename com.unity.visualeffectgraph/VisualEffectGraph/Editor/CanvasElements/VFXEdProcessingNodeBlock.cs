@@ -56,6 +56,17 @@ namespace UnityEditor.Experimental
             Model.Detach();
         }
 
+        public void SetParameterValue(string name, VFXParamValue Value)
+        {
+            for(int i = 0; i < m_Params.Length; i++)
+            {
+                if(m_Params[i].m_Name == name)
+                {
+                    m_ParamValues[i].SetValue(Value); 
+                }
+            }
+        }
+
 
         protected override float GetHeight()
         {

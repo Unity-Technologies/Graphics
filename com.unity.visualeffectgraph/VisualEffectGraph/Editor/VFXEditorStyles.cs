@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental
         public Color DataEdgeTint = HexColor("#AFAFAF80");
         public Color DataEdgeSelectedTint = HexColor("#FFFFFFFF");
 
-
+        public Texture2D DefaultBlockIcon = EditorGUIUtility.Load("icons/default.png") as Texture2D;
 
 
         private Dictionary<string, Texture2D> m_icons;
@@ -83,17 +83,20 @@ namespace UnityEditor.Experimental
 
         private Dictionary<VFXParam.Type, Color> m_TypeColors;
 
-
-
         internal Texture2D GetIcon(string name) {
 
             if(!m_icons.ContainsKey(name)) {
                 Texture2D icon = EditorGUIUtility.Load("icons/"+name+".png") as Texture2D;
                 if (icon == null)
-                    throw new FileNotFoundException("Could not find file : icons/" + name + ".png");
+                {
+                    Debug.LogError("ERROR: BlockLibrary requested icon " + name + ".png, which was not found. Using default Icon");
+                    return VFXEditor.styles.DefaultBlockIcon;
+                }
                 m_icons.Add(name, icon);
+                
             }
             return m_icons[name];
+            
         }
 
         internal Color GetContextColor(VFXEdContext c)
