@@ -78,7 +78,7 @@ velocity += force * deltaTime;
 #arg float3 velocity [inout|param]
 #arg float multiplier [public]
 
-velocity *= max(0.0,(1.0 - multiplier * deltaTime * dot(velocity,velocity))); // drag
+velocity *= max(0.0,(1.0 - multiplier * deltaTime)); // drag - linear only
 
 #block Apply VectorField Force
 #icon VectorField
@@ -93,6 +93,27 @@ vectorFieldCoord.y = 1 - vectorFieldCoord.y;
 vectorFieldCoord = min(float3(0.95,0.95,0.95),max(float3(0.05,0.05,0.05),vectorFieldCoord));
 velocity += (VectorField.SampleLevel(samplerVectorField,vectorFieldCoord,0.0).xyz - 0.5) * 2 * 0.8;
 
+#block Conform To Sphere
+#icon Force
+#category Forces/
+#arg float3 velocity [inout|param]
+#arg float3 position [param]
+#arg float3 center [public]
+#arg float radius [public]
+#arg float attractionSpeed [public]
+#arg float attractionForce [public]
+#arg float stickForce [public]
+#arg float stickDistance [public]
+
+float3 dir = center - position;
+float distToCenter = length(dir);
+float distToSurface = distToCenter - radius;
+dir /= distToCenter;
+float spdNormal = dot(dir,velocity);
+float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));
+float tgtSpeed = sign(distToSurface) * attractionSpeed * ratio;
+float deltaSpeed = tgtSpeed - spdNormal;
+velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir;
 
 #block Attractor
 #icon Force
