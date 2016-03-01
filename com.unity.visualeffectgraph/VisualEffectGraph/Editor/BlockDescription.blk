@@ -328,22 +328,6 @@ if (age >= lifetime)
 
 position += velocity * deltaTime;
 
-#block Add Phase Shift
-#icon Position
-#arg float3 position [inout|param]
-#arg float3 velocity [param]
-#arg float phase [param]
-
-position = velocity * (phase * deltaTime) + position;
-
-#block Remove Phase Shift
-#icon Position
-#arg float3 position [inout|param]
-#arg float3 velocity [param]
-#arg float phase [param]
-
-position = -velocity * (phase * deltaTime) + position;
-
 #block Test Compile Failure
 #icon Position
 #category Tests/

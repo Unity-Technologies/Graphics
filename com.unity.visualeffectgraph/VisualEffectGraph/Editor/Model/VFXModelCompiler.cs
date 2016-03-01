@@ -231,8 +231,27 @@ namespace UnityEditor.Experimental
 
             CollectAttributes(attribs, initBlocks, 0);
             CollectAttributes(attribs, updateBlocks, 1);
+ 
+            if (VFXEditor.AssetModel.PhaseShift)     
+            {
+                VFXAttrib positionAttrib = new VFXAttrib("position", VFXParam.Type.kTypeFloat3);
+                VFXAttrib velocityAttrib = new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3);
 
-            initHasRand |= attribs.ContainsKey(new VFXAttrib("phase", VFXParam.Type.kTypeFloat)); // phase needs rand as initialization
+                if (attribs.ContainsKey(positionAttrib) && attribs.ContainsKey(velocityAttrib))
+                {
+                    VFXAttrib phaseAttrib = new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
+                    attribs[phaseAttrib] = 0x7; // Add phase attribute   
+                    attribs[positionAttrib] = attribs[positionAttrib] | 0xF; // Ensure position is writable in init and update
+                    attribs[velocityAttrib] = attribs[velocityAttrib] | 0x5; // Ensure velocity is readable in init and update
+
+                    initHasRand = true; // phase needs rand as initialization
+                }
+                else
+                {
+                    VFXEditor.AssetModel.PhaseShift = false;
+                    return null;
+                }
+            }
 
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
@@ -786,6 +805,8 @@ namespace UnityEditor.Experimental
             foreach (var block in data.updateBlocks)
                 WriteFunction(buffer, block, functionNames);
 
+            bool HasPhaseShift = VFXEditor.AssetModel.PhaseShift;
+
             // Write init kernel
             if (hasInit)
             {
@@ -831,7 +852,7 @@ namespace UnityEditor.Experimental
                 }
 
                 // Init phase
-                if (data.attribToBuffer.ContainsKey(new VFXAttrib("phase",VFXParam.Type.kTypeFloat)))
+                if (HasPhaseShift)
                 {
                     int phaseIndex = data.attribToBuffer[new VFXAttrib("phase", VFXParam.Type.kTypeFloat)].Index;
                     int randIndex = data.attribToBuffer[new VFXAttrib("seed", VFXParam.Type.kTypeUint)].Index;
@@ -847,6 +868,13 @@ namespace UnityEditor.Experimental
                 foreach (var block in data.initBlocks)
                     WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
                 buffer.AppendLine();
+
+                // Remove phase shift
+                if (HasPhaseShift)
+                {
+                    WriteRemovePhaseShift(buffer,data);
+                    buffer.AppendLine();
+                }
 
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
@@ -903,9 +931,23 @@ namespace UnityEditor.Experimental
                 }
                 buffer.AppendLine();
 
+                // Add phase shift
+                if (HasPhaseShift)
+                {
+                    WriteAddPhaseShift(buffer, data);
+                    buffer.AppendLine();
+                }
+
                 foreach (var block in data.updateBlocks)
                     WriteFunctionCall(buffer, block, functionNames, data.paramToName, data.attribToBuffer);
                 buffer.AppendLine();
+
+                // Remove phase shift
+                if (HasPhaseShift)
+                {
+                    WriteRemovePhaseShift(buffer, data);
+                    buffer.AppendLine();
+                }
 
                 if (data.hasKill)
                 {
@@ -1113,6 +1155,34 @@ namespace UnityEditor.Experimental
             }
 
             buffer.AppendLine(");");
+        }
+
+        private static void WriteAddPhaseShift(StringBuilder buffer,ShaderMetaData data)
+        {
+            WritePhaseShift('+',buffer,data);
+        }
+
+        private static void WriteRemovePhaseShift(StringBuilder buffer,ShaderMetaData data)
+        {
+            WritePhaseShift('-',buffer,data);
+        }
+
+        private static void WritePhaseShift(char op,StringBuilder buffer,ShaderMetaData data)
+        {
+            int phaseIndex = data.attribToBuffer[new VFXAttrib("phase", VFXParam.Type.kTypeFloat)].Index;
+            int positionIndex = data.attribToBuffer[new VFXAttrib("position", VFXParam.Type.kTypeFloat3)].Index;
+            int velocityIndex = data.attribToBuffer[new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3)].Index;
+
+            buffer.Append("\t\tattrib");
+            buffer.Append(positionIndex);
+            buffer.Append(".position ");
+            buffer.Append(op);
+            buffer.Append("= (attrib");
+            buffer.Append(phaseIndex);
+            buffer.Append(".phase * deltaTime) * ");
+            buffer.Append("attrib");
+            buffer.Append(velocityIndex);
+            buffer.AppendLine(".velocity;");
         }
 
         private static void WriteKernelHeader(StringBuilder buffer,string name)

@@ -73,8 +73,23 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public bool PhaseShift
+        {
+            get { return m_PhaseShift; }
+            set
+            {
+                if (m_PhaseShift != value)
+                {
+                    m_PhaseShift = value;
+                    for (int i = 0; i < GetNbChildren(); ++i)
+                        GetChild(i).Invalidate(InvalidationCause.kModelChanged);
+                }
+            }
+        }
+
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
+        private bool m_PhaseShift = false; // Used to remove sampling discretization issue
 
         private VFXComponent component;
         private GameObject gameObject;
