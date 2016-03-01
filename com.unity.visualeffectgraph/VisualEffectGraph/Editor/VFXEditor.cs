@@ -344,6 +344,10 @@ namespace UnityEditor.Experimental
 
 
             GUILayout.FlexibleSpace();
+
+            bool UsePhaseShift = VFXEditor.AssetModel.PhaseShift;
+            VFXEditor.AssetModel.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
+
             m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "DEBUG PANEL", EditorStyles.toolbarButton);
             m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);
 
