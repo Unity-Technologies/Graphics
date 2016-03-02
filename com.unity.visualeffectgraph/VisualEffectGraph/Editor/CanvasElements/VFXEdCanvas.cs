@@ -40,7 +40,8 @@ namespace UnityEditor.Experimental
             AddManipulator(new RectangleSelect());
             AddManipulator(new ScreenSpaceGrid());
 
-            MouseDown += ManageSelection;
+            
+            MouseDown += ManageNodeBlockSelection;
             ContextClick += ManageRightClick;
 
             // Debug
@@ -60,6 +61,7 @@ namespace UnityEditor.Experimental
 
         public void SetSelectedNodeBlock(VFXEdNodeBlock block)
         {
+
             m_SelectedNodeBlock = block;
 
             if (m_SelectedNodeBlock != null)
@@ -68,6 +70,7 @@ namespace UnityEditor.Experimental
                 ClearSelection();
                 AddToSelection(m_SelectedNodeBlock);
             }
+
         }
 
         public override void DebugDraw()
@@ -76,14 +79,17 @@ namespace UnityEditor.Experimental
             Invalidate();
         }
 
-        public bool ManageSelection(CanvasElement element, Event e, Canvas2D parent)
+        public bool ManageNodeBlockSelection(CanvasElement element, Event e, Canvas2D parent)
         {
-            if (e.type == EventType.Used)
-                return false;
+            
+            // TODO: Due to Selection only managing m_selected, nodeblocks aren't unselected normally. I have to catch used events in order to unselect nodeblocks :(
+            /*if (e.type == EventType.Used)
+                return false;*/
 
             // Unselecting
-            if (e.type == EventType.MouseDown && e.button == 0 && element is Canvas2D && SelectedNodeBlock != null)
+            if (element is Canvas2D && SelectedNodeBlock != null)
             {
+                Debug.Log("Unselecting");
                 SetSelectedNodeBlock(null);
                 return true;
             }

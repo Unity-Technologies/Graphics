@@ -49,6 +49,7 @@ namespace UnityEditor.Experimental
         }
 
         /* Singletons */
+
         public static VFXEditorMetrics metrics
         {
             get
@@ -160,6 +161,8 @@ namespace UnityEditor.Experimental
         private VFXAsset m_CurrentAsset;
 
         private bool m_bShowDebug = false;
+        
+
         private Vector2 m_DebugLogScroll = Vector2.zero;
 
 
@@ -187,8 +190,17 @@ namespace UnityEditor.Experimental
         {
             if (s_SpawnTemplates == null)
             {
-                s_SpawnTemplates = new VFXEdSpawnTemplateLibrary();
-                s_SpawnTemplates.Load();
+                s_SpawnTemplates = AssetDatabase.LoadAssetAtPath<VFXEdSpawnTemplateLibrary>("Assets/VFXEditor/Editor/TemplateLibrary");
+
+                if(s_SpawnTemplates == null)
+                {
+                    Debug.Log("Template Not Exist, Creating...");
+                    s_SpawnTemplates = ScriptableObject.CreateInstance<VFXEdSpawnTemplateLibrary>();
+                    AssetDatabase.CreateAsset(s_SpawnTemplates, "Assets/VFXEditor/Editor/TemplateLibrary");
+
+                    s_SpawnTemplates.Initialize();
+                }
+
             }
         }
 
@@ -212,15 +224,6 @@ namespace UnityEditor.Experimental
         {
             m_Canvas.ReloadData();
             m_Canvas.Repaint();
-        }
-
-        void OnSelectionChange()
-        {
-            if (Selection.activeObject != null)
-                if (Selection.activeObject.GetType() == typeof(VFXAsset))
-                {
-                  //  Debug.Log("Selection Changed : " + Selection.activeObject);
-                }
         }
 
 
@@ -397,7 +400,9 @@ namespace UnityEditor.Experimental
             }
         }
         #endregion
+
     }
+
 
     public class VFXBlockLibraryCollection
     {
@@ -458,6 +463,7 @@ namespace UnityEditor.Experimental
         {
             return new ReadOnlyCollection<VFXBlock>(m_Blocks);
         }
+
     }
 
 

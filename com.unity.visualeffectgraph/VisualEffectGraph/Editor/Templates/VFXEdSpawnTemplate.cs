@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    public class VFXEdSpawnTemplate
+    public class VFXEdSpawnTemplate : ScriptableObject
     {
         public string Name { get { return m_Name; } }
         public string Category { get { return m_Category; } } 
@@ -102,7 +102,7 @@ namespace UnityEditor.Experimental
             canvas.ReloadData();
         }
 
-        private class NodeInfo
+        private class NodeInfo : ScriptableObject
         {
             public Dictionary<string, NodeBlockInfo> nodeBlocks;
             public VFXEdContext Context {get { return m_Context; } }
@@ -114,7 +114,7 @@ namespace UnityEditor.Experimental
                 nodeBlocks = new Dictionary<string, NodeBlockInfo>();
             }
         }
-        private class NodeBlockInfo
+        private class NodeBlockInfo : ScriptableObject
         {
             public string BlockName { get { return m_BlockName; } }
             public Dictionary<string, VFXParamValue> ParameterOverrides { get { return m_ParameterOverrides; } }
@@ -132,7 +132,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        private class FlowConnection
+        private class FlowConnection : ScriptableObject
         {
             public readonly NodeInfo Previous;
             public readonly NodeInfo Next;
@@ -164,7 +164,7 @@ namespace UnityEditor.Experimental
         }
     }
 
-    public class VFXEdSpawnTemplateLibrary
+    public class VFXEdSpawnTemplateLibrary : ScriptableObject
     {
         public List<VFXEdSpawnTemplate> Templates { get { return m_Templates; } }
         private List<VFXEdSpawnTemplate> m_Templates;
@@ -172,6 +172,7 @@ namespace UnityEditor.Experimental
         public VFXEdSpawnTemplateLibrary()
         {
             m_Templates = new List<VFXEdSpawnTemplate>();
+           
         }
 
         public VFXEdSpawnTemplate GetTemplate(string path)
@@ -185,9 +186,8 @@ namespace UnityEditor.Experimental
             spawner.Spawn();
         }
 
-        public void Load()
+        public void Initialize()
         {
-
             VFXEdSpawnTemplate fulltemplate = new VFXEdSpawnTemplate("Full", "Full Template");
             fulltemplate.AddNode("init", VFXEdContext.Initialize);
             fulltemplate.AddNode("update", VFXEdContext.Update);
