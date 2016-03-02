@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Library>
+  <Template Category="Full" Name="Full Template">
+    <Nodes>
+      <Node Name="init" Context="Initialize">
+        <NodeBlock Name="Set Lifetime (Random)" BlockName="Set Lifetime (Random)">
+          <VFXParamValue Name="minLifetime" Type="kTypeFloat" Value="4" />
+          <VFXParamValue Name="maxLifetime" Type="kTypeFloat" Value="5.5" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Spherical)" BlockName="Set Velocity (Spherical)">
+          <VFXParamValue Name="angle" Type="kTypeFloat2" Value="80,80" />
+          <VFXParamValue Name="speed" Type="kTypeFloat2" Value="1,1" />
+        </NodeBlock>
+        <NodeBlock Name="Add Velocity (Constant)" BlockName="Add Velocity (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat3" Value="50,0,0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="1.5" />
+        </NodeBlock>
+      </Node>
+      <Node Name="update" Context="Update">
+        <NodeBlock Name="Color Over Lifetime" BlockName="Color Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat3" Value="1,0,1" />
+          <VFXParamValue Name="end" Type="kTypeFloat3" Value="0,1,1" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Force" BlockName="Apply Force">
+          <VFXParamValue Name="force" Type="kTypeFloat3" Value="0,-5,0" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Drag" BlockName="Apply Drag">
+          <VFXParamValue Name="multiplier" Type="kTypeFloat" Value="0.02" />
+        </NodeBlock>
+        <NodeBlock Name="Collision with Plane" BlockName="Collision with Plane">
+          <VFXParamValue Name="normal" Type="kTypeFloat3" Value="0,1,0" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,-1,0" />
+          <VFXParamValue Name="elasticity" Type="kTypeFloat" Value="0.95" />
+        </NodeBlock>
+        <NodeBlock Name="Age and Reap" BlockName="Age and Reap" />
+        <NodeBlock Name="Apply Velocity to Positions" BlockName="Apply Velocity to Positions" />
+      </Node>
+      <Node Name="output" Context="Output" />
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="init" Next="update" />
+      <FlowConnection Previous="update" Next="output" />
+    </Connections>
+  </Template>
+</Library>
