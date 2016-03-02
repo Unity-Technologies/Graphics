@@ -94,6 +94,24 @@ vectorFieldCoord = min(float3(0.95,0.95,0.95),max(float3(0.05,0.05,0.05),vectorF
 velocity += (VectorField.SampleLevel(samplerVectorField,vectorFieldCoord,0.0).xyz - 0.5) * 2 * 0.8;
 
 
+
+#block Vortex Field (Sphere)
+#icon Force
+#category Forces/
+#arg float3 position [param]
+#arg float3 velocity [inout|param]
+#arg float3 center [public]
+#arg float targetspeed [public]
+#arg float radius [public]
+#arg float attractiondistance [public]
+
+float3 delta = center-position;
+float3 up = cross(delta,velocity);
+float3 tangent = normalize(cross(up,delta));
+float dist = sqrt(dot(delta,delta));
+float strength = 1.0f-saturate( (dist-radius) / attractiondistance+0.0001f);
+velocity = lerp(velocity, tangent*targetspeed, strength);
+
 #block Attractor
 #icon Force
 #category Forces/
