@@ -105,7 +105,7 @@ namespace UnityEditor.Experimental
         public void SwitchOutputType()
         {
             int outputType = OutputType;
-            if (++outputType > 1)
+            if (++outputType > 2)
                 outputType = 0;
             OutputType = outputType;               
         }

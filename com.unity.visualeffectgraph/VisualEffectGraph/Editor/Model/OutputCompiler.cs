@@ -120,7 +120,7 @@ namespace UnityEditor.Experimental
             builder.Append("\t\t\t\t\tfloat3 worldPos = ");
             builder.WriteAttrib(CommonAttrib.Position,data);
             builder.AppendLine(";");
-            builder.AppendLine("\t\t\t\t\to.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
+            builder.AppendLine("\t\t\t\t\to.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
 
             if (hasColor || hasAlpha)
             {
@@ -186,6 +186,11 @@ namespace UnityEditor.Experimental
 
     class BillboardOutputCompiler : OutputCompiler
     {
+        public BillboardOutputCompiler(bool OrientAlongVelocity)
+        {
+            m_OrientAlongVelocity = OrientAlongVelocity;
+        }
+
         public override bool MarkAttributes(Dictionary<VFXAttrib, int> attribs)
         {
             if (!UpdateFlag(attribs, CommonAttrib.Position))
@@ -194,6 +199,10 @@ namespace UnityEditor.Experimental
             hasColor = UpdateFlag(attribs, CommonAttrib.Color);
             hasAlpha = UpdateFlag(attribs, CommonAttrib.Alpha);
             hasSize = UpdateFlag(attribs, CommonAttrib.Size);
+
+            if (m_OrientAlongVelocity)
+                m_OrientAlongVelocity = UpdateFlag(attribs, CommonAttrib.Velocity);
+
             return true;
         }
 
@@ -250,14 +259,32 @@ namespace UnityEditor.Experimental
                 builder.AppendLine("\t\t\t\t\tconst float2 size = float2(0.005,0.005);");
 
             builder.AppendLine("\t\t\t\t\to.offsets.x = 2.0 * float(id & 1) - 1.0;");
-            builder.AppendLine("\t\t\t\t\to.offsets.y = 1.0 - 2.0 * float((id & 2) >> 1); // TODO swap indices in index buffer...");
+            builder.AppendLine("\t\t\t\t\to.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0; // TODO swap indices in index buffer...");
             builder.AppendLine();
 
             builder.Append("\t\t\t\t\tfloat3 worldPos = ");
             builder.WriteAttrib(CommonAttrib.Position, data);
             builder.AppendLine(";");
-            builder.AppendLine("\t\t\t\t\to.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
-            builder.AppendLine("\t\t\t\t\to.pos.xy += o.offsets * size;");
+            builder.AppendLine();
+
+            if (m_OrientAlongVelocity)
+            {
+                builder.Append("\t\t\t\t\tfloat3 up = normalize(");
+                builder.WriteAttrib(CommonAttrib.Velocity, data);
+                builder.AppendLine(");");
+                builder.AppendLine("\t\t\t\t\tfloat3 side = normalize(cross(UnityWorldSpaceViewDir(worldPos),up));");
+                builder.AppendLine("\t\t\t\t\tworldPos += side * o.offsets.x * size.x;");
+                builder.AppendLine("\t\t\t\t\tworldPos += up * o.offsets.y * size.y;");
+            }
+            else
+            {
+                builder.AppendLine("\t\t\t\t\tworldPos += UNITY_MATRIX_MV[0].xyz * o.offsets.x * size.x;");
+                builder.AppendLine("\t\t\t\t\tworldPos += UNITY_MATRIX_MV[1].xyz * o.offsets.y * size.y;");
+            }
+
+            builder.AppendLine();
+
+            builder.AppendLine("\t\t\t\t\to.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
 
             if (hasColor || hasAlpha)
             {
@@ -328,5 +355,6 @@ namespace UnityEditor.Experimental
         private bool hasColor;
         private bool hasAlpha;
         private bool hasSize;
+        private bool m_OrientAlongVelocity;
     }
 }

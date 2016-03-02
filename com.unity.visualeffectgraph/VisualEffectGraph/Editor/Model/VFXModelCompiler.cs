@@ -214,7 +214,10 @@ namespace UnityEditor.Experimental
                     outputCompiler = new PointOutputCompiler();
                     break;
                 case 1:
-                    outputCompiler = new BillboardOutputCompiler();
+                    outputCompiler = new BillboardOutputCompiler(false);
+                    break;
+                case 2:
+                    outputCompiler = new BillboardOutputCompiler(true);
                     break;
                 default:
                     VFXEditor.Log("Invalid OutputType");

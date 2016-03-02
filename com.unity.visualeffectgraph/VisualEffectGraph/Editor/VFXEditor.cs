@@ -370,6 +370,7 @@ namespace UnityEditor.Experimental
             {
                 case 0: return "Point";
                 case 1: return "Billboard";
+                case 2: return "Billboard Along Velocity";
                 default: return "Unknown";
             }
         }
