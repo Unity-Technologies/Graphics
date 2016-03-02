@@ -107,6 +107,27 @@ float3 dir = center - position;
 float sqrDist = dot(dir,dir) + offset;
 velocity += normalize(dir) * (deltaTime * force / sqrDist);
 
+#block Comform (Sphere)
+#icon Force
+#category Forces/
+#arg float3 position [param]
+#arg float3 velocity [inout|param]
+#arg float3 center [public]
+#arg float radius [public]
+#arg float force [public]
+#arg float falloff [public]
+
+float3 dir = center - position;
+float distToCenter = length(dir);
+float distToSurface = distToCenter - radius;
+dir /= distToCenter;
+velocity += dir * distToSurface * force * deltaTime;
+
+
+float3 normalVelocity = dot(velocity,dir) * dir;
+velocity -= normalVelocity * saturate(deltaTime * falloff / distToSurface);
+
+
 #---------------------------------------------------------------------
 # POSITION BLOCKS
 #---------------------------------------------------------------------
@@ -198,7 +219,7 @@ position = float3(sincosTheta * radius,u1 * height).xzy + center;
 #block Collision with Plane
 #icon Position
 #category Collision/
-#arg float3 position [param]
+#arg float3 position [inout|param]
 #arg float3 velocity [inout|param]
 #arg float3 normal [public]
 #arg float3 center [public]
@@ -207,11 +228,17 @@ position = float3(sincosTheta * radius,u1 * height).xzy + center;
 const float EPSILON = 1e-5;
 
 float3 n = normalize(normal); // TODO ensure normal is normalized prior to call
-float distToPlane = dot(n,position - center);
-float projectedVelocity = dot(n,velocity);
+float3 nextPos = position + velocity * deltaTime;
+float distToPlane0 = dot(n,position - center);
+float distToPlane1 = dot(n,nextPos - center);
 
-if (sign(projectedVelocity) != sign(distToPlane) && deltaTime * abs(projectedVelocity) + EPSILON > abs(distToPlane))
-	velocity -= ((1 + elasticity) * projectedVelocity) * n; // Collision
+if (sign(distToPlane0) != sign(distToPlane1))
+{
+	float ratio = abs(distToPlane0) / (abs(distToPlane0) + abs(distToPlane1));
+	position = lerp(position,nextPos,ratio); // advance to collision
+	velocity -= ((1 + elasticity) * dot(n,velocity)) * n;
+	position += velocity * deltaTime * ratio; // remove part of the already resolved time
+}
 
 #---------------------------------------------------------------------
 # SIZE BLOCKS
