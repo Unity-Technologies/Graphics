@@ -52,13 +52,42 @@ color = lerp(value1,value2,RAND);
 float ratio = saturate(age / lifetime);
 color = lerp(start,end,ratio);
 
+#block Set Alpha (Constant)
+#icon Alpha
+#category Color/
+#arg float alpha [inout|param]
+#arg float value [public] 
+
+alpha = value;
+
+#block Set Alpha (Random)
+#icon Alpha
+#category Color/
+#arg float alpha [inout|param]
+#arg float value1 [public] 
+#arg float value2 [public] 
+
+alpha = lerp(value1,value2,RAND);
+
+#block Alpha Over Lifetime
+#icon Alpha
+#category Color/
+#arg float alpha [inout|param]
+#arg float age [param] 
+#arg float lifetime [param] 
+#arg float start [public] 
+#arg float end [public] 
+
+float ratio = saturate(age / lifetime);
+alpha = lerp(start,end,ratio);
+
 #block Phase To Color
 #icon Color
 #category Debug/
 #arg float3 color [inout|param]
 #arg float phase [param] 
 
-color = float3(phase,1 - phase,0.0); 
+color = float3(phase,1 - phase,0.0);
 
 #---------------------------------------------------------------------
 # FORCE BLOCKS
@@ -127,27 +156,6 @@ velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,a
 float3 dir = center - position;
 float sqrDist = dot(dir,dir) + offset;
 velocity += normalize(dir) * (deltaTime * force / sqrDist);
-
-#block Comform (Sphere)
-#icon Force
-#category Forces/
-#arg float3 position [param]
-#arg float3 velocity [inout|param]
-#arg float3 center [public]
-#arg float radius [public]
-#arg float force [public]
-#arg float falloff [public]
-
-float3 dir = center - position;
-float distToCenter = length(dir);
-float distToSurface = distToCenter - radius;
-dir /= distToCenter;
-velocity += dir * distToSurface * force * deltaTime;
-
-
-float3 normalVelocity = dot(velocity,dir) * dir;
-velocity -= normalVelocity * saturate(deltaTime * falloff / distToSurface);
-
 
 #---------------------------------------------------------------------
 # POSITION BLOCKS
@@ -256,9 +264,9 @@ float distToPlane1 = dot(n,nextPos - center);
 if (sign(distToPlane0) != sign(distToPlane1))
 {
 	float ratio = abs(distToPlane0) / (abs(distToPlane0) + abs(distToPlane1));
-	position = lerp(position,nextPos,ratio); // advance to collision
+	//position = lerp(position,nextPos,ratio); // advance to collision
 	velocity -= ((1 + elasticity) * dot(n,velocity)) * n;
-	position += velocity * deltaTime * ratio; // remove part of the already resolved time
+	//position -= velocity * deltaTime * ratio; // remove part of the already resolved time
 }
 
 #---------------------------------------------------------------------

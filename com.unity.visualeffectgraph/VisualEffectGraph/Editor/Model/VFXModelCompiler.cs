@@ -14,6 +14,7 @@ namespace UnityEditor.Experimental
         public static VFXAttrib Position =  new VFXAttrib("position", VFXParam.Type.kTypeFloat3);
         public static VFXAttrib Velocity =  new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3);
         public static VFXAttrib Color =     new VFXAttrib("color", VFXParam.Type.kTypeFloat3);
+        public static VFXAttrib Alpha =     new VFXAttrib("alpha", VFXParam.Type.kTypeFloat);
         public static VFXAttrib Phase =     new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
     }
 
@@ -204,6 +205,9 @@ namespace UnityEditor.Experimental
     {
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
+            // Create output compiler
+            OutputCompiler outputCompiler = new PointOutputCompiler();
+
             // BLOCKS
             List<VFXBlockModel> initBlocks = new List<VFXBlockModel>();
             List<VFXBlockModel> updateBlocks = new List<VFXBlockModel>();
@@ -282,6 +286,9 @@ namespace UnityEditor.Experimental
                 updateHasRand = true;
                 attribs[CommonAttrib.Seed] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
             }
+
+            if (!outputCompiler.MarkAttributes(attribs))
+                return null;
 
             // Find unitialized attribs and remove 
             List<VFXAttrib> unitializedAttribs = new List<VFXAttrib>(); 
@@ -476,7 +483,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.paramToName = paramToName;
    
             string shaderSource = WriteComputeShader(shaderMetaData);
-            string outputShaderSource = WriteOutputShader(shaderMetaData);
+            string outputShaderSource = outputCompiler.GenerateSource(shaderMetaData);
            
             VFXEditor.Log("\n**** SHADER CODE ****");
             VFXEditor.Log(shaderSource);
@@ -495,17 +502,6 @@ namespace UnityEditor.Experimental
 
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader);
 
-            // Find position buffer
-            AttributeBuffer posBuffer = null;
-            attribToBuffer.TryGetValue(CommonAttrib.Position, out posBuffer);
-
-            if (posBuffer == null || outputShader == null) // No position buffer, we escape
-                return null;
-
-            // Find color buffer
-            AttributeBuffer colorBuffer = null;
-            attribToBuffer.TryGetValue(CommonAttrib.Color, out colorBuffer);
-
             rtData.m_Material = new Material(outputShader);
 
             // Create buffer for system
@@ -520,10 +516,8 @@ namespace UnityEditor.Experimental
                     rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextModel.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
                 if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate))
                     rtData.AddBuffer(rtData.UpdateKernel, bufferName + (attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate) ? "" : "_RO"), computeBuffer);
-                if (attribBuffer == posBuffer)
-                    rtData.m_Material.SetBuffer("pointBuffer", computeBuffer);
-                if (attribBuffer == colorBuffer)
-                    rtData.m_Material.SetBuffer("colorBuffer", computeBuffer);
+                if (attribBuffer.Used(VFXContextModel.Type.kTypeOutput))
+                    rtData.m_Material.SetBuffer(bufferName, computeBuffer);
                 //computeBuffer.Dispose();
             }
 
@@ -599,101 +593,6 @@ namespace UnityEditor.Experimental
                     int currentUsage = (0x1 | (attr.m_Writable ? 0x2 : 0x0)) << (index * 2);
                     attribs[attr] = usage | currentUsage;
                 }
-        }
-
-        private static string WriteOutputShader(ShaderMetaData data)
-        {
-            bool hasColorAttribute = data.attribToBuffer.ContainsKey(CommonAttrib.Color);
-
-            StringBuilder buffer = new StringBuilder();
-            buffer.AppendLine("Shader \"Custom/PointShader\"");
-            buffer.AppendLine("{");
-	        buffer.AppendLine("\tSubShader"); 
-	        buffer.AppendLine("\t{");
-
-            buffer.AppendLine("\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
-            buffer.AppendLine("\t\tPass");
-            buffer.AppendLine("\t\t{");
-            buffer.AppendLine("\t\tBlend SrcAlpha One");
-            buffer.AppendLine("\t\tZTest LEqual");
-            buffer.AppendLine("\t\tZWrite Off");
-			buffer.AppendLine("\t\t\tCGPROGRAM");
-			buffer.AppendLine("\t\t\t#pragma target 5.0");
-            buffer.AppendLine();
-			buffer.AppendLine("\t\t\t#pragma vertex vert");
-			buffer.AppendLine("\t\t\t#pragma fragment frag");
-            buffer.AppendLine();
-			buffer.AppendLine("\t\t\t#include \"UnityCG.cginc\"");
-            buffer.AppendLine();
-			buffer.AppendLine("\t\t\tStructuredBuffer<float4> pointBuffer;");
-
-            if (hasColorAttribute)
-                buffer.AppendLine("\t\t\tStructuredBuffer<float4> colorBuffer;");
-
-            if (data.hasKill)
-                buffer.AppendLine("\t\t\tStructuredBuffer<int> flags;");
-
-
-            buffer.AppendLine();
-			buffer.AppendLine("\t\t\tstruct ps_input {");
-			buffer.AppendLine("\t\t\t float4 pos : SV_POSITION;");
-
-            if (hasColorAttribute)
-			    buffer.AppendLine("\t\t\t float4 col : COLOR0;");
-
-			buffer.AppendLine("\t\t\t};");
-            buffer.AppendLine();
-			buffer.AppendLine("\t\t\tps_input vert (uint id : SV_VertexID)");
-			buffer.AppendLine("\t\t\t{");
-			buffer.AppendLine("\t\t\t\tps_input o;");
-
-            if (data.hasKill)
-            {
-                buffer.AppendLine("\t\t\t\tif (flags[id] == 1)");
-                buffer.AppendLine("\t\t\t\t{");
-            }
-
-            buffer.AppendLine("\t\t\t\tfloat3 worldPos = pointBuffer[id].xyz;");
-            buffer.AppendLine("\t\t\t\to.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
-            
-            if (hasColorAttribute)
-                buffer.AppendLine("\t\t\t\to.col = float4(colorBuffer[id].xyz,0.5);");
-
-            if (data.hasKill)
-            {
-                // clip the vertex if not alive
-                buffer.AppendLine("\t\t\t\t}");
-                buffer.AppendLine("\t\t\t\telse");
-                buffer.AppendLine("\t\t\t\t{");
-                buffer.AppendLine("\t\t\t\to.pos = -1.0;");
-                
-                if (hasColorAttribute)
-                    buffer.AppendLine("\t\t\t\to.col = 0;");
-
-                buffer.AppendLine("\t\t\t\t}");
-                buffer.AppendLine();
-            }
-            
-            buffer.AppendLine("\t\t\t\treturn o;");
-			buffer.AppendLine("\t\t\t}");
-            buffer.AppendLine();
-			buffer.AppendLine("\t\t\tfloat4 frag (ps_input i) : COLOR");
-			buffer.AppendLine("\t\t\t{");
-
-            if (hasColorAttribute)
-                buffer.AppendLine("\t\t\t\treturn i.col;");
-            else
-                buffer.AppendLine("\t\t\t\treturn float4(1.0,1.0,1.0,0.5);");
-
-			buffer.AppendLine("\t\t\t}");
-            buffer.AppendLine();
-			buffer.AppendLine("\t\t\tENDCG");
-		    buffer.AppendLine("\t\t}");
-	        buffer.AppendLine("\t}");
-	        buffer.AppendLine("\tFallBack Off");
-            buffer.AppendLine("}");
-
-            return buffer.ToString();
         }
 
         private static string WriteComputeShader(ShaderMetaData data)
