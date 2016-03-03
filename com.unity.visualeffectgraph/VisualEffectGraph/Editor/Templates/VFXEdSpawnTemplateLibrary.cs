@@ -275,16 +275,35 @@ namespace UnityEditor.Experimental
         internal static VFXEdSpawnTemplate CreateTemplateFromSelection(VFXEdCanvas canvas, string category, string name)
         {
             VFXEdSpawnTemplate t = VFXEdSpawnTemplate.Create(category, name);
-            // new VFXEdSpawnTemplate(category, name);
+            
             foreach(CanvasElement e in canvas.selection)
             {
                 if(e is VFXEdContextNode)
                 {
                     VFXEdContextNode node = (e as VFXEdContextNode);
-                    //t.AddNode()
+                    t.AddNode(node.UniqueName, node.context);
+                    foreach(VFXEdProcessingNodeBlock block in node.NodeBlockContainer.nodeBlocks)
+                    {
+                        t.AddNodeBlock(node.UniqueName, block.name);
+                        for (int i = 0 ;  i < block.Params.Length; i++)
+                        {
+                            t.SetNodeBlockParameter(node.UniqueName, block.name, block.Params[i].m_Name, block.ParamValues[i].Clone());
+                        }
+                    }
                 }
-                else if(e is FlowEdge)
+            }
+
+            foreach(CanvasElement e in canvas.selection)
+            {
+                if(e is FlowEdge)
                 {
+                    FlowEdge edge = (e as FlowEdge);
+                    if((edge.Left as VFXEdFlowAnchor).parent is VFXEdContextNode && (edge.Right as VFXEdFlowAnchor).parent is VFXEdContextNode)
+                    {
+                        string left = ((edge.Left as VFXEdFlowAnchor).parent as VFXEdNode).UniqueName;
+                        string right = ((edge.Right as VFXEdFlowAnchor).parent as VFXEdNode).UniqueName;
+                        t.AddConnection(left, right);
+                    }
 
                 }
             }

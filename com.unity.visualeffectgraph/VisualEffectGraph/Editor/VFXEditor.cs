@@ -309,7 +309,7 @@ namespace UnityEditor.Experimental
                     case 1: // Edit Templates
                         EditorGUI.indentLevel ++;
                         GUILayout.Space(16.0f);
-                        GUILayout.Label("Add New Template...",VFXEditor.styles.InspectorHeader);
+                        GUILayout.Label("Add New Template from Selection...",VFXEditor.styles.InspectorHeader);
                         GUILayout.BeginHorizontal();
                         GUILayout.Label("Category : ");
                         m_NewTemplateCategory = GUILayout.TextField(m_NewTemplateCategory,150);
@@ -318,6 +318,7 @@ namespace UnityEditor.Experimental
                         if(GUILayout.Button("Add..."))
                         {
                             VFXEditor.SpawnTemplates.AddTemplate(VFXEdSpawnTemplateLibrary.CreateTemplateFromSelection(m_Canvas,m_NewTemplateCategory, m_NewTemplateName));
+                            SpawnTemplates.WriteLibrary();
                             m_NewTemplateCategory = "";
                             m_NewTemplateName = "";
                         }
