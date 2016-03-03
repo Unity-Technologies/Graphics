@@ -348,8 +348,13 @@ namespace UnityEditor.Experimental
 
             GUILayout.FlexibleSpace();
 
-            bool UsePhaseShift = VFXEditor.AssetModel.PhaseShift;
-            VFXEditor.AssetModel.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
+            bool UsePhaseShift = AssetModel.PhaseShift;
+            AssetModel.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
+
+
+            string text = GetOutputTypeStr(AssetModel.OutputType);
+            if (GUILayout.Button(text))
+                AssetModel.SwitchOutputType();
 
             m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "DEBUG PANEL", EditorStyles.toolbarButton);
             m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);
@@ -357,6 +362,17 @@ namespace UnityEditor.Experimental
             GUILayout.EndHorizontal();
             GUI.EndGroup();
 
+        }
+
+        string GetOutputTypeStr(int outputType)
+        {
+            switch (outputType)
+            {
+                case 0: return "Point";
+                case 1: return "Billboard";
+                case 2: return "Billboard Along Velocity";
+                default: return "Unknown";
+            }
         }
 
         #region TOOL WINDOWS

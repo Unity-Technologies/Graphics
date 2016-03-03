@@ -16,6 +16,7 @@ namespace UnityEditor.Experimental
         public static VFXAttrib Color =     new VFXAttrib("color", VFXParam.Type.kTypeFloat3);
         public static VFXAttrib Alpha =     new VFXAttrib("alpha", VFXParam.Type.kTypeFloat);
         public static VFXAttrib Phase =     new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib Size =      new VFXAttrib("size", VFXParam.Type.kTypeFloat2);
     }
 
     public class VFXSystemRuntimeData
@@ -206,7 +207,22 @@ namespace UnityEditor.Experimental
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
             // Create output compiler
-            OutputCompiler outputCompiler = new PointOutputCompiler();
+            OutputCompiler outputCompiler = null;
+            switch(VFXEditor.AssetModel.OutputType)
+            {
+                case 0:
+                    outputCompiler = new PointOutputCompiler();
+                    break;
+                case 1:
+                    outputCompiler = new BillboardOutputCompiler(false);
+                    break;
+                case 2:
+                    outputCompiler = new BillboardOutputCompiler(true);
+                    break;
+                default:
+                    VFXEditor.Log("Invalid OutputType");
+                    return null;
+            }
 
             // BLOCKS
             List<VFXBlockModel> initBlocks = new List<VFXBlockModel>();
