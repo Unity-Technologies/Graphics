@@ -119,7 +119,6 @@ namespace UnityEditor.Experimental
     {
         // TODO : remove here and stor inside VFXSystemModel
         Bounds bounds = new Bounds(Vector3.zero, new Vector3(50, 50, 50));
-        int maxparticles = 16384;
 
 
         bool bDebugVisible = true;
@@ -136,7 +135,8 @@ namespace UnityEditor.Experimental
             EditorGUI.indentLevel++;
             EditorGUILayout.BoundsField( new GUIContent("Bounding Box"),bounds);
             EditorGUILayout.Space();
-            maxparticles = EditorGUILayout.IntSlider(new GUIContent("Max Particles"), maxparticles, 64, 32768);
+            model.GetOwner().MaxNb = (uint)EditorGUILayout.DelayedIntField("Max Particles", (int)model.GetOwner().MaxNb);
+            model.GetOwner().SpawnRate = EditorGUILayout.FloatField("Spawn Rate", model.GetOwner().SpawnRate);
             EditorGUILayout.Space();
             EditorGUI.indentLevel--;
 
