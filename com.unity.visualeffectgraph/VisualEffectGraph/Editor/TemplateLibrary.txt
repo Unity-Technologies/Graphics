@@ -44,10 +44,6 @@
       <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
     </Connections>
   </Template>
-  <Template Category="Full" Name="Simple Hemisphere">
-    <Nodes />
-    <Connections />
-  </Template>
   <Template Category="Full" Name="Simple Box">
     <Nodes>
       <Node Name="VFXEdContextNode_0" Context="Initialize">
@@ -132,5 +128,36 @@
       </Node>
     </Nodes>
     <Connections />
+  </Template>
+  <Template Category="Full" Name="Simple Hemisphere">
+    <Nodes>
+      <Node Name="VFXEdContextNode_0" Context="Initialize">
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="2" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Spherical)" BlockName="Set Velocity (Spherical)">
+          <VFXParamValue Name="angle" Type="kTypeFloat2" Value="90,0" />
+          <VFXParamValue Name="speed" Type="kTypeFloat2" Value="2,2" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Random (Square)" BlockName="Set Size Random (Square)">
+          <VFXParamValue Name="minSize" Type="kTypeFloat" Value="0.02" />
+          <VFXParamValue Name="maxSize" Type="kTypeFloat" Value="0.01" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_1" Context="Update">
+        <NodeBlock Name="Alpha Over Lifetime" BlockName="Alpha Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat" Value="1" />
+          <VFXParamValue Name="end" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Color (Constant)" BlockName="Set Color (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat3" Value="0.2,0.2,0.2" />
+        </NodeBlock>
+        <NodeBlock Name="Age and Reap" BlockName="Age and Reap" />
+        <NodeBlock Name="Apply Velocity to Positions" BlockName="Apply Velocity to Positions" />
+      </Node>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
+    </Connections>
   </Template>
 </Library>

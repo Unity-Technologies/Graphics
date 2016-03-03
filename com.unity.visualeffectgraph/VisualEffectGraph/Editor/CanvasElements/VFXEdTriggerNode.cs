@@ -27,11 +27,12 @@ namespace UnityEditor.Experimental
 
         }
 
-        protected override void ShowNodeBlockMenu(Vector2 canvasClickPosition)
+        protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)
         {
             GenericMenu menu = new GenericMenu();
             menu.AddItem(new GUIContent("Not implemented yet"), false, null);
             menu.ShowAsContext();
+            return menu;
         }
 
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)

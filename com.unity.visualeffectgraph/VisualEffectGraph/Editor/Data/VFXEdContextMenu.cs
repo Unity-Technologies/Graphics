@@ -22,7 +22,9 @@ namespace UnityEditor.Experimental
             output.AddSeparator("New Node/");
             output.AddItem(new GUIContent("New Node/Initialize"), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, VFXEdContext.Initialize));
             output.AddItem(new GUIContent("New Node/Update"), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, VFXEdContext.Update));
-            output.AddItem(new GUIContent("New Node/Output"), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, VFXEdContext.Output));
+            output.AddItem(new GUIContent("New Node/Output (Point)"), false, source.SpawnNode, new VFXEdOutputNodeSpawner(source, canvas, canvasClickPosition, 0));
+            output.AddItem(new GUIContent("New Node/Output (Billboard)"), false, source.SpawnNode, new VFXEdOutputNodeSpawner(source, canvas, canvasClickPosition, 1));
+            output.AddItem(new GUIContent("New Node/Output (VelocityOriented)"), false, source.SpawnNode, new VFXEdOutputNodeSpawner(source, canvas, canvasClickPosition, 2));
             output.AddSeparator("New Node/");
             output.AddItem(new GUIContent("New Node/Data Node"), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition));
             

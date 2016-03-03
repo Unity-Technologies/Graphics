@@ -42,6 +42,27 @@ namespace UnityEditor.Experimental
 
     }
 
+    internal class VFXEdOutputNodeSpawner : VFXEdSpawner
+    {
+        VFXEdDataSource m_DataSource;
+        VFXEdCanvas m_Canvas;
+        int m_Mode;
+        public VFXEdOutputNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, int mode)
+            : base (position)
+        {
+            m_DataSource = datasource;
+            m_Canvas = canvas;
+            m_Mode = mode;
+        }
+
+        public override void Spawn()
+        {
+            m_DataSource.AddElement(new VFXEdOutputNode(m_canvasPosition, m_DataSource,m_Mode));
+            m_Canvas.ReloadData();
+        }
+
+    }
+
     internal class VFXEdTriggerNodeSpawner : VFXEdSpawner
     {
         VFXEdDataSource m_DataSource;

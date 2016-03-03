@@ -63,7 +63,7 @@ namespace UnityEditor.Experimental
             AddChild(inputs[0]);
             AddChild(outputs[0]);
             ZSort();
-            Layout();
+            base.Layout();
 
         }
 
@@ -90,7 +90,7 @@ namespace UnityEditor.Experimental
 
         }
 
-        protected override void ShowNodeBlockMenu(Vector2 canvasClickPosition)
+        protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)
         {
             GenericMenu menu = new GenericMenu();
 
@@ -125,7 +125,7 @@ namespace UnityEditor.Experimental
             menu.AddItem(new GUIContent("Layout/Node/Align with Previous"), false, null);
             menu.AddItem(new GUIContent("Layout/Node/Align with Next"), false, null);
 
-            menu.ShowAsContext();
+            return menu;
         }
 
 
