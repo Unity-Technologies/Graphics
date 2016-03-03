@@ -89,7 +89,7 @@ namespace UnityEditor.Experimental
             // Unselecting
             if (element is Canvas2D && SelectedNodeBlock != null)
             {
-                Debug.Log("Unselecting");
+                //Debug.Log("Unselecting");
                 SetSelectedNodeBlock(null);
                 return true;
             }

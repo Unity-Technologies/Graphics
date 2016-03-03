@@ -157,8 +157,6 @@ namespace UnityEditor.Experimental
                 AddTemplate(template);
             }
 
-
-            Debug.Log("OK! Reloaded!");
         }
 
         public void WriteLibrary()
@@ -308,7 +306,12 @@ namespace UnityEditor.Experimental
                     {
                         string left = ((edge.Left as VFXEdFlowAnchor).parent as VFXEdNode).UniqueName;
                         string right = ((edge.Right as VFXEdFlowAnchor).parent as VFXEdNode).UniqueName;
-                        t.AddConnection(left, right);
+
+                        if(t.Nodes.ContainsKey(left) && t.Nodes.ContainsKey(right))
+                        {
+                            t.AddConnection(left, right);
+                        }
+                        
                     }
 
                 }

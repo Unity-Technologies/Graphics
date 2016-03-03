@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental
             m_ClientArea = new Rect(0, 0, scale.x, scale.y);
 
             m_UniqueName = GetType().Name + "_" + Token;
-            Debug.Log(m_UniqueName);
+
             AddManipulator(new Draggable());
             AddManipulator(new NodeDelete());
 
