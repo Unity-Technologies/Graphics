@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental
             m_ExposeOption.translation = m_ClientArea.position + new Vector2(8.0f,-4.0f);
         }
 
-        protected override void ShowNodeBlockMenu(Vector2 canvasClickPosition)
+        protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)
         {
            GenericMenu menu = new GenericMenu();
 
@@ -38,7 +38,7 @@ namespace UnityEditor.Experimental
                     menu.AddItem(new GUIContent(block.path), false, AddNodeBlock, new VFXEdDataNodeBlockSpawner(canvasClickPosition, block, this, m_DataSource));
                 }
 
-            menu.ShowAsContext();
+            return menu;
         }
 
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
