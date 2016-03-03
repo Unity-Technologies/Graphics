@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental
         protected VFXEdNodeBlockContainer m_NodeBlockContainer;
 
         public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource) : base(canvasposition, dataSource)
-        {	
+        {
             m_DataSource = dataSource;
 
             scale = new Vector2(VFXEditorMetrics.NodeDefaultWidth, 100);

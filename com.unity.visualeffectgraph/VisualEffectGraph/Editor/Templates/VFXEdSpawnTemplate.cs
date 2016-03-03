@@ -10,33 +10,45 @@ namespace UnityEditor.Experimental
 {
     public class VFXEdSpawnTemplate : ScriptableObject
     {
-        public string Name { get { return m_Name; } }
-        public string Category { get { return m_Category; } } 
+        public string Name { get { return m_Name; } set { m_Name = value; } }
+        public string Category { get { return m_Category; } set { m_Category = value; } } 
         
         public string Path { get { return m_Category + "/" + m_Name; } }
 
-        private string m_Name;
-        private string m_Category;
+        private string m_Name = "";
+        private string m_Category = "";
 
+        internal Dictionary<string, NodeInfo> Nodes { get { return m_Nodes; } }
+        internal List<FlowConnection> Connections { get { return m_Connections; } }
+
+        [SerializeField]
         private Dictionary<string, NodeInfo> m_Nodes;
+        [SerializeField]
         private List<FlowConnection> m_Connections;
-
-        public VFXEdSpawnTemplate(string category, string name)
+        
+        public VFXEdSpawnTemplate()
         {
-            m_Name = name;
-            m_Category = category;
             m_Nodes = new Dictionary<string,NodeInfo>();
             m_Connections = new List<FlowConnection>();
         }
 
+        internal static VFXEdSpawnTemplate Create(string category, string name)
+        {
+            VFXEdSpawnTemplate t = ScriptableObject.CreateInstance<VFXEdSpawnTemplate>();
+            t.Name = name;
+            t.Category = category;
+            return t;
+        }
+
+
         public void AddNode(string nodename, VFXEdContext context)
         {
-            m_Nodes.Add(nodename, new NodeInfo(context));
+            m_Nodes.Add(nodename, NodeInfo.Create(context));
         }
 
         public void AddNodeBlock(string nodename, string blockname)
         {
-            m_Nodes[nodename].nodeBlocks.Add(blockname, new NodeBlockInfo(blockname));
+            m_Nodes[nodename].nodeBlocks.Add(blockname, NodeBlockInfo.Create(blockname));
         }
 
         public void SetNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
@@ -46,7 +58,7 @@ namespace UnityEditor.Experimental
 
         public void AddConnection(string nodeA, string nodeB)
         {
-            m_Connections.Add(new FlowConnection(m_Nodes[nodeA], m_Nodes[nodeB]));
+            m_Connections.Add(FlowConnection.Create(m_Nodes[nodeA], m_Nodes[nodeB]));
         }
 
         internal void Spawn(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 canvasPosition )
@@ -102,157 +114,7 @@ namespace UnityEditor.Experimental
             canvas.ReloadData();
         }
 
-        private class NodeInfo : ScriptableObject
-        {
-            public Dictionary<string, NodeBlockInfo> nodeBlocks;
-            public VFXEdContext Context {get { return m_Context; } }
-            private VFXEdContext m_Context;
-            
-            public NodeInfo(VFXEdContext context)
-            {
-                m_Context = context;
-                nodeBlocks = new Dictionary<string, NodeBlockInfo>();
-            }
-        }
-        private class NodeBlockInfo : ScriptableObject
-        {
-            public string BlockName { get { return m_BlockName; } }
-            public Dictionary<string, VFXParamValue> ParameterOverrides { get { return m_ParameterOverrides; } }
 
-            private Dictionary<string, VFXParamValue> m_ParameterOverrides;
-            private string m_BlockName;
-            public NodeBlockInfo(string blockname) {
-                m_BlockName = blockname;
-                m_ParameterOverrides = new Dictionary<string, VFXParamValue>();
-            }
-            
-            public void AddParameterOverride(string name, VFXParamValue ParamValue)
-            {
-                m_ParameterOverrides.Add(name, ParamValue);
-            }
-        }
-
-        private class FlowConnection : ScriptableObject
-        {
-            public readonly NodeInfo Previous;
-            public readonly NodeInfo Next;
-            public FlowConnection(NodeInfo input, NodeInfo output)
-            {
-                Previous = input;
-                Next = output;
-            }
-        }
     }
-
-    internal class VFXEdTemplateSpawner : VFXEdSpawner
-    {
-        private string m_Path;
-        private VFXEdDataSource m_Datasource;
-        private VFXEdCanvas m_Canvas;
-
-        public VFXEdTemplateSpawner(string path, VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 canvasPosition ) : base(canvasPosition)
-        {
-            m_Path = path;
-            m_Datasource = datasource;
-            m_Canvas = canvas;
-        }
-
-        public override void Spawn()
-        {
-            VFXEdSpawnTemplate template = VFXEditor.SpawnTemplates.GetTemplate(m_Path);
-            template.Spawn(m_Datasource, m_Canvas, m_canvasPosition);
-        }
-    }
-
-    public class VFXEdSpawnTemplateLibrary : ScriptableObject
-    {
-        public List<VFXEdSpawnTemplate> Templates { get { return m_Templates; } }
-        private List<VFXEdSpawnTemplate> m_Templates;
-
-        public VFXEdSpawnTemplateLibrary()
-        {
-            m_Templates = new List<VFXEdSpawnTemplate>();
-           
-        }
-
-        public VFXEdSpawnTemplate GetTemplate(string path)
-        {
-            return m_Templates.Find(t => t.Path.Equals(path));
-        }
-
-        public void SpawnFromMenu(object o)
-        {
-            VFXEdTemplateSpawner spawner = o as VFXEdTemplateSpawner;
-            spawner.Spawn();
-        }
-
-        public void Initialize()
-        {
-            VFXEdSpawnTemplate fulltemplate = new VFXEdSpawnTemplate("Full", "Full Template");
-            fulltemplate.AddNode("init", VFXEdContext.Initialize);
-            fulltemplate.AddNode("update", VFXEdContext.Update);
-            fulltemplate.AddNode("output", VFXEdContext.Output);
-
-            fulltemplate.AddNodeBlock("init", "Set Lifetime (Random)");
-            fulltemplate.AddNodeBlock("init", "Set Velocity (Spherical)");
-            fulltemplate.AddNodeBlock("init", "Add Velocity (Constant)");
-            fulltemplate.AddNodeBlock("init", "Set Size Constant (Square)");
-
-            fulltemplate.AddNodeBlock("update", "Color Over Lifetime");
-            fulltemplate.AddNodeBlock("update", "Apply Force");
-            fulltemplate.AddNodeBlock("update", "Apply Drag");
-            fulltemplate.AddNodeBlock("update", "Collision with Plane");
-            fulltemplate.AddNodeBlock("update", "Age and Reap");
-            fulltemplate.AddNodeBlock("update", "Apply Velocity to Positions");
-            
-            fulltemplate.SetNodeBlockParameter("init","Set Lifetime (Random)","minLifetime", VFXParamValue.Create(4.0f));
-            fulltemplate.SetNodeBlockParameter("init","Set Lifetime (Random)","maxLifetime", VFXParamValue.Create(5.5f));
-            fulltemplate.SetNodeBlockParameter("init","Set Velocity (Spherical)","angle", VFXParamValue.Create(new Vector2(80.0f,80.0f)));
-            fulltemplate.SetNodeBlockParameter("init","Set Velocity (Spherical)","speed", VFXParamValue.Create(new Vector2(1.0f,1.0f)));
-            fulltemplate.SetNodeBlockParameter("init","Add Velocity (Constant)","value", VFXParamValue.Create(new Vector3(50.0f,0.0f,0.0f)));
-            fulltemplate.SetNodeBlockParameter("init","Set Size Constant (Square)","value", VFXParamValue.Create(1.5f));
-            
-            fulltemplate.SetNodeBlockParameter("update","Color Over Lifetime","start", VFXParamValue.Create(new Vector3(1.0f,0.0f,1.0f)));
-            fulltemplate.SetNodeBlockParameter("update","Color Over Lifetime","end", VFXParamValue.Create(new Vector3(0.0f,1.0f,1.0f)));
-            fulltemplate.SetNodeBlockParameter("update","Apply Force","force", VFXParamValue.Create(new Vector3(0.0f,-5.0f,0.0f)));
-            fulltemplate.SetNodeBlockParameter("update","Apply Drag","multiplier", VFXParamValue.Create(0.02f));
-            fulltemplate.SetNodeBlockParameter("update","Collision with Plane","normal", VFXParamValue.Create(new Vector3(0.0f,1.0f,0.0f)));
-            fulltemplate.SetNodeBlockParameter("update","Collision with Plane","center", VFXParamValue.Create(new Vector3(0.0f,-1.0f,0.0f)));
-            fulltemplate.SetNodeBlockParameter("update","Collision with Plane","elasticity", VFXParamValue.Create(0.95f));
-            
-
-            fulltemplate.AddConnection("init", "update");
-            fulltemplate.AddConnection("update", "output");
-
-            m_Templates.Add(fulltemplate);
-
-
-            VFXEdSpawnTemplate init = new VFXEdSpawnTemplate("Simple", "Initialize");
-            init.AddNode("init", VFXEdContext.Initialize);
-            init.AddNodeBlock("init", "Set Lifetime (Constant)");
-            init.AddNodeBlock("init", "Set Color (Constant)");
-            init.AddNodeBlock("init", "Set Position (Point)");
-            init.AddNodeBlock("init", "Set Velocity (Constant)");
-            init.AddNodeBlock("init", "Set Size Constant (Square)");
-            m_Templates.Add(init);
-
-
-            VFXEdSpawnTemplate update = new VFXEdSpawnTemplate("Simple", "Update");
-            update.AddNode("update", VFXEdContext.Update);
-            update.AddNodeBlock("update", "Apply Force");
-            update.AddNodeBlock("update", "Apply Drag");
-            update.AddNodeBlock("update", "Age and Reap");
-            update.AddNodeBlock("update", "Apply Velocity to Positions");
-            m_Templates.Add(update);
-
-
-
-            VFXEdSpawnTemplate output = new VFXEdSpawnTemplate("Simple", "Output");
-            output.AddNode("output", VFXEdContext.Output);
-
-            m_Templates.Add(output);
-        }
-    }
-
 
 }

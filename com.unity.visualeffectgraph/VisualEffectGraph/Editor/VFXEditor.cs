@@ -49,7 +49,6 @@ namespace UnityEditor.Experimental
         }
 
         /* Singletons */
-
         public static VFXEditorMetrics metrics
         {
             get
@@ -161,7 +160,9 @@ namespace UnityEditor.Experimental
         private VFXAsset m_CurrentAsset;
 
         private bool m_bShowDebug = false;
-        
+        private int m_ShowDebugPage = 0;
+        private string m_NewTemplateCategory = "";
+        private string m_NewTemplateName = "";
 
         private Vector2 m_DebugLogScroll = Vector2.zero;
 
@@ -190,17 +191,7 @@ namespace UnityEditor.Experimental
         {
             if (s_SpawnTemplates == null)
             {
-                s_SpawnTemplates = AssetDatabase.LoadAssetAtPath<VFXEdSpawnTemplateLibrary>("Assets/VFXEditor/Editor/TemplateLibrary");
-
-                if(s_SpawnTemplates == null)
-                {
-                    Debug.Log("Template Not Exist, Creating...");
-                    s_SpawnTemplates = ScriptableObject.CreateInstance<VFXEdSpawnTemplateLibrary>();
-                    AssetDatabase.CreateAsset(s_SpawnTemplates, "Assets/VFXEditor/Editor/TemplateLibrary");
-
-                    s_SpawnTemplates.Initialize();
-                }
-
+                s_SpawnTemplates = VFXEdSpawnTemplateLibrary.Create();
             }
         }
 
@@ -264,6 +255,7 @@ namespace UnityEditor.Experimental
                 GUILayout.BeginArea(new Rect(position.width-VFXEditorMetrics.DebugWindowWidth, EditorStyles.toolbar.fixedHeight, VFXEditorMetrics.DebugWindowWidth, position.height -EditorStyles.toolbar.fixedHeight));
                 GUILayout.BeginVertical();
 
+                
                 // Debug Window Toolbar
                 GUILayout.BeginHorizontal(EditorStyles.toolbar);
 
@@ -291,11 +283,85 @@ namespace UnityEditor.Experimental
                     ClearLog();
 
                 GUILayout.EndHorizontal();
-                m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
-                List<string> debugOutput = VFXEditor.GetDebugOutput();
 
-                foreach (string str in debugOutput)
-                    GUILayout.Label(str);
+                // Tabs Toolbar
+                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                GUILayout.Label("Choose Page : ", EditorStyles.toolbarButton);
+                if(GUILayout.Button("Debug Log", EditorStyles.toolbarButton)) m_ShowDebugPage = 0;
+                if(GUILayout.Button("Edit Templates", EditorStyles.toolbarButton)) m_ShowDebugPage = 1;
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+
+
+                m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
+
+                switch(m_ShowDebugPage)
+                {
+                    case 0: // Debug log
+
+                        
+                        List<string> debugOutput = VFXEditor.GetDebugOutput();
+                        foreach (string str in debugOutput)
+                            GUILayout.Label(str);
+                        
+
+                        break;
+                    case 1: // Edit Templates
+                        EditorGUI.indentLevel ++;
+                        GUILayout.Space(16.0f);
+                        GUILayout.Label("Add New Template from Selection...",VFXEditor.styles.InspectorHeader);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("Category : ");
+                        m_NewTemplateCategory = GUILayout.TextField(m_NewTemplateCategory,150);
+                        GUILayout.Label("Name : ");
+                        m_NewTemplateName = GUILayout.TextField(m_NewTemplateName,150);
+                        if(GUILayout.Button("Add..."))
+                        {
+                            VFXEdSpawnTemplate t = VFXEdSpawnTemplateLibrary.CreateTemplateFromSelection(m_Canvas, m_NewTemplateCategory, m_NewTemplateName);
+                            if(t!= null)
+                            {
+                                VFXEditor.SpawnTemplates.AddTemplate(t);
+                                SpawnTemplates.WriteLibrary();
+                                m_NewTemplateCategory = "";
+                                m_NewTemplateName = "";
+                            }
+
+                        }
+                        GUILayout.EndHorizontal();
+                        GUILayout.Space(16.0f);
+                        GUILayout.Label("Currently Loaded Templates",VFXEditor.styles.InspectorHeader);
+
+                        List<string> todelete = new List<string>();
+                        foreach(VFXEdSpawnTemplate t in SpawnTemplates.Templates)
+                        {
+                            GUILayout.BeginHorizontal();
+                            if(GUILayout.Button("X"))
+                            {
+                                todelete.Add(t.Path);
+                            }
+                            GUILayout.Label(t.Path);
+                            GUILayout.FlexibleSpace();
+                            GUILayout.EndHorizontal();
+                        }
+                        // If Has to delete...
+                        if(todelete.Count > 0) foreach(string s in todelete) SpawnTemplates.DeleteTemplate(s);
+
+
+                        GUILayout.Space(16.0f);
+                        GUILayout.Label("Debug...",VFXEditor.styles.InspectorHeader);
+                        if (GUILayout.Button("Fill templates (debug)"))
+                        {
+                            SpawnTemplates.Initialize();
+                        }
+
+                        if (GUILayout.Button("Reload Templates"))
+                        {
+                            SpawnTemplates.ReloadLibrary();
+                        }
+                        EditorGUI.indentLevel --;
+                        break;
+                    default: break;
+                }
 
                 GUILayout.EndScrollView();
                 GUILayout.EndVertical();

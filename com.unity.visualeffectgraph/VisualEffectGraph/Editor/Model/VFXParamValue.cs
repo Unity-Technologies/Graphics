@@ -130,7 +130,7 @@ namespace UnityEditor.Experimental
         public override VFXParamValue Clone()
         {
             VFXParamValue<T> param = (VFXParamValue<T>)MemberwiseClone();
-            param.m_Bindings.Clear();
+            param.m_Bindings = new List<Binding>();
             return param;
         }
 
