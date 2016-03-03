@@ -317,25 +317,36 @@ namespace UnityEditor.Experimental
                         m_NewTemplateName = GUILayout.TextField(m_NewTemplateName,150);
                         if(GUILayout.Button("Add..."))
                         {
-                            VFXEditor.SpawnTemplates.AddTemplate(VFXEdSpawnTemplateLibrary.CreateTemplateFromSelection(m_Canvas,m_NewTemplateCategory, m_NewTemplateName));
-                            SpawnTemplates.WriteLibrary();
-                            m_NewTemplateCategory = "";
-                            m_NewTemplateName = "";
+                            VFXEdSpawnTemplate t = VFXEdSpawnTemplateLibrary.CreateTemplateFromSelection(m_Canvas, m_NewTemplateCategory, m_NewTemplateName);
+                            if(t!= null)
+                            {
+                                VFXEditor.SpawnTemplates.AddTemplate(t);
+                                SpawnTemplates.WriteLibrary();
+                                m_NewTemplateCategory = "";
+                                m_NewTemplateName = "";
+                            }
+
                         }
                         GUILayout.EndHorizontal();
                         GUILayout.Space(16.0f);
                         GUILayout.Label("Currently Loaded Templates",VFXEditor.styles.InspectorHeader);
+
+                        List<string> todelete = new List<string>();
                         foreach(VFXEdSpawnTemplate t in SpawnTemplates.Templates)
                         {
                             GUILayout.BeginHorizontal();
                             if(GUILayout.Button("X"))
                             {
-                                SpawnTemplates.DeleteTemplate(t.Path);
+                                todelete.Add(t.Path);
                             }
                             GUILayout.Label(t.Path);
                             GUILayout.FlexibleSpace();
                             GUILayout.EndHorizontal();
                         }
+                        // If Has to delete...
+                        if(todelete.Count > 0) foreach(string s in todelete) SpawnTemplates.DeleteTemplate(s);
+
+
                         GUILayout.Space(16.0f);
                         GUILayout.Label("Debug...",VFXEditor.styles.InspectorHeader);
                         if (GUILayout.Button("Fill templates (debug)"))

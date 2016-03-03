@@ -275,7 +275,13 @@ namespace UnityEditor.Experimental
         internal static VFXEdSpawnTemplate CreateTemplateFromSelection(VFXEdCanvas canvas, string category, string name)
         {
             VFXEdSpawnTemplate t = VFXEdSpawnTemplate.Create(category, name);
-            
+            if(canvas.selection.Count == 0)
+            {
+                if (EditorUtility.DisplayDialog("Warning", "Selection is Empty, Are you sure you want to continue?", "Break", "Continue"))
+                {
+                    return null;
+                }
+            }
             foreach(CanvasElement e in canvas.selection)
             {
                 if(e is VFXEdContextNode)
