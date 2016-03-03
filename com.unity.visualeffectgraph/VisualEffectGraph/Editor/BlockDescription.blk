@@ -336,6 +336,15 @@ size *= s;
 
 size *= float2(lerp(minScale.x,maxScale.x,RAND),lerp(minScale.y,maxScale.y,RAND));
 
+#block Height Over Velocity
+#icon Size
+#category Size/
+#arg float3 velocity [param]
+#arg float2 size [inout|param]
+#arg float multiplier [public]
+
+size.y = length(velocity) * multiplier;
+
 #---------------------------------------------------------------------
 # VELOCITY BLOCKS
 #---------------------------------------------------------------------

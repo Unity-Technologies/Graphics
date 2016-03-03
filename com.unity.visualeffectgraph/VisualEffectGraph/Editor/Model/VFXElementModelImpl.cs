@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
@@ -8,15 +9,33 @@ namespace UnityEditor.Experimental
     public class VFXAssetModel : VFXElementModelTyped<VFXElementModel, VFXSystemModel>
     {
         public VFXAssetModel()
-        {     
+        {
+            RemovePreviousVFXs();
+
             gameObject = new GameObject("VFX");
-            gameObject.hideFlags = HideFlags.DontSaveInEditor;
+            //gameObject.hideFlags = HideFlags.DontSaveInEditor;
             component = gameObject.AddComponent<VFXComponent>();
+        }
+
+        private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
+        {
+            var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
+           
+            int nbDeleted = 0;
+            foreach (var vfx in vfxs)
+                if (vfx != null && vfx.gameObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(vfx.gameObject);
+                    ++nbDeleted;
+                }
+
+            if (nbDeleted > 0)
+                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
         }
 
         public void Dispose()
         {
-            UnityEngine.Object.DestroyImmediate(gameObject);
+            UnityEngine.Object.DestroyImmediate(gameObject); 
             for (int i = 0; i < GetNbChildren(); ++i)
                 GetChild(i).Dispose();
         }

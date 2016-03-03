@@ -345,16 +345,14 @@ namespace UnityEditor.Experimental
                 EditorGUIUtility.ExitGUI();
             }
 
-
             GUILayout.FlexibleSpace();
+
+            string text = GetOutputTypeStr(AssetModel.OutputType);
+            if (GUILayout.Button(text, EditorStyles.toolbarButton))
+                AssetModel.SwitchOutputType();
 
             bool UsePhaseShift = AssetModel.PhaseShift;
             AssetModel.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
-
-
-            string text = GetOutputTypeStr(AssetModel.OutputType);
-            if (GUILayout.Button(text))
-                AssetModel.SwitchOutputType();
 
             m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "DEBUG PANEL", EditorStyles.toolbarButton);
             m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);
