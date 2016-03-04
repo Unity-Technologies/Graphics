@@ -31,6 +31,17 @@ lifetime = max(minLifetime + RAND * (maxLifetime-minLifetime),0.0f);
 
 color = value;
 
+#block Color from Texture2D (XZ Projection)
+#icon Color
+#category Color/
+#arg float3 color [inout|param]
+#arg float3 position [param] 
+#arg float textureworldsize [public]
+#arg Texture2D tex [public] 
+
+float2 coords = (position.xz / max(0.0001f,textureworldsize));
+color = tex2Dlod(tex,float4(coords.x,coords.y,0,0)).rgb;;
+
 #block Set Color (Random)
 #icon Color
 #category Color/
@@ -197,6 +208,16 @@ velocity += normalize(dir) * (deltaTime * force / sqrDist);
 #arg float3 value [public] 
 
 position = value;
+
+#block Position Map (Texture)
+#icon Position
+#category Position/
+#arg float3 position [inout|param]
+#arg Texture2D tex [public] 
+#arg float3 scale [public]
+#arg float3 center [public]
+
+position = center+((tex2Dlod(tex,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
 
 #block Set Position (Random Box)
 #icon Position
