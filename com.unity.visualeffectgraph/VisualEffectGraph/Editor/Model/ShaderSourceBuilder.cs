@@ -53,9 +53,32 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public static void WriteSamplers(this StringBuilder builder, HashSet<VFXParamValue> samplers, Dictionary<VFXParamValue, string> samplersToName)
+        {
+            foreach (var sampler in samplers)
+            {
+                if (sampler.ValueType == VFXParam.Type.kTypeTexture2D)
+                    builder.Append("sampler2D ");
+                else if (sampler.ValueType == VFXParam.Type.kTypeTexture3D)
+                    builder.Append("sampler3D ");
+                else
+                    continue;
+
+                builder.Append(samplersToName[sampler]);
+                builder.AppendLine(";");
+                builder.AppendLine();
+            }
+        }
+
         public static void WriteType(this StringBuilder builder, VFXParam.Type type)
         {
-            builder.Append(VFXParam.GetNameFromType(type));
+            // tmp transform texture to sampler TODO This must be handled directly in C++ conversion array
+            if (type == VFXParam.Type.kTypeTexture2D)
+                builder.Append("sampler2D");
+            else if (type == VFXParam.Type.kTypeTexture3D)
+                builder.Append("sampler3D");
+            else
+                builder.Append(VFXParam.GetNameFromType(type));
         }
 
         public static void WriteFunction(this StringBuilder builder, VFXBlockModel block, Dictionary<Hash128, string> functions)
