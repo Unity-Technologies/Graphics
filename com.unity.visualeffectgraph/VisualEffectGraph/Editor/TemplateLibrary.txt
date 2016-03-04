@@ -352,4 +352,45 @@
       <FlowConnection Previous="VFXEdContextNode_5" Next="VFXEdContextNode_6" />
     </Connections>
   </Template>
+  <Template Category="Textured" Name="PM MadeWithUnity">
+    <Nodes>
+      <Node Name="VFXEdContextNode_9" Context="Initialize">
+        <NodeBlock Name="Set Lifetime (Random)" BlockName="Set Lifetime (Random)">
+          <VFXParamValue Name="minLifetime" Type="kTypeFloat" Value="1" />
+          <VFXParamValue Name="maxLifetime" Type="kTypeFloat" Value="2" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Random)" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0.02,0.02,0.02" />
+        </NodeBlock>
+        <NodeBlock Name="Position Map (Texture)" BlockName="Position Map (Texture)">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/PositionMap.tga" />
+          <VFXParamValue Name="scale" Type="kTypeFloat3" Value="-1,1,1" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0.5,0.5,0.5" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Random (Square)" BlockName="Set Size Random (Square)">
+          <VFXParamValue Name="minSize" Type="kTypeFloat" Value="0.01" />
+          <VFXParamValue Name="maxSize" Type="kTypeFloat" Value="0.001" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_10" Context="Update">
+        <NodeBlock Name="Apply Force" BlockName="Apply Force">
+          <VFXParamValue Name="force" Type="kTypeFloat3" Value="0,0.1,0" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Velocity to Positions" BlockName="Apply Velocity to Positions" />
+        <NodeBlock Name="Color from Texture2D (XZ Projection)" BlockName="Color from Texture2D (XZ Projection)">
+          <VFXParamValue Name="textureworldsize" Type="kTypeFloat" Value="1" />
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/MadeWithUnity.psd" />
+        </NodeBlock>
+        <NodeBlock Name="Alpha Over Lifetime" BlockName="Alpha Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat" Value="0.1" />
+          <VFXParamValue Name="end" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+        <NodeBlock Name="Age and Reap" BlockName="Age and Reap" />
+      </Node>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_9" Next="VFXEdContextNode_10" />
+    </Connections>
+  </Template>
 </Library>
