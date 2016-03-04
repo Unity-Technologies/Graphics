@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
@@ -8,15 +9,33 @@ namespace UnityEditor.Experimental
     public class VFXAssetModel : VFXElementModelTyped<VFXElementModel, VFXSystemModel>
     {
         public VFXAssetModel()
-        {     
+        {
+            RemovePreviousVFXs();
+
             gameObject = new GameObject("VFX");
-            gameObject.hideFlags = HideFlags.DontSaveInEditor;
+            //gameObject.hideFlags = HideFlags.DontSaveInEditor;
             component = gameObject.AddComponent<VFXComponent>();
+        }
+
+        private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
+        {
+            var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
+           
+            int nbDeleted = 0;
+            foreach (var vfx in vfxs)
+                if (vfx != null && vfx.gameObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(vfx.gameObject);
+                    ++nbDeleted;
+                }
+
+            if (nbDeleted > 0)
+                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
         }
 
         public void Dispose()
         {
-            UnityEngine.Object.DestroyImmediate(gameObject);
+            UnityEngine.Object.DestroyImmediate(gameObject); 
             for (int i = 0; i < GetNbChildren(); ++i)
                 GetChild(i).Dispose();
         }
@@ -55,6 +74,8 @@ namespace UnityEditor.Experimental
                         component.simulationShader = rtData.SimulationShader;
                         component.material = rtData.m_Material;
                         component.outputType = (uint)m_OutputType;
+                        component.maxNb = GetChild(i).MaxNb;
+                        component.spawnRate = GetChild(i).SpawnRate;
                     }
                 }
 
@@ -72,6 +93,18 @@ namespace UnityEditor.Experimental
                 }
                 m_ReloadUniforms = false;
             }
+        }
+
+        // tmp
+        public void UpdateComponentMaxNb(uint MaxNb)
+        {
+            component.maxNb = MaxNb;
+        }
+
+        // tmp
+        public void UpdateComponentSpawnRate(float SpawnRate)
+        {
+            component.spawnRate = SpawnRate;
         }
 
         public bool PhaseShift
@@ -121,6 +154,8 @@ namespace UnityEditor.Experimental
 
     public class VFXSystemModel : VFXElementModelTyped<VFXAssetModel, VFXContextModel>
     {
+
+
         public void Dispose()
         {
             if (rtData != null)
@@ -213,10 +248,43 @@ namespace UnityEditor.Experimental
         }
 
         private bool m_Dirty = true;
+
         private VFXSystemRuntimeData rtData;
         public VFXSystemRuntimeData RtData
         {
             get { return rtData; }
+        }
+
+        private const uint INITIAL_MAX_NB = 1 << 20;
+
+        private uint m_MaxNb = INITIAL_MAX_NB;
+        public uint MaxNb
+        {
+            get { return m_MaxNb; }
+            set 
+            {
+                if (m_MaxNb != value)
+                {
+                    m_MaxNb = value;
+                    if (rtData != null)
+                        GetOwner().UpdateComponentMaxNb(m_MaxNb);
+                }
+            }
+        }
+
+        private float m_SpawnRate = INITIAL_MAX_NB / 10.0f;
+        public float SpawnRate
+        {
+            get { return m_SpawnRate; }
+            set
+            {
+                if (m_SpawnRate != value)
+                {
+                    m_SpawnRate = value;
+                    if (rtData != null)
+                        GetOwner().UpdateComponentSpawnRate(m_SpawnRate);
+                }
+            }
         }
     }
 

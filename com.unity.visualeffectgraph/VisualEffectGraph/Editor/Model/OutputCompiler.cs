@@ -259,7 +259,7 @@ namespace UnityEditor.Experimental
                 builder.AppendLine("\t\t\t\t\tconst float2 size = float2(0.005,0.005);");
 
             builder.AppendLine("\t\t\t\t\to.offsets.x = 2.0 * float(id & 1) - 1.0;");
-            builder.AppendLine("\t\t\t\t\to.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0; // TODO swap indices in index buffer...");
+            builder.AppendLine("\t\t\t\t\to.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;");
             builder.AppendLine();
 
             builder.Append("\t\t\t\t\tfloat3 worldPos = ");

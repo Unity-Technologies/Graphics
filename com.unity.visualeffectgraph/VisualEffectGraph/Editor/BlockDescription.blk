@@ -52,6 +52,17 @@ color = lerp(value1,value2,RAND);
 float ratio = saturate(age / lifetime);
 color = lerp(start,end,ratio);
 
+#block Color Over Lifetime (Texture)
+#icon Color
+#category Color/
+#arg float3 color [inout|param]
+#arg float age [param] 
+#arg float lifetime [param] 
+#arg Texture2D tex [public] 
+
+float ratio = saturate(age / lifetime);
+color = tex2Dlod(tex,float4(ratio,0.5,0,0)).rgb;
+
 #block Set Alpha (Constant)
 #icon Alpha
 #category Color/
@@ -335,6 +346,15 @@ size *= s;
 #arg float2 maxScale [public] 
 
 size *= float2(lerp(minScale.x,maxScale.x,RAND),lerp(minScale.y,maxScale.y,RAND));
+
+#block Height Over Velocity
+#icon Size
+#category Size/
+#arg float3 velocity [param]
+#arg float2 size [inout|param]
+#arg float multiplier [public]
+
+size.y = length(velocity) * multiplier;
 
 #---------------------------------------------------------------------
 # VELOCITY BLOCKS

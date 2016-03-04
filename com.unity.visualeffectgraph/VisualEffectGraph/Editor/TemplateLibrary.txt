@@ -158,4 +158,50 @@
       <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
     </Connections>
   </Template>
+  <Template Category="test" Name="fireball">
+    <Nodes>
+      <Node Name="VFXEdContextNode_0" Context="Initialize">
+        <NodeBlock Name="Set Position (Sphere Surface)" BlockName="Set Position (Sphere Surface)">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="1" />
+        </NodeBlock>
+        <NodeBlock Name="Set Color (Constant)" BlockName="Set Color (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat3" Value="0.5,0.1,0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.03" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.7" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_1" Context="Update">
+        <NodeBlock Name="Height Over Velocity" BlockName="Height Over Velocity">
+          <VFXParamValue Name="multiplier" Type="kTypeFloat" Value="0.2" />
+        </NodeBlock>
+        <NodeBlock Name="Conform To Sphere" BlockName="Conform To Sphere">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="1" />
+          <VFXParamValue Name="attractionSpeed" Type="kTypeFloat" Value="0" />
+          <VFXParamValue Name="attractionForce" Type="kTypeFloat" Value="0" />
+          <VFXParamValue Name="stickForce" Type="kTypeFloat" Value="1.5" />
+          <VFXParamValue Name="stickDistance" Type="kTypeFloat" Value="0.1" />
+        </NodeBlock>
+        <NodeBlock Name="Attractor" BlockName="Attractor">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="4,1,0" />
+          <VFXParamValue Name="force" Type="kTypeFloat" Value="70" />
+          <VFXParamValue Name="offset" Type="kTypeFloat" Value="0.1" />
+        </NodeBlock>
+        <NodeBlock Name="Alpha Over Lifetime" BlockName="Alpha Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat" Value="0" />
+          <VFXParamValue Name="end" Type="kTypeFloat" Value="0.3" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Velocity to Positions" BlockName="Apply Velocity to Positions" />
+        <NodeBlock Name="Age and Reap" BlockName="Age and Reap" />
+      </Node>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
+    </Connections>
+  </Template>
 </Library>
