@@ -47,7 +47,7 @@ namespace UnityEditor.Experimental
             (canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting NodeBlock " + (element as VFXEdNodeBlock).name);
 
             // Delete Edges
-            VFXEdNodeBlock node = element as VFXEdNodeBlock;
+            VFXEdNodeBlockDraggable node = element as VFXEdNodeBlockDraggable;
             VFXEdNodeBlockContainer container = (node.parent as VFXEdNodeBlockContainer);
             container.RemoveNodeBlock(node);
 

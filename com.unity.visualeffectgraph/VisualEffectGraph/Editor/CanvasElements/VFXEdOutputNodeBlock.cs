@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental
         }
     }
 
-    internal class VFXEdOutputNodeBlock : CanvasElement
+    internal class VFXEdOutputNodeBlock : VFXEdNodeBlock
     {
         public string Name
         {
@@ -62,14 +62,11 @@ namespace UnityEditor.Experimental
 
         public VFXEdNodeBlockHeader Header { get { return m_Header; } }
         public int RenderType { get { return m_renderType; } }
-        protected VFXEdNodeBlockParameterField[] m_Fields;
 
-        protected VFXEdDataSource m_DataSource;
-        private NodeBlockManipulator m_NodeBlockManipulator;
         private int m_renderType;
         private VFXEdNodeBlockHeader m_Header;
 
-        public VFXEdOutputNodeBlock(VFXEdDataSource dataSource, int renderType)
+        public VFXEdOutputNodeBlock(VFXEdDataSource dataSource, int renderType) : base(dataSource)
         {
             m_DataSource = dataSource;
             translation = Vector3.zero; 
@@ -83,18 +80,6 @@ namespace UnityEditor.Experimental
         public void BindTo(VFXEdOutputNode node)
         {
             VFXEditor.AssetModel.OutputType = m_renderType;
-        }
-
-
-        // Retrieve the full height of the block
-        public virtual float GetHeight()
-        {
-            float height = VFXEditorMetrics.NodeBlockHeaderHeight;
-            foreach(VFXEdNodeBlockParameterField field in m_Fields) {
-                height += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
-            }
-            height += VFXEditorMetrics.NodeBlockFooterHeight;
-            return height;
         }
 
         public override void Layout()
@@ -132,6 +117,16 @@ namespace UnityEditor.Experimental
             GUI.Box(r, "", VFXEditor.styles.DataNodeBlock);
             GUI.color = Color.white;
             base.Render(parentRect, canvas);
+        }
+
+        protected override GUIStyle GetNodeBlockStyle()
+        {
+            return VFXEditor.styles.DataNodeBlock;
+        }
+
+        protected override GUIStyle GetNodeBlockSelectedStyle()
+        {
+            return VFXEditor.styles.DataNodeBlock;
         }
     }
 }

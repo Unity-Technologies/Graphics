@@ -58,15 +58,15 @@ namespace UnityEditor.Experimental
                 return false;
             }
 
-            if ((canvas as VFXEdCanvas).SelectedNodeBlock != (element as VFXEdNodeBlock))
+            if ((canvas as VFXEdCanvas).SelectedNodeBlock != (element as VFXEdNodeBlockDraggable))
             {
-                (canvas as VFXEdCanvas).SelectedNodeBlock = (element as VFXEdNodeBlock);
+                (canvas as VFXEdCanvas).SelectedNodeBlock = (element as VFXEdNodeBlockDraggable);
                 (element as VFXEdNodeBlock).Invalidate();
             }
 
             bActuallyDrag = false;
 
-            if (element is VFXEdNodeBlock)
+            if (element is VFXEdNodeBlockDraggable)
             {
                 m_ClickPosition = canvas.MouseToCanvas(e.mousePosition);
                 canvas.StartCapture(this, element);
@@ -101,16 +101,16 @@ namespace UnityEditor.Experimental
 
                 if (m_targetDropContainer != m_initialDropContainer)
                 {
-                    m_targetDropContainer.AcceptDrop(element as VFXEdNodeBlock);
+                    m_targetDropContainer.AcceptDrop(element as VFXEdNodeBlockDraggable);
                 }
                 else
                 {
-                    m_initialDropContainer.AcceptDrop(element as VFXEdNodeBlock);
+                    m_initialDropContainer.AcceptDrop(element as VFXEdNodeBlockDraggable);
                 }
             }
             else
             {
-                m_initialDropContainer.RevertDrop(element as VFXEdNodeBlock, m_initialDropContainerIndex);
+                m_initialDropContainer.RevertDrop(element as VFXEdNodeBlockDraggable, m_initialDropContainerIndex);
             }
 
             // Revert forbidden overlays
@@ -187,7 +187,7 @@ namespace UnityEditor.Experimental
             {
                 if (Vector2.Distance(canvas.MouseToCanvas(e.mousePosition), m_ClickPosition) > m_SnapDistance)
                 {
-                    VFXEdNodeBlock n = element as VFXEdNodeBlock;
+                    VFXEdNodeBlockDraggable n = element as VFXEdNodeBlockDraggable;
                     CanvasElement parent = n.parent;
                     VFXEdNodeBlockContainer container = parent as VFXEdNodeBlockContainer;
                     m_initialDropContainerIndex = container.GetBlockIndex(n);

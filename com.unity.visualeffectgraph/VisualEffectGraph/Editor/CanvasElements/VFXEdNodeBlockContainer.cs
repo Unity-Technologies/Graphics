@@ -32,12 +32,12 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public  List<VFXEdNodeBlock> nodeBlocks { get { return m_NodeBlocks; } }
+        public  List<VFXEdNodeBlockDraggable> nodeBlocks { get { return m_NodeBlocks; } }
 
         private DropInfo dropInfo;
-        private List<VFXEdNodeBlock> m_NodeBlocks;
+        private List<VFXEdNodeBlockDraggable> m_NodeBlocks;
 
-        public bool OwnsBlock(VFXEdNodeBlock item)
+        public bool OwnsBlock(VFXEdNodeBlockDraggable item)
         {
             return m_NodeBlocks.Contains(item);
         }
@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental
         {
             translation = VFXEditorMetrics.NodeBlockContainerPosition;
             scale = size + VFXEditorMetrics.NodeBlockContainerSizeOffset;
-            m_NodeBlocks = new List<VFXEdNodeBlock>();
+            m_NodeBlocks = new List<VFXEdNodeBlockDraggable>();
             m_Caps = Capabilities.Normal;
         }
 
@@ -62,7 +62,7 @@ namespace UnityEditor.Experimental
 
             float curY = 0.0f;
             int curIdx = 0;
-            foreach (VFXEdNodeBlock b in m_NodeBlocks)
+            foreach (VFXEdNodeBlockDraggable b in m_NodeBlocks)
             {
                 Rect offset = GetDrawableRect();
 
@@ -88,12 +88,12 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void AddNodeBlock(VFXEdNodeBlock block)
+        public void AddNodeBlock(VFXEdNodeBlockDraggable block)
         {
             AddNodeBlock(block, m_NodeBlocks.Count);
         }
 
-        public void AddNodeBlock(VFXEdNodeBlock block, int index)
+        public void AddNodeBlock(VFXEdNodeBlockDraggable block, int index)
         {
             if (block.parent == null)
                 AddChild(block);
@@ -117,12 +117,12 @@ namespace UnityEditor.Experimental
 
         }
 
-        public int GetBlockIndex(VFXEdNodeBlock block)
+        public int GetBlockIndex(VFXEdNodeBlockDraggable block)
         {
             return m_NodeBlocks.IndexOf(block);
         }
 
-        public void DetachNodeBlock(VFXEdNodeBlock block)
+        public void DetachNodeBlock(VFXEdNodeBlockDraggable block)
         {
             if (m_NodeBlocks.Contains(block))
             {
@@ -140,7 +140,7 @@ namespace UnityEditor.Experimental
         }
 
 
-        public void RemoveNodeBlock(VFXEdNodeBlock block)
+        public void RemoveNodeBlock(VFXEdNodeBlockDraggable block)
         {
                 DetachNodeBlock(block);
                 block.OnRemoved();
@@ -148,13 +148,13 @@ namespace UnityEditor.Experimental
 
         public void ClearNodeBlocks()
         {
-            List<VFXEdNodeBlock> todelete = new List<VFXEdNodeBlock>();
-            foreach (VFXEdNodeBlock block in m_NodeBlocks)
+            List<VFXEdNodeBlockDraggable> todelete = new List<VFXEdNodeBlockDraggable>();
+            foreach (VFXEdNodeBlockDraggable block in m_NodeBlocks)
             {
                 todelete.Add(block);
             }
 
-            foreach (VFXEdNodeBlock block in todelete)
+            foreach (VFXEdNodeBlockDraggable block in todelete)
             {
                 RemoveNodeBlock(block);
             }
@@ -162,14 +162,14 @@ namespace UnityEditor.Experimental
         }
 
 
-        public void AcceptDrop(VFXEdNodeBlock block)
+        public void AcceptDrop(VFXEdNodeBlockDraggable block)
         {
             AddNodeBlock(block, dropInfo.DropIndex);
             CaptureDrop = false;
             Invalidate();
         }
 
-        public void RevertDrop(VFXEdNodeBlock block, int index)
+        public void RevertDrop(VFXEdNodeBlockDraggable block, int index)
         {
             AddNodeBlock(block, index);
             CaptureDrop = false;
@@ -183,7 +183,7 @@ namespace UnityEditor.Experimental
             {
                 float curY = 0.0f;
                 float curIdx = 0;
-                foreach (VFXEdNodeBlock b in m_NodeBlocks)
+                foreach (VFXEdNodeBlockDraggable b in m_NodeBlocks)
                 {
                     // Insert space for separator if capturing drop
                     if (CaptureDrop && dropInfo.DropIndex == curIdx)

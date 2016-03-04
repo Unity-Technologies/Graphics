@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdProcessingNodeBlock : VFXEdNodeBlock
+    internal class VFXEdProcessingNodeBlock : VFXEdNodeBlockDraggable
     {
 
         public VFXBlockModel Model
@@ -80,10 +80,29 @@ namespace UnityEditor.Experimental
             return VFXEditor.styles.NodeBlockSelected;
         }
 
+
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
+            Rect r = GetDrawableRect();
+
+            if (parent is VFXEdNodeBlockContainer)
+            {
+                if (IsSelectedNodeBlock(canvas as VFXEdCanvas))
+
+                    GUI.Box(r, "", GetNodeBlockSelectedStyle());
+                else
+                    GUI.Box(r, "", GetNodeBlockStyle());
+            }
+            else // If currently dragged...
+            {
+                Color c = GUI.color;
+                GUI.color = new Color(GUI.color.r, GUI.color.g, GUI.color.a, 0.75f);
+                GUI.Box(r, "", VFXEditor.styles.NodeBlockSelected);
+                GUI.color = c;
+            }
+
+
             base.Render(parentRect, canvas);
         }
-
     }
 }

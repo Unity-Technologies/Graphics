@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdCanvas : Canvas2D
     {
-        public VFXEdNodeBlock SelectedNodeBlock
+        public VFXEdNodeBlockDraggable SelectedNodeBlock
         {
             get
             {
@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        private VFXEdNodeBlock m_SelectedNodeBlock;
+        private VFXEdNodeBlockDraggable m_SelectedNodeBlock;
 
         public VFXEdCanvas(Object target, EditorWindow host, ICanvasDataSource dataSource)
             : base(target, host, dataSource)
@@ -59,7 +59,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public void SetSelectedNodeBlock(VFXEdNodeBlock block)
+        public void SetSelectedNodeBlock(VFXEdNodeBlockDraggable block)
         {
 
             m_SelectedNodeBlock = block;

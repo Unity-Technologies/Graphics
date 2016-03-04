@@ -63,7 +63,9 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_DataSource.AddElement(new VFXEdOutputNode(m_canvasPosition, m_DataSource, m_OutputBlock));
+            VFXEdOutputNode node = new VFXEdOutputNode(m_canvasPosition, m_DataSource, m_OutputBlock);
+            m_DataSource.AddElement(node);
+            node.Layout();
             m_Canvas.ReloadData();
         }
 

@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdDataNodeBlock : VFXEdNodeBlock
+    internal class VFXEdDataNodeBlock : VFXEdNodeBlockDraggable
     {
         public List<VFXDataParam> Params { get { return m_DataBlock.Parameters; } } 
         public VFXParamValue[] ParamValues { get { return m_ParamValues; } }

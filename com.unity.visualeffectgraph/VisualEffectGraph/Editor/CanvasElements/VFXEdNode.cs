@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public bool OwnsBlock(VFXEdNodeBlock block)
+        public bool OwnsBlock(VFXEdNodeBlockDraggable block)
         {
             return m_NodeBlockContainer.OwnsBlock(block);
         }
