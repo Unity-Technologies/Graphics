@@ -46,18 +46,24 @@ namespace UnityEditor.Experimental
     {
         VFXEdDataSource m_DataSource;
         VFXEdCanvas m_Canvas;
-        int m_Mode;
-        public VFXEdOutputNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, int mode)
+        VFXEdOutputNodeBlock m_OutputBlock;
+        public VFXEdOutputNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, string type)
             : base (position)
         {
             m_DataSource = datasource;
             m_Canvas = canvas;
-            m_Mode = mode;
+            switch(type)
+            {
+                case "Point": m_OutputBlock = new VFXEdOutputNodeBlockPoint(datasource); break;
+                case "Billboard": m_OutputBlock = new VFXEdOutputNodeBlockBillboard(datasource); break;
+                case "Velocity": m_OutputBlock = new VFXEdOutputNodeBlockVelocity(datasource); break;
+            }
+            
         }
 
         public override void Spawn()
         {
-            m_DataSource.AddElement(new VFXEdOutputNode(m_canvasPosition, m_DataSource,m_Mode));
+            m_DataSource.AddElement(new VFXEdOutputNode(m_canvasPosition, m_DataSource, m_OutputBlock));
             m_Canvas.ReloadData();
         }
 

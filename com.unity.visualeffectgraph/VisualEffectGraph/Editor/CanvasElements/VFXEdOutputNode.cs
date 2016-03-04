@@ -24,11 +24,13 @@ namespace UnityEditor.Experimental
         }
         private VFXEdOutputNodeBlock m_OutputNodeBlock;
 
-        public VFXEdOutputNode(Vector2 canvasPosition, VFXEdDataSource dataSource, int outputType) : base (canvasPosition,VFXEdContext.Output, dataSource)
+        public VFXEdOutputNode(Vector2 canvasPosition, VFXEdDataSource dataSource, VFXEdOutputNodeBlock outputNodeBlock) : base (canvasPosition,VFXEdContext.Output, dataSource)
         {
-            OutputNodeBlock = new VFXEdOutputNodeBlock(dataSource, outputType);
+            OutputNodeBlock = outputNodeBlock;
             VFXEdFlowAnchor output = m_Outputs[0];
             RemoveChild(output);
+            target = ScriptableObject.CreateInstance<VFXEdOutputNodeTarget>();
+            (target as VFXEdOutputNodeTarget).targetNode = this;
             m_Outputs.Clear();
         }
 

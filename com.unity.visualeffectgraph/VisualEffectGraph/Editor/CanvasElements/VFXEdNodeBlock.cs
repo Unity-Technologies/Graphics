@@ -40,7 +40,15 @@ namespace UnityEditor.Experimental
         }
 
         // Retrieve the full height of the block
-        protected abstract float GetHeight();
+        protected virtual float GetHeight()
+        {
+            float height = VFXEditorMetrics.NodeBlockHeaderHeight;
+            foreach(VFXEdNodeBlockParameterField field in m_Fields) {
+                height += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
+            }
+            height += VFXEditorMetrics.NodeBlockFooterHeight;
+            return height;
+        }
 
         public override void Layout()
         {

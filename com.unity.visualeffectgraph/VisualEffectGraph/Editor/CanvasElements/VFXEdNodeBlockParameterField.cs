@@ -13,11 +13,13 @@ namespace UnityEditor.Experimental
         public VFXParamValue Value { get { return m_ParamValue; } }
         public bool Visible { get { return m_Visible; } set { m_Visible = value; } }
         public string Name { get { return m_Name; } }
+        public string Tag {get { return m_Tag; } }
         public VFXParam.Type Type { get { return m_ParamValue.ValueType; } }
         public VFXEdDataAnchor Input { get { return m_Input; } }
         public VFXEdDataAnchor Output { get { return m_Output; } }
 
         protected string m_Name;
+        protected string m_Tag = "";
         protected VFXParamValue m_ParamValue;
         protected bool m_Visible;
         private VFXEdDataAnchor m_Input;
@@ -53,7 +55,12 @@ namespace UnityEditor.Experimental
                         break;
                 }
             }
+        }
 
+        public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, string tag, VFXParamValue value, bool bConnectable, Direction paramDirection, int index) 
+            : this(datasource,name,value,bConnectable,paramDirection,index)
+        {
+            m_Tag = tag;
         }
 
         public override bool DispatchEvents(Event evt, Canvas2D parent)
