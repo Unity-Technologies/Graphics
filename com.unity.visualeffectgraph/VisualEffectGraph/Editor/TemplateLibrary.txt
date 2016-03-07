@@ -393,4 +393,38 @@
       <FlowConnection Previous="VFXEdContextNode_9" Next="VFXEdContextNode_10" />
     </Connections>
   </Template>
+  <Template Category="Textured" Name="PM Face with Color Ramp">
+    <Nodes>
+      <Node Name="VFXEdContextNode_0" Context="Initialize">
+        <NodeBlock Name="Position Map (Texture)" BlockName="Position Map (Texture)">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/PositionMap_Face.tga" />
+          <VFXParamValue Name="scale" Type="kTypeFloat3" Value="2,2,2" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0.5,0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="2" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Random (Square)" BlockName="Set Size Random (Square)">
+          <VFXParamValue Name="minSize" Type="kTypeFloat" Value="0.02" />
+          <VFXParamValue Name="maxSize" Type="kTypeFloat" Value="0.04" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_1" Context="Update">
+        <NodeBlock Name="Set Alpha (Constant)" BlockName="Set Alpha (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.1" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Force" BlockName="Apply Force">
+          <VFXParamValue Name="force" Type="kTypeFloat3" Value="0,0.1,0" />
+        </NodeBlock>
+        <NodeBlock Name="Color Over Lifetime (Texture)" BlockName="Color Over Lifetime (Texture)">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/Ramps/Ramp_OL_ElectricBlue.psd" />
+        </NodeBlock>
+        <NodeBlock Name="Age and Reap" BlockName="Age and Reap" />
+        <NodeBlock Name="Apply Velocity to Positions" BlockName="Apply Velocity to Positions" />
+      </Node>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
+    </Connections>
+  </Template>
 </Library>

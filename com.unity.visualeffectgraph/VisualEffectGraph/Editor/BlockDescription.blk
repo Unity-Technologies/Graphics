@@ -51,6 +51,14 @@ color = tex2Dlod(tex,float4(coords.x,coords.y,0,0)).rgb;;
 
 color = lerp(value1,value2,RAND);
 
+#block Set Color (Random Gradient)
+#icon Color
+#category Color/
+#arg float3 color [inout|param]
+#arg Texture2D gradient [public] 
+
+color = tex2Dlod(gradient, float4(RAND,0,0,0)).rgb;
+
 #block Color Over Lifetime
 #icon Color
 #category Color/
