@@ -382,8 +382,11 @@ namespace UnityEditor.Experimental
         {
             s_BlockLibrary = null;
             s_DataBlockLibrary = null;
+            s_SpawnTemplates = null;
+            
             s_AssetModel.Dispose();
             s_AssetModel = null;
+            
             ClearLog();
         }
 

@@ -307,7 +307,7 @@ namespace UnityEditor.Experimental
                 {
                     attribs[CommonAttrib.Phase] = 0x7; // Add phase attribute   
                     attribs[CommonAttrib.Position] = attribs[CommonAttrib.Position] | 0xF; // Ensure position is writable in init and update
-                    attribs[CommonAttrib.Velocity] = attribs[CommonAttrib.Velocity] | 0x5; // Ensure velocity is readable in init and update
+                    attribs[CommonAttrib.Velocity] = attribs[CommonAttrib.Velocity] | 0x7; // Ensure velocity is readable in init and update
 
                     initHasRand = true; // phase needs rand as initialization
                 }

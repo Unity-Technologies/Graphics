@@ -99,6 +99,14 @@ namespace UnityEditor.Experimental
         public void UpdateComponentMaxNb(uint MaxNb)
         {
             m_Component.maxNb = MaxNb;
+            // Tmp
+            for (int i = 0; i < GetNbChildren(); ++i)
+            {
+                VFXSystemRuntimeData rtData = GetChild(i).RtData;
+                if (rtData != null)
+                    GetChild(i).Invalidate(InvalidationCause.kModelChanged);
+            }
+            Update(); // Trigger recompile to reinitialize buffers
         }
 
         // tmp
