@@ -81,10 +81,12 @@ namespace UnityEditor.Experimental
 
         public bool ManageNodeBlockSelection(CanvasElement element, Event e, Canvas2D parent)
         {
-            
+
             // TODO: Due to Selection only managing m_selected, nodeblocks aren't unselected normally. I have to catch used events in order to unselect nodeblocks :(
-            /*if (e.type == EventType.Used)
-                return false;*/
+
+            // Manage Right Click : abort.
+            if (e.type == EventType.MouseDown && e.button == 1)
+                return false;
 
             // Unselecting
             if (element is Canvas2D && SelectedNodeBlock != null)
