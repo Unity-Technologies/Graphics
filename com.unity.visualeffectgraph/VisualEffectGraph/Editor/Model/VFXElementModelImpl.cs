@@ -1,12 +1,14 @@
 using UnityEngine;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
 {
-    public class VFXAssetModel : VFXElementModelTyped<VFXElementModel, VFXSystemModel>
+    public class VFXAssetModel : VFXElementModel<VFXElementModel, VFXSystemModel>
     {
         public VFXAssetModel()
         {
@@ -160,10 +162,8 @@ namespace UnityEditor.Experimental
         private GameObject gameObject;
     }
 
-    public class VFXSystemModel : VFXElementModelTyped<VFXAssetModel, VFXContextModel>
+    public class VFXSystemModel : VFXElementModel<VFXAssetModel, VFXContextModel>
     {
-
-
         public void Dispose()
         {
             if (rtData != null)
@@ -178,8 +178,8 @@ namespace UnityEditor.Experimental
             if (!base.CanAddChild(element, index))
                 return false;
 
-            VFXContextModel.Type contextType = (element as VFXContextModel).GetContextType();
-            if (contextType == VFXContextModel.Type.kTypeNone)
+            VFXContextDesc.Type contextType = (element as VFXContextModel).GetContextType();
+            if (contextType == VFXContextDesc.Type.kTypeNone)
                 return false;
 
             // Check if context types are inserted in the right order
@@ -296,45 +296,50 @@ namespace UnityEditor.Experimental
         }
     }
 
-
-    public class VFXContextModel : VFXElementModelTyped<VFXSystemModel, VFXBlockModel>
+    public class VFXContextModel : VFXParamBindableModel<VFXSystemModel, VFXBlockModel>
     {
-        public enum Type
+        public VFXContextModel(VFXContextDesc desc)
         {
-            kTypeNone,
-            kTypeInit,
-            kTypeUpdate,
-            kTypeOutput,
-        };
-
-        public const uint s_NbTypes = (uint)Type.kTypeOutput + 1;
-
-        public VFXContextModel(Type type)
-        {
-            m_Type = type;
+            m_Desc = desc;
+            InitParamValues(desc.m_Params);
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
         {
-            return base.CanAddChild(element, index) && m_Type != Type.kTypeNone;
+            return base.CanAddChild(element, index) && m_Desc.m_Type != VFXContextDesc.Type.kTypeNone;
             // TODO Check if the block is compatible with the context
         }
 
         public override void Invalidate(InvalidationCause cause)
         {
-            if (m_Owner != null && m_Type != Type.kTypeNone)
+            if (m_Owner != null && Desc.m_Type != VFXContextDesc.Type.kTypeNone)
                 m_Owner.Invalidate(cause);
         }
 
-        public Type GetContextType()
+        public VFXContextDesc.Type GetContextType()
         {
-            return m_Type;
+            return Desc.m_Type;
         }
 
-        private Type m_Type;
+        public override void BindParam(VFXParamValue param, int index, bool reentrant = false)
+        {
+            BindParam(param,index, Desc.m_Params, reentrant);
+        }
+
+        public override void UnbindParam(int index, bool reentrant = false)
+        {
+            UnbindParam(index, Desc.m_Params, reentrant);
+        }
+
+        public VFXContextDesc Desc
+        {
+            get { return m_Desc; }
+        }
+
+        private VFXContextDesc m_Desc;
     }
 
-    public class VFXBlockModel : VFXElementModelTyped<VFXContextModel, VFXElementModel>
+    public class VFXBlockModel : VFXParamBindableModel<VFXContextModel, VFXElementModel>
     {
         public override void Invalidate(InvalidationCause cause)
         {
@@ -345,10 +350,7 @@ namespace UnityEditor.Experimental
         public VFXBlockModel(VFXBlock desc)
         {
             m_BlockDesc = desc;
-            int nbParams = desc.m_Params.Length;
-            m_ParamValues = new VFXParamValue[nbParams];
-            for (int i = 0; i < nbParams; ++i)
-                m_ParamValues[i] = VFXParamValue.Create(desc.m_Params[i].m_Type); // Create default bindings
+            InitParamValues(m_BlockDesc.m_Params);
         }
 
         public VFXBlock Desc
@@ -367,45 +369,21 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public VFXParamValue GetParamValue(int index)
-        {
-            return m_ParamValues[index];
-        }
-
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             return false; // Nothing can be attached to Blocks !
         }
 
-        public void BindParam(VFXParamValue param,int index,bool reentrant = false)
+        public override void BindParam(VFXParamValue param,int index,bool reentrant = false)
         {
-            if (index < 0 || index >= m_BlockDesc.m_Params.Length || param.ValueType != m_BlockDesc.m_Params[index].m_Type)
-                throw new ArgumentException();
-
-            if (!reentrant)
-            {
-                if (m_ParamValues[index] != null)
-                    m_ParamValues[index].Unbind(this, index, true);
-                param.Bind(this, index, true);
-            }
-
-            m_ParamValues[index] = param;
-            Invalidate(InvalidationCause.kModelChanged);
+            BindParam(param,index, m_BlockDesc.m_Params, reentrant);
         }
 
-        public void UnbindParam(int index, bool reentrant = false)
+        public override void UnbindParam(int index, bool reentrant = false)
         {
-            if (index < 0 || index >= m_BlockDesc.m_Params.Length)
-                throw new ArgumentException();
-
-            if (!reentrant && m_ParamValues[index] != null)
-                m_ParamValues[index].Unbind(this, index, true);
-
-            m_ParamValues[index] = VFXParamValue.Create(m_BlockDesc.m_Params[index].m_Type);
-            Invalidate(InvalidationCause.kModelChanged);
+            UnbindParam(index, m_BlockDesc.m_Params, reentrant);
         }
 
         private VFXBlock m_BlockDesc;
-        private VFXParamValue[] m_ParamValues;
     }
 }

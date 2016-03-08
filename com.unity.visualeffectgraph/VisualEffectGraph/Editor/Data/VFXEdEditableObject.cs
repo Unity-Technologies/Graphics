@@ -26,13 +26,6 @@ namespace UnityEditor.Experimental
         public VFXEdContextNodeTarget() { }
     }
 
-    internal class VFXEdOutputNodeTarget : VFXEdEditableObject
-    {
-        [SerializeField]
-        public VFXEdOutputNode targetNode;
-        public VFXEdOutputNodeTarget() { }
-    }
-
     [CustomEditor(typeof(VFXEdProcessingNodeBlockTarget))]
     internal class VFXEdProcessingNodeBlockTargetEditor : Editor
     {
@@ -195,7 +188,7 @@ namespace UnityEditor.Experimental
     }
 
 
-    [CustomEditor(typeof(VFXEdOutputNodeTarget))]
+    /*[CustomEditor(typeof(VFXEdOutputNodeTarget))]
     internal class VFXEdOutputNodeTargetEditor : Editor
     {
 
@@ -291,6 +284,6 @@ namespace UnityEditor.Experimental
             serializedObject.ApplyModifiedProperties();
 
         }
-    }
+    }*/
 
 }

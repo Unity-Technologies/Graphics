@@ -50,11 +50,11 @@ namespace UnityEditor.Experimental
             builder.AppendLine();
 
             foreach (AttributeBuffer buffer in data.attributeBuffers)
-                if (buffer.Used(VFXContextModel.Type.kTypeOutput))
+                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
                     builder.WriteAttributeBuffer(buffer);
 
             foreach (AttributeBuffer buffer in data.attributeBuffers)
-                if (buffer.Used(VFXContextModel.Type.kTypeOutput))
+                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
                 {
                     builder.Append("\t\t\tStructuredBuffer<Attribute");
                     builder.Append(buffer.Index);
@@ -105,7 +105,7 @@ namespace UnityEditor.Experimental
             }
 
             foreach (var buffer in data.attributeBuffers)
-                if (buffer.Used(VFXContextModel.Type.kTypeOutput))
+                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
                 {
                     builder.Append("\t\t\t\t\tAttribute");
                     builder.Append(buffer.Index);
@@ -237,7 +237,7 @@ namespace UnityEditor.Experimental
             }
 
             foreach (var buffer in data.attributeBuffers)
-                if (buffer.Used(VFXContextModel.Type.kTypeOutput))
+                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
                 {
                     builder.Append("\t\t\t\t\tAttribute");
                     builder.Append(buffer.Index);

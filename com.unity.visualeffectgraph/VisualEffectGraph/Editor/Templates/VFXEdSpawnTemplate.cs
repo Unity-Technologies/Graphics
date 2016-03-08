@@ -40,7 +40,6 @@ namespace UnityEditor.Experimental
             return t;
         }
 
-
         public void AddNode(string nodename, VFXEdContext context)
         {
             m_Nodes.Add(nodename, NodeInfo.Create(context));
@@ -78,7 +77,7 @@ namespace UnityEditor.Experimental
                     case VFXEdContext.Initialize:
                     case VFXEdContext.Update:
                     case VFXEdContext.Output:
-                        node = new VFXEdContextNode(CurrentPos, node_kvp.Value.Context, datasource);
+                        node = new VFXEdContextNode(CurrentPos, VFXContextDesc.CreateBasic(VFXEdContextNode.ConvertType(node_kvp.Value.Context)), datasource);
                         break;
                     default:
                         break;

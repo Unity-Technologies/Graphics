@@ -166,12 +166,12 @@ namespace UnityEditor.Experimental
             get { return m_Attribs[index]; }
         }
 
-        public bool Used(VFXContextModel.Type type)
+        public bool Used(VFXContextDesc.Type type)
         {
             return (m_Usage & (0x3 << (((int)type - 1) * 2))) != 0;
         }
 
-        public bool Writable(VFXContextModel.Type type)
+        public bool Writable(VFXContextDesc.Type type)
         {
             return (m_Usage & (0x2 << (((int)type - 1) * 2))) != 0;
         }
@@ -261,8 +261,8 @@ namespace UnityEditor.Experimental
                 List<VFXBlockModel> currentList = null; ;
                 switch (context.GetContextType())
                 {
-                    case VFXContextModel.Type.kTypeInit: currentList = initBlocks; break;
-                    case VFXContextModel.Type.kTypeUpdate: currentList = updateBlocks; break;
+                    case VFXContextDesc.Type.kTypeInit: currentList = initBlocks; break;
+                    case VFXContextDesc.Type.kTypeUpdate: currentList = updateBlocks; break;
                 }
 
                 if (currentList == null)
@@ -280,8 +280,8 @@ namespace UnityEditor.Experimental
 
                 switch (context.GetContextType())
                 {
-                    case VFXContextModel.Type.kTypeInit: initHasRand |= hasRand; break;
-                    case VFXContextModel.Type.kTypeUpdate: 
+                    case VFXContextDesc.Type.kTypeInit: initHasRand |= hasRand; break;
+                    case VFXContextDesc.Type.kTypeUpdate: 
                         updateHasRand |= hasRand;
                         updateHasKill |= hasKill;
                         break;
@@ -552,11 +552,11 @@ namespace UnityEditor.Experimental
                 if (structSize == 3)
                     structSize = 4;
                 ComputeBuffer computeBuffer = new ComputeBuffer(1 << 20, structSize * 4, ComputeBufferType.GPUMemory);
-                if (attribBuffer.Used(VFXContextModel.Type.kTypeInit))
-                    rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextModel.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
-                if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate))
-                    rtData.AddBuffer(rtData.UpdateKernel, bufferName + (attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate) ? "" : "_RO"), computeBuffer);
-                if (attribBuffer.Used(VFXContextModel.Type.kTypeOutput))
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeInit))
+                    rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
+                    rtData.AddBuffer(rtData.UpdateKernel, bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate) ? "" : "_RO"), computeBuffer);
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeOutput))
                     rtData.m_Material.SetBuffer(bufferName, computeBuffer);
                 //computeBuffer.Dispose();
             }
@@ -734,7 +734,7 @@ namespace UnityEditor.Experimental
                 buffer.Append(attribBuffer.Index);
                 buffer.AppendLine(";");
 
-                if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate) && !attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate))
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate) && !attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
                 {
                     buffer.Append("StructuredBuffer<Attribute");
                     buffer.Append(attribBuffer.Index);
@@ -888,7 +888,7 @@ namespace UnityEditor.Experimental
          
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
-                    if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate))
+                    if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
                     {
                         buffer.Append("\t\tAttribute");
                         buffer.Append(attribBuffer.Index);
@@ -896,7 +896,7 @@ namespace UnityEditor.Experimental
                         buffer.Append(attribBuffer.Index);
                         buffer.Append(" = attribBuffer");
                         buffer.Append(attribBuffer.Index);
-                        if (!attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate))
+                        if (!attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
                             buffer.Append("_RO");
                         buffer.AppendLine("[index];");
                     }
@@ -934,7 +934,7 @@ namespace UnityEditor.Experimental
 
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
-                    if (attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate))
+                    if (attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
                     {
                         buffer.Append("\t\tattribBuffer");
                         buffer.Append(attribBuffer.Index);
