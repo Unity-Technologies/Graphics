@@ -41,6 +41,7 @@ namespace UnityEditor.Experimental
             m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
             m_Size.SetValue(Handles.ScaleHandle(m_Size.GetValue<Vector3>(), m_Position.GetValue<Vector3>(),Quaternion.identity, 1.0f));
 
+            
             Vector3 pos = m_Position.GetValue<Vector3>();
             Vector3 size = m_Size.GetValue<Vector3>();
 
@@ -82,6 +83,56 @@ namespace UnityEditor.Experimental
         {
                 m_Position.SetValue(EditorGUILayout.Vector3Field("Center",m_Position.GetValue<Vector3>()));
                 m_Size.SetValue(EditorGUILayout.Vector3Field("Size",m_Size.GetValue<Vector3>()));
+        }
+    }
+
+    internal class VFXEdSphereEditingWidget : VFXEdEditingWidget
+    {
+        VFXParamValue m_Position;
+        VFXParamValue m_Radius;
+
+        string m_PositionParamName;
+        string m_RadiusParamName;
+
+        public VFXEdSphereEditingWidget(string positionParamName, string radiusParamName)
+        {
+            m_PositionParamName = positionParamName;
+            m_RadiusParamName = radiusParamName;
+        }
+
+        public override void CreateBinding(VFXEdDataNodeBlock block)
+        {
+            m_Position = block.GetParamValue(m_PositionParamName);
+            m_Radius = block.GetParamValue(m_RadiusParamName);
+        }
+
+        public override void OnInspectorGUI()
+        {
+            m_Position.SetValue(EditorGUILayout.Vector3Field("Center",m_Position.GetValue<Vector3>()));
+            m_Radius.SetValue(EditorGUILayout.FloatField("Radius",m_Radius.GetValue<float>()));
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+            m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
+            m_Radius.SetValue(Handles.RadiusHandle(Quaternion.identity, m_Position.GetValue<Vector3>(), m_Radius.GetValue<float>(),false));
+
+            Vector3 pos = m_Position.GetValue<Vector3>();
+            float radius = m_Radius.GetValue<float>();
+
+            Handles.color = new Color(1.0f, 0.0f, 0.0f, 0.85f);
+            Handles.DrawWireDisc(pos, Vector3.forward, radius);
+            Handles.DrawWireDisc(pos, Vector3.right, radius);
+            Handles.DrawWireDisc(pos, Vector3.up, radius);
+            Handles.color = new Color(1.0f, 0.0f, 0.0f, 0.15f);
+            Handles.SphereCap(0, pos, Quaternion.identity, radius*2);
+            Handles.color = Color.white;
+
+            if(EditorGUI.EndChangeCheck())
+            {
+                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+            }
         }
     }
 

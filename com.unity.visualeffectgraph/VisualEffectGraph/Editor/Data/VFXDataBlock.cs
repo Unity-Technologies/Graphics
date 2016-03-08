@@ -101,6 +101,7 @@ namespace UnityEditor.Experimental
             VFXDataBlock sphereblock = new VFXDataBlock("Sphere", "Sphere", "Primitives");
             sphereblock.AddParameter("Center", VFXParam.Type.kTypeFloat3);
             sphereblock.AddParameter("Radius", VFXParam.Type.kTypeFloat);
+            sphereblock.editingWidget = new VFXEdSphereEditingWidget("Center", "Radius");
             m_DataBlocks.Add(sphereblock);
 
             VFXDataBlock boxblock = new VFXDataBlock("Box", "Box", "Primitives");
