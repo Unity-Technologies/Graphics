@@ -12,13 +12,18 @@ namespace UnityEditor.Experimental
     {
         public List<VFXDataParam> Params { get { return m_DataBlock.Parameters; } } 
         public VFXParamValue[] ParamValues { get { return m_ParamValues; } }
+        public VFXDataBlock DataBlock { get { return m_DataBlock; } }
+        public VFXEdEditingWidget editingWidget;
+        public string m_exposedName;
         protected VFXParamValue[] m_ParamValues;
         protected VFXDataBlock m_DataBlock;
 
-        public VFXEdDataNodeBlock(VFXDataBlock datablock, VFXEdDataSource dataSource) : base(dataSource)
+
+        public VFXEdDataNodeBlock(VFXDataBlock datablock, VFXEdDataSource dataSource, string exposedName) : base(dataSource)
         {
             m_Name = datablock.name;
             m_DataBlock = datablock;
+            m_exposedName = exposedName;
 
             m_ParamValues = new VFXParamValue[m_DataBlock.Parameters.Count];
             m_Fields = new VFXEdNodeBlockParameterField[m_DataBlock.Parameters.Count];
@@ -30,7 +35,7 @@ namespace UnityEditor.Experimental
             int i = 0;
             foreach(VFXDataParam p in m_DataBlock.Parameters) {
                 m_ParamValues[i] = VFXParamValue.Create(p.m_type);
-                m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, p.m_name , m_ParamValues[i], true, Direction.Output, i);
+                m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, p.m_Name , m_ParamValues[i], true, Direction.Output, i);
                 AddChild(m_Fields[i]);
                 i++;
             }
@@ -40,6 +45,16 @@ namespace UnityEditor.Experimental
             Layout();
         }
 
+        public VFXEdDataNodeBlock(VFXDataBlock datablock, VFXEdDataSource dataSource, string exposedName, VFXEdEditingWidget widget) : this(datablock, dataSource, exposedName)
+        {
+            editingWidget = widget;
+        }
+
+        public VFXParamValue GetParamValue(string name)
+        {
+            int i = Params.IndexOf(Params.Find(parm => parm.m_Name == name));
+            return ParamValues[i];
+        }
 
         protected override GUIStyle GetNodeBlockStyle()
         {
@@ -51,9 +66,5 @@ namespace UnityEditor.Experimental
             return VFXEditor.styles.DataNodeBlockSelected;
         }
 
-        public override void Render(Rect parentRect, Canvas2D canvas)
-        {
-            base.Render(parentRect, canvas);
-        }
     }
 }

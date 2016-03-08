@@ -227,16 +227,29 @@ position = value;
 
 position = center+((tex2Dlod(tex,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
 
+#block Position Map by Time
+#icon Texture
+#category Position/
+#arg float3 position [inout|param]
+#arg Texture2D tex [public] 
+#arg float3 scale [public]
+#arg float3 center [public]
+#arg float CycleDuration [public]
+
+float t = frac(_Time.y/CycleDuration);
+position = center+((tex2Dlod(tex,float4(RAND,t,0,0)).rgb-0.5f)*scale);
+
 #block Set Position (Random Box)
 #icon Position
 #category Position/
 #arg float3 position [inout|param]
-#arg float3 minValue [public] 
-#arg float3 maxValue [public] 
+#arg float3 center [public] 
+#arg float3 size [public] 
 
-position = float3(  lerp(minValue.x,maxValue.x,RAND),
-					lerp(minValue.y,maxValue.y,RAND),
-					lerp(minValue.z,maxValue.z,RAND));
+size *= 0.5f;
+position = float3(  lerp(center.x + size.x, center.x - size.x, RAND),
+					lerp(center.y + size.y, center.y - size.y, RAND),
+					lerp(center.z + size.z, center.z - size.z, RAND));
 
 #TODO Factorize these 2 blocks when boolean switches are implemented !
 					

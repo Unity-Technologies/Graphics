@@ -12,12 +12,13 @@ namespace UnityEditor.Experimental
     {
         public bool exposed { get { return m_ExposeOption.Enabled; } }
         protected VFXEdExposeDataNodeOption m_ExposeOption;
+
         internal VFXEdDataNode(Vector2 canvasposition, VFXEdDataSource dataSource) 
             : base (canvasposition, dataSource)
         {
             m_Title = "Data Node";
             m_ExposeOption = new VFXEdExposeDataNodeOption();
-            this.AddChild(m_ExposeOption);
+            AddChild(m_ExposeOption);
             Layout();
         }
 
@@ -35,7 +36,7 @@ namespace UnityEditor.Experimental
 
                 foreach (VFXDataBlock block in blocks)
                 {
-                    menu.AddItem(new GUIContent(block.path), false, AddNodeBlock, new VFXEdDataNodeBlockSpawner(canvasClickPosition, block, this, m_DataSource));
+                    menu.AddItem(new GUIContent(block.path), false, AddNodeBlock, new VFXEdDataNodeBlockSpawner(canvasClickPosition, block, this, m_DataSource, block.name));
                 }
 
             return menu;

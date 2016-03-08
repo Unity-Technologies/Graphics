@@ -105,7 +105,7 @@ namespace UnityEditor.Experimental
                 {
                     field.translation = new Vector2(0.0f, curY);
                     curY += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
-                }
+                } 
 
             }
         }

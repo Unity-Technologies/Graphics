@@ -1,5 +1,10 @@
-using UnityEngine;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
+using UnityEngine;
+using UnityEditor.Experimental;
+using UnityEditor.Experimental.Graph;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
@@ -17,6 +22,7 @@ namespace UnityEditor.Experimental
         [SerializeField]
         public VFXEdDataNodeBlock targetNodeBlock;
         public VFXEdDataNodeBlockTarget() { }
+
     }
 
     internal class VFXEdContextNodeTarget : VFXEdEditableObject
@@ -46,26 +52,26 @@ namespace UnityEditor.Experimental
             EditorGUILayout.BeginVertical();
             GUILayout.Label(safeTarget.targetNodeBlock.name, VFXEditor.styles.InspectorHeader);
 
+
+            
+            EditorGUILayout.Space();
             int i = 0;
             foreach(VFXParamValue p in safeTarget.targetNodeBlock.ParamValues)
             {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label(safeTarget.targetNodeBlock.Params[i].m_Name + " (" + p.ValueType + ")");
 
                 switch(p.ValueType)
                 {
-                    case VFXParam.Type.kTypeFloat: p.SetValue<float>(EditorGUILayout.FloatField(p.GetValue<float>())); break;
-                    case VFXParam.Type.kTypeFloat2: p.SetValue<Vector2>(EditorGUILayout.Vector2Field("",p.GetValue<Vector2>())); break;
-                    case VFXParam.Type.kTypeFloat3: p.SetValue<Vector3>(EditorGUILayout.Vector3Field("",p.GetValue<Vector3>())); break;
-                    case VFXParam.Type.kTypeFloat4: p.SetValue<Vector4>(EditorGUILayout.Vector4Field("",p.GetValue<Vector4>())); break;
+                    case VFXParam.Type.kTypeFloat: p.SetValue<float>(EditorGUILayout.FloatField(safeTarget.targetNodeBlock.Params[i].m_Name, p.GetValue<float>())); break;
+                    case VFXParam.Type.kTypeFloat2: p.SetValue<Vector2>(EditorGUILayout.Vector2Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector2>())); break;
+                    case VFXParam.Type.kTypeFloat3: p.SetValue<Vector3>(EditorGUILayout.Vector3Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector3>())); break;
+                    case VFXParam.Type.kTypeFloat4: p.SetValue<Vector4>(EditorGUILayout.Vector4Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector4>())); break;
                     case VFXParam.Type.kTypeInt: p.SetValue<int>(EditorGUILayout.IntSlider(p.GetValue<int>(),-1000,1000)); break;
-                    case VFXParam.Type.kTypeTexture2D: p.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(p.GetValue<Texture2D>(),typeof(Texture2D)));  break;
-                    case VFXParam.Type.kTypeTexture3D: p.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(p.GetValue<Texture3D>(),typeof(Texture3D)));  break;
-                    case VFXParam.Type.kTypeUint: p.SetValue<uint>((uint)EditorGUILayout.IntSlider((int)p.GetValue<uint>(),0,1000)); break;
+                    case VFXParam.Type.kTypeTexture2D: p.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Texture2D>(),typeof(Texture2D)));  break;
+                    case VFXParam.Type.kTypeTexture3D: p.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Texture3D>(),typeof(Texture3D)));  break;
+                    case VFXParam.Type.kTypeUint: p.SetValue<uint>((uint)EditorGUILayout.IntSlider(safeTarget.targetNodeBlock.Params[i].m_Name,(int)p.GetValue<uint>(),0,1000)); break;
                     case VFXParam.Type.kTypeUnknown: break;
                     default: break;
                 }
-                GUILayout.EndHorizontal();
                 ++i;
             }
             EditorGUILayout.EndVertical();
@@ -89,33 +95,60 @@ namespace UnityEditor.Experimental
             EditorGUILayout.BeginVertical();
             GUILayout.Label(safeTarget.targetNodeBlock.name, VFXEditor.styles.InspectorHeader);
 
-            int i = 0;
-            foreach(VFXParamValue p in safeTarget.targetNodeBlock.ParamValues)
+
+            safeTarget.targetNodeBlock.m_exposedName = EditorGUILayout.TextField("Exposed Name",safeTarget.targetNodeBlock.m_exposedName);
+            EditorGUILayout.Space();
+
+            if(safeTarget.targetNodeBlock.editingWidget != null)
             {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label(safeTarget.targetNodeBlock.Params[i].m_name + " (" + p.ValueType + ")");
-                switch(p.ValueType)
-                {
-                    case VFXParam.Type.kTypeFloat: p.SetValue<float>(EditorGUILayout.FloatField(p.GetValue<float>())); break;
-                    case VFXParam.Type.kTypeFloat2: p.SetValue<Vector2>(EditorGUILayout.Vector2Field("",p.GetValue<Vector2>())); break;
-                    case VFXParam.Type.kTypeFloat3: p.SetValue<Vector3>(EditorGUILayout.Vector3Field("",p.GetValue<Vector3>())); break;
-                    case VFXParam.Type.kTypeFloat4: p.SetValue<Vector4>(EditorGUILayout.Vector4Field("",p.GetValue<Vector4>())); break;
-                    case VFXParam.Type.kTypeInt: p.SetValue<int>(EditorGUILayout.IntSlider(p.GetValue<int>(),-1000,1000)); break;
-                    case VFXParam.Type.kTypeTexture2D: p.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(p.GetValue<Texture2D>(),typeof(Texture2D)));  break;
-                    case VFXParam.Type.kTypeTexture3D: p.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(p.GetValue<Texture3D>(),typeof(Texture3D)));  break;
-                    case VFXParam.Type.kTypeUint: p.SetValue<uint>((uint)EditorGUILayout.IntSlider((int)p.GetValue<uint>(),0,1000)); break;
-                    case VFXParam.Type.kTypeUnknown: break;
-                    default: break;
-                }
-                GUILayout.EndHorizontal();
-                ++i;
+                safeTarget.targetNodeBlock.editingWidget.OnInspectorGUI();
             }
+            else
+            {
+                int i = 0;
+                foreach(VFXParamValue p in safeTarget.targetNodeBlock.ParamValues)
+                {
+
+                    switch(p.ValueType)
+                    {
+                        case VFXParam.Type.kTypeFloat: p.SetValue<float>(EditorGUILayout.FloatField(safeTarget.targetNodeBlock.Params[i].m_Name, p.GetValue<float>())); break;
+                        case VFXParam.Type.kTypeFloat2: p.SetValue<Vector2>(EditorGUILayout.Vector2Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector2>())); break;
+                        case VFXParam.Type.kTypeFloat3: p.SetValue<Vector3>(EditorGUILayout.Vector3Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector3>())); break;
+                        case VFXParam.Type.kTypeFloat4: p.SetValue<Vector4>(EditorGUILayout.Vector4Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector4>())); break;
+                        case VFXParam.Type.kTypeInt: p.SetValue<int>(EditorGUILayout.IntSlider(p.GetValue<int>(),-1000,1000)); break;
+                        case VFXParam.Type.kTypeTexture2D: p.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Texture2D>(),typeof(Texture2D)));  break;
+                        case VFXParam.Type.kTypeTexture3D: p.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Texture3D>(),typeof(Texture3D)));  break;
+                        case VFXParam.Type.kTypeUint: p.SetValue<uint>((uint)EditorGUILayout.IntSlider(safeTarget.targetNodeBlock.Params[i].m_Name,(int)p.GetValue<uint>(),0,1000)); break;
+                        case VFXParam.Type.kTypeUnknown: break;
+                        default: break;
+                    }
+                    ++i;
+                }
+            }
+            
             EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
             safeTarget.targetNodeBlock.Invalidate();
             safeTarget.targetNodeBlock.ParentCanvas().Repaint();
         }
+
+        void OnEnable()
+        {
+            if(safeTarget.targetNodeBlock.editingWidget != null)
+            {
+                safeTarget.targetNodeBlock.editingWidget.CreateBinding(safeTarget.targetNodeBlock);
+                SceneView.onSceneGUIDelegate += safeTarget.targetNodeBlock.editingWidget.OnSceneGUI;
+            }
+                
+        }
+ 
+        void OnDisable()
+        {
+            if (safeTarget.targetNodeBlock.editingWidget != null)
+                SceneView.onSceneGUIDelegate -= safeTarget.targetNodeBlock.editingWidget.OnSceneGUI;
+        }
+
     }
 
     [CustomEditor(typeof(VFXEdContextNodeTarget))]

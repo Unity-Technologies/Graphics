@@ -162,18 +162,23 @@ namespace UnityEditor.Experimental
         VFXEdDataNode m_Node;
         VFXDataBlock m_DataBlock;
         VFXEdDataSource m_DataSource;
+        string m_exposedName;
 
-        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node, VFXEdDataSource datasource)
+        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName)
             : base (position)
         {
             m_DataBlock = datablock;
             m_Node = node;
             m_DataSource = datasource;
+            m_exposedName = exposedName;
         }
 
         public override void Spawn()
         {
-            m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock,m_DataSource));
+            if (m_DataBlock.editingWidget == null)
+                m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName));
+            else
+                m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName, m_DataBlock.editingWidget));
            
         }
 

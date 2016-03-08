@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public static VFXDataBlockLibraryCollection DataBlockLibrary
+        internal static VFXDataBlockLibraryCollection DataBlockLibrary
         {
             get
             {
@@ -86,6 +86,7 @@ namespace UnityEditor.Experimental
                 return s_DataBlockLibrary;
             }
         }
+
 		public static VFXAssetModel AssetModel
 		{
 			get
@@ -413,10 +414,6 @@ namespace UnityEditor.Experimental
 
             GUILayout.FlexibleSpace();
 
-            string text = GetOutputTypeStr(AssetModel.OutputType);
-            if (GUILayout.Button(text, EditorStyles.toolbarButton))
-                AssetModel.SwitchOutputType();
-
             bool UsePhaseShift = AssetModel.PhaseShift;
             AssetModel.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
 
@@ -428,16 +425,8 @@ namespace UnityEditor.Experimental
 
         }
 
-        string GetOutputTypeStr(int outputType)
-        {
-            switch (outputType)
-            {
-                case 0: return "Point";
-                case 1: return "Billboard";
-                case 2: return "Billboard Along Velocity";
-                default: return "Unknown";
-            }
-        }
+        
+
 
         #region TOOL WINDOWS
         void DrawWindows(Rect canvasRect)

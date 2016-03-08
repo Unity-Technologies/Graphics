@@ -12,9 +12,9 @@ namespace UnityEditor.Experimental
         {
             RemovePreviousVFXs();
 
-            gameObject = new GameObject("VFX");
+            m_GameObject = new GameObject("VFX");
             //gameObject.hideFlags = HideFlags.DontSaveInEditor;
-            component = gameObject.AddComponent<VFXComponent>();
+            m_Component = m_GameObject.AddComponent<VFXComponent>();
         }
 
         private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
@@ -71,11 +71,11 @@ namespace UnityEditor.Experimental
                     VFXSystemRuntimeData rtData = GetChild(i).RtData;
                     if (rtData != null)
                     {
-                        component.simulationShader = rtData.SimulationShader;
-                        component.material = rtData.m_Material;
-                        component.outputType = (uint)m_OutputType;
-                        component.maxNb = GetChild(i).MaxNb;
-                        component.spawnRate = GetChild(i).SpawnRate;
+                        m_Component.simulationShader = rtData.SimulationShader;
+                        m_Component.material = rtData.m_Material;
+                        m_Component.outputType = (uint)m_OutputType;
+                        m_Component.maxNb = GetChild(i).MaxNb;
+                        m_Component.spawnRate = GetChild(i).SpawnRate;
                     }
                 }
 
@@ -98,13 +98,13 @@ namespace UnityEditor.Experimental
         // tmp
         public void UpdateComponentMaxNb(uint MaxNb)
         {
-            component.maxNb = MaxNb;
+            m_Component.maxNb = MaxNb;
         }
 
         // tmp
         public void UpdateComponentSpawnRate(float SpawnRate)
         {
-            component.spawnRate = SpawnRate;
+            m_Component.spawnRate = SpawnRate;
         }
 
         public bool PhaseShift
@@ -143,18 +143,20 @@ namespace UnityEditor.Experimental
             OutputType = outputType;               
         }
 
+        public GameObject gameObject { get { return m_GameObject; } }
+        public VFXComponent component { get { return m_Component; } }
+
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
         private int m_OutputType = 0; // 0: point rendering / 1: billboard rendering
 
-        private VFXComponent component;
-        private GameObject gameObject;
+        private VFXComponent m_Component;
+        private GameObject m_GameObject;
     }
 
     public class VFXSystemModel : VFXElementModelTyped<VFXAssetModel, VFXContextModel>
     {
-
 
         public void Dispose()
         {
