@@ -20,11 +20,12 @@ namespace UnityEditor.Experimental
 
             output.AddItem(new GUIContent("New Node/Trigger"), false, source.SpawnNode, new VFXEdTriggerNodeSpawner(source, canvas, canvasClickPosition));
             output.AddSeparator("New Node/");
-            output.AddItem(new GUIContent("New Node/Initialize"), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, VFXEdContext.Initialize));
-            output.AddItem(new GUIContent("New Node/Update"), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, VFXEdContext.Update));
-            output.AddItem(new GUIContent("New Node/Output (Point)"), false, source.SpawnNode, new VFXEdOutputNodeSpawner(source, canvas, canvasClickPosition, "Point"));
-            output.AddItem(new GUIContent("New Node/Output (Billboard)"), false, source.SpawnNode, new VFXEdOutputNodeSpawner(source, canvas, canvasClickPosition, "Billboard"));
-            output.AddItem(new GUIContent("New Node/Output (VelocityOriented)"), false, source.SpawnNode, new VFXEdOutputNodeSpawner(source, canvas, canvasClickPosition, "Velocity"));
+
+            foreach (var desc in VFXEditor.ContextLibrary.GetContexts())
+            {
+                output.AddItem(new GUIContent("New Node/" + desc.Name), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, desc));
+            }
+
             output.AddSeparator("New Node/");
             output.AddItem(new GUIContent("New Node/Data Node"), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition));
             
