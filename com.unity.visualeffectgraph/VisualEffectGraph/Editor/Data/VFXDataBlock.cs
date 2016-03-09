@@ -112,9 +112,8 @@ namespace UnityEditor.Experimental
 
             VFXDataBlock planeblock = new VFXDataBlock("Plane", "Box", "Primitives");
             planeblock.AddParameter("Center", VFXParam.Type.kTypeFloat3);
-            planeblock.AddParameter("UpVector", VFXParam.Type.kTypeFloat3);
-            planeblock.AddParameter("TangentVector", VFXParam.Type.kTypeFloat3);
-            planeblock.AddParameter("Size", VFXParam.Type.kTypeFloat2);
+            planeblock.AddParameter("Normal", VFXParam.Type.kTypeFloat3);
+            planeblock.editingWidget = new VFXEdPlaneEditingWidget("Center", "Normal");
             m_DataBlocks.Add(planeblock);
 
             VFXDataBlock capsuleblock = new VFXDataBlock("Capsule", "Sphere", "Primitives");

@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
+
     internal abstract class VFXEdEditingWidget
     {
         public abstract void OnSceneGUI(SceneView sceneView);
@@ -38,40 +39,20 @@ namespace UnityEditor.Experimental
         public override void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
-            m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
-            m_Size.SetValue(Handles.ScaleHandle(m_Size.GetValue<Vector3>(), m_Position.GetValue<Vector3>(),Quaternion.identity, 1.0f));
 
+            Bounds b = new Bounds(m_Position.GetValue<Vector3>(),m_Size.GetValue<Vector3>());
             
-            Vector3 pos = m_Position.GetValue<Vector3>();
-            Vector3 size = m_Size.GetValue<Vector3>();
+            if(Event.current.control)
+            {
+                b.center = Handles.PositionHandle(b.center, Quaternion.identity);
+                VFXEdHandleUtility.ShowWireBox(b);
+            }
+            else
+                b = VFXEdHandleUtility.BoxHandle(b);
+            
 
-            float minX = pos.x - size.x / 2;
-            float maxX = pos.x + size.x / 2;
-            float minY = pos.y - size.y / 2;
-            float maxY = pos.y + size.y / 2;
-            float minZ = pos.z - size.z / 2;
-            float maxZ = pos.z + size.z / 2;
-
-            Vector3[] cubeLines = new Vector3[24]
-                {
-                    new Vector3(minX, minY, minZ), new Vector3(minX, maxY, minZ),
-                    new Vector3(maxX, minY, minZ), new Vector3(maxX, maxY, minZ),
-                    new Vector3(minX, minY, minZ), new Vector3(maxX, minY, minZ),
-                    new Vector3(minX, maxY, minZ), new Vector3(maxX, maxY, minZ),
-
-                    new Vector3(minX, minY, minZ), new Vector3(minX, minY, maxZ),
-                    new Vector3(minX, maxY, minZ), new Vector3(minX, maxY, maxZ),
-                    new Vector3(maxX, minY, minZ), new Vector3(maxX, minY, maxZ),
-                    new Vector3(maxX, maxY, minZ), new Vector3(maxX, maxY, maxZ),
-
-                    new Vector3(minX, minY, maxZ), new Vector3(minX, maxY, maxZ),
-                    new Vector3(maxX, minY, maxZ), new Vector3(maxX, maxY, maxZ),
-                    new Vector3(minX, minY, maxZ), new Vector3(maxX, minY, maxZ),
-                    new Vector3(minX, maxY, maxZ), new Vector3(maxX, maxY, maxZ)
-                };
-
-            Handles.color = Color.white;
-            Handles.DrawDottedLines(cubeLines,5.0f);
+            m_Position.SetValue(b.center);
+            m_Size.SetValue(b.size);
 
             if(EditorGUI.EndChangeCheck())
             {
@@ -136,6 +117,53 @@ namespace UnityEditor.Experimental
         }
     }
 
+    internal class VFXEdPlaneEditingWidget : VFXEdEditingWidget
+    {
+        
+        VFXParamValue m_Position;
+        VFXParamValue m_Normal;
+        string m_PositionParamName;
+        string m_NormalParamName;
+
+        public VFXEdPlaneEditingWidget(string PositionParamName, string NormalParamName)
+        {
+            m_PositionParamName = PositionParamName;
+            m_NormalParamName = NormalParamName;
+        }
+
+        public override void CreateBinding(VFXEdDataNodeBlock block)
+        {
+            m_Position = block.GetParamValue(m_PositionParamName);
+            m_Normal = block.GetParamValue(m_NormalParamName);
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
+
+            Quaternion q = new Quaternion();
+            q.SetLookRotation(m_Normal.GetValue<Vector3>());
+
+            Quaternion q2 = Handles.RotationHandle(q, m_Position.GetValue<Vector3>());
+            
+            m_Normal.SetValue(q2 * Vector3.forward);
+            Handles.ArrowCap(0, m_Position.GetValue<Vector3>(), q2, 1.0f);
+
+            if(EditorGUI.EndChangeCheck())
+            {
+                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+            }
+        }
+
+        public override void OnInspectorGUI()
+        {
+                m_Position.SetValue(EditorGUILayout.Vector3Field("Center",m_Position.GetValue<Vector3>()));
+                m_Normal.SetValue(EditorGUILayout.Vector3Field("Normal",m_Normal.GetValue<Vector3>().normalized));
+        }
+    }
+
     internal class VFXEdColorEditingWidget : VFXEdEditingWidget
     {
         VFXParamValue m_Color;
@@ -171,4 +199,88 @@ namespace UnityEditor.Experimental
             // Nothing here... for now
         }
     }
+
+    internal static class VFXEdHandleUtility
+    {
+        public const float CubeCapSize = 0.1f;
+        public static readonly Color BoxHandleWireColor = new Color(1.0f, 1.0f, 1.0f, 0.45f);
+        public const float BoxHandleWireDashSize = 5.0f;
+
+        public static Bounds BoxHandle(Bounds bounds)
+        {
+            
+            float minX = bounds.min.x;
+            float maxX = bounds.max.x;
+
+            float minY = bounds.min.y;
+            float maxY = bounds.max.y;
+
+            float minZ = bounds.min.z;
+            float maxZ = bounds.max.z;
+
+            Vector3[] m_HandlePositions = new Vector3[6];
+            m_HandlePositions[0] = new Vector3(minX,(minY+ maxY)/2,(minZ+ maxZ)/2);
+            m_HandlePositions[1] = new Vector3(maxX,(minY+ maxY)/2,(minZ+ maxZ)/2);
+            m_HandlePositions[2] = new Vector3((minX+ maxX)/2,minY,(minZ+ maxZ)/2);
+            m_HandlePositions[3] = new Vector3((minX+ maxX)/2,maxY,(minZ+ maxZ)/2);
+            m_HandlePositions[4] = new Vector3((minX+ maxX)/2,(minY+ maxY)/2,minZ);
+            m_HandlePositions[5] = new Vector3((minX+ maxX)/2,(minY+ maxY)/2,maxZ);
+
+            Handles.color = Color.red;
+            minX = Handles.Slider(m_HandlePositions[0], Vector3.left, HandleUtility.GetHandleSize(m_HandlePositions[0]) * CubeCapSize, Handles.CubeCap, 0.1f).x;
+            maxX = Handles.Slider(m_HandlePositions[1], Vector3.right, HandleUtility.GetHandleSize(m_HandlePositions[1]) * CubeCapSize, Handles.CubeCap, 0.1f).x;
+
+            Handles.color = Color.green;
+            minY = Handles.Slider(m_HandlePositions[2], Vector3.down, HandleUtility.GetHandleSize(m_HandlePositions[2]) * CubeCapSize, Handles.CubeCap, 0.1f).y;
+            maxY = Handles.Slider(m_HandlePositions[3], Vector3.up, HandleUtility.GetHandleSize(m_HandlePositions[3]) * CubeCapSize, Handles.CubeCap, 0.1f).y;
+
+            Handles.color = Color.blue;
+            minZ = Handles.Slider(m_HandlePositions[4], Vector3.back, HandleUtility.GetHandleSize(m_HandlePositions[4]) * CubeCapSize, Handles.CubeCap, 0.1f).z;
+            maxZ = Handles.Slider(m_HandlePositions[5], Vector3.forward, HandleUtility.GetHandleSize(m_HandlePositions[5]) * CubeCapSize, Handles.CubeCap, 0.1f).z;
+
+            bounds.min = new Vector3(minX,minY,minZ);
+            bounds.max = new Vector3(maxX,maxY,maxZ);
+
+            ShowWireBox(bounds);
+
+            return bounds;
+
+        }
+
+        public static void ShowWireBox(Bounds bounds)
+        {
+
+            float minX = bounds.min.x;
+            float maxX = bounds.max.x;
+
+            float minY = bounds.min.y;
+            float maxY = bounds.max.y;
+
+            float minZ = bounds.min.z;
+            float maxZ = bounds.max.z;
+
+            Vector3[] cubeLines = new Vector3[24]
+                {
+                    new Vector3(minX, minY, minZ), new Vector3(minX, maxY, minZ),
+                    new Vector3(maxX, minY, minZ), new Vector3(maxX, maxY, minZ),
+                    new Vector3(minX, minY, minZ), new Vector3(maxX, minY, minZ),
+                    new Vector3(minX, maxY, minZ), new Vector3(maxX, maxY, minZ),
+
+                    new Vector3(minX, minY, minZ), new Vector3(minX, minY, maxZ),
+                    new Vector3(minX, maxY, minZ), new Vector3(minX, maxY, maxZ),
+                    new Vector3(maxX, minY, minZ), new Vector3(maxX, minY, maxZ),
+                    new Vector3(maxX, maxY, minZ), new Vector3(maxX, maxY, maxZ),
+
+                    new Vector3(minX, minY, maxZ), new Vector3(minX, maxY, maxZ),
+                    new Vector3(maxX, minY, maxZ), new Vector3(maxX, maxY, maxZ),
+                    new Vector3(minX, minY, maxZ), new Vector3(maxX, minY, maxZ),
+                    new Vector3(minX, maxY, maxZ), new Vector3(maxX, maxY, maxZ)
+                };
+
+            Handles.color = BoxHandleWireColor;
+            Handles.DrawDottedLines(cubeLines,BoxHandleWireDashSize);
+            Handles.color = Color.white;
+        }
+    }
+
 }
