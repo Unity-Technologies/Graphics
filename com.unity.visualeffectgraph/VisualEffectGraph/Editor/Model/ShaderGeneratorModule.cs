@@ -8,12 +8,17 @@ namespace UnityEditor.Experimental
 {
     public class VFXShaderGeneratorModule
     {
+        private static int GetFlag(VFXContextDesc.Type type, bool writable = false)
+        {
+            return (writable ? 0x3 : 0x1) << (((int)type - 1) << 1);
+        }
+
         protected static bool UpdateFlag(Dictionary<VFXAttrib, int> attribs, VFXAttrib attrib, VFXContextDesc.Type type, bool writable = false)
         {
             int attribFlag;
             if (attribs.TryGetValue(attrib, out attribFlag))
             {
-                attribFlag |= (writable ? 0x3 : 0x1) << (((int)type - 1) << 1);
+                attribFlag |= GetFlag(type,writable);
                 attribs[attrib] = attribFlag;
                 return true;
             }
@@ -21,7 +26,13 @@ namespace UnityEditor.Experimental
             return false;
         }
 
-        public virtual bool MarkAttributes(Dictionary<VFXAttrib, int> attribs)          { return true; }
+        protected static void AddOrUpdateFlag(Dictionary<VFXAttrib, int> attribs, VFXAttrib attrib, VFXContextDesc.Type type, bool writable = false)
+        {
+            if (!UpdateFlag(attribs,attrib,type,writable))
+                attribs[attrib] = GetFlag(type, writable);
+        }
+
+        public virtual bool UpdateAttributes(Dictionary<VFXAttrib, int> attribs, ref int flags) { return true; }
         public virtual void WritePreBlock(StringBuilder builder, ShaderMetaData data)   { }
         public virtual void WritePostBlock(StringBuilder builder, ShaderMetaData data)  { }
     }

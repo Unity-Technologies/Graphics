@@ -547,6 +547,7 @@ namespace UnityEditor.Experimental
             // Register context here
             m_Contexts.Add(new VFXBasicInitialize());
             m_Contexts.Add(new VFXBasicUpdate());
+            m_Contexts.Add(new VFXParticleUpdate());
             m_Contexts.Add(new VFXBasicOutput());
             m_Contexts.Add(new VFXPointOutputDesc());
             m_Contexts.Add(new VFXBillboardOutputDesc());

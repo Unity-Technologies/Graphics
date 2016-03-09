@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 namespace UnityEditor.Experimental
 {
@@ -64,13 +65,6 @@ namespace UnityEditor.Experimental
         public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXOutputShaderGeneratorModule(); }
     }
 
-    public class VFXParticleUpdate : VFXContextDesc
-    {
-        public VFXParticleUpdate()
-            : base(Type.kTypeUpdate,"Particle Update",true)
-        {}
-    }
-
     public class VFXPointOutputDesc : VFXContextDesc
     {
         public VFXPointOutputDesc()
@@ -110,5 +104,74 @@ namespace UnityEditor.Experimental
         }
 
         public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXBillboardOutputShaderGeneratorModule(true); }
+    }
+
+    public class VFXParticleUpdate : VFXContextDesc
+    {
+        public VFXParticleUpdate()
+            : base(Type.kTypeUpdate, "Particle Update", true)
+        {}
+
+        private class ShaderGenerator : VFXShaderGeneratorModule
+        {
+            public override bool UpdateAttributes(Dictionary<VFXAttrib, int> attribs, ref int flags)
+            {
+                if (attribs.ContainsKey(CommonAttrib.Velocity))
+                {
+                    m_NeedsIntegration = true;
+                    AddOrUpdateFlag(attribs, CommonAttrib.Position, Type.kTypeUpdate, true);
+                    UpdateFlag(attribs, CommonAttrib.Velocity, Type.kTypeUpdate, false);
+                }
+
+                if (attribs.ContainsKey(CommonAttrib.Lifetime))
+                {
+                    m_NeedsReaping = true;
+                    UpdateFlag(attribs, CommonAttrib.Lifetime, Type.kTypeUpdate, false);
+                    flags |= (int)VFXBlock.Flag.kHasKill;
+                }
+
+                if (m_NeedsReaping || attribs.ContainsKey(CommonAttrib.Age))
+                {
+                    m_NeedsAging = true;
+                    AddOrUpdateFlag(attribs, CommonAttrib.Age, Type.kTypeUpdate, true); // For aging
+                }
+ 
+                return true;
+            }
+
+            public override void WritePostBlock(StringBuilder builder, ShaderMetaData data)
+            {
+                if (m_NeedsIntegration)
+                {
+                    builder.WriteAttrib(CommonAttrib.Position,data);
+                    builder.Append(" += ");
+                    builder.WriteAttrib(CommonAttrib.Velocity,data);
+                    builder.AppendLine(" * deltaTime;");
+                    builder.AppendLine();
+                }
+
+                if (m_NeedsAging)
+                {
+                    builder.WriteAttrib(CommonAttrib.Age, data);
+                    builder.AppendLine(" += deltaTime;");
+                    
+                    if (m_NeedsReaping)
+                    {
+                        builder.Append("if (");
+                        builder.WriteAttrib(CommonAttrib.Age, data);
+                        builder.Append(" >= ");
+                        builder.WriteAttrib(CommonAttrib.Lifetime, data);
+                        builder.AppendLine(")");
+                        builder.AppendLine("kill = true;");
+                    }
+                }
+            }
+
+            private bool m_NeedsAging;
+            private bool m_NeedsReaping;
+            private bool m_NeedsIntegration;
+        }
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new ShaderGenerator(); }
     }
 }

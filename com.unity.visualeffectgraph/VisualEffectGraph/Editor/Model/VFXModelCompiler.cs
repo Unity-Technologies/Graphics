@@ -17,6 +17,8 @@ namespace UnityEditor.Experimental
         public static VFXAttrib Alpha =     new VFXAttrib("alpha", VFXParam.Type.kTypeFloat);
         public static VFXAttrib Phase =     new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
         public static VFXAttrib Size =      new VFXAttrib("size", VFXParam.Type.kTypeFloat2);
+        public static VFXAttrib Lifetime =  new VFXAttrib("lifetime", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib Age =       new VFXAttrib("age", VFXParam.Type.kTypeFloat);
     }
 
     public class VFXSystemRuntimeData
@@ -232,14 +234,21 @@ namespace UnityEditor.Experimental
         {
             // Create output compiler
             VFXOutputShaderGeneratorModule outputGenerator = null;
-            for (int i = 0; i < system.GetNbChildren(); ++i)
-                if (system.GetChild(i).GetContextType() == VFXContextDesc.Type.kTypeOutput)
-                {
-                    outputGenerator = system.GetChild(i).Desc.CreateShaderGenerator() as VFXOutputShaderGeneratorModule;
-                    break;
-                }
+            VFXShaderGeneratorModule initGenerator = null;
+            VFXShaderGeneratorModule updateGenerator = null;
 
-            if (outputGenerator == null)
+            for (int i = 0; i < system.GetNbChildren(); ++i)
+            {
+                var desc = system.GetChild(i).Desc;
+                switch (desc.m_Type)
+                {
+                    case VFXContextDesc.Type.kTypeInit: initGenerator = desc.CreateShaderGenerator(); break;
+                    case VFXContextDesc.Type.kTypeUpdate: updateGenerator = desc.CreateShaderGenerator(); break;
+                    case VFXContextDesc.Type.kTypeOutput: outputGenerator = desc.CreateShaderGenerator() as VFXOutputShaderGeneratorModule; break;
+                }
+            }
+
+            if (outputGenerator == null || initGenerator == null || updateGenerator == null) // Tmp: we need the 3 contexts atm
                 return null;
 
             // BLOCKS
@@ -314,15 +323,30 @@ namespace UnityEditor.Experimental
                 }
             }
 
+            // Update flags with generators
+            int initGeneratorFlags = 0;
+            if (!initGenerator.UpdateAttributes(attribs, ref initGeneratorFlags))
+                return null;
+
+            initHasRand |= (initGeneratorFlags & (int)VFXBlock.Flag.kHasRand) != 0;
+
+            int updateGeneratorFlags = 0;
+            if (!updateGenerator.UpdateAttributes(attribs, ref updateGeneratorFlags))
+                return null;
+
+            updateHasRand |= (updateGeneratorFlags & (int)VFXBlock.Flag.kHasRand) != 0;
+            updateHasKill |= (updateGeneratorFlags & (int)VFXBlock.Flag.kHasKill) != 0;
+
+            int dummy = 0;
+            if (!outputGenerator.UpdateAttributes(attribs, ref dummy))
+                return null;
+
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
             {
                 updateHasRand = true;
                 attribs[CommonAttrib.Seed] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
             }
-
-            if (!outputGenerator.MarkAttributes(attribs))
-                return null;
 
             // Find unitialized attribs and remove 
             List<VFXAttrib> unitializedAttribs = new List<VFXAttrib>(); 
@@ -351,7 +375,7 @@ namespace UnityEditor.Experimental
                 if (attribsForUsage == null) // Not yet initialized
                 {
                     attribsForUsage = new List<VFXAttrib>[4];
-                    for (int i = 0; i < 4; ++i) // Asumming sizes cannot be more than 4 bytes
+                    for (int i = 0; i < 4; ++i) // Assuming sizes cannot be more than 4 bytes
                         attribsForUsage[i] = new List<VFXAttrib>();
 
                     sortedAttribs[attrib.Value] = attribsForUsage;
@@ -518,7 +542,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.updateSamplers = updateSamplers;
             shaderMetaData.paramToName = paramToName;
    
-            string shaderSource = WriteComputeShader(shaderMetaData);
+            string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
             string outputShaderSource = WriteOutputShader(shaderMetaData,outputGenerator);
            
             VFXEditor.Log("\n**** SHADER CODE ****");
@@ -666,12 +690,12 @@ namespace UnityEditor.Experimental
                 }
         }
 
-        private static string WriteComputeShader(ShaderMetaData data)
+        private static string WriteComputeShader(ShaderMetaData data,VFXShaderGeneratorModule initGenerator,VFXShaderGeneratorModule updateGenerator)
         {
             const int NB_THREAD_PER_GROUP = 256;
 
-            bool hasInit = data.initBlocks.Count > 0;
-            bool hasUpdate = data.updateBlocks.Count > 0;
+            bool hasInit = initGenerator != null; //data.initBlocks.Count > 0;
+            bool hasUpdate = updateGenerator != null; //data.updateBlocks.Count > 0;
 
             StringBuilder buffer = new StringBuilder();
 
@@ -835,9 +859,13 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine();
                 }
 
+                initGenerator.WritePreBlock(buffer, data);
+                
                 foreach (var block in data.initBlocks)
                     buffer.WriteFunctionCall(block, functionNames, data);
                 buffer.AppendLine();
+
+                initGenerator.WritePostBlock(buffer, data);
 
                 // Remove phase shift
                 if (HasPhaseShift)
@@ -908,9 +936,13 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine();
                 }
 
+                updateGenerator.WritePreBlock(buffer, data);
+
                 foreach (var block in data.updateBlocks)
                     buffer.WriteFunctionCall(block, functionNames, data);
                 buffer.AppendLine();
+
+                updateGenerator.WritePostBlock(buffer, data);
 
                 // Remove phase shift
                 if (HasPhaseShift)
