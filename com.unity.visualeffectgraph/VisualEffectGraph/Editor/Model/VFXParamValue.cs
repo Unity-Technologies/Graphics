@@ -103,6 +103,12 @@ namespace UnityEditor.Experimental
                 bindable.UnbindParam(index, true);
         }
 
+        public void UnbindAll()
+        {
+            foreach (var binding in m_Bindings)
+                binding.m_Bindable.UnbindParam(binding.m_Index);
+        }
+
         public bool IsBound()
         {
             return m_Bindings.Count > 0;

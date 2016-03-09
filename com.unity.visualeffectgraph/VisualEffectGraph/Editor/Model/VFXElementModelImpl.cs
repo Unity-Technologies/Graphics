@@ -310,6 +310,18 @@ namespace UnityEditor.Experimental
 
         public VFXContextDesc Desc
         {
+            set
+            {
+                if (m_Desc != value)
+                    if (m_Desc.m_Type == value.m_Type)
+                    {
+                        m_Desc = value;
+                        InitParamValues(value.m_Params);
+                        Invalidate(InvalidationCause.kModelChanged);
+                    }
+                    else
+                        throw new ArgumentException("Cannot dynamically change the type of a context");
+            }
             get { return m_Desc; }
         }
 

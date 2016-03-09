@@ -103,6 +103,10 @@ namespace UnityEditor.Experimental
     {
         protected void InitParamValues(VFXParam[] desc)
         {
+            if (m_ParamValues != null)
+                foreach (var paramValue in m_ParamValues)
+                    paramValue.UnbindAll();
+
             if (desc == null)
                 m_ParamValues = null;
             else
