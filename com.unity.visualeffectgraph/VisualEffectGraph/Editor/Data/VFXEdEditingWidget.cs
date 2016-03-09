@@ -125,6 +125,8 @@ namespace UnityEditor.Experimental
         string m_PositionParamName;
         string m_NormalParamName;
 
+        private Quaternion m_Quat = new Quaternion(0,0,0,1);
+
         public VFXEdPlaneEditingWidget(string PositionParamName, string NormalParamName)
         {
             m_PositionParamName = PositionParamName;
@@ -143,16 +145,21 @@ namespace UnityEditor.Experimental
 
             m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
 
-            Quaternion q = new Quaternion();
-            q.SetLookRotation(m_Normal.GetValue<Vector3>());
+            bool needsRepaint = false;
+            Vector3 normal = m_Normal.GetValue<Vector3>().normalized;
 
-            Quaternion q2 = Handles.RotationHandle(q, m_Position.GetValue<Vector3>());
-            
-            m_Normal.SetValue(q2 * Vector3.forward);
-            Handles.ArrowCap(0, m_Position.GetValue<Vector3>(), q2, 1.0f);
-
-            if(EditorGUI.EndChangeCheck())
+            if (m_Quat * Vector3.forward != normal) // if the normal has been changed elsewhere, quaternion must be reinitialized
             {
+                m_Quat.SetLookRotation(normal, Mathf.Abs(normal.y) > Mathf.Abs(normal.x) ? Vector3.right : Vector3.up); // Just ensure up and front are not collinear
+                needsRepaint = true;
+            }
+
+            m_Quat = Handles.RotationHandle(m_Quat, m_Position.GetValue<Vector3>());
+            Handles.ArrowCap(0, m_Position.GetValue<Vector3>(), m_Quat, 1.0f);
+
+            if (EditorGUI.EndChangeCheck() || needsRepaint)
+            {      
+                m_Normal.SetValue(m_Quat * Vector3.forward);
                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
         }
