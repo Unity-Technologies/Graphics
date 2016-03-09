@@ -44,6 +44,8 @@ namespace UnityEditor.Experimental
 
         public bool ShowBlock { get { return m_ShowBlock; }}
         private bool m_ShowBlock = false;
+
+        public virtual VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXShaderGeneratorModule(); }
     }
 
     public class VFXBasicInitialize : VFXContextDesc
@@ -59,6 +61,7 @@ namespace UnityEditor.Experimental
     public class VFXBasicOutput : VFXContextDesc
     {
         public VFXBasicOutput() : base(Type.kTypeOutput,"Output",false) {}
+        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXOutputShaderGeneratorModule(); }
     }
 
     public class VFXParticleUpdate : VFXContextDesc
@@ -73,6 +76,8 @@ namespace UnityEditor.Experimental
         public VFXPointOutputDesc()
             : base(Type.kTypeOutput,"Point Output",true)
         {}
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXPointOutputShaderGeneratorModule(); }
     }
 
     public class VFXBillboardOutputDesc : VFXContextDesc
@@ -87,5 +92,23 @@ namespace UnityEditor.Experimental
             m_Params = new VFXParam[1];
             m_Params[0] = textureParam;
         }
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXBillboardOutputShaderGeneratorModule(false); }
+    }
+
+    public class VFXQuadAlongVelocityOutputDesc : VFXContextDesc
+    {
+        public VFXQuadAlongVelocityOutputDesc()
+            : base(Type.kTypeOutput, "Quad Along Velocity Output", true)
+        {
+            VFXParam textureParam = new VFXParam();
+            textureParam.m_Name = "texture";
+            textureParam.m_Type = VFXParam.Type.kTypeTexture2D;
+
+            m_Params = new VFXParam[1];
+            m_Params[0] = textureParam;
+        }
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXBillboardOutputShaderGeneratorModule(true); }
     }
 }

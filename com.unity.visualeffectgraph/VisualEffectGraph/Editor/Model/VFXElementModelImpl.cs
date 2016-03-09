@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental
                     {
                         component.simulationShader = rtData.SimulationShader;
                         component.material = rtData.m_Material;
-                        component.outputType = (uint)m_OutputType;
+                        component.outputType = rtData.outputType;
                         component.maxNb = GetChild(i).MaxNb;
                         component.spawnRate = GetChild(i).SpawnRate;
                     }
@@ -131,32 +131,9 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public int OutputType
-        {
-            get { return m_OutputType; }
-            set
-            {
-                if (m_OutputType != value)
-                {
-                    m_OutputType = value;
-                    for (int i = 0; i < GetNbChildren(); ++i)
-                        GetChild(i).Invalidate(InvalidationCause.kModelChanged);
-                }
-            }
-        }
-
-        public void SwitchOutputType()
-        {
-            int outputType = OutputType;
-            if (++outputType > 2)
-                outputType = 0;
-            OutputType = outputType;               
-        }
-
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
-        private int m_OutputType = 0; // 0: point rendering / 1: billboard rendering
 
         private VFXComponent component;
         private GameObject gameObject;
