@@ -118,7 +118,7 @@ namespace UnityEditor.Experimental
 
         public override void WritePixelShader(StringBuilder builder, ShaderMetaData data)
         {
-            if (m_HasTexture)
+            if (!m_HasTexture)
             {
                 builder.AppendLine("\t\t\t\tfloat lsqr = dot(i.offsets, i.offsets);");
                 builder.AppendLine("\t\t\t\tif (lsqr > 1.0)");
@@ -128,7 +128,7 @@ namespace UnityEditor.Experimental
             else
             {
                 builder.AppendLine("\t\t\t\tcolor *= tex2D(");
-                builder.Append(data.paramToName[m_Texture]);
+                builder.Append(data.outputParamToName[m_Texture]);
                 builder.AppendLine(",i.offsets);");
             }
         }
