@@ -154,6 +154,7 @@ namespace UnityEditor.Experimental
         bool bDebugVisible = true;
         
         public VFXContextModel model { get { return (target as VFXEdContextNodeTarget).targetNode.Model; } }
+        public VFXEdContextNode node { get { return (target as VFXEdContextNodeTarget).targetNode; } }
 
         public override void OnInspectorGUI()
         {
@@ -239,6 +240,8 @@ namespace UnityEditor.Experimental
             EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
+            node.Invalidate();
+            node.ParentCanvas().Repaint();
 
         }
     }
