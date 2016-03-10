@@ -42,13 +42,27 @@ namespace UnityEditor.Experimental
 
             Bounds b = new Bounds(m_Position.GetValue<Vector3>(),m_Size.GetValue<Vector3>());
             
-            if(Event.current.control)
+            switch(Tools.current)
             {
-                b.center = Handles.PositionHandle(b.center, Quaternion.identity);
-                VFXEdHandleUtility.ShowWireBox(b);
+                case Tool.Move:
+                    b.center = Handles.PositionHandle(b.center, Quaternion.identity);
+                    VFXEdHandleUtility.ShowWireBox(b);
+                    break;
+                case Tool.Scale:
+                    b.size = Handles.ScaleHandle(b.size, b.center, Quaternion.identity, HandleUtility.GetHandleSize(b.center) * 1.0f);
+                    VFXEdHandleUtility.ShowWireBox(b);
+                    break;
+                case Tool.Rect:
+                    b = VFXEdHandleUtility.BoxHandle(b);
+                    break;
+                default:
+                    VFXEdHandleUtility.ShowWireBox(b);
+                    
+                    break;
             }
-            else
-                b = VFXEdHandleUtility.BoxHandle(b);
+
+
+                
             
 
             m_Position.SetValue(b.center);
@@ -96,19 +110,43 @@ namespace UnityEditor.Experimental
         public override void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
-            m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
-            m_Radius.SetValue(Handles.RadiusHandle(Quaternion.identity, m_Position.GetValue<Vector3>(), m_Radius.GetValue<float>(),false));
-
+            
+            
             Vector3 pos = m_Position.GetValue<Vector3>();
             float radius = m_Radius.GetValue<float>();
 
-            Handles.color = new Color(1.0f, 0.0f, 0.0f, 0.85f);
-            Handles.DrawWireDisc(pos, Vector3.forward, radius);
-            Handles.DrawWireDisc(pos, Vector3.right, radius);
-            Handles.DrawWireDisc(pos, Vector3.up, radius);
-            Handles.color = new Color(1.0f, 0.0f, 0.0f, 0.15f);
-            Handles.SphereCap(0, pos, Quaternion.identity, radius*2);
-            Handles.color = Color.white;
+            switch(Tools.current)
+            {
+                case Tool.Move:
+                    pos = Handles.PositionHandle(pos, Quaternion.identity);
+                    
+                    break;
+                case Tool.Scale:
+                    Vector3 s = Handles.ScaleHandle(new Vector3(radius ,radius, radius), pos , Quaternion.identity, HandleUtility.GetHandleSize(pos) * 1.0f);
+                    radius = Mathf.Max(s.x, Mathf.Max(s.y, s.z));
+                    break;
+                case Tool.Rect:
+                    radius = Handles.RadiusHandle(Quaternion.identity, m_Position.GetValue<Vector3>(), m_Radius.GetValue<float>(),false);
+                    break;
+                default:
+                    break;
+            }
+
+            VFXEdHandleUtility.ShowWireSphere(pos, radius);
+
+            GUI.BeginGroup(new Rect(16, 16, 250, 20));
+            GUILayout.BeginArea(new Rect(0, 0, 250, 20), EditorStyles.miniButton);
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+                radius = EditorGUILayout.Slider("Radius",radius, 0.0f, 50.0f);
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+            GUILayout.EndArea();
+            GUI.EndGroup();
+
+
+            m_Position.SetValue(pos);
+            m_Radius.SetValue(radius);
 
             if(EditorGUI.EndChangeCheck())
             {
@@ -143,8 +181,6 @@ namespace UnityEditor.Experimental
         {
             EditorGUI.BeginChangeCheck();
 
-            m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
-
             bool needsRepaint = false;
             Vector3 normal = m_Normal.GetValue<Vector3>().normalized;
 
@@ -154,8 +190,20 @@ namespace UnityEditor.Experimental
                 needsRepaint = true;
             }
 
-            m_Quat = Handles.RotationHandle(m_Quat, m_Position.GetValue<Vector3>());
-            Handles.ArrowCap(0, m_Position.GetValue<Vector3>(), m_Quat, 1.0f);
+            switch(Tools.current)
+            {
+                case Tool.Move:
+                    m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
+                    break;
+                case Tool.Rotate:
+                    m_Quat = Handles.RotationHandle(m_Quat, m_Position.GetValue<Vector3>());
+                    break;
+
+                default:
+                    break;
+            }
+
+            VFXEdHandleUtility.ShowInfinitePlane(m_Position.GetValue<Vector3>(), m_Quat);
 
             if (EditorGUI.EndChangeCheck() || needsRepaint)
             {      
@@ -203,14 +251,31 @@ namespace UnityEditor.Experimental
 
         public override void OnSceneGUI(SceneView sceneView)
         {
-            // Nothing here... for now
+            Vector3 c = m_Color.GetValue<Vector3>();
+            float a = m_Alpha.GetValue<float>();
+            Color color = new Color(c.x, c.y, c.z, a);
+
+            GUI.BeginGroup(new Rect(16, 16, 250, 20));
+            GUILayout.BeginArea(new Rect(0, 0, 250, 20), EditorStyles.miniButton);
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+                color = EditorGUILayout.ColorField(new GUIContent("Color"), color,true,true,true,new ColorPickerHDRConfig(0.0f,500.0f,0.0f,500.0f));
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+            GUILayout.EndArea();
+            GUI.EndGroup();
+
+            m_Color.SetValue(new Vector3(color.r, color.g, color.b));
+            m_Alpha.SetValue(color.a);
         }
     }
 
     internal static class VFXEdHandleUtility
     {
         public const float CubeCapSize = 0.1f;
-        public static readonly Color BoxHandleWireColor = new Color(1.0f, 1.0f, 1.0f, 0.45f);
+        public static readonly Color BoxWireColor = new Color(1.0f, 1.0f, 1.0f, 0.45f);
+        public static readonly Color GridWireColor = new Color(0.5f, 0.5f, 0.5f, 0.45f);
+
         public const float BoxHandleWireDashSize = 5.0f;
 
         public static Bounds BoxHandle(Bounds bounds)
@@ -284,9 +349,56 @@ namespace UnityEditor.Experimental
                     new Vector3(minX, maxY, maxZ), new Vector3(maxX, maxY, maxZ)
                 };
 
-            Handles.color = BoxHandleWireColor;
+            Handles.color = BoxWireColor;
             Handles.DrawDottedLines(cubeLines,BoxHandleWireDashSize);
             Handles.color = Color.white;
+        }
+
+        public static void ShowWireSphere(Vector3 pos, float radius)
+        {
+            Handles.color = new Color(1.0f, 0.0f, 0.0f, 0.85f);
+            Handles.DrawWireDisc(pos, Vector3.forward, radius);
+            Handles.DrawWireDisc(pos, Vector3.right, radius);
+            Handles.DrawWireDisc(pos, Vector3.up, radius);
+            Handles.color = new Color(1.0f, 0.0f, 0.0f, 0.15f);
+            Handles.SphereCap(0, pos, Quaternion.identity, radius*2);
+            Handles.color = Color.white;
+
+        }
+
+        public static void ShowInfinitePlane(Vector3 Position, Quaternion Rotation)
+        {
+            float scale = HandleUtility.GetHandleSize(Position);
+
+            Handles.ArrowCap(0, Position, Rotation, scale);
+            Matrix4x4 transform = Matrix4x4.TRS(Position, Rotation, Vector3.one);
+
+            Vector3 tangent = transform.GetColumn(0);
+            Vector3 binormal = transform.GetColumn(1);
+            Vector3 normal = transform.GetColumn(2);
+
+            float INF = 5000.0f;
+
+            Handles.color = GridWireColor;
+            Handles.DrawLine(Position + tangent * INF, Position - tangent * INF);
+            Handles.DrawLine(Position + binormal * INF, Position - binormal * INF);
+
+            for(int i = 1; i < 64; i ++)
+            {
+                Color c = Handles.color;
+                c.a = GridWireColor.a * (1.0f-((float)i/64));
+                Handles.color = c;
+ 
+                Handles.DrawLine(Position + (tangent * i) + (binormal * i), Position - (tangent * i) + (binormal * i));
+                Handles.DrawLine(Position + (tangent * i) + (binormal * -i), Position - (tangent * i) + (binormal * -i));
+
+                Handles.DrawLine(Position + (tangent * i) + (binormal * i), Position + (tangent * i) - (binormal * i));
+                Handles.DrawLine(Position + (tangent * -i) + (binormal * i), Position + (tangent * -i) - (binormal * i));
+
+            }
+
+            Handles.color = Color.white;
+
         }
     }
 
