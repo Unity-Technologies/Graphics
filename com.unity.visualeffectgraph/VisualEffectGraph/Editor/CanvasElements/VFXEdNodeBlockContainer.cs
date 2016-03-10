@@ -216,7 +216,7 @@ namespace UnityEditor.Experimental
 
             if (Children().Length == 0)
             {
-                GUI.Label(r, "Node Is Empty, please fill me.", VFXEditor.styles.NodeInfoText);
+                GUI.Label(r, "(No NodeBlocks)", VFXEditor.styles.NodeInfoText);
             }
 
             base.Render(parentRect, canvas);

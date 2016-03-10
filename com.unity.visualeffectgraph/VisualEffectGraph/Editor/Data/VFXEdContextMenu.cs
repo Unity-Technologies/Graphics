@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental
 
             foreach (var desc in VFXEditor.ContextLibrary.GetContexts())
             {
-                output.AddItem(new GUIContent("New Node/" + desc.Name), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, desc));
+                output.AddItem(new GUIContent("New Node/" + VFXContextDesc.GetTypeName( desc.m_Type) + "/" + desc.Name), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, desc));
             }
 
             output.AddSeparator("New Node/");

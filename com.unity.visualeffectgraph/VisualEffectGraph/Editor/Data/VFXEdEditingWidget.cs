@@ -193,7 +193,10 @@ namespace UnityEditor.Experimental
             switch(Tools.current)
             {
                 case Tool.Move:
-                    m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
+                    if(Tools.pivotRotation == PivotRotation.Global)
+                        m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
+                    else
+                        m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), m_Quat));
                     break;
                 case Tool.Rotate:
                     m_Quat = Handles.RotationHandle(m_Quat, m_Position.GetValue<Vector3>());

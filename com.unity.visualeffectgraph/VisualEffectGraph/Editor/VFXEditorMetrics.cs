@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental
         public static readonly Vector2 NodeBlockContainerSizeOffset = new Vector2(- 15f, 0.0f);
         public static readonly float NodeBlockContainerSeparatorHeight = 16.0f;
         public static readonly float NodeBlockContainerSeparatorOffset = 8.0f;
-        public static readonly float NodeBlockContainerEmptyHeight = 120.0f;
+        public static readonly float NodeBlockContainerEmptyHeight = 48.0f;
 
         // NODE BLOCKS
         public static readonly float NodeBlockHeaderHeight = 40f;
