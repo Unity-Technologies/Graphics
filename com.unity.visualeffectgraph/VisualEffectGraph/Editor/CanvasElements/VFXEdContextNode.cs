@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    class VFXEdContextNode : VFXEdNode
+    internal class VFXEdContextNode : VFXEdNode
     {
         // TODO Remove this shit
         public static VFXEdContext ConvertType(VFXContextDesc.Type inType)
@@ -86,6 +86,18 @@ namespace UnityEditor.Experimental
             ZSort();
             Layout();
 
+        }
+
+        public void SetContextParameterValue(string name, VFXParamValue Value)
+        {
+            VFXContextModel model = ContextNodeBlock.Model;
+            for(int i = 0; i < model.GetNbParamValues(); i++)
+            {
+                if(model.Desc.m_Params[i].m_Name == name)
+                {
+                    model.GetParamValue(i).SetValue(Value); 
+                }
+            }
         }
 
         public override void OnRemove()

@@ -119,10 +119,20 @@ namespace UnityEditor.Experimental
             }
            
             XElement lib = doc.Element("Library");
+
+
             var templates = lib.Elements("Template");
             foreach(XElement t in templates)
             {
+
                 VFXEdSpawnTemplate template = VFXEdSpawnTemplate.Create(t.Attribute("Category").Value, t.Attribute("Name").Value);
+
+                // TODO : Remove when using Triggers
+                var system = t.Element("System");
+                if(system != null)
+                    template.SystemInformation = new VFXEdSpawnTemplate.SysInfo(float.Parse(system.Attribute("SpawnRate").Value), uint.Parse(system.Attribute("AllocationCount").Value));
+                // END TODO
+            
                 var nodes = t.Element("Nodes").Elements("Node");
                 var flowconnections = t.Element("Connections").Elements("FlowConnection");
 
@@ -190,6 +200,16 @@ namespace UnityEditor.Experimental
                 doc.WriteStartElement("Template");
                 doc.WriteAttributeString("Category", template.Category);
                 doc.WriteAttributeString("Name", template.Name);
+
+                // TODO: Remove When using Triggers
+                if(template.SystemInformation != null)
+                {
+                    doc.WriteStartElement("System");
+                    doc.WriteAttributeString("SpawnRate", template.SystemInformation.SpawnRate.ToString());
+                    doc.WriteAttributeString("AllocationCount", template.SystemInformation.AllocationCount.ToString());
+                    doc.WriteEndElement();
+                }
+                // END TODO
 
                 doc.WriteStartElement("Nodes");
                 foreach(KeyValuePair<string, ContextNodeInfo> kvp_node in template.ContextNodes)
@@ -340,6 +360,11 @@ namespace UnityEditor.Experimental
                 {
                     VFXEdContextNode node = (e as VFXEdContextNode);
                     t.AddContextNode(node.UniqueName, node.Model.Desc.Name);
+
+                    // TODO: Remove & Refactor When Using Triggers
+                    VFXSystemModel sysmodel = node.Model.GetOwner();
+                    t.SystemInformation = new VFXEdSpawnTemplate.SysInfo(sysmodel.SpawnRate, sysmodel.MaxNb);
+                    // END TODO
 
                     // Context Node Parameters
                     for(int i = 0; i < node.Model.GetNbParamValues(); i++)

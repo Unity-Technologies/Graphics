@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Library>
   <Template Category="Particles" Name="Simple">
+    <System SpawnRate="104857.6" AllocationCount="1048576" />
     <Nodes>
       <Node Name="VFXEdContextNode_0" Context="Initialize">
         <Context />
@@ -39,5 +40,47 @@
       <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
       <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
     </Connections>
+  </Template>
+  <Template Category="Particles" Name="Steam">
+    <System SpawnRate="20" AllocationCount="128" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_0" Context="Initialize">
+        <Context />
+        <NodeBlock Name="Set Color (Constant)" BlockName="Set Color (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat3" Value="1,1,1" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="3" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Random)" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,2,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0.5,0.2,0.5" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Random (Square)" BlockName="Set Size Random (Square)">
+          <VFXParamValue Name="minSize" Type="kTypeFloat" Value="0.2" />
+          <VFXParamValue Name="maxSize" Type="kTypeFloat" Value="2" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_1" Context="Particle Update">
+        <Context />
+        <NodeBlock Name="Alpha Over Lifetime" BlockName="Alpha Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat" Value="0.1" />
+          <VFXParamValue Name="end" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_2" Context="Billboard Output">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/Editor Default Resources/icons/Config.png" />
+        </Context>
+      </Node>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
+      <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
+    </Connections>
+  </Template>
+  <Template Category="Particles" Name="Test3">
+    <Nodes />
+    <Connections />
   </Template>
 </Library>

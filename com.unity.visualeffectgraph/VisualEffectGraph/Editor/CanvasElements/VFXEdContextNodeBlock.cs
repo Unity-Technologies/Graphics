@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental
     class VFXEdContextNodeBlock : VFXEdNodeBlock
     {
         public VFXEdNodeBlockHeader Header { get { return m_Header; } }
-         
+        public VFXContextModel Model { get { return m_Model; } }
         private VFXEdNodeBlockHeader m_Header;
         private VFXParamValue[] m_ParamValues;
         private VFXContextModel m_Model;

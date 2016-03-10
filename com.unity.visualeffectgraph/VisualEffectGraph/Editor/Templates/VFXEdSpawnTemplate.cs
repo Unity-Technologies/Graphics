@@ -10,9 +10,25 @@ namespace UnityEditor.Experimental
 {
     public class VFXEdSpawnTemplate : ScriptableObject
     {
+        // TODO: Remove & Refactor when using Triggers
+        public class SysInfo
+        {
+            public float SpawnRate;
+            public uint AllocationCount;
+
+            public SysInfo(float spawnRate, uint allocationCount)
+            {
+                SpawnRate = spawnRate;
+                AllocationCount = allocationCount;
+            }
+        }
+        // END TODO
+
         public string Name { get { return m_Name; } set { m_Name = value; } }
-        public string Category { get { return m_Category; } set { m_Category = value; } } 
-        
+        public string Category { get { return m_Category; } set { m_Category = value; } }
+
+        public SysInfo SystemInformation;
+
         public string Path { get { return m_Category + "/" + m_Name; } }
 
         private string m_Name = "";
@@ -73,7 +89,7 @@ namespace UnityEditor.Experimental
 
             foreach(KeyValuePair<string,ContextNodeInfo> node_kvp in m_ContextNodes)
             {
-                VFXEdNode node = null;
+                VFXEdContextNode node = null;
                 string context = node_kvp.Value.Context;
 
                 node = new VFXEdContextNode(CurrentPos, VFXEditor.ContextLibrary.GetContext(context), datasource);
@@ -83,6 +99,16 @@ namespace UnityEditor.Experimental
                     datasource.AddElement(node);
                     spawnedNodes.Add(node_kvp.Value, node);
                 }
+
+                foreach (KeyValuePair <string,VFXParamValue> param_kvp in node_kvp.Value.ParameterOverrides)
+                {
+                    node.SetContextParameterValue(param_kvp.Key, param_kvp.Value);
+                }
+                
+                // TODO : Remove when using Triggers
+                node.Model.GetOwner().MaxNb = SystemInformation.AllocationCount;
+                node.Model.GetOwner().SpawnRate = SystemInformation.SpawnRate;
+                // END TODO
 
                 foreach(KeyValuePair<string,NodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
                 {
