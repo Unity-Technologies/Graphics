@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental
     class VFXEdContextNodeBlock : VFXEdNodeBlock
     {
         public VFXEdNodeBlockHeader Header { get { return m_Header; } }
-
+         
         private VFXEdNodeBlockHeader m_Header;
         private VFXParamValue[] m_ParamValues;
         private VFXContextModel m_Model;
@@ -44,11 +44,6 @@ namespace UnityEditor.Experimental
                 }
                 Header.Collapseable = true;
             }
-        }
-
-        public void BindTo(VFXEdContextNode node)
-        {
-            //VFXEditor.AssetModel.OutputType = m_renderType;
         }
 
         public override void Layout()

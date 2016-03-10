@@ -221,9 +221,9 @@ position = value;
 #icon Position
 #category Position/
 #arg float3 position [inout|param]
-#arg Texture2D tex [public] 
-#arg float3 scale [public]
+#arg Texture2D tex [public]
 #arg float3 center [public]
+#arg float3 scale [public]
 
 position = center+((tex2Dlod(tex,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
 
