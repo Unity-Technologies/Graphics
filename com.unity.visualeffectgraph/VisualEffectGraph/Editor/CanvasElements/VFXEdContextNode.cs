@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental
 
             m_Desc = desc;
             if (m_Desc.ShowBlock)
-                ContextNodeBlock = new VFXEdContextNodeBlock(m_DataSource, desc);
+                ContextNodeBlock = new VFXEdContextNodeBlock(m_DataSource, m_Model);
 
             // Create a dummy System to hold the newly created context
             VFXSystemModel systemModel = new VFXSystemModel();
