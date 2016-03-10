@@ -71,4 +71,54 @@
       <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
     </Connections>
   </Template>
+  <Template Category="Collisions" Name="TestSphere">
+    <System SpawnRate="1000" AllocationCount="5000" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_0" Context="Initialize">
+        <Context />
+        <NodeBlock Name="Set Velocity (Constant)" BlockName="Set Velocity (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat3" Value="1,1,0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Color (Constant)" BlockName="Set Color (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat3" Value="1,1,1" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Random)" BlockName="Set Lifetime (Random)">
+          <VFXParamValue Name="minLifetime" Type="kTypeFloat" Value="4" />
+          <VFXParamValue Name="maxLifetime" Type="kTypeFloat" Value="5" />
+        </NodeBlock>
+        <NodeBlock Name="Set Position (Sphere)" BlockName="Set Position (Sphere)">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="0.2" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Random (Square)" BlockName="Set Size Random (Square)">
+          <VFXParamValue Name="minSize" Type="kTypeFloat" Value="0.2" />
+          <VFXParamValue Name="maxSize" Type="kTypeFloat" Value="0.05" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_1" Context="Particle Update">
+        <Context />
+        <NodeBlock Name="Alpha Over Lifetime" BlockName="Alpha Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat" Value="1" />
+          <VFXParamValue Name="end" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+        <NodeBlock Name="Collision with Sphere" BlockName="Collision with Sphere">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="2.7,-1,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="1" />
+          <VFXParamValue Name="elasticity" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Force" BlockName="Apply Force">
+          <VFXParamValue Name="force" Type="kTypeFloat3" Value="0,-1,0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_2" Context="Billboard Output">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/Steam01.psd" />
+        </Context>
+      </Node>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
+      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
+    </Connections>
+  </Template>
 </Library>
