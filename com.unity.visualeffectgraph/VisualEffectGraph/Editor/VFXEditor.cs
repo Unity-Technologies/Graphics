@@ -87,6 +87,15 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public static VFXContextLibraryCollection ContextLibrary
+        {
+            get
+            {
+                InitializeContextLibrary();
+                return s_ContextLibrary;
+            }
+        }
+
 		public static VFXAssetModel AssetModel
 		{
 			get
@@ -144,6 +153,7 @@ namespace UnityEditor.Experimental
         private static VFXEditorStyles s_Styles;
         private static VFXBlockLibraryCollection s_BlockLibrary;
         private static VFXDataBlockLibraryCollection s_DataBlockLibrary;
+        private static VFXContextLibraryCollection s_ContextLibrary;
 		private static VFXAssetModel s_AssetModel;
 
         private static VFXEdSpawnTemplateLibrary s_SpawnTemplates;
@@ -188,6 +198,14 @@ namespace UnityEditor.Experimental
             }
         }
 
+        private static void InitializeContextLibrary()
+        {
+            if (s_ContextLibrary == null)
+            {
+                s_ContextLibrary = new VFXContextLibraryCollection();
+            }
+        }
+
         private static void InitializeSpawnTemplateLibrary()
         {
             if (s_SpawnTemplates == null)
@@ -217,8 +235,6 @@ namespace UnityEditor.Experimental
             m_Canvas.ReloadData();
             m_Canvas.Repaint();
         }
-
-
 
         private void Rebuild()
         {
@@ -299,27 +315,27 @@ namespace UnityEditor.Experimental
                 switch(m_ShowDebugPage)
                 {
                     case 0: // Debug log
-
-                        
+                    {                  
                         List<string> debugOutput = VFXEditor.GetDebugOutput();
                         foreach (string str in debugOutput)
                             GUILayout.Label(str);
-                        
-
                         break;
+                    }
+
                     case 1: // Edit Templates
-                        EditorGUI.indentLevel ++;
+                    {
+                        EditorGUI.indentLevel++;
                         GUILayout.Space(16.0f);
-                        GUILayout.Label("Add New Template from Selection...",VFXEditor.styles.InspectorHeader);
+                        GUILayout.Label("Add New Template from Selection...", VFXEditor.styles.InspectorHeader);
                         GUILayout.BeginHorizontal();
                         GUILayout.Label("Category : ");
-                        m_NewTemplateCategory = GUILayout.TextField(m_NewTemplateCategory,150);
+                        m_NewTemplateCategory = GUILayout.TextField(m_NewTemplateCategory, 150);
                         GUILayout.Label("Name : ");
-                        m_NewTemplateName = GUILayout.TextField(m_NewTemplateName,150);
-                        if(GUILayout.Button("Add..."))
+                        m_NewTemplateName = GUILayout.TextField(m_NewTemplateName, 150);
+                        if (GUILayout.Button("Add..."))
                         {
                             VFXEdSpawnTemplate t = VFXEdSpawnTemplateLibrary.CreateTemplateFromSelection(m_Canvas, m_NewTemplateCategory, m_NewTemplateName);
-                            if(t!= null)
+                            if (t != null)
                             {
                                 VFXEditor.SpawnTemplates.AddTemplate(t);
                                 SpawnTemplates.WriteLibrary();
@@ -330,13 +346,13 @@ namespace UnityEditor.Experimental
                         }
                         GUILayout.EndHorizontal();
                         GUILayout.Space(16.0f);
-                        GUILayout.Label("Currently Loaded Templates",VFXEditor.styles.InspectorHeader);
+                        GUILayout.Label("Currently Loaded Templates", VFXEditor.styles.InspectorHeader);
 
                         List<string> todelete = new List<string>();
-                        foreach(VFXEdSpawnTemplate t in SpawnTemplates.Templates)
+                        foreach (VFXEdSpawnTemplate t in SpawnTemplates.Templates)
                         {
                             GUILayout.BeginHorizontal();
-                            if(GUILayout.Button("X"))
+                            if (GUILayout.Button("X"))
                             {
                                 todelete.Add(t.Path);
                             }
@@ -345,11 +361,11 @@ namespace UnityEditor.Experimental
                             GUILayout.EndHorizontal();
                         }
                         // If Has to delete...
-                        if(todelete.Count > 0) foreach(string s in todelete) SpawnTemplates.DeleteTemplate(s);
+                        if (todelete.Count > 0) foreach (string s in todelete) SpawnTemplates.DeleteTemplate(s);
 
 
                         GUILayout.Space(16.0f);
-                        GUILayout.Label("Debug...",VFXEditor.styles.InspectorHeader);
+                        GUILayout.Label("Debug...", VFXEditor.styles.InspectorHeader);
                         if (GUILayout.Button("Fill templates (debug)"))
                         {
                             SpawnTemplates.Initialize();
@@ -359,8 +375,10 @@ namespace UnityEditor.Experimental
                         {
                             SpawnTemplates.ReloadLibrary();
                         }
-                        EditorGUI.indentLevel --;
+                        EditorGUI.indentLevel--;
                         break;
+                    }
+
                     default: break;
                 }
 
@@ -382,6 +400,7 @@ namespace UnityEditor.Experimental
         {
             s_BlockLibrary = null;
             s_DataBlockLibrary = null;
+            s_ContextLibrary = null;
             s_SpawnTemplates = null;
             
             s_AssetModel.Dispose();
@@ -427,9 +446,6 @@ namespace UnityEditor.Experimental
             GUI.EndGroup();
 
         }
-
-        
-
 
         #region TOOL WINDOWS
         void DrawWindows(Rect canvasRect)
@@ -509,23 +525,6 @@ namespace UnityEditor.Experimental
             // Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
         }
 
-        // Just for test
-        public VFXBlock GetRandomBlock()
-        {
-            if (m_Blocks.Count > 0)
-            {
-                int index = Random.Range(0, m_Blocks.Count);
-                return m_Blocks[index];
-            }
-            else
-            {
-                VFXBlock block = new VFXBlock();
-                block.m_Name = "EmptyNode";
-                block.m_Params = new VFXParam[0];
-                return block;
-            }
-        }
-
         public VFXBlock GetBlock(string name)
         {
             return m_Blocks.Find(block => block.m_Name.Equals(name));
@@ -535,8 +534,34 @@ namespace UnityEditor.Experimental
         {
             return new ReadOnlyCollection<VFXBlock>(m_Blocks);
         }
-
     }
 
+    public class VFXContextLibraryCollection
+    {
+        private List<VFXContextDesc> m_Contexts;
 
+        public VFXContextLibraryCollection()
+        {
+            m_Contexts = new List<VFXContextDesc>();
+
+            // Register context here
+            m_Contexts.Add(new VFXBasicInitialize());
+            m_Contexts.Add(new VFXBasicUpdate());
+            m_Contexts.Add(new VFXParticleUpdate());
+            m_Contexts.Add(new VFXBasicOutput());
+            m_Contexts.Add(new VFXPointOutputDesc());
+            m_Contexts.Add(new VFXBillboardOutputDesc());
+            m_Contexts.Add(new VFXQuadAlongVelocityOutputDesc());
+        }
+
+        public VFXContextDesc GetContext(string name)
+        {
+            return m_Contexts.Find(context => context.Name.Equals(name));
+        }
+
+        public ReadOnlyCollection<VFXContextDesc> GetContexts()
+        {
+            return new ReadOnlyCollection<VFXContextDesc>(m_Contexts);
+        }
+    }
 }

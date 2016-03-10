@@ -17,6 +17,8 @@ namespace UnityEditor.Experimental
         public static VFXAttrib Alpha =     new VFXAttrib("alpha", VFXParam.Type.kTypeFloat);
         public static VFXAttrib Phase =     new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
         public static VFXAttrib Size =      new VFXAttrib("size", VFXParam.Type.kTypeFloat2);
+        public static VFXAttrib Lifetime =  new VFXAttrib("lifetime", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib Age =       new VFXAttrib("age", VFXParam.Type.kTypeFloat);
     }
 
     public class VFXSystemRuntimeData
@@ -32,6 +34,8 @@ namespace UnityEditor.Experimental
         public int InitKernel { get { return initKernel; } }
         int updateKernel = -1;
         public int UpdateKernel { get { return updateKernel; } }
+
+        public uint outputType; // tmp value to pass to C++
 
         private List<ComputeBuffer> buffers = new List<ComputeBuffer>();
 
@@ -166,12 +170,12 @@ namespace UnityEditor.Experimental
             get { return m_Attribs[index]; }
         }
 
-        public bool Used(VFXContextModel.Type type)
+        public bool Used(VFXContextDesc.Type type)
         {
             return (m_Usage & (0x3 << (((int)type - 1) * 2))) != 0;
         }
 
-        public bool Writable(VFXContextModel.Type type)
+        public bool Writable(VFXContextDesc.Type type)
         {
             return (m_Usage & (0x2 << (((int)type - 1) * 2))) != 0;
         }
@@ -229,22 +233,23 @@ namespace UnityEditor.Experimental
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
             // Create output compiler
-            OutputCompiler outputCompiler = null;
-            switch(VFXEditor.AssetModel.OutputType)
+            VFXOutputShaderGeneratorModule outputGenerator = null;
+            VFXShaderGeneratorModule initGenerator = null;
+            VFXShaderGeneratorModule updateGenerator = null;
+
+            for (int i = 0; i < system.GetNbChildren(); ++i)
             {
-                case 0:
-                    outputCompiler = new PointOutputCompiler();
-                    break;
-                case 1:
-                    outputCompiler = new BillboardOutputCompiler(false);
-                    break;
-                case 2:
-                    outputCompiler = new BillboardOutputCompiler(true);
-                    break;
-                default:
-                    VFXEditor.Log("Invalid OutputType");
-                    return null;
+                var desc = system.GetChild(i).Desc;
+                switch (desc.m_Type)
+                {
+                    case VFXContextDesc.Type.kTypeInit: initGenerator = desc.CreateShaderGenerator(); break;
+                    case VFXContextDesc.Type.kTypeUpdate: updateGenerator = desc.CreateShaderGenerator(); break;
+                    case VFXContextDesc.Type.kTypeOutput: outputGenerator = desc.CreateShaderGenerator() as VFXOutputShaderGeneratorModule; break;
+                }
             }
+
+            if (outputGenerator == null || initGenerator == null || updateGenerator == null) // Tmp: we need the 3 contexts atm
+                return null;
 
             // BLOCKS
             List<VFXBlockModel> initBlocks = new List<VFXBlockModel>();
@@ -261,8 +266,8 @@ namespace UnityEditor.Experimental
                 List<VFXBlockModel> currentList = null; ;
                 switch (context.GetContextType())
                 {
-                    case VFXContextModel.Type.kTypeInit: currentList = initBlocks; break;
-                    case VFXContextModel.Type.kTypeUpdate: currentList = updateBlocks; break;
+                    case VFXContextDesc.Type.kTypeInit: currentList = initBlocks; break;
+                    case VFXContextDesc.Type.kTypeUpdate: currentList = updateBlocks; break;
                 }
 
                 if (currentList == null)
@@ -280,8 +285,8 @@ namespace UnityEditor.Experimental
 
                 switch (context.GetContextType())
                 {
-                    case VFXContextModel.Type.kTypeInit: initHasRand |= hasRand; break;
-                    case VFXContextModel.Type.kTypeUpdate: 
+                    case VFXContextDesc.Type.kTypeInit: initHasRand |= hasRand; break;
+                    case VFXContextDesc.Type.kTypeUpdate: 
                         updateHasRand |= hasRand;
                         updateHasKill |= hasKill;
                         break;
@@ -318,15 +323,30 @@ namespace UnityEditor.Experimental
                 }
             }
 
+            // Update flags with generators
+            int initGeneratorFlags = 0;
+            if (!initGenerator.UpdateAttributes(attribs, ref initGeneratorFlags))
+                return null;
+
+            initHasRand |= (initGeneratorFlags & (int)VFXBlock.Flag.kHasRand) != 0;
+
+            int updateGeneratorFlags = 0;
+            if (!updateGenerator.UpdateAttributes(attribs, ref updateGeneratorFlags))
+                return null;
+
+            updateHasRand |= (updateGeneratorFlags & (int)VFXBlock.Flag.kHasRand) != 0;
+            updateHasKill |= (updateGeneratorFlags & (int)VFXBlock.Flag.kHasKill) != 0;
+
+            int dummy = 0;
+            if (!outputGenerator.UpdateAttributes(attribs, ref dummy))
+                return null;
+
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
             {
                 updateHasRand = true;
                 attribs[CommonAttrib.Seed] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
             }
-
-            if (!outputCompiler.MarkAttributes(attribs))
-                return null;
 
             // Find unitialized attribs and remove 
             List<VFXAttrib> unitializedAttribs = new List<VFXAttrib>(); 
@@ -355,7 +375,7 @@ namespace UnityEditor.Experimental
                 if (attribsForUsage == null) // Not yet initialized
                 {
                     attribsForUsage = new List<VFXAttrib>[4];
-                    for (int i = 0; i < 4; ++i) // Asumming sizes cannot be more than 4 bytes
+                    for (int i = 0; i < 4; ++i) // Assuming sizes cannot be more than 4 bytes
                         attribsForUsage[i] = new List<VFXAttrib>();
 
                     sortedAttribs[attrib.Value] = attribsForUsage;
@@ -522,8 +542,8 @@ namespace UnityEditor.Experimental
             shaderMetaData.updateSamplers = updateSamplers;
             shaderMetaData.paramToName = paramToName;
    
-            string shaderSource = WriteComputeShader(shaderMetaData);
-            string outputShaderSource = outputCompiler.GenerateSource(shaderMetaData);
+            string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
+            string outputShaderSource = WriteOutputShader(shaderMetaData,outputGenerator);
            
             VFXEditor.Log("\n**** SHADER CODE ****");
             VFXEditor.Log(shaderSource);
@@ -552,14 +572,16 @@ namespace UnityEditor.Experimental
                 if (structSize == 3)
                     structSize = 4;
                 ComputeBuffer computeBuffer = new ComputeBuffer(1 << 20, structSize * 4, ComputeBufferType.GPUMemory);
-                if (attribBuffer.Used(VFXContextModel.Type.kTypeInit))
-                    rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextModel.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
-                if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate))
-                    rtData.AddBuffer(rtData.UpdateKernel, bufferName + (attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate) ? "" : "_RO"), computeBuffer);
-                if (attribBuffer.Used(VFXContextModel.Type.kTypeOutput))
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeInit))
+                    rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
+                    rtData.AddBuffer(rtData.UpdateKernel, bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate) ? "" : "_RO"), computeBuffer);
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeOutput))
                     rtData.m_Material.SetBuffer(bufferName, computeBuffer);
                 //computeBuffer.Dispose();
             }
+
+            rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
 
             if (shaderMetaData.hasKill)
             {
@@ -668,12 +690,12 @@ namespace UnityEditor.Experimental
                 }
         }
 
-        private static string WriteComputeShader(ShaderMetaData data)
+        private static string WriteComputeShader(ShaderMetaData data,VFXShaderGeneratorModule initGenerator,VFXShaderGeneratorModule updateGenerator)
         {
             const int NB_THREAD_PER_GROUP = 256;
 
-            bool hasInit = data.initBlocks.Count > 0;
-            bool hasUpdate = data.updateBlocks.Count > 0;
+            bool hasInit = initGenerator != null; //data.initBlocks.Count > 0;
+            bool hasUpdate = updateGenerator != null; //data.updateBlocks.Count > 0;
 
             StringBuilder buffer = new StringBuilder();
 
@@ -734,7 +756,7 @@ namespace UnityEditor.Experimental
                 buffer.Append(attribBuffer.Index);
                 buffer.AppendLine(";");
 
-                if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate) && !attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate))
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate) && !attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
                 {
                     buffer.Append("StructuredBuffer<Attribute");
                     buffer.Append(attribBuffer.Index);
@@ -837,9 +859,13 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine();
                 }
 
+                initGenerator.WritePreBlock(buffer, data);
+                
                 foreach (var block in data.initBlocks)
                     buffer.WriteFunctionCall(block, functionNames, data);
                 buffer.AppendLine();
+
+                initGenerator.WritePostBlock(buffer, data);
 
                 // Remove phase shift
                 if (HasPhaseShift)
@@ -888,7 +914,7 @@ namespace UnityEditor.Experimental
          
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
-                    if (attribBuffer.Used(VFXContextModel.Type.kTypeUpdate))
+                    if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
                     {
                         buffer.Append("\t\tAttribute");
                         buffer.Append(attribBuffer.Index);
@@ -896,7 +922,7 @@ namespace UnityEditor.Experimental
                         buffer.Append(attribBuffer.Index);
                         buffer.Append(" = attribBuffer");
                         buffer.Append(attribBuffer.Index);
-                        if (!attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate))
+                        if (!attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
                             buffer.Append("_RO");
                         buffer.AppendLine("[index];");
                     }
@@ -910,9 +936,13 @@ namespace UnityEditor.Experimental
                     buffer.AppendLine();
                 }
 
+                updateGenerator.WritePreBlock(buffer, data);
+
                 foreach (var block in data.updateBlocks)
                     buffer.WriteFunctionCall(block, functionNames, data);
                 buffer.AppendLine();
+
+                updateGenerator.WritePostBlock(buffer, data);
 
                 // Remove phase shift
                 if (HasPhaseShift)
@@ -934,7 +964,7 @@ namespace UnityEditor.Experimental
 
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
-                    if (attribBuffer.Writable(VFXContextModel.Type.kTypeUpdate))
+                    if (attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
                     {
                         buffer.Append("\t\tattribBuffer");
                         buffer.Append(attribBuffer.Index);
@@ -950,6 +980,149 @@ namespace UnityEditor.Experimental
             }
 
             return buffer.ToString();
+        }
+
+        private static string WriteOutputShader(ShaderMetaData data,VFXOutputShaderGeneratorModule outputGenerator)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            builder.AppendLine("Shader \"Custom/PointShader\"");
+            builder.AppendLine("{");
+            builder.AppendLine("\tSubShader");
+            builder.AppendLine("\t{");
+
+            builder.AppendLine("\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+            builder.AppendLine("\t\tPass");
+            builder.AppendLine("\t\t{");
+            builder.AppendLine("\t\tBlend SrcAlpha One");
+            builder.AppendLine("\t\tZTest LEqual");
+            builder.AppendLine("\t\tZWrite Off");
+            builder.AppendLine("\t\t\tCGPROGRAM");
+            builder.AppendLine("\t\t\t#pragma target 5.0");
+            builder.AppendLine();
+            builder.AppendLine("\t\t\t#pragma vertex vert");
+            builder.AppendLine("\t\t\t#pragma fragment frag");
+            builder.AppendLine();
+            builder.AppendLine("\t\t\t#include \"UnityCG.cginc\"");
+            builder.AppendLine();
+
+            foreach (AttributeBuffer buffer in data.attributeBuffers)
+                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
+                    builder.WriteAttributeBuffer(buffer);
+
+            foreach (AttributeBuffer buffer in data.attributeBuffers)
+                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
+                {
+                    builder.Append("\t\t\tStructuredBuffer<Attribute");
+                    builder.Append(buffer.Index);
+                    builder.Append("> attribBuffer");
+                    builder.Append(buffer.Index);
+                    builder.AppendLine(";");
+                }
+
+            if (data.hasKill)
+                builder.AppendLine("\t\t\tStructuredBuffer<int> flags;");
+
+            builder.AppendLine();
+            builder.AppendLine("\t\t\tstruct ps_input {");
+            builder.AppendLine("\t\t\t\tfloat4 pos : SV_POSITION;");
+
+            bool hasColor = data.attribToBuffer.ContainsKey(CommonAttrib.Color);
+            bool hasAlpha = data.attribToBuffer.ContainsKey(CommonAttrib.Alpha);
+
+            if (hasColor || hasAlpha)
+                builder.AppendLine("\t\t\t\tnointerpolation float4 col : COLOR0;");
+
+            outputGenerator.WriteAdditionalVertexOutput(builder, data);
+
+            builder.AppendLine("\t\t\t};");
+            builder.AppendLine();
+            builder.AppendLine("\t\t\tps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)");
+            builder.AppendLine("\t\t\t{");
+            builder.AppendLine("\t\t\t\tps_input o;");
+
+            outputGenerator.WriteIndex(builder, data);
+
+            if (data.hasKill)
+            {
+                builder.AppendLine("\t\t\t\tif (flags[index] == 1)");
+                builder.AppendLine("\t\t\t\t{");
+            }
+
+            foreach (var buffer in data.attributeBuffers)
+                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
+                {
+                    builder.Append("\t\t\t\t\tAttribute");
+                    builder.Append(buffer.Index);
+                    builder.Append(" attrib");
+                    builder.Append(buffer.Index);
+                    builder.Append(" = attribBuffer");
+                    builder.Append(buffer.Index);
+                    builder.AppendLine("[index];");
+                }
+            builder.AppendLine();
+
+            outputGenerator.WritePreBlock(builder, data);
+            outputGenerator.WritePostBlock(builder, data);
+
+            if (hasColor || hasAlpha)
+            {
+                builder.Append("\t\t\t\t\to.col = float4(");
+
+                if (hasColor)
+                {
+                    builder.WriteAttrib(CommonAttrib.Color, data);
+                    builder.Append(".xyz,");
+                }
+                else
+                    builder.Append("1.0,1.0,1.0,");
+
+                if (hasAlpha)
+                {
+                    builder.WriteAttrib(CommonAttrib.Alpha, data);
+                    builder.AppendLine(");");
+                }
+                else
+                    builder.AppendLine("0.5);");
+            }
+
+            if (data.hasKill)
+            {
+                // clip the vertex if not alive
+                builder.AppendLine("\t\t\t\t}");
+                builder.AppendLine("\t\t\t\telse");
+                builder.AppendLine("\t\t\t\t{");
+                builder.AppendLine("\t\t\t\t\to.pos = -1.0;");
+
+                if (hasColor)
+                    builder.AppendLine("\t\t\t\t\to.col = 0;");
+
+                builder.AppendLine("\t\t\t\t}");
+                builder.AppendLine();
+            }
+
+            builder.AppendLine("\t\t\t\treturn o;");
+            builder.AppendLine("\t\t\t}");
+            builder.AppendLine();
+            builder.AppendLine("\t\t\tfloat4 frag (ps_input i) : COLOR");
+            builder.AppendLine("\t\t\t{");
+
+            outputGenerator.WritePixelShader(builder, data);
+
+            if (hasColor)
+                builder.AppendLine("\t\t\t\treturn i.col;");
+            else
+                builder.AppendLine("\t\t\t\treturn float4(1.0,1.0,1.0,0.5);");
+
+            builder.AppendLine("\t\t\t}");
+            builder.AppendLine();
+            builder.AppendLine("\t\t\tENDCG");
+            builder.AppendLine("\t\t}");
+            builder.AppendLine("\t}");
+            builder.AppendLine("\tFallBack Off");
+            builder.AppendLine("}");
+
+            return builder.ToString();
         }
     }
 }

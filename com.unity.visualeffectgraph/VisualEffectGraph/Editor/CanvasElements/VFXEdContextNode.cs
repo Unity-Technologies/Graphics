@@ -9,8 +9,45 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdContextNode : VFXEdNode
+    class VFXEdContextNode : VFXEdNode
     {
+        // TODO Remove this shit
+        public static VFXEdContext ConvertType(VFXContextDesc.Type inType)
+        {
+            switch (inType)
+            {
+                case VFXContextDesc.Type.kTypeInit: return VFXEdContext.Initialize;
+                case VFXContextDesc.Type.kTypeUpdate: return VFXEdContext.Update;
+                case VFXContextDesc.Type.kTypeOutput: return VFXEdContext.Output;
+            }
+
+            throw new ArgumentException("Invalid context type");
+        }
+
+        public static VFXContextDesc.Type ConvertType(VFXEdContext inType)
+        {
+            switch (inType)
+            {
+                case VFXEdContext.Initialize : return VFXContextDesc.Type.kTypeInit;
+                case VFXEdContext.Update : return VFXContextDesc.Type.kTypeUpdate;
+                case VFXEdContext.Output: return VFXContextDesc.Type.kTypeOutput;
+            }
+
+            throw new ArgumentException("Invalid context type");
+        }
+
+        public VFXEdContextNodeBlock ContextNodeBlock
+        {
+            get { return m_ContextNodeBlock; }
+            set
+            {
+                if (m_ContextNodeBlock != null) RemoveChild(m_ContextNodeBlock);
+                m_ContextNodeBlock = value;
+                AddChild(m_ContextNodeBlock);
+                value.BindTo(this);
+            }
+        }
+        private VFXEdContextNodeBlock m_ContextNodeBlock;
 
         public VFXContextModel Model
 		{
@@ -24,33 +61,21 @@ namespace UnityEditor.Experimental
 
 		protected VFXContextModel m_Model;
         protected VFXEdContext m_Context;
+        private VFXContextDesc m_Desc;
 
-
-        internal VFXEdContextNode(Vector2 canvasPosition, VFXEdContext context, VFXEdDataSource dataSource) 
+        internal VFXEdContextNode(Vector2 canvasPosition, VFXContextDesc desc, VFXEdDataSource dataSource) 
             : base (canvasPosition, dataSource)
         {
-            // TODO Use only one enum
-            VFXContextModel.Type type;
-            switch (context)
-            {
-                case VFXEdContext.Initialize:
-                    type = VFXContextModel.Type.kTypeInit;
-                    break;
-                case VFXEdContext.Update:
-                    type = VFXContextModel.Type.kTypeUpdate;
-                    break;
-                case VFXEdContext.Output:
-                    type = VFXContextModel.Type.kTypeOutput;
-                    break;
-                default:
-                    type = VFXContextModel.Type.kTypeNone;
-                    break;
-            }
-            m_Model = new VFXContextModel(type);
+            m_Context = ConvertType(desc.m_Type);
+            m_Model = new VFXContextModel(desc);
+
             m_Title = context.ToString();
             target = ScriptableObject.CreateInstance<VFXEdContextNodeTarget>();
             (target as VFXEdContextNodeTarget).targetNode = this;
-            m_Context = context;
+
+            m_Desc = desc;
+            if (m_Desc.ShowBlock)
+                ContextNodeBlock = new VFXEdContextNodeBlock(m_DataSource, desc);
 
             // Create a dummy System to hold the newly created context
             VFXSystemModel systemModel = new VFXSystemModel();
@@ -63,7 +88,7 @@ namespace UnityEditor.Experimental
             AddChild(inputs[0]);
             AddChild(outputs[0]);
             ZSort();
-            base.Layout();
+            Layout();
 
         }
 
@@ -177,6 +202,20 @@ namespace UnityEditor.Experimental
             return block is VFXEdProcessingNodeBlock;
         }
 
+        public override void Layout()
+        {
+            if (m_ContextNodeBlock != null)
+                m_HeaderOffset = m_ContextNodeBlock.GetHeight();
+
+            base.Layout();
+
+            if (m_ContextNodeBlock != null)
+            {
+                m_ContextNodeBlock.translation = m_ClientArea.position + VFXEditorMetrics.NodeBlockContainerPosition;
+                m_ContextNodeBlock.scale = new Vector2(m_NodeBlockContainer.scale.x, m_ContextNodeBlock.GetHeight());
+            }
+        }
+
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             Rect r = m_ClientArea;
@@ -190,15 +229,10 @@ namespace UnityEditor.Experimental
                 GUI.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
             }
            
-
             GUI.Box(r, "", VFXEditor.styles.Node);
             GUI.Label(new Rect(0, r.y, r.width, 24), title, VFXEditor.styles.NodeTitle);
 
-
-
             base.Render(parentRect, canvas);
-
-
         }
     }
 }
