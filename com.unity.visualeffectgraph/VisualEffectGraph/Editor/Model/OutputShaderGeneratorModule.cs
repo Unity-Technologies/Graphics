@@ -29,8 +29,9 @@ namespace UnityEditor.Experimental
 
     public class VFXBillboardOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
     {
-        public VFXBillboardOutputShaderGeneratorModule(bool orientAlongVelocity)
+        public VFXBillboardOutputShaderGeneratorModule(VFXParamValue texture,bool orientAlongVelocity)
         {
+            m_Texture = texture;
             m_OrientAlongVelocity = orientAlongVelocity;
         }
 
@@ -49,6 +50,15 @@ namespace UnityEditor.Experimental
                 m_OrientAlongVelocity = UpdateFlag(attribs, CommonAttrib.Velocity, VFXContextDesc.Type.kTypeOutput);
 
             return true;
+        }
+
+        public override void UpdateUniforms(HashSet<VFXParamValue> uniforms)
+        {
+            if (m_Texture.GetValue<Texture2D>() != null)
+            {
+                uniforms.Add(m_Texture);
+                m_HasTexture = true;
+            }
         }
 
         public override void WriteIndex(StringBuilder builder, ShaderMetaData data) 
@@ -96,6 +106,11 @@ namespace UnityEditor.Experimental
                 builder.AppendLine("\t\t\t\t\tworldPos += UNITY_MATRIX_MV[1].xyz * o.offsets.y * size.y;");
             }
 
+            if (m_HasTexture)
+            {
+                builder.AppendLine("\t\t\t\t\to.offsets = o.offsets * 0.5 + 0.5;");
+            }
+
             builder.AppendLine();
 
             builder.AppendLine("\t\t\t\t\to.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
@@ -103,13 +118,25 @@ namespace UnityEditor.Experimental
 
         public override void WritePixelShader(StringBuilder builder, ShaderMetaData data)
         {
-            builder.AppendLine("\t\t\t\tfloat lsqr = dot(i.offsets, i.offsets);");
-            builder.AppendLine("\t\t\t\tif (lsqr > 1.0)");
-            builder.AppendLine("\t\t\t\t\tdiscard;");
-            builder.AppendLine();
+            if (m_HasTexture)
+            {
+                builder.AppendLine("\t\t\t\tfloat lsqr = dot(i.offsets, i.offsets);");
+                builder.AppendLine("\t\t\t\tif (lsqr > 1.0)");
+                builder.AppendLine("\t\t\t\t\tdiscard;");
+                builder.AppendLine();
+            }
+            else
+            {
+                builder.AppendLine("\t\t\t\tcolor *= tex2D(");
+                builder.Append(data.paramToName[m_Texture]);
+                builder.AppendLine(",i.offsets);");
+            }
         }
 
+        private VFXParamValue m_Texture;
+
         private bool m_HasSize;
+        private bool m_HasTexture;
         private bool m_OrientAlongVelocity;
     }
 }

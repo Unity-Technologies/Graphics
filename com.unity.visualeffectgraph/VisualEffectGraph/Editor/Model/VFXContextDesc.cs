@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental
         public bool ShowBlock { get { return m_ShowBlock; }}
         private bool m_ShowBlock = false;
 
-        public virtual VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXShaderGeneratorModule(); }
+        public virtual VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) { return new VFXShaderGeneratorModule(); }
     }
 
     public class VFXBasicInitialize : VFXContextDesc
@@ -62,7 +62,7 @@ namespace UnityEditor.Experimental
     public class VFXBasicOutput : VFXContextDesc
     {
         public VFXBasicOutput() : base(Type.kTypeOutput,"Output",false) {}
-        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXOutputShaderGeneratorModule(); }
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) { return new VFXOutputShaderGeneratorModule(); }
     }
 
     public class VFXPointOutputDesc : VFXContextDesc
@@ -71,11 +71,13 @@ namespace UnityEditor.Experimental
             : base(Type.kTypeOutput,"Point Output",true)
         {}
 
-        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXPointOutputShaderGeneratorModule(); }
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) { return new VFXPointOutputShaderGeneratorModule(); }
     }
 
     public class VFXBillboardOutputDesc : VFXContextDesc
     {
+        private const int TextureSlot = 0;
+
         public VFXBillboardOutputDesc()
             : base(Type.kTypeOutput,"Billboard Output",true)
         {
@@ -84,14 +86,19 @@ namespace UnityEditor.Experimental
             textureParam.m_Type = VFXParam.Type.kTypeTexture2D;
 
             m_Params = new VFXParam[1];
-            m_Params[0] = textureParam;
+            m_Params[TextureSlot] = textureParam;
         }
 
-        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXBillboardOutputShaderGeneratorModule(false); }
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
+        {
+            return new VFXBillboardOutputShaderGeneratorModule(model.GetParamValue(TextureSlot), false); 
+        }
     }
 
     public class VFXQuadAlongVelocityOutputDesc : VFXContextDesc
     {
+        private const int TextureSlot = 0;
+
         public VFXQuadAlongVelocityOutputDesc()
             : base(Type.kTypeOutput, "Quad Along Velocity Output", true)
         {
@@ -100,10 +107,13 @@ namespace UnityEditor.Experimental
             textureParam.m_Type = VFXParam.Type.kTypeTexture2D;
 
             m_Params = new VFXParam[1];
-            m_Params[0] = textureParam;
+            m_Params[TextureSlot] = textureParam;
         }
 
-        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new VFXBillboardOutputShaderGeneratorModule(true); }
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
+        {
+            return new VFXBillboardOutputShaderGeneratorModule(model.GetParamValue(TextureSlot), true); 
+        }
     }
 
     public class VFXParticleUpdate : VFXContextDesc
@@ -172,6 +182,6 @@ namespace UnityEditor.Experimental
             private bool m_NeedsIntegration;
         }
 
-        public override VFXShaderGeneratorModule CreateShaderGenerator() { return new ShaderGenerator(); }
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) { return new ShaderGenerator(); }
     }
 }
