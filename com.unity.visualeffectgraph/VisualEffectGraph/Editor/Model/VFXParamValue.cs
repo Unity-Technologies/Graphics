@@ -126,9 +126,10 @@ namespace UnityEditor.Experimental
             {
                 if ((m_Value == null && value != null) || (m_Value != null && !m_Value.Equals(value)))
                 {
+                    VFXParamValue oldValue = Clone();
                     m_Value = value;
                     foreach (var binding in m_Bindings)
-                        binding.m_Bindable.OnParamUpdated(binding.m_Index);
+                        binding.m_Bindable.OnParamUpdated(binding.m_Index,oldValue);
                 }
             }
         }
