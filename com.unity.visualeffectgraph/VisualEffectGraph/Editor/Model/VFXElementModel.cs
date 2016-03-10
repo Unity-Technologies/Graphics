@@ -149,7 +149,7 @@ namespace UnityEditor.Experimental
         public abstract void BindParam(VFXParamValue param, int index, bool reentrant = false);
         public abstract void UnbindParam(int index, bool reentrant = false);
 
-        public void OnParamUpdated(int index)
+        public virtual void OnParamUpdated(int index,VFXParamValue oldValue)
         {
             Invalidate(InvalidationCause.kParamChanged);
         }
@@ -171,7 +171,7 @@ namespace UnityEditor.Experimental
     {
         void BindParam(VFXParamValue param, int index, bool reentrant = false);
         void UnbindParam(int index, bool reentrant = false);
-        void OnParamUpdated(int index);
+        void OnParamUpdated(int index,VFXParamValue oldValue);
         VFXParamValue GetParamValue(int index);
         int GetNbParamValues();
     }

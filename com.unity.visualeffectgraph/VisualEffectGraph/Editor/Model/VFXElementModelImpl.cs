@@ -311,6 +311,19 @@ namespace UnityEditor.Experimental
             UnbindParam(index, Desc.m_Params, reentrant);
         }
 
+        public override void OnParamUpdated(int index, VFXParamValue oldValue)
+        {
+            if (oldValue.ValueType == VFXParam.Type.kTypeTexture2D)
+            {
+                if (oldValue.GetValue<Texture2D>() == null || GetParamValue(index).GetValue<Texture2D>() == null)
+                    Invalidate(InvalidationCause.kModelChanged); // Leave a chance for shader generator to be recompiled if optimization is used when there is no texture
+                else
+                    Invalidate(InvalidationCause.kParamChanged);   
+            }             
+            else
+                Invalidate(InvalidationCause.kParamChanged);
+        }
+
         public VFXContextDesc Desc
         {
             set
