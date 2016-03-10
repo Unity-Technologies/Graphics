@@ -44,7 +44,6 @@ namespace UnityEditor.Experimental
                 if (m_ContextNodeBlock != null) RemoveChild(m_ContextNodeBlock);
                 m_ContextNodeBlock = value;
                 AddChild(m_ContextNodeBlock);
-                value.BindTo(this);
             }
         }
         private VFXEdContextNodeBlock m_ContextNodeBlock;
@@ -61,7 +60,6 @@ namespace UnityEditor.Experimental
 
 		protected VFXContextModel m_Model;
         protected VFXEdContext m_Context;
-        private VFXContextDesc m_Desc;
 
         internal VFXEdContextNode(Vector2 canvasPosition, VFXContextDesc desc, VFXEdDataSource dataSource) 
             : base (canvasPosition, dataSource)
@@ -73,14 +71,12 @@ namespace UnityEditor.Experimental
             target = ScriptableObject.CreateInstance<VFXEdContextNodeTarget>();
             (target as VFXEdContextNodeTarget).targetNode = this;
 
-            m_Desc = desc;
-            if (m_Desc.ShowBlock)
-                ContextNodeBlock = new VFXEdContextNodeBlock(m_DataSource, m_Model);
-
             // Create a dummy System to hold the newly created context
             VFXSystemModel systemModel = new VFXSystemModel();
             systemModel.AddChild(m_Model);
             VFXEditor.AssetModel.AddChild(systemModel);
+
+            SetContext(desc);
 
             m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), m_Context, m_DataSource, Direction.Input));
             m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), m_Context, m_DataSource, Direction.Output));
@@ -140,6 +136,19 @@ namespace UnityEditor.Experimental
                 }
             }
 
+            // Switch Context Types
+
+            ReadOnlyCollection<VFXContextDesc> contexts = VFXEditor.ContextLibrary.GetContexts();
+
+            foreach(VFXContextDesc context in contexts)
+            {
+                if(context.m_Type == Model.Desc.m_Type && context.Name != Model.Desc.Name)
+                {
+                    menu.AddItem(new GUIContent("Switch "+ VFXContextDesc.GetTypeName(Model.Desc.m_Type) + " Type/" + context.Name), false, MenuSwitchContext, context);
+                }
+            }
+
+
             // TODO : Layout Functions
             menu.AddSeparator("");
             menu.AddItem(new GUIContent("Layout/Blocks/Collapse UnConnected"), false, CollapseUnconnected);
@@ -153,6 +162,26 @@ namespace UnityEditor.Experimental
             return menu;
         }
 
+        public void MenuSwitchContext(object o)
+        {
+            SetContext(o as VFXContextDesc);
+        }
+
+        public void SetContext(VFXContextDesc context)
+        {
+
+            for(int i = 0; i < Model.GetNbParamValues(); i++)
+            {
+                Model.UnbindParam(i);
+            }
+
+            Model.Desc = context;
+            if (m_Model.Desc.ShowBlock)
+                ContextNodeBlock = new VFXEdContextNodeBlock(m_DataSource, m_Model);
+
+            Invalidate();
+
+        }
 
         public void CollapseUnconnected()
         {
