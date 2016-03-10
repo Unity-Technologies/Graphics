@@ -47,6 +47,19 @@ namespace UnityEditor.Experimental
         private bool m_ShowBlock = false;
 
         public virtual VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) { return new VFXShaderGeneratorModule(); }
+
+        public static string GetTypeName(Type type)
+        {
+            switch(type)
+            {
+                case Type.kTypeInit: return "Initialize";
+                case Type.kTypeNone: return "None";
+                case Type.kTypeOutput: return "Output";
+                case Type.kTypeUpdate: return "Update";
+                default: return "INVALID";
+            }
+        }
+
     }
 
     public class VFXBasicInitialize : VFXContextDesc
