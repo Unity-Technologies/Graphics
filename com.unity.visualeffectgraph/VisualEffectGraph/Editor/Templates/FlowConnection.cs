@@ -10,12 +10,12 @@ namespace UnityEditor.Experimental
 {
     internal class FlowConnection : ScriptableObject
     {
-        public NodeInfo Previous;
-        public NodeInfo Next;
+        public ContextNodeInfo Previous;
+        public ContextNodeInfo Next;
 
-        public static FlowConnection Create(NodeInfo input, NodeInfo output)
+        public static FlowConnection Create(ContextNodeInfo input, ContextNodeInfo output)
         {
-            FlowConnection fc = ScriptableObject.CreateInstance<FlowConnection>();
+            FlowConnection fc = CreateInstance<FlowConnection>();
             fc.Previous = input;
             fc.Next = output;
             return fc;

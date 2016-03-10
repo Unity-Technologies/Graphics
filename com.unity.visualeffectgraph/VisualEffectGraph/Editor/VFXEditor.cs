@@ -366,10 +366,6 @@ namespace UnityEditor.Experimental
 
                         GUILayout.Space(16.0f);
                         GUILayout.Label("Debug...", VFXEditor.styles.InspectorHeader);
-                        if (GUILayout.Button("Fill templates (debug)"))
-                        {
-                            SpawnTemplates.Initialize();
-                        }
 
                         if (GUILayout.Button("Reload Templates"))
                         {

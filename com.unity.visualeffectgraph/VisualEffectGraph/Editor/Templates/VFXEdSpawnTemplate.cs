@@ -18,17 +18,17 @@ namespace UnityEditor.Experimental
         private string m_Name = "";
         private string m_Category = "";
 
-        internal Dictionary<string, NodeInfo> Nodes { get { return m_Nodes; } }
+        internal Dictionary<string, ContextNodeInfo> ContextNodes { get { return m_ContextNodes; } }
         internal List<FlowConnection> Connections { get { return m_Connections; } }
 
         [SerializeField]
-        private Dictionary<string, NodeInfo> m_Nodes;
+        private Dictionary<string, ContextNodeInfo> m_ContextNodes;
         [SerializeField]
         private List<FlowConnection> m_Connections;
         
         public VFXEdSpawnTemplate()
         {
-            m_Nodes = new Dictionary<string,NodeInfo>();
+            m_ContextNodes = new Dictionary<string,ContextNodeInfo>();
             m_Connections = new List<FlowConnection>();
         }
 
@@ -40,48 +40,43 @@ namespace UnityEditor.Experimental
             return t;
         }
 
-        public void AddNode(string nodename, VFXEdContext context)
+        public void AddContextNode(string nodename, string contextName)
         {
-            m_Nodes.Add(nodename, NodeInfo.Create(context));
+            m_ContextNodes.Add(nodename, ContextNodeInfo.Create(contextName));
         }
 
-        public void AddNodeBlock(string nodename, string blockname)
+        public void SetContextNodeParameter(string nodename, string paramName, VFXParamValue value)
         {
-            m_Nodes[nodename].nodeBlocks.Add(blockname, NodeBlockInfo.Create(blockname));
+            m_ContextNodes[nodename].AddParameterOverride(paramName, value);
         }
 
-        public void SetNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
+        public void AddContextNodeBlock(string nodename, string blockname)
         {
-            m_Nodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
+            m_ContextNodes[nodename].nodeBlocks.Add(blockname, NodeBlockInfo.Create(blockname));
+        }
+
+        public void SetContextNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
+        {
+            m_ContextNodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
         }
 
         public void AddConnection(string nodeA, string nodeB)
         {
-            m_Connections.Add(FlowConnection.Create(m_Nodes[nodeA], m_Nodes[nodeB]));
+            m_Connections.Add(FlowConnection.Create(m_ContextNodes[nodeA], m_ContextNodes[nodeB]));
         }
 
         internal void Spawn(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 canvasPosition )
         {
-            Dictionary<NodeInfo, VFXEdNode> spawnedNodes = new Dictionary<NodeInfo, VFXEdNode>();
+            Dictionary<ContextNodeInfo, VFXEdNode> spawnedNodes = new Dictionary<ContextNodeInfo, VFXEdNode>();
 
             Vector2 CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth/2,80.0f);
 
-            foreach(KeyValuePair<string,NodeInfo> node_kvp in m_Nodes)
+            foreach(KeyValuePair<string,ContextNodeInfo> node_kvp in m_ContextNodes)
             {
                 VFXEdNode node = null;
-                switch(node_kvp.Value.Context)
-                {
-                    case VFXEdContext.Trigger:
-                        node = new VFXEdTriggerNode(CurrentPos, datasource);
-                        break;
-                    case VFXEdContext.Initialize:
-                    case VFXEdContext.Update:
-                    case VFXEdContext.Output:
-                        node = new VFXEdContextNode(CurrentPos, VFXContextDesc.CreateBasic(VFXEdContextNode.ConvertType(node_kvp.Value.Context)), datasource);
-                        break;
-                    default:
-                        break;
-                }
+                string context = node_kvp.Value.Context;
+
+                node = new VFXEdContextNode(CurrentPos, VFXEditor.ContextLibrary.GetContext(context), datasource);
 
                 if(node != null)
                 {
