@@ -319,25 +319,22 @@ position = float3(sincosTheta * radius,u1 * height).xzy + center;
 #block Collision with Plane
 #icon Position
 #category Collision/
-#arg float3 position [param]
+#arg float3 position [inout|param]
 #arg float3 velocity [inout|param]
 #arg float3 normal [public]
 #arg float3 center [public]
 #arg float elasticity [public]
 
-const float EPSILON = 1e-5;
-
-float3 n = normalize(normal); // TODO ensure normal is normalized prior to call
 float3 nextPos = position + velocity * deltaTime;
-float distToPlane0 = dot(n,position - center);
-float distToPlane1 = dot(n,nextPos - center);
-
-if (sign(distToPlane0) != sign(distToPlane1))
+float3 dir = center - nextPos;
+float distToPlane = dot(dir,normal);
+if (distToPlane >= 0)
 {
-	float ratio = abs(distToPlane0) / (abs(distToPlane0) + abs(distToPlane1));
-	//position = lerp(position,nextPos,ratio); // advance to collision
-	velocity -= ((1 + elasticity) * dot(n,velocity)) * n;
-	//position -= velocity * deltaTime * ratio; // remove part of the already resolved time
+	float projVelocity = dot(normal,velocity);
+	if (projVelocity < 0)
+		velocity -= ((1 + elasticity) * projVelocity) * normal;
+
+	position += normal * distToPlane;
 }
 
 #block Collision with Sphere
@@ -359,7 +356,7 @@ if (sqrLength <= radius * radius)
 	float projVelocity = dot(n,velocity);
 	
 	if (projVelocity > 0)
-		velocity -= ((1 + elasticity) * dot(n,velocity)) * n;
+		velocity -= ((1 + elasticity) * projVelocity) * n;
 		
 	position += n * (dist - radius);
 }
