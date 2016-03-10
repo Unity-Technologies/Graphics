@@ -161,7 +161,7 @@ namespace UnityEditor.Experimental
             Color c = GUI.color;
             EditorGUILayout.BeginVertical();
 
-            GUILayout.Label(new GUIContent("Solver Parameters"), VFXEditor.styles.InspectorHeader);
+            GUILayout.Label(new GUIContent("Solver General Parameters"), VFXEditor.styles.InspectorHeader);
             EditorGUI.indentLevel++;
             EditorGUILayout.BoundsField( new GUIContent("Bounding Box"),bounds);
             EditorGUILayout.Space();
@@ -169,6 +169,29 @@ namespace UnityEditor.Experimental
             model.GetOwner().SpawnRate = EditorGUILayout.FloatField("Spawn Rate", model.GetOwner().SpawnRate);
             EditorGUILayout.Space();
             EditorGUI.indentLevel--;
+
+
+            GUILayout.Label(new GUIContent(model.Desc.Name + " : Context Parameters"), VFXEditor.styles.InspectorHeader);
+
+            for(int i = 0; i < model.GetNbParamValues(); i++)
+            {
+                VFXParamValue value = model.GetParamValue(i);
+                VFXParam parm = model.Desc.m_Params[i];
+
+                switch(value.ValueType)
+                {
+                    case VFXParam.Type.kTypeFloat: value.SetValue<float>(EditorGUILayout.FloatField(parm.m_Name, value.GetValue<float>())); break;
+                    case VFXParam.Type.kTypeFloat2: value.SetValue<Vector2>(EditorGUILayout.Vector2Field(parm.m_Name,value.GetValue<Vector2>())); break;
+                    case VFXParam.Type.kTypeFloat3: value.SetValue<Vector3>(EditorGUILayout.Vector3Field(parm.m_Name,value.GetValue<Vector3>())); break;
+                    case VFXParam.Type.kTypeFloat4: value.SetValue<Vector4>(EditorGUILayout.Vector4Field(parm.m_Name,value.GetValue<Vector4>())); break;
+                    case VFXParam.Type.kTypeInt: value.SetValue<int>(EditorGUILayout.IntSlider(parm.m_Name,value.GetValue<int>(),-1000,1000)); break;
+                    case VFXParam.Type.kTypeTexture2D: value.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(parm.m_Name,value.GetValue<Texture2D>(),typeof(Texture2D)));  break;
+                    case VFXParam.Type.kTypeTexture3D: value.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(parm.m_Name,value.GetValue<Texture3D>(),typeof(Texture3D)));  break;
+                    case VFXParam.Type.kTypeUint: value.SetValue<uint>((uint)EditorGUILayout.IntSlider(parm.m_Name,(int)value.GetValue<uint>(),0,1000)); break;
+                    case VFXParam.Type.kTypeUnknown: break;
+                    default: break;
+                }
+            }
 
 
             bDebugVisible = GUILayout.Toggle(bDebugVisible, new GUIContent("Debug Information"), VFXEditor.styles.InspectorHeader);
