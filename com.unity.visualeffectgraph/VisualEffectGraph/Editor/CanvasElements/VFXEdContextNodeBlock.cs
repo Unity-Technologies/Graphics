@@ -13,27 +13,34 @@ namespace UnityEditor.Experimental
         public VFXEdNodeBlockHeader Header { get { return m_Header; } }
 
         private VFXEdNodeBlockHeader m_Header;
-        private VFXContextDesc m_Desc;
+        private VFXParamValue[] m_ParamValues;
+        private VFXContextModel m_Model;
 
-        public VFXEdContextNodeBlock(VFXEdDataSource dataSource, VFXContextDesc desc)
+        public VFXEdContextNodeBlock(VFXEdDataSource dataSource, VFXContextModel model)
             : base(dataSource)
         {
-            m_Desc = desc;
+            m_Model = model;
+            VFXContextDesc desc = m_Model.Desc;
+
             m_DataSource = dataSource;
             translation = Vector3.zero; 
             m_Caps = Capabilities.Normal;
             m_Fields = new VFXEdNodeBlockParameterField[0];
-            m_Header = new VFXEdNodeBlockHeader(m_Desc.Name, VFXEditor.styles.GetIcon("Box"), false);
+            m_ParamValues = new VFXParamValue[0];
+            m_Header = new VFXEdNodeBlockHeader(desc.Name, VFXEditor.styles.GetIcon("Box"), false);
             AddChild(m_Header);
 
-            if (m_Desc.m_Params != null && m_Desc.m_Params.Length > 0)
+            if (desc.m_Params != null && desc.m_Params.Length > 0)
             {
-                int nbParams = m_Desc.m_Params.Length;
+                int nbParams = desc.m_Params.Length;
                 m_Fields = new VFXEdNodeBlockParameterField[nbParams];
+                m_ParamValues = new VFXParamValue[nbParams];
                 for (int i = 0; i < nbParams; ++i)
                 {
-                    m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource, m_Desc.m_Params[i].m_Name, VFXParamValue.Create(m_Desc.m_Params[i].m_Type), true, Direction.Input, 0);
+                    m_ParamValues[i] = VFXParamValue.Create(desc.m_Params[i].m_Type);
+                    m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource, desc.m_Params[i].m_Name, m_ParamValues[i], true, Direction.Input, 0);
                     AddChild(m_Fields[i]);
+                    m_Model.BindParam(m_ParamValues[i], i);
                 }
                 Header.Collapseable = true;
             }
