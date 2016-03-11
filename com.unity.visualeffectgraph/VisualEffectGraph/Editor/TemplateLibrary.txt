@@ -124,7 +124,7 @@
   <Template Category="test" Name="flipbook">
     <System SpawnRate="50" AllocationCount="500" />
     <Nodes>
-      <Node Name="VFXEdContextNode_6" Context="Initialize">
+      <Node Name="VFXEdContextNode_0" Context="Initialize">
         <Context />
         <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
           <VFXParamValue Name="value" Type="kTypeFloat" Value="0.25" />
@@ -137,7 +137,7 @@
           <VFXParamValue Name="value" Type="kTypeFloat" Value="8" />
         </NodeBlock>
       </Node>
-      <Node Name="VFXEdContextNode_7" Context="Particle Update">
+      <Node Name="VFXEdContextNode_1" Context="Particle Update">
         <Context />
         <NodeBlock Name="Animate flipbook (Random)" BlockName="Animate flipbook (Random)">
           <VFXParamValue Name="speed" Type="kTypeFloat" Value="20" />
@@ -151,16 +151,16 @@
           <VFXParamValue Name="elasticity" Type="kTypeFloat" Value="0.3" />
         </NodeBlock>
       </Node>
-      <Node Name="VFXEdContextNode_8" Context="Billboard Output">
+      <Node Name="VFXEdContextNode_2" Context="Billboard Output">
         <Context>
           <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/DebRock_8x8.psd" />
-          <VFXParamValue Name="flipBookDim" Type="kTypeFloat2" Value="8,8" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="8,8" />
         </Context>
       </Node>
     </Nodes>
     <Connections>
-      <FlowConnection Previous="VFXEdContextNode_6" Next="VFXEdContextNode_7" />
-      <FlowConnection Previous="VFXEdContextNode_7" Next="VFXEdContextNode_8" />
+      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
+      <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
     </Connections>
   </Template>
 </Library>

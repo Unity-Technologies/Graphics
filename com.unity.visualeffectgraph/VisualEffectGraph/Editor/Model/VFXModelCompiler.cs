@@ -1050,12 +1050,21 @@ namespace UnityEditor.Experimental
             builder.AppendLine("\tSubShader");
             builder.AppendLine("\t{");
 
-            builder.AppendLine("\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+            BlendMode blendMode = VFXEditor.AssetModel.BlendingMode;
+
+            if (blendMode != BlendMode.kMasked)
+                builder.AppendLine("\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
             builder.AppendLine("\t\tPass");
             builder.AppendLine("\t\t{");
-            builder.AppendLine("\t\tBlend SrcAlpha One");
+            if (blendMode == BlendMode.kAdditive)
+                builder.AppendLine("\t\tBlend SrcAlpha One");
+            else if (blendMode == BlendMode.kAlpha)
+                 builder.AppendLine("\t\tBlend SrcAlpha OneMinusSrcAlpha");
             builder.AppendLine("\t\tZTest LEqual");
-            builder.AppendLine("\t\tZWrite Off");
+            if (blendMode == BlendMode.kMasked)
+                builder.AppendLine("\t\tZWrite On");
+            else
+                builder.AppendLine("\t\tZWrite Off");
             builder.AppendLine("\t\t\tCGPROGRAM");
             builder.AppendLine("\t\t\t#pragma target 5.0");
             builder.AppendLine();

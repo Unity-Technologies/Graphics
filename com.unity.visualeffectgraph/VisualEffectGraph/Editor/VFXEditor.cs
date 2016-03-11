@@ -435,6 +435,9 @@ namespace UnityEditor.Experimental
             bool UsePhaseShift = AssetModel.PhaseShift;
             AssetModel.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
 
+            if (GUILayout.Button(AssetModel.BlendingMode.ToString(), EditorStyles.toolbarButton))
+                AssetModel.SwitchBlendingMode();
+
             m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "DEBUG PANEL", EditorStyles.toolbarButton);
             m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);
 

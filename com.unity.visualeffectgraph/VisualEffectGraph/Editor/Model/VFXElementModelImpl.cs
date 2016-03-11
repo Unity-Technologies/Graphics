@@ -8,6 +8,13 @@ using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
 {
+    public enum BlendMode
+    {
+        kMasked,
+        kAdditive,
+        kAlpha,
+    }
+
     public class VFXAssetModel : VFXElementModel<VFXElementModel, VFXSystemModel>
     {
         public VFXAssetModel()
@@ -131,12 +138,35 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public BlendMode BlendingMode
+        {
+            get { return m_BlendMode; }
+            set
+            {
+                if (m_BlendMode != value)
+                {
+                    m_BlendMode = value;
+                    for (int i = 0; i < GetNbChildren(); ++i)
+                        GetChild(i).Invalidate(InvalidationCause.kModelChanged);
+                }
+            }
+        }
+
+        public void SwitchBlendingMode()
+        {
+            int blendMode = (int)m_BlendMode;
+            if (++blendMode > 2)
+                blendMode = 0;
+            BlendingMode = (BlendMode)blendMode;              
+        }
+
         public GameObject gameObject { get { return m_GameObject; } }
         public VFXComponent component { get { return m_Component; } }
 
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
+        private BlendMode m_BlendMode = BlendMode.kAdditive;
 
         private VFXComponent m_Component;
         private GameObject m_GameObject;

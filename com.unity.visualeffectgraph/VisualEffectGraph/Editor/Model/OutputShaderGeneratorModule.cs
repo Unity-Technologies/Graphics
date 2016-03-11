@@ -202,6 +202,9 @@ namespace UnityEditor.Experimental
                 builder.Append(data.outputParamToName[m_Texture]);
                 builder.AppendLine(",i.offsets);");
             }
+
+            if (VFXEditor.AssetModel.BlendingMode == BlendMode.kMasked)
+                builder.AppendLine("\t\t\t\tif (color.a < 0.33333) discard;");
         }
 
         private VFXParamValue m_Texture;
