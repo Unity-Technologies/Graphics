@@ -10,12 +10,19 @@ namespace UnityEditor.Experimental
 {
     internal abstract class VFXEdNodeOption : CanvasElement
     {
-        public bool Enabled { get { return m_bEnabled; }  }
+        public bool Enabled { get { return m_bEnabled; } set { SetEnabled(value); } }
         protected bool m_bEnabled;
 
         public VFXEdNodeOption(bool defaultvalue) {
             this.scale = new Vector3(32.0f, 32.0f);
             this.MouseDown += ToggleState;
+        }
+
+        public void SetEnabled(bool value)
+        {
+            m_bEnabled = value;
+            m_Parent.Invalidate();
+            m_Parent.Layout();
         }
 
         private bool ToggleState(CanvasElement element, Event e, Canvas2D parent)

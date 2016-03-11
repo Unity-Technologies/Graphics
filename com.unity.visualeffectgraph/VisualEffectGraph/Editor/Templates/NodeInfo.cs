@@ -8,23 +8,22 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class NodeInfo : ScriptableObject
-    {
-        public Dictionary<string, NodeBlockInfo> nodeBlocks;
-        public VFXEdContext Context {get { return m_Context; } set { m_Context = value; } }
+    internal abstract class NodeInfo : ScriptableObject
+    { 
+        public Dictionary<string, VFXParamValue> ParameterOverrides { get { return m_ParameterOverrides; } }
         [SerializeField]
-        private VFXEdContext m_Context;
-            
-        public static NodeInfo Create(VFXEdContext context)
-        {
-            NodeInfo n =  ScriptableObject.CreateInstance<NodeInfo>();
-            n.Context = context;
-            return n;
-        }
+        private Dictionary<string, VFXParamValue> m_ParameterOverrides;
 
+
+            
         public NodeInfo()
         {
-            nodeBlocks = new Dictionary<string, NodeBlockInfo>();
+            m_ParameterOverrides = new Dictionary<string, VFXParamValue>();
+        }
+
+        public void AddParameterOverride(string name, VFXParamValue ParamValue)
+        {
+            m_ParameterOverrides.Add(name, ParamValue);
         }
     }
 }

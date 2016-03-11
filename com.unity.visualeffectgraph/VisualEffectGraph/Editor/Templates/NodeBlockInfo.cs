@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental
 
         public static NodeBlockInfo Create(string blockname)
         {
-            NodeBlockInfo ni = ScriptableObject.CreateInstance<NodeBlockInfo>();
+            NodeBlockInfo ni = CreateInstance<NodeBlockInfo>();
             ni.BlockName = blockname;
             return ni;
         }

@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdDataNode : VFXEdNode
     {
-        public bool exposed { get { return m_ExposeOption.Enabled; } }
+        public bool exposed { get { return m_ExposeOption.Enabled; } set { m_ExposeOption.Enabled = value; } }
         protected VFXEdExposeDataNodeOption m_ExposeOption;
 
         internal VFXEdDataNode(Vector2 canvasposition, VFXEdDataSource dataSource) 

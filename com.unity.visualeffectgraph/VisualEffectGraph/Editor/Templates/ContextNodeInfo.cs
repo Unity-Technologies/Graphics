@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -8,16 +8,13 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class ContextNodeInfo : ScriptableObject
+    internal class ContextNodeInfo : NodeInfo
     {
-        public Dictionary<string, NodeBlockInfo> nodeBlocks;
         public string Context {get { return m_Context; } set { m_Context = value; } }
-        public Dictionary<string, VFXParamValue> ParameterOverrides { get { return m_ParameterOverrides; } }
+        public Dictionary<string, NodeBlockInfo> nodeBlocks;
 
         [SerializeField]
         private string m_Context;
-        [SerializeField]
-        private Dictionary<string, VFXParamValue> m_ParameterOverrides;
 
         public static ContextNodeInfo Create(string Context)
         {
@@ -26,15 +23,10 @@ namespace UnityEditor.Experimental
             return n;
         }
 
-        public ContextNodeInfo()
+        public ContextNodeInfo() : base()
         {
             nodeBlocks = new Dictionary<string, NodeBlockInfo>();
-            m_ParameterOverrides = new Dictionary<string, VFXParamValue>();
         }
 
-        public void AddParameterOverride(string name, VFXParamValue ParamValue)
-        {
-            m_ParameterOverrides.Add(name, ParamValue);
-        }
     }
 }

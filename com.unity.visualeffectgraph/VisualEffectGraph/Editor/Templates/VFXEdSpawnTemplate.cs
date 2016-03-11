@@ -35,17 +35,24 @@ namespace UnityEditor.Experimental
         private string m_Category = "";
 
         internal Dictionary<string, ContextNodeInfo> ContextNodes { get { return m_ContextNodes; } }
-        internal List<FlowConnection> Connections { get { return m_Connections; } }
+        internal Dictionary<string, DataNodeInfo> DataNodes { get { return m_DataNodes; } }
+
+        internal List<FlowConnection> Connections { get { return m_FlowConnections; } }
 
         [SerializeField]
         private Dictionary<string, ContextNodeInfo> m_ContextNodes;
         [SerializeField]
-        private List<FlowConnection> m_Connections;
-        
+        private Dictionary<string, DataNodeInfo> m_DataNodes;
+
+        [SerializeField]
+        private List<FlowConnection> m_FlowConnections;
+
         public VFXEdSpawnTemplate()
         {
             m_ContextNodes = new Dictionary<string,ContextNodeInfo>();
-            m_Connections = new List<FlowConnection>();
+            m_DataNodes = new Dictionary<string,DataNodeInfo>();
+
+            m_FlowConnections = new List<FlowConnection>();
         }
 
         internal static VFXEdSpawnTemplate Create(string category, string name)
@@ -61,6 +68,11 @@ namespace UnityEditor.Experimental
             m_ContextNodes.Add(nodename, ContextNodeInfo.Create(contextName));
         }
 
+        public void AddDataNode(string nodename, bool bExposed)
+        {
+            m_DataNodes.Add(nodename, DataNodeInfo.Create(bExposed));
+        }
+
         public void SetContextNodeParameter(string nodename, string paramName, VFXParamValue value)
         {
             m_ContextNodes[nodename].AddParameterOverride(paramName, value);
@@ -71,19 +83,29 @@ namespace UnityEditor.Experimental
             m_ContextNodes[nodename].nodeBlocks.Add(blockname, NodeBlockInfo.Create(blockname));
         }
 
+        public void AddDataNodeBlock(string nodename, string blockname, string exposedName)
+        {
+            m_DataNodes[nodename].nodeBlocks.Add(blockname, DataNodeBlockInfo.Create(blockname, exposedName));
+        }
+
         public void SetContextNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
         {
             m_ContextNodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
         }
 
-        public void AddConnection(string nodeA, string nodeB)
+        public void SetDataNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
         {
-            m_Connections.Add(FlowConnection.Create(m_ContextNodes[nodeA], m_ContextNodes[nodeB]));
+            m_DataNodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
+        }
+
+        public void AddFlowConnection(string nodeA, string nodeB)
+        {
+            m_FlowConnections.Add(FlowConnection.Create(m_ContextNodes[nodeA], m_ContextNodes[nodeB]));
         }
 
         internal void Spawn(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 canvasPosition )
         {
-            Dictionary<ContextNodeInfo, VFXEdNode> spawnedNodes = new Dictionary<ContextNodeInfo, VFXEdNode>();
+            Dictionary<ContextNodeInfo, VFXEdNode> spawnedContextNodes = new Dictionary<ContextNodeInfo, VFXEdNode>();
 
             Vector2 CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth/2,80.0f);
 
@@ -97,7 +119,7 @@ namespace UnityEditor.Experimental
                 if(node != null)
                 {
                     datasource.AddElement(node);
-                    spawnedNodes.Add(node_kvp.Value, node);
+                    spawnedContextNodes.Add(node_kvp.Value, node);
                 }
 
                 foreach (KeyValuePair <string,VFXParamValue> param_kvp in node_kvp.Value.ParameterOverrides)
@@ -126,9 +148,44 @@ namespace UnityEditor.Experimental
                
             }
 
-            foreach(FlowConnection c in m_Connections)
+            // Data Nodes
+            CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth * 2 ,80.0f);
+
+            Dictionary<DataNodeInfo, VFXEdNode> spawnedDataNodes = new Dictionary<DataNodeInfo, VFXEdNode>();
+
+            foreach(KeyValuePair<string,DataNodeInfo> node_kvp in m_DataNodes)
             {
-                datasource.ConnectFlow(spawnedNodes[c.Previous].outputs[0], spawnedNodes[c.Next].inputs[0]);
+                VFXEdDataNode node = null;
+
+                node = new VFXEdDataNode(CurrentPos, datasource);
+                
+
+                if(node != null)
+                {
+                    node.exposed = node_kvp.Value.Exposed;
+                    datasource.AddElement(node);
+                    spawnedDataNodes.Add(node_kvp.Value, node);
+                }
+
+                foreach(KeyValuePair<string,DataNodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
+                {
+                    VFXEdDataNodeBlock block = new VFXEdDataNodeBlock(VFXEditor.DataBlockLibrary.GetBlock(block_kvp.Value.BlockName), datasource,block_kvp.Value.ExposedName);
+                    
+                    foreach (KeyValuePair <string,VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                    {
+                        block.SetParametervalue(param_kvp.Key, param_kvp.Value);
+                    }
+                    node.NodeBlockContainer.AddNodeBlock(block);
+                }
+
+                node.Layout();
+                CurrentPos.y += node.scale.y + 40.0f;
+               
+            }
+
+            foreach(FlowConnection c in m_FlowConnections)
+            {
+                datasource.ConnectFlow(spawnedContextNodes[c.Previous].outputs[0], spawnedContextNodes[c.Next].inputs[0]);
             }
 
             canvas.ReloadData();
