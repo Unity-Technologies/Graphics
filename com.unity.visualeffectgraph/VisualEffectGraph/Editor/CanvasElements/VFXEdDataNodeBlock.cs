@@ -50,6 +50,12 @@ namespace UnityEditor.Experimental
             editingWidget = widget;
         }
 
+        public void SetParametervalue(string name, VFXParamValue value)
+        {
+            int i = Params.IndexOf(Params.Find(parm => parm.m_Name == name));
+            ParamValues[i].SetValue(value);
+        }
+
         public VFXParamValue GetParamValue(string name)
         {
             int i = Params.IndexOf(Params.Find(parm => parm.m_Name == name));

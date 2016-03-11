@@ -60,6 +60,11 @@ namespace UnityEditor.Experimental
             return blocks;
         }
 
+        public VFXDataBlock GetBlock(string name)
+        {
+            return blocks.Find(n => n.name == name);
+        }
+
         public void Load() {
             m_DataBlocks.Clear();
 

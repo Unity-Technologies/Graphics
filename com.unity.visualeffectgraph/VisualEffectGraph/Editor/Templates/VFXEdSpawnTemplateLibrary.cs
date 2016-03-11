@@ -134,7 +134,10 @@ namespace UnityEditor.Experimental
                 // END TODO
             
                 var nodes = t.Element("Nodes").Elements("Node");
+                var datanodes = t.Element("Nodes").Elements("DataNode");
+
                 var flowconnections = t.Element("Connections").Elements("FlowConnection");
+                var dataconnections = t.Element("Connections").Elements("DataConnection");
 
                 foreach(XElement n in nodes)
                 {
@@ -170,14 +173,91 @@ namespace UnityEditor.Experimental
 
                 }
 
+                // Data Nodes
+                foreach(XElement n in datanodes)
+                {
+                    template.AddDataNode(n.Attribute("Name").Value, bool.Parse(n.Attribute("Exposed").Value));
+                    
+                    foreach(XElement nb in n.Elements("DataNodeBlock"))
+                    {
+                        template.AddDataNodeBlock(n.Attribute("Name").Value, nb.Attribute("Name").Value,nb.Attribute("ExposedName").Value);;
+
+                        foreach(XElement parm in nb.Elements("VFXParamValue"))
+                        {
+                            string nn = n.Attribute("Name").Value;
+                            string nbn = nb.Attribute("Name").Value;
+                            string pn = parm.Attribute("Name").Value;
+                            string pt = parm.Attribute("Type").Value;
+
+                            VFXParamValue value = CreateParamValue(pt, parm.Attribute("Value").Value);
+                            template.SetDataNodeBlockParameter(nn, nbn, pn, value);
+                        }
+                    }
+
+                }
+
                 foreach(XElement fc in flowconnections)
                 {
-                    template.AddConnection(fc.Attribute("Previous").Value, fc.Attribute("Next").Value);
+                    template.AddFlowConnection(fc.Attribute("Previous").Value, fc.Attribute("Next").Value);
+                }
+
+                foreach(XElement dc in dataconnections)
+                {
+                    XElement dcin = dc.Element("Input");
+                    XElement dcout = dc.Element("Output");
+
+                    DataNodeInfo dataNode = template.DataNodes[dcin.Attribute("DataNode").Value];
+                    ContextNodeInfo contextNode = template.ContextNodes[dcout.Attribute("ContextNode").Value];
+
+                    DataParamConnectorInfo inputInfo = new DataParamConnectorInfo(dataNode,int.Parse(dcin.Attribute("NodeBlockIndex").Value),dcin.Attribute("ParamName").Value);
+                    ContextParamConnectorInfo outputInfo = new ContextParamConnectorInfo(contextNode, int.Parse(dcout.Attribute("NodeBlockIndex").Value), dcout.Attribute("ParamName").Value);
+
+                    template.AddDataConnection(inputInfo,outputInfo);
                 }
 
                 AddTemplate(template);
             }
 
+        }
+
+        public void WriteParamValue(XmlWriter doc, string name, VFXParam.Type type, VFXParamValue paramValue)
+        {
+                        doc.WriteStartElement("VFXParamValue");
+                        doc.WriteAttributeString("Name", name);
+
+                        doc.WriteAttributeString("Type", type.ToString());
+
+                        string value = "";
+                        switch(type)
+                        {
+                            case VFXParam.Type.kTypeFloat: value = paramValue.GetValue<float>().ToString(); break;
+                            case VFXParam.Type.kTypeInt: value = paramValue.GetValue<int>().ToString(); break;
+                            case VFXParam.Type.kTypeUint: value = paramValue.GetValue<uint>().ToString(); break;
+                            case VFXParam.Type.kTypeFloat2:
+                                Vector2 v2 = paramValue.GetValue<Vector2>();
+                                value = v2.x + "," + v2.y ;
+                                break;
+                            case VFXParam.Type.kTypeFloat3:
+                                Vector3 v3 = paramValue.GetValue<Vector3>();
+                                value = v3.x + "," + v3.y+ "," + v3.z ;
+                                break;
+                            case VFXParam.Type.kTypeFloat4:
+                                Vector4 v4 = paramValue.GetValue<Vector4>();
+                                value = v4.x + "," + v4.y + "," + v4.z+ "," + v4.w;
+                                break;
+                            case VFXParam.Type.kTypeTexture2D:
+                                Texture2D t = paramValue.GetValue<Texture2D>();
+                                value = AssetDatabase.GetAssetPath(t) ;
+                                break;
+                            case VFXParam.Type.kTypeTexture3D:
+                                Texture3D t3 = paramValue.GetValue<Texture3D>();
+                                value = AssetDatabase.GetAssetPath(t3) ;
+                                break;
+                            default:
+                                break;
+                        }
+                        doc.WriteAttributeString("Value", value);
+                        doc.WriteEndElement();
         }
 
         public void WriteLibrary()
@@ -222,43 +302,8 @@ namespace UnityEditor.Experimental
                     doc.WriteStartElement("Context");
                     foreach(KeyValuePair<string, VFXParamValue> kvp_param in kvp_node.Value.ParameterOverrides)
                     {
-                        doc.WriteStartElement("VFXParamValue");
-                        doc.WriteAttributeString("Name", kvp_param.Key);
-                        VFXParam.Type type = kvp_param.Value.ValueType;
-                        doc.WriteAttributeString("Type", type.ToString());
-
-                        string value = "";
-                        switch(type)
-                        {
-                            case VFXParam.Type.kTypeFloat: value = kvp_param.Value.GetValue<float>().ToString(); break;
-                            case VFXParam.Type.kTypeInt: value = kvp_param.Value.GetValue<int>().ToString(); break;
-                            case VFXParam.Type.kTypeUint: value = kvp_param.Value.GetValue<uint>().ToString(); break;
-                            case VFXParam.Type.kTypeFloat2:
-                                Vector2 v2 = kvp_param.Value.GetValue<Vector2>();
-                                value = v2.x + "," + v2.y ;
-                                break;
-                            case VFXParam.Type.kTypeFloat3:
-                                Vector3 v3 = kvp_param.Value.GetValue<Vector3>();
-                                value = v3.x + "," + v3.y+ "," + v3.z ;
-                                break;
-                            case VFXParam.Type.kTypeFloat4:
-                                Vector4 v4 = kvp_param.Value.GetValue<Vector4>();
-                                value = v4.x + "," + v4.y + "," + v4.z+ "," + v4.w;
-                                break;
-                            case VFXParam.Type.kTypeTexture2D:
-                                Texture2D t = kvp_param.Value.GetValue<Texture2D>();
-                                value = AssetDatabase.GetAssetPath(t) ;
-                                break;
-                            case VFXParam.Type.kTypeTexture3D:
-                                Texture3D t3 = kvp_param.Value.GetValue<Texture3D>();
-                                value = AssetDatabase.GetAssetPath(t3) ;
-                                break;
-                            default:
-                                break;
-                        }
-                        doc.WriteAttributeString("Value", value);
-                        doc.WriteEndElement();
-                            
+                        // WRITE PARAM VALUE
+                        WriteParamValue(doc, kvp_param.Key, kvp_param.Value.ValueType, kvp_param.Value);  
                     }
                     doc.WriteEndElement(); // End Context
 
@@ -270,43 +315,8 @@ namespace UnityEditor.Experimental
 
                         foreach(KeyValuePair<string, VFXParamValue> kvp_param in kvp_nodeblock.Value.ParameterOverrides)
                         {
-                            doc.WriteStartElement("VFXParamValue");
-                            doc.WriteAttributeString("Name", kvp_param.Key);
-                            VFXParam.Type type = kvp_param.Value.ValueType;
-                            doc.WriteAttributeString("Type", type.ToString());
-
-                            string value = "";
-                            switch(type)
-                            {
-                                case VFXParam.Type.kTypeFloat: value = kvp_param.Value.GetValue<float>().ToString(); break;
-                                case VFXParam.Type.kTypeInt: value = kvp_param.Value.GetValue<int>().ToString(); break;
-                                case VFXParam.Type.kTypeUint: value = kvp_param.Value.GetValue<uint>().ToString(); break;
-                                case VFXParam.Type.kTypeFloat2:
-                                    Vector2 v2 = kvp_param.Value.GetValue<Vector2>();
-                                    value = v2.x + "," + v2.y ;
-                                    break;
-                                case VFXParam.Type.kTypeFloat3:
-                                    Vector3 v3 = kvp_param.Value.GetValue<Vector3>();
-                                    value = v3.x + "," + v3.y+ "," + v3.z ;
-                                    break;
-                                case VFXParam.Type.kTypeFloat4:
-                                    Vector4 v4 = kvp_param.Value.GetValue<Vector4>();
-                                    value = v4.x + "," + v4.y + "," + v4.z+ "," + v4.w;
-                                    break;
-                                case VFXParam.Type.kTypeTexture2D:
-                                    Texture2D t = kvp_param.Value.GetValue<Texture2D>();
-                                    value = AssetDatabase.GetAssetPath(t) ;
-                                    break;
-                                case VFXParam.Type.kTypeTexture3D:
-                                    Texture3D t3 = kvp_param.Value.GetValue<Texture3D>();
-                                    value = AssetDatabase.GetAssetPath(t3) ;
-                                    break;
-                                default:
-                                    break;
-                            }
-                            doc.WriteAttributeString("Value", value);
-                            doc.WriteEndElement();
-                            
+                            // WRITE PARAM VALUE
+                            WriteParamValue(doc, kvp_param.Key, kvp_param.Value.ValueType, kvp_param.Value);
                         }
                         
                         doc.WriteEndElement(); // End NodeBlock
@@ -314,10 +324,37 @@ namespace UnityEditor.Experimental
 
                     doc.WriteEndElement(); // End Node
                 }
+
+                // Data Nodes
+                foreach(KeyValuePair<string, DataNodeInfo> kvp_node in template.DataNodes)
+                {
+                    doc.WriteStartElement("DataNode");
+                    doc.WriteAttributeString("Name", kvp_node.Key);
+                    doc.WriteAttributeString("Exposed", kvp_node.Value.Exposed.ToString());
+
+                    foreach(KeyValuePair<string, DataNodeBlockInfo> kvp_nodeblock in kvp_node.Value.nodeBlocks)
+                    {
+                        doc.WriteStartElement("DataNodeBlock");
+                        doc.WriteAttributeString("Name", kvp_nodeblock.Key);
+                        doc.WriteAttributeString("BlockName", kvp_nodeblock.Value.BlockName);
+                        doc.WriteAttributeString("ExposedName", kvp_nodeblock.Value.ExposedName);
+
+                        foreach(KeyValuePair<string, VFXParamValue> kvp_param in kvp_nodeblock.Value.ParameterOverrides)
+                        {
+                            // WRITE PARAM VALUE
+                            WriteParamValue(doc, kvp_param.Key, kvp_param.Value.ValueType, kvp_param.Value);
+                        }
+                        
+                        doc.WriteEndElement(); // End NodeBlock
+                    }
+
+                    doc.WriteEndElement(); // End DataNode
+                }
                 doc.WriteEndElement(); // End Nodes
 
                 doc.WriteStartElement("Connections");
-                foreach(FlowConnection c in template.Connections)
+
+                foreach(FlowConnection c in template.FlowConnections)
                 {
                     doc.WriteStartElement("FlowConnection");
                     foreach(KeyValuePair<string,ContextNodeInfo> kvp_node in template.ContextNodes )
@@ -326,6 +363,25 @@ namespace UnityEditor.Experimental
                         if(kvp_node.Value == c.Next) doc.WriteAttributeString("Next", kvp_node.Key);
                     }
                     
+                    doc.WriteEndElement();
+                }
+
+                foreach(DataConnection c in template.DataConnections)
+                {
+                    doc.WriteStartElement("DataConnection");
+
+                    doc.WriteStartElement("Input");
+                    doc.WriteAttributeString("DataNode", c.Previous.m_Node.m_UniqueName);
+                    doc.WriteAttributeString("NodeBlockIndex", c.Previous.m_NodeBlockIndex.ToString());
+                    doc.WriteAttributeString("ParamName", c.Previous.m_ParameterName);
+                    doc.WriteEndElement();
+
+                    doc.WriteStartElement("Output");
+                    doc.WriteAttributeString("ContextNode", c.Next.m_Node.m_UniqueName);
+                    doc.WriteAttributeString("NodeBlockIndex", c.Next.m_NodeBlockIndex.ToString());
+                    doc.WriteAttributeString("ParamName", c.Next.m_ParameterName);
+                    doc.WriteEndElement();
+
                     doc.WriteEndElement();
                 }
                 doc.WriteEndElement(); // End Connections
@@ -354,6 +410,7 @@ namespace UnityEditor.Experimental
                     return null;
                 }
             }
+
             foreach(CanvasElement e in canvas.selection)
             {
                 if(e is VFXEdContextNode)
@@ -382,6 +439,21 @@ namespace UnityEditor.Experimental
                         }
                     }
                 }
+                else if (e is VFXEdDataNode)
+                {
+                    VFXEdDataNode node = (e as VFXEdDataNode);
+                    t.AddDataNode(node.UniqueName, node.exposed);
+                    
+                    // Data Node Blocks
+                    foreach(VFXEdDataNodeBlock block in node.NodeBlockContainer.nodeBlocks)
+                    {
+                        t.AddDataNodeBlock(node.UniqueName, block.name,block.m_exposedName);
+                        for (int i = 0 ;  i < block.Params.Count; i++)
+                        {
+                            t.SetDataNodeBlockParameter(node.UniqueName, block.name, block.Params[i].m_Name, block.ParamValues[i].Clone());
+                        }
+                    }
+                }
             }
 
             foreach(CanvasElement e in canvas.selection)
@@ -396,12 +468,28 @@ namespace UnityEditor.Experimental
 
                         if(t.ContextNodes.ContainsKey(left) && t.ContextNodes.ContainsKey(right))
                         {
-                            t.AddConnection(left, right);
+                            t.AddFlowConnection(left, right);
                         }
                         
                     }
 
                 }
+                else if(e is DataEdge)
+                {
+                    DataEdge edge = (e as DataEdge);
+                    VFXEdNodeBlockParameterField input = (edge.Left as VFXEdDataAnchor).GetAnchorField();
+                    VFXEdNodeBlockParameterField output = (edge.Right as VFXEdDataAnchor).GetAnchorField();
+                    VFXEdNodeBlockDraggable inputBlock = input.parent as VFXEdNodeBlockDraggable;
+                    VFXEdNodeBlockDraggable outputBlock = output.parent as VFXEdNodeBlockDraggable;
+                    VFXEdNode inputNode = inputBlock.parent.parent as VFXEdNode;
+                    VFXEdNode outputNode = outputBlock.parent.parent as VFXEdNode;
+
+                    t.AddDataConnection(
+                        new DataParamConnectorInfo(t.DataNodes[inputNode.UniqueName], inputNode.NodeBlockContainer.nodeBlocks.IndexOf(inputBlock), input.Name),
+                        new ContextParamConnectorInfo(t.ContextNodes[outputNode.UniqueName], outputNode.NodeBlockContainer.nodeBlocks.IndexOf(outputBlock), output.Name)
+                        );
+                }
+
             }
             return t;
         }

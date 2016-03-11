@@ -121,46 +121,101 @@
       <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
     </Connections>
   </Template>
-  <Template Category="test" Name="flipbook">
-    <System SpawnRate="50" AllocationCount="500" />
+  <Template Category="Collisions" Name="Dual (Plane and Sphere)">
+    <System SpawnRate="5000" AllocationCount="50000" />
     <Nodes>
-      <Node Name="VFXEdContextNode_0" Context="Initialize">
+      <Node Name="VFXEdContextNode_5" Context="Initialize">
         <Context />
         <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
-          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.25" />
-        </NodeBlock>
-        <NodeBlock Name="Set Velocity (Spherical)" BlockName="Set Velocity (Spherical)">
-          <VFXParamValue Name="angle" Type="kTypeFloat2" Value="0,20" />
-          <VFXParamValue Name="speed" Type="kTypeFloat2" Value="0.5,4" />
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.2" />
         </NodeBlock>
         <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
-          <VFXParamValue Name="value" Type="kTypeFloat" Value="8" />
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="5" />
+        </NodeBlock>
+        <NodeBlock Name="Position Map (Texture)" BlockName="Position Map (Texture)">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/PositionMap_Teapot.tga" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="scale" Type="kTypeFloat3" Value="0,0,0" />
         </NodeBlock>
       </Node>
-      <Node Name="VFXEdContextNode_1" Context="Particle Update">
+      <Node Name="VFXEdContextNode_6" Context="Particle Update">
         <Context />
-        <NodeBlock Name="Animate flipbook (Random)" BlockName="Animate flipbook (Random)">
-          <VFXParamValue Name="speed" Type="kTypeFloat" Value="20" />
+        <NodeBlock Name="Color Over Lifetime (Texture)" BlockName="Color Over Lifetime (Texture)">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/Ramps/Ramp_OL_ElectricBlue.psd" />
+        </NodeBlock>
+        <NodeBlock Name="Set Alpha (Constant)" BlockName="Set Alpha (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.1" />
         </NodeBlock>
         <NodeBlock Name="Apply Force" BlockName="Apply Force">
           <VFXParamValue Name="force" Type="kTypeFloat3" Value="0,-1,0" />
         </NodeBlock>
         <NodeBlock Name="Collision with Plane" BlockName="Collision with Plane">
-          <VFXParamValue Name="normal" Type="kTypeFloat3" Value="0,1,0" />
-          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,-2,0" />
-          <VFXParamValue Name="elasticity" Type="kTypeFloat" Value="0.3" />
+          <VFXParamValue Name="normal" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="elasticity" Type="kTypeFloat" Value="1" />
+        </NodeBlock>
+        <NodeBlock Name="Collision with Sphere" BlockName="Collision with Sphere">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="0" />
+          <VFXParamValue Name="elasticity" Type="kTypeFloat" Value="0.1" />
         </NodeBlock>
       </Node>
-      <Node Name="VFXEdContextNode_2" Context="Billboard Output">
+      <Node Name="VFXEdContextNode_7" Context="Billboard Output">
         <Context>
-          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/DebRock_8x8.psd" />
-          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="8,8" />
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/OrientParticle.TGA" />
         </Context>
       </Node>
+      <DataNode Name="VFXEdDataNode_8" Exposed="False">
+        <DataNodeBlock Name="Box" BlockName="Box" ExposedName="Box">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="-0.7176499,0.5713316,0.1589561" />
+          <VFXParamValue Name="Size" Type="kTypeFloat3" Value="-1.4353,1.142663,1.444394" />
+        </DataNodeBlock>
+        <DataNodeBlock Name="Vector3" BlockName="Vector3" ExposedName="Gravity">
+          <VFXParamValue Name="Value" Type="kTypeFloat3" Value="0,-1,0" />
+        </DataNodeBlock>
+      </DataNode>
+      <DataNode Name="VFXEdDataNode_9" Exposed="True">
+        <DataNodeBlock Name="Plane" BlockName="Plane" ExposedName="Plane">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="0.02531695,-1.861042,-0.3158705" />
+          <VFXParamValue Name="Normal" Type="kTypeFloat3" Value="0,0.9431314,0.33242" />
+        </DataNodeBlock>
+        <DataNodeBlock Name="Sphere" BlockName="Sphere" ExposedName="Sphere">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="-1.10379,-0.3883659,3.021981" />
+          <VFXParamValue Name="Radius" Type="kTypeFloat" Value="0.9905605" />
+        </DataNodeBlock>
+      </DataNode>
     </Nodes>
     <Connections>
-      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
-      <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
+      <FlowConnection Previous="VFXEdContextNode_5" Next="VFXEdContextNode_6" />
+      <FlowConnection Previous="VFXEdContextNode_6" Next="VFXEdContextNode_7" />
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_8" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="VFXEdContextNode_5" NodeBlockIndex="2" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_8" NodeBlockIndex="0" ParamName="Size" />
+        <Output ContextNode="VFXEdContextNode_5" NodeBlockIndex="2" ParamName="scale" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_8" NodeBlockIndex="1" ParamName="Value" />
+        <Output ContextNode="VFXEdContextNode_6" NodeBlockIndex="2" ParamName="force" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_9" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="VFXEdContextNode_6" NodeBlockIndex="3" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_9" NodeBlockIndex="0" ParamName="Normal" />
+        <Output ContextNode="VFXEdContextNode_6" NodeBlockIndex="3" ParamName="normal" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_9" NodeBlockIndex="1" ParamName="Center" />
+        <Output ContextNode="VFXEdContextNode_6" NodeBlockIndex="4" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_9" NodeBlockIndex="1" ParamName="Radius" />
+        <Output ContextNode="VFXEdContextNode_6" NodeBlockIndex="4" ParamName="radius" />
+      </DataConnection>
     </Connections>
   </Template>
 </Library>

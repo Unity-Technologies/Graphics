@@ -12,6 +12,8 @@ namespace UnityEditor.Experimental
     {
         public string name{ get { return m_Name; } }
         protected string m_Name;
+
+        public VFXEdNodeBlockParameterField[] Fields { get { return m_Fields; } }
         protected VFXEdNodeBlockParameterField[] m_Fields;
 
         protected VFXEdDataSource m_DataSource;
@@ -23,6 +25,16 @@ namespace UnityEditor.Experimental
             translation = Vector3.zero; // zeroed by default, will be relayouted later.
             m_Caps = Capabilities.Normal;
 
+        }
+
+        public VFXEdNodeBlockParameterField GetField(string name)
+        {
+            for(int i = 0; i < m_Fields.Length; i++)
+            {
+                if (m_Fields[i].Name == name)
+                    return m_Fields[i];
+            }
+            return null;
         }
 
         public bool IsConnected()

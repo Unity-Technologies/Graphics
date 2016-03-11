@@ -37,6 +37,11 @@ namespace UnityEditor.Experimental
             zIndex = -998;
         }
 
+        public VFXEdNodeBlockParameterField GetAnchorField()
+        {
+            return parent as VFXEdNodeBlockParameterField;
+        }
+
         private static Type GetParamType(VFXParam.Type type)
         {
             switch(type)
