@@ -39,34 +39,6 @@ namespace UnityEditor.Experimental
         }
     }
 
-    /*internal class VFXEdOutputNodeSpawner : VFXEdSpawner
-    {
-        VFXEdDataSource m_DataSource;
-        VFXEdCanvas m_Canvas;
-        VFXEdOutputNodeBlock m_OutputBlock;
-        public VFXEdOutputNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, string type)
-            : base (position)
-        {
-            m_DataSource = datasource;
-            m_Canvas = canvas;
-            switch(type)
-            {
-                case "Point": m_OutputBlock = new VFXEdOutputNodeBlockPoint(datasource); break;
-                case "Billboard": m_OutputBlock = new VFXEdOutputNodeBlockBillboard(datasource); break;
-                case "Velocity": m_OutputBlock = new VFXEdOutputNodeBlockVelocity(datasource); break;
-            }
-            
-        }
-
-        public override void Spawn()
-        {
-            VFXEdOutputNode node = new VFXEdOutputNode(m_canvasPosition, m_DataSource, m_OutputBlock);
-            m_DataSource.AddElement(node);
-            node.Layout();
-            m_Canvas.ReloadData();
-        }
-    }*/
-
     internal class VFXEdTriggerNodeSpawner : VFXEdSpawner
     {
         VFXEdDataSource m_DataSource;
@@ -111,6 +83,7 @@ namespace UnityEditor.Experimental
     {
         VFXEdDataSource m_DataSource;
         VFXEdCanvas m_Canvas;
+        VFXDataBlock m_InitialBlock;
 
         public VFXEdDataNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position)
             : base (position)
@@ -119,9 +92,21 @@ namespace UnityEditor.Experimental
             m_Canvas = canvas;
         }
 
+        public VFXEdDataNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, VFXDataBlock block)
+            : this (datasource, canvas,position)
+        {
+            m_InitialBlock = block;
+        }
+
         public override void Spawn()
         {
-            m_DataSource.AddElement(new VFXEdDataNode(m_canvasPosition, m_DataSource));
+            VFXEdDataNode n = new VFXEdDataNode(m_canvasPosition, m_DataSource);
+            m_DataSource.AddElement(n);
+            if (m_InitialBlock != null)
+            {
+                VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(m_canvasPosition, m_InitialBlock, n, m_DataSource, m_InitialBlock.name);
+                spawner.Spawn();
+            }
             m_Canvas.ReloadData();
         }
     }

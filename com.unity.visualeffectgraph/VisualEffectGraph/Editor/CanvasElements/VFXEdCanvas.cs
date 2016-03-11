@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental
 
             // draggable manipulator allows to move the canvas around. Note that individual elements can have the draggable manipulator on themselves
             AddManipulator(new Draggable(2, EventModifiers.None));
-            //AddManipulator(new Draggable(0, EventModifiers.Alt));
+            AddManipulator(new Draggable(0, EventModifiers.Alt));
 
             // make the canvas zoomable
             AddManipulator(new Zoomable(Zoomable.ZoomType.AroundMouse));
