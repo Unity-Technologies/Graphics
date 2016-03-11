@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdProcessingNodeBlock : VFXEdNodeBlock
+    internal class VFXEdProcessingNodeBlock : VFXEdNodeBlockDraggable
     {
 
         public VFXBlockModel Model
@@ -56,13 +56,15 @@ namespace UnityEditor.Experimental
             Model.Detach();
         }
 
-        protected override float GetHeight()
+        public void SetParameterValue(string name, VFXParamValue Value)
         {
-            float height = VFXEditorMetrics.NodeBlockHeaderHeight;
-            foreach(VFXEdNodeBlockParameterField field in m_Fields) {
-                height += field.scale.y;
+            for(int i = 0; i < m_Params.Length; i++)
+            {
+                if(m_Params[i].m_Name == name)
+                {
+                    m_ParamValues[i].SetValue(Value); 
+                }
             }
-            return height;
         }
 
         protected override GUIStyle GetNodeBlockStyle()
@@ -73,11 +75,6 @@ namespace UnityEditor.Experimental
         protected override GUIStyle GetNodeBlockSelectedStyle()
         {
             return VFXEditor.styles.NodeBlockSelected;
-        }
-
-        public override void Render(Rect parentRect, Canvas2D canvas)
-        {
-            base.Render(parentRect, canvas);
         }
 
     }

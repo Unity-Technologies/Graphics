@@ -16,30 +16,27 @@ namespace UnityEditor.Experimental
         }
 
         public abstract void Spawn();
-
     }
-
 
     internal class VFXEdContextNodeSpawner : VFXEdSpawner
     {
         VFXEdDataSource m_DataSource;
         VFXEdCanvas m_Canvas;
-        VFXEdContext m_Context;
+        VFXContextDesc m_Desc;
 
-        public VFXEdContextNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, VFXEdContext context)
+        public VFXEdContextNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, VFXContextDesc desc)
             : base (position)
         {
             m_DataSource = datasource;
             m_Canvas = canvas;
-            m_Context = context;
+            m_Desc = desc;
         }
 
         public override void Spawn()
         {
-            m_DataSource.AddElement(new VFXEdContextNode(m_canvasPosition, m_Context, m_DataSource));
+            m_DataSource.AddElement(new VFXEdContextNode(m_canvasPosition, m_Desc, m_DataSource));
             m_Canvas.ReloadData();
         }
-
     }
 
     internal class VFXEdTriggerNodeSpawner : VFXEdSpawner
@@ -59,7 +56,6 @@ namespace UnityEditor.Experimental
             m_DataSource.AddElement(new VFXEdTriggerNode(m_canvasPosition, m_DataSource));
             m_Canvas.ReloadData();
         }
-
     }
 
     internal class VFXEdEventNodeSpawner : VFXEdSpawner
@@ -81,13 +77,13 @@ namespace UnityEditor.Experimental
             m_DataSource.AddElement(new VFXEdEventNode(m_canvasPosition, m_DataSource,m_EventName));
             m_Canvas.ReloadData();
         }
-
     }
 
     internal class VFXEdDataNodeSpawner : VFXEdSpawner
     {
         VFXEdDataSource m_DataSource;
         VFXEdCanvas m_Canvas;
+        VFXDataBlock m_InitialBlock;
 
         public VFXEdDataNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position)
             : base (position)
@@ -96,14 +92,24 @@ namespace UnityEditor.Experimental
             m_Canvas = canvas;
         }
 
-        public override void Spawn()
+        public VFXEdDataNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, VFXDataBlock block)
+            : this (datasource, canvas,position)
         {
-            m_DataSource.AddElement(new VFXEdDataNode(m_canvasPosition, m_DataSource));
-            m_Canvas.ReloadData();
+            m_InitialBlock = block;
         }
 
+        public override void Spawn()
+        {
+            VFXEdDataNode n = new VFXEdDataNode(m_canvasPosition, m_DataSource);
+            m_DataSource.AddElement(n);
+            if (m_InitialBlock != null)
+            {
+                VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(m_canvasPosition, m_InitialBlock, n, m_DataSource, m_InitialBlock.name);
+                spawner.Spawn();
+            }
+            m_Canvas.ReloadData();
+        }
     }
-
 
     internal class VFXEdProcessingNodeBlockSpawner : VFXEdSpawner
     {
@@ -121,9 +127,10 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdProcessingNodeBlock(m_Block,m_DataSource));
+            m_Node.NodeBlockContainer.CaptureDrop = true;
+            m_Node.NodeBlockContainer.UpdateCaptureDrop(m_canvasPosition);
+            m_Node.NodeBlockContainer.AcceptDrop(new VFXEdProcessingNodeBlock(m_Block, m_DataSource));
         }
-
     }
 
     internal class VFXEdDataNodeBlockSpawner : VFXEdSpawner
@@ -131,21 +138,25 @@ namespace UnityEditor.Experimental
         VFXEdDataNode m_Node;
         VFXDataBlock m_DataBlock;
         VFXEdDataSource m_DataSource;
+        string m_exposedName;
 
-        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node, VFXEdDataSource datasource)
+        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName)
             : base (position)
         {
             m_DataBlock = datablock;
             m_Node = node;
             m_DataSource = datasource;
+            m_exposedName = exposedName;
         }
 
         public override void Spawn()
         {
-            m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock,m_DataSource));
+            if (m_DataBlock.editingWidget == null)
+                m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName));
+            else
+                m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName, m_DataBlock.editingWidget));
            
         }
-
     }
 
 }

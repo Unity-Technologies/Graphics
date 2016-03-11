@@ -34,7 +34,6 @@ namespace UnityEditor.Experimental
             m_Data = data;
             m_PortIndex = portIndex;
             zIndex = -999;
-
         }
 
         public override void Layout()
@@ -122,7 +121,5 @@ namespace UnityEditor.Experimental
             if (m_Data.ConnectFlow(this, otherConnector))
 				ParentCanvas().ReloadData();
         }
-
     }
-
 }

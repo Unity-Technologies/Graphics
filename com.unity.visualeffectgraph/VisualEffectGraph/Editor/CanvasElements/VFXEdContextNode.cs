@@ -11,6 +11,42 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdContextNode : VFXEdNode
     {
+        // TODO Remove this shit
+        public static VFXEdContext ConvertType(VFXContextDesc.Type inType)
+        {
+            switch (inType)
+            {
+                case VFXContextDesc.Type.kTypeInit: return VFXEdContext.Initialize;
+                case VFXContextDesc.Type.kTypeUpdate: return VFXEdContext.Update;
+                case VFXContextDesc.Type.kTypeOutput: return VFXEdContext.Output;
+            }
+
+            throw new ArgumentException("Invalid context type");
+        }
+
+        public static VFXContextDesc.Type ConvertType(VFXEdContext inType)
+        {
+            switch (inType)
+            {
+                case VFXEdContext.Initialize : return VFXContextDesc.Type.kTypeInit;
+                case VFXEdContext.Update : return VFXContextDesc.Type.kTypeUpdate;
+                case VFXEdContext.Output: return VFXContextDesc.Type.kTypeOutput;
+            }
+
+            throw new ArgumentException("Invalid context type");
+        }
+
+        public VFXEdContextNodeBlock ContextNodeBlock
+        {
+            get { return m_ContextNodeBlock; }
+            set
+            {
+                if (m_ContextNodeBlock != null) RemoveChild(m_ContextNodeBlock);
+                m_ContextNodeBlock = value;
+                AddChild(m_ContextNodeBlock);
+            }
+        }
+        private VFXEdContextNodeBlock m_ContextNodeBlock;
 
         public VFXContextModel Model
 		{
@@ -25,35 +61,22 @@ namespace UnityEditor.Experimental
 		protected VFXContextModel m_Model;
         protected VFXEdContext m_Context;
 
-
-        internal VFXEdContextNode(Vector2 canvasPosition, VFXEdContext context, VFXEdDataSource dataSource) 
+        internal VFXEdContextNode(Vector2 canvasPosition, VFXContextDesc desc, VFXEdDataSource dataSource) 
             : base (canvasPosition, dataSource)
         {
-            // TODO Use only one enum
-            VFXContextModel.Type type;
-            switch (context)
-            {
-                case VFXEdContext.Initialize:
-                    type = VFXContextModel.Type.kTypeInit;
-                    break;
-                case VFXEdContext.Update:
-                    type = VFXContextModel.Type.kTypeUpdate;
-                    break;
-                case VFXEdContext.Output:
-                    type = VFXContextModel.Type.kTypeOutput;
-                    break;
-                default:
-                    type = VFXContextModel.Type.kTypeNone;
-                    break;
-            }
-            m_Model = new VFXContextModel(type);
+            m_Context = ConvertType(desc.m_Type);
+            m_Model = new VFXContextModel(desc);
+
             m_Title = context.ToString();
-            m_Context = context;
+            target = ScriptableObject.CreateInstance<VFXEdContextNodeTarget>();
+            (target as VFXEdContextNodeTarget).targetNode = this;
 
             // Create a dummy System to hold the newly created context
             VFXSystemModel systemModel = new VFXSystemModel();
             systemModel.AddChild(m_Model);
             VFXEditor.AssetModel.AddChild(systemModel);
+
+            SetContext(desc);
 
             m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), m_Context, m_DataSource, Direction.Input));
             m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), m_Context, m_DataSource, Direction.Output));
@@ -63,6 +86,18 @@ namespace UnityEditor.Experimental
             ZSort();
             Layout();
 
+        }
+
+        public void SetContextParameterValue(string name, VFXParamValue Value)
+        {
+            VFXContextModel model = ContextNodeBlock.Model;
+            for(int i = 0; i < model.GetNbParamValues(); i++)
+            {
+                if(model.Desc.m_Params[i].m_Name == name)
+                {
+                    model.GetParamValue(i).SetValue(Value); 
+                }
+            }
         }
 
         public override void OnRemove()
@@ -88,20 +123,115 @@ namespace UnityEditor.Experimental
 
         }
 
-        protected override void ShowNodeBlockMenu(Vector2 canvasClickPosition)
+        protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)
         {
-             GenericMenu menu = new GenericMenu();
+            GenericMenu menu = new GenericMenu();
 
-                ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
+            ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
+                
+            // Add New...
+            foreach (VFXBlock block in blocks)
+            {
+                // TODO : Only add item if block is compatible with current context.
+                menu.AddItem(new GUIContent("Add New/"+block.m_Category + block.m_Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+            }
+            
 
+            // Replace Current...
+            if (OwnsBlock((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock))
+            {
+                menu.AddSeparator("");
                 foreach (VFXBlock block in blocks)
                 {
-                // TODO : Only add item if block is compatible with current context.
-                    menu.AddItem(new GUIContent(block.m_Category + block.m_Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                    // TODO : Only add item if block is compatible with current context.
+                    menu.AddItem(new GUIContent("Replace By/"+block.m_Category + block.m_Name), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
                 }
+            }
 
-            menu.ShowAsContext();
+            // Switch Context Types
+
+            ReadOnlyCollection<VFXContextDesc> contexts = VFXEditor.ContextLibrary.GetContexts();
+
+            foreach(VFXContextDesc context in contexts)
+            {
+                if(context.m_Type == Model.Desc.m_Type && context.Name != Model.Desc.Name)
+                {
+                    menu.AddItem(new GUIContent("Switch "+ VFXContextDesc.GetTypeName(Model.Desc.m_Type) + " Type/" + context.Name), false, MenuSwitchContext, context);
+                }
+            }
+
+
+            // TODO : Layout Functions
+            menu.AddSeparator("");
+            menu.AddItem(new GUIContent("Layout/Blocks/Collapse UnConnected"), false, CollapseUnconnected);
+            menu.AddItem(new GUIContent("Layout/Blocks/Collapse Connected"), false, CollapseConnected);
+            menu.AddItem(new GUIContent("Layout/Blocks/Collapse All"), false, CollapseAll );
+            menu.AddItem(new GUIContent("Layout/Blocks/Expand All"), false, ExpandAll);
+            menu.AddItem(new GUIContent("Layout/Node/Layout Neighbors"), false, null);
+            menu.AddItem(new GUIContent("Layout/Node/Align with Previous"), false, null);
+            menu.AddItem(new GUIContent("Layout/Node/Align with Next"), false, null);
+
+            return menu;
         }
+
+        public void MenuSwitchContext(object o)
+        {
+            SetContext(o as VFXContextDesc);
+        }
+
+        public void SetContext(VFXContextDesc context)
+        {
+
+            for(int i = 0; i < Model.GetNbParamValues(); i++)
+            {
+                Model.UnbindParam(i);
+            }
+
+            Model.Desc = context;
+            if (m_Model.Desc.ShowBlock)
+                ContextNodeBlock = new VFXEdContextNodeBlock(m_DataSource, m_Model);
+
+            Invalidate();
+
+        }
+
+        public void CollapseUnconnected()
+        {
+            foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
+            {
+                block.collapsed = !block.IsConnected();
+            }
+            Layout();
+        }
+
+        public void CollapseConnected()
+        {
+            foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
+            {
+                block.collapsed = block.IsConnected();
+            }
+            Layout();
+        }
+
+
+        public void CollapseAll()
+        {
+            foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
+            {
+                block.collapsed = true;
+            }
+            Layout();
+        }
+
+        public void ExpandAll()
+        {
+            foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
+            {
+                block.collapsed = false;
+            }
+            Layout();
+        }
+
 
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
         {
@@ -111,6 +241,20 @@ namespace UnityEditor.Experimental
         public override bool AcceptNodeBlock(VFXEdNodeBlock block)
         {
             return block is VFXEdProcessingNodeBlock;
+        }
+
+        public override void Layout()
+        {
+            if (m_ContextNodeBlock != null)
+                m_HeaderOffset = m_ContextNodeBlock.GetHeight();
+
+            base.Layout();
+
+            if (m_ContextNodeBlock != null)
+            {
+                m_ContextNodeBlock.translation = m_ClientArea.position + VFXEditorMetrics.NodeBlockContainerPosition;
+                m_ContextNodeBlock.scale = new Vector2(m_NodeBlockContainer.scale.x, m_ContextNodeBlock.GetHeight());
+            }
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
@@ -126,15 +270,10 @@ namespace UnityEditor.Experimental
                 GUI.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
             }
            
-
             GUI.Box(r, "", VFXEditor.styles.Node);
             GUI.Label(new Rect(0, r.y, r.width, 24), title, VFXEditor.styles.NodeTitle);
 
-
-
             base.Render(parentRect, canvas);
-
-
         }
     }
 }

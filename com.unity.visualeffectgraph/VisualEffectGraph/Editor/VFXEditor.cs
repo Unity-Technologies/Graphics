@@ -78,7 +78,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public static VFXDataBlockLibraryCollection DataBlockLibrary
+        internal static VFXDataBlockLibraryCollection DataBlockLibrary
         {
             get
             {
@@ -86,6 +86,16 @@ namespace UnityEditor.Experimental
                 return s_DataBlockLibrary;
             }
         }
+
+        public static VFXContextLibraryCollection ContextLibrary
+        {
+            get
+            {
+                InitializeContextLibrary();
+                return s_ContextLibrary;
+            }
+        }
+
 		public static VFXAssetModel AssetModel
 		{
 			get
@@ -143,6 +153,7 @@ namespace UnityEditor.Experimental
         private static VFXEditorStyles s_Styles;
         private static VFXBlockLibraryCollection s_BlockLibrary;
         private static VFXDataBlockLibraryCollection s_DataBlockLibrary;
+        private static VFXContextLibraryCollection s_ContextLibrary;
 		private static VFXAssetModel s_AssetModel;
 
         private static VFXEdSpawnTemplateLibrary s_SpawnTemplates;
@@ -160,6 +171,10 @@ namespace UnityEditor.Experimental
         private VFXAsset m_CurrentAsset;
 
         private bool m_bShowDebug = false;
+        private int m_ShowDebugPage = 0;
+        private string m_NewTemplateCategory = "";
+        private string m_NewTemplateName = "";
+
         private Vector2 m_DebugLogScroll = Vector2.zero;
 
 
@@ -183,12 +198,19 @@ namespace UnityEditor.Experimental
             }
         }
 
+        private static void InitializeContextLibrary()
+        {
+            if (s_ContextLibrary == null)
+            {
+                s_ContextLibrary = new VFXContextLibraryCollection();
+            }
+        }
+
         private static void InitializeSpawnTemplateLibrary()
         {
             if (s_SpawnTemplates == null)
             {
-                s_SpawnTemplates = new VFXEdSpawnTemplateLibrary();
-                s_SpawnTemplates.Load();
+                s_SpawnTemplates = VFXEdSpawnTemplateLibrary.Create();
             }
         }
 
@@ -198,21 +220,6 @@ namespace UnityEditor.Experimental
             {
                 m_DataSource = ScriptableObject.CreateInstance<VFXEdDataSource>();
                 m_Canvas = new VFXEdCanvas(this, m_HostWindow, m_DataSource);
-
-                // draggable manipulator allows to move the canvas around. Note that individual elements can have the draggable manipulator on themselves
-                m_Canvas.AddManipulator(new Draggable(2, EventModifiers.None));
-                m_Canvas.AddManipulator(new Draggable(0, EventModifiers.Alt));
-
-                // make the canvas zoomable
-                m_Canvas.AddManipulator(new Zoomable(Zoomable.ZoomType.AroundMouse));
-
-                // allow framing the selection when hitting "F" (frame) or "A" (all). Basically shows how to trap a key and work with the canvas selection
-                m_Canvas.AddManipulator(new Frame(Frame.FrameType.All));
-                m_Canvas.AddManipulator(new Frame(Frame.FrameType.Selection));
-
-                // The following manipulator show how to work with canvas2d overlay and background rendering
-                m_Canvas.AddManipulator(new RectangleSelect());
-                m_Canvas.AddManipulator(new ScreenSpaceGrid());
             }
 
             if (m_Icon == null)
@@ -228,17 +235,6 @@ namespace UnityEditor.Experimental
             m_Canvas.ReloadData();
             m_Canvas.Repaint();
         }
-
-        void OnSelectionChange()
-        {
-            if (Selection.activeObject != null)
-                if (Selection.activeObject.GetType() == typeof(VFXAsset))
-                {
-                  //  Debug.Log("Selection Changed : " + Selection.activeObject);
-                }
-        }
-
-
 
         private void Rebuild()
         {
@@ -267,7 +263,131 @@ namespace UnityEditor.Experimental
             titleContent = new GUIContent("VFX Editor", m_Icon);
 
             DrawToolbar(new Rect(0, 0, position.width, EditorStyles.toolbar.fixedHeight));
-            Rect canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height - EditorStyles.toolbar.fixedHeight);
+
+
+            Rect canvasRect;
+            
+            if(m_bShowDebug)
+            {
+                GUILayout.BeginArea(new Rect(position.width-VFXEditorMetrics.DebugWindowWidth, EditorStyles.toolbar.fixedHeight, VFXEditorMetrics.DebugWindowWidth, position.height -EditorStyles.toolbar.fixedHeight));
+                GUILayout.BeginVertical();
+
+                
+                // Debug Window Toolbar
+                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+                GUI.color = Color.green * 4;
+                GUILayout.Label("Canvas2D : ",EditorStyles.toolbarButton);
+                GUI.color = Color.white;
+                m_Canvas.showQuadTree = GUILayout.Toggle(m_Canvas.showQuadTree, "Debug", EditorStyles.toolbarButton);
+                if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
+                {
+                    m_Canvas.DeepInvalidate();
+                    m_Canvas.Repaint();
+                }
+
+                GUILayout.FlexibleSpace();
+                GUI.color = Color.yellow * 4;
+                GUILayout.Label("VFXEditor :",EditorStyles.toolbarButton);
+                GUI.color = Color.white;
+
+                if (GUILayout.Button("Reload Library", EditorStyles.toolbarButton))
+                {
+                    BlockLibrary.Load();
+                }
+
+                if (GUILayout.Button("Clear Log", EditorStyles.toolbarButton))
+                    ClearLog();
+
+                GUILayout.EndHorizontal();
+
+                // Tabs Toolbar
+                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                GUILayout.Label("Choose Page : ", EditorStyles.toolbarButton);
+                if(GUILayout.Button("Debug Log", EditorStyles.toolbarButton)) m_ShowDebugPage = 0;
+                if(GUILayout.Button("Edit Templates", EditorStyles.toolbarButton)) m_ShowDebugPage = 1;
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
+
+
+                m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
+
+                switch(m_ShowDebugPage)
+                {
+                    case 0: // Debug log
+                    {                  
+                        List<string> debugOutput = VFXEditor.GetDebugOutput();
+                        foreach (string str in debugOutput)
+                            GUILayout.Label(str);
+                        break;
+                    }
+
+                    case 1: // Edit Templates
+                    {
+                        EditorGUI.indentLevel++;
+                        GUILayout.Space(16.0f);
+                        GUILayout.Label("Add New Template from Selection...", VFXEditor.styles.InspectorHeader);
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("Category : ");
+                        m_NewTemplateCategory = GUILayout.TextField(m_NewTemplateCategory, 150);
+                        GUILayout.Label("Name : ");
+                        m_NewTemplateName = GUILayout.TextField(m_NewTemplateName, 150);
+                        if (GUILayout.Button("Add..."))
+                        {
+                            VFXEdSpawnTemplate t = VFXEdSpawnTemplateLibrary.CreateTemplateFromSelection(m_Canvas, m_NewTemplateCategory, m_NewTemplateName);
+                            if (t != null)
+                            {
+                                VFXEditor.SpawnTemplates.AddTemplate(t);
+                                SpawnTemplates.WriteLibrary();
+                                m_NewTemplateCategory = "";
+                                m_NewTemplateName = "";
+                            }
+
+                        }
+                        GUILayout.EndHorizontal();
+                        GUILayout.Space(16.0f);
+                        GUILayout.Label("Currently Loaded Templates", VFXEditor.styles.InspectorHeader);
+
+                        List<string> todelete = new List<string>();
+                        foreach (VFXEdSpawnTemplate t in SpawnTemplates.Templates)
+                        {
+                            GUILayout.BeginHorizontal();
+                            if (GUILayout.Button("X"))
+                            {
+                                todelete.Add(t.Path);
+                            }
+                            GUILayout.Label(t.Path);
+                            GUILayout.FlexibleSpace();
+                            GUILayout.EndHorizontal();
+                        }
+                        // If Has to delete...
+                        if (todelete.Count > 0) foreach (string s in todelete) SpawnTemplates.DeleteTemplate(s);
+
+
+                        GUILayout.Space(16.0f);
+                        GUILayout.Label("Debug...", VFXEditor.styles.InspectorHeader);
+
+                        if (GUILayout.Button("Reload Templates"))
+                        {
+                            SpawnTemplates.ReloadLibrary();
+                        }
+                        EditorGUI.indentLevel--;
+                        break;
+                    }
+
+                    default: break;
+                }
+
+                GUILayout.EndScrollView();
+                GUILayout.EndVertical();
+                GUILayout.EndArea();
+                canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width-VFXEditorMetrics.DebugWindowWidth, position.height - EditorStyles.toolbar.fixedHeight);
+            }
+            else
+            {
+                canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height - EditorStyles.toolbar.fixedHeight);
+            }
+
             m_Canvas.OnGUI(this, canvasRect);
             DrawWindows(canvasRect);
         }
@@ -276,7 +396,12 @@ namespace UnityEditor.Experimental
         {
             s_BlockLibrary = null;
             s_DataBlockLibrary = null;
+            s_ContextLibrary = null;
+            s_SpawnTemplates = null;
+            
+            s_AssetModel.Dispose();
             s_AssetModel = null;
+            
             ClearLog();
         }
 
@@ -284,50 +409,36 @@ namespace UnityEditor.Experimental
         {
             GUI.BeginGroup(rect);
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUI.color = Color.green * 4;
-            GUILayout.Label("Canvas2D : ",EditorStyles.toolbarButton);
-            GUI.color = Color.white;
-            m_Canvas.showQuadTree = GUILayout.Toggle(m_Canvas.showQuadTree, "Debug Info", EditorStyles.toolbarButton);
-            if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
-            {
-                m_Canvas.DeepInvalidate();
-                m_Canvas.Repaint();
-            }
 
-            GUILayout.Space(50.0f);
-            GUI.color = Color.yellow * 4;
-            GUILayout.Label("VFXEditor :",EditorStyles.toolbarButton);
-            GUI.color = Color.white;
-            if (GUILayout.Button("Reload Library", EditorStyles.toolbarButton))
-            {
-                BlockLibrary.Load();
-            }
-            if (GUILayout.Button("Editor Reset", EditorStyles.toolbarButton))
-            {
-                m_Canvas = null;
-                InitializeCanvas();
-                s_BlockLibrary = null;
-            }
-            m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "Debug Window", EditorStyles.toolbarButton);
-
-            if (GUILayout.Button("Clear Debug Log", EditorStyles.toolbarButton))
-                ClearLog();
-
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Tools", EditorStyles.toolbarDropDown))
+            // TODO : Add ifs to control effect
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton);
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.toolbarButton);
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.toolbarButton);
+            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.toolbarButton);
+            if (GUILayout.Button("PlayRate", EditorStyles.toolbarDropDown))
             {
                 GenericMenu toolsMenu = new GenericMenu();
-                if (Selection.activeGameObject != null)
-                    toolsMenu.AddItem(new GUIContent("Optimize Selected"), false, null);
-                else
-                    toolsMenu.AddDisabledItem(new GUIContent("Optimize Selected"));
-                toolsMenu.AddSeparator("");
-                toolsMenu.AddItem(new GUIContent("Help..."), false, null);
-                // Offset menu from right of editor window
-                toolsMenu.DropDown(new Rect(Screen.width - 216 - 40, 0, 0, 16));
+                // TODO : Change null's to callbacks to set playrate
+                toolsMenu.AddItem(new GUIContent("100% (RealTime)"),false, null);
+                toolsMenu.AddItem(new GUIContent("50%" ),false, null);
+                toolsMenu.AddItem(new GUIContent("25%"),false, null);
+                toolsMenu.AddItem(new GUIContent("10%"),false, null);
+                toolsMenu.AddItem(new GUIContent("1%"),false, null);
+
+                toolsMenu.DropDown(new Rect(0, 0, 0, 16));
                 EditorGUIUtility.ExitGUI();
             }
 
+            GUILayout.FlexibleSpace();
+
+            bool UsePhaseShift = AssetModel.PhaseShift;
+            AssetModel.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
+
+            if (GUILayout.Button(AssetModel.BlendingMode.ToString(), EditorStyles.toolbarButton))
+                AssetModel.SwitchBlendingMode();
+
+            m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "DEBUG PANEL", EditorStyles.toolbarButton);
             m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);
 
             GUILayout.EndHorizontal();
@@ -347,7 +458,6 @@ namespace UnityEditor.Experimental
                                             VFXEditorMetrics.PreviewWindowHeight
                                        );
 
-            Rect debugRect = new Rect(40, 40, 450, canvasRect.height - 80);
 
             if (m_bShowPreview)
             {
@@ -357,21 +467,9 @@ namespace UnityEditor.Experimental
             BeginWindows();
             if (m_bShowPreview)
                 GUI.Window(0, m_PreviewRect, DrawPreviewWindowContent, "Preview");
-            if(m_bShowDebug) 
-                GUI.Window(1, debugRect, DrawDebugWindowContent, "VFXEditor Debug");
             EndWindows();
         }
 
-        void DrawDebugWindowContent(int windowID) {
-
-                m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
-                List<string> debugOutput = VFXEditor.GetDebugOutput();
-                foreach (string str in debugOutput)
-                    GUILayout.Label(str);
-                GUILayout.EndScrollView();
-
-        }
-        
 
         void DrawPreviewWindowContent(int windowID)
         {
@@ -389,7 +487,9 @@ namespace UnityEditor.Experimental
             }
         }
         #endregion
+
     }
+
 
     public class VFXBlockLibraryCollection
     {
@@ -424,23 +524,6 @@ namespace UnityEditor.Experimental
             // Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
         }
 
-        // Just for test
-        public VFXBlock GetRandomBlock()
-        {
-            if (m_Blocks.Count > 0)
-            {
-                int index = Random.Range(0, m_Blocks.Count);
-                return m_Blocks[index];
-            }
-            else
-            {
-                VFXBlock block = new VFXBlock();
-                block.m_Name = "EmptyNode";
-                block.m_Params = new VFXParam[0];
-                return block;
-            }
-        }
-
         public VFXBlock GetBlock(string name)
         {
             return m_Blocks.Find(block => block.m_Name.Equals(name));
@@ -452,5 +535,32 @@ namespace UnityEditor.Experimental
         }
     }
 
+    public class VFXContextLibraryCollection
+    {
+        private List<VFXContextDesc> m_Contexts;
 
+        public VFXContextLibraryCollection()
+        {
+            m_Contexts = new List<VFXContextDesc>();
+
+            // Register context here
+            m_Contexts.Add(new VFXBasicInitialize());
+            m_Contexts.Add(new VFXBasicUpdate());
+            m_Contexts.Add(new VFXParticleUpdate());
+            m_Contexts.Add(new VFXBasicOutput());
+            m_Contexts.Add(new VFXPointOutputDesc());
+            m_Contexts.Add(new VFXBillboardOutputDesc());
+            m_Contexts.Add(new VFXQuadAlongVelocityOutputDesc());
+        }
+
+        public VFXContextDesc GetContext(string name)
+        {
+            return m_Contexts.Find(context => context.Name.Equals(name));
+        }
+
+        public ReadOnlyCollection<VFXContextDesc> GetContexts()
+        {
+            return new ReadOnlyCollection<VFXContextDesc>(m_Contexts);
+        }
+    }
 }

@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental
         protected List<VFXElementModel> m_Children = new List<VFXElementModel>();
     }
 
-    public abstract class VFXElementModelTyped<OwnerType, ChildrenType> : VFXElementModel
+    public abstract class VFXElementModel<OwnerType, ChildrenType> : VFXElementModel
         where OwnerType : VFXElementModel
         where ChildrenType : VFXElementModel
     {
@@ -95,5 +95,84 @@ namespace UnityEditor.Experimental
         {
             return m_Owner as OwnerType;
         }
+    }
+
+    public abstract class VFXParamBindableModel<OwnerType, ChildrenType> : VFXElementModel<OwnerType, ChildrenType>, VFXParamBindable
+        where OwnerType : VFXElementModel
+        where ChildrenType : VFXElementModel
+    {
+        protected void InitParamValues(VFXParam[] desc)
+        {
+            if (m_ParamValues != null)
+                foreach (var paramValue in m_ParamValues)
+                    paramValue.UnbindAll();
+
+            if (desc == null)
+                m_ParamValues = null;
+            else
+            {
+                int nbParams = desc.Length;
+                m_ParamValues = new VFXParamValue[nbParams];
+                for (int i = 0; i < nbParams; ++i)
+                    m_ParamValues[i] = VFXParamValue.Create(desc[i].m_Type);
+            }
+        }
+
+        protected void BindParam(VFXParamValue value, int index, VFXParam[] desc,bool reentrant)
+        {
+            if (index < 0 || index >= desc.Length || value.ValueType != desc[index].m_Type)
+                throw new ArgumentException();
+
+            if (!reentrant)
+            {
+                if (m_ParamValues[index] != null)
+                    m_ParamValues[index].Unbind(this, index, true);
+                value.Bind(this, index, true);
+            }
+
+            m_ParamValues[index] = value;
+            Invalidate(InvalidationCause.kModelChanged);
+        }
+
+        protected void UnbindParam(int index, VFXParam[] desc, bool reentrant)
+        {
+            if (index < 0 || index >= desc.Length)
+                throw new ArgumentException();
+
+            if (!reentrant && m_ParamValues[index] != null)
+                m_ParamValues[index].Unbind(this, index, true);
+
+            m_ParamValues[index] = VFXParamValue.Create(desc[index].m_Type);
+            Invalidate(InvalidationCause.kModelChanged);
+        }
+
+        public abstract void BindParam(VFXParamValue param, int index, bool reentrant = false);
+        public abstract void UnbindParam(int index, bool reentrant = false);
+
+        public virtual void OnParamUpdated(int index,VFXParamValue oldValue)
+        {
+            Invalidate(InvalidationCause.kParamChanged);
+        }
+
+        public VFXParamValue GetParamValue(int index)
+        {
+            return m_ParamValues[index];
+        }
+
+        public int GetNbParamValues()
+        {
+            return m_ParamValues == null ? 0 : m_ParamValues.Length;
+        }
+
+        private VFXParamValue[] m_ParamValues;
+    }
+
+    public interface VFXParamBindable
+    {
+        void BindParam(VFXParamValue param, int index, bool reentrant = false);
+        void UnbindParam(int index, bool reentrant = false);
+        void OnParamUpdated(int index,VFXParamValue oldValue);
+        VFXParamValue GetParamValue(int index);
+        int GetNbParamValues();
     }
 }

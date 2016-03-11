@@ -13,6 +13,7 @@ namespace UnityEditor.Experimental
         // TODO : Add logic to group same nodes into context zone
     }
 
+    [Serializable]
     public enum VFXEdContext {
         None,
         Trigger,

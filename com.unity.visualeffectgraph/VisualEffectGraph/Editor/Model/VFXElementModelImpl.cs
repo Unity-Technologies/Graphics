@@ -1,12 +1,54 @@
 using UnityEngine;
+
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text;
 using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
 {
-    public class VFXAssetModel : VFXElementModelTyped<VFXElementModel, VFXSystemModel>
+    public enum BlendMode
     {
+        kMasked,
+        kAdditive,
+        kAlpha,
+    }
+
+    public class VFXAssetModel : VFXElementModel<VFXElementModel, VFXSystemModel>
+    {
+        public VFXAssetModel()
+        {
+            RemovePreviousVFXs();
+
+            m_GameObject = new GameObject("VFX");
+            //gameObject.hideFlags = HideFlags.DontSaveInEditor;
+            m_Component = m_GameObject.AddComponent<VFXComponent>();
+        }
+
+        private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
+        {
+            var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
+           
+            int nbDeleted = 0;
+            foreach (var vfx in vfxs)
+                if (vfx != null && vfx.gameObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(vfx.gameObject);
+                    ++nbDeleted;
+                }
+
+            if (nbDeleted > 0)
+                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
+        }
+
+        public void Dispose()
+        {
+            UnityEngine.Object.DestroyImmediate(gameObject); 
+            for (int i = 0; i < GetNbChildren(); ++i)
+                GetChild(i).Dispose();
+        }
+
         public override void Invalidate(InvalidationCause cause)
         {
             switch(cause)
@@ -18,7 +60,6 @@ namespace UnityEditor.Experimental
                     m_ReloadUniforms = true;
                     break;
             }
-
         }
 
         public void Update()
@@ -32,29 +73,123 @@ namespace UnityEditor.Experimental
                     if (!GetChild(i).RecompileIfNeeded())
                         VFXEditor.Log("No need to recompile");
                 }
+
+                // tmp
+                for (int i = 0; i < GetNbChildren(); ++i)
+                {
+                    VFXSystemRuntimeData rtData = GetChild(i).RtData;
+                    if (rtData != null)
+                    {
+                        m_Component.simulationShader = rtData.SimulationShader;
+                        m_Component.material = rtData.m_Material;
+                        m_Component.outputType = rtData.outputType;
+                        m_Component.maxNb = GetChild(i).MaxNb;
+                        m_Component.spawnRate = GetChild(i).SpawnRate;
+                    }
+                }
+
                 m_NeedsCheck = false;
             }
 
             if (m_ReloadUniforms)
             {
                 VFXEditor.Log("Uniforms have been modified");
+                for (int i = 0; i < GetNbChildren(); ++i)
+                {
+                    VFXSystemRuntimeData rtData = GetChild(i).RtData;
+                    if (rtData != null)
+                        rtData.UpdateAllUniforms();
+                }
                 m_ReloadUniforms = false;
             }
         }
 
+        // tmp
+        public void UpdateComponentMaxNb(uint MaxNb)
+        {
+            m_Component.maxNb = MaxNb;
+            // Tmp
+            for (int i = 0; i < GetNbChildren(); ++i)
+            {
+                VFXSystemRuntimeData rtData = GetChild(i).RtData;
+                if (rtData != null)
+                    GetChild(i).Invalidate(InvalidationCause.kModelChanged);
+            }
+            Update(); // Trigger recompile to reinitialize buffers
+        }
+
+        // tmp
+        public void UpdateComponentSpawnRate(float SpawnRate)
+        {
+            m_Component.spawnRate = SpawnRate;
+        }
+
+        public bool PhaseShift
+        {
+            get { return m_PhaseShift; }
+            set
+            {
+                if (m_PhaseShift != value)
+                {
+                    m_PhaseShift = value;
+                    for (int i = 0; i < GetNbChildren(); ++i)
+                        GetChild(i).Invalidate(InvalidationCause.kModelChanged);
+                }
+            }
+        }
+
+        public BlendMode BlendingMode
+        {
+            get { return m_BlendMode; }
+            set
+            {
+                if (m_BlendMode != value)
+                {
+                    m_BlendMode = value;
+                    for (int i = 0; i < GetNbChildren(); ++i)
+                        GetChild(i).Invalidate(InvalidationCause.kModelChanged);
+                }
+            }
+        }
+
+        public void SwitchBlendingMode()
+        {
+            int blendMode = (int)m_BlendMode;
+            if (++blendMode > 2)
+                blendMode = 0;
+            BlendingMode = (BlendMode)blendMode;              
+        }
+
+        public GameObject gameObject { get { return m_GameObject; } }
+        public VFXComponent component { get { return m_Component; } }
+
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
+        private bool m_PhaseShift = false; // Used to remove sampling discretization issue
+        private BlendMode m_BlendMode = BlendMode.kAdditive;
+
+        private VFXComponent m_Component;
+        private GameObject m_GameObject;
     }
 
-    public class VFXSystemModel : VFXElementModelTyped<VFXAssetModel, VFXContextModel>
+    public class VFXSystemModel : VFXElementModel<VFXAssetModel, VFXContextModel>
     {
+        public void Dispose()
+        {
+            if (rtData != null)
+            {
+                rtData.DisposeBuffers();
+                UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
+            }
+        }
+
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             if (!base.CanAddChild(element, index))
                 return false;
 
-            VFXContextModel.Type contextType = (element as VFXContextModel).GetContextType();
-            if (contextType == VFXContextModel.Type.kTypeNone)
+            VFXContextDesc.Type contextType = (element as VFXContextModel).GetContextType();
+            if (contextType == VFXContextDesc.Type.kTypeNone)
                 return false;
 
             // Check if context types are inserted in the right order
@@ -101,6 +236,7 @@ namespace UnityEditor.Experimental
         {
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
+                Dispose();
                 Detach();
                 return;
             }
@@ -116,7 +252,12 @@ namespace UnityEditor.Experimental
         {
             if (m_Dirty)
             {
-                VFXModelCompiler.CompileSystem(this);
+                if (rtData != null)
+                {
+                    rtData.DisposeBuffers();
+                    UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
+                }
+                rtData = VFXModelCompiler.CompileSystem(this);
                 m_Dirty = false;
                 return true;
             }
@@ -125,47 +266,115 @@ namespace UnityEditor.Experimental
         }
 
         private bool m_Dirty = true;
+
+        private VFXSystemRuntimeData rtData;
+        public VFXSystemRuntimeData RtData
+        {
+            get { return rtData; }
+        }
+
+        private const uint INITIAL_MAX_NB = 1 << 20;
+
+        private uint m_MaxNb = INITIAL_MAX_NB;
+        public uint MaxNb
+        {
+            get { return m_MaxNb; }
+            set 
+            {
+                if (m_MaxNb != value)
+                {
+                    m_MaxNb = value;
+                    if (rtData != null)
+                        GetOwner().UpdateComponentMaxNb(m_MaxNb);
+                }
+            }
+        }
+
+        private float m_SpawnRate = INITIAL_MAX_NB / 10.0f;
+        public float SpawnRate
+        {
+            get { return m_SpawnRate; }
+            set
+            {
+                if (m_SpawnRate != value)
+                {
+                    m_SpawnRate = value;
+                    if (rtData != null)
+                        GetOwner().UpdateComponentSpawnRate(m_SpawnRate);
+                }
+            }
+        }
     }
 
-
-    public class VFXContextModel : VFXElementModelTyped<VFXSystemModel, VFXBlockModel>
+    public class VFXContextModel : VFXParamBindableModel<VFXSystemModel, VFXBlockModel>
     {
-        public enum Type
+        public VFXContextModel(VFXContextDesc desc)
         {
-            kTypeNone,
-            kTypeInit,
-            kTypeUpdate,
-            kTypeOutput,
-        };
-
-        public const uint s_NbTypes = (uint)Type.kTypeOutput + 1;
-
-        public VFXContextModel(Type type)
-        {
-            m_Type = type;
+            m_Desc = desc;
+            InitParamValues(desc.m_Params);
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
         {
-            return base.CanAddChild(element, index) && m_Type != Type.kTypeNone;
+            return base.CanAddChild(element, index) && m_Desc.m_Type != VFXContextDesc.Type.kTypeNone;
             // TODO Check if the block is compatible with the context
         }
 
         public override void Invalidate(InvalidationCause cause)
         {
-            if (m_Owner != null && m_Type != Type.kTypeNone)
+            if (m_Owner != null && Desc.m_Type != VFXContextDesc.Type.kTypeNone)
                 m_Owner.Invalidate(cause);
         }
 
-        public Type GetContextType()
+        public VFXContextDesc.Type GetContextType()
         {
-            return m_Type;
+            return Desc.m_Type;
         }
 
-        private Type m_Type;
+        public override void BindParam(VFXParamValue param, int index, bool reentrant = false)
+        {
+            BindParam(param,index, Desc.m_Params, reentrant);
+        }
+
+        public override void UnbindParam(int index, bool reentrant = false)
+        {
+            UnbindParam(index, Desc.m_Params, reentrant);
+        }
+
+        public override void OnParamUpdated(int index, VFXParamValue oldValue)
+        {
+            if (oldValue.ValueType == VFXParam.Type.kTypeTexture2D)
+            {
+                if (oldValue.GetValue<Texture2D>() == null || GetParamValue(index).GetValue<Texture2D>() == null)
+                    Invalidate(InvalidationCause.kModelChanged); // Leave a chance for shader generator to be recompiled if optimization is used when there is no texture
+                else
+                    Invalidate(InvalidationCause.kParamChanged);   
+            }             
+            else
+                Invalidate(InvalidationCause.kParamChanged);
+        }
+
+        public VFXContextDesc Desc
+        {
+            set
+            {
+                if (m_Desc != value)
+                    if (m_Desc.m_Type == value.m_Type)
+                    {
+                        m_Desc = value;
+                        InitParamValues(value.m_Params);
+                        Invalidate(InvalidationCause.kModelChanged);
+                    }
+                    else
+                        throw new ArgumentException("Cannot dynamically change the type of a context");
+            }
+            get { return m_Desc; }
+        }
+
+        private VFXContextDesc m_Desc;
     }
 
-    public class VFXBlockModel : VFXElementModelTyped<VFXContextModel, VFXElementModel>
+    public class VFXBlockModel : VFXParamBindableModel<VFXContextModel, VFXElementModel>
     {
         public override void Invalidate(InvalidationCause cause)
         {
@@ -176,10 +385,7 @@ namespace UnityEditor.Experimental
         public VFXBlockModel(VFXBlock desc)
         {
             m_BlockDesc = desc;
-            int nbParams = desc.m_Params.Length;
-            m_ParamValues = new VFXParamValue[nbParams];
-            for (int i = 0; i < nbParams; ++i)
-                m_ParamValues[i] = VFXParamValue.Create(desc.m_Params[i].m_Type); // Create default bindings
+            InitParamValues(m_BlockDesc.m_Params);
         }
 
         public VFXBlock Desc
@@ -198,45 +404,21 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public VFXParamValue GetParamValue(int index)
-        {
-            return m_ParamValues[index];
-        }
-
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             return false; // Nothing can be attached to Blocks !
         }
 
-        public void BindParam(VFXParamValue param,int index,bool reentrant = false)
+        public override void BindParam(VFXParamValue param,int index,bool reentrant = false)
         {
-            if (index < 0 || index >= m_BlockDesc.m_Params.Length || param.ValueType != m_BlockDesc.m_Params[index].m_Type)
-                throw new ArgumentException();
-
-            if (!reentrant)
-            {
-                if (m_ParamValues[index] != null)
-                    m_ParamValues[index].Unbind(this, index, true);
-                param.Bind(this, index, true);
-            }
-
-            m_ParamValues[index] = param;
-            Invalidate(InvalidationCause.kModelChanged);
+            BindParam(param,index, m_BlockDesc.m_Params, reentrant);
         }
 
-        public void UnbindParam(int index, bool reentrant = false)
+        public override void UnbindParam(int index, bool reentrant = false)
         {
-            if (index < 0 || index >= m_BlockDesc.m_Params.Length)
-                throw new ArgumentException();
-
-            if (!reentrant && m_ParamValues[index] != null)
-                m_ParamValues[index].Unbind(this, index, true);
-
-            m_ParamValues[index] = VFXParamValue.Create(m_BlockDesc.m_Params[index].m_Type);
-            Invalidate(InvalidationCause.kModelChanged);
+            UnbindParam(index, m_BlockDesc.m_Params, reentrant);
         }
 
         private VFXBlock m_BlockDesc;
-        private VFXParamValue[] m_ParamValues;
     }
 }

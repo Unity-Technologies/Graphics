@@ -11,10 +11,11 @@ namespace UnityEditor.Experimental
 {
     internal class NodeBlockCollapse : IManipulate
     {
+        public bool Enabled;
 
-        public NodeBlockCollapse()
+        public NodeBlockCollapse(bool bEnabled)
         {
-
+            Enabled = bEnabled;
         }
 
         public bool GetCaps(ManipulatorCapability cap)
@@ -36,6 +37,8 @@ namespace UnityEditor.Experimental
             if (e.type == EventType.Used)
                 return false;
 
+            if (!Enabled)
+                return false;
 
             Rect ActiveArea = VFXEditorMetrics.NodeBlockHeaderFoldoutRect;
             ActiveArea.position += element.canvasBoundingRect.position;
@@ -55,6 +58,9 @@ namespace UnityEditor.Experimental
         private bool ManageDoubleClick(CanvasElement element, Event e, Canvas2D parent)
         {
             if (e.type == EventType.Used)
+                return false;
+
+            if (!Enabled)
                 return false;
 
             (element.parent as VFXEdNodeBlock).collapsed = !(element.parent as VFXEdNodeBlock).collapsed;

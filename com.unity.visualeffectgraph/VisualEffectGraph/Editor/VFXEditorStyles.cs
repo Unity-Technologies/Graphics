@@ -55,6 +55,8 @@ namespace UnityEditor.Experimental
         public GUIStyle EventNode;
         public GUIStyle EventNodeText;
 
+        public GUIStyle InspectorHeader;
+
         public Texture2D FlowEdgeOpacity;
         public Texture2D FlowEdgeOpacitySelected;
         public Color FlowEdgeTint = HexColor("#AFAFAFAF");
@@ -63,8 +65,17 @@ namespace UnityEditor.Experimental
 
         public Texture2D DataEdgeOpacity;
         public Texture2D DataEdgeOpacitySelected;
+
+        public Texture2D ToolbarPlay;
+        public Texture2D ToolbarRestart;
+        public Texture2D ToolbarStop;
+        public Texture2D ToolbarPause;
+        public Texture2D ToolbarFrameAdvance;
+
         public Color DataEdgeTint = HexColor("#AFAFAF80");
         public Color DataEdgeSelectedTint = HexColor("#FFFFFFFF");
+
+        public Texture2D DefaultBlockIcon = EditorGUIUtility.Load("icons/default.png") as Texture2D;
 
 
         private Dictionary<string, Texture2D> m_icons;
@@ -72,17 +83,20 @@ namespace UnityEditor.Experimental
 
         private Dictionary<VFXParam.Type, Color> m_TypeColors;
 
-
-
         internal Texture2D GetIcon(string name) {
 
             if(!m_icons.ContainsKey(name)) {
                 Texture2D icon = EditorGUIUtility.Load("icons/"+name+".png") as Texture2D;
                 if (icon == null)
-                    throw new FileNotFoundException("Could not find file : icons/" + name + ".png");
+                {
+                    Debug.LogError("ERROR: BlockLibrary requested icon " + name + ".png, which was not found. Using default Icon");
+                    return VFXEditor.styles.DefaultBlockIcon;
+                }
                 m_icons.Add(name, icon);
+                
             }
             return m_icons[name];
+            
         }
 
         internal Color GetContextColor(VFXEdContext c)
@@ -177,12 +191,12 @@ namespace UnityEditor.Experimental
             DataNodeBlock = new GUIStyle();
             DataNodeBlock.name = "DataNodeBlock";
             DataNodeBlock.normal.background = EditorGUIUtility.Load("NodeBlock_Unselected.psd") as Texture2D;
-            DataNodeBlock.border = new RectOffset(8, 8, 24, 4);
+            DataNodeBlock.border = new RectOffset(8, 8, 4, 4);
 
             DataNodeBlockSelected = new GUIStyle();
             DataNodeBlockSelected.name = "DataNodeBlockSelected";
             DataNodeBlockSelected.normal.background = EditorGUIUtility.Load("NodeBlock_Selected.psd") as Texture2D;
-            DataNodeBlockSelected.border = new RectOffset(8, 8, 24, 4);
+            DataNodeBlockSelected.border = new RectOffset(8, 8, 4, 4);
 
             NodeBlockTitle = new GUIStyle();
             NodeBlockTitle.fontSize = 12;
@@ -192,7 +206,7 @@ namespace UnityEditor.Experimental
             NodeBlockTitle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
 
             NodeBlockParameter = new GUIStyle();
-            NodeBlockParameter.fontSize = 11;
+            NodeBlockParameter.fontSize = 12;
             NodeBlockParameter.padding = new RectOffset(4, 4, 4, 4);
             NodeBlockParameter.alignment = TextAnchor.MiddleLeft;
             NodeBlockParameter.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
@@ -259,11 +273,25 @@ namespace UnityEditor.Experimental
             EventNodeText.alignment = TextAnchor.MiddleCenter;
             EventNodeText.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
 
+            InspectorHeader = new GUIStyle("ShurikenModuleTitle");
+            InspectorHeader.fontSize = 12;
+            InspectorHeader.fontStyle = FontStyle.Bold;
+            InspectorHeader.border = new RectOffset(4, 4, 4, 4);
+            InspectorHeader.overflow = new RectOffset(4, 4, 4, 4);
+            InspectorHeader.margin = new RectOffset(4, 4, 4, 8);
+
             FlowEdgeOpacity = EditorGUIUtility.Load("FlowEdge.psd") as Texture2D;
             FlowEdgeOpacitySelected = EditorGUIUtility.Load("FlowEdge_Selected.psd") as Texture2D;
 
             DataEdgeOpacity = EditorGUIUtility.Load("DataEdge.psd") as Texture2D;
             DataEdgeOpacitySelected = EditorGUIUtility.Load("DataEdge_Selected.psd") as Texture2D;
+
+            ToolbarPlay = EditorGUIUtility.Load("ToolbarIcons.Play.png") as Texture2D;
+            ToolbarRestart = EditorGUIUtility.Load("ToolbarIcons.Restart.png") as Texture2D;
+            ToolbarPause = EditorGUIUtility.Load("ToolbarIcons.Pause.png") as Texture2D;
+            ToolbarStop = EditorGUIUtility.Load("ToolbarIcons.Stop.png") as Texture2D;
+            ToolbarFrameAdvance = EditorGUIUtility.Load("ToolbarIcons.FrameAdvance.png") as Texture2D;
+
 
 
             m_icons = new Dictionary<string, Texture2D>();

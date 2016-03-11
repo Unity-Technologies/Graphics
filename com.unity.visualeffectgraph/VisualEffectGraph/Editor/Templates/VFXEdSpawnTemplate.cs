@@ -8,74 +8,147 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    public class VFXEdSpawnTemplate
+    public class VFXEdSpawnTemplate : ScriptableObject
     {
-        public string Name { get { return m_Name; } }
-        public string Category { get { return m_Category; } } 
-        
+        // TODO: Remove & Refactor when using Triggers
+        public class SysInfo
+        {
+            public float SpawnRate;
+            public uint AllocationCount;
+
+            public SysInfo(float spawnRate, uint allocationCount)
+            {
+                SpawnRate = spawnRate;
+                AllocationCount = allocationCount;
+            }
+        }
+        // END TODO
+
+        public string Name { get { return m_Name; } set { m_Name = value; } }
+        public string Category { get { return m_Category; } set { m_Category = value; } }
+
+        public SysInfo SystemInformation;
+
         public string Path { get { return m_Category + "/" + m_Name; } }
 
-        private string m_Name;
-        private string m_Category;
+        private string m_Name = "";
+        private string m_Category = "";
 
-        private Dictionary<string, NodeInfo> m_Nodes;
-        private List<FlowConnection> m_Connections;
+        internal Dictionary<string, ContextNodeInfo> ContextNodes { get { return m_ContextNodes; } }
+        internal Dictionary<string, DataNodeInfo> DataNodes { get { return m_DataNodes; } }
 
-        public VFXEdSpawnTemplate(string category, string name)
+        internal List<FlowConnection> FlowConnections { get { return m_FlowConnections; } }
+        internal List<DataConnection> DataConnections { get { return m_DataConnections; } }
+
+        [SerializeField]
+        private Dictionary<string, ContextNodeInfo> m_ContextNodes;
+        [SerializeField]
+        private Dictionary<string, DataNodeInfo> m_DataNodes;
+
+        [SerializeField]
+        private List<FlowConnection> m_FlowConnections;
+        [SerializeField]
+        private List<DataConnection> m_DataConnections;
+        public VFXEdSpawnTemplate()
         {
-            m_Name = name;
-            m_Category = category;
-            m_Nodes = new Dictionary<string,NodeInfo>();
-            m_Connections = new List<FlowConnection>();
+            m_ContextNodes = new Dictionary<string,ContextNodeInfo>();
+            m_DataNodes = new Dictionary<string,DataNodeInfo>();
+
+            m_FlowConnections = new List<FlowConnection>();
+            m_DataConnections = new List<DataConnection>();
         }
 
-        public void AddNode(string nodename, VFXEdContext context)
+        internal static VFXEdSpawnTemplate Create(string category, string name)
         {
-            m_Nodes.Add(nodename, new NodeInfo(context));
+            VFXEdSpawnTemplate t = ScriptableObject.CreateInstance<VFXEdSpawnTemplate>();
+            t.Name = name;
+            t.Category = category;
+            return t;
         }
 
-        public void AddNodeBlock(string nodename, string blockname)
+        public void AddContextNode(string nodename, string contextName)
         {
-            m_Nodes[nodename].nodeBlocks.Add(new NodeBlockInfo(blockname));
+            m_ContextNodes.Add(nodename, ContextNodeInfo.Create(nodename, contextName));
         }
 
-        public void AddConnection(string nodeA, string nodeB)
+        public void AddDataNode(string nodename, bool bExposed)
         {
-            m_Connections.Add(new FlowConnection(m_Nodes[nodeA], m_Nodes[nodeB]));
+            m_DataNodes.Add(nodename, DataNodeInfo.Create(nodename, bExposed));
+        }
+
+        public void SetContextNodeParameter(string nodename, string paramName, VFXParamValue value)
+        {
+            m_ContextNodes[nodename].AddParameterOverride(paramName, value);
+        }
+
+        public void AddContextNodeBlock(string nodename, string blockname)
+        {
+            m_ContextNodes[nodename].nodeBlocks.Add(blockname, NodeBlockInfo.Create(blockname));
+        }
+
+        public void AddDataNodeBlock(string nodename, string blockname, string exposedName)
+        {
+            m_DataNodes[nodename].nodeBlocks.Add(blockname, DataNodeBlockInfo.Create(blockname, exposedName));
+        }
+
+        public void SetContextNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
+        {
+            m_ContextNodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
+        }
+
+        public void SetDataNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
+        {
+            m_DataNodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
+        }
+
+        public void AddFlowConnection(string nodeA, string nodeB)
+        {
+            m_FlowConnections.Add(FlowConnection.Create(m_ContextNodes[nodeA], m_ContextNodes[nodeB]));
+        }
+
+        internal void AddDataConnection(DataParamConnectorInfo input, ContextParamConnectorInfo output)
+        {
+            m_DataConnections.Add(DataConnection.Create(input, output));
         }
 
         internal void Spawn(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 canvasPosition )
         {
-            Dictionary<NodeInfo, VFXEdNode> spawnedNodes = new Dictionary<NodeInfo, VFXEdNode>();
+            Dictionary<ContextNodeInfo, VFXEdNode> spawnedContextNodes = new Dictionary<ContextNodeInfo, VFXEdNode>();
 
             Vector2 CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth/2,80.0f);
 
-            foreach(KeyValuePair<string,NodeInfo> kvp in m_Nodes)
+            foreach(KeyValuePair<string,ContextNodeInfo> node_kvp in m_ContextNodes)
             {
-                VFXEdNode node = null;
-                switch(kvp.Value.Context)
-                {
-                    case VFXEdContext.Trigger:
-                        node = new VFXEdTriggerNode(CurrentPos, datasource);
-                        break;
-                    case VFXEdContext.Initialize:
-                    case VFXEdContext.Update:
-                    case VFXEdContext.Output:
-                        node = new VFXEdContextNode(CurrentPos, kvp.Value.Context, datasource);
-                        break;
-                    default:
-                        break;
-                }
+                VFXEdContextNode node = null;
+                string context = node_kvp.Value.Context;
+
+                node = new VFXEdContextNode(CurrentPos, VFXEditor.ContextLibrary.GetContext(context), datasource);
 
                 if(node != null)
                 {
                     datasource.AddElement(node);
-                    spawnedNodes.Add(kvp.Value, node);
+                    spawnedContextNodes.Add(node_kvp.Value, node);
                 }
 
-                foreach(NodeBlockInfo nodeblock in kvp.Value.nodeBlocks)
+                foreach (KeyValuePair <string,VFXParamValue> param_kvp in node_kvp.Value.ParameterOverrides)
                 {
-                    node.NodeBlockContainer.AddNodeBlock(new VFXEdProcessingNodeBlock(VFXEditor.BlockLibrary.GetBlock(nodeblock.BlockName), datasource));
+                    node.SetContextParameterValue(param_kvp.Key, param_kvp.Value);
+                }
+                
+                // TODO : Remove when using Triggers
+                node.Model.GetOwner().MaxNb = SystemInformation.AllocationCount;
+                node.Model.GetOwner().SpawnRate = SystemInformation.SpawnRate;
+                // END TODO
+
+                foreach(KeyValuePair<string,NodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
+                {
+                    VFXEdProcessingNodeBlock block = new VFXEdProcessingNodeBlock(VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockName), datasource);
+                    
+                    foreach (KeyValuePair <string,VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                    {
+                        block.SetParameterValue(param_kvp.Key, param_kvp.Value);
+                    }
+                    node.NodeBlockContainer.AddNodeBlock(block);
                 }
 
                 node.Layout();
@@ -83,139 +156,61 @@ namespace UnityEditor.Experimental
                
             }
 
-            foreach(FlowConnection c in m_Connections)
+            // Data Nodes
+            CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth * 2 ,80.0f);
+
+            Dictionary<DataNodeInfo, VFXEdNode> spawnedDataNodes = new Dictionary<DataNodeInfo, VFXEdNode>();
+
+            foreach(KeyValuePair<string,DataNodeInfo> node_kvp in m_DataNodes)
             {
-                datasource.ConnectFlow(spawnedNodes[c.Previous].outputs[0], spawnedNodes[c.Next].inputs[0]);
+                VFXEdDataNode node = null;
+
+                node = new VFXEdDataNode(CurrentPos, datasource);
+                
+
+                if(node != null)
+                {
+                    node.exposed = node_kvp.Value.Exposed;
+                    datasource.AddElement(node);
+                    spawnedDataNodes.Add(node_kvp.Value, node);
+                }
+
+                foreach(KeyValuePair<string,DataNodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
+                {
+                    VFXEdDataNodeBlock block = new VFXEdDataNodeBlock(VFXEditor.DataBlockLibrary.GetBlock(block_kvp.Value.BlockName), datasource,block_kvp.Value.ExposedName);
+                    
+                    foreach (KeyValuePair <string,VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                    {
+                        block.SetParametervalue(param_kvp.Key, param_kvp.Value);
+                    }
+                    node.NodeBlockContainer.AddNodeBlock(block);
+                }
+
+                node.Layout();
+                CurrentPos.y += node.scale.y + 40.0f;
+               
+            }
+
+            foreach(FlowConnection fc in m_FlowConnections)
+            {
+                datasource.ConnectFlow(spawnedContextNodes[fc.Previous].outputs[0], spawnedContextNodes[fc.Next].inputs[0]);
+            }
+
+            foreach(DataConnection c in m_DataConnections)
+            {
+                VFXEdDataAnchor input;
+                VFXEdDataAnchor output;
+
+                input = spawnedDataNodes[c.Previous.m_Node].NodeBlockContainer.nodeBlocks[c.Previous.m_NodeBlockIndex].GetField(c.Previous.m_ParameterName).Output;
+                output = spawnedContextNodes[c.Next.m_Node].NodeBlockContainer.nodeBlocks[c.Next.m_NodeBlockIndex].GetField(c.Next.m_ParameterName).Input;
+
+                datasource.ConnectData(input,output);
             }
 
             canvas.ReloadData();
         }
 
-        private class NodeInfo
-        {
-            public List<NodeBlockInfo> nodeBlocks;
-            public VFXEdContext Context {get { return m_Context; } }
-            private VFXEdContext m_Context;
-            
-            public NodeInfo(VFXEdContext context)
-            {
-                m_Context = context;
-                nodeBlocks = new List<NodeBlockInfo>();
-            }
-        }
-        private class NodeBlockInfo
-        {
-            public string BlockName { get { return m_BlockName; } }
-            private string m_BlockName;
-            public NodeBlockInfo(string blockname) {
-                m_BlockName = blockname;
-            }
-        }
-        private class FlowConnection
-        {
-            public readonly NodeInfo Previous;
-            public readonly NodeInfo Next;
-            public FlowConnection(NodeInfo input, NodeInfo output)
-            {
-                Previous = input;
-                Next = output;
-            }
-        }
+
     }
-
-    internal class VFXEdTemplateSpawner : VFXEdSpawner
-    {
-        private string m_Path;
-        private VFXEdDataSource m_Datasource;
-        private VFXEdCanvas m_Canvas;
-
-        public VFXEdTemplateSpawner(string path, VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 canvasPosition ) : base(canvasPosition)
-        {
-            m_Path = path;
-            m_Datasource = datasource;
-            m_Canvas = canvas;
-        }
-
-        public override void Spawn()
-        {
-            VFXEdSpawnTemplate template = VFXEditor.SpawnTemplates.GetTemplate(m_Path);
-            template.Spawn(m_Datasource, m_Canvas, m_canvasPosition);
-        }
-    }
-
-    public class VFXEdSpawnTemplateLibrary
-    {
-        public List<VFXEdSpawnTemplate> Templates { get { return m_Templates; } }
-        private List<VFXEdSpawnTemplate> m_Templates;
-
-        public VFXEdSpawnTemplateLibrary()
-        {
-            m_Templates = new List<VFXEdSpawnTemplate>();
-        }
-
-        public VFXEdSpawnTemplate GetTemplate(string path)
-        {
-            return m_Templates.Find(t => t.Path.Equals(path));
-        }
-
-        public void SpawnFromMenu(object o)
-        {
-            VFXEdTemplateSpawner spawner = o as VFXEdTemplateSpawner;
-            spawner.Spawn();
-        }
-
-        public void Load()
-        {
-
-            VFXEdSpawnTemplate fulltemplate = new VFXEdSpawnTemplate("Full", "Full Template");
-            fulltemplate.AddNode("init", VFXEdContext.Initialize);
-            fulltemplate.AddNode("update", VFXEdContext.Update);
-            fulltemplate.AddNode("output", VFXEdContext.Output);
-
-            fulltemplate.AddNodeBlock("init", "Set Lifetime (Constant)");
-            fulltemplate.AddNodeBlock("init", "Set Color (Constant)");
-            fulltemplate.AddNodeBlock("init", "Set Position (Point)");
-            fulltemplate.AddNodeBlock("init", "Set Velocity (Constant)");
-            fulltemplate.AddNodeBlock("init", "Set Size Constant (Square)");
-
-            fulltemplate.AddNodeBlock("update", "Apply Force");
-            fulltemplate.AddNodeBlock("update", "Apply Drag");
-            fulltemplate.AddNodeBlock("update", "Age and Reap");
-            fulltemplate.AddNodeBlock("update", "Apply Velocity to Positions");
-
-            fulltemplate.AddConnection("init", "update");
-            fulltemplate.AddConnection("update", "output");
-
-            m_Templates.Add(fulltemplate);
-
-
-            VFXEdSpawnTemplate init = new VFXEdSpawnTemplate("Simple", "Initialize");
-            init.AddNode("init", VFXEdContext.Initialize);
-            init.AddNodeBlock("init", "Set Lifetime (Constant)");
-            init.AddNodeBlock("init", "Set Color (Constant)");
-            init.AddNodeBlock("init", "Set Position (Point)");
-            init.AddNodeBlock("init", "Set Velocity (Constant)");
-            init.AddNodeBlock("init", "Set Size Constant (Square)");
-
-            m_Templates.Add(init);
-
-
-            VFXEdSpawnTemplate update = new VFXEdSpawnTemplate("Simple", "Update");
-            update.AddNode("update", VFXEdContext.Update);
-            update.AddNodeBlock("update", "Apply Force");
-            update.AddNodeBlock("update", "Apply Drag");
-            update.AddNodeBlock("update", "Age and Reap");
-            update.AddNodeBlock("update", "Apply Velocity to Positions");
-            m_Templates.Add(update);
-
-
-
-            VFXEdSpawnTemplate output = new VFXEdSpawnTemplate("Simple", "Output");
-            output.AddNode("output", VFXEdContext.Output);
-
-            m_Templates.Add(output);
-        }
-    }
-
 
 }

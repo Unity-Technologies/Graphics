@@ -10,8 +10,7 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdNodeBlockHeader : CanvasElement
     {
-
-        private bool m_Collapseable;
+        public bool Collapseable { get { return m_NodeBlockCollapseManipulator.Enabled; } set { m_NodeBlockCollapseManipulator.Enabled = value; } }
 
         private NodeBlockCollapse m_NodeBlockCollapseManipulator;
         private string m_Name;
@@ -24,13 +23,8 @@ namespace UnityEditor.Experimental
             m_Icon = icon;
             m_Name = Text;
 
-            m_Collapseable = Collapseable;
-
-            if (m_Collapseable)
-            {
-                m_NodeBlockCollapseManipulator = new NodeBlockCollapse();
-                AddManipulator(m_NodeBlockCollapseManipulator);
-            }
+            m_NodeBlockCollapseManipulator = new NodeBlockCollapse(Collapseable);
+            AddManipulator(m_NodeBlockCollapseManipulator);
 
         }
 
@@ -58,7 +52,7 @@ namespace UnityEditor.Experimental
             labelrect.min += VFXEditorMetrics.NodeBlockHeaderLabelPosition;
 
 
-            if (m_Collapseable)
+            if (Collapseable)
             {
                 if (collapsed)
                 {
@@ -73,7 +67,8 @@ namespace UnityEditor.Experimental
             {
                 GUI.Box(arrowrect, "", VFXEditor.styles.CollapserDisabled);
             }
-            GUI.Box(iconrect, m_Icon, VFXEditor.styles.Empty);
+
+            GUI.DrawTexture(iconrect, m_Icon);
             GUI.Label(labelrect, m_Name, VFXEditor.styles.NodeBlockTitle);
             base.Render(parentRect, canvas);
         }

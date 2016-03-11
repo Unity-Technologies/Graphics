@@ -12,10 +12,12 @@ namespace UnityEditor.Experimental
     {
         public string name{ get { return m_Name; } }
         protected string m_Name;
+
+        public VFXEdNodeBlockParameterField[] Fields { get { return m_Fields; } }
         protected VFXEdNodeBlockParameterField[] m_Fields;
 
         protected VFXEdDataSource m_DataSource;
-        private NodeBlockManipulator m_NodeBlockManipulator;
+
 
         public VFXEdNodeBlock(VFXEdDataSource dataSource)
         {
@@ -23,14 +25,41 @@ namespace UnityEditor.Experimental
             translation = Vector3.zero; // zeroed by default, will be relayouted later.
             m_Caps = Capabilities.Normal;
 
-            m_NodeBlockManipulator = new NodeBlockManipulator(this);
-            AddManipulator(m_NodeBlockManipulator);
-            AddManipulator(new NodeBlockDelete());
+        }
 
+        public VFXEdNodeBlockParameterField GetField(string name)
+        {
+            for(int i = 0; i < m_Fields.Length; i++)
+            {
+                if (m_Fields[i].Name == name)
+                    return m_Fields[i];
+            }
+            return null;
+        }
+
+        public bool IsConnected()
+        {
+            foreach(VFXEdNodeBlockParameterField field in m_Fields)
+            {
+                if (field.IsConnected())
+                    return true;
+            }
+            return false;
         }
 
         // Retrieve the full height of the block
-        protected abstract float GetHeight();
+        public virtual float GetHeight()
+        {
+            float height = VFXEditorMetrics.NodeBlockHeaderHeight;
+            if(!collapsed)
+            {
+                foreach(VFXEdNodeBlockParameterField field in m_Fields) {
+                    height += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
+                }
+                height += VFXEditorMetrics.NodeBlockFooterHeight;
+            }
+            return height;
+        }
 
         public override void Layout()
         {
@@ -54,8 +83,9 @@ namespace UnityEditor.Experimental
                 foreach(VFXEdNodeBlockParameterField field in m_Fields)
                 {
                     field.translation = new Vector2(0.0f, curY);
-                    curY += field.scale.y;
+                    curY += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
                 }
+
             }
         }
 
@@ -71,49 +101,12 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public virtual void OnRemoved()
-        {
-            List<VFXEdDataAnchor> anchors = new List<VFXEdDataAnchor>();
-            foreach(VFXEdNodeBlockParameterField field in m_Fields)
-            {
-                if (field.Input != null)
-                    anchors.Add(field.Input);
-                if (field.Output != null)
-                    anchors.Add(field.Output);
-            }
-            foreach(VFXEdDataAnchor anchor in anchors)
-            {
-                m_DataSource.RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(anchor);
-            }
-            ParentCanvas().ReloadData();
-        }
+
 
         protected abstract GUIStyle GetNodeBlockSelectedStyle();
         protected abstract GUIStyle GetNodeBlockStyle();
 
-        public override void Render(Rect parentRect, Canvas2D canvas)
-        {
-            Rect r = GetDrawableRect();
 
-            if (parent is VFXEdNodeBlockContainer)
-            {
-                if (IsSelectedNodeBlock(canvas as VFXEdCanvas))
-
-                    GUI.Box(r, "", GetNodeBlockSelectedStyle());
-                else
-                    GUI.Box(r, "", GetNodeBlockStyle());
-            }
-            else // If currently dragged...
-            {
-                Color c = GUI.color;
-                GUI.color = new Color(GUI.color.r, GUI.color.g, GUI.color.a, 0.75f);
-                GUI.Box(r, "", VFXEditor.styles.NodeBlockSelected);
-                GUI.color = c;
-            }
-
-
-            base.Render(parentRect, canvas);
-        }
 
     }
 }

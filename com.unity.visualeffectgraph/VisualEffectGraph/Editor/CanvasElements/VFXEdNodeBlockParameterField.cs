@@ -10,15 +10,17 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdNodeBlockParameterField : CanvasElement
     {
-        public VFXParamValue Value { get { return m_Value; } }
+        public VFXParamValue Value { get { return m_ParamValue; } }
         public bool Visible { get { return m_Visible; } set { m_Visible = value; } }
         public string Name { get { return m_Name; } }
-        public VFXParam.Type Type { get { return m_Value.ValueType; } }
+        public string Tag {get { return m_Tag; } }
+        public VFXParam.Type Type { get { return m_ParamValue.ValueType; } }
         public VFXEdDataAnchor Input { get { return m_Input; } }
         public VFXEdDataAnchor Output { get { return m_Output; } }
 
         protected string m_Name;
-        protected VFXParamValue m_Value;
+        protected string m_Tag = "";
+        protected VFXParamValue m_ParamValue;
         protected bool m_Visible;
         private VFXEdDataAnchor m_Input;
         private VFXEdDataAnchor m_Output;
@@ -26,7 +28,7 @@ namespace UnityEditor.Experimental
         public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, VFXParamValue value, bool bConnectable, Direction paramDirection, int index)
         {
             m_Name = name;
-            m_Value = value;
+            m_ParamValue = value;
 
             m_Input = null;
             m_Output = null;
@@ -54,6 +56,13 @@ namespace UnityEditor.Experimental
                 }
             }
 
+            AddManipulator(new ImguiContainer());
+        }
+
+        public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, string tag, VFXParamValue value, bool bConnectable, Direction paramDirection, int index) 
+            : this(datasource,name,value,bConnectable,paramDirection,index)
+        {
+            m_Tag = tag;
         }
 
         public override bool DispatchEvents(Event evt, Canvas2D parent)
@@ -79,62 +88,75 @@ namespace UnityEditor.Experimental
                 scale = Vector2.zero;
         }
 
+        public bool IsConnected()
+        {
+            return !Value.IsBound();
+        }
+
         protected static float GetParamHeight(VFXParam.Type type)
         {
 
             float height = VFXEditorMetrics.NodeBlockParameterHeight;
-            switch (type)
-            {
-                case VFXParam.Type.kTypeFloat2:
-                case VFXParam.Type.kTypeFloat3:
-                case VFXParam.Type.kTypeFloat4:
-                    height += VFXEditorMetrics.NodeBlockAdditionalHeight;
-                    break;
-                default:
-                    break;
-            }
             return height;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            base.Render(parentRect, canvas);
-
+            //base.Render(parentRect, canvas);
+            EventType t = Event.current.type;
             if(!collapsed)
             {
                 Rect r = GetDrawableRect();
-                Rect fieldrect = new RectOffset(32,32,0,0).Remove(r);
+
+                Rect fieldrect = VFXEditorMetrics.ParameterFieldRectOffset.Remove(r);
+                Rect labelrect = new Rect(fieldrect.x, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.height);
+                Rect editrect = new Rect(fieldrect.x +
+                VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.height);
+
+
+                if (IsConnected())
+                    GUI.color = new Color(1.0f, 1.0f, 1.0f, 0.25f);
+
+                EditorGUI.LabelField(labelrect, m_Name);
 
                 switch (Type)
                 {
                     case VFXParam.Type.kTypeFloat:
-                        m_Value.SetValue(EditorGUI.FloatField(fieldrect, m_Name, m_Value.GetValue<float>()));
+                        m_ParamValue.SetValue(EditorGUI.FloatField(editrect, "", m_ParamValue.GetValue<float>()));
                         break;
 
                     case VFXParam.Type.kTypeFloat2:
-                        m_Value.SetValue(EditorGUI.Vector2Field(fieldrect, m_Name, m_Value.GetValue<Vector2>()));
+                        m_ParamValue.SetValue(EditorGUI.Vector2Field(editrect, "", m_ParamValue.GetValue<Vector2>()));
                         break;
 
                     case VFXParam.Type.kTypeFloat3:
-                        m_Value.SetValue(EditorGUI.Vector3Field(fieldrect, m_Name, m_Value.GetValue<Vector3>()));
+                        m_ParamValue.SetValue(EditorGUI.Vector3Field(editrect, "", m_ParamValue.GetValue<Vector3>()));
                         break;
 
                     case VFXParam.Type.kTypeFloat4:
-                        m_Value.SetValue(EditorGUI.Vector4Field(fieldrect, m_Name, m_Value.GetValue<Vector4>()));
+                        m_ParamValue.SetValue(EditorGUI.Vector4Field(editrect, "", m_ParamValue.GetValue<Vector4>()));
                         break;
 
                     case VFXParam.Type.kTypeInt:
-                        m_Value.SetValue(EditorGUI.IntField(fieldrect, m_Name, m_Value.GetValue<int>()));
+                        m_ParamValue.SetValue(EditorGUI.IntField(editrect, "", m_ParamValue.GetValue<int>()));
                         break;
 
                     case VFXParam.Type.kTypeUint:
-                        m_Value.SetValue<uint>((uint)EditorGUI.IntField(fieldrect, m_Name, (int)m_Value.GetValue<uint>()));
+                        m_ParamValue.SetValue<uint>((uint)EditorGUI.IntField(editrect, "", (int)m_ParamValue.GetValue<uint>()));
                         break;
 
+                    case VFXParam.Type.kTypeTexture2D:
+                        m_ParamValue.SetValue<Texture2D>((Texture2D)EditorGUI.ObjectField(editrect, m_ParamValue.GetValue<Texture2D>(),typeof(Texture2D)));
+                        break;
+                    case VFXParam.Type.kTypeTexture3D:
+                        m_ParamValue.SetValue<Texture3D>((Texture3D)EditorGUI.ObjectField(editrect, m_ParamValue.GetValue<Texture3D>(),typeof(Texture3D)));
+                        break;
                     default: // TODO Texture
-                        GUI.Label(fieldrect, VFXParam.GetNameFromType(Type) + " " + m_Name, VFXEditor.styles.NodeBlockParameter);
+                        GUI.Label(editrect, VFXParam.GetNameFromType(Type) + " " + "", VFXEditor.styles.NodeBlockParameter);
                         break;
                 }
+
+                GUI.color = Color.white;
             }
         }
     }

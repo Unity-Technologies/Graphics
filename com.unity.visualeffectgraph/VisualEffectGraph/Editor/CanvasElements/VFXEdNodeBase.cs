@@ -11,6 +11,11 @@ namespace UnityEditor.Experimental
     internal abstract class VFXEdNodeBase : CanvasElement
     {
 
+        public static int Token { get { return s_Token++; } }
+        private static int s_Token = 0;
+
+        public string UniqueName { get { return m_UniqueName; } }
+
         public List<VFXEdFlowAnchor> inputs
         {
             get { return m_Inputs; }
@@ -20,6 +25,8 @@ namespace UnityEditor.Experimental
         {
             get { return m_Outputs; }
         }
+
+        protected string m_UniqueName;
 
         protected List<VFXEdFlowAnchor> m_Inputs;
         protected List<VFXEdFlowAnchor> m_Outputs;
@@ -32,7 +39,10 @@ namespace UnityEditor.Experimental
             m_Inputs = new List<VFXEdFlowAnchor>();
             m_Outputs = new List<VFXEdFlowAnchor>();
 
+
             m_ClientArea = new Rect(0, 0, scale.x, scale.y);
+
+            m_UniqueName = GetType().Name + "_" + Token;
 
             AddManipulator(new Draggable());
             AddManipulator(new NodeDelete());

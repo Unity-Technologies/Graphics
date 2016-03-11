@@ -423,7 +423,11 @@ namespace UnityEditor.Experimental
         public virtual void DebugDraw()
         {
             // THOMASI : Modified Debug Opacity for better readability while displaying more stacked elements.
-            Handles.DrawSolidRectangleWithOutline(canvasBoundingRect, new Color(1.0f, 0.0f, 0.0f, 0.1f), new Color(1.0f, 0.0f, 0.0f, 0.4f));
+            Color c = new Color(1.0f, 0.0f, 0.0f, 0.1f);
+            if (m_Dirty) c = new Color(1.0f, 0.0f, 1.0f, 0.1f);
+            Color o = c;
+            o.a = 0.2f;
+            Handles.DrawSolidRectangleWithOutline(canvasBoundingRect, c, o);
             foreach (CanvasElement e in m_Children)
             {
                 e.DebugDraw();

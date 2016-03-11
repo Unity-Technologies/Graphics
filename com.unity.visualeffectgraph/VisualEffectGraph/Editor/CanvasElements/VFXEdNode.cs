@@ -26,9 +26,9 @@ namespace UnityEditor.Experimental
 
 
         protected VFXEdNodeBlockContainer m_NodeBlockContainer;
-
+        protected float m_HeaderOffset = 0.0f;
         public VFXEdNode(Vector2 canvasposition, VFXEdDataSource dataSource) : base(canvasposition, dataSource)
-        {	
+        {
             m_DataSource = dataSource;
 
             scale = new Vector2(VFXEditorMetrics.NodeDefaultWidth, 100);
@@ -44,16 +44,22 @@ namespace UnityEditor.Experimental
 
         }
 
-        protected abstract void ShowNodeBlockMenu(Vector2 canvasClickPosition);
+        protected abstract GenericMenu GetNodeMenu(Vector2 canvasClickPosition);
 
         private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)
         {
             if (e.type == EventType.Used)
                 return false;
 
-            ShowNodeBlockMenu(parent.MouseToCanvas(e.mousePosition));
+            GenericMenu m = GetNodeMenu(parent.MouseToCanvas(e.mousePosition));
+            m.ShowAsContext();
             e.Use();
             return true;
+        }
+
+        public bool OwnsBlock(VFXEdNodeBlockDraggable block)
+        {
+            return m_NodeBlockContainer.OwnsBlock(block);
         }
 
         public void AddNodeBlock(object o)
@@ -63,7 +69,20 @@ namespace UnityEditor.Experimental
             {
                 spawner.Spawn();
             }
+            (ParentCanvas() as VFXEdCanvas).SelectedNodeBlock = null;
+            Layout();
+        }
 
+        public void ReplaceNodeBlock(object o)
+        {
+            VFXEdSpawner spawner = o as VFXEdSpawner;
+            if(spawner != null)
+            {
+                spawner.Spawn();
+            }
+            NodeBlockContainer.RemoveNodeBlock((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock);
+            (ParentCanvas() as VFXEdCanvas).SelectedNodeBlock = null;
+            Layout();
         }
 
         public override void OnRemove()
@@ -102,12 +121,12 @@ namespace UnityEditor.Experimental
             if (outputs.Count > 0)
                 outputheight = VFXEditorMetrics.FlowAnchorSize.y;
             else
-                outputheight = 16.0f;
+                outputheight = 32.0f;
 
-            m_ClientArea = new Rect(0.0f, inputheight, this.scale.x, m_NodeBlockContainer.scale.y+ VFXEditorMetrics.NodeHeaderHeight);
+            m_ClientArea = new Rect(0.0f, inputheight, this.scale.x, m_NodeBlockContainer.scale.y+ VFXEditorMetrics.NodeHeaderHeight + m_HeaderOffset);
             m_ClientArea = VFXEditorMetrics.NodeClientAreaOffset.Add(m_ClientArea);
 
-            m_NodeBlockContainer.translation = m_ClientArea.position + VFXEditorMetrics.NodeBlockContainerPosition;
+            m_NodeBlockContainer.translation = m_ClientArea.position + VFXEditorMetrics.NodeBlockContainerPosition + new Vector2(0.0f,m_HeaderOffset);
             m_NodeBlockContainer.scale = new Vector2(m_ClientArea.width, m_NodeBlockContainer.scale.y) + VFXEditorMetrics.NodeBlockContainerSizeOffset;
 
             scale = new Vector3(scale.x, inputheight + outputheight + m_ClientArea.height);
@@ -123,9 +142,6 @@ namespace UnityEditor.Experimental
             {
                 outputs[i].translation = new Vector2((i + 1) * (scale.x / (outputs.Count + 1)) - VFXEditorMetrics.FlowAnchorSize.x/2, scale.y - VFXEditorMetrics.FlowAnchorSize.y-10);
             }
-
-            
-
 
         }
 
