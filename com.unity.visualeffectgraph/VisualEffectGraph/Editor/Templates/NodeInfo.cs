@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental
         [SerializeField]
         private Dictionary<string, VFXParamValue> m_ParameterOverrides;
 
-
+        public string m_UniqueName;
             
         public NodeInfo()
         {

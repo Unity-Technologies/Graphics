@@ -205,8 +205,13 @@ namespace UnityEditor.Experimental
                 {
                     XElement dcin = dc.Element("Input");
                     XElement dcout = dc.Element("Output");
-                    DataParamConnectorInfo inputInfo = new DataParamConnectorInfo(template.DataNodes[dcin.Attribute("DataNode").Value],int.Parse(dcin.Attribute("NodeBlockIndex").Value),dcin.Attribute("ParamName").Value);
-                    ContextParamConnectorInfo outputInfo = new ContextParamConnectorInfo(template.ContextNodes[dcout.Attribute("ContextNode").Value], int.Parse(dcout.Attribute("NodeBlockIndex").Value), dcout.Attribute("ParamName").Value);
+
+                    DataNodeInfo dataNode = template.DataNodes[dcin.Attribute("DataNode").Value];
+                    ContextNodeInfo contextNode = template.ContextNodes[dcout.Attribute("ContextNode").Value];
+
+                    DataParamConnectorInfo inputInfo = new DataParamConnectorInfo(dataNode,int.Parse(dcin.Attribute("NodeBlockIndex").Value),dcin.Attribute("ParamName").Value);
+                    ContextParamConnectorInfo outputInfo = new ContextParamConnectorInfo(contextNode, int.Parse(dcout.Attribute("NodeBlockIndex").Value), dcout.Attribute("ParamName").Value);
+
                     template.AddDataConnection(inputInfo,outputInfo);
                 }
 
@@ -366,13 +371,13 @@ namespace UnityEditor.Experimental
                     doc.WriteStartElement("DataConnection");
 
                     doc.WriteStartElement("Input");
-                    doc.WriteAttributeString("DataNode", c.Previous.m_Node.name);
+                    doc.WriteAttributeString("DataNode", c.Previous.m_Node.m_UniqueName);
                     doc.WriteAttributeString("NodeBlockIndex", c.Previous.m_NodeBlockIndex.ToString());
                     doc.WriteAttributeString("ParamName", c.Previous.m_ParameterName);
                     doc.WriteEndElement();
 
                     doc.WriteStartElement("Output");
-                    doc.WriteAttributeString("ContextNode", c.Next.m_Node.name);
+                    doc.WriteAttributeString("ContextNode", c.Next.m_Node.m_UniqueName);
                     doc.WriteAttributeString("NodeBlockIndex", c.Next.m_NodeBlockIndex.ToString());
                     doc.WriteAttributeString("ParamName", c.Next.m_ParameterName);
                     doc.WriteEndElement();
@@ -484,7 +489,7 @@ namespace UnityEditor.Experimental
                         new ContextParamConnectorInfo(t.ContextNodes[outputNode.UniqueName], outputNode.NodeBlockContainer.nodeBlocks.IndexOf(outputBlock), output.Name)
                         );
                 }
-                Debug.Log("Created");
+
             }
             return t;
         }

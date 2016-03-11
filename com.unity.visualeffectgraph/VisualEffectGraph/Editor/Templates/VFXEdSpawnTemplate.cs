@@ -68,12 +68,12 @@ namespace UnityEditor.Experimental
 
         public void AddContextNode(string nodename, string contextName)
         {
-            m_ContextNodes.Add(nodename, ContextNodeInfo.Create(contextName));
+            m_ContextNodes.Add(nodename, ContextNodeInfo.Create(nodename, contextName));
         }
 
         public void AddDataNode(string nodename, bool bExposed)
         {
-            m_DataNodes.Add(nodename, DataNodeInfo.Create(bExposed));
+            m_DataNodes.Add(nodename, DataNodeInfo.Create(nodename, bExposed));
         }
 
         public void SetContextNodeParameter(string nodename, string paramName, VFXParamValue value)

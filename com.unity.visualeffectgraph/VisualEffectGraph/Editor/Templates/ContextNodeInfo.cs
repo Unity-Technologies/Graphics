@@ -16,10 +16,11 @@ namespace UnityEditor.Experimental
         [SerializeField]
         private string m_Context;
 
-        public static ContextNodeInfo Create(string Context)
+        public static ContextNodeInfo Create(string uniqueName, string Context)
         {
             ContextNodeInfo n =  CreateInstance<ContextNodeInfo>();
             n.Context = Context;
+            n.m_UniqueName = uniqueName;
             return n;
         }
 

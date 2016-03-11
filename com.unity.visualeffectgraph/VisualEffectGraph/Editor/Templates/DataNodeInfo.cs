@@ -13,10 +13,11 @@ namespace UnityEditor.Experimental
         public bool Exposed;
         public Dictionary<string, DataNodeBlockInfo> nodeBlocks;
 
-        public static DataNodeInfo Create(bool bExposed)
+        public static DataNodeInfo Create(string uniqueName, bool bExposed)
         {
             DataNodeInfo n =  CreateInstance<DataNodeInfo>();
             n.Exposed = bExposed;
+            n.m_UniqueName = uniqueName;
             return n;
         }
 
