@@ -10,15 +10,18 @@ namespace UnityEditor.Experimental
 {
     public static class CommonAttrib
     {
-        public static VFXAttrib Seed =      new VFXAttrib("seed", VFXParam.Type.kTypeUint);
-        public static VFXAttrib Position =  new VFXAttrib("position", VFXParam.Type.kTypeFloat3);
-        public static VFXAttrib Velocity =  new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3);
-        public static VFXAttrib Color =     new VFXAttrib("color", VFXParam.Type.kTypeFloat3);
-        public static VFXAttrib Alpha =     new VFXAttrib("alpha", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Phase =     new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Size =      new VFXAttrib("size", VFXParam.Type.kTypeFloat2);
-        public static VFXAttrib Lifetime =  new VFXAttrib("lifetime", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Age =       new VFXAttrib("age", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib Seed =              new VFXAttrib("seed", VFXParam.Type.kTypeUint);
+        public static VFXAttrib Position =          new VFXAttrib("position", VFXParam.Type.kTypeFloat3);
+        public static VFXAttrib Velocity =          new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3);
+        public static VFXAttrib Color =             new VFXAttrib("color", VFXParam.Type.kTypeFloat3);
+        public static VFXAttrib Alpha =             new VFXAttrib("alpha", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib Phase =             new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib Size =              new VFXAttrib("size", VFXParam.Type.kTypeFloat2);
+        public static VFXAttrib Lifetime =          new VFXAttrib("lifetime", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib Age =               new VFXAttrib("age", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib Angle =             new VFXAttrib("angle", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib AngularVelocity =   new VFXAttrib("angularVelocity", VFXParam.Type.kTypeFloat);
+        public static VFXAttrib TexIndex =          new VFXAttrib("texIndex", VFXParam.Type.kTypeFloat);
     }
 
     public class VFXSystemRuntimeData
@@ -568,8 +571,8 @@ namespace UnityEditor.Experimental
             GenerateParamNames(paramToName, updateSamplers, "updateSampler");
 
             var outputParamToName = new Dictionary<VFXParamValue, string>();
-            GenerateParamNames(outputParamToName, outputUniforms, "outputSampler");
-            GenerateParamNames(outputParamToName, outputSamplers, "updateSampler");
+            GenerateParamNames(outputParamToName, outputUniforms, "outputUniform");
+            GenerateParamNames(outputParamToName, outputSamplers, "outputSampler");
 
             // Log result
             VFXEditor.Log("Nb init blocks: " + initBlocks.Count);
@@ -842,6 +845,7 @@ namespace UnityEditor.Experimental
                 buffer.AppendLine("}");
                 buffer.AppendLine();
 
+                // XOR Style
               /*  buffer.AppendLine("float rand(inout uint seed)");
                 buffer.AppendLine("{");
                 buffer.AppendLine("\tseed ^= (seed << 13);");

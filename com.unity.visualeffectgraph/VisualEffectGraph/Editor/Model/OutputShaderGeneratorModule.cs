@@ -29,9 +29,10 @@ namespace UnityEditor.Experimental
 
     public class VFXBillboardOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
     {
-        public VFXBillboardOutputShaderGeneratorModule(VFXParamValue texture,bool orientAlongVelocity)
+        public VFXBillboardOutputShaderGeneratorModule(VFXParamValue texture, VFXParamValue flipBookDim, bool orientAlongVelocity)
         {
             m_Texture = texture;
+            m_FlipBookDim = flipBookDim;
             m_OrientAlongVelocity = orientAlongVelocity;
         }
 
@@ -45,19 +46,27 @@ namespace UnityEditor.Experimental
             UpdateFlag(attribs, CommonAttrib.Color, VFXContextDesc.Type.kTypeOutput);
             UpdateFlag(attribs, CommonAttrib.Alpha, VFXContextDesc.Type.kTypeOutput);
             m_HasSize = UpdateFlag(attribs, CommonAttrib.Size, VFXContextDesc.Type.kTypeOutput);
+            m_HasAngle = UpdateFlag(attribs, CommonAttrib.Angle, VFXContextDesc.Type.kTypeOutput);
 
+            if (m_Texture.GetValue<Texture2D>() != null)
+            {
+                m_HasTexture = true;
+                m_HasFlipBook = UpdateFlag(attribs, CommonAttrib.TexIndex, VFXContextDesc.Type.kTypeOutput);   
+            }
+            
             if (m_OrientAlongVelocity)
                 m_OrientAlongVelocity = UpdateFlag(attribs, CommonAttrib.Velocity, VFXContextDesc.Type.kTypeOutput);
-
+           
             return true;
         }
 
         public override void UpdateUniforms(HashSet<VFXParamValue> uniforms)
         {
-            if (m_Texture.GetValue<Texture2D>() != null)
+            if (m_HasTexture)
             {
                 uniforms.Add(m_Texture);
-                m_HasTexture = true;
+                if (m_HasFlipBook)
+                    uniforms.Add(m_FlipBookDim);
             }
         }
 
@@ -68,7 +77,30 @@ namespace UnityEditor.Experimental
 
         public override void WriteAdditionalVertexOutput(StringBuilder builder, ShaderMetaData data)
         {
-            builder.AppendLine("\t\t\t\tfloat2 offsets : TEXCOORD0;");
+            if (m_HasFlipBook)
+                builder.AppendLine("\t\t\t\tfloat3 offsets : TEXCOORD0; // u,v and index"); 
+            else
+                builder.AppendLine("\t\t\t\tfloat2 offsets : TEXCOORD0;");
+        }
+
+        private void WriteRotation(StringBuilder builder, ShaderMetaData data)
+        {
+            builder.AppendLine("\t\t\t\t\tfloat2 sincosA;");
+            builder.Append("\t\t\t\t\tsincos(radians(");
+            builder.WriteAttrib(CommonAttrib.Angle, data);
+            builder.Append("), sincosA.x, sincosA.y);");
+            builder.AppendLine();
+            builder.AppendLine("\t\t\t\t\tconst float c = sincosA.y;");
+            builder.AppendLine("\t\t\t\t\tconst float s = sincosA.x;");
+            builder.AppendLine("\t\t\t\t\tconst float t = 1.0 - c;");
+            builder.AppendLine("\t\t\t\t\tconst float x = front.x;");
+            builder.AppendLine("\t\t\t\t\tconst float y = front.y;");
+            builder.AppendLine("\t\t\t\t\tconst float z = front.z;");
+            builder.AppendLine();
+            builder.AppendLine("\t\t\t\t\tfloat3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,");
+            builder.AppendLine("\t\t\t\t\t\t\t\t\t\tt * x * y + s * z, t * y * y + c, t * y * z - s * x,");
+            builder.AppendLine("\t\t\t\t\t\t\t\t\t\tt * x * z - s * y, t * y * z + s * x, t * z * z + c);");
+            builder.AppendLine();
         }
 
         public override void WritePreBlock(StringBuilder builder, ShaderMetaData data)
@@ -93,22 +125,48 @@ namespace UnityEditor.Experimental
 
             if (m_OrientAlongVelocity)
             {
+                builder.AppendLine("\t\t\t\t\tfloat3 front = UnityWorldSpaceViewDir(worldPos);");
                 builder.Append("\t\t\t\t\tfloat3 up = normalize(");
                 builder.WriteAttrib(CommonAttrib.Velocity, data);
                 builder.AppendLine(");");
-                builder.AppendLine("\t\t\t\t\tfloat3 side = normalize(cross(UnityWorldSpaceViewDir(worldPos),up));");
-                builder.AppendLine("\t\t\t\t\tworldPos += side * o.offsets.x * size.x;");
-                builder.AppendLine("\t\t\t\t\tworldPos += up * o.offsets.y * size.y;");
+                builder.AppendLine("\t\t\t\t\tfloat3 side = normalize(cross(front,up));"); 
+  
+                if (m_HasAngle)
+                    builder.AppendLine("\t\t\t\t\tfront = cross(up,side);");
             }
             else
             {
-                builder.AppendLine("\t\t\t\t\tworldPos += UNITY_MATRIX_MV[0].xyz * o.offsets.x * size.x;");
-                builder.AppendLine("\t\t\t\t\tworldPos += UNITY_MATRIX_MV[1].xyz * o.offsets.y * size.y;");
+                if (m_HasAngle)
+                    builder.AppendLine("\t\t\t\t\tfloat3 front = UNITY_MATRIX_MV[2].xyz;");
+
+                builder.AppendLine("\t\t\t\t\tfloat3 side = UNITY_MATRIX_MV[0].xyz;");
+                builder.AppendLine("\t\t\t\t\tfloat3 up = UNITY_MATRIX_MV[1].xyz;");
+            }
+
+            builder.AppendLine();
+
+            if (m_HasAngle)
+            {
+                WriteRotation(builder, data);
+                builder.AppendLine();
+                builder.AppendLine("\t\t\t\t\tworldPos += mul(rot,side) * (o.offsets.x * size.x);");
+                builder.AppendLine("\t\t\t\t\tworldPos += mul(rot,up) * (o.offsets.y * size.y);");
+            }
+            else
+            {
+                builder.AppendLine("\t\t\t\t\tworldPos += side * (o.offsets.x * size.x);");
+                builder.AppendLine("\t\t\t\t\tworldPos += up * (o.offsets.y * size.y);");
             }
 
             if (m_HasTexture)
             {
-                builder.AppendLine("\t\t\t\t\to.offsets = o.offsets * 0.5 + 0.5;");
+                builder.AppendLine("\t\t\t\t\to.offsets.xy = o.offsets.xy * 0.5 + 0.5;");
+                if (m_HasFlipBook)
+                {
+                    builder.Append("\t\t\t\t\to.offsets.z = ");
+                    builder.WriteAttrib(CommonAttrib.TexIndex, data);
+                    builder.AppendLine(";");
+                }
             }
 
             builder.AppendLine();
@@ -125,17 +183,33 @@ namespace UnityEditor.Experimental
                 builder.AppendLine("\t\t\t\t\tdiscard;");
                 builder.AppendLine();
             }
+            else if (m_HasFlipBook)
+            {
+                builder.Append("\t\t\t\tfloat2 dim = ");
+                builder.Append(data.outputParamToName[m_FlipBookDim]);
+                builder.AppendLine(";");
+                builder.AppendLine("\t\t\t\tfloat2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
+                builder.AppendLine("\t\t\t\tfloat index = round(i.offsets.z);");
+                builder.AppendLine("\t\t\t\tfloat2 tile = float2(fmod(index,dim.x),dim.y - 1.0 - floor(index * invDim.x));");
+                builder.AppendLine("\t\t\t\tfloat2 uv = (tile + i.offsets.xy) * invDim; // TODO InvDim should be computed on CPU");
+                builder.Append("\t\t\t\tcolor *= tex2D(");
+                builder.Append(data.outputParamToName[m_Texture]);
+                builder.AppendLine(",uv);");
+            }
             else
             {
-                builder.AppendLine("\t\t\t\tcolor *= tex2D(");
+                builder.Append("\t\t\t\tcolor *= tex2D(");
                 builder.Append(data.outputParamToName[m_Texture]);
                 builder.AppendLine(",i.offsets);");
             }
         }
 
         private VFXParamValue m_Texture;
+        private VFXParamValue m_FlipBookDim;
 
         private bool m_HasSize;
+        private bool m_HasAngle;
+        private bool m_HasFlipBook;
         private bool m_HasTexture;
         private bool m_OrientAlongVelocity;
     }
