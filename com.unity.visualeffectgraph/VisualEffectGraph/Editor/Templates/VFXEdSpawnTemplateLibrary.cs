@@ -137,6 +137,7 @@ namespace UnityEditor.Experimental
                 var datanodes = t.Element("Nodes").Elements("DataNode");
 
                 var flowconnections = t.Element("Connections").Elements("FlowConnection");
+                var dataconnections = t.Element("Connections").Elements("DataConnection");
 
                 foreach(XElement n in nodes)
                 {
@@ -198,6 +199,15 @@ namespace UnityEditor.Experimental
                 foreach(XElement fc in flowconnections)
                 {
                     template.AddFlowConnection(fc.Attribute("Previous").Value, fc.Attribute("Next").Value);
+                }
+
+                foreach(XElement dc in dataconnections)
+                {
+                    XElement dcin = dc.Element("Input");
+                    XElement dcout = dc.Element("Output");
+                    DataParamConnectorInfo inputInfo = new DataParamConnectorInfo(template.DataNodes[dcin.Attribute("DataNode").Value],int.Parse(dcin.Attribute("NodeBlockIndex").Value),dcin.Attribute("ParamName").Value);
+                    ContextParamConnectorInfo outputInfo = new ContextParamConnectorInfo(template.ContextNodes[dcout.Attribute("ContextNode").Value], int.Parse(dcout.Attribute("NodeBlockIndex").Value), dcout.Attribute("ParamName").Value);
+                    template.AddDataConnection(inputInfo,outputInfo);
                 }
 
                 AddTemplate(template);
@@ -338,7 +348,8 @@ namespace UnityEditor.Experimental
                 doc.WriteEndElement(); // End Nodes
 
                 doc.WriteStartElement("Connections");
-                foreach(FlowConnection c in template.Connections)
+
+                foreach(FlowConnection c in template.FlowConnections)
                 {
                     doc.WriteStartElement("FlowConnection");
                     foreach(KeyValuePair<string,ContextNodeInfo> kvp_node in template.ContextNodes )
@@ -347,6 +358,25 @@ namespace UnityEditor.Experimental
                         if(kvp_node.Value == c.Next) doc.WriteAttributeString("Next", kvp_node.Key);
                     }
                     
+                    doc.WriteEndElement();
+                }
+
+                foreach(DataConnection c in template.DataConnections)
+                {
+                    doc.WriteStartElement("DataConnection");
+
+                    doc.WriteStartElement("Input");
+                    doc.WriteAttributeString("DataNode", c.Previous.m_Node.name);
+                    doc.WriteAttributeString("NodeBlockIndex", c.Previous.m_NodeBlockIndex.ToString());
+                    doc.WriteAttributeString("ParamName", c.Previous.m_ParameterName);
+                    doc.WriteEndElement();
+
+                    doc.WriteStartElement("Output");
+                    doc.WriteAttributeString("ContextNode", c.Next.m_Node.name);
+                    doc.WriteAttributeString("NodeBlockIndex", c.Next.m_NodeBlockIndex.ToString());
+                    doc.WriteAttributeString("ParamName", c.Next.m_ParameterName);
+                    doc.WriteEndElement();
+
                     doc.WriteEndElement();
                 }
                 doc.WriteEndElement(); // End Connections
@@ -375,6 +405,7 @@ namespace UnityEditor.Experimental
                     return null;
                 }
             }
+
             foreach(CanvasElement e in canvas.selection)
             {
                 if(e is VFXEdContextNode)
@@ -438,6 +469,22 @@ namespace UnityEditor.Experimental
                     }
 
                 }
+                else if(e is DataEdge)
+                {
+                    DataEdge edge = (e as DataEdge);
+                    VFXEdNodeBlockParameterField input = (edge.Left as VFXEdDataAnchor).GetAnchorField();
+                    VFXEdNodeBlockParameterField output = (edge.Right as VFXEdDataAnchor).GetAnchorField();
+                    VFXEdNodeBlockDraggable inputBlock = input.parent as VFXEdNodeBlockDraggable;
+                    VFXEdNodeBlockDraggable outputBlock = output.parent as VFXEdNodeBlockDraggable;
+                    VFXEdNode inputNode = inputBlock.parent.parent as VFXEdNode;
+                    VFXEdNode outputNode = outputBlock.parent.parent as VFXEdNode;
+
+                    t.AddDataConnection(
+                        new DataParamConnectorInfo(t.DataNodes[inputNode.UniqueName], inputNode.NodeBlockContainer.nodeBlocks.IndexOf(inputBlock), input.Name),
+                        new ContextParamConnectorInfo(t.ContextNodes[outputNode.UniqueName], outputNode.NodeBlockContainer.nodeBlocks.IndexOf(outputBlock), output.Name)
+                        );
+                }
+                Debug.Log("Created");
             }
             return t;
         }

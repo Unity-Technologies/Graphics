@@ -37,7 +37,8 @@ namespace UnityEditor.Experimental
         internal Dictionary<string, ContextNodeInfo> ContextNodes { get { return m_ContextNodes; } }
         internal Dictionary<string, DataNodeInfo> DataNodes { get { return m_DataNodes; } }
 
-        internal List<FlowConnection> Connections { get { return m_FlowConnections; } }
+        internal List<FlowConnection> FlowConnections { get { return m_FlowConnections; } }
+        internal List<DataConnection> DataConnections { get { return m_DataConnections; } }
 
         [SerializeField]
         private Dictionary<string, ContextNodeInfo> m_ContextNodes;
@@ -46,13 +47,15 @@ namespace UnityEditor.Experimental
 
         [SerializeField]
         private List<FlowConnection> m_FlowConnections;
-
+        [SerializeField]
+        private List<DataConnection> m_DataConnections;
         public VFXEdSpawnTemplate()
         {
             m_ContextNodes = new Dictionary<string,ContextNodeInfo>();
             m_DataNodes = new Dictionary<string,DataNodeInfo>();
 
             m_FlowConnections = new List<FlowConnection>();
+            m_DataConnections = new List<DataConnection>();
         }
 
         internal static VFXEdSpawnTemplate Create(string category, string name)
@@ -101,6 +104,11 @@ namespace UnityEditor.Experimental
         public void AddFlowConnection(string nodeA, string nodeB)
         {
             m_FlowConnections.Add(FlowConnection.Create(m_ContextNodes[nodeA], m_ContextNodes[nodeB]));
+        }
+
+        internal void AddDataConnection(DataParamConnectorInfo input, ContextParamConnectorInfo output)
+        {
+            m_DataConnections.Add(DataConnection.Create(input, output));
         }
 
         internal void Spawn(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 canvasPosition )
@@ -183,9 +191,20 @@ namespace UnityEditor.Experimental
                
             }
 
-            foreach(FlowConnection c in m_FlowConnections)
+            foreach(FlowConnection fc in m_FlowConnections)
             {
-                datasource.ConnectFlow(spawnedContextNodes[c.Previous].outputs[0], spawnedContextNodes[c.Next].inputs[0]);
+                datasource.ConnectFlow(spawnedContextNodes[fc.Previous].outputs[0], spawnedContextNodes[fc.Next].inputs[0]);
+            }
+
+            foreach(DataConnection c in m_DataConnections)
+            {
+                VFXEdDataAnchor input;
+                VFXEdDataAnchor output;
+
+                input = spawnedDataNodes[c.Previous.m_Node].NodeBlockContainer.nodeBlocks[c.Previous.m_NodeBlockIndex].GetField(c.Previous.m_ParameterName).Output;
+                output = spawnedContextNodes[c.Next.m_Node].NodeBlockContainer.nodeBlocks[c.Next.m_NodeBlockIndex].GetField(c.Next.m_ParameterName).Input;
+
+                datasource.ConnectData(input,output);
             }
 
             canvas.ReloadData();

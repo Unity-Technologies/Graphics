@@ -121,7 +121,7 @@
       <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
     </Connections>
   </Template>
-  <Template Category="Test" Name="Test01">
+  <Template Category="Test" Name="02">
     <System SpawnRate="200" AllocationCount="500" />
     <Nodes>
       <Node Name="VFXEdContextNode_0" Context="Initialize">
@@ -141,14 +141,6 @@
           <VFXParamValue Name="value" Type="kTypeFloat" Value="1" />
         </NodeBlock>
       </Node>
-      <Node Name="VFXEdContextNode_1" Context="Particle Update">
-        <Context />
-      </Node>
-      <Node Name="VFXEdContextNode_2" Context="Billboard Output">
-        <Context>
-          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/OrientParticle.TGA" />
-        </Context>
-      </Node>
       <DataNode Name="VFXEdDataNode_3" Exposed="False">
         <DataNodeBlock Name="Sphere" BlockName="Sphere" ExposedName="Sphere">
           <VFXParamValue Name="Center" Type="kTypeFloat3" Value="0,0,0" />
@@ -157,8 +149,142 @@
       </DataNode>
     </Nodes>
     <Connections>
-      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
-      <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
+      <DataConnection>
+        <Input DataNode="" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="" NodeBlockIndex="0" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="" NodeBlockIndex="0" ParamName="Radius" />
+        <Output ContextNode="" NodeBlockIndex="0" ParamName="radius" />
+      </DataConnection>
+    </Connections>
+  </Template>
+  <Template Category="Test" Name="Test01">
+    <System SpawnRate="200" AllocationCount="500" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_6" Context="Initialize">
+        <Context />
+        <NodeBlock Name="Set Position (Sphere)" BlockName="Set Position (Sphere)">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.25" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Random)" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0,0,0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="1" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_7" Context="Particle Update">
+        <Context />
+      </Node>
+      <Node Name="VFXEdContextNode_8" Context="Billboard Output">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/OrientParticle.TGA" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_9" Exposed="False">
+        <DataNodeBlock Name="Sphere" BlockName="Sphere" ExposedName="Sphere">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="1,2,3" />
+          <VFXParamValue Name="Radius" Type="kTypeFloat" Value="1" />
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_6" Next="VFXEdContextNode_7" />
+      <FlowConnection Previous="VFXEdContextNode_7" Next="VFXEdContextNode_8" />
+      <DataConnection>
+        <Input DataNode="" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="" NodeBlockIndex="0" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="" NodeBlockIndex="0" ParamName="Radius" />
+        <Output ContextNode="" NodeBlockIndex="0" ParamName="radius" />
+      </DataConnection>
+    </Connections>
+  </Template>
+  <Template Category="Test" Name="Collision">
+    <System SpawnRate="200" AllocationCount="1500" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_10" Context="Initialize">
+        <Context />
+        <NodeBlock Name="Set Position (Sphere)" BlockName="Set Position (Sphere)">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.25" />
+        </NodeBlock>
+        <NodeBlock Name="Set Color (Constant)" BlockName="Set Color (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat3" Value="0,0,0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Random)" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0,0,0" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="5" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_11" Context="Particle Update">
+        <Context />
+        <NodeBlock Name="Collision with Plane" BlockName="Collision with Plane">
+          <VFXParamValue Name="normal" Type="kTypeFloat3" Value="0,1,0" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="elasticity" Type="kTypeFloat" Value="0.8" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Force" BlockName="Apply Force">
+          <VFXParamValue Name="force" Type="kTypeFloat3" Value="0,-2,0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_12" Context="Billboard Output">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/OrientParticle.TGA" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_13" Exposed="False">
+        <DataNodeBlock Name="Sphere" BlockName="Sphere" ExposedName="Sphere">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="1,2,3" />
+          <VFXParamValue Name="Radius" Type="kTypeFloat" Value="1" />
+        </DataNodeBlock>
+        <DataNodeBlock Name="Vector3" BlockName="Vector3" ExposedName="Vector3">
+          <VFXParamValue Name="Value" Type="kTypeFloat3" Value="5,0.25,0.1" />
+        </DataNodeBlock>
+      </DataNode>
+      <DataNode Name="VFXEdDataNode_14" Exposed="True">
+        <DataNodeBlock Name="Plane" BlockName="Plane" ExposedName="Plane">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="0,-4.13016,3.099085" />
+          <VFXParamValue Name="Normal" Type="kTypeFloat3" Value="-0.3425558,0.8729506,-0.3472936" />
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_10" Next="VFXEdContextNode_11" />
+      <FlowConnection Previous="VFXEdContextNode_11" Next="VFXEdContextNode_12" />
+      <DataConnection>
+        <Input DataNode="" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="" NodeBlockIndex="0" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="" NodeBlockIndex="0" ParamName="Radius" />
+        <Output ContextNode="" NodeBlockIndex="0" ParamName="radius" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="" NodeBlockIndex="0" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="" NodeBlockIndex="0" ParamName="Normal" />
+        <Output ContextNode="" NodeBlockIndex="0" ParamName="normal" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="" NodeBlockIndex="1" ParamName="Value" />
+        <Output ContextNode="" NodeBlockIndex="2" ParamName="value" />
+      </DataConnection>
     </Connections>
   </Template>
 </Library>
