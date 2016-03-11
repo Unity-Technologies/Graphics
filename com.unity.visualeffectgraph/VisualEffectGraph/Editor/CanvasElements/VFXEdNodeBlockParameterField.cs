@@ -55,6 +55,8 @@ namespace UnityEditor.Experimental
                         break;
                 }
             }
+
+            AddManipulator(new ImguiContainer());
         }
 
         public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, string tag, VFXParamValue value, bool bConnectable, Direction paramDirection, int index) 
@@ -100,8 +102,8 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            base.Render(parentRect, canvas);
-
+            //base.Render(parentRect, canvas);
+            EventType t = Event.current.type;
             if(!collapsed)
             {
                 Rect r = GetDrawableRect();

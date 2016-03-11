@@ -1178,7 +1178,7 @@ namespace UnityEditor.Experimental
             builder.AppendLine("\t\t\tfloat4 frag (ps_input i) : COLOR");
             builder.AppendLine("\t\t\t{");
 
-            if (hasColor)
+            if (hasColor || hasAlpha)
                 builder.AppendLine("\t\t\t\tfloat4 color = i.col;");
             else
                 builder.AppendLine("\t\t\t\tfloat4 color = float4(1.0,1.0,1.0,0.5);");
