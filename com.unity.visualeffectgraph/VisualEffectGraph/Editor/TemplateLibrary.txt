@@ -121,12 +121,12 @@
       <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
     </Connections>
   </Template>
-  <Template Category="TestData" Name="Data01">
-    <System SpawnRate="250" AllocationCount="1500" />
+  <Template Category="Test" Name="Test01">
+    <System SpawnRate="200" AllocationCount="500" />
     <Nodes>
-      <Node Name="VFXEdContextNode_3" Context="Initialize">
+      <Node Name="VFXEdContextNode_0" Context="Initialize">
         <Context />
-        <NodeBlock Name="Set Position (Sphere Surface)" BlockName="Set Position (Sphere Surface)">
+        <NodeBlock Name="Set Position (Sphere)" BlockName="Set Position (Sphere)">
           <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
           <VFXParamValue Name="radius" Type="kTypeFloat" Value="0" />
         </NodeBlock>
@@ -141,24 +141,24 @@
           <VFXParamValue Name="value" Type="kTypeFloat" Value="1" />
         </NodeBlock>
       </Node>
-      <Node Name="VFXEdContextNode_4" Context="Particle Update">
+      <Node Name="VFXEdContextNode_1" Context="Particle Update">
         <Context />
       </Node>
-      <Node Name="VFXEdContextNode_5" Context="Billboard Output">
+      <Node Name="VFXEdContextNode_2" Context="Billboard Output">
         <Context>
           <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/OrientParticle.TGA" />
         </Context>
       </Node>
-      <DataNode Name="VFXEdDataNode_6">
+      <DataNode Name="VFXEdDataNode_3" Exposed="False">
         <DataNodeBlock Name="Sphere" BlockName="Sphere" ExposedName="Sphere">
-          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="0,1,0" />
-          <VFXParamValue Name="Radius" Type="kTypeFloat" Value="1.265" />
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="Radius" Type="kTypeFloat" Value="1" />
         </DataNodeBlock>
       </DataNode>
     </Nodes>
     <Connections>
-      <FlowConnection Previous="VFXEdContextNode_3" Next="VFXEdContextNode_4" />
-      <FlowConnection Previous="VFXEdContextNode_4" Next="VFXEdContextNode_5" />
+      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
+      <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
     </Connections>
   </Template>
 </Library>

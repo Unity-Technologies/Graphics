@@ -189,7 +189,7 @@ namespace UnityEditor.Experimental
                             string pt = parm.Attribute("Type").Value;
 
                             VFXParamValue value = CreateParamValue(pt, parm.Attribute("Value").Value);
-                            template.SetContextNodeBlockParameter(nn, nbn, pn, value);
+                            template.SetDataNodeBlockParameter(nn, nbn, pn, value);
                         }
                     }
 
@@ -315,6 +315,7 @@ namespace UnityEditor.Experimental
                 {
                     doc.WriteStartElement("DataNode");
                     doc.WriteAttributeString("Name", kvp_node.Key);
+                    doc.WriteAttributeString("Exposed", kvp_node.Value.Exposed.ToString());
 
                     foreach(KeyValuePair<string, DataNodeBlockInfo> kvp_nodeblock in kvp_node.Value.nodeBlocks)
                     {
