@@ -131,6 +131,16 @@ color = float3(phase,1 - phase,0.0);
 
 velocity += force * deltaTime;
 
+#block Apply Relative Force
+#icon Force
+#category Forces/
+#arg float3 velocity [inout|param]
+#arg float3 force [public] 
+#arg float multiplier [public]
+
+float3 relativeForce = force - velocity;
+velocity += force * (multiplier * deltaTime);
+
 #block Apply Drag
 #icon Drag
 #category Forces/
@@ -418,6 +428,61 @@ size *= float2(lerp(minScale.x,maxScale.x,RAND),lerp(minScale.y,maxScale.y,RAND)
 #arg float multiplier [public]
 
 size.y = length(velocity) * multiplier;
+
+#---------------------------------------------------------------------
+# ANGLE BLOCKS
+#---------------------------------------------------------------------
+
+#block Set Angle (Constant)
+#icon Angle
+#category Angle/
+#arg float angle [inout|param]
+#arg float value [public] 
+
+angle = value;
+
+#block Set Angle (Random)
+#icon Angle
+#category Angle/
+#arg float angle [inout|param]
+#arg float value1 [public] 
+#arg float value2 [public] 
+
+angle = lerp(value1,value2,RAND);
+
+#block Set Angular Velocity (Constant)
+#icon Angle
+#category Angle/
+#arg float angularVelocity [inout|param]
+#arg float value [public] 
+
+angularVelocity = value;
+
+#block Set Angular Velocity (Random)
+#icon Angle
+#category Angle/
+#arg float angularVelocity [inout|param]
+#arg float value1 [public] 
+#arg float value2 [public] 
+
+angularVelocity = lerp(value1,value2,RAND);
+
+#block Apply Angular Force
+#icon Angle
+#category Angle/
+#arg float angularVelocity [inout|param]
+#arg float force [public] 
+
+angularVelocity += force * deltaTime;
+
+#block Apply Angular Drag
+#icon Angle
+#category Angle/
+#arg float angularVelocity [inout|param]
+#arg float drag [public] 
+
+angularVelocity *= max(0.0,(1.0 - multiplier * deltaTime)); // drag - linear only
+
 
 #---------------------------------------------------------------------
 # VELOCITY BLOCKS

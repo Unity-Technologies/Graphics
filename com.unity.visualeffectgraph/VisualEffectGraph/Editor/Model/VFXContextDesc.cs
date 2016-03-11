@@ -158,12 +158,28 @@ namespace UnityEditor.Experimental
                     m_NeedsAging = true;
                     AddOrUpdateFlag(attribs, CommonAttrib.Age, Type.kTypeUpdate, true); // For aging
                 }
+
+                if (attribs.ContainsKey(CommonAttrib.AngularVelocity))
+                {
+                    m_NeedsAngularIntegration = true;
+                    UpdateFlag(attribs, CommonAttrib.AngularVelocity, Type.kTypeUpdate, false);
+                    AddOrUpdateFlag(attribs, CommonAttrib.Angle, Type.kTypeUpdate, true);
+                }
  
                 return true;
             }
 
             public override void WritePostBlock(StringBuilder builder, ShaderMetaData data)
             {
+                if (m_NeedsAngularIntegration)
+                {
+                    builder.WriteAttrib(CommonAttrib.Angle, data);
+                    builder.Append(" += ");
+                    builder.WriteAttrib(CommonAttrib.AngularVelocity, data);
+                    builder.AppendLine(" * deltaTime;");
+                    builder.AppendLine();
+                }
+
                 if (m_NeedsIntegration)
                 {
                     builder.WriteAttrib(CommonAttrib.Position,data);
@@ -193,6 +209,7 @@ namespace UnityEditor.Experimental
             private bool m_NeedsAging;
             private bool m_NeedsReaping;
             private bool m_NeedsIntegration;
+            private bool m_NeedsAngularIntegration;
         }
 
         public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) { return new ShaderGenerator(); }

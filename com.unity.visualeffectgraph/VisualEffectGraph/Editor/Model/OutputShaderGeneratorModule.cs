@@ -45,10 +45,11 @@ namespace UnityEditor.Experimental
             UpdateFlag(attribs, CommonAttrib.Color, VFXContextDesc.Type.kTypeOutput);
             UpdateFlag(attribs, CommonAttrib.Alpha, VFXContextDesc.Type.kTypeOutput);
             m_HasSize = UpdateFlag(attribs, CommonAttrib.Size, VFXContextDesc.Type.kTypeOutput);
+            m_HasAngle = UpdateFlag(attribs, CommonAttrib.Angle, VFXContextDesc.Type.kTypeOutput);
 
             if (m_OrientAlongVelocity)
                 m_OrientAlongVelocity = UpdateFlag(attribs, CommonAttrib.Velocity, VFXContextDesc.Type.kTypeOutput);
-
+           
             return true;
         }
 
@@ -69,6 +70,26 @@ namespace UnityEditor.Experimental
         public override void WriteAdditionalVertexOutput(StringBuilder builder, ShaderMetaData data)
         {
             builder.AppendLine("\t\t\t\tfloat2 offsets : TEXCOORD0;");
+        }
+
+        private void WriteRotation(StringBuilder builder, ShaderMetaData data)
+        {
+            builder.AppendLine("\t\t\t\t\tfloat2 sincosA;");
+            builder.Append("\t\t\t\t\tsincos(radians(");
+            builder.WriteAttrib(CommonAttrib.Angle, data);
+            builder.Append("), sincosA.x, sincosA.y);");
+            builder.AppendLine();
+            builder.AppendLine("\t\t\t\t\tconst float c = sincosA.y;");
+            builder.AppendLine("\t\t\t\t\tconst float s = sincosA.x;");
+            builder.AppendLine("\t\t\t\t\tconst float t = 1.0 - c;");
+            builder.AppendLine("\t\t\t\t\tconst float x = front.x;");
+            builder.AppendLine("\t\t\t\t\tconst float y = front.y;");
+            builder.AppendLine("\t\t\t\t\tconst float z = front.z;");
+            builder.AppendLine();
+            builder.AppendLine("\t\t\t\t\tfloat3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,");
+            builder.AppendLine("\t\t\t\t\t\t\t\t\t\tt * x * y + s * z, t * y * y + c, t * y * z - s * x,");
+            builder.AppendLine("\t\t\t\t\t\t\t\t\t\tt * x * z - s * y, t * y * z + s * x, t * z * z + c);");
+            builder.AppendLine();
         }
 
         public override void WritePreBlock(StringBuilder builder, ShaderMetaData data)
@@ -93,17 +114,37 @@ namespace UnityEditor.Experimental
 
             if (m_OrientAlongVelocity)
             {
+                builder.AppendLine("\t\t\t\t\tfloat3 front = UnityWorldSpaceViewDir(worldPos);");
                 builder.Append("\t\t\t\t\tfloat3 up = normalize(");
                 builder.WriteAttrib(CommonAttrib.Velocity, data);
                 builder.AppendLine(");");
-                builder.AppendLine("\t\t\t\t\tfloat3 side = normalize(cross(UnityWorldSpaceViewDir(worldPos),up));");
-                builder.AppendLine("\t\t\t\t\tworldPos += side * o.offsets.x * size.x;");
-                builder.AppendLine("\t\t\t\t\tworldPos += up * o.offsets.y * size.y;");
+                builder.AppendLine("\t\t\t\t\tfloat3 side = normalize(cross(front,up));"); 
+  
+                if (m_HasAngle)
+                    builder.AppendLine("\t\t\t\t\tfront = cross(up,side);");
             }
             else
             {
-                builder.AppendLine("\t\t\t\t\tworldPos += UNITY_MATRIX_MV[0].xyz * o.offsets.x * size.x;");
-                builder.AppendLine("\t\t\t\t\tworldPos += UNITY_MATRIX_MV[1].xyz * o.offsets.y * size.y;");
+                if (m_HasAngle)
+                    builder.AppendLine("\t\t\t\t\tfloat3 front = UNITY_MATRIX_MV[2].xyz;");
+
+                builder.AppendLine("\t\t\t\t\tfloat3 side = UNITY_MATRIX_MV[0].xyz;");
+                builder.AppendLine("\t\t\t\t\tfloat3 up = UNITY_MATRIX_MV[1].xyz;");
+            }
+
+            builder.AppendLine();
+
+            if (m_HasAngle)
+            {
+                WriteRotation(builder, data);
+                builder.AppendLine();
+                builder.AppendLine("\t\t\t\t\tworldPos += mul(rot,side) * (o.offsets.x * size.x);");
+                builder.AppendLine("\t\t\t\t\tworldPos += mul(rot,up) * (o.offsets.y * size.y);");
+            }
+            else
+            {
+                builder.AppendLine("\t\t\t\t\tworldPos += side * (o.offsets.x * size.x);");
+                builder.AppendLine("\t\t\t\t\tworldPos += up * (o.offsets.y * size.y);");
             }
 
             if (m_HasTexture)
@@ -127,7 +168,7 @@ namespace UnityEditor.Experimental
             }
             else
             {
-                builder.AppendLine("\t\t\t\tcolor *= tex2D(");
+                builder.Append("\t\t\t\tcolor *= tex2D(");
                 builder.Append(data.outputParamToName[m_Texture]);
                 builder.AppendLine(",i.offsets);");
             }
@@ -136,6 +177,7 @@ namespace UnityEditor.Experimental
         private VFXParamValue m_Texture;
 
         private bool m_HasSize;
+        private bool m_HasAngle;
         private bool m_HasTexture;
         private bool m_OrientAlongVelocity;
     }
