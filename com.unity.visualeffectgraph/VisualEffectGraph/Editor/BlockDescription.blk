@@ -531,6 +531,27 @@ velocity = float3(sincosTheta,u1).xzy * lerp(speed.x,speed.y,RAND);
 velocity += value * deltaTime;
 
 #---------------------------------------------------------------------
+# UV BLOCKS
+#---------------------------------------------------------------------
+
+#block Set flipbook Index (Random)
+#icon Flipbook
+#category UV/
+#arg float texIndex [inout|param]
+#arg float value1 [public]
+#arg float value2 [public]
+
+texIndex = lerp(value1,value2,RAND);
+
+#block Animate flipbook (Random)
+#icon Flipbook
+#category UV/
+#arg float texIndex [inout|param]
+#arg float speed [public]
+
+texIndex += speed * deltaTime;
+
+#---------------------------------------------------------------------
 # COMMMON BLOCKS (UNCATEGORIZED)
 #---------------------------------------------------------------------
 

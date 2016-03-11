@@ -90,6 +90,7 @@ namespace UnityEditor.Experimental
     public class VFXBillboardOutputDesc : VFXContextDesc
     {
         private const int TextureSlot = 0;
+        private const int FlipBookDimSlot = 1;
 
         public VFXBillboardOutputDesc()
             : base(Type.kTypeOutput,"Billboard Output",true)
@@ -98,19 +99,25 @@ namespace UnityEditor.Experimental
             textureParam.m_Name = "texture";
             textureParam.m_Type = VFXParam.Type.kTypeTexture2D;
 
-            m_Params = new VFXParam[1];
+            VFXParam dimParam = new VFXParam();
+            dimParam.m_Name = "flipBook";
+            dimParam.m_Type = VFXParam.Type.kTypeFloat2;
+
+            m_Params = new VFXParam[2];
             m_Params[TextureSlot] = textureParam;
+            m_Params[FlipBookDimSlot] = dimParam;
         }
 
         public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
         {
-            return new VFXBillboardOutputShaderGeneratorModule(model.GetParamValue(TextureSlot), false); 
+            return new VFXBillboardOutputShaderGeneratorModule(model.GetParamValue(TextureSlot), model.GetParamValue(FlipBookDimSlot), false); 
         }
     }
 
     public class VFXQuadAlongVelocityOutputDesc : VFXContextDesc
     {
         private const int TextureSlot = 0;
+        private const int FlipBookDimSlot = 1;
 
         public VFXQuadAlongVelocityOutputDesc()
             : base(Type.kTypeOutput, "Quad Along Velocity Output", true)
@@ -119,13 +126,18 @@ namespace UnityEditor.Experimental
             textureParam.m_Name = "texture";
             textureParam.m_Type = VFXParam.Type.kTypeTexture2D;
 
-            m_Params = new VFXParam[1];
+            VFXParam dimParam = new VFXParam();
+            dimParam.m_Name = "flipBook";
+            dimParam.m_Type = VFXParam.Type.kTypeFloat2;
+
+            m_Params = new VFXParam[2];
             m_Params[TextureSlot] = textureParam;
+            m_Params[FlipBookDimSlot] = dimParam;
         }
 
         public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
         {
-            return new VFXBillboardOutputShaderGeneratorModule(model.GetParamValue(TextureSlot), true); 
+            return new VFXBillboardOutputShaderGeneratorModule(model.GetParamValue(TextureSlot), model.GetParamValue(FlipBookDimSlot), true); 
         }
     }
 
@@ -173,6 +185,7 @@ namespace UnityEditor.Experimental
             {
                 if (m_NeedsAngularIntegration)
                 {
+                    builder.Append("\t\t");
                     builder.WriteAttrib(CommonAttrib.Angle, data);
                     builder.Append(" += ");
                     builder.WriteAttrib(CommonAttrib.AngularVelocity, data);
@@ -182,6 +195,7 @@ namespace UnityEditor.Experimental
 
                 if (m_NeedsIntegration)
                 {
+                    builder.Append("\t\t");
                     builder.WriteAttrib(CommonAttrib.Position,data);
                     builder.Append(" += ");
                     builder.WriteAttrib(CommonAttrib.Velocity,data);
@@ -191,17 +205,19 @@ namespace UnityEditor.Experimental
 
                 if (m_NeedsAging)
                 {
+                    builder.Append("\t\t");
                     builder.WriteAttrib(CommonAttrib.Age, data);
                     builder.AppendLine(" += deltaTime;");
                     
                     if (m_NeedsReaping)
                     {
-                        builder.Append("if (");
+                        builder.Append("\t\tif (");
                         builder.WriteAttrib(CommonAttrib.Age, data);
                         builder.Append(" >= ");
                         builder.WriteAttrib(CommonAttrib.Lifetime, data);
                         builder.AppendLine(")");
-                        builder.AppendLine("kill = true;");
+                        builder.AppendLine("\t\t\tkill = true;");
+                        builder.AppendLine();
                     }
                 }
             }
