@@ -28,8 +28,8 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            Vector3 from = m_Left.ConnectPosition();
-            Vector3 to = m_Right.ConnectPosition();
+            Vector3 from = canvas.ProjectToScreen(m_Left.ConnectPosition());
+            Vector3 to = canvas.ProjectToScreen(m_Right.ConnectPosition());
             Orientation orientation = m_Left.GetOrientation();
 
             Vector3[] points, tangents;

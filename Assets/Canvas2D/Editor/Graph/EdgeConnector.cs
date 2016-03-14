@@ -214,7 +214,9 @@ namespace UnityEditor.Experimental.Graph
 
             if (m_DrawMethod != null)
             {
-                m_DrawMethod(canvas, m_SnappedSource, m_SnappedTarget, m_Start, m_End);
+                Vector3 projStart = canvas.ProjectToScreen(m_Start);
+                Vector3 projEnd = canvas.ProjectToScreen(m_End);
+                m_DrawMethod(canvas, m_SnappedSource, m_SnappedTarget, projStart, projEnd);
                 return true;
             }
 
@@ -279,7 +281,7 @@ namespace UnityEditor.Experimental.Graph
             else
             {
                 float inverse = (invert) ? 1.0f : -1.0f;
-                tangents[0] = start + new Vector2(y, inverse * ((end.x - start.x) * weight + minTangent)) * cleverness;
+                tangents[0] = start + new Vector2(y, inverse * ((end.y - start.y) * weight + minTangent)) * cleverness;
                 tangents[1] = end + new Vector2(-y, inverse * ((end.y - start.y) * -weight2 - minTangent)) * cleverness;
             }
         }
