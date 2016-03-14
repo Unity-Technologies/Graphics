@@ -1,20 +1,17 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Experimental;
-using Object = UnityEngine.Object;
 
 #pragma warning disable 0414
 #pragma warning disable 0219
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     internal class IMGUICanvas2D : EditorWindow
     {
         [MenuItem("Window/Canvas2D/IMGUI Coexistence Example")]
         public static void ShowWindow()
         {
-            EditorWindow.GetWindow(typeof(IMGUICanvas2D));
+            GetWindow(typeof(IMGUICanvas2D));
         }
 
         private Canvas2D m_Canvas = null;
@@ -50,7 +47,22 @@ namespace UnityEditor
                 m_Canvas.AddManipulator(new RectangleSelect());
                 m_Canvas.AddManipulator(new ScreenSpaceGrid());
 
-                AddElement(new IMGUIExampleWidget(new Vector2(0.0f, 250.0f), 300.0f));
+                m_Canvas.AddManipulator(new ContextualMenu((e, parent, customData) =>
+                {
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Show QuadTree"), m_Canvas.showQuadTree, (canvas) =>
+                    {
+                        m_Canvas.showQuadTree = !m_Canvas.showQuadTree;
+                    }
+                    , this);
+
+                    menu.ShowAsContext();
+                    return false;
+                }));
+
+                AddElement(new IMGUIExampleWidget(new Vector2(0.0f, 0.0f), 300.0f));
+                AddElement(new FloatingBox(new Vector2(0, 200), 200.0f));
+
             }
 
             Rebuild();
@@ -74,7 +86,7 @@ namespace UnityEditor
                 InitializeCanvas();
             }
 
-            m_Canvas.OnGUI(this, new Rect(0, 0, position.width, position.height));
+            m_Canvas.OnGUI(this, new Rect(50, 50, position.width - 100, position.height-100));
         }
     }
 }

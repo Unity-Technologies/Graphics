@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor.Experimental;
-using UnityEditor.Experimental.Graph;
-using Object = UnityEngine.Object;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Graph.Examples
 {
     internal class AnimationDataSource : ICanvasDataSource
     {
