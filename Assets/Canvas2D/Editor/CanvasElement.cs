@@ -382,7 +382,11 @@ namespace UnityEditor.Experimental
         // THOMASI : Getting drawable area for nested elements
         public Rect GetDrawableRect()
         {
-            if (parent is Canvas2D)
+            if (parent == null)
+            {
+                return new Rect(translation.x, translation.y, scale.x, scale.y);
+            }
+            else if (parent is Canvas2D)
             {
                 return new Rect(0, 0, scale.x, scale.y);
             }
