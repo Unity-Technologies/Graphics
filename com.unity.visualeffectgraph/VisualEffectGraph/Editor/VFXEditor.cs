@@ -337,7 +337,7 @@ namespace UnityEditor.Experimental
                             VFXEdSpawnTemplate t = VFXEdSpawnTemplateLibrary.CreateTemplateFromSelection(m_Canvas, m_NewTemplateCategory, m_NewTemplateName);
                             if (t != null)
                             {
-                                VFXEditor.SpawnTemplates.AddTemplate(t);
+                                SpawnTemplates.AddTemplate(t);
                                 SpawnTemplates.WriteLibrary();
                                 m_NewTemplateCategory = "";
                                 m_NewTemplateName = "";
