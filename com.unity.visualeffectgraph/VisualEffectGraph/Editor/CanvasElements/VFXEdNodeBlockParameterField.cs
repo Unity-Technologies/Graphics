@@ -102,7 +102,8 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            //base.Render(parentRect, canvas);
+            base.Render(parentRect, canvas);
+
             EventType t = Event.current.type;
             if(!collapsed)
             {
