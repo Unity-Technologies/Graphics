@@ -211,7 +211,7 @@ namespace UnityEditor.Experimental
 
             if (Children().Length == 0 && CaptureDrop)
             {
-                Handles.DrawSolidRectangleWithOutline(r, new Color(1.0f, 1.0f, 1.0f, 0.05f), new Color(1.0f, 1.0f, 1.0f, 0.1f));
+               EditorGUI.DrawRect(r, new Color(1.0f, 1.0f, 1.0f, 0.1f));
             }
 
             if (Children().Length == 0)
