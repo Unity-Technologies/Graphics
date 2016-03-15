@@ -177,13 +177,16 @@ namespace UnityEditor.Experimental
 
                 foreach(KeyValuePair<string,DataNodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
                 {
-                    VFXEdDataNodeBlock block = new VFXEdDataNodeBlock(VFXEditor.DataBlockLibrary.GetBlock(block_kvp.Value.BlockName), datasource,block_kvp.Value.ExposedName);
-                    
+                    VFXDataBlock dataBlock = VFXEditor.DataBlockLibrary.GetBlock(block_kvp.Value.BlockName);
+                    VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(Vector2.zero, dataBlock, node, datasource, block_kvp.Value.ExposedName);
+                    spawner.Spawn();
+                    VFXEdDataNodeBlock block = node.NodeBlockContainer.nodeBlocks[node.NodeBlockContainer.nodeBlocks.Count-1] as VFXEdDataNodeBlock;
+
                     foreach (KeyValuePair <string,VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
                     {
                         block.SetParametervalue(param_kvp.Key, param_kvp.Value);
                     }
-                    node.NodeBlockContainer.AddNodeBlock(block);
+
                 }
 
                 node.Layout();
