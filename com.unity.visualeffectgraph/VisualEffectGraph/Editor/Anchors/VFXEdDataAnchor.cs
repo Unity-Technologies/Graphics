@@ -107,12 +107,33 @@ namespace UnityEditor.Experimental
         public void RenderOverlay(Canvas2D canvas)
         {
             Rect thisRect = canvasBoundingRect;
-            thisRect.x += 4;
-            thisRect.y += 4;
-            thisRect.width -= 8;
-            thisRect.height -= 8;
             thisRect = canvas.CanvasToScreen(thisRect);
-            EditorGUI.DrawRect(thisRect, new Color(0.0f, 0.0f, 0.8f));
+
+            // TODO : Find out why theres a -2,5 offset in C2D overlays then remove this crap
+            thisRect.x -= 2;
+            thisRect.y += 5;
+            GUI.color = VFXEditor.styles.GetTypeColor(ParamType);
+            if (!collapsed)
+            {
+                switch (m_Direction)
+                {
+                    case Direction.Input:
+                        GUI.DrawTexture(thisRect, VFXEditor.styles.ConnectorLeft.normal.background);
+                        GUI.DrawTexture(canvas.CanvasToScreen(VFXEditor.styles.ConnectorOverlay.overflow.Add(canvasBoundingRect)), VFXEditor.styles.ConnectorOverlay.normal.background);
+
+                        break;
+
+                    case Direction.Output:
+                        GUI.DrawTexture(thisRect, VFXEditor.styles.ConnectorRight.normal.background);
+                        GUI.DrawTexture(canvas.CanvasToScreen(VFXEditor.styles.ConnectorOverlay.overflow.Add(canvasBoundingRect)), VFXEditor.styles.ConnectorOverlay.normal.background);
+
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+            GUI.color = Color.white;
         }
 
         public object Source()
