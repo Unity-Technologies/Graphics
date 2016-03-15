@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental
                 builder.AppendLine(";");
             }
 
-            if (attributeBuffer.GetSizeInBytes() == 3)
+            if (attributeBuffer.GetSizeInBytes() == 12)
                 builder.AppendLine("\tfloat _PADDING_;");
 
             builder.AppendLine("};");
