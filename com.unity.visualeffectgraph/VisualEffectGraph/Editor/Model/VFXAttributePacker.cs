@@ -128,6 +128,8 @@ namespace UnityEditor.Experimental
           
             while (buffers.Count - buffersToErase.Count > MaxBuffers)
             {
+                bool hasMerged = false;
+
                 // First fill out holes
                 for (int i = 0; i < buffers.Count; ++i)
                     if (buffers[i].GetSizeInBytes() == 12)
@@ -139,12 +141,16 @@ namespace UnityEditor.Experimental
                                 if (!buffersToErase.Contains(buffers[j])) // Not alreay used
                                 {
                                     VFXEditor.Log("MERGE BUFFER " + j + " in " + i);
+                                    hasMerged = true;
                                     buffers[i].Add(buffers[j]);
                                     buffersToErase.Add(buffers[j]);
                                     break;
                                 }
                             }
                     }
+
+                if (!hasMerged)
+                    break;
             }
 
             MergeBuffers(buffers, buffersToErase, 4, MaxBuffers);
@@ -158,10 +164,12 @@ namespace UnityEditor.Experimental
         }
 
         private static void MergeBuffers(List<AttributeBuffer> buffers,List<AttributeBuffer> buffersToErase,int size,int MaxNb)
-        {
-            bool needsBreak = false;
+        {   
             while (buffers.Count - buffersToErase.Count > MaxNb)
             {
+                bool hasMerged = false;
+                bool needsBreak = false;
+
                 for (int i = 0; i < buffers.Count; ++i)
                 {
                     if (buffers[i].GetSizeInBytes() == size && !buffersToErase.Contains(buffers[i]))
@@ -169,12 +177,13 @@ namespace UnityEditor.Experimental
                         for (int j = 0; j < buffers.Count; ++j)
                             if (i != j && buffers[j].GetSizeInBytes() == size)
                             {
-                                if (!buffersToErase.Contains(buffers[j])) // Not alreay used
+                                if (!buffersToErase.Contains(buffers[j])) // Not already used
                                 {
                                     VFXEditor.Log("MERGE BUFFER " + j + " in " + i);
                                     buffers[i].Add(buffers[j]);
                                     buffersToErase.Add(buffers[j]);
                                     needsBreak = true;
+                                    hasMerged = true;
                                     break;
                                 }
                             }
@@ -185,6 +194,9 @@ namespace UnityEditor.Experimental
                         break;
                     }
                 }
+
+                if (!hasMerged)
+                    break;
             }
         }
     }
