@@ -40,7 +40,7 @@ color = value;
 #arg Texture2D tex [public] 
 
 float2 coords = (position.xz / max(0.0001f,textureworldsize));
-color = tex2Dlod(tex,float4(coords.x,coords.y,0,0)).rgb;;
+color = tex2Dlod(tex,float4(coords.x,coords.y,0,0)).rgb;
 
 #block Set Color (Random)
 #icon Color
@@ -151,6 +151,18 @@ velocity += force * (multiplier * deltaTime);
 #arg float multiplier [public]
 
 velocity *= max(0.0,(1.0 - multiplier * deltaTime)); // drag - linear only
+
+#block Drag over Life (Curve)
+#icon Drag
+#category Forces/
+#arg float3 velocity [inout|param]
+#arg Texture2D curve [public]
+#arg float age [param]
+#arg float lifetime [param]
+
+float ratio = saturate(age/lifetime);
+float3 multiplier = tex2Dlod(curve,float4(ratio,0,0,0)).rgb;
+velocity *= max(0.0,(1.0 - multiplier * deltaTime));
 
 #block Apply VectorField Force
 #icon VectorField
@@ -414,6 +426,18 @@ size = float2( s,s);
 float s = lerp(minScale,maxScale,RAND);
 size *= s;
 
+#block Size Over Life (Square)
+#icon Size
+#category Size/
+#arg float2 size [inout|param]
+#arg Texture2D curve [public]
+#arg float age [param] 
+#arg float lifetime [param] 
+
+float ratio = saturate(age/lifetime);
+float s = tex2Dlod(curve, float4(ratio,0.0f,0.0f,0.0f) ).r;
+size = float2(s,s);
+
 #block Apply Random Scale
 #icon Size
 #category Size/
@@ -485,7 +509,6 @@ angularVelocity += force * deltaTime;
 #arg float drag [public] 
 
 angularVelocity *= max(0.0,(1.0 - multiplier * deltaTime)); // drag - linear only
-
 
 #---------------------------------------------------------------------
 # VELOCITY BLOCKS
@@ -568,13 +591,28 @@ age += deltaTime;
 if (age >= lifetime)
 	KILL;
 
-#block Apply Velocity to Positions
+#block Integrate Velocity (Constant)
 #icon Position
 #arg float3 position [inout|param]
 #arg float3 velocity [param]
 
 position += velocity * deltaTime;
 
+#block Integrate Velocity (Curve)
+#icon Position
+#arg float3 position [inout|param]
+#arg float3 velocity [param]
+#arg float age [param]
+#arg float lifetime [param]
+#arg Texture2D curve [public]
+
+float ratio = saturate(age/lifetime);
+float3 vscale = tex2Dlod(curve,float4(ratio,0,0,0)).xyz;
+position += velocity * vscale * deltaTime;
+
+#--------------------------------------------------------------------------
+# TEST BLOCKS
+#--------------------------------------------------------------------------
 #block Test Compile Failure
 #icon Position
 #category Tests/
