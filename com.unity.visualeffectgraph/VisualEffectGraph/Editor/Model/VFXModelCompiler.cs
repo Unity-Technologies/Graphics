@@ -678,16 +678,13 @@ namespace UnityEditor.Experimental
             buffer.AppendLine();
             buffer.AppendLine();
 
-            // tmp
-            buffer.AppendLine("#define deltaTime (1.0/60.0)");
-            buffer.AppendLine();
-
             buffer.AppendLine("#include \"UnityCG.cginc\"");
             buffer.AppendLine("#include \"HLSLSupport.cginc\"");
             buffer.AppendLine();
 
             buffer.AppendLine("CBUFFER_START(GlobalInfo)");
-            //buffer.AppendLine("\tfloat deltaTime;");
+            buffer.AppendLine("\tfloat deltaTime;");
+            buffer.AppendLine("\tfloat totalTime;");
             buffer.AppendLine("\tuint nbMax;");
             buffer.AppendLine("CBUFFER_END");
             buffer.AppendLine();
