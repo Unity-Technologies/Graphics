@@ -188,14 +188,28 @@ namespace UnityEditor.Experimental
             m_Attribs.Add(attrib);
         }
 
+        public void Add(AttributeBuffer other)
+        {
+            for (int i = 0; i < other.Count; ++i)
+                m_Attribs.Add(other[i]);
+            m_Usage |= other.m_Usage;
+        }
+
         public int Index
         {
             get { return m_Index; }
         }
 
+        // return usage per pass + RW
         public int Usage
         {
             get { return m_Usage; }
+        }
+
+        // return usage per pass
+        public int MergedUsage
+        {
+            get { return ((m_Usage & 0xAA >> 1) | m_Usage) & 0x55; }
         }
 
         public int Count
@@ -222,7 +236,7 @@ namespace UnityEditor.Experimental
         {
             int size = 0;
             foreach (VFXAttrib attrib in m_Attribs)
-                size += VFXParam.GetSizeFromType(attrib.m_Param.m_Type);
+                size += VFXParam.GetSizeFromType(attrib.m_Param.m_Type) * 4;
             return size;
         }
 
@@ -409,117 +423,13 @@ namespace UnityEditor.Experimental
                 attribs[attrib] = attribs[attrib] | 0x3;
 
             // Sort attrib by usage and by size
-            var sortedAttribs = new Dictionary<int,List<VFXAttrib>[]>();
-            foreach (var attrib in attribs)
-            {
-                List<VFXAttrib>[] attribsForUsage;
-                sortedAttribs.TryGetValue(attrib.Value, out attribsForUsage);
+            List<AttributeBuffer> buffers = VFXAttributePacker.Pack(attribs,6);
 
-                if (attribsForUsage == null) // Not yet initialized
-                {
-                    attribsForUsage = new List<VFXAttrib>[4];
-                    for (int i = 0; i < 4; ++i) // Assuming sizes cannot be more than 4 bytes
-                        attribsForUsage[i] = new List<VFXAttrib>();
-
-                    sortedAttribs[attrib.Value] = attribsForUsage;
-                }
-
-                int sizeInBytes = VFXParam.GetSizeFromType(attrib.Key.m_Param.m_Type);
-                attribsForUsage[sizeInBytes - 1].Add(attrib.Key);
-            }
-
-            // Derive SOA based on usage with optimal size of 16 bytes
-            var buffers = new List<AttributeBuffer>();
-            int currentBufferIndex = 0;
-            foreach (var attribsByUsage in sortedAttribs)
-            {
-                // handle 16 bytes attrib
-                var currentAttribs = attribsByUsage.Value[3];
-                int index = currentAttribs.Count - 1;
-                while (index >= 0)
-                {
-                    var buffer = new AttributeBuffer(currentBufferIndex++,attribsByUsage.Key);
-                    buffer.Add(currentAttribs[index]);
-                    buffers.Add(buffer);
-                    currentAttribs.RemoveAt(index--);
-                }
-
-                // try to pair 12 bytes data with 4 bytes
-                currentAttribs = attribsByUsage.Value[2];
-                var pairedAttribs = attribsByUsage.Value[0];
-                index = currentAttribs.Count - 1;
-                while (index >= 0)
-                {
-                    var buffer = new AttributeBuffer(currentBufferIndex++, attribsByUsage.Key);
-                    buffer.Add(currentAttribs[index]);
-                    buffers.Add(buffer);
-                    currentAttribs.RemoveAt(index--);
-
-                    if (pairedAttribs.Count > 0)
-                    {
-                        buffer.Add(pairedAttribs[pairedAttribs.Count - 1]);
-                        pairedAttribs.RemoveAt(pairedAttribs.Count - 1);
-                    } 
-                }
-
-                // try to pair 8 bytes data with 8 bytes data or with 2 4 bytes
-                currentAttribs = attribsByUsage.Value[1];
-                pairedAttribs = attribsByUsage.Value[0];
-                index = currentAttribs.Count - 1;
-                while (index >= 0)
-                {
-                    var buffer = new AttributeBuffer(currentBufferIndex++, attribsByUsage.Key);
-                    buffer.Add(currentAttribs[index]);
-                    buffers.Add(buffer);
-                    currentAttribs.RemoveAt(index--);
-                   
-                    if (index > 0) // pair with 8 bytes
-                    {
-                        buffer.Add(currentAttribs[index]);
-                        currentAttribs.RemoveAt(index--);   
-                    }
-                    else if (pairedAttribs.Count >= 2) // pair with 2 4 bytes
-                    {
-                        buffer.Add(pairedAttribs[pairedAttribs.Count - 1]);
-                        buffer.Add(pairedAttribs[pairedAttribs.Count - 2]);
-                        pairedAttribs.RemoveAt(pairedAttribs.Count - 1);
-                        pairedAttribs.RemoveAt(pairedAttribs.Count - 1);
-                    }
-                }
-
-                // Finally pack 4 bytes data together
-                currentAttribs = attribsByUsage.Value[0];
-                index = currentAttribs.Count - 1;
-                int currentCount = 0;
-                AttributeBuffer currentBuffer = null;                    
-                while (index >= 0)
-                {
-                    if (currentBuffer == null)
-                        currentBuffer = new AttributeBuffer(currentBufferIndex++, attribsByUsage.Key);
-
-                    currentBuffer.Add(currentAttribs[index]);
-                    currentAttribs.RemoveAt(index--);
-                    ++currentCount;
-
-                    if (currentCount == 4 || index < 0)
-                    {
-                        buffers.Add(currentBuffer);
-                        currentBuffer = null;
-                        currentCount = 0;
-                    }
-                }
-            }
-
-            // TODO Try to merge R and RW buffers used in the same context in case of holes
-            // for instance, for a given context flag
-            // R : X -> 4 bytes
-            // RW : XXX0 -> 12 bytes
-            // => Merge this to one buffer of 16
-
-            if (buffers.Count > 7)
+            if (buffers.Count > 6)
             {
                 // TODO : Merge appropriate buffers in that case
-                VFXEditor.Log("ERROR: too many buffers used (max is 7 + 1 reserved)");
+                VFXEditor.Log("ERROR: too many buffers used (max is 6 + 2 reserved)");
+                return null;
             }
 
             // Associate attrib to buffer
@@ -537,7 +447,7 @@ namespace UnityEditor.Experimental
                 {
                     str += buffers[i][j].m_Param.m_Name + "|";
                 }
-                str += " " + (buffers[i].GetSizeInBytes() * 4) + "bytes";
+                str += " " + buffers[i].GetSizeInBytes() + "bytes";
                 VFXEditor.Log(str);
             }
                 
@@ -626,9 +536,9 @@ namespace UnityEditor.Experimental
             {
                 string bufferName = "attribBuffer" + attribBuffer.Index;
                 int structSize = attribBuffer.GetSizeInBytes();
-                if (structSize == 3)
-                    structSize = 4;
-                ComputeBuffer computeBuffer = new ComputeBuffer(1 << 20, structSize * 4, ComputeBufferType.GPUMemory);
+                if (structSize == 12)
+                    structSize = 16;
+                ComputeBuffer computeBuffer = new ComputeBuffer(1 << 20, structSize, ComputeBufferType.GPUMemory);
                 if (attribBuffer.Used(VFXContextDesc.Type.kTypeInit))
                     rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
                 if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
