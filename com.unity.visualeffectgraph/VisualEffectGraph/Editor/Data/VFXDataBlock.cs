@@ -95,6 +95,21 @@ namespace UnityEditor.Experimental
             colorblock.editingWidget = new VFXEdColorEditingWidget("Color", "Alpha");
             m_DataBlocks.Add(colorblock);
 
+            VFXDataBlock gradientBlock = new VFXDataBlock("Gradient", "type_color", "Curves");
+            gradientBlock.AddParameter("Gradient", VFXParam.Type.kTypeTexture2D);
+            gradientBlock.editingWidget = new VFXEdGradientEditingWidget("Gradient");
+            m_DataBlocks.Add(gradientBlock);
+
+            VFXDataBlock floatCurveBlock = new VFXDataBlock("Curve", "Curve", "Curves");
+            floatCurveBlock.AddParameter("Curve", VFXParam.Type.kTypeTexture2D);
+            floatCurveBlock.editingWidget = new VFXEdCurveFloatEditingWidget("Curve");
+            m_DataBlocks.Add(floatCurveBlock);
+
+            VFXDataBlock vectorCurveBlock = new VFXDataBlock("Vector Curve", "Curve", "Curves");
+            vectorCurveBlock.AddParameter("Curve", VFXParam.Type.kTypeTexture2D);
+            vectorCurveBlock.editingWidget = new VFXEdCurveVectorEditingWidget("Curve");
+            m_DataBlocks.Add(vectorCurveBlock);
+
             VFXDataBlock texture2dblock = new VFXDataBlock("Texture2D", "Texture", "Generic types");
             texture2dblock.AddParameter("Value", VFXParam.Type.kTypeTexture2D);
             m_DataBlocks.Add(texture2dblock);

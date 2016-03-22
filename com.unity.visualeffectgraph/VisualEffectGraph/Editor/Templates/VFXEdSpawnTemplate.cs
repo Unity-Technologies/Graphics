@@ -142,13 +142,19 @@ namespace UnityEditor.Experimental
 
                 foreach(KeyValuePair<string,NodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
                 {
-                    VFXEdProcessingNodeBlock block = new VFXEdProcessingNodeBlock(VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockName), datasource);
-                    
-                    foreach (KeyValuePair <string,VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                    VFXBlock b = VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockName);
+                    if (b != null)
                     {
-                        block.SetParameterValue(param_kvp.Key, param_kvp.Value);
+                        VFXEdProcessingNodeBlock block = new VFXEdProcessingNodeBlock(b, datasource);
+
+                        foreach (KeyValuePair<string, VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                        {
+                            block.SetParameterValue(param_kvp.Key, param_kvp.Value);
+                        }
+                        node.NodeBlockContainer.AddNodeBlock(block);
                     }
-                    node.NodeBlockContainer.AddNodeBlock(block);
+                    else Debug.LogWarning("Warning : " + block_kvp.Value.BlockName + " was not found in Block Library, ignoring...");
+
                 }
 
                 node.Layout();
