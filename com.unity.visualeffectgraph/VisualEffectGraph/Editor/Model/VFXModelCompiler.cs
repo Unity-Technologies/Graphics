@@ -742,6 +742,7 @@ namespace UnityEditor.Experimental
                 buffer.AppendLine("RWStructuredBuffer<int> flags;");
                 buffer.AppendLine("ConsumeStructuredBuffer<uint> deadListIn;");
                 buffer.AppendLine("AppendStructuredBuffer<uint> deadListOut;");
+                buffer.AppendLine("Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB");
                 buffer.AppendLine();
             }
 
@@ -778,12 +779,15 @@ namespace UnityEditor.Experimental
             if (hasInit)
             {
                 buffer.WriteKernelHeader("CSVFXInit");
-                buffer.AppendLine("\tif (id.x < nbSpawned)");
+                if (data.hasKill)
+                    buffer.AppendLine("\tif (id.x < min(nbSpawned,deadListCount[0]))");
+                else
+                    buffer.AppendLine("\tif (id.x < nbSpawned)");
                 buffer.AppendLine("\t{");
                 if (data.hasKill)
                     buffer.AppendLine("\t\tuint index = deadListIn.Consume();");
                 else
-                    buffer.AppendLine("\t\tuint index = id.x; // TODO Not working! Needs to add the current count as offset");
+                    buffer.AppendLine("\t\tuint index = id.x + spawnIndex;");
                 buffer.AppendLine();
 
                 foreach (var attribBuffer in data.attributeBuffers)
