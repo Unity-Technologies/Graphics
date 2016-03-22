@@ -71,16 +71,19 @@ color = tex2Dlod(gradient, float4(RAND,0,0,0)).rgb;
 float ratio = saturate(age / lifetime);
 color = lerp(start,end,ratio);
 
-#block Color Over Lifetime (Texture)
+#block Color & Alpha (Gradient)
 #icon Color
 #category Color/
 #arg float3 color [inout|param]
+#arg float alpha [inout|param]
 #arg float age [param] 
 #arg float lifetime [param] 
 #arg Texture2D tex [public] 
 
 float ratio = saturate(age / lifetime);
-color = tex2Dlod(tex,float4(ratio,0.5,0,0)).rgb;
+float4 c = tex2Dlod(tex,float4(ratio,0.5,0,0));
+color = c.rgb;
+alpha = c.a;
 
 #block Set Alpha (Constant)
 #icon Alpha

@@ -203,5 +203,12 @@ namespace UnityEditor.Experimental.Graph.Examples
             // run adapt code for Color to vec3 connections
             return true;
         }
+
+        internal static bool Adapt(this NodeAdapter value, PortSource<Texture2D> a, PortSource<Texture2D> b)
+        {
+            // run adapt code for Texture2D to Texture2D connections
+            return true;
+        }
+
     }
 }

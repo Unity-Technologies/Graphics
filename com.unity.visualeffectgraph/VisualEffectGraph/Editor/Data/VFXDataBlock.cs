@@ -95,6 +95,11 @@ namespace UnityEditor.Experimental
             colorblock.editingWidget = new VFXEdColorEditingWidget("Color", "Alpha");
             m_DataBlocks.Add(colorblock);
 
+            VFXDataBlock gradientBlock = new VFXDataBlock("Gradient", "type_color", "Generic types");
+            gradientBlock.AddParameter("Gradient", VFXParam.Type.kTypeTexture2D);
+            gradientBlock.editingWidget = new VFXEdGradientEditingWidget("Gradient");
+            m_DataBlocks.Add(gradientBlock);
+
             VFXDataBlock texture2dblock = new VFXDataBlock("Texture2D", "Texture", "Generic types");
             texture2dblock.AddParameter("Value", VFXParam.Type.kTypeTexture2D);
             m_DataBlocks.Add(texture2dblock);

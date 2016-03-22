@@ -273,6 +273,79 @@ namespace UnityEditor.Experimental
         }
     }
 
+    internal class VFXEdGradientEditingWidget : VFXEdEditingWidget
+    {
+        private class GradientContainer : ScriptableObject
+        {
+            public Gradient Gradient;
+            public GradientContainer(Gradient gradient)
+            {
+                Gradient = gradient;
+            }
+        }
+
+        public Texture2D GradientTexture;
+        public Gradient Gradient;
+
+        private string m_TextureParamName;
+        private VFXParamValue m_TextureParamValue;
+
+        private GradientContainer m_GradientContainer;
+        private SerializedObject m_GradientSerializedObject;
+        private SerializedProperty m_GradientSerializedProperty;
+
+        public VFXEdGradientEditingWidget(string textureParameterName)
+        {
+            m_TextureParamName = textureParameterName;
+        }
+
+        public void UpdateTexture()
+        {
+            Color32[] colors = new Color32[256];
+            for(int i=0; i<256; i++)
+            {
+                colors[i] = Gradient.Evaluate((float)i / 256);
+            }
+            GradientTexture.SetPixels32(colors);
+            GradientTexture.Apply(false);
+
+        }
+
+        public void InitializeGradient()
+        {
+            GradientTexture = new Texture2D(256, 1, TextureFormat.RGBA32, false);
+            GradientTexture.name = "Generated Gradient";
+            Gradient = new Gradient();
+            m_GradientContainer = new GradientContainer(Gradient);
+            m_GradientSerializedObject = new SerializedObject(m_GradientContainer);
+            m_GradientSerializedProperty = m_GradientSerializedObject.FindProperty("Gradient");
+        }
+
+        public override void CreateBinding(VFXEdDataNodeBlock block)
+        {
+            m_TextureParamValue = block.GetParamValue(m_TextureParamName);
+            if(m_TextureParamValue.GetValue<Texture2D>() == null) InitializeGradient();
+            m_TextureParamValue.SetValue(GradientTexture);
+        }
+
+        public override void OnInspectorGUI()
+        {
+
+            EditorGUILayout.PropertyField(m_GradientSerializedProperty, new GUIContent("Gradient"));
+            if(m_GradientSerializedObject.ApplyModifiedProperties())
+            {
+                UpdateTexture();
+            }
+            
+
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            // Nothing Here... yet.
+        }
+    }
+
     internal static class VFXEdHandleUtility
     {
         public const float CubeCapSize = 0.1f;
