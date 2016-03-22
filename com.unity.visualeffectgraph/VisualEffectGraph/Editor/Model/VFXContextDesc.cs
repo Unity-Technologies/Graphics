@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace UnityEditor.Experimental
 {
@@ -181,43 +180,40 @@ namespace UnityEditor.Experimental
                 return true;
             }
 
-            public override void WritePostBlock(StringBuilder builder, ShaderMetaData data)
+            public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
             {
                 if (m_NeedsAngularIntegration)
                 {
-                    builder.Append("\t\t");
                     builder.WriteAttrib(CommonAttrib.Angle, data);
-                    builder.Append(" += ");
+                    builder.Write(" += ");
                     builder.WriteAttrib(CommonAttrib.AngularVelocity, data);
-                    builder.AppendLine(" * deltaTime;");
-                    builder.AppendLine();
+                    builder.WriteLine(" * deltaTime;");
+                    builder.WriteLine();
                 }
 
                 if (m_NeedsIntegration)
                 {
-                    builder.Append("\t\t");
                     builder.WriteAttrib(CommonAttrib.Position,data);
-                    builder.Append(" += ");
+                    builder.Write(" += ");
                     builder.WriteAttrib(CommonAttrib.Velocity,data);
-                    builder.AppendLine(" * deltaTime;");
-                    builder.AppendLine();
+                    builder.WriteLine(" * deltaTime;");
+                    builder.WriteLine();
                 }
 
                 if (m_NeedsAging)
                 {
-                    builder.Append("\t\t");
                     builder.WriteAttrib(CommonAttrib.Age, data);
-                    builder.AppendLine(" += deltaTime;");
+                    builder.WriteLine(" += deltaTime;");
                     
                     if (m_NeedsReaping)
                     {
-                        builder.Append("\t\tif (");
+                        builder.Write("if (");
                         builder.WriteAttrib(CommonAttrib.Age, data);
-                        builder.Append(" >= ");
+                        builder.Write(" >= ");
                         builder.WriteAttrib(CommonAttrib.Lifetime, data);
-                        builder.AppendLine(")");
-                        builder.AppendLine("\t\t\tkill = true;");
-                        builder.AppendLine();
+                        builder.WriteLine(")");
+                        builder.WriteLine("\tkill = true;");
+                        builder.WriteLine();
                     }
                 }
             }

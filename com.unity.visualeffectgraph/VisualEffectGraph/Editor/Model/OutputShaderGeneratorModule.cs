@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace UnityEditor.Experimental
 {
@@ -18,12 +17,12 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void WritePreBlock(StringBuilder builder, ShaderMetaData data)
+        public override void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
-            builder.Append("\t\t\t\t\tfloat3 worldPos = ");
+            builder.Write("float3 worldPos = ");
             builder.WriteAttrib(CommonAttrib.Position, data);
-            builder.AppendLine(";");
-            builder.AppendLine("\t\t\t\t\to.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
+            builder.WriteLine(";");
+            builder.WriteLine("o.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
         }
     }
 
@@ -70,141 +69,141 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public override void WriteIndex(StringBuilder builder, ShaderMetaData data) 
+        public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data) 
         {
-            builder.AppendLine("\t\t\t\tuint index = (id >> 2) + instanceID * 16384;");
+            builder.WriteLine("uint index = (id >> 2) + instanceID * 16384;");
         }
 
-        public override void WriteAdditionalVertexOutput(StringBuilder builder, ShaderMetaData data)
+        public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             if (m_HasFlipBook)
-                builder.AppendLine("\t\t\t\tfloat3 offsets : TEXCOORD0; // u,v and index"); 
+                builder.WriteLine("float3 offsets : TEXCOORD0; // u,v and index"); 
             else
-                builder.AppendLine("\t\t\t\tfloat2 offsets : TEXCOORD0;");
+                builder.WriteLine("float2 offsets : TEXCOORD0;");
         }
 
-        private void WriteRotation(StringBuilder builder, ShaderMetaData data)
+        private void WriteRotation(ShaderSourceBuilder builder, ShaderMetaData data)
         {
-            builder.AppendLine("\t\t\t\t\tfloat2 sincosA;");
-            builder.Append("\t\t\t\t\tsincos(radians(");
+            builder.WriteLine("float2 sincosA;");
+            builder.Write("sincos(radians(");
             builder.WriteAttrib(CommonAttrib.Angle, data);
-            builder.Append("), sincosA.x, sincosA.y);");
-            builder.AppendLine();
-            builder.AppendLine("\t\t\t\t\tconst float c = sincosA.y;");
-            builder.AppendLine("\t\t\t\t\tconst float s = sincosA.x;");
-            builder.AppendLine("\t\t\t\t\tconst float t = 1.0 - c;");
-            builder.AppendLine("\t\t\t\t\tconst float x = front.x;");
-            builder.AppendLine("\t\t\t\t\tconst float y = front.y;");
-            builder.AppendLine("\t\t\t\t\tconst float z = front.z;");
-            builder.AppendLine();
-            builder.AppendLine("\t\t\t\t\tfloat3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,");
-            builder.AppendLine("\t\t\t\t\t\t\t\t\t\tt * x * y + s * z, t * y * y + c, t * y * z - s * x,");
-            builder.AppendLine("\t\t\t\t\t\t\t\t\t\tt * x * z - s * y, t * y * z + s * x, t * z * z + c);");
-            builder.AppendLine();
+            builder.Write("), sincosA.x, sincosA.y);");
+            builder.WriteLine();
+            builder.WriteLine("const float c = sincosA.y;");
+            builder.WriteLine("const float s = sincosA.x;");
+            builder.WriteLine("const float t = 1.0 - c;");
+            builder.WriteLine("const float x = front.x;");
+            builder.WriteLine("const float y = front.y;");
+            builder.WriteLine("const float z = front.z;");
+            builder.WriteLine();
+            builder.WriteLine("float3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,");
+            builder.WriteLine("\t\t\t\t\tt * x * y + s * z, t * y * y + c, t * y * z - s * x,");
+            builder.WriteLine("\t\t\t\t\tt * x * z - s * y, t * y * z + s * x, t * z * z + c);");
+            builder.WriteLine();
         }
 
-        public override void WritePreBlock(StringBuilder builder, ShaderMetaData data)
+        public override void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             if (m_HasSize)
             {
-                builder.Append("\t\t\t\t\tfloat2 size = ");
+                builder.Write("float2 size = ");
                 builder.WriteAttrib(CommonAttrib.Size, data);
-                builder.AppendLine(" * 0.5f;");
+                builder.WriteLine(" * 0.5f;");
             }
             else
-                builder.AppendLine("\t\t\t\t\tconst float2 size = float2(0.005,0.005);");
+                builder.WriteLine("const float2 size = float2(0.005,0.005);");
 
-            builder.AppendLine("\t\t\t\t\to.offsets.x = 2.0 * float(id & 1) - 1.0;");
-            builder.AppendLine("\t\t\t\t\to.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;");
-            builder.AppendLine();
+            builder.WriteLine("o.offsets.x = 2.0 * float(id & 1) - 1.0;");
+            builder.WriteLine("o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;");
+            builder.WriteLine();
 
-            builder.Append("\t\t\t\t\tfloat3 worldPos = ");
+            builder.Write("float3 worldPos = ");
             builder.WriteAttrib(CommonAttrib.Position, data);
-            builder.AppendLine(";");
-            builder.AppendLine();
+            builder.WriteLine(";");
+            builder.WriteLine();
 
             if (m_OrientAlongVelocity)
             {
-                builder.AppendLine("\t\t\t\t\tfloat3 front = UnityWorldSpaceViewDir(worldPos);");
-                builder.Append("\t\t\t\t\tfloat3 up = normalize(");
+                builder.WriteLine("float3 front = UnityWorldSpaceViewDir(worldPos);");
+                builder.Write("float3 up = normalize(");
                 builder.WriteAttrib(CommonAttrib.Velocity, data);
-                builder.AppendLine(");");
-                builder.AppendLine("\t\t\t\t\tfloat3 side = normalize(cross(front,up));"); 
+                builder.WriteLine(");");
+                builder.WriteLine("float3 side = normalize(cross(front,up));"); 
   
                 if (m_HasAngle)
-                    builder.AppendLine("\t\t\t\t\tfront = cross(up,side);");
+                    builder.WriteLine("front = cross(up,side);");
             }
             else
             {
                 if (m_HasAngle)
-                    builder.AppendLine("\t\t\t\t\tfloat3 front = UNITY_MATRIX_MV[2].xyz;");
+                    builder.WriteLine("float3 front = UNITY_MATRIX_MV[2].xyz;");
 
-                builder.AppendLine("\t\t\t\t\tfloat3 side = UNITY_MATRIX_MV[0].xyz;");
-                builder.AppendLine("\t\t\t\t\tfloat3 up = UNITY_MATRIX_MV[1].xyz;");
+                builder.WriteLine("float3 side = UNITY_MATRIX_MV[0].xyz;");
+                builder.WriteLine("float3 up = UNITY_MATRIX_MV[1].xyz;");
             }
 
-            builder.AppendLine();
+            builder.WriteLine();
 
             if (m_HasAngle)
             {
                 WriteRotation(builder, data);
-                builder.AppendLine();
-                builder.AppendLine("\t\t\t\t\tworldPos += mul(rot,side) * (o.offsets.x * size.x);");
-                builder.AppendLine("\t\t\t\t\tworldPos += mul(rot,up) * (o.offsets.y * size.y);");
+                builder.WriteLine();
+                builder.WriteLine("worldPos += mul(rot,side) * (o.offsets.x * size.x);");
+                builder.WriteLine("worldPos += mul(rot,up) * (o.offsets.y * size.y);");
             }
             else
             {
-                builder.AppendLine("\t\t\t\t\tworldPos += side * (o.offsets.x * size.x);");
-                builder.AppendLine("\t\t\t\t\tworldPos += up * (o.offsets.y * size.y);");
+                builder.WriteLine("worldPos += side * (o.offsets.x * size.x);");
+                builder.WriteLine("worldPos += up * (o.offsets.y * size.y);");
             }
 
             if (m_HasTexture)
             {
-                builder.AppendLine("\t\t\t\t\to.offsets.xy = o.offsets.xy * 0.5 + 0.5;");
+                builder.WriteLine("o.offsets.xy = o.offsets.xy * 0.5 + 0.5;");
                 if (m_HasFlipBook)
                 {
-                    builder.Append("\t\t\t\t\to.offsets.z = ");
+                    builder.Write("o.offsets.z = ");
                     builder.WriteAttrib(CommonAttrib.TexIndex, data);
-                    builder.AppendLine(";");
+                    builder.WriteLine(";");
                 }
             }
 
-            builder.AppendLine();
+            builder.WriteLine();
 
-            builder.AppendLine("\t\t\t\t\to.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
+            builder.WriteLine("o.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
         }
 
-        public override void WritePixelShader(StringBuilder builder, ShaderMetaData data)
+        public override void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             if (!m_HasTexture)
             {
-                builder.AppendLine("\t\t\t\tfloat lsqr = dot(i.offsets, i.offsets);");
-                builder.AppendLine("\t\t\t\tif (lsqr > 1.0)");
-                builder.AppendLine("\t\t\t\t\tdiscard;");
-                builder.AppendLine();
+                builder.WriteLine("float lsqr = dot(i.offsets, i.offsets);");
+                builder.WriteLine("if (lsqr > 1.0)");
+                builder.WriteLine("\tdiscard;");
+                builder.WriteLine();
             }
             else if (m_HasFlipBook)
             {
-                builder.Append("\t\t\t\tfloat2 dim = ");
-                builder.Append(data.outputParamToName[m_FlipBookDim]);
-                builder.AppendLine(";");
-                builder.AppendLine("\t\t\t\tfloat2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
-                builder.AppendLine("\t\t\t\tfloat index = round(i.offsets.z);");
-                builder.AppendLine("\t\t\t\tfloat2 tile = float2(fmod(index,dim.x),dim.y - 1.0 - floor(index * invDim.x));");
-                builder.AppendLine("\t\t\t\tfloat2 uv = (tile + i.offsets.xy) * invDim; // TODO InvDim should be computed on CPU");
-                builder.Append("\t\t\t\tcolor *= tex2D(");
-                builder.Append(data.outputParamToName[m_Texture]);
-                builder.AppendLine(",uv);");
+                builder.Write("float2 dim = ");
+                builder.Write(data.outputParamToName[m_FlipBookDim]);
+                builder.WriteLine(";");
+                builder.WriteLine("float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
+                builder.WriteLine("float index = round(i.offsets.z);");
+                builder.WriteLine("float2 tile = float2(fmod(index,dim.x),dim.y - 1.0 - floor(index * invDim.x));");
+                builder.WriteLine("float2 uv = (tile + i.offsets.xy) * invDim; // TODO InvDim should be computed on CPU");
+                builder.Write("color *= tex2D(");
+                builder.Write(data.outputParamToName[m_Texture]);
+                builder.WriteLine(",uv);");
             }
             else
             {
-                builder.Append("\t\t\t\tcolor *= tex2D(");
-                builder.Append(data.outputParamToName[m_Texture]);
-                builder.AppendLine(",i.offsets);");
+                builder.Write("color *= tex2D(");
+                builder.Write(data.outputParamToName[m_Texture]);
+                builder.WriteLine(",i.offsets);");
             }
 
             if (VFXEditor.AssetModel.BlendingMode == BlendMode.kMasked)
-                builder.AppendLine("\t\t\t\tif (color.a < 0.33333) discard;");
+                builder.WriteLine("if (color.a < 0.33333) discard;");
         }
 
         private VFXParamValue m_Texture;

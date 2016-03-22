@@ -8,80 +8,125 @@ using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
 {
-    public static class ShaderSourceStringBuilderExtensions
+    public class ShaderSourceBuilder
     {
-        public static void WriteAttributeBuffer(this StringBuilder builder, AttributeBuffer attributeBuffer)
+        // Generic builder method
+        public void Write<T>(T t)
         {
-            builder.Append("struct ");
-            builder.Append("Attribute");
-            builder.Append(attributeBuffer.Index);
-            builder.AppendLine();
-            builder.AppendLine("{");
+            m_Builder.Append(t);
+        }
+
+        public void WriteLine<T>(T t)
+        {
+            Write(t);
+            WriteLine();
+        }
+
+        public void WriteLine()
+        {
+            m_Builder.AppendLine();
+            WriteIndent();
+        }
+
+        public void EnterScope()
+        {
+            Indent();
+            WriteLine('{');
+        }
+
+        public void ExitScope()
+        {
+            Deindent();
+            m_Builder[m_Builder.Length - 1] = '}'; // Replace last '\t' by '}'
+            WriteLine();
+        }
+
+        public void ExitScopeStruct()
+        {
+            Deindent();
+            m_Builder[m_Builder.Length - 1] = '}'; // Replace last '\t' by '}'
+            WriteLine(';');
+        }
+
+        public override string ToString()
+        {
+            return m_Builder.ToString();
+        }
+
+        // Shader helper methods
+        public void WriteAttributeBuffer(AttributeBuffer attributeBuffer)
+        {
+            Write("struct Attribute");
+            WriteLine(attributeBuffer.Index);
+
+            EnterScope();
+
             for (int i = 0; i < attributeBuffer.Count; ++i)
             {
-                builder.Append('\t');
-                builder.WriteType(attributeBuffer[i].m_Param.m_Type);
-                builder.Append(" ");
-                builder.Append(attributeBuffer[i].m_Param.m_Name);
-                builder.AppendLine(";");
+                WriteType(attributeBuffer[i].m_Param.m_Type);
+                Write(" ");
+                Write(attributeBuffer[i].m_Param.m_Name);
+                WriteLine(";");
             }
 
             if (attributeBuffer.GetSizeInBytes() == 12)
-                builder.AppendLine("\tfloat _PADDING_;");
+                WriteLine("float _PADDING_;");
 
-            builder.AppendLine("};");
-            builder.AppendLine();
+            ExitScopeStruct();
+            WriteLine();
         }
 
-        public static void WriteCBuffer(this StringBuilder builder, string cbufferName, HashSet<VFXParamValue> uniforms, Dictionary<VFXParamValue, string> uniformsToName)
+        public void WriteCBuffer(string cbufferName, HashSet<VFXParamValue> uniforms, Dictionary<VFXParamValue, string> uniformsToName)
         {
             if (uniforms.Count > 0)
             {
-                builder.Append("CBUFFER_START(");
-                builder.Append(cbufferName);
-                builder.AppendLine(")");
+                Write("CBUFFER_START(");
+                Write(cbufferName);
+                WriteLine(")");
+
                 foreach (var uniform in uniforms)
                 {
-                    builder.Append('\t');
-                    builder.WriteType(uniform.ValueType);
-                    builder.Append(" ");
-                    builder.Append(uniformsToName[uniform]);
-                    builder.AppendLine(";");
+                    Write('\t');
+                    WriteType(uniform.ValueType);
+                    Write(" ");
+                    Write(uniformsToName[uniform]);
+                    WriteLine(";");
                 }
-                builder.AppendLine("CBUFFER_END");
-                builder.AppendLine();
+
+                WriteLine("CBUFFER_END");
+                WriteLine();
             }
         }
 
-        public static void WriteSamplers(this StringBuilder builder, HashSet<VFXParamValue> samplers, Dictionary<VFXParamValue, string> samplersToName)
+        public void WriteSamplers(HashSet<VFXParamValue> samplers, Dictionary<VFXParamValue, string> samplersToName)
         {
             foreach (var sampler in samplers)
             {
                 if (sampler.ValueType == VFXParam.Type.kTypeTexture2D)
-                    builder.Append("sampler2D ");
+                    Write("sampler2D ");
                 else if (sampler.ValueType == VFXParam.Type.kTypeTexture3D)
-                    builder.Append("sampler3D ");
+                    Write("sampler3D ");
                 else
                     continue;
 
-                builder.Append(samplersToName[sampler]);
-                builder.AppendLine(";");
-                builder.AppendLine();
+                Write(samplersToName[sampler]);
+                WriteLine(";");
+                WriteLine();
             }
         }
 
-        public static void WriteType(this StringBuilder builder, VFXParam.Type type)
+        public void WriteType(VFXParam.Type type)
         {
             // tmp transform texture to sampler TODO This must be handled directly in C++ conversion array
             if (type == VFXParam.Type.kTypeTexture2D)
-                builder.Append("sampler2D");
+                Write("sampler2D");
             else if (type == VFXParam.Type.kTypeTexture3D)
-                builder.Append("sampler3D");
+                Write("sampler3D");
             else
-                builder.Append(VFXParam.GetNameFromType(type));
+                Write(VFXParam.GetNameFromType(type));
         }
 
-        public static void WriteFunction(this StringBuilder builder, VFXBlockModel block, Dictionary<Hash128, string> functions)
+        public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions)
         {
             if (!functions.ContainsKey(block.Desc.m_Hash)) // if not already defined
             {
@@ -92,66 +137,63 @@ namespace UnityEditor.Experimental
                 string source = block.Desc.m_Source;
 
                 // function signature
-                builder.Append("void ");
-                builder.Append(name);
-                builder.Append("(");
+                Write("void ");
+                Write(name);
+                Write("(");
 
                 char separator = ' ';
                 foreach (var arg in block.Desc.m_Attribs)
                 {
-                    builder.Append(separator);
+                    Write(separator);
                     separator = ',';
 
                     if (arg.m_Writable)
-                        builder.Append("inout ");
-                    builder.WriteType(arg.m_Param.m_Type);
-                    builder.Append(" ");
-                    builder.Append(arg.m_Param.m_Name);
+                        Write("inout ");
+                    WriteType(arg.m_Param.m_Type);
+                    Write(" ");
+                    Write(arg.m_Param.m_Name);
                 }
 
                 foreach (var arg in block.Desc.m_Params)
                 {
-                    builder.Append(separator);
+                    Write(separator);
                     separator = ',';
 
-                    builder.WriteType(arg.m_Type);
-                    builder.Append(" ");
-                    builder.Append(arg.m_Name);
+                    WriteType(arg.m_Type);
+                    Write(" ");
+                    Write(arg.m_Name);
                 }
 
                 if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
                 {
-                    builder.Append(separator);
+                    Write(separator);
                     separator = ',';
-                    builder.Append("inout uint seed");
-                    source = source.Replace("RAND", "rand(seed)"); // TODO Not needed anymore (done in the importer)
+                    Write("inout uint seed");
                 }
 
                 if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
                 {
-                    builder.Append(separator);
+                    Write(separator);
                     separator = ',';
-                    builder.Append("inout bool kill");
-                    source = source.Replace("KILL", "kill = true"); // TODO Not needed anymore (done in the importer)
+                    Write("inout bool kill");
                 }
 
-                builder.AppendLine(")");
+                WriteLine(")");
 
                 // function body
-                builder.AppendLine("{");
+                EnterScope();
 
-                // Add tab for formatting
-                //source = source.Replace("\n", "\n\t");
-                builder.Append(source);
-                builder.AppendLine();
+                source = source.TrimStart(new char[] {'\t'}); // TODO Fix that from importer (no need for first '\t')
 
-                builder.AppendLine("}");
-                builder.AppendLine();
+                Write(source);
+                WriteLine();
+
+                ExitScope();
+                WriteLine();
             }
         }
 
-        public static void WriteFunctionCall(
-            this StringBuilder builder, 
+        public void WriteFunctionCall(
             VFXBlockModel block,
             Dictionary<Hash128, string> functions,
             ShaderMetaData data)
@@ -159,88 +201,107 @@ namespace UnityEditor.Experimental
             Dictionary<VFXParamValue, string> paramToName = data.paramToName;
             Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer = data.attribToBuffer;
 
-            builder.Append("\t\t");
-            builder.Append(functions[block.Desc.m_Hash]);
-            builder.Append("(");
+            Write(functions[block.Desc.m_Hash]);
+            Write("(");
 
             char separator = ' ';
             foreach (var arg in block.Desc.m_Attribs)
             {
-                builder.Append(separator);
+                Write(separator);
                 separator = ',';
 
                 int index = attribToBuffer[arg].Index;
-                builder.Append("attrib");
-                builder.Append(index);
-                builder.Append(".");
-                builder.Append(arg.m_Param.m_Name);
+                Write("attrib");
+                Write(index);
+                Write(".");
+                Write(arg.m_Param.m_Name);
             }
 
             for (int i = 0; i < block.Desc.m_Params.Length; ++i)
             {
-                builder.Append(separator);
+                Write(separator);
                 separator = ',';
-                builder.Append(paramToName[block.GetParamValue(i)]);
+                Write(paramToName[block.GetParamValue(i)]);
             }
 
             if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
             {
-                builder.Append(separator);
+                Write(separator);
                 separator = ',';
-
-                builder.WriteAttrib(CommonAttrib.Seed, data);
+                WriteAttrib(CommonAttrib.Seed, data);
             }
 
             if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
             {
-                builder.Append(separator);
+                Write(separator);
                 separator = ',';
-                builder.Append("kill");
+                Write("kill");
             }
 
-            builder.AppendLine(");");
+            WriteLine(");");
         }
 
-        public static void WriteAddPhaseShift(this StringBuilder builder, ShaderMetaData data)
+        public void WriteAddPhaseShift(ShaderMetaData data)
         {
-            builder.WritePhaseShift('+', data);
+            WritePhaseShift('+', data);
         }
 
-        public static void WriteRemovePhaseShift(this StringBuilder builder, ShaderMetaData data)
+        public void WriteRemovePhaseShift(ShaderMetaData data)
         {
-            builder.WritePhaseShift('-', data);
+            WritePhaseShift('-', data);
         }
 
-        private static void WritePhaseShift(this StringBuilder builder, char op, ShaderMetaData data)
+        private void WritePhaseShift(char op, ShaderMetaData data)
         {
-            builder.Append("\t\t");
-            builder.WriteAttrib(CommonAttrib.Position, data);
-            builder.Append(" ");
-            builder.Append(op);
-            builder.Append("= (");
-            builder.WriteAttrib(CommonAttrib.Phase, data);
-            builder.Append(" * deltaTime) * ");
-            builder.WriteAttrib(CommonAttrib.Velocity, data);
-            builder.AppendLine(";");
+            WriteAttrib(CommonAttrib.Position, data);
+            Write(" ");
+            Write(op);
+            Write("= (");
+            WriteAttrib(CommonAttrib.Phase, data);
+            Write(" * deltaTime) * ");
+            WriteAttrib(CommonAttrib.Velocity, data);
+            WriteLine(";");
         }
 
-        public static void WriteAttrib(this StringBuilder builder, VFXAttrib attrib, ShaderMetaData data)
+        public void WriteAttrib(VFXAttrib attrib, ShaderMetaData data)
         {
             int attribIndex = data.attribToBuffer[attrib].Index;
-            builder.Append("attrib");
-            builder.Append(attribIndex);
-            builder.Append(".");
-            builder.Append(attrib.m_Param.m_Name);
+            Write("attrib");
+            Write(attribIndex);
+            Write(".");
+            Write(attrib.m_Param.m_Name);
         }
 
-        public static void WriteKernelHeader(this StringBuilder builder, string name)
+        public void WriteKernelHeader(string name)
         {
-            builder.AppendLine("[numthreads(NB_THREADS_PER_GROUP,1,1)]");
-            builder.Append("void ");
-            builder.Append(name);
-            builder.AppendLine("(uint3 id : SV_DispatchThreadID)");
-            builder.AppendLine("{");
+            WriteLine("[numthreads(NB_THREADS_PER_GROUP,1,1)]");
+            Write("void ");
+            Write(name);
+            WriteLine("(uint3 id : SV_DispatchThreadID)");
+            EnterScope();
         }
+
+        // Private stuff
+        private void Indent()
+        {
+            ++m_Indent;
+        }
+
+        private void Deindent()
+        {
+            if (m_Indent == 0)
+                throw new InvalidOperationException("Cannot de-indent as current indentation is 0");
+
+            --m_Indent;
+        }
+
+        private void WriteIndent()
+        {
+            for (int i = 0; i < m_Indent; ++i)
+                m_Builder.Append('\t');
+        }
+
+        private StringBuilder m_Builder = new StringBuilder();
+        private int m_Indent = 0;
     }
 }
-

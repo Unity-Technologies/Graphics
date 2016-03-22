@@ -2,7 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace UnityEditor.Experimental
 {
@@ -34,15 +33,15 @@ namespace UnityEditor.Experimental
 
         public virtual bool UpdateAttributes(Dictionary<VFXAttrib, int> attribs, ref int flags) { return true; }
         public virtual void UpdateUniforms(HashSet<VFXParamValue> uniforms)             { }
-        public virtual void WritePreBlock(StringBuilder builder, ShaderMetaData data)   { }
-        public virtual void WritePostBlock(StringBuilder builder, ShaderMetaData data)  { }
+        public virtual void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data)   { }
+        public virtual void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data) { }
     }
 
     public class VFXOutputShaderGeneratorModule : VFXShaderGeneratorModule
     {
-        public virtual void WriteIndex(StringBuilder builder, ShaderMetaData data)                  { builder.AppendLine("\t\t\t\tuint index = id;"); }
-        public virtual void WriteAdditionalVertexOutput(StringBuilder builder, ShaderMetaData data) { } // TMP
-        public virtual void WritePixelShader(StringBuilder builder, ShaderMetaData data)            { } // TMP
+        public virtual void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data) { builder.WriteLine("uint index = id;"); }
+        public virtual void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
+        public virtual void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
         public virtual int[] GetSingleIndexBuffer(ShaderMetaData data)                              { return null; }
     }
 }
