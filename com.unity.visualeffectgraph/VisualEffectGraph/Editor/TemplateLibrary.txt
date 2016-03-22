@@ -325,8 +325,7 @@
       <FlowConnection Previous="VFXEdContextNode_4" Next="VFXEdContextNode_5" />
     </Connections>
   </Template>
-
- <Template Category="test" Name="conformsphere">
+  <Template Category="test" Name="conformsphere">
     <System SpawnRate="104857.6" AllocationCount="1048576" />
     <Nodes>
       <Node Name="VFXEdContextNode_11" Context="Initialize">

@@ -956,7 +956,7 @@ namespace UnityEditor.Experimental
 
             builder.WriteLine("Shader \"Custom/PointShader\""); // TODO Rename that
             builder.EnterScope();
-            builder.WriteLine("\tSubShader");
+            builder.WriteLine("SubShader");
             builder.EnterScope();
 
             BlendMode blendMode = VFXEditor.AssetModel.BlendingMode;
@@ -1099,7 +1099,7 @@ namespace UnityEditor.Experimental
 
             builder.ExitScope();
             builder.WriteLine();
-            builder.WriteLine("\t\t\tENDCG");
+            builder.WriteLine("ENDCG");
             builder.ExitScope();
             builder.ExitScope();
             builder.WriteLine("\tFallBack Off");
