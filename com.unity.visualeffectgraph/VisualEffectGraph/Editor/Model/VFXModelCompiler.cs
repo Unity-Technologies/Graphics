@@ -529,6 +529,8 @@ namespace UnityEditor.Experimental
 
             rtData.m_Material = new Material(outputShader);
 
+            int Capacity = (int)system.MaxNb;
+
             // Create buffer for system
             foreach (var attribBuffer in shaderMetaData.attributeBuffers)
             {
@@ -536,7 +538,7 @@ namespace UnityEditor.Experimental
                 int structSize = attribBuffer.GetSizeInBytes();
                 if (structSize == 12)
                     structSize = 16;
-                ComputeBuffer computeBuffer = new ComputeBuffer(1 << 20, structSize, ComputeBufferType.GPUMemory);
+                ComputeBuffer computeBuffer = new ComputeBuffer(Capacity, structSize, ComputeBufferType.GPUMemory);
                 if (attribBuffer.Used(VFXContextDesc.Type.kTypeInit))
                     rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
                 if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
@@ -549,17 +551,16 @@ namespace UnityEditor.Experimental
 
             if (shaderMetaData.hasKill)
             {
-                ComputeBuffer flagBuffer = new ComputeBuffer(1 << 20,4, ComputeBufferType.GPUMemory);
-                ComputeBuffer deadList = new ComputeBuffer(1 << 20, 4, ComputeBufferType.Append);
+                ComputeBuffer flagBuffer = new ComputeBuffer(Capacity, 4, ComputeBufferType.GPUMemory);
+                ComputeBuffer deadList = new ComputeBuffer(Capacity, 4, ComputeBufferType.Append);
 
-                const int NB_PARTICLES = 1 << 20;
-                uint[] deadIdx = new uint[NB_PARTICLES];
-                for (int i = 0; i < NB_PARTICLES; ++i)
+                uint[] deadIdx = new uint[Capacity];
+                for (int i = 0; i < Capacity; ++i)
                 {
-                    deadIdx[i] = NB_PARTICLES - (uint)i - 1;
+                    deadIdx[i] = (uint)(Capacity - i - 1);
                 }
                 deadList.SetData(deadIdx);
-                deadList.SetCounterValue((uint)NB_PARTICLES);
+                deadList.SetCounterValue((uint)Capacity);
 
                 if (rtData.InitKernel != -1)
                 {
