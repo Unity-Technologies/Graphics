@@ -184,16 +184,42 @@ namespace UnityEditor.Experimental
             }
             else if (m_HasFlipBook)
             {
+                const bool INTERPOLATE = true; // TODO Add a toggle on block
+
                 builder.Write("float2 dim = ");
                 builder.Write(data.outputParamToName[m_FlipBookDim]);
                 builder.WriteLine(";");
                 builder.WriteLine("float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
-                builder.WriteLine("float index = round(i.offsets.z);");
-                builder.WriteLine("float2 tile = float2(fmod(index,dim.x),dim.y - 1.0 - floor(index * invDim.x));");
-                builder.WriteLine("float2 uv = (tile + i.offsets.xy) * invDim; // TODO InvDim should be computed on CPU");
-                builder.Write("color *= tex2D(");
-                builder.Write(data.outputParamToName[m_Texture]);
-                builder.WriteLine(",uv);");
+
+                if (!INTERPOLATE)
+                {
+                    builder.WriteLine("float index = round(i.offsets.z);");
+                    builder.WriteLine("float2 tile = float2(fmod(index,dim.x),dim.y - 1.0 - floor(index * invDim.x));");
+                    builder.WriteLine("float2 uv = (tile + i.offsets.xy) * invDim; // TODO InvDim should be computed on CPU");                
+                    builder.Write("color *= tex2D(");
+                    builder.Write(data.outputParamToName[m_Texture]);
+                    builder.WriteLine(",uv);");
+                }
+                else
+                {      
+                    builder.WriteLine("float ratio = frac(i.offsets.z);");
+                    builder.WriteLine();
+                    builder.WriteLine("float index1 = i.offsets.z - ratio;");
+                    builder.WriteLine("float2 tile1 = float2(fmod(index1,dim.x),dim.y - 1.0 - floor(index1 * invDim.x));");
+                    builder.WriteLine("float2 uv1 = (tile1 + i.offsets.xy) * invDim;");
+                    builder.Write("float4 col1 = tex2D(");
+                    builder.Write(data.outputParamToName[m_Texture]);
+                    builder.WriteLine(",uv1);");
+                    builder.WriteLine();
+                    builder.WriteLine("float index2 = index1 + 1;");
+                    builder.WriteLine("float2 tile2 = float2(fmod(index2,dim.x),dim.y - 1.0 - floor(index2 * invDim.x));");
+                    builder.WriteLine("float2 uv2 = (tile2 + i.offsets.xy) * invDim;");
+                    builder.Write("float4 col2 = tex2D(");
+                    builder.Write(data.outputParamToName[m_Texture]);
+                    builder.WriteLine(",uv2);");
+                    builder.WriteLine();
+                    builder.WriteLine("color *= lerp(col1,col2,ratio);");
+                }
             }
             else
             {

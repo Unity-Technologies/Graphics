@@ -1103,7 +1103,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("ENDCG");
             builder.ExitScope();
             builder.ExitScope();
-            builder.WriteLine("\tFallBack Off");
+            builder.WriteLine("FallBack Off");
             builder.ExitScope();
 
             return builder.ToString();
