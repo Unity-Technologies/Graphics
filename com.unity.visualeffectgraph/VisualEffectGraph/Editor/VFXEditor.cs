@@ -458,6 +458,12 @@ namespace UnityEditor.Experimental
                 EditorGUIUtility.ExitGUI();
             }
 
+            float r = AssetModel.component.playRate;
+            float nr = GUILayout.HorizontalSlider(AssetModel.component.playRate, 0.01f, 8.0f, GUILayout.Width(140.0f));
+            GUILayout.Label((int)(nr * 100) + "%", GUILayout.Width(80.0f));
+            if (r != nr)
+                SetPlayRate(nr);
+
             if (InvalidateSystems)
             {
                 for (int i = 0; i < AssetModel.GetNbChildren(); ++i)
