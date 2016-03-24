@@ -566,7 +566,9 @@ namespace UnityEditor.Experimental
                         r.y += (parent.clientRect.y);
                     }
 
+                    GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
                     Graphics.DrawTexture(r, e.texture, new Rect(uvMin, uvMax), 0, 0, 0, 0);
+                    GL.sRGBWrite = false;
                 }
                 else
                     e.Render(thisRect, parent);
