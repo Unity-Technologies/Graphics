@@ -2,8 +2,6 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEditor.Experimental;
 
 namespace UnityEditor.Experimental
@@ -531,6 +529,8 @@ namespace UnityEditor.Experimental
 
             rtData.m_Material = new Material(outputShader);
 
+            int Capacity = (int)system.MaxNb;
+
             // Create buffer for system
             foreach (var attribBuffer in shaderMetaData.attributeBuffers)
             {
@@ -538,7 +538,7 @@ namespace UnityEditor.Experimental
                 int structSize = attribBuffer.GetSizeInBytes();
                 if (structSize == 12)
                     structSize = 16;
-                ComputeBuffer computeBuffer = new ComputeBuffer(1 << 20, structSize, ComputeBufferType.GPUMemory);
+                ComputeBuffer computeBuffer = new ComputeBuffer(Capacity, structSize, ComputeBufferType.GPUMemory);
                 if (attribBuffer.Used(VFXContextDesc.Type.kTypeInit))
                     rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
                 if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
@@ -551,17 +551,16 @@ namespace UnityEditor.Experimental
 
             if (shaderMetaData.hasKill)
             {
-                ComputeBuffer flagBuffer = new ComputeBuffer(1 << 20,4, ComputeBufferType.GPUMemory);
-                ComputeBuffer deadList = new ComputeBuffer(1 << 20, 4, ComputeBufferType.Append);
+                ComputeBuffer flagBuffer = new ComputeBuffer(Capacity, 4, ComputeBufferType.GPUMemory);
+                ComputeBuffer deadList = new ComputeBuffer(Capacity, 4, ComputeBufferType.Append);
 
-                const int NB_PARTICLES = 1 << 20;
-                uint[] deadIdx = new uint[NB_PARTICLES];
-                for (int i = 0; i < NB_PARTICLES; ++i)
+                uint[] deadIdx = new uint[Capacity];
+                for (int i = 0; i < Capacity; ++i)
                 {
-                    deadIdx[i] = NB_PARTICLES - (uint)i - 1;
+                    deadIdx[i] = (uint)(Capacity - i - 1);
                 }
                 deadList.SetData(deadIdx);
-                deadList.SetCounterValue((uint)NB_PARTICLES);
+                deadList.SetCounterValue((uint)Capacity);
 
                 if (rtData.InitKernel != -1)
                 {
@@ -665,324 +664,325 @@ namespace UnityEditor.Experimental
             bool hasInit = initGenerator != null; //data.initBlocks.Count > 0;
             bool hasUpdate = updateGenerator != null; //data.updateBlocks.Count > 0;
 
-            StringBuilder buffer = new StringBuilder();
+            ShaderSourceBuilder builder = new ShaderSourceBuilder();
 
             if (hasInit)
-                buffer.AppendLine("#pragma kernel CSVFXInit");
+                builder.WriteLine("#pragma kernel CSVFXInit");
             if (hasUpdate)
-                buffer.AppendLine("#pragma kernel CSVFXUpdate");
-            buffer.AppendLine();
-            
-            buffer.Append("#define NB_THREADS_PER_GROUP ");
-            buffer.Append(NB_THREAD_PER_GROUP);
-            buffer.AppendLine();
-            buffer.AppendLine();
+                builder.WriteLine("#pragma kernel CSVFXUpdate");
+            builder.WriteLine();
 
-            // tmp
-            buffer.AppendLine("#define deltaTime (1.0/60.0)");
-            buffer.AppendLine();
+            builder.Write("#define NB_THREADS_PER_GROUP ");
+            builder.Write(NB_THREAD_PER_GROUP);
+            builder.WriteLine();
+            builder.WriteLine();
 
-            buffer.AppendLine("#include \"UnityCG.cginc\"");
-            buffer.AppendLine("#include \"HLSLSupport.cginc\"");
-            buffer.AppendLine();
+            builder.WriteLine("#include \"UnityCG.cginc\"");
+            builder.WriteLine("#include \"HLSLSupport.cginc\"");
+            builder.WriteLine();
 
-            buffer.AppendLine("CBUFFER_START(GlobalInfo)");
-            //buffer.AppendLine("\tfloat deltaTime;");
-            buffer.AppendLine("\tuint nbMax;");
-            buffer.AppendLine("CBUFFER_END");
-            buffer.AppendLine();
+            builder.WriteLine("CBUFFER_START(GlobalInfo)");
+            builder.WriteLine("\tfloat deltaTime;");
+            builder.WriteLine("\tfloat totalTime;");
+            builder.WriteLine("\tuint nbMax;");
+            builder.WriteLine("CBUFFER_END");
+            builder.WriteLine();
 
             if (hasInit)
             {
-                buffer.AppendLine("CBUFFER_START(SpawnInfo)");
-                buffer.AppendLine("\tuint nbSpawned;");
-                buffer.AppendLine("\tuint spawnIndex;");
-                buffer.AppendLine("CBUFFER_END");
-                buffer.AppendLine();
+                builder.WriteLine("CBUFFER_START(SpawnInfo)");
+                builder.WriteLine("\tuint nbSpawned;");
+                builder.WriteLine("\tuint spawnIndex;");
+                builder.WriteLine("CBUFFER_END");
+                builder.WriteLine();
             } 
 
             // Uniforms buffer
-            buffer.WriteCBuffer("GlobalUniforms", data.globalUniforms, data.paramToName);
-            buffer.WriteCBuffer("initUniforms", data.initUniforms, data.paramToName);
-            buffer.WriteCBuffer("updateUniforms", data.updateUniforms, data.paramToName);
+            builder.WriteCBuffer("GlobalUniforms", data.globalUniforms, data.paramToName);
+            builder.WriteCBuffer("initUniforms", data.initUniforms, data.paramToName);
+            builder.WriteCBuffer("updateUniforms", data.updateUniforms, data.paramToName);
 
             // Write samplers
-            buffer.WriteSamplers(data.globalSamplers, data.paramToName);
-            buffer.WriteSamplers(data.initSamplers, data.paramToName);
-            buffer.WriteSamplers(data.updateSamplers, data.paramToName);
+            builder.WriteSamplers(data.globalSamplers, data.paramToName);
+            builder.WriteSamplers(data.initSamplers, data.paramToName);
+            builder.WriteSamplers(data.updateSamplers, data.paramToName);
 
             // Write attribute struct
             foreach (var attribBuffer in data.attributeBuffers)
-                buffer.WriteAttributeBuffer(attribBuffer);
+                builder.WriteAttributeBuffer(attribBuffer);
 
             // Write attribute buffer
             foreach (var attribBuffer in data.attributeBuffers)
             {
-                buffer.Append("RWStructuredBuffer<Attribute");
-                buffer.Append(attribBuffer.Index);
-                buffer.Append("> attribBuffer");
-                buffer.Append(attribBuffer.Index);
-                buffer.AppendLine(";");
+                builder.Write("RWStructuredBuffer<Attribute");
+                builder.Write(attribBuffer.Index);
+                builder.Write("> attribBuffer");
+                builder.Write(attribBuffer.Index);
+                builder.WriteLine(";");
 
                 if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate) && !attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
                 {
-                    buffer.Append("StructuredBuffer<Attribute");
-                    buffer.Append(attribBuffer.Index);
-                    buffer.Append("> attribBuffer");
-                    buffer.Append(attribBuffer.Index);
-                    buffer.AppendLine("_RO;");
+                    builder.Write("StructuredBuffer<Attribute");
+                    builder.Write(attribBuffer.Index);
+                    builder.Write("> attribBuffer");
+                    builder.Write(attribBuffer.Index);
+                    builder.WriteLine("_RO;");
                 }
             }
             if (data.attributeBuffers.Count > 0)
-                buffer.AppendLine();
+                builder.WriteLine();
 
             // Write deadlists
             if (data.hasKill)
             {
-                buffer.AppendLine("RWStructuredBuffer<int> flags;");
-                buffer.AppendLine("ConsumeStructuredBuffer<uint> deadListIn;");
-                buffer.AppendLine("AppendStructuredBuffer<uint> deadListOut;");
-                buffer.AppendLine();
+                builder.WriteLine("RWStructuredBuffer<int> flags;");
+                builder.WriteLine("ConsumeStructuredBuffer<uint> deadListIn;");
+                builder.WriteLine("AppendStructuredBuffer<uint> deadListOut;");
+                builder.WriteLine("Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB");
+                builder.WriteLine();
             }
 
             // Write functions
             if (data.hasRand)
             {
-                buffer.AppendLine("float rand(inout uint seed)");
-                buffer.AppendLine("{");
-                buffer.AppendLine("\tseed = 1664525 * seed + 1013904223;");
-                buffer.AppendLine("\treturn float(seed) / 4294967296.0;");
-                buffer.AppendLine("}");
-                buffer.AppendLine();
+                builder.WriteLine("float rand(inout uint seed)");
+                builder.EnterScope();
+                builder.WriteLine("seed = 1664525 * seed + 1013904223;");
+                builder.WriteLine("return float(seed) / 4294967296.0;");
+                builder.ExitScope();
+                builder.WriteLine();
 
-                // XOR Style
-              /*  buffer.AppendLine("float rand(inout uint seed)");
-                buffer.AppendLine("{");
-                buffer.AppendLine("\tseed ^= (seed << 13);");
-                buffer.AppendLine("\tseed ^= (seed >> 17);");
-                buffer.AppendLine("\tseed ^= (seed << 5);");
-                buffer.AppendLine("\treturn float(seed) / 4294967296.0;");
-                buffer.AppendLine("}");
-                buffer.AppendLine();*/
+                // XOR Style 
+                /*
+                builder.WriteLine("float rand(inout uint seed)");
+                builder.EnterScope();
+                builder.WriteLine("seed ^= (seed << 13);");
+                builder.WriteLine("seed ^= (seed >> 17);");
+                builder.WriteLine("seed ^= (seed << 5);");
+                builder.WriteLine("return float(seed) / 4294967296.0;");
+                builder.ExitScope();
+                builder.WriteLine();
+                */
             }
 
             var functionNames = new Dictionary<Hash128,string>();
             foreach (var block in data.initBlocks)
-                buffer.WriteFunction(block, functionNames);
+                builder.WriteFunction(block, functionNames);
             foreach (var block in data.updateBlocks)
-                buffer.WriteFunction(block, functionNames);
+                builder.WriteFunction(block, functionNames);
 
             bool HasPhaseShift = VFXEditor.AssetModel.PhaseShift;
 
             // Write init kernel
             if (hasInit)
             {
-                buffer.WriteKernelHeader("CSVFXInit");
-                buffer.AppendLine("\tif (id.x < nbSpawned)");
-                buffer.AppendLine("\t{");
+                builder.WriteKernelHeader("CSVFXInit");
                 if (data.hasKill)
-                    buffer.AppendLine("\t\tuint index = deadListIn.Consume();");
+                    builder.WriteLine("if (id.x < min(nbSpawned,deadListCount[0]))");
                 else
-                    buffer.AppendLine("\t\tuint index = id.x; // TODO Not working! Needs to add the current count as offset");
-                buffer.AppendLine();
+                    builder.WriteLine("if (id.x < nbSpawned)");
+                builder.EnterScope();
+                if (data.hasKill)
+                    builder.WriteLine("uint index = deadListIn.Consume();");
+                else
+                    builder.WriteLine("uint index = id.x + spawnIndex;");
+                builder.WriteLine();
 
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
-                    buffer.Append("\t\tAttribute");
-                    buffer.Append(attribBuffer.Index);
-                    buffer.Append(" attrib");
-                    buffer.Append(attribBuffer.Index);              
+                    builder.Write("Attribute");
+                    builder.Write(attribBuffer.Index);
+                    builder.Write(" attrib");
+                    builder.Write(attribBuffer.Index);              
 
                     // TODO tmp
                     // Initialize to avoid warning as error while compiling
-                    buffer.Append(" = (Attribute");
-                    buffer.Append(attribBuffer.Index);
-                    buffer.AppendLine(")0;");
+                    builder.Write(" = (Attribute");
+                    builder.Write(attribBuffer.Index);
+                    builder.WriteLine(")0;");
                 }
-                buffer.AppendLine();
+                builder.WriteLine();
 
                 // Init random
                 if (data.hasRand)
                 {
                     // Find rand attribute
-                    buffer.AppendLine("\t\tuint seed = id.x + spawnIndex;");
-                    buffer.AppendLine("\t\tseed = (seed ^ 61) ^ (seed >> 16);");
-                    buffer.AppendLine("\t\tseed *= 9;");
-                    buffer.AppendLine("\t\tseed = seed ^ (seed >> 4);");
-                    buffer.AppendLine("\t\tseed *= 0x27d4eb2d;");
-                    buffer.AppendLine("\t\tseed = seed ^ (seed >> 15);");
-                    buffer.Append("\t\t");
-                    buffer.WriteAttrib(CommonAttrib.Seed, data);      
-                    buffer.AppendLine(" = seed;");       
-                    buffer.AppendLine();
+                    builder.WriteLine("uint seed = id.x + spawnIndex;");
+                    builder.WriteLine("seed = (seed ^ 61) ^ (seed >> 16);");
+                    builder.WriteLine("seed *= 9;");
+                    builder.WriteLine("seed = seed ^ (seed >> 4);");
+                    builder.WriteLine("seed *= 0x27d4eb2d;");
+                    builder.WriteLine("seed = seed ^ (seed >> 15);");
+                    builder.WriteAttrib(CommonAttrib.Seed, data);
+                    builder.WriteLine(" = seed;");
+                    builder.WriteLine();
                 }
 
                 // Init phase
                 if (HasPhaseShift)
                 {
-                    buffer.Append("\t\t");
-                    buffer.WriteAttrib(CommonAttrib.Phase, data);
-                    buffer.Append(" = rand(");
-                    buffer.WriteAttrib(CommonAttrib.Seed, data);
-                    buffer.AppendLine(");");
-                    buffer.AppendLine();
+                    builder.WriteAttrib(CommonAttrib.Phase, data);
+                    builder.Write(" = rand(");
+                    builder.WriteAttrib(CommonAttrib.Seed, data);
+                    builder.WriteLine(");");
+                    builder.WriteLine();
                 }
 
-                initGenerator.WritePreBlock(buffer, data);
+                initGenerator.WritePreBlock(builder, data);
                 
                 foreach (var block in data.initBlocks)
-                    buffer.WriteFunctionCall(block, functionNames, data);
-                buffer.AppendLine();
+                    builder.WriteFunctionCall(block, functionNames, data);
+                builder.WriteLine();
 
-                initGenerator.WritePostBlock(buffer, data);
+                initGenerator.WritePostBlock(builder, data);
 
                 // Remove phase shift
                 if (HasPhaseShift)
                 {
-                    buffer.WriteRemovePhaseShift(data);
-                    buffer.AppendLine();
+                    builder.WriteRemovePhaseShift(data);
+                    builder.WriteLine();
                 }
 
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
-                    buffer.Append("\t\tattribBuffer");
-                    buffer.Append(attribBuffer.Index);
-                    buffer.Append("[index] = attrib");
-                    buffer.Append(attribBuffer.Index);
-                    buffer.AppendLine(";");
+                    builder.Write("attribBuffer");
+                    builder.Write(attribBuffer.Index);
+                    builder.Write("[index] = attrib");
+                    builder.Write(attribBuffer.Index);
+                    builder.WriteLine(";");
                 }
 
                 if (data.hasKill)
                 {
-                    buffer.AppendLine();
-                    buffer.AppendLine("\t\tflags[index] = 1;");
+                    builder.WriteLine();
+                    builder.WriteLine("flags[index] = 1;");
                 }
 
-                buffer.AppendLine("\t}");
-                buffer.AppendLine("}");
-                buffer.AppendLine();
+                builder.ExitScope();
+                builder.ExitScope();
+                builder.WriteLine();
             }
 
             // Write update kernel
             if (hasUpdate)
             {
-                buffer.WriteKernelHeader("CSVFXUpdate");
+                builder.WriteKernelHeader("CSVFXUpdate");
 
-                buffer.Append("\tif (id.x < nbMax");
+                builder.Write("if (id.x < nbMax");
                 if (data.hasKill)
-                    buffer.AppendLine(" && flags[id.x] == 1)");
+                    builder.WriteLine(" && flags[id.x] == 1)");
                 else
-                    buffer.AppendLine(")");
-                buffer.AppendLine("\t{");
-                buffer.AppendLine("\t\tuint index = id.x;");
+                    builder.WriteLine(")");
+                builder.EnterScope();
+                builder.WriteLine("uint index = id.x;");
 
                 if (data.hasKill)
-                    buffer.AppendLine("\t\tbool kill = false;");
-                
-                buffer.AppendLine();
+                    builder.WriteLine("bool kill = false;");
+
+                builder.WriteLine();
          
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
                     if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
                     {
-                        buffer.Append("\t\tAttribute");
-                        buffer.Append(attribBuffer.Index);
-                        buffer.Append(" attrib");
-                        buffer.Append(attribBuffer.Index);
-                        buffer.Append(" = attribBuffer");
-                        buffer.Append(attribBuffer.Index);
+                        builder.Write("Attribute");
+                        builder.Write(attribBuffer.Index);
+                        builder.Write(" attrib");
+                        builder.Write(attribBuffer.Index);
+                        builder.Write(" = attribBuffer");
+                        builder.Write(attribBuffer.Index);
                         if (!attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
-                            buffer.Append("_RO");
-                        buffer.AppendLine("[index];");
+                            builder.Write("_RO");
+                        builder.WriteLine("[index];");
                     }
                 }
-                buffer.AppendLine();
+                builder.WriteLine();
 
                 // Add phase shift
                 if (HasPhaseShift)
                 {
-                    buffer.WriteAddPhaseShift(data);
-                    buffer.AppendLine();
+                    builder.WriteAddPhaseShift(data);
+                    builder.WriteLine();
                 }
 
-                updateGenerator.WritePreBlock(buffer, data);
+                updateGenerator.WritePreBlock(builder, data);
 
                 foreach (var block in data.updateBlocks)
-                    buffer.WriteFunctionCall(block, functionNames, data);
-                buffer.AppendLine();
+                    builder.WriteFunctionCall(block, functionNames, data);
+                builder.WriteLine();
 
-                updateGenerator.WritePostBlock(buffer, data);
+                updateGenerator.WritePostBlock(builder, data);
 
                 // Remove phase shift
                 if (HasPhaseShift)
                 {
-                    buffer.WriteRemovePhaseShift(data);
-                    buffer.AppendLine();
+                    builder.WriteRemovePhaseShift(data);
+                    builder.WriteLine();
                 }
 
                 if (data.hasKill)
                 {
-                    buffer.AppendLine("\t\tif (kill)");
-                    buffer.AppendLine("\t\t{");
-                    buffer.AppendLine("\t\t\tflags[index] = 0;");
-                    buffer.AppendLine("\t\t\tdeadListOut.Append(index);");
-                    buffer.AppendLine("\t\t\treturn;");
-                    buffer.AppendLine("\t\t}");
-                    buffer.AppendLine();
+                    builder.WriteLine("if (kill)");
+                    builder.EnterScope();
+                    builder.WriteLine("flags[index] = 0;");
+                    builder.WriteLine("deadListOut.Append(index);");
+                    builder.WriteLine("return;");
+                    builder.ExitScope();
+                    builder.WriteLine();
                 }
 
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
                     if (attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
                     {
-                        buffer.Append("\t\tattribBuffer");
-                        buffer.Append(attribBuffer.Index);
-                        buffer.Append("[index] = attrib");
-                        buffer.Append(attribBuffer.Index);
-                        buffer.AppendLine(";");
+                        builder.Write("attribBuffer");
+                        builder.Write(attribBuffer.Index);
+                        builder.Write("[index] = attrib");
+                        builder.Write(attribBuffer.Index);
+                        builder.WriteLine(";");
                     }
                 }
 
-                buffer.AppendLine("\t}");
-                buffer.AppendLine("}");
-                buffer.AppendLine();
+                builder.ExitScope();
+                builder.ExitScope();
+                builder.WriteLine();
             }
 
-            return buffer.ToString();
+            return builder.ToString();
         }
 
         private static string WriteOutputShader(ShaderMetaData data,VFXOutputShaderGeneratorModule outputGenerator)
         {
-            StringBuilder builder = new StringBuilder();
+            ShaderSourceBuilder builder = new ShaderSourceBuilder();
 
-            builder.AppendLine("Shader \"Custom/PointShader\"");
-            builder.AppendLine("{");
-            builder.AppendLine("\tSubShader");
-            builder.AppendLine("\t{");
+            builder.WriteLine("Shader \"Custom/PointShader\""); // TODO Rename that
+            builder.EnterScope();
+            builder.WriteLine("SubShader");
+            builder.EnterScope();
 
             BlendMode blendMode = VFXEditor.AssetModel.BlendingMode;
 
             if (blendMode != BlendMode.kMasked)
-                builder.AppendLine("\t\tTags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
-            builder.AppendLine("\t\tPass");
-            builder.AppendLine("\t\t{");
+                builder.WriteLine("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+            builder.WriteLine("Pass");
+            builder.EnterScope();
             if (blendMode == BlendMode.kAdditive)
-                builder.AppendLine("\t\tBlend SrcAlpha One");
+                builder.WriteLine("Blend SrcAlpha One");
             else if (blendMode == BlendMode.kAlpha)
-                 builder.AppendLine("\t\tBlend SrcAlpha OneMinusSrcAlpha");
-            builder.AppendLine("\t\tZTest LEqual");
+                builder.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
+            builder.WriteLine("ZTest LEqual");
             if (blendMode == BlendMode.kMasked)
-                builder.AppendLine("\t\tZWrite On");
+                builder.WriteLine("ZWrite On");
             else
-                builder.AppendLine("\t\tZWrite Off");
-            builder.AppendLine("\t\t\tCGPROGRAM");
-            builder.AppendLine("\t\t\t#pragma target 5.0");
-            builder.AppendLine();
-            builder.AppendLine("\t\t\t#pragma vertex vert");
-            builder.AppendLine("\t\t\t#pragma fragment frag");
-            builder.AppendLine();
-            builder.AppendLine("\t\t\t#include \"UnityCG.cginc\"");
-            builder.AppendLine();
+                builder.WriteLine("ZWrite Off");
+            builder.WriteLine("CGPROGRAM");
+            builder.WriteLine("#pragma target 5.0");
+            builder.WriteLine();
+            builder.WriteLine("#pragma vertex vert");
+            builder.WriteLine("#pragma fragment frag");
+            builder.WriteLine();
+            builder.WriteLine("#include \"UnityCG.cginc\"");
+            builder.WriteLine();
 
             builder.WriteCBuffer("outputUniforms", data.outputUniforms, data.outputParamToName);
             builder.WriteSamplers(data.outputSamplers, data.outputParamToName);
@@ -994,116 +994,117 @@ namespace UnityEditor.Experimental
             foreach (AttributeBuffer buffer in data.attributeBuffers)
                 if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
                 {
-                    builder.Append("\t\t\tStructuredBuffer<Attribute");
-                    builder.Append(buffer.Index);
-                    builder.Append("> attribBuffer");
-                    builder.Append(buffer.Index);
-                    builder.AppendLine(";");
+                    builder.Write("StructuredBuffer<Attribute");
+                    builder.Write(buffer.Index);
+                    builder.Write("> attribBuffer");
+                    builder.Write(buffer.Index);
+                    builder.WriteLine(";");
                 }
 
             if (data.hasKill)
-                builder.AppendLine("\t\t\tStructuredBuffer<int> flags;");
+                builder.WriteLine("StructuredBuffer<int> flags;");
 
-            builder.AppendLine();
-            builder.AppendLine("\t\t\tstruct ps_input {");
-            builder.AppendLine("\t\t\t\tfloat4 pos : SV_POSITION;");
+            builder.WriteLine();
+            builder.WriteLine("struct ps_input");
+            builder.EnterScope();
+            builder.WriteLine("float4 pos : SV_POSITION;");
 
             bool hasColor = data.attribToBuffer.ContainsKey(CommonAttrib.Color);
             bool hasAlpha = data.attribToBuffer.ContainsKey(CommonAttrib.Alpha);
 
             if (hasColor || hasAlpha)
-                builder.AppendLine("\t\t\t\tnointerpolation float4 col : COLOR0;");
+                builder.WriteLine("nointerpolation float4 col : COLOR0;");
 
             outputGenerator.WriteAdditionalVertexOutput(builder, data);
 
-            builder.AppendLine("\t\t\t};");
-            builder.AppendLine();
-            builder.AppendLine("\t\t\tps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)");
-            builder.AppendLine("\t\t\t{");
-            builder.AppendLine("\t\t\t\tps_input o;");
+            builder.ExitScopeStruct();
+            builder.WriteLine();
+            builder.WriteLine("ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)");
+            builder.EnterScope();
+            builder.WriteLine("ps_input o;");
 
             outputGenerator.WriteIndex(builder, data);
 
             if (data.hasKill)
             {
-                builder.AppendLine("\t\t\t\tif (flags[index] == 1)");
-                builder.AppendLine("\t\t\t\t{");
+                builder.WriteLine("if (flags[index] == 1)");
+                builder.EnterScope();
             }
 
             foreach (var buffer in data.attributeBuffers)
                 if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
                 {
-                    builder.Append("\t\t\t\t\tAttribute");
-                    builder.Append(buffer.Index);
-                    builder.Append(" attrib");
-                    builder.Append(buffer.Index);
-                    builder.Append(" = attribBuffer");
-                    builder.Append(buffer.Index);
-                    builder.AppendLine("[index];");
+                    builder.Write("Attribute");
+                    builder.Write(buffer.Index);
+                    builder.Write(" attrib");
+                    builder.Write(buffer.Index);
+                    builder.Write(" = attribBuffer");
+                    builder.Write(buffer.Index);
+                    builder.WriteLine("[index];");
                 }
-            builder.AppendLine();
+            builder.WriteLine();
 
             outputGenerator.WritePreBlock(builder, data);
             outputGenerator.WritePostBlock(builder, data);
 
             if (hasColor || hasAlpha)
             {
-                builder.Append("\t\t\t\t\to.col = float4(");
+                builder.Write("o.col = float4(");
 
                 if (hasColor)
                 {
                     builder.WriteAttrib(CommonAttrib.Color, data);
-                    builder.Append(".xyz,");
+                    builder.Write(".xyz,");
                 }
                 else
-                    builder.Append("1.0,1.0,1.0,");
+                    builder.Write("1.0,1.0,1.0,");
 
                 if (hasAlpha)
                 {
                     builder.WriteAttrib(CommonAttrib.Alpha, data);
-                    builder.AppendLine(");");
+                    builder.WriteLine(");");
                 }
                 else
-                    builder.AppendLine("0.5);");
+                    builder.WriteLine("0.5);");
             }
 
             if (data.hasKill)
             {
                 // clip the vertex if not alive
-                builder.AppendLine("\t\t\t\t}");
-                builder.AppendLine("\t\t\t\telse");
-                builder.AppendLine("\t\t\t\t{");
-                builder.AppendLine("\t\t\t\t\to.pos = -1.0;");
+                builder.ExitScope();
+                builder.WriteLine("else");
+                builder.EnterScope();
+                builder.WriteLine("o.pos = -1.0;");
 
                 if (hasColor)
-                    builder.AppendLine("\t\t\t\t\to.col = 0;");
+                    builder.WriteLine("o.col = 0;");
 
-                builder.AppendLine("\t\t\t\t}");
-                builder.AppendLine();
+                builder.ExitScope();
+                builder.WriteLine();
             }
 
-            builder.AppendLine("\t\t\t\treturn o;");
-            builder.AppendLine("\t\t\t}");
-            builder.AppendLine();
-            builder.AppendLine("\t\t\tfloat4 frag (ps_input i) : COLOR");
-            builder.AppendLine("\t\t\t{");
+            builder.WriteLine("return o;");
+            builder.ExitScope();
+            builder.WriteLine();
+            builder.WriteLine("float4 frag (ps_input i) : COLOR");
+            builder.EnterScope();
 
             if (hasColor || hasAlpha)
-                builder.AppendLine("\t\t\t\tfloat4 color = i.col;");
+                builder.WriteLine("float4 color = i.col;");
             else
-                builder.AppendLine("\t\t\t\tfloat4 color = float4(1.0,1.0,1.0,0.5);");
+                builder.WriteLine("float4 color = float4(1.0,1.0,1.0,0.5);");
 
             outputGenerator.WritePixelShader(builder, data);
 
-            builder.AppendLine("\t\t\t\treturn color;");
+            builder.WriteLine("return color;");
 
-            builder.AppendLine("\t\t\t}");
-            builder.AppendLine();
-            builder.AppendLine("\t\t\tENDCG");
-            builder.AppendLine("\t\t}");
-            builder.AppendLine("\t}");
-            builder.AppendLine("\tFallBack Off");
-            builder.AppendLine("}");
+            builder.ExitScope();
+            builder.WriteLine();
+            builder.WriteLine("ENDCG");
+            builder.ExitScope();
+            builder.ExitScope();
+            builder.WriteLine("FallBack Off");
+            builder.ExitScope();
 
             return builder.ToString();
         }

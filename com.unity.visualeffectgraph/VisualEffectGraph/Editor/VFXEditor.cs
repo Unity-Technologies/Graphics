@@ -405,29 +405,63 @@ namespace UnityEditor.Experimental
             ClearLog();
         }
 
+        private void SetPlayRate(object rate)
+        {
+            AssetModel.component.playRate = (float)rate;
+        }
+
         void DrawToolbar(Rect rect)
         {
             GUI.BeginGroup(rect);
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-            // TODO : Add ifs to control effect
-            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton);
-            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.toolbarButton);
-            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
-            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.toolbarButton);
-            GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.toolbarButton);
+            bool InvalidateSystems = false;
+
+            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton))
+            {
+                AssetModel.component.pause = false;
+                InvalidateSystems = true;
+            }
+
+            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.toolbarButton))
+            {
+                AssetModel.component.pause = false;
+            }
+
+            AssetModel.component.pause = GUILayout.Toggle(AssetModel.component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
+
+            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.toolbarButton))
+            {
+                AssetModel.component.pause = true;
+                InvalidateSystems = true;
+            }
+
+            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.toolbarButton))
+            {
+                AssetModel.component.pause = true;
+                AssetModel.component.AdvanceOneFrame();
+            }
+
             if (GUILayout.Button("PlayRate", EditorStyles.toolbarDropDown))
             {
                 GenericMenu toolsMenu = new GenericMenu();
-                // TODO : Change null's to callbacks to set playrate
-                toolsMenu.AddItem(new GUIContent("100% (RealTime)"),false, null);
-                toolsMenu.AddItem(new GUIContent("50%" ),false, null);
-                toolsMenu.AddItem(new GUIContent("25%"),false, null);
-                toolsMenu.AddItem(new GUIContent("10%"),false, null);
-                toolsMenu.AddItem(new GUIContent("1%"),false, null);
+                float rate = AssetModel.component.playRate;
+                toolsMenu.AddItem(new GUIContent("800%"), rate == 8.0f, SetPlayRate, 8.0f);
+                toolsMenu.AddItem(new GUIContent("200%"), rate == 2.0f, SetPlayRate, 2.0f);
+                toolsMenu.AddItem(new GUIContent("100% (RealTime)"), rate == 1.0f, SetPlayRate, 1.0f);
+                toolsMenu.AddItem(new GUIContent("50%"), rate == 0.5f, SetPlayRate, 0.5f);
+                toolsMenu.AddItem(new GUIContent("25%"), rate == 0.25f, SetPlayRate, 0.25f);
+                toolsMenu.AddItem(new GUIContent("10%"), rate == 0.1f, SetPlayRate, 0.1f);
+                toolsMenu.AddItem(new GUIContent("1%"), rate == 0.01f, SetPlayRate, 0.01f);
 
                 toolsMenu.DropDown(new Rect(0, 0, 0, 16));
                 EditorGUIUtility.ExitGUI();
+            }
+
+            if (InvalidateSystems)
+            {
+                for (int i = 0; i < AssetModel.GetNbChildren(); ++i)
+                    AssetModel.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);
             }
 
             GUILayout.FlexibleSpace();

@@ -280,4 +280,242 @@
       </DataConnection>
     </Connections>
   </Template>
+  <Template Category="test" Name="testoverflow">
+    <System SpawnRate="100000" AllocationCount="150000" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_3" Context="Initialize">
+        <Context />
+        <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.025" />
+        </NodeBlock>
+        <NodeBlock Name="Set Color (Constant)" BlockName="Set Color (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat3" Value="0.5,0.25,0.125" />
+        </NodeBlock>
+        <NodeBlock Name="Set Position (Sphere Surface)" BlockName="Set Position (Sphere Surface)">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="1" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="3" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Random)" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0.1,0.1,0.1" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_4" Context="Particle Update">
+        <Context />
+        <NodeBlock Name="Height Over Velocity" BlockName="Height Over Velocity">
+          <VFXParamValue Name="multiplier" Type="kTypeFloat" Value="0.57" />
+        </NodeBlock>
+        <NodeBlock Name="Alpha Over Lifetime" BlockName="Alpha Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat" Value="0.1" />
+          <VFXParamValue Name="end" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_5" Context="Quad Along Velocity Output">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="0,0" />
+        </Context>
+      </Node>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_3" Next="VFXEdContextNode_4" />
+      <FlowConnection Previous="VFXEdContextNode_4" Next="VFXEdContextNode_5" />
+    </Connections>
+  </Template>
+  <Template Category="test" Name="conformsphere">
+    <System SpawnRate="104857.6" AllocationCount="1048576" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_11" Context="Initialize">
+        <Context />
+        <NodeBlock Name="Set flipbook Index (Random)" BlockName="Set flipbook Index (Random)">
+          <VFXParamValue Name="value1" Type="kTypeFloat" Value="0" />
+          <VFXParamValue Name="value2" Type="kTypeFloat" Value="4" />
+        </NodeBlock>
+        <NodeBlock Name="Set Position (Sphere)" BlockName="Set Position (Sphere)">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="0.2" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Spherical)" BlockName="Set Velocity (Spherical)">
+          <VFXParamValue Name="angle" Type="kTypeFloat2" Value="20,22" />
+          <VFXParamValue Name="speed" Type="kTypeFloat2" Value="1,1" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.02" />
+        </NodeBlock>
+        <NodeBlock Name="Set Alpha (Random)" BlockName="Set Alpha (Random)">
+          <VFXParamValue Name="value1" Type="kTypeFloat" Value="0.1" />
+          <VFXParamValue Name="value2" Type="kTypeFloat" Value="0.2" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="5" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_12" Context="Particle Update">
+        <Context />
+        <NodeBlock Name="Conform To Sphere" BlockName="Conform To Sphere">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="0" />
+          <VFXParamValue Name="attractionSpeed" Type="kTypeFloat" Value="5" />
+          <VFXParamValue Name="attractionForce" Type="kTypeFloat" Value="5" />
+          <VFXParamValue Name="stickForce" Type="kTypeFloat" Value="50" />
+          <VFXParamValue Name="stickDistance" Type="kTypeFloat" Value="0.1" />
+        </NodeBlock>
+        <NodeBlock Name="Color Over Lifetime" BlockName="Color Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat3" Value="0.8,0,0" />
+          <VFXParamValue Name="end" Type="kTypeFloat3" Value="0.5,0.5,0" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Force" BlockName="Apply Force">
+          <VFXParamValue Name="force" Type="kTypeFloat3" Value="0,-1,0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_13" Context="Billboard Output">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/FronMuzzle_4x1.psd" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="4,1" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_14" Exposed="False">
+        <DataNodeBlock Name="Sphere" BlockName="Sphere" ExposedName="Sphere">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="-1.557036,-1.032026,2.101723" />
+          <VFXParamValue Name="Radius" Type="kTypeFloat" Value="1.184961" />
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_11" Next="VFXEdContextNode_12" />
+      <FlowConnection Previous="VFXEdContextNode_12" Next="VFXEdContextNode_13" />
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_14" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="VFXEdContextNode_12" NodeBlockIndex="0" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_14" NodeBlockIndex="0" ParamName="Radius" />
+        <Output ContextNode="VFXEdContextNode_12" NodeBlockIndex="0" ParamName="radius" />
+      </DataConnection>
+    </Connections>
+  </Template>
+  <Template Category="test" Name="conformsphere2">
+    <System SpawnRate="104857.6" AllocationCount="1048576" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_6" Context="Initialize">
+        <Context />
+        <NodeBlock Name="Set Position (Sphere)" BlockName="Set Position (Sphere)">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="0.2" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Spherical)" BlockName="Set Velocity (Spherical)">
+          <VFXParamValue Name="angle" Type="kTypeFloat2" Value="20,22" />
+          <VFXParamValue Name="speed" Type="kTypeFloat2" Value="1,1" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.01" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="5" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_7" Context="Particle Update">
+        <Context />
+        <NodeBlock Name="Conform To Sphere" BlockName="Conform To Sphere">
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="radius" Type="kTypeFloat" Value="0" />
+          <VFXParamValue Name="attractionSpeed" Type="kTypeFloat" Value="2" />
+          <VFXParamValue Name="attractionForce" Type="kTypeFloat" Value="5" />
+          <VFXParamValue Name="stickForce" Type="kTypeFloat" Value="30" />
+          <VFXParamValue Name="stickDistance" Type="kTypeFloat" Value="0.1" />
+        </NodeBlock>
+        <NodeBlock Name="Alpha Over Lifetime" BlockName="Alpha Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat" Value="0.1" />
+          <VFXParamValue Name="end" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+        <NodeBlock Name="Height Over Velocity" BlockName="Height Over Velocity">
+          <VFXParamValue Name="multiplier" Type="kTypeFloat" Value="0.05" />
+        </NodeBlock>
+        <NodeBlock Name="Color Over Lifetime (Texture)" BlockName="Color Over Lifetime (Texture)">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/Ramps/Ramp_OL_ElectricBlue.psd" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Force" BlockName="Apply Force">
+          <VFXParamValue Name="force" Type="kTypeFloat3" Value="0,-1,0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_8" Context="Quad Along Velocity Output">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="0,0" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_9" Exposed="False">
+        <DataNodeBlock Name="Sphere" BlockName="Sphere" ExposedName="Sphere">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="Radius" Type="kTypeFloat" Value="1" />
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_6" Next="VFXEdContextNode_7" />
+      <FlowConnection Previous="VFXEdContextNode_7" Next="VFXEdContextNode_8" />
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_9" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="VFXEdContextNode_7" NodeBlockIndex="0" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_9" NodeBlockIndex="0" ParamName="Radius" />
+        <Output ContextNode="VFXEdContextNode_7" NodeBlockIndex="0" ParamName="radius" />
+      </DataConnection>
+    </Connections>
+  </Template>
+  <Template Category="test" Name="flipbook">
+    <System SpawnRate="1000" AllocationCount="5000" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_0" Context="Initialize">
+        <Context />
+        <NodeBlock Name="Set flipbook Index (Random)" BlockName="Set flipbook Index (Random)">
+          <VFXParamValue Name="value1" Type="kTypeFloat" Value="0" />
+          <VFXParamValue Name="value2" Type="kTypeFloat" Value="64" />
+        </NodeBlock>
+        <NodeBlock Name="Set Angle (Random)" BlockName="Set Angle (Random)">
+          <VFXParamValue Name="value1" Type="kTypeFloat" Value="0" />
+          <VFXParamValue Name="value2" Type="kTypeFloat" Value="360" />
+        </NodeBlock>
+        <NodeBlock Name="Set Size Random (Square)" BlockName="Set Size Random (Square)">
+          <VFXParamValue Name="minSize" Type="kTypeFloat" Value="0.01" />
+          <VFXParamValue Name="maxSize" Type="kTypeFloat" Value="0.1" />
+        </NodeBlock>
+        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="5" />
+        </NodeBlock>
+        <NodeBlock Name="Set Velocity (Spherical)" BlockName="Set Velocity (Spherical)">
+          <VFXParamValue Name="angle" Type="kTypeFloat2" Value="20,20" />
+          <VFXParamValue Name="speed" Type="kTypeFloat2" Value="1,1.2" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_1" Context="Particle Update">
+        <Context />
+        <NodeBlock Name="Collision with Plane" BlockName="Collision with Plane">
+          <VFXParamValue Name="normal" Type="kTypeFloat3" Value="0,1,0" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,-0.1,0" />
+          <VFXParamValue Name="elasticity" Type="kTypeFloat" Value="0.2" />
+        </NodeBlock>
+        <NodeBlock Name="Animate flipbook (Random)" BlockName="Animate flipbook (Random)">
+          <VFXParamValue Name="speed" Type="kTypeFloat" Value="10" />
+        </NodeBlock>
+        <NodeBlock Name="Apply Force" BlockName="Apply Force">
+          <VFXParamValue Name="force" Type="kTypeFloat3" Value="0,-0.5,0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_2" Context="Billboard Output">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/DebRock_8x8.psd" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="8,8" />
+        </Context>
+      </Node>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
+      <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
+    </Connections>
+  </Template>
 </Library>
