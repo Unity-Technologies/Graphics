@@ -382,7 +382,11 @@ namespace UnityEditor.Experimental
         // THOMASI : Getting drawable area for nested elements
         public Rect GetDrawableRect()
         {
-            if (parent is Canvas2D)
+            if (parent == null)
+            {
+                return new Rect(translation.x, translation.y, scale.x, scale.y);
+            }
+            else if (parent is Canvas2D)
             {
                 return new Rect(0, 0, scale.x, scale.y);
             }
@@ -423,7 +427,11 @@ namespace UnityEditor.Experimental
         public virtual void DebugDraw()
         {
             // THOMASI : Modified Debug Opacity for better readability while displaying more stacked elements.
-            Handles.DrawSolidRectangleWithOutline(canvasBoundingRect, new Color(1.0f, 0.0f, 0.0f, 0.1f), new Color(1.0f, 0.0f, 0.0f, 0.4f));
+            Color c = new Color(1.0f, 0.0f, 0.0f, 0.1f);
+            if (m_Dirty) c = new Color(1.0f, 0.0f, 1.0f, 0.1f);
+            Color o = c;
+            o.a = 0.2f;
+            Handles.DrawSolidRectangleWithOutline(canvasBoundingRect, c, o);
             foreach (CanvasElement e in m_Children)
             {
                 e.DebugDraw();
@@ -469,12 +477,11 @@ namespace UnityEditor.Experimental
         public virtual void SetParent(CanvasElement e)
         {
             CanvasElement p = parent;
-            e.AddChild(this);
 
             if (p != null)
                 p.RemoveChild(this);
 
-
+            e.AddChild(this);
         }
         // END THOMASI
         // THOMASI : REMOVE ALL CHILDREN
@@ -489,16 +496,6 @@ namespace UnityEditor.Experimental
             return this;
         }
 
-        // END THOMASI
-        // THOMASI : REMOVING CHILD ELEMENT
-        public virtual void RemoveChild(CanvasElement e)
-        {
-            if (m_Children.Contains(e))
-            {
-                m_Children.Remove(e);
-            }
-
-        }
         // END THOMASI
 
         public virtual void Layout()
@@ -569,7 +566,9 @@ namespace UnityEditor.Experimental
                         r.y += (parent.clientRect.y);
                     }
 
+                    GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
                     Graphics.DrawTexture(r, e.texture, new Rect(uvMin, uvMax), 0, 0, 0, 0);
+                    GL.sRGBWrite = false;
                 }
                 else
                     e.Render(thisRect, parent);
