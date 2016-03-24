@@ -8,14 +8,12 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdNodeBlockDraggable : VFXEdNodeBlock
+    internal abstract class VFXEdNodeBlockDraggable : VFXEdNodeBlock
     {
-        private NodeBlockManipulator m_NodeBlockManipulator;
 
         public VFXEdNodeBlockDraggable(VFXEdDataSource dataSource) : base(dataSource)
         {
-            m_NodeBlockManipulator = new NodeBlockManipulator(this);
-            AddManipulator(m_NodeBlockManipulator);
+            AddManipulator(new NodeBlockManipulator(this));
             AddManipulator(new NodeBlockDelete());
         }
 

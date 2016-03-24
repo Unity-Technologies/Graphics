@@ -13,11 +13,13 @@ namespace UnityEditor.Experimental
         public string name{ get { return m_Name; } }
         protected string m_Name;
 
+        public ScriptableObject editingDataContainer;
+        public VFXEdEditingWidget editingWidget;
+
         public VFXEdNodeBlockParameterField[] Fields { get { return m_Fields; } }
         protected VFXEdNodeBlockParameterField[] m_Fields;
 
         protected VFXEdDataSource m_DataSource;
-
 
         public VFXEdNodeBlock(VFXEdDataSource dataSource)
         {
@@ -26,6 +28,9 @@ namespace UnityEditor.Experimental
             m_Caps = Capabilities.Normal;
 
         }
+
+        public abstract VFXParamValue GetParamValue(string ParamName);
+        public abstract void SetParamValue(string name, VFXParamValue value);
 
         public VFXEdNodeBlockParameterField GetField(string name)
         {

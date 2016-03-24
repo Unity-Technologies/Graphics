@@ -149,7 +149,7 @@ namespace UnityEditor.Experimental
 
                         foreach (KeyValuePair<string, VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
                         {
-                            block.SetParameterValue(param_kvp.Key, param_kvp.Value);
+                            block.SetParamValue(param_kvp.Key, param_kvp.Value);
                         }
                         node.NodeBlockContainer.AddNodeBlock(block);
                     }
@@ -190,7 +190,7 @@ namespace UnityEditor.Experimental
 
                     foreach (KeyValuePair <string,VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
                     {
-                        block.SetParametervalue(param_kvp.Key, param_kvp.Value);
+                        block.SetParamValue(param_kvp.Key, param_kvp.Value);
                     }
 
                 }

@@ -14,6 +14,8 @@ namespace UnityEditor.Experimental
         public VFXContextModel Model { get { return m_Model; } }
         private VFXEdNodeBlockHeader m_Header;
         private VFXParamValue[] m_ParamValues;
+        private VFXParam[] m_Params;
+
         private VFXContextModel m_Model;
 
         public VFXEdContextNodeBlock(VFXEdDataSource dataSource, VFXContextModel model)
@@ -21,6 +23,7 @@ namespace UnityEditor.Experimental
         {
             m_Model = model;
             VFXContextDesc desc = m_Model.Desc;
+            m_Params = desc.m_Params;
 
             m_DataSource = dataSource;
             translation = Vector3.zero; 
@@ -73,6 +76,8 @@ namespace UnityEditor.Experimental
             }
         }
 
+
+
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             Rect r = GetDrawableRect();
@@ -91,5 +96,29 @@ namespace UnityEditor.Experimental
         {
             return VFXEditor.styles.DataNodeBlock;
         }
+
+        public override VFXParamValue GetParamValue(string ParamName)
+        {
+            for(int i = 0; i < m_Params.Length; i++)
+            {
+                if(m_Params[i].m_Name == name)
+                {
+                   return m_ParamValues[i]; 
+                }
+            }
+            return null;
+        }
+
+        public override void SetParamValue(string name, VFXParamValue Value)
+        {
+            for(int i = 0; i < m_Params.Length; i++)
+            {
+                if(m_Params[i].m_Name == name)
+                {
+                    m_ParamValues[i].SetValue(Value); 
+                }
+            }
+        }
+
     }
 }
