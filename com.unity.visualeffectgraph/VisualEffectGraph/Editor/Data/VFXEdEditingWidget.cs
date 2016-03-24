@@ -334,8 +334,17 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdDataNodeBlock block)
         {
             m_TextureParamValue = block.GetParamValue(m_TextureParamName);
-            if(m_TextureParamValue.GetValue<Texture2D>() == null) InitializeGradient();
-            m_TextureParamValue.SetValue(GradientTexture);
+
+            if(m_TextureParamValue.GetValue<Texture2D>() == null)
+            {
+                InitializeGradient();
+                m_TextureParamValue.SetValue(GradientTexture);
+            }
+            else
+            {
+                GradientTexture = m_TextureParamValue.GetValue<Texture2D>();
+            }
+
         }
 
         public override void OnInspectorGUI()
@@ -415,8 +424,16 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdDataNodeBlock block)
         {
             m_TextureParamValue = block.GetParamValue(m_TextureParamName);
-            if(m_TextureParamValue.GetValue<Texture2D>() == null) InitializeCurve();
-            m_TextureParamValue.SetValue(CurveTexture);
+            if(m_TextureParamValue.GetValue<Texture2D>() == null)
+            {
+                InitializeCurve();
+                m_TextureParamValue.SetValue(CurveTexture);
+            }
+            else
+            {
+                CurveTexture = m_TextureParamValue.GetValue<Texture2D>();
+            }
+
         }
 
         public override void OnInspectorGUI()
@@ -514,8 +531,15 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdDataNodeBlock block)
         {
             m_TextureParamValue = block.GetParamValue(m_TextureParamName);
-            if(m_TextureParamValue.GetValue<Texture2D>() == null) InitializeCurve();
-            m_TextureParamValue.SetValue(CurveTexture);
+            if(m_TextureParamValue.GetValue<Texture2D>() == null)
+            {
+                InitializeCurve();
+                m_TextureParamValue.SetValue(CurveTexture);
+            }
+            else
+            {
+                CurveTexture = m_TextureParamValue.GetValue<Texture2D>();
+            }
         }
 
         public override void OnInspectorGUI()
