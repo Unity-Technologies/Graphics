@@ -22,7 +22,7 @@ namespace UnityEditor.Experimental
             builder.Write("float3 worldPos = ");
             builder.WriteAttrib(CommonAttrib.Position, data);
             builder.WriteLine(";");
-            builder.WriteLine("o.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
+            builder.WriteLine("o.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
         }
     }
 
@@ -136,10 +136,10 @@ namespace UnityEditor.Experimental
             else
             {
                 if (m_HasAngle)
-                    builder.WriteLine("float3 front = UNITY_MATRIX_MV[2].xyz;");
+                    builder.WriteLine("float3 front = UNITY_MATRIX_V[2].xyz;");
 
-                builder.WriteLine("float3 side = UNITY_MATRIX_MV[0].xyz;");
-                builder.WriteLine("float3 up = UNITY_MATRIX_MV[1].xyz;");
+                builder.WriteLine("float3 side = UNITY_MATRIX_V[0].xyz;");
+                builder.WriteLine("float3 up = UNITY_MATRIX_V[1].xyz;");
             }
 
             builder.WriteLine();
@@ -170,7 +170,7 @@ namespace UnityEditor.Experimental
 
             builder.WriteLine();
 
-            builder.WriteLine("o.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
+            builder.WriteLine("o.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
         }
 
         public override void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data)
