@@ -554,6 +554,14 @@ namespace UnityEditor.Experimental
                 ComputeBuffer flagBuffer = new ComputeBuffer(Capacity, 4, ComputeBufferType.GPUMemory);
                 ComputeBuffer deadList = new ComputeBuffer(Capacity, 4, ComputeBufferType.Append);
 
+                // Init flags and dead list - Other buffers can remain unitialized
+                uint[] flags = new uint[Capacity];
+                for (int i = 0; i < Capacity; ++i)
+                {
+                    flags[i] = 0;
+                }
+                flagBuffer.SetData(flags);
+
                 uint[] deadIdx = new uint[Capacity];
                 for (int i = 0; i < Capacity; ++i)
                 {
