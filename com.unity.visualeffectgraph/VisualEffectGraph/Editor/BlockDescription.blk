@@ -264,6 +264,20 @@ position = center+((tex2Dlod(tex,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
 float t = frac(_Time.y/CycleDuration);
 position = center+((tex2Dlod(tex,float4(RAND,t,0,0)).rgb-0.5f)*scale);
 
+
+#block Add Position Circular
+#icon Circle
+#category Position/
+#arg float3 center [public]
+#arg float radius [public]
+#arg float3 position [inout|param]
+#arg float speed [public]
+
+float2 sc;
+sincos((totalTime/UNITY_PI)*speed, sc.x,sc.y);
+position += center + float3(sc.x, 0.0,sc.y) * radius;
+
+
 #block Set Position (Random Box)
 #icon Position
 #category Position/
