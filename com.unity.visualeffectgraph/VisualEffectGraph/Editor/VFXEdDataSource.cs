@@ -59,9 +59,24 @@ namespace UnityEditor.Experimental
             if (dataEdge != null)
             {
                 VFXEdDataAnchor anchor = dataEdge.Right;
-                var node = anchor.FindParent<VFXEdProcessingNodeBlock>();
-                if (node != null)
-                    node.Model.BindParam(node.ParamValues[anchor.Index], anchor.Index); // Rebind the default param value
+
+                // TODO : Refactor needed : as VFXEdNodeBlock doesn't implement Model, as Model in this case should be VFXParamBindable
+                if(anchor.FindParent<VFXEdProcessingNodeBlock>() != null)
+                {
+                    VFXEdProcessingNodeBlock node = anchor.FindParent<VFXEdProcessingNodeBlock>();
+                    if (node != null)
+                        node.Model.BindParam(node.ParamValues[anchor.Index], anchor.Index); // Rebind the default param value
+                }
+                else if (anchor.FindParent<VFXEdContextNodeBlock>() != null)
+                {
+                    VFXEdContextNodeBlock node = anchor.FindParent<VFXEdContextNodeBlock>();
+                    if (node != null)
+                        node.Model.BindParam(node.ParamValues[anchor.Index], anchor.Index); // Rebind the default param value
+                }
+
+
+
+
             }
 
             m_Elements.Remove(e);
@@ -104,10 +119,20 @@ namespace UnityEditor.Experimental
             }
 
             VFXParamValue paramValue = a.FindParent<VFXEdNodeBlockParameterField>().Value;
-            VFXBlockModel model = b.FindParent<VFXEdProcessingNodeBlock>().Model;
-
-            RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
-            model.BindParam(paramValue, b.Index);
+            
+            // TODO : Refactor needed : as VFXEdNodeBlock doesn't implement Model, as Model in this case should be VFXParamBindable
+            if(b.FindParent<VFXEdProcessingNodeBlock>() != null)
+            {
+                VFXBlockModel model = b.FindParent<VFXEdProcessingNodeBlock>().Model;
+                RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
+                model.BindParam(paramValue, b.Index);
+            }
+            else if(b.FindParent<VFXEdContextNodeBlock>() != null)
+            {
+                VFXContextModel model = b.FindParent<VFXEdContextNodeBlock>().Model;
+                RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
+                model.BindParam(paramValue, b.Index);
+            }
 
             m_Elements.Add(new DataEdge(this, a, b));
         }

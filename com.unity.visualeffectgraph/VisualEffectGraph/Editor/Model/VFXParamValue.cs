@@ -148,7 +148,7 @@ namespace UnityEditor.Experimental
 
         public override string ToString()
         {
-            return m_Value != null ? m_Value.ToString() : "null";
+            return m_Value != null ? m_Value.ToString() : "null value";
         }
     }
 
