@@ -80,11 +80,17 @@ namespace UnityEditor.Experimental
                     VFXSystemRuntimeData rtData = GetChild(i).RtData;
                     if (rtData != null)
                     {
-                        m_Component.simulationShader = rtData.SimulationShader;
-                        m_Component.material = rtData.m_Material;
-                        m_Component.outputType = rtData.outputType;
-                        m_Component.maxNb = GetChild(i).MaxNb;
-                        m_Component.spawnRate = GetChild(i).SpawnRate;
+                        m_Component.SetSystem(
+                            GetChild(i).Id,
+                            rtData.SimulationShader,
+                            rtData.m_Material,
+                            rtData.outputType,
+                            GetChild(i).MaxNb,
+                            GetChild(i).SpawnRate);
+                    }
+                    else
+                    {
+                        m_Component.RemoveSystem(GetChild(i).Id);
                     }
                 }
 
@@ -107,7 +113,7 @@ namespace UnityEditor.Experimental
         // tmp
         public void UpdateComponentMaxNb(uint MaxNb)
         {
-            m_Component.maxNb = MaxNb;
+         /*   m_Component.maxNb = MaxNb;
             // Tmp
             for (int i = 0; i < GetNbChildren(); ++i)
             {
@@ -115,13 +121,13 @@ namespace UnityEditor.Experimental
                 if (rtData != null)
                     GetChild(i).Invalidate(InvalidationCause.kModelChanged);
             }
-            Update(); // Trigger recompile to reinitialize buffers
+            Update(); // Trigger recompile to reinitialize buffers*/
         }
 
         // tmp
         public void UpdateComponentSpawnRate(float SpawnRate)
         {
-            m_Component.spawnRate = SpawnRate;
+          /*  m_Component.spawnRate = SpawnRate;*/
         }
 
         public bool PhaseShift
@@ -174,6 +180,12 @@ namespace UnityEditor.Experimental
 
     public class VFXSystemModel : VFXElementModel<VFXAssetModel, VFXContextModel>
     {
+        public VFXSystemModel()
+        {
+            m_ID = NextSystemID;
+            NextSystemID += 1;
+        }
+
         public void Dispose()
         {
             if (rtData != null)
@@ -303,6 +315,14 @@ namespace UnityEditor.Experimental
                         GetOwner().UpdateComponentSpawnRate(m_SpawnRate);
                 }
             }
+        }
+
+        private static uint NextSystemID = 0;
+        private uint m_ID; 
+
+        public uint Id
+        {
+            get { return m_ID; }
         }
     }
 

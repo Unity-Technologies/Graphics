@@ -508,8 +508,11 @@ namespace UnityEditor.Experimental
             shaderMetaData.outputParamToName = outputParamToName;
    
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
-            string outputShaderSource = WriteOutputShader(shaderMetaData,outputGenerator);
-           
+            string outputShaderSource = WriteOutputShader(system.Id,shaderMetaData,outputGenerator);
+
+            string shaderName = "VFX_";
+            shaderName += system.Id;
+
             VFXEditor.Log("\n**** SHADER CODE ****");
             VFXEditor.Log(shaderSource);
             VFXEditor.Log(outputShaderSource);
@@ -518,15 +521,21 @@ namespace UnityEditor.Experimental
             // Write to file
             string shaderPath = Application.dataPath + "/VFXEditor/Generated/";
             System.IO.Directory.CreateDirectory(shaderPath);
-            System.IO.File.WriteAllText(shaderPath + "VFX.compute", shaderSource);
-            System.IO.File.WriteAllText(shaderPath + "VFX.shader", outputShaderSource);
+            System.IO.File.WriteAllText(shaderPath + shaderName + ".compute", shaderSource);
+            System.IO.File.WriteAllText(shaderPath + shaderName + ".shader", outputShaderSource);
 
-            ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/VFXEditor/Generated/VFX.compute");
-            Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>("Assets/VFXEditor/Generated/VFX.shader");
             AssetDatabase.Refresh();
+            ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/VFXEditor/Generated/" + shaderName + ".compute");
+            Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>("Assets/VFXEditor/Generated/" + shaderName + ".shader");
+            //AssetDatabase.Refresh();
 
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader);
 
+            /*Material newMat = new Material(outputShader);
+            string matPath = "Assets/VFXEditor/Generated/" + shaderName + ".mat";
+            AssetDatabase.CreateAsset(newMat,matPath);
+
+            rtData.m_Material = AssetDatabase.LoadAssetAtPath<Material>(matPath);*/
             rtData.m_Material = new Material(outputShader);
 
             int Capacity = (int)system.MaxNb;
@@ -959,11 +968,13 @@ namespace UnityEditor.Experimental
             return builder.ToString();
         }
 
-        private static string WriteOutputShader(ShaderMetaData data,VFXOutputShaderGeneratorModule outputGenerator)
+        private static string WriteOutputShader(UInt32 id,ShaderMetaData data,VFXOutputShaderGeneratorModule outputGenerator)
         {
             ShaderSourceBuilder builder = new ShaderSourceBuilder();
 
-            builder.WriteLine("Shader \"Custom/PointShader\""); // TODO Rename that
+            builder.Write("Shader \"Custom/VFX_");
+            builder.Write(id);
+            builder.WriteLine("\"");
             builder.EnterScope();
             builder.WriteLine("SubShader");
             builder.EnterScope();
