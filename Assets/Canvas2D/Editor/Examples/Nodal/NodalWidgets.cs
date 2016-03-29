@@ -180,6 +180,12 @@ namespace UnityEditor.Experimental.Graph.Examples
             return true;
         }
 
+        internal static bool Adapt(this NodeAdapter value, PortSource<Vector2> a, PortSource<Vector2> b)
+        {
+            // run adapt code for vec2 to vec2 connections
+            return true;
+        }
+
         internal static bool Adapt(this NodeAdapter value, PortSource<Vector3> a, PortSource<Vector3> b)
         {
             // run adapt code for vec3 to vec3 connections
