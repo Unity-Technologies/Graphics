@@ -114,6 +114,7 @@ namespace UnityEditor.Experimental
             }
             catch (System.IO.FileNotFoundException e)
             {
+                Debug.LogWarning("Template Library File Not found : " + e.FileName);
                 WriteLibrary();
                 doc = XDocument.Load(path);
             }

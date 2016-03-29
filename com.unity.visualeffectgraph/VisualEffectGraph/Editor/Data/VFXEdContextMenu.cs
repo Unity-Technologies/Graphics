@@ -20,20 +20,19 @@ namespace UnityEditor.Experimental
 
             output.AddItem(new GUIContent("New Node/Trigger"), false, source.SpawnNode, new VFXEdTriggerNodeSpawner(source, canvas, canvasClickPosition));
             output.AddSeparator("New Node/");
+
             // Context Nodes
             foreach (var desc in VFXEditor.ContextLibrary.GetContexts())
             {
                 output.AddItem(new GUIContent("New Node/" + VFXContextDesc.GetTypeName( desc.m_Type) + "/" + desc.Name), false, source.SpawnNode, new VFXEdContextNodeSpawner(source, canvas, canvasClickPosition, desc));
             }
 
-            output.AddSeparator("New Node/");
-
             // Data Nodes
             foreach(VFXDataBlock block in VFXEditor.DataBlockLibrary.blocks)
             {
-                output.AddItem(new GUIContent("New Node/Data Node/"+block.category+"/"+block.name), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition, block));
+                output.AddItem(new GUIContent("Parameters/"+block.category+"/"+block.name), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition, block));
             }
-            output.AddItem(new GUIContent("New Node/Data Node/Empty Data Node"), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition));
+            output.AddItem(new GUIContent("Parameters/Empty Data Node"), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition));
 
             // Templates
             output.AddSeparator("");

@@ -41,9 +41,11 @@ namespace UnityEditor.Experimental
             get { return m_ContextNodeBlock; }
             set
             {
-                if (m_ContextNodeBlock != null) RemoveChild(m_ContextNodeBlock);
+                if (m_ContextNodeBlock != null)
+                    RemoveChild(m_ContextNodeBlock);
                 m_ContextNodeBlock = value;
-                AddChild(m_ContextNodeBlock);
+                if (m_ContextNodeBlock != null)
+                    AddChild(m_ContextNodeBlock);
             }
         }
         private VFXEdContextNodeBlock m_ContextNodeBlock;
@@ -167,9 +169,6 @@ namespace UnityEditor.Experimental
             menu.AddItem(new GUIContent("Layout/Blocks/Collapse Connected"), false, CollapseConnected);
             menu.AddItem(new GUIContent("Layout/Blocks/Collapse All"), false, CollapseAll );
             menu.AddItem(new GUIContent("Layout/Blocks/Expand All"), false, ExpandAll);
-            menu.AddItem(new GUIContent("Layout/Node/Layout Neighbors"), false, null);
-            menu.AddItem(new GUIContent("Layout/Node/Align with Previous"), false, null);
-            menu.AddItem(new GUIContent("Layout/Node/Align with Next"), false, null);
 
             return menu;
         }
@@ -190,6 +189,15 @@ namespace UnityEditor.Experimental
             Model.Desc = context;
             if (m_Model.Desc.ShowBlock)
                 ContextNodeBlock = new VFXEdContextNodeBlock(m_DataSource, m_Model);
+            else
+            {
+                if (ContextNodeBlock != null)
+                {
+                    ContextNodeBlock = null;
+                    Layout();
+                }
+                    
+            }
 
             Invalidate();
 
@@ -247,6 +255,8 @@ namespace UnityEditor.Experimental
         {
             if (m_ContextNodeBlock != null)
                 m_HeaderOffset = m_ContextNodeBlock.GetHeight();
+            else
+                m_HeaderOffset = 0.0f;
 
             base.Layout();
 
