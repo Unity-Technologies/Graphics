@@ -88,11 +88,11 @@ namespace UnityEditor.Experimental
 
     public class VFXBillboardOutputDesc : VFXContextDesc
     {
-        private const int TextureSlot = 0;
-        private const int FlipBookDimSlot = 1;
+        protected const int TextureSlot = 0;
+        protected const int FlipBookDimSlot = 1;
 
-        public VFXBillboardOutputDesc()
-            : base(Type.kTypeOutput,"Billboard Output",true)
+        protected VFXBillboardOutputDesc(string name, int paramSize) 
+            : base (Type.kTypeOutput, name, true)
         {
             VFXParam textureParam = new VFXParam();
             textureParam.m_Name = "texture";
@@ -102,9 +102,15 @@ namespace UnityEditor.Experimental
             dimParam.m_Name = "flipBook";
             dimParam.m_Type = VFXParam.Type.kTypeFloat2;
 
-            m_Params = new VFXParam[2];
+            m_Params = new VFXParam[paramSize];
             m_Params[TextureSlot] = textureParam;
             m_Params[FlipBookDimSlot] = dimParam;
+        }
+
+        public VFXBillboardOutputDesc()
+            : this("Billboard Output",2)
+        {
+
         }
 
         public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
@@ -226,4 +232,31 @@ namespace UnityEditor.Experimental
 
         public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) { return new ShaderGenerator(); }
     }
+
+    public class VFXMorphSubUVBillboardOutputDesc : VFXBillboardOutputDesc
+    {
+        protected const int MorphTextureSlot = 2;
+        protected const int MorphIntensitySlot = 3;
+       
+        public VFXMorphSubUVBillboardOutputDesc() : base("SubUV Morph Billboard", 4)
+        {
+            VFXParam morphTextureParam = new VFXParam();
+            morphTextureParam.m_Name = "MotionVectors2D";
+            morphTextureParam.m_Type = VFXParam.Type.kTypeTexture2D;
+
+            VFXParam morphIntensityParam = new VFXParam();
+            morphIntensityParam.m_Name = "MorphIntensity";
+            morphIntensityParam.m_Type = VFXParam.Type.kTypeFloat;
+
+            m_Params[MorphTextureSlot] = morphTextureParam;
+            m_Params[MorphIntensitySlot] = morphIntensityParam;
+
+        }
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
+        {
+            return new VFXMorphSubUVOutputShaderGeneratorModule(model.GetParamValue(TextureSlot), model.GetParamValue(MorphTextureSlot), model.GetParamValue(MorphIntensitySlot),model.GetParamValue(FlipBookDimSlot), false); 
+        }
+    }
+
 }

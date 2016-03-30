@@ -232,13 +232,86 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("if (color.a < 0.33333) discard;");
         }
 
-        private VFXParamValue m_Texture;
-        private VFXParamValue m_FlipBookDim;
+        protected VFXParamValue m_Texture;
+        protected VFXParamValue m_FlipBookDim;
 
-        private bool m_HasSize;
-        private bool m_HasAngle;
-        private bool m_HasFlipBook;
-        private bool m_HasTexture;
-        private bool m_OrientAlongVelocity;
+        protected bool m_HasSize;
+        protected bool m_HasAngle;
+        protected bool m_HasFlipBook;
+        protected bool m_HasTexture;
+        protected bool m_OrientAlongVelocity;
+    }
+
+    public class VFXMorphSubUVOutputShaderGeneratorModule :  VFXBillboardOutputShaderGeneratorModule
+    {
+        public VFXParamValue m_morphTexture;
+        public VFXParamValue m_morphIntensity;
+
+        public VFXMorphSubUVOutputShaderGeneratorModule(VFXParamValue texture, VFXParamValue morphTexture, VFXParamValue morphIntensity ,VFXParamValue flipBookDim, bool orientAlongVelocity) : base(texture, flipBookDim, orientAlongVelocity)
+        {
+            m_morphTexture = morphTexture;
+            m_morphIntensity = morphIntensity;
+        }
+
+        public override void UpdateUniforms(HashSet<VFXParamValue> uniforms)
+        {
+            base.UpdateUniforms(uniforms);
+            uniforms.Add(m_morphTexture);
+            uniforms.Add(m_morphIntensity);
+        }
+
+        public override void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            if (!m_HasTexture)
+            {
+                builder.WriteLine("float lsqr = dot(i.offsets, i.offsets);");
+                builder.WriteLine("if (lsqr > 1.0)");
+                builder.WriteLine("\tdiscard;");
+                builder.WriteLine();
+            }
+            else if (m_HasFlipBook)
+            {
+                builder.Write("float morphIntensity = ");
+                builder.Write(data.outputParamToName[m_morphIntensity]);
+                builder.WriteLine(";");
+
+                builder.Write("sampler2D morphSampler = ");
+                builder.Write(data.outputParamToName[m_morphTexture]);
+                builder.WriteLine(";");
+
+                builder.Write("sampler2D colorSampler = ");
+                builder.Write(data.outputParamToName[m_Texture]);
+                builder.WriteLine(";");
+
+                builder.Write("float2 dim = ");
+                builder.Write(data.outputParamToName[m_FlipBookDim]);
+                builder.WriteLine(";");
+                builder.WriteLine("float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
+
+                builder.WriteLine("float numFrames = dim.x * dim.y;");
+                builder.WriteLine("float t = i.offsets.z;");
+                builder.WriteLine();
+                builder.WriteLine("float2 frameSize = 1.0f/float2(dim.x,-dim.y);");
+                builder.WriteLine();
+                builder.WriteLine("float blend = frac(t);");
+                builder.WriteLine("float2 frameA = (i.offsets.xy + float2(floor(t) % dim.x, floor(floor(t) / dim.x))) * frameSize;");
+                builder.WriteLine("float2 frameB = (i.offsets.xy + float2(ceil(t) % dim.x, floor(ceil(t) / dim.x))) * frameSize;");
+                builder.WriteLine();
+                builder.WriteLine("float2 morphA = tex2D(morphSampler, frameA).rg - 0.5f;");
+                builder.WriteLine("float2 morphB = tex2D(morphSampler, frameB).rg - 0.5f;");
+                builder.WriteLine();
+                builder.WriteLine("morphA *= -morphIntensity * blend;");
+                builder.WriteLine("morphB *= -morphIntensity * (blend - 1.0f);");
+                builder.WriteLine();
+                builder.WriteLine("float4 colorA = tex2D(colorSampler, frameA + morphA);");
+                builder.WriteLine("float4 colorB = tex2D(colorSampler, frameB + morphB);");
+                builder.WriteLine();
+                builder.WriteLine("color *= lerp(colorA, colorB, blend);");
+
+            }
+
+            if (VFXEditor.AssetModel.BlendingMode == BlendMode.kMasked)
+                builder.WriteLine("if (color.a < 0.33333) discard;");
+        }
     }
 }

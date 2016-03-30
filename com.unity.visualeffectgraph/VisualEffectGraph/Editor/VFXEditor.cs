@@ -590,6 +590,7 @@ namespace UnityEditor.Experimental
             m_Contexts.Add(new VFXBasicOutput());
             m_Contexts.Add(new VFXPointOutputDesc());
             m_Contexts.Add(new VFXBillboardOutputDesc());
+            m_Contexts.Add(new VFXMorphSubUVBillboardOutputDesc());
             m_Contexts.Add(new VFXQuadAlongVelocityOutputDesc());
         }
 
