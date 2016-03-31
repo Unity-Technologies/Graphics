@@ -20,6 +20,7 @@ namespace UnityEditor.Experimental
         public VFXAssetModel()
         {
             RemovePreviousVFXs();
+            RemovePreviousShaders();
 
             m_GameObject = new GameObject("VFX");
             //gameObject.hideFlags = HideFlags.DontSaveInEditor;
@@ -40,6 +41,18 @@ namespace UnityEditor.Experimental
 
             if (nbDeleted > 0)
                 Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
+        }
+
+        private void RemovePreviousShaders()
+        {
+            // Remove any shader assets in generated path
+            string[] guids = AssetDatabase.FindAssets("",new string[] {"Assets/VFXEditor/Generated"});
+
+            foreach (var guid in guids)
+                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
+
+            if (guids.Length > 0)
+                Debug.Log("Remove " + guids.Length + " old VFX shaders");
         }
 
         public void Dispose()
@@ -78,24 +91,10 @@ namespace UnityEditor.Experimental
                         VFXEditor.Log("No need to recompile");
                     else
                     {
-                        VFXSystemRuntimeData rtData = GetChild(i).RtData;
-                        if (rtData != null)
-                        {
-                            m_Component.SetSystem(
-                                GetChild(i).Id,
-                                GetChild(i).MaxNb,
-                                rtData.SimulationShader,
-                                rtData.m_Material,
-                                rtData.buffersDesc,
-                                rtData.outputType,
-                                GetChild(i).SpawnRate,
-                                rtData.hasKill);
+                        if (GetChild(i).UpdateComponentSystem())
                             HasRecompiled = true;
-                        }
                         else
-                        {
                             GetChild(i).RemoveSystem();
-                        }
                     }
                 }
 
@@ -116,26 +115,6 @@ namespace UnityEditor.Experimental
 
             if (HasRecompiled) // Restart component 
                 m_Component.Reinit();
-        }
-
-        // tmp
-        public void UpdateComponentMaxNb(uint MaxNb)
-        {
-         /*   m_Component.maxNb = MaxNb;
-            // Tmp
-            for (int i = 0; i < GetNbChildren(); ++i)
-            {
-                VFXSystemRuntimeData rtData = GetChild(i).RtData;
-                if (rtData != null)
-                    GetChild(i).Invalidate(InvalidationCause.kModelChanged);
-            }
-            Update(); // Trigger recompile to reinitialize buffers*/
-        }
-
-        // tmp
-        public void UpdateComponentSpawnRate(float SpawnRate)
-        {
-          /*  m_Component.spawnRate = SpawnRate;*/
         }
 
         public bool PhaseShift
@@ -317,8 +296,7 @@ namespace UnityEditor.Experimental
                 if (m_MaxNb != value)
                 {
                     m_MaxNb = value;
-                    if (rtData != null)
-                        GetOwner().UpdateComponentMaxNb(m_MaxNb);
+                    UpdateComponentSystem();
                 }
             }
         }
@@ -332,10 +310,27 @@ namespace UnityEditor.Experimental
                 if (m_SpawnRate != value)
                 {
                     m_SpawnRate = value;
-                    if (rtData != null)
-                        GetOwner().UpdateComponentSpawnRate(m_SpawnRate);
+                    UpdateComponentSystem();
                 }
             }
+        }
+
+        public bool UpdateComponentSystem()
+        {
+            if (rtData == null)
+                return false;
+
+            GetOwner().component.SetSystem(
+                m_ID,
+                MaxNb,
+                rtData.SimulationShader,
+                rtData.m_Material,
+                rtData.buffersDesc,
+                rtData.outputType,
+                SpawnRate,
+                rtData.hasKill);
+
+            return true;
         }
 
         private static uint NextSystemID = 0;

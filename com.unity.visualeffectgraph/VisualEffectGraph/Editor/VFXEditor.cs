@@ -415,12 +415,10 @@ namespace UnityEditor.Experimental
             GUI.BeginGroup(rect);
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-            bool InvalidateSystems = false;
-
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton))
             {
                 AssetModel.component.pause = false;
-                InvalidateSystems = true;
+                AssetModel.component.Reinit();
             }
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.toolbarButton))
@@ -433,7 +431,7 @@ namespace UnityEditor.Experimental
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.toolbarButton))
             {
                 AssetModel.component.pause = true;
-                InvalidateSystems = true;
+                AssetModel.component.Reinit();
             }
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.toolbarButton))
@@ -463,12 +461,6 @@ namespace UnityEditor.Experimental
             GUILayout.Label((int)(nr * 100) + "%", GUILayout.Width(80.0f));
             if (r != nr)
                 SetPlayRate(nr);
-
-            if (InvalidateSystems)
-            {
-                for (int i = 0; i < AssetModel.GetNbChildren(); ++i)
-                    AssetModel.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);
-            }
 
             GUILayout.FlexibleSpace();
 
