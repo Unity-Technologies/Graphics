@@ -131,35 +131,12 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public BlendMode BlendingMode
-        {
-            get { return m_BlendMode; }
-            set
-            {
-                if (m_BlendMode != value)
-                {
-                    m_BlendMode = value;
-                    for (int i = 0; i < GetNbChildren(); ++i)
-                        GetChild(i).Invalidate(InvalidationCause.kModelChanged);
-                }
-            }
-        }
-
-        public void SwitchBlendingMode()
-        {
-            int blendMode = (int)m_BlendMode;
-            if (++blendMode > 2)
-                blendMode = 0;
-            BlendingMode = (BlendMode)blendMode;              
-        }
-
         public GameObject gameObject { get { return m_GameObject; } }
         public VFXComponent component { get { return m_Component; } }
 
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
-        private BlendMode m_BlendMode = BlendMode.kAdditive;
 
         private VFXComponent m_Component;
         private GameObject m_GameObject;
@@ -245,7 +222,14 @@ namespace UnityEditor.Experimental
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
                 RemoveSystem();
+
+                var oldOwner = GetOwner();
                 Detach();
+
+                // TODO TMP Rettriger a uniform update as there is an issue with material atm
+                for (int i = 0; i < oldOwner.GetNbChildren(); ++i)
+                    oldOwner.GetChild(i).Invalidate(InvalidationCause.kParamChanged);
+
                 return;
             }
 
@@ -297,6 +281,7 @@ namespace UnityEditor.Experimental
                 {
                     m_MaxNb = value;
                     UpdateComponentSystem();
+                    GetOwner().component.Reinit();
                 }
             }
         }
@@ -311,6 +296,20 @@ namespace UnityEditor.Experimental
                 {
                     m_SpawnRate = value;
                     UpdateComponentSystem();
+                }
+            }
+        }
+
+        private BlendMode m_BlendMode = BlendMode.kAdditive;
+        public BlendMode BlendingMode
+        {
+            get { return m_BlendMode; }
+            set
+            {
+                if (m_BlendMode != value)
+                {
+                    m_BlendMode = value;
+                    Invalidate(InvalidationCause.kModelChanged); // Force a recompilation
                 }
             }
         }

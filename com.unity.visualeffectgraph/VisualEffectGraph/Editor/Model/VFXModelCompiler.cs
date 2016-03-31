@@ -495,7 +495,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.outputParamToName = outputParamToName;
    
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
-            string outputShaderSource = WriteOutputShader(system.Id,shaderMetaData,outputGenerator);
+            string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
 
             string shaderName = "VFX_";
             shaderName += system.Id;
@@ -924,18 +924,18 @@ namespace UnityEditor.Experimental
             return builder.ToString();
         }
 
-        private static string WriteOutputShader(UInt32 id,ShaderMetaData data,VFXOutputShaderGeneratorModule outputGenerator)
+        private static string WriteOutputShader(VFXSystemModel system, ShaderMetaData data, VFXOutputShaderGeneratorModule outputGenerator)
         {
             ShaderSourceBuilder builder = new ShaderSourceBuilder();
 
             builder.Write("Shader \"Custom/VFX_");
-            builder.Write(id);
+            builder.Write(system.Id);
             builder.WriteLine("\"");
             builder.EnterScope();
             builder.WriteLine("SubShader");
             builder.EnterScope();
 
-            BlendMode blendMode = VFXEditor.AssetModel.BlendingMode;
+            BlendMode blendMode = system.BlendingMode;
 
             if (blendMode != BlendMode.kMasked)
                 builder.WriteLine("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
@@ -1069,7 +1069,7 @@ namespace UnityEditor.Experimental
             else
                 builder.WriteLine("float4 color = float4(1.0,1.0,1.0,0.5);");
 
-            outputGenerator.WritePixelShader(builder, data);
+            outputGenerator.WritePixelShader(system, builder, data);
 
             builder.WriteLine("return color;");
 
