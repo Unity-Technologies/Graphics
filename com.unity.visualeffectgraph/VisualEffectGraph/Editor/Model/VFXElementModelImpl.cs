@@ -82,11 +82,13 @@ namespace UnityEditor.Experimental
                     {
                         m_Component.SetSystem(
                             GetChild(i).Id,
+                            GetChild(i).MaxNb,
                             rtData.SimulationShader,
                             rtData.m_Material,
-                            rtData.outputType,
-                            GetChild(i).MaxNb,
-                            GetChild(i).SpawnRate);
+                            rtData.buffersDesc,
+                            rtData.outputType,                           
+                            GetChild(i).SpawnRate,
+                            rtData.hasKill);
                     }
                     else
                     {

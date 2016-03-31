@@ -38,6 +38,9 @@ namespace UnityEditor.Experimental
         public int UpdateKernel { get { return updateKernel; } }
 
         public uint outputType; // tmp value to pass to C++
+        public bool hasKill;
+
+        public VFXBufferDesc[] buffersDesc;
 
         private List<ComputeBuffer> buffers = new List<ComputeBuffer>();
 
@@ -538,10 +541,10 @@ namespace UnityEditor.Experimental
             rtData.m_Material = AssetDatabase.LoadAssetAtPath<Material>(matPath);*/
             rtData.m_Material = new Material(outputShader);
 
-            int Capacity = (int)system.MaxNb;
+            //int Capacity = (int)system.MaxNb;
 
             // Create buffer for system
-            foreach (var attribBuffer in shaderMetaData.attributeBuffers)
+            /*foreach (var attribBuffer in shaderMetaData.attributeBuffers)
             {
                 string bufferName = "attribBuffer" + attribBuffer.Index;
                 int structSize = attribBuffer.GetSizeInBytes();
@@ -554,11 +557,37 @@ namespace UnityEditor.Experimental
                     rtData.AddBuffer(rtData.UpdateKernel, bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate) ? "" : "_RO"), computeBuffer);
                 if (attribBuffer.Used(VFXContextDesc.Type.kTypeOutput))
                     rtData.m_Material.SetBuffer(bufferName, computeBuffer);
-            }
+            }*/
 
             rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
+            rtData.hasKill = shaderMetaData.hasKill;
 
-            if (shaderMetaData.hasKill)
+            // Build the buffer desc to send to component
+            var buffersDesc = new List<VFXBufferDesc>();
+            foreach (var attribBuffer in shaderMetaData.attributeBuffers)
+            {
+                VFXBufferDesc bufferDesc = new VFXBufferDesc();
+
+                int structSize = attribBuffer.GetSizeInBytes();
+                if (structSize == 12)
+                    structSize = 16;
+                bufferDesc.size = (uint)structSize;
+
+                string bufferName = "attribBuffer" + attribBuffer.Index;
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeInit))
+                    bufferDesc.initName = bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeInit) ? "" : "_RO");
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
+                    bufferDesc.updateName = bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate) ? "" : "_RO");
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeOutput))
+                    bufferDesc.outputName = bufferName;
+
+                buffersDesc.Add(bufferDesc);
+            }
+
+            rtData.buffersDesc = buffersDesc.ToArray();
+
+
+            /*if (shaderMetaData.hasKill)
             {
                 ComputeBuffer flagBuffer = new ComputeBuffer(Capacity, 4, ComputeBufferType.GPUMemory);
                 ComputeBuffer deadList = new ComputeBuffer(Capacity, 4, ComputeBufferType.Append);
@@ -592,7 +621,7 @@ namespace UnityEditor.Experimental
 
                 // bind flags to vertex shader
                 rtData.m_Material.SetBuffer("flags", flagBuffer);
-            }
+            }*/
 
             // Add uniforms mapping
             rtData.uniforms = shaderMetaData.paramToName;
