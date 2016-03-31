@@ -55,22 +55,6 @@ namespace UnityEditor.Experimental
             catch(Exception e) { updateKernel = -1; }
         }
 
-        public void AddBuffer(int kernelIndex, string name, ComputeBuffer buffer)
-        {
-            simulationShader.SetBuffer(kernelIndex,name,buffer);
-            buffers.Add(buffer);
-        }
-
-        public void DisposeBuffers()
-        {
-            foreach (var buffer in buffers)
-            {
-                VFXEditor.Log("Dispose buffer "+buffer.ToString());
-                buffer.Release();
-                buffer.Dispose();
-            }
-        }
-
         public void UpdateAllUniforms()
         {
             foreach (var uniform in uniforms)
@@ -525,40 +509,20 @@ namespace UnityEditor.Experimental
             string shaderPath = Application.dataPath + "/VFXEditor/Generated/";
             System.IO.Directory.CreateDirectory(shaderPath);
             System.IO.File.WriteAllText(shaderPath + shaderName + ".compute", shaderSource);
-            System.IO.File.WriteAllText(shaderPath + shaderName + ".shader", outputShaderSource);
+            System.IO.File.WriteAllText(shaderPath + shaderName + ".shader", outputShaderSource); 
 
-            AssetDatabase.Refresh();
-            ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/VFXEditor/Generated/" + shaderName + ".compute");
-            Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>("Assets/VFXEditor/Generated/" + shaderName + ".shader");
-            //AssetDatabase.Refresh();
+            string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
+            string outputShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
+
+            AssetDatabase.ImportAsset(simulationShaderPath);
+            AssetDatabase.ImportAsset(outputShaderPath);
+
+            ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(simulationShaderPath);
+            Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>(outputShaderPath);
 
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader);
 
-            /*Material newMat = new Material(outputShader);
-            string matPath = "Assets/VFXEditor/Generated/" + shaderName + ".mat";
-            AssetDatabase.CreateAsset(newMat,matPath);
-
-            rtData.m_Material = AssetDatabase.LoadAssetAtPath<Material>(matPath);*/
             rtData.m_Material = new Material(outputShader);
-
-            //int Capacity = (int)system.MaxNb;
-
-            // Create buffer for system
-            /*foreach (var attribBuffer in shaderMetaData.attributeBuffers)
-            {
-                string bufferName = "attribBuffer" + attribBuffer.Index;
-                int structSize = attribBuffer.GetSizeInBytes();
-                if (structSize == 12)
-                    structSize = 16;
-                ComputeBuffer computeBuffer = new ComputeBuffer(Capacity, structSize, ComputeBufferType.GPUMemory);
-                if (attribBuffer.Used(VFXContextDesc.Type.kTypeInit))
-                    rtData.AddBuffer(rtData.InitKernel,bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeInit) ? "" : "_RO"),computeBuffer);
-                if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
-                    rtData.AddBuffer(rtData.UpdateKernel, bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate) ? "" : "_RO"), computeBuffer);
-                if (attribBuffer.Used(VFXContextDesc.Type.kTypeOutput))
-                    rtData.m_Material.SetBuffer(bufferName, computeBuffer);
-            }*/
-
             rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
             rtData.hasKill = shaderMetaData.hasKill;
 
@@ -585,43 +549,6 @@ namespace UnityEditor.Experimental
             }
 
             rtData.buffersDesc = buffersDesc.ToArray();
-
-
-            /*if (shaderMetaData.hasKill)
-            {
-                ComputeBuffer flagBuffer = new ComputeBuffer(Capacity, 4, ComputeBufferType.GPUMemory);
-                ComputeBuffer deadList = new ComputeBuffer(Capacity, 4, ComputeBufferType.Append);
-
-                // Init flags and dead list - Other buffers can remain unitialized
-                uint[] flags = new uint[Capacity];
-                for (int i = 0; i < Capacity; ++i)
-                {
-                    flags[i] = 0;
-                }
-                flagBuffer.SetData(flags);
-
-                uint[] deadIdx = new uint[Capacity];
-                for (int i = 0; i < Capacity; ++i)
-                {
-                    deadIdx[i] = (uint)(Capacity - i - 1);
-                }
-                deadList.SetData(deadIdx);
-                deadList.SetCounterValue((uint)Capacity);
-
-                if (rtData.InitKernel != -1)
-                {
-                    rtData.AddBuffer(rtData.InitKernel, "flags", flagBuffer);
-                    rtData.AddBuffer(rtData.InitKernel, "deadListIn", deadList);
-                }
-                if (rtData.UpdateKernel != -1)
-                {
-                    rtData.AddBuffer(rtData.UpdateKernel,"flags",flagBuffer);
-                    rtData.AddBuffer(rtData.UpdateKernel, "deadListOut", deadList);
-                }
-
-                // bind flags to vertex shader
-                rtData.m_Material.SetBuffer("flags", flagBuffer);
-            }*/
 
             // Add uniforms mapping
             rtData.uniforms = shaderMetaData.paramToName;

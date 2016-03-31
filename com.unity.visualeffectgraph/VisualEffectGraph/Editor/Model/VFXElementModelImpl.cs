@@ -44,9 +44,12 @@ namespace UnityEditor.Experimental
 
         public void Dispose()
         {
-            UnityEngine.Object.DestroyImmediate(gameObject); 
+            UnityEngine.Object.DestroyImmediate(gameObject);
             for (int i = 0; i < GetNbChildren(); ++i)
+            {
                 GetChild(i).Dispose();
+                GetChild(i).DeleteAssets();
+            }             
         }
 
         public override void Invalidate(InvalidationCause cause)
@@ -64,6 +67,7 @@ namespace UnityEditor.Experimental
 
         public void Update()
         {
+            bool HasRecompiled = false;
             if (m_NeedsCheck)
             {
                 VFXEditor.Log("\n**** VFXAsset is dirty ****");
@@ -72,34 +76,33 @@ namespace UnityEditor.Experimental
                     VFXEditor.Log("Recompile system " + i + " if needed ");
                     if (!GetChild(i).RecompileIfNeeded())
                         VFXEditor.Log("No need to recompile");
-                }
-
-                // tmp
-                for (int i = 0; i < GetNbChildren(); ++i)
-                {
-                    VFXSystemRuntimeData rtData = GetChild(i).RtData;
-                    if (rtData != null)
-                    {
-                        m_Component.SetSystem(
-                            GetChild(i).Id,
-                            GetChild(i).MaxNb,
-                            rtData.SimulationShader,
-                            rtData.m_Material,
-                            rtData.buffersDesc,
-                            rtData.outputType,                           
-                            GetChild(i).SpawnRate,
-                            rtData.hasKill);
-                    }
                     else
                     {
-                        m_Component.RemoveSystem(GetChild(i).Id);
+                        VFXSystemRuntimeData rtData = GetChild(i).RtData;
+                        if (rtData != null)
+                        {
+                            m_Component.SetSystem(
+                                GetChild(i).Id,
+                                GetChild(i).MaxNb,
+                                rtData.SimulationShader,
+                                rtData.m_Material,
+                                rtData.buffersDesc,
+                                rtData.outputType,
+                                GetChild(i).SpawnRate,
+                                rtData.hasKill);
+                            HasRecompiled = true;
+                        }
+                        else
+                        {
+                            GetChild(i).RemoveSystem();
+                        }
                     }
                 }
 
                 m_NeedsCheck = false;
             }
 
-            if (m_ReloadUniforms)
+            if (m_ReloadUniforms || HasRecompiled) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
                 VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
@@ -110,6 +113,9 @@ namespace UnityEditor.Experimental
                 }
                 m_ReloadUniforms = false;
             }
+
+            if (HasRecompiled) // Restart component 
+                m_Component.Reinit();
         }
 
         // tmp
@@ -191,10 +197,19 @@ namespace UnityEditor.Experimental
         public void Dispose()
         {
             if (rtData != null)
-            {
-                rtData.DisposeBuffers();
                 UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
-            }
+        }
+
+        public void DeleteAssets()
+        {
+            string shaderName = "VFX_";
+            shaderName += m_ID;
+
+            string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
+            string outputShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
+
+            AssetDatabase.DeleteAsset(simulationShaderPath);
+            AssetDatabase.DeleteAsset(outputShaderPath);
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
@@ -250,7 +265,7 @@ namespace UnityEditor.Experimental
         {
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
-                Dispose();
+                RemoveSystem();
                 Detach();
                 return;
             }
@@ -267,16 +282,20 @@ namespace UnityEditor.Experimental
             if (m_Dirty)
             {
                 if (rtData != null)
-                {
-                    rtData.DisposeBuffers();
                     UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
-                }
                 rtData = VFXModelCompiler.CompileSystem(this);
                 m_Dirty = false;
                 return true;
             }
 
             return false;
+        }
+
+        public void RemoveSystem()
+        {
+            Dispose();
+            GetOwner().component.RemoveSystem(m_ID);
+            DeleteAssets();   
         }
 
         private bool m_Dirty = true;
