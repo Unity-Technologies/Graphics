@@ -171,6 +171,7 @@ namespace UnityEditor.Experimental
                 }
 
                 m_Node.NodeBlockContainer.AddNodeBlock(block);
+                block.editingWidget.CreateBinding(block);
             }
                
 

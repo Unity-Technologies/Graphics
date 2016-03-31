@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental
         public virtual void CreateBinding(VFXEdNodeBlock block)
         {
              m_CurrentlyEditedBlock = block;
+             block.DeepInvalidate();
         }
     }
 
@@ -330,8 +331,6 @@ namespace UnityEditor.Experimental
 
             }
 
-            UpdateTexture();
-
         }
 
         public override void CreateBinding(VFXEdNodeBlock block)
@@ -349,9 +348,9 @@ namespace UnityEditor.Experimental
                 GradientTexture = m_TextureParamValue.GetValue<Texture2D>();
             }
 
+            UpdateTexture();
             m_GradientSerializedObject = new SerializedObject(block.editingDataContainer);
             m_GradientSerializedProperty = m_GradientSerializedObject.FindProperty("Gradient");
-
         }
 
         public override void OnInspectorGUI()
@@ -545,7 +544,8 @@ namespace UnityEditor.Experimental
             {
                 CurveTexture = m_TextureParamValue.GetValue<Texture2D>();
             }
-
+            
+            
             m_CurveSerializedObject = new SerializedObject(block.editingDataContainer);
             m_CurveXSerializedProperty = m_CurveSerializedObject.FindProperty("CurveX");
             m_CurveYSerializedProperty = m_CurveSerializedObject.FindProperty("CurveY");
