@@ -158,7 +158,7 @@ namespace UnityEditor.Experimental
 
                     foreach(XElement nb in n.Elements("NodeBlock"))
                     {
-                        template.AddContextNodeBlock(n.Attribute("Name").Value, nb.Attribute("Name").Value);
+                        template.AddContextNodeBlock(n.Attribute("Name").Value, nb.Attribute("Name").Value, nb.Attribute("BlockName").Value);
 
                         foreach(XElement parm in nb.Elements("VFXParamValue"))
                         {
@@ -181,7 +181,11 @@ namespace UnityEditor.Experimental
                     
                     foreach(XElement nb in n.Elements("DataNodeBlock"))
                     {
-                        template.AddDataNodeBlock(n.Attribute("Name").Value, nb.Attribute("Name").Value,nb.Attribute("ExposedName").Value);;
+                        XElement dataContainer = nb.Element("DataContainer");
+                        if (dataContainer == null)
+                            template.AddDataNodeBlock(n.Attribute("Name").Value, nb.Attribute("Name").Value, nb.Attribute("ExposedName").Value, nb.Attribute("BlockName").Value);
+                        else
+                            template.AddDataNodeBlock(n.Attribute("Name").Value, nb.Attribute("Name").Value, nb.Attribute("ExposedName").Value, nb.Attribute("BlockName").Value, dataContainer);
 
                         foreach(XElement parm in nb.Elements("VFXParamValue"))
                         {
@@ -312,7 +316,7 @@ namespace UnityEditor.Experimental
                     {
                         doc.WriteStartElement("NodeBlock");
                         doc.WriteAttributeString("Name", kvp_nodeblock.Key);
-                        doc.WriteAttributeString("BlockName", kvp_nodeblock.Value.BlockName);
+                        doc.WriteAttributeString("BlockName", kvp_nodeblock.Value.BlockLibraryName);
 
                         foreach(KeyValuePair<string, VFXParamValue> kvp_param in kvp_nodeblock.Value.ParameterOverrides)
                         {
@@ -337,8 +341,13 @@ namespace UnityEditor.Experimental
                     {
                         doc.WriteStartElement("DataNodeBlock");
                         doc.WriteAttributeString("Name", kvp_nodeblock.Key);
-                        doc.WriteAttributeString("BlockName", kvp_nodeblock.Value.BlockName);
+                        doc.WriteAttributeString("BlockName", kvp_nodeblock.Value.BlockLibraryName);
                         doc.WriteAttributeString("ExposedName", kvp_nodeblock.Value.ExposedName);
+
+                        if(kvp_nodeblock.Value.dataContainer != null)
+                        {
+                            kvp_nodeblock.Value.dataContainer.Serialize(doc);
+                        }
 
                         foreach(KeyValuePair<string, VFXParamValue> kvp_param in kvp_nodeblock.Value.ParameterOverrides)
                         {
@@ -433,10 +442,10 @@ namespace UnityEditor.Experimental
                     // Context Node Blocks
                     foreach(VFXEdProcessingNodeBlock block in node.NodeBlockContainer.nodeBlocks)
                     {
-                        t.AddContextNodeBlock(node.UniqueName, block.name);
+                        t.AddContextNodeBlock(node.UniqueName, block.UniqueName, block.LibraryName);
                         for (int i = 0 ;  i < block.Params.Length; i++)
                         {
-                            t.SetContextNodeBlockParameter(node.UniqueName, block.name, block.Params[i].m_Name, block.ParamValues[i].Clone());
+                            t.SetContextNodeBlockParameter(node.UniqueName, block.UniqueName, block.Params[i].m_Name, block.ParamValues[i].Clone());
                         }
                     }
                 }
@@ -448,10 +457,13 @@ namespace UnityEditor.Experimental
                     // Data Node Blocks
                     foreach(VFXEdDataNodeBlock block in node.NodeBlockContainer.nodeBlocks)
                     {
-                        t.AddDataNodeBlock(node.UniqueName, block.name,block.m_exposedName);
+                        if(block.editingDataContainer != null)
+                            t.AddDataNodeBlock(node.UniqueName, block.UniqueName,block.m_exposedName, block.LibraryName ,block.editingDataContainer);
+                        else
+                            t.AddDataNodeBlock(node.UniqueName, block.UniqueName,block.m_exposedName, block.LibraryName);
                         for (int i = 0 ;  i < block.Params.Count; i++)
                         {
-                            t.SetDataNodeBlockParameter(node.UniqueName, block.name, block.Params[i].m_Name, block.ParamValues[i].Clone());
+                            t.SetDataNodeBlockParameter(node.UniqueName, block.UniqueName, block.Params[i].m_Name, block.ParamValues[i].Clone());
                         }
                     }
                 }

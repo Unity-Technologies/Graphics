@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental
             serializedObject.Update();
 
             EditorGUILayout.BeginVertical();
-            GUILayout.Label(safeTarget.targetNodeBlock.name, VFXEditor.styles.InspectorHeader);
+            GUILayout.Label(safeTarget.targetNodeBlock.LibraryName, VFXEditor.styles.InspectorHeader);
 
 
             
@@ -86,7 +86,7 @@ namespace UnityEditor.Experimental
             serializedObject.Update();
 
             EditorGUILayout.BeginVertical();
-            GUILayout.Label(safeTarget.targetNodeBlock.name, VFXEditor.styles.InspectorHeader);
+            GUILayout.Label(safeTarget.targetNodeBlock.LibraryName, VFXEditor.styles.InspectorHeader);
 
 
             safeTarget.targetNodeBlock.m_exposedName = EditorGUILayout.TextField("Exposed Name",safeTarget.targetNodeBlock.m_exposedName);

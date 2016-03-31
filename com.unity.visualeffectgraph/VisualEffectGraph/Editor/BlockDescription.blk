@@ -71,7 +71,7 @@ color = tex2Dlod(gradient, float4(RAND,0,0,0)).rgb;
 float ratio = saturate(age / lifetime);
 color = lerp(start,end,ratio);
 
-#block Color & Alpha (Gradient)
+#block RGBA Gradient Over Life
 #icon Color
 #category Color/
 #arg float3 color [inout|param]

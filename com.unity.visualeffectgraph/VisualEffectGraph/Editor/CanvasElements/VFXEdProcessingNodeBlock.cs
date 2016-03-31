@@ -42,9 +42,9 @@ namespace UnityEditor.Experimental
                 m_Model.BindParam(m_ParamValues[i], i);
             }
 
-            m_Name = block.m_Name;
+            m_LibraryName = block.m_Name;
 
-            AddChild(new VFXEdNodeBlockHeader(m_Name, VFXEditor.styles.GetIcon(block.m_IconPath == "" ? "Default" : block.m_IconPath), block.m_Params.Length > 0));
+            AddChild(new VFXEdNodeBlockHeader(m_LibraryName, VFXEditor.styles.GetIcon(block.m_IconPath == "" ? "Default" : block.m_IconPath), block.m_Params.Length > 0));
             AddManipulator(new ImguiContainer());
 
             Layout();
@@ -60,7 +60,7 @@ namespace UnityEditor.Experimental
         {
             for(int i = 0; i < m_Params.Length; i++)
             {
-                if(m_Params[i].m_Name == name)
+                if(m_Params[i].m_Name == LibraryName)
                 {
                    return m_ParamValues[i]; 
                 }

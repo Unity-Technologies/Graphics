@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental
             }
 
             // Prepare undo
-            (canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting NodeBlock " + (element as VFXEdNodeBlock).name);
+            (canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting NodeBlock " + (element as VFXEdNodeBlock).LibraryName);
 
             // Delete Edges
             VFXEdNodeBlockDraggable node = element as VFXEdNodeBlockDraggable;

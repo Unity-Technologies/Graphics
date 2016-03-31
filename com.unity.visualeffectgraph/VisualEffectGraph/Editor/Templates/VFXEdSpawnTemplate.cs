@@ -81,14 +81,24 @@ namespace UnityEditor.Experimental
             m_ContextNodes[nodename].AddParameterOverride(paramName, value);
         }
 
-        public void AddContextNodeBlock(string nodename, string blockname)
+        public void AddContextNodeBlock(string nodename, string blockname, string blockLibraryName)
         {
-            m_ContextNodes[nodename].nodeBlocks.Add(blockname, NodeBlockInfo.Create(blockname));
+            m_ContextNodes[nodename].nodeBlocks.Add(blockname, NodeBlockInfo.Create(blockname, blockLibraryName));
         }
 
-        public void AddDataNodeBlock(string nodename, string blockname, string exposedName)
+        public void AddDataNodeBlock(string nodename, string blockname, string exposedName, string blockLibraryName)
         {
-            m_DataNodes[nodename].nodeBlocks.Add(blockname, DataNodeBlockInfo.Create(blockname, exposedName));
+            m_DataNodes[nodename].nodeBlocks.Add(blockname, DataNodeBlockInfo.Create(blockname, exposedName, blockLibraryName));
+        }
+
+        public void AddDataNodeBlock(string nodename, string blockname, string exposedName, string blockLibraryName, DataContainer dataContainer)
+        {
+            m_DataNodes[nodename].nodeBlocks.Add(blockname, DataNodeBlockInfo.Create(blockname, exposedName, blockLibraryName, dataContainer));
+        }
+
+        public void AddDataNodeBlock(string nodename, string blockname, string exposedName, string blockLibraryName, System.Xml.Linq.XElement xmlElement)
+        {
+            m_DataNodes[nodename].nodeBlocks.Add(blockname, DataNodeBlockInfo.Create(blockname, exposedName, blockLibraryName, xmlElement));
         }
 
         public void SetContextNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
@@ -142,7 +152,7 @@ namespace UnityEditor.Experimental
 
                 foreach(KeyValuePair<string,NodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
                 {
-                    VFXBlock b = VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockName);
+                    VFXBlock b = VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockLibraryName);
                     if (b != null)
                     {
                         VFXEdProcessingNodeBlock block = new VFXEdProcessingNodeBlock(b, datasource);
@@ -183,8 +193,13 @@ namespace UnityEditor.Experimental
 
                 foreach(KeyValuePair<string,DataNodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
                 {
-                    VFXDataBlock dataBlock = VFXEditor.DataBlockLibrary.GetBlock(block_kvp.Value.BlockName);
-                    VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(Vector2.zero, dataBlock, node, datasource, block_kvp.Value.ExposedName);
+                    VFXDataBlock dataBlock = VFXEditor.DataBlockLibrary.GetBlock(block_kvp.Value.BlockLibraryName);
+                    VFXEdDataNodeBlockSpawner spawner;
+                    if(block_kvp.Value.dataContainer == null)
+                        spawner = new VFXEdDataNodeBlockSpawner(Vector2.zero, dataBlock, node, datasource, block_kvp.Value.ExposedName);
+                    else
+                        spawner = new VFXEdDataNodeBlockSpawner(Vector2.zero, dataBlock, node, datasource, block_kvp.Value.ExposedName, block_kvp.Value.dataContainer);
+
                     spawner.Spawn();
                     VFXEdDataNodeBlock block = node.NodeBlockContainer.nodeBlocks[node.NodeBlockContainer.nodeBlocks.Count-1] as VFXEdDataNodeBlock;
 

@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental
 
         public VFXEdDataNodeBlock(VFXDataBlock datablock, VFXEdDataSource dataSource, string exposedName) : base(dataSource)
         {
-            m_Name = datablock.name;
+            m_LibraryName = datablock.name;
             m_DataBlock = datablock;
             m_exposedName = exposedName;
 
@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental
                 i++;
             }
 
-            AddChild(new VFXEdNodeBlockHeader(m_Name, m_DataBlock.icon, datablock.Parameters.Count > 0));
+            AddChild(new VFXEdNodeBlockHeader(m_LibraryName, m_DataBlock.icon, datablock.Parameters.Count > 0));
             AddManipulator(new ImguiContainer());
             Layout();
         }

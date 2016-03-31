@@ -241,7 +241,7 @@
       </Node>
       <Node Name="VFXEdContextNode_1" Context="Particle Update">
         <Context />
-        <NodeBlock Name="Color &amp; Alpha (Gradient)" BlockName="Color &amp; Alpha (Gradient)">
+        <NodeBlock Name="RGBA Gradient Over Life" BlockName="RGBA Gradient Over Life">
           <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="" />
         </NodeBlock>
       </Node>
@@ -516,6 +516,60 @@
     <Connections>
       <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
       <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
+    </Connections>
+  </Template>
+  <Template Category="test" Name="Data">
+    <System SpawnRate="20" AllocationCount="50" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_11" Context="Initialize">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_33" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.5" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_34" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,0.75,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0.25,0.25,0.25" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_35" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="1" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_12" Context="Particle Update">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_41" BlockName="Set Alpha (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="1" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_39" BlockName="Animate flipbook (Curve)">
+          <VFXParamValue Name="curve" Type="kTypeTexture2D" Value="" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_13" Context="SubUV Morph Billboard">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/Explosion0_01_5x5.exr" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="5,5" />
+          <VFXParamValue Name="MotionVectors2D" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/explosion0_02.render.motion.tga" />
+          <VFXParamValue Name="MorphIntensity" Type="kTypeFloat" Value="0.04" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_14" Exposed="False">
+        <DataNodeBlock Name="VFXEdDataNodeBlock_40" BlockName="Curve" ExposedName="Curve">
+          <DataContainer type="CurveFloatContainer">
+            <Curve postWrapMode="ClampForever" preWrapMode="ClampForever">
+              <KeyFrame Time="0" Value="0" TangentMode="10" InTangent="24" OutTangent="24" />
+              <KeyFrame Time="1" Value="24" TangentMode="10" InTangent="24" OutTangent="24" />
+            </Curve>
+          </DataContainer>
+          <VFXParamValue Name="Curve" Type="kTypeTexture2D" Value="" />
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_11" Next="VFXEdContextNode_12" />
+      <FlowConnection Previous="VFXEdContextNode_12" Next="VFXEdContextNode_13" />
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_14" NodeBlockIndex="0" ParamName="Curve" />
+        <Output ContextNode="VFXEdContextNode_12" NodeBlockIndex="1" ParamName="curve" />
+      </DataConnection>
     </Connections>
   </Template>
 </Library>

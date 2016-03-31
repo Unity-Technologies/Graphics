@@ -10,10 +10,16 @@ namespace UnityEditor.Experimental
 {
     internal abstract class VFXEdNodeBlock : CanvasElement
     {
-        public string name{ get { return m_Name; } }
-        protected string m_Name;
+        public static int Token { get { return s_Token++; } }
+        private static int s_Token = 0;
 
-        public ScriptableObject editingDataContainer;
+        public string UniqueName { get { return m_UniqueName; } }
+        public string LibraryName { get { return m_LibraryName; } }
+
+        protected string m_LibraryName;
+        protected string m_UniqueName;
+
+        public DataContainer editingDataContainer;
         public VFXEdEditingWidget editingWidget;
 
         public VFXEdNodeBlockParameterField[] Fields { get { return m_Fields; } }
@@ -26,7 +32,7 @@ namespace UnityEditor.Experimental
             m_DataSource = dataSource;
             translation = Vector3.zero; // zeroed by default, will be relayouted later.
             m_Caps = Capabilities.Normal;
-
+            m_UniqueName = GetType().Name + "_" + Token;
         }
 
         public abstract VFXParamValue GetParamValue(string ParamName);

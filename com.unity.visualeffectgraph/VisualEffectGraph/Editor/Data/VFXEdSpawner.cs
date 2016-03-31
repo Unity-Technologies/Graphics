@@ -138,6 +138,7 @@ namespace UnityEditor.Experimental
         VFXEdDataNode m_Node;
         VFXDataBlock m_DataBlock;
         VFXEdDataSource m_DataSource;
+        DataContainerInfo m_dataContainerInfo;
         string m_exposedName;
 
         public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName)
@@ -149,12 +150,30 @@ namespace UnityEditor.Experimental
             m_exposedName = exposedName;
         }
 
+        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName, DataContainerInfo dataContainerInfo)
+            : this (position, datablock, node, datasource, exposedName)
+        {
+            m_dataContainerInfo = dataContainerInfo;
+        }
+
+
         public override void Spawn()
         {
             if (m_DataBlock.editingWidget == null)
                 m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName));
             else
-                m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName, m_DataBlock.editingWidget));
+            {
+                VFXEdDataNodeBlock block = new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName, m_DataBlock.editingWidget);
+                
+                if(m_dataContainerInfo != null)
+                {
+                    block.editingDataContainer = m_dataContainerInfo.CreateDataContainer();
+                }
+
+                m_Node.NodeBlockContainer.AddNodeBlock(block);
+            }
+               
+
            
         }
     }

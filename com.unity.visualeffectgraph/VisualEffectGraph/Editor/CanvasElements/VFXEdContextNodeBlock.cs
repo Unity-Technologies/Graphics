@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental
         {
             for(int i = 0; i < m_Params.Length; i++)
             {
-                if(m_Params[i].m_Name == name)
+                if(m_Params[i].m_Name == LibraryName)
                 {
                    return m_ParamValues[i]; 
                 }
