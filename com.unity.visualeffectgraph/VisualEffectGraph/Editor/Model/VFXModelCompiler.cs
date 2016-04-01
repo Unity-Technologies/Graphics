@@ -517,6 +517,8 @@ namespace UnityEditor.Experimental
             AssetDatabase.ImportAsset(simulationShaderPath);
             AssetDatabase.ImportAsset(outputShaderPath);
 
+            VFXEditor.AssetModel.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
+
             ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(simulationShaderPath);
             Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>(outputShaderPath);
 

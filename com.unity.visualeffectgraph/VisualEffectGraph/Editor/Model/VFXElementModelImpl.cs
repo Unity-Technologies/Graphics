@@ -101,7 +101,7 @@ namespace UnityEditor.Experimental
                 m_NeedsCheck = false;
             }
 
-            if (m_ReloadUniforms || HasRecompiled) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
+            if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
                 VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
@@ -166,6 +166,8 @@ namespace UnityEditor.Experimental
 
             AssetDatabase.DeleteAsset(simulationShaderPath);
             AssetDatabase.DeleteAsset(outputShaderPath);
+
+            VFXEditor.AssetModel.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
@@ -226,10 +228,6 @@ namespace UnityEditor.Experimental
                 var oldOwner = GetOwner();
                 Detach();
 
-                // TODO TMP Rettriger a uniform update as there is an issue with material atm
-                for (int i = 0; i < oldOwner.GetNbChildren(); ++i)
-                    oldOwner.GetChild(i).Invalidate(InvalidationCause.kParamChanged);
-
                 return;
             }
 
@@ -254,11 +252,11 @@ namespace UnityEditor.Experimental
             return false;
         }
 
-        public void RemoveSystem()
+        public void RemoveSystem(/*bool force = false*/)
         {
             Dispose();
-            if (rtData != null)
-                GetOwner().component.RemoveSystem(m_ID);
+            //if (force || rtData != null)
+            GetOwner().component.RemoveSystem(m_ID);
             DeleteAssets();   
         }
 
