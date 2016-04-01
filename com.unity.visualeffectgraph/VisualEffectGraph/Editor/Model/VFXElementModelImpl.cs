@@ -20,6 +20,7 @@ namespace UnityEditor.Experimental
         public VFXAssetModel()
         {
             RemovePreviousVFXs();
+            RemovePreviousShaders();
 
             m_GameObject = new GameObject("VFX");
             //gameObject.hideFlags = HideFlags.DontSaveInEditor;
@@ -42,11 +43,26 @@ namespace UnityEditor.Experimental
                 Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
         }
 
+        private void RemovePreviousShaders()
+        {
+            // Remove any shader assets in generated path
+            string[] guids = AssetDatabase.FindAssets("",new string[] {"Assets/VFXEditor/Generated"});
+
+            foreach (var guid in guids)
+                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
+
+            if (guids.Length > 0)
+                Debug.Log("Remove " + guids.Length + " old VFX shaders");
+        }
+
         public void Dispose()
         {
-            UnityEngine.Object.DestroyImmediate(gameObject); 
+            UnityEngine.Object.DestroyImmediate(gameObject);
             for (int i = 0; i < GetNbChildren(); ++i)
+            {
                 GetChild(i).Dispose();
+                GetChild(i).DeleteAssets();
+            }             
         }
 
         public override void Invalidate(InvalidationCause cause)
@@ -64,6 +80,7 @@ namespace UnityEditor.Experimental
 
         public void Update()
         {
+            bool HasRecompiled = false;
             if (m_NeedsCheck)
             {
                 VFXEditor.Log("\n**** VFXAsset is dirty ****");
@@ -72,26 +89,19 @@ namespace UnityEditor.Experimental
                     VFXEditor.Log("Recompile system " + i + " if needed ");
                     if (!GetChild(i).RecompileIfNeeded())
                         VFXEditor.Log("No need to recompile");
-                }
-
-                // tmp
-                for (int i = 0; i < GetNbChildren(); ++i)
-                {
-                    VFXSystemRuntimeData rtData = GetChild(i).RtData;
-                    if (rtData != null)
+                    else
                     {
-                        m_Component.simulationShader = rtData.SimulationShader;
-                        m_Component.material = rtData.m_Material;
-                        m_Component.outputType = rtData.outputType;
-                        m_Component.maxNb = GetChild(i).MaxNb;
-                        m_Component.spawnRate = GetChild(i).SpawnRate;
+                        if (GetChild(i).UpdateComponentSystem())
+                            HasRecompiled = true;
+                        else
+                            GetChild(i).RemoveSystem();
                     }
                 }
 
                 m_NeedsCheck = false;
             }
 
-            if (m_ReloadUniforms)
+            if (m_ReloadUniforms /*|| HasRecompiled*/) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
                 VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
@@ -102,26 +112,9 @@ namespace UnityEditor.Experimental
                 }
                 m_ReloadUniforms = false;
             }
-        }
 
-        // tmp
-        public void UpdateComponentMaxNb(uint MaxNb)
-        {
-            m_Component.maxNb = MaxNb;
-            // Tmp
-            for (int i = 0; i < GetNbChildren(); ++i)
-            {
-                VFXSystemRuntimeData rtData = GetChild(i).RtData;
-                if (rtData != null)
-                    GetChild(i).Invalidate(InvalidationCause.kModelChanged);
-            }
-            Update(); // Trigger recompile to reinitialize buffers
-        }
-
-        // tmp
-        public void UpdateComponentSpawnRate(float SpawnRate)
-        {
-            m_Component.spawnRate = SpawnRate;
+            if (HasRecompiled) // Restart component 
+                m_Component.Reinit();
         }
 
         public bool PhaseShift
@@ -138,35 +131,12 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public BlendMode BlendingMode
-        {
-            get { return m_BlendMode; }
-            set
-            {
-                if (m_BlendMode != value)
-                {
-                    m_BlendMode = value;
-                    for (int i = 0; i < GetNbChildren(); ++i)
-                        GetChild(i).Invalidate(InvalidationCause.kModelChanged);
-                }
-            }
-        }
-
-        public void SwitchBlendingMode()
-        {
-            int blendMode = (int)m_BlendMode;
-            if (++blendMode > 2)
-                blendMode = 0;
-            BlendingMode = (BlendMode)blendMode;              
-        }
-
         public GameObject gameObject { get { return m_GameObject; } }
         public VFXComponent component { get { return m_Component; } }
 
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
-        private BlendMode m_BlendMode = BlendMode.kAdditive;
 
         private VFXComponent m_Component;
         private GameObject m_GameObject;
@@ -174,13 +144,28 @@ namespace UnityEditor.Experimental
 
     public class VFXSystemModel : VFXElementModel<VFXAssetModel, VFXContextModel>
     {
+        public VFXSystemModel()
+        {
+            m_ID = NextSystemID;
+            NextSystemID += 1;
+        }
+
         public void Dispose()
         {
             if (rtData != null)
-            {
-                rtData.DisposeBuffers();
                 UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
-            }
+        }
+
+        public void DeleteAssets()
+        {
+            string shaderName = "VFX_";
+            shaderName += m_ID;
+
+            string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
+            string outputShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
+
+            AssetDatabase.DeleteAsset(simulationShaderPath);
+            AssetDatabase.DeleteAsset(outputShaderPath);
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
@@ -236,8 +221,15 @@ namespace UnityEditor.Experimental
         {
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
-                Dispose();
+                RemoveSystem();
+
+                var oldOwner = GetOwner();
                 Detach();
+
+                // TODO TMP Rettriger a uniform update as there is an issue with material atm
+                //for (int i = 0; i < oldOwner.GetNbChildren(); ++i)
+                 //   oldOwner.GetChild(i).Invalidate(InvalidationCause.kParamChanged);
+
                 return;
             }
 
@@ -253,16 +245,21 @@ namespace UnityEditor.Experimental
             if (m_Dirty)
             {
                 if (rtData != null)
-                {
-                    rtData.DisposeBuffers();
                     UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
-                }
                 rtData = VFXModelCompiler.CompileSystem(this);
                 m_Dirty = false;
                 return true;
             }
 
             return false;
+        }
+
+        public void RemoveSystem()
+        {
+            Dispose();
+            if (rtData != null)
+                GetOwner().component.RemoveSystem(m_ID);
+            DeleteAssets();   
         }
 
         private bool m_Dirty = true;
@@ -284,8 +281,8 @@ namespace UnityEditor.Experimental
                 if (m_MaxNb != value)
                 {
                     m_MaxNb = value;
-                    if (rtData != null)
-                        GetOwner().UpdateComponentMaxNb(m_MaxNb);
+                    UpdateComponentSystem();
+                    GetOwner().component.Reinit();
                 }
             }
         }
@@ -299,10 +296,49 @@ namespace UnityEditor.Experimental
                 if (m_SpawnRate != value)
                 {
                     m_SpawnRate = value;
-                    if (rtData != null)
-                        GetOwner().UpdateComponentSpawnRate(m_SpawnRate);
+                    UpdateComponentSystem();
                 }
             }
+        }
+
+        private BlendMode m_BlendMode = BlendMode.kAdditive;
+        public BlendMode BlendingMode
+        {
+            get { return m_BlendMode; }
+            set
+            {
+                if (m_BlendMode != value)
+                {
+                    m_BlendMode = value;
+                    Invalidate(InvalidationCause.kModelChanged); // Force a recompilation
+                }
+            }
+        }
+
+        public bool UpdateComponentSystem()
+        {
+            if (rtData == null)
+                return false;
+
+            GetOwner().component.SetSystem(
+                m_ID,
+                MaxNb,
+                rtData.SimulationShader,
+                rtData.m_Material,
+                rtData.buffersDesc,
+                rtData.outputType,
+                SpawnRate,
+                rtData.hasKill);
+
+            return true;
+        }
+
+        private static uint NextSystemID = 0;
+        private uint m_ID; 
+
+        public uint Id
+        {
+            get { return m_ID; }
         }
     }
 

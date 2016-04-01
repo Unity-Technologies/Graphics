@@ -415,12 +415,10 @@ namespace UnityEditor.Experimental
             GUI.BeginGroup(rect);
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-            bool InvalidateSystems = false;
-
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton))
             {
                 AssetModel.component.pause = false;
-                InvalidateSystems = true;
+                AssetModel.component.Reinit();
             }
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.toolbarButton))
@@ -433,7 +431,7 @@ namespace UnityEditor.Experimental
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.toolbarButton))
             {
                 AssetModel.component.pause = true;
-                InvalidateSystems = true;
+                AssetModel.component.Reinit();
             }
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.toolbarButton))
@@ -464,19 +462,10 @@ namespace UnityEditor.Experimental
             if (r != nr)
                 SetPlayRate(nr);
 
-            if (InvalidateSystems)
-            {
-                for (int i = 0; i < AssetModel.GetNbChildren(); ++i)
-                    AssetModel.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);
-            }
-
             GUILayout.FlexibleSpace();
 
             bool UsePhaseShift = AssetModel.PhaseShift;
             AssetModel.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
-
-            if (GUILayout.Button(AssetModel.BlendingMode.ToString(), EditorStyles.toolbarButton))
-                AssetModel.SwitchBlendingMode();
 
             m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "DEBUG PANEL", EditorStyles.toolbarButton);
             m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);

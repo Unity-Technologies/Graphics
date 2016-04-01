@@ -173,7 +173,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("o.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
         }
 
-        public override void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data)
+        public override void WritePixelShader(VFXSystemModel system,ShaderSourceBuilder builder, ShaderMetaData data)
         {
             if (!m_HasTexture)
             {
@@ -228,7 +228,7 @@ namespace UnityEditor.Experimental
                 builder.WriteLine(",i.offsets);");
             }
 
-            if (VFXEditor.AssetModel.BlendingMode == BlendMode.kMasked)
+            if (system.BlendingMode == BlendMode.kMasked)
                 builder.WriteLine("if (color.a < 0.33333) discard;");
         }
 

@@ -156,6 +156,11 @@ namespace UnityEditor.Experimental
         public VFXContextModel model { get { return (target as VFXEdContextNodeTarget).targetNode.Model; } }
         public VFXEdContextNode node { get { return (target as VFXEdContextNodeTarget).targetNode; } }
 
+        private void SetBlendMode(object blendMode)
+        {
+            model.GetOwner().BlendingMode = (BlendMode)blendMode;
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -169,6 +174,21 @@ namespace UnityEditor.Experimental
             model.GetOwner().MaxNb = (uint)EditorGUILayout.DelayedIntField("Max Particles", (int)model.GetOwner().MaxNb);
             model.GetOwner().SpawnRate = EditorGUILayout.FloatField("Spawn Rate", model.GetOwner().SpawnRate);
             EditorGUILayout.Space();
+
+            if (GUILayout.Button("Blending Mode", EditorStyles.toolbarDropDown))
+            {
+                GenericMenu toolsMenu = new GenericMenu();
+                BlendMode mode = model.GetOwner().BlendingMode;
+                toolsMenu.AddItem(new GUIContent("Additive"), mode == BlendMode.kAdditive, SetBlendMode, BlendMode.kAdditive);
+                toolsMenu.AddItem(new GUIContent("AlphaBlend"), mode == BlendMode.kAlpha, SetBlendMode, BlendMode.kAlpha);
+                toolsMenu.AddItem(new GUIContent("Masked"), mode == BlendMode.kMasked, SetBlendMode, BlendMode.kMasked);
+
+                toolsMenu.DropDown(new Rect(16, 192, 0, 0));
+                EditorGUIUtility.ExitGUI();
+            }
+
+            EditorGUILayout.Space();
+
             EditorGUI.indentLevel--;
 
 
