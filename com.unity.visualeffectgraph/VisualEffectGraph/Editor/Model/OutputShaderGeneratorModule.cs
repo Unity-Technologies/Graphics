@@ -291,11 +291,11 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("float numFrames = dim.x * dim.y;");
                 builder.WriteLine("float t = i.offsets.z;");
                 builder.WriteLine();
-                builder.WriteLine("float2 frameSize = 1.0f/float2(dim.x,-dim.y);");
+                builder.WriteLine("float2 frameSize = 1.0f/float2(dim.x,dim.y);");
                 builder.WriteLine();
                 builder.WriteLine("float blend = frac(t);");
-                builder.WriteLine("float2 frameA = (i.offsets.xy + float2(floor(t) % dim.x, floor(floor(t) / dim.x))) * frameSize;");
-                builder.WriteLine("float2 frameB = (i.offsets.xy + float2(ceil(t) % dim.x, floor(ceil(t) / dim.x))) * frameSize;");
+                builder.WriteLine("float2 frameA = (i.offsets.xy + float2(floor(t) % dim.x, (dim.y-1)-floor(floor(t) / dim.x))) * frameSize;");
+                builder.WriteLine("float2 frameB = (i.offsets.xy + float2(ceil(t) % dim.x, (dim.y-1)-floor(ceil(t) / dim.x))) * frameSize;");
                 builder.WriteLine();
                 builder.WriteLine("float2 morphA = tex2D(morphSampler, frameA).rg - 0.5f;");
                 builder.WriteLine("float2 morphB = tex2D(morphSampler, frameB).rg - 0.5f;");
