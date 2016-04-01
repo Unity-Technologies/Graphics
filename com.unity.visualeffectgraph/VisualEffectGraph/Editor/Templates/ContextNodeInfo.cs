@@ -12,15 +12,17 @@ namespace UnityEditor.Experimental
     {
         public string Context {get { return m_Context; } set { m_Context = value; } }
         public Dictionary<string, NodeBlockInfo> nodeBlocks;
+        public int systemIndex;
 
         [SerializeField]
         private string m_Context;
 
-        public static ContextNodeInfo Create(string uniqueName, string Context)
+        public static ContextNodeInfo Create(string uniqueName, string Context, int sysIndex)
         {
             ContextNodeInfo n =  CreateInstance<ContextNodeInfo>();
             n.Context = Context;
             n.m_UniqueName = uniqueName;
+            n.systemIndex = sysIndex;
             return n;
         }
 
