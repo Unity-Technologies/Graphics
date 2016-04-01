@@ -169,10 +169,15 @@ namespace UnityEditor.Experimental
 
             GUILayout.Label(new GUIContent("Solver General Parameters"), VFXEditor.styles.InspectorHeader);
             EditorGUI.indentLevel++;
+            
             EditorGUILayout.BoundsField( new GUIContent("Bounding Box"),bounds);
+
             EditorGUILayout.Space();
+
+            model.GetOwner().OrderPriority = EditorGUILayout.IntField("Order Priority", model.GetOwner().OrderPriority);            
             model.GetOwner().MaxNb = (uint)EditorGUILayout.DelayedIntField("Max Particles", (int)model.GetOwner().MaxNb);
             model.GetOwner().SpawnRate = EditorGUILayout.FloatField("Spawn Rate", model.GetOwner().SpawnRate);
+            
             EditorGUILayout.Space();
 
             if (GUILayout.Button("Blending Mode", EditorStyles.toolbarDropDown))

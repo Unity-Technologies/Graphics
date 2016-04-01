@@ -315,6 +315,35 @@ namespace UnityEditor.Experimental
             }
         }
 
+        private int m_OrderPriority = 0; // TODO Get last priority
+        public int OrderPriority
+        {
+            get { return m_OrderPriority; }
+            set
+            {
+                if (m_OrderPriority != value)
+                {
+                    m_OrderPriority = value;
+                    // Check whether systems order has changed within the asset            
+                    /*var owner = GetOwner();
+                    if (owner != null)
+                    {
+                        int lastPriority = Int32.MinValue;
+                        for (int i = 0; i < owner.GetNbChildren(); ++i)
+                        {
+                            int currentPriority = GetChild(i).OrderPriority;
+                            if (currentPriority < lastPriority)
+                            {
+                                // TODO Needs reload as order as changed
+                            }
+                            lastPriority = currentPriority; 
+                        }
+                    }*/
+                    
+                }
+            }
+        }
+
         public bool UpdateComponentSystem()
         {
             if (rtData == null)
