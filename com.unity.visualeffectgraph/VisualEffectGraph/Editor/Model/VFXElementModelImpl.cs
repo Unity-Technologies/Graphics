@@ -101,7 +101,7 @@ namespace UnityEditor.Experimental
                 m_NeedsCheck = false;
             }
 
-            if (m_ReloadUniforms /*|| HasRecompiled*/) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
+            if (m_ReloadUniforms || HasRecompiled) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
                 VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
@@ -227,8 +227,8 @@ namespace UnityEditor.Experimental
                 Detach();
 
                 // TODO TMP Rettriger a uniform update as there is an issue with material atm
-                //for (int i = 0; i < oldOwner.GetNbChildren(); ++i)
-                 //   oldOwner.GetChild(i).Invalidate(InvalidationCause.kParamChanged);
+                for (int i = 0; i < oldOwner.GetNbChildren(); ++i)
+                    oldOwner.GetChild(i).Invalidate(InvalidationCause.kParamChanged);
 
                 return;
             }
