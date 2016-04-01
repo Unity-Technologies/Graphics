@@ -127,14 +127,19 @@ namespace UnityEditor.Experimental
         {
             Dictionary<ContextNodeInfo, VFXEdNode> spawnedContextNodes = new Dictionary<ContextNodeInfo, VFXEdNode>();
 
-            Vector2 CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth/2,80.0f);
+            Vector2[] CurrentPos = new Vector2[SystemInformation.Count];
+            for(int i = 0; i < SystemInformation.Count; i++)
+            {
+                CurrentPos[i] = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth/2,80.0f) + new Vector2(i* (VFXEditorMetrics.NodeDefaultWidth + 160),0.0f) ; 
+            }
+                
 
             foreach(KeyValuePair<string,ContextNodeInfo> node_kvp in m_ContextNodes)
             {
                 VFXEdContextNode node = null;
                 string context = node_kvp.Value.Context;
 
-                node = new VFXEdContextNode(CurrentPos, VFXEditor.ContextLibrary.GetContext(context), datasource);
+                node = new VFXEdContextNode(CurrentPos[node_kvp.Value.systemIndex], VFXEditor.ContextLibrary.GetContext(context), datasource);
 
                 if(node != null)
                 {
@@ -172,12 +177,13 @@ namespace UnityEditor.Experimental
                 }
 
                 node.Layout();
-                CurrentPos.y += node.scale.y + 40.0f;
+                 
+                CurrentPos[node_kvp.Value.systemIndex].y += node.scale.y + 40.0f;
                
             }
 
             // Data Nodes
-            CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth * 2 ,80.0f);
+            Vector2 CurrentDataNodePos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth * 2 ,80.0f);
 
             Dictionary<DataNodeInfo, VFXEdNode> spawnedDataNodes = new Dictionary<DataNodeInfo, VFXEdNode>();
 
@@ -185,7 +191,7 @@ namespace UnityEditor.Experimental
             {
                 VFXEdDataNode node = null;
 
-                node = new VFXEdDataNode(CurrentPos, datasource);
+                node = new VFXEdDataNode(CurrentDataNodePos, datasource);
                 
 
                 if(node != null)
@@ -215,7 +221,7 @@ namespace UnityEditor.Experimental
                 }
 
                 node.Layout();
-                CurrentPos.y += node.scale.y + 40.0f;
+                CurrentDataNodePos.y += node.scale.y + 40.0f;
                
             }
 
