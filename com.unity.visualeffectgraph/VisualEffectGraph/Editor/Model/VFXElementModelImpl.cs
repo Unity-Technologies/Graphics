@@ -322,22 +322,7 @@ namespace UnityEditor.Experimental
                 if (m_OrderPriority != value)
                 {
                     m_OrderPriority = value;
-                    // Check whether systems order has changed within the asset            
-                    /*var owner = GetOwner();
-                    if (owner != null)
-                    {
-                        int lastPriority = Int32.MinValue;
-                        for (int i = 0; i < owner.GetNbChildren(); ++i)
-                        {
-                            int currentPriority = GetChild(i).OrderPriority;
-                            if (currentPriority < lastPriority)
-                            {
-                                // TODO Needs reload as order as changed
-                            }
-                            lastPriority = currentPriority; 
-                        }
-                    }*/
-                    
+                    UpdateComponentSystem();
                 }
             }
         }
@@ -355,6 +340,7 @@ namespace UnityEditor.Experimental
                 rtData.buffersDesc,
                 rtData.outputType,
                 SpawnRate,
+                OrderPriority,
                 rtData.hasKill);
 
             return true;
