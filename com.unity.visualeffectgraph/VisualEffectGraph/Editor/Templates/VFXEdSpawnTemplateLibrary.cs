@@ -479,8 +479,10 @@ namespace UnityEditor.Experimental
                         {
                             // ADD ONLY IF NOT INSIDE A EDITINGWIDGET IGNORE LIST
                             if(block.editingWidget != null)
-                                if(!block.editingWidget.IgnoredParamNames.Contains(block.Params[i].m_Name))
+                            {
+                                if (!block.editingWidget.IgnoredParamNames.Contains(block.Params[i].m_Name))
                                     t.SetDataNodeBlockParameter(node.UniqueName, block.UniqueName, block.Params[i].m_Name, block.ParamValues[i].Clone());
+                            }
                             else
                                 t.SetDataNodeBlockParameter(node.UniqueName, block.UniqueName, block.Params[i].m_Name, block.ParamValues[i].Clone());
                         }
