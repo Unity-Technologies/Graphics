@@ -129,9 +129,13 @@ namespace UnityEditor.Experimental
                 VFXEdSpawnTemplate template = VFXEdSpawnTemplate.Create(t.Attribute("Category").Value, t.Attribute("Name").Value);
 
                 // TODO : Remove when using Triggers
-                var system = t.Element("System");
-                if(system != null)
-                    template.SystemInformation = new VFXEdSpawnTemplate.SysInfo(float.Parse(system.Attribute("SpawnRate").Value), uint.Parse(system.Attribute("AllocationCount").Value));
+                var systems = t.Elements("System");
+                template.SystemInformation = new List<VFXEdSpawnTemplate.SysInfo>();
+
+                foreach(XElement sys in systems)
+                {
+                    template.SystemInformation.Add(new VFXEdSpawnTemplate.SysInfo(float.Parse(sys.Attribute("SpawnRate").Value), uint.Parse(sys.Attribute("AllocationCount").Value), int.Parse(sys.Attribute("BlendMode").Value)));
+                }
                 // END TODO
             
                 var nodes = t.Element("Nodes").Elements("Node");
@@ -142,7 +146,7 @@ namespace UnityEditor.Experimental
 
                 foreach(XElement n in nodes)
                 {
-                    template.AddContextNode(n.Attribute("Name").Value, n.Attribute("Context").Value);
+                    template.AddContextNode(n.Attribute("Name").Value, n.Attribute("Context").Value, int.Parse(n.Attribute("SystemIndex").Value));
 
                     XElement contextParms = n.Element("Context");
 
@@ -286,15 +290,14 @@ namespace UnityEditor.Experimental
                 doc.WriteAttributeString("Category", template.Category);
                 doc.WriteAttributeString("Name", template.Name);
 
-                // TODO: Remove When using Triggers
-                if(template.SystemInformation != null)
+                foreach(VFXEdSpawnTemplate.SysInfo info in template.SystemInformation)
                 {
                     doc.WriteStartElement("System");
-                    doc.WriteAttributeString("SpawnRate", template.SystemInformation.SpawnRate.ToString());
-                    doc.WriteAttributeString("AllocationCount", template.SystemInformation.AllocationCount.ToString());
+                    doc.WriteAttributeString("SpawnRate", info.SpawnRate.ToString());
+                    doc.WriteAttributeString("AllocationCount", info.AllocationCount.ToString());
+                    doc.WriteAttributeString("BlendMode", info.BlendMode.ToString());
                     doc.WriteEndElement();
                 }
-                // END TODO
 
                 doc.WriteStartElement("Nodes");
                 foreach(KeyValuePair<string, ContextNodeInfo> kvp_node in template.ContextNodes)
@@ -302,7 +305,7 @@ namespace UnityEditor.Experimental
                     doc.WriteStartElement("Node");
                     doc.WriteAttributeString("Name", kvp_node.Key);
                     doc.WriteAttributeString("Context", kvp_node.Value.Context.ToString());
-
+                    doc.WriteAttributeString("SystemIndex", kvp_node.Value.systemIndex.ToString());
                     // Context Parameters
                     doc.WriteStartElement("Context");
                     foreach(KeyValuePair<string, VFXParamValue> kvp_param in kvp_node.Value.ParameterOverrides)
@@ -421,17 +424,28 @@ namespace UnityEditor.Experimental
                 }
             }
 
+            t.SystemInformation = new List<VFXEdSpawnTemplate.SysInfo>();
+            var Systems = new List<VFXSystemModel>();
+
             foreach(CanvasElement e in canvas.selection)
             {
+                
                 if(e is VFXEdContextNode)
                 {
                     VFXEdContextNode node = (e as VFXEdContextNode);
-                    t.AddContextNode(node.UniqueName, node.Model.Desc.Name);
-
-                    // TODO: Remove & Refactor When Using Triggers
                     VFXSystemModel sysmodel = node.Model.GetOwner();
-                    t.SystemInformation = new VFXEdSpawnTemplate.SysInfo(sysmodel.SpawnRate, sysmodel.MaxNb);
-                    // END TODO
+
+                    if (!Systems.Contains(sysmodel))
+                    {
+                        Systems.Add(sysmodel);
+                        VFXEdSpawnTemplate.SysInfo info = new VFXEdSpawnTemplate.SysInfo(sysmodel.SpawnRate, sysmodel.MaxNb, (int)sysmodel.BlendingMode);
+                        t.SystemInformation.Add(info);
+                    }
+
+                    int index = Systems.IndexOf(sysmodel);
+
+                    t.AddContextNode(node.UniqueName, node.Model.Desc.Name,index);
+
 
                     // Context Node Parameters
                     for(int i = 0; i < node.Model.GetNbParamValues(); i++)

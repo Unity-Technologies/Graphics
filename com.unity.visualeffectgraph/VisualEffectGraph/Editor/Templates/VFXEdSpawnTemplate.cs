@@ -15,11 +15,13 @@ namespace UnityEditor.Experimental
         {
             public float SpawnRate;
             public uint AllocationCount;
+            public int BlendMode;
 
-            public SysInfo(float spawnRate, uint allocationCount)
+            public SysInfo(float spawnRate, uint allocationCount, int blendMode)
             {
                 SpawnRate = spawnRate;
                 AllocationCount = allocationCount;
+                BlendMode = blendMode;
             }
         }
         // END TODO
@@ -27,7 +29,7 @@ namespace UnityEditor.Experimental
         public string Name { get { return m_Name; } set { m_Name = value; } }
         public string Category { get { return m_Category; } set { m_Category = value; } }
 
-        public SysInfo SystemInformation;
+        public List<SysInfo> SystemInformation;
 
         public string Path { get { return m_Category + "/" + m_Name; } }
 
@@ -66,9 +68,9 @@ namespace UnityEditor.Experimental
             return t;
         }
 
-        public void AddContextNode(string nodename, string contextName)
+        public void AddContextNode(string nodename, string contextName, int sysIndex)
         {
-            m_ContextNodes.Add(nodename, ContextNodeInfo.Create(nodename, contextName));
+            m_ContextNodes.Add(nodename, ContextNodeInfo.Create(nodename, contextName, sysIndex));
         }
 
         public void AddDataNode(string nodename, bool bExposed)
@@ -146,8 +148,10 @@ namespace UnityEditor.Experimental
                 }
                 
                 // TODO : Remove when using Triggers
-                node.Model.GetOwner().MaxNb = SystemInformation.AllocationCount;
-                node.Model.GetOwner().SpawnRate = SystemInformation.SpawnRate;
+                node.Model.GetOwner().MaxNb = SystemInformation[node_kvp.Value.systemIndex].AllocationCount;
+                node.Model.GetOwner().SpawnRate = SystemInformation[node_kvp.Value.systemIndex].SpawnRate;
+                node.Model.GetOwner().BlendingMode = (BlendMode)SystemInformation[node_kvp.Value.systemIndex].BlendMode;
+
                 // END TODO
 
                 foreach(KeyValuePair<string,NodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
