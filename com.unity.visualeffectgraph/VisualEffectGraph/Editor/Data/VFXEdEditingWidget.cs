@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental
     internal abstract class VFXEdEditingWidget
     {
         protected VFXEdNodeBlock m_CurrentlyEditedBlock;
-
+        public List<string> IgnoredParamNames = new List<string>();
         public abstract void OnSceneGUI(SceneView sceneView);
         public abstract void OnInspectorGUI();
         public virtual void CreateBinding(VFXEdNodeBlock block)
@@ -293,6 +293,7 @@ namespace UnityEditor.Experimental
         public VFXEdGradientEditingWidget(string textureParameterName)
         {
             m_TextureParamName = textureParameterName;
+            IgnoredParamNames.Add(m_TextureParamName);
         }
         public void UpdateTexture()
         {
@@ -384,6 +385,7 @@ namespace UnityEditor.Experimental
         public VFXEdCurveFloatEditingWidget(string textureParameterName)
         {
             m_TextureParamName = textureParameterName;
+            IgnoredParamNames.Add(m_TextureParamName);
         }
 
         public void UpdateTexture()
@@ -424,6 +426,7 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
+
             m_TextureParamValue = block.GetParamValue(m_TextureParamName);
 
             if(m_TextureParamValue.GetValue<Texture2D>() == null)
@@ -475,6 +478,7 @@ namespace UnityEditor.Experimental
         public VFXEdCurveVectorEditingWidget(string textureParameterName)
         {
             m_TextureParamName = textureParameterName;
+            IgnoredParamNames.Add(m_TextureParamName);
         }
 
         public void UpdateTexture()
