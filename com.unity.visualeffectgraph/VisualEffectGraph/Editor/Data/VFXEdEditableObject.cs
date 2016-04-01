@@ -161,6 +161,7 @@ namespace UnityEditor.Experimental
             model.GetOwner().BlendingMode = (BlendMode)blendMode;
         }
 
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -180,17 +181,10 @@ namespace UnityEditor.Experimental
             
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("Blending Mode", EditorStyles.toolbarDropDown))
-            {
-                GenericMenu toolsMenu = new GenericMenu();
-                BlendMode mode = model.GetOwner().BlendingMode;
-                toolsMenu.AddItem(new GUIContent("Additive"), mode == BlendMode.kAdditive, SetBlendMode, BlendMode.kAdditive);
-                toolsMenu.AddItem(new GUIContent("AlphaBlend"), mode == BlendMode.kAlpha, SetBlendMode, BlendMode.kAlpha);
-                toolsMenu.AddItem(new GUIContent("Masked"), mode == BlendMode.kMasked, SetBlendMode, BlendMode.kMasked);
+            GUIContent[] options = new GUIContent[3] { new GUIContent("Masked"), new GUIContent("Additive"), new GUIContent("AlphaBlend") };
 
-                toolsMenu.DropDown(new Rect(16, 192, 0, 0));
-                EditorGUIUtility.ExitGUI();
-            }
+            BlendMode mode = model.GetOwner().BlendingMode;
+            model.GetOwner().BlendingMode = (BlendMode)EditorGUILayout.Popup(new GUIContent("Blend Mode : "),(int)mode,options );
 
             EditorGUILayout.Space();
 

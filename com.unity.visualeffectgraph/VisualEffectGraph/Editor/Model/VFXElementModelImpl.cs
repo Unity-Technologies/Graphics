@@ -10,9 +10,9 @@ namespace UnityEditor.Experimental
 {
     public enum BlendMode
     {
-        kMasked,
-        kAdditive,
-        kAlpha,
+        kMasked = 0,
+        kAdditive = 1,
+        kAlpha = 2,
     }
 
     public class VFXAssetModel : VFXElementModel<VFXElementModel, VFXSystemModel>

@@ -15,11 +15,13 @@ namespace UnityEditor.Experimental
         {
             public float SpawnRate;
             public uint AllocationCount;
+            public int BlendMode;
 
-            public SysInfo(float spawnRate, uint allocationCount)
+            public SysInfo(float spawnRate, uint allocationCount, int blendMode)
             {
                 SpawnRate = spawnRate;
                 AllocationCount = allocationCount;
+                BlendMode = blendMode;
             }
         }
         // END TODO
@@ -27,7 +29,7 @@ namespace UnityEditor.Experimental
         public string Name { get { return m_Name; } set { m_Name = value; } }
         public string Category { get { return m_Category; } set { m_Category = value; } }
 
-        public SysInfo SystemInformation;
+        public List<SysInfo> SystemInformation;
 
         public string Path { get { return m_Category + "/" + m_Name; } }
 
@@ -66,9 +68,9 @@ namespace UnityEditor.Experimental
             return t;
         }
 
-        public void AddContextNode(string nodename, string contextName)
+        public void AddContextNode(string nodename, string contextName, int sysIndex)
         {
-            m_ContextNodes.Add(nodename, ContextNodeInfo.Create(nodename, contextName));
+            m_ContextNodes.Add(nodename, ContextNodeInfo.Create(nodename, contextName, sysIndex));
         }
 
         public void AddDataNode(string nodename, bool bExposed)
@@ -125,14 +127,19 @@ namespace UnityEditor.Experimental
         {
             Dictionary<ContextNodeInfo, VFXEdNode> spawnedContextNodes = new Dictionary<ContextNodeInfo, VFXEdNode>();
 
-            Vector2 CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth/2,80.0f);
+            Vector2[] CurrentPos = new Vector2[SystemInformation.Count];
+            for(int i = 0; i < SystemInformation.Count; i++)
+            {
+                CurrentPos[i] = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth/2,80.0f) + new Vector2(i* (VFXEditorMetrics.NodeDefaultWidth + 160),0.0f) ; 
+            }
+                
 
             foreach(KeyValuePair<string,ContextNodeInfo> node_kvp in m_ContextNodes)
             {
                 VFXEdContextNode node = null;
                 string context = node_kvp.Value.Context;
 
-                node = new VFXEdContextNode(CurrentPos, VFXEditor.ContextLibrary.GetContext(context), datasource);
+                node = new VFXEdContextNode(CurrentPos[node_kvp.Value.systemIndex], VFXEditor.ContextLibrary.GetContext(context), datasource);
 
                 if(node != null)
                 {
@@ -146,8 +153,10 @@ namespace UnityEditor.Experimental
                 }
                 
                 // TODO : Remove when using Triggers
-                node.Model.GetOwner().MaxNb = SystemInformation.AllocationCount;
-                node.Model.GetOwner().SpawnRate = SystemInformation.SpawnRate;
+                node.Model.GetOwner().MaxNb = SystemInformation[node_kvp.Value.systemIndex].AllocationCount;
+                node.Model.GetOwner().SpawnRate = SystemInformation[node_kvp.Value.systemIndex].SpawnRate;
+                node.Model.GetOwner().BlendingMode = (BlendMode)SystemInformation[node_kvp.Value.systemIndex].BlendMode;
+
                 // END TODO
 
                 foreach(KeyValuePair<string,NodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
@@ -168,12 +177,13 @@ namespace UnityEditor.Experimental
                 }
 
                 node.Layout();
-                CurrentPos.y += node.scale.y + 40.0f;
+                 
+                CurrentPos[node_kvp.Value.systemIndex].y += node.scale.y + 40.0f;
                
             }
 
             // Data Nodes
-            CurrentPos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth * 2 ,80.0f);
+            Vector2 CurrentDataNodePos = canvasPosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth * 2 ,80.0f);
 
             Dictionary<DataNodeInfo, VFXEdNode> spawnedDataNodes = new Dictionary<DataNodeInfo, VFXEdNode>();
 
@@ -181,7 +191,7 @@ namespace UnityEditor.Experimental
             {
                 VFXEdDataNode node = null;
 
-                node = new VFXEdDataNode(CurrentPos, datasource);
+                node = new VFXEdDataNode(CurrentDataNodePos, datasource);
                 
 
                 if(node != null)
@@ -211,7 +221,7 @@ namespace UnityEditor.Experimental
                 }
 
                 node.Layout();
-                CurrentPos.y += node.scale.y + 40.0f;
+                CurrentDataNodePos.y += node.scale.y + 40.0f;
                
             }
 
