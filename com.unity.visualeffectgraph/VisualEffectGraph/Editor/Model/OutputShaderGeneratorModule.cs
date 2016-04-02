@@ -28,10 +28,15 @@ namespace UnityEditor.Experimental
 
     public class VFXBillboardOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
     {
-        public VFXBillboardOutputShaderGeneratorModule(VFXParamValue texture, VFXParamValue flipBookDim, bool orientAlongVelocity)
+        public const int TextureIndex = 0;
+        public const int FlipbookDimIndex = 1;
+        public const int MorphTextureIndex = 2;
+        public const int MorphIntensityIndex = 3;
+
+        public VFXBillboardOutputShaderGeneratorModule(VFXParamValue[] paramValues, bool orientAlongVelocity)
         {
-            m_Texture = texture;
-            m_FlipBookDim = flipBookDim;
+            for (int i = 0; i < Math.Min(paramValues.Length, 4); ++i)
+                m_ParamValues[i] = paramValues[i];
             m_OrientAlongVelocity = orientAlongVelocity;
         }
 
@@ -47,15 +52,16 @@ namespace UnityEditor.Experimental
             m_HasSize = UpdateFlag(attribs, CommonAttrib.Size, VFXContextDesc.Type.kTypeOutput);
             m_HasAngle = UpdateFlag(attribs, CommonAttrib.Angle, VFXContextDesc.Type.kTypeOutput);
 
-            if (m_Texture.GetValue<Texture2D>() != null)
+            if (m_ParamValues[TextureIndex] != null && m_ParamValues[TextureIndex].GetValue<Texture2D>() != null)
             {
                 m_HasTexture = true;
-                m_HasFlipBook = UpdateFlag(attribs, CommonAttrib.TexIndex, VFXContextDesc.Type.kTypeOutput);   
+                if (m_HasFlipBook = m_ParamValues[FlipbookDimIndex] != null && UpdateFlag(attribs, CommonAttrib.TexIndex, VFXContextDesc.Type.kTypeOutput))
+                    m_HasMotionVectors = m_ParamValues[MorphTextureIndex] != null && m_ParamValues[MorphIntensityIndex] != null && m_ParamValues[MorphTextureIndex].GetValue<Texture2D>() != null;
             }
-            
+
             if (m_OrientAlongVelocity)
                 m_OrientAlongVelocity = UpdateFlag(attribs, CommonAttrib.Velocity, VFXContextDesc.Type.kTypeOutput);
-           
+
             return true;
         }
 
@@ -63,13 +69,20 @@ namespace UnityEditor.Experimental
         {
             if (m_HasTexture)
             {
-                uniforms.Add(m_Texture);
+                uniforms.Add(m_ParamValues[TextureIndex]);
                 if (m_HasFlipBook)
-                    uniforms.Add(m_FlipBookDim);
+                {
+                    uniforms.Add(m_ParamValues[FlipbookDimIndex]);
+                    if (m_HasMotionVectors)
+                    {
+                        uniforms.Add(m_ParamValues[MorphTextureIndex]);
+                        uniforms.Add(m_ParamValues[MorphIntensityIndex]);
+                    }
+                }
             }
         }
 
-        public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data) 
+        public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             builder.WriteLine("uint index = (id >> 2) + instanceID * 16384;");
         }
@@ -77,7 +90,7 @@ namespace UnityEditor.Experimental
         public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             if (m_HasFlipBook)
-                builder.WriteLine("float3 offsets : TEXCOORD0; // u,v and index"); 
+                builder.WriteLine("float3 offsets : TEXCOORD0; // u,v and index");
             else
                 builder.WriteLine("float2 offsets : TEXCOORD0;");
         }
@@ -128,8 +141,8 @@ namespace UnityEditor.Experimental
                 builder.Write("float3 up = normalize(");
                 builder.WriteAttrib(CommonAttrib.Velocity, data);
                 builder.WriteLine(");");
-                builder.WriteLine("float3 side = normalize(cross(front,up));"); 
-  
+                builder.WriteLine("float3 side = normalize(cross(front,up));");
+
                 if (m_HasAngle)
                     builder.WriteLine("front = cross(up,side);");
             }
@@ -169,11 +182,39 @@ namespace UnityEditor.Experimental
             }
 
             builder.WriteLine();
-
             builder.WriteLine("o.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
         }
 
-        public override void WritePixelShader(VFXSystemModel system,ShaderSourceBuilder builder, ShaderMetaData data)
+        public override void WriteFunctions(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            if (m_HasFlipBook)
+            {
+                builder.WriteLine("float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)");
+                builder.EnterScope();
+                builder.WriteLine("float2 tile = float2(fmod(flipBookIndex,dim.x),dim.y - 1.0 - floor(flipBookIndex * invDim.x));");
+                builder.WriteLine("return (tile + uv) * invDim;");
+                builder.ExitScope();
+                builder.WriteLine();
+            }
+
+            if (m_HasAngle)
+            {
+
+            }
+        }
+
+        private static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXParamValue texture, string uv, bool endLine)
+        {
+            builder.Write("tex2D(");
+            builder.Write(data.outputParamToName[texture]);
+            builder.Write(",");
+            builder.Write(uv);
+            builder.Write(")");
+            if (endLine)
+                builder.WriteLine(";");
+        }
+
+        public override void WritePixelShader(VFXSystemModel system, ShaderSourceBuilder builder, ShaderMetaData data)
         {
             if (!m_HasTexture)
             {
@@ -184,134 +225,93 @@ namespace UnityEditor.Experimental
             }
             else if (m_HasFlipBook)
             {
-                const bool INTERPOLATE = true; // TODO Add a toggle on block
-
                 builder.Write("float2 dim = ");
-                builder.Write(data.outputParamToName[m_FlipBookDim]);
+                builder.Write(data.outputParamToName[m_ParamValues[FlipbookDimIndex]]);
                 builder.WriteLine(";");
                 builder.WriteLine("float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
 
-                if (!INTERPOLATE)
+                if (!m_HasMotionVectors)
                 {
-                    builder.WriteLine("float index = round(i.offsets.z);");
-                    builder.WriteLine("float2 tile = float2(fmod(index,dim.x),dim.y - 1.0 - floor(index * invDim.x));");
-                    builder.WriteLine("float2 uv = (tile + i.offsets.xy) * invDim; // TODO InvDim should be computed on CPU");                
-                    builder.Write("color *= tex2D(");
-                    builder.Write(data.outputParamToName[m_Texture]);
-                    builder.WriteLine(",uv);");
+                    const bool INTERPOLATE = true; // TODO Add a toggle on block
+
+                    if (!INTERPOLATE)
+                    {
+                        builder.WriteLine("float2 uv = GetSubUV(floor(i.offsets.z),i.offsets.xy,dim,invDim);");
+                        builder.Write("color *= ");
+                        WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv", true);
+                    }
+                    else
+                    {
+                        builder.WriteLine("float ratio = frac(i.offsets.z);");
+                        builder.WriteLine("float index = i.offsets.z - ratio;");
+                        builder.WriteLine();
+
+                        builder.WriteLine("float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);");
+                        builder.Write("float4 col1 = ");
+                        WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv1", true);
+                        builder.WriteLine();
+
+                        builder.WriteLine("float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);");
+                        builder.Write("float4 col2 = ");
+                        WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv2", true);
+                        builder.WriteLine();
+
+                        builder.WriteLine("color *= lerp(col1,col2,ratio);");
+                    }
                 }
                 else
-                {      
+                {
                     builder.WriteLine("float ratio = frac(i.offsets.z);");
+                    builder.WriteLine("float index = i.offsets.z - ratio;");
                     builder.WriteLine();
-                    builder.WriteLine("float index1 = i.offsets.z - ratio;");
-                    builder.WriteLine("float2 tile1 = float2(fmod(index1,dim.x),dim.y - 1.0 - floor(index1 * invDim.x));");
-                    builder.WriteLine("float2 uv1 = (tile1 + i.offsets.xy) * invDim;");
-                    builder.Write("float4 col1 = tex2D(");
-                    builder.Write(data.outputParamToName[m_Texture]);
-                    builder.WriteLine(",uv1);");
+
+                    builder.WriteLine("float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);");
+                    builder.Write("float2 duv1 = ");
+                    WriteTex2DFetch(builder, data, m_ParamValues[MorphTextureIndex], "uv1", false);
+                    builder.WriteLine(".rg - 0.5;");
                     builder.WriteLine();
-                    builder.WriteLine("float index2 = index1 + 1;");
-                    builder.WriteLine("float2 tile2 = float2(fmod(index2,dim.x),dim.y - 1.0 - floor(index2 * invDim.x));");
-                    builder.WriteLine("float2 uv2 = (tile2 + i.offsets.xy) * invDim;");
-                    builder.Write("float4 col2 = tex2D(");
-                    builder.Write(data.outputParamToName[m_Texture]);
-                    builder.WriteLine(",uv2);");
+
+                    builder.WriteLine("float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);");
+                    builder.Write("float2 duv2 = ");
+                    WriteTex2DFetch(builder, data, m_ParamValues[MorphTextureIndex], "uv2", false);
+                    builder.WriteLine(".rg - 0.5;");
                     builder.WriteLine();
+
+                    builder.Write("float morphIntensity = ");
+                    builder.Write(data.outputParamToName[m_ParamValues[MorphIntensityIndex]]);
+                    builder.WriteLine(";");
+                    builder.WriteLine("duv1 *= morphIntensity * ratio;");
+                    builder.WriteLine("duv2 *= morphIntensity * (ratio - 1.0);");
+                    builder.WriteLine();
+
+                    builder.Write("float4 col1 = ");
+                    WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv1 - duv1", true);
+                    builder.Write("float4 col2 = ");
+                    WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv2 - duv2", true);
+                    builder.WriteLine();
+
                     builder.WriteLine("color *= lerp(col1,col2,ratio);");
                 }
+
             }
             else
             {
-                builder.Write("color *= tex2D(");
-                builder.Write(data.outputParamToName[m_Texture]);
-                builder.WriteLine(",i.offsets);");
+                builder.Write("color *= ");
+                WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "i.offsets", true);
             }
 
             if (system.BlendingMode == BlendMode.kMasked)
                 builder.WriteLine("if (color.a < 0.33333) discard;");
         }
 
-        protected VFXParamValue m_Texture;
-        protected VFXParamValue m_FlipBookDim;
+        private VFXParamValue[] m_ParamValues = new VFXParamValue[4];
 
-        protected bool m_HasSize;
-        protected bool m_HasAngle;
-        protected bool m_HasFlipBook;
-        protected bool m_HasTexture;
-        protected bool m_OrientAlongVelocity;
-    }
-
-    public class VFXMorphSubUVOutputShaderGeneratorModule :  VFXBillboardOutputShaderGeneratorModule
-    {
-        public VFXParamValue m_morphTexture;
-        public VFXParamValue m_morphIntensity;
-
-        public VFXMorphSubUVOutputShaderGeneratorModule(VFXParamValue texture, VFXParamValue morphTexture, VFXParamValue morphIntensity ,VFXParamValue flipBookDim, bool orientAlongVelocity) : base(texture, flipBookDim, orientAlongVelocity)
-        {
-            m_morphTexture = morphTexture;
-            m_morphIntensity = morphIntensity;
-        }
-
-        public override void UpdateUniforms(HashSet<VFXParamValue> uniforms)
-        {
-            base.UpdateUniforms(uniforms);
-            uniforms.Add(m_morphTexture);
-            uniforms.Add(m_morphIntensity);
-        }
-
-        public override void WritePixelShader(VFXSystemModel system,ShaderSourceBuilder builder, ShaderMetaData data)
-        {
-            if (!m_HasTexture)
-            {
-                builder.WriteLine("float lsqr = dot(i.offsets, i.offsets);");
-                builder.WriteLine("if (lsqr > 1.0)");
-                builder.WriteLine("\tdiscard;");
-                builder.WriteLine();
-            }
-            else if (m_HasFlipBook)
-            {
-                builder.Write("float morphIntensity = ");
-                builder.Write(data.outputParamToName[m_morphIntensity]);
-                builder.WriteLine(";");
-
-                builder.Write("sampler2D morphSampler = ");
-                builder.Write(data.outputParamToName[m_morphTexture]);
-                builder.WriteLine(";");
-
-                builder.Write("sampler2D colorSampler = ");
-                builder.Write(data.outputParamToName[m_Texture]);
-                builder.WriteLine(";");
-
-                builder.Write("float2 dim = ");
-                builder.Write(data.outputParamToName[m_FlipBookDim]);
-                builder.WriteLine(";");
-                builder.WriteLine("float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
-
-                builder.WriteLine("float numFrames = dim.x * dim.y;");
-                builder.WriteLine("float t = i.offsets.z;");
-                builder.WriteLine();
-                builder.WriteLine("float2 frameSize = 1.0f/float2(dim.x,dim.y);");
-                builder.WriteLine();
-                builder.WriteLine("float blend = frac(t);");
-                builder.WriteLine("float2 frameA = (i.offsets.xy + float2(floor(t) % dim.x, (dim.y-1)-floor(floor(t) / dim.x))) * frameSize;");
-                builder.WriteLine("float2 frameB = (i.offsets.xy + float2(ceil(t) % dim.x, (dim.y-1)-floor(ceil(t) / dim.x))) * frameSize;");
-                builder.WriteLine();
-                builder.WriteLine("float2 morphA = tex2D(morphSampler, frameA).rg - 0.5f;");
-                builder.WriteLine("float2 morphB = tex2D(morphSampler, frameB).rg - 0.5f;");
-                builder.WriteLine();
-                builder.WriteLine("morphA *= -morphIntensity * blend;");
-                builder.WriteLine("morphB *= -morphIntensity * (blend - 1.0f);");
-                builder.WriteLine();
-                builder.WriteLine("float4 colorA = tex2D(colorSampler, frameA + morphA);");
-                builder.WriteLine("float4 colorB = tex2D(colorSampler, frameB + morphB);");
-                builder.WriteLine();
-                builder.WriteLine("color *= lerp(colorA, colorB, blend);");
-
-            }
-
-            if (system.BlendingMode == BlendMode.kMasked)
-                builder.WriteLine("if (color.a < 0.33333) discard;");
-        }
+        private bool m_HasSize;
+        private bool m_HasAngle;
+        private bool m_HasFlipBook;
+        private bool m_HasTexture;
+        private bool m_OrientAlongVelocity;
+        private bool m_HasMotionVectors;
     }
 }
+

@@ -746,6 +746,11 @@ namespace UnityEditor.Experimental
             foreach (var block in data.updateBlocks)
                 builder.WriteFunction(block, functionNames);
 
+            if (initGenerator != null)
+                initGenerator.WriteFunctions(builder, data);
+            if (updateGenerator != null)
+                updateGenerator.WriteFunctions(builder, data);
+
             bool HasPhaseShift = VFXEditor.AssetModel.PhaseShift;
 
             // Write init kernel
@@ -996,6 +1001,9 @@ namespace UnityEditor.Experimental
 
             builder.ExitScopeStruct();
             builder.WriteLine();
+
+            outputGenerator.WriteFunctions(builder, data);
+
             builder.WriteLine("ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)");
             builder.EnterScope();
             builder.WriteLine("ps_input o;");
