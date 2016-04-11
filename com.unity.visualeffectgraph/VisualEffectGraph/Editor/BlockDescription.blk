@@ -123,6 +123,68 @@ alpha = lerp(start,end,ratio);
 color = float3(phase,1 - phase,0.0);
 
 #---------------------------------------------------------------------
+# TARGET BLOCKS
+#---------------------------------------------------------------------
+
+#block Target (Position Map)
+#icon Position
+#category Target/
+#arg float3 target [inout|param]
+#arg Texture2D positionmap [public]
+#arg float3 center [public]
+#arg float3 scale [public]
+
+target = center+((tex2Dlod(positionmap,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
+
+
+#block Morph Target (PositionMap)
+#icon Position
+#category Target/
+#arg float3 target [inout|param]
+#arg Texture2D posmap1 [public]
+#arg Texture2D posmap2 [public]
+#arg float3 center [public]
+#arg float3 scale [public]
+#arg float morph [public]
+
+float3 t1 = center+((tex2Dlod(posmap1,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
+float3 t2 = center+((tex2Dlod(posmap2,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
+target = lerp(t1,t2, morph);
+
+#block Attract Target
+#icon Force
+#category Target/
+#arg float3 position [param]
+#arg float3 velocity [inout|param]
+#arg float3 target [param]
+#arg float targetSpeed [public]
+#arg float attractForce [public]
+#arg float attractdistance [public]
+
+float3 delta = position - target;
+float dist = sqrt(dot(delta,delta));
+float t = saturate(dist / attractdistance);
+float3 tgtVelocity = (-delta / dist) * (targetSpeed * t);
+float3 deltaVelocity = tgtVelocity - velocity;
+float deltaSpeed = length(deltaVelocity);
+deltaVelocity /= deltaSpeed;
+velocity += deltaVelocity * min(deltaSpeed, deltaTime * attractForce);
+
+
+
+#block Target Position
+#icon Position
+#category Target/
+#arg float3 position [inout|param]
+#arg float3 target [param]
+#arg float lifetime [param]
+#arg float age [param]
+
+float d = deltaTime / (lifetime - age);
+position = lerp(position, target, d);  
+
+
+#---------------------------------------------------------------------
 # FORCE BLOCKS
 #---------------------------------------------------------------------
 

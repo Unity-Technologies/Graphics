@@ -218,68 +218,6 @@
       </DataConnection>
     </Connections>
   </Template>
-  <Template Category="Textured" Name="PM Made With Unity">
-    <System SpawnRate="104857.6" AllocationCount="1048576" BlendMode="1" />
-    <Nodes>
-      <Node Name="VFXEdContextNode_0" Context="Initialize" SystemIndex="0">
-        <Context />
-        <NodeBlock Name="Position Map (Texture)" BlockName="Position Map (Texture)">
-          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/PositionMap_MadeWithUnity.tga" />
-          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
-          <VFXParamValue Name="scale" Type="kTypeFloat3" Value="0,0,0" />
-        </NodeBlock>
-        <NodeBlock Name="Set Size Constant (Square)" BlockName="Set Size Constant (Square)">
-          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.02" />
-        </NodeBlock>
-        <NodeBlock Name="Set Lifetime (Constant)" BlockName="Set Lifetime (Constant)">
-          <VFXParamValue Name="value" Type="kTypeFloat" Value="3" />
-        </NodeBlock>
-        <NodeBlock Name="Set Velocity (Random)" BlockName="Set Velocity (Random)">
-          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,0.1,0" />
-          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0,0,0" />
-        </NodeBlock>
-      </Node>
-      <Node Name="VFXEdContextNode_1" Context="Particle Update" SystemIndex="0">
-        <Context />
-        <NodeBlock Name="RGBA Gradient Over Life" BlockName="RGBA Gradient Over Life">
-          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="" />
-        </NodeBlock>
-      </Node>
-      <Node Name="VFXEdContextNode_2" Context="Billboard Output" SystemIndex="0">
-        <Context>
-          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="" />
-          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="0,0" />
-        </Context>
-      </Node>
-      <DataNode Name="VFXEdDataNode_3" Exposed="False">
-        <DataNodeBlock Name="Box" BlockName="Box" ExposedName="Box">
-          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="-1.868385,0.9784491,1.640808" />
-          <VFXParamValue Name="Size" Type="kTypeFloat3" Value="-3.73677,1.956898,-3.887706" />
-        </DataNodeBlock>
-      </DataNode>
-      <DataNode Name="VFXEdDataNode_4" Exposed="False">
-        <DataNodeBlock Name="Gradient" BlockName="Gradient" ExposedName="Gradient">
-          <VFXParamValue Name="Gradient" Type="kTypeTexture2D" Value="" />
-        </DataNodeBlock>
-      </DataNode>
-    </Nodes>
-    <Connections>
-      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
-      <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
-      <DataConnection>
-        <Input DataNode="VFXEdDataNode_3" NodeBlockIndex="0" ParamName="Center" />
-        <Output ContextNode="VFXEdContextNode_0" NodeBlockIndex="0" ParamName="center" />
-      </DataConnection>
-      <DataConnection>
-        <Input DataNode="VFXEdDataNode_3" NodeBlockIndex="0" ParamName="Size" />
-        <Output ContextNode="VFXEdContextNode_0" NodeBlockIndex="0" ParamName="scale" />
-      </DataConnection>
-      <DataConnection>
-        <Input DataNode="VFXEdDataNode_4" NodeBlockIndex="0" ParamName="Gradient" />
-        <Output ContextNode="VFXEdContextNode_1" NodeBlockIndex="0" ParamName="tex" />
-      </DataConnection>
-    </Connections>
-  </Template>
   <Template Category="test" Name="testoverflow">
     <System SpawnRate="100000" AllocationCount="150000" BlendMode="1" />
     <Nodes>
@@ -606,6 +544,329 @@
       <DataConnection>
         <Input DataNode="VFXEdDataNode_43" NodeBlockIndex="0" ParamName="Curve" />
         <Output ContextNode="VFXEdContextNode_41" NodeBlockIndex="0" ParamName="curve" />
+      </DataConnection>
+    </Connections>
+  </Template>
+  <Template Category="Textured" Name="PM Made With Unity">
+    <System SpawnRate="104857.6" AllocationCount="1048576" BlendMode="1" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_5" Context="Initialize" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_9" BlockName="Position Map (Texture)">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/PositionMap_MadeWithUnity.tga" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="scale" Type="kTypeFloat3" Value="0,0,0" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_10" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.02" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_11" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="3" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_12" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,0.1,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0,0,0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_6" Context="Particle Update" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_14" BlockName="RGBA Gradient Over Life">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_7" Context="Billboard Output" SystemIndex="0">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="0,0" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_8" Exposed="False">
+        <DataNodeBlock Name="VFXEdDataNodeBlock_16" BlockName="Box" ExposedName="Box">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="-1.868385,0.9784491,1.640808" />
+          <VFXParamValue Name="Size" Type="kTypeFloat3" Value="-3.73677,1.956898,-3.887706" />
+        </DataNodeBlock>
+      </DataNode>
+      <DataNode Name="VFXEdDataNode_9" Exposed="False">
+        <DataNodeBlock Name="VFXEdDataNodeBlock_17" BlockName="Gradient" ExposedName="Gradient">
+          <DataContainer type="GradientContainer">
+            <Gradient numColorKeys="4" numAlphaKeys="2">
+              <ColorKey Time="0" R="1" G="1" B="1" />
+              <ColorKey Time="0.08709849" R="1" G="0.827451" B="0.2588235" />
+              <ColorKey Time="0.225803" R="1" G="0.4352941" B="0" />
+              <ColorKey Time="1" R="0" G="0" B="0" />
+              <AlphaKey Time="0" Alpha="0.08627451" />
+              <AlphaKey Time="1" Alpha="0" />
+            </Gradient>
+          </DataContainer>
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_5" Next="VFXEdContextNode_6" />
+      <FlowConnection Previous="VFXEdContextNode_6" Next="VFXEdContextNode_7" />
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_8" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="VFXEdContextNode_5" NodeBlockIndex="0" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_8" NodeBlockIndex="0" ParamName="Size" />
+        <Output ContextNode="VFXEdContextNode_5" NodeBlockIndex="0" ParamName="scale" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_9" NodeBlockIndex="0" ParamName="Gradient" />
+        <Output ContextNode="VFXEdContextNode_6" NodeBlockIndex="0" ParamName="tex" />
+      </DataConnection>
+    </Connections>
+  </Template>
+  <Template Category="SubUV" Name="ExplosionWarp">
+    <System SpawnRate="20" AllocationCount="50" BlendMode="2" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_15" Context="Initialize" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_27" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.5" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_28" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,0.75,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0.25,0.25,0.25" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_29" BlockName="Set Alpha (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="1" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_30" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="1" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_16" Context="Particle Update" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_32" BlockName="Animate flipbook (Curve)">
+          <VFXParamValue Name="curve" Type="kTypeTexture2D" Value="" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_17" Context="SubUV Morph Billboard" SystemIndex="0">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/Explosion0_01_5x5.exr" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="5,5" />
+          <VFXParamValue Name="MotionVectors2D" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/explosion0_02.render.motion.tga" />
+          <VFXParamValue Name="MorphIntensity" Type="kTypeFloat" Value="0.025" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_21" Exposed="False">
+        <DataNodeBlock Name="VFXEdDataNodeBlock_42" BlockName="Curve" ExposedName="Curve">
+          <DataContainer type="CurveFloatContainer">
+            <Curve postWrapMode="ClampForever" preWrapMode="ClampForever">
+              <KeyFrame Time="0" Value="0" TangentMode="10" InTangent="24" OutTangent="24" />
+              <KeyFrame Time="1" Value="24" TangentMode="10" InTangent="24" OutTangent="24" />
+            </Curve>
+          </DataContainer>
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_15" Next="VFXEdContextNode_16" />
+      <FlowConnection Previous="VFXEdContextNode_16" Next="VFXEdContextNode_17" />
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_21" NodeBlockIndex="0" ParamName="Curve" />
+        <Output ContextNode="VFXEdContextNode_16" NodeBlockIndex="0" ParamName="curve" />
+      </DataConnection>
+    </Connections>
+  </Template>
+  <Template Category="SubUV" Name="Smoke">
+    <System SpawnRate="20" AllocationCount="50" BlendMode="2" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_22" Context="Initialize" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_43" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.25" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_44" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,0.75,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="0.25,0.25,0.25" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_45" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="1" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_23" Context="Particle Update" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_49" BlockName="RGBA Gradient Over Life">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_48" BlockName="Animate flipbook (Random)">
+          <VFXParamValue Name="speed" Type="kTypeFloat" Value="20" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_24" Context="Billboard Output" SystemIndex="0">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/FX_TX_GEN_SmokeCloud04_A_5x5.TGA" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="5,5" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_25" Exposed="False">
+        <DataNodeBlock Name="VFXEdDataNodeBlock_50" BlockName="Gradient" ExposedName="Gradient">
+          <DataContainer type="GradientContainer">
+            <Gradient numColorKeys="2" numAlphaKeys="3">
+              <ColorKey Time="0" R="1" G="1" B="1" />
+              <ColorKey Time="1" R="1" G="1" B="1" />
+              <AlphaKey Time="0" Alpha="0" />
+              <AlphaKey Time="0.2500038" Alpha="1" />
+              <AlphaKey Time="1" Alpha="0" />
+            </Gradient>
+          </DataContainer>
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_22" Next="VFXEdContextNode_23" />
+      <FlowConnection Previous="VFXEdContextNode_23" Next="VFXEdContextNode_24" />
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_25" NodeBlockIndex="0" ParamName="Gradient" />
+        <Output ContextNode="VFXEdContextNode_23" NodeBlockIndex="0" ParamName="tex" />
+      </DataConnection>
+    </Connections>
+  </Template>
+  <Template Category="Target" Name="TargetMap">
+    <System SpawnRate="5000" AllocationCount="500000" BlendMode="1" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_24" Context="Initialize" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_60" BlockName="Target (Position Map)">
+          <VFXParamValue Name="positionmap" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/PositionMap_MadeWithUnity.tga" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="scale" Type="kTypeFloat3" Value="0,0,0" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_61" BlockName="Set Velocity (Random)">
+          <VFXParamValue Name="base" Type="kTypeFloat3" Value="0,12,0" />
+          <VFXParamValue Name="divergence" Type="kTypeFloat3" Value="1,1,1" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_62" BlockName="Set Size Constant (Square)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="0.02" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_63" BlockName="Set Color (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat3" Value="1,0.5,0.25" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_64" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="30" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_25" Context="Particle Update" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_66" BlockName="Attract Target">
+          <VFXParamValue Name="targetSpeed" Type="kTypeFloat" Value="10" />
+          <VFXParamValue Name="attractForce" Type="kTypeFloat" Value="20" />
+          <VFXParamValue Name="attractdistance" Type="kTypeFloat" Value="3" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_67" BlockName="Alpha Over Lifetime">
+          <VFXParamValue Name="start" Type="kTypeFloat" Value="0.1" />
+          <VFXParamValue Name="end" Type="kTypeFloat" Value="0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_26" Context="Billboard Output" SystemIndex="0">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="0,0" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_27" Exposed="False">
+        <DataNodeBlock Name="VFXEdDataNodeBlock_69" BlockName="Box" ExposedName="Box">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="1.210974,1.841586,-1.6627" />
+          <VFXParamValue Name="Size" Type="kTypeFloat3" Value="1.477042,1,1.612363" />
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_24" Next="VFXEdContextNode_25" />
+      <FlowConnection Previous="VFXEdContextNode_25" Next="VFXEdContextNode_26" />
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_27" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="VFXEdContextNode_24" NodeBlockIndex="0" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_27" NodeBlockIndex="0" ParamName="Size" />
+        <Output ContextNode="VFXEdContextNode_24" NodeBlockIndex="0" ParamName="scale" />
+      </DataConnection>
+    </Connections>
+  </Template>
+  <Template Category="Target" Name="Position Morph">
+    <System SpawnRate="104857.6" AllocationCount="1048576" BlendMode="1" />
+    <Nodes>
+      <Node Name="VFXEdContextNode_0" Context="Initialize" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_8" BlockName="Set Lifetime (Constant)">
+          <VFXParamValue Name="value" Type="kTypeFloat" Value="2" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_1" BlockName="Position Map (Texture)">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/PositionMap_Teapot.tga" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="scale" Type="kTypeFloat3" Value="0,0,0" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_4" BlockName="Target (Position Map)">
+          <VFXParamValue Name="positionmap" Type="kTypeTexture2D" Value="Assets/EffectGFX/Textures/PositionMap_MadeWithUnity.tga" />
+          <VFXParamValue Name="center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="scale" Type="kTypeFloat3" Value="0,0,0" />
+        </NodeBlock>
+      </Node>
+      <Node Name="VFXEdContextNode_1" Context="Update" SystemIndex="0">
+        <Context />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_6" BlockName="RGBA Gradient Over Life">
+          <VFXParamValue Name="tex" Type="kTypeTexture2D" Value="" />
+        </NodeBlock>
+        <NodeBlock Name="VFXEdProcessingNodeBlock_3" BlockName="Target Position" />
+        <NodeBlock Name="VFXEdProcessingNodeBlock_2" BlockName="Age and Reap" />
+      </Node>
+      <Node Name="VFXEdContextNode_2" Context="Billboard Output" SystemIndex="0">
+        <Context>
+          <VFXParamValue Name="texture" Type="kTypeTexture2D" Value="" />
+          <VFXParamValue Name="flipBook" Type="kTypeFloat2" Value="0,0" />
+        </Context>
+      </Node>
+      <DataNode Name="VFXEdDataNode_3" Exposed="False">
+        <DataNodeBlock Name="VFXEdDataNodeBlock_5" BlockName="Box" ExposedName="Box">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="0,0,0" />
+          <VFXParamValue Name="Size" Type="kTypeFloat3" Value="1,1,1" />
+        </DataNodeBlock>
+      </DataNode>
+      <DataNode Name="VFXEdDataNode_4" Exposed="False">
+        <DataNodeBlock Name="VFXEdDataNodeBlock_7" BlockName="Box" ExposedName="Box">
+          <VFXParamValue Name="Center" Type="kTypeFloat3" Value="0,2,0" />
+          <VFXParamValue Name="Size" Type="kTypeFloat3" Value="2,2,2" />
+        </DataNodeBlock>
+      </DataNode>
+      <DataNode Name="VFXEdDataNode_5" Exposed="False">
+        <DataNodeBlock Name="VFXEdDataNodeBlock_9" BlockName="Gradient" ExposedName="Gradient">
+          <DataContainer type="GradientContainer">
+            <Gradient numColorKeys="2" numAlphaKeys="2">
+              <ColorKey Time="0" R="1" G="1" B="1" />
+              <ColorKey Time="1" R="1" G="1" B="1" />
+              <AlphaKey Time="0" Alpha="1" />
+              <AlphaKey Time="1" Alpha="1" />
+            </Gradient>
+          </DataContainer>
+        </DataNodeBlock>
+      </DataNode>
+    </Nodes>
+    <Connections>
+      <FlowConnection Previous="VFXEdContextNode_0" Next="VFXEdContextNode_1" />
+      <FlowConnection Previous="VFXEdContextNode_1" Next="VFXEdContextNode_2" />
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_3" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="VFXEdContextNode_0" NodeBlockIndex="1" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_3" NodeBlockIndex="0" ParamName="Size" />
+        <Output ContextNode="VFXEdContextNode_0" NodeBlockIndex="1" ParamName="scale" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_4" NodeBlockIndex="0" ParamName="Center" />
+        <Output ContextNode="VFXEdContextNode_0" NodeBlockIndex="2" ParamName="center" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_4" NodeBlockIndex="0" ParamName="Size" />
+        <Output ContextNode="VFXEdContextNode_0" NodeBlockIndex="2" ParamName="scale" />
+      </DataConnection>
+      <DataConnection>
+        <Input DataNode="VFXEdDataNode_5" NodeBlockIndex="0" ParamName="Gradient" />
+        <Output ContextNode="VFXEdContextNode_1" NodeBlockIndex="0" ParamName="tex" />
       </DataConnection>
     </Connections>
   </Template>
