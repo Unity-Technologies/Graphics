@@ -29,6 +29,11 @@ namespace UnityEditor.MaterialGraph
             m_Slot = slot;
         }
 
+        public Orientation GetOrientation()
+        {
+            return Orientation.Horizontal;
+        }
+
         private static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
         {
             switch (type)
