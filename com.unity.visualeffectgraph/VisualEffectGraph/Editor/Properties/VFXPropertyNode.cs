@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.VFX
 
     public interface VFXPropertyNode {}
 
-    public sealed class VFXPropertyValue : VFXPropertyNode
+    public sealed class VFXPropertyValue : VFXPropertyNode, VFXPropertyBindable
     {
         protected struct Binding
         {
@@ -46,7 +46,9 @@ namespace UnityEngine.Experimental.VFX
         {
             var newValue = m_Value.Clone();
             newValue.Set<T>(value);
-            m_Type.ConstraintValue(newValue);
+            m_Type.Constrain(newValue);
+            if (parent != null)
+                parent.m_type.Constrain(parent);
             if (m_Value.Set(newValue))
             {
                 foreach (var binding in m_Bindings)
