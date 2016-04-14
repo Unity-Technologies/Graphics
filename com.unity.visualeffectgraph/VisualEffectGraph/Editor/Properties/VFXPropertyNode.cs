@@ -14,6 +14,11 @@ namespace UnityEngine.Experimental.VFX
         int GetNbParamValues();
     }
 
+    public interface VFXPropertyNodeOwner
+    {
+        OnUpdated(VFXPropertyNode node)
+    }
+
     public interface VFXPropertyNode {}
 
     /*public sealed class VFXPropertyValue : VFXPropertyNode, VFXPropertyBindable
@@ -92,6 +97,8 @@ namespace UnityEngine.Experimental.VFX
 
     class VFXPropertyValue : VFXPropertyNode
     {
+        private VFXPropertyNodeOwner m_Owner;
+
         private VFXPropertyValue m_Parent;
         private VFXPropertyValue[] m_Children;
 
@@ -129,7 +136,8 @@ namespace UnityEngine.Experimental.VFX
                 MarkBeingProcessedRecursively(beginProcessed);
         }
 
-        private bool BeginTreeProcess()
+        // Useful to be called when a series of Set is performed to avoid notify outputs/owner after each set
+        public bool BeginUpdateProcess()
         {
             if (m_BeingProcessed)
                 return false;
@@ -138,24 +146,26 @@ namespace UnityEngine.Experimental.VFX
             return true;
         }
 
-        private void EndTreeProcess()
+        // Will trigger propagation if anything has changed
+        public void EndUpdateProcess()
         {
             var root = GetRoot();
             root.MarkBeingProcessedRecursively(false);
-            root.PropagateChangesToOutputs();
+            root.PropagateChanges();
         }
 
-        private bool PropagateChangesToOutputs()
+        private bool PropagateChanges()
         {
             bool dirty = m_OldValue != null && !m_OldValue.Equals(m_Value);
             m_OldValue = null;
 
             foreach (var child in m_Children)
-                dirty |= child.PropagateChangesToOutputs();
+                dirty |= child.PropagateChanges();
 
             if (dirty)
             {
-                // TODO: add an observer system to notify the shader compiler
+                if (m_Owner != null)
+                    m_Owner.OnUpdated(this);
                 foreach (var output in m_Outputs)
                     output.Refresh();
             }
@@ -165,7 +175,7 @@ namespace UnityEngine.Experimental.VFX
 
         public void Set<T>(T val)
         {
-            var value = VFXValue::Create<T>(val); // TODO Needs a pool for shader value
+            var value = VFXValue.Create<T>(); // TODO Needs a pool for shader value
             Set(value);
         }
 
@@ -178,7 +188,7 @@ namespace UnityEngine.Experimental.VFX
         {
             if (!m_Value.Equals(value)) // Only if value has changed
             {
-                bool initialChange = BeginTreeProcess(); // If this is the initial change, this object is responsible to propagate the changes later on
+                bool initialChange = BeginUpdateProcess(); // If this is the initial change, this object is responsible to propagate the changes later on
 
                 if (m_Value != null && m_OldValue == null) // If value not already cached
                     m_OldValue = m_Value.Clone(); // TODO Needs a pool for shader value
@@ -187,7 +197,7 @@ namespace UnityEngine.Experimental.VFX
                 Constrain(); // This may invalidate other values, hence the old value caching       
 
                 if (initialChange) // Now trigger refresh for linked nodes from the initial change
-                    EndTreeProcess();
+                    EndUpdateProcess();
             }
         }
 
@@ -199,7 +209,11 @@ namespace UnityEngine.Experimental.VFX
         public void Refresh()
         {
             if (m_Input != null)
+            {
+                BeginUpdateProcess();
                 m_Desc.m_Type.Transform(this, m_Input); // This is not supposed to throw as the compatibility was ensured when linking
+                EndUpdateProcess();
+            }
         }
 
         public void SetInput(VFXPropertyValue link)
