@@ -5,102 +5,54 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.VFX
 {
-    public interface VFXPropertyBindable
-    {
-        void BindParam(VFXPropertyNode param, int index, bool reentrant = false);
-        void UnbindParam(int index, bool reentrant = false);
-        void OnParamUpdated(int index, VFXPropertyNode oldValue);
-        VFXPropertyNode GetParamValue(int index);
-        int GetNbParamValues();
-    }
-
     public interface VFXPropertyNodeOwner
     {
-        OnUpdated(VFXPropertyNode node)
+        void OnUpdated(VFXPropertyNode node);
     }
 
-    public interface VFXPropertyNode {}
-
-    /*public sealed class VFXPropertyValue : VFXPropertyNode, VFXPropertyBindable
+    public class VFXPropertyNode
     {
-        protected struct Binding
+        protected VFXPropertyNode m_Input;
+        protected List<VFXPropertyValue> m_Outputs;
+
+        public abstract VFXPropertyTypeSemantics Semantics { get; }
+
+        public bool AddOutput(VFXPropertyValue node)
         {
-            public VFXPropertyBindable m_Bindable;
-            public int m_Index;
+            if (node == null || node == this)
+                throw new ArgumentException("Bad output");
 
-            public Binding(VFXPropertyBindable bindable, int index)
-            {
-                m_Bindable = bindable;
-                m_Index = index;
-            }
+            if (!node.Semantics.CanTransform(Semantics))
+                throw new ArgumentException("Property nodes are incompatible");
 
-            public override bool Equals(object obj)
-            {
-                if (obj is Binding)
-                {
-                    Binding typedObj = (Binding)obj;
-                    return m_Bindable == typedObj.m_Bindable && m_Index == typedObj.m_Index;
-                }
+            if (m_Outputs.IndexOf(node) != -1) // Already bound
                 return false;
-            }
+
+            if (node.m_Input != null)
+                node.RemoveInput();
+
+            m_Outputs.Add(node);
+            node.Refresh();
+            return true;
         }
 
-        public VFXShaderValueType ValueType { get { return m_Value.ValueType; }}
-        public T GetValue<T>() { return m_Value.Get<T>(); }
-        public void SetValue<T>(T value) 
+        public void RemoveOutput(VFXPropertyValue node)
         {
-            var newValue = m_Value.Clone();
-            newValue.Set<T>(value);
-            m_Type.Constrain(newValue);
-            if (parent != null)
-                parent.m_type.Constrain(parent);
-            if (m_Value.Set(newValue))
-            {
-                foreach (var binding in m_Bindings)
-                    binding.m_Bindable.OnParamUpdated(binding.m_Index, null); // TODO
-            }        
+            if (m_Outputs.Remove(node))
+                node.m_Input = null;
+            node.Refresh();
         }
-
-        public void Bind(VFXPropertyBindable bindable, int index, bool reentrant = false)
-        {
-            Binding binding = new Binding(bindable, index);
-            if (m_Bindings.IndexOf(binding) != -1) // Already bound
-                return;
-
-            m_Bindings.Add(binding);
-            if (!reentrant)
-                bindable.BindParam(this, index, true);
-        }
-
-        public void Unbind(VFXPropertyBindable bindable, int index, bool reentrant = false)
-        {
-            Binding binding = new Binding(bindable, index);
-            if (m_Bindings.Remove(binding) && reentrant)
-                bindable.UnbindParam(index, true);
-        }
-
-        public void UnbindAll()
-        {
-            foreach (var binding in m_Bindings)
-                binding.m_Bindable.UnbindParam(binding.m_Index);
-        }
-
-        public bool IsBound()
-        {
-            return m_Bindings.Count > 0;
-        }
-
-        private List<Binding> m_Bindings = new List<Binding>();
-        private VFXShaderValue m_Value;
-        private VFXPropertyType m_Type;
-    }*/
+     
+        public virtual bool IsKnown()       { return false; } // Is the value known at compile time within the asset? If unknown, an expression value must be propagated
+        public virtual bool IsConstant()    { return false; } // Can the value be considered as constant within the asset. Allow optimization via constant propagation
+    }
 
     class VFXPropertyValue : VFXPropertyNode
     {
         private VFXPropertyNodeOwner m_Owner;
 
         private VFXPropertyValue m_Parent;
-        private VFXPropertyValue[] m_Children;
+        protected VFXPropertyValue[] m_Children;
 
         private VFXProperty m_Desc;
         private VFXValue m_Value;
@@ -110,18 +62,49 @@ namespace UnityEngine.Experimental.VFX
         private VFXValue m_OldValue; // Keep old value for propagation
         private bool m_Constraining = false; // Currently in constrained mode (needs that to avoid infinite pingponging)
 
-        private VFXPropertyValue m_Input;
-        private List<VFXPropertyValue> m_Outputs;
+        public VFXPropertyValue(VFXProperty desc,VFXPropertyNodeOwner owner = null)
+        {
+            m_Owner = owner;
+            m_Desc = desc;
+            m_Value = VFXValue.Create(Semantics.GetValueType());
+            Semantics.Default(this);
+            m_Outputs = new List<VFXPropertyValue>();
+
+            VFXProperty[] children = Semantics.GetChildren();
+            if (children != null)
+            {
+                int nbChildren = children.Length;
+                m_Children = new VFXPropertyValue[nbChildren];
+                for (int i = 0; i < nbChildren; ++i)
+                    m_Children[i] = new VFXPropertyValue(this,children[i],m_Owner);
+            }
+            else
+                m_Children = new VFXPropertyValue[0];
+            
+        }
+
+        // Called from inside to create 
+        private VFXPropertyValue(VFXPropertyValue parent,VFXProperty desc,VFXPropertyNodeOwner owner = null)
+            : this(desc,owner)
+        {
+            m_Parent = parent;
+        }
+
+        public override bool IsKnown()      { return true; }
+        public override bool IsConstant()   { return false; } // TODO
 
         private void Constrain()
         {
             if (!m_Constraining) // If not already constraining
             {
                 m_Constraining = true;
-                m_Desc.m_Type.Constrain(this); // Constrained from bottom to top, parent is supposed to keep children constraints !
+                Semantics.Constrain(this); // Constrained from bottom to top, parent is supposed to keep children constraints !
                 m_Parent.Constrain();
                 m_Constraining = false;
             }
+
+            string verbatim = @"this
+                is a test";
         }
 
         private VFXPropertyValue GetRoot()
@@ -211,14 +194,14 @@ namespace UnityEngine.Experimental.VFX
             if (m_Input != null)
             {
                 BeginUpdateProcess();
-                m_Desc.m_Type.Transform(this, m_Input); // This is not supposed to throw as the compatibility was ensured when linking
+                Semantics.Transform(this, m_Input); // This is not supposed to throw as the compatibility was ensured when linking
                 EndUpdateProcess();
             }
         }
 
         public void SetInput(VFXPropertyValue link)
         {
-            if (m_Input != link && link.m_Desc.CanTransform(this))
+            if (m_Input != link && link.Semantics.CanTransform(Semantics))
             {
                 if (link != null)
                     link.m_Outputs.Remove(this);
@@ -227,6 +210,22 @@ namespace UnityEngine.Experimental.VFX
                 link.m_Outputs.Add(this);
                 Refresh();
             }
+        }
+
+        public VFXPropertyTypeSemantics Semantics
+        {
+            get { return m_Desc.m_Type; }
+        }
+
+        public void SetInput(VFXPropertyNode node)
+        {
+            node.AddOutput(this);
+        }
+  
+        public void RemoveInput()
+        {
+            if (m_Input != null)
+                m_Input.RemoveOutput(this);
         }
     }
 }

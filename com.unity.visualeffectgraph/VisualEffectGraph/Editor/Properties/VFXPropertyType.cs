@@ -1,4 +1,6 @@
 using UnityEngine;
+using System;
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.VFX
 {
@@ -34,18 +36,18 @@ namespace UnityEngine.Experimental.VFX
     }
 
     // Base concrete type
-    public class VFXFloatType : VFXPropertyType         { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kFloat; }}}
-    public class VFXFloat2Type : VFXPropertyType        { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kFloat2; }}}
-    public class VFXFloat3Type : VFXPropertyType        { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kFloat3; }}}
-    public class VFXFloat4Type : VFXPropertyType        { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kFloat4; }}}
-    public class VFXIntType : VFXPropertyType           { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kInt; }}}
-    public class VFXUintType : VFXPropertyType          { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kUint; }}}
-    public class VFXTexture2DType : VFXPropertyType     { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kTexture2D; }}}
-    public class VFXTexture3DType : VFXPropertyType     { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kTexture3D; }}}
+    public class VFXFloatType : VFXPropertyType         { public override VFXValueType ValueType { get { return VFXValueType.kFloat; }}}
+    public class VFXFloat2Type : VFXPropertyType        { public override VFXValueType ValueType { get { return VFXValueType.kFloat2; }}}
+    public class VFXFloat3Type : VFXPropertyType        { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; }}}
+    public class VFXFloat4Type : VFXPropertyType        { public override VFXValueType ValueType { get { return VFXValueType.kFloat4; }}}
+    public class VFXIntType : VFXPropertyType           { public override VFXValueType ValueType { get { return VFXValueType.kInt; }}}
+    public class VFXUintType : VFXPropertyType          { public override VFXValueType ValueType { get { return VFXValueType.kUint; }}}
+    public class VFXTexture2DType : VFXPropertyType     { public override VFXValueType ValueType { get { return VFXValueType.kTexture2D; }}}
+    public class VFXTexture3DType : VFXPropertyType     { public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; }}}
 
     // Concrete type with custom editing widget
-    public class VFXPositionType : VFXPropertyType      { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kFloat3; }}}
-    public class VFXDirectionType : VFXPropertyType     { public override VFXShaderValueType ValueType { get { return VFXShaderValueType.kFloat3; }}}
+    public class VFXPositionType : VFXPropertyType      { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; }}}
+    public class VFXDirectionType : VFXPropertyType     { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; }}}
 
     // Composite types
     public class VFXSphereType : VFXPropertyType
@@ -74,19 +76,23 @@ namespace UnityEngine.Experimental.VFX
 
     public abstract class VFXPropertyTypeSemantics
     {
-        public abstract bool CanLink();
+        public abstract bool CanTransform(VFXPropertyTypeSemantics other);
+        public abstract void Transform(VFXPropertyNode dst,VFXPropertyNode src);
 
         public virtual void Constrain(VFXPropertyValue value)       {}
         public virtual void Default(VFXPropertyValue value)         {}
+
         public virtual void CreateUIGizmo(VFXPropertyValue value)   {}
         public virtual void CreateUIField(VFXPropertyValue value)   {}
 
-        public abstract VFXShaderValueType GetShaderValueType();
-        public abstract void ExtractShaderValues(List<VFXShaderValue> dst);
+        public abstract VFXValueType GetValueType();
+        public abstract void ExtracValues(List<VFXValue> dst);
+
+        public virtual VFXProperty[] GetChildren() { return null; }
 
         protected void Check(VFXPropertyValue value)
         {
-            if (value.m_Type != this)
+            if (value.Semantics != this)
                 throw new InvalidOperationException("VFXPropertyValue does not hold the correct semantic type");
         }
     }
@@ -99,9 +105,14 @@ namespace UnityEngine.Experimental.VFX
             return GetType() == other.GetType() || ChildrenCanLink(other as VFXCompositeTypeSemantics);
         }
 
-        public sealed override VFXShaderValueType GetShaderValueType()
+        public sealed override VFXValueType GetValueType()
         {
-            return VFXShaderValueType.kNone; 
+            return VFXValueType.kNone; 
+        }
+
+        public virtual VFXProperty[] GetChildren() 
+        { 
+            return m_Children;
         }
 
         // By default no transformation on values, only gather sub values

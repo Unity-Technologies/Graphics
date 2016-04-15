@@ -65,11 +65,19 @@ namespace UnityEngine.Experimental.VFX
         public virtual VFXValueType ValueType { get { return VFXValueType.kNone; }}
     }
 
-    class VFXEmptyShaderValue : VFXValue
+    class VFXEmptyValue : VFXValue
     {
         public override VFXValue Clone()                    { throw new NotImplementedException(); }
         public override bool SetDefault()                   { throw new NotImplementedException(); }
         public override bool SetValue(VFXValue other)       { throw new NotImplementedException(); }
+    }
+
+    class VFXExpressionValue
+    {
+        // TODO
+        public override VFXValue Clone() { throw new NotImplementedException(); }
+        public override bool SetDefault() { throw new NotImplementedException(); }
+        public override bool SetValue(VFXValue other) { throw new NotImplementedException(); }
     }
 
     abstract class VFXValue<T> : VFXValue
