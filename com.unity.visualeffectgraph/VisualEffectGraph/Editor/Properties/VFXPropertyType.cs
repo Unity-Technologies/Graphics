@@ -4,125 +4,26 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.VFX
 {
-    public class VFXPropertyType
-    {
-        public virtual void SpawnWidget() {}
-        public virtual VFXProperty[] CreateSubProperties() { return null; }
-
-        public VFXProperty[] CreateSubProperties(string prefix)
-        {
-            var properties = CreateSubProperties();
-            if (properties != null)
-                foreach (var prop in properties)
-                    prop.m_Name = prefix + "_" + prop.m_Name;
-            return properties;
-        }
-
-        public virtual VFXShaderValueType ValueType { get { return VFXShaderValueType.kNone; } }
-        public virtual void SetDefaultValue(VFXShaderValue value) { value.SetDefault(); }
-        public virtual void ConstraintValue(VFXShaderValue value) {}
-    }
-
     public class VFXProperty
     {
-        public VFXProperty(VFXPropertyType type,string name)
+        public VFXProperty(VFXPropertyTypeSemantics type,string name)
         {
             m_Type = type;
             m_Name = name;
         }
 
-        public VFXPropertyType m_Type;
+        public VFXPropertyTypeSemantics m_Type;
         public string m_Name;
     }
 
-    // Base concrete type
-    public class VFXFloatType : VFXPropertyType         { public override VFXValueType ValueType { get { return VFXValueType.kFloat; }}}
-    public class VFXFloat2Type : VFXPropertyType        { public override VFXValueType ValueType { get { return VFXValueType.kFloat2; }}}
-    public class VFXFloat3Type : VFXPropertyType        { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; }}}
-    public class VFXFloat4Type : VFXPropertyType        { public override VFXValueType ValueType { get { return VFXValueType.kFloat4; }}}
-    public class VFXIntType : VFXPropertyType           { public override VFXValueType ValueType { get { return VFXValueType.kInt; }}}
-    public class VFXUintType : VFXPropertyType          { public override VFXValueType ValueType { get { return VFXValueType.kUint; }}}
-    public class VFXTexture2DType : VFXPropertyType     { public override VFXValueType ValueType { get { return VFXValueType.kTexture2D; }}}
-    public class VFXTexture3DType : VFXPropertyType     { public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; }}}
-
-    // Concrete type with custom editing widget
-    public class VFXPositionType : VFXPropertyType      { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; }}}
-    public class VFXDirectionType : VFXPropertyType     { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; }}}
-
-    // Composite types
-    public class VFXSphereType : VFXPropertyType
-    {
-        public override VFXProperty[] CreateSubProperties() 
-        {
-            VFXProperty[] children = new VFXProperty[2];
-            children[0] = new VFXProperty(new VFXPositionType(), "center");
-            children[1] = new VFXProperty(new VFXFloatType(), "radius");
-            return children;
-        }
-    }
-
-    public class VFXPlaneType : VFXPropertyType
-    {
-        public override VFXProperty[] CreateSubProperties() 
-        {
-            VFXProperty[] children = new VFXProperty[2];
-            children[0] = new VFXProperty(new VFXPositionType(), "position");
-            children[1] = new VFXProperty(new VFXDirectionType(), "normal");
-            return children;
-        }
-    }
-
-
-
     public abstract class VFXPropertyTypeSemantics
     {
-        public abstract bool CanTransform(VFXPropertyTypeSemantics other);
-        public abstract void Transform(VFXPropertyNode dst,VFXPropertyNode src);
-
-        public virtual void Constrain(VFXPropertyValue value)       {}
-        public virtual void Default(VFXPropertyValue value)         {}
-
-        public virtual void CreateUIGizmo(VFXPropertyValue value)   {}
-        public virtual void CreateUIField(VFXPropertyValue value)   {}
-
-        public abstract VFXValueType GetValueType();
-        public abstract void ExtracValues(List<VFXValue> dst);
-
-        public virtual VFXProperty[] GetChildren() { return null; }
-
-        protected void Check(VFXPropertyValue value)
+        public virtual bool CanLink(VFXPropertyTypeSemantics other)
         {
-            if (value.Semantics != this)
-                throw new InvalidOperationException("VFXPropertyValue does not hold the correct semantic type");
-        }
-    }
-
-
-    public abstract class VFXCompositeTypeSemantics : VFXPropertyTypeSemantics
-    {
-        public override bool CanLink(VFXPropertyTypeSemantics other)
-        {
-            return GetType() == other.GetType() || ChildrenCanLink(other as VFXCompositeTypeSemantics);
+            return GetType() == other.GetType() || ChildrenCanLink(other);
         }
 
-        public sealed override VFXValueType GetValueType()
-        {
-            return VFXValueType.kNone; 
-        }
-
-        public virtual VFXProperty[] GetChildren() 
-        { 
-            return m_Children;
-        }
-
-        // By default no transformation on values, only gather sub values
-        public override bool ExtractShaderValues(List<VFXShaderValue> values,VFXPropertyValue value)
-        {
-            for (int i = 0; i < m_Children.Length; ++i)
-                value.m_ChildrenValue(i);
-        }
-
-        protected bool ChildrenCanLink(VFXCompositeTypeSemantics other)
+        protected bool ChildrenCanLink(VFXPropertyTypeSemantics other)
         {
             if (other == null)
                 return false;
@@ -137,168 +38,103 @@ namespace UnityEngine.Experimental.VFX
 
             return true;
         }
+        
+        //public abstract bool CanTransform(VFXPropertyTypeSemantics other);
+        //public abstract void Transform(VFXPropertySlot dst,VFXPropertySlot src);
 
+        //public virtual void Constrain(VFXPropertySlot value)       {}
+        public virtual void CreateValue(VFXPropertySlot slot)
+        {
+            Check(slot);
+            slot.Value = VFXValue.Create(ValueType);
+        }
+
+        public virtual bool Default(VFXPropertySlot slot)       { return false; }
+
+        public virtual void CreateUIGizmo(VFXPropertySlot value)   {}
+        public virtual void CreateUIField(VFXPropertySlot value)   {}
+
+        public virtual VFXValueType ValueType { get{ return VFXValueType.kNone; }}
+        //public abstract void ExtracValues(List<VFXValue> dst);
+
+        public VFXProperty[] GetChildren() { return m_Children; }
+
+        protected void Check(VFXPropertySlot value)
+        {
+            if (value.Semantics != this)
+                throw new InvalidOperationException("VFXPropertyValue does not hold the correct semantic type");
+        }
+        
         protected VFXProperty[] m_Children;
     }
 
-    public class VFXConcreteTypeSemantics : VFXPropertyTypeSemantics
+    // Base concrete type
+    public class VFXFloatType : VFXPropertyTypeSemantics         { public override VFXValueType ValueType { get { return VFXValueType.kFloat; }}}
+    public class VFXIntType : VFXPropertyTypeSemantics           { public override VFXValueType ValueType { get { return VFXValueType.kInt; }}}
+    public class VFXUintType : VFXPropertyTypeSemantics          { public override VFXValueType ValueType { get { return VFXValueType.kUint; }}}
+    public class VFXTexture2DType : VFXPropertyTypeSemantics     { public override VFXValueType ValueType { get { return VFXValueType.kTexture2D; }}}
+    public class VFXTexture3DType : VFXPropertyTypeSemantics     { public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; }}}
+
+    // Composite types
+    public class VFXFloat2Type : VFXPropertyTypeSemantics 
     {
-        public override bool CanLink(VFXPropertyTypeSemantics other)
+        public override bool Default(VFXPropertySlot slot)
         {
-            return GetShaderValueType() == other.GetShaderValueType();
+            Check(slot);
+
+            slot.GetChild(1).SetValue(0.0f);
+            slot.GetChild(2).SetValue(0.0f);
+            slot.GetChild(3).SetValue(0.0f);
+
+            return true;
         }
+
+        public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } } 
     }
 
-    public class VFXFloat3TypeSemantics : VFXCompositeTypeSemantics
-    {
-        VFXFloat3TypeSemantics()
-        {
-            m_Children = new VFXProperty[3];
-            m_Children[0] = new VFXProperty(new VFXFloatTypeSemantics,"X");
-            m_Children[1] = new VFXProperty(new VFXFloatTypeSemantics,"Y");
-            m_Children[2] = new VFXProperty(new VFXFloatTypeSemantics,"Z");
-        }
+    public class VFXFloat3Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } } }
+    public class VFXFloat4Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } } }
 
-        public override bool ExtractShaderValues(List<VFXShaderValue> values, VFXPropertyValue value)
-        {
-            Check(value);
-
-            var shaderValue = VFXShaderValue.Create(VFXShaderValueType.kFloat3);
-            shaderValue.Set<Vector3>(GetVector3(value));
-            values.Add(shaderValue);
-        }
-
-        protected Vector3 GetVector3(VFXPropertyValue value)
-        {
-            Vector3 val = new Vector3();
-            for (int i = 0; i < 3; ++i)
-                val[i] = value.GetChildren(i).GetValue().GetValue<float>();
-            return val;
-        }
-
-        protected SetVector3(Vector3 vec,VFXPropertyValue value)
-        {
-            for (int i = 0; i < 3; ++i)
-                value.GetChildren(i).GetValue.SetValue<float>(vec[i]);
-        }
-    }
-
-    public class VFXNormal3TypeSemantics : VFXFloat3TypeSemantics
-    {
-        public virtual void Constrain(VFXPropertyValue value)
-        {
-            Check(value);
-            Vector3 vec = GetVector3(value);
-            vec.Normalize();
-            SetVector3(vec,value);
-        }
-
-        public virtual void Default(VFXPropertyValue value)
-        {
-            SetVector3(Vector3.up);
-        }
-    }
-
-    /*public class VFXPropertyTypeSemantics
-    {
-        // Can this semantic type be transformed to another semantic type ?
-        public virtual bool CanTransform(VFXPropertyTypeSemantics other);
-        
-        // Transform source value with this semantic type to dst
-        public virtual void Transform(VFXPropertyValue dst,VFXPropertyValue src)
-        {
-            Check(src);
-        }
-
-        // Set semantic type default value to the passed value
-        public virtual void Default(VFXPropertyValue value) 
-        { 
-            Check(value);
-            value.SetDefault(); 
-        }
-
-        // Ensure passed value meets the semantic type requirements
-        public virtual void Constrain(VFXPropertyValue value) 
-        {
-            Check(value);
-            for (int i = 0; i < nb; ++i)
-                value.GetChild(i).Constrain();
-        }
-
-        // Create a preview gizmo to manipulate value
-        public virtual void CreateUIGizmo(VFXPropertyValue value) {}
-        
-        // Create the block UI for this value
-        public virtual void CreateUIBlock(VFXPropertyValue value) {}
-
-        public virtual VFXShaderValueType GetShaderValueType() { return VFXShaderValueType.kNone; }
-        // Used by the compiler to retrieve the shader values
-        public virtual void ExtractShaderValues(List<VFXShaderValue> values,VFXPropertyValue value)
-        {
-            Check(value);
-            var shaderValue = VFXShaderValue.Create(GetShaderValueType());
-            if (!shaderValue)
-                values.Add(shaderValue)
-            else
-
-            else
-                // transform;
-            return null;
-        }
-
-        protected void Check(VFXPropertyValue value)
-        {
-            if (value.GetSemanticType() != this)
-                throw Exception();
-        }
-    }
-
-    public class VFXFloat3Semantics
+    // Concrete type with custom editing widget
+    public class VFXPositionType : VFXFloat3Type 
     {
 
     }
 
-
-
-    public class VFXPropertyTypeSemantics
+    public class VFXDirectionType : VFXFloat3Type 
     {
-        // 
-        public VFXPropertyValue CreateValue()
+        public override bool Default(VFXPropertySlot slot) 
         {
-            return new VFXPropertyValue(this);
-        }
+            Check(slot);
 
-        public bool CanTransformTo(VFXPropertyTypeSemantics other)
+            slot.GetChild(1).SetValue(0.0f);
+            slot.GetChild(2).SetValue(0.0f);
+            slot.GetChild(3).SetValue(1.0f);
+
+            return true;
+        }
+    }
+
+
+    // Composite types
+    public class VFXSphereType : VFXPropertyTypeSemantics
+    {
+        public VFXSphereType() 
         {
-            return GetType() == other.GetType() || 
-               
+            m_Children = new VFXProperty[2];
+            m_Children[0] = new VFXProperty(new VFXPositionType(), "center");
+            m_Children[1] = new VFXProperty(new VFXFloatType(), "radius");
         }
+    }
 
-        public bool TransformTo(VFXPropertyValue dest,VFXPropertyValue src)
+    public class VFXPlaneType : VFXPropertyTypeSemantics
+    {
+        public VFXPlaneType() 
         {
-            if (src.m_Type != CanTransformTo() || )
-            for (int i = 0;)
+            m_Children = new VFXProperty[2];
+            m_Children[0] = new VFXProperty(new VFXPositionType(), "position");
+            m_Children[1] = new VFXProperty(new VFXDirectionType(), "normal");
         }
-
-        void CreateUIGizmo();
-        void CreateUIBlock();
-
-
-
-        bool SetDefaultValue(VFXPropertyValue value)
-        {
-            for (int i = 0; i < properties.Length; ++i)
-                properties[i].m_Type.SetDefaultValue(value.GetChild(i));
-        }
-
-        public virtual VFXShaderValue[] GetShaderValues {  return null; }
-
-        void Constrain(VFXPropertyValue value) {}
-
-        // Shader value type for that semantic type. (If none, no value is used)
-        VFXShaderValueType getValueType() { return VFXShaderValueType.kNone; }
-          
-        private VFXProperty[] properties = null;     
-    }*/
+    }
 }
 

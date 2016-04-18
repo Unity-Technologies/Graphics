@@ -19,7 +19,13 @@ namespace UnityEngine.Experimental.VFX
         // Gradient
     }
 
-    public abstract class VFXValue
+    public abstract class VFXExpression
+    {
+        public T Get<T>() { return ((VFXValue<T>)this).GetValue(); }
+        public bool Set<T>(T value) { return ((VFXValue<T>)this).SetValue(value); }
+    }
+
+    public abstract class VFXValue : VFXExpression
     {
         public static VFXValue Create(VFXValueType type)
         {
@@ -57,27 +63,9 @@ namespace UnityEngine.Experimental.VFX
         public abstract VFXValue Clone();
         public abstract bool SetDefault();
 
-        public T Get<T>() { return ((VFXValue<T>)this).GetValue(); }
-        public bool Set<T>(T value) { return ((VFXValue<T>)this).SetValue(value); }
-
         public abstract bool SetValue(VFXValue other);
 
         public virtual VFXValueType ValueType { get { return VFXValueType.kNone; }}
-    }
-
-    class VFXEmptyValue : VFXValue
-    {
-        public override VFXValue Clone()                    { throw new NotImplementedException(); }
-        public override bool SetDefault()                   { throw new NotImplementedException(); }
-        public override bool SetValue(VFXValue other)       { throw new NotImplementedException(); }
-    }
-
-    class VFXExpressionValue
-    {
-        // TODO
-        public override VFXValue Clone() { throw new NotImplementedException(); }
-        public override bool SetDefault() { throw new NotImplementedException(); }
-        public override bool SetValue(VFXValue other) { throw new NotImplementedException(); }
     }
 
     abstract class VFXValue<T> : VFXValue

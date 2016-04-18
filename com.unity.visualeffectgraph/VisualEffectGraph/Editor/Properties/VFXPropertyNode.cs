@@ -5,227 +5,210 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.VFX
 {
-    public interface VFXPropertyNodeOwner
+    public interface VFXPropertySlotObserver
     {
-        void OnUpdated(VFXPropertyNode node);
+        void OnSlotEvent(VFXPropertySlot.Event type,VFXPropertySlot slot);
     }
 
-    public class VFXPropertyNode
+    public abstract class VFXPropertySlot
     {
-        protected VFXPropertyNode m_Input;
-        protected List<VFXPropertyValue> m_Outputs;
-
-        public abstract VFXPropertyTypeSemantics Semantics { get; }
-
-        public bool AddOutput(VFXPropertyValue node)
+        public enum Event
         {
-            if (node == null || node == this)
-                throw new ArgumentException("Bad output");
-
-            if (!node.Semantics.CanTransform(Semantics))
-                throw new ArgumentException("Property nodes are incompatible");
-
-            if (m_Outputs.IndexOf(node) != -1) // Already bound
-                return false;
-
-            if (node.m_Input != null)
-                node.RemoveInput();
-
-            m_Outputs.Add(node);
-            node.Refresh();
-            return true;
+            kLinkUpdated,
+            kValueUpdated,
         }
 
-        public void RemoveOutput(VFXPropertyValue node)
+        public VFXPropertySlot() {}
+        public VFXPropertySlot(VFXProperty desc,VFXPropertySlotObserver observer = null)
         {
-            if (m_Outputs.Remove(node))
-                node.m_Input = null;
-            node.Refresh();
+            Init(null,desc,observer);     
         }
-     
-        public virtual bool IsKnown()       { return false; } // Is the value known at compile time within the asset? If unknown, an expression value must be propagated
-        public virtual bool IsConstant()    { return false; } // Can the value be considered as constant within the asset. Allow optimization via constant propagation
-    }
 
-    class VFXPropertyValue : VFXPropertyNode
-    {
-        private VFXPropertyNodeOwner m_Owner;
-
-        private VFXPropertyValue m_Parent;
-        protected VFXPropertyValue[] m_Children;
-
-        private VFXProperty m_Desc;
-        private VFXValue m_Value;
-
-        // Used during processing of values
-        private bool m_BeingProcessed = false;
-        private VFXValue m_OldValue; // Keep old value for propagation
-        private bool m_Constraining = false; // Currently in constrained mode (needs that to avoid infinite pingponging)
-
-        public VFXPropertyValue(VFXProperty desc,VFXPropertyNodeOwner owner = null)
+        private void Init(VFXPropertySlot parent,VFXProperty desc,VFXPropertySlotObserver observer)
         {
-            m_Owner = owner;
+            m_Parent = parent;
+            m_Observer = observer;
             m_Desc = desc;
-            m_Value = VFXValue.Create(Semantics.GetValueType());
-            Semantics.Default(this);
-            m_Outputs = new List<VFXPropertyValue>();
+            Semantics.CreateValue(this);     
+        }
 
+        protected void CreateChildren<T>() where T : VFXPropertySlot, new()
+        {
             VFXProperty[] children = Semantics.GetChildren();
             if (children != null)
             {
                 int nbChildren = children.Length;
-                m_Children = new VFXPropertyValue[nbChildren];
+                m_Children = new VFXPropertySlot[nbChildren];
                 for (int i = 0; i < nbChildren; ++i)
-                    m_Children[i] = new VFXPropertyValue(this,children[i],m_Owner);
+                {
+                    VFXPropertySlot child = new T();
+                    child.Init(this,children[i],m_Observer);
+                    m_Children[i] = child;
+                }
             }
             else
-                m_Children = new VFXPropertyValue[0];
-            
+                m_Children = new VFXPropertySlot[0];
+
+            SetDefault();
         }
 
-        // Called from inside to create 
-        private VFXPropertyValue(VFXPropertyValue parent,VFXProperty desc,VFXPropertyNodeOwner owner = null)
-            : this(desc,owner)
+        public void SetDefault()
         {
-            m_Parent = parent;
+            if (!Semantics.Default(this))
+                foreach (var child in m_Children)
+                    child.SetDefault();
         }
 
-        public override bool IsKnown()      { return true; }
-        public override bool IsConstant()   { return false; } // TODO
-
-        private void Constrain()
+        public int GetNbChildren()
         {
-            if (!m_Constraining) // If not already constraining
+            return m_Children.Length;
+        }
+
+        public VFXPropertySlot GetChild(int index)
+        {
+            return m_Children[index];
+        }
+
+        // Throw if incompatible or inexistant
+        public void SetValue<T>(T t)
+        {
+            m_OwnedValue.Set(t);
+        }
+
+        public VFXExpression Value
+        {
+            set
             {
-                m_Constraining = true;
-                Semantics.Constrain(this); // Constrained from bottom to top, parent is supposed to keep children constraints !
-                m_Parent.Constrain();
-                m_Constraining = false;
+                m_OwnedValue = value;
+                NotifyChange(Event.kValueUpdated);
             }
-
-            string verbatim = @"this
-                is a test";
-        }
-
-        private VFXPropertyValue GetRoot()
-        {
-            return m_Parent != null ? m_Parent.GetRoot() : this;
-        }
-
-        private void MarkBeingProcessedRecursively(bool beginProcessed)
-        {
-            m_BeingProcessed = beginProcessed;
-            foreach (var child in m_Children)
-                MarkBeingProcessedRecursively(beginProcessed);
-        }
-
-        // Useful to be called when a series of Set is performed to avoid notify outputs/owner after each set
-        public bool BeginUpdateProcess()
-        {
-            if (m_BeingProcessed)
-                return false;
-
-            GetRoot().MarkBeingProcessedRecursively(true);
-            return true;
-        }
-
-        // Will trigger propagation if anything has changed
-        public void EndUpdateProcess()
-        {
-            var root = GetRoot();
-            root.MarkBeingProcessedRecursively(false);
-            root.PropagateChanges();
-        }
-
-        private bool PropagateChanges()
-        {
-            bool dirty = m_OldValue != null && !m_OldValue.Equals(m_Value);
-            m_OldValue = null;
-
-            foreach (var child in m_Children)
-                dirty |= child.PropagateChanges();
-
-            if (dirty)
+            get
             {
-                if (m_Owner != null)
-                    m_Owner.OnUpdated(this);
-                foreach (var output in m_Outputs)
-                    output.Refresh();
-            }
-
-            return dirty;
-        }
-
-        public void Set<T>(T val)
-        {
-            var value = VFXValue.Create<T>(); // TODO Needs a pool for shader value
-            Set(value);
-        }
-
-        public T Get<T>()
-        {
-            return GetValue().Get<T>();
-        }
-
-        public void SetValue(VFXValue value)
-        {
-            if (!m_Value.Equals(value)) // Only if value has changed
-            {
-                bool initialChange = BeginUpdateProcess(); // If this is the initial change, this object is responsible to propagate the changes later on
-
-                if (m_Value != null && m_OldValue == null) // If value not already cached
-                    m_OldValue = m_Value.Clone(); // TODO Needs a pool for shader value
-
-                m_Value.SetValue(value);
-                Constrain(); // This may invalidate other values, hence the old value caching       
-
-                if (initialChange) // Now trigger refresh for linked nodes from the initial change
-                    EndUpdateProcess();
+                return m_OwnedValue;
             }
         }
 
-        public VFXValue GetValue()
+        public VFXExpression ValueRef
         {
-            return m_Value;
-        }
-
-        public void Refresh()
-        {
-            if (m_Input != null)
+            set
             {
-                BeginUpdateProcess();
-                Semantics.Transform(this, m_Input); // This is not supposed to throw as the compatibility was ensured when linking
-                EndUpdateProcess();
+                CurrentValueRef.Value = value;
             }
+            get { return CurrentValueRef.Value; }
         }
 
-        public void SetInput(VFXPropertyValue link)
+        public void NotifyChange(Event type)
         {
-            if (m_Input != link && link.Semantics.CanTransform(Semantics))
-            {
-                if (link != null)
-                    link.m_Outputs.Remove(this);
-
-                m_Input = this;
-                link.m_Outputs.Add(this);
-                Refresh();
-            }
+            if (m_Observer != null)
+                m_Observer.OnSlotEvent(type,this);
+            PropagateChange(type);
         }
+
+        public virtual void PropagateChange(Event type) {}
+
+        public abstract VFXPropertySlot CurrentValueRef { get; }
 
         public VFXPropertyTypeSemantics Semantics
         {
             get { return m_Desc.m_Type; }
         }
 
-        public void SetInput(VFXPropertyNode node)
+        private VFXExpression m_OwnedValue;
+
+        protected VFXPropertySlotObserver m_Observer; // Owner of the node. Can be a function/block...
+
+        private VFXProperty m_Desc; // Contains semantic type and name for this value
+
+        private VFXPropertySlot m_Parent;
+        protected VFXPropertySlot[] m_Children;
+    }
+
+    public class VFXInputSlot : VFXPropertySlot
+    {
+        public VFXInputSlot() {}
+        public VFXInputSlot(VFXProperty desc,VFXPropertySlotObserver owner = null)
+            : base(desc,owner)
         {
-            node.AddOutput(this);
+            CreateChildren<VFXInputSlot>();    
         }
-  
-        public void RemoveInput()
+
+        public bool Link(VFXOutputSlot slot)
         {
-            if (m_Input != null)
-                m_Input.RemoveOutput(this);
+            if (slot != m_ConnectedSlot)
+            {
+                if (!Semantics.CanLink(slot.Semantics))
+                    throw new ArgumentException();
+
+                m_ConnectedSlot = slot;
+                VFXPropertySlot old = m_ValueRef;
+                
+                if (m_ConnectedSlot != null)
+                    m_ValueRef = m_ConnectedSlot;
+                else
+                    m_ValueRef = this;
+                
+                if (m_ValueRef != old)
+                {
+                    //PropagateChanges();
+                    return true;
+                }
+            }
+
+            return false;
         }
+
+        public void Unlink()
+        {
+            Link(null);
+        }
+
+        public override VFXPropertySlot CurrentValueRef
+        {
+            get { return m_ValueRef; }
+        }
+      
+        private VFXPropertySlot m_ValueRef;
+        private VFXOutputSlot m_ConnectedSlot;
+    }
+
+    public class VFXOutputSlot : VFXPropertySlot
+    {
+        public VFXOutputSlot() {}
+        public VFXOutputSlot(VFXProperty desc,VFXPropertySlotObserver owner = null)
+            : base(desc,owner)
+        {
+            CreateChildren<VFXOutputSlot>();    
+        }
+
+        public override void PropagateChange(VFXPropertySlot.Event type)
+        {
+            foreach (var slot in m_ConnectedSlots)
+                slot.NotifyChange(type);
+        }
+
+        public override VFXPropertySlot CurrentValueRef
+        {
+            get { return this; }
+        }
+
+        public void Link(VFXInputSlot slot)
+        {
+            if (slot == null)
+                return;
+   
+            slot.Link(this);
+            m_ConnectedSlots.Add(slot);
+        }
+
+        public void Unlink(VFXInputSlot slot)
+        {
+            if (slot == null)
+                return;
+
+            if (m_ConnectedSlots.Remove(slot))
+                slot.Unlink();
+        } 
+
+        private List<VFXInputSlot> m_ConnectedSlots;
     }
 }
