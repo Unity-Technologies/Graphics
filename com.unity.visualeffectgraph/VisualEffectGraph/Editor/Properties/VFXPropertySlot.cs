@@ -67,12 +67,6 @@ namespace UnityEngine.Experimental.VFX
             return m_Children[index];
         }
 
-        // Explicit get child with cast as there is no covariance on return type in c#!
-        public T GetChild<T>(int index) where T : VFXPropertySlot
-        {
-            return (T)m_Children[index];
-        }
-
         public VFXPropertySlot Parent
         {
             get { return m_Parent; }
@@ -173,6 +167,11 @@ namespace UnityEngine.Experimental.VFX
             return false;
         }
 
+        public new VFXInputSlot GetChild(int index)
+        {
+            return (VFXInputSlot)m_Children[index];
+        }
+
         public void Unlink()
         {
             Link(null);
@@ -217,6 +216,11 @@ namespace UnityEngine.Experimental.VFX
         public override VFXPropertySlot CurrentValueRef
         {
             get { return this; }
+        }
+
+        public new VFXOutputSlot GetChild(int index)
+        {
+            return (VFXOutputSlot)m_Children[index];
         }
 
         public void Link(VFXInputSlot slot)

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.VFX
 {
-    class VFXSlotTest
+    static class VFXSlotTest
     {
         public static void Run()
         {
@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.VFX
             var inputNodeSphere = new InputTestNode(VFXProperty.Create<VFXSphereType>("sphere"));
             var inputNodeVector = new InputTestNode(VFXProperty.Create<VFXFloat3Type>("position"));
 
-            var outputPositionSlot = outputNodeSphere.Slot.GetChild<VFXOutputSlot>(0);
+            var outputPositionSlot = outputNodeSphere.Slot.GetChild(0);
             inputNodeVector.Slot.SetValue(new Vector3(0.0f,0.0f,42.0f));
 
             inputNodeSphere.Slot.Link(outputNodeSphere.Slot);
