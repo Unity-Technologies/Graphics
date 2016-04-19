@@ -118,6 +118,14 @@ namespace UnityEngine.Experimental.VFX
 
         public abstract VFXPropertySlot CurrentValueRef { get; }
 
+        public abstract void UnlinkAll();
+        public void UnlinkRecursively()
+        {
+            UnlinkAll();
+            foreach (var child in m_Children)
+                child.UnlinkRecursively();
+        }
+
         public VFXPropertyTypeSemantics Semantics
         {
             get { return m_Desc.m_Type; }
@@ -170,6 +178,11 @@ namespace UnityEngine.Experimental.VFX
             Link(null);
         }
 
+        public override void UnlinkAll()
+        {
+            Unlink();
+        }
+
         public override VFXPropertySlot CurrentValueRef
         {
             get { return m_ValueRef == null ? this : m_ValueRef; }
@@ -208,6 +221,9 @@ namespace UnityEngine.Experimental.VFX
 
         public void Link(VFXInputSlot slot)
         {
+            if (slot == null)
+                return;
+
             slot.Link(this); // This will call InnerUpdateOutputLink if needed
         }
 
@@ -218,7 +234,14 @@ namespace UnityEngine.Experimental.VFX
 
             if (m_ConnectedSlots.Remove(slot))
                 slot.Unlink();
-        } 
+        }
+
+        public override void UnlinkAll()
+        {
+            foreach (var slot in m_ConnectedSlots)
+                slot.Unlink();
+            m_ConnectedSlots.Clear();
+        }
 
         private List<VFXInputSlot> m_ConnectedSlots = new List<VFXInputSlot>();
     }

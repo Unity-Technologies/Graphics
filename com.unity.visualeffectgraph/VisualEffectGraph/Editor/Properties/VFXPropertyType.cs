@@ -62,8 +62,8 @@ namespace UnityEngine.Experimental.VFX
         public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
         public virtual bool ProxyType { get { return false; } } // A proxy Type is a type that only represent a view of children hierarchy
 
-        public abstract void ProxyCombine(VFXPropertySlot slot);    // Set Proxy value from underlying values
-        public abstract void ProxyExpand(VFXPropertySlot slot);     // Set Underlying values from proxy value
+        public virtual void ProxyCombine(VFXPropertySlot slot)  { }  // Set Proxy value from underlying values
+        public virtual void ProxyExpand(VFXPropertySlot slot)   { }  // Set Underlying values from proxy value
         //public abstract void ExtracValues(List<VFXValue> dst);
 
         public int GetNbChildren() { return m_Children == null ? 0 : m_Children.Length; }
