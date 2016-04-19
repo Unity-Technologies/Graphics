@@ -59,7 +59,11 @@ namespace UnityEngine.Experimental.VFX
         public virtual void CreateUIGizmo(VFXPropertySlot value)   {}
         public virtual void CreateUIField(VFXPropertySlot value)   {}
 
-        public virtual VFXValueType ValueType { get{ return VFXValueType.kNone; }}
+        public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
+        public virtual bool ProxyType { get { return false; } } // A proxy Type is a type that only represent a view of children hierarchy
+
+        public abstract void ProxyCombine(VFXPropertySlot slot);    // Set Proxy value from underlying values
+        public abstract void ProxyExpand(VFXPropertySlot slot);     // Set Underlying values from proxy value
         //public abstract void ExtracValues(List<VFXValue> dst);
 
         public int GetNbChildren() { return m_Children == null ? 0 : m_Children.Length; }
@@ -98,6 +102,7 @@ namespace UnityEngine.Experimental.VFX
         public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } } 
     }*/
 
+    // TMP this should be proxy types at the end
     public class VFXFloat2Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } } }
     public class VFXFloat3Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } } }
     public class VFXFloat4Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } } }
