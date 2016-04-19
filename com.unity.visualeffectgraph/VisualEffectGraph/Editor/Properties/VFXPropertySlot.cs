@@ -46,8 +46,6 @@ namespace UnityEngine.Experimental.VFX
                     m_Children[i] = child;
                 }
             }
-            else
-                m_Children = new VFXPropertySlot[0];
 
             SetDefault();
         }
@@ -69,10 +67,22 @@ namespace UnityEngine.Experimental.VFX
             return m_Children[index];
         }
 
+        // Explicit get child with cast as there is no covariance on return type in c#!
+        public T GetChild<T>(int index) where T : VFXPropertySlot
+        {
+            return (T)m_Children[index];
+        }
+
+        public VFXPropertySlot Parent
+        {
+            get { return m_Parent; }
+        }
+
         // Throw if incompatible or inexistant
         public void SetValue<T>(T t)
         {
             m_OwnedValue.Set(t);
+            NotifyChange(Event.kValueUpdated);
         }
 
         public VFXExpression Value
@@ -120,7 +130,7 @@ namespace UnityEngine.Experimental.VFX
         private VFXProperty m_Desc; // Contains semantic type and name for this value
 
         private VFXPropertySlot m_Parent;
-        protected VFXPropertySlot[] m_Children;
+        protected VFXPropertySlot[] m_Children = new VFXPropertySlot[0];
     }
 
     public class VFXInputSlot : VFXPropertySlot
@@ -129,27 +139,25 @@ namespace UnityEngine.Experimental.VFX
         public VFXInputSlot(VFXProperty desc,VFXPropertySlotObserver owner = null)
             : base(desc,owner)
         {
-            CreateChildren<VFXInputSlot>();    
+            CreateChildren<VFXInputSlot>();   
         }
 
         public bool Link(VFXOutputSlot slot)
         {
             if (slot != m_ConnectedSlot)
             {
-                if (!Semantics.CanLink(slot.Semantics))
+                if (slot != null && !Semantics.CanLink(slot.Semantics))
                     throw new ArgumentException();
 
                 m_ConnectedSlot = slot;
                 VFXPropertySlot old = m_ValueRef;
-                
-                if (m_ConnectedSlot != null)
-                    m_ValueRef = m_ConnectedSlot;
-                else
-                    m_ValueRef = this;
-                
+                m_ValueRef = m_ConnectedSlot != null ? m_ConnectedSlot : null;
+      
                 if (m_ValueRef != old)
                 {
-                    //PropagateChanges();
+                    if (slot != null)
+                        slot.InnerUpdateOutputLink(this);
+                    NotifyChange(Event.kLinkUpdated);
                     return true;
                 }
             }
@@ -164,7 +172,7 @@ namespace UnityEngine.Experimental.VFX
 
         public override VFXPropertySlot CurrentValueRef
         {
-            get { return m_ValueRef; }
+            get { return m_ValueRef == null ? this : m_ValueRef; }
         }
       
         private VFXPropertySlot m_ValueRef;
@@ -177,13 +185,20 @@ namespace UnityEngine.Experimental.VFX
         public VFXOutputSlot(VFXProperty desc,VFXPropertySlotObserver owner = null)
             : base(desc,owner)
         {
-            CreateChildren<VFXOutputSlot>();    
+            CreateChildren<VFXOutputSlot>();
         }
 
         public override void PropagateChange(VFXPropertySlot.Event type)
         {
             foreach (var slot in m_ConnectedSlots)
                 slot.NotifyChange(type);
+        }
+
+        // Called internally only!
+        internal void InnerUpdateOutputLink(VFXInputSlot slot)
+        {
+            // Do we need to notify the output when a new slot is linked ?
+            m_ConnectedSlots.Add(slot);
         }
 
         public override VFXPropertySlot CurrentValueRef
@@ -193,11 +208,7 @@ namespace UnityEngine.Experimental.VFX
 
         public void Link(VFXInputSlot slot)
         {
-            if (slot == null)
-                return;
-   
-            slot.Link(this);
-            m_ConnectedSlots.Add(slot);
+            slot.Link(this); // This will call InnerUpdateOutputLink if needed
         }
 
         public void Unlink(VFXInputSlot slot)
@@ -209,6 +220,6 @@ namespace UnityEngine.Experimental.VFX
                 slot.Unlink();
         } 
 
-        private List<VFXInputSlot> m_ConnectedSlots;
+        private List<VFXInputSlot> m_ConnectedSlots = new List<VFXInputSlot>();
     }
 }

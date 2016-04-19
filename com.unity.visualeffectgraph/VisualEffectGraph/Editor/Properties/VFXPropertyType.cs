@@ -6,6 +6,11 @@ namespace UnityEngine.Experimental.VFX
 {
     public class VFXProperty
     {
+        public static VFXProperty Create<T>(string name) where T : VFXPropertyTypeSemantics, new()
+        {
+            return new VFXProperty(new T(),name);
+        }
+
         public VFXProperty(VFXPropertyTypeSemantics type,string name)
         {
             m_Type = type;
@@ -28,8 +33,8 @@ namespace UnityEngine.Experimental.VFX
             if (other == null)
                 return false;
 
-            int nbChildren = m_Children.Length;
-            if (nbChildren != other.m_Children.Length)
+            int nbChildren = GetNbChildren();
+            if (nbChildren != other.GetNbChildren())
                 return false;
 
             for (int i = 0; i < nbChildren; ++i)
@@ -57,6 +62,7 @@ namespace UnityEngine.Experimental.VFX
         public virtual VFXValueType ValueType { get{ return VFXValueType.kNone; }}
         //public abstract void ExtracValues(List<VFXValue> dst);
 
+        public int GetNbChildren() { return m_Children == null ? 0 : m_Children.Length; }
         public VFXProperty[] GetChildren() { return m_Children; }
 
         protected void Check(VFXPropertySlot value)
@@ -76,7 +82,7 @@ namespace UnityEngine.Experimental.VFX
     public class VFXTexture3DType : VFXPropertyTypeSemantics     { public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; }}}
 
     // Composite types
-    public class VFXFloat2Type : VFXPropertyTypeSemantics 
+    /*public class VFXFloat2Type : VFXPropertyTypeSemantics 
     {
         public override bool Default(VFXPropertySlot slot)
         {
@@ -90,13 +96,14 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } } 
-    }
+    }*/
 
+    public class VFXFloat2Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } } }
     public class VFXFloat3Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } } }
     public class VFXFloat4Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } } }
 
     // Concrete type with custom editing widget
-    public class VFXPositionType : VFXFloat3Type 
+    /*public class VFXPositionType : VFXFloat3Type 
     {
 
     }
@@ -113,7 +120,10 @@ namespace UnityEngine.Experimental.VFX
 
             return true;
         }
-    }
+    }*/
+
+    public class VFXPositionType : VFXFloat3Type { }
+    public class VFXDirectionType : VFXFloat3Type { }
 
 
     // Composite types

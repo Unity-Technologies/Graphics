@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.VFX
     public abstract class VFXExpression
     {
         public T Get<T>() { return ((VFXValue<T>)this).GetValue(); }
-        public bool Set<T>(T value) { return ((VFXValue<T>)this).SetValue(value); }
+        public bool Set<T>(T value) { return ((VFXValue<T>)this).SetValue(value); }    
     }
 
     public abstract class VFXValue : VFXExpression
@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.VFX
                 case VFXValueType.kTexture2D:   return new VFXValueTexture2D();
                 case VFXValueType.kTexture3D:   return new VFXValueTexture3D();
                 default:
-                    throw new ArgumentException("Invalid parameter type");
+                    return null;
             }
         }
 
@@ -94,6 +94,11 @@ namespace UnityEngine.Experimental.VFX
         public override bool SetDefault()
         {
             return SetValue(default(T));
+        }
+
+        public override string ToString()
+        {
+            return m_Value.ToString();
         }
 
         private T m_Value;
