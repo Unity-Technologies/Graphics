@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -37,7 +38,7 @@ namespace UnityEditor.Experimental
         public const uint s_NbTypes = (uint)Type.kTypeOutput + 1;
 
         public Type m_Type;
-        public VFXParam[] m_Params;
+        public VFXProperty[] m_Properties;
 
         public string Name { get { return m_Name; }}
         private string m_Name;
@@ -94,24 +95,16 @@ namespace UnityEditor.Experimental
         public VFXBillboardOutputDesc()
             : base(Type.kTypeOutput, "Billboard Output", true)
         {
-            VFXParam textureParam = new VFXParam();
-            textureParam.m_Name = "texture";
-            textureParam.m_Type = VFXParam.Type.kTypeTexture2D;
-
-            VFXParam dimParam = new VFXParam();
-            dimParam.m_Name = "flipBook";
-            dimParam.m_Type = VFXParam.Type.kTypeFloat2;
-
-            m_Params = new VFXParam[2];
-            m_Params[TextureSlot] = textureParam;
-            m_Params[FlipBookDimSlot] = dimParam;
+            m_Properties = new VFXProperty[2];
+            m_Properties[TextureSlot] = VFXProperty.Create<VFXTexture2DType>("texture");
+            m_Properties[FlipBookDimSlot] = VFXProperty.Create<VFXFloat2Type>("flipBook");
         }
 
         public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
         {
-            VFXParamValue[] values = new VFXParamValue[2];
-            values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetParamValue(TextureSlot);
-            values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetParamValue(FlipBookDimSlot);
+            VFXPropertySlot[] values = new VFXPropertySlot[2];
+            values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetSlot(TextureSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
             return new VFXBillboardOutputShaderGeneratorModule(values, false); 
         }
     }
@@ -124,24 +117,16 @@ namespace UnityEditor.Experimental
         public VFXQuadAlongVelocityOutputDesc()
             : base(Type.kTypeOutput, "Quad Along Velocity Output", true)
         {
-            VFXParam textureParam = new VFXParam();
-            textureParam.m_Name = "texture";
-            textureParam.m_Type = VFXParam.Type.kTypeTexture2D;
-
-            VFXParam dimParam = new VFXParam();
-            dimParam.m_Name = "flipBook";
-            dimParam.m_Type = VFXParam.Type.kTypeFloat2;
-
-            m_Params = new VFXParam[2];
-            m_Params[TextureSlot] = textureParam;
-            m_Params[FlipBookDimSlot] = dimParam;
+            m_Properties = new VFXProperty[2];
+            m_Properties[TextureSlot] = VFXProperty.Create<VFXTexture2DType>("texture");
+            m_Properties[FlipBookDimSlot] = VFXProperty.Create<VFXFloat2Type>("flipBook");
         }
 
         public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
         {
-            VFXParamValue[] values = new VFXParamValue[2];
-            values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetParamValue(TextureSlot);
-            values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetParamValue(FlipBookDimSlot);
+            VFXPropertySlot[] values = new VFXPropertySlot[2];
+            values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetSlot(TextureSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
             return new VFXBillboardOutputShaderGeneratorModule(values, true); 
         }
     }
@@ -156,37 +141,21 @@ namespace UnityEditor.Experimental
         public VFXMorphSubUVBillboardOutputDesc()
             : base(Type.kTypeOutput, "SubUV Morph Billboard", true)
         {
-            VFXParam textureParam = new VFXParam();
-            textureParam.m_Name = "texture";
-            textureParam.m_Type = VFXParam.Type.kTypeTexture2D;
-
-            VFXParam dimParam = new VFXParam();
-            dimParam.m_Name = "flipBook";
-            dimParam.m_Type = VFXParam.Type.kTypeFloat2;
-
-            VFXParam morphTextureParam = new VFXParam();
-            morphTextureParam.m_Name = "MotionVectors2D";
-            morphTextureParam.m_Type = VFXParam.Type.kTypeTexture2D;
-
-            VFXParam morphIntensityParam = new VFXParam();
-            morphIntensityParam.m_Name = "MorphIntensity";
-            morphIntensityParam.m_Type = VFXParam.Type.kTypeFloat;
-
-            m_Params = new VFXParam[4];
-            m_Params[TextureSlot] = textureParam;
-            m_Params[FlipBookDimSlot] = dimParam;
-            m_Params[MorphTextureSlot] = morphTextureParam;
-            m_Params[MorphIntensitySlot] = morphIntensityParam;
+            m_Properties = new VFXProperty[4];
+            m_Properties[TextureSlot] = VFXProperty.Create<VFXTexture2DType>("texture");
+            m_Properties[FlipBookDimSlot] = VFXProperty.Create<VFXFloat2Type>("flipBook");
+            m_Properties[MorphTextureSlot] = VFXProperty.Create<VFXTexture2DType>("MotionVectors2D");
+            m_Properties[MorphIntensitySlot] = VFXProperty.Create<VFXFloatType>("MorphIntensity");
 
         }
 
         public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model)
         {
-            VFXParamValue[] values = new VFXParamValue[4];
-            values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetParamValue(TextureSlot);
-            values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetParamValue(FlipBookDimSlot);
-            values[VFXBillboardOutputShaderGeneratorModule.MorphTextureIndex] = model.GetParamValue(MorphTextureSlot);
-            values[VFXBillboardOutputShaderGeneratorModule.MorphIntensityIndex] = model.GetParamValue(MorphIntensitySlot);
+            VFXPropertySlot[] values = new VFXPropertySlot[4];
+            values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetSlot(TextureSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.MorphTextureIndex] = model.GetSlot(MorphTextureSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.MorphIntensityIndex] = model.GetSlot(MorphIntensitySlot);
             return new VFXBillboardOutputShaderGeneratorModule(values, false); 
         }
     }

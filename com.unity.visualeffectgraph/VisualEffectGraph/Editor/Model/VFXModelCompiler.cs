@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -24,8 +25,8 @@ namespace UnityEditor.Experimental
 
     public class VFXSystemRuntimeData
     {
-        public Dictionary<VFXParamValue,string> uniforms = new Dictionary<VFXParamValue,string>();
-        public Dictionary<VFXParamValue, string> outputUniforms = new Dictionary<VFXParamValue, string>();
+        public Dictionary<VFXValue, string> uniforms = new Dictionary<VFXValue, string>();
+        public Dictionary<VFXValue, string> outputUniforms = new Dictionary<VFXValue, string>();
         
         ComputeShader simulationShader;
         public ComputeShader SimulationShader { get { return simulationShader; } }
@@ -64,24 +65,24 @@ namespace UnityEditor.Experimental
                 UpdateUniform(uniform.Key, true);
         }
 
-        public void UpdateUniform(VFXParamValue paramValue,bool output)
+        public void UpdateUniform(VFXValue value,bool output)
         {
             var currentUniforms = uniforms;
             if (output)
                 currentUniforms = outputUniforms;
 
-            string uniformName = currentUniforms[paramValue];
-            switch (paramValue.ValueType)
+            string uniformName = currentUniforms[value];
+            switch (value.ValueType)
             {
-                case VFXParam.Type.kTypeFloat:
+                case VFXValueType.kFloat:
                     if (output)
-                        m_Material.SetFloat(uniformName, paramValue.GetValue<float>());
+                        m_Material.SetFloat(uniformName, value.Get<float>());
                     else
-                        simulationShader.SetFloat(uniformName,paramValue.GetValue<float>());
+                        simulationShader.SetFloat(uniformName,value.Get<float>());
                     break;
-                case VFXParam.Type.kTypeFloat2:
+                case VFXValueType.kFloat2:
                 {
-                    Vector2 value = paramValue.GetValue<Vector2>();
+                    Vector2 value = value.Get<Vector2>();
                     if (output)
                         m_Material.SetVector(uniformName, value);
                     else
@@ -93,9 +94,9 @@ namespace UnityEditor.Experimental
                     }
                     break;
                 }
-                case VFXParam.Type.kTypeFloat3:
+                case VFXValueType.kFloat3:
                 {     
-                    Vector3 value = paramValue.GetValue<Vector3>();
+                    Vector3 value = value.Get<Vector3>();
                     if (output)
                         m_Material.SetVector(uniformName, value);
                     else
@@ -108,28 +109,28 @@ namespace UnityEditor.Experimental
                     }
                     break;
                 }
-                case VFXParam.Type.kTypeFloat4:
+                case VFXValueType.kFloat4:
                     if (output)
-                        m_Material.SetVector(uniformName, paramValue.GetValue<Vector4>());
+                        m_Material.SetVector(uniformName, value.Get<Vector4>());
                     else
-                        simulationShader.SetVector(uniformName,paramValue.GetValue<Vector4>());
+                        simulationShader.SetVector(uniformName,value.Get<Vector4>());
                     break;
-                case VFXParam.Type.kTypeInt:
+                case VFXValueType.kInt:
                     if (output)
-                        m_Material.SetInt(uniformName, paramValue.GetValue<int>());
+                        m_Material.SetInt(uniformName, value.Get<int>());
                     else
-                        simulationShader.SetInt(uniformName,paramValue.GetValue<int>());
+                        simulationShader.SetInt(uniformName,value.Get<int>());
                     break;
-                case VFXParam.Type.kTypeUint:
+                case VFXValueType.kUint:
                     if (output)
-                        m_Material.SetInt(uniformName, (int)paramValue.GetValue<uint>());
+                        m_Material.SetInt(uniformName, (int)value.Get<uint>());
                     else
-                        simulationShader.SetInt(uniformName,(int)paramValue.GetValue<uint>());
+                        simulationShader.SetInt(uniformName,(int)value.Get<uint>());
                     break;
 
-                case VFXParam.Type.kTypeTexture2D:
+                case VFXValueType.kTexture2D:
                 {
-                    Texture2D tex = paramValue.GetValue<Texture2D>();
+                    Texture2D tex = value.Get<Texture2D>();
                     if (tex != null)
                     {
                         if (output)
@@ -151,8 +152,8 @@ namespace UnityEditor.Experimental
                     break;
                 }
 
-                case VFXParam.Type.kTypeTexture3D: // Texture 3D not handled yet
-                case VFXParam.Type.kTypeUnknown:
+                case VFXValueType.kTexture3D: // Texture 3D not handled yet
+                case VFXValueType.kNone:
                     // Not yet implemented
                     break;
             }
@@ -254,19 +255,19 @@ namespace UnityEditor.Experimental
         public List<AttributeBuffer> attributeBuffers = new List<AttributeBuffer>();
         public Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer = new Dictionary<VFXAttrib, AttributeBuffer>(new AttribComparer());
 
-        public HashSet<VFXParamValue> globalUniforms = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> initUniforms = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> updateUniforms = new HashSet<VFXParamValue>();
+        public HashSet<VFXValue> globalUniforms = new HashSet<VFXValue>();
+        public HashSet<VFXValue> initUniforms = new HashSet<VFXValue>();
+        public HashSet<VFXValue> updateUniforms = new HashSet<VFXValue>();
 
-        public HashSet<VFXParamValue> globalSamplers = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> initSamplers = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> updateSamplers = new HashSet<VFXParamValue>();
+        public HashSet<VFXValue> globalSamplers = new HashSet<VFXValue>();
+        public HashSet<VFXValue> initSamplers = new HashSet<VFXValue>();
+        public HashSet<VFXValue> updateSamplers = new HashSet<VFXValue>();
 
-        public HashSet<VFXParamValue> outputUniforms = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> outputSamplers = new HashSet<VFXParamValue>();
+        public HashSet<VFXValue> outputUniforms = new HashSet<VFXValue>();
+        public HashSet<VFXValue> outputSamplers = new HashSet<VFXValue>();
 
-        public Dictionary<VFXParamValue, string> paramToName = new Dictionary<VFXParamValue, string>();
-        public Dictionary<VFXParamValue, string> outputParamToName = new Dictionary<VFXParamValue, string>();
+        public Dictionary<VFXValue, string> paramToName = new Dictionary<VFXValue, string>();
+        public Dictionary<VFXValue, string> outputParamToName = new Dictionary<VFXValue, string>();
     }
 
     public static class VFXModelCompiler
@@ -437,26 +438,26 @@ namespace UnityEditor.Experimental
             }
                 
             // UNIFORMS
-            HashSet<VFXParamValue> initUniforms = CollectUniforms(initBlocks);
+            HashSet<VFXValue> initUniforms = CollectUniforms(initBlocks);
             initGenerator.UpdateUniforms(initUniforms);
-            HashSet<VFXParamValue> updateUniforms = CollectUniforms(updateBlocks);
+            HashSet<VFXValue> updateUniforms = CollectUniforms(updateBlocks);
             updateGenerator.UpdateUniforms(updateUniforms);
 
             // collect samplers
-            HashSet<VFXParamValue> initSamplers = CollectAndRemoveSamplers(initUniforms);
-            HashSet<VFXParamValue> updateSamplers = CollectAndRemoveSamplers(updateUniforms);
+            HashSet<VFXValue> initSamplers = CollectAndRemoveSamplers(initUniforms);
+            HashSet<VFXValue> updateSamplers = CollectAndRemoveSamplers(updateUniforms);
 
             // Collect the intersection between init and update uniforms / samplers
-            HashSet<VFXParamValue> globalUniforms = CollectIntersection(initUniforms,updateUniforms);
-            HashSet<VFXParamValue> globalSamplers = CollectIntersection(initSamplers, updateSamplers);
+            HashSet<VFXValue> globalUniforms = CollectIntersection(initUniforms, updateUniforms);
+            HashSet<VFXValue> globalSamplers = CollectIntersection(initSamplers, updateSamplers);
 
             // Output stuff
-            HashSet<VFXParamValue> outputUniforms = new HashSet<VFXParamValue>();
+            HashSet<VFXValue> outputUniforms = new HashSet<VFXValue>();
             outputGenerator.UpdateUniforms(outputUniforms);
-            HashSet<VFXParamValue> outputSamplers = CollectAndRemoveSamplers(outputUniforms);
+            HashSet<VFXValue> outputSamplers = CollectAndRemoveSamplers(outputUniforms);
 
-            // Associate VFXParamValue to generated name
-            var paramToName = new Dictionary<VFXParamValue, string>();
+            // Associate VFXValue to generated name
+            var paramToName = new Dictionary<VFXValue, string>();
             GenerateParamNames(paramToName, globalUniforms, "globalUniform");
             GenerateParamNames(paramToName, initUniforms, "initUniform");
             GenerateParamNames(paramToName, updateUniforms, "updateUniform");
@@ -465,7 +466,7 @@ namespace UnityEditor.Experimental
             GenerateParamNames(paramToName, initSamplers, "initSampler");
             GenerateParamNames(paramToName, updateSamplers, "updateSampler");
 
-            var outputParamToName = new Dictionary<VFXParamValue, string>();
+            var outputParamToName = new Dictionary<VFXValue, string>();
             GenerateParamNames(outputParamToName, outputUniforms, "outputUniform");
             GenerateParamNames(outputParamToName, outputSamplers, "outputSampler");
 
@@ -562,24 +563,24 @@ namespace UnityEditor.Experimental
             return rtData;
         }
 
-        public static HashSet<VFXParamValue> CollectUniforms(List<VFXBlockModel> blocks)
+        public static HashSet<VFXValue> CollectUniforms(List<VFXBlockModel> blocks)
         {
-            HashSet<VFXParamValue> uniforms = new HashSet<VFXParamValue>();
+            HashSet<VFXValue> uniforms = new HashSet<VFXValue>();
 
             foreach (VFXBlockModel block in blocks)
                 for (int i = 0; i < block.Desc.m_Params.Length; ++i)
-                    uniforms.Add(block.GetParamValue(i));
+                    uniforms.Add(block.GetParamValue(i)); // TODO Refactor : Parse slots to retrieve uniforms (Expressions that are values)
 
             return uniforms;
         }
 
-        public static HashSet<VFXParamValue> CollectAndRemoveSamplers(HashSet<VFXParamValue> uniforms)
+        public static HashSet<VFXValue> CollectAndRemoveSamplers(HashSet<VFXValue> uniforms)
         {
-            HashSet<VFXParamValue> samplers = new HashSet<VFXParamValue>();
+            HashSet<VFXValue> samplers = new HashSet<VFXValue>();
 
             // Collect samplers
             foreach (var param in uniforms)
-                if (param.ValueType == VFXParam.Type.kTypeTexture2D || param.ValueType == VFXParam.Type.kTypeTexture3D)
+                if (param.ValueType == VFXValueType.kTexture2D || param.ValueType == VFXValueType.kTexture3D)
                     samplers.Add(param);
 
             // Remove samplers from uniforms
@@ -589,15 +590,15 @@ namespace UnityEditor.Experimental
             return samplers;
         }
 
-        public static HashSet<VFXParamValue> CollectIntersection(HashSet<VFXParamValue> params0,HashSet<VFXParamValue> params1)
+        public static HashSet<VFXValue> CollectIntersection(HashSet<VFXValue> params0,HashSet<VFXValue> params1)
         {
-            HashSet<VFXParamValue> globalParams = new HashSet<VFXParamValue>();
+            HashSet<VFXValue> globalParams = new HashSet<VFXValue>();
 
-            foreach (VFXParamValue param in params0)
+            foreach (VFXValue param in params0)
                 if (params1.Contains(param))
                     globalParams.Add(param);
 
-            foreach (VFXParamValue param in globalParams)
+            foreach (VFXValue param in globalParams)
             {
                 params0.Remove(param);
                 params1.Remove(param);
@@ -606,7 +607,7 @@ namespace UnityEditor.Experimental
             return globalParams;
         }
 
-        public static void GenerateParamNames(Dictionary<VFXParamValue, string> paramToName, HashSet<VFXParamValue> parameters, string name)
+        public static void GenerateParamNames(Dictionary<VFXValue, string> paramToName, HashSet<VFXValue> parameters, string name)
         {
             int counter = 0;
             foreach (var param in parameters)

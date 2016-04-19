@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -12,11 +13,9 @@ namespace UnityEditor.Experimental
     {
         public VFXEdNodeBlockHeader Header { get { return m_Header; } }
         public VFXContextModel Model { get { return m_Model; } }
-        public VFXParamValue[] ParamValues {get { return m_ParamValues; } }
+        private VFXProperty[] Properties { get { return Model.Desc.m_Properties; } }
 
         private VFXEdNodeBlockHeader m_Header;
-        private VFXParamValue[] m_ParamValues;
-        private VFXParam[] m_Params;
 
         private VFXContextModel m_Model;
 
@@ -25,27 +24,22 @@ namespace UnityEditor.Experimental
         {
             m_Model = model;
             VFXContextDesc desc = m_Model.Desc;
-            m_Params = desc.m_Params;
 
             m_DataSource = dataSource;
             translation = Vector3.zero; 
             m_Caps = Capabilities.Normal;
             m_Fields = new VFXEdNodeBlockParameterField[0];
-            m_ParamValues = new VFXParamValue[0];
             m_Header = new VFXEdNodeBlockHeader(desc.Name, VFXEditor.styles.GetIcon("Box"), false);
             AddChild(m_Header);
 
-            if (desc.m_Params != null && desc.m_Params.Length > 0)
+            if (desc.m_Properties != null && desc.m_Properties.Length > 0)
             {
-                int nbParams = desc.m_Params.Length;
-                m_Fields = new VFXEdNodeBlockParameterField[nbParams];
-                m_ParamValues = new VFXParamValue[nbParams];
-                for (int i = 0; i < nbParams; ++i)
+                int nbProperties = Properties.Length;
+                m_Fields = new VFXEdNodeBlockParameterField[nbProperties];
+                for (int i = 0; i < nbProperties; ++i)
                 {
-                    m_ParamValues[i] = VFXParamValue.Create(desc.m_Params[i].m_Type);
-                    m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource, desc.m_Params[i].m_Name, m_ParamValues[i], true, Direction.Input, 0);
+                    m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource, Properties[i].m_Name, Model.GetSlot(i), true, Direction.Input, 0);
                     AddChild(m_Fields[i]);
-                    m_Model.BindParam(m_ParamValues[i], i);
                 }
                 Header.Collapseable = true;
             }
@@ -99,7 +93,7 @@ namespace UnityEditor.Experimental
             return VFXEditor.styles.DataNodeBlock;
         }
 
-        public override VFXParamValue GetParamValue(string ParamName)
+        /*public override VFXParamValue GetParamValue(string ParamName)
         {
             for(int i = 0; i < m_Params.Length; i++)
             {
@@ -120,7 +114,7 @@ namespace UnityEditor.Experimental
                     m_ParamValues[i].SetValue(Value); 
                 }
             }
-        }
+        }*/
 
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,10 +34,10 @@ namespace UnityEditor.Experimental
         public const int MorphTextureIndex = 2;
         public const int MorphIntensityIndex = 3;
 
-        public VFXBillboardOutputShaderGeneratorModule(VFXParamValue[] paramValues, bool orientAlongVelocity)
+        public VFXBillboardOutputShaderGeneratorModule(VFXPropertySlot[] slots, bool orientAlongVelocity)
         {
-            for (int i = 0; i < Math.Min(paramValues.Length, 4); ++i)
-                m_ParamValues[i] = paramValues[i];
+            for (int i = 0; i < Math.Min(slots.Length, 4); ++i)
+                m_Values[i] = slots[i].ValueRef as VFXValue; // TODO Refactor
             m_OrientAlongVelocity = orientAlongVelocity;
         }
 
@@ -52,11 +53,11 @@ namespace UnityEditor.Experimental
             m_HasSize = UpdateFlag(attribs, CommonAttrib.Size, VFXContextDesc.Type.kTypeOutput);
             m_HasAngle = UpdateFlag(attribs, CommonAttrib.Angle, VFXContextDesc.Type.kTypeOutput);
 
-            if (m_ParamValues[TextureIndex] != null && m_ParamValues[TextureIndex].GetValue<Texture2D>() != null)
+            if (m_Values[TextureIndex] != null && m_Values[TextureIndex].Get<Texture2D>() != null)
             {
                 m_HasTexture = true;
-                if (m_HasFlipBook = m_ParamValues[FlipbookDimIndex] != null && UpdateFlag(attribs, CommonAttrib.TexIndex, VFXContextDesc.Type.kTypeOutput))
-                    m_HasMotionVectors = m_ParamValues[MorphTextureIndex] != null && m_ParamValues[MorphIntensityIndex] != null && m_ParamValues[MorphTextureIndex].GetValue<Texture2D>() != null;
+                if (m_HasFlipBook = m_Values[FlipbookDimIndex] != null && UpdateFlag(attribs, CommonAttrib.TexIndex, VFXContextDesc.Type.kTypeOutput))
+                    m_HasMotionVectors = m_Values[MorphTextureIndex] != null && m_Values[MorphIntensityIndex] != null && m_Values[MorphTextureIndex].Get<Texture2D>() != null;
             }
 
             if (m_OrientAlongVelocity)
@@ -65,18 +66,18 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void UpdateUniforms(HashSet<VFXParamValue> uniforms)
+        public override void UpdateUniforms(HashSet<VFXValue> uniforms)
         {
             if (m_HasTexture)
             {
-                uniforms.Add(m_ParamValues[TextureIndex]);
+                uniforms.Add(m_Values[TextureIndex]);
                 if (m_HasFlipBook)
                 {
-                    uniforms.Add(m_ParamValues[FlipbookDimIndex]);
+                    uniforms.Add(m_Values[FlipbookDimIndex]);
                     if (m_HasMotionVectors)
                     {
-                        uniforms.Add(m_ParamValues[MorphTextureIndex]);
-                        uniforms.Add(m_ParamValues[MorphIntensityIndex]);
+                        uniforms.Add(m_Values[MorphTextureIndex]);
+                        uniforms.Add(m_Values[MorphIntensityIndex]);
                     }
                 }
             }
@@ -203,7 +204,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        private static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXParamValue texture, string uv, bool endLine)
+        private static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXValue texture, string uv, bool endLine)
         {
             builder.Write("tex2D(");
             builder.Write(data.outputParamToName[texture]);
@@ -226,7 +227,7 @@ namespace UnityEditor.Experimental
             else if (m_HasFlipBook)
             {
                 builder.Write("float2 dim = ");
-                builder.Write(data.outputParamToName[m_ParamValues[FlipbookDimIndex]]);
+                builder.Write(data.outputParamToName[m_Values[FlipbookDimIndex]]);
                 builder.WriteLine(";");
                 builder.WriteLine("float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
 
@@ -238,7 +239,7 @@ namespace UnityEditor.Experimental
                     {
                         builder.WriteLine("float2 uv = GetSubUV(floor(i.offsets.z),i.offsets.xy,dim,invDim);");
                         builder.Write("color *= ");
-                        WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv", true);
+                        WriteTex2DFetch(builder, data, m_Values[TextureIndex], "uv", true);
                     }
                     else
                     {
@@ -248,12 +249,12 @@ namespace UnityEditor.Experimental
 
                         builder.WriteLine("float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);");
                         builder.Write("float4 col1 = ");
-                        WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv1", true);
+                        WriteTex2DFetch(builder, data, m_Values[TextureIndex], "uv1", true);
                         builder.WriteLine();
 
                         builder.WriteLine("float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);");
                         builder.Write("float4 col2 = ");
-                        WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv2", true);
+                        WriteTex2DFetch(builder, data, m_Values[TextureIndex], "uv2", true);
                         builder.WriteLine();
 
                         builder.WriteLine("color *= lerp(col1,col2,ratio);");
@@ -267,27 +268,27 @@ namespace UnityEditor.Experimental
 
                     builder.WriteLine("float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);");
                     builder.Write("float2 duv1 = ");
-                    WriteTex2DFetch(builder, data, m_ParamValues[MorphTextureIndex], "uv1", false);
+                    WriteTex2DFetch(builder, data, m_Values[MorphTextureIndex], "uv1", false);
                     builder.WriteLine(".rg - 0.5;");
                     builder.WriteLine();
 
                     builder.WriteLine("float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);");
                     builder.Write("float2 duv2 = ");
-                    WriteTex2DFetch(builder, data, m_ParamValues[MorphTextureIndex], "uv2", false);
+                    WriteTex2DFetch(builder, data, m_Values[MorphTextureIndex], "uv2", false);
                     builder.WriteLine(".rg - 0.5;");
                     builder.WriteLine();
 
                     builder.Write("float morphIntensity = ");
-                    builder.Write(data.outputParamToName[m_ParamValues[MorphIntensityIndex]]);
+                    builder.Write(data.outputParamToName[m_Values[MorphIntensityIndex]]);
                     builder.WriteLine(";");
                     builder.WriteLine("duv1 *= morphIntensity * ratio;");
                     builder.WriteLine("duv2 *= morphIntensity * (ratio - 1.0);");
                     builder.WriteLine();
 
                     builder.Write("float4 col1 = ");
-                    WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv1 - duv1", true);
+                    WriteTex2DFetch(builder, data, m_Values[TextureIndex], "uv1 - duv1", true);
                     builder.Write("float4 col2 = ");
-                    WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "uv2 - duv2", true);
+                    WriteTex2DFetch(builder, data, m_Values[TextureIndex], "uv2 - duv2", true);
                     builder.WriteLine();
 
                     builder.WriteLine("color *= lerp(col1,col2,ratio);");
@@ -297,14 +298,14 @@ namespace UnityEditor.Experimental
             else
             {
                 builder.Write("color *= ");
-                WriteTex2DFetch(builder, data, m_ParamValues[TextureIndex], "i.offsets", true);
+                WriteTex2DFetch(builder, data, m_Values[TextureIndex], "i.offsets", true);
             }
 
             if (system.BlendingMode == BlendMode.kMasked)
                 builder.WriteLine("if (color.a < 0.33333) discard;");
         }
 
-        private VFXParamValue[] m_ParamValues = new VFXParamValue[4];
+        private VFXValue[] m_Values = new VFXValue[4];
 
         private bool m_HasSize;
         private bool m_HasAngle;

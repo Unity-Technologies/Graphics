@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.VFX
 {
-    public class VFXProperty
+    public struct VFXProperty
     {
         public static VFXProperty Create<T>(string name) where T : VFXPropertyTypeSemantics, new()
         {

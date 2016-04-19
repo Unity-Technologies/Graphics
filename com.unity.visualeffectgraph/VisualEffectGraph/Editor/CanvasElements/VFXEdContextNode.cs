@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -90,14 +91,14 @@ namespace UnityEditor.Experimental
 
         }
 
-        public void SetContextParameterValue(string name, VFXParamValue Value)
+        public void SetContextParameterValue(string name, VFXValue value)
         {
             VFXContextModel model = ContextNodeBlock.Model;
-            for(int i = 0; i < model.GetNbParamValues(); i++)
+            for(int i = 0; i < model.GetNbSlots(); i++)
             {
-                if(model.Desc.m_Params[i].m_Name == name)
+                if (model.Desc.m_Properties[i].m_Name == name)
                 {
-                    model.GetParamValue(i).SetValue(Value); 
+                    model.GetSlot(i).Value = value; 
                 }
             }
         }
@@ -180,11 +181,9 @@ namespace UnityEditor.Experimental
 
         public void SetContext(VFXContextDesc context)
         {
-
-            for(int i = 0; i < Model.GetNbParamValues(); i++)
-            {
-                Model.UnbindParam(i);
-            }
+            // TODO Do we need that ?
+            //for(int i = 0; i < Model.GetNbSlots(); i++)
+            //    Model.GetSlot(i).Unlink();
 
             Model.Desc = context;
             if (m_Model.Desc.ShowBlock)

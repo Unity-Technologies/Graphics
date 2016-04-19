@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -10,25 +11,25 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdNodeBlockParameterField : CanvasElement
     {
-        public VFXParamValue Value { get { return m_ParamValue; } }
+        public VFXPropertySlot Value { get { return m_Slot; } }
         public bool Visible { get { return m_Visible; } set { m_Visible = value; } }
         public string Name { get { return m_Name; } }
         public string Tag {get { return m_Tag; } }
-        public VFXParam.Type Type { get { return m_ParamValue.ValueType; } }
+        public VFXValueType Type { get { return m_Slot.ValueType; } }
         public VFXEdDataAnchor Input { get { return m_Input; } }
         public VFXEdDataAnchor Output { get { return m_Output; } }
 
         protected string m_Name;
         protected string m_Tag = "";
-        protected VFXParamValue m_ParamValue;
+        protected VFXPropertySlot m_Slot;
         protected bool m_Visible;
         private VFXEdDataAnchor m_Input;
         private VFXEdDataAnchor m_Output;
 
-        public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, VFXParamValue value, bool bConnectable, Direction paramDirection, int index)
+        public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, VFXPropertySlot slot, bool bConnectable, Direction paramDirection, int index)
         {
             m_Name = name;
-            m_ParamValue = value;
+            m_Slot = slot;
 
             m_Input = null;
             m_Output = null;
@@ -59,7 +60,7 @@ namespace UnityEditor.Experimental
             AddManipulator(new ImguiContainer());
         }
 
-        public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, string tag, VFXParamValue value, bool bConnectable, Direction paramDirection, int index) 
+        public VFXEdNodeBlockParameterField(VFXEdDataSource datasource, string name, string tag, VFXPropertySlot value, bool bConnectable, Direction paramDirection, int index) 
             : this(datasource,name,value,bConnectable,paramDirection,index)
         {
             m_Tag = tag;

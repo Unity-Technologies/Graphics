@@ -27,6 +27,11 @@ namespace UnityEngine.Experimental.VFX
 
     public abstract class VFXValue : VFXExpression
     {
+        public static string TypeToName(VFXValueType type)
+        {
+            return ""; // TODO
+        }
+
         public static VFXValue Create(VFXValueType type)
         {
             switch (type)

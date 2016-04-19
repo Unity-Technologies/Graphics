@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -355,12 +355,12 @@ namespace UnityEditor.Experimental
         }
     }
 
-    public class VFXContextModel : VFXParamBindableModel<VFXSystemModel, VFXBlockModel>
+    public class VFXContextModel : VFXModelWithSlots<VFXSystemModel, VFXBlockModel>
     {
         public VFXContextModel(VFXContextDesc desc)
         {
             m_Desc = desc;
-            InitParamValues(desc.m_Params);
+            InitSlots(desc.m_Properties);
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
@@ -380,29 +380,6 @@ namespace UnityEditor.Experimental
             return Desc.m_Type;
         }
 
-        public override void BindParam(VFXParamValue param, int index, bool reentrant = false)
-        {
-            BindParam(param,index, Desc.m_Params, reentrant);
-        }
-
-        public override void UnbindParam(int index, bool reentrant = false)
-        {
-            UnbindParam(index, Desc.m_Params, reentrant);
-        }
-
-        public override void OnParamUpdated(int index, VFXParamValue oldValue)
-        {
-            if (oldValue.ValueType == VFXParam.Type.kTypeTexture2D)
-            {
-                if (oldValue.GetValue<Texture2D>() == null || GetParamValue(index).GetValue<Texture2D>() == null)
-                    Invalidate(InvalidationCause.kModelChanged); // Leave a chance for shader generator to be recompiled if optimization is used when there is no texture
-                else
-                    Invalidate(InvalidationCause.kParamChanged);   
-            }             
-            else
-                Invalidate(InvalidationCause.kParamChanged);
-        }
-
         public VFXContextDesc Desc
         {
             set
@@ -411,8 +388,8 @@ namespace UnityEditor.Experimental
                     if (m_Desc.m_Type == value.m_Type)
                     {
                         m_Desc = value;
-                        InitParamValues(value.m_Params);
-                        Invalidate(InvalidationCause.kModelChanged);
+                        InitSlots(value.m_Properties);
+                        //Invalidate(InvalidationCause.kModelChanged);
                     }
                     else
                         throw new ArgumentException("Cannot dynamically change the type of a context");
@@ -423,7 +400,7 @@ namespace UnityEditor.Experimental
         private VFXContextDesc m_Desc;
     }
 
-    public class VFXBlockModel : VFXParamBindableModel<VFXContextModel, VFXElementModel>
+    public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>
     {
         public override void Invalidate(InvalidationCause cause)
         {
@@ -434,7 +411,8 @@ namespace UnityEditor.Experimental
         public VFXBlockModel(VFXBlock desc)
         {
             m_BlockDesc = desc;
-            InitParamValues(m_BlockDesc.m_Params);
+            var properties = VFXPropertyConverter.CreateProperties(m_BlockDesc.m_Params); // TMP Refactor
+            InitSlots(properties);
         }
 
         public VFXBlock Desc
@@ -456,16 +434,6 @@ namespace UnityEditor.Experimental
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             return false; // Nothing can be attached to Blocks !
-        }
-
-        public override void BindParam(VFXParamValue param,int index,bool reentrant = false)
-        {
-            BindParam(param,index, m_BlockDesc.m_Params, reentrant);
-        }
-
-        public override void UnbindParam(int index, bool reentrant = false)
-        {
-            UnbindParam(index, m_BlockDesc.m_Params, reentrant);
         }
 
         private VFXBlock m_BlockDesc;

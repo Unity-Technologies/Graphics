@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -76,7 +77,7 @@ namespace UnityEditor.Experimental
             WriteLine();
         }
 
-        public void WriteCBuffer(string cbufferName, HashSet<VFXParamValue> uniforms, Dictionary<VFXParamValue, string> uniformsToName)
+        public void WriteCBuffer(string cbufferName, HashSet<VFXValue> uniforms, Dictionary<VFXValue, string> uniformsToName)
         {
             if (uniforms.Count > 0)
             {
@@ -98,13 +99,13 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void WriteSamplers(HashSet<VFXParamValue> samplers, Dictionary<VFXParamValue, string> samplersToName)
+        public void WriteSamplers(HashSet<VFXValue> samplers, Dictionary<VFXValue, string> samplersToName)
         {
             foreach (var sampler in samplers)
             {
-                if (sampler.ValueType == VFXParam.Type.kTypeTexture2D)
+                if (sampler.ValueType == VFXValueType.kTexture2D)
                     Write("sampler2D ");
-                else if (sampler.ValueType == VFXParam.Type.kTypeTexture3D)
+                else if (sampler.ValueType == VFXValueType.kTexture3D)
                     Write("sampler3D ");
                 else
                     continue;
@@ -115,15 +116,15 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void WriteType(VFXParam.Type type)
+        public void WriteType(VFXValueType type)
         {
             // tmp transform texture to sampler TODO This must be handled directly in C++ conversion array
-            if (type == VFXParam.Type.kTypeTexture2D)
+            if (type == VFXValueType.kTexture2D)
                 Write("sampler2D");
-            else if (type == VFXParam.Type.kTypeTexture3D)
+            else if (type == VFXValueType.kTexture3D)
                 Write("sampler3D");
             else
-                Write(VFXParam.GetNameFromType(type));
+                Write(VFXValue.TypeToName(type));
         }
 
         public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions)
@@ -198,7 +199,7 @@ namespace UnityEditor.Experimental
             Dictionary<Hash128, string> functions,
             ShaderMetaData data)
         {
-            Dictionary<VFXParamValue, string> paramToName = data.paramToName;
+            Dictionary<VFXValue, string> paramToName = data.paramToName;
             Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer = data.attribToBuffer;
 
             Write(functions[block.Desc.m_Hash]);
@@ -221,7 +222,7 @@ namespace UnityEditor.Experimental
             {
                 Write(separator);
                 separator = ',';
-                Write(paramToName[block.GetParamValue(i)]);
+                Write(paramToName[block.GetParamValue(i)]); // TODO Refactor parse slot
             }
 
             if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)

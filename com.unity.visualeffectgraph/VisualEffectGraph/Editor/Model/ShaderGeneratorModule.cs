@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ namespace UnityEditor.Experimental
         }
 
         public virtual bool UpdateAttributes(Dictionary<VFXAttrib, int> attribs, ref int flags) { return true; }
-        public virtual void UpdateUniforms(HashSet<VFXParamValue> uniforms)                     { }
+        public virtual void UpdateUniforms(HashSet<VFXValue> uniforms)                          { }
         public virtual void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data)     { }
         public virtual void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)    { }
         public virtual void WriteFunctions(ShaderSourceBuilder builder, ShaderMetaData data)    { }
