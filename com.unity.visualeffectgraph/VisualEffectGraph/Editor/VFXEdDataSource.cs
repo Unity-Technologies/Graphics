@@ -74,10 +74,6 @@ namespace UnityEditor.Experimental
                     if (node != null)
                         node.Model.GetSlot(anchor.Index).Unlink();
                 }
-
-
-
-
             }
 
             m_Elements.Remove(e);
@@ -108,7 +104,6 @@ namespace UnityEditor.Experimental
             }
             return edges;
         }
-
 
         public void ConnectData(VFXEdDataAnchor a, VFXEdDataAnchor b)
         {

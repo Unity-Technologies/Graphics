@@ -53,7 +53,7 @@ namespace UnityEditor.Experimental
             m_HasSize = UpdateFlag(attribs, CommonAttrib.Size, VFXContextDesc.Type.kTypeOutput);
             m_HasAngle = UpdateFlag(attribs, CommonAttrib.Angle, VFXContextDesc.Type.kTypeOutput);
 
-            if (m_Values[TextureIndex] != null && m_Values[TextureIndex].Get<Texture2D>() != null)
+            if (m_Values[TextureIndex] != null)
             {
                 m_HasTexture = true;
                 if (m_HasFlipBook = m_Values[FlipbookDimIndex] != null && UpdateFlag(attribs, CommonAttrib.TexIndex, VFXContextDesc.Type.kTypeOutput))

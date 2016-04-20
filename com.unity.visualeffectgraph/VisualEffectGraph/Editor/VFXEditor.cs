@@ -2,10 +2,12 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental;
 using UnityEngine.Experimental.VFX;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+
 
 namespace UnityEditor.Experimental
 {
@@ -461,8 +463,8 @@ namespace UnityEditor.Experimental
             }
 
             float r = AssetModel.component.playRate;
-            float nr = GUILayout.HorizontalSlider(AssetModel.component.playRate, 0.01f, 8.0f, GUILayout.Width(140.0f));
-            GUILayout.Label((int)(nr * 100) + "%", GUILayout.Width(80.0f));
+            float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(AssetModel.component.playRate), 0.0f, Mathf.Sqrt(8.0f), GUILayout.Width(140.0f)), 2.0f);
+            GUILayout.Label(Mathf.Round(nr * 100) + "%", GUILayout.Width(80.0f));
             if (r != nr)
                 SetPlayRate(nr);
 

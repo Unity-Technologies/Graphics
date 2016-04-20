@@ -75,8 +75,8 @@ namespace UnityEngine.Experimental.VFX
         // Throw if incompatible or inexistant
         public void SetValue<T>(T t)
         {
-            m_OwnedValue.Set(t);
-            NotifyChange(Event.kValueUpdated);
+            if (m_OwnedValue.Set(t))
+                NotifyChange(Event.kValueUpdated);
         }
 
         public T GetValue<T>()
@@ -88,8 +88,11 @@ namespace UnityEngine.Experimental.VFX
         {
             set
             {
-                m_OwnedValue = value;
-                NotifyChange(Event.kValueUpdated);
+                if (value != m_OwnedValue)
+                {
+                    m_OwnedValue = value;
+                    NotifyChange(Event.kValueUpdated);
+                }
             }
             get
             {

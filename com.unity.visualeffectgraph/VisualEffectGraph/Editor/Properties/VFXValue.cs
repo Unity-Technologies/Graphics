@@ -85,20 +85,32 @@ namespace UnityEngine.Experimental.VFX
 
     abstract class VFXValue<T> : VFXValue
     {
-        public override VFXValue Clone()
+        public override VFXValue Clone() // TODO Is this still needed ?
         {
             return  (VFXValue<T>)MemberwiseClone();
+        }
+
+        public VFXValue()
+        {
+            ConstrainValue(); // In order to constraint default value
         }
 
         public T GetValue() { return m_Value; }
         public bool SetValue(T t)
         {
-            if ((m_Value == null && t != null) || (m_Value != null && !m_Value.Equals(t)))
+            if (IsDifferent(m_Value,t))
             {
+                T oldValue = m_Value;
                 m_Value = t;
-                return true;
+                ConstrainValue();
+                return IsDifferent(m_Value, oldValue); // Recheck as the constrain may have changed the value
             }
             return false;
+        }
+
+        private static bool IsDifferent(T t0,T t1)
+        {
+            return (t0 == null && t1 != null) || (t0 != null && !t0.Equals(t1));
         }
 
         public override bool SetValue(VFXValue other)
@@ -116,7 +128,9 @@ namespace UnityEngine.Experimental.VFX
             return m_Value.ToString();
         }
 
-        private T m_Value;
+        protected virtual void ConstrainValue() {}
+
+        protected T m_Value;
     }
 
     class VFXValueFloat : VFXValue<float>           { public override VFXValueType ValueType { get { return VFXValueType.kFloat; }}}
@@ -125,6 +139,17 @@ namespace UnityEngine.Experimental.VFX
     class VFXValueFloat4 : VFXValue<Vector4>        { public override VFXValueType ValueType { get { return VFXValueType.kFloat4; }}}
     class VFXValueInt : VFXValue<int>               { public override VFXValueType ValueType { get { return VFXValueType.kInt; }}}
     class VFXValueUint : VFXValue<uint>             { public override VFXValueType ValueType { get { return VFXValueType.kUint; }}}
-    class VFXValueTexture2D : VFXValue<Texture2D>   { public override VFXValueType ValueType { get { return VFXValueType.kTexture2D; }}}
+    
+    class VFXValueTexture2D : VFXValue<Texture2D>   
+    { 
+        public override VFXValueType ValueType { get { return VFXValueType.kTexture2D; }}
+
+        protected override void ConstrainValue() 
+        {
+            if (m_Value == null)
+                m_Value = Texture2D.whiteTexture;
+        }
+    }
+
     class VFXValueTexture3D : VFXValue<Texture3D>   { public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; }}}
 }
