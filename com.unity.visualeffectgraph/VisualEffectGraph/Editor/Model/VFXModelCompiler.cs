@@ -82,29 +82,29 @@ namespace UnityEditor.Experimental
                     break;
                 case VFXValueType.kFloat2:
                 {
-                    Vector2 value = value.Get<Vector2>();
+                    Vector2 v = value.Get<Vector2>();
                     if (output)
-                        m_Material.SetVector(uniformName, value);
+                        m_Material.SetVector(uniformName, v);
                     else
                     {
                         float[] buffer = new float[2];                        
-                        buffer[0] = value.x;
-                        buffer[1] = value.y;
+                        buffer[0] = v.x;
+                        buffer[1] = v.y;
                         simulationShader.SetFloats(uniformName,buffer);  
                     }
                     break;
                 }
                 case VFXValueType.kFloat3:
                 {     
-                    Vector3 value = value.Get<Vector3>();
+                    Vector3 v = value.Get<Vector3>();
                     if (output)
-                        m_Material.SetVector(uniformName, value);
+                        m_Material.SetVector(uniformName, v);
                     else
                     {
                         float[] buffer = new float[3];
-                        buffer[0] = value.x;
-                        buffer[1] = value.y;
-                        buffer[2] = value.z;
+                        buffer[0] = v.x;
+                        buffer[1] = v.y;
+                        buffer[2] = v.z;
                         simulationShader.SetFloats(uniformName, buffer);
                     }
                     break;
@@ -569,7 +569,7 @@ namespace UnityEditor.Experimental
 
             foreach (VFXBlockModel block in blocks)
                 for (int i = 0; i < block.Desc.m_Params.Length; ++i)
-                    uniforms.Add(block.GetParamValue(i)); // TODO Refactor : Parse slots to retrieve uniforms (Expressions that are values)
+                    uniforms.Add(block.GetSlot(i).ValueRef as VFXValue); // TODO Refactor : Parse slots to retrieve uniforms (Expressions that are values)
 
             return uniforms;
         }

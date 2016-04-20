@@ -127,6 +127,12 @@ namespace UnityEditor.Experimental
                 Write(VFXValue.TypeToName(type));
         }
 
+        // Tmp TODO Refactor remove that
+        private void WriteType(VFXParam.Type type)
+        {
+            WriteType(VFXPropertyConverter.ConvertType(type));
+        }
+
         public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions)
         {
             if (!functions.ContainsKey(block.Desc.m_Hash)) // if not already defined
@@ -222,7 +228,7 @@ namespace UnityEditor.Experimental
             {
                 Write(separator);
                 separator = ',';
-                Write(paramToName[block.GetParamValue(i)]); // TODO Refactor parse slot
+                Write(paramToName[block.GetSlot(i).ValueRef as VFXValue]); // TODO Refactor parse slot
             }
 
             if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)

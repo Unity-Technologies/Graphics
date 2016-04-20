@@ -107,14 +107,14 @@ namespace UnityEditor.Experimental
 			}
 		}
 
-        public static VFXEdSpawnTemplateLibrary SpawnTemplates
+        /*public static VFXEdSpawnTemplateLibrary SpawnTemplates
         {
             get
             {
                 InitializeSpawnTemplateLibrary();
                 return s_SpawnTemplates;
             }
-        }
+        }*/
 
         // DEBUG OUTPUT
         public static void Log(string s) {
@@ -157,7 +157,7 @@ namespace UnityEditor.Experimental
         private static VFXContextLibraryCollection s_ContextLibrary;
 		private static VFXAssetModel s_AssetModel;
 
-        private static VFXEdSpawnTemplateLibrary s_SpawnTemplates;
+        //private static VFXEdSpawnTemplateLibrary s_SpawnTemplates;
         /* end Singletons */
 
         private VFXEdCanvas m_Canvas = null;
@@ -207,13 +207,13 @@ namespace UnityEditor.Experimental
             }
         }
 
-        private static void InitializeSpawnTemplateLibrary()
+        /*private static void InitializeSpawnTemplateLibrary()
         {
             if (s_SpawnTemplates == null)
             {
                 s_SpawnTemplates = VFXEdSpawnTemplateLibrary.Create();
             }
-        }
+        }*/
 
         private void InitializeCanvas()
         {
@@ -328,7 +328,7 @@ namespace UnityEditor.Experimental
 
                     case 1: // Edit Templates
                     {
-                        EditorGUI.indentLevel++;
+                       /* EditorGUI.indentLevel++;
                         GUILayout.Space(16.0f);
                         GUILayout.Label("Add New Template from Selection...", VFXEditor.styles.InspectorHeader);
                         GUILayout.BeginHorizontal();
@@ -375,7 +375,7 @@ namespace UnityEditor.Experimental
                         {
                             SpawnTemplates.ReloadLibrary();
                         }
-                        EditorGUI.indentLevel--;
+                        EditorGUI.indentLevel--;*/
                         break;
                     }
 
@@ -401,7 +401,7 @@ namespace UnityEditor.Experimental
             s_BlockLibrary = null;
             s_DataBlockLibrary = null;
             s_ContextLibrary = null;
-            s_SpawnTemplates = null;
+          //  s_SpawnTemplates = null;
             
             s_AssetModel.Dispose();
             s_AssetModel = null;

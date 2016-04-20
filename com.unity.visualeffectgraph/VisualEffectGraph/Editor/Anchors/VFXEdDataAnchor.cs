@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdDataAnchor : CanvasElement, IConnect
     {
-        public VFXValueType ValueType { get { return m_ParamType; } }
+        public VFXValueType ValueType { get { return m_ValueType; } }
         protected VFXValueType m_ValueType;
         protected Type m_Type;
         protected object m_Source;

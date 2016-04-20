@@ -8,7 +8,8 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    public class VFXEdSpawnTemplate : ScriptableObject
+    // TODO Refactor make work again ?
+    /*public class VFXEdSpawnTemplate : ScriptableObject
     {
         // TODO: Remove & Refactor when using Triggers
         public class SysInfo
@@ -245,6 +246,6 @@ namespace UnityEditor.Experimental
         }
 
 
-    }
+    }*/
 
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -65,13 +66,13 @@ namespace UnityEditor.Experimental
                 {
                     VFXEdProcessingNodeBlock node = anchor.FindParent<VFXEdProcessingNodeBlock>();
                     if (node != null)
-                        node.Model.BindParam(node.ParamValues[anchor.Index], anchor.Index); // Rebind the default param value
+                        node.Model.GetSlot(anchor.Index).Unlink();
                 }
                 else if (anchor.FindParent<VFXEdContextNodeBlock>() != null)
                 {
                     VFXEdContextNodeBlock node = anchor.FindParent<VFXEdContextNodeBlock>();
                     if (node != null)
-                        node.Model.BindParam(node.ParamValues[anchor.Index], anchor.Index); // Rebind the default param value
+                        node.Model.GetSlot(anchor.Index).Unlink();
                 }
 
 
@@ -118,20 +119,20 @@ namespace UnityEditor.Experimental
                 b = tmp;
             }
 
-            VFXParamValue paramValue = a.FindParent<VFXEdNodeBlockParameterField>().Value;
+            VFXOutputSlot output = a.FindParent<VFXEdNodeBlockParameterField>().Value as VFXOutputSlot;
             
             // TODO : Refactor needed : as VFXEdNodeBlock doesn't implement Model, as Model in this case should be VFXParamBindable
             if(b.FindParent<VFXEdProcessingNodeBlock>() != null)
             {
                 VFXBlockModel model = b.FindParent<VFXEdProcessingNodeBlock>().Model;
                 RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
-                model.BindParam(paramValue, b.Index);
+                model.GetSlot(b.Index).Link(output);
             }
             else if(b.FindParent<VFXEdContextNodeBlock>() != null)
             {
                 VFXContextModel model = b.FindParent<VFXEdContextNodeBlock>().Model;
                 RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
-                model.BindParam(paramValue, b.Index);
+                model.GetSlot(b.Index).Link(output);
             }
 
             m_Elements.Add(new DataEdge(this, a, b));

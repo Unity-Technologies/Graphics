@@ -8,7 +8,8 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdTemplateSpawner : VFXEdSpawner
+    // TODO Refactor
+  /*  internal class VFXEdTemplateSpawner : VFXEdSpawner
     {
         private string m_Path;
         private VFXEdDataSource m_Datasource;
@@ -26,5 +27,5 @@ namespace UnityEditor.Experimental
             VFXEdSpawnTemplate template = VFXEditor.SpawnTemplates.GetTemplate(m_Path);
             template.Spawn(m_Datasource, m_Canvas, m_canvasPosition);
         }
-    }
+    }*/
 }

@@ -9,16 +9,16 @@ namespace UnityEditor.Experimental
     {
         protected struct Binding
         {
-            public VFXParamBindable m_Bindable;
+            //public VFXParamBindable m_Bindable;
             public int m_Index;
 
-            public Binding(VFXParamBindable bindable, int index)
+            /*public Binding(VFXParamBindable bindable, int index)
             {
                 m_Bindable = bindable;
                 m_Index = index;
-            }
+            }*/
 
-            public override bool Equals(object obj)
+           /* public override bool Equals(object obj)
             {
                 if (obj is Binding)
                 {
@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental
                     return m_Bindable == typedObj.m_Bindable && m_Index == typedObj.m_Index;
                 }
                 return false;
-            }
+            }*/
         }
 
         protected VFXParam.Type m_Type;
@@ -85,7 +85,7 @@ namespace UnityEditor.Experimental
         public T GetValue<T>()              { return ((VFXParamValue<T>)this).Value; }
         public void SetValue<T>(T value)    { ((VFXParamValue<T>)this).Value = value; }
 
-        public void Bind(VFXParamBindable bindable, int index, bool reentrant = false)
+        /*public void Bind(VFXParamBindable bindable, int index, bool reentrant = false)
         {
             Binding binding = new Binding(bindable, index);
             if (m_Bindings.IndexOf(binding) != -1) // Already bound
@@ -101,13 +101,13 @@ namespace UnityEditor.Experimental
             Binding binding = new Binding(bindable, index);
             if (m_Bindings.Remove(binding) && reentrant)
                 bindable.UnbindParam(index, true);
-        }
+        }*/
 
-        public void UnbindAll()
+        /*public void UnbindAll()
         {
             foreach (var binding in m_Bindings)
                 binding.m_Bindable.UnbindParam(binding.m_Index);
-        }
+        }*/
 
         public bool IsBound()
         {
@@ -128,8 +128,8 @@ namespace UnityEditor.Experimental
                 {
                     VFXParamValue oldValue = Clone();
                     m_Value = value;
-                    foreach (var binding in m_Bindings)
-                        binding.m_Bindable.OnParamUpdated(binding.m_Index,oldValue);
+                    //foreach (var binding in m_Bindings)
+                    //    binding.m_Bindable.OnParamUpdated(binding.m_Index,oldValue);
                 }
             }
         }

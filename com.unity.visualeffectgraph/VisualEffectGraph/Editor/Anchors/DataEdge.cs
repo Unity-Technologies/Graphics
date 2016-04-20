@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 
@@ -8,13 +9,13 @@ namespace UnityEditor.Experimental
     class DataEdge : Edge<VFXEdDataAnchor>
     {
 
-        private VFXParam.Type m_Type;
+        private VFXValueType m_Type;
         private Color m_Color;
         private Color m_SelectedColor;
         public DataEdge(ICanvasDataSource data, VFXEdDataAnchor source, VFXEdDataAnchor target)
             : base(data, source, target)
         {
-            m_Type = source.ParamType;
+            m_Type = source.ValueType;
             m_SelectedColor = VFXEditor.styles.GetTypeColor(m_Type) * VFXEditor.styles.DataEdgeSelectedTint;
             m_Color = VFXEditor.styles.GetTypeColor(m_Type) * VFXEditor.styles.DataEdgeTint ;
 

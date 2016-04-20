@@ -11,7 +11,8 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    public class VFXEdSpawnTemplateLibrary : ScriptableObject
+    // TODO Refactor Make work again
+  /*  public class VFXEdSpawnTemplateLibrary : ScriptableObject
     {
         public static string LibraryPath = "/VFXEditor/Editor/TemplateLibrary.txt";
 
@@ -529,4 +530,5 @@ namespace UnityEditor.Experimental
         }
         
     }
+   */
 }

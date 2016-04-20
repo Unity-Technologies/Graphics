@@ -79,7 +79,7 @@ namespace UnityEditor.Experimental
             base.Layout();
 
             if (!collapsed) {
-               scale = new Vector2(parent.scale.x, GetParamHeight(Type));
+               scale = new Vector2(parent.scale.x, VFXEditorMetrics.NodeBlockParameterHeight);
                if(m_Output != null) {
                     m_Output.translation = new Vector2(scale.x - VFXEditorMetrics.DataAnchorSize.x, m_Output.translation.y);
                 }
@@ -92,13 +92,6 @@ namespace UnityEditor.Experimental
         public bool IsConnected()
         {
             return !Value.IsLinked();
-        }
-
-        protected static float GetParamHeight(VFXParam.Type type)
-        {
-
-            float height = VFXEditorMetrics.NodeBlockParameterHeight;
-            return height;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
