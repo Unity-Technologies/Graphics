@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -24,9 +25,8 @@ namespace UnityEditor.Experimental
 
     internal class VFXEdBoxEditingWidget : VFXEdEditingWidget
     {
-
-        VFXParamValue m_Position;
-        VFXParamValue m_Size;
+        VFXPropertySlot m_Position;
+        VFXPropertySlot m_Size;
         string m_PositionParamName;
         string m_SizeParamName;
 
@@ -38,8 +38,8 @@ namespace UnityEditor.Experimental
 
         public override void CreateBinding(VFXEdNodeBlock block)
         {
-            m_Position = block.GetParamValue(m_PositionParamName);
-            m_Size = block.GetParamValue(m_SizeParamName);
+            m_Position = block.GetSlot(m_PositionParamName);
+            m_Size = block.GetSlot(m_SizeParamName);
             m_CurrentlyEditedBlock = block;
         }
 
@@ -86,8 +86,8 @@ namespace UnityEditor.Experimental
 
     internal class VFXEdSphereEditingWidget : VFXEdEditingWidget
     {
-        VFXParamValue m_Position;
-        VFXParamValue m_Radius;
+        VFXPropertySlot m_Position;
+        VFXPropertySlot m_Radius;
 
         string m_PositionParamName;
         string m_RadiusParamName;
@@ -101,8 +101,8 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
-            m_Position = block.GetParamValue(m_PositionParamName);
-            m_Radius = block.GetParamValue(m_RadiusParamName);
+            m_Position = block.GetSlot(m_PositionParamName);
+            m_Radius = block.GetSlot(m_RadiusParamName);
         }
 
         public override void OnInspectorGUI()
@@ -161,9 +161,8 @@ namespace UnityEditor.Experimental
 
     internal class VFXEdPlaneEditingWidget : VFXEdEditingWidget
     {
-        
-        VFXParamValue m_Position;
-        VFXParamValue m_Normal;
+        VFXPropertySlot m_Position;
+        VFXPropertySlot m_Normal;
         string m_PositionParamName;
         string m_NormalParamName;
 
@@ -178,8 +177,8 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
-            m_Position = block.GetParamValue(m_PositionParamName);
-            m_Normal = block.GetParamValue(m_NormalParamName);
+            m_Position = block.GetSlot(m_PositionParamName);
+            m_Normal = block.GetSlot(m_NormalParamName);
         }
 
         public override void OnSceneGUI(SceneView sceneView)
@@ -229,8 +228,8 @@ namespace UnityEditor.Experimental
 
     internal class VFXEdColorEditingWidget : VFXEdEditingWidget
     {
-        VFXParamValue m_Color;
-        VFXParamValue m_Alpha;
+        VFXPropertySlot m_Color;
+        VFXPropertySlot m_Alpha;
         string m_ColorParamName;
         string m_AlphaParamName;
 
@@ -244,8 +243,8 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
-            m_Color = block.GetParamValue(m_ColorParamName);
-            m_Alpha = block.GetParamValue(m_AlphaParamName);
+            m_Color = block.GetSlot(m_ColorParamName);
+            m_Alpha = block.GetSlot(m_AlphaParamName);
         }
 
         public override void OnInspectorGUI()
@@ -285,7 +284,7 @@ namespace UnityEditor.Experimental
         public Texture2D GradientTexture;
 
         private string m_TextureParamName;
-        private VFXParamValue m_TextureParamValue;
+        private VFXPropertySlot m_TextureParamValue;
 
         private SerializedObject m_GradientSerializedObject;
         private SerializedProperty m_GradientSerializedProperty;
@@ -295,6 +294,7 @@ namespace UnityEditor.Experimental
             m_TextureParamName = textureParameterName;
             IgnoredParamNames.Add(m_TextureParamName);
         }
+
         public void UpdateTexture()
         {
             Gradient gradient = (m_CurrentlyEditedBlock.editingDataContainer as GradientContainer).Gradient;
@@ -310,9 +310,12 @@ namespace UnityEditor.Experimental
         }
         public void InitializeGradient()
         {
-            GradientTexture = new Texture2D(256, 1, TextureFormat.RGBA32, false, true);
-            GradientTexture.wrapMode = TextureWrapMode.Clamp;
-            GradientTexture.name = "Generated Gradient";
+            if (GradientTexture == null)
+            {
+                GradientTexture = new Texture2D(256, 1, TextureFormat.RGBA32, false, true);
+                GradientTexture.wrapMode = TextureWrapMode.Clamp;
+                GradientTexture.name = "Generated Gradient";
+            }
 
             if (m_CurrentlyEditedBlock.editingDataContainer == null )
             {
@@ -329,25 +332,15 @@ namespace UnityEditor.Experimental
                 var gradientContainer = ScriptableObject.CreateInstance<GradientContainer>();
                 gradientContainer.Gradient = g;
                 m_CurrentlyEditedBlock.editingDataContainer = gradientContainer;
-
             }
-
         }
 
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
-            m_TextureParamValue = block.GetParamValue(m_TextureParamName);
-
-            if(m_TextureParamValue.GetValue<Texture2D>() == null)
-            {
-                InitializeGradient();
-                m_TextureParamValue.SetValue(GradientTexture);
-            }
-            else
-            {
-                GradientTexture = m_TextureParamValue.GetValue<Texture2D>();
-            }
+            m_TextureParamValue = block.GetSlot(m_TextureParamName);
+            InitializeGradient();
+            m_TextureParamValue.SetValue(GradientTexture);
 
             UpdateTexture();
             m_GradientSerializedObject = new SerializedObject(block.editingDataContainer);
@@ -377,7 +370,7 @@ namespace UnityEditor.Experimental
         public Texture2D CurveTexture;
 
         private string m_TextureParamName;
-        private VFXParamValue m_TextureParamValue;
+        private VFXPropertySlot m_TextureParamValue;
 
         private SerializedObject m_CurveSerializedObject;
         private SerializedProperty m_CurveSerializedProperty;
@@ -405,9 +398,12 @@ namespace UnityEditor.Experimental
 
         private void InitializeCurve()
         {
-            CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false,true);
-            CurveTexture.wrapMode = TextureWrapMode.Clamp;
-            CurveTexture.name = "Generated FloatCurve";
+            if (CurveTexture == null)
+            {
+                CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false, true);
+                CurveTexture.wrapMode = TextureWrapMode.Clamp;
+                CurveTexture.name = "Generated FloatCurve";
+            }
 
             if (m_CurrentlyEditedBlock.editingDataContainer == null )
             {
@@ -427,17 +423,9 @@ namespace UnityEditor.Experimental
         {
             base.CreateBinding(block);
 
-            m_TextureParamValue = block.GetParamValue(m_TextureParamName);
-
-            if(m_TextureParamValue.GetValue<Texture2D>() == null)
-            {
-                InitializeCurve();
-                m_TextureParamValue.SetValue(CurveTexture);
-            }
-            else
-            {
-                CurveTexture = m_TextureParamValue.GetValue<Texture2D>();
-            }
+            m_TextureParamValue = block.GetSlot(m_TextureParamName);
+            InitializeCurve();
+            m_TextureParamValue.SetValue(CurveTexture);
 
             m_CurveSerializedObject = new SerializedObject(block.editingDataContainer);
             m_CurveSerializedProperty = m_CurveSerializedObject.FindProperty("Curve");
@@ -468,7 +456,7 @@ namespace UnityEditor.Experimental
         public AnimationCurve CurveZ;
 
         private string m_TextureParamName;
-        private VFXParamValue m_TextureParamValue;
+        private VFXPropertySlot m_TextureParamValue;
 
         private SerializedObject m_CurveSerializedObject;
         private SerializedProperty m_CurveXSerializedProperty;
@@ -500,9 +488,12 @@ namespace UnityEditor.Experimental
 
         public void InitializeCurve()
         {
-            CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false, true);
-            CurveTexture.wrapMode = TextureWrapMode.Clamp;
-            CurveTexture.name = "Generated VectorCurve";
+            if (CurveTexture == null)
+            {
+                CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false, true);
+                CurveTexture.wrapMode = TextureWrapMode.Clamp;
+                CurveTexture.name = "Generated VectorCurve";
+            }
 
             if (m_CurrentlyEditedBlock.editingDataContainer == null )
             {
@@ -537,19 +528,10 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
-            m_TextureParamValue = block.GetParamValue(m_TextureParamName);
-
-            if(m_TextureParamValue.GetValue<Texture2D>() == null)
-            {
-                InitializeCurve();
-                m_TextureParamValue.SetValue(CurveTexture);
-            }
-            else
-            {
-                CurveTexture = m_TextureParamValue.GetValue<Texture2D>();
-            }
-            
-            
+            m_TextureParamValue = block.GetSlot(m_TextureParamName);
+            InitializeCurve();
+            m_TextureParamValue.SetValue(CurveTexture);
+ 
             m_CurveSerializedObject = new SerializedObject(block.editingDataContainer);
             m_CurveXSerializedProperty = m_CurveSerializedObject.FindProperty("CurveX");
             m_CurveYSerializedProperty = m_CurveSerializedObject.FindProperty("CurveY");

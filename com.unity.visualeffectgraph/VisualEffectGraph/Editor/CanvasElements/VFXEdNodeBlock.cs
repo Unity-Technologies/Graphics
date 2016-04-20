@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -35,9 +36,7 @@ namespace UnityEditor.Experimental
             m_UniqueName = GetType().Name + "_" + Token;
         }
 
-        // TODO Refactor
-        public virtual VFXParamValue GetParamValue(string ParamName) { return null; }
-        public virtual void SetParamValue(string name, VFXParamValue value) { }
+        public abstract VFXPropertySlot GetSlot(string name);
 
         public VFXEdNodeBlockParameterField GetField(string name)
         {
@@ -113,13 +112,8 @@ namespace UnityEditor.Experimental
             }
         }
 
-
-
         protected abstract GUIStyle GetNodeBlockSelectedStyle();
         protected abstract GUIStyle GetNodeBlockStyle();
-
-
-
     }
 }
 

@@ -51,17 +51,13 @@ namespace UnityEditor.Experimental
             editingWidget = widget;
         }
 
-       /* public override void SetParamValue(string name, VFXParamValue value)
+        public override VFXPropertySlot GetSlot(string name)
         {
-            int i = Params.IndexOf(Params.Find(parm => parm.m_Name == name));
-            ParamValues[i].SetValue(value);
+            foreach (var slot in Slots)
+                if (slot.Name.Equals(name))
+                    return slot;
+            return null;
         }
-
-        public override VFXParamValue GetParamValue(string name)
-        {
-            int i = Params.IndexOf(Params.Find(parm => parm.m_Name == name));
-            return ParamValues[i];
-        }*/
 
         protected override GUIStyle GetNodeBlockStyle()
         {

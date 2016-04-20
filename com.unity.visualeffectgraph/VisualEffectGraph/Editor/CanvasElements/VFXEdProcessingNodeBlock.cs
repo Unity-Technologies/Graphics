@@ -50,28 +50,13 @@ namespace UnityEditor.Experimental
             Model.Detach();
         }
 
-        /*public override VFXParamValue GetParamValue(string ParamName)
+        public override VFXPropertySlot GetSlot(string name)
         {
-            for(int i = 0; i < m_Params.Length; i++)
-            {
-                if(m_Params[i].m_Name == LibraryName)
-                {
-                   return m_ParamValues[i]; 
-                }
-            }
+            for (int i = 0; i < Model.GetNbSlots(); ++i)
+                if (Model.GetSlot(i).Name.Equals(name))
+                    return Model.GetSlot(i);
             return null;
         }
-
-        public override void SetParamValue(string name, VFXParamValue Value)
-        {
-            for(int i = 0; i < m_Params.Length; i++)
-            {
-                if(m_Params[i].m_Name == name)
-                {
-                    m_ParamValues[i].SetValue(Value); 
-                }
-            }
-        }*/
 
         protected override GUIStyle GetNodeBlockStyle()
         {

@@ -389,7 +389,7 @@ namespace UnityEditor.Experimental
                     {
                         m_Desc = value;
                         InitSlots(value.m_Properties);
-                        //Invalidate(InvalidationCause.kModelChanged);
+                        Invalidate(InvalidationCause.kModelChanged);
                     }
                     else
                         throw new ArgumentException("Cannot dynamically change the type of a context");

@@ -130,6 +130,7 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public VFXProperty Property                 { get { return m_Desc; }}
+        public string Name                          { get { return m_Desc.m_Name; }}
         public VFXPropertyTypeSemantics Semantics   { get { return m_Desc.m_Type; }}
         public VFXValueType ValueType               { get { return Semantics.ValueType; }}
 
