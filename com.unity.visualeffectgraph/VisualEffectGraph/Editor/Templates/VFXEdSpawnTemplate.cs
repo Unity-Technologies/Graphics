@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -9,7 +10,7 @@ using Object = UnityEngine.Object;
 namespace UnityEditor.Experimental
 {
     // TODO Refactor make work again ?
-    /*public class VFXEdSpawnTemplate : ScriptableObject
+    public class VFXEdSpawnTemplate : ScriptableObject
     {
         // TODO: Remove & Refactor when using Triggers
         public class SysInfo
@@ -79,7 +80,7 @@ namespace UnityEditor.Experimental
             m_DataNodes.Add(nodename, DataNodeInfo.Create(nodename, bExposed));
         }
 
-        public void SetContextNodeParameter(string nodename, string paramName, VFXParamValue value)
+        public void SetContextNodeParameter(string nodename, string paramName, VFXValue value)
         {
             m_ContextNodes[nodename].AddParameterOverride(paramName, value);
         }
@@ -104,12 +105,12 @@ namespace UnityEditor.Experimental
             m_DataNodes[nodename].nodeBlocks.Add(blockname, DataNodeBlockInfo.Create(blockname, exposedName, blockLibraryName, xmlElement));
         }
 
-        public void SetContextNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
+        public void SetContextNodeBlockParameter(string nodename, string blockname, string paramName, VFXValue value)
         {
             m_ContextNodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
         }
 
-        public void SetDataNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
+        public void SetDataNodeBlockParameter(string nodename, string blockname, string paramName, VFXValue value)
         {
             m_DataNodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
         }
@@ -148,9 +149,9 @@ namespace UnityEditor.Experimental
                     spawnedContextNodes.Add(node_kvp.Value, node);
                 }
 
-                foreach (KeyValuePair <string,VFXParamValue> param_kvp in node_kvp.Value.ParameterOverrides)
+                foreach (KeyValuePair <string,VFXValue> param_kvp in node_kvp.Value.ParameterOverrides)
                 {
-                    node.SetContextParameterValue(param_kvp.Key, param_kvp.Value);
+                    node.SetSlotValue(param_kvp.Key, param_kvp.Value.Clone());
                 }
                 
                 // TODO : Remove when using Triggers
@@ -167,9 +168,9 @@ namespace UnityEditor.Experimental
                     {
                         VFXEdProcessingNodeBlock block = new VFXEdProcessingNodeBlock(b, datasource);
 
-                        foreach (KeyValuePair<string, VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                        foreach (KeyValuePair<string, VFXValue> param_kvp in block_kvp.Value.ParameterOverrides)
                         {
-                            block.SetParamValue(param_kvp.Key, param_kvp.Value);
+                            block.SetSlotValue(param_kvp.Key, param_kvp.Value.Clone());
                         }
                         node.NodeBlockContainer.AddNodeBlock(block);
                     }
@@ -214,9 +215,9 @@ namespace UnityEditor.Experimental
                     spawner.Spawn();
                     VFXEdDataNodeBlock block = node.NodeBlockContainer.nodeBlocks[node.NodeBlockContainer.nodeBlocks.Count-1] as VFXEdDataNodeBlock;
 
-                    foreach (KeyValuePair <string,VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                    foreach (KeyValuePair <string,VFXValue> param_kvp in block_kvp.Value.ParameterOverrides)
                     {
-                        block.SetParamValue(param_kvp.Key, param_kvp.Value);
+                        block.SetSlotValue(param_kvp.Key, param_kvp.Value.Clone());
                     }
 
                 }
@@ -244,8 +245,6 @@ namespace UnityEditor.Experimental
 
             canvas.ReloadData();
         }
-
-
-    }*/
+    }
 
 }

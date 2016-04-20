@@ -37,6 +37,7 @@ namespace UnityEditor.Experimental
         }
 
         public abstract VFXPropertySlot GetSlot(string name);
+        public abstract void SetSlotValue(string name, VFXValue value);
 
         public VFXEdNodeBlockParameterField GetField(string name)
         {

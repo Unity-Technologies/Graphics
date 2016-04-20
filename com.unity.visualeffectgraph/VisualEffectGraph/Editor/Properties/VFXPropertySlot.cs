@@ -91,7 +91,7 @@ namespace UnityEngine.Experimental.VFX
                 if (value != m_OwnedValue)
                 {
                     m_OwnedValue = value;
-                    NotifyChange(Event.kValueUpdated);
+                    NotifyChange(Event.kLinkUpdated); // Link updated as expressions needs to be recomputed 
                 }
             }
             get

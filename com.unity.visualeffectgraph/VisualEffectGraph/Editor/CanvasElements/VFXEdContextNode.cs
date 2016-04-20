@@ -91,7 +91,7 @@ namespace UnityEditor.Experimental
 
         }
 
-        public void SetContextParameterValue(string name, VFXValue value)
+        public void SetSlotValue(string name, VFXValue value)
         {
             VFXContextModel model = ContextNodeBlock.Model;
             for(int i = 0; i < model.GetNbSlots(); i++)

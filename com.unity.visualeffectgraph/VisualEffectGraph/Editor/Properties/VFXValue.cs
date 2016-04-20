@@ -75,6 +75,13 @@ namespace UnityEngine.Experimental.VFX
             throw new ArgumentException("Invalid parameter type");
         }
 
+        public static VFXValue Create<T>(T value)
+        {
+            VFXValue v = Create<T>();
+            v.Set(value);
+            return v;
+        }
+
         public abstract VFXValue Clone();
         public abstract bool SetDefault();
 

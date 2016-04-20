@@ -99,5 +99,15 @@ namespace UnityEditor.Experimental
                     return Model.GetSlot(i);
             return null;
         }
+
+        public override void SetSlotValue(string name, VFXValue value)
+        {
+            for (int i = 0; i < Model.GetNbSlots(); ++i)
+                if (Model.GetSlot(i).Name.Equals(name))
+                {
+                    Model.GetSlot(i).Value = value;
+                    break;
+                }
+        }
     }
 }

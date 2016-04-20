@@ -58,6 +58,16 @@ namespace UnityEditor.Experimental
             return null;
         }
 
+        public override void SetSlotValue(string name, VFXValue value)
+        {
+            for (int i = 0; i < Model.GetNbSlots(); ++i)
+                if (Model.GetSlot(i).Name.Equals(name))
+                {
+                    Model.GetSlot(i).Value = value;
+                    break;
+                }
+        }
+
         protected override GUIStyle GetNodeBlockStyle()
         {
             return VFXEditor.styles.NodeBlock;
