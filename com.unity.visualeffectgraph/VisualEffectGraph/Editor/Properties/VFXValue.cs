@@ -29,7 +29,17 @@ namespace UnityEngine.Experimental.VFX
     {
         public static string TypeToName(VFXValueType type)
         {
-            return ""; // TODO
+            switch (type)
+            {
+                case VFXValueType.kFloat:   return "float";
+                case VFXValueType.kFloat2:  return "float2";
+                case VFXValueType.kFloat3:  return "float3";
+                case VFXValueType.kFloat4:  return "float4";
+                case VFXValueType.kInt:     return "int";
+                case VFXValueType.kUint:    return "uint";
+                default:                
+                    return "";
+            }
         }
 
         public static VFXValue Create(VFXValueType type)

@@ -171,6 +171,9 @@ namespace UnityEngine.Experimental.VFX
                 if (slot != null && !Semantics.CanLink(slot.Semantics))
                     throw new ArgumentException();
 
+                if (m_ConnectedSlot != null)
+                    m_ConnectedSlot.InnerRemoveOutputLink(this);
+
                 m_ConnectedSlot = slot;
                 VFXPropertySlot old = m_ValueRef;
                 m_ValueRef = m_ConnectedSlot != null ? m_ConnectedSlot : null;
@@ -178,7 +181,7 @@ namespace UnityEngine.Experimental.VFX
                 if (m_ValueRef != old)
                 {
                     if (slot != null)
-                        slot.InnerUpdateOutputLink(this);
+                        slot.InnerAddOutputLink(this);
                     NotifyChange(Event.kLinkUpdated);
                     return true;
                 }
@@ -232,10 +235,16 @@ namespace UnityEngine.Experimental.VFX
         }
 
         // Called internally only!
-        internal void InnerUpdateOutputLink(VFXInputSlot slot)
+        internal void InnerAddOutputLink(VFXInputSlot slot)
         {
             // Do we need to notify the output when a new slot is linked ?
             m_ConnectedSlots.Add(slot);
+        }
+
+        internal void InnerRemoveOutputLink(VFXInputSlot slot)
+        {
+            // Do we need to notify the output when a new slot is linked ?
+            m_ConnectedSlots.Remove(slot);
         }
 
         public override VFXPropertySlot CurrentValueRef
@@ -266,8 +275,7 @@ namespace UnityEngine.Experimental.VFX
             if (slot == null)
                 return;
 
-            if (m_ConnectedSlots.Remove(slot))
-                slot.Unlink();
+            slot.Unlink();
         }
 
         public override void UnlinkAll()

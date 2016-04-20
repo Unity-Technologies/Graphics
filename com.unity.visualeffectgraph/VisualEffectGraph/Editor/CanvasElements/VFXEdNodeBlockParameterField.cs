@@ -91,7 +91,7 @@ namespace UnityEditor.Experimental
 
         public bool IsConnected()
         {
-            return !Value.IsLinked();
+            return Value.CurrentValueRef != Value;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
