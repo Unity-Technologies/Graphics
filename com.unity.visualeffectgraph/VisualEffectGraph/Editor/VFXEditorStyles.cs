@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor;
 using UnityEditor.Experimental;
 using System.Collections;
@@ -81,7 +82,7 @@ namespace UnityEditor.Experimental
         private Dictionary<string, Texture2D> m_icons;
         private Dictionary<VFXEdContext, Color> m_ContextColors;
 
-        private Dictionary<VFXParam.Type, Color> m_TypeColors;
+        private Dictionary<VFXValueType, Color> m_TypeColors;
 
         internal Texture2D GetIcon(string name) {
 
@@ -109,7 +110,7 @@ namespace UnityEditor.Experimental
                 return Color.magenta;
         }
 
-        internal Color GetTypeColor(VFXParam.Type t)
+        internal Color GetTypeColor(VFXValueType t)
         {
             if (m_TypeColors.ContainsKey(t))
             {
@@ -306,15 +307,15 @@ namespace UnityEditor.Experimental
             m_ContextColors.Add(VFXEdContext.Update,        HexColor("#364C66FF"));
             m_ContextColors.Add(VFXEdContext.Output,        HexColor("#5c4662FF"));
 
-            m_TypeColors = new Dictionary<VFXParam.Type, Color>();
-            m_TypeColors.Add(VFXParam.Type.kTypeInt,        HexColor("#23a95cFF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeFloat,      HexColor("#8ccf0cFF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeFloat2,     HexColor("#d5cd00FF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeFloat3,     HexColor("#ffb400FF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeFloat4,     HexColor("#ff7300FF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeTexture2D,  HexColor("#cf0ca3FF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeTexture3D,  HexColor("#830ccfFF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeUnknown,    HexColor("#FF00FFFF"));
+            m_TypeColors = new Dictionary<VFXValueType, Color>();
+            m_TypeColors.Add(VFXValueType.kInt,        HexColor("#23a95cFF"));
+            m_TypeColors.Add(VFXValueType.kFloat,      HexColor("#8ccf0cFF"));
+            m_TypeColors.Add(VFXValueType.kFloat2,     HexColor("#d5cd00FF"));
+            m_TypeColors.Add(VFXValueType.kFloat3,     HexColor("#ffb400FF"));
+            m_TypeColors.Add(VFXValueType.kFloat4,     HexColor("#ff7300FF"));
+            m_TypeColors.Add(VFXValueType.kTexture2D,  HexColor("#cf0ca3FF"));
+            m_TypeColors.Add(VFXValueType.kTexture3D,  HexColor("#830ccfFF"));
+            m_TypeColors.Add(VFXValueType.kNone,    HexColor("#FF00FFFF"));
 
         }
 

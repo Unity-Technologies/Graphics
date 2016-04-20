@@ -5,23 +5,23 @@ namespace UnityEngine.Experimental.VFX
 {
     static class VFXPropertyConverter
     {
-        static VFXValueType ConvertType(VFXParam.Type type)
+        internal static VFXValueType ConvertType(VFXParam.Type type)
         {
             switch(type)
             {
-                case kTypeFloat:        return VFXValueType.kFloat;
-                case kTypeFloat2:       return VFXValueType.kFloat2;
-                case kTypeFloat3:       return VFXValueType.kFloat3;
-                case kTypeFloat4:       return VFXValueType.kFloat4;
-                case kTypeInt:          return VFXValueType.kInt;
-                case kTypeUint:         return VFXValueType.kUint;
-                case kTypeTexture2D:    return VFXValueType.kTexture2D;
-                case kTypeTexture3D:    return VFXValueType.kTexture3D;
-                default:                return VFXValueType.kNone;
+                case VFXParam.Type.kTypeFloat:      return VFXValueType.kFloat;
+                case VFXParam.Type.kTypeFloat2:     return VFXValueType.kFloat2;
+                case VFXParam.Type.kTypeFloat3:     return VFXValueType.kFloat3;
+                case VFXParam.Type.kTypeFloat4:     return VFXValueType.kFloat4;
+                case VFXParam.Type.kTypeInt:        return VFXValueType.kInt;
+                case VFXParam.Type.kTypeUint:       return VFXValueType.kUint;
+                case VFXParam.Type.kTypeTexture2D:  return VFXValueType.kTexture2D;
+                case VFXParam.Type.kTypeTexture3D:  return VFXValueType.kTexture3D;
+                default:                            return VFXValueType.kNone;
             }
         }
 
-        static VFXPropertyTypeSemantics CreateSemantics(VFXValueType type)
+        internal static VFXPropertyTypeSemantics CreateSemantics(VFXValueType type)
         {
             switch(type)
             {
@@ -37,12 +37,12 @@ namespace UnityEngine.Experimental.VFX
             }
         }
 
-        static VFXProperty CreateProperty(VFXParam param)
+        internal static VFXProperty CreateProperty(VFXParam param)
         {
             return new VFXProperty(CreateSemantics(ConvertType(param.m_Type)), param.m_Name);
         }
 
-        static VFXProperty[] CreateProperties(VFXParam[] parameters)
+        internal static VFXProperty[] CreateProperties(VFXParam[] parameters)
         {
             if (parameters == null)
                 return null;

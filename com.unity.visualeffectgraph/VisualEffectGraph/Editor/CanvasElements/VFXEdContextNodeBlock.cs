@@ -16,7 +16,6 @@ namespace UnityEditor.Experimental
         private VFXProperty[] Properties { get { return Model.Desc.m_Properties; } }
 
         private VFXEdNodeBlockHeader m_Header;
-
         private VFXContextModel m_Model;
 
         public VFXEdContextNodeBlock(VFXEdDataSource dataSource, VFXContextModel model)

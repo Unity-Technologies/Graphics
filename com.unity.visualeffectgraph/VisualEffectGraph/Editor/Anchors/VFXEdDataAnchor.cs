@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using UnityEditor.Experimental.Graph.Examples; // TODO Dont use that anymore
@@ -11,8 +12,8 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdDataAnchor : CanvasElement, IConnect
     {
-        public VFXParam.Type ParamType { get { return m_ParamType; } }
-        protected VFXParam.Type m_ParamType;
+        public VFXValueType ValueType { get { return m_ParamType; } }
+        protected VFXValueType m_ValueType;
         protected Type m_Type;
         protected object m_Source;
         protected Direction m_Direction;
@@ -20,10 +21,10 @@ namespace UnityEditor.Experimental
         private int m_ParamIndex;
         public int Index { get { return m_ParamIndex; } }
 
-        public VFXEdDataAnchor(Vector3 position, VFXParam.Type type, VFXEdDataSource data, Direction direction, int index)
+        public VFXEdDataAnchor(Vector3 position, VFXValueType type, VFXEdDataSource data, Direction direction, int index)
         {
-            m_ParamType = type;
-            m_Type = GetParamType(type);
+            m_ValueType = type;
+            m_Type = GetValueType(type);
             scale = new Vector3(15.0f, 15.0f, 1.0f);
             translation = position;
             AddManipulator(new DataEdgeConnector());
@@ -43,19 +44,19 @@ namespace UnityEditor.Experimental
             return parent as VFXEdNodeBlockParameterField;
         }
 
-        private static Type GetParamType(VFXParam.Type type)
+        private static Type GetValueType(VFXValueType type)
         {
             switch(type)
             {
-                case VFXParam.Type.kTypeInt: return typeof(int);
-                case VFXParam.Type.kTypeUint: return typeof(uint);
-                case VFXParam.Type.kTypeFloat: return typeof(float);
-                case VFXParam.Type.kTypeFloat2: return typeof(Vector2);
-                case VFXParam.Type.kTypeFloat3: return typeof(Vector3);
-                case VFXParam.Type.kTypeFloat4: return typeof(Vector4);
-                case VFXParam.Type.kTypeTexture2D: return typeof(Texture2D);
-                case VFXParam.Type.kTypeTexture3D: return typeof(Texture3D);
-                case VFXParam.Type.kTypeUnknown:
+                case VFXValueType.kInt: return typeof(int);
+                case VFXValueType.kUint: return typeof(uint);
+                case VFXValueType.kFloat: return typeof(float);
+                case VFXValueType.kFloat2: return typeof(Vector2);
+                case VFXValueType.kFloat3: return typeof(Vector3);
+                case VFXValueType.kFloat4: return typeof(Vector4);
+                case VFXValueType.kTexture2D: return typeof(Texture2D);
+                case VFXValueType.kTexture3D: return typeof(Texture3D);
+                case VFXValueType.kNone:
                 default: return typeof(void);
             }
         }
@@ -112,7 +113,7 @@ namespace UnityEditor.Experimental
             // TODO : Find out why theres a -2,5 offset in C2D overlays then remove this crap
             thisRect.x -= 2;
             thisRect.y += 5;
-            GUI.color = VFXEditor.styles.GetTypeColor(ParamType);
+            GUI.color = VFXEditor.styles.GetTypeColor(ValueType);
             if (!collapsed)
             {
                 switch (m_Direction)

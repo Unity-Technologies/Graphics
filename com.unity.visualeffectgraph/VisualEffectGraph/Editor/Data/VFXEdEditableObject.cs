@@ -2,12 +2,34 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
+    internal static class VFXUIHelper
+    {
+        public static void SlotField(VFXPropertySlot slot)
+        {
+            string name = slot.Property.m_Name;
+            switch (slot.ValueType)
+            {
+                case VFXValueType.kFloat:       slot.SetValue<float>(EditorGUILayout.FloatField(name, slot.GetValue<float>())); break;
+                case VFXValueType.kFloat2:      slot.SetValue<Vector2>(EditorGUILayout.Vector2Field(name, slot.GetValue<Vector2>())); break;
+                case VFXValueType.kFloat3:      slot.SetValue<Vector3>(EditorGUILayout.Vector3Field(name, slot.GetValue<Vector3>())); break;
+                case VFXValueType.kFloat4:      slot.SetValue<Vector4>(EditorGUILayout.Vector4Field(name, slot.GetValue<Vector4>())); break;
+                case VFXValueType.kInt:         slot.SetValue<int>(EditorGUILayout.IntSlider(slot.GetValue<int>(), -1000, 1000)); break;
+                case VFXValueType.kTexture2D:   slot.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(name, slot.GetValue<Texture2D>(), typeof(Texture2D))); break;
+                case VFXValueType.kTexture3D:   slot.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(name, slot.GetValue<Texture3D>(), typeof(Texture3D))); break;
+                case VFXValueType.kUint:        slot.SetValue<uint>((uint)EditorGUILayout.IntSlider(name, (int)slot.GetValue<uint>(), 0, 1000)); break;
+                case VFXValueType.kNone: break;
+                default: break;
+            }
+        }
+    }
+
     internal abstract class VFXEdEditableObject : ScriptableObject { }
 
     internal class VFXEdProcessingNodeBlockTarget : VFXEdEditableObject
@@ -44,29 +66,11 @@ namespace UnityEditor.Experimental
 
             EditorGUILayout.BeginVertical();
             GUILayout.Label(safeTarget.targetNodeBlock.LibraryName, VFXEditor.styles.InspectorHeader);
-
-
             
             EditorGUILayout.Space();
-            int i = 0;
-            foreach(VFXParamValue p in safeTarget.targetNodeBlock.ParamValues)
-            {
-
-                switch(p.ValueType)
-                {
-                    case VFXParam.Type.kTypeFloat: p.SetValue<float>(EditorGUILayout.FloatField(safeTarget.targetNodeBlock.Params[i].m_Name, p.GetValue<float>())); break;
-                    case VFXParam.Type.kTypeFloat2: p.SetValue<Vector2>(EditorGUILayout.Vector2Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector2>())); break;
-                    case VFXParam.Type.kTypeFloat3: p.SetValue<Vector3>(EditorGUILayout.Vector3Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector3>())); break;
-                    case VFXParam.Type.kTypeFloat4: p.SetValue<Vector4>(EditorGUILayout.Vector4Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector4>())); break;
-                    case VFXParam.Type.kTypeInt: p.SetValue<int>(EditorGUILayout.IntSlider(p.GetValue<int>(),-1000,1000)); break;
-                    case VFXParam.Type.kTypeTexture2D: p.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Texture2D>(),typeof(Texture2D)));  break;
-                    case VFXParam.Type.kTypeTexture3D: p.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Texture3D>(),typeof(Texture3D)));  break;
-                    case VFXParam.Type.kTypeUint: p.SetValue<uint>((uint)EditorGUILayout.IntSlider(safeTarget.targetNodeBlock.Params[i].m_Name,(int)p.GetValue<uint>(),0,1000)); break;
-                    case VFXParam.Type.kTypeUnknown: break;
-                    default: break;
-                }
-                ++i;
-            }
+            VFXBlockModel model = safeTarget.targetNodeBlock.Model;
+            for (int i = 0; i < model.GetNbSlots(); ++i)
+                VFXUIHelper.SlotField(model.GetSlot(i));
             EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
@@ -98,25 +102,8 @@ namespace UnityEditor.Experimental
             }
             else
             {
-                int i = 0;
-                foreach(VFXParamValue p in safeTarget.targetNodeBlock.ParamValues)
-                {
-
-                    switch(p.ValueType)
-                    {
-                        case VFXParam.Type.kTypeFloat: p.SetValue<float>(EditorGUILayout.FloatField(safeTarget.targetNodeBlock.Params[i].m_Name, p.GetValue<float>())); break;
-                        case VFXParam.Type.kTypeFloat2: p.SetValue<Vector2>(EditorGUILayout.Vector2Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector2>())); break;
-                        case VFXParam.Type.kTypeFloat3: p.SetValue<Vector3>(EditorGUILayout.Vector3Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector3>())); break;
-                        case VFXParam.Type.kTypeFloat4: p.SetValue<Vector4>(EditorGUILayout.Vector4Field(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Vector4>())); break;
-                        case VFXParam.Type.kTypeInt: p.SetValue<int>(EditorGUILayout.IntSlider(p.GetValue<int>(),-1000,1000)); break;
-                        case VFXParam.Type.kTypeTexture2D: p.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Texture2D>(),typeof(Texture2D)));  break;
-                        case VFXParam.Type.kTypeTexture3D: p.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(safeTarget.targetNodeBlock.Params[i].m_Name,p.GetValue<Texture3D>(),typeof(Texture3D)));  break;
-                        case VFXParam.Type.kTypeUint: p.SetValue<uint>((uint)EditorGUILayout.IntSlider(safeTarget.targetNodeBlock.Params[i].m_Name,(int)p.GetValue<uint>(),0,1000)); break;
-                        case VFXParam.Type.kTypeUnknown: break;
-                        default: break;
-                    }
-                    ++i;
-                }
+                foreach (var slot in safeTarget.targetNodeBlock.Slots)
+                    VFXUIHelper.SlotField(slot);
             }
             
             EditorGUILayout.EndVertical();
@@ -193,33 +180,15 @@ namespace UnityEditor.Experimental
 
             GUILayout.Label(new GUIContent(model.Desc.Name + " : Context Parameters"), VFXEditor.styles.InspectorHeader);
 
-            for(int i = 0; i < model.GetNbParamValues(); i++)
-            {
-                VFXParamValue value = model.GetParamValue(i);
-                VFXParam parm = model.Desc.m_Params[i];
-
-                switch(value.ValueType)
-                {
-                    case VFXParam.Type.kTypeFloat: value.SetValue<float>(EditorGUILayout.FloatField(parm.m_Name, value.GetValue<float>())); break;
-                    case VFXParam.Type.kTypeFloat2: value.SetValue<Vector2>(EditorGUILayout.Vector2Field(parm.m_Name,value.GetValue<Vector2>())); break;
-                    case VFXParam.Type.kTypeFloat3: value.SetValue<Vector3>(EditorGUILayout.Vector3Field(parm.m_Name,value.GetValue<Vector3>())); break;
-                    case VFXParam.Type.kTypeFloat4: value.SetValue<Vector4>(EditorGUILayout.Vector4Field(parm.m_Name,value.GetValue<Vector4>())); break;
-                    case VFXParam.Type.kTypeInt: value.SetValue<int>(EditorGUILayout.IntSlider(parm.m_Name,value.GetValue<int>(),-1000,1000)); break;
-                    case VFXParam.Type.kTypeTexture2D: value.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(parm.m_Name,value.GetValue<Texture2D>(),typeof(Texture2D)));  break;
-                    case VFXParam.Type.kTypeTexture3D: value.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(parm.m_Name,value.GetValue<Texture3D>(),typeof(Texture3D)));  break;
-                    case VFXParam.Type.kTypeUint: value.SetValue<uint>((uint)EditorGUILayout.IntSlider(parm.m_Name,(int)value.GetValue<uint>(),0,1000)); break;
-                    case VFXParam.Type.kTypeUnknown: break;
-                    default: break;
-                }
-            }
-
+            for (int i = 0; i < model.GetNbSlots(); ++i)
+                VFXUIHelper.SlotField(model.GetSlot(i));
 
             bDebugVisible = GUILayout.Toggle(bDebugVisible, new GUIContent("Debug Information"), VFXEditor.styles.InspectorHeader);
 
             if(bDebugVisible)
             {
-
-                EditorGUILayout.Space();
+                // TODO Refactor : fix that
+               /* EditorGUILayout.Space();
 
                 GUI.color = Color.green;
                 GUILayout.Label(model.GetOwner().ToString());
@@ -253,7 +222,7 @@ namespace UnityEditor.Experimental
                     } 
                     EditorGUI.indentLevel--;
                 }
-                EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;*/
             }
             
             EditorGUILayout.EndVertical();

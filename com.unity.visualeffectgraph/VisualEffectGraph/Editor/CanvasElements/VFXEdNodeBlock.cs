@@ -35,8 +35,8 @@ namespace UnityEditor.Experimental
             m_UniqueName = GetType().Name + "_" + Token;
         }
 
-        public abstract VFXParamValue GetParamValue(string ParamName);
-        public abstract void SetParamValue(string name, VFXParamValue value);
+        //public abstract VFXParamValue GetParamValue(string ParamName);
+        //public abstract void SetParamValue(string name, VFXParamValue value);
 
         public VFXEdNodeBlockParameterField GetField(string name)
         {

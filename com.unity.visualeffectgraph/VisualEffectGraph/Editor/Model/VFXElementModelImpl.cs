@@ -411,8 +411,7 @@ namespace UnityEditor.Experimental
         public VFXBlockModel(VFXBlock desc)
         {
             m_BlockDesc = desc;
-            var properties = VFXPropertyConverter.CreateProperties(m_BlockDesc.m_Params); // TMP Refactor
-            InitSlots(properties);
+            InitProperties();
         }
 
         public VFXBlock Desc
@@ -426,6 +425,7 @@ namespace UnityEditor.Experimental
                 if (m_BlockDesc == null || !m_BlockDesc.m_Hash.Equals(value.m_Hash)) // block desc has changed
                 {
                     m_BlockDesc = value;
+                    InitProperties();
                     Invalidate(InvalidationCause.kModelChanged);
                 }
             }
@@ -436,6 +436,15 @@ namespace UnityEditor.Experimental
             return false; // Nothing can be attached to Blocks !
         }
 
+        public VFXProperty[] Properties { get { return m_Properties; } }
+
+        private void InitProperties()
+        {
+            m_Properties = VFXPropertyConverter.CreateProperties(m_BlockDesc.m_Params); // TMP Refactor
+            InitSlots(m_Properties);
+        }
+
         private VFXBlock m_BlockDesc;
+        private VFXProperty[] m_Properties; // TODO Refactor : that goes in VFXBlock
     }
 }

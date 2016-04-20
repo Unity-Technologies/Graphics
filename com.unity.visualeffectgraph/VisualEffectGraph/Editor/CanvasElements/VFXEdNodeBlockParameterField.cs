@@ -91,7 +91,7 @@ namespace UnityEditor.Experimental
 
         public bool IsConnected()
         {
-            return !Value.IsBound();
+            return !Value.IsLinked();
         }
 
         protected static float GetParamHeight(VFXParam.Type type)
@@ -123,38 +123,38 @@ namespace UnityEditor.Experimental
 
                 switch (Type)
                 {
-                    case VFXParam.Type.kTypeFloat:
-                        m_ParamValue.SetValue(EditorGUI.FloatField(editrect, "", m_ParamValue.GetValue<float>()));
+                    case VFXValueType.kFloat:
+                        m_Slot.SetValue(EditorGUI.FloatField(editrect, "", m_Slot.GetValue<float>()));
                         break;
 
-                    case VFXParam.Type.kTypeFloat2:
-                        m_ParamValue.SetValue(EditorGUI.Vector2Field(editrect, "", m_ParamValue.GetValue<Vector2>()));
+                    case VFXValueType.kFloat2:
+                        m_Slot.SetValue(EditorGUI.Vector2Field(editrect, "", m_Slot.GetValue<Vector2>()));
                         break;
 
-                    case VFXParam.Type.kTypeFloat3:
-                        m_ParamValue.SetValue(EditorGUI.Vector3Field(editrect, "", m_ParamValue.GetValue<Vector3>()));
+                    case VFXValueType.kFloat3:
+                        m_Slot.SetValue(EditorGUI.Vector3Field(editrect, "", m_Slot.GetValue<Vector3>()));
                         break;
 
-                    case VFXParam.Type.kTypeFloat4:
-                        m_ParamValue.SetValue(EditorGUI.Vector4Field(editrect, "", m_ParamValue.GetValue<Vector4>()));
+                    case VFXValueType.kFloat4:
+                        m_Slot.SetValue(EditorGUI.Vector4Field(editrect, "", m_Slot.GetValue<Vector4>()));
                         break;
 
-                    case VFXParam.Type.kTypeInt:
-                        m_ParamValue.SetValue(EditorGUI.IntField(editrect, "", m_ParamValue.GetValue<int>()));
+                    case VFXValueType.kInt:
+                        m_Slot.SetValue(EditorGUI.IntField(editrect, "", m_Slot.GetValue<int>()));
                         break;
 
-                    case VFXParam.Type.kTypeUint:
-                        m_ParamValue.SetValue<uint>((uint)EditorGUI.IntField(editrect, "", (int)m_ParamValue.GetValue<uint>()));
+                    case VFXValueType.kUint:
+                        m_Slot.SetValue<uint>((uint)EditorGUI.IntField(editrect, "", (int)m_Slot.GetValue<uint>()));
                         break;
 
-                    case VFXParam.Type.kTypeTexture2D:
-                        m_ParamValue.SetValue<Texture2D>((Texture2D)EditorGUI.ObjectField(editrect, m_ParamValue.GetValue<Texture2D>(),typeof(Texture2D)));
+                    case VFXValueType.kTexture2D:
+                        m_Slot.SetValue<Texture2D>((Texture2D)EditorGUI.ObjectField(editrect, m_Slot.GetValue<Texture2D>(), typeof(Texture2D)));
                         break;
-                    case VFXParam.Type.kTypeTexture3D:
-                        m_ParamValue.SetValue<Texture3D>((Texture3D)EditorGUI.ObjectField(editrect, m_ParamValue.GetValue<Texture3D>(),typeof(Texture3D)));
+                    case VFXValueType.kTexture3D:
+                        m_Slot.SetValue<Texture3D>((Texture3D)EditorGUI.ObjectField(editrect, m_Slot.GetValue<Texture3D>(), typeof(Texture3D)));
                         break;
                     default: // TODO Texture
-                        GUI.Label(editrect, VFXParam.GetNameFromType(Type) + " " + "", VFXEditor.styles.NodeBlockParameter);
+                        GUI.Label(editrect, VFXValue.TypeToName(Type) + " " + "", VFXEditor.styles.NodeBlockParameter);
                         break;
                 }
 

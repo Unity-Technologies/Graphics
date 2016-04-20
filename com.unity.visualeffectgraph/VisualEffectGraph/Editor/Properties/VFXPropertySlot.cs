@@ -79,6 +79,11 @@ namespace UnityEngine.Experimental.VFX
             NotifyChange(Event.kValueUpdated);
         }
 
+        public T GetValue<T>()
+        {
+            return m_OwnedValue.Get<T>();
+        }
+
         public VFXExpression Value
         {
             set
@@ -121,15 +126,9 @@ namespace UnityEngine.Experimental.VFX
                 child.UnlinkRecursively();
         }
 
-        public VFXPropertyTypeSemantics Semantics
-        {
-            get { return m_Desc.m_Type; }
-        }
-
-        public VFXValueType ValueType
-        {
-            get { return Semantics.ValueType; }
-        }
+        public VFXProperty Property                 { get { return m_Desc; }}
+        public VFXPropertyTypeSemantics Semantics   { get { return m_Desc.m_Type; }}
+        public VFXValueType ValueType               { get { return Semantics.ValueType; }}
 
         public void FlattenValues<T>(List<T> values) where T : VFXExpression
         {
