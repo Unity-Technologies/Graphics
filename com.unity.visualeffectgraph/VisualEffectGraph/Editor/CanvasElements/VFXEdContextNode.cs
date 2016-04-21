@@ -130,13 +130,13 @@ namespace UnityEditor.Experimental
         {
             GenericMenu menu = new GenericMenu();
 
-            ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
+            ReadOnlyCollection<VFXBlockDesc> blocks = VFXEditor.BlockLibrary.GetBlocks();
                 
             // Add New...
-            foreach (VFXBlock block in blocks)
+            foreach (VFXBlockDesc block in blocks)
             {
                 // TODO : Only add item if block is compatible with current context.
-                menu.AddItem(new GUIContent("Add New/"+block.m_Category + block.m_Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                menu.AddItem(new GUIContent("Add New/"+block.Category + block.Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
             }
             
 
@@ -144,10 +144,10 @@ namespace UnityEditor.Experimental
             if (OwnsBlock((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock))
             {
                 menu.AddSeparator("");
-                foreach (VFXBlock block in blocks)
+                foreach (VFXBlockDesc block in blocks)
                 {
                     // TODO : Only add item if block is compatible with current context.
-                    menu.AddItem(new GUIContent("Replace By/"+block.m_Category + block.m_Name), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                    menu.AddItem(new GUIContent("Replace By/"+block.Category + block.Name), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
                 }
             }
 

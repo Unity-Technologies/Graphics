@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor;
 using System.Collections;
 using Object = UnityEngine.Object;
@@ -114,10 +115,10 @@ namespace UnityEditor.Experimental
     internal class VFXEdProcessingNodeBlockSpawner : VFXEdSpawner
     {
         VFXEdContextNode m_Node;
-        VFXBlock m_Block;
+        VFXBlockDesc m_Block;
         VFXEdDataSource m_DataSource;
 
-        public VFXEdProcessingNodeBlockSpawner(Vector2 position, VFXBlock block, VFXEdContextNode node, VFXEdDataSource datasource)
+        public VFXEdProcessingNodeBlockSpawner(Vector2 position, VFXBlockDesc block, VFXEdContextNode node, VFXEdDataSource datasource)
             : base (position)
         {
             m_Block = block;

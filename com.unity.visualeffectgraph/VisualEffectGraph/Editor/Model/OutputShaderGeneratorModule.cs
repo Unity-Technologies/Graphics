@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental
 {
     public class VFXPointOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
     {
-        public override bool UpdateAttributes(Dictionary<VFXAttrib, int> attribs, ref int flags)
+        public override bool UpdateAttributes(Dictionary<VFXAttribute, int> attribs, ref VFXBlockDesc.Flag flags)
         {
             if (!UpdateFlag(attribs, CommonAttrib.Position, VFXContextDesc.Type.kTypeOutput))
                 return false;
@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental
 
         public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
 
-        public override bool UpdateAttributes(Dictionary<VFXAttrib, int> attribs, ref int flags)
+        public override bool UpdateAttributes(Dictionary<VFXAttribute, int> attribs, ref VFXBlockDesc.Flag flags)
         {
             if (!UpdateFlag(attribs, CommonAttrib.Position, VFXContextDesc.Type.kTypeOutput))
                 return false;

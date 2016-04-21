@@ -162,7 +162,7 @@ namespace UnityEditor.Experimental
 
                 foreach(KeyValuePair<string,NodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
                 {
-                    VFXBlock b = VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockLibraryName);
+                    VFXBlockDesc b = VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockLibraryName);
                     if (b != null)
                     {
                         VFXEdProcessingNodeBlock block = new VFXEdProcessingNodeBlock(b, datasource);

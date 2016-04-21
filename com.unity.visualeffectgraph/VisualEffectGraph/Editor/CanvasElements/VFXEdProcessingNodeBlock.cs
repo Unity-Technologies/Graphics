@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental
 
         private VFXBlockModel m_Model;
 
-        public VFXEdProcessingNodeBlock(VFXBlock block, VFXEdDataSource dataSource) : base(dataSource)
+        public VFXEdProcessingNodeBlock(VFXBlockDesc block, VFXEdDataSource dataSource) : base(dataSource)
         {
             m_Model = new VFXBlockModel(block);
             
@@ -31,14 +31,14 @@ namespace UnityEditor.Experimental
                 m_Fields = new VFXEdNodeBlockParameterField[nbProperties];
                 for (int i = 0; i < nbProperties; ++i)
                 {
-                    m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, block.m_Params[i].m_Name, Model.GetSlot(i), true, Direction.Input, i);
+                    m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, block.Properties[i].m_Name, Model.GetSlot(i), true, Direction.Input, i);
                     AddChild(m_Fields[i]);
                 }
             }
 
-            m_LibraryName = block.m_Name;
+            m_LibraryName = block.Name;
 
-            AddChild(new VFXEdNodeBlockHeader(m_LibraryName, VFXEditor.styles.GetIcon(block.m_IconPath == "" ? "Default" : block.m_IconPath), block.m_Params.Length > 0));
+            AddChild(new VFXEdNodeBlockHeader(m_LibraryName, VFXEditor.styles.GetIcon(block.IconPath == "" ? "Default" : block.IconPath), block.Properties.Length > 0));
             AddManipulator(new ImguiContainer());
 
             Layout();

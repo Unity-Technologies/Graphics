@@ -9,18 +9,18 @@ namespace UnityEditor.Experimental
 {
     public static class CommonAttrib
     {
-        public static VFXAttrib Seed =              new VFXAttrib("seed", VFXParam.Type.kTypeUint);
-        public static VFXAttrib Position =          new VFXAttrib("position", VFXParam.Type.kTypeFloat3);
-        public static VFXAttrib Velocity =          new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3);
-        public static VFXAttrib Color =             new VFXAttrib("color", VFXParam.Type.kTypeFloat3);
-        public static VFXAttrib Alpha =             new VFXAttrib("alpha", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Phase =             new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Size =              new VFXAttrib("size", VFXParam.Type.kTypeFloat2);
-        public static VFXAttrib Lifetime =          new VFXAttrib("lifetime", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Age =               new VFXAttrib("age", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Angle =             new VFXAttrib("angle", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib AngularVelocity =   new VFXAttrib("angularVelocity", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib TexIndex =          new VFXAttrib("texIndex", VFXParam.Type.kTypeFloat);
+        public static VFXAttribute Seed =               new VFXAttribute("seed", VFXValueType.kUint);
+        public static VFXAttribute Position =           new VFXAttribute("position", VFXValueType.kFloat3);
+        public static VFXAttribute Velocity =           new VFXAttribute("velocity", VFXValueType.kFloat3);
+        public static VFXAttribute Color =              new VFXAttribute("color", VFXValueType.kFloat3);
+        public static VFXAttribute Alpha =              new VFXAttribute("alpha", VFXValueType.kFloat);
+        public static VFXAttribute Phase =              new VFXAttribute("phase", VFXValueType.kFloat);
+        public static VFXAttribute Size =               new VFXAttribute("size", VFXValueType.kFloat2);
+        public static VFXAttribute Lifetime =           new VFXAttribute("lifetime", VFXValueType.kFloat);
+        public static VFXAttribute Age =                new VFXAttribute("age", VFXValueType.kFloat);
+        public static VFXAttribute Angle =              new VFXAttribute("angle", VFXValueType.kFloat);
+        public static VFXAttribute AngularVelocity =    new VFXAttribute("angularVelocity", VFXValueType.kFloat);
+        public static VFXAttribute TexIndex =           new VFXAttribute("texIndex", VFXValueType.kFloat);
     }
 
     public class VFXSystemRuntimeData
@@ -166,10 +166,10 @@ namespace UnityEditor.Experimental
         {
             m_Index = index;
             m_Usage = usage;
-            m_Attribs = new List<VFXAttrib>();
+            m_Attribs = new List<VFXAttribute>();
         }
 
-        public void Add(VFXAttrib attrib)
+        public void Add(VFXAttribute attrib)
         {
             m_Attribs.Add(attrib);
         }
@@ -203,7 +203,7 @@ namespace UnityEditor.Experimental
             get { return m_Attribs.Count; }
         }
 
-        public VFXAttrib this[int index]
+        public VFXAttribute this[int index]
         {
             get { return m_Attribs[index]; }
         }
@@ -221,26 +221,26 @@ namespace UnityEditor.Experimental
         public int GetSizeInBytes()
         {
             int size = 0;
-            foreach (VFXAttrib attrib in m_Attribs)
-                size += VFXParam.GetSizeFromType(attrib.m_Param.m_Type) * 4;
+            foreach (VFXAttribute attrib in m_Attribs)
+                size += VFXValue.TypeToSize(attrib.m_Type) * 4;
             return size;
         }
 
         int m_Index;
         int m_Usage;
-        List<VFXAttrib> m_Attribs;
+        List<VFXAttribute> m_Attribs;
     }
 
-    public class AttribComparer : IEqualityComparer<VFXAttrib>
+    public class AttribComparer : IEqualityComparer<VFXAttribute>
     {
-        public bool Equals(VFXAttrib attr0, VFXAttrib attr1)
+        public bool Equals(VFXAttribute attr0, VFXAttribute attr1)
         {
-            return attr0.m_Param.m_Name == attr1.m_Param.m_Name && attr0.m_Param.m_Type == attr1.m_Param.m_Type;
+            return attr0.m_Name == attr1.m_Name && attr0.m_Type == attr1.m_Type;
         }
 
-        public int GetHashCode(VFXAttrib attr)
+        public int GetHashCode(VFXAttribute attr)
         {
-            return 13 * attr.m_Param.m_Name.GetHashCode() + attr.m_Param.m_Type.GetHashCode(); // Simple factored sum
+            return 13 * attr.m_Name.GetHashCode() + attr.m_Type.GetHashCode(); // Simple factored sum
         }
     }
 
@@ -253,7 +253,7 @@ namespace UnityEditor.Experimental
         public bool hasRand;
 
         public List<AttributeBuffer> attributeBuffers = new List<AttributeBuffer>();
-        public Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer = new Dictionary<VFXAttrib, AttributeBuffer>(new AttribComparer());
+        public Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer = new Dictionary<VFXAttribute, AttributeBuffer>(new AttribComparer());
 
         public HashSet<VFXValue> globalUniforms = new HashSet<VFXValue>();
         public HashSet<VFXValue> initUniforms = new HashSet<VFXValue>();
@@ -321,8 +321,8 @@ namespace UnityEditor.Experimental
                 for (int j = 0; j < context.GetNbChildren(); ++j)
                 {
                     VFXBlockModel blockModel = context.GetChild(j);
-                    hasRand |= (blockModel.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0;
-                    hasKill |= (blockModel.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0;
+                    hasRand |= (blockModel.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0;
+                    hasKill |= (blockModel.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0;
                     currentList.Add(blockModel);
                 }
 
@@ -344,7 +344,7 @@ namespace UnityEditor.Experimental
             }
 
             // ATTRIBUTES (TODO Refactor the code !)
-            Dictionary<VFXAttrib, int> attribs = new Dictionary<VFXAttrib, int>(new AttribComparer());
+            Dictionary<VFXAttribute, int> attribs = new Dictionary<VFXAttribute, int>(new AttribComparer());
 
             CollectAttributes(attribs, initBlocks, 0);
             CollectAttributes(attribs, updateBlocks, 1);
@@ -367,20 +367,20 @@ namespace UnityEditor.Experimental
             }
 
             // Update flags with generators
-            int initGeneratorFlags = 0;
+            VFXBlockDesc.Flag initGeneratorFlags = VFXBlockDesc.Flag.kNone;
             if (!initGenerator.UpdateAttributes(attribs, ref initGeneratorFlags))
                 return null;
 
-            initHasRand |= (initGeneratorFlags & (int)VFXBlock.Flag.kHasRand) != 0;
+            initHasRand |= (initGeneratorFlags & VFXBlockDesc.Flag.kHasRand) != 0;
 
-            int updateGeneratorFlags = 0;
+            VFXBlockDesc.Flag updateGeneratorFlags = VFXBlockDesc.Flag.kNone;
             if (!updateGenerator.UpdateAttributes(attribs, ref updateGeneratorFlags))
                 return null;
 
-            updateHasRand |= (updateGeneratorFlags & (int)VFXBlock.Flag.kHasRand) != 0;
-            updateHasKill |= (updateGeneratorFlags & (int)VFXBlock.Flag.kHasKill) != 0;
+            updateHasRand |= (updateGeneratorFlags & VFXBlockDesc.Flag.kHasRand) != 0;
+            updateHasKill |= (updateGeneratorFlags & VFXBlockDesc.Flag.kHasKill) != 0;
 
-            int dummy = 0;
+            VFXBlockDesc.Flag dummy = VFXBlockDesc.Flag.kNone;
             if (!outputGenerator.UpdateAttributes(attribs, ref dummy))
                 return null;
 
@@ -392,13 +392,13 @@ namespace UnityEditor.Experimental
             }
 
             // Find unitialized attribs and remove 
-            List<VFXAttrib> unitializedAttribs = new List<VFXAttrib>(); 
+            List<VFXAttribute> unitializedAttribs = new List<VFXAttribute>(); 
             foreach (var attrib in attribs)
             {
                 if ((attrib.Value & 0x3) == 0) // Unitialized attribute
                 {
-                    if (attrib.Key.m_Param.m_Name != "seed" || attrib.Key.m_Param.m_Name != "age") // Dont log anything for those as initialization is implicit
-                        VFXEditor.Log("WARNING: " + attrib.Key.m_Param.m_Name + " is not initialized. Use default value");
+                    if (attrib.Key.m_Name != "seed" || attrib.Key.m_Name != "age") // Dont log anything for those as initialization is implicit
+                        VFXEditor.Log("WARNING: " + attrib.Key.m_Name + " is not initialized. Use default value");
                     unitializedAttribs.Add(attrib.Key);
                 }
                 // TODO attrib to remove (when written and never used for instance) ! But must also remove blocks using them...
@@ -419,7 +419,7 @@ namespace UnityEditor.Experimental
             }
 
             // Associate attrib to buffer
-            var attribToBuffer = new Dictionary<VFXAttrib, AttributeBuffer>(new AttribComparer());
+            var attribToBuffer = new Dictionary<VFXAttribute, AttributeBuffer>(new AttribComparer());
             foreach (var buffer in buffers)
                 for (int i = 0; i < buffer.Count; ++i)
                     attribToBuffer.Add(buffer[i], buffer);
@@ -431,7 +431,7 @@ namespace UnityEditor.Experimental
                 string str = "\t " + i + " |";
                 for (int j = 0; j < buffers[i].Count; ++j)
                 {
-                    str += buffers[i][j].m_Param.m_Name + "|";
+                    str += buffers[i][j].m_Name + "|";
                 }
                 str += " " + buffers[i].GetSizeInBytes() + "bytes";
                 VFXEditor.Log(str);
@@ -568,7 +568,7 @@ namespace UnityEditor.Experimental
             HashSet<VFXValue> uniforms = new HashSet<VFXValue>();
 
             foreach (VFXBlockModel block in blocks)
-                for (int i = 0; i < block.Desc.m_Params.Length; ++i)
+                for (int i = 0; i < block.Desc.Properties.Length; ++i)
                     uniforms.Add(block.GetSlot(i).ValueRef as VFXValue); // TODO Refactor : Parse slots to retrieve uniforms (Expressions that are values)
 
             return uniforms;
@@ -620,12 +620,12 @@ namespace UnityEditor.Experimental
         }
 
         // Collect all attributes from blocks and fills them in attribs
-        public static void CollectAttributes(Dictionary<VFXAttrib, int> attribs, List<VFXBlockModel> blocks, int index)
+        public static void CollectAttributes(Dictionary<VFXAttribute, int> attribs, List<VFXBlockModel> blocks, int index)
         {
             foreach (VFXBlockModel block in blocks)
-                for (int i = 0; i < block.Desc.m_Attribs.Length; ++i)
+                for (int i = 0; i < block.Desc.Attributes.Length; ++i)
                 {
-                    VFXAttrib attr = block.Desc.m_Attribs[i];
+                    VFXAttribute attr = block.Desc.Attributes[i];
                     int usage;
                     attribs.TryGetValue(attr, out usage);
                     int currentUsage = (0x1 | (attr.m_Writable ? 0x2 : 0x0)) << (index * 2);

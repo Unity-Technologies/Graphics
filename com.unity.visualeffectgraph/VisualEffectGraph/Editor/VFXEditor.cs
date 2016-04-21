@@ -528,11 +528,11 @@ namespace UnityEditor.Experimental
 
     public class VFXBlockLibraryCollection
     {
-        private List<VFXBlock> m_Blocks;
+        private List<VFXBlockDesc> m_Blocks;
         
         public VFXBlockLibraryCollection()
         {
-            m_Blocks = new List<VFXBlock>();
+            m_Blocks = new List<VFXBlockDesc>();
         }
 
         public void Load()
@@ -551,7 +551,7 @@ namespace UnityEditor.Experimental
                 for (int j = 0; j < blockLibraries[i].GetNbBlocks(); ++j)
                 {
                     VFXBlock block = blockLibraries[i].GetBlock(j);
-                    m_Blocks.Add(block);
+                    m_Blocks.Add(new VFXBlockLegacy(block));
 
                 }
             }
@@ -559,14 +559,14 @@ namespace UnityEditor.Experimental
             // Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
         }
 
-        public VFXBlock GetBlock(string name)
+        public VFXBlockDesc GetBlock(string name)
         {
-            return m_Blocks.Find(block => block.m_Name.Equals(name));
+            return m_Blocks.Find(block => block.Name.Equals(name));
         }
 
-        public ReadOnlyCollection<VFXBlock> GetBlocks()
+        public ReadOnlyCollection<VFXBlockDesc> GetBlocks()
         {
-            return new ReadOnlyCollection<VFXBlock>(m_Blocks);
+            return new ReadOnlyCollection<VFXBlockDesc>(m_Blocks);
         }
     }
 

@@ -168,7 +168,7 @@ namespace UnityEditor.Experimental
 
         private class ShaderGenerator : VFXShaderGeneratorModule
         {
-            public override bool UpdateAttributes(Dictionary<VFXAttrib, int> attribs, ref int flags)
+            public override bool UpdateAttributes(Dictionary<VFXAttribute, int> attribs, ref VFXBlockDesc.Flag flags)
             {
                 if (attribs.ContainsKey(CommonAttrib.Velocity))
                 {
@@ -181,7 +181,7 @@ namespace UnityEditor.Experimental
                 {
                     m_NeedsReaping = true;
                     UpdateFlag(attribs, CommonAttrib.Lifetime, Type.kTypeUpdate, false);
-                    flags |= (int)VFXBlock.Flag.kHasKill;
+                    flags |= VFXBlockDesc.Flag.kHasKill;
                 }
 
                 if (m_NeedsReaping || attribs.ContainsKey(CommonAttrib.Age))

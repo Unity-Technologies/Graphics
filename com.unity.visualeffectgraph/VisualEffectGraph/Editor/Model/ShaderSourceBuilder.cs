@@ -64,9 +64,9 @@ namespace UnityEditor.Experimental
 
             for (int i = 0; i < attributeBuffer.Count; ++i)
             {
-                WriteType(attributeBuffer[i].m_Param.m_Type);
+                WriteType(attributeBuffer[i].m_Type);
                 Write(" ");
-                Write(attributeBuffer[i].m_Param.m_Name);
+                Write(attributeBuffer[i].m_Name);
                 WriteLine(";");
             }
 
@@ -135,13 +135,13 @@ namespace UnityEditor.Experimental
 
         public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions)
         {
-            if (!functions.ContainsKey(block.Desc.m_Hash)) // if not already defined
+            if (!functions.ContainsKey(block.Desc.Hash)) // if not already defined
             {
                 // generate function name
-                string name = new string((from c in block.Desc.m_Name where char.IsLetterOrDigit(c) select c).ToArray());
-                functions[block.Desc.m_Hash] = name;
+                string name = new string((from c in block.Desc.Name where char.IsLetterOrDigit(c) select c).ToArray());
+                functions[block.Desc.Hash] = name;
 
-                string source = block.Desc.m_Source;
+                string source = block.Desc.Source;
 
                 // function signature
                 Write("void ");
@@ -149,36 +149,36 @@ namespace UnityEditor.Experimental
                 Write("(");
 
                 char separator = ' ';
-                foreach (var arg in block.Desc.m_Attribs)
+                foreach (var arg in block.Desc.Attributes)
                 {
                     Write(separator);
                     separator = ',';
 
                     if (arg.m_Writable)
                         Write("inout ");
-                    WriteType(arg.m_Param.m_Type);
-                    Write(" ");
-                    Write(arg.m_Param.m_Name);
-                }
-
-                foreach (var arg in block.Desc.m_Params)
-                {
-                    Write(separator);
-                    separator = ',';
-
                     WriteType(arg.m_Type);
                     Write(" ");
                     Write(arg.m_Name);
                 }
 
-                if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
+                foreach (var arg in block.Desc.Properties)
+                {
+                    Write(separator);
+                    separator = ',';
+
+                    WriteType(arg.m_Type.ValueType);
+                    Write(" ");
+                    Write(arg.m_Name);
+                }
+
+                if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
                 {
                     Write(separator);
                     separator = ',';
                     Write("inout uint seed");
                 }
 
-                if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
+                if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0)
                 {
                     Write(separator);
                     separator = ',';
@@ -206,13 +206,13 @@ namespace UnityEditor.Experimental
             ShaderMetaData data)
         {
             Dictionary<VFXValue, string> paramToName = data.paramToName;
-            Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer = data.attribToBuffer;
+            Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer = data.attribToBuffer;
 
-            Write(functions[block.Desc.m_Hash]);
+            Write(functions[block.Desc.Hash]);
             Write("(");
 
             char separator = ' ';
-            foreach (var arg in block.Desc.m_Attribs)
+            foreach (var arg in block.Desc.Attributes)
             {
                 Write(separator);
                 separator = ',';
@@ -221,24 +221,24 @@ namespace UnityEditor.Experimental
                 Write("attrib");
                 Write(index);
                 Write(".");
-                Write(arg.m_Param.m_Name);
+                Write(arg.m_Name);
             }
 
-            for (int i = 0; i < block.Desc.m_Params.Length; ++i)
+            for (int i = 0; i < block.Desc.Properties.Length; ++i)
             {
                 Write(separator);
                 separator = ',';
                 Write(paramToName[block.GetSlot(i).ValueRef as VFXValue]); // TODO Refactor parse slot
             }
 
-            if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
+            if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
             {
                 Write(separator);
                 separator = ',';
                 WriteAttrib(CommonAttrib.Seed, data);
             }
 
-            if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
+            if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0)
             {
                 Write(separator);
                 separator = ',';
@@ -270,13 +270,13 @@ namespace UnityEditor.Experimental
             WriteLine(";");
         }
 
-        public void WriteAttrib(VFXAttrib attrib, ShaderMetaData data)
+        public void WriteAttrib(VFXAttribute attrib, ShaderMetaData data)
         {
             int attribIndex = data.attribToBuffer[attrib].Index;
             Write("attrib");
             Write(attribIndex);
             Write(".");
-            Write(attrib.m_Param.m_Name);
+            Write(attrib.m_Name);
         }
 
         public void WriteKernelHeader(string name)

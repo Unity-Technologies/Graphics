@@ -4,14 +4,21 @@ using System;
 
 namespace UnityEngine.Experimental.VFX
 {
-    struct VFXAttribute
+    public struct VFXAttribute
     {
+        public VFXAttribute(string name,VFXValueType type,bool writable = false)
+        {
+            m_Name = name;
+            m_Type = type;
+            m_Writable = writable;
+        }
+
         public string m_Name;
         public VFXValueType m_Type;
         public bool m_Writable;
     }
 
-    abstract class VFXBlockDesc
+    public abstract class VFXBlockDesc
     {
         [Flags]
         public enum Flag
@@ -31,24 +38,26 @@ namespace UnityEngine.Experimental.VFX
             IsProcessed = true;
         }
 
-        public abstract string GetSource();
-        public abstract string GetIconPath();
-        public abstract string GetName();
-        public abstract string GetCategory();
-        public abstract VFXProperty[] GetProperties();
-        public abstract VFXAttribute[] GetAttributes();
+        public abstract string Source               { get; }
+        public abstract string IconPath             { get; }
+        public abstract string Name                 { get; }
+        public abstract string Category             { get; }
+        public abstract VFXProperty[] Properties    { get; }
+        public abstract VFXAttribute[] Attributes   { get; }
 
-        public Flag GetFlag() { return m_Flag; }
+        public Flag Flags   { get { return m_Flag; }}
+        public Hash128 Hash { get { return m_Hash; }}
 
         private bool IsProcessed = false;
         protected Flag m_Flag;
+        protected Hash128 m_Hash;
     }
 
     // Just a wrapper on old blocks coming from C++
     // TODO To be removed
     class VFXBlockLegacy : VFXBlockDesc
     {
-        VFXBlockLegacy(VFXBlock block)
+        public VFXBlockLegacy(VFXBlock block)
         {
             m_Block = block;
             
@@ -62,7 +71,7 @@ namespace UnityEngine.Experimental.VFX
 
             int nbAttributes = m_Block.m_Attribs.Length;
             m_Attributes = new VFXAttribute[nbAttributes];
-            for (int i = 0; i < nbProperties; ++i)
+            for (int i = 0; i < nbAttributes; ++i)
             {
                 VFXAttrib attrib = m_Block.m_Attribs[i];
                 var attribute = new VFXAttribute();
@@ -78,14 +87,16 @@ namespace UnityEngine.Experimental.VFX
                 m_Flag |= VFXBlockDesc.Flag.kHasRand;
             if ((m_Block.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
                 m_Flag |= VFXBlockDesc.Flag.kHasKill;
+
+            m_Hash = m_Block.m_Hash;
         }
 
-        public override string GetSource()              { return m_Block.m_Source; }
-        public override string GetIconPath()            { return m_Block.m_IconPath; }
-        public override string GetName()                { return m_Block.m_Name; }
-        public override string GetCategory()            { return m_Block.m_Category; }
-        public override VFXProperty[] GetProperties()   { return m_Properties; }
-        public override VFXAttribute[] GetAttributes()  { return m_Attributes; } 
+        public override string Source               { get { return m_Block.m_Source; }}
+        public override string IconPath             { get { return m_Block.m_IconPath; }}
+        public override string Name                 { get { return m_Block.m_Name; }}
+        public override string Category             { get { return m_Block.m_Category; }}
+        public override VFXProperty[] Properties    { get { return m_Properties; }}
+        public override VFXAttribute[] Attributes   { get { return m_Attributes; }}
 
         private VFXBlock m_Block;
         private VFXProperty[] m_Properties;
