@@ -42,8 +42,9 @@ namespace UnityEngine.Experimental.VFX
         public abstract string IconPath             { get; }
         public abstract string Name                 { get; }
         public abstract string Category             { get; }
-        public abstract VFXProperty[] Properties    { get; }
-        public abstract VFXAttribute[] Attributes   { get; }
+
+        public VFXProperty[] Properties     { get { return m_Properties; } }
+        public VFXAttribute[] Attributes    { get { return m_Attributes; } }
 
         public Flag Flags   { get { return m_Flag; }}
         public Hash128 Hash { get { return m_Hash; }}
@@ -51,6 +52,9 @@ namespace UnityEngine.Experimental.VFX
         private bool IsProcessed = false;
         protected Flag m_Flag;
         protected Hash128 m_Hash;
+
+        protected VFXProperty[] m_Properties;
+        protected VFXAttribute[] m_Attributes;
     }
 
     // Just a wrapper on old blocks coming from C++
@@ -95,11 +99,37 @@ namespace UnityEngine.Experimental.VFX
         public override string IconPath             { get { return m_Block.m_IconPath; }}
         public override string Name                 { get { return m_Block.m_Name; }}
         public override string Category             { get { return m_Block.m_Category; }}
-        public override VFXProperty[] Properties    { get { return m_Properties; }}
-        public override VFXAttribute[] Attributes   { get { return m_Attributes; }}
 
         private VFXBlock m_Block;
-        private VFXProperty[] m_Properties;
-        private VFXAttribute[] m_Attributes;
+    }
+
+    class VFXSpawnOnSphereBlock : VFXBlockDesc
+    {
+        public VFXSpawnOnSphereBlock()
+        {
+            m_Properties = new VFXProperty[1] {
+                VFXProperty.Create<VFXSphereType>("sphere"),
+            };
+
+            m_Attributes = new VFXAttribute[1] {
+                new VFXAttribute("position",VFXValueType.kFloat3,true),
+            };       
+
+            // TODO this should be derived automatically
+            m_Flag = Flag.kHasRand;
+            m_Hash = Hash128.Parse("1"); // dummy but must be unique
+        }
+
+        public override string Source { get { return @"
+float u1 = 2.0 * RAND - 1.0;
+float u2 = UNITY_TWO_PI * RAND;
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+sincosTheta *= sqrt(1.0 - u1*u1);
+position = (float3(sincosTheta,u1) * radius) + center;"; }}
+
+        public override string IconPath             { get { return "Position"; } }
+        public override string Name                 { get { return "Set Position (Sphere Surface) Test"; } }
+        public override string Category             { get { return "Test/"; } }
     }
 }

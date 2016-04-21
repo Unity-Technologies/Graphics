@@ -557,6 +557,9 @@ namespace UnityEditor.Experimental
             }
 
             // Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
+
+            // Add explicit C# blocks
+            m_Blocks.Add(new VFXSpawnOnSphereBlock());
         }
 
         public VFXBlockDesc GetBlock(string name)
