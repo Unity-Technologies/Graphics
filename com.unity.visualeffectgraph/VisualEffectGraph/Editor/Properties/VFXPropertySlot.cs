@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.VFX
             get { return m_Parent; }
         }
 
-        // Throw if incompatible or inexistant
+        // Throw if incompatible or inexistent
         public void SetValue<T>(T t)
         {
             if (m_OwnedValue.Set(t))
@@ -111,6 +111,9 @@ namespace UnityEngine.Experimental.VFX
 
         public void NotifyChange(Event type)
         {
+            // Invalidate expression cache
+            m_OwnedValue.Invalidate();
+
             if (m_Observer != null)
                 m_Observer.OnSlotEvent(type,this);
             PropagateChange(type);
@@ -155,7 +158,7 @@ namespace UnityEngine.Experimental.VFX
 
         private VFXProperty m_Desc; // Contains semantic type and name for this value
 
-        private VFXPropertySlot m_Parent;
+        protected VFXPropertySlot m_Parent;
         protected VFXPropertySlot[] m_Children = new VFXPropertySlot[0];
     }
 
@@ -197,6 +200,11 @@ namespace UnityEngine.Experimental.VFX
         public new VFXInputSlot GetChild(int index)
         {
             return (VFXInputSlot)m_Children[index];
+        }
+
+        public new VFXInputSlot Parent
+        {
+            get { return (VFXInputSlot)m_Parent; }
         }
 
         public override bool IsLinked()
@@ -259,6 +267,11 @@ namespace UnityEngine.Experimental.VFX
         public new VFXOutputSlot GetChild(int index)
         {
             return (VFXOutputSlot)m_Children[index];
+        }
+
+        public new VFXOutputSlot Parent
+        {
+            get { return (VFXOutputSlot)m_Parent; }
         }
 
         public override bool IsLinked()

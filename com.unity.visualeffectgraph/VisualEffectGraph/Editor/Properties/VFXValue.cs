@@ -22,7 +22,12 @@ namespace UnityEngine.Experimental.VFX
     public abstract class VFXExpression
     {
         public T Get<T>() { return ((VFXValue<T>)this).GetValue(); }
-        public bool Set<T>(T value) { return ((VFXValue<T>)this).SetValue(value); }    
+        public bool Set<T>(T value) { return ((VFXValue<T>)this).SetValue(value); }
+
+        // Reduce the expression and potentially cache the result before returning it
+        public abstract VFXExpression Reduce();
+        // Invalidate the reduction to impose a recomputation
+        public abstract void Invalidate();
     }
 
     public abstract class VFXValue : VFXExpression
@@ -41,6 +46,23 @@ namespace UnityEngine.Experimental.VFX
                     return "";
             }
         }
+
+        // Return type size (in bytes)
+        public static int TypeToSize(VFXValueType type)
+        {
+            switch (type)
+            {
+                case VFXValueType.kFloat:   return 1;
+                case VFXValueType.kFloat2:  return 2;
+                case VFXValueType.kFloat3:  return 3;
+                case VFXValueType.kFloat4:  return 4;
+                case VFXValueType.kInt:     return 1;
+                case VFXValueType.kUint:    return 1;
+                default:
+                    return 0;
+            }
+        }
+
 
         public static VFXValue Create(VFXValueType type)
         {
@@ -87,14 +109,19 @@ namespace UnityEngine.Experimental.VFX
 
         public abstract bool SetValue(VFXValue other);
 
-        public virtual VFXValueType ValueType { get { return VFXValueType.kNone; }}
+        public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
+
+        public override VFXExpression Reduce()  { return this; }    // Already reduced
+        public override void Invalidate()       {}                  // No cache to invalidate
     }
 
     abstract class VFXValue<T> : VFXValue
     {
-        public override VFXValue Clone() // TODO Is this still needed ?
+        public override VFXValue Clone()
         {
-            return  (VFXValue<T>)MemberwiseClone();
+            var clone = VFXValue.Create<T>();
+            clone.SetValue(this);
+            return clone;
         }
 
         public VFXValue()
@@ -153,6 +180,7 @@ namespace UnityEngine.Experimental.VFX
 
         protected override void ConstrainValue() 
         {
+            // Replace null texture value by white texture placeholder
             if (m_Value == null)
                 m_Value = Texture2D.whiteTexture;
         }

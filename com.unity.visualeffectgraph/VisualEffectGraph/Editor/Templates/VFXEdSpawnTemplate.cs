@@ -9,7 +9,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    // TODO Refactor make work again ?
     public class VFXEdSpawnTemplate : ScriptableObject
     {
         // TODO: Remove & Refactor when using Triggers
