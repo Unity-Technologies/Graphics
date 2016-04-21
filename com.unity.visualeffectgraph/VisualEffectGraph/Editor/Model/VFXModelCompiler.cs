@@ -573,8 +573,9 @@ namespace UnityEditor.Experimental
                 {
                     collectedValues.Clear();
                     block.GetSlot(i).CollectNamedValues(collectedValues);
-                    foreach (var namedValue in collectedValues)
-                        uniforms.Add(namedValue.m_Value);
+                    foreach (var arg in collectedValues)
+                        if (arg.m_Value.IsValue())
+                            uniforms.Add((VFXValue)arg.m_Value);
                 }
 
             return uniforms;

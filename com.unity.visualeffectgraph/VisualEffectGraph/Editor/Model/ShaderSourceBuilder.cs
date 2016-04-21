@@ -234,11 +234,12 @@ namespace UnityEditor.Experimental
                 namedValues.Clear();
                 slot.CollectNamedValues(namedValues);
                 foreach (var arg in namedValues)
-                {
-                    Write(separator);
-                    separator = ',';
-                    Write(paramToName[arg.m_Value]);
-                }
+                    if (arg.m_Value.IsValue())
+                    {
+                        Write(separator);
+                        separator = ',';
+                        Write(paramToName[(VFXValue)arg.m_Value]);
+                    }
             }
 
             if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)

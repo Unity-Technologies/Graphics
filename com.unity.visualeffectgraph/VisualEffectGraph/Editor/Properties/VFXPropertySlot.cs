@@ -12,14 +12,14 @@ namespace UnityEngine.Experimental.VFX
 
     public struct VFXNamedValue
     {
-        public VFXNamedValue(string name, VFXValue value)
+        public VFXNamedValue(string name, VFXExpression value)
         {
             m_Name = name;
             m_Value = value;
         }
 
         public string m_Name;
-        public VFXValue m_Value;
+        public VFXExpression m_Value;
     }
 
     public abstract class VFXPropertySlot
@@ -168,21 +168,16 @@ namespace UnityEngine.Experimental.VFX
                 child.FlattenOwnedValues(values);
         }
 
-        // Collect all values in the slot hierarchy with the name used in the shader
+        // Collect all values in the slot hierarchy with its name used in the shader
         // Called from the model compiler
         public void CollectNamedValues(List<VFXNamedValue> values)
         {
             VFXPropertySlot refSlot = CurrentValueRef;
             VFXExpression refValue = refSlot.Value;
             
-            if (refValue != null)
-            {
-                VFXValue reduced = refValue.Reduce() as VFXValue;
-                if (reduced != null)
-                    values.Add(new VFXNamedValue(m_FullName,reduced));
-            }
-
-            foreach (var child in refSlot.m_Children)
+            if (refValue != null) // if not null it means value has a concrete type (not kNone)
+                values.Add(new VFXNamedValue(m_FullName,refValue.Reduce()));
+            else foreach (var child in refSlot.m_Children) // Continue only until we found a value
                 child.CollectNamedValues(values);
         }
 

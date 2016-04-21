@@ -24,6 +24,11 @@ namespace UnityEngine.Experimental.VFX
         public T Get<T>() { return ((VFXValue<T>)this).GetValue(); }
         public bool Set<T>(T value) { return ((VFXValue<T>)this).SetValue(value); }
 
+        public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
+
+        public virtual bool IsValue() { return false; }
+        public virtual bool IsConst() { return false; } // Allow constant propagation (TODO)
+         
         // Reduce the expression and potentially cache the result before returning it
         public abstract VFXExpression Reduce();
         // Invalidate the reduction to impose a recomputation
@@ -62,7 +67,6 @@ namespace UnityEngine.Experimental.VFX
                     return 0;
             }
         }
-
 
         public static VFXValue Create(VFXValueType type)
         {
@@ -104,12 +108,12 @@ namespace UnityEngine.Experimental.VFX
             return v;
         }
 
+        public override bool IsValue() { return true; }
+
         public abstract VFXValue Clone();
         public abstract bool SetDefault();
 
         public abstract bool SetValue(VFXValue other);
-
-        public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
 
         public override VFXExpression Reduce()  { return this; }    // Already reduced
         public override void Invalidate()       {}                  // No cache to invalidate
