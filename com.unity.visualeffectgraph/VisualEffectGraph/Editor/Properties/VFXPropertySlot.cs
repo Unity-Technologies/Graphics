@@ -10,6 +10,18 @@ namespace UnityEngine.Experimental.VFX
         void OnSlotEvent(VFXPropertySlot.Event type,VFXPropertySlot slot);
     }
 
+    public struct VFXNamedValue
+    {
+        public VFXNamedValue(string name, VFXValue value)
+        {
+            m_Name = name;
+            m_Value = value;
+        }
+
+        public string m_Name;
+        public VFXValue m_Value;
+    }
+
     public abstract class VFXPropertySlot
     {
         public enum Event
@@ -29,7 +41,11 @@ namespace UnityEngine.Experimental.VFX
             m_Parent = parent;
             m_Observer = observer;
             m_Desc = desc;
-            Semantics.CreateValue(this);     
+            Semantics.CreateValue(this);
+ 
+            m_FullName = desc.m_Name;
+            if (m_Parent != null)
+                m_FullName = m_Parent.m_FullName + "_" + desc.m_Name;
         }
 
         protected void CreateChildren<T>() where T : VFXPropertySlot, new()
@@ -152,6 +168,24 @@ namespace UnityEngine.Experimental.VFX
                 child.FlattenOwnedValues(values);
         }
 
+        // Collect all values in the slot hierarchy with the name used in the shader
+        // Called from the model compiler
+        public void CollectNamedValues(List<VFXNamedValue> values)
+        {
+            VFXPropertySlot refSlot = CurrentValueRef;
+            VFXExpression refValue = refSlot.Value;
+            
+            if (refValue != null)
+            {
+                VFXValue reduced = refValue.Reduce() as VFXValue;
+                if (reduced != null)
+                    values.Add(new VFXNamedValue(m_FullName,reduced));
+            }
+
+            foreach (var child in refSlot.m_Children)
+                child.CollectNamedValues(values);
+        }
+
         private VFXExpression m_OwnedValue;
 
         protected VFXPropertySlotObserver m_Observer; // Owner of the node. Can be a function/block...
@@ -160,6 +194,8 @@ namespace UnityEngine.Experimental.VFX
 
         protected VFXPropertySlot m_Parent;
         protected VFXPropertySlot[] m_Children = new VFXPropertySlot[0];
+
+        private string m_FullName; // name in the slot hierarchy. In the form: parent0_[...]_parentN_propertyName
     }
 
     public class VFXInputSlot : VFXPropertySlot

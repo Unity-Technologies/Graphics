@@ -567,9 +567,15 @@ namespace UnityEditor.Experimental
         {
             HashSet<VFXValue> uniforms = new HashSet<VFXValue>();
 
+            List<VFXNamedValue> collectedValues = new List<VFXNamedValue>();
             foreach (VFXBlockModel block in blocks)
                 for (int i = 0; i < block.Desc.Properties.Length; ++i)
-                    uniforms.Add(block.GetSlot(i).ValueRef as VFXValue); // TODO Refactor : Parse slots to retrieve uniforms (Expressions that are values)
+                {
+                    collectedValues.Clear();
+                    block.GetSlot(i).CollectNamedValues(collectedValues);
+                    foreach (var namedValue in collectedValues)
+                        uniforms.Add(namedValue.m_Value);
+                }
 
             return uniforms;
         }

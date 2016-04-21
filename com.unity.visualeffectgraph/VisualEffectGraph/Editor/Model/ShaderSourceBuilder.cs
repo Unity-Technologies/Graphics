@@ -155,14 +155,22 @@ namespace UnityEditor.Experimental
                     Write(arg.m_Name);
                 }
 
-                foreach (var arg in block.Desc.Properties)
+                List<VFXNamedValue> namedValues = new List<VFXNamedValue>();
+                for (int i = 0; i < block.GetNbSlots(); ++i)
                 {
-                    Write(separator);
-                    separator = ',';
+                    VFXPropertySlot slot = block.GetSlot(i);
 
-                    WriteType(arg.m_Type.ValueType);
-                    Write(" ");
-                    Write(arg.m_Name);
+                    namedValues.Clear();
+                    slot.CollectNamedValues(namedValues);
+                    foreach (var arg in namedValues)
+                    {
+                        Write(separator);
+                        separator = ',';
+
+                        WriteType(arg.m_Value.ValueType);
+                        Write(" ");
+                        Write(arg.m_Name);
+                    }
                 }
 
                 if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
@@ -218,11 +226,19 @@ namespace UnityEditor.Experimental
                 Write(arg.m_Name);
             }
 
-            for (int i = 0; i < block.Desc.Properties.Length; ++i)
+            List<VFXNamedValue> namedValues = new List<VFXNamedValue>();
+            for (int i = 0; i < block.GetNbSlots(); ++i)
             {
-                Write(separator);
-                separator = ',';
-                Write(paramToName[block.GetSlot(i).ValueRef as VFXValue]); // TODO Refactor parse slot
+                VFXPropertySlot slot = block.GetSlot(i);
+
+                namedValues.Clear();
+                slot.CollectNamedValues(namedValues);
+                foreach (var arg in namedValues)
+                {
+                    Write(separator);
+                    separator = ',';
+                    Write(paramToName[arg.m_Value]);
+                }
             }
 
             if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
