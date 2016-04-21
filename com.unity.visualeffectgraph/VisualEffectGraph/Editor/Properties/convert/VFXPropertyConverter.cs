@@ -3,6 +3,7 @@ using UnityEditor;
 
 namespace UnityEngine.Experimental.VFX
 {
+    // TODO remove me when not needed anymore
     static class VFXPropertyConverter
     {
         internal static VFXValueType ConvertType(VFXParam.Type type)

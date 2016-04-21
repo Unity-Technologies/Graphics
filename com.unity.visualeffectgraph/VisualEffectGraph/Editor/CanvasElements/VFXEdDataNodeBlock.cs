@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental
 
             int i = 0;
             foreach(VFXDataParam p in m_DataBlock.Parameters) {
-                m_Slots[i] = new VFXOutputSlot(new VFXProperty(VFXPropertyConverter.CreateSemantics(VFXPropertyConverter.ConvertType(p.m_type)), p.m_Name));
+                m_Slots[i] = new VFXOutputSlot(new VFXProperty(VFXPropertyConverter.CreateSemantics(p.m_type), p.m_Name));
                 m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, p.m_Name , m_Slots[i], true, Direction.Output, i);
                 AddChild(m_Fields[i]);
                 i++;

@@ -127,12 +127,6 @@ namespace UnityEditor.Experimental
                 Write(VFXValue.TypeToName(type));
         }
 
-        // Tmp TODO Refactor remove that
-        private void WriteType(VFXParam.Type type)
-        {
-            WriteType(VFXPropertyConverter.ConvertType(type));
-        }
-
         public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions)
         {
             if (!functions.ContainsKey(block.Desc.Hash)) // if not already defined
