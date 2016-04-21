@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.VFX
             }
         }
 
-        // Return type size (in bytes)
+        // Return type size (in dword)
         public static int TypeToSize(VFXValueType type)
         {
             switch (type)

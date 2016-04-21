@@ -37,6 +37,11 @@ namespace UnityEngine.Experimental.VFX
             }
         }
 
+        internal static VFXPropertyTypeSemantics CreateSemantics(VFXParam.Type type)
+        {
+            return CreateSemantics(ConvertType(type));
+        }
+
         internal static VFXProperty CreateProperty(VFXParam param)
         {
             return new VFXProperty(CreateSemantics(ConvertType(param.m_Type)), param.m_Name);
