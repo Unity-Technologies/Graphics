@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental
             m_exposedName = exposedName;
 
             m_Slots = new VFXOutputSlot[m_DataBlock.Parameters.Count];
-            m_Fields = new VFXEdNodeBlockParameterField[m_DataBlock.Parameters.Count];
+            m_Fields = new VFXUIPropertySlotField[m_DataBlock.Parameters.Count];
             
             // For selection
             target = ScriptableObject.CreateInstance<VFXEdDataNodeBlockTarget>();
@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental
             int i = 0;
             foreach(VFXDataParam p in m_DataBlock.Parameters) {
                 m_Slots[i] = new VFXOutputSlot(new VFXProperty(VFXPropertyConverter.CreateSemantics(p.m_type), p.m_Name));
-                m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, p.m_Name , m_Slots[i], true, Direction.Output, i);
+                m_Fields[i] = new VFXUIPropertySlotField(dataSource, m_Slots[i]);
                 AddChild(m_Fields[i]);
                 i++;
             }

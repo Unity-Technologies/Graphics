@@ -19,18 +19,14 @@ namespace UnityEditor.Experimental
 
         public virtual void OnRemoved()
         {
-            List<VFXEdDataAnchor> anchors = new List<VFXEdDataAnchor>();
-            foreach(VFXEdNodeBlockParameterField field in m_Fields)
-            {
-                if (field.Input != null)
-                    anchors.Add(field.Input);
-                if (field.Output != null)
-                    anchors.Add(field.Output);
-            }
-            foreach(VFXEdDataAnchor anchor in anchors)
-            {
-                m_DataSource.RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(anchor);
-            }
+            List<VFXUIPropertyAnchor> anchors = new List<VFXUIPropertyAnchor>();
+            foreach (var field in m_Fields)
+                if (field.Anchor != null)
+                    anchors.Add(field.Anchor);
+
+            foreach (var anchor in anchors)
+                m_DataSource.RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(anchor);
+
             ParentCanvas().ReloadData();
         }
 

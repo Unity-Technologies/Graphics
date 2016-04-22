@@ -43,6 +43,7 @@ namespace UnityEditor.Experimental
         // PARAMETER FIELDS
         public static readonly RectOffset ParameterFieldRectOffset = new RectOffset(24, 32, 0, 0);
         public static readonly float ParameterFieldLabelWidth = 64.0f;
+        public static readonly float ParameterFieldIndentWidth = 8.0f;
 
         // EDGE AND ANCHORS
         public static readonly Vector3 FlowAnchorSize = new Vector3(64.0f, 32.0f, 1.0f);

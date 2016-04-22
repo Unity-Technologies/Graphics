@@ -27,21 +27,23 @@ namespace UnityEditor.Experimental
             m_DataSource = dataSource;
             translation = Vector3.zero; 
             m_Caps = Capabilities.Normal;
-            m_Fields = new VFXEdNodeBlockParameterField[0];
+            
             m_Header = new VFXEdNodeBlockHeader(desc.Name, VFXEditor.styles.GetIcon("Box"), false);
             AddChild(m_Header);
 
             if (desc.m_Properties != null && desc.m_Properties.Length > 0)
             {
                 int nbProperties = Properties.Length;
-                m_Fields = new VFXEdNodeBlockParameterField[nbProperties];
+                m_Fields = new VFXUIPropertySlotField[nbProperties];
                 for (int i = 0; i < nbProperties; ++i)
                 {
-                    m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource, Properties[i].m_Name, Model.GetSlot(i), true, Direction.Input, 0);
+                    m_Fields[i] = new VFXUIPropertySlotField(dataSource, Model.GetSlot(i));
                     AddChild(m_Fields[i]);
                 }
                 Header.Collapseable = true;
             }
+            else
+                m_Fields = new VFXUIPropertySlotField[0];
         }
 
         public override void Layout()
@@ -53,7 +55,7 @@ namespace UnityEditor.Experimental
                 scale = new Vector2(scale.x, VFXEditorMetrics.NodeBlockHeaderHeight);
 
                 // if collapsed, rejoin all connectors on the middle of the header
-                foreach(VFXEdNodeBlockParameterField field in m_Fields)
+                foreach (var field in m_Fields)
                 {
                     field.translation = new Vector2(0.0f, (VFXEditorMetrics.NodeBlockHeaderHeight-VFXEditorMetrics.DataAnchorSize.y)/2);
                 }
@@ -63,7 +65,7 @@ namespace UnityEditor.Experimental
                 scale = new Vector2(scale.x, GetHeight());
                 float curY = VFXEditorMetrics.NodeBlockHeaderHeight;
 
-                foreach(VFXEdNodeBlockParameterField field in m_Fields)
+                foreach (var field in m_Fields)
                 {
                     field.translation = new Vector2(0.0f, curY);
                     curY += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;

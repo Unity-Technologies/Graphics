@@ -59,6 +59,7 @@ namespace UnityEngine.Experimental.VFX
                 {
                     VFXPropertySlot child = new T();
                     child.Init(this,children[i],m_Observer);
+                    child.CreateChildren<T>();
                     m_Children[i] = child;
                 }
             }

@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.VFX
     {
         public virtual bool CanLink(VFXPropertyTypeSemantics other)
         {
-            return GetType() == other.GetType() || ChildrenCanLink(other);
+            return GetType() == other.GetType() || (GetNbChildren() != 0 && ChildrenCanLink(other));
         }
 
         protected bool ChildrenCanLink(VFXPropertyTypeSemantics other)
@@ -130,6 +130,16 @@ namespace UnityEngine.Experimental.VFX
     public class VFXPositionType : VFXFloat3Type { }
     public class VFXDirectionType : VFXFloat3Type { }
 
+    public class VFXNewFloat3Type : VFXFloat3Type
+    {
+        public VFXNewFloat3Type() 
+        {
+            m_Children = new VFXProperty[3];
+            m_Children[0] = new VFXProperty(new VFXFloatType(), "x");
+            m_Children[1] = new VFXProperty(new VFXFloatType(), "y");
+            m_Children[2] = new VFXProperty(new VFXFloatType(), "z");
+        }
+    }
 
     // Composite types
     public class VFXSphereType : VFXPropertyTypeSemantics
@@ -137,7 +147,7 @@ namespace UnityEngine.Experimental.VFX
         public VFXSphereType() 
         {
             m_Children = new VFXProperty[2];
-            m_Children[0] = new VFXProperty(new VFXPositionType(), "center");
+            m_Children[0] = new VFXProperty(new VFXNewFloat3Type(), "center1");
             m_Children[1] = new VFXProperty(new VFXFloatType(), "radius");
         }
     }

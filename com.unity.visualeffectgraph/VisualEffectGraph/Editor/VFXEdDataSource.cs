@@ -56,6 +56,7 @@ namespace UnityEditor.Experimental
                 }
             }
 
+            // TODO Remove that it is deprecated
             var dataEdge = e as DataEdge;
             if (dataEdge != null)
             {
@@ -74,6 +75,14 @@ namespace UnityEditor.Experimental
                     if (node != null)
                         node.Model.GetSlot(anchor.Index).Unlink();
                 }
+            }
+
+            // This is the new path
+            var propertyEdge = e as VFXUIPropertyEdge;
+            if (propertyEdge != null)
+            {
+                VFXUIPropertyAnchor inputAnchor = propertyEdge.Right;
+                ((VFXInputSlot)inputAnchor.Slot).Unlink();
             }
 
             m_Elements.Remove(e);
@@ -105,6 +114,7 @@ namespace UnityEditor.Experimental
             return edges;
         }
 
+        [Obsolete]
         public void ConnectData(VFXEdDataAnchor a, VFXEdDataAnchor b)
         {
             if (a.GetDirection() == Direction.Input)
@@ -131,6 +141,21 @@ namespace UnityEditor.Experimental
             }
 
             m_Elements.Add(new DataEdge(this, a, b));
+        }
+
+        public void ConnectData(VFXUIPropertyAnchor a, VFXUIPropertyAnchor b)
+        {
+            // Swap to get a as output and b as input
+            if (a.GetDirection() == Direction.Input)
+            {
+                VFXUIPropertyAnchor tmp = a;
+                a = b;
+                b = tmp;
+            }
+
+            RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(b);
+            ((VFXInputSlot)b.Slot).Link((VFXOutputSlot)a.Slot);
+            m_Elements.Add(new VFXUIPropertyEdge(this, a, b));
         }
 
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)

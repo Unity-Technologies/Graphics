@@ -236,10 +236,12 @@ namespace UnityEditor.Experimental
                 VFXEdDataAnchor input;
                 VFXEdDataAnchor output;
 
-                input = spawnedDataNodes[c.Previous.m_Node].NodeBlockContainer.nodeBlocks[c.Previous.m_NodeBlockIndex].GetField(c.Previous.m_ParameterName).Output;
-                output = spawnedContextNodes[c.Next.m_Node].NodeBlockContainer.nodeBlocks[c.Next.m_NodeBlockIndex].GetField(c.Next.m_ParameterName).Input;
+                // TODO Refactor
 
-                datasource.ConnectData(input,output);
+                //input = spawnedDataNodes[c.Previous.m_Node].NodeBlockContainer.nodeBlocks[c.Previous.m_NodeBlockIndex].GetField(c.Previous.m_ParameterName).Output;
+                //output = spawnedContextNodes[c.Next.m_Node].NodeBlockContainer.nodeBlocks[c.Next.m_NodeBlockIndex].GetField(c.Next.m_ParameterName).Input;
+
+                //datasource.ConnectData(input,output);
             }
 
             canvas.ReloadData();

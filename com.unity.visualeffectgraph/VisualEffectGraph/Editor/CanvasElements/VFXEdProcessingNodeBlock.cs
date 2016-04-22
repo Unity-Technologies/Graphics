@@ -20,7 +20,6 @@ namespace UnityEditor.Experimental
         {
             m_Model = new VFXBlockModel(block);
             
-
             // For selection
             target = ScriptableObject.CreateInstance<VFXEdProcessingNodeBlockTarget>();
             (target as VFXEdProcessingNodeBlockTarget).targetNodeBlock = this;
@@ -28,13 +27,15 @@ namespace UnityEditor.Experimental
             if (Properties != null && Properties.Length > 0)
             {
                 int nbProperties = Properties.Length;
-                m_Fields = new VFXEdNodeBlockParameterField[nbProperties];
+                m_Fields = new VFXUIPropertySlotField[nbProperties];
                 for (int i = 0; i < nbProperties; ++i)
                 {
-                    m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource as VFXEdDataSource, block.Properties[i].m_Name, Model.GetSlot(i), true, Direction.Input, i);
+                    m_Fields[i] = new VFXUIPropertySlotField(dataSource, Model.GetSlot(i));
                     AddChild(m_Fields[i]);
                 }
             }
+            else
+                m_Fields = new VFXUIPropertySlotField[0];
 
             m_LibraryName = block.Name;
 
