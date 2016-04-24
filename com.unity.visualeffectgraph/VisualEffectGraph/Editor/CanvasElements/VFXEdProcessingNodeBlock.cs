@@ -40,7 +40,6 @@ namespace UnityEditor.Experimental
             m_LibraryName = block.Name;
 
             AddChild(new VFXEdNodeBlockHeader(m_LibraryName, VFXEditor.styles.GetIcon(block.IconPath == "" ? "Default" : block.IconPath), block.Properties.Length > 0));
-            AddManipulator(new ImguiContainer());
 
             Layout();
         }

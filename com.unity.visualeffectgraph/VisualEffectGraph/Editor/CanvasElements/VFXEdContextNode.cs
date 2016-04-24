@@ -88,7 +88,6 @@ namespace UnityEditor.Experimental
             AddChild(outputs[0]);
             ZSort();
             Layout();
-
         }
 
         public void SetSlotValue(string name, VFXValue value)

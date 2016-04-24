@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental
     {
         public bool Collapseable { get { return m_NodeBlockCollapseManipulator.Enabled; } set { m_NodeBlockCollapseManipulator.Enabled = value; } }
 
-        private NodeBlockCollapse m_NodeBlockCollapseManipulator;
+        private Collapsable m_NodeBlockCollapseManipulator;
         private string m_Name;
         private Texture2D m_Icon;
 

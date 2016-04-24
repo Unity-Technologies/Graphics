@@ -31,21 +31,21 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public VFXPropertySlot() {}
-        public VFXPropertySlot(VFXProperty desc,VFXPropertySlotObserver observer = null)
-        {
-            Init(null,desc,observer);     
-        }
 
-        private void Init(VFXPropertySlot parent,VFXProperty desc,VFXPropertySlotObserver observer)
+        protected void Init<T>(VFXPropertySlot parent, VFXProperty desc, VFXPropertySlotObserver observer) where T : VFXPropertySlot, new()
         {
-            m_Parent = parent;
             m_Observer = observer;
             m_Desc = desc;
-            Semantics.CreateValue(this);
- 
             m_FullName = desc.m_Name;
-            if (m_Parent != null)
-                m_FullName = m_Parent.m_FullName + "_" + desc.m_Name;
+            if (parent != null)
+                m_FullName = parent.m_FullName + "_" + desc.m_Name;
+ 
+            CreateChildren<T>();
+            Semantics.CreateValue(this);
+            SetDefault();
+
+            // Set the parent at the end
+            m_Parent = parent;
         }
 
         protected void CreateChildren<T>() where T : VFXPropertySlot, new()
@@ -57,14 +57,11 @@ namespace UnityEngine.Experimental.VFX
                 m_Children = new VFXPropertySlot[nbChildren];
                 for (int i = 0; i < nbChildren; ++i)
                 {
-                    VFXPropertySlot child = new T();
-                    child.Init(this,children[i],m_Observer);
-                    child.CreateChildren<T>();
+                    VFXPropertySlot child = new T();     
+                    child.Init<T>(this, children[i], m_Observer);
                     m_Children[i] = child;
                 }
             }
-
-            SetDefault();
         }
 
         public void SetDefault()
@@ -129,11 +126,21 @@ namespace UnityEngine.Experimental.VFX
         public void NotifyChange(Event type)
         {
             // Invalidate expression cache
-            m_OwnedValue.Invalidate();
+            if (m_OwnedValue != null)
+            {
+                m_OwnedValue.Invalidate();
+                m_OwnedValue.Reduce(); // tmp to force a recache
+            }
 
             if (m_Observer != null)
-                m_Observer.OnSlotEvent(type,this);
+                m_Observer.OnSlotEvent(type, this);
+
             PropagateChange(type);
+
+            // Invalidate parent's cache and Update parent proxy if any in case of link update
+            if (m_Parent != null)
+                if (type == Event.kValueUpdated || m_Parent.Semantics.UpdateProxy(m_Parent))
+                    m_Parent.NotifyChange(type);
         }
 
         public virtual void PropagateChange(Event type) {}
@@ -177,7 +184,7 @@ namespace UnityEngine.Experimental.VFX
             VFXExpression refValue = refSlot.Value;
             
             if (refValue != null) // if not null it means value has a concrete type (not kNone)
-                values.Add(new VFXNamedValue(m_FullName,refValue.Reduce()));
+                values.Add(new VFXNamedValue(m_FullName,refValue.Reduce())); // TODO Reduce must not be performed here
             else foreach (var child in refSlot.m_Children) // Continue only until we found a value
                 child.CollectNamedValues(values);
         }
@@ -198,9 +205,8 @@ namespace UnityEngine.Experimental.VFX
     {
         public VFXInputSlot() {}
         public VFXInputSlot(VFXProperty desc,VFXPropertySlotObserver owner = null)
-            : base(desc,owner)
         {
-            CreateChildren<VFXInputSlot>();   
+            Init<VFXInputSlot>(null, desc, owner);  
         }
 
         public bool Link(VFXOutputSlot slot)
@@ -267,9 +273,8 @@ namespace UnityEngine.Experimental.VFX
     {
         public VFXOutputSlot() {}
         public VFXOutputSlot(VFXProperty desc,VFXPropertySlotObserver owner = null)
-            : base(desc,owner)
         {
-            CreateChildren<VFXOutputSlot>();
+            Init<VFXOutputSlot>(null, desc, owner); 
         }
 
         public override void PropagateChange(VFXPropertySlot.Event type)

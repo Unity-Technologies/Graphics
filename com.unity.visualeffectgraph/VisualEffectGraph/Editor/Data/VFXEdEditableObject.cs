@@ -102,8 +102,7 @@ namespace UnityEditor.Experimental
             }
             else
             {
-                foreach (var slot in safeTarget.targetNodeBlock.Slots)
-                    VFXUIHelper.SlotField(slot);
+                VFXUIHelper.SlotField(safeTarget.targetNodeBlock.Slot);
             }
             
             EditorGUILayout.EndVertical();
@@ -125,8 +124,9 @@ namespace UnityEditor.Experimental
  
         void OnDisable()
         {
-            if (safeTarget.targetNodeBlock.editingWidget != null)
-                SceneView.onSceneGUIDelegate -= safeTarget.targetNodeBlock.editingWidget.OnSceneGUI;
+            // TODO Refacto fix that
+            //if (safeTarget.targetNodeBlock.editingWidget != null)
+            //    SceneView.onSceneGUIDelegate -= safeTarget.targetNodeBlock.editingWidget.OnSceneGUI;
         }
 
     }

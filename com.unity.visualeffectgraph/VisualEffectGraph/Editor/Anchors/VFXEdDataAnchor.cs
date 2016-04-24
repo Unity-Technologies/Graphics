@@ -42,18 +42,19 @@ namespace UnityEditor.Experimental
 
     internal class VFXUIPropertyAnchor : CanvasElement, IConnect
     {
-        public VFXPropertySlot Slot                 { get { return m_Slot; } }
+        public VFXUIPropertySlotField Owner         { get { return m_Owner; } }
+        public VFXPropertySlot Slot                 { get { return Owner.Slot; } }
         public VFXPropertyTypeSemantics Semantics   { get { return Slot.Semantics; } }
         public VFXValueType ValueType               { get { return Slot.ValueType; } }
 
-        private VFXPropertySlot m_Slot;
+        private VFXUIPropertySlotField m_Owner;
         private Direction m_Direction;
         private VFXEdDataSource m_DataSource;
-        private VFXSemanticsSource m_Source;
+        private VFXSemanticsSource m_Source; 
 
-        public VFXUIPropertyAnchor(VFXEdDataSource dataSource, Vector3 position, VFXPropertySlot slot, Direction direction)
+        public VFXUIPropertyAnchor(VFXUIPropertySlotField owner, VFXEdDataSource dataSource, Vector3 position, Direction direction)
         {
-            m_Slot = slot;
+            m_Owner = owner;
             m_Direction = direction;
             m_DataSource = dataSource;
             m_Source = new VFXSemanticsSource(Semantics);
@@ -74,7 +75,7 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            if (!collapsed)
+            if (!collapsed && !Owner.Collapsed())
             {
                 Rect r = GetDrawableRect();
                 switch (m_Direction)
@@ -110,7 +111,7 @@ namespace UnityEditor.Experimental
             thisRect.x -= 2;
             thisRect.y += 5;
             GUI.color = VFXEditor.styles.GetTypeColor(ValueType);
-            if (!collapsed)
+            if (!collapsed && !Owner.Collapsed())
             {
                 switch (m_Direction)
                 {

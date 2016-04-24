@@ -105,7 +105,7 @@ namespace UnityEditor.Experimental
             m_DataSource.AddElement(n);
             if (m_InitialBlock != null)
             {
-                VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(m_canvasPosition, m_InitialBlock, n, m_DataSource, m_InitialBlock.name);
+                VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(m_canvasPosition, m_InitialBlock, n, m_DataSource, m_InitialBlock.Name);
                 spawner.Spawn();
             }
             m_Canvas.ReloadData();
@@ -160,9 +160,10 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            if (m_DataBlock.editingWidget == null)
+            // TODO Make that work
+            //if (m_DataBlock.editingWidget == null)
                 m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName));
-            else
+           /* else
             {
                 VFXEdDataNodeBlock block = new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName, m_DataBlock.editingWidget);
                 
@@ -173,7 +174,7 @@ namespace UnityEditor.Experimental
 
                 m_Node.NodeBlockContainer.AddNodeBlock(block);
                 block.editingWidget.CreateBinding(block);
-            }
+            }*/
                
 
            

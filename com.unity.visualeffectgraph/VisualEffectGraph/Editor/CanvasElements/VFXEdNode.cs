@@ -42,6 +42,8 @@ namespace UnityEditor.Experimental
             MouseDown += ManageSelection;
             this.ContextClick += ManageRightClick;
 
+            // TODO debug that and decomment
+            AddManipulator(new ImguiContainer());
         }
 
         protected abstract GenericMenu GetNodeMenu(Vector2 canvasClickPosition);

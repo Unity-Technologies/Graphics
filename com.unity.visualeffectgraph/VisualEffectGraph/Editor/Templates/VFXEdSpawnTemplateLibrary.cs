@@ -479,7 +479,8 @@ namespace UnityEditor.Experimental
                     t.AddDataNode(node.UniqueName, node.exposed);
                     
                     // Data Node Blocks
-                    foreach(VFXEdDataNodeBlock block in node.NodeBlockContainer.nodeBlocks)
+                    // TODO Refactor : Make that work again
+                   /* foreach(VFXEdDataNodeBlock block in node.NodeBlockContainer.nodeBlocks)
                     {
                         if(block.editingDataContainer != null)
                             t.AddDataNodeBlock(node.UniqueName, block.UniqueName,block.m_exposedName, block.LibraryName ,block.editingDataContainer);
@@ -496,7 +497,7 @@ namespace UnityEditor.Experimental
                             else
                                 t.SetDataNodeBlockParameter(node.UniqueName, block.UniqueName, block.Params[i].m_Name, (block.Slots[i].Value as VFXValue).Clone());
                         }
-                    }
+                    }*/
                 }
             }
 

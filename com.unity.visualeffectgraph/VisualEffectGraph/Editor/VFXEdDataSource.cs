@@ -83,6 +83,8 @@ namespace UnityEditor.Experimental
             {
                 VFXUIPropertyAnchor inputAnchor = propertyEdge.Right;
                 ((VFXInputSlot)inputAnchor.Slot).Unlink();
+                propertyEdge.Left.Invalidate();
+                propertyEdge.Right.Invalidate();
             }
 
             m_Elements.Remove(e);
@@ -154,8 +156,15 @@ namespace UnityEditor.Experimental
             }
 
             RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(b);
+
+            // Disconnect connected children anchors and collapse
+            b.Owner.DisconnectChildren();
+            b.Owner.CollapseChildren(true);    
+
             ((VFXInputSlot)b.Slot).Link((VFXOutputSlot)a.Slot);
             m_Elements.Add(new VFXUIPropertyEdge(this, a, b));
+
+            b.Invalidate();
         }
 
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)

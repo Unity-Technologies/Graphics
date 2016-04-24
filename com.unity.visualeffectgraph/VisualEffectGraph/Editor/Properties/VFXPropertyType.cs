@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEditor;
 using System;
 using System.Collections.Generic;
 
@@ -56,14 +57,13 @@ namespace UnityEngine.Experimental.VFX
 
         public virtual bool Default(VFXPropertySlot slot)       { return false; }
 
-        public virtual void CreateUIGizmo(VFXPropertySlot value)   {}
-        public virtual void CreateUIField(VFXPropertySlot value)   {}
+        public virtual void CreateUIGizmo(VFXPropertySlot value)                    {}
+        public virtual void RenderUIController(VFXPropertySlot value,Rect area)     {}
 
         public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
         public virtual bool ProxyType { get { return false; } } // A proxy Type is a type that only represent a view of children hierarchy
 
-        public virtual void ProxyCombine(VFXPropertySlot slot)  { }  // Set Proxy value from underlying values
-        public virtual void ProxyExpand(VFXPropertySlot slot)   { }  // Set Underlying values from proxy value
+        public virtual bool UpdateProxy(VFXPropertySlot slot) { return false; }  // Set Proxy value from underlying values
         //public abstract void ExtracValues(List<VFXValue> dst);
 
         public int GetNbChildren() { return m_Children == null ? 0 : m_Children.Length; }
@@ -79,65 +79,163 @@ namespace UnityEngine.Experimental.VFX
     }
 
     // Base concrete type
-    public class VFXFloatType : VFXPropertyTypeSemantics         { public override VFXValueType ValueType { get { return VFXValueType.kFloat; }}}
-    public class VFXIntType : VFXPropertyTypeSemantics           { public override VFXValueType ValueType { get { return VFXValueType.kInt; }}}
-    public class VFXUintType : VFXPropertyTypeSemantics          { public override VFXValueType ValueType { get { return VFXValueType.kUint; }}}
-    public class VFXTexture2DType : VFXPropertyTypeSemantics     { public override VFXValueType ValueType { get { return VFXValueType.kTexture2D; }}}
-    public class VFXTexture3DType : VFXPropertyTypeSemantics     { public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; }}}
-
-    // Composite types
-    /*public class VFXFloat2Type : VFXPropertyTypeSemantics 
+    public class VFXFloatType : VFXPropertyTypeSemantics         
     {
-        public override bool Default(VFXPropertySlot slot)
+        public VFXFloatType(): this(0.0f) {}
+        public VFXFloatType(float defaultValue)             { m_Default = defaultValue; }
+        public override VFXValueType ValueType              { get { return VFXValueType.kFloat; } }
+        
+        public override bool Default(VFXPropertySlot slot)  
         {
-            Check(slot);
-
-            slot.GetChild(1).SetValue(0.0f);
-            slot.GetChild(2).SetValue(0.0f);
-            slot.GetChild(3).SetValue(0.0f);
-
-            return true;
+            slot.SetValue(m_Default); 
+            return true; 
+        }
+        
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
+        {
+            slot.SetValue(EditorGUI.FloatField(area, "", slot.GetValue<float>()));
         }
 
-        public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } } 
-    }*/
-
-    // TMP this should be proxy types at the end
-    public class VFXFloat2Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } } }
-    public class VFXFloat3Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } } }
-    public class VFXFloat4Type : VFXPropertyTypeSemantics { public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } } }
-
-    // Concrete type with custom editing widget
-    /*public class VFXPositionType : VFXFloat3Type 
-    {
-
+        private float m_Default;
     }
 
-    public class VFXDirectionType : VFXFloat3Type 
+    public class VFXIntType : VFXPropertyTypeSemantics
     {
-        public override bool Default(VFXPropertySlot slot) 
+        public VFXIntType(): this(0) {}
+        VFXIntType(int defaultValue)                        { m_Default = defaultValue; }
+        public override VFXValueType ValueType              { get { return VFXValueType.kInt; } }
+        
+        public override bool Default(VFXPropertySlot slot)  
+        {
+            slot.SetValue(m_Default);
+            return true; 
+        }
+
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
+        {
+            slot.SetValue(EditorGUI.IntField(area, "", slot.GetValue<int>()));
+        }
+
+        private int m_Default;
+    }
+
+    public class VFXUintType : VFXPropertyTypeSemantics
+    {
+        public VFXUintType() : this(0u) {}
+        VFXUintType(uint defaultValue)                      { m_Default = defaultValue; }
+        public override VFXValueType ValueType              { get { return VFXValueType.kUint; } }
+        
+        public override bool Default(VFXPropertySlot slot)  
+        {
+            slot.SetValue(m_Default);
+            return true; 
+        }
+
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
+        {
+            slot.SetValue<uint>((uint)EditorGUI.IntField(area, "", (int)slot.GetValue<uint>()));
+        }
+
+        private uint m_Default;
+    }
+
+    public class VFXFloat2Type : VFXPropertyTypeSemantics 
+    {
+        public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } }
+
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
+        {
+            slot.SetValue(EditorGUI.Vector2Field(area, "", slot.GetValue<Vector2>()));
+        }
+    }
+    
+    public class VFXFloat3Type : VFXPropertyTypeSemantics 
+    {
+        public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } }
+
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
+        {
+            slot.SetValue(EditorGUI.Vector3Field(area, "", slot.GetValue<Vector3>()));
+        }
+    }
+
+    public class VFXFloat4Type : VFXPropertyTypeSemantics 
+    { 
+        public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } }
+
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
+        {
+            slot.SetValue(EditorGUI.Vector4Field(area, "", slot.GetValue<Vector4>()));
+        }
+    }
+
+    public class VFXTexture2DType : VFXPropertyTypeSemantics
+    {
+        public override VFXValueType ValueType { get { return VFXValueType.kTexture2D; } }
+
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
+        {
+            slot.SetValue<Texture2D>((Texture2D)EditorGUI.ObjectField(area, slot.GetValue<Texture2D>(), typeof(Texture2D)));
+        }
+    }
+
+    public class VFXTexture3DType : VFXPropertyTypeSemantics
+    {
+        public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; } }
+
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
+        {
+            slot.SetValue<Texture3D>((Texture3D)EditorGUI.ObjectField(area, slot.GetValue<Texture3D>(), typeof(Texture3D)));
+        }
+    }
+
+    // Proxy types
+    public class VFXFloat3TypeProxy : VFXFloat3Type
+    {
+        public VFXFloat3TypeProxy() : this(Vector3.zero) {}
+        public VFXFloat3TypeProxy(Vector3 defaultValue) 
+        {
+            m_Children = new VFXProperty[3];
+            m_Children[0] = new VFXProperty(new VFXFloatType(defaultValue.x), "x");
+            m_Children[1] = new VFXProperty(new VFXFloatType(defaultValue.y), "y");
+            m_Children[2] = new VFXProperty(new VFXFloatType(defaultValue.z), "z");
+        }
+
+        public override void CreateValue(VFXPropertySlot slot)
+        {
+            UpdateProxy(slot);
+        }
+
+        public override bool UpdateProxy(VFXPropertySlot slot)
         {
             Check(slot);
 
-            slot.GetChild(1).SetValue(0.0f);
-            slot.GetChild(2).SetValue(0.0f);
-            slot.GetChild(3).SetValue(1.0f);
+            slot.Value = new VFXExpressionCombineFloat3(
+                slot.GetChild(0).ValueRef,
+                slot.GetChild(1).ValueRef,
+                slot.GetChild(2).ValueRef);
 
             return true;
         }
-    }*/
 
-    public class VFXPositionType : VFXFloat3Type { }
-    public class VFXDirectionType : VFXFloat3Type { }
-
-    public class VFXNewFloat3Type : VFXFloat3Type
-    {
-        public VFXNewFloat3Type() 
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
         {
-            m_Children = new VFXProperty[3];
-            m_Children[0] = new VFXProperty(new VFXFloatType(), "x");
-            m_Children[1] = new VFXProperty(new VFXFloatType(), "y");
-            m_Children[2] = new VFXProperty(new VFXFloatType(), "z");
+            Check(slot);
+
+            var xSlot = slot.GetChild(0);
+            var ySlot = slot.GetChild(1);
+            var zSlot = slot.GetChild(2);
+
+            Vector3 v = new Vector3(
+                xSlot.GetValue<float>(),
+                ySlot.GetValue<float>(),
+                zSlot.GetValue<float>());
+
+            v = EditorGUI.Vector3Field(area, "", v);
+
+            xSlot.SetValue(v.x);
+            ySlot.SetValue(v.y);
+            zSlot.SetValue(v.z);
         }
     }
 
@@ -147,18 +245,8 @@ namespace UnityEngine.Experimental.VFX
         public VFXSphereType() 
         {
             m_Children = new VFXProperty[2];
-            m_Children[0] = new VFXProperty(new VFXNewFloat3Type(), "center1");
-            m_Children[1] = new VFXProperty(new VFXFloatType(), "radius");
-        }
-    }
-
-    public class VFXPlaneType : VFXPropertyTypeSemantics
-    {
-        public VFXPlaneType() 
-        {
-            m_Children = new VFXProperty[2];
-            m_Children[0] = new VFXProperty(new VFXPositionType(), "position");
-            m_Children[1] = new VFXProperty(new VFXDirectionType(), "normal");
+            m_Children[0] = new VFXProperty(new VFXFloat3TypeProxy(), "center");
+            m_Children[1] = new VFXProperty(new VFXFloatType(1.0f), "radius");
         }
     }
 }
