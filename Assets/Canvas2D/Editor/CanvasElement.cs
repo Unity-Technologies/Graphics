@@ -96,12 +96,15 @@ namespace UnityEditor.Experimental
             get { return m_Collapsed; }
             set
             {
-                m_Collapsed = value;
-                foreach (CanvasElement e in m_Children)
+                if (m_Collapsed != value)
                 {
-                    e.collapsed = value;
+                    m_Collapsed = value;
+                    foreach (CanvasElement e in m_Children)
+                    {
+                        e.collapsed = value;
+                    }
+                    UpdateModel(UpdateType.Update);
                 }
-                UpdateModel(UpdateType.Update);
             }
         }
 
