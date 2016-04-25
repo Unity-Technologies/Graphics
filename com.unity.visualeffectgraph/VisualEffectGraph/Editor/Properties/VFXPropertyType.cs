@@ -318,6 +318,16 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
+    public class VFXAABoxType : VFXPropertyTypeSemantics
+    {
+        public VFXAABoxType()
+        {
+            m_Children = new VFXProperty[2];
+            m_Children[0] = new VFXProperty(new VFXFloat3Type(), "center");
+            m_Children[1] = new VFXProperty(new VFXFloat3Type(Vector3.one), "size");
+        }
+    }
+
     public class VFXPlaneType : VFXPropertyTypeSemantics
     {
         public VFXPlaneType()
