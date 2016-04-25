@@ -129,4 +129,40 @@ namespace UnityEngine.Experimental.VFX
         public override string IconPath { get { return "Position"; } }
         public override string Category { get { return "Position/"; } }
     }
+
+    // TMP to test color
+    class VFXBlockSetColorOverLifetime : VFXBlockDesc
+    {
+        public VFXBlockSetColorOverLifetime()
+        {
+            m_Properties = new VFXProperty[2] {
+                VFXProperty.Create<VFXColorRGBType>("start"),
+                VFXProperty.Create<VFXColorRGBType>("end"),
+            };
+
+            m_Attributes = new VFXAttribute[3] {
+                new VFXAttribute("color",VFXValueType.kFloat3,true),
+                new VFXAttribute("age",VFXValueType.kFloat,false),
+                new VFXAttribute("lifetime",VFXValueType.kFloat,false),
+            };
+
+            // TODO this should be derived automatically
+            m_Flag = Flag.kHasRand;
+            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+        }
+
+        public override string Source
+        {
+            get
+            {
+                return @"float ratio = saturate(age / lifetime);
+    color = lerp(start,end,ratio);";
+            }
+        }
+
+        public override string Name { get { return "Color Over Lifetime"; } }
+        public override string IconPath { get { return "Color"; } }
+        public override string Category { get { return "Color/"; } }
+    }
+
 }

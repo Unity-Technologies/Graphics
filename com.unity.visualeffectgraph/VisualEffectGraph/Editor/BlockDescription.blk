@@ -59,18 +59,6 @@ color = lerp(value1,value2,RAND);
 
 color = tex2Dlod(gradient, float4(RAND,0,0,0)).rgb;
 
-#block Color Over Lifetime
-#icon Color
-#category Color/
-#arg float3 color [inout|param]
-#arg float age [param] 
-#arg float lifetime [param] 
-#arg float3 start [public] 
-#arg float3 end [public] 
-
-float ratio = saturate(age / lifetime);
-color = lerp(start,end,ratio);
-
 #block RGBA Gradient Over Life
 #icon Color
 #category Color/

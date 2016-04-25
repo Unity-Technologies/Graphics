@@ -232,8 +232,6 @@ namespace UnityEngine.Experimental.VFX
 
         public override void RenderUIController(VFXPropertySlot slot, Rect area)
         {
-            Check(slot);
-
             var xSlot = slot.GetChild(0);
             var ySlot = slot.GetChild(1);
             var zSlot = slot.GetChild(2);
@@ -285,8 +283,6 @@ namespace UnityEngine.Experimental.VFX
 
         public override void RenderUIController(VFXPropertySlot slot, Rect area)
         {
-            Check(slot);
-
             var xSlot = slot.GetChild(0);
             var ySlot = slot.GetChild(1);
             var zSlot = slot.GetChild(2);
@@ -304,6 +300,27 @@ namespace UnityEngine.Experimental.VFX
             ySlot.SetValue(v.y);
             zSlot.SetValue(v.y);
             wSlot.SetValue(v.y);
+        }
+    }
+
+    public class VFXColorRGBType : VFXFloat3Type
+    {
+        public override void RenderUIController(VFXPropertySlot slot, Rect area)
+        {
+            var xSlot = slot.GetChild(0);
+            var ySlot = slot.GetChild(1);
+            var zSlot = slot.GetChild(2);
+
+            Color c = new Color(
+                xSlot.GetValue<float>(),
+                ySlot.GetValue<float>(),
+                zSlot.GetValue<float>());
+
+            c = EditorGUI.ColorField(area, "", c);
+
+            xSlot.SetValue(c.r);
+            ySlot.SetValue(c.g);
+            zSlot.SetValue(c.b);
         }
     }
 
