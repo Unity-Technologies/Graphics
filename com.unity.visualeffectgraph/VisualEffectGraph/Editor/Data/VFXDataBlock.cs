@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXIntType>("Int"), "type_integer", "Generic types"));
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXFloatType>("Float"), "type_float", "Generic types"));
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXFloat2Type>("Vector2"), "type_vector2", "Generic types"));
-            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXFloat3TypeProxy>("Vector3"), "type_vector3", "Generic types"));
+            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXFloat3Type>("Vector3"), "type_vector3", "Generic types"));
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXFloat4Type>("Vector4"), "type_vector4", "Generic types"));
 
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXSphereType>("sphere"), "Sphere", "Primitives"));

@@ -201,6 +201,7 @@ namespace UnityEngine.Experimental.VFX
         private string m_FullName; // name in the slot hierarchy. In the form: parent0_[...]_parentN_propertyName
     }
 
+    // Concrete implementation for input slot (can be linked to only one output slot)
     public class VFXInputSlot : VFXPropertySlot
     {
         public VFXInputSlot() {}
@@ -269,6 +270,7 @@ namespace UnityEngine.Experimental.VFX
         private VFXOutputSlot m_ConnectedSlot;
     }
 
+    // Concrete implementation for output slot (can be linked to several input slot)
     public class VFXOutputSlot : VFXPropertySlot
     {
         public VFXOutputSlot() {}
