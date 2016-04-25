@@ -231,18 +231,18 @@ namespace UnityEditor.Experimental
                 datasource.ConnectFlow(spawnedContextNodes[fc.Previous].outputs[0], spawnedContextNodes[fc.Next].inputs[0]);
             }
 
-            foreach(DataConnection c in m_DataConnections)
+            // TODO Refactor
+            /*foreach(DataConnection c in m_DataConnections)
             {
+                
                 VFXEdDataAnchor input;
                 VFXEdDataAnchor output;
 
-                // TODO Refactor
+                input = spawnedDataNodes[c.Previous.m_Node].NodeBlockContainer.nodeBlocks[c.Previous.m_NodeBlockIndex].GetField(c.Previous.m_ParameterName).Output;
+                output = spawnedContextNodes[c.Next.m_Node].NodeBlockContainer.nodeBlocks[c.Next.m_NodeBlockIndex].GetField(c.Next.m_ParameterName).Input;
 
-                //input = spawnedDataNodes[c.Previous.m_Node].NodeBlockContainer.nodeBlocks[c.Previous.m_NodeBlockIndex].GetField(c.Previous.m_ParameterName).Output;
-                //output = spawnedContextNodes[c.Next.m_Node].NodeBlockContainer.nodeBlocks[c.Next.m_NodeBlockIndex].GetField(c.Next.m_ParameterName).Input;
-
-                //datasource.ConnectData(input,output);
-            }
+                datasource.ConnectData(input,output);
+            }*/
 
             canvas.ReloadData();
         }

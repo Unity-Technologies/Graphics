@@ -107,8 +107,9 @@ namespace UnityEngine.Experimental.VFX
     {
         public VFXSpawnOnSphereBlock()
         {
-            m_Properties = new VFXProperty[1] {
+            m_Properties = new VFXProperty[2] {
                 VFXProperty.Create<VFXSphereType>("sphere"),
+                new VFXProperty(new VFXFloatType(0.4f),"blabla"),
             };
 
             m_Attributes = new VFXAttribute[1] {

@@ -30,17 +30,6 @@ namespace UnityEditor.Experimental
         }
     }
 
-    [Obsolete]
-    public class VFXDataParam {
-        public string m_Name;
-        public VFXValueType m_type;
-        public VFXDataParam(string name, VFXValueType type)
-        {
-            m_Name = name;
-            m_type = type;
-        }
-    }
-
     internal class VFXDataBlockLibraryCollection
     {
         public List<VFXDataBlock> blocks { get { return m_DataBlocks; } }
@@ -68,7 +57,7 @@ namespace UnityEditor.Experimental
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXFloat3TypeProxy>("Vector3"), "type_vector3", "Generic types"));
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXFloat4Type>("Vector4"), "type_vector4", "Generic types"));
 
-            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXSphereType>("Sphere"), "Sphere", "Primitives"));
+            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXSphereType>("sphere"), "Sphere", "Primitives"));
 
             // TODO : Add Blocks Here
             /*VFXDataBlock intblock = new VFXDataBlock("Int", "type_integer", "Generic types");

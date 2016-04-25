@@ -56,28 +56,6 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            // TODO Remove that it is deprecated
-            var dataEdge = e as DataEdge;
-            if (dataEdge != null)
-            {
-                VFXEdDataAnchor anchor = dataEdge.Right;
-
-                // TODO : Refactor needed : as VFXEdNodeBlock doesn't implement Model, as Model in this case should be VFXParamBindable
-                if(anchor.FindParent<VFXEdProcessingNodeBlock>() != null)
-                {
-                    VFXEdProcessingNodeBlock node = anchor.FindParent<VFXEdProcessingNodeBlock>();
-                    if (node != null)
-                        node.Model.GetSlot(anchor.Index).Unlink();
-                }
-                else if (anchor.FindParent<VFXEdContextNodeBlock>() != null)
-                {
-                    VFXEdContextNodeBlock node = anchor.FindParent<VFXEdContextNodeBlock>();
-                    if (node != null)
-                        node.Model.GetSlot(anchor.Index).Unlink();
-                }
-            }
-
-            // This is the new path
             var propertyEdge = e as VFXUIPropertyEdge;
             if (propertyEdge != null)
             {
@@ -114,35 +92,6 @@ namespace UnityEditor.Experimental
                     edges.Add(edge);
             }
             return edges;
-        }
-
-        [Obsolete]
-        public void ConnectData(VFXEdDataAnchor a, VFXEdDataAnchor b)
-        {
-            if (a.GetDirection() == Direction.Input)
-            {
-                VFXEdDataAnchor tmp = a;
-                a = b;
-                b = tmp;
-            }
-
-            VFXOutputSlot output = a.FindParent<VFXEdNodeBlockParameterField>().Value as VFXOutputSlot;
-            
-            // TODO : Refactor needed : as VFXEdNodeBlock doesn't implement Model, as Model in this case should be VFXParamBindable
-            if(b.FindParent<VFXEdProcessingNodeBlock>() != null)
-            {
-                VFXBlockModel model = b.FindParent<VFXEdProcessingNodeBlock>().Model;
-                RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
-                model.GetSlot(b.Index).Link(output);
-            }
-            else if(b.FindParent<VFXEdContextNodeBlock>() != null)
-            {
-                VFXContextModel model = b.FindParent<VFXEdContextNodeBlock>().Model;
-                RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
-                model.GetSlot(b.Index).Link(output);
-            }
-
-            m_Elements.Add(new DataEdge(this, a, b));
         }
 
         public void ConnectData(VFXUIPropertyAnchor a, VFXUIPropertyAnchor b)
