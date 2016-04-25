@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.VFX
 
         public virtual bool Default(VFXPropertySlot slot)       { return false; }
 
-        public virtual void CreateUIGizmo(VFXPropertySlot value)                    {}
+        public virtual void CreateUIWidget(VFXPropertySlot value)                   {}
         public virtual void RenderUIController(VFXPropertySlot value,Rect area)     {}
 
         public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
