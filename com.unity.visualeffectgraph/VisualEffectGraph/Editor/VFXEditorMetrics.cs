@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental
         public static readonly float NodeBlockHeaderHeight = 40f;
         public static readonly float NodeBlockFooterHeight = 4f;
         public static readonly float NodeBlockParameterHeight = 16f;
-        public static readonly float NodeBlockParameterSpacingHeight = 8f;
+        public static readonly float NodeBlockParameterSpacingHeight = 6f;
         public static readonly float NodeBlockAdditionalHeight = 16f;
         public static readonly Rect NodeBlockHeaderFoldoutRect = new Rect(new Vector2(20f, 8f), new Vector2(24f, 24f));
         // public static readonly Rect NodeBlockHeaderIconRect = new Rect(new Vector2(56f, 12f), new Vector2(16f, 16f));

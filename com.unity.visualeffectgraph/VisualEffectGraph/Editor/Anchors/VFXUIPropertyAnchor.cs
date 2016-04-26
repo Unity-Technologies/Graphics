@@ -107,6 +107,7 @@ namespace UnityEditor.Experimental
             thisRect = canvas.CanvasToScreen(thisRect);
 
             // TODO : Find out why theres a -2,5 offset in C2D overlays then remove this crap
+            // For undocked windows, offsets should be : (-0,2)
             thisRect.x -= 2;
             thisRect.y += 5;
             GUI.color = VFXEditor.styles.GetTypeColor(ValueType);

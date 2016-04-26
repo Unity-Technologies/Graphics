@@ -140,12 +140,12 @@ namespace UnityEditor.Experimental
                 Rect r = GetDrawableRect();
 
                 Rect fieldrect = VFXEditorMetrics.ParameterFieldRectOffset.Remove(r);
-                Rect labelrect = new Rect(fieldrect.x + m_Depth * VFXEditorMetrics.ParameterFieldIndentWidth, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.height);
-                Rect editrect = new Rect(fieldrect.x + VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.height);
+                Rect labelrect = new Rect(fieldrect.x + m_Depth * VFXEditorMetrics.ParameterFieldIndentWidth, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth, VFXEditorMetrics.NodeBlockParameterHeight);
+                Rect editrect = new Rect(fieldrect.x + VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth, VFXEditorMetrics.NodeBlockParameterHeight);
                 Rect collapseRect = new Rect(fieldrect.x + fieldrect.width + (VFXEditorMetrics.ParameterFieldRectOffset.right - VFXEditorMetrics.ParameterFieldFoldOutWidth) * 0.5f,
                     fieldrect.y,
                     VFXEditorMetrics.ParameterFieldFoldOutWidth,
-                    fieldrect.height);
+                    VFXEditorMetrics.NodeBlockParameterHeight);
 
                 EditorGUI.BeginDisabledGroup(IsConnected());
                 EditorGUI.LabelField(labelrect, Name);

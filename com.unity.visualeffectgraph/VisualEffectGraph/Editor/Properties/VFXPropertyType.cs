@@ -232,20 +232,24 @@ namespace UnityEngine.Experimental.VFX
 
         public override void RenderUIController(VFXPropertySlot slot, Rect area)
         {
-            var xSlot = slot.GetChild(0);
-            var ySlot = slot.GetChild(1);
-            var zSlot = slot.GetChild(2);
+            Vector3 v = GetValue(slot);
+            SetValue(slot,EditorGUI.Vector3Field(area, "", v));
+        }
 
-            Vector3 v = new Vector3(
-                xSlot.GetValue<float>(),
-                ySlot.GetValue<float>(),
-                zSlot.GetValue<float>());
+        protected void SetValue(VFXPropertySlot slot, Vector3 v)
+        {
+            slot.GetChild(0).SetValue(v.x);
+            slot.GetChild(1).SetValue(v.y);
+            slot.GetChild(2).SetValue(v.z);
+        }
 
-            v = EditorGUI.Vector3Field(area, "", v);
-
-            xSlot.SetValue(v.x);
-            ySlot.SetValue(v.y);
-            zSlot.SetValue(v.z);
+        protected Vector3 GetValue(VFXPropertySlot slot)
+        {
+            Vector3 v = new Vector3();
+            v.x = slot.GetChild(0).GetValue<float>();
+            v.y = slot.GetChild(1).GetValue<float>();
+            v.z = slot.GetChild(2).GetValue<float>();
+            return v;
         }
     }
 
@@ -305,22 +309,21 @@ namespace UnityEngine.Experimental.VFX
 
     public class VFXColorRGBType : VFXFloat3Type
     {
+        public override bool Default(VFXPropertySlot slot)
+        {
+            SetValue(slot,Vector3.one);
+            return true;
+        }
+
         public override void RenderUIController(VFXPropertySlot slot, Rect area)
         {
-            var xSlot = slot.GetChild(0);
-            var ySlot = slot.GetChild(1);
-            var zSlot = slot.GetChild(2);
+            Vector3 v = GetValue(slot);
+            
+            Color c = new Color(v.x, v.y, v.z);
+            c = EditorGUI.ColorField(area, GUIContent.none, c, false, false, true, new ColorPickerHDRConfig(0.0f,100.0f,0.0f,100.0f));
 
-            Color c = new Color(
-                xSlot.GetValue<float>(),
-                ySlot.GetValue<float>(),
-                zSlot.GetValue<float>());
-
-            c = EditorGUI.ColorField(area, "", c);
-
-            xSlot.SetValue(c.r);
-            ySlot.SetValue(c.g);
-            zSlot.SetValue(c.b);
+            v.Set(c.r, c.g, c.b);
+            SetValue(slot, v);
         }
     }
 
