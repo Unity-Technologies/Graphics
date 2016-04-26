@@ -348,23 +348,6 @@ namespace UnityEditor.Experimental
 
             CollectAttributes(attribs, initBlocks, 0);
             CollectAttributes(attribs, updateBlocks, 1);
- 
-            if (VFXEditor.AssetModel.PhaseShift)     
-            {
-                if (attribs.ContainsKey(CommonAttrib.Position) && attribs.ContainsKey(CommonAttrib.Velocity))
-                {
-                    attribs[CommonAttrib.Phase] = 0x7; // Add phase attribute   
-                    attribs[CommonAttrib.Position] = attribs[CommonAttrib.Position] | 0xF; // Ensure position is writable in init and update
-                    attribs[CommonAttrib.Velocity] = attribs[CommonAttrib.Velocity] | 0x7; // Ensure velocity is readable in init and update
-
-                    initHasRand = true; // phase needs rand as initialization
-                }
-                else
-                {
-                    VFXEditor.AssetModel.PhaseShift = false;
-                    return null;
-                }
-            }
 
             // Update flags with generators
             VFXBlockDesc.Flag initGeneratorFlags = VFXBlockDesc.Flag.kNone;
@@ -383,6 +366,23 @@ namespace UnityEditor.Experimental
             VFXBlockDesc.Flag dummy = VFXBlockDesc.Flag.kNone;
             if (!outputGenerator.UpdateAttributes(attribs, ref dummy))
                 return null;
+
+            if (VFXEditor.AssetModel.PhaseShift)
+            {
+                if (attribs.ContainsKey(CommonAttrib.Position) && attribs.ContainsKey(CommonAttrib.Velocity))
+                {
+                    attribs[CommonAttrib.Phase] = 0x7; // Add phase attribute   
+                    attribs[CommonAttrib.Position] = attribs[CommonAttrib.Position] | 0xF; // Ensure position is writable in init and update
+                    attribs[CommonAttrib.Velocity] = attribs[CommonAttrib.Velocity] | 0x7; // Ensure velocity is readable in init and update
+
+                    initHasRand = true; // phase needs rand as initialization
+                }
+                else
+                {
+                    VFXEditor.AssetModel.PhaseShift = false;
+                    return null;
+                }
+            }
 
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
