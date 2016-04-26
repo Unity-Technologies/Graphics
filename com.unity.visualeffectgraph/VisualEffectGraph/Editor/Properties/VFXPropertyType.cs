@@ -54,8 +54,8 @@ namespace UnityEngine.Experimental.VFX
 
         public virtual bool Default(VFXPropertySlot slot)       { return false; }
 
-        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value) { return null; }
-        
+        // UI stuff
+        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value)    { return null; }    
         public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area) {}
         public virtual void OnInspectorGUI(VFXPropertySlot value)           {}
 
@@ -76,7 +76,7 @@ namespace UnityEngine.Experimental.VFX
     }
 
     // Base primitive types
-    public class VFXFloatType : VFXPropertyTypeSemantics         
+    public partial class VFXFloatType : VFXPropertyTypeSemantics         
     {
         public VFXFloatType(): this(0.0f) {}
         public VFXFloatType(float defaultValue)             { m_Default = defaultValue; }
@@ -87,22 +87,11 @@ namespace UnityEngine.Experimental.VFX
             slot.SetValue(m_Default); 
             return true; 
         }
-        
-        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
-        {
-            slot = slot.CurrentValueRef;
-            slot.SetValue(EditorGUI.FloatField(area, "", slot.GetValue<float>()));
-        }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            slot.SetValue(EditorGUILayout.FloatField(slot.Name, slot.GetValue<float>()));
-        }
 
         private float m_Default;
     }
 
-    public class VFXIntType : VFXPropertyTypeSemantics
+    public partial class VFXIntType : VFXPropertyTypeSemantics
     {
         public VFXIntType(): this(0) {}
         VFXIntType(int defaultValue)                        { m_Default = defaultValue; }
@@ -114,21 +103,10 @@ namespace UnityEngine.Experimental.VFX
             return true; 
         }
 
-        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
-        {
-            slot = slot.CurrentValueRef;
-            slot.SetValue(EditorGUI.IntField(area, "", slot.GetValue<int>()));
-        }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            slot.SetValue(EditorGUILayout.IntField(slot.Name, slot.GetValue<int>()));
-        }
-
         private int m_Default;
     }
 
-    public class VFXUintType : VFXPropertyTypeSemantics
+    public partial class VFXUintType : VFXPropertyTypeSemantics
     {
         public VFXUintType() : this(0u) {}
         VFXUintType(uint defaultValue)                      { m_Default = defaultValue; }
@@ -140,54 +118,22 @@ namespace UnityEngine.Experimental.VFX
             return true; 
         }
 
-        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
-        {
-            slot = slot.CurrentValueRef;
-            slot.SetValue<uint>((uint)EditorGUI.IntField(area, "", (int)slot.GetValue<uint>()));
-        }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            slot.SetValue<uint>((uint)EditorGUILayout.IntField(slot.Name, (int)slot.GetValue<uint>()));
-        }
-
         private uint m_Default;
     }
 
-    public class VFXTexture2DType : VFXPropertyTypeSemantics
+    public partial class VFXTexture2DType : VFXPropertyTypeSemantics
     {
         public override VFXValueType ValueType { get { return VFXValueType.kTexture2D; } }
-
-        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
-        {
-            slot = slot.CurrentValueRef;
-            slot.SetValue<Texture2D>((Texture2D)EditorGUI.ObjectField(area, slot.GetValue<Texture2D>(), typeof(Texture2D)));
-        }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            slot.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(slot.Name, slot.GetValue<Texture2D>(), typeof(Texture2D)));
-        }
     }
 
-    public class VFXTexture3DType : VFXPropertyTypeSemantics
+    public partial class VFXTexture3DType : VFXPropertyTypeSemantics
     {
         public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; } }
-
-        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
-        {
-            slot = slot.CurrentValueRef;
-            slot.SetValue<Texture3D>((Texture3D)EditorGUI.ObjectField(area, slot.GetValue<Texture3D>(), typeof(Texture3D)));
-        }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            slot.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(slot.Name, slot.GetValue<Texture3D>(), typeof(Texture3D)));
-        }
     }
 
     // Proxy types
-    public class VFXFloat2Type : VFXPropertyTypeSemantics
+    // TODO
+    public partial class VFXFloat2Type : VFXPropertyTypeSemantics
     {
         public VFXFloat2Type() : this(Vector2.zero) { }
         public VFXFloat2Type(Vector3 defaultValue)
@@ -233,7 +179,7 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    public class VFXFloat3Type : VFXPropertyTypeSemantics
+    public partial class VFXFloat3Type : VFXPropertyTypeSemantics
     {
         public VFXFloat3Type() : this(Vector3.zero) {}
         public VFXFloat3Type(Vector3 defaultValue) 
@@ -263,27 +209,14 @@ namespace UnityEngine.Experimental.VFX
             return true;
         }
 
-        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
-        {
-            slot = slot.CurrentValueRef;
-            Vector3 v = GetValue(slot,true);
-            SetValue(slot,EditorGUI.Vector3Field(area, "", v),true);
-        }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            Vector3 v = GetValue(slot,false);
-            SetValue(slot, EditorGUILayout.Vector3Field(slot.Name, v),false);
-        }
-
-        public void SetValue(VFXPropertySlot slot, Vector3 v,bool useRef)
+        public void SetValue(VFXPropertySlot slot, Vector3 v, bool useRef)
         {
             for (int i = 0; i < 3; ++i)
                 if (!useRef || slot.GetChild(i).IsValueUsed())
                     slot.GetChild(i).SetValue(v[i]);
         }
 
-        public Vector3 GetValue(VFXPropertySlot slot,bool useRef)
+        public Vector3 GetValue(VFXPropertySlot slot, bool useRef)
         {
             Vector3 v = new Vector3();
             v.x = GetChild(slot, 0, useRef).GetValue<float>();
@@ -301,7 +234,8 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    public class VFXFloat4Type : VFXPropertyTypeSemantics
+    // TODO
+    public partial class VFXFloat4Type : VFXPropertyTypeSemantics
     {
         public VFXFloat4Type() : this(Vector4.zero) { }
         public VFXFloat4Type(Vector4 defaultValue)
@@ -355,40 +289,17 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    public class VFXColorRGBType : VFXFloat3Type
+    public partial class VFXColorRGBType : VFXFloat3Type
     {
         public override bool Default(VFXPropertySlot slot)
         {
             SetValue(slot,Vector3.one,false);
             return true;
         }
-
-        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
-        {
-            slot = slot.CurrentValueRef;
-            Vector3 v = GetValue(slot,true);
-            
-            Color c = new Color(v.x, v.y, v.z);
-            c = EditorGUI.ColorField(area, GUIContent.none, c, false, false, true, new ColorPickerHDRConfig(0.0f,100.0f,0.0f,100.0f));
-
-            v.Set(c.r, c.g, c.b);
-            SetValue(slot, v,true);
-        }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            Vector3 v = GetValue(slot,false);
-
-            Color c = new Color(v.x, v.y, v.z);
-            c = EditorGUILayout.ColorField(new GUIContent(slot.Name), c, false, false, true, new ColorPickerHDRConfig(0.0f, 100.0f, 0.0f, 100.0f));
-
-            v.Set(c.r, c.g, c.b);
-            SetValue(slot, v,false);
-        }
     }
 
     // Composite types
-    public class VFXSphereType : VFXPropertyTypeSemantics
+    public partial class VFXSphereType : VFXPropertyTypeSemantics
     {
         public VFXSphereType() 
         {
@@ -396,21 +307,9 @@ namespace UnityEngine.Experimental.VFX
             m_Children[0] = new VFXProperty(new VFXFloat3Type(), "center");
             m_Children[1] = new VFXProperty(new VFXFloatType(1.0f), "radius");
         }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            EditorGUILayout.LabelField(new GUIContent(slot.Name));
-            for (int i = 0; i < slot.GetNbChildren(); ++i)
-                slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
-        }
-
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
-        {
-            return new VFXUISphereWidget(slot);
-        }
     }
 
-    public class VFXAABoxType : VFXPropertyTypeSemantics
+    public partial class VFXAABoxType : VFXPropertyTypeSemantics
     {
         public VFXAABoxType()
         {
@@ -418,34 +317,15 @@ namespace UnityEngine.Experimental.VFX
             m_Children[0] = new VFXProperty(new VFXFloat3Type(), "center");
             m_Children[1] = new VFXProperty(new VFXFloat3Type(Vector3.one), "size");
         }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            EditorGUILayout.LabelField(new GUIContent(slot.Name));
-            for (int i = 0; i < slot.GetNbChildren(); ++i)
-                slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
-        }
-
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
-        {
-            return new VFXUIBoxWidget(slot);
-        }
     }
 
-    public class VFXPlaneType : VFXPropertyTypeSemantics
+    public partial class VFXPlaneType : VFXPropertyTypeSemantics
     {
         public VFXPlaneType()
         {
             m_Children = new VFXProperty[2];
             m_Children[0] = new VFXProperty(new VFXFloat3Type(), "position");
             m_Children[1] = new VFXProperty(new VFXFloat3Type(Vector3.up), "normal");
-        }
-
-        public override void OnInspectorGUI(VFXPropertySlot slot)
-        {
-            EditorGUILayout.LabelField(new GUIContent(slot.Name));
-            for (int i = 0; i < slot.GetNbChildren(); ++i)
-                slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
     }
 }
