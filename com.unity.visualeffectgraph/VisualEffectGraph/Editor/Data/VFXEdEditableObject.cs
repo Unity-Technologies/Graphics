@@ -57,26 +57,56 @@ namespace UnityEditor.Experimental
     [CustomEditor(typeof(VFXEdProcessingNodeBlockTarget))]
     internal class VFXEdProcessingNodeBlockTargetEditor : Editor
     {
-
         public VFXEdProcessingNodeBlockTarget safeTarget { get { return target as VFXEdProcessingNodeBlockTarget; } }
 
         public override void OnInspectorGUI()
         {
+            var block = safeTarget.targetNodeBlock;
+
             serializedObject.Update();
 
             EditorGUILayout.BeginVertical();
-            GUILayout.Label(safeTarget.targetNodeBlock.LibraryName, VFXEditor.styles.InspectorHeader);
+            GUILayout.Label(block.LibraryName, VFXEditor.styles.InspectorHeader);
             
             EditorGUILayout.Space();
-            VFXBlockModel model = safeTarget.targetNodeBlock.Model;
+            VFXBlockModel model = block.Model;
+
             for (int i = 0; i < model.GetNbSlots(); ++i)
-                VFXUIHelper.SlotField(model.GetSlot(i));
+                model.GetSlot(i).Semantics.OnInspectorGUI(model.GetSlot(i));
+
             EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
-            safeTarget.targetNodeBlock.Invalidate();
-            safeTarget.targetNodeBlock.ParentCanvas().Repaint();
+            block.Invalidate();
+            block.ParentCanvas().Repaint();
         }
+
+        void OnEnable()
+        {
+            VFXBlockModel model = safeTarget.targetNodeBlock.Model;
+            for (int i = 0; i < model.GetNbSlots(); ++i)
+            {
+                VFXPropertySlot slot = model.GetSlot(i);
+                if (slot.IsValueUsed())
+                {
+                    VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot);
+                    if (widget != null)
+                    {
+                        SceneView.onSceneGUIDelegate += widget.OnSceneGUI;
+                        m_Widgets.Add(widget);
+                    }
+                }
+            }
+        }
+
+        void OnDisable()
+        {
+            foreach (var widget in m_Widgets)
+                SceneView.onSceneGUIDelegate -= widget.OnSceneGUI;
+            m_Widgets.Clear();
+        }
+
+        private List<VFXUIWidget> m_Widgets = new List<VFXUIWidget>();
     }
 
     [CustomEditor(typeof(VFXEdDataNodeBlockTarget))]
@@ -87,48 +117,42 @@ namespace UnityEditor.Experimental
 
         public override void OnInspectorGUI()
         {
+            var block = safeTarget.targetNodeBlock;
+
             serializedObject.Update();
 
             EditorGUILayout.BeginVertical();
-            GUILayout.Label(safeTarget.targetNodeBlock.LibraryName, VFXEditor.styles.InspectorHeader);
+            GUILayout.Label(block.LibraryName, VFXEditor.styles.InspectorHeader);
 
+            block.m_exposedName = EditorGUILayout.TextField("Exposed Name", block.m_exposedName);
 
-            safeTarget.targetNodeBlock.m_exposedName = EditorGUILayout.TextField("Exposed Name",safeTarget.targetNodeBlock.m_exposedName);
             EditorGUILayout.Space();
-
-            if(safeTarget.targetNodeBlock.editingWidget != null)
-            {
-                safeTarget.targetNodeBlock.editingWidget.OnInspectorGUI();
-            }
-            else
-            {
-                VFXUIHelper.SlotField(safeTarget.targetNodeBlock.Slot);
-            }
-            
+            block.Slot.Semantics.OnInspectorGUI(block.Slot);
             EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
-            safeTarget.targetNodeBlock.Invalidate();
-            safeTarget.targetNodeBlock.ParentCanvas().Repaint();
+            block.Invalidate();
+            block.ParentCanvas().Repaint();
         }
 
         void OnEnable()
         {
-            if(safeTarget.targetNodeBlock.editingWidget != null)
+            var slot = safeTarget.targetNodeBlock.Slot;
+            VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot);
+            if (widget != null)
             {
-                safeTarget.targetNodeBlock.editingWidget.CreateBinding(safeTarget.targetNodeBlock);
-                SceneView.onSceneGUIDelegate += safeTarget.targetNodeBlock.editingWidget.OnSceneGUI;
+                SceneView.onSceneGUIDelegate += widget.OnSceneGUI;
+                m_Widget = widget;
             }
-                
-        }
- 
-        void OnDisable()
-        {
-            // TODO Refacto fix that
-            //if (safeTarget.targetNodeBlock.editingWidget != null)
-            //    SceneView.onSceneGUIDelegate -= safeTarget.targetNodeBlock.editingWidget.OnSceneGUI;
         }
 
+        void OnDisable()
+        {
+            SceneView.onSceneGUIDelegate -= m_Widget.OnSceneGUI;
+            m_Widget = null;
+        }
+
+        private VFXUIWidget m_Widget;
     }
 
     [CustomEditor(typeof(VFXEdContextNodeTarget))]

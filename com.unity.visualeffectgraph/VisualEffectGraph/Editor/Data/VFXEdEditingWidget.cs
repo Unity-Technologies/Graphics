@@ -9,7 +9,140 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
+    public interface VFXUIWidget
+    {
+        void OnSceneGUI(SceneView sceneView);
+    }
 
+    public class VFXUISphereWidget : VFXUIWidget
+    {
+        public VFXUISphereWidget(VFXPropertySlot slot)
+        {
+            m_Position = slot.GetChild(0);
+            m_Radius = slot.GetChild(1);
+        }
+
+        // TODO improve that
+        private Vector3 GetPosition()
+        {
+            var v = new Vector3();
+            v.x = m_Position.GetChild(0).GetValue<float>();
+            v.y = m_Position.GetChild(1).GetValue<float>();
+            v.z = m_Position.GetChild(2).GetValue<float>();
+            return v;
+        }
+
+        private void SetPosition(Vector3 v)
+        {
+            m_Position.GetChild(0).SetValue(v.x);
+            m_Position.GetChild(1).SetValue(v.y);
+            m_Position.GetChild(2).SetValue(v.z);
+        }
+
+        public void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            Vector3 pos = GetPosition();
+            float radius = m_Radius.GetValue<float>();
+
+            switch (Tools.current)
+            {
+                case Tool.Move:
+                    pos = Handles.PositionHandle(pos, Quaternion.identity);
+                    break;
+                case Tool.Scale:
+                case Tool.Rect:
+                    radius = Handles.RadiusHandle(Quaternion.identity, pos, radius, false);
+                    break;
+            }
+
+            VFXEdHandleUtility.ShowWireSphere(pos, radius);
+
+            // TODO Keep that ?
+            /*GUI.BeginGroup(new Rect(16, 16, 250, 20));
+            GUILayout.BeginArea(new Rect(0, 0, 250, 20), EditorStyles.miniButton);
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            radius = EditorGUILayout.Slider("Radius", radius, 0.0f, 50.0f);
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+            GUILayout.EndArea();
+            GUI.EndGroup();*/
+
+            SetPosition(pos);
+            m_Radius.SetValue(radius);
+
+            if (EditorGUI.EndChangeCheck())
+                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+        }
+
+        private VFXPropertySlot m_Position;
+        private VFXPropertySlot m_Radius;
+    }
+
+    public class VFXUIBoxWidget : VFXUIWidget
+    {
+        public VFXUIBoxWidget(VFXPropertySlot slot)
+        {
+            m_Position = slot.GetChild(0);
+            m_Size = slot.GetChild(1);
+        }
+
+        private Vector3 GetVector(VFXPropertySlot slot)
+        {
+            var v = new Vector3();
+            v.x = slot.GetChild(0).GetValue<float>();
+            v.y = slot.GetChild(1).GetValue<float>();
+            v.z = slot.GetChild(2).GetValue<float>();
+            return v;
+        }
+
+        private void SetVector(VFXPropertySlot slot,Vector3 v)
+        {
+            slot.GetChild(0).SetValue(v.x);
+            slot.GetChild(1).SetValue(v.y);
+            slot.GetChild(2).SetValue(v.z);
+        }
+
+        public void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            Bounds box = new Bounds(GetVector(m_Position), GetVector(m_Size));
+            switch (Tools.current)
+            {
+                case Tool.Move:
+                    box.center = Handles.PositionHandle(box.center, Quaternion.identity);
+                    VFXEdHandleUtility.ShowWireBox(box);
+                    break;
+                case Tool.Scale:
+                    box.size = Handles.ScaleHandle(box.size, box.center, Quaternion.identity, HandleUtility.GetHandleSize(box.center) * 1.0f);
+                    VFXEdHandleUtility.ShowWireBox(box);
+                    break;
+                case Tool.Rect:
+                    box = VFXEdHandleUtility.BoxHandle(box);
+                    break;
+                default:
+                    VFXEdHandleUtility.ShowWireBox(box);
+                    break;
+            }
+
+            SetVector(m_Position,box.center);
+            SetVector(m_Size,box.size);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+            }
+        }
+
+        private VFXPropertySlot m_Position;
+        private VFXPropertySlot m_Size;
+    }
+
+
+    [Obsolete]
     internal abstract class VFXEdEditingWidget
     {
         protected VFXEdNodeBlock m_CurrentlyEditedBlock;
@@ -18,144 +151,8 @@ namespace UnityEditor.Experimental
         public abstract void OnInspectorGUI();
         public virtual void CreateBinding(VFXEdNodeBlock block)
         {
-             m_CurrentlyEditedBlock = block;
-             block.DeepInvalidate();
-        }
-    }
-
-    internal class VFXEdBoxEditingWidget : VFXEdEditingWidget
-    {
-        VFXPropertySlot m_Position;
-        VFXPropertySlot m_Size;
-        string m_PositionParamName;
-        string m_SizeParamName;
-
-        public VFXEdBoxEditingWidget(string PositionParamName, string SizeParamName)
-        {
-            m_PositionParamName = PositionParamName;
-            m_SizeParamName = SizeParamName;
-        }
-
-        public override void CreateBinding(VFXEdNodeBlock block)
-        {
-            m_Position = block.GetSlot(m_PositionParamName);
-            m_Size = block.GetSlot(m_SizeParamName);
             m_CurrentlyEditedBlock = block;
-        }
-
-        public override void OnSceneGUI(SceneView sceneView)
-        {
-            EditorGUI.BeginChangeCheck();
-
-            Bounds b = new Bounds(m_Position.GetValue<Vector3>(),m_Size.GetValue<Vector3>());
-            
-            switch(Tools.current)
-            {
-                case Tool.Move:
-                    b.center = Handles.PositionHandle(b.center, Quaternion.identity);
-                    VFXEdHandleUtility.ShowWireBox(b);
-                    break;
-                case Tool.Scale:
-                    b.size = Handles.ScaleHandle(b.size, b.center, Quaternion.identity, HandleUtility.GetHandleSize(b.center) * 1.0f);
-                    VFXEdHandleUtility.ShowWireBox(b);
-                    break;
-                case Tool.Rect:
-                    b = VFXEdHandleUtility.BoxHandle(b);
-                    break;
-                default:
-                    VFXEdHandleUtility.ShowWireBox(b);
-                    
-                    break;
-            }
-
-            m_Position.SetValue(b.center);
-            m_Size.SetValue(b.size);
-
-            if(EditorGUI.EndChangeCheck())
-            {
-                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-            }
-        }
-
-        public override void OnInspectorGUI()
-        {
-                m_Position.SetValue(EditorGUILayout.Vector3Field("Center",m_Position.GetValue<Vector3>()));
-                m_Size.SetValue(EditorGUILayout.Vector3Field("Size",m_Size.GetValue<Vector3>()));
-        }
-    }
-
-    internal class VFXEdSphereEditingWidget : VFXEdEditingWidget
-    {
-        VFXPropertySlot m_Position;
-        VFXPropertySlot m_Radius;
-
-        string m_PositionParamName;
-        string m_RadiusParamName;
-
-        public VFXEdSphereEditingWidget(string positionParamName, string radiusParamName)
-        {
-            m_PositionParamName = positionParamName;
-            m_RadiusParamName = radiusParamName;
-        }
-
-        public override void CreateBinding(VFXEdNodeBlock block)
-        {
-            base.CreateBinding(block);
-            m_Position = block.GetSlot(m_PositionParamName);
-            m_Radius = block.GetSlot(m_RadiusParamName);
-        }
-
-        public override void OnInspectorGUI()
-        {
-            m_Position.SetValue(EditorGUILayout.Vector3Field("Center",m_Position.GetValue<Vector3>()));
-            m_Radius.SetValue(EditorGUILayout.FloatField("Radius",m_Radius.GetValue<float>()));
-        }
-
-        public override void OnSceneGUI(SceneView sceneView)
-        {
-            EditorGUI.BeginChangeCheck();
-            
-            
-            Vector3 pos = m_Position.GetValue<Vector3>();
-            float radius = m_Radius.GetValue<float>();
-
-            switch(Tools.current)
-            {
-                case Tool.Move:
-                    pos = Handles.PositionHandle(pos, Quaternion.identity);
-                    
-                    break;
-                case Tool.Scale:
-                    Vector3 s = Handles.ScaleHandle(new Vector3(radius ,radius, radius), pos , Quaternion.identity, HandleUtility.GetHandleSize(pos) * 1.0f);
-                    radius = Mathf.Max(s.x, Mathf.Max(s.y, s.z));
-                    break;
-                case Tool.Rect:
-                    radius = Handles.RadiusHandle(Quaternion.identity, m_Position.GetValue<Vector3>(), m_Radius.GetValue<float>(),false);
-                    break;
-                default:
-                    break;
-            }
-
-            VFXEdHandleUtility.ShowWireSphere(pos, radius);
-
-            GUI.BeginGroup(new Rect(16, 16, 250, 20));
-            GUILayout.BeginArea(new Rect(0, 0, 250, 20), EditorStyles.miniButton);
-            GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-                radius = EditorGUILayout.Slider("Radius",radius, 0.0f, 50.0f);
-            GUILayout.EndHorizontal();
-            GUILayout.EndVertical();
-            GUILayout.EndArea();
-            GUI.EndGroup();
-
-
-            m_Position.SetValue(pos);
-            m_Radius.SetValue(radius);
-
-            if(EditorGUI.EndChangeCheck())
-            {
-                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-            }
+            block.DeepInvalidate();
         }
     }
 

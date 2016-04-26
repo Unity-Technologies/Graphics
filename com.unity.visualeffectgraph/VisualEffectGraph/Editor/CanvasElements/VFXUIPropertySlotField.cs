@@ -32,7 +32,7 @@ namespace UnityEditor.Experimental
 
         public VFXUIPropertySlotField(VFXEdDataSource dataSource, VFXPropertySlot slot, uint depth = 0)
         {
-            m_DataSource = dataSource;
+            m_DataSource = dataSource; 
             m_Slot = slot;
             m_Depth = depth;
 
@@ -150,7 +150,7 @@ namespace UnityEditor.Experimental
                 EditorGUI.BeginDisabledGroup(IsConnected());
                 EditorGUI.LabelField(labelrect, Name);
 
-                Semantics.RenderUIController(m_Slot, editrect);
+                Semantics.OnCanvas2DGUI(m_Slot, editrect);
 
                 // Collapse icon
                 if (m_Children.Length > 0)

@@ -147,6 +147,11 @@ namespace UnityEngine.Experimental.VFX
 
         public abstract VFXPropertySlot CurrentValueRef { get; }
 
+        public bool IsValueUsed()
+        {
+            return CurrentValueRef == this;
+        }
+
         public abstract bool IsLinked();
         public abstract void UnlinkAll();
         public void UnlinkRecursively()
