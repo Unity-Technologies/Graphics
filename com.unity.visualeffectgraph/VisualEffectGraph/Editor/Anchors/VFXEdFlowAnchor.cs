@@ -109,7 +109,7 @@ namespace UnityEditor.Experimental
 
         public Vector3 ConnectPosition()
         {
-            return canvasBoundingRect.center;
+            return GetDrawableRect(true).center;
         }
 
         public void OnConnect(IConnect other)

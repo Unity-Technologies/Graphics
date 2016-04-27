@@ -100,7 +100,7 @@ namespace UnityEditor.Experimental
         public Direction GetDirection()         { return m_Direction; }
         public Orientation GetOrientation()     { return Orientation.Horizontal; }
         public object Source()                  { return m_Source; }
-        public Vector3 ConnectPosition()        { return canvasBoundingRect.center; }
+        public Vector3 ConnectPosition()        { return GetDrawableRect(true).center; }
 
         public void Highlight(bool highlighted)
         {

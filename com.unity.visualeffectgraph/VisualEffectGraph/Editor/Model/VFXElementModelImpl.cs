@@ -81,6 +81,8 @@ namespace UnityEditor.Experimental
 
         public void Update()
         {
+            Profiler.BeginSample("VFXAssetModel.Update");
+
             bool HasRecompiled = false;
             if (m_NeedsCheck)
             {
@@ -116,6 +118,8 @@ namespace UnityEditor.Experimental
 
             if (HasRecompiled) // Restart component 
                 m_Component.Reinit();
+
+            Profiler.EndSample();
         }
 
         public bool PhaseShift
