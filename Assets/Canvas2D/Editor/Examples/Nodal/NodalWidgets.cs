@@ -125,7 +125,7 @@ namespace UnityEditor.Experimental.Graph.Examples
 
         public Vector3 ConnectPosition()
         {
-            return canvasBoundingRect.center;
+            return GetDrawableRect(true).center; // @julienf: This is far less computationnaly heavy than canvasBoundingRect for deep hierarchy
         }
 
         public void OnConnect(IConnect other)
