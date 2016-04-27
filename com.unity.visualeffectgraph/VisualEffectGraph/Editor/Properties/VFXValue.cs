@@ -22,13 +22,13 @@ namespace UnityEngine.Experimental.VFX
 
     public abstract class VFXExpression
     {
-        public T Get<T>() { return ((VFXValue<T>)this).GetValue(); }
+        public T Get<T>() { return ((VFXValue<T>)(this.Reduce())).GetValue(); } // Always try to reduce the value before getting it
         public bool Set<T>(T value) { return ((VFXValue<T>)this).SetValue(value); }
 
         public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
 
-        public virtual bool IsValue() { return false; }
-        public virtual bool IsConst() { return false; } // Allow constant propagation (TODO)
+        public virtual bool IsValue(bool reduced = true)    { return reduced ? Reduce().IsValue(false) : false; }
+        public virtual bool IsConst()                       { return false; } // Allow constant propagation (TODO)
          
         // Reduce the expression and potentially cache the result before returning it
         public abstract VFXExpression Reduce();
@@ -117,7 +117,7 @@ namespace UnityEngine.Experimental.VFX
             return v;
         }
 
-        public override bool IsValue() { return true; }
+        public override bool IsValue(bool reduced) { return true; }
 
         public abstract VFXValue Clone();
         public abstract bool SetDefault();
@@ -201,8 +201,13 @@ namespace UnityEngine.Experimental.VFX
 
     class VFXValueTexture3D : VFXValue<Texture3D>   { public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; }}}
 
-    class VFXValueTransform : VFXValue<Transform>   
+    class VFXValueTransform : VFXValue<Matrix4x4>   
     { 
         public override VFXValueType ValueType { get { return VFXValueType.kTransform; } }
+
+        public override bool SetDefault()
+        {
+            return SetValue(new Matrix4x4());
+        }
     }
 }

@@ -234,7 +234,7 @@ namespace UnityEditor.Experimental
                 namedValues.Clear();
                 slot.CollectNamedValues(namedValues);
                 foreach (var arg in namedValues)
-                    if (arg.m_Value.IsValue())
+                    if (arg.m_Value.IsValue(false)) // false as already reduced
                     {
                         Write(separator);
                         separator = ',';

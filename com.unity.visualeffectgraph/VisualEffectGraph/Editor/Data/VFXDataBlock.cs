@@ -61,7 +61,8 @@ namespace UnityEditor.Experimental
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXTransformType>("transform"), "", "Generic types"));
 
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXSphereType>("sphere"), "Sphere", "Primitives"));
-            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXAABoxType>("box"), "Box", "Primitives"));
+            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXAABoxType>("aabox"), "Box", "Primitives"));
+            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXOrientedBoxType>("box"), "Box", "Primitives"));
 
             // TODO : Add Blocks Here
             /*VFXDataBlock intblock = new VFXDataBlock("Int", "type_integer", "Generic types");

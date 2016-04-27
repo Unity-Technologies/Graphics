@@ -126,7 +126,7 @@ namespace UnityEngine.Experimental.VFX
             if (m_OwnedValue != null)
             {
                 m_OwnedValue.Invalidate();
-                m_OwnedValue.Reduce(); // tmp to force a recache
+                m_OwnedValue.Reduce(); // Trigger a reduce but this is TMP as it should be reduced lazily (the model compiler should do it on demand)
             }
 
             if (m_Observer != null)

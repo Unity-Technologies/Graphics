@@ -559,6 +559,7 @@ namespace UnityEditor.Experimental
             m_Blocks.Add(new VFXBlockSetPositionPoint());
             m_Blocks.Add(new VFXBlockSetPositionMap());
             m_Blocks.Add(new VFXBlockSetPositionBox());
+            m_Blocks.Add(new VFXBlockSetPositionAABox());
             m_Blocks.Add(new VFXBlockSetPositionSphereSurface());
 
             m_Blocks.Add(new VFXBlockSetColorOverLifetime());

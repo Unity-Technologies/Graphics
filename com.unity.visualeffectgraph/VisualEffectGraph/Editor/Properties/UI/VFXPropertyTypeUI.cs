@@ -144,7 +144,15 @@ namespace UnityEngine.Experimental.VFX
 
         public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
         {
-            return new VFXUITransformWidget(slot, editor);
+            return new VFXUITransformWidget(slot, editor, false);
+        }
+    }
+
+    public partial class VFXOrientedBoxType : VFXTransformType
+    {
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        {
+            return new VFXUITransformWidget(slot, editor, true);
         }
     }
 

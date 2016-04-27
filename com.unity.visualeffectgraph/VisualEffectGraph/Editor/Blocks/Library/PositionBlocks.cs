@@ -62,12 +62,12 @@ namespace UnityEngine.Experimental.VFX
         public override string Category { get { return "Position/"; } }
     }
 
-    class VFXBlockSetPositionBox : VFXBlockDesc
+    class VFXBlockSetPositionAABox : VFXBlockDesc
     {
-        public VFXBlockSetPositionBox()
+        public VFXBlockSetPositionAABox()
         {
             m_Properties = new VFXProperty[1] {
-                VFXProperty.Create<VFXAABoxType>("box"),
+                VFXProperty.Create<VFXAABoxType>("aabox"),
             };
 
             m_Attributes = new VFXAttribute[1] {
@@ -83,10 +83,8 @@ namespace UnityEngine.Experimental.VFX
         {
             get 
             {
-                return @"box_size *= 0.5f;
-    position = float3(  lerp(box_center.x + box_size.x, box_center.x - box_size.x, rand(seed)),
-	                    lerp(box_center.y + box_size.y, box_center.y - box_size.y, rand(seed)),
-	                    lerp(box_center.z + box_size.z, box_center.z - box_size.z, rand(seed)));";
+                return @"aabox_size *= 0.5f;
+    position = (float3(rand(seed),rand(seed),rand(seed)) * aabox_size * 2) + (aabox_center - aabox_size);";
             }
         }
 
@@ -126,6 +124,37 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public override string Name { get { return "Set Position (Sphere Surface)"; } }
+        public override string IconPath { get { return "Position"; } }
+        public override string Category { get { return "Position/"; } }
+    }
+
+    class VFXBlockSetPositionBox : VFXBlockDesc
+    {
+        public VFXBlockSetPositionBox()
+        {
+            m_Properties = new VFXProperty[1] {
+                VFXProperty.Create<VFXOrientedBoxType>("box"),
+            };
+
+            m_Attributes = new VFXAttribute[1] {
+                new VFXAttribute("position",VFXValueType.kFloat3,true),
+            };
+
+            // TODO this should be derived automatically
+            m_Flag = Flag.kHasRand;
+            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+        }
+
+        public override string Source
+        {
+            get 
+            {
+                return @"position = float3(rand(seed),rand(seed),rand(seed)) - 0.5f;
+    position = mul(box,float4(position,1.0f)).xyz;";
+            }
+        }
+
+        public override string Name { get { return "Set Position (Oriented Box)"; } }
         public override string IconPath { get { return "Position"; } }
         public override string Category { get { return "Position/"; } }
     }

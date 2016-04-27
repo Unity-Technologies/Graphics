@@ -182,6 +182,7 @@ namespace UnityEngine.Experimental.VFX
 
         protected override object InnerGet(VFXPropertySlot slot, bool linked)
         {
+            // TODO Should get the reduced value instead of recomputing it !
             Vector4 tmp = new Vector4();
             slot = Slot(slot, linked);
             for (int i = 0; i < kNbComponents; ++i)
@@ -281,12 +282,13 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXTransformType : VFXPropertyTypeSemantics
     {
-        public VFXTransformType()
+        public VFXTransformType() : this(kComponentNames) {}
+        protected VFXTransformType(string[] componentNames)
         {
             m_Children = new VFXProperty[3];
-            m_Children[0] = new VFXProperty(new VFXFloat3Type(), "position");
-            m_Children[1] = new VFXProperty(new VFXFloat3Type(), "rotation");
-            m_Children[2] = new VFXProperty(new VFXFloat3Type(Vector3.one), "scale");
+            m_Children[0] = new VFXProperty(new VFXFloat3Type(), componentNames[0]);
+            m_Children[1] = new VFXProperty(new VFXFloat3Type(), componentNames[1]);
+            m_Children[2] = new VFXProperty(new VFXFloat3Type(Vector3.one), componentNames[2]);
         }
 
         public override VFXValueType ValueType { get { return VFXValueType.kTransform; } }
@@ -308,19 +310,30 @@ namespace UnityEngine.Experimental.VFX
 
         protected override object InnerGet(VFXPropertySlot slot, bool linked)
         {
+            return Slot(slot, linked).GetInnerValue<Matrix4x4>();
+            /*slot.Value.Reduce();
             slot = Slot(slot, linked);
             
             Vector3 position = Slot(slot.GetChild(0),linked).Get<Vector3>();
             Quaternion rotation = Quaternion.Euler(Slot(slot.GetChild(1), linked).Get<Vector3>());
             Vector3 scale = Slot(slot.GetChild(2),linked).Get<Vector3>();
             
-            return Matrix4x4.TRS(position, rotation, scale);
+            return Matrix4x4.TRS(position, rotation, scale);*/
         }
 
         protected override void InnerSet(VFXPropertySlot slot, object value, bool linked)
         {
             throw new NotImplementedException();
         }
+
+        private static readonly string[] kComponentNames = new string[3] {"position","rotation","scale"};
+    }
+
+    // This is just an alias on VFXTransformType with custom widgets and component names
+    public partial class VFXOrientedBoxType : VFXTransformType
+    {
+        public VFXOrientedBoxType() : base(kComponentNames) { }
+        private static readonly string[] kComponentNames = new string[3] {"center","rotation","size"};
     }
 
     // Composite types

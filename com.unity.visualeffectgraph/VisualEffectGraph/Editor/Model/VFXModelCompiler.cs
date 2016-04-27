@@ -588,7 +588,7 @@ namespace UnityEditor.Experimental
                     collectedValues.Clear();
                     block.GetSlot(i).CollectNamedValues(collectedValues);
                     foreach (var arg in collectedValues)
-                        if (arg.m_Value.IsValue())
+                        if (arg.m_Value.IsValue(false)) // false as already reduced
                             uniforms.Add((VFXValue)arg.m_Value);
                 }
 

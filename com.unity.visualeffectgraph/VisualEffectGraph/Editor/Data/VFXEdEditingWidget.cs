@@ -116,12 +116,13 @@ namespace UnityEditor.Experimental
 
     public class VFXUITransformWidget : VFXUIWidget
     {
-        public VFXUITransformWidget(VFXPropertySlot slot, Editor editor)
+        public VFXUITransformWidget(VFXPropertySlot slot, Editor editor, bool showBox)
             : base(editor)
         {
             m_Position = slot.GetChild(0);
             m_Rotation = slot.GetChild(1);
             m_Scale = slot.GetChild(2);
+            m_ShowBox = showBox;
         }
 
         public override void OnSceneGUI(SceneView sceneView)
@@ -145,6 +146,13 @@ namespace UnityEditor.Experimental
                     break;
             }
 
+            if (m_ShowBox)
+            {
+                Bounds box = new Bounds(Vector3.zero, Vector3.one);
+                Matrix4x4 mat = Matrix4x4.TRS(position,rotation,scale);
+                VFXEdHandleUtility.ShowWireBox(box,mat);
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 m_Position.Set(position);
@@ -157,6 +165,7 @@ namespace UnityEditor.Experimental
         private VFXPropertySlot m_Position;
         private VFXPropertySlot m_Rotation;
         private VFXPropertySlot m_Scale;
+        private bool m_ShowBox;
     }
 
 
@@ -580,8 +589,7 @@ namespace UnityEditor.Experimental
         public const float BoxHandleWireDashSize = 5.0f;
 
         public static Bounds BoxHandle(Bounds bounds)
-        {
-            
+        {         
             float minX = bounds.min.x;
             float maxX = bounds.max.x;
 
@@ -620,7 +628,8 @@ namespace UnityEditor.Experimental
 
         }
 
-        public static void ShowWireBox(Bounds bounds)
+        public static void ShowWireBox(Bounds bounds) { ShowWireBox(bounds,Matrix4x4.identity); }
+        public static void ShowWireBox(Bounds bounds,Matrix4x4 transform )
         {
 
             float minX = bounds.min.x;
@@ -633,22 +642,25 @@ namespace UnityEditor.Experimental
             float maxZ = bounds.max.z;
 
             Vector3[] cubeLines = new Vector3[24]
-                {
-                    new Vector3(minX, minY, minZ), new Vector3(minX, maxY, minZ),
-                    new Vector3(maxX, minY, minZ), new Vector3(maxX, maxY, minZ),
-                    new Vector3(minX, minY, minZ), new Vector3(maxX, minY, minZ),
-                    new Vector3(minX, maxY, minZ), new Vector3(maxX, maxY, minZ),
+            {
+                new Vector3(minX, minY, minZ), new Vector3(minX, maxY, minZ),
+                new Vector3(maxX, minY, minZ), new Vector3(maxX, maxY, minZ),
+                new Vector3(minX, minY, minZ), new Vector3(maxX, minY, minZ),
+                new Vector3(minX, maxY, minZ), new Vector3(maxX, maxY, minZ),
 
-                    new Vector3(minX, minY, minZ), new Vector3(minX, minY, maxZ),
-                    new Vector3(minX, maxY, minZ), new Vector3(minX, maxY, maxZ),
-                    new Vector3(maxX, minY, minZ), new Vector3(maxX, minY, maxZ),
-                    new Vector3(maxX, maxY, minZ), new Vector3(maxX, maxY, maxZ),
+                new Vector3(minX, minY, minZ), new Vector3(minX, minY, maxZ),
+                new Vector3(minX, maxY, minZ), new Vector3(minX, maxY, maxZ),
+                new Vector3(maxX, minY, minZ), new Vector3(maxX, minY, maxZ),
+                new Vector3(maxX, maxY, minZ), new Vector3(maxX, maxY, maxZ),
 
-                    new Vector3(minX, minY, maxZ), new Vector3(minX, maxY, maxZ),
-                    new Vector3(maxX, minY, maxZ), new Vector3(maxX, maxY, maxZ),
-                    new Vector3(minX, minY, maxZ), new Vector3(maxX, minY, maxZ),
-                    new Vector3(minX, maxY, maxZ), new Vector3(maxX, maxY, maxZ)
-                };
+                new Vector3(minX, minY, maxZ), new Vector3(minX, maxY, maxZ),
+                new Vector3(maxX, minY, maxZ), new Vector3(maxX, maxY, maxZ),
+                new Vector3(minX, minY, maxZ), new Vector3(maxX, minY, maxZ),
+                new Vector3(minX, maxY, maxZ), new Vector3(maxX, maxY, maxZ)
+            };
+
+            for (int i = 0; i < 24; ++i)
+                cubeLines[i] = transform.MultiplyPoint(cubeLines[i]);
 
             Handles.color = BoxWireColor;
             Handles.DrawDottedLines(cubeLines,BoxHandleWireDashSize);
