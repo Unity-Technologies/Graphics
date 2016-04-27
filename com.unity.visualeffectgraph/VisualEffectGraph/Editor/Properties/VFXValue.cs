@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.VFX
         kUint,
         kTexture2D,
         kTexture3D,
+        kTransform,
         //...
         // Curve
         // Gradient
@@ -41,12 +42,13 @@ namespace UnityEngine.Experimental.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat:   return "float";
-                case VFXValueType.kFloat2:  return "float2";
-                case VFXValueType.kFloat3:  return "float3";
-                case VFXValueType.kFloat4:  return "float4";
-                case VFXValueType.kInt:     return "int";
-                case VFXValueType.kUint:    return "uint";
+                case VFXValueType.kFloat:       return "float";
+                case VFXValueType.kFloat2:      return "float2";
+                case VFXValueType.kFloat3:      return "float3";
+                case VFXValueType.kFloat4:      return "float4";
+                case VFXValueType.kInt:         return "int";
+                case VFXValueType.kUint:        return "uint";
+                case VFXValueType.kTransform:   return "float4x4"; // tmp we want to optimize that
                 default:                
                     return "";
             }
@@ -79,6 +81,7 @@ namespace UnityEngine.Experimental.VFX
             if (t == typeof(uint))      return VFXValueType.kUint;     
             if (t == typeof(Texture2D)) return VFXValueType.kTexture2D;
             if (t == typeof(Texture3D)) return VFXValueType.kTexture3D;
+            if (t == typeof(Matrix4x4)) return VFXValueType.kTransform;
 
             throw new ArgumentException("Invalid type");
         }
@@ -95,6 +98,7 @@ namespace UnityEngine.Experimental.VFX
                 case VFXValueType.kUint:        return new VFXValueUint();
                 case VFXValueType.kTexture2D:   return new VFXValueTexture2D();
                 case VFXValueType.kTexture3D:   return new VFXValueTexture3D();
+                case VFXValueType.kTransform:   return new VFXValueTransform();
                 default:
                     return null;
             }
@@ -103,17 +107,7 @@ namespace UnityEngine.Experimental.VFX
         // Create from concrete type
         public static VFXValue Create<T>()
         {
-            Type t = typeof(T);
-            if (t == typeof(float))             return new VFXValueFloat();
-            if (t == typeof(Vector2))           return new VFXValueFloat2();
-            if (t == typeof(Vector3))           return new VFXValueFloat3();
-            if (t == typeof(Vector4))           return new VFXValueFloat4();
-            if (t == typeof(int))               return new VFXValueInt();
-            if (t == typeof(uint))              return new VFXValueUint();
-            if (t == typeof(Texture2D))         return new VFXValueTexture2D();
-            if (t == typeof(Texture3D))         return new VFXValueTexture3D();
-
-            throw new ArgumentException("Invalid parameter type");
+            return Create(ToValueType<T>());
         }
 
         public static VFXValue Create<T>(T value)
@@ -206,4 +200,9 @@ namespace UnityEngine.Experimental.VFX
     }
 
     class VFXValueTexture3D : VFXValue<Texture3D>   { public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; }}}
+
+    class VFXValueTransform : VFXValue<Transform>   
+    { 
+        public override VFXValueType ValueType { get { return VFXValueType.kTransform; } }
+    }
 }

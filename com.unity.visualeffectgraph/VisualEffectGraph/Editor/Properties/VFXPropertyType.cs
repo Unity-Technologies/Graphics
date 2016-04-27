@@ -279,6 +279,50 @@ namespace UnityEngine.Experimental.VFX
         public VFXColorRGBType() : base(Vector3.one) {} // white as default color
     }
 
+    public partial class VFXTransformType : VFXPropertyTypeSemantics
+    {
+        public VFXTransformType()
+        {
+            m_Children = new VFXProperty[3];
+            m_Children[0] = new VFXProperty(new VFXFloat3Type(), "position");
+            m_Children[1] = new VFXProperty(new VFXFloat3Type(), "rotation");
+            m_Children[2] = new VFXProperty(new VFXFloat3Type(Vector3.one), "scale");
+        }
+
+        public override VFXValueType ValueType { get { return VFXValueType.kTransform; } }
+
+        public override void CreateValue(VFXPropertySlot slot)
+        {
+            UpdateProxy(slot);
+        }
+
+        public override bool UpdateProxy(VFXPropertySlot slot)
+        {
+            slot.Value = new VFXExpressionTRSToMatrix(
+                slot.GetChild(0).ValueRef,
+                slot.GetChild(1).ValueRef,
+                slot.GetChild(2).ValueRef);
+
+            return true;
+        }
+
+        protected override object InnerGet(VFXPropertySlot slot, bool linked)
+        {
+            slot = Slot(slot, linked);
+            
+            Vector3 position = Slot(slot.GetChild(0),linked).Get<Vector3>();
+            Quaternion rotation = Quaternion.Euler(Slot(slot.GetChild(1), linked).Get<Vector3>());
+            Vector3 scale = Slot(slot.GetChild(2),linked).Get<Vector3>();
+            
+            return Matrix4x4.TRS(position, rotation, scale);
+        }
+
+        protected override void InnerSet(VFXPropertySlot slot, object value, bool linked)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     // Composite types
     public partial class VFXSphereType : VFXPropertyTypeSemantics
     {

@@ -55,22 +55,12 @@ namespace UnityEditor.Experimental
 
             VFXEdHandleUtility.ShowWireSphere(pos, radius);
 
-            // TODO Keep that ?
-            /*GUI.BeginGroup(new Rect(16, 16, 250, 20));
-            GUILayout.BeginArea(new Rect(0, 0, 250, 20), EditorStyles.miniButton);
-            GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-            radius = EditorGUILayout.Slider("Radius", radius, 0.0f, 50.0f);
-            GUILayout.EndHorizontal();
-            GUILayout.EndVertical();
-            GUILayout.EndArea();
-            GUI.EndGroup();*/
-
-            m_Position.Set(pos);
-            m_Radius.Set(radius);
-
             if (EditorGUI.EndChangeCheck())
+            {
+                m_Position.Set(pos);
+                m_Radius.Set(radius);
                 RepaintEditor();
+            }
         }
 
         private VFXPropertySlot m_Position;
@@ -112,15 +102,61 @@ namespace UnityEditor.Experimental
                     break;
             }
 
-            m_Position.Set(box.center);
-            m_Size.Set(box.size);
-
             if (EditorGUI.EndChangeCheck())
+            {
+                m_Position.Set(box.center);
+                m_Size.Set(box.size);
                 RepaintEditor();
+            }
         }
 
         private VFXPropertySlot m_Position;
         private VFXPropertySlot m_Size;
+    }
+
+    public class VFXUITransformWidget : VFXUIWidget
+    {
+        public VFXUITransformWidget(VFXPropertySlot slot, Editor editor)
+            : base(editor)
+        {
+            m_Position = slot.GetChild(0);
+            m_Rotation = slot.GetChild(1);
+            m_Scale = slot.GetChild(2);
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            Vector3 position = m_Position.Get<Vector3>();
+            Quaternion rotation = Quaternion.Euler(m_Rotation.Get<Vector3>());
+            Vector3 scale = m_Scale.Get<Vector3>();
+
+            switch (Tools.current)
+            {
+                case Tool.Move:
+                    position = Handles.PositionHandle(position, rotation);
+                    break;
+                case Tool.Rotate:
+                    rotation = Handles.RotationHandle(rotation, position);
+                    break;
+                case Tool.Scale:
+                    scale = Handles.ScaleHandle(scale, position, rotation, HandleUtility.GetHandleSize(position) * 1.0f);
+                    break;
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_Position.Set(position);
+                m_Rotation.Set(rotation.eulerAngles);
+                m_Scale.Set(scale);
+                RepaintEditor();
+            }
+        }
+
+        private VFXPropertySlot m_Position;
+        private VFXPropertySlot m_Rotation;
+        private VFXPropertySlot m_Scale;
     }
 
 

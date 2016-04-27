@@ -126,4 +126,50 @@ namespace UnityEngine.Experimental.VFX
         private bool m_CacheValid;
     }
 
+    // TODO Move that in another file
+    class VFXExpressionTRSToMatrix : VFXExpression
+    {
+        public VFXExpressionTRSToMatrix(VFXExpression t, VFXExpression r, VFXExpression s)
+        {
+            m_Position = t;
+            m_Rotation = r;
+            m_Scale = s;
+
+            m_Cached = new VFXValueTransform();
+        }
+
+        // Reduce the expression and potentially cache the result before returning it
+        public override VFXExpression Reduce()
+        {
+            if (m_CacheValid)
+                return m_Cached;
+
+            if (m_Position.IsValue() && m_Rotation.IsValue() && m_Scale.IsValue())
+            {
+                Vector3 position = m_Position.Get<Vector3>();
+                Quaternion rotation = Quaternion.Euler(m_Rotation.Get<Vector3>());
+                Vector3 scale = m_Scale.Get<Vector3>();
+
+                m_Cached.Set(Matrix4x4.TRS(position, rotation, scale));
+                m_CacheValid = true;
+                return m_Cached;
+            }
+
+            return this;
+        }
+
+        // Invalidate the reduction to impose a recomputation
+        public override void Invalidate()
+        {
+            m_CacheValid = false;
+        }
+
+        private VFXExpression m_Position;
+        private VFXExpression m_Rotation;
+        private VFXExpression m_Scale;
+
+        private VFXValueTransform m_Cached;
+        private bool m_CacheValid;
+    }
+
 }

@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental
         public Dictionary<VFXValue, string> uniforms = new Dictionary<VFXValue, string>();
         public Dictionary<VFXValue, string> outputUniforms = new Dictionary<VFXValue, string>();
         
-        ComputeShader simulationShader;
+        ComputeShader simulationShader; 
         public ComputeShader SimulationShader { get { return simulationShader; } }
 
         public Material m_Material = null;
@@ -149,6 +149,20 @@ namespace UnityEditor.Experimental
                         }
                     }
 
+                    break;
+                }
+                case VFXValueType.kTransform:
+                {
+                    Matrix4x4 mat = value.Get<Matrix4x4>();
+                    if (output)
+                        m_Material.SetMatrix(uniformName, mat);
+                    else
+                    {
+                        float[] buffer = new float[16];
+                        for (int i = 0; i < 16; ++i)
+                            buffer[i] = mat[i];
+                        simulationShader.SetFloats(uniformName, buffer);
+                    }
                     break;
                 }
 
