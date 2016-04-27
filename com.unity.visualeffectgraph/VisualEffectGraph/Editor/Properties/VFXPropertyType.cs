@@ -72,9 +72,9 @@ namespace UnityEngine.Experimental.VFX
         public virtual bool Default(VFXPropertySlot slot)       { return false; }
 
         // UI stuff
-        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value)    { return null; }    
-        public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area) {}
-        public virtual void OnInspectorGUI(VFXPropertySlot value)           {}
+        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value,Editor editor)      { return null; }    
+        public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area)                 {}
+        public virtual void OnInspectorGUI(VFXPropertySlot value)                           {}
 
         public virtual bool UpdateProxy(VFXPropertySlot slot) { return false; }  // Set Proxy value from underlying values
 
@@ -97,19 +97,19 @@ namespace UnityEngine.Experimental.VFX
         
         public override bool Default(VFXPropertySlot slot)
         {
-            slot.SetValue(m_Default);
+            slot.SetInnerValue(m_Default);
             return true;
         }
 
         protected override object InnerGet(VFXPropertySlot slot, bool linked)             
         {
-            return Slot(slot,linked).GetValue<T>(); 
+            return Slot(slot,linked).GetInnerValue<T>(); 
         }
 
         protected override void InnerSet(VFXPropertySlot slot, object value, bool linked) 
         {
             if (CanSet(slot,linked))
-                Slot(slot,linked).SetValue((T)value); 
+                Slot(slot,linked).SetInnerValue((T)value); 
         }
 
         protected VFXValueType m_Type;
@@ -185,7 +185,7 @@ namespace UnityEngine.Experimental.VFX
             Vector4 tmp = new Vector4();
             slot = Slot(slot, linked);
             for (int i = 0; i < kNbComponents; ++i)
-                tmp[i] = Slot(slot.GetChild(i),linked).GetValue<float>();
+                tmp[i] = Slot(slot.GetChild(i),linked).GetInnerValue<float>();
             return BoxCast(tmp);
         }
 
@@ -197,7 +197,7 @@ namespace UnityEngine.Experimental.VFX
             {
                 var child = slot.GetChild(i);
                 if (CanSet(child,linked))
-                    Slot(child,linked).SetValue<float>(tmp[i]);
+                    Slot(child,linked).SetInnerValue<float>(tmp[i]);
             }
         }
 

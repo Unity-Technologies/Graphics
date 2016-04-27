@@ -221,9 +221,6 @@ namespace UnityEditor.Experimental
         {
             if (m_Canvas == null)
             {
-                // tmp run test
-                //VFXSlotTest.Run();
-
                 m_DataSource = ScriptableObject.CreateInstance<VFXEdDataSource>();
                 m_Canvas = new VFXEdCanvas(this, m_HostWindow, m_DataSource);
             }

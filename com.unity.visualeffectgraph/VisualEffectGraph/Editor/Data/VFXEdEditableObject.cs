@@ -11,19 +11,20 @@ namespace UnityEditor.Experimental
 {
     internal static class VFXUIHelper
     {
+        // TOD Remove taht
         public static void SlotField(VFXPropertySlot slot)
         {
             string name = slot.Property.m_Name;
             switch (slot.ValueType)
             {
-                case VFXValueType.kFloat:       slot.SetValue<float>(EditorGUILayout.FloatField(name, slot.GetValue<float>())); break;
-                case VFXValueType.kFloat2:      slot.SetValue<Vector2>(EditorGUILayout.Vector2Field(name, slot.GetValue<Vector2>())); break;
-                case VFXValueType.kFloat3:      slot.SetValue<Vector3>(EditorGUILayout.Vector3Field(name, slot.GetValue<Vector3>())); break;
-                case VFXValueType.kFloat4:      slot.SetValue<Vector4>(EditorGUILayout.Vector4Field(name, slot.GetValue<Vector4>())); break;
-                case VFXValueType.kInt:         slot.SetValue<int>(EditorGUILayout.IntSlider(slot.GetValue<int>(), -1000, 1000)); break;
-                case VFXValueType.kTexture2D:   slot.SetValue<Texture2D>((Texture2D)EditorGUILayout.ObjectField(name, slot.GetValue<Texture2D>(), typeof(Texture2D))); break;
-                case VFXValueType.kTexture3D:   slot.SetValue<Texture3D>((Texture3D)EditorGUILayout.ObjectField(name, slot.GetValue<Texture3D>(), typeof(Texture3D))); break;
-                case VFXValueType.kUint:        slot.SetValue<uint>((uint)EditorGUILayout.IntSlider(name, (int)slot.GetValue<uint>(), 0, 1000)); break;
+                case VFXValueType.kFloat:       slot.Set<float>(EditorGUILayout.FloatField(name, slot.Get<float>())); break;
+                case VFXValueType.kFloat2:      slot.Set<Vector2>(EditorGUILayout.Vector2Field(name, slot.Get<Vector2>())); break;
+                case VFXValueType.kFloat3:      slot.Set<Vector3>(EditorGUILayout.Vector3Field(name, slot.Get<Vector3>())); break;
+                case VFXValueType.kFloat4:      slot.Set<Vector4>(EditorGUILayout.Vector4Field(name, slot.Get<Vector4>())); break;
+                case VFXValueType.kInt:         slot.Set<int>(EditorGUILayout.IntSlider(slot.Get<int>(), -1000, 1000)); break;
+                case VFXValueType.kTexture2D:   slot.Set<Texture2D>((Texture2D)EditorGUILayout.ObjectField(name, slot.Get<Texture2D>(), typeof(Texture2D))); break;
+                case VFXValueType.kTexture3D:   slot.Set<Texture3D>((Texture3D)EditorGUILayout.ObjectField(name, slot.Get<Texture3D>(), typeof(Texture3D))); break;
+                case VFXValueType.kUint:        slot.Set<uint>((uint)EditorGUILayout.IntSlider(name, (int)slot.Get<uint>(), 0, 1000)); break;
                 case VFXValueType.kNone: break;
                 default: break;
             }
@@ -89,7 +90,7 @@ namespace UnityEditor.Experimental
                 VFXPropertySlot slot = model.GetSlot(i);
                 if (slot.IsValueUsed())
                 {
-                    VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot);
+                    VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot,this);
                     if (widget != null)
                     {
                         SceneView.onSceneGUIDelegate += widget.OnSceneGUI;
@@ -138,7 +139,7 @@ namespace UnityEditor.Experimental
         void OnEnable()
         {
             var slot = safeTarget.targetNodeBlock.Slot;
-            VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot);
+            VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot,this);
             if (widget != null)
             {
                 SceneView.onSceneGUIDelegate += widget.OnSceneGUI;

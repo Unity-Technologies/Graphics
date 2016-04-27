@@ -86,17 +86,17 @@ namespace UnityEngine.Experimental.VFX
             get { return m_Parent; }
         }
 
-        // Throw if incompatible or inexistent
-        public void SetValue<T>(T t)
+        public T Get<T>(bool linked = false)        { return Semantics.Get<T>(this, linked); }
+        public void Set<T>(T t,bool linked = false) { Semantics.Set(this,t,linked); }
+   
+        // Direct access to owned value
+        // Prefer using get<T> and Set<T> instead to correctly set value depending on the semantics
+        public void SetInnerValue<T>(T t)
         {
             if (m_OwnedValue.Set(t))
                 NotifyChange(Event.kValueUpdated);
         }
-
-        public T GetValue<T>()
-        {
-            return m_OwnedValue.Get<T>();
-        }
+        public T GetInnerValue<T>() { return m_OwnedValue.Get<T>(); }
 
         public VFXExpression Value
         {
@@ -116,10 +116,7 @@ namespace UnityEngine.Experimental.VFX
 
         public VFXExpression ValueRef
         {
-            set
-            {
-                CurrentValueRef.Value = value;
-            }
+            set { CurrentValueRef.Value = value; }
             get { return CurrentValueRef.Value; }
         }
 

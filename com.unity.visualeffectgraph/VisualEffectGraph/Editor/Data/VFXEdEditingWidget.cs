@@ -9,42 +9,38 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    public interface VFXUIWidget
+    public abstract class VFXUIWidget
     {
-        void OnSceneGUI(SceneView sceneView);
+        protected VFXUIWidget(Editor editor)
+        {
+            m_Editor = editor;
+        }
+
+        public abstract void OnSceneGUI(SceneView sceneView);
+        
+        protected void RepaintEditor()
+        {
+            m_Editor.Repaint();
+        }
+
+        private Editor m_Editor;
     }
 
     public class VFXUISphereWidget : VFXUIWidget
     {
-        public VFXUISphereWidget(VFXPropertySlot slot)
+        public VFXUISphereWidget(VFXPropertySlot slot,Editor editor) 
+            : base(editor)
         {
             m_Position = slot.GetChild(0);
             m_Radius = slot.GetChild(1);
         }
 
-        // TODO improve that
-        private Vector3 GetPosition()
-        {
-            var v = new Vector3();
-            v.x = m_Position.GetChild(0).GetValue<float>();
-            v.y = m_Position.GetChild(1).GetValue<float>();
-            v.z = m_Position.GetChild(2).GetValue<float>();
-            return v;
-        }
-
-        private void SetPosition(Vector3 v)
-        {
-            m_Position.GetChild(0).SetValue(v.x);
-            m_Position.GetChild(1).SetValue(v.y);
-            m_Position.GetChild(2).SetValue(v.z);
-        }
-
-        public void OnSceneGUI(SceneView sceneView)
+        public override void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
-            Vector3 pos = GetPosition();
-            float radius = m_Radius.GetValue<float>();
+            Vector3 pos = m_Position.Get<Vector3>();
+            float radius = m_Radius.Get<float>();
 
             switch (Tools.current)
             {
@@ -70,11 +66,11 @@ namespace UnityEditor.Experimental
             GUILayout.EndArea();
             GUI.EndGroup();*/
 
-            SetPosition(pos);
-            m_Radius.SetValue(radius);
+            m_Position.Set(pos);
+            m_Radius.Set(radius);
 
             if (EditorGUI.EndChangeCheck())
-                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+                RepaintEditor();
         }
 
         private VFXPropertySlot m_Position;
@@ -83,33 +79,21 @@ namespace UnityEditor.Experimental
 
     public class VFXUIBoxWidget : VFXUIWidget
     {
-        public VFXUIBoxWidget(VFXPropertySlot slot)
+        public VFXUIBoxWidget(VFXPropertySlot slot, Editor editor)
+            : base(editor)
         {
             m_Position = slot.GetChild(0);
             m_Size = slot.GetChild(1);
         }
 
-        private Vector3 GetVector(VFXPropertySlot slot)
-        {
-            var v = new Vector3();
-            v.x = slot.GetChild(0).GetValue<float>();
-            v.y = slot.GetChild(1).GetValue<float>();
-            v.z = slot.GetChild(2).GetValue<float>();
-            return v;
-        }
-
-        private void SetVector(VFXPropertySlot slot,Vector3 v)
-        {
-            slot.GetChild(0).SetValue(v.x);
-            slot.GetChild(1).SetValue(v.y);
-            slot.GetChild(2).SetValue(v.z);
-        }
-
-        public void OnSceneGUI(SceneView sceneView)
+        public override void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
-            Bounds box = new Bounds(GetVector(m_Position), GetVector(m_Size));
+            Bounds box = new Bounds(
+                m_Position.Get<Vector3>(),
+                m_Size.Get<Vector3>());
+
             switch (Tools.current)
             {
                 case Tool.Move:
@@ -128,13 +112,11 @@ namespace UnityEditor.Experimental
                     break;
             }
 
-            SetVector(m_Position,box.center);
-            SetVector(m_Size,box.size);
+            m_Position.Set(box.center);
+            m_Size.Set(box.size);
 
             if (EditorGUI.EndChangeCheck())
-            {
-                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-            }
+                RepaintEditor();
         }
 
         private VFXPropertySlot m_Position;
@@ -183,7 +165,7 @@ namespace UnityEditor.Experimental
             EditorGUI.BeginChangeCheck();
 
             bool needsRepaint = false;
-            Vector3 normal = m_Normal.GetValue<Vector3>().normalized;
+            Vector3 normal = m_Normal.Get<Vector3>().normalized;
 
             if (m_Quat * Vector3.forward != normal) // if the normal has been changed elsewhere, quaternion must be reinitialized
             {
@@ -195,31 +177,31 @@ namespace UnityEditor.Experimental
             {
                 case Tool.Move:
                     if(Tools.pivotRotation == PivotRotation.Global)
-                        m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
+                        m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), Quaternion.identity));
                     else
-                        m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), m_Quat));
+                        m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), m_Quat));
                     break;
                 case Tool.Rotate:
-                    m_Quat = Handles.RotationHandle(m_Quat, m_Position.GetValue<Vector3>());
+                    m_Quat = Handles.RotationHandle(m_Quat, m_Position.Get<Vector3>());
                     break;
 
                 default:
                     break;
             }
 
-            VFXEdHandleUtility.ShowInfinitePlane(m_Position.GetValue<Vector3>(), m_Quat);
+            VFXEdHandleUtility.ShowInfinitePlane(m_Position.Get<Vector3>(), m_Quat);
 
             if (EditorGUI.EndChangeCheck() || needsRepaint)
             {      
-                m_Normal.SetValue(m_Quat * Vector3.forward);
+                m_Normal.Set(m_Quat * Vector3.forward);
                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
         }
 
         public override void OnInspectorGUI()
         {
-                m_Position.SetValue(EditorGUILayout.Vector3Field("Center",m_Position.GetValue<Vector3>()));
-                m_Normal.SetValue(EditorGUILayout.Vector3Field("Normal",m_Normal.GetValue<Vector3>().normalized));
+                m_Position.Set(EditorGUILayout.Vector3Field("Center",m_Position.Get<Vector3>()));
+                m_Normal.Set(EditorGUILayout.Vector3Field("Normal",m_Normal.Get<Vector3>().normalized));
         }
     }
 
@@ -246,18 +228,18 @@ namespace UnityEditor.Experimental
 
         public override void OnInspectorGUI()
         {
-            Vector3 c = m_Color.GetValue<Vector3>();
-            float a = m_Alpha.GetValue<float>();
+            Vector3 c = m_Color.Get<Vector3>();
+            float a = m_Alpha.Get<float>();
             Color color = new Color(c.x, c.y, c.z, a);
             color = EditorGUILayout.ColorField(new GUIContent("Color"), color,true,true,true,new ColorPickerHDRConfig(0.0f,500.0f,0.0f,500.0f));
-            m_Color.SetValue(new Vector3(color.r, color.g, color.b));
-            m_Alpha.SetValue(color.a);
+            m_Color.Set(new Vector3(color.r, color.g, color.b));
+            m_Alpha.Set(color.a);
         }
 
         public override void OnSceneGUI(SceneView sceneView)
         {
-            Vector3 c = m_Color.GetValue<Vector3>();
-            float a = m_Alpha.GetValue<float>();
+            Vector3 c = m_Color.Get<Vector3>();
+            float a = m_Alpha.Get<float>();
             Color color = new Color(c.x, c.y, c.z, a);
 
             GUI.BeginGroup(new Rect(16, 16, 250, 20));
@@ -270,8 +252,8 @@ namespace UnityEditor.Experimental
             GUILayout.EndArea();
             GUI.EndGroup();
 
-            m_Color.SetValue(new Vector3(color.r, color.g, color.b));
-            m_Alpha.SetValue(color.a);
+            m_Color.Set(new Vector3(color.r, color.g, color.b));
+            m_Alpha.Set(color.a);
         }
     }
 
@@ -337,7 +319,7 @@ namespace UnityEditor.Experimental
             base.CreateBinding(block);
             m_TextureParamValue = block.GetSlot(m_TextureParamName);
             InitializeGradient();
-            m_TextureParamValue.SetValue(GradientTexture);
+            m_TextureParamValue.Set(GradientTexture);
 
             UpdateTexture();
             m_GradientSerializedObject = new SerializedObject(block.editingDataContainer);
@@ -422,7 +404,7 @@ namespace UnityEditor.Experimental
 
             m_TextureParamValue = block.GetSlot(m_TextureParamName);
             InitializeCurve();
-            m_TextureParamValue.SetValue(CurveTexture);
+            m_TextureParamValue.Set(CurveTexture);
 
             m_CurveSerializedObject = new SerializedObject(block.editingDataContainer);
             m_CurveSerializedProperty = m_CurveSerializedObject.FindProperty("Curve");
@@ -527,7 +509,7 @@ namespace UnityEditor.Experimental
             base.CreateBinding(block);
             m_TextureParamValue = block.GetSlot(m_TextureParamName);
             InitializeCurve();
-            m_TextureParamValue.SetValue(CurveTexture);
+            m_TextureParamValue.Set(CurveTexture);
  
             m_CurveSerializedObject = new SerializedObject(block.editingDataContainer);
             m_CurveXSerializedProperty = m_CurveSerializedObject.FindProperty("CurveX");
