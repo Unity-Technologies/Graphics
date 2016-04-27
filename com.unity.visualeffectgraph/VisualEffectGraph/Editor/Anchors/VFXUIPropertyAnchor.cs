@@ -11,17 +11,23 @@ namespace UnityEditor.Experimental
 {
     internal struct VFXSemanticsSource
     {
-        public VFXSemanticsSource(VFXPropertyTypeSemantics semantics)
+        public VFXSemanticsSource(VFXPropertyTypeSemantics semantics,Direction direction)
         {
             m_Semantics = semantics;
+            m_Direction = direction;
         }
 
         public bool CanLink(VFXSemanticsSource other)
         {
-            return m_Semantics.CanLink(other.m_Semantics);
+            // As VFXPropertyTypeSemantics.CanLink is not commutative
+            if (m_Direction == Direction.Input)
+                return m_Semantics.CanLink(other.m_Semantics);
+            else
+                return other.m_Semantics.CanLink(m_Semantics);
         }
 
         private VFXPropertyTypeSemantics m_Semantics;
+        private Direction m_Direction;
     }
 
     internal static class VFXSemanticsNodeAdapter
@@ -56,7 +62,7 @@ namespace UnityEditor.Experimental
             m_Owner = owner;
             m_Direction = direction;
             m_DataSource = dataSource;
-            m_Source = new VFXSemanticsSource(Semantics);
+            m_Source = new VFXSemanticsSource(Semantics,direction);
 
             scale = new Vector3(15.0f, 15.0f, 1.0f);
             translation = position;

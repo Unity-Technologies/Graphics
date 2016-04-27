@@ -148,8 +148,11 @@ namespace UnityEditor.Experimental
 
         void OnDisable()
         {
-            SceneView.onSceneGUIDelegate -= m_Widget.OnSceneGUI;
-            m_Widget = null;
+            if (m_Widget != null)
+            {
+                SceneView.onSceneGUIDelegate -= m_Widget.OnSceneGUI;
+                m_Widget = null;
+            }
         }
 
         private VFXUIWidget m_Widget;

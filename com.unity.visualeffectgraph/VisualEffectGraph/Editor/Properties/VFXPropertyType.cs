@@ -25,6 +25,16 @@ namespace UnityEngine.Experimental.VFX
 
     public abstract class VFXPropertyTypeSemantics
     {
+        protected static VFXPropertySlot Slot(VFXPropertySlot slot, bool linked)
+        {
+            return linked ? slot.CurrentValueRef : slot;
+        }
+
+        protected static bool CanSet(VFXPropertySlot slot, bool linked)
+        {
+            return !linked || slot.IsValueUsed();
+        }
+
         public virtual bool CanLink(VFXPropertyTypeSemantics other)
         {
             return GetType() == other.GetType() || (GetNbChildren() != 0 && ChildrenCanLink(other));
@@ -45,12 +55,19 @@ namespace UnityEngine.Experimental.VFX
 
             return true;
         }
+
+        public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
         
         public virtual void CreateValue(VFXPropertySlot slot)
         {
-            Check(slot);
             slot.Value = VFXValue.Create(ValueType);
         }
+
+        public T Get<T>(VFXPropertySlot slot, bool linked = false)                      { return (T)InnerGet(slot, linked); }
+        public void Set<T>(VFXPropertySlot slot, T t, bool linked = false)              { InnerSet(slot, (object)t, linked); }
+
+        protected virtual object InnerGet(VFXPropertySlot slot,bool linked)             { throw new InvalidOperationException(); }
+        protected virtual void InnerSet(VFXPropertySlot slot, object value,bool linked) { throw new InvalidOperationException(); }
 
         public virtual bool Default(VFXPropertySlot slot)       { return false; }
 
@@ -59,101 +76,150 @@ namespace UnityEngine.Experimental.VFX
         public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area) {}
         public virtual void OnInspectorGUI(VFXPropertySlot value)           {}
 
-        public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
-
         public virtual bool UpdateProxy(VFXPropertySlot slot) { return false; }  // Set Proxy value from underlying values
 
         public int GetNbChildren() { return m_Children == null ? 0 : m_Children.Length; }
         public VFXProperty[] GetChildren() { return m_Children; }
-
-        protected void Check(VFXPropertySlot value)
-        {
-            if (value.Semantics != this)
-                throw new InvalidOperationException("VFXPropertyValue does not hold the correct semantic type");
-        }
         
         protected VFXProperty[] m_Children;
     }
 
     // Base primitive types
-    public partial class VFXFloatType : VFXPropertyTypeSemantics         
+    public abstract class VFXPrimitiveType<T> : VFXPropertyTypeSemantics
     {
-        public VFXFloatType(): this(0.0f) {}
-        public VFXFloatType(float defaultValue)             { m_Default = defaultValue; }
-        public override VFXValueType ValueType              { get { return VFXValueType.kFloat; } }
-        
-        public override bool Default(VFXPropertySlot slot)  
+        protected VFXPrimitiveType(T defaultValue)
         {
-            slot.SetValue(m_Default); 
-            return true; 
+            m_Type = VFXValue.ToValueType<T>();
+            m_Default = defaultValue;
         }
 
-        private float m_Default;
-    }
-
-    public partial class VFXIntType : VFXPropertyTypeSemantics
-    {
-        public VFXIntType(): this(0) {}
-        VFXIntType(int defaultValue)                        { m_Default = defaultValue; }
-        public override VFXValueType ValueType              { get { return VFXValueType.kInt; } }
+        public override VFXValueType ValueType { get { return m_Type; } }
         
-        public override bool Default(VFXPropertySlot slot)  
+        public override bool Default(VFXPropertySlot slot)
         {
             slot.SetValue(m_Default);
-            return true; 
+            return true;
         }
 
-        private int m_Default;
+        protected override object InnerGet(VFXPropertySlot slot, bool linked)             
+        {
+            return Slot(slot,linked).GetValue<T>(); 
+        }
+
+        protected override void InnerSet(VFXPropertySlot slot, object value, bool linked) 
+        {
+            if (CanSet(slot,linked))
+                Slot(slot,linked).SetValue((T)value); 
+        }
+
+        protected VFXValueType m_Type;
+        protected T m_Default;
     }
 
-    public partial class VFXUintType : VFXPropertyTypeSemantics
+    public partial class VFXFloatType : VFXPrimitiveType<float>
+    {
+        public VFXFloatType() : this(0.0f) { }
+        public VFXFloatType(float defaultValue) : base(defaultValue) { }
+    }
+
+    public partial class VFXIntType : VFXPrimitiveType<int>
+    {
+        public VFXIntType() : this(0) { }
+        VFXIntType(int defaultValue) : base(defaultValue) { }
+    }
+
+    public partial class VFXUintType : VFXPrimitiveType<uint>
     {
         public VFXUintType() : this(0u) {}
-        VFXUintType(uint defaultValue)                      { m_Default = defaultValue; }
-        public override VFXValueType ValueType              { get { return VFXValueType.kUint; } }
-        
-        public override bool Default(VFXPropertySlot slot)  
-        {
-            slot.SetValue(m_Default);
-            return true; 
-        }
-
-        private uint m_Default;
+        VFXUintType(uint defaultValue) : base(defaultValue) { }
     }
 
-    public partial class VFXTexture2DType : VFXPropertyTypeSemantics
+    public partial class VFXTexture2DType : VFXPrimitiveType<Texture2D>
     {
-        public override VFXValueType ValueType { get { return VFXValueType.kTexture2D; } }
+        public VFXTexture2DType() : this(null) {}
+        VFXTexture2DType(Texture2D defaultValue) : base(defaultValue) { }
     }
 
-    public partial class VFXTexture3DType : VFXPropertyTypeSemantics
+    public partial class VFXTexture3DType : VFXPrimitiveType<Texture3D>
     {
-        public override VFXValueType ValueType { get { return VFXValueType.kTexture3D; } }
+        public VFXTexture3DType() : this(null) {}
+        VFXTexture3DType(Texture3D defaultValue) : base(defaultValue) { }
     }
 
     // Proxy types
     // TODO
-    public partial class VFXFloat2Type : VFXPropertyTypeSemantics
+    public abstract class VFXProxyVectorType : VFXPropertyTypeSemantics
     {
-        public VFXFloat2Type() : this(Vector2.zero) { }
-        public VFXFloat2Type(Vector3 defaultValue)
+        protected VFXProxyVectorType(int nbComponents,Vector4 defaultValue)
         {
-            m_Children = new VFXProperty[2];
-            m_Children[0] = new VFXProperty(new VFXFloatType(defaultValue.x), "x");
-            m_Children[1] = new VFXProperty(new VFXFloatType(defaultValue.y), "y");
+            kNbComponents = nbComponents;
+            m_Default = defaultValue;
+
+            m_Children = new VFXProperty[kNbComponents];
+            for (int i = 0; i < kNbComponents; ++i )
+                m_Children[i] = new VFXProperty(new VFXFloatType(m_Default[i]), kComponentNames[i]);
         }
 
-        public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } }
+        public override bool CanLink(VFXPropertyTypeSemantics other)
+        {
+            if (base.CanLink(other))
+                return true;
+
+            var v = other as VFXProxyVectorType;
+            return v != null && v.kNbComponents >= kNbComponents;
+        }
 
         public override void CreateValue(VFXPropertySlot slot)
         {
             UpdateProxy(slot);
         }
 
+        public override bool Default(VFXPropertySlot slot)
+        {
+            InnerSet(slot, BoxCast(m_Default), false);
+            return true;
+        }
+
+        protected override object InnerGet(VFXPropertySlot slot, bool linked)
+        {
+            Vector4 tmp = new Vector4();
+            slot = Slot(slot, linked);
+            for (int i = 0; i < kNbComponents; ++i)
+                tmp[i] = Slot(slot.GetChild(i),linked).GetValue<float>();
+            return BoxCast(tmp);
+        }
+
+        protected override void InnerSet(VFXPropertySlot slot, object value, bool linked)
+        {
+            Vector4 tmp = UnboxCast(value);
+            slot = Slot(slot, linked);
+            for (int i = 0; i < kNbComponents; ++i)
+            {
+                var child = slot.GetChild(i);
+                if (CanSet(child,linked))
+                    Slot(child,linked).SetValue<float>(tmp[i]);
+            }
+        }
+
+        // Too bad, implicit conversion cannot be used with boxing/unboxing. So use this hack to explicitly cast between vectors
+        protected abstract object BoxCast(Vector4 v);
+        protected abstract Vector4 UnboxCast(object v);
+
+        private readonly int kNbComponents;
+        private static readonly string[] kComponentNames = new string[4] { "x", "y", "z", "w" };
+
+        protected Vector4 m_Default;
+    }
+
+    public partial class VFXFloat2Type : VFXProxyVectorType
+    {
+        public VFXFloat2Type() : this(Vector2.zero) { }
+        public VFXFloat2Type(Vector2 defaultValue) : base(2, defaultValue) { }
+
+        public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } }
+
         public override bool UpdateProxy(VFXPropertySlot slot)
         {
-            Check(slot);
-
             slot.Value = new VFXExpressionCombineFloat2(
                 slot.GetChild(0).ValueRef,
                 slot.GetChild(1).ValueRef);
@@ -161,46 +227,19 @@ namespace UnityEngine.Experimental.VFX
             return true;
         }
 
-        private void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
-        {            
-            Check(slot);
-
-            var xSlot = slot.GetChild(0);
-            var ySlot = slot.GetChild(1);
-
-            Vector3 v = new Vector2(
-                xSlot.GetValue<float>(),
-                ySlot.GetValue<float>());
-
-            v = EditorGUI.Vector2Field(area, "", v);
-
-            xSlot.SetValue(v.x);
-            ySlot.SetValue(v.y);
-        }
+        protected override sealed object BoxCast(Vector4 v) { return (Vector2)v; }
+        protected override sealed Vector4 UnboxCast(object v) { return (Vector2)v; }
     }
 
-    public partial class VFXFloat3Type : VFXPropertyTypeSemantics
+    public partial class VFXFloat3Type : VFXProxyVectorType
     {
         public VFXFloat3Type() : this(Vector3.zero) {}
-        public VFXFloat3Type(Vector3 defaultValue) 
-        {
-            m_Children = new VFXProperty[3];
-            m_Children[0] = new VFXProperty(new VFXFloatType(defaultValue.x), "x");
-            m_Children[1] = new VFXProperty(new VFXFloatType(defaultValue.y), "y");
-            m_Children[2] = new VFXProperty(new VFXFloatType(defaultValue.z), "z");
-        }
+        public VFXFloat3Type(Vector3 defaultValue)  : base(3, defaultValue) {}
 
         public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } }
 
-        public override void CreateValue(VFXPropertySlot slot)
-        {
-            UpdateProxy(slot);
-        }
-
         public override bool UpdateProxy(VFXPropertySlot slot)
         {
-            Check(slot);
-
             slot.Value = new VFXExpressionCombineFloat3(
                 slot.GetChild(0).ValueRef,
                 slot.GetChild(1).ValueRef,
@@ -209,55 +248,19 @@ namespace UnityEngine.Experimental.VFX
             return true;
         }
 
-        public void SetValue(VFXPropertySlot slot, Vector3 v, bool useRef)
-        {
-            for (int i = 0; i < 3; ++i)
-                if (!useRef || slot.GetChild(i).IsValueUsed())
-                    slot.GetChild(i).SetValue(v[i]);
-        }
-
-        public Vector3 GetValue(VFXPropertySlot slot, bool useRef)
-        {
-            Vector3 v = new Vector3();
-            v.x = GetChild(slot, 0, useRef).GetValue<float>();
-            v.y = GetChild(slot, 1, useRef).GetValue<float>();
-            v.z = GetChild(slot, 2, useRef).GetValue<float>();
-            return v;
-        }
-
-        protected VFXPropertySlot GetChild(VFXPropertySlot slot, int index, bool useRef)
-        {
-            VFXPropertySlot child = slot.GetChild(index);
-            if (useRef)
-                child = child.CurrentValueRef;
-            return child;
-        }
+        protected override sealed object BoxCast(Vector4 v) { return (Vector3)v; }
+        protected override sealed Vector4 UnboxCast(object v) { return (Vector3)v; }
     }
 
-    // TODO
-    public partial class VFXFloat4Type : VFXPropertyTypeSemantics
+    public partial class VFXFloat4Type : VFXProxyVectorType
     {
         public VFXFloat4Type() : this(Vector4.zero) { }
-        public VFXFloat4Type(Vector4 defaultValue)
-        {
-            m_Children = new VFXProperty[4];
-            m_Children[0] = new VFXProperty(new VFXFloatType(defaultValue.x), "x");
-            m_Children[1] = new VFXProperty(new VFXFloatType(defaultValue.y), "y");
-            m_Children[2] = new VFXProperty(new VFXFloatType(defaultValue.y), "z");
-            m_Children[3] = new VFXProperty(new VFXFloatType(defaultValue.y), "w");
-        }
+        public VFXFloat4Type(Vector4 defaultValue) : base(4, defaultValue) { }
 
-        public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } }
-
-        public override void CreateValue(VFXPropertySlot slot)
-        {
-            UpdateProxy(slot);
-        }
+        public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } }
 
         public override bool UpdateProxy(VFXPropertySlot slot)
         {
-            Check(slot);
-
             slot.Value = new VFXExpressionCombineFloat4(
                 slot.GetChild(0).ValueRef,
                 slot.GetChild(1).ValueRef,
@@ -267,35 +270,13 @@ namespace UnityEngine.Experimental.VFX
             return true;
         }
 
-        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
-        {
-            var xSlot = slot.GetChild(0);
-            var ySlot = slot.GetChild(1);
-            var zSlot = slot.GetChild(2);
-            var wSlot = slot.GetChild(3);
-
-            Vector3 v = new Vector4(
-                xSlot.GetValue<float>(),
-                ySlot.GetValue<float>(),
-                zSlot.GetValue<float>(),
-                wSlot.GetValue<float>());
-
-            v = EditorGUI.Vector4Field(area, "", v);
-
-            xSlot.SetValue(v.x);
-            ySlot.SetValue(v.y);
-            zSlot.SetValue(v.y);
-            wSlot.SetValue(v.y);
-        }
+        protected override sealed object BoxCast(Vector4 v)     { return v; }
+        protected override sealed Vector4 UnboxCast(object v)   { return (Vector4)v; }
     }
 
     public partial class VFXColorRGBType : VFXFloat3Type
     {
-        public override bool Default(VFXPropertySlot slot)
-        {
-            SetValue(slot,Vector3.one,false);
-            return true;
-        }
+        public VFXColorRGBType() : base(Vector3.one) {} // white as default color
     }
 
     // Composite types

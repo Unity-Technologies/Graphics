@@ -68,6 +68,21 @@ namespace UnityEngine.Experimental.VFX
             }
         }
 
+        public static VFXValueType ToValueType<T>()
+        {
+            Type t = typeof(T);
+            if (t == typeof(float))     return VFXValueType.kFloat;   
+            if (t == typeof(Vector2))   return VFXValueType.kFloat2;   
+            if (t == typeof(Vector3))   return VFXValueType.kFloat3;   
+            if (t == typeof(Vector4))   return VFXValueType.kFloat4;   
+            if (t == typeof(int))       return VFXValueType.kInt;   
+            if (t == typeof(uint))      return VFXValueType.kUint;     
+            if (t == typeof(Texture2D)) return VFXValueType.kTexture2D;
+            if (t == typeof(Texture3D)) return VFXValueType.kTexture3D;
+
+            throw new ArgumentException("Invalid type");
+        }
+
         public static VFXValue Create(VFXValueType type)
         {
             switch (type)

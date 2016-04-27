@@ -7,7 +7,7 @@ using UnityEditor.Experimental;
 namespace UnityEngine.Experimental.VFX
 {
     // Primitive types
-    public partial class VFXFloatType : VFXPropertyTypeSemantics
+    public partial class VFXFloatType : VFXPrimitiveType<float>
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    public partial class VFXIntType : VFXPropertyTypeSemantics
+    public partial class VFXIntType : VFXPrimitiveType<int>
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    public partial class VFXUintType : VFXPropertyTypeSemantics
+    public partial class VFXUintType : VFXPrimitiveType<uint>
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    public partial class VFXTexture2DType : VFXPropertyTypeSemantics
+    public partial class VFXTexture2DType : VFXPrimitiveType<Texture2D>
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    public partial class VFXTexture3DType : VFXPropertyTypeSemantics
+    public partial class VFXTexture3DType : VFXPrimitiveType<Texture3D>
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
@@ -78,19 +78,48 @@ namespace UnityEngine.Experimental.VFX
     }
 
     // Proxy types
-    public partial class VFXFloat3Type : VFXPropertyTypeSemantics
+    public partial class VFXFloat2Type : VFXProxyVectorType
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            slot = slot.CurrentValueRef;
-            Vector3 v = GetValue(slot, true);
-            SetValue(slot, EditorGUI.Vector3Field(area, "", v), true);
+            Vector2 v = Get<Vector2>(slot, true);
+            Set(slot, EditorGUI.Vector2Field(area, "", v), true);
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
-            Vector3 v = GetValue(slot, false);
-            SetValue(slot, EditorGUILayout.Vector3Field(slot.Name, v), false);
+            Vector2 v = Get<Vector2>(slot, false);
+            Set(slot, EditorGUILayout.Vector2Field(slot.Name, v), false);
+        }
+    }
+
+    public partial class VFXFloat3Type : VFXProxyVectorType
+    {
+        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+        {
+            Vector3 v = Get<Vector3>(slot, true);
+            Set(slot,EditorGUI.Vector3Field(area, "", v),true);
+        }
+
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            Vector3 v = Get<Vector3>(slot, false);
+            Set(slot, EditorGUILayout.Vector3Field(slot.Name, v), false);
+        }
+    }
+
+    public partial class VFXFloat4Type : VFXProxyVectorType
+    {
+        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+        {
+            Vector4 v = Get<Vector4>(slot, true);
+            Set(slot, EditorGUI.Vector4Field(area, "", v), true);
+        }
+
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            Vector4 v = Get<Vector4>(slot, false);
+            Set(slot, EditorGUILayout.Vector4Field(slot.Name, v), false);
         }
     }
 
@@ -98,25 +127,24 @@ namespace UnityEngine.Experimental.VFX
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            slot = slot.CurrentValueRef;
-            Vector3 v = GetValue(slot, true);
+            Vector3 v = Get<Vector3>(slot, true);
 
             Color c = new Color(v.x, v.y, v.z);
             c = EditorGUI.ColorField(area, GUIContent.none, c, false, false, true, new ColorPickerHDRConfig(0.0f, 100.0f, 0.0f, 100.0f));
 
             v.Set(c.r, c.g, c.b);
-            SetValue(slot, v, true);
+            Set(slot, v, true);
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
-            Vector3 v = GetValue(slot, false);
+            Vector3 v = Get<Vector3>(slot, false);
 
             Color c = new Color(v.x, v.y, v.z);
             c = EditorGUILayout.ColorField(new GUIContent(slot.Name), c, false, false, true, new ColorPickerHDRConfig(0.0f, 100.0f, 0.0f, 100.0f));
 
             v.Set(c.r, c.g, c.b);
-            SetValue(slot, v, false);
+            Set(slot, v, false);
         }
     }
 
