@@ -168,6 +168,79 @@ namespace UnityEditor.Experimental
         private bool m_ShowBox;
     }
 
+    public class VFXUIPositionWidget : VFXUIWidget
+    {
+        public VFXUIPositionWidget(VFXPropertySlot slot, Editor editor)
+            : base(editor)
+        {
+            m_Position = slot;
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+            m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), Quaternion.identity));
+            if (EditorGUI.EndChangeCheck())
+                RepaintEditor();
+        }
+
+        private VFXPropertySlot m_Position;
+    }
+
+    public class VFXUIDirectionWidget : VFXUIWidget
+    {
+        public VFXUIDirectionWidget(VFXPropertySlot slot, Editor editor,bool forceNormalized)
+            : base(editor)
+        {
+            m_Direction = slot;
+            m_Quat = new Quaternion();
+            b_ForceNormalized = forceNormalized;
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            bool needsRepaint = false;
+            Vector3 dir = m_Direction.Get<Vector3>();
+            float length = dir.magnitude;
+
+            Vector3 normal = dir;
+            if (length != 0.0f)
+                normal /= length;
+            else
+                normal = Vector3.up;
+
+            if (m_Quat * Vector3.forward != normal) // if the normal has been changed elsewhere, quaternion must be reinitialized
+            {
+                m_Quat.SetLookRotation(normal, Mathf.Abs(normal.y) > Mathf.Abs(normal.x) ? Vector3.right : Vector3.up); // Just ensure up and front are not collinear
+                needsRepaint = true;
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+             // GetHandleSize(Vector3 position)
+            Vector3 viewportCenter = Camera.current.ViewportToWorldPoint(new Vector3(0.5f,0.5f,1.0f));
+            m_Quat = Handles.RotationHandle(m_Quat,viewportCenter);
+            float scaleSize = HandleUtility.GetHandleSize(viewportCenter);
+            if (b_ForceNormalized)
+            {
+                Handles.ArrowCap(0, viewportCenter, m_Quat, scaleSize);
+                length = 1.0f;
+            }
+            else
+                length = Handles.ScaleSlider(length, viewportCenter, normal, m_Quat, scaleSize, scaleSize);
+
+            if (EditorGUI.EndChangeCheck() || needsRepaint)
+            {
+                m_Direction.Set((m_Quat * Vector3.forward) * length);
+                RepaintEditor();
+            }
+        }
+
+        private VFXPropertySlot m_Direction;
+        private Quaternion m_Quat;
+        bool b_ForceNormalized;
+    }
+
 
     [Obsolete]
     internal abstract class VFXEdEditingWidget

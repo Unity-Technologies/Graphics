@@ -280,6 +280,21 @@ namespace UnityEngine.Experimental.VFX
         public VFXColorRGBType() : base(Vector3.one) {} // white as default color
     }
 
+    public partial class VFXPositionType : VFXFloat3Type
+    {
+        public VFXPositionType() {}
+    }
+
+    public partial class VFXDirectionType : VFXFloat3Type
+    {
+        public VFXDirectionType() : base(Vector3.up) {}
+    }
+
+    public partial class VFXNormalType : VFXFloat3Type
+    {
+        public VFXNormalType() : base(Vector3.up) { }
+    }
+
     public partial class VFXTransformType : VFXPropertyTypeSemantics
     {
         public VFXTransformType() : this(kComponentNames) {}

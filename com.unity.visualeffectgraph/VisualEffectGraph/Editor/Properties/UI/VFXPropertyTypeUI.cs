@@ -133,6 +133,42 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
+    public partial class VFXPositionType : VFXFloat3Type
+    {
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        {
+            return new VFXUIPositionWidget(slot, editor);
+        }
+    }
+
+    public partial class VFXDirectionType : VFXFloat3Type
+    {
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        {
+            return new VFXUIDirectionWidget(slot, editor, false);
+        }
+    }
+
+    public partial class VFXNormalType : VFXFloat3Type
+    {
+        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+        {
+            Vector3 n = EditorGUI.Vector3Field(area, "", Get<Vector3>(slot, true));
+            slot.Set(n.normalized,true);
+        }
+
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            Vector3 n = EditorGUILayout.Vector3Field(slot.Name, slot.Get<Vector3>(false));
+            slot.Set(n.normalized,false);
+        }
+
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        {
+            return new VFXUIDirectionWidget(slot, editor, true);
+        }
+    }
+
     public partial class VFXTransformType : VFXPropertyTypeSemantics
     {
         public override void OnInspectorGUI(VFXPropertySlot slot)

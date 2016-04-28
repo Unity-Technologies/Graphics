@@ -57,6 +57,10 @@ namespace UnityEditor.Experimental
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXFloat3Type>("Vector3"), "type_vector3", "Generic types"));
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXFloat4Type>("Vector4"), "type_vector4", "Generic types"));
 
+            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXPositionType>("Position"), "type_vector3", "Generic types"));
+            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXDirectionType>("Direction"), "type_vector3", "Generic types"));
+            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXNormalType>("Normal"), "type_vector3", "Generic types"));
+
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXColorRGBType>("color"), "type_color", "Generic types"));
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXTransformType>("transform"), "", "Generic types"));
 
