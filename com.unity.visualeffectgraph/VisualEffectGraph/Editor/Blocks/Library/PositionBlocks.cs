@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.VFX
         {
             m_Properties = new VFXProperty[3] {
                 VFXProperty.Create<VFXTexture2DType>("tex"),
-                VFXProperty.Create<VFXAABoxType>("box"),
+                VFXProperty.Create<VFXOrientedBoxType>("box"),
                 VFXProperty.Create<VFXFloatType>("divergence")
             };
 
@@ -53,7 +53,8 @@ namespace UnityEngine.Experimental.VFX
             get 
             { 
                 return @"float3 div = divergence * 2.0f * (float3(rand(seed),rand(seed),rand(seed)) - 0.5f);
-    position = box_center + ((div + tex2Dlod(tex,float4(rand(seed),rand(seed),0,0)).rgb - 0.5f) * box_size);"; 
+    position = div + tex2Dlod(tex,float4(rand(seed),rand(seed),0,0)).rgb - 0.5f;
+    position = mul(box,float4(position.xyz,1.0f)).xyz;"; 
             }
         }
 
@@ -159,6 +160,66 @@ namespace UnityEngine.Experimental.VFX
         public override string Category { get { return "Position/"; } }
     }
 
+    class VFXBlockTransformPosition : VFXBlockDesc
+    {
+        public VFXBlockTransformPosition()
+        {
+            m_Properties = new VFXProperty[1] {
+                VFXProperty.Create<VFXTransformType>("transform"),
+            };
+
+            m_Attributes = new VFXAttribute[1] {
+                new VFXAttribute("position",VFXValueType.kFloat3,true),
+            };
+
+            // TODO this should be derived automatically
+            m_Flag = Flag.kNone;
+            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+        }
+
+        public override string Source
+        {
+            get
+            {
+                return @"position = mul(transform,float4(position,1.0f)).xyz;";
+            }
+        }
+
+        public override string Name { get { return "Transform Position"; } }
+        public override string IconPath { get { return "Position"; } }
+        public override string Category { get { return "Position/"; } }
+    }
+
+    class VFXBlockTransformVelocity : VFXBlockDesc
+    {
+        public VFXBlockTransformVelocity()
+        {
+            m_Properties = new VFXProperty[1] {
+                VFXProperty.Create<VFXTransformType>("transform"),
+            };
+
+            m_Attributes = new VFXAttribute[1] {
+                new VFXAttribute("velocity",VFXValueType.kFloat3,true),
+            };
+
+            // TODO this should be derived automatically
+            m_Flag = Flag.kNone;
+            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+        }
+
+        public override string Source
+        {
+            get
+            {
+                return @"velocity = mul(transform,float4(velocity,0.0f)).xyz;";
+            }
+        }
+
+        public override string Name { get { return "Transform Velocity"; } }
+        public override string IconPath { get { return "Velocity"; } }
+        public override string Category { get { return "Velocity/"; } }
+    }
+
     // TMP to test color
     class VFXBlockSetColorOverLifetime : VFXBlockDesc
     {
@@ -193,5 +254,4 @@ namespace UnityEngine.Experimental.VFX
         public override string IconPath { get { return "Color"; } }
         public override string Category { get { return "Color/"; } }
     }
-
 }

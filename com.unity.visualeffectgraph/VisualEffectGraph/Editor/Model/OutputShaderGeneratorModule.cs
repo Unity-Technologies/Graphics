@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental
         public VFXBillboardOutputShaderGeneratorModule(VFXPropertySlot[] slots, bool orientAlongVelocity)
         {
             for (int i = 0; i < Math.Min(slots.Length, 4); ++i)
-                m_Values[i] = slots[i].ValueRef as VFXValue; // TODO Refactor
+                m_Values[i] = slots[i].ValueRef.Reduce() as VFXValue; // TODO Refactor
             m_OrientAlongVelocity = orientAlongVelocity;
         }
 
