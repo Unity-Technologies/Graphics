@@ -118,6 +118,8 @@ namespace UnityEditor.Experimental
 
         public override void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
+            const bool CLAMP_SIZE = false; // false atm
+
             if (m_HasSize)
             {
                 builder.Write("float2 size = ");
@@ -125,7 +127,7 @@ namespace UnityEditor.Experimental
                 builder.WriteLine(" * 0.5f;");
             }
             else
-                builder.WriteLine("const float2 size = float2(0.005,0.005);");
+                builder.WriteLine("float2 size = float2(0.005,0.005);");
 
             builder.WriteLine("o.offsets.x = 2.0 * float(id & 1) - 1.0;");
             builder.WriteLine("o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;");
@@ -135,6 +137,15 @@ namespace UnityEditor.Experimental
             builder.WriteAttrib(CommonAttrib.Position, data);
             builder.WriteLine(";");
             builder.WriteLine();
+
+            if (CLAMP_SIZE)
+            {
+                builder.WriteLine("// Clamp size so that billboards are never less than one pixel size");
+                builder.WriteLine("const float PIXEL_SIZE = 0.003f; // This should be a uniform depending on fov and viewport dimension");
+                builder.WriteLine("float minSize = dot(UNITY_MATRIX_VP[3],float4(worldPos,1.0f)) * PIXEL_SIZE; // w * pixel size");
+                builder.WriteLine("size = max(size,minSize);");
+                builder.WriteLine();
+            }
 
             if (m_OrientAlongVelocity)
             {
