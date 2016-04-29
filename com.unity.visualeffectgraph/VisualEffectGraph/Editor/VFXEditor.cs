@@ -556,7 +556,8 @@ namespace UnityEditor.Experimental
             // Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
 
             // Add explicit C# blocks
-            m_Blocks.Add(new VFXBlockSetPositionPoint());
+            Debug.Log("RELOAD BLOCK LIBRARY!!!");
+            m_Blocks.Add(new VFXBlockSetPositionPoint()); 
             m_Blocks.Add(new VFXBlockSetPositionMap());
             m_Blocks.Add(new VFXBlockSetPositionBox());
             m_Blocks.Add(new VFXBlockSetPositionAABox());

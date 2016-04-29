@@ -23,9 +23,7 @@ namespace UnityEditor.Experimental
             RemovePreviousShaders();
 
             m_GameObject = new GameObject("VFX");
-            m_GameObject.hideFlags = HideFlags.HideAndDontSave;
-            //gameObject.hideFlags = HideFlags.DontSaveInEditor;
-            m_Component = m_GameObject.AddComponent<VFXComponent>();          
+            m_Component = m_GameObject.AddComponent<VFXComponent>();
         }
 
         private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
