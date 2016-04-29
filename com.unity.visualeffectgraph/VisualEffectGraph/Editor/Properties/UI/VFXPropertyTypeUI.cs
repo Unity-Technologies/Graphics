@@ -141,15 +141,25 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    public partial class VFXDirectionType : VFXFloat3Type
+    public partial class VFXVectorType : VFXFloat3Type
     {
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            Vector3 dir = EditorGUILayout.Vector3Field(slot.Name, slot.Get<Vector3>(false));
+            float length = dir.magnitude;
+            float newLength = EditorGUILayout.DelayedFloatField("    Magnitude", length);
+            if (length != newLength)
+                dir = newLength == 0.0f || length == 0.0f ? Vector3.zero : dir * (newLength / length);
+            slot.Set(dir, false);
+        }
+
         public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
         {
-            return new VFXUIDirectionWidget(slot, editor, false);
+            return new VFXUIVectorWidget(slot, editor, false);
         }
     }
 
-    public partial class VFXNormalType : VFXFloat3Type
+    public partial class VFXDirectionType : VFXFloat3Type
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
@@ -165,7 +175,7 @@ namespace UnityEngine.Experimental.VFX
 
         public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
         {
-            return new VFXUIDirectionWidget(slot, editor, true);
+            return new VFXUIVectorWidget(slot, editor, true);
         }
     }
 

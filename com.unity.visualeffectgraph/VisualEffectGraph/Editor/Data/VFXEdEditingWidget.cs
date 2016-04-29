@@ -187,9 +187,9 @@ namespace UnityEditor.Experimental
         private VFXPropertySlot m_Position;
     }
 
-    public class VFXUIDirectionWidget : VFXUIWidget
+    public class VFXUIVectorWidget : VFXUIWidget
     {
-        public VFXUIDirectionWidget(VFXPropertySlot slot, Editor editor,bool forceNormalized)
+        public VFXUIVectorWidget(VFXPropertySlot slot, Editor editor, bool forceNormalized)
             : base(editor)
         {
             m_Direction = slot;
@@ -227,7 +227,10 @@ namespace UnityEditor.Experimental
                 length = 1.0f;
             }
             else
+            {
                 length = Handles.ScaleSlider(length, viewportCenter, normal, m_Quat, scaleSize, scaleSize);
+                Handles.Label(viewportCenter,new GUIContent(length.ToString("0.00")));
+            }
 
             if (EditorGUI.EndChangeCheck() || needsRepaint)
             {

@@ -285,14 +285,14 @@ namespace UnityEngine.Experimental.VFX
         public VFXPositionType() {}
     }
 
-    public partial class VFXDirectionType : VFXFloat3Type
+    public partial class VFXVectorType : VFXFloat3Type
     {
-        public VFXDirectionType() : base(Vector3.up) {}
+        public VFXVectorType() : base(Vector3.up) { }
     }
 
-    public partial class VFXNormalType : VFXFloat3Type
+    public partial class VFXDirectionType : VFXFloat3Type
     {
-        public VFXNormalType() : base(Vector3.up) { }
+        public VFXDirectionType() : base(Vector3.up) { }
     }
 
     public partial class VFXTransformType : VFXPropertyTypeSemantics
