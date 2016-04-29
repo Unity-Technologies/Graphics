@@ -133,6 +133,52 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
+    public partial class VFXPositionType : VFXFloat3Type
+    {
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        {
+            return new VFXUIPositionWidget(slot, editor);
+        }
+    }
+
+    public partial class VFXVectorType : VFXFloat3Type
+    {
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            Vector3 dir = EditorGUILayout.Vector3Field(slot.Name, slot.Get<Vector3>(false));
+            float length = dir.magnitude;
+            float newLength = EditorGUILayout.DelayedFloatField("    Magnitude", length);
+            if (length != newLength)
+                dir = newLength == 0.0f || length == 0.0f ? Vector3.zero : dir * (newLength / length);
+            slot.Set(dir, false);
+        }
+
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        {
+            return new VFXUIVectorWidget(slot, editor, false);
+        }
+    }
+
+    public partial class VFXDirectionType : VFXFloat3Type
+    {
+        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+        {
+            Vector3 n = EditorGUI.Vector3Field(area, "", Get<Vector3>(slot, true));
+            slot.Set(n.normalized,true);
+        }
+
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            Vector3 n = EditorGUILayout.Vector3Field(slot.Name, slot.Get<Vector3>(false));
+            slot.Set(n.normalized,false);
+        }
+
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        {
+            return new VFXUIVectorWidget(slot, editor, true);
+        }
+    }
+
     public partial class VFXTransformType : VFXPropertyTypeSemantics
     {
         public override void OnInspectorGUI(VFXPropertySlot slot)
