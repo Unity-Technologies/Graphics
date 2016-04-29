@@ -244,7 +244,6 @@ namespace UnityEditor.Experimental
         bool b_ForceNormalized;
     }
 
-
     [Obsolete]
     internal abstract class VFXEdEditingWidget
     {
@@ -326,6 +325,7 @@ namespace UnityEditor.Experimental
         }
     }
 
+    [Obsolete]
     internal class VFXEdColorEditingWidget : VFXEdEditingWidget
     {
         VFXPropertySlot m_Color;
@@ -379,8 +379,7 @@ namespace UnityEditor.Experimental
     }
 
     internal class VFXEdGradientEditingWidget : VFXEdEditingWidget
-    {
-
+    { 
         public Texture2D GradientTexture;
 
         private string m_TextureParamName;

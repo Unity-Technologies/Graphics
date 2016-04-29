@@ -15,9 +15,8 @@ namespace UnityEngine.Experimental.VFX
         kTexture2D,
         kTexture3D,
         kTransform,
-        //...
-        // Curve
-        // Gradient
+        kCurve,
+        kColorGradient,
     }
 
     public abstract class VFXExpression
@@ -73,15 +72,17 @@ namespace UnityEngine.Experimental.VFX
         public static VFXValueType ToValueType<T>()
         {
             Type t = typeof(T);
-            if (t == typeof(float))     return VFXValueType.kFloat;   
-            if (t == typeof(Vector2))   return VFXValueType.kFloat2;   
-            if (t == typeof(Vector3))   return VFXValueType.kFloat3;   
-            if (t == typeof(Vector4))   return VFXValueType.kFloat4;   
-            if (t == typeof(int))       return VFXValueType.kInt;   
-            if (t == typeof(uint))      return VFXValueType.kUint;     
-            if (t == typeof(Texture2D)) return VFXValueType.kTexture2D;
-            if (t == typeof(Texture3D)) return VFXValueType.kTexture3D;
-            if (t == typeof(Matrix4x4)) return VFXValueType.kTransform;
+            if (t == typeof(float))             return VFXValueType.kFloat;
+            if (t == typeof(Vector2))           return VFXValueType.kFloat2;
+            if (t == typeof(Vector3))           return VFXValueType.kFloat3;
+            if (t == typeof(Vector4))           return VFXValueType.kFloat4;
+            if (t == typeof(int))               return VFXValueType.kInt;
+            if (t == typeof(uint))              return VFXValueType.kUint;
+            if (t == typeof(Texture2D))         return VFXValueType.kTexture2D;
+            if (t == typeof(Texture3D))         return VFXValueType.kTexture3D;
+            if (t == typeof(Matrix4x4))         return VFXValueType.kTransform;
+            if (t == typeof(AnimationCurve))    return VFXValueType.kCurve;
+            if (t == typeof(Gradient))          return VFXValueType.kColorGradient;
 
             throw new ArgumentException("Invalid type");
         }
@@ -90,15 +91,17 @@ namespace UnityEngine.Experimental.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat:       return new VFXValueFloat();
-                case VFXValueType.kFloat2:      return new VFXValueFloat2();
-                case VFXValueType.kFloat3:      return new VFXValueFloat3();
-                case VFXValueType.kFloat4:      return new VFXValueFloat4();
-                case VFXValueType.kInt:         return new VFXValueInt();
-                case VFXValueType.kUint:        return new VFXValueUint();
-                case VFXValueType.kTexture2D:   return new VFXValueTexture2D();
-                case VFXValueType.kTexture3D:   return new VFXValueTexture3D();
-                case VFXValueType.kTransform:   return new VFXValueTransform();
+                case VFXValueType.kFloat:           return new VFXValueFloat();
+                case VFXValueType.kFloat2:          return new VFXValueFloat2();
+                case VFXValueType.kFloat3:          return new VFXValueFloat3();
+                case VFXValueType.kFloat4:          return new VFXValueFloat4();
+                case VFXValueType.kInt:             return new VFXValueInt();
+                case VFXValueType.kUint:            return new VFXValueUint();
+                case VFXValueType.kTexture2D:       return new VFXValueTexture2D();
+                case VFXValueType.kTexture3D:       return new VFXValueTexture3D();
+                case VFXValueType.kTransform:       return new VFXValueTransform();
+                case VFXValueType.kCurve:           return new VFXValueCurve();
+                case VFXValueType.kColorGradient:   return new VFXValueColorGradient();
                 default:
                     return null;
             }
@@ -210,4 +213,7 @@ namespace UnityEngine.Experimental.VFX
             return SetValue(new Matrix4x4());
         }
     }
+
+    class VFXValueCurve : VFXValue<AnimationCurve>      { public override VFXValueType ValueType { get { return VFXValueType.kCurve; }}}
+    class VFXValueColorGradient : VFXValue<Gradient>    { public override VFXValueType ValueType { get { return VFXValueType.kColorGradient; }}}
 }

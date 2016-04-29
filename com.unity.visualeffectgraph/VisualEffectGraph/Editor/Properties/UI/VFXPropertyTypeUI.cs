@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
+using System.Reflection; // for gradient field
 using UnityEditor.Experimental;
 
 namespace UnityEngine.Experimental.VFX
@@ -70,6 +71,73 @@ namespace UnityEngine.Experimental.VFX
         {
             slot.Set((Texture3D)EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture3D>(false), typeof(Texture3D)),false);
         }
+    }
+
+    public partial class VFXCurveType : VFXPrimitiveType<AnimationCurve>
+    {
+        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.CurveField(area, slot.Get<AnimationCurve>(true));
+            if (EditorGUI.EndChangeCheck())
+                Slot(slot, true).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the curve reference has not changed
+        }
+
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.CurveField(slot.Name, slot.Get<AnimationCurve>(false));
+            if (EditorGUI.EndChangeCheck())
+                Slot(slot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the curve reference has not changed
+        }
+    }
+
+    public partial class VFXColorGradientType : VFXPrimitiveType<Gradient>
+    {
+        public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
+        {
+            InitGradientFieldMethods();
+            if (s_EditorGUIGradientField == null)
+                return;
+
+            EditorGUI.BeginChangeCheck();
+            s_EditorGUIGradientField.Invoke(null, new object[] { area, slot.Get<Gradient>(true) });
+            if (EditorGUI.EndChangeCheck())
+                Slot(slot, true).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the gradient reference has not changed
+        }
+
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            InitGradientFieldMethods();
+            if (s_EditorGUILayoutGradientField == null)
+                return;
+
+            EditorGUI.BeginChangeCheck();
+            s_EditorGUILayoutGradientField.Invoke(null, new object[] { slot.Name, slot.Get<Gradient>(false), null });
+            if (EditorGUI.EndChangeCheck())
+                Slot(slot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the gradient reference has not changed
+        }
+
+        // Use reflection to access gradient field as it is internal and we dont have a scriptable object to call property field...
+        protected static void InitGradientFieldMethods()
+        {
+            if (!s_GradientFieldMethodInitialized)
+            {
+                s_GradientFieldMethodInitialized = true;
+
+                s_EditorGUIGradientField = typeof(EditorGUI).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(Rect), typeof(Gradient) }, null);
+                if (s_EditorGUIGradientField == null)
+                    Debug.LogError("Cannot get EditorGUI.GradientField method by reflection");
+
+                s_EditorGUILayoutGradientField = typeof(EditorGUILayout).GetMethod("GradientField", BindingFlags.NonPublic | BindingFlags.Static, null, new Type[] { typeof(string), typeof(Gradient), typeof(GUILayoutOption[]) }, null);
+                if (s_EditorGUILayoutGradientField == null)
+                    Debug.LogError("Cannot get EditorGUILayout.GradientField method by reflection");
+            }
+        }
+
+        private static bool s_GradientFieldMethodInitialized = false;
+        protected static MethodInfo s_EditorGUILayoutGradientField;
+        protected static MethodInfo s_EditorGUIGradientField;
     }
 
     // Proxy types
@@ -194,14 +262,6 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
-    public partial class VFXOrientedBoxType : VFXTransformType
-    {
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
-        {
-            return new VFXUITransformWidget(slot, editor, true);
-        }
-    }
-
     // Composite types
     public partial class VFXSphereType : VFXPropertyTypeSemantics
     {
@@ -230,6 +290,14 @@ namespace UnityEngine.Experimental.VFX
         public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
         {
             return new VFXUIBoxWidget(slot,editor);
+        }
+    }
+
+    public partial class VFXOrientedBoxType : VFXTransformType
+    {
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        {
+            return new VFXUITransformWidget(slot, editor, true);
         }
     }
 

@@ -68,6 +68,9 @@ namespace UnityEditor.Experimental
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXAABoxType>("aabox"), "Box", "Primitives"));
             m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXOrientedBoxType>("box"), "Box", "Primitives"));
 
+            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXColorGradientType>("Gradient"), "type_color", "Curves"));
+            m_DataBlocks.Add(new VFXDataBlock(VFXProperty.Create<VFXCurveType>("Curve"), "Curve", "Curves"));
+
             // TODO : Add Blocks Here
             /*VFXDataBlock intblock = new VFXDataBlock("Int", "type_integer", "Generic types");
             intblock.AddParameter("Value", VFXValueType.kInt);

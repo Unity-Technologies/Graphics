@@ -146,6 +146,16 @@ namespace UnityEngine.Experimental.VFX
         VFXTexture3DType(Texture3D defaultValue) : base(defaultValue) { }
     }
 
+    public partial class VFXCurveType : VFXPrimitiveType<AnimationCurve>
+    {
+        public VFXCurveType() : base(new AnimationCurve()) {}
+    }
+
+    public partial class VFXColorGradientType : VFXPrimitiveType<Gradient>
+    {
+        public VFXColorGradientType() : base(new Gradient()) {}
+    }
+
     // Proxy types
     // TODO
     public abstract class VFXProxyVectorType : VFXPropertyTypeSemantics

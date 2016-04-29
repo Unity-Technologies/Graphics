@@ -567,6 +567,9 @@ namespace UnityEditor.Experimental
             m_Blocks.Add(new VFXBlockTransformVelocity());
 
             m_Blocks.Add(new VFXBlockSetColorOverLifetime());
+
+            m_Blocks.Add(new VFXBlockCurveTest());
+            m_Blocks.Add(new VFXBlockGradientTest());
         }
 
         public VFXBlockDesc GetBlock(string name)

@@ -372,6 +372,16 @@ namespace UnityEditor.Experimental
             // TODO Check if the block is compatible with the context
         }
 
+        public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
+        {
+            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
+            {
+                // TODO modify generated texxture for the system
+            }
+
+            base.OnSlotEvent(type, slot);
+        }
+
         public override void Invalidate(InvalidationCause cause)
         {
             if (m_Owner != null && Desc.m_Type != VFXContextDesc.Type.kTypeNone)
@@ -405,6 +415,16 @@ namespace UnityEditor.Experimental
 
     public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>
     {
+        public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
+        {
+            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
+            {
+                // TODO modify generated texxture for the system
+            }
+
+            base.OnSlotEvent(type, slot);
+        }
+
         public override void Invalidate(InvalidationCause cause)
         {
             if (m_Owner != null)

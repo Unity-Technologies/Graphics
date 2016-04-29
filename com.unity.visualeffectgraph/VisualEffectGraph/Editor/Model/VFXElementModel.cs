@@ -119,7 +119,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
+        public virtual void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
         {
             switch (type)
             {

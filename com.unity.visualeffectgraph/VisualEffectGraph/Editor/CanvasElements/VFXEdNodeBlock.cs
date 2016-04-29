@@ -20,6 +20,7 @@ namespace UnityEditor.Experimental
         protected string m_LibraryName;
         protected string m_UniqueName;
 
+        // TODO Remove that
         public DataContainer editingDataContainer;
         public VFXEdEditingWidget editingWidget;
 

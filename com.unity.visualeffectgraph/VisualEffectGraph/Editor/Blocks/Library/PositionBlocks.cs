@@ -254,4 +254,49 @@ namespace UnityEngine.Experimental.VFX
         public override string IconPath { get { return "Color"; } }
         public override string Category { get { return "Color/"; } }
     }
+
+    // Test
+    class VFXBlockGradientTest : VFXBlockDesc
+    {
+        public VFXBlockGradientTest()
+        {
+            m_Properties = new VFXProperty[] {
+                VFXProperty.Create<VFXColorGradientType>("test"),
+            };
+
+            m_Attributes = new VFXAttribute[] {};
+
+            // TODO this should be derived automatically
+            m_Flag = Flag.kNone;
+            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+        }
+
+        public override string Source { get { return "";  } }
+
+        public override string Name { get { return "Test Gradient"; } }
+        public override string IconPath { get { return "Color"; } }
+        public override string Category { get { return "Test/"; } }
+    }
+
+    class VFXBlockCurveTest : VFXBlockDesc
+    {
+        public VFXBlockCurveTest()
+        {
+            m_Properties = new VFXProperty[] {
+                VFXProperty.Create<VFXCurveType>("test"),
+            };
+
+            m_Attributes = new VFXAttribute[] { };
+
+            // TODO this should be derived automatically
+            m_Flag = Flag.kNone;
+            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+        }
+
+        public override string Source { get { return ""; } }
+
+        public override string Name { get { return "Test Curve"; } }
+        public override string IconPath { get { return "Curve"; } }
+        public override string Category { get { return "Test/"; } }
+    }
 }
