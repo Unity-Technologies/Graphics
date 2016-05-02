@@ -148,12 +148,24 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXCurveType : VFXPrimitiveType<AnimationCurve>
     {
-        public VFXCurveType() : base(new AnimationCurve()) {}
+        public VFXCurveType() : base(null) {}
+
+        public override bool Default(VFXPropertySlot slot)
+        {
+            slot.SetInnerValue(new AnimationCurve());
+            return true;
+        }
     }
 
     public partial class VFXColorGradientType : VFXPrimitiveType<Gradient>
     {
-        public VFXColorGradientType() : base(new Gradient()) {}
+        public VFXColorGradientType() : base(null) {}
+
+        public override bool Default(VFXPropertySlot slot)
+        {
+            slot.SetInnerValue(new Gradient());
+            return true;
+        }
     }
 
     // Proxy types

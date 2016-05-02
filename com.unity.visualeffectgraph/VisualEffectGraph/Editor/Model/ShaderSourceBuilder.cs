@@ -17,6 +17,12 @@ namespace UnityEditor.Experimental
             m_Builder.Append(t);
         }
 
+        // Optimize version to append substring and avoid useless allocation
+        public void Write(String s,int start,int length)
+        {
+            m_Builder.Append(s, start, length);
+        }
+
         public void WriteLine<T>(T t)
         {
             Write(t);
@@ -119,15 +125,17 @@ namespace UnityEditor.Experimental
         public void WriteType(VFXValueType type)
         {
             // tmp transform texture to sampler TODO This must be handled directly in C++ conversion array
-            if (type == VFXValueType.kTexture2D)
-                Write("sampler2D");
-            else if (type == VFXValueType.kTexture3D)
-                Write("sampler3D");
-            else
-                Write(VFXValue.TypeToName(type));
+            switch (type)
+            {
+                case VFXValueType.kTexture2D:       Write("sampler2D"); break;
+                case VFXValueType.kTexture3D:       Write("sampler3D"); break;
+                case VFXValueType.kCurve:           Write("float4"); break;
+                case VFXValueType.kColorGradient:   Write("float"); break;
+                default:                            Write(VFXValue.TypeToName(type)); break;
+            }
         }
 
-        public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions)
+        public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions,VFXGeneratedTextureData texData)
         {
             if (!functions.ContainsKey(block.Desc.Hash)) // if not already defined
             {
@@ -136,6 +144,14 @@ namespace UnityEditor.Experimental
                 functions[block.Desc.Hash] = name;
 
                 string source = block.Desc.Source;
+
+                bool hasCurve = false;
+                bool hasGradient = false;
+                foreach (var property in block.Desc.Properties)
+                    if (property.m_Type.ValueType == VFXValueType.kColorGradient)
+                        hasGradient = true;
+                    else if (property.m_Type.ValueType == VFXValueType.kCurve)
+                        hasCurve = true;
 
                 // function signature
                 Write("void ");
@@ -194,12 +210,31 @@ namespace UnityEditor.Experimental
 
                 source = source.TrimStart(new char[] {'\t'}); // TODO Fix that from importer (no need for first '\t')
 
-                Write(source);
+                 if (hasGradient || hasCurve)
+                    WriteSourceWithSamplesResolved(source,block,texData);
+                else
+                    Write(source);
                 WriteLine();
 
                 ExitScope();
                 WriteLine();
             }
+        }
+
+        // TODO source shouldnt be a parameter but taken from block
+        private void WriteSourceWithSamplesResolved(string source,VFXBlockModel block,VFXGeneratedTextureData texData)
+        {
+            string curSource = source;
+            int lastIndex = 0;
+            int indexSample = 0;
+            while ((indexSample = source.IndexOf("SAMPLE", lastIndex)) != -1)
+            {
+                Write(source, lastIndex, indexSample - lastIndex);
+                Write("sampleSignal");
+                lastIndex = indexSample + 6; // size of "SAMPLE"
+            }
+
+            Write(source, lastIndex, source.Length - lastIndex); // Write the rest of the source
         }
 
         public void WriteFunctionCall(

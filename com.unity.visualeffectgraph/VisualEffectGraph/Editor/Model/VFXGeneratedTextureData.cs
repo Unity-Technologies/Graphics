@@ -1,0 +1,316 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using UnityEditor.Experimental;
+
+namespace UnityEngine.Experimental.VFX
+{
+    public class VFXGeneratedTextureData
+    {
+        private const int TEXTURE_WIDTH = 128; // TODO This should be made dynamic based on highest frequency of signals
+        private class SignalData
+        {
+            public int Y;               // Y coordinate of the signal (absolute)
+            public int index;           // component index (x,y,z or w)
+            public bool clampStart;     // clamp mode of the curve before first key
+            public bool clampEnd;       // clamp mode of the curve after last key
+            public float startU;
+            public float scaleU;
+        }
+
+        private Texture2D m_ColorTexture; // sRGB data 8bits per component
+        private Texture2D m_FloatTexture; // linear data 16bits per component
+
+        private Dictionary<VFXValue, int> m_ColorSignals = new Dictionary<VFXValue,int>();
+        private Dictionary<VFXValue, SignalData> m_FloatSignals = new Dictionary<VFXValue, SignalData>();
+
+        private HashSet<VFXValue> m_DirtySignals = new HashSet<VFXValue>();
+
+        private bool m_ColorTextureDirty = false;
+        private bool m_FloatTextureDirty = false;
+
+        public bool HasColorTexture() { return m_ColorTexture != null; }
+        public bool HasFloatTexture() { return m_FloatTexture != null; }
+
+        public Texture2D ColorTexture { get { return m_ColorTexture; } }
+        public Texture2D FloatTexture { get { return m_FloatTexture; } }
+
+        public void Reinit(IEnumerable<VFXValue> allValues)
+        {
+            RemoveAllValues();
+            AddValues(allValues);
+            Generate();
+        }
+
+        public void SetDirty(VFXValue value)
+        {
+            if (value.ValueType == VFXValueType.kColorGradient || value.ValueType == VFXValueType.kCurve)
+                m_DirtySignals.Add(value); // Dont check whether it exists in dictionary as this will be performed later on during the update
+        }
+
+        public void UpdateAndUploadDirty()
+        {
+            foreach (var value in m_DirtySignals)
+                Update(value);
+
+            m_DirtySignals.Clear();
+
+            UploadChanges();
+        }
+
+        public void RemoveAllValues()
+        {
+            m_ColorSignals.Clear();
+            m_FloatSignals.Clear();
+            m_DirtySignals.Clear();
+        }
+
+        public void AddValues(IEnumerable<VFXValue> values)
+        {
+            // Gather all value
+            foreach (var value in values)
+            {
+                if (value.ValueType == VFXValueType.kColorGradient)
+                    m_ColorSignals.Add(value, -1); // dummy value
+                else if (value.ValueType == VFXValueType.kCurve)
+                    m_FloatSignals.Add(value, null); // dummy value
+            }
+        }
+
+        public void Generate()
+        {
+            // gradients
+            int colorHeight = m_ColorSignals.Count;
+
+            if (m_ColorTexture != null && m_ColorTexture.height != colorHeight)
+            {
+                Object.DestroyImmediate(m_ColorTexture);
+                m_ColorTexture = null;
+            }
+
+            if (colorHeight > 0)
+            {
+                if (m_ColorTexture == null)
+                {
+                    m_ColorTexture = new Texture2D(TEXTURE_WIDTH, Mathf.NextPowerOfTwo(colorHeight), TextureFormat.RGBA32, false, false); // sRGB
+                    m_ColorTexture.wrapMode = TextureWrapMode.Clamp;
+                }
+
+                int currentY = 0;
+                var gradients = new List<VFXValue>(m_ColorSignals.Keys);
+                foreach (var gradient in gradients)
+                {
+                    m_ColorSignals[gradient] = currentY;
+                    DiscretizeGradient(gradient.Get<Gradient>(), currentY++);
+                }
+
+                m_ColorTextureDirty = true;
+            }
+
+            // curves
+            int floatHeight = m_FloatSignals.Count;
+
+            if (m_FloatTexture != null && m_FloatTexture.height != floatHeight)
+            {
+                Object.DestroyImmediate(m_FloatTexture);
+                m_FloatTexture = null;
+            }
+
+            if (floatHeight > 0)
+            {
+                if (m_FloatTexture == null)
+                {
+                    m_FloatTexture = new Texture2D(TEXTURE_WIDTH, Mathf.NextPowerOfTwo((floatHeight + 3) / 4), TextureFormat.RGBAHalf, false, true); // Linear
+                    m_FloatTexture.wrapMode = TextureWrapMode.Repeat;
+                }
+       
+                int currentIndex = 0;
+                var curves = new List<VFXValue>(m_FloatSignals.Keys);
+                foreach (var curve in curves)
+                {
+                    SignalData data = new SignalData();
+                    data.Y = currentIndex >> 2;
+                    data.index = currentIndex & 3;
+
+                    AnimationCurve animCurve = curve.Get<AnimationCurve>();
+
+                    m_FloatSignals[curve] = UpdateSignalData(animCurve,data);
+                    DiscretizeCurve(animCurve, data);
+                }
+
+                m_FloatTextureDirty = true;
+            }
+
+            UploadChanges();
+        }
+
+        public bool Update(VFXValue value)
+        {
+            if (value.ValueType == VFXValueType.kColorGradient)
+            {
+                if (!m_ColorSignals.ContainsKey(value))
+                    return false;
+
+                DiscretizeGradient(value.Get<Gradient>(), m_ColorSignals[value]);
+                m_ColorTextureDirty = true;
+                return true;
+            }
+            else if (value.ValueType == VFXValueType.kCurve)
+            {
+                if (!m_FloatSignals.ContainsKey(value))
+                    return false;
+
+                var animCurve = value.Get<AnimationCurve>();
+                var signalData = m_FloatSignals[value];
+                m_FloatSignals[value] = UpdateSignalData(animCurve,signalData);
+                DiscretizeCurve(animCurve,m_FloatSignals[value]);
+
+                m_FloatTextureDirty = true;
+            }
+
+            return false;
+        }
+
+        public void UpdateAll()
+        {
+            foreach (var gradient in m_ColorSignals)
+                Update(gradient.Key);
+
+            foreach (var curve in m_FloatSignals)
+                Update(curve.Key);
+        }
+
+        public void UploadChanges()
+        {
+            if (m_ColorTextureDirty)
+            {
+                m_ColorTexture.Apply();
+                m_ColorTextureDirty = false;
+            }
+
+            if (m_FloatTextureDirty)
+            {
+                m_FloatTexture.Apply();
+                m_FloatTextureDirty = false;
+            }
+        }
+
+        public void Dispose()
+        {
+            RemoveAllValues();
+            Generate(); // This will destroy existing textures as all values were removed
+        }
+
+        private void DiscretizeGradient(Gradient gradient,int y)
+        {
+            for (int i = 0; i < TEXTURE_WIDTH; ++i)
+            {
+                Color c = gradient.Evaluate(i / (TEXTURE_WIDTH - 1.0f));
+                m_ColorTexture.SetPixel(i,y,c);
+            }
+        }
+
+        private SignalData UpdateSignalData(AnimationCurve curve, SignalData data)
+        {
+            // Ensure the curve mode is supported
+            if (curve.preWrapMode == WrapMode.PingPong || curve.postWrapMode == WrapMode.PingPong) // TODO Handle pingpong mode
+                Debug.LogError("ping pong wrap mode is not supported for curves. Clamp is used instead");
+            
+            data.clampStart = curve.preWrapMode != WrapMode.Loop;
+            data.clampEnd = curve.postWrapMode != WrapMode.Loop;
+            data.startU = curve.length == 0 ? 0.0f : curve.keys[0].time;
+            data.scaleU = curve.length == 0 ? 1.0f : curve.keys[curve.length - 1].time - data.startU;
+
+            return data;
+        }
+
+        private void DiscretizeCurve(AnimationCurve curve,SignalData data)
+        {
+            for (int i = 0; i < TEXTURE_WIDTH; ++i)
+            {
+                float x = data.startU + ((data.clampStart || data.clampEnd) ? (data.scaleU * i) / (TEXTURE_WIDTH - 1) : data.scaleU * (0.5f + i) / TEXTURE_WIDTH); 
+                Color c = m_FloatTexture.GetPixel(i,data.Y); // Get pixel because only one component will be written
+                c[data.index] = curve.Evaluate(x);
+                m_FloatTexture.SetPixel(i, data.Y, c);
+            }
+        }
+
+        public void WriteSampleGradientFunction(ShaderSourceBuilder builder)
+        {
+            // Signature
+            builder.WriteLine("float4 sampleSignal(float v,float u) // sample gradient");
+            builder.EnterScope();
+
+            builder.Write("return tex2Dlod(gradientTexture,float4(");
+            WriteHalfTexelOffset(builder, "saturate(u)");
+            builder.WriteLine(",v,0,0));");
+
+            builder.ExitScope();
+        }
+
+        public void WriteSampleCurveFunction(ShaderSourceBuilder builder)
+        {
+            // Signature
+            // curveData:
+            // x: startU
+            // y: 1 / scaleU
+            // z: clamp flag (uint)
+            // w: index (2 LSB) + v (other bits) (uint)
+
+            builder.WriteLine("// Non optimized generic function to allow curve edition without recompiling");
+            builder.WriteLine("float sampleSignal(float4 curveData,float u) // sample curve");
+            builder.EnterScope();
+
+            builder.WriteLine("float uNorm = (u - curveData.x) * curveData.y;");
+            builder.WriteLine("switch(asuint(curveData.z))");
+            builder.EnterScope();
+
+            builder.Write("case 1: uNorm = ");
+            WriteHalfTexelOffset(builder, "frac(min(1.0f - 1e-7f,uNorm))"); // Dont clamp at 1 or else the frac will make it 0...
+            builder.WriteLine("; break; // clamp end");
+
+            builder.Write("case 2: uNorm = ");
+            WriteHalfTexelOffset(builder, "frac(max(0.0f,uNorm))");
+            builder.WriteLine("; break; // clamp start");
+
+            builder.Write("case 3: uNorm = ");
+            WriteHalfTexelOffset(builder, "saturate(uNorm)");
+            builder.WriteLine("; break; // clamp both");
+
+            builder.ExitScope();
+
+            builder.Write("return tex2Dlod(curveTexture,float4(uNorm,");
+            builder.Write("(0.5f + (asuint(curveData.w) & (~0x3))) * ");
+            builder.Write(1.0f / m_FloatTexture.height);
+            builder.WriteLine(",0,0))[asuint(curveData.w) & 0x3];");
+
+            builder.ExitScope();
+        }
+
+        private void WriteHalfTexelOffset(ShaderSourceBuilder builder,string uNorm)
+        {
+            builder.Write("(0.5f + ");
+            builder.Write(uNorm);
+            builder.Write(" * ");
+            builder.Write(TEXTURE_WIDTH - 1.0f);
+            builder.Write(") * ");
+            builder.Write(1.0f / TEXTURE_WIDTH);
+        }
+
+        public Vector4 GetCurveUniform(VFXValue curve) // can throw
+        {
+            SignalData data = m_FloatSignals[curve];
+            Vector4 uniform = new Vector4();
+            uniform.x = data.startU;
+            uniform.y = 1.0f / data.scaleU;
+            uniform.z = BitConverter.ToSingle(BitConverter.GetBytes((data.clampStart ? 0x2 : 0x0) | (data.clampEnd ? 0x1 : 0x0)),0);
+            uniform.w = BitConverter.ToSingle(BitConverter.GetBytes((data.Y << 2) | (data.index & 0x3)),0);
+            return uniform;
+        }
+
+        public float GetGradientUniform(VFXValue gradient) // can throw
+        {
+            return (0.5f + m_ColorSignals[gradient]) / m_ColorTexture.height;
+        }
+    }
+}
