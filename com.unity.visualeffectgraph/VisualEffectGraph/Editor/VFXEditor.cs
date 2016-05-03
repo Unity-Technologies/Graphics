@@ -261,8 +261,6 @@ namespace UnityEditor.Experimental
                 InitializeCanvas();
             }
 
-            AssetModel.Update();
-
             titleContent = new GUIContent("VFX Editor", m_Icon);
 
             DrawToolbar(new Rect(0, 0, position.width, EditorStyles.toolbar.fixedHeight));
@@ -393,6 +391,11 @@ namespace UnityEditor.Experimental
 
             m_Canvas.OnGUI(this, canvasRect);
             DrawWindows(canvasRect);
+        }
+
+        void Update()
+        {
+            AssetModel.Update();
         }
 
         void OnDestroy()
