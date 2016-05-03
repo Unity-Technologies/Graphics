@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental
         private bool m_ChildrenCollapsed = true;
         private bool m_FieldCollapsed; // Use another bool than collapsed as we dont want it to be propagated to children when uncollapsing
 
-        private VFXUIPropertySlotField[] m_Children;
+        private new VFXUIPropertySlotField[] m_Children;
 
         public VFXUIPropertySlotField(VFXEdDataSource dataSource, VFXPropertySlot slot, uint depth = 0)
         {
@@ -152,7 +152,6 @@ namespace UnityEditor.Experimental
         {
             base.Render(parentRect, canvas);
 
-            EventType t = Event.current.type;
             if (!Collapsed())
             {
                 Rect r = GetDrawableRect();

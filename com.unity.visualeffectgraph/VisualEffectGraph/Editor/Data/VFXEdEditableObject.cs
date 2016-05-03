@@ -110,8 +110,6 @@ namespace UnityEditor.Experimental
         {
             StopObservingSlots();
         }
-
-        private List<VFXUIWidget> m_Widgets = new List<VFXUIWidget>();
     }
 
     [CustomEditor(typeof(VFXEdDataNodeBlockTarget))]
@@ -148,8 +146,6 @@ namespace UnityEditor.Experimental
         {
             StopObservingSlots();
         }
-
-        private VFXUIWidget m_Widget;
     }
 
     [CustomEditor(typeof(VFXEdContextNodeTarget))]

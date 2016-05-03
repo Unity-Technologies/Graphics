@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.VFX
             //if (id + 1 == GUIUtility.keyboardControl)
             //    col = Color.red;
             
-            var curve = EditorGUI.CurveField(area, slot.Get<AnimationCurve>(true), col, new Rect());
+            var curve = EditorGUI.CurveField(area, slot.Get<AnimationCurve>(true));
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.VFX
             //if (id + 1 == GUIUtility.keyboardControl)
             //    col = Color.red;
 
-            var curve = EditorGUILayout.CurveField(slot.Name, slot.Get<AnimationCurve>(false),col, new Rect(),null);
+            var curve = EditorGUILayout.CurveField(slot.Name, slot.Get<AnimationCurve>(false));
 
             if (EditorGUI.EndChangeCheck())
             {
