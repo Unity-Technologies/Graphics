@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,29 +9,31 @@ namespace UnityEditor.Experimental
 {
     public static class CommonAttrib
     {
-        public static VFXAttrib Seed =              new VFXAttrib("seed", VFXParam.Type.kTypeUint);
-        public static VFXAttrib Position =          new VFXAttrib("position", VFXParam.Type.kTypeFloat3);
-        public static VFXAttrib Velocity =          new VFXAttrib("velocity", VFXParam.Type.kTypeFloat3);
-        public static VFXAttrib Color =             new VFXAttrib("color", VFXParam.Type.kTypeFloat3);
-        public static VFXAttrib Alpha =             new VFXAttrib("alpha", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Phase =             new VFXAttrib("phase", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Size =              new VFXAttrib("size", VFXParam.Type.kTypeFloat2);
-        public static VFXAttrib Lifetime =          new VFXAttrib("lifetime", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Age =               new VFXAttrib("age", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib Angle =             new VFXAttrib("angle", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib AngularVelocity =   new VFXAttrib("angularVelocity", VFXParam.Type.kTypeFloat);
-        public static VFXAttrib TexIndex =          new VFXAttrib("texIndex", VFXParam.Type.kTypeFloat);
+        public static VFXAttribute Seed =               new VFXAttribute("seed", VFXValueType.kUint);
+        public static VFXAttribute Position =           new VFXAttribute("position", VFXValueType.kFloat3);
+        public static VFXAttribute Velocity =           new VFXAttribute("velocity", VFXValueType.kFloat3);
+        public static VFXAttribute Color =              new VFXAttribute("color", VFXValueType.kFloat3);
+        public static VFXAttribute Alpha =              new VFXAttribute("alpha", VFXValueType.kFloat);
+        public static VFXAttribute Phase =              new VFXAttribute("phase", VFXValueType.kFloat);
+        public static VFXAttribute Size =               new VFXAttribute("size", VFXValueType.kFloat2);
+        public static VFXAttribute Lifetime =           new VFXAttribute("lifetime", VFXValueType.kFloat);
+        public static VFXAttribute Age =                new VFXAttribute("age", VFXValueType.kFloat);
+        public static VFXAttribute Angle =              new VFXAttribute("angle", VFXValueType.kFloat);
+        public static VFXAttribute AngularVelocity =    new VFXAttribute("angularVelocity", VFXValueType.kFloat);
+        public static VFXAttribute TexIndex =           new VFXAttribute("texIndex", VFXValueType.kFloat);
     }
 
     public class VFXSystemRuntimeData
     {
-        public Dictionary<VFXParamValue,string> uniforms = new Dictionary<VFXParamValue,string>();
-        public Dictionary<VFXParamValue, string> outputUniforms = new Dictionary<VFXParamValue, string>();
+        public Dictionary<VFXValue, string> uniforms = new Dictionary<VFXValue, string>();
+        public Dictionary<VFXValue, string> outputUniforms = new Dictionary<VFXValue, string>();
         
-        ComputeShader simulationShader;
+        ComputeShader simulationShader; 
         public ComputeShader SimulationShader { get { return simulationShader; } }
 
         public Material m_Material = null;
+
+        public VFXGeneratedTextureData m_GeneratedTextureData = null;
 
         int initKernel = -1;
         public int InitKernel { get { return initKernel; } }
@@ -62,74 +65,92 @@ namespace UnityEditor.Experimental
 
             foreach (var uniform in outputUniforms)
                 UpdateUniform(uniform.Key, true);
+
+            // Set generated texture data
+            // atm set texture for both compute shaders, but can be improved by having info by kernel
+            if (m_GeneratedTextureData.HasColorTexture())
+            {
+                if (initKernel != -1)
+                    simulationShader.SetTexture(initKernel, "gradientTexture", m_GeneratedTextureData.ColorTexture);
+                if (updateKernel != -1)
+                    simulationShader.SetTexture(updateKernel, "gradientTexture", m_GeneratedTextureData.ColorTexture);
+            }
+
+            if (m_GeneratedTextureData.HasFloatTexture())
+            {
+                if (initKernel != -1)
+                    simulationShader.SetTexture(initKernel, "curveTexture", m_GeneratedTextureData.FloatTexture);
+                if (updateKernel != -1)
+                    simulationShader.SetTexture(updateKernel, "curveTexture", m_GeneratedTextureData.FloatTexture);
+            }
         }
 
-        public void UpdateUniform(VFXParamValue paramValue,bool output)
+        public void UpdateUniform(VFXValue value,bool output)
         {
             var currentUniforms = uniforms;
             if (output)
                 currentUniforms = outputUniforms;
 
-            string uniformName = currentUniforms[paramValue];
-            switch (paramValue.ValueType)
+            string uniformName = currentUniforms[value];
+            switch (value.ValueType)
             {
-                case VFXParam.Type.kTypeFloat:
+                case VFXValueType.kFloat:
                     if (output)
-                        m_Material.SetFloat(uniformName, paramValue.GetValue<float>());
+                        m_Material.SetFloat(uniformName, value.Get<float>());
                     else
-                        simulationShader.SetFloat(uniformName,paramValue.GetValue<float>());
+                        simulationShader.SetFloat(uniformName,value.Get<float>());
                     break;
-                case VFXParam.Type.kTypeFloat2:
+                case VFXValueType.kFloat2:
                 {
-                    Vector2 value = paramValue.GetValue<Vector2>();
+                    Vector2 v = value.Get<Vector2>();
                     if (output)
-                        m_Material.SetVector(uniformName, value);
+                        m_Material.SetVector(uniformName, v);
                     else
                     {
                         float[] buffer = new float[2];                        
-                        buffer[0] = value.x;
-                        buffer[1] = value.y;
+                        buffer[0] = v.x;
+                        buffer[1] = v.y;
                         simulationShader.SetFloats(uniformName,buffer);  
                     }
                     break;
                 }
-                case VFXParam.Type.kTypeFloat3:
+                case VFXValueType.kFloat3:
                 {     
-                    Vector3 value = paramValue.GetValue<Vector3>();
+                    Vector3 v = value.Get<Vector3>();
                     if (output)
-                        m_Material.SetVector(uniformName, value);
+                        m_Material.SetVector(uniformName, v);
                     else
                     {
                         float[] buffer = new float[3];
-                        buffer[0] = value.x;
-                        buffer[1] = value.y;
-                        buffer[2] = value.z;
+                        buffer[0] = v.x;
+                        buffer[1] = v.y;
+                        buffer[2] = v.z;
                         simulationShader.SetFloats(uniformName, buffer);
                     }
                     break;
                 }
-                case VFXParam.Type.kTypeFloat4:
+                case VFXValueType.kFloat4:
                     if (output)
-                        m_Material.SetVector(uniformName, paramValue.GetValue<Vector4>());
+                        m_Material.SetVector(uniformName, value.Get<Vector4>());
                     else
-                        simulationShader.SetVector(uniformName,paramValue.GetValue<Vector4>());
+                        simulationShader.SetVector(uniformName,value.Get<Vector4>());
                     break;
-                case VFXParam.Type.kTypeInt:
+                case VFXValueType.kInt:
                     if (output)
-                        m_Material.SetInt(uniformName, paramValue.GetValue<int>());
+                        m_Material.SetInt(uniformName, value.Get<int>());
                     else
-                        simulationShader.SetInt(uniformName,paramValue.GetValue<int>());
+                        simulationShader.SetInt(uniformName,value.Get<int>());
                     break;
-                case VFXParam.Type.kTypeUint:
+                case VFXValueType.kUint:
                     if (output)
-                        m_Material.SetInt(uniformName, (int)paramValue.GetValue<uint>());
+                        m_Material.SetInt(uniformName, (int)value.Get<uint>());
                     else
-                        simulationShader.SetInt(uniformName,(int)paramValue.GetValue<uint>());
+                        simulationShader.SetInt(uniformName,(int)value.Get<uint>());
                     break;
 
-                case VFXParam.Type.kTypeTexture2D:
+                case VFXValueType.kTexture2D:
                 {
-                    Texture2D tex = paramValue.GetValue<Texture2D>();
+                    Texture2D tex = value.Get<Texture2D>();
                     if (tex != null)
                     {
                         if (output)
@@ -150,9 +171,36 @@ namespace UnityEditor.Experimental
 
                     break;
                 }
+                case VFXValueType.kTransform:
+                {
+                    Matrix4x4 mat = value.Get<Matrix4x4>();
+                    if (output)
+                        m_Material.SetMatrix(uniformName, mat);
+                    else
+                    {
+                        float[] buffer = new float[16];
+                        for (int i = 0; i < 16; ++i)
+                            buffer[i] = mat[i];
+                        simulationShader.SetFloats(uniformName, buffer);
+                    }
+                    break;
+                }
 
-                case VFXParam.Type.kTypeTexture3D: // Texture 3D not handled yet
-                case VFXParam.Type.kTypeUnknown:
+                case VFXValueType.kColorGradient:
+                    if (output)
+                        throw new NotImplementedException("TODO");
+                    simulationShader.SetFloat(uniformName, m_GeneratedTextureData.GetGradientUniform(value));
+                    break;
+
+                case VFXValueType.kCurve:
+                    if (output)
+                        throw new NotImplementedException("TODO");
+                    simulationShader.SetVector(uniformName, m_GeneratedTextureData.GetCurveUniform(value));
+                    break;
+                
+
+                case VFXValueType.kTexture3D: // Texture 3D not handled yet
+                case VFXValueType.kNone:
                     // Not yet implemented
                     break;
             }
@@ -165,10 +213,10 @@ namespace UnityEditor.Experimental
         {
             m_Index = index;
             m_Usage = usage;
-            m_Attribs = new List<VFXAttrib>();
+            m_Attribs = new List<VFXAttribute>();
         }
 
-        public void Add(VFXAttrib attrib)
+        public void Add(VFXAttribute attrib)
         {
             m_Attribs.Add(attrib);
         }
@@ -202,7 +250,7 @@ namespace UnityEditor.Experimental
             get { return m_Attribs.Count; }
         }
 
-        public VFXAttrib this[int index]
+        public VFXAttribute this[int index]
         {
             get { return m_Attribs[index]; }
         }
@@ -220,26 +268,26 @@ namespace UnityEditor.Experimental
         public int GetSizeInBytes()
         {
             int size = 0;
-            foreach (VFXAttrib attrib in m_Attribs)
-                size += VFXParam.GetSizeFromType(attrib.m_Param.m_Type) * 4;
+            foreach (VFXAttribute attrib in m_Attribs)
+                size += VFXValue.TypeToSize(attrib.m_Type) * 4;
             return size;
         }
 
         int m_Index;
         int m_Usage;
-        List<VFXAttrib> m_Attribs;
+        List<VFXAttribute> m_Attribs;
     }
 
-    public class AttribComparer : IEqualityComparer<VFXAttrib>
+    public class AttribComparer : IEqualityComparer<VFXAttribute>
     {
-        public bool Equals(VFXAttrib attr0, VFXAttrib attr1)
+        public bool Equals(VFXAttribute attr0, VFXAttribute attr1)
         {
-            return attr0.m_Param.m_Name == attr1.m_Param.m_Name && attr0.m_Param.m_Type == attr1.m_Param.m_Type;
+            return attr0.m_Name == attr1.m_Name && attr0.m_Type == attr1.m_Type;
         }
 
-        public int GetHashCode(VFXAttrib attr)
+        public int GetHashCode(VFXAttribute attr)
         {
-            return 13 * attr.m_Param.m_Name.GetHashCode() + attr.m_Param.m_Type.GetHashCode(); // Simple factored sum
+            return 13 * attr.m_Name.GetHashCode() + attr.m_Type.GetHashCode(); // Simple factored sum
         }
     }
 
@@ -252,21 +300,23 @@ namespace UnityEditor.Experimental
         public bool hasRand;
 
         public List<AttributeBuffer> attributeBuffers = new List<AttributeBuffer>();
-        public Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer = new Dictionary<VFXAttrib, AttributeBuffer>(new AttribComparer());
+        public Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer = new Dictionary<VFXAttribute, AttributeBuffer>(new AttribComparer());
 
-        public HashSet<VFXParamValue> globalUniforms = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> initUniforms = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> updateUniforms = new HashSet<VFXParamValue>();
+        public HashSet<VFXValue> globalUniforms = new HashSet<VFXValue>();
+        public HashSet<VFXValue> initUniforms = new HashSet<VFXValue>();
+        public HashSet<VFXValue> updateUniforms = new HashSet<VFXValue>();
 
-        public HashSet<VFXParamValue> globalSamplers = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> initSamplers = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> updateSamplers = new HashSet<VFXParamValue>();
+        public HashSet<VFXValue> globalSamplers = new HashSet<VFXValue>();
+        public HashSet<VFXValue> initSamplers = new HashSet<VFXValue>();
+        public HashSet<VFXValue> updateSamplers = new HashSet<VFXValue>();
 
-        public HashSet<VFXParamValue> outputUniforms = new HashSet<VFXParamValue>();
-        public HashSet<VFXParamValue> outputSamplers = new HashSet<VFXParamValue>();
+        public HashSet<VFXValue> outputUniforms = new HashSet<VFXValue>();
+        public HashSet<VFXValue> outputSamplers = new HashSet<VFXValue>();
 
-        public Dictionary<VFXParamValue, string> paramToName = new Dictionary<VFXParamValue, string>();
-        public Dictionary<VFXParamValue, string> outputParamToName = new Dictionary<VFXParamValue, string>();
+        public Dictionary<VFXValue, string> paramToName = new Dictionary<VFXValue, string>();
+        public Dictionary<VFXValue, string> outputParamToName = new Dictionary<VFXValue, string>();
+
+        public VFXGeneratedTextureData generatedTextureData = new VFXGeneratedTextureData();
     }
 
     public static class VFXModelCompiler
@@ -320,8 +370,8 @@ namespace UnityEditor.Experimental
                 for (int j = 0; j < context.GetNbChildren(); ++j)
                 {
                     VFXBlockModel blockModel = context.GetChild(j);
-                    hasRand |= (blockModel.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0;
-                    hasKill |= (blockModel.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0;
+                    hasRand |= (blockModel.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0;
+                    hasKill |= (blockModel.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0;
                     currentList.Add(blockModel);
                 }
 
@@ -343,12 +393,30 @@ namespace UnityEditor.Experimental
             }
 
             // ATTRIBUTES (TODO Refactor the code !)
-            Dictionary<VFXAttrib, int> attribs = new Dictionary<VFXAttrib, int>(new AttribComparer());
+            Dictionary<VFXAttribute, int> attribs = new Dictionary<VFXAttribute, int>(new AttribComparer());
 
             CollectAttributes(attribs, initBlocks, 0);
             CollectAttributes(attribs, updateBlocks, 1);
- 
-            if (VFXEditor.AssetModel.PhaseShift)     
+
+            // Update flags with generators
+            VFXBlockDesc.Flag initGeneratorFlags = VFXBlockDesc.Flag.kNone;
+            if (!initGenerator.UpdateAttributes(attribs, ref initGeneratorFlags))
+                return null;
+
+            initHasRand |= (initGeneratorFlags & VFXBlockDesc.Flag.kHasRand) != 0;
+
+            VFXBlockDesc.Flag updateGeneratorFlags = VFXBlockDesc.Flag.kNone;
+            if (!updateGenerator.UpdateAttributes(attribs, ref updateGeneratorFlags))
+                return null;
+
+            updateHasRand |= (updateGeneratorFlags & VFXBlockDesc.Flag.kHasRand) != 0;
+            updateHasKill |= (updateGeneratorFlags & VFXBlockDesc.Flag.kHasKill) != 0;
+
+            VFXBlockDesc.Flag dummy = VFXBlockDesc.Flag.kNone;
+            if (!outputGenerator.UpdateAttributes(attribs, ref dummy))
+                return null;
+
+            if (VFXEditor.AssetModel.PhaseShift)
             {
                 if (attribs.ContainsKey(CommonAttrib.Position) && attribs.ContainsKey(CommonAttrib.Velocity))
                 {
@@ -365,24 +433,6 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            // Update flags with generators
-            int initGeneratorFlags = 0;
-            if (!initGenerator.UpdateAttributes(attribs, ref initGeneratorFlags))
-                return null;
-
-            initHasRand |= (initGeneratorFlags & (int)VFXBlock.Flag.kHasRand) != 0;
-
-            int updateGeneratorFlags = 0;
-            if (!updateGenerator.UpdateAttributes(attribs, ref updateGeneratorFlags))
-                return null;
-
-            updateHasRand |= (updateGeneratorFlags & (int)VFXBlock.Flag.kHasRand) != 0;
-            updateHasKill |= (updateGeneratorFlags & (int)VFXBlock.Flag.kHasKill) != 0;
-
-            int dummy = 0;
-            if (!outputGenerator.UpdateAttributes(attribs, ref dummy))
-                return null;
-
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
             {
@@ -391,13 +441,13 @@ namespace UnityEditor.Experimental
             }
 
             // Find unitialized attribs and remove 
-            List<VFXAttrib> unitializedAttribs = new List<VFXAttrib>(); 
+            List<VFXAttribute> unitializedAttribs = new List<VFXAttribute>(); 
             foreach (var attrib in attribs)
             {
                 if ((attrib.Value & 0x3) == 0) // Unitialized attribute
                 {
-                    if (attrib.Key.m_Param.m_Name != "seed" || attrib.Key.m_Param.m_Name != "age") // Dont log anything for those as initialization is implicit
-                        VFXEditor.Log("WARNING: " + attrib.Key.m_Param.m_Name + " is not initialized. Use default value");
+                    if (attrib.Key.m_Name != "seed" || attrib.Key.m_Name != "age") // Dont log anything for those as initialization is implicit
+                        VFXEditor.Log("WARNING: " + attrib.Key.m_Name + " is not initialized. Use default value");
                     unitializedAttribs.Add(attrib.Key);
                 }
                 // TODO attrib to remove (when written and never used for instance) ! But must also remove blocks using them...
@@ -418,7 +468,7 @@ namespace UnityEditor.Experimental
             }
 
             // Associate attrib to buffer
-            var attribToBuffer = new Dictionary<VFXAttrib, AttributeBuffer>(new AttribComparer());
+            var attribToBuffer = new Dictionary<VFXAttribute, AttributeBuffer>(new AttribComparer());
             foreach (var buffer in buffers)
                 for (int i = 0; i < buffer.Count; ++i)
                     attribToBuffer.Add(buffer[i], buffer);
@@ -430,33 +480,41 @@ namespace UnityEditor.Experimental
                 string str = "\t " + i + " |";
                 for (int j = 0; j < buffers[i].Count; ++j)
                 {
-                    str += buffers[i][j].m_Param.m_Name + "|";
+                    str += buffers[i][j].m_Name + "|";
                 }
                 str += " " + buffers[i].GetSizeInBytes() + "bytes";
                 VFXEditor.Log(str);
             }
                 
             // UNIFORMS
-            HashSet<VFXParamValue> initUniforms = CollectUniforms(initBlocks);
+            HashSet<VFXValue> initUniforms = CollectUniforms(initBlocks);
             initGenerator.UpdateUniforms(initUniforms);
-            HashSet<VFXParamValue> updateUniforms = CollectUniforms(updateBlocks);
+            HashSet<VFXValue> updateUniforms = CollectUniforms(updateBlocks);
             updateGenerator.UpdateUniforms(updateUniforms);
 
             // collect samplers
-            HashSet<VFXParamValue> initSamplers = CollectAndRemoveSamplers(initUniforms);
-            HashSet<VFXParamValue> updateSamplers = CollectAndRemoveSamplers(updateUniforms);
+            HashSet<VFXValue> initSamplers = CollectAndRemoveSamplers(initUniforms);
+            HashSet<VFXValue> updateSamplers = CollectAndRemoveSamplers(updateUniforms);
+
+            // collect signals
+            HashSet<VFXValue> initSignals = CollectAndRemoveSignals(initUniforms);
+            HashSet<VFXValue> updateSignals = CollectAndRemoveSignals(updateUniforms);
+            system.GeneratedTextureData.RemoveAllValues();
+            system.GeneratedTextureData.AddValues(initSignals);
+            system.GeneratedTextureData.AddValues(updateSignals);
+            system.GeneratedTextureData.Generate();
 
             // Collect the intersection between init and update uniforms / samplers
-            HashSet<VFXParamValue> globalUniforms = CollectIntersection(initUniforms,updateUniforms);
-            HashSet<VFXParamValue> globalSamplers = CollectIntersection(initSamplers, updateSamplers);
+            HashSet<VFXValue> globalUniforms = CollectIntersection(initUniforms, updateUniforms);
+            HashSet<VFXValue> globalSamplers = CollectIntersection(initSamplers, updateSamplers);
 
             // Output stuff
-            HashSet<VFXParamValue> outputUniforms = new HashSet<VFXParamValue>();
+            HashSet<VFXValue> outputUniforms = new HashSet<VFXValue>();
             outputGenerator.UpdateUniforms(outputUniforms);
-            HashSet<VFXParamValue> outputSamplers = CollectAndRemoveSamplers(outputUniforms);
+            HashSet<VFXValue> outputSamplers = CollectAndRemoveSamplers(outputUniforms);
 
-            // Associate VFXParamValue to generated name
-            var paramToName = new Dictionary<VFXParamValue, string>();
+            // Associate VFXValue to generated name
+            var paramToName = new Dictionary<VFXValue, string>();
             GenerateParamNames(paramToName, globalUniforms, "globalUniform");
             GenerateParamNames(paramToName, initUniforms, "initUniform");
             GenerateParamNames(paramToName, updateUniforms, "updateUniform");
@@ -465,7 +523,7 @@ namespace UnityEditor.Experimental
             GenerateParamNames(paramToName, initSamplers, "initSampler");
             GenerateParamNames(paramToName, updateSamplers, "updateSampler");
 
-            var outputParamToName = new Dictionary<VFXParamValue, string>();
+            var outputParamToName = new Dictionary<VFXValue, string>();
             GenerateParamNames(outputParamToName, outputUniforms, "outputUniform");
             GenerateParamNames(outputParamToName, outputSamplers, "outputSampler");
 
@@ -493,6 +551,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.outputSamplers = outputSamplers;
             shaderMetaData.paramToName = paramToName;
             shaderMetaData.outputParamToName = outputParamToName;
+            shaderMetaData.generatedTextureData = system.GeneratedTextureData;
    
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
             string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
@@ -528,6 +587,8 @@ namespace UnityEditor.Experimental
             rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
             rtData.hasKill = shaderMetaData.hasKill;
 
+            rtData.m_GeneratedTextureData = system.GeneratedTextureData;
+
             // Build the buffer desc to send to component
             var buffersDesc = new List<VFXBufferDesc>();
             foreach (var attribBuffer in shaderMetaData.attributeBuffers)
@@ -562,24 +623,31 @@ namespace UnityEditor.Experimental
             return rtData;
         }
 
-        public static HashSet<VFXParamValue> CollectUniforms(List<VFXBlockModel> blocks)
+        public static HashSet<VFXValue> CollectUniforms(List<VFXBlockModel> blocks)
         {
-            HashSet<VFXParamValue> uniforms = new HashSet<VFXParamValue>();
+            HashSet<VFXValue> uniforms = new HashSet<VFXValue>();
 
+            List<VFXNamedValue> collectedValues = new List<VFXNamedValue>();
             foreach (VFXBlockModel block in blocks)
-                for (int i = 0; i < block.Desc.m_Params.Length; ++i)
-                    uniforms.Add(block.GetParamValue(i));
+                for (int i = 0; i < block.Desc.Properties.Length; ++i)
+                {
+                    collectedValues.Clear();
+                    block.GetSlot(i).CollectNamedValues(collectedValues);
+                    foreach (var arg in collectedValues)
+                        if (arg.m_Value.IsValue(false)) // false as already reduced
+                            uniforms.Add((VFXValue)arg.m_Value);
+                }
 
             return uniforms;
         }
 
-        public static HashSet<VFXParamValue> CollectAndRemoveSamplers(HashSet<VFXParamValue> uniforms)
+        public static HashSet<VFXValue> CollectAndRemoveSamplers(HashSet<VFXValue> uniforms)
         {
-            HashSet<VFXParamValue> samplers = new HashSet<VFXParamValue>();
+            HashSet<VFXValue> samplers = new HashSet<VFXValue>();
 
             // Collect samplers
             foreach (var param in uniforms)
-                if (param.ValueType == VFXParam.Type.kTypeTexture2D || param.ValueType == VFXParam.Type.kTypeTexture3D)
+                if (param.ValueType == VFXValueType.kTexture2D || param.ValueType == VFXValueType.kTexture3D)
                     samplers.Add(param);
 
             // Remove samplers from uniforms
@@ -589,15 +657,31 @@ namespace UnityEditor.Experimental
             return samplers;
         }
 
-        public static HashSet<VFXParamValue> CollectIntersection(HashSet<VFXParamValue> params0,HashSet<VFXParamValue> params1)
+        public static HashSet<VFXValue> CollectAndRemoveSignals(HashSet<VFXValue> uniforms)
         {
-            HashSet<VFXParamValue> globalParams = new HashSet<VFXParamValue>();
+            HashSet<VFXValue> signals = new HashSet<VFXValue>();
 
-            foreach (VFXParamValue param in params0)
+            // Collect samplers
+            foreach (var param in uniforms)
+                if (param.ValueType == VFXValueType.kColorGradient || param.ValueType == VFXValueType.kCurve)
+                    signals.Add(param);
+
+            // Remove samplers from uniforms
+            //foreach (var param in signals)
+            //   uniforms.Remove(param);
+
+            return signals;
+        }
+
+        public static HashSet<VFXValue> CollectIntersection(HashSet<VFXValue> params0,HashSet<VFXValue> params1)
+        {
+            HashSet<VFXValue> globalParams = new HashSet<VFXValue>();
+
+            foreach (VFXValue param in params0)
                 if (params1.Contains(param))
                     globalParams.Add(param);
 
-            foreach (VFXParamValue param in globalParams)
+            foreach (VFXValue param in globalParams)
             {
                 params0.Remove(param);
                 params1.Remove(param);
@@ -606,7 +690,7 @@ namespace UnityEditor.Experimental
             return globalParams;
         }
 
-        public static void GenerateParamNames(Dictionary<VFXParamValue, string> paramToName, HashSet<VFXParamValue> parameters, string name)
+        public static void GenerateParamNames(Dictionary<VFXValue, string> paramToName, HashSet<VFXValue> parameters, string name)
         {
             int counter = 0;
             foreach (var param in parameters)
@@ -619,12 +703,12 @@ namespace UnityEditor.Experimental
         }
 
         // Collect all attributes from blocks and fills them in attribs
-        public static void CollectAttributes(Dictionary<VFXAttrib, int> attribs, List<VFXBlockModel> blocks, int index)
+        public static void CollectAttributes(Dictionary<VFXAttribute, int> attribs, List<VFXBlockModel> blocks, int index)
         {
             foreach (VFXBlockModel block in blocks)
-                for (int i = 0; i < block.Desc.m_Attribs.Length; ++i)
+                for (int i = 0; i < block.Desc.Attributes.Length; ++i)
                 {
-                    VFXAttrib attr = block.Desc.m_Attribs[i];
+                    VFXAttribute attr = block.Desc.Attributes[i];
                     int usage;
                     attribs.TryGetValue(attr, out usage);
                     int currentUsage = (0x1 | (attr.m_Writable ? 0x2 : 0x0)) << (index * 2);
@@ -684,6 +768,18 @@ namespace UnityEditor.Experimental
             builder.WriteSamplers(data.initSamplers, data.paramToName);
             builder.WriteSamplers(data.updateSamplers, data.paramToName);
 
+            // Write generated texture samplers
+            if (data.generatedTextureData.HasColorTexture())
+            {
+                builder.WriteLine("sampler2D gradientTexture;");
+                builder.WriteLine();
+            }
+            if (data.generatedTextureData.HasFloatTexture())
+            {
+                builder.WriteLine("sampler2D curveTexture;");
+                builder.WriteLine();
+            }
+
             // Write attribute struct
             foreach (var attribBuffer in data.attributeBuffers)
                 builder.WriteAttributeBuffer(attribBuffer);
@@ -742,11 +838,23 @@ namespace UnityEditor.Experimental
                 */
             }
 
+            if (data.generatedTextureData.HasColorTexture())
+            {
+                data.generatedTextureData.WriteSampleGradientFunction(builder);
+                builder.WriteLine();
+            }
+
+            if (data.generatedTextureData.HasFloatTexture())
+            {
+                data.generatedTextureData.WriteSampleCurveFunction(builder);
+                builder.WriteLine();
+            }
+
             var functionNames = new Dictionary<Hash128,string>();
             foreach (var block in data.initBlocks)
-                builder.WriteFunction(block, functionNames);
+                builder.WriteFunction(block, functionNames, data.generatedTextureData);
             foreach (var block in data.updateBlocks)
-                builder.WriteFunction(block, functionNames);
+                builder.WriteFunction(block, functionNames, data.generatedTextureData);
 
             if (initGenerator != null)
                 initGenerator.WriteFunctions(builder, data);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -19,11 +20,12 @@ namespace UnityEditor.Experimental
         protected string m_LibraryName;
         protected string m_UniqueName;
 
+        // TODO Remove that
         public DataContainer editingDataContainer;
         public VFXEdEditingWidget editingWidget;
 
-        public VFXEdNodeBlockParameterField[] Fields { get { return m_Fields; } }
-        protected VFXEdNodeBlockParameterField[] m_Fields;
+        public VFXUIPropertySlotField[] Fields { get { return m_Fields; } }
+        protected VFXUIPropertySlotField[] m_Fields;
 
         protected VFXEdDataSource m_DataSource;
 
@@ -35,10 +37,10 @@ namespace UnityEditor.Experimental
             m_UniqueName = GetType().Name + "_" + Token;
         }
 
-        public abstract VFXParamValue GetParamValue(string ParamName);
-        public abstract void SetParamValue(string name, VFXParamValue value);
+        public abstract VFXPropertySlot GetSlot(string name);
+        public abstract void SetSlotValue(string name, VFXValue value);
 
-        public VFXEdNodeBlockParameterField GetField(string name)
+        public VFXUIPropertySlotField GetField(string name)
         {
             for(int i = 0; i < m_Fields.Length; i++)
             {
@@ -50,7 +52,7 @@ namespace UnityEditor.Experimental
 
         public bool IsConnected()
         {
-            foreach(VFXEdNodeBlockParameterField field in m_Fields)
+            foreach (var field in m_Fields)
             {
                 if (field.IsConnected())
                     return true;
@@ -64,7 +66,8 @@ namespace UnityEditor.Experimental
             float height = VFXEditorMetrics.NodeBlockHeaderHeight;
             if(!collapsed)
             {
-                foreach(VFXEdNodeBlockParameterField field in m_Fields) {
+                foreach (var field in m_Fields)
+                {
                     height += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
                 }
                 height += VFXEditorMetrics.NodeBlockFooterHeight;
@@ -81,7 +84,7 @@ namespace UnityEditor.Experimental
                 scale = new Vector2(scale.x, VFXEditorMetrics.NodeBlockHeaderHeight);
 
                 // if collapsed, rejoin all connectors on the middle of the header
-                foreach(VFXEdNodeBlockParameterField field in m_Fields)
+                foreach (var field in m_Fields)
                 {
                     field.translation = new Vector2(0.0f, (VFXEditorMetrics.NodeBlockHeaderHeight-VFXEditorMetrics.DataAnchorSize.y)/2);
                 }
@@ -91,7 +94,7 @@ namespace UnityEditor.Experimental
                 scale = new Vector2(scale.x, GetHeight());
                 float curY = VFXEditorMetrics.NodeBlockHeaderHeight;
 
-                foreach(VFXEdNodeBlockParameterField field in m_Fields)
+                foreach (var field in m_Fields)
                 {
                     field.translation = new Vector2(0.0f, curY);
                     curY += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
@@ -112,13 +115,8 @@ namespace UnityEditor.Experimental
             }
         }
 
-
-
         protected abstract GUIStyle GetNodeBlockSelectedStyle();
         protected abstract GUIStyle GetNodeBlockStyle();
-
-
-
     }
 }
 

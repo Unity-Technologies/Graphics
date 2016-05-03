@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental
             // Data Nodes
             foreach(VFXDataBlock block in VFXEditor.DataBlockLibrary.blocks)
             {
-                output.AddItem(new GUIContent("Parameters/"+block.category+"/"+block.name), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition, block));
+                output.AddItem(new GUIContent("Parameters/"+block.Path), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition, block));
             }
             output.AddItem(new GUIContent("Parameters/Empty Data Node"), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition));
 

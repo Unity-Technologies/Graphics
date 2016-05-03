@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor;
 using UnityEditor.Experimental;
 using System.Collections;
@@ -11,6 +12,7 @@ namespace UnityEditor.Experimental
     internal class VFXEditorStyles
     {
         public Font ImpactFont;
+        public Font TooltipFont;
 
         public GUIStyle Empty;
 
@@ -36,7 +38,9 @@ namespace UnityEditor.Experimental
         public GUIStyle NodeBlockDropSeparator;
 
         public GUIStyle ForbidDrop;
-        
+
+        public GUIStyle Tooltip;
+        public GUIStyle TooltipText;
 
         public GUIStyle ConnectorLeft;
         public GUIStyle ConnectorRight;
@@ -81,7 +85,7 @@ namespace UnityEditor.Experimental
         private Dictionary<string, Texture2D> m_icons;
         private Dictionary<VFXEdContext, Color> m_ContextColors;
 
-        private Dictionary<VFXParam.Type, Color> m_TypeColors;
+        private Dictionary<VFXValueType, Color> m_TypeColors;
 
         internal Texture2D GetIcon(string name) {
 
@@ -109,7 +113,7 @@ namespace UnityEditor.Experimental
                 return Color.magenta;
         }
 
-        internal Color GetTypeColor(VFXParam.Type t)
+        internal Color GetTypeColor(VFXValueType t)
         {
             if (m_TypeColors.ContainsKey(t))
             {
@@ -123,6 +127,7 @@ namespace UnityEditor.Experimental
         internal VFXEditorStyles()
         {
             ImpactFont = EditorGUIUtility.Load("Font/BebasNeue.otf") as Font;
+            TooltipFont = EditorGUIUtility.Load("Font/gohufont-uni-14.ttf") as Font;
 
             Empty = new GUIStyle();
             Empty.border = new RectOffset();
@@ -159,8 +164,6 @@ namespace UnityEditor.Experimental
             NodeOption.name = "NodeOption";
             NodeOption.padding = new RectOffset(4, 4, 2, 6);
             NodeOption.normal.background = EditorGUIUtility.Load("NodeOption_Background.psd") as Texture2D;
-
-
 
             NodeData = new GUIStyle(Node);
             NodeData.name = "NodeData";
@@ -216,10 +219,21 @@ namespace UnityEditor.Experimental
             NodeBlockDropSeparator.normal.background = EditorGUIUtility.Load("NodeBlock_DropSeparator.psd") as Texture2D;
             NodeBlockDropSeparator.border = new RectOffset(0, 24, 0, 8);
 
+            Tooltip = new GUIStyle();
+            Tooltip.name = "Tooltip";
+            Tooltip.normal.background = EditorGUIUtility.Load("Tooltip.psd") as Texture2D;
+            Tooltip.border = new RectOffset(10, 10, 10, 12);
+
+            TooltipText = new GUIStyle();
+            TooltipText.name = "TooltipText";
+            TooltipText.font = TooltipFont;
+            TooltipText.fontSize = 14;
+            TooltipText.alignment = TextAnchor.UpperLeft;
+            TooltipText.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
+
             ForbidDrop = new GUIStyle();
             ForbidDrop.name = "ForbidDrop";
             ForbidDrop.normal.background = EditorGUIUtility.Load("Forbidden.psd") as Texture2D;
-
 
             ConnectorLeft = new GUIStyle();
             ConnectorLeft.name = "ConnectorLeft";
@@ -306,15 +320,15 @@ namespace UnityEditor.Experimental
             m_ContextColors.Add(VFXEdContext.Update,        HexColor("#364C66FF"));
             m_ContextColors.Add(VFXEdContext.Output,        HexColor("#5c4662FF"));
 
-            m_TypeColors = new Dictionary<VFXParam.Type, Color>();
-            m_TypeColors.Add(VFXParam.Type.kTypeInt,        HexColor("#23a95cFF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeFloat,      HexColor("#8ccf0cFF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeFloat2,     HexColor("#d5cd00FF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeFloat3,     HexColor("#ffb400FF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeFloat4,     HexColor("#ff7300FF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeTexture2D,  HexColor("#cf0ca3FF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeTexture3D,  HexColor("#830ccfFF"));
-            m_TypeColors.Add(VFXParam.Type.kTypeUnknown,    HexColor("#FF00FFFF"));
+            m_TypeColors = new Dictionary<VFXValueType, Color>();
+            m_TypeColors.Add(VFXValueType.kInt,        HexColor("#23a95cFF"));
+            m_TypeColors.Add(VFXValueType.kFloat,      HexColor("#8ccf0cFF"));
+            m_TypeColors.Add(VFXValueType.kFloat2,     HexColor("#FFDE00FF"));
+            m_TypeColors.Add(VFXValueType.kFloat3,     HexColor("#ffb400FF"));
+            m_TypeColors.Add(VFXValueType.kFloat4,     HexColor("#ff7300FF"));
+            m_TypeColors.Add(VFXValueType.kTexture2D,  HexColor("#FF2288FF"));
+            m_TypeColors.Add(VFXValueType.kTexture3D,  HexColor("#5555FFFF"));
+            m_TypeColors.Add(VFXValueType.kNone,    HexColor("#1199FFFF"));
 
         }
 

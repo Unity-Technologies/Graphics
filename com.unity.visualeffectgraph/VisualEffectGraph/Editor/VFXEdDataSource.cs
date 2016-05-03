@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -55,28 +56,13 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            var dataEdge = e as DataEdge;
-            if (dataEdge != null)
+            var propertyEdge = e as VFXUIPropertyEdge;
+            if (propertyEdge != null)
             {
-                VFXEdDataAnchor anchor = dataEdge.Right;
-
-                // TODO : Refactor needed : as VFXEdNodeBlock doesn't implement Model, as Model in this case should be VFXParamBindable
-                if(anchor.FindParent<VFXEdProcessingNodeBlock>() != null)
-                {
-                    VFXEdProcessingNodeBlock node = anchor.FindParent<VFXEdProcessingNodeBlock>();
-                    if (node != null)
-                        node.Model.BindParam(node.ParamValues[anchor.Index], anchor.Index); // Rebind the default param value
-                }
-                else if (anchor.FindParent<VFXEdContextNodeBlock>() != null)
-                {
-                    VFXEdContextNodeBlock node = anchor.FindParent<VFXEdContextNodeBlock>();
-                    if (node != null)
-                        node.Model.BindParam(node.ParamValues[anchor.Index], anchor.Index); // Rebind the default param value
-                }
-
-
-
-
+                VFXUIPropertyAnchor inputAnchor = propertyEdge.Right;
+                ((VFXInputSlot)inputAnchor.Slot).Unlink();
+                propertyEdge.Left.Invalidate();
+                propertyEdge.Right.Invalidate();
             }
 
             m_Elements.Remove(e);
@@ -108,33 +94,26 @@ namespace UnityEditor.Experimental
             return edges;
         }
 
-
-        public void ConnectData(VFXEdDataAnchor a, VFXEdDataAnchor b)
+        public void ConnectData(VFXUIPropertyAnchor a, VFXUIPropertyAnchor b)
         {
+            // Swap to get a as output and b as input
             if (a.GetDirection() == Direction.Input)
             {
-                VFXEdDataAnchor tmp = a;
+                VFXUIPropertyAnchor tmp = a;
                 a = b;
                 b = tmp;
             }
 
-            VFXParamValue paramValue = a.FindParent<VFXEdNodeBlockParameterField>().Value;
-            
-            // TODO : Refactor needed : as VFXEdNodeBlock doesn't implement Model, as Model in this case should be VFXParamBindable
-            if(b.FindParent<VFXEdProcessingNodeBlock>() != null)
-            {
-                VFXBlockModel model = b.FindParent<VFXEdProcessingNodeBlock>().Model;
-                RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
-                model.BindParam(paramValue, b.Index);
-            }
-            else if(b.FindParent<VFXEdContextNodeBlock>() != null)
-            {
-                VFXContextModel model = b.FindParent<VFXEdContextNodeBlock>().Model;
-                RemoveConnectedEdges<DataEdge, VFXEdDataAnchor>(b);
-                model.BindParam(paramValue, b.Index);
-            }
+            RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(b);
 
-            m_Elements.Add(new DataEdge(this, a, b));
+            // Disconnect connected children anchors and collapse
+            b.Owner.DisconnectChildren();
+            b.Owner.CollapseChildren(true);    
+
+            ((VFXInputSlot)b.Slot).Link((VFXOutputSlot)a.Slot);
+            m_Elements.Add(new VFXUIPropertyEdge(this, a, b));
+
+            b.Invalidate();
         }
 
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)

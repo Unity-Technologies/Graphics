@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -78,7 +79,7 @@ namespace UnityEditor.Experimental
             m_DataNodes.Add(nodename, DataNodeInfo.Create(nodename, bExposed));
         }
 
-        public void SetContextNodeParameter(string nodename, string paramName, VFXParamValue value)
+        public void SetContextNodeParameter(string nodename, string paramName, VFXValue value)
         {
             m_ContextNodes[nodename].AddParameterOverride(paramName, value);
         }
@@ -103,12 +104,12 @@ namespace UnityEditor.Experimental
             m_DataNodes[nodename].nodeBlocks.Add(blockname, DataNodeBlockInfo.Create(blockname, exposedName, blockLibraryName, xmlElement));
         }
 
-        public void SetContextNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
+        public void SetContextNodeBlockParameter(string nodename, string blockname, string paramName, VFXValue value)
         {
             m_ContextNodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
         }
 
-        public void SetDataNodeBlockParameter(string nodename, string blockname, string paramName, VFXParamValue value)
+        public void SetDataNodeBlockParameter(string nodename, string blockname, string paramName, VFXValue value)
         {
             m_DataNodes[nodename].nodeBlocks[blockname].AddParameterOverride(paramName, value);
         }
@@ -147,9 +148,9 @@ namespace UnityEditor.Experimental
                     spawnedContextNodes.Add(node_kvp.Value, node);
                 }
 
-                foreach (KeyValuePair <string,VFXParamValue> param_kvp in node_kvp.Value.ParameterOverrides)
+                foreach (KeyValuePair <string,VFXValue> param_kvp in node_kvp.Value.ParameterOverrides)
                 {
-                    node.SetContextParameterValue(param_kvp.Key, param_kvp.Value);
+                    node.SetSlotValue(param_kvp.Key, param_kvp.Value.Clone());
                 }
                 
                 // TODO : Remove when using Triggers
@@ -161,14 +162,14 @@ namespace UnityEditor.Experimental
 
                 foreach(KeyValuePair<string,NodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
                 {
-                    VFXBlock b = VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockLibraryName);
+                    VFXBlockDesc b = VFXEditor.BlockLibrary.GetBlock(block_kvp.Value.BlockLibraryName);
                     if (b != null)
                     {
                         VFXEdProcessingNodeBlock block = new VFXEdProcessingNodeBlock(b, datasource);
 
-                        foreach (KeyValuePair<string, VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                        foreach (KeyValuePair<string, VFXValue> param_kvp in block_kvp.Value.ParameterOverrides)
                         {
-                            block.SetParamValue(param_kvp.Key, param_kvp.Value);
+                            block.SetSlotValue(param_kvp.Key, param_kvp.Value.Clone());
                         }
                         node.NodeBlockContainer.AddNodeBlock(block);
                     }
@@ -213,9 +214,9 @@ namespace UnityEditor.Experimental
                     spawner.Spawn();
                     VFXEdDataNodeBlock block = node.NodeBlockContainer.nodeBlocks[node.NodeBlockContainer.nodeBlocks.Count-1] as VFXEdDataNodeBlock;
 
-                    foreach (KeyValuePair <string,VFXParamValue> param_kvp in block_kvp.Value.ParameterOverrides)
+                    foreach (KeyValuePair <string,VFXValue> param_kvp in block_kvp.Value.ParameterOverrides)
                     {
-                        block.SetParamValue(param_kvp.Key, param_kvp.Value);
+                        block.SetSlotValue(param_kvp.Key, param_kvp.Value.Clone());
                     }
 
                 }
@@ -230,8 +231,10 @@ namespace UnityEditor.Experimental
                 datasource.ConnectFlow(spawnedContextNodes[fc.Previous].outputs[0], spawnedContextNodes[fc.Next].inputs[0]);
             }
 
-            foreach(DataConnection c in m_DataConnections)
+            // TODO Refactor
+            /*foreach(DataConnection c in m_DataConnections)
             {
+                
                 VFXEdDataAnchor input;
                 VFXEdDataAnchor output;
 
@@ -239,12 +242,10 @@ namespace UnityEditor.Experimental
                 output = spawnedContextNodes[c.Next.m_Node].NodeBlockContainer.nodeBlocks[c.Next.m_NodeBlockIndex].GetField(c.Next.m_ParameterName).Input;
 
                 datasource.ConnectData(input,output);
-            }
+            }*/
 
             canvas.ReloadData();
         }
-
-
     }
 
 }

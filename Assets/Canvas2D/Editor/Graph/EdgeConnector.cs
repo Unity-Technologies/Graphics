@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.Graph
@@ -94,7 +95,12 @@ namespace UnityEditor.Experimental.Graph
 
                 if (cnx.GetDirection() != toCnx.GetDirection() || isBidirectional)
                 {
-                    if (nodeAdapter.GetAdapter(cnx.Source(), toCnx.Source()) != null)
+                    // @julienf: The adapt method is invoked to retrieve the compatible anchors
+                    // Even though it is not the expected behavior we need the compatible anchor to not only rely on types
+                    object src0 = cnx.Source();
+                    object src1 = toCnx.Source();
+                    MethodInfo adapter = nodeAdapter.GetAdapter(src0, src1);
+                    if (adapter != null && (bool)adapter.Invoke(null, new object[3] {nodeAdapter,src0, src1 }))
                     {
                         m_CompatibleAnchors.Add(toCnx);
                     }

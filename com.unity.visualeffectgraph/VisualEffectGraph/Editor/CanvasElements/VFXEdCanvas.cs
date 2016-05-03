@@ -114,7 +114,8 @@ namespace UnityEditor.Experimental
         {
             if (e.character == 'd')
             {
-                const string TAB = "         ";
+                // TODO Fix that with refactor
+                /*const string TAB = "         ";
                 VFXEditor.Log("\nNb Systems: " + VFXEditor.AssetModel.GetNbChildren());
                 for (int i = 0; i < VFXEditor.AssetModel.GetNbChildren(); ++i)
                 {
@@ -136,7 +137,7 @@ namespace UnityEditor.Experimental
                 }
 
                 Repaint();
-                return true;
+                return true;*/
             }
 
             return false;

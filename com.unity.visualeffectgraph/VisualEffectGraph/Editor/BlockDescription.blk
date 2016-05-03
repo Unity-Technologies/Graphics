@@ -59,18 +59,6 @@ color = lerp(value1,value2,RAND);
 
 color = tex2Dlod(gradient, float4(RAND,0,0,0)).rgb;
 
-#block Color Over Lifetime
-#icon Color
-#category Color/
-#arg float3 color [inout|param]
-#arg float age [param] 
-#arg float lifetime [param] 
-#arg float3 start [public] 
-#arg float3 end [public] 
-
-float ratio = saturate(age / lifetime);
-color = lerp(start,end,ratio);
-
 #block RGBA Gradient Over Life
 #icon Color
 #category Color/
@@ -296,24 +284,6 @@ velocity += normalize(dir) * (deltaTime * force / sqrDist);
 # POSITION BLOCKS
 #---------------------------------------------------------------------
 
-#block Set Position (Point)
-#icon Position
-#category Position/
-#arg float3 position [inout|param]
-#arg float3 value [public] 
-
-position = value;
-
-#block Position Map (Texture)
-#icon Position
-#category Position/
-#arg float3 position [inout|param]
-#arg Texture2D tex [public]
-#arg float3 center [public]
-#arg float3 scale [public]
-
-position = center+((tex2Dlod(tex,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
-
 #block Position Map by Time
 #icon Texture
 #category Position/
@@ -324,8 +294,7 @@ position = center+((tex2Dlod(tex,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
 #arg float CycleDuration [public]
 
 float t = frac(_Time.y/CycleDuration);
-position = center+((tex2Dlod(tex,float4(RAND,t,0,0)).rgb-0.5f)*scale);
-
+position = center+((tex2Dlod(tex,float4(RAND,t,0,0)).rgb-0.5f)*scale)
 
 #block Add Position Circular
 #icon Circle
@@ -338,19 +307,6 @@ position = center+((tex2Dlod(tex,float4(RAND,t,0,0)).rgb-0.5f)*scale);
 float2 sc;
 sincos((totalTime/UNITY_PI)*speed, sc.x,sc.y);
 position += center + float3(sc.x, 0.0,sc.y) * radius;
-
-
-#block Set Position (Random Box)
-#icon Position
-#category Position/
-#arg float3 position [inout|param]
-#arg float3 center [public] 
-#arg float3 size [public] 
-
-size *= 0.5f;
-position = float3(  lerp(center.x + size.x, center.x - size.x, RAND),
-					lerp(center.y + size.y, center.y - size.y, RAND),
-					lerp(center.z + size.z, center.z - size.z, RAND));
 
 #TODO Factorize these 2 blocks when boolean switches are implemented !
 					
@@ -368,20 +324,6 @@ float2 sincosTheta;
 sincos(u2,sincosTheta.x,sincosTheta.y);
 sincosTheta *= sqrt(1.0 - u1*u1);
 position = float3(sincosTheta,u1) * (u3 * radius) + center;
-
-#block Set Position (Sphere Surface)
-#icon Position
-#category Position/
-#arg float3 position [inout|param]
-#arg float3 center [public] 
-#arg float radius [public] 
-
-float u1 = 2.0 * RAND - 1.0;
-float u2 = UNITY_TWO_PI * RAND;
-float2 sincosTheta;
-sincos(u2,sincosTheta.x,sincosTheta.y);
-sincosTheta *= sqrt(1.0 - u1*u1);
-position = (float3(sincosTheta,u1) * radius) + center;
 
 #block Set Position (Cylinder)
 #icon Position

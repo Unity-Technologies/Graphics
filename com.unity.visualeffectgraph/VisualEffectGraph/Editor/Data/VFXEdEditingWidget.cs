@@ -2,13 +2,248 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
+    public abstract class VFXUIWidget
+    {
+        protected VFXUIWidget(Editor editor)
+        {
+            m_Editor = editor;
+        }
 
+        public abstract void OnSceneGUI(SceneView sceneView);
+        
+        protected void RepaintEditor()
+        {
+            m_Editor.Repaint();
+        }
+
+        private Editor m_Editor;
+    }
+
+    public class VFXUISphereWidget : VFXUIWidget
+    {
+        public VFXUISphereWidget(VFXPropertySlot slot,Editor editor) 
+            : base(editor)
+        {
+            m_Position = slot.GetChild(0);
+            m_Radius = slot.GetChild(1);
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            Vector3 pos = m_Position.Get<Vector3>();
+            float radius = m_Radius.Get<float>();
+
+            switch (Tools.current)
+            {
+                case Tool.Move:
+                    pos = Handles.PositionHandle(pos, Quaternion.identity);
+                    break;
+                case Tool.Scale:
+                case Tool.Rect:
+                    radius = Handles.RadiusHandle(Quaternion.identity, pos, radius, false);
+                    break;
+            }
+
+            VFXEdHandleUtility.ShowWireSphere(pos, radius);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_Position.Set(pos);
+                m_Radius.Set(radius);
+                RepaintEditor();
+            }
+        }
+
+        private VFXPropertySlot m_Position;
+        private VFXPropertySlot m_Radius;
+    }
+
+    public class VFXUIBoxWidget : VFXUIWidget
+    {
+        public VFXUIBoxWidget(VFXPropertySlot slot, Editor editor)
+            : base(editor)
+        {
+            m_Position = slot.GetChild(0);
+            m_Size = slot.GetChild(1);
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            Bounds box = new Bounds(
+                m_Position.Get<Vector3>(),
+                m_Size.Get<Vector3>());
+
+            switch (Tools.current)
+            {
+                case Tool.Move:
+                    box.center = Handles.PositionHandle(box.center, Quaternion.identity);
+                    VFXEdHandleUtility.ShowWireBox(box);
+                    break;
+                case Tool.Scale:
+                    box.size = Handles.ScaleHandle(box.size, box.center, Quaternion.identity, HandleUtility.GetHandleSize(box.center) * 1.0f);
+                    VFXEdHandleUtility.ShowWireBox(box);
+                    break;
+                case Tool.Rect:
+                    box = VFXEdHandleUtility.BoxHandle(box);
+                    break;
+                default:
+                    VFXEdHandleUtility.ShowWireBox(box);
+                    break;
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_Position.Set(box.center);
+                m_Size.Set(box.size);
+                RepaintEditor();
+            }
+        }
+
+        private VFXPropertySlot m_Position;
+        private VFXPropertySlot m_Size;
+    }
+
+    public class VFXUITransformWidget : VFXUIWidget
+    {
+        public VFXUITransformWidget(VFXPropertySlot slot, Editor editor, bool showBox)
+            : base(editor)
+        {
+            m_Position = slot.GetChild(0);
+            m_Rotation = slot.GetChild(1);
+            m_Scale = slot.GetChild(2);
+            m_ShowBox = showBox;
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+
+            Vector3 position = m_Position.Get<Vector3>();
+            Quaternion rotation = Quaternion.Euler(m_Rotation.Get<Vector3>());
+            Vector3 scale = m_Scale.Get<Vector3>();
+
+            switch (Tools.current)
+            {
+                case Tool.Move:
+                    position = Handles.PositionHandle(position, rotation);
+                    break;
+                case Tool.Rotate:
+                    rotation = Handles.RotationHandle(rotation, position);
+                    break;
+                case Tool.Scale:
+                    scale = Handles.ScaleHandle(scale, position, rotation, HandleUtility.GetHandleSize(position) * 1.0f);
+                    break;
+            }
+
+            if (m_ShowBox)
+            {
+                Bounds box = new Bounds(Vector3.zero, Vector3.one);
+                Matrix4x4 mat = Matrix4x4.TRS(position,rotation,scale);
+                VFXEdHandleUtility.ShowWireBox(box,mat);
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_Position.Set(position);
+                m_Rotation.Set(rotation.eulerAngles);
+                m_Scale.Set(scale);
+                RepaintEditor();
+            }
+        }
+
+        private VFXPropertySlot m_Position;
+        private VFXPropertySlot m_Rotation;
+        private VFXPropertySlot m_Scale;
+        private bool m_ShowBox;
+    }
+
+    public class VFXUIPositionWidget : VFXUIWidget
+    {
+        public VFXUIPositionWidget(VFXPropertySlot slot, Editor editor)
+            : base(editor)
+        {
+            m_Position = slot;
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            EditorGUI.BeginChangeCheck();
+            m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), Quaternion.identity));
+            if (EditorGUI.EndChangeCheck())
+                RepaintEditor();
+        }
+
+        private VFXPropertySlot m_Position;
+    }
+
+    public class VFXUIVectorWidget : VFXUIWidget
+    {
+        public VFXUIVectorWidget(VFXPropertySlot slot, Editor editor, bool forceNormalized)
+            : base(editor)
+        {
+            m_Direction = slot;
+            m_Quat = new Quaternion();
+            b_ForceNormalized = forceNormalized;
+        }
+
+        public override void OnSceneGUI(SceneView sceneView)
+        {
+            bool needsRepaint = false;
+            Vector3 dir = m_Direction.Get<Vector3>();
+            float length = dir.magnitude;
+
+            Vector3 normal = dir;
+            if (length != 0.0f)
+                normal /= length;
+            else
+                normal = Vector3.up;
+
+            if (m_Quat * Vector3.forward != normal) // if the normal has been changed elsewhere, quaternion must be reinitialized
+            {
+                m_Quat.SetLookRotation(normal, Mathf.Abs(normal.y) > Mathf.Abs(normal.x) ? Vector3.right : Vector3.up); // Just ensure up and front are not collinear
+                needsRepaint = true;
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            Vector3 viewportCenter = Camera.current.ViewportToWorldPoint(new Vector3(0.5f,0.5f,1.0f));
+            m_Quat = Handles.RotationHandle(m_Quat,viewportCenter);
+            float scaleSize = HandleUtility.GetHandleSize(viewportCenter);
+            if (b_ForceNormalized)
+            {
+                Handles.ArrowCap(0, viewportCenter, m_Quat, scaleSize);
+                length = 1.0f;
+            }
+            else
+            {
+                length = Handles.ScaleSlider(length, viewportCenter, normal, m_Quat, scaleSize, scaleSize);
+                Handles.Label(viewportCenter,new GUIContent(length.ToString("0.00")));
+            }
+
+            if (EditorGUI.EndChangeCheck() || needsRepaint)
+            {
+                m_Direction.Set((m_Quat * Vector3.forward) * length);
+                RepaintEditor();
+            }
+        }
+
+        private VFXPropertySlot m_Direction;
+        private Quaternion m_Quat;
+        bool b_ForceNormalized;
+    }
+
+    [Obsolete]
     internal abstract class VFXEdEditingWidget
     {
         protected VFXEdNodeBlock m_CurrentlyEditedBlock;
@@ -17,153 +252,15 @@ namespace UnityEditor.Experimental
         public abstract void OnInspectorGUI();
         public virtual void CreateBinding(VFXEdNodeBlock block)
         {
-             m_CurrentlyEditedBlock = block;
-             block.DeepInvalidate();
-        }
-    }
-
-    internal class VFXEdBoxEditingWidget : VFXEdEditingWidget
-    {
-
-        VFXParamValue m_Position;
-        VFXParamValue m_Size;
-        string m_PositionParamName;
-        string m_SizeParamName;
-
-        public VFXEdBoxEditingWidget(string PositionParamName, string SizeParamName)
-        {
-            m_PositionParamName = PositionParamName;
-            m_SizeParamName = SizeParamName;
-        }
-
-        public override void CreateBinding(VFXEdNodeBlock block)
-        {
-            m_Position = block.GetParamValue(m_PositionParamName);
-            m_Size = block.GetParamValue(m_SizeParamName);
             m_CurrentlyEditedBlock = block;
-        }
-
-        public override void OnSceneGUI(SceneView sceneView)
-        {
-            EditorGUI.BeginChangeCheck();
-
-            Bounds b = new Bounds(m_Position.GetValue<Vector3>(),m_Size.GetValue<Vector3>());
-            
-            switch(Tools.current)
-            {
-                case Tool.Move:
-                    b.center = Handles.PositionHandle(b.center, Quaternion.identity);
-                    VFXEdHandleUtility.ShowWireBox(b);
-                    break;
-                case Tool.Scale:
-                    b.size = Handles.ScaleHandle(b.size, b.center, Quaternion.identity, HandleUtility.GetHandleSize(b.center) * 1.0f);
-                    VFXEdHandleUtility.ShowWireBox(b);
-                    break;
-                case Tool.Rect:
-                    b = VFXEdHandleUtility.BoxHandle(b);
-                    break;
-                default:
-                    VFXEdHandleUtility.ShowWireBox(b);
-                    
-                    break;
-            }
-
-            m_Position.SetValue(b.center);
-            m_Size.SetValue(b.size);
-
-            if(EditorGUI.EndChangeCheck())
-            {
-                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-            }
-        }
-
-        public override void OnInspectorGUI()
-        {
-                m_Position.SetValue(EditorGUILayout.Vector3Field("Center",m_Position.GetValue<Vector3>()));
-                m_Size.SetValue(EditorGUILayout.Vector3Field("Size",m_Size.GetValue<Vector3>()));
-        }
-    }
-
-    internal class VFXEdSphereEditingWidget : VFXEdEditingWidget
-    {
-        VFXParamValue m_Position;
-        VFXParamValue m_Radius;
-
-        string m_PositionParamName;
-        string m_RadiusParamName;
-
-        public VFXEdSphereEditingWidget(string positionParamName, string radiusParamName)
-        {
-            m_PositionParamName = positionParamName;
-            m_RadiusParamName = radiusParamName;
-        }
-
-        public override void CreateBinding(VFXEdNodeBlock block)
-        {
-            base.CreateBinding(block);
-            m_Position = block.GetParamValue(m_PositionParamName);
-            m_Radius = block.GetParamValue(m_RadiusParamName);
-        }
-
-        public override void OnInspectorGUI()
-        {
-            m_Position.SetValue(EditorGUILayout.Vector3Field("Center",m_Position.GetValue<Vector3>()));
-            m_Radius.SetValue(EditorGUILayout.FloatField("Radius",m_Radius.GetValue<float>()));
-        }
-
-        public override void OnSceneGUI(SceneView sceneView)
-        {
-            EditorGUI.BeginChangeCheck();
-            
-            
-            Vector3 pos = m_Position.GetValue<Vector3>();
-            float radius = m_Radius.GetValue<float>();
-
-            switch(Tools.current)
-            {
-                case Tool.Move:
-                    pos = Handles.PositionHandle(pos, Quaternion.identity);
-                    
-                    break;
-                case Tool.Scale:
-                    Vector3 s = Handles.ScaleHandle(new Vector3(radius ,radius, radius), pos , Quaternion.identity, HandleUtility.GetHandleSize(pos) * 1.0f);
-                    radius = Mathf.Max(s.x, Mathf.Max(s.y, s.z));
-                    break;
-                case Tool.Rect:
-                    radius = Handles.RadiusHandle(Quaternion.identity, m_Position.GetValue<Vector3>(), m_Radius.GetValue<float>(),false);
-                    break;
-                default:
-                    break;
-            }
-
-            VFXEdHandleUtility.ShowWireSphere(pos, radius);
-
-            GUI.BeginGroup(new Rect(16, 16, 250, 20));
-            GUILayout.BeginArea(new Rect(0, 0, 250, 20), EditorStyles.miniButton);
-            GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-                radius = EditorGUILayout.Slider("Radius",radius, 0.0f, 50.0f);
-            GUILayout.EndHorizontal();
-            GUILayout.EndVertical();
-            GUILayout.EndArea();
-            GUI.EndGroup();
-
-
-            m_Position.SetValue(pos);
-            m_Radius.SetValue(radius);
-
-            if(EditorGUI.EndChangeCheck())
-            {
-                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-            }
+            block.DeepInvalidate();
         }
     }
 
     internal class VFXEdPlaneEditingWidget : VFXEdEditingWidget
     {
-        
-        VFXParamValue m_Position;
-        VFXParamValue m_Normal;
+        VFXPropertySlot m_Position;
+        VFXPropertySlot m_Normal;
         string m_PositionParamName;
         string m_NormalParamName;
 
@@ -178,8 +275,8 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
-            m_Position = block.GetParamValue(m_PositionParamName);
-            m_Normal = block.GetParamValue(m_NormalParamName);
+            m_Position = block.GetSlot(m_PositionParamName);
+            m_Normal = block.GetSlot(m_NormalParamName);
         }
 
         public override void OnSceneGUI(SceneView sceneView)
@@ -187,7 +284,7 @@ namespace UnityEditor.Experimental
             EditorGUI.BeginChangeCheck();
 
             bool needsRepaint = false;
-            Vector3 normal = m_Normal.GetValue<Vector3>().normalized;
+            Vector3 normal = m_Normal.Get<Vector3>().normalized;
 
             if (m_Quat * Vector3.forward != normal) // if the normal has been changed elsewhere, quaternion must be reinitialized
             {
@@ -199,38 +296,39 @@ namespace UnityEditor.Experimental
             {
                 case Tool.Move:
                     if(Tools.pivotRotation == PivotRotation.Global)
-                        m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), Quaternion.identity));
+                        m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), Quaternion.identity));
                     else
-                        m_Position.SetValue(Handles.PositionHandle(m_Position.GetValue<Vector3>(), m_Quat));
+                        m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), m_Quat));
                     break;
                 case Tool.Rotate:
-                    m_Quat = Handles.RotationHandle(m_Quat, m_Position.GetValue<Vector3>());
+                    m_Quat = Handles.RotationHandle(m_Quat, m_Position.Get<Vector3>());
                     break;
 
                 default:
                     break;
             }
 
-            VFXEdHandleUtility.ShowInfinitePlane(m_Position.GetValue<Vector3>(), m_Quat);
+            VFXEdHandleUtility.ShowInfinitePlane(m_Position.Get<Vector3>(), m_Quat);
 
             if (EditorGUI.EndChangeCheck() || needsRepaint)
             {      
-                m_Normal.SetValue(m_Quat * Vector3.forward);
+                m_Normal.Set(m_Quat * Vector3.forward);
                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
         }
 
         public override void OnInspectorGUI()
         {
-                m_Position.SetValue(EditorGUILayout.Vector3Field("Center",m_Position.GetValue<Vector3>()));
-                m_Normal.SetValue(EditorGUILayout.Vector3Field("Normal",m_Normal.GetValue<Vector3>().normalized));
+                m_Position.Set(EditorGUILayout.Vector3Field("Center",m_Position.Get<Vector3>()));
+                m_Normal.Set(EditorGUILayout.Vector3Field("Normal",m_Normal.Get<Vector3>().normalized));
         }
     }
 
+    [Obsolete]
     internal class VFXEdColorEditingWidget : VFXEdEditingWidget
     {
-        VFXParamValue m_Color;
-        VFXParamValue m_Alpha;
+        VFXPropertySlot m_Color;
+        VFXPropertySlot m_Alpha;
         string m_ColorParamName;
         string m_AlphaParamName;
 
@@ -244,24 +342,24 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
-            m_Color = block.GetParamValue(m_ColorParamName);
-            m_Alpha = block.GetParamValue(m_AlphaParamName);
+            m_Color = block.GetSlot(m_ColorParamName);
+            m_Alpha = block.GetSlot(m_AlphaParamName);
         }
 
         public override void OnInspectorGUI()
         {
-            Vector3 c = m_Color.GetValue<Vector3>();
-            float a = m_Alpha.GetValue<float>();
+            Vector3 c = m_Color.Get<Vector3>();
+            float a = m_Alpha.Get<float>();
             Color color = new Color(c.x, c.y, c.z, a);
             color = EditorGUILayout.ColorField(new GUIContent("Color"), color,true,true,true,new ColorPickerHDRConfig(0.0f,500.0f,0.0f,500.0f));
-            m_Color.SetValue(new Vector3(color.r, color.g, color.b));
-            m_Alpha.SetValue(color.a);
+            m_Color.Set(new Vector3(color.r, color.g, color.b));
+            m_Alpha.Set(color.a);
         }
 
         public override void OnSceneGUI(SceneView sceneView)
         {
-            Vector3 c = m_Color.GetValue<Vector3>();
-            float a = m_Alpha.GetValue<float>();
+            Vector3 c = m_Color.Get<Vector3>();
+            float a = m_Alpha.Get<float>();
             Color color = new Color(c.x, c.y, c.z, a);
 
             GUI.BeginGroup(new Rect(16, 16, 250, 20));
@@ -274,18 +372,17 @@ namespace UnityEditor.Experimental
             GUILayout.EndArea();
             GUI.EndGroup();
 
-            m_Color.SetValue(new Vector3(color.r, color.g, color.b));
-            m_Alpha.SetValue(color.a);
+            m_Color.Set(new Vector3(color.r, color.g, color.b));
+            m_Alpha.Set(color.a);
         }
     }
 
     internal class VFXEdGradientEditingWidget : VFXEdEditingWidget
-    {
-
+    { 
         public Texture2D GradientTexture;
 
         private string m_TextureParamName;
-        private VFXParamValue m_TextureParamValue;
+        private VFXPropertySlot m_TextureParamValue;
 
         private SerializedObject m_GradientSerializedObject;
         private SerializedProperty m_GradientSerializedProperty;
@@ -295,6 +392,7 @@ namespace UnityEditor.Experimental
             m_TextureParamName = textureParameterName;
             IgnoredParamNames.Add(m_TextureParamName);
         }
+
         public void UpdateTexture()
         {
             Gradient gradient = (m_CurrentlyEditedBlock.editingDataContainer as GradientContainer).Gradient;
@@ -310,9 +408,12 @@ namespace UnityEditor.Experimental
         }
         public void InitializeGradient()
         {
-            GradientTexture = new Texture2D(256, 1, TextureFormat.RGBA32, false, true);
-            GradientTexture.wrapMode = TextureWrapMode.Clamp;
-            GradientTexture.name = "Generated Gradient";
+            if (GradientTexture == null)
+            {
+                GradientTexture = new Texture2D(256, 1, TextureFormat.RGBA32, false, true);
+                GradientTexture.wrapMode = TextureWrapMode.Clamp;
+                GradientTexture.name = "Generated Gradient";
+            }
 
             if (m_CurrentlyEditedBlock.editingDataContainer == null )
             {
@@ -329,25 +430,15 @@ namespace UnityEditor.Experimental
                 var gradientContainer = ScriptableObject.CreateInstance<GradientContainer>();
                 gradientContainer.Gradient = g;
                 m_CurrentlyEditedBlock.editingDataContainer = gradientContainer;
-
             }
-
         }
 
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
-            m_TextureParamValue = block.GetParamValue(m_TextureParamName);
-
-            if(m_TextureParamValue.GetValue<Texture2D>() == null)
-            {
-                InitializeGradient();
-                m_TextureParamValue.SetValue(GradientTexture);
-            }
-            else
-            {
-                GradientTexture = m_TextureParamValue.GetValue<Texture2D>();
-            }
+            m_TextureParamValue = block.GetSlot(m_TextureParamName);
+            InitializeGradient();
+            m_TextureParamValue.Set(GradientTexture);
 
             UpdateTexture();
             m_GradientSerializedObject = new SerializedObject(block.editingDataContainer);
@@ -377,7 +468,7 @@ namespace UnityEditor.Experimental
         public Texture2D CurveTexture;
 
         private string m_TextureParamName;
-        private VFXParamValue m_TextureParamValue;
+        private VFXPropertySlot m_TextureParamValue;
 
         private SerializedObject m_CurveSerializedObject;
         private SerializedProperty m_CurveSerializedProperty;
@@ -405,9 +496,12 @@ namespace UnityEditor.Experimental
 
         private void InitializeCurve()
         {
-            CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false,true);
-            CurveTexture.wrapMode = TextureWrapMode.Clamp;
-            CurveTexture.name = "Generated FloatCurve";
+            if (CurveTexture == null)
+            {
+                CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false, true);
+                CurveTexture.wrapMode = TextureWrapMode.Clamp;
+                CurveTexture.name = "Generated FloatCurve";
+            }
 
             if (m_CurrentlyEditedBlock.editingDataContainer == null )
             {
@@ -427,17 +521,9 @@ namespace UnityEditor.Experimental
         {
             base.CreateBinding(block);
 
-            m_TextureParamValue = block.GetParamValue(m_TextureParamName);
-
-            if(m_TextureParamValue.GetValue<Texture2D>() == null)
-            {
-                InitializeCurve();
-                m_TextureParamValue.SetValue(CurveTexture);
-            }
-            else
-            {
-                CurveTexture = m_TextureParamValue.GetValue<Texture2D>();
-            }
+            m_TextureParamValue = block.GetSlot(m_TextureParamName);
+            InitializeCurve();
+            m_TextureParamValue.Set(CurveTexture);
 
             m_CurveSerializedObject = new SerializedObject(block.editingDataContainer);
             m_CurveSerializedProperty = m_CurveSerializedObject.FindProperty("Curve");
@@ -468,7 +554,7 @@ namespace UnityEditor.Experimental
         public AnimationCurve CurveZ;
 
         private string m_TextureParamName;
-        private VFXParamValue m_TextureParamValue;
+        private VFXPropertySlot m_TextureParamValue;
 
         private SerializedObject m_CurveSerializedObject;
         private SerializedProperty m_CurveXSerializedProperty;
@@ -500,9 +586,12 @@ namespace UnityEditor.Experimental
 
         public void InitializeCurve()
         {
-            CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false, true);
-            CurveTexture.wrapMode = TextureWrapMode.Clamp;
-            CurveTexture.name = "Generated VectorCurve";
+            if (CurveTexture == null)
+            {
+                CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false, true);
+                CurveTexture.wrapMode = TextureWrapMode.Clamp;
+                CurveTexture.name = "Generated VectorCurve";
+            }
 
             if (m_CurrentlyEditedBlock.editingDataContainer == null )
             {
@@ -537,19 +626,10 @@ namespace UnityEditor.Experimental
         public override void CreateBinding(VFXEdNodeBlock block)
         {
             base.CreateBinding(block);
-            m_TextureParamValue = block.GetParamValue(m_TextureParamName);
-
-            if(m_TextureParamValue.GetValue<Texture2D>() == null)
-            {
-                InitializeCurve();
-                m_TextureParamValue.SetValue(CurveTexture);
-            }
-            else
-            {
-                CurveTexture = m_TextureParamValue.GetValue<Texture2D>();
-            }
-            
-            
+            m_TextureParamValue = block.GetSlot(m_TextureParamName);
+            InitializeCurve();
+            m_TextureParamValue.Set(CurveTexture);
+ 
             m_CurveSerializedObject = new SerializedObject(block.editingDataContainer);
             m_CurveXSerializedProperty = m_CurveSerializedObject.FindProperty("CurveX");
             m_CurveYSerializedProperty = m_CurveSerializedObject.FindProperty("CurveY");
@@ -583,8 +663,7 @@ namespace UnityEditor.Experimental
         public const float BoxHandleWireDashSize = 5.0f;
 
         public static Bounds BoxHandle(Bounds bounds)
-        {
-            
+        {         
             float minX = bounds.min.x;
             float maxX = bounds.max.x;
 
@@ -623,7 +702,8 @@ namespace UnityEditor.Experimental
 
         }
 
-        public static void ShowWireBox(Bounds bounds)
+        public static void ShowWireBox(Bounds bounds) { ShowWireBox(bounds,Matrix4x4.identity); }
+        public static void ShowWireBox(Bounds bounds,Matrix4x4 transform )
         {
 
             float minX = bounds.min.x;
@@ -636,22 +716,25 @@ namespace UnityEditor.Experimental
             float maxZ = bounds.max.z;
 
             Vector3[] cubeLines = new Vector3[24]
-                {
-                    new Vector3(minX, minY, minZ), new Vector3(minX, maxY, minZ),
-                    new Vector3(maxX, minY, minZ), new Vector3(maxX, maxY, minZ),
-                    new Vector3(minX, minY, minZ), new Vector3(maxX, minY, minZ),
-                    new Vector3(minX, maxY, minZ), new Vector3(maxX, maxY, minZ),
+            {
+                new Vector3(minX, minY, minZ), new Vector3(minX, maxY, minZ),
+                new Vector3(maxX, minY, minZ), new Vector3(maxX, maxY, minZ),
+                new Vector3(minX, minY, minZ), new Vector3(maxX, minY, minZ),
+                new Vector3(minX, maxY, minZ), new Vector3(maxX, maxY, minZ),
 
-                    new Vector3(minX, minY, minZ), new Vector3(minX, minY, maxZ),
-                    new Vector3(minX, maxY, minZ), new Vector3(minX, maxY, maxZ),
-                    new Vector3(maxX, minY, minZ), new Vector3(maxX, minY, maxZ),
-                    new Vector3(maxX, maxY, minZ), new Vector3(maxX, maxY, maxZ),
+                new Vector3(minX, minY, minZ), new Vector3(minX, minY, maxZ),
+                new Vector3(minX, maxY, minZ), new Vector3(minX, maxY, maxZ),
+                new Vector3(maxX, minY, minZ), new Vector3(maxX, minY, maxZ),
+                new Vector3(maxX, maxY, minZ), new Vector3(maxX, maxY, maxZ),
 
-                    new Vector3(minX, minY, maxZ), new Vector3(minX, maxY, maxZ),
-                    new Vector3(maxX, minY, maxZ), new Vector3(maxX, maxY, maxZ),
-                    new Vector3(minX, minY, maxZ), new Vector3(maxX, minY, maxZ),
-                    new Vector3(minX, maxY, maxZ), new Vector3(maxX, maxY, maxZ)
-                };
+                new Vector3(minX, minY, maxZ), new Vector3(minX, maxY, maxZ),
+                new Vector3(maxX, minY, maxZ), new Vector3(maxX, maxY, maxZ),
+                new Vector3(minX, minY, maxZ), new Vector3(maxX, minY, maxZ),
+                new Vector3(minX, maxY, maxZ), new Vector3(maxX, maxY, maxZ)
+            };
+
+            for (int i = 0; i < 24; ++i)
+                cubeLines[i] = transform.MultiplyPoint(cubeLines[i]);
 
             Handles.color = BoxWireColor;
             Handles.DrawDottedLines(cubeLines,BoxHandleWireDashSize);

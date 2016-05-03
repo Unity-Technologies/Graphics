@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -97,82 +98,50 @@ namespace UnityEditor.Experimental
         }
     }
 
-    public abstract class VFXParamBindableModel<OwnerType, ChildrenType> : VFXElementModel<OwnerType, ChildrenType>, VFXParamBindable
+    public abstract class VFXModelWithSlots<OwnerType, ChildrenType> : VFXElementModel<OwnerType, ChildrenType>, VFXPropertySlotObserver
         where OwnerType : VFXElementModel
         where ChildrenType : VFXElementModel
     {
-        protected void InitParamValues(VFXParam[] desc)
+        protected void InitSlots(VFXProperty[] desc)
         {
-            if (m_ParamValues != null)
-                foreach (var paramValue in m_ParamValues)
-                    paramValue.UnbindAll();
+            if (m_Slots != null)
+                foreach (var slot in m_Slots)
+                    slot.UnlinkAll();
 
             if (desc == null)
-                m_ParamValues = null;
+                m_Slots = null;
             else
             {
-                int nbParams = desc.Length;
-                m_ParamValues = new VFXParamValue[nbParams];
-                for (int i = 0; i < nbParams; ++i)
-                    m_ParamValues[i] = VFXParamValue.Create(desc[i].m_Type);
+                int nbSlots = desc.Length;
+                m_Slots = new VFXInputSlot[nbSlots];
+                for (int i = 0; i < nbSlots; ++i)
+                    m_Slots[i] = new VFXInputSlot(desc[i],this);
             }
         }
 
-        protected void BindParam(VFXParamValue value, int index, VFXParam[] desc,bool reentrant)
+        public virtual void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
         {
-            if (index < 0 || index >= desc.Length || value.ValueType != desc[index].m_Type)
-                throw new ArgumentException();
-
-            if (!reentrant)
+            switch (type)
             {
-                if (m_ParamValues[index] != null)
-                    m_ParamValues[index].Unbind(this, index, true);
-                value.Bind(this, index, true);
+                case VFXPropertySlot.Event.kLinkUpdated:
+                    Invalidate(InvalidationCause.kModelChanged);
+                    break;
+                case VFXPropertySlot.Event.kValueUpdated:
+                    Invalidate(InvalidationCause.kParamChanged);
+                    break;
             }
-
-            m_ParamValues[index] = value;
-            Invalidate(InvalidationCause.kModelChanged);
         }
 
-        protected void UnbindParam(int index, VFXParam[] desc, bool reentrant)
+        public VFXInputSlot GetSlot(int index)
         {
-            if (index < 0 || index >= desc.Length)
-                throw new ArgumentException();
-
-            if (!reentrant && m_ParamValues[index] != null)
-                m_ParamValues[index].Unbind(this, index, true);
-
-            m_ParamValues[index] = VFXParamValue.Create(desc[index].m_Type);
-            Invalidate(InvalidationCause.kModelChanged);
+            return m_Slots[index];
         }
 
-        public abstract void BindParam(VFXParamValue param, int index, bool reentrant = false);
-        public abstract void UnbindParam(int index, bool reentrant = false);
-
-        public virtual void OnParamUpdated(int index,VFXParamValue oldValue)
+        public int GetNbSlots()
         {
-            Invalidate(InvalidationCause.kParamChanged);
+            return m_Slots == null ? 0 : m_Slots.Length;
         }
 
-        public VFXParamValue GetParamValue(int index)
-        {
-            return m_ParamValues[index];
-        }
-
-        public int GetNbParamValues()
-        {
-            return m_ParamValues == null ? 0 : m_ParamValues.Length;
-        }
-
-        private VFXParamValue[] m_ParamValues;
-    }
-
-    public interface VFXParamBindable
-    {
-        void BindParam(VFXParamValue param, int index, bool reentrant = false);
-        void UnbindParam(int index, bool reentrant = false);
-        void OnParamUpdated(int index,VFXParamValue oldValue);
-        VFXParamValue GetParamValue(int index);
-        int GetNbParamValues();
+        private VFXInputSlot[] m_Slots;
     }
 }

@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental
 
                 foreach (VFXDataBlock block in blocks)
                 {
-                    menu.AddItem(new GUIContent(block.path), false, AddNodeBlock, new VFXEdDataNodeBlockSpawner(canvasClickPosition, block, this, m_DataSource, block.name));
+                    menu.AddItem(new GUIContent(block.Path), false, AddNodeBlock, new VFXEdDataNodeBlockSpawner(canvasClickPosition, block, this, m_DataSource, block.Name));
                 }
 
             return menu;

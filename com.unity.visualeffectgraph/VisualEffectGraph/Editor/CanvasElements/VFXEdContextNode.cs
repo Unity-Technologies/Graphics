@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -85,19 +86,33 @@ namespace UnityEditor.Experimental
 
             AddChild(inputs[0]);
             AddChild(outputs[0]);
+
+            AddManipulator(new TooltipManipulator(GetTooltipText));
+
             ZSort();
             Layout();
-
         }
 
-        public void SetContextParameterValue(string name, VFXParamValue Value)
+        protected virtual string[] GetTooltipText()
+        {
+            return new string[]
+                {
+                    "ContextNode :" + Model.GetContextType().ToString() ,
+                    "-------------",
+                    "Desc: " + Model.Desc.ToString(),
+                    "Children: " + Model.GetNbChildren(),
+                    "-------------"
+                };
+        }
+
+        public void SetSlotValue(string name, VFXValue value)
         {
             VFXContextModel model = ContextNodeBlock.Model;
-            for(int i = 0; i < model.GetNbParamValues(); i++)
+            for(int i = 0; i < model.GetNbSlots(); i++)
             {
-                if(model.Desc.m_Params[i].m_Name == name)
+                if (model.Desc.m_Properties[i].m_Name == name)
                 {
-                    model.GetParamValue(i).SetValue(Value); 
+                    model.GetSlot(i).Value = value; 
                 }
             }
         }
@@ -129,13 +144,13 @@ namespace UnityEditor.Experimental
         {
             GenericMenu menu = new GenericMenu();
 
-            ReadOnlyCollection<VFXBlock> blocks = VFXEditor.BlockLibrary.GetBlocks();
+            ReadOnlyCollection<VFXBlockDesc> blocks = VFXEditor.BlockLibrary.GetBlocks();
                 
             // Add New...
-            foreach (VFXBlock block in blocks)
+            foreach (VFXBlockDesc block in blocks)
             {
                 // TODO : Only add item if block is compatible with current context.
-                menu.AddItem(new GUIContent("Add New/"+block.m_Category + block.m_Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                menu.AddItem(new GUIContent("Add New/"+block.Category + block.Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
             }
             
 
@@ -143,10 +158,10 @@ namespace UnityEditor.Experimental
             if (OwnsBlock((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock))
             {
                 menu.AddSeparator("");
-                foreach (VFXBlock block in blocks)
+                foreach (VFXBlockDesc block in blocks)
                 {
                     // TODO : Only add item if block is compatible with current context.
-                    menu.AddItem(new GUIContent("Replace By/"+block.m_Category + block.m_Name), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                    menu.AddItem(new GUIContent("Replace By/"+block.Category + block.Name), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
                 }
             }
 
@@ -180,11 +195,9 @@ namespace UnityEditor.Experimental
 
         public void SetContext(VFXContextDesc context)
         {
-
-            for(int i = 0; i < Model.GetNbParamValues(); i++)
-            {
-                Model.UnbindParam(i);
-            }
+            // TODO Do we need that ?
+            //for(int i = 0; i < Model.GetNbSlots(); i++)
+            //    Model.GetSlot(i).Unlink();
 
             Model.Desc = context;
             if (m_Model.Desc.ShowBlock)

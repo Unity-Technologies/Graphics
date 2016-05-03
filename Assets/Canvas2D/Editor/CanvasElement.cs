@@ -96,12 +96,15 @@ namespace UnityEditor.Experimental
             get { return m_Collapsed; }
             set
             {
-                m_Collapsed = value;
-                foreach (CanvasElement e in m_Children)
+                if (m_Collapsed != value)
                 {
-                    e.collapsed = value;
+                    m_Collapsed = value;
+                    foreach (CanvasElement e in m_Children)
+                    {
+                        e.collapsed = value;
+                    }
+                    UpdateModel(UpdateType.Update);
                 }
-                UpdateModel(UpdateType.Update);
             }
         }
 
@@ -378,9 +381,8 @@ namespace UnityEditor.Experimental
             return false;
         }
 
-
         // THOMASI : Getting drawable area for nested elements
-        public Rect GetDrawableRect()
+        public Rect GetDrawableRect(bool absolute = false)
         {
             if (parent == null)
             {
@@ -388,11 +390,14 @@ namespace UnityEditor.Experimental
             }
             else if (parent is Canvas2D)
             {
-                return new Rect(0, 0, scale.x, scale.y);
+                if (absolute)
+                    return new Rect(translation.x, translation.y, scale.x, scale.y);
+                else
+                    return new Rect(0, 0, scale.x, scale.y);
             }
             else
             {
-                Rect r = parent.GetDrawableRect();
+                Rect r = parent.GetDrawableRect(absolute);
                 r.x += translation.x;
                 r.y += translation.y;
                 r.width = scale.x;

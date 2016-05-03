@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,6 +15,12 @@ namespace UnityEditor.Experimental
         public void Write<T>(T t)
         {
             m_Builder.Append(t);
+        }
+
+        // Optimize version to append substring and avoid useless allocation
+        public void Write(String s,int start,int length)
+        {
+            m_Builder.Append(s, start, length);
         }
 
         public void WriteLine<T>(T t)
@@ -63,9 +70,9 @@ namespace UnityEditor.Experimental
 
             for (int i = 0; i < attributeBuffer.Count; ++i)
             {
-                WriteType(attributeBuffer[i].m_Param.m_Type);
+                WriteType(attributeBuffer[i].m_Type);
                 Write(" ");
-                Write(attributeBuffer[i].m_Param.m_Name);
+                Write(attributeBuffer[i].m_Name);
                 WriteLine(";");
             }
 
@@ -76,7 +83,7 @@ namespace UnityEditor.Experimental
             WriteLine();
         }
 
-        public void WriteCBuffer(string cbufferName, HashSet<VFXParamValue> uniforms, Dictionary<VFXParamValue, string> uniformsToName)
+        public void WriteCBuffer(string cbufferName, HashSet<VFXValue> uniforms, Dictionary<VFXValue, string> uniformsToName)
         {
             if (uniforms.Count > 0)
             {
@@ -98,13 +105,13 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void WriteSamplers(HashSet<VFXParamValue> samplers, Dictionary<VFXParamValue, string> samplersToName)
+        public void WriteSamplers(HashSet<VFXValue> samplers, Dictionary<VFXValue, string> samplersToName)
         {
             foreach (var sampler in samplers)
             {
-                if (sampler.ValueType == VFXParam.Type.kTypeTexture2D)
+                if (sampler.ValueType == VFXValueType.kTexture2D)
                     Write("sampler2D ");
-                else if (sampler.ValueType == VFXParam.Type.kTypeTexture3D)
+                else if (sampler.ValueType == VFXValueType.kTexture3D)
                     Write("sampler3D ");
                 else
                     continue;
@@ -115,26 +122,36 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void WriteType(VFXParam.Type type)
+        public void WriteType(VFXValueType type)
         {
             // tmp transform texture to sampler TODO This must be handled directly in C++ conversion array
-            if (type == VFXParam.Type.kTypeTexture2D)
-                Write("sampler2D");
-            else if (type == VFXParam.Type.kTypeTexture3D)
-                Write("sampler3D");
-            else
-                Write(VFXParam.GetNameFromType(type));
+            switch (type)
+            {
+                case VFXValueType.kTexture2D:       Write("sampler2D"); break;
+                case VFXValueType.kTexture3D:       Write("sampler3D"); break;
+                case VFXValueType.kCurve:           Write("float4"); break;
+                case VFXValueType.kColorGradient:   Write("float"); break;
+                default:                            Write(VFXValue.TypeToName(type)); break;
+            }
         }
 
-        public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions)
+        public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions,VFXGeneratedTextureData texData)
         {
-            if (!functions.ContainsKey(block.Desc.m_Hash)) // if not already defined
+            if (!functions.ContainsKey(block.Desc.Hash)) // if not already defined
             {
                 // generate function name
-                string name = new string((from c in block.Desc.m_Name where char.IsLetterOrDigit(c) select c).ToArray());
-                functions[block.Desc.m_Hash] = name;
+                string name = new string((from c in block.Desc.Name where char.IsLetterOrDigit(c) select c).ToArray());
+                functions[block.Desc.Hash] = name;
 
-                string source = block.Desc.m_Source;
+                string source = block.Desc.Source;
+
+                bool hasCurve = false;
+                bool hasGradient = false;
+                foreach (var property in block.Desc.Properties)
+                    if (property.m_Type.ValueType == VFXValueType.kColorGradient)
+                        hasGradient = true;
+                    else if (property.m_Type.ValueType == VFXValueType.kCurve)
+                        hasCurve = true;
 
                 // function signature
                 Write("void ");
@@ -142,36 +159,44 @@ namespace UnityEditor.Experimental
                 Write("(");
 
                 char separator = ' ';
-                foreach (var arg in block.Desc.m_Attribs)
+                foreach (var arg in block.Desc.Attributes)
                 {
                     Write(separator);
                     separator = ',';
 
                     if (arg.m_Writable)
                         Write("inout ");
-                    WriteType(arg.m_Param.m_Type);
-                    Write(" ");
-                    Write(arg.m_Param.m_Name);
-                }
-
-                foreach (var arg in block.Desc.m_Params)
-                {
-                    Write(separator);
-                    separator = ',';
-
                     WriteType(arg.m_Type);
                     Write(" ");
                     Write(arg.m_Name);
                 }
 
-                if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
+                List<VFXNamedValue> namedValues = new List<VFXNamedValue>();
+                for (int i = 0; i < block.GetNbSlots(); ++i)
+                {
+                    VFXPropertySlot slot = block.GetSlot(i);
+
+                    namedValues.Clear();
+                    slot.CollectNamedValues(namedValues);
+                    foreach (var arg in namedValues)
+                    {
+                        Write(separator);
+                        separator = ',';
+
+                        WriteType(arg.m_Value.ValueType);
+                        Write(" ");
+                        Write(arg.m_Name);
+                    }
+                }
+
+                if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
                 {
                     Write(separator);
                     separator = ',';
                     Write("inout uint seed");
                 }
 
-                if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
+                if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0)
                 {
                     Write(separator);
                     separator = ',';
@@ -185,7 +210,10 @@ namespace UnityEditor.Experimental
 
                 source = source.TrimStart(new char[] {'\t'}); // TODO Fix that from importer (no need for first '\t')
 
-                Write(source);
+                 if (hasGradient || hasCurve)
+                    WriteSourceWithSamplesResolved(source,block,texData);
+                else
+                    Write(source);
                 WriteLine();
 
                 ExitScope();
@@ -193,19 +221,35 @@ namespace UnityEditor.Experimental
             }
         }
 
+        // TODO source shouldnt be a parameter but taken from block
+        private void WriteSourceWithSamplesResolved(string source,VFXBlockModel block,VFXGeneratedTextureData texData)
+        {
+            string curSource = source;
+            int lastIndex = 0;
+            int indexSample = 0;
+            while ((indexSample = source.IndexOf("SAMPLE", lastIndex)) != -1)
+            {
+                Write(source, lastIndex, indexSample - lastIndex);
+                Write("sampleSignal");
+                lastIndex = indexSample + 6; // size of "SAMPLE"
+            }
+
+            Write(source, lastIndex, source.Length - lastIndex); // Write the rest of the source
+        }
+
         public void WriteFunctionCall(
             VFXBlockModel block,
             Dictionary<Hash128, string> functions,
             ShaderMetaData data)
         {
-            Dictionary<VFXParamValue, string> paramToName = data.paramToName;
-            Dictionary<VFXAttrib, AttributeBuffer> attribToBuffer = data.attribToBuffer;
+            Dictionary<VFXValue, string> paramToName = data.paramToName;
+            Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer = data.attribToBuffer;
 
-            Write(functions[block.Desc.m_Hash]);
+            Write(functions[block.Desc.Hash]);
             Write("(");
 
             char separator = ' ';
-            foreach (var arg in block.Desc.m_Attribs)
+            foreach (var arg in block.Desc.Attributes)
             {
                 Write(separator);
                 separator = ',';
@@ -214,24 +258,33 @@ namespace UnityEditor.Experimental
                 Write("attrib");
                 Write(index);
                 Write(".");
-                Write(arg.m_Param.m_Name);
+                Write(arg.m_Name);
             }
 
-            for (int i = 0; i < block.Desc.m_Params.Length; ++i)
+            List<VFXNamedValue> namedValues = new List<VFXNamedValue>();
+            for (int i = 0; i < block.GetNbSlots(); ++i)
             {
-                Write(separator);
-                separator = ',';
-                Write(paramToName[block.GetParamValue(i)]);
+                VFXPropertySlot slot = block.GetSlot(i);
+
+                namedValues.Clear();
+                slot.CollectNamedValues(namedValues);
+                foreach (var arg in namedValues)
+                    if (arg.m_Value.IsValue(false)) // false as already reduced
+                    {
+                        Write(separator);
+                        separator = ',';
+                        Write(paramToName[(VFXValue)arg.m_Value]);
+                    }
             }
 
-            if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
+            if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
             {
                 Write(separator);
                 separator = ',';
                 WriteAttrib(CommonAttrib.Seed, data);
             }
 
-            if ((block.Desc.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
+            if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0)
             {
                 Write(separator);
                 separator = ',';
@@ -263,13 +316,13 @@ namespace UnityEditor.Experimental
             WriteLine(";");
         }
 
-        public void WriteAttrib(VFXAttrib attrib, ShaderMetaData data)
+        public void WriteAttrib(VFXAttribute attrib, ShaderMetaData data)
         {
             int attribIndex = data.attribToBuffer[attrib].Index;
             Write("attrib");
             Write(attribIndex);
             Write(".");
-            Write(attrib.m_Param.m_Name);
+            Write(attrib.m_Name);
         }
 
         public void WriteKernelHeader(string name)

@@ -46,7 +46,6 @@ namespace UnityEditor.Experimental
 
             AddManipulator(new Draggable());
             AddManipulator(new NodeDelete());
-
         }
 
         public abstract void OnRemove();

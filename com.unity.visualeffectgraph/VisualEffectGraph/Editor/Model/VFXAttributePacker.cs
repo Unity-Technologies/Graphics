@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,24 +9,24 @@ namespace UnityEditor.Experimental
 {
     class VFXAttributePacker
     {
-        public static List<AttributeBuffer> Pack(Dictionary<VFXAttrib, int> attribs, int MaxBuffers)
+        public static List<AttributeBuffer> Pack(Dictionary<VFXAttribute, int> attribs, int MaxBuffers)
         {
-            var sortedAttribs = new Dictionary<int,List<VFXAttrib>[]>();
+            var sortedAttribs = new Dictionary<int, List<VFXAttribute>[]>();
             foreach (var attrib in attribs)
             {
-                List<VFXAttrib>[] attribsForUsage;
+                List<VFXAttribute>[] attribsForUsage;
                 sortedAttribs.TryGetValue(attrib.Value, out attribsForUsage);
 
                 if (attribsForUsage == null) // Not yet initialized
                 {
-                    attribsForUsage = new List<VFXAttrib>[4];
+                    attribsForUsage = new List<VFXAttribute>[4];
                     for (int i = 0; i < 4; ++i) // Assuming sizes cannot be more than 4 bytes
-                        attribsForUsage[i] = new List<VFXAttrib>();
+                        attribsForUsage[i] = new List<VFXAttribute>();
 
                     sortedAttribs[attrib.Value] = attribsForUsage;
                 }
 
-                int sizeInBytes = VFXParam.GetSizeFromType(attrib.Key.m_Param.m_Type);
+                int sizeInBytes = VFXValue.TypeToSize(attrib.Key.m_Type);
                 attribsForUsage[sizeInBytes - 1].Add(attrib.Key);
             }
 

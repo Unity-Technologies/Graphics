@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -12,12 +13,9 @@ namespace UnityEditor.Experimental
     {
         public VFXEdNodeBlockHeader Header { get { return m_Header; } }
         public VFXContextModel Model { get { return m_Model; } }
-        public VFXParamValue[] ParamValues {get { return m_ParamValues; } }
+        private VFXProperty[] Properties { get { return Model.Desc.m_Properties; } }
 
         private VFXEdNodeBlockHeader m_Header;
-        private VFXParamValue[] m_ParamValues;
-        private VFXParam[] m_Params;
-
         private VFXContextModel m_Model;
 
         public VFXEdContextNodeBlock(VFXEdDataSource dataSource, VFXContextModel model)
@@ -25,30 +23,27 @@ namespace UnityEditor.Experimental
         {
             m_Model = model;
             VFXContextDesc desc = m_Model.Desc;
-            m_Params = desc.m_Params;
 
             m_DataSource = dataSource;
             translation = Vector3.zero; 
             m_Caps = Capabilities.Normal;
-            m_Fields = new VFXEdNodeBlockParameterField[0];
-            m_ParamValues = new VFXParamValue[0];
+            
             m_Header = new VFXEdNodeBlockHeader(desc.Name, VFXEditor.styles.GetIcon("Box"), false);
             AddChild(m_Header);
 
-            if (desc.m_Params != null && desc.m_Params.Length > 0)
+            if (desc.m_Properties != null && desc.m_Properties.Length > 0)
             {
-                int nbParams = desc.m_Params.Length;
-                m_Fields = new VFXEdNodeBlockParameterField[nbParams];
-                m_ParamValues = new VFXParamValue[nbParams];
-                for (int i = 0; i < nbParams; ++i)
+                int nbProperties = Properties.Length;
+                m_Fields = new VFXUIPropertySlotField[nbProperties];
+                for (int i = 0; i < nbProperties; ++i)
                 {
-                    m_ParamValues[i] = VFXParamValue.Create(desc.m_Params[i].m_Type);
-                    m_Fields[i] = new VFXEdNodeBlockParameterField(dataSource, desc.m_Params[i].m_Name, m_ParamValues[i], true, Direction.Input, 0);
+                    m_Fields[i] = new VFXUIPropertySlotField(dataSource, Model.GetSlot(i));
                     AddChild(m_Fields[i]);
-                    m_Model.BindParam(m_ParamValues[i], i);
                 }
                 Header.Collapseable = true;
             }
+            else
+                m_Fields = new VFXUIPropertySlotField[0];
         }
 
         public override void Layout()
@@ -60,7 +55,7 @@ namespace UnityEditor.Experimental
                 scale = new Vector2(scale.x, VFXEditorMetrics.NodeBlockHeaderHeight);
 
                 // if collapsed, rejoin all connectors on the middle of the header
-                foreach(VFXEdNodeBlockParameterField field in m_Fields)
+                foreach (var field in m_Fields)
                 {
                     field.translation = new Vector2(0.0f, (VFXEditorMetrics.NodeBlockHeaderHeight-VFXEditorMetrics.DataAnchorSize.y)/2);
                 }
@@ -70,7 +65,7 @@ namespace UnityEditor.Experimental
                 scale = new Vector2(scale.x, GetHeight());
                 float curY = VFXEditorMetrics.NodeBlockHeaderHeight;
 
-                foreach(VFXEdNodeBlockParameterField field in m_Fields)
+                foreach (var field in m_Fields)
                 {
                     field.translation = new Vector2(0.0f, curY);
                     curY += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
@@ -99,28 +94,22 @@ namespace UnityEditor.Experimental
             return VFXEditor.styles.DataNodeBlock;
         }
 
-        public override VFXParamValue GetParamValue(string ParamName)
+        public override VFXPropertySlot GetSlot(string name)
         {
-            for(int i = 0; i < m_Params.Length; i++)
-            {
-                if(m_Params[i].m_Name == LibraryName)
-                {
-                   return m_ParamValues[i]; 
-                }
-            }
+            for (int i = 0; i < Model.GetNbSlots(); ++i)
+                if (Model.GetSlot(i).Name.Equals(name))
+                    return Model.GetSlot(i);
             return null;
         }
 
-        public override void SetParamValue(string name, VFXParamValue Value)
+        public override void SetSlotValue(string name, VFXValue value)
         {
-            for(int i = 0; i < m_Params.Length; i++)
-            {
-                if(m_Params[i].m_Name == name)
+            for (int i = 0; i < Model.GetNbSlots(); ++i)
+                if (Model.GetSlot(i).Name.Equals(name))
                 {
-                    m_ParamValues[i].SetValue(Value); 
+                    Model.GetSlot(i).Value = value;
+                    break;
                 }
-            }
         }
-
     }
 }

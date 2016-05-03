@@ -1,10 +1,13 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental;
+using UnityEngine.Experimental.VFX;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+
 
 namespace UnityEditor.Experimental
 {
@@ -457,8 +460,8 @@ namespace UnityEditor.Experimental
             }
 
             float r = AssetModel.component.playRate;
-            float nr = GUILayout.HorizontalSlider(AssetModel.component.playRate, 0.01f, 8.0f, GUILayout.Width(140.0f));
-            GUILayout.Label((int)(nr * 100) + "%", GUILayout.Width(80.0f));
+            float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(AssetModel.component.playRate), 0.0f, Mathf.Sqrt(8.0f), GUILayout.Width(140.0f)), 2.0f);
+            GUILayout.Label(Mathf.Round(nr * 100) + "%", GUILayout.Width(80.0f));
             if (r != nr)
                 SetPlayRate(nr);
 
@@ -522,11 +525,11 @@ namespace UnityEditor.Experimental
 
     public class VFXBlockLibraryCollection
     {
-        private List<VFXBlock> m_Blocks;
+        private List<VFXBlockDesc> m_Blocks;
         
         public VFXBlockLibraryCollection()
         {
-            m_Blocks = new List<VFXBlock>();
+            m_Blocks = new List<VFXBlockDesc>();
         }
 
         public void Load()
@@ -545,22 +548,38 @@ namespace UnityEditor.Experimental
                 for (int j = 0; j < blockLibraries[i].GetNbBlocks(); ++j)
                 {
                     VFXBlock block = blockLibraries[i].GetBlock(j);
-                    m_Blocks.Add(block);
+                    m_Blocks.Add(new VFXBlockLegacy(block));
 
                 }
             }
 
             // Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
+
+            // Add explicit C# blocks
+            Debug.Log("RELOAD BLOCK LIBRARY!!!");
+            m_Blocks.Add(new VFXBlockSetPositionPoint()); 
+            m_Blocks.Add(new VFXBlockSetPositionMap());
+            m_Blocks.Add(new VFXBlockSetPositionBox());
+            m_Blocks.Add(new VFXBlockSetPositionAABox());
+            m_Blocks.Add(new VFXBlockSetPositionSphereSurface());
+
+            m_Blocks.Add(new VFXBlockTransformPosition());
+            m_Blocks.Add(new VFXBlockTransformVelocity());
+
+            m_Blocks.Add(new VFXBlockSetColorOverLifetime());
+
+            m_Blocks.Add(new VFXBlockCurveTest());
+            m_Blocks.Add(new VFXBlockGradientTest());
         }
 
-        public VFXBlock GetBlock(string name)
+        public VFXBlockDesc GetBlock(string name)
         {
-            return m_Blocks.Find(block => block.m_Name.Equals(name));
+            return m_Blocks.Find(block => block.Name.Equals(name));
         }
 
-        public ReadOnlyCollection<VFXBlock> GetBlocks()
+        public ReadOnlyCollection<VFXBlockDesc> GetBlocks()
         {
-            return new ReadOnlyCollection<VFXBlock>(m_Blocks);
+            return new ReadOnlyCollection<VFXBlockDesc>(m_Blocks);
         }
     }
 

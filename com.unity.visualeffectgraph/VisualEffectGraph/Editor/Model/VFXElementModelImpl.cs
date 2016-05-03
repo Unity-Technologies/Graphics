@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,7 +23,6 @@ namespace UnityEditor.Experimental
             RemovePreviousShaders();
 
             m_GameObject = new GameObject("VFX");
-            //gameObject.hideFlags = HideFlags.DontSaveInEditor;
             m_Component = m_GameObject.AddComponent<VFXComponent>();
         }
 
@@ -80,6 +79,8 @@ namespace UnityEditor.Experimental
 
         public void Update()
         {
+            Profiler.BeginSample("VFXAssetModel.Update");
+
             bool HasRecompiled = false;
             if (m_NeedsCheck)
             {
@@ -106,15 +107,20 @@ namespace UnityEditor.Experimental
                 VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
-                    VFXSystemRuntimeData rtData = GetChild(i).RtData;
-                    if (rtData != null)
-                        rtData.UpdateAllUniforms();
+                    var system = GetChild(i);
+
+                    system.GeneratedTextureData.UpdateAndUploadDirty();
+
+                    if (system.RtData != null)
+                        system.RtData.UpdateAllUniforms();                  
                 }
                 m_ReloadUniforms = false;
             }
 
             if (HasRecompiled) // Restart component 
                 m_Component.Reinit();
+
+            Profiler.EndSample();
         }
 
         public bool PhaseShift
@@ -153,7 +159,9 @@ namespace UnityEditor.Experimental
         public void Dispose()
         {
             if (rtData != null)
-                UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
+                UnityEngine.Object.DestroyImmediate(rtData.m_Material);
+
+            m_GeneratedTextureData.Dispose();
         }
 
         public void DeleteAssets()
@@ -327,6 +335,9 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public VFXGeneratedTextureData GeneratedTextureData { get { return m_GeneratedTextureData; } }
+        private VFXGeneratedTextureData m_GeneratedTextureData = new VFXGeneratedTextureData();
+
         public bool UpdateComponentSystem()
         {
             if (rtData == null)
@@ -355,18 +366,30 @@ namespace UnityEditor.Experimental
         }
     }
 
-    public class VFXContextModel : VFXParamBindableModel<VFXSystemModel, VFXBlockModel>
+    public class VFXContextModel : VFXModelWithSlots<VFXSystemModel, VFXBlockModel>
     {
         public VFXContextModel(VFXContextDesc desc)
         {
             m_Desc = desc;
-            InitParamValues(desc.m_Params);
+            InitSlots(desc.m_Properties);
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             return base.CanAddChild(element, index) && m_Desc.m_Type != VFXContextDesc.Type.kTypeNone;
             // TODO Check if the block is compatible with the context
+        }
+
+        public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
+        {
+            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
+            {
+                var system = GetOwner();
+                if (system != null)
+                    system.GeneratedTextureData.SetDirty(slot.ValueRef.Reduce() as VFXValue);
+            }
+
+            base.OnSlotEvent(type, slot);
         }
 
         public override void Invalidate(InvalidationCause cause)
@@ -380,29 +403,6 @@ namespace UnityEditor.Experimental
             return Desc.m_Type;
         }
 
-        public override void BindParam(VFXParamValue param, int index, bool reentrant = false)
-        {
-            BindParam(param,index, Desc.m_Params, reentrant);
-        }
-
-        public override void UnbindParam(int index, bool reentrant = false)
-        {
-            UnbindParam(index, Desc.m_Params, reentrant);
-        }
-
-        public override void OnParamUpdated(int index, VFXParamValue oldValue)
-        {
-            if (oldValue.ValueType == VFXParam.Type.kTypeTexture2D)
-            {
-                if (oldValue.GetValue<Texture2D>() == null || GetParamValue(index).GetValue<Texture2D>() == null)
-                    Invalidate(InvalidationCause.kModelChanged); // Leave a chance for shader generator to be recompiled if optimization is used when there is no texture
-                else
-                    Invalidate(InvalidationCause.kParamChanged);   
-            }             
-            else
-                Invalidate(InvalidationCause.kParamChanged);
-        }
-
         public VFXContextDesc Desc
         {
             set
@@ -411,7 +411,7 @@ namespace UnityEditor.Experimental
                     if (m_Desc.m_Type == value.m_Type)
                     {
                         m_Desc = value;
-                        InitParamValues(value.m_Params);
+                        InitSlots(value.m_Properties);
                         Invalidate(InvalidationCause.kModelChanged);
                     }
                     else
@@ -423,21 +423,37 @@ namespace UnityEditor.Experimental
         private VFXContextDesc m_Desc;
     }
 
-    public class VFXBlockModel : VFXParamBindableModel<VFXContextModel, VFXElementModel>
+    public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>
     {
+        public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
+        {
+            if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
+            {
+                var context = GetOwner();
+                if (context != null)
+                {
+                    var system = context.GetOwner();
+                    if (system != null)
+                        system.GeneratedTextureData.SetDirty(slot.ValueRef.Reduce() as VFXValue);
+                }
+            }
+
+            base.OnSlotEvent(type, slot);
+        }
+
         public override void Invalidate(InvalidationCause cause)
         {
             if (m_Owner != null)
                 m_Owner.Invalidate(cause);
         }
 
-        public VFXBlockModel(VFXBlock desc)
+        public VFXBlockModel(VFXBlockDesc desc)
         {
             m_BlockDesc = desc;
-            InitParamValues(m_BlockDesc.m_Params);
+            InitSlots(Properties);
         }
 
-        public VFXBlock Desc
+        public VFXBlockDesc Desc
         {
             get { return m_BlockDesc; }
             set
@@ -445,9 +461,10 @@ namespace UnityEditor.Experimental
                 if (value == null)
                     throw new ArgumentNullException();
 
-                if (m_BlockDesc == null || !m_BlockDesc.m_Hash.Equals(value.m_Hash)) // block desc has changed
+                if (m_BlockDesc == null || !m_BlockDesc.Hash.Equals(value.Hash)) // block desc has changed
                 {
                     m_BlockDesc = value;
+                    InitSlots(Properties);
                     Invalidate(InvalidationCause.kModelChanged);
                 }
             }
@@ -458,16 +475,8 @@ namespace UnityEditor.Experimental
             return false; // Nothing can be attached to Blocks !
         }
 
-        public override void BindParam(VFXParamValue param,int index,bool reentrant = false)
-        {
-            BindParam(param,index, m_BlockDesc.m_Params, reentrant);
-        }
+        public VFXProperty[] Properties { get { return m_BlockDesc.Properties; } }
 
-        public override void UnbindParam(int index, bool reentrant = false)
-        {
-            UnbindParam(index, m_BlockDesc.m_Params, reentrant);
-        }
-
-        private VFXBlock m_BlockDesc;
+        private VFXBlockDesc m_BlockDesc;
     }
 }
