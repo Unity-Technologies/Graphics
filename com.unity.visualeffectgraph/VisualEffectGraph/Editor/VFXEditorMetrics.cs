@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental
         public static readonly float DebugWindowWidth = 480;
 
         // NODE
-        public static readonly float NodeDefaultWidth = 360;
+        public static readonly float NodeDefaultWidth = 420;
         public static readonly RectOffset NodeImplicitContextOffset = new RectOffset(0, 0, -12, -16);
         public static readonly float NodeHeaderHeight = 28.0f;
 
@@ -30,27 +30,31 @@ namespace UnityEditor.Experimental
         public static readonly float NodeBlockContainerEmptyHeight = 48.0f;
 
         // NODE BLOCKS
-        public static readonly float NodeBlockHeaderHeight = 40f;
+        public static readonly float NodeBlockHeaderHeight = 32f;
         public static readonly float NodeBlockFooterHeight = 4f;
         public static readonly float NodeBlockParameterHeight = 16f;
-        public static readonly float NodeBlockParameterSpacingHeight = 6f;
+        public static readonly float NodeBlockParameterSpacingHeight = 4f;
         public static readonly float NodeBlockAdditionalHeight = 16f;
-        public static readonly Rect NodeBlockHeaderFoldoutRect = new Rect(new Vector2(20f, 8f), new Vector2(24f, 24f));
-        // public static readonly Rect NodeBlockHeaderIconRect = new Rect(new Vector2(56f, 12f), new Vector2(16f, 16f));
-        public static readonly Rect NodeBlockHeaderIconRect =new Rect(new Vector2(52f, 8f), new Vector2(24f, 24f));
-        public static readonly Vector2 NodeBlockHeaderLabelPosition = new Vector2(80.0f, 0.0f);
+        public static readonly Rect NodeBlockHeaderFoldoutRect = new Rect(new Vector2(4f, 8f), new Vector2(16f, 16f));
+        //public static readonly Rect NodeBlockHeaderIconRect = new Rect(new Vector2(24f, 4f), new Vector2(16f, 16f));
+        public static readonly Rect NodeBlockHeaderIconRect =new Rect(new Vector2(24f, 4f), new Vector2(24f, 24f));
+        public static readonly Vector2 NodeBlockHeaderLabelPosition = new Vector2(64.0f, 0.0f);
 
         // PARAMETER FIELDS
         public static readonly RectOffset ParameterFieldRectOffset = new RectOffset(24, 32, 0, 0);
-        public static readonly float ParameterFieldLabelWidth = 64.0f;
-        public static readonly float ParameterFieldIndentWidth = 8.0f;
+        public static readonly float ParameterFieldLabelWidth = 80.0f;
+        public static readonly float ParameterFieldIndentWidth = 16.0f;
         public static readonly float ParameterFieldFoldOutWidth = 24.0f;
 
         // EDGE AND ANCHORS
         public static readonly Vector3 FlowAnchorSize = new Vector3(64.0f, 32.0f, 1.0f);
         public static readonly Color FlowAnchorDefaultColor = new Color(0.8f, 0.8f, 0.8f);
-        public static readonly Vector3 DataAnchorSize = new Vector3(16f, 16f, 1.0f);
+
+        public static readonly Vector3 DataAnchorSize = new Vector3(20f, 16f, 1.0f);
         public static readonly Color DataAnchorDefaultColor = new Color(0.8f, 0.8f, 0.8f);
+        public static readonly RectOffset DataAnchorLeftColorZone = new RectOffset(16, 0, 2, 1);
+        public static readonly RectOffset DataAnchorRightColorZone = new RectOffset(0, 16, 2, 1);
+
         public static readonly float FlowEdgeWidth = 40.0f;
         public static readonly float DataEdgeWidth = 8.0f;
 

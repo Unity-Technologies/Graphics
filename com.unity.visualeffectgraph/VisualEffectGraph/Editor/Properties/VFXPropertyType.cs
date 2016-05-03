@@ -217,7 +217,7 @@ namespace UnityEngine.Experimental.VFX
         protected abstract Vector4 UnboxCast(object v);
 
         private readonly int kNbComponents;
-        private static readonly string[] kComponentNames = new string[4] { "x", "y", "z", "w" };
+        private static readonly string[] kComponentNames = new string[4] { "X", "Y", "Z", "W" };
 
         protected Vector4 m_Default;
     }

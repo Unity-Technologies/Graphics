@@ -46,11 +46,18 @@ namespace UnityEditor.Experimental
             m_FieldCollapsed = depth > 0;
 
             if (Slot.GetNbChildren() > 0)
-                AddManipulator(new PropertySlotFieldCollapse(new Rect(280.0f, 0.0f, 32.0f, 16.0f)));
+            {
+                 AddManipulator(new PropertySlotFieldCollapse(GetCollapserRect()));
+            }
 
             m_Children = new VFXUIPropertySlotField[Slot.GetNbChildren()];
             for (int i = 0; i < Slot.GetNbChildren(); ++i)
                 AddChild(m_Children[i] = new VFXUIPropertySlotField(m_DataSource, Slot.GetChild(i), m_Depth + 1));
+        }
+
+        private Rect GetCollapserRect()
+        {
+            return new Rect((VFXEditorMetrics.ParameterFieldIndentWidth * m_Depth)+ VFXEditorMetrics.ParameterFieldRectOffset.left, 0.0f, 16.0f, 16.0f);
         }
 
         public override bool DispatchEvents(Event evt, Canvas2D parent)
@@ -139,13 +146,16 @@ namespace UnityEditor.Experimental
             {
                 Rect r = GetDrawableRect();
 
+
+                Rect collapserRect = GetCollapserRect();
+                collapserRect.position += r.position;
+
                 Rect fieldrect = VFXEditorMetrics.ParameterFieldRectOffset.Remove(r);
-                Rect labelrect = new Rect(fieldrect.x + m_Depth * VFXEditorMetrics.ParameterFieldIndentWidth, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth, VFXEditorMetrics.NodeBlockParameterHeight);
-                Rect editrect = new Rect(fieldrect.x + VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth, VFXEditorMetrics.NodeBlockParameterHeight);
-                Rect collapseRect = new Rect(fieldrect.x + fieldrect.width + (VFXEditorMetrics.ParameterFieldRectOffset.right - VFXEditorMetrics.ParameterFieldFoldOutWidth) * 0.5f,
-                    fieldrect.y,
-                    VFXEditorMetrics.ParameterFieldFoldOutWidth,
-                    VFXEditorMetrics.NodeBlockParameterHeight);
+                Rect labelrect = new Rect(fieldrect.x + 20.0f + m_Depth * VFXEditorMetrics.ParameterFieldIndentWidth, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth -20 , VFXEditorMetrics.NodeBlockParameterHeight);
+                Rect editrect = new Rect(fieldrect.x + 20.0f +  VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth -20, VFXEditorMetrics.NodeBlockParameterHeight);
+
+                Rect lineRect = new Rect(r.x, r.y-(VFXEditorMetrics.NodeBlockParameterSpacingHeight/2), r.width, 1);
+                EditorGUI.DrawRect(lineRect, new Color(0, 0, 0, 0.25f));
 
                 EditorGUI.BeginDisabledGroup(IsConnected());
                 EditorGUI.LabelField(labelrect, Name);
@@ -154,7 +164,22 @@ namespace UnityEditor.Experimental
 
                 // Collapse icon
                 if (m_Children.Length > 0)
-                    EditorGUI.LabelField(collapseRect,m_ChildrenCollapsed ? "+" : "-");
+                {
+                    if(m_ChildrenCollapsed)
+                    {
+                        GUI.Box(collapserRect, "", VFXEditor.styles.CollapserClosed);
+                    }
+                    else
+                    {
+                        GUI.Box(collapserRect, "", VFXEditor.styles.CollapserOpen);
+                    }
+                }
+                    
+                else
+                {
+                    GUI.Box(collapserRect, "", VFXEditor.styles.CollapserDisabled);
+                }
+                    //EditorGUI.LabelField(collapserRect,m_ChildrenCollapsed ? "+" : "-");
 
                 EditorGUI.EndDisabledGroup();
             }

@@ -64,7 +64,7 @@ namespace UnityEditor.Experimental
             m_DataSource = dataSource;
             m_Source = new VFXSemanticsSource(Semantics,direction);
 
-            scale = new Vector3(15.0f, 15.0f, 1.0f);
+            scale = VFXEditorMetrics.DataAnchorSize;
             translation = position;
 
             AddManipulator(new VFXPropertyEdgeConnector());
@@ -74,7 +74,7 @@ namespace UnityEditor.Experimental
 
         public override void Layout()
         {
-            scale = new Vector3(16.0f, 16.0f, 1.0f);
+            scale = VFXEditorMetrics.DataAnchorSize;
             base.Layout();
         }
 
@@ -83,16 +83,32 @@ namespace UnityEditor.Experimental
             if (!collapsed && !Owner.Collapsed())
             {
                 Rect r = GetDrawableRect();
+                Color typeColor = VFXEditor.styles.GetTypeColor(Owner.ValueType);
+                Rect colorzone = r;
+                Texture2D texture = null;
+
                 switch (m_Direction)
                 {
                     case Direction.Input:
-                        GUI.DrawTexture(r, VFXEditor.styles.ConnectorLeft.normal.background);
+                        colorzone = VFXEditorMetrics.DataAnchorLeftColorZone.Remove(r);
+                        texture = VFXEditor.styles.ConnectorLeft.normal.background;
                         break;
 
                     case Direction.Output:
-                        GUI.DrawTexture(r, VFXEditor.styles.ConnectorRight.normal.background);
+                        colorzone = VFXEditorMetrics.DataAnchorRightColorZone.Remove(r);
+                        texture = VFXEditor.styles.ConnectorRight.normal.background;
                         break;
                 }
+
+                if (Owner.Slot.IsLinked())
+                    GUI.color = Color.Lerp(typeColor, Color.gray, 0.5f);
+                else
+                    GUI.color = Color.gray;
+                
+                GUI.DrawTexture(r, texture);
+                GUI.color = Color.white;
+
+                EditorGUI.DrawRect(colorzone, typeColor);
             }
         }
 
