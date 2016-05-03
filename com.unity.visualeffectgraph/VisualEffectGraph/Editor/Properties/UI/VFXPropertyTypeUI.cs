@@ -78,7 +78,15 @@ namespace UnityEngine.Experimental.VFX
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
             EditorGUI.BeginChangeCheck();
-            var curve = EditorGUI.CurveField(area, slot.Get<AnimationCurve>(true));
+
+            // Set color of selected curve (to investigate the focus bug)
+            //int id = GUIUtility.GetControlID("s_CurveHash".GetHashCode(), FocusType.Keyboard, area);
+            //Color col = Color.green;
+            //if (id + 1 == GUIUtility.keyboardControl)
+            //    col = Color.red;
+            
+            var curve = EditorGUI.CurveField(area, slot.Get<AnimationCurve>(true), col, new Rect());
+
             if (EditorGUI.EndChangeCheck())
             {
                 ConstrainCurve(curve);
@@ -89,7 +97,15 @@ namespace UnityEngine.Experimental.VFX
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
             EditorGUI.BeginChangeCheck();
-            var curve = EditorGUILayout.CurveField(slot.Name, slot.Get<AnimationCurve>(false));
+
+            // Set color of selected curve (to investigate the focus bug)
+            //int id = GUIUtility.GetControlID("s_CurveHash".GetHashCode(), FocusType.Keyboard, EditorGUILayout.GetControlRect (true, 16, EditorStyles.colorField, null));
+            //Color col = Color.green;
+            //if (id + 1 == GUIUtility.keyboardControl)
+            //    col = Color.red;
+
+            var curve = EditorGUILayout.CurveField(slot.Name, slot.Get<AnimationCurve>(false),col, new Rect(),null);
+
             if (EditorGUI.EndChangeCheck())
             {
                 ConstrainCurve(curve);
@@ -227,9 +243,9 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXPositionType : VFXFloat3Type
     {
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
         {
-            return new VFXUIPositionWidget(slot, editor);
+            return new VFXUIPositionWidget(slot);
         }
     }
 
@@ -245,9 +261,9 @@ namespace UnityEngine.Experimental.VFX
             slot.Set(dir, false);
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
         {
-            return new VFXUIVectorWidget(slot, editor, false);
+            return new VFXUIVectorWidget(slot, false);
         }
     }
 
@@ -265,9 +281,9 @@ namespace UnityEngine.Experimental.VFX
             slot.Set(n.normalized,false);
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
         {
-            return new VFXUIVectorWidget(slot, editor, true);
+            return new VFXUIVectorWidget(slot, true);
         }
     }
 
@@ -280,9 +296,9 @@ namespace UnityEngine.Experimental.VFX
                 slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
         {
-            return new VFXUITransformWidget(slot, editor, false);
+            return new VFXUITransformWidget(slot, false);
         }
     }
 
@@ -296,9 +312,9 @@ namespace UnityEngine.Experimental.VFX
                 slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot,Editor editor)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
         {
-            return new VFXUISphereWidget(slot,editor);
+            return new VFXUISphereWidget(slot);
         }
     }
 
@@ -311,17 +327,17 @@ namespace UnityEngine.Experimental.VFX
                 slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
         {
-            return new VFXUIBoxWidget(slot,editor);
+            return new VFXUIBoxWidget(slot);
         }
     }
 
     public partial class VFXOrientedBoxType : VFXTransformType
     {
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Editor editor)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
         {
-            return new VFXUITransformWidget(slot, editor, true);
+            return new VFXUITransformWidget(slot, true);
         }
     }
 

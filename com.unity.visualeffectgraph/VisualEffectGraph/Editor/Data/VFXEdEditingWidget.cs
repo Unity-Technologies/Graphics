@@ -9,33 +9,20 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    public abstract class VFXUIWidget
+    public interface VFXUIWidget
     {
-        protected VFXUIWidget(Editor editor)
-        {
-            m_Editor = editor;
-        }
-
-        public abstract void OnSceneGUI(SceneView sceneView);
-        
-        protected void RepaintEditor()
-        {
-            m_Editor.Repaint();
-        }
-
-        private Editor m_Editor;
+        void OnSceneGUI(SceneView sceneView);
     }
 
     public class VFXUISphereWidget : VFXUIWidget
     {
-        public VFXUISphereWidget(VFXPropertySlot slot,Editor editor) 
-            : base(editor)
+        public VFXUISphereWidget(VFXPropertySlot slot) 
         {
             m_Position = slot.GetChild(0);
             m_Radius = slot.GetChild(1);
         }
 
-        public override void OnSceneGUI(SceneView sceneView)
+        public virtual void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
@@ -59,7 +46,6 @@ namespace UnityEditor.Experimental
             {
                 m_Position.Set(pos);
                 m_Radius.Set(radius);
-                RepaintEditor();
             }
         }
 
@@ -69,14 +55,13 @@ namespace UnityEditor.Experimental
 
     public class VFXUIBoxWidget : VFXUIWidget
     {
-        public VFXUIBoxWidget(VFXPropertySlot slot, Editor editor)
-            : base(editor)
+        public VFXUIBoxWidget(VFXPropertySlot slot)
         {
             m_Position = slot.GetChild(0);
             m_Size = slot.GetChild(1);
         }
 
-        public override void OnSceneGUI(SceneView sceneView)
+        public virtual void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
@@ -106,7 +91,6 @@ namespace UnityEditor.Experimental
             {
                 m_Position.Set(box.center);
                 m_Size.Set(box.size);
-                RepaintEditor();
             }
         }
 
@@ -116,8 +100,7 @@ namespace UnityEditor.Experimental
 
     public class VFXUITransformWidget : VFXUIWidget
     {
-        public VFXUITransformWidget(VFXPropertySlot slot, Editor editor, bool showBox)
-            : base(editor)
+        public VFXUITransformWidget(VFXPropertySlot slot, bool showBox)
         {
             m_Position = slot.GetChild(0);
             m_Rotation = slot.GetChild(1);
@@ -125,7 +108,7 @@ namespace UnityEditor.Experimental
             m_ShowBox = showBox;
         }
 
-        public override void OnSceneGUI(SceneView sceneView)
+        public virtual void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
@@ -158,7 +141,6 @@ namespace UnityEditor.Experimental
                 m_Position.Set(position);
                 m_Rotation.Set(rotation.eulerAngles);
                 m_Scale.Set(scale);
-                RepaintEditor();
             }
         }
 
@@ -170,18 +152,14 @@ namespace UnityEditor.Experimental
 
     public class VFXUIPositionWidget : VFXUIWidget
     {
-        public VFXUIPositionWidget(VFXPropertySlot slot, Editor editor)
-            : base(editor)
+        public VFXUIPositionWidget(VFXPropertySlot slot)
         {
             m_Position = slot;
         }
 
-        public override void OnSceneGUI(SceneView sceneView)
+        public virtual void OnSceneGUI(SceneView sceneView)
         {
-            EditorGUI.BeginChangeCheck();
             m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), Quaternion.identity));
-            if (EditorGUI.EndChangeCheck())
-                RepaintEditor();
         }
 
         private VFXPropertySlot m_Position;
@@ -189,17 +167,16 @@ namespace UnityEditor.Experimental
 
     public class VFXUIVectorWidget : VFXUIWidget
     {
-        public VFXUIVectorWidget(VFXPropertySlot slot, Editor editor, bool forceNormalized)
-            : base(editor)
+        public VFXUIVectorWidget(VFXPropertySlot slot, bool forceNormalized)
         {
             m_Direction = slot;
             m_Quat = new Quaternion();
             b_ForceNormalized = forceNormalized;
         }
 
-        public override void OnSceneGUI(SceneView sceneView)
+        public virtual void OnSceneGUI(SceneView sceneView)
         {
-            bool needsRepaint = false;
+            bool needsRefresh = false;
             Vector3 dir = m_Direction.Get<Vector3>();
             float length = dir.magnitude;
 
@@ -212,7 +189,7 @@ namespace UnityEditor.Experimental
             if (m_Quat * Vector3.forward != normal) // if the normal has been changed elsewhere, quaternion must be reinitialized
             {
                 m_Quat.SetLookRotation(normal, Mathf.Abs(normal.y) > Mathf.Abs(normal.x) ? Vector3.right : Vector3.up); // Just ensure up and front are not collinear
-                needsRepaint = true;
+                needsRefresh = true;
             }
 
             EditorGUI.BeginChangeCheck();
@@ -231,11 +208,8 @@ namespace UnityEditor.Experimental
                 Handles.Label(viewportCenter,new GUIContent(length.ToString("0.00")));
             }
 
-            if (EditorGUI.EndChangeCheck() || needsRepaint)
-            {
+            if (EditorGUI.EndChangeCheck() || needsRefresh)
                 m_Direction.Set((m_Quat * Vector3.forward) * length);
-                RepaintEditor();
-            }
         }
 
         private VFXPropertySlot m_Direction;

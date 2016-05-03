@@ -32,9 +32,8 @@ namespace UnityEngine.Experimental.VFX
 
         public VFXPropertySlot() {}
 
-        protected void Init<T>(VFXPropertySlot parent, VFXProperty desc, VFXPropertySlotObserver observer) where T : VFXPropertySlot, new()
+        protected void Init<T>(VFXPropertySlot parent, VFXProperty desc) where T : VFXPropertySlot, new()
         {
-            m_Observer = observer;
             m_Desc = desc;
             m_FullName = desc.m_Name;
             if (parent != null)
@@ -58,7 +57,7 @@ namespace UnityEngine.Experimental.VFX
                 for (int i = 0; i < nbChildren; ++i)
                 {
                     VFXPropertySlot child = new T();     
-                    child.Init<T>(this, children[i], m_Observer);
+                    child.Init<T>(this, children[i]);
                     m_Children[i] = child;
                 }
             }
@@ -120,6 +119,25 @@ namespace UnityEngine.Experimental.VFX
             get { return CurrentValueRef.Value; }
         }
 
+        public void AddObserver(VFXPropertySlotObserver observer, bool addRecursively = false)
+        {
+            if (observer != null && !m_Observers.Contains(observer))
+                m_Observers.Add(observer);
+
+            if (addRecursively)
+                foreach (var child in m_Children)
+                    child.AddObserver(observer, true);
+        }
+
+        public void RemoveObserver(VFXPropertySlotObserver observer, bool removeRecursively = false)
+        {
+            m_Observers.Remove(observer);
+
+            if (removeRecursively)
+                foreach (var child in m_Children)
+                    child.RemoveObserver(observer, true);
+        }
+
         public void NotifyChange(Event type)
         {
             // Invalidate expression cache
@@ -129,8 +147,8 @@ namespace UnityEngine.Experimental.VFX
                 m_OwnedValue.Reduce(); // Trigger a reduce but this is TMP as it should be reduced lazily (the model compiler should do it on demand)
             }
 
-            if (m_Observer != null)
-                m_Observer.OnSlotEvent(type, this);
+            foreach (var observer in m_Observers)
+                observer.OnSlotEvent(type, this);
 
             PropagateChange(type);
 
@@ -193,7 +211,7 @@ namespace UnityEngine.Experimental.VFX
 
         private VFXExpression m_OwnedValue;
 
-        protected VFXPropertySlotObserver m_Observer; // Owner of the node. Can be a function/block...
+        protected List<VFXPropertySlotObserver> m_Observers = new List<VFXPropertySlotObserver>();
 
         private VFXProperty m_Desc; // Contains semantic type and name for this value
 
@@ -207,9 +225,9 @@ namespace UnityEngine.Experimental.VFX
     public class VFXInputSlot : VFXPropertySlot
     {
         public VFXInputSlot() {}
-        public VFXInputSlot(VFXProperty desc,VFXPropertySlotObserver owner = null)
+        public VFXInputSlot(VFXProperty desc)
         {
-            Init<VFXInputSlot>(null, desc, owner);  
+            Init<VFXInputSlot>(null, desc);  
         }
 
         public bool Link(VFXOutputSlot slot)
@@ -276,9 +294,9 @@ namespace UnityEngine.Experimental.VFX
     public class VFXOutputSlot : VFXPropertySlot
     {
         public VFXOutputSlot() {}
-        public VFXOutputSlot(VFXProperty desc,VFXPropertySlotObserver owner = null)
+        public VFXOutputSlot(VFXProperty desc)
         {
-            Init<VFXOutputSlot>(null, desc, owner); 
+            Init<VFXOutputSlot>(null, desc); 
         }
 
         public override void PropagateChange(VFXPropertySlot.Event type)

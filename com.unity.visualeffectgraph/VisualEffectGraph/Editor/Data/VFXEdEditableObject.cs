@@ -9,28 +9,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal static class VFXUIHelper
-    {
-        // TOD Remove taht
-        public static void SlotField(VFXPropertySlot slot)
-        {
-            string name = slot.Property.m_Name;
-            switch (slot.ValueType)
-            {
-                case VFXValueType.kFloat:       slot.Set<float>(EditorGUILayout.FloatField(name, slot.Get<float>())); break;
-                case VFXValueType.kFloat2:      slot.Set<Vector2>(EditorGUILayout.Vector2Field(name, slot.Get<Vector2>())); break;
-                case VFXValueType.kFloat3:      slot.Set<Vector3>(EditorGUILayout.Vector3Field(name, slot.Get<Vector3>())); break;
-                case VFXValueType.kFloat4:      slot.Set<Vector4>(EditorGUILayout.Vector4Field(name, slot.Get<Vector4>())); break;
-                case VFXValueType.kInt:         slot.Set<int>(EditorGUILayout.IntSlider(slot.Get<int>(), -1000, 1000)); break;
-                case VFXValueType.kTexture2D:   slot.Set<Texture2D>((Texture2D)EditorGUILayout.ObjectField(name, slot.Get<Texture2D>(), typeof(Texture2D))); break;
-                case VFXValueType.kTexture3D:   slot.Set<Texture3D>((Texture3D)EditorGUILayout.ObjectField(name, slot.Get<Texture3D>(), typeof(Texture3D))); break;
-                case VFXValueType.kUint:        slot.Set<uint>((uint)EditorGUILayout.IntSlider(name, (int)slot.Get<uint>(), 0, 1000)); break;
-                case VFXValueType.kNone: break;
-                default: break;
-            }
-        }
-    }
-
     internal abstract class VFXEdEditableObject : ScriptableObject { }
 
     internal class VFXEdProcessingNodeBlockTarget : VFXEdEditableObject
@@ -55,8 +33,46 @@ namespace UnityEditor.Experimental
         public VFXEdContextNodeTarget() { }
     }
 
+    internal class VFXCustomEditor : Editor, VFXPropertySlotObserver
+    {
+        public virtual void OnSlotEvent(VFXPropertySlot.Event type,VFXPropertySlot slot)
+        {
+            Repaint();
+        }
+
+        protected void ObserveSlot(VFXPropertySlot slot,bool createWidget) 
+        {
+            m_ObservedSlots.Add(slot);
+            slot.AddObserver(this);
+
+            if (createWidget)
+            {
+                VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot);
+                if (widget != null)
+                {
+                    SceneView.onSceneGUIDelegate += widget.OnSceneGUI;
+                    m_Widgets.Add(widget);
+                }
+            }
+        }
+
+        public void StopObservingSlots()
+        {
+            foreach (var slot in m_ObservedSlots)
+                slot.RemoveObserver(this);
+            m_ObservedSlots.Clear();
+
+            foreach (var widget in m_Widgets)
+                SceneView.onSceneGUIDelegate -= widget.OnSceneGUI;
+            m_Widgets.Clear();
+        }
+
+        private List<VFXPropertySlot> m_ObservedSlots = new List<VFXPropertySlot>();
+        private List<VFXUIWidget> m_Widgets = new List<VFXUIWidget>();
+    }
+
     [CustomEditor(typeof(VFXEdProcessingNodeBlockTarget))]
-    internal class VFXEdProcessingNodeBlockTargetEditor : Editor
+    internal class VFXEdProcessingNodeBlockTargetEditor : VFXCustomEditor
     {
         public VFXEdProcessingNodeBlockTarget safeTarget { get { return target as VFXEdProcessingNodeBlockTarget; } }
 
@@ -78,8 +94,6 @@ namespace UnityEditor.Experimental
             EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
-            block.Invalidate();
-            block.ParentCanvas().Repaint();
         }
 
         void OnEnable()
@@ -88,30 +102,20 @@ namespace UnityEditor.Experimental
             for (int i = 0; i < model.GetNbSlots(); ++i)
             {
                 VFXPropertySlot slot = model.GetSlot(i);
-                if (slot.IsValueUsed())
-                {
-                    VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot,this);
-                    if (widget != null)
-                    {
-                        SceneView.onSceneGUIDelegate += widget.OnSceneGUI;
-                        m_Widgets.Add(widget);
-                    }
-                }
+                ObserveSlot(slot, slot.IsValueUsed());
             }
         }
 
         void OnDisable()
         {
-            foreach (var widget in m_Widgets)
-                SceneView.onSceneGUIDelegate -= widget.OnSceneGUI;
-            m_Widgets.Clear();
+            StopObservingSlots();
         }
 
         private List<VFXUIWidget> m_Widgets = new List<VFXUIWidget>();
     }
 
     [CustomEditor(typeof(VFXEdDataNodeBlockTarget))]
-    internal class VFXEdDataNodeBlockTargetEditor : Editor
+    internal class VFXEdDataNodeBlockTargetEditor : VFXCustomEditor
     {
 
         public VFXEdDataNodeBlockTarget safeTarget { get { return target as VFXEdDataNodeBlockTarget; } }
@@ -132,28 +136,17 @@ namespace UnityEditor.Experimental
             EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
-            block.Invalidate();
-            block.ParentCanvas().Repaint();
         }
 
         void OnEnable()
         {
             var slot = safeTarget.targetNodeBlock.Slot;
-            VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot,this);
-            if (widget != null)
-            {
-                SceneView.onSceneGUIDelegate += widget.OnSceneGUI;
-                m_Widget = widget;
-            }
+            ObserveSlot(slot,true);
         }
 
         void OnDisable()
         {
-            if (m_Widget != null)
-            {
-                SceneView.onSceneGUIDelegate -= m_Widget.OnSceneGUI;
-                m_Widget = null;
-            }
+            StopObservingSlots();
         }
 
         private VFXUIWidget m_Widget;
@@ -209,7 +202,7 @@ namespace UnityEditor.Experimental
             GUILayout.Label(new GUIContent(model.Desc.Name + " : Context Parameters"), VFXEditor.styles.InspectorHeader);
 
             for (int i = 0; i < model.GetNbSlots(); ++i)
-                VFXUIHelper.SlotField(model.GetSlot(i));
+                model.GetSlot(i).Semantics.OnInspectorGUI(model.GetSlot(i));
 
             bDebugVisible = GUILayout.Toggle(bDebugVisible, new GUIContent("Debug Information"), VFXEditor.styles.InspectorHeader);
 
@@ -256,9 +249,6 @@ namespace UnityEditor.Experimental
             EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
-            node.Invalidate();
-            node.ParentCanvas().Repaint();
-
         }
     }
     

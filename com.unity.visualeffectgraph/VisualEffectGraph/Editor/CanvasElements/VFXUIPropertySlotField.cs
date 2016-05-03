@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXUIPropertySlotField : CanvasElement
+    internal class VFXUIPropertySlotField : CanvasElement, VFXPropertySlotObserver
     {
         public VFXPropertySlot Slot                 { get { return m_Slot; } }
         public VFXProperty Property                 { get { return Slot.Property; } }
@@ -36,6 +36,8 @@ namespace UnityEditor.Experimental
             m_Slot = slot;
             m_Depth = depth;
 
+            slot.AddObserver(this);
+
             if (slot is VFXInputSlot)           m_Direction = Direction.Input;
             else if (slot is VFXOutputSlot)     m_Direction = Direction.Output;
             else throw new ArgumentException("Invalid property slot");
@@ -53,6 +55,15 @@ namespace UnityEditor.Experimental
             m_Children = new VFXUIPropertySlotField[Slot.GetNbChildren()];
             for (int i = 0; i < Slot.GetNbChildren(); ++i)
                 AddChild(m_Children[i] = new VFXUIPropertySlotField(m_DataSource, Slot.GetChild(i), m_Depth + 1));
+        }
+
+        public virtual void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
+        {
+            if (!Collapsed())
+            {
+                Invalidate();
+                ParentCanvas().Repaint();
+            }
         }
 
         private Rect GetCollapserRect()

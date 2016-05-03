@@ -115,7 +115,10 @@ namespace UnityEditor.Experimental
                 int nbSlots = desc.Length;
                 m_Slots = new VFXInputSlot[nbSlots];
                 for (int i = 0; i < nbSlots; ++i)
-                    m_Slots[i] = new VFXInputSlot(desc[i],this);
+                {
+                    m_Slots[i] = new VFXInputSlot(desc[i]);
+                    m_Slots[i].AddObserver(this,true);
+                }
             }
         }
 
