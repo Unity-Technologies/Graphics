@@ -559,6 +559,9 @@ namespace UnityEditor.Experimental
                     //EditorGUI.EndEditingActiveTextField();
                     elems.Clear();
                 }
+
+                // Reset keyboard control when clicked. If any Imgui control is clicked then it will be handled later on when firing events
+                GUIUtility.keyboardControl = 0;
             }
 
             if (elems.Count == 0)
