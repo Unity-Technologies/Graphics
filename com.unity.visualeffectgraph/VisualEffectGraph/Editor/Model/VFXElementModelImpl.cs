@@ -107,9 +107,12 @@ namespace UnityEditor.Experimental
                 VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
-                    VFXSystemRuntimeData rtData = GetChild(i).RtData;
-                    if (rtData != null)
-                        rtData.UpdateAllUniforms();
+                    var system = GetChild(i);
+
+                    system.GeneratedTextureData.UpdateAndUploadDirty();
+
+                    if (system.RtData != null)
+                        system.RtData.UpdateAllUniforms();                  
                 }
                 m_ReloadUniforms = false;
             }
@@ -156,7 +159,9 @@ namespace UnityEditor.Experimental
         public void Dispose()
         {
             if (rtData != null)
-                UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
+                UnityEngine.Object.DestroyImmediate(rtData.m_Material);
+
+            m_GeneratedTextureData.Dispose();
         }
 
         public void DeleteAssets()
@@ -330,6 +335,9 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public VFXGeneratedTextureData GeneratedTextureData { get { return m_GeneratedTextureData; } }
+        private VFXGeneratedTextureData m_GeneratedTextureData = new VFXGeneratedTextureData();
+
         public bool UpdateComponentSystem()
         {
             if (rtData == null)
@@ -376,7 +384,9 @@ namespace UnityEditor.Experimental
         {
             if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
             {
-                // TODO modify generated texxture for the system
+                var system = GetOwner();
+                if (system != null)
+                    system.GeneratedTextureData.SetDirty(slot.ValueRef.Reduce() as VFXValue);
             }
 
             base.OnSlotEvent(type, slot);
@@ -419,7 +429,13 @@ namespace UnityEditor.Experimental
         {
             if (slot.ValueType == VFXValueType.kColorGradient || slot.ValueType == VFXValueType.kCurve)
             {
-                // TODO modify generated texxture for the system
+                var context = GetOwner();
+                if (context != null)
+                {
+                    var system = context.GetOwner();
+                    if (system != null)
+                        system.GeneratedTextureData.SetDirty(slot.ValueRef.Reduce() as VFXValue);
+                }
             }
 
             base.OnSlotEvent(type, slot);

@@ -217,7 +217,6 @@ namespace UnityEditor.Experimental
 
             EditorGUI.BeginChangeCheck();
 
-             // GetHandleSize(Vector3 position)
             Vector3 viewportCenter = Camera.current.ViewportToWorldPoint(new Vector3(0.5f,0.5f,1.0f));
             m_Quat = Handles.RotationHandle(m_Quat,viewportCenter);
             float scaleSize = HandleUtility.GetHandleSize(viewportCenter);

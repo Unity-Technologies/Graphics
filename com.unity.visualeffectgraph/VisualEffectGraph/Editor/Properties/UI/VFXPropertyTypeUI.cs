@@ -78,17 +78,41 @@ namespace UnityEngine.Experimental.VFX
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
             EditorGUI.BeginChangeCheck();
-            EditorGUI.CurveField(area, slot.Get<AnimationCurve>(true));
+            var curve = EditorGUI.CurveField(area, slot.Get<AnimationCurve>(true));
             if (EditorGUI.EndChangeCheck())
+            {
+                ConstrainCurve(curve);
                 Slot(slot, true).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the curve reference has not changed
+            }
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.CurveField(slot.Name, slot.Get<AnimationCurve>(false));
+            var curve = EditorGUILayout.CurveField(slot.Name, slot.Get<AnimationCurve>(false));
             if (EditorGUI.EndChangeCheck())
+            {
+                ConstrainCurve(curve);
                 Slot(slot, false).NotifyChange(VFXPropertySlot.Event.kValueUpdated); // We need to call this explicitly as the curve reference has not changed
+            }
+        }
+
+        private static void ConstrainCurve(AnimationCurve curve)
+        {
+            // pingpong wrap mode is not supported yet so fallback to loop and notify the user
+            bool wrapModeChanged = false;
+            if (curve.preWrapMode == WrapMode.PingPong)
+            {
+                wrapModeChanged = true;
+                curve.preWrapMode = WrapMode.Loop;
+            }
+            if (curve.postWrapMode == WrapMode.PingPong)
+            {
+                wrapModeChanged = true;
+                curve.postWrapMode = WrapMode.Loop;
+            }
+            if (wrapModeChanged)
+                Debug.LogWarning("Ping Pong wrap mode is not supported - Fallback to loop");
         }
     }
 

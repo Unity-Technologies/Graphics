@@ -237,7 +237,7 @@ namespace UnityEngine.Experimental.VFX
             };
 
             // TODO this should be derived automatically
-            m_Flag = Flag.kHasRand;
+            m_Flag = Flag.kNone;
             m_Hash = Hash128.Parse(Name); // dummy but must be unique
         }
 
@@ -261,21 +261,35 @@ namespace UnityEngine.Experimental.VFX
         public VFXBlockGradientTest()
         {
             m_Properties = new VFXProperty[] {
-                VFXProperty.Create<VFXColorGradientType>("test"),
+                VFXProperty.Create<VFXColorGradientType>("gradient"),
             };
 
-            m_Attributes = new VFXAttribute[] {};
+            m_Attributes = new VFXAttribute[] {
+                new VFXAttribute("color",VFXValueType.kFloat3,true),
+                new VFXAttribute("alpha",VFXValueType.kFloat,true),
+                new VFXAttribute("age",VFXValueType.kFloat,false),
+                new VFXAttribute("lifetime",VFXValueType.kFloat,false),
+            };
 
             // TODO this should be derived automatically
             m_Flag = Flag.kNone;
             m_Hash = Hash128.Parse(Name); // dummy but must be unique
         }
 
-        public override string Source { get { return "";  } }
+        public override string Source 
+        { 
+            get 
+            {
+                return @"float ratio = saturate(age / lifetime);
+    float4 rgba = SAMPLE(gradient,ratio);
+    color = rgba.rgb;
+    alpha = rgba.a;"; 
+            } 
+        }
 
         public override string Name { get { return "Test Gradient"; } }
         public override string IconPath { get { return "Color"; } }
-        public override string Category { get { return "Test/"; } }
+        public override string Category { get { return "Tests/"; } }
     }
 
     class VFXBlockCurveTest : VFXBlockDesc
@@ -283,20 +297,29 @@ namespace UnityEngine.Experimental.VFX
         public VFXBlockCurveTest()
         {
             m_Properties = new VFXProperty[] {
-                VFXProperty.Create<VFXCurveType>("test"),
+                VFXProperty.Create<VFXCurveType>("curve"),
             };
 
-            m_Attributes = new VFXAttribute[] { };
+            m_Attributes = new VFXAttribute[] {
+                new VFXAttribute("position",VFXValueType.kFloat3,true),
+            };
 
             // TODO this should be derived automatically
             m_Flag = Flag.kNone;
             m_Hash = Hash128.Parse(Name); // dummy but must be unique
         }
 
-        public override string Source { get { return ""; } }
+        public override string Source
+        {
+            get
+            {
+                return @"float dist = length(position.xz);
+    position.y = SAMPLE(curve,dist);";
+            }
+        }
 
         public override string Name { get { return "Test Curve"; } }
         public override string IconPath { get { return "Curve"; } }
-        public override string Category { get { return "Test/"; } }
+        public override string Category { get { return "Tests/"; } }
     }
 }

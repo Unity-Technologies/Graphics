@@ -33,6 +33,8 @@ namespace UnityEditor.Experimental
 
         public Material m_Material = null;
 
+        public VFXGeneratedTextureData m_GeneratedTextureData = null;
+
         int initKernel = -1;
         public int InitKernel { get { return initKernel; } }
         int updateKernel = -1;
@@ -63,6 +65,24 @@ namespace UnityEditor.Experimental
 
             foreach (var uniform in outputUniforms)
                 UpdateUniform(uniform.Key, true);
+
+            // Set generated texture data
+            // atm set texture for both compute shaders, but can be improved by having info by kernel
+            if (m_GeneratedTextureData.HasColorTexture())
+            {
+                if (initKernel != -1)
+                    simulationShader.SetTexture(initKernel, "gradientTexture", m_GeneratedTextureData.ColorTexture);
+                if (updateKernel != -1)
+                    simulationShader.SetTexture(updateKernel, "gradientTexture", m_GeneratedTextureData.ColorTexture);
+            }
+
+            if (m_GeneratedTextureData.HasFloatTexture())
+            {
+                if (initKernel != -1)
+                    simulationShader.SetTexture(initKernel, "curveTexture", m_GeneratedTextureData.FloatTexture);
+                if (updateKernel != -1)
+                    simulationShader.SetTexture(updateKernel, "curveTexture", m_GeneratedTextureData.FloatTexture);
+            }
         }
 
         public void UpdateUniform(VFXValue value,bool output)
@@ -165,6 +185,19 @@ namespace UnityEditor.Experimental
                     }
                     break;
                 }
+
+                case VFXValueType.kColorGradient:
+                    if (output)
+                        throw new NotImplementedException("TODO");
+                    simulationShader.SetFloat(uniformName, m_GeneratedTextureData.GetGradientUniform(value));
+                    break;
+
+                case VFXValueType.kCurve:
+                    if (output)
+                        throw new NotImplementedException("TODO");
+                    simulationShader.SetVector(uniformName, m_GeneratedTextureData.GetCurveUniform(value));
+                    break;
+                
 
                 case VFXValueType.kTexture3D: // Texture 3D not handled yet
                 case VFXValueType.kNone:
@@ -282,6 +315,8 @@ namespace UnityEditor.Experimental
 
         public Dictionary<VFXValue, string> paramToName = new Dictionary<VFXValue, string>();
         public Dictionary<VFXValue, string> outputParamToName = new Dictionary<VFXValue, string>();
+
+        public VFXGeneratedTextureData generatedTextureData = new VFXGeneratedTextureData();
     }
 
     public static class VFXModelCompiler
@@ -461,6 +496,14 @@ namespace UnityEditor.Experimental
             HashSet<VFXValue> initSamplers = CollectAndRemoveSamplers(initUniforms);
             HashSet<VFXValue> updateSamplers = CollectAndRemoveSamplers(updateUniforms);
 
+            // collect signals
+            HashSet<VFXValue> initSignals = CollectAndRemoveSignals(initUniforms);
+            HashSet<VFXValue> updateSignals = CollectAndRemoveSignals(updateUniforms);
+            system.GeneratedTextureData.RemoveAllValues();
+            system.GeneratedTextureData.AddValues(initSignals);
+            system.GeneratedTextureData.AddValues(updateSignals);
+            system.GeneratedTextureData.Generate();
+
             // Collect the intersection between init and update uniforms / samplers
             HashSet<VFXValue> globalUniforms = CollectIntersection(initUniforms, updateUniforms);
             HashSet<VFXValue> globalSamplers = CollectIntersection(initSamplers, updateSamplers);
@@ -508,6 +551,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.outputSamplers = outputSamplers;
             shaderMetaData.paramToName = paramToName;
             shaderMetaData.outputParamToName = outputParamToName;
+            shaderMetaData.generatedTextureData = system.GeneratedTextureData;
    
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
             string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
@@ -542,6 +586,8 @@ namespace UnityEditor.Experimental
             rtData.m_Material = new Material(outputShader);
             rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
             rtData.hasKill = shaderMetaData.hasKill;
+
+            rtData.m_GeneratedTextureData = system.GeneratedTextureData;
 
             // Build the buffer desc to send to component
             var buffersDesc = new List<VFXBufferDesc>();
@@ -609,6 +655,22 @@ namespace UnityEditor.Experimental
                 uniforms.Remove(param);
 
             return samplers;
+        }
+
+        public static HashSet<VFXValue> CollectAndRemoveSignals(HashSet<VFXValue> uniforms)
+        {
+            HashSet<VFXValue> signals = new HashSet<VFXValue>();
+
+            // Collect samplers
+            foreach (var param in uniforms)
+                if (param.ValueType == VFXValueType.kColorGradient || param.ValueType == VFXValueType.kCurve)
+                    signals.Add(param);
+
+            // Remove samplers from uniforms
+            //foreach (var param in signals)
+            //   uniforms.Remove(param);
+
+            return signals;
         }
 
         public static HashSet<VFXValue> CollectIntersection(HashSet<VFXValue> params0,HashSet<VFXValue> params1)
@@ -706,6 +768,18 @@ namespace UnityEditor.Experimental
             builder.WriteSamplers(data.initSamplers, data.paramToName);
             builder.WriteSamplers(data.updateSamplers, data.paramToName);
 
+            // Write generated texture samplers
+            if (data.generatedTextureData.HasColorTexture())
+            {
+                builder.WriteLine("sampler2D gradientTexture;");
+                builder.WriteLine();
+            }
+            if (data.generatedTextureData.HasFloatTexture())
+            {
+                builder.WriteLine("sampler2D curveTexture;");
+                builder.WriteLine();
+            }
+
             // Write attribute struct
             foreach (var attribBuffer in data.attributeBuffers)
                 builder.WriteAttributeBuffer(attribBuffer);
@@ -764,11 +838,23 @@ namespace UnityEditor.Experimental
                 */
             }
 
+            if (data.generatedTextureData.HasColorTexture())
+            {
+                data.generatedTextureData.WriteSampleGradientFunction(builder);
+                builder.WriteLine();
+            }
+
+            if (data.generatedTextureData.HasFloatTexture())
+            {
+                data.generatedTextureData.WriteSampleCurveFunction(builder);
+                builder.WriteLine();
+            }
+
             var functionNames = new Dictionary<Hash128,string>();
             foreach (var block in data.initBlocks)
-                builder.WriteFunction(block, functionNames);
+                builder.WriteFunction(block, functionNames, data.generatedTextureData);
             foreach (var block in data.updateBlocks)
-                builder.WriteFunction(block, functionNames);
+                builder.WriteFunction(block, functionNames, data.generatedTextureData);
 
             if (initGenerator != null)
                 initGenerator.WriteFunctions(builder, data);
