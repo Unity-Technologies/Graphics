@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental
             this.ContextClick += ManageRightClick;
 
             // TODO debug that and decomment
-            AddManipulator(new ImguiContainer());
+            //AddManipulator(new ImguiContainer());
         }
 
         protected abstract GenericMenu GetNodeMenu(Vector2 canvasClickPosition);
