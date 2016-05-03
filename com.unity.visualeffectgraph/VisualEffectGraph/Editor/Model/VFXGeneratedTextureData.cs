@@ -250,23 +250,22 @@ namespace UnityEngine.Experimental.VFX
 
         public void WriteSampleCurveFunction(ShaderSourceBuilder builder)
         {
-            // Signature
             // curveData:
-            // x: startU
-            // y: 1 / scaleU
-            // z: clamp flag (uint)
-            // w: index (2 LSB) + v (other bits) (uint)
+            // x: 1 / scaleU
+            // y: -startU / scaleU
+            // z: clamp flag (uint) << 2 | index (2LSB)
+            // w: normalized v
 
             builder.WriteLine("// Non optimized generic function to allow curve edition without recompiling");
             builder.WriteLine("float sampleSignal(float4 curveData,float u) // sample curve");
             builder.EnterScope();
 
-            builder.WriteLine("float uNorm = (u - curveData.x) * curveData.y;");
-            builder.WriteLine("switch(asuint(curveData.z))");
+            builder.WriteLine("float uNorm = (u * curveData.x) + curveData.y;");
+            builder.WriteLine("switch(asuint(curveData.w) >> 2)");
             builder.EnterScope();
 
             builder.Write("case 1: uNorm = ");
-            WriteHalfTexelOffset(builder, "frac(min(1.0f - 1e-7f,uNorm))"); // Dont clamp at 1 or else the frac will make it 0...
+            WriteHalfTexelOffset(builder, "frac(min(1.0f - 1e-5f,uNorm))"); // Dont clamp at 1 or else the frac will make it 0...
             builder.WriteLine("; break; // clamp end");
 
             builder.Write("case 2: uNorm = ");
@@ -279,32 +278,33 @@ namespace UnityEngine.Experimental.VFX
 
             builder.ExitScope();
 
-            builder.Write("return tex2Dlod(curveTexture,float4(uNorm,");
-            builder.Write("(0.5f + (asuint(curveData.w) & (~0x3))) * ");
-            builder.Write(1.0f / m_FloatTexture.height);
-            builder.WriteLine(",0,0))[asuint(curveData.w) & 0x3];");
+            builder.WriteLine("return tex2Dlod(curveTexture,float4(uNorm,curveData.z,0,0))[asuint(curveData.w) & 0x3];");
 
             builder.ExitScope();
         }
 
         private void WriteHalfTexelOffset(ShaderSourceBuilder builder,string uNorm)
         {
-            builder.Write("(0.5f + ");
-            builder.Write(uNorm);
+            // layout ALU for MAD
+            float a = (TEXTURE_WIDTH - 1.0f) / TEXTURE_WIDTH;
+            float b = 0.5f / TEXTURE_WIDTH;
+            builder.Write("((");
+            builder.Write(a);
             builder.Write(" * ");
-            builder.Write(TEXTURE_WIDTH - 1.0f);
-            builder.Write(") * ");
-            builder.Write(1.0f / TEXTURE_WIDTH);
+            builder.Write(uNorm);
+            builder.Write(") + ");
+            builder.Write(b);
+            builder.Write(')');
         }
 
         public Vector4 GetCurveUniform(VFXValue curve) // can throw
         {
             SignalData data = m_FloatSignals[curve];
             Vector4 uniform = new Vector4();
-            uniform.x = data.startU;
-            uniform.y = 1.0f / data.scaleU;
-            uniform.z = BitConverter.ToSingle(BitConverter.GetBytes((data.clampStart ? 0x2 : 0x0) | (data.clampEnd ? 0x1 : 0x0)),0);
-            uniform.w = BitConverter.ToSingle(BitConverter.GetBytes((data.Y << 2) | (data.index & 0x3)),0);
+            uniform.x = 1.0f / data.scaleU;
+            uniform.y = -data.startU / data.scaleU; // arrange x and y to use a mad instruction in shader -> uNorm = (u - start) / scale is equivalent to uNorm = (u * (1 / scale)) + (-start / scale)
+            uniform.z = (0.5f + data.Y) / m_FloatTexture.height; // v
+            uniform.w = BitConverter.ToSingle(BitConverter.GetBytes((data.clampStart ? 0x8 : 0x0) | (data.clampEnd ? 0x4 : 0x0) | (data.index & 0x3)), 0);
             return uniform;
         }
 
