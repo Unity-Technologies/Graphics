@@ -86,8 +86,23 @@ namespace UnityEditor.Experimental
 
             AddChild(inputs[0]);
             AddChild(outputs[0]);
+
+            AddManipulator(new TooltipManipulator(GetTooltipText));
+
             ZSort();
             Layout();
+        }
+
+        protected virtual string[] GetTooltipText()
+        {
+            return new string[]
+                {
+                    "ContextNode :" + Model.GetContextType().ToString() ,
+                    "-------------",
+                    "Desc: " + Model.Desc.ToString(),
+                    "Children: " + Model.GetNbChildren(),
+                    "-------------"
+                };
         }
 
         public void SetSlotValue(string name, VFXValue value)

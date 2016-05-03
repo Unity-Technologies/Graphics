@@ -154,8 +154,8 @@ namespace UnityEditor.Experimental
                 Rect labelrect = new Rect(fieldrect.x + 20.0f + m_Depth * VFXEditorMetrics.ParameterFieldIndentWidth, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth -20 , VFXEditorMetrics.NodeBlockParameterHeight);
                 Rect editrect = new Rect(fieldrect.x + 20.0f +  VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth -20, VFXEditorMetrics.NodeBlockParameterHeight);
 
-                Rect lineRect = new Rect(r.x, r.y-(VFXEditorMetrics.NodeBlockParameterSpacingHeight/2), r.width, 1);
-                EditorGUI.DrawRect(lineRect, new Color(0, 0, 0, 0.25f));
+                //Rect lineRect = new Rect(r.x, r.y-(VFXEditorMetrics.NodeBlockParameterSpacingHeight/2), r.width, 1);
+                //EditorGUI.DrawRect(lineRect, new Color(0, 0, 0, 0.25f));
 
                 EditorGUI.BeginDisabledGroup(IsConnected());
                 EditorGUI.LabelField(labelrect, Name);

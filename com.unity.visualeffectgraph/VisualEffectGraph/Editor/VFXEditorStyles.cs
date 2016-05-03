@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental
     internal class VFXEditorStyles
     {
         public Font ImpactFont;
+        public Font TooltipFont;
 
         public GUIStyle Empty;
 
@@ -37,7 +38,9 @@ namespace UnityEditor.Experimental
         public GUIStyle NodeBlockDropSeparator;
 
         public GUIStyle ForbidDrop;
-        
+
+        public GUIStyle Tooltip;
+        public GUIStyle TooltipText;
 
         public GUIStyle ConnectorLeft;
         public GUIStyle ConnectorRight;
@@ -124,6 +127,7 @@ namespace UnityEditor.Experimental
         internal VFXEditorStyles()
         {
             ImpactFont = EditorGUIUtility.Load("Font/BebasNeue.otf") as Font;
+            TooltipFont = EditorGUIUtility.Load("Font/gohufont-uni-14.ttf") as Font;
 
             Empty = new GUIStyle();
             Empty.border = new RectOffset();
@@ -160,8 +164,6 @@ namespace UnityEditor.Experimental
             NodeOption.name = "NodeOption";
             NodeOption.padding = new RectOffset(4, 4, 2, 6);
             NodeOption.normal.background = EditorGUIUtility.Load("NodeOption_Background.psd") as Texture2D;
-
-
 
             NodeData = new GUIStyle(Node);
             NodeData.name = "NodeData";
@@ -217,10 +219,21 @@ namespace UnityEditor.Experimental
             NodeBlockDropSeparator.normal.background = EditorGUIUtility.Load("NodeBlock_DropSeparator.psd") as Texture2D;
             NodeBlockDropSeparator.border = new RectOffset(0, 24, 0, 8);
 
+            Tooltip = new GUIStyle();
+            Tooltip.name = "Tooltip";
+            Tooltip.normal.background = EditorGUIUtility.Load("Tooltip.psd") as Texture2D;
+            Tooltip.border = new RectOffset(10, 10, 10, 12);
+
+            TooltipText = new GUIStyle();
+            TooltipText.name = "TooltipText";
+            TooltipText.font = TooltipFont;
+            TooltipText.fontSize = 14;
+            TooltipText.alignment = TextAnchor.UpperLeft;
+            TooltipText.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
+
             ForbidDrop = new GUIStyle();
             ForbidDrop.name = "ForbidDrop";
             ForbidDrop.normal.background = EditorGUIUtility.Load("Forbidden.psd") as Texture2D;
-
 
             ConnectorLeft = new GUIStyle();
             ConnectorLeft.name = "ConnectorLeft";
