@@ -310,12 +310,12 @@ namespace UnityEditor.Experimental
             m_TypeColors = new Dictionary<VFXValueType, Color>();
             m_TypeColors.Add(VFXValueType.kInt,        HexColor("#23a95cFF"));
             m_TypeColors.Add(VFXValueType.kFloat,      HexColor("#8ccf0cFF"));
-            m_TypeColors.Add(VFXValueType.kFloat2,     HexColor("#d5cd00FF"));
+            m_TypeColors.Add(VFXValueType.kFloat2,     HexColor("#FFDE00FF"));
             m_TypeColors.Add(VFXValueType.kFloat3,     HexColor("#ffb400FF"));
             m_TypeColors.Add(VFXValueType.kFloat4,     HexColor("#ff7300FF"));
-            m_TypeColors.Add(VFXValueType.kTexture2D,  HexColor("#cf0ca3FF"));
-            m_TypeColors.Add(VFXValueType.kTexture3D,  HexColor("#830ccfFF"));
-            m_TypeColors.Add(VFXValueType.kNone,    HexColor("#FF00FFFF"));
+            m_TypeColors.Add(VFXValueType.kTexture2D,  HexColor("#FF2288FF"));
+            m_TypeColors.Add(VFXValueType.kTexture3D,  HexColor("#5555FFFF"));
+            m_TypeColors.Add(VFXValueType.kNone,    HexColor("#1199FFFF"));
 
         }
 
