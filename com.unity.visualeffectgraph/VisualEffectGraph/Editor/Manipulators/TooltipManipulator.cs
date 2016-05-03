@@ -64,16 +64,21 @@ namespace UnityEditor.Experimental
         {
            if (e.button != 2)
                 return false;
-            HideTooltip(parent);
-            e.Use();
-            return true;
+
+            if(m_bVisible)
+            {
+                HideTooltip(parent);
+                e.Use();
+            }
+
+            return false;
         }
 
         private bool E_MouseDown(CanvasElement element, Event e, Canvas2D parent)
         {
             if (e.button != 2)
                 return false;
-
+            m_Position = e.mousePosition;
             ShowTooltip(parent);
             e.Use();
             return true;
@@ -88,26 +93,36 @@ namespace UnityEditor.Experimental
         {
             Color backup = GUI.color;
             int numlines = m_Text.Length;
-            int lineheight = 14;
-            
+            int lineheight = 16;
 
-            GUI.color = Color.white;
-            Vector2 position = e.mousePosition;
-            Vector2 size = new Vector2(400, numlines * VFXEditor.styles.TooltipText.lineHeight + 24);
-
-            Rect rect = new Rect(position + new Vector2(-12,-12), size);
-            GUI.Box(rect, "", VFXEditor.styles.Tooltip);
-            Rect currentLineRect = new Rect(position.x, position.y, size.x - 24, lineheight);
-
+            float width = 40;
             foreach(string s in m_Text)
             {
-                if(s != "")
+                width = Mathf.Max(width, 24 + (s.Length * 8));
+            }
+
+            GUI.color = Color.white;
+            Vector2 size = new Vector2(width, numlines * lineheight);
+            Rect tooltipRect = new Rect(m_Position + new Vector2(-12,-12), size + new Vector2(24,24));
+
+            if(parent.clientRect.x + parent.clientRect.width < tooltipRect.x + tooltipRect.width)
+                tooltipRect.x = (parent.clientRect.x + parent.clientRect.width) - tooltipRect.width;
+
+            if(parent.clientRect.y + parent.clientRect.height < tooltipRect.y + tooltipRect.height)
+                tooltipRect.y = (parent.clientRect.y + parent.clientRect.height) - tooltipRect.height;
+
+            GUI.Box(tooltipRect, "", VFXEditor.styles.Tooltip);
+
+            Rect currentLineRect = new Rect(tooltipRect.x + 12, tooltipRect.y + 12, size.x, lineheight);
+            foreach(string s in m_Text)
+            {
+                if (s != "---")
                     GUI.Label(currentLineRect, s, VFXEditor.styles.TooltipText);
+                else
+                    GUI.Box(currentLineRect, "" , VFXEditor.styles.TooltipLineBreak);
 
                 currentLineRect.y += lineheight;
             }
-            
-            //Handles.DrawSolidRectangleWithOutline(r, Color.black, Color.white);
 
             GUI.color = backup;
             return true;

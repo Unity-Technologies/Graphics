@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental
             m_LibraryName = block.Name;
 
             AddChild(new VFXEdNodeBlockHeader(m_LibraryName, VFXEditor.styles.GetIcon(block.IconPath == "" ? "Default" : block.IconPath), block.Properties.Length > 0));
-
+            AddManipulator(new TooltipManipulator(GetTooltipText));
             Layout();
         }
 
@@ -48,6 +48,61 @@ namespace UnityEditor.Experimental
         {
             base.OnRemoved();
             Model.Detach();
+        }
+
+        public string[] GetTooltipText()
+        {
+            List<string> lines = new List<string>();
+
+            //Block
+            lines.Add("Node Block : " + Model.Desc.Name);
+            lines.Add("Flags:" + Model.Desc.Flags);
+            if(Model.Desc.Attributes != null)
+            {
+                lines.Add("");
+                lines.Add("Attributes (" + Model.Desc.Attributes.Length + "):");
+
+                for(int i = 0; i< Model.Desc.Attributes.Length; i++)
+                {
+                    lines.Add("* ("+ (Model.Desc.Attributes[i].m_Writable ? "rw":"r" ) + ") " + Model.Desc.Attributes[i].m_Name + " : " + Model.Desc.Attributes[i].m_Type);
+                }
+            }
+            if(Model.Desc.Properties != null)
+            {
+                lines.Add("");
+                lines.Add("Parameters (" + Model.Desc.Properties.Length + "):");
+                
+                for(int i = 0; i< Model.Desc.Properties.Length; i++)
+                {
+                    lines.Add("* " + Model.Desc.Properties[i].m_Name + " : " + Model.Desc.Properties[i].m_Type + " (" + Model.Desc.Properties[i].m_Type.ValueType + ")");
+                }
+            }
+            lines.Add("");
+            lines.Add("Source : ");
+            string[] source =  Model.Desc.Source.Split(new string[] { "\t", "  " }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < source.Length; i++)
+            {
+                lines.Add(source[i]);
+            }
+            lines.Add("");
+            
+            // Context
+            lines.Add("---");
+            VFXContextModel contextmodel = Model.GetOwner();
+            lines.Add("Context :" + contextmodel.GetContextType().ToString());
+            lines.Add("Desc: " + Model.Desc.ToString());
+
+            // System
+            lines.Add("---");
+            VFXSystemModel sysmodel = contextmodel.GetOwner();
+            lines.Add("System : #" + sysmodel.Id);
+            lines.Add("");
+            lines.Add("Allocation Count : " + sysmodel.MaxNb);
+            lines.Add("Render Priority : " + sysmodel.OrderPriority);
+            lines.Add("Blend mode :" + sysmodel.BlendingMode);
+
+
+            return lines.ToArray();
         }
 
         public override VFXPropertySlot GetSlot(string name)
