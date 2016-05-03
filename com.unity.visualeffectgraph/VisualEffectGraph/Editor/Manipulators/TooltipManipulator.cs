@@ -103,12 +103,17 @@ namespace UnityEditor.Experimental
 
             GUI.color = Color.white;
             Vector2 size = new Vector2(width, numlines * lineheight);
-
             Rect tooltipRect = new Rect(m_Position + new Vector2(-12,-12), size + new Vector2(24,24));
+
+            if(parent.clientRect.x + parent.clientRect.width < tooltipRect.x + tooltipRect.width)
+                tooltipRect.x = (parent.clientRect.x + parent.clientRect.width) - tooltipRect.width;
+
+            if(parent.clientRect.y + parent.clientRect.height < tooltipRect.y + tooltipRect.height)
+                tooltipRect.y = (parent.clientRect.y + parent.clientRect.height) - tooltipRect.height;
+
             GUI.Box(tooltipRect, "", VFXEditor.styles.Tooltip);
 
-            Rect currentLineRect = new Rect(m_Position.x, m_Position.y, size.x, lineheight);
-
+            Rect currentLineRect = new Rect(tooltipRect.x + 12, tooltipRect.y + 12, size.x, lineheight);
             foreach(string s in m_Text)
             {
                 if (s != "---")
