@@ -40,7 +40,9 @@ namespace UnityEditor.Experimental
         public GUIStyle ForbidDrop;
 
         public GUIStyle Tooltip;
+        public GUIStyle TooltipLineBreak;
         public GUIStyle TooltipText;
+
 
         public GUIStyle ConnectorLeft;
         public GUIStyle ConnectorRight;
@@ -223,6 +225,11 @@ namespace UnityEditor.Experimental
             Tooltip.name = "Tooltip";
             Tooltip.normal.background = EditorGUIUtility.Load("Tooltip.psd") as Texture2D;
             Tooltip.border = new RectOffset(10, 10, 10, 12);
+
+            TooltipLineBreak = new GUIStyle();
+            TooltipLineBreak.name = "TooltipLineBreak";
+            TooltipLineBreak.normal.background = EditorGUIUtility.Load("TooltipLineBreak.psd") as Texture2D;
+            TooltipLineBreak.border = new RectOffset(8, 8, 8, 7);
 
             TooltipText = new GUIStyle();
             TooltipText.name = "TooltipText";

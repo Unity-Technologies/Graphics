@@ -95,14 +95,47 @@ namespace UnityEditor.Experimental
 
         protected virtual string[] GetTooltipText()
         {
-            return new string[]
+            List<string> lines = new List<string>();
+
+            // Context
+            lines.Add("Context :" + Model.GetContextType().ToString());
+            lines.Add("---");
+            lines.Add("Context Desc: " + Model.Desc.ToString());
+            lines.Add("Context Nodeblock : " + (Model.Desc.ShowBlock ? Model.Desc.Name : "Absent"));
+            if(Model.Desc.ShowBlock)
+            {
+                if(Model.Desc.m_Properties != null)
                 {
-                    "ContextNode :" + Model.GetContextType().ToString() ,
-                    "-------------",
-                    "Desc: " + Model.Desc.ToString(),
-                    "Children: " + Model.GetNbChildren(),
-                    "-------------"
-                };
+                    lines.Add("");
+                    lines.Add("Parameters: ");
+                    for(int i = 0; i < Model.Desc.m_Properties.Length; i++)
+                    {
+                        lines.Add("* " + Model.Desc.m_Properties[i].m_Name + " : " + Model.Desc.m_Properties[i].m_Type +" ("+  Model.Desc.m_Properties[i].m_Type.ValueType+")");
+                    }
+                }
+
+
+            }
+
+            lines.Add("---");
+            lines.Add(Model.GetNbChildren() + " Nodeblocks in context");
+
+            for(int i = 0; i < Model.GetNbChildren(); i++)
+            {
+                lines.Add("* " + Model.GetChild(i).Desc.Name + " : " + Model.GetChild(i).Desc.Flags);
+            }
+            lines.Add("---");
+
+            // System
+            VFXSystemModel sysmodel = Model.GetOwner();
+            lines.Add("System : #" + sysmodel.Id);
+            lines.Add("");
+            lines.Add("Allocation Count : " + sysmodel.MaxNb);
+            lines.Add("Render Priority : " + sysmodel.OrderPriority);
+            lines.Add("Blend mode :" + sysmodel.BlendingMode);
+
+
+            return lines.ToArray();
         }
 
         public void SetSlotValue(string name, VFXValue value)

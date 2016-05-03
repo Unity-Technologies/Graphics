@@ -68,8 +68,13 @@ namespace UnityEditor.Experimental
             translation = position;
 
             AddManipulator(new VFXPropertyEdgeConnector());
-
+            AddManipulator(new TooltipManipulator(GetAnchorToolTip));
             zIndex = -998; // ?
+        }
+
+        public string[] GetAnchorToolTip()
+        {
+            return new string[] { Owner.Name + " : " + ValueType };
         }
 
         public override void Layout()
