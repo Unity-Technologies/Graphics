@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental
         public List<string> GetAnchorToolTip()
         {
             List<string> lines = new List<string>();
-            lines.Add( Owner.Name + " : " + ValueType );
+            lines = VFXModelDebugInfoProvider.GetInfo(lines, Slot, VFXModelDebugInfoProvider.InfoFlag.kNone);
             return lines;
         }
 

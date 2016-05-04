@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEditor;
-using System.Collections;
+using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
@@ -36,6 +36,9 @@ namespace UnityEditor.Experimental
             AddManipulator(new Frame(Frame.FrameType.All));
             AddManipulator(new Frame(Frame.FrameType.Selection));
 
+            // add tooltips for all Systems
+            AddManipulator(new TooltipManipulator(GetToolTipText));
+
             // The following manipulator show how to work with canvas2d overlay and background rendering
             AddManipulator(new RectangleSelect());
             AddManipulator(new ScreenSpaceGrid());
@@ -47,6 +50,13 @@ namespace UnityEditor.Experimental
             // Debug
             KeyDown += DumpModel;
             KeyDown += TogglePhaseShift;
+        }
+
+        public List<string> GetToolTipText()
+        {
+            List<string> lines = new List<string>();
+            lines = VFXModelDebugInfoProvider.GetInfo(lines, VFXEditor.AssetModel, VFXModelDebugInfoProvider.InfoFlag.kDefault);
+            return lines;
         }
 
         private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)

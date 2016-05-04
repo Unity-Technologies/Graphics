@@ -34,8 +34,15 @@ namespace UnityEditor.Experimental
             AddChild(m_Fields[0]);
 
             AddChild(new VFXEdNodeBlockHeader(m_LibraryName, m_DataBlock.Icon, true));
-
+            AddManipulator(new TooltipManipulator(GetTooltipText));
             Layout();
+        }
+
+        public List<string> GetTooltipText()
+        {
+            List<string> lines = new List<string>();
+            lines = VFXModelDebugInfoProvider.GetInfo(lines, this, VFXModelDebugInfoProvider.InfoFlag.kDefault);
+            return lines;
         }
 
         public override VFXPropertySlot GetSlot(string name)

@@ -96,7 +96,7 @@ namespace UnityEditor.Experimental
         protected virtual List<string> GetTooltipText()
         {
             List<string> lines = new List<string>();
-            lines = VFXModelDebugInfoProvider.GetInfo(lines, Model, true);
+            lines = VFXModelDebugInfoProvider.GetInfo(lines, Model, VFXModelDebugInfoProvider.InfoFlag.kDefault);
             return lines;
         }
 

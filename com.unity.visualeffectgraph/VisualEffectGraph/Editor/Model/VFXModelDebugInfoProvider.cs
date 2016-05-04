@@ -9,15 +9,30 @@ namespace UnityEditor.Experimental
 {
     public static class VFXModelDebugInfoProvider
     {
+        public enum InfoFlag
+        {
+            kNone           = 0,
+            kVerbose        = 1 << 0,
+            kFullyVerbose   = 1 << 1,
+            kRecursive      = 1 << 2,
+            kMemoryInfo     = 1 << 3,
+            kDefault        = kVerbose | kRecursive
+        }
+
+        public static bool HasFlag(InfoFlag input, InfoFlag flag)
+        {
+            return (input & flag) == flag;
+        }
+
         // NodeBlock Info
-        public static List<string> GetInfo(List<string> info, VFXBlockModel Model, bool bVerbose)
+        public static List<string> GetInfo(List<string> info, VFXBlockModel Model, InfoFlag flags)
         {
             info.Add("NODEBLOCK : " + Model.Desc.Name);
             info.Add("");
             info.Add("Flags: " + Model.Desc.Flags);
             info.Add("Category : " + Model.Desc.Category);
 
-            if(bVerbose)
+            if(HasFlag(flags, InfoFlag.kVerbose))
             {
                 if(Model.Desc.Attributes != null)
                 {
@@ -36,7 +51,7 @@ namespace UnityEditor.Experimental
                 
                     for(int i = 0; i< Model.Desc.Properties.Length; i++)
                     {
-                        info.Add("     * " + Model.Desc.Properties[i].m_Name + " : " + Model.Desc.Properties[i].m_Type + " (" + Model.Desc.Properties[i].m_Type.ValueType + ")");
+                        info.Add("     * " + Model.Desc.Properties[i].m_Name + " : " + Model.GetSlot(i).Value + " (" + Model.Desc.Properties[i].m_Type.GetType().Name + "/" + Model.Desc.Properties[i].m_Type.ValueType + ")");
                     }
                 }
                 info.Add("");
@@ -49,21 +64,26 @@ namespace UnityEditor.Experimental
                 info.Add("");
             }
 
-            info.Add("---");
-            info = GetInfo(info , Model.GetOwner(), false);
+            if(HasFlag(flags, InfoFlag.kRecursive))
+            {
+                info.Add("---");
+                if (!HasFlag(flags, InfoFlag.kFullyVerbose) && HasFlag(flags, InfoFlag.kVerbose))
+                    flags = flags &~ InfoFlag.kVerbose;
+                info = GetInfo(info , Model.GetOwner(), flags);
+            }
 
             return info;
         }
 
         // Context Model Info
-        public static List<string> GetInfo(List<string> info, VFXContextModel Model, bool bVerbose)
+        public static List<string> GetInfo(List<string> info, VFXContextModel Model, InfoFlag flags)
         {
             info.Add("CONTEXT : " + Model.GetContextType().ToString());
             info.Add("");
-            info.Add("Context Desc: " + Model.Desc.ToString());
+            info.Add("Context Desc: " + Model.Desc.GetType().Name);
             info.Add("Context Nodeblock : " + (Model.Desc.ShowBlock ? Model.Desc.Name : "Absent"));
 
-            if(bVerbose)
+            if(HasFlag(flags, InfoFlag.kVerbose))
             {
                 if(Model.Desc.ShowBlock)
                 {
@@ -73,7 +93,7 @@ namespace UnityEditor.Experimental
                         info.Add("Parameters: ");
                         for(int i = 0; i < Model.Desc.m_Properties.Length; i++)
                         {
-                            info.Add("* " + Model.Desc.m_Properties[i].m_Name + " : " + Model.Desc.m_Properties[i].m_Type +" ("+  Model.Desc.m_Properties[i].m_Type.ValueType+")");
+                            info.Add("     * " + Model.Desc.m_Properties[i].m_Name + " : " + Model.GetSlot(i).Value.Reduce() + " (" + Model.Desc.m_Properties[i].m_Type.GetType().Name + "/" + Model.Desc.m_Properties[i].m_Type.ValueType + ")");
                         }
                     }
                 }
@@ -87,13 +107,19 @@ namespace UnityEditor.Experimental
                 
             }
 
-            info.Add("---");
-            info = GetInfo(info , Model.GetOwner(), false);
+            if(HasFlag(flags, InfoFlag.kRecursive))
+            {
+                info.Add("---");
+                if (!HasFlag(flags, InfoFlag.kFullyVerbose) && HasFlag(flags, InfoFlag.kVerbose))
+                    flags = flags &~ InfoFlag.kVerbose;
+                info = GetInfo(info , Model.GetOwner(), flags);
+            }
 
             return info;
         }
 
-        public static List<string> GetInfo(List<string> info, VFXSystemModel Model, bool bVerbose)
+        // System Model
+        public static List<string> GetInfo(List<string> info, VFXSystemModel Model, InfoFlag flags)
         {
             info.Add("SYSTEM : #" + Model.Id);
             info.Add("");
@@ -101,7 +127,7 @@ namespace UnityEditor.Experimental
             info.Add("Render Priority : " + Model.OrderPriority);
             info.Add("Render mode :" + Model.BlendingMode);
 
-            if(bVerbose)
+            if(HasFlag(flags, InfoFlag.kVerbose))
             {
                 info.Add("");
                 info.Add("Advanced System Information...");
@@ -109,28 +135,77 @@ namespace UnityEditor.Experimental
                 info.Add("");
             }
 
-            info.Add("---");
-            info = GetInfo(info , Model.GetOwner(), false);
+            return info;
+        }
+
+        // Asset Model
+        public static List<string> GetInfo(List<string> info, VFXAssetModel Model, InfoFlag flags)
+        {
+            int childcount = Model.GetNbChildren();
+
+            info.Add("VFX ASSET");
+            info.Add("");
+            info.Add("Sampling Correction : " + (Model.PhaseShift ? "Enabled" : "Disabled"));
+            info.Add("System Count : " + childcount);
+
+            if(HasFlag(flags, InfoFlag.kVerbose))
+            {
+                info.Add("");
+                info.Add("Advanced Asset Information...");
+                info.Add("(Work in progress)");
+                info.Add("");
+            }
+
+            if(HasFlag(flags, InfoFlag.kRecursive) && childcount > 0)
+            {
+                if (!HasFlag(flags, InfoFlag.kFullyVerbose) && HasFlag(flags, InfoFlag.kVerbose))
+                    flags = flags &~ InfoFlag.kVerbose;
+
+                for(int i = 0 ; i < childcount; i++)
+                {
+                    info.Add("---");
+                    info = GetInfo(info , Model.GetChild(i), flags);
+                }
+
+            }
 
             return info;
         }
 
-        // Asset
-        public static List<string> GetInfo(List<string> info, VFXAssetModel Model, bool bVerbose)
+        // VFXPropertySlot
+        public static List<string> GetInfo(List<string> info, VFXPropertySlot Slot, InfoFlag flags )
         {
-            info.Add("VFX ASSET");
-            info.Add("");
-            info.Add("Sampling Correction : " + (Model.PhaseShift ? "Enabled" : "Disabled"));
-            info.Add("System Count : " + Model.GetNbChildren());
+            if(Slot.Value != null)
+                info.Add(Slot.Name + " (" + Slot.Value.ValueType + ") : " + Slot.Value.Reduce());
+            else
+                info.Add(Slot.Name + " : (null)");
+            
+            int nbChildren = Slot.GetNbChildren();
 
-            if(bVerbose)
+            if(HasFlag(flags, InfoFlag.kRecursive) && nbChildren > 0)
             {
-                info.Add("---");
-                info.Add("Advanced Asset Information...");
-                info.Add("Work in progress...");
-                info.Add("");
+                for(int i = 0 ; i < nbChildren ; i++)
+                {
+                    info = GetInfo(info, Slot.GetChild(i), flags);
+                }
             }
+            return info;
 
+        }
+
+        // VFXDataNodeBlock
+        internal static List<string> GetInfo(List<string> info, VFXEdDataNodeBlock Block, InfoFlag flags )
+        {
+            info.Add("DATA NODEBLOCK : " + Block.m_exposedName + " (" + Block.LibraryName + ")");
+            info.Add("");
+            info.Add("Slot : " + Block.Slot.Name + " (" + Block.Slot.ValueType+")");
+            
+            if(HasFlag(flags, InfoFlag.kVerbose))
+            {
+                info.Add("");
+                info.Add("PropertySlots : ");
+                info = GetInfo(info, Block.Slot, InfoFlag.kRecursive);
+            }
             return info;
         }
 

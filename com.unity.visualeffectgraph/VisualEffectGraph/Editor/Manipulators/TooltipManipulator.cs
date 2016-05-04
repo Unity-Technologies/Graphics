@@ -25,8 +25,8 @@ namespace UnityEditor.Experimental
 
         public void AttachTo(CanvasElement e)
         {
-            e.MouseDown += E_MouseDown;
-            e.MouseUp += E_MouseUp;
+            e.MouseDown += OnMouseDown;
+            e.MouseUp += OnMouseUp;
 
         }
 
@@ -35,8 +35,8 @@ namespace UnityEditor.Experimental
             m_bVisible = true;
             m_Text = m_Callback.Invoke();
             canvas.OnOverlay += RenderTooltip;
-            canvas.MouseUp += E_MouseUp;
-            canvas.AllEvents += E_MouseUpOutsideClientArea;
+            canvas.MouseUp += OnMouseUp;
+            canvas.AllEvents += OnMouseUpOutsideClientArea;
             canvas.Invalidate();
         }
 
@@ -44,25 +44,24 @@ namespace UnityEditor.Experimental
         {
             m_bVisible = false;
             canvas.OnOverlay -= RenderTooltip;
-            canvas.MouseUp -= E_MouseUp;
-            canvas.AllEvents -= E_MouseUpOutsideClientArea;
+            canvas.MouseUp -= OnMouseUp;
+            canvas.AllEvents -= OnMouseUpOutsideClientArea;
             canvas.Invalidate();
         }
 
-        private bool E_MouseUpOutsideClientArea(CanvasElement element, Event e, Canvas2D parent)
+        private bool OnMouseUpOutsideClientArea(CanvasElement element, Event e, Canvas2D parent)
         {
             if(!parent.clientRect.Contains(e.mousePosition))
             {
                 HideTooltip(parent);
                 e.Use();
-                return true;
             }
             return false;
         }
 
-        private bool E_MouseUp(CanvasElement element, Event e, Canvas2D parent)
+        private bool OnMouseUp(CanvasElement element, Event e, Canvas2D parent)
         {
-           if (e.button != 2)
+           if (e.button != 1)
                 return false;
 
             if(m_bVisible)
@@ -70,13 +69,12 @@ namespace UnityEditor.Experimental
                 HideTooltip(parent);
                 e.Use();
             }
-
             return false;
         }
 
-        private bool E_MouseDown(CanvasElement element, Event e, Canvas2D parent)
+        private bool OnMouseDown(CanvasElement element, Event e, Canvas2D parent)
         {
-            if (e.button != 2)
+            if (!(e.button == 1 && e.shift) )
                 return false;
             m_Position = e.mousePosition;
             ShowTooltip(parent);
