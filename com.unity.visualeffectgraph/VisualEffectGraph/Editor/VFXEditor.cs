@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.Experimental;
 using UnityEngine.Experimental.VFX;
 using System;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -554,9 +555,6 @@ namespace UnityEditor.Experimental
             }
 
             // Debug.Log("Reload VFXBlock libraries. Found " + guids.Length + " libraries with a total of " + m_Blocks.Count + " blocks");
-
-            // Add explicit C# blocks
-            Debug.Log("RELOAD BLOCK LIBRARY!!!");
             m_Blocks.Add(new VFXBlockSetPositionPoint()); 
             m_Blocks.Add(new VFXBlockSetPositionMap());
             m_Blocks.Add(new VFXBlockSetPositionBox());
@@ -569,7 +567,9 @@ namespace UnityEditor.Experimental
             m_Blocks.Add(new VFXBlockSetColorOverLifetime());
 
             m_Blocks.Add(new VFXBlockCurveTest());
-            m_Blocks.Add(new VFXBlockGradientTest());
+            m_Blocks.Add(new VFXBlockSetColorGradientOverLifetime());
+            m_Blocks.Add(new VFXBlockSetAlphaCurveOverLifetime());
+
         }
 
         public VFXBlockDesc GetBlock(string name)
