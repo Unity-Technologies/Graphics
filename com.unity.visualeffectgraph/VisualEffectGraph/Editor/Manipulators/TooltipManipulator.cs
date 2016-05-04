@@ -10,9 +10,9 @@ namespace UnityEditor.Experimental
 {
     public class TooltipManipulator : IManipulate
     {
-        public delegate string[] GetTooltipCallback();
+        public delegate List<string> GetTooltipCallback();
         private Vector2 m_Position;
-        private string[] m_Text;
+        private List<string> m_Text;
         private GetTooltipCallback m_Callback;
         private bool m_bVisible;
         private Canvas2D m_Canvas;
@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental
         private bool RenderTooltip(CanvasElement element, Event e, Canvas2D parent)
         {
             Color backup = GUI.color;
-            int numlines = m_Text.Length;
+            int numlines = m_Text.Count;
             int lineheight = 16;
 
             float width = 40;

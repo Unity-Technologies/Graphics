@@ -72,9 +72,11 @@ namespace UnityEditor.Experimental
             zIndex = -998; // ?
         }
 
-        public string[] GetAnchorToolTip()
+        public List<string> GetAnchorToolTip()
         {
-            return new string[] { Owner.Name + " : " + ValueType };
+            List<string> lines = new List<string>();
+            lines.Add( Owner.Name + " : " + ValueType );
+            return lines;
         }
 
         public override void Layout()
