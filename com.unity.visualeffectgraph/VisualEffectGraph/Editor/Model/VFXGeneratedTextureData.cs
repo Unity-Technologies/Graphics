@@ -136,6 +136,8 @@ namespace UnityEngine.Experimental.VFX
 
                     m_FloatSignals[curve] = UpdateSignalData(animCurve,data);
                     DiscretizeCurve(animCurve, data);
+
+                    ++currentIndex;
                 }
 
                 m_FloatTextureDirty = true;

@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXUIPropertySlotField : CanvasElement
+    internal class VFXUIPropertySlotField : CanvasElement, VFXPropertySlotObserver
     {
         public VFXPropertySlot Slot                 { get { return m_Slot; } }
         public VFXProperty Property                 { get { return Slot.Property; } }
@@ -28,13 +28,15 @@ namespace UnityEditor.Experimental
         private bool m_ChildrenCollapsed = true;
         private bool m_FieldCollapsed; // Use another bool than collapsed as we dont want it to be propagated to children when uncollapsing
 
-        private VFXUIPropertySlotField[] m_Children;
+        private new VFXUIPropertySlotField[] m_Children;
 
         public VFXUIPropertySlotField(VFXEdDataSource dataSource, VFXPropertySlot slot, uint depth = 0)
         {
             m_DataSource = dataSource; 
             m_Slot = slot;
             m_Depth = depth;
+
+            slot.AddObserver(this);
 
             if (slot is VFXInputSlot)           m_Direction = Direction.Input;
             else if (slot is VFXOutputSlot)     m_Direction = Direction.Output;
@@ -53,6 +55,15 @@ namespace UnityEditor.Experimental
             m_Children = new VFXUIPropertySlotField[Slot.GetNbChildren()];
             for (int i = 0; i < Slot.GetNbChildren(); ++i)
                 AddChild(m_Children[i] = new VFXUIPropertySlotField(m_DataSource, Slot.GetChild(i), m_Depth + 1));
+        }
+
+        public virtual void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
+        {
+            if (!Collapsed())
+            {
+                Invalidate();
+                ParentCanvas().Repaint();
+            }
         }
 
         private Rect GetCollapserRect()
@@ -141,7 +152,6 @@ namespace UnityEditor.Experimental
         {
             base.Render(parentRect, canvas);
 
-            EventType t = Event.current.type;
             if (!Collapsed())
             {
                 Rect r = GetDrawableRect();

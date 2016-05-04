@@ -224,7 +224,6 @@ namespace UnityEditor.Experimental
         // TODO source shouldnt be a parameter but taken from block
         private void WriteSourceWithSamplesResolved(string source,VFXBlockModel block,VFXGeneratedTextureData texData)
         {
-            string curSource = source;
             int lastIndex = 0;
             int indexSample = 0;
             while ((indexSample = source.IndexOf("SAMPLE", lastIndex)) != -1)

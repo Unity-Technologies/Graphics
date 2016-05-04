@@ -72,9 +72,9 @@ namespace UnityEngine.Experimental.VFX
         public virtual bool Default(VFXPropertySlot slot)       { return false; }
 
         // UI stuff
-        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value,Editor editor)      { return null; }    
-        public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area)                 {}
-        public virtual void OnInspectorGUI(VFXPropertySlot value)                           {}
+        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value)        { return null; }    
+        public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area)     {}
+        public virtual void OnInspectorGUI(VFXPropertySlot value)               {}
 
         public virtual bool UpdateProxy(VFXPropertySlot slot) { return false; }  // Set Proxy value from underlying values
 
@@ -152,7 +152,7 @@ namespace UnityEngine.Experimental.VFX
 
         public override bool Default(VFXPropertySlot slot)
         {
-            slot.SetInnerValue(new AnimationCurve());
+            slot.SetInnerValue(AnimationCurve.EaseInOut(0.0f,0.0f,1.0f,1.0f));
             return true;
         }
     }

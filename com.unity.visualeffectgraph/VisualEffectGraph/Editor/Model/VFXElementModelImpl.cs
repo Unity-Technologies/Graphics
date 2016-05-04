@@ -232,10 +232,7 @@ namespace UnityEditor.Experimental
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
                 RemoveSystem();
-
-                var oldOwner = GetOwner();
                 Detach();
-
                 return;
             }
 
