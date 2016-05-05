@@ -36,9 +36,6 @@ namespace UnityEngine.Experimental.VFX
         protected void Init<T>(VFXPropertySlot parent, VFXProperty desc) where T : VFXPropertySlot, new()
         {
             m_Desc = desc;
-            m_FullName = desc.m_Name;
-            if (parent != null)
-                m_FullName = parent.m_FullName + "_" + desc.m_Name;
  
             CreateChildren<T>();
             Semantics.CreateValue(this);
@@ -201,13 +198,23 @@ namespace UnityEngine.Experimental.VFX
         // Called from the model compiler
         public void CollectNamedValues(List<VFXNamedValue> values)
         {
+            CollectNamedValues(values, "");
+        }
+
+        private void CollectNamedValues(List<VFXNamedValue> values,string fullName)
+        {
             VFXPropertySlot refSlot = CurrentValueRef;
             VFXExpression refValue = refSlot.Value;
             
             if (refValue != null) // if not null it means value has a concrete type (not kNone)
-                values.Add(new VFXNamedValue(m_FullName,refValue.Reduce())); // TODO Reduce must not be performed here
+                values.Add(new VFXNamedValue(AggregateName(fullName,Name), refValue.Reduce())); // TODO Reduce must not be performed here
             else foreach (var child in refSlot.m_Children) // Continue only until we found a value
-                child.CollectNamedValues(values);
+                    child.CollectNamedValues(values, AggregateName(fullName, Name));
+        }
+
+        private string AggregateName(string parent,string child)
+        {
+            return parent.Length == 0 ? child : parent + "_" + child;
         }
 
         public void UpdatePosition(Vector2 position) {}
@@ -224,8 +231,6 @@ namespace UnityEngine.Experimental.VFX
 
         protected VFXPropertySlot m_Parent;
         protected VFXPropertySlot[] m_Children = new VFXPropertySlot[0];
-
-        private string m_FullName; // name in the slot hierarchy. In the form: parent0_[...]_parentN_propertyName
 
         private bool m_UIChildrenCollapsed = true;
     }
