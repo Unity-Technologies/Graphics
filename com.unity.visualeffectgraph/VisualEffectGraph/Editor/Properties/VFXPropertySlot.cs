@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor; // Shouldnt be included!
+using UnityEditor.Experimental;
 using System;
 using System.Collections.Generic;
 
@@ -22,7 +23,7 @@ namespace UnityEngine.Experimental.VFX
         public VFXExpression m_Value;
     }
 
-    public abstract class VFXPropertySlot
+    public abstract class VFXPropertySlot : VFXUIDataHolder
     {
         public enum Event
         {
@@ -209,6 +210,12 @@ namespace UnityEngine.Experimental.VFX
                 child.CollectNamedValues(values);
         }
 
+        public void UpdatePosition(Vector2 position) {}
+        public void UpdateCollapsed(bool collapsed)
+        {
+            m_UIChildrenCollapsed = collapsed;
+        }
+
         private VFXExpression m_OwnedValue;
 
         protected List<VFXPropertySlotObserver> m_Observers = new List<VFXPropertySlotObserver>();
@@ -219,6 +226,8 @@ namespace UnityEngine.Experimental.VFX
         protected VFXPropertySlot[] m_Children = new VFXPropertySlot[0];
 
         private string m_FullName; // name in the slot hierarchy. In the form: parent0_[...]_parentN_propertyName
+
+        private bool m_UIChildrenCollapsed = true;
     }
 
     // Concrete implementation for input slot (can be linked to only one output slot)

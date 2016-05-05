@@ -6,6 +6,12 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Experimental
 {
+    public interface VFXUIDataHolder
+    {
+        void UpdateCollapsed(bool collapsed);
+        void UpdatePosition(Vector2 position);
+    }
+
     public abstract class VFXElementModel
     {
         public enum InvalidationCause

@@ -117,6 +117,7 @@ namespace UnityEditor.Experimental
         public void CollapseChildren(bool collapse)
         {
             m_ChildrenCollapsed = collapse;
+            UpdateModel(UpdateType.Update);
             foreach (var child in m_Children)
             {
                 child.m_FieldCollapsed = m_ChildrenCollapsed;
@@ -194,6 +195,11 @@ namespace UnityEditor.Experimental
 
                 EditorGUI.EndDisabledGroup();
             }
+        }
+
+        public override void UpdateModel(UpdateType t)
+        {
+            Slot.UpdateCollapsed(m_ChildrenCollapsed);
         }
     }
 }

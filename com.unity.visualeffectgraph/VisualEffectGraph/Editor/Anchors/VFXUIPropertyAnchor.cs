@@ -87,10 +87,10 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            if (!collapsed && !Owner.Collapsed())
+            if (!collapsed)
             {
                 Rect r = GetDrawableRect();
-                Color typeColor = VFXEditor.styles.GetTypeColor(Owner.ValueType);
+                Color typeColor = VFXEditor.styles.GetTypeColor(ValueType);
                 Rect colorzone = r;
                 Texture2D texture = null;
 
@@ -107,7 +107,7 @@ namespace UnityEditor.Experimental
                         break;
                 }
 
-                if (Owner.Slot.IsLinked())
+                if (Slot.IsLinked())
                     GUI.color = Color.Lerp(typeColor, Color.gray, 0.5f);
                 else
                     GUI.color = Color.gray;
@@ -140,7 +140,7 @@ namespace UnityEditor.Experimental
             thisRect.x -= 2;
             thisRect.y += 5;
             GUI.color = VFXEditor.styles.GetTypeColor(ValueType);
-            if (!collapsed && !Owner.Collapsed())
+            if (!collapsed)
             {
                 switch (m_Direction)
                 {

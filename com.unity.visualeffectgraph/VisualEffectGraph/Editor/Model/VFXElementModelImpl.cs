@@ -363,7 +363,7 @@ namespace UnityEditor.Experimental
         }
     }
 
-    public class VFXContextModel : VFXModelWithSlots<VFXSystemModel, VFXBlockModel>
+    public class VFXContextModel : VFXModelWithSlots<VFXSystemModel, VFXBlockModel>, VFXUIDataHolder
     {
         public VFXContextModel(VFXContextDesc desc)
         {
@@ -417,10 +417,23 @@ namespace UnityEditor.Experimental
             get { return m_Desc; }
         }
 
+        public void UpdateCollapsed(bool collapsed)
+        {
+            m_UICollapsed = collapsed;
+        }
+
+        public void UpdatePosition(Vector2 position)
+        {
+            m_UIPosition = position;
+        }
+
         private VFXContextDesc m_Desc;
+
+        private bool m_UICollapsed;
+        private Vector2 m_UIPosition;
     }
 
-    public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>
+    public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>, VFXUIDataHolder
     {
         public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
         {
@@ -472,8 +485,16 @@ namespace UnityEditor.Experimental
             return false; // Nothing can be attached to Blocks !
         }
 
+        public void UpdatePosition(Vector2 position) {}
+        public void UpdateCollapsed(bool collapsed)
+        {
+            m_UICollapsed = collapsed;
+        }
+
         public VFXProperty[] Properties { get { return m_BlockDesc.Properties; } }
 
         private VFXBlockDesc m_BlockDesc;
+
+        private bool m_UICollapsed;
     }
 }
