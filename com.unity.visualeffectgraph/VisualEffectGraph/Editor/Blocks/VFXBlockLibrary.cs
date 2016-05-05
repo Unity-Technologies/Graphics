@@ -33,34 +33,16 @@ namespace UnityEditor.Experimental.VFX
             m_DataBlocks.Clear();
         }
 
-        public VFXBlockDesc GetBlock(string id)
-        {
-            return m_Blocks[id];
-        }
+        public VFXBlockDesc GetBlock(string id)                 { return m_Blocks[id]; }
+        public IEnumerable<VFXBlockDesc> GetBlocks()            { return m_Blocks.Values; }
 
-        public IEnumerable<VFXBlockDesc> GetBlocks()
-        {
-            return m_Blocks.Values;
-        }
-
-        public VFXDataBlockDesc GetDataBlock(string id)
-        {
-            return m_DataBlocks[id];
-        }
-
-        public IEnumerable<VFXDataBlockDesc> GetDataBlocks()
-        {
-            return m_DataBlocks.Values;
-        }
+        public VFXDataBlockDesc GetDataBlock(string id)         { return m_DataBlocks[id]; }
+        public IEnumerable<VFXDataBlockDesc> GetDataBlocks()    { return m_DataBlocks.Values; }
 
         private void LoadFromAssemblies()
         {
             // Search for derived type of VFXBlockType in assemblies
-            Type[] blockTypes = ( from domainAssembly in AppDomain.CurrentDomain.GetAssemblies()
-                                from assemblyType in domainAssembly.GetTypes()
-                                where (assemblyType.IsSubclassOf(typeof(VFXBlockType)) && !assemblyType.IsAbstract)
-                                select assemblyType).ToArray();
-
+            var blockTypes = FindConcreteSubclasses<VFXBlockType>();
             foreach (var blockType in blockTypes)
             {
                 try
@@ -104,11 +86,7 @@ namespace UnityEditor.Experimental.VFX
         private void LoadDataBlocks()
         {
             // Search for semantic types in assemblies
-            Type[] semanticTypes = (from domainAssembly in AppDomain.CurrentDomain.GetAssemblies()
-                                 from assemblyType in domainAssembly.GetTypes()
-                                 where (assemblyType.IsSubclassOf(typeof(VFXPropertyTypeSemantics)) && !assemblyType.IsAbstract)
-                                 select assemblyType).ToArray();
-
+            var semanticTypes = FindConcreteSubclasses<VFXPropertyTypeSemantics>();
             foreach (var semanticType in semanticTypes)
             {
                 try
@@ -122,7 +100,7 @@ namespace UnityEditor.Experimental.VFX
                         var dataBlockDesc = new VFXDataBlockDesc(new VFXProperty(semantics,desc.m_Name),desc.m_Icon,desc.m_Category);
 
                         m_DataBlocks.Add(semanticType.FullName, dataBlockDesc);
-                        Debug.Log("DATABLOCK "+semanticType.Name+" "+dataBlockDesc.Name+" "+dataBlockDesc.Icon+" "+dataBlockDesc.Category);
+                        //Debug.Log("DATABLOCK "+semanticType.Name+" "+dataBlockDesc.Name+" "+dataBlockDesc.Icon+" "+dataBlockDesc.Category);
                     }
                 }
                 catch (Exception e)
@@ -130,6 +108,14 @@ namespace UnityEditor.Experimental.VFX
                     Debug.LogError("Error while loading data block desc from semantics " + semanticType.FullName + ": " + e.Message);
                 }
             }
+        }
+
+        private IEnumerable<Type> FindConcreteSubclasses<T>()
+        {
+            return (from domainAssembly in AppDomain.CurrentDomain.GetAssemblies()
+                    from assemblyType in domainAssembly.GetTypes()
+                    where (assemblyType.IsSubclassOf(typeof(T)) && !assemblyType.IsAbstract)
+                    select assemblyType);
         }
 
         private Dictionary<string,VFXBlockDesc> m_Blocks;

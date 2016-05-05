@@ -23,22 +23,10 @@ namespace UnityEngine.Experimental.VFX
         public string m_Name;
     }
 
-    public struct VFXPropertySemanticsDesc
-    {
-        public VFXPropertySemanticsDesc(string name,string icon, string category)
-        {
-            m_Name = name;
-            m_Icon = icon;
-            m_Category = category;
-        }
-
-        public string m_Name;
-        public string m_Icon;
-        public string m_Category;
-    }
-
     public abstract class VFXPropertyTypeSemantics
     {
+        // Description of the semantics in order to be able to spawn data node block from them
+        // Semantics that dont implement static method Desc Description() wont be associated to a data node block
         public struct Desc
         {
             public Desc(string name, string icon, string category)
@@ -146,7 +134,7 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXFloatType : VFXPrimitiveType<float>
     {
-        public static Desc Description() { return new Desc("float", "type_float", "generic_types"); }
+        public static Desc Description() { return new Desc("Float", "type_float", "Basic"); }
 
         public VFXFloatType() : this(0.0f) { }
         public VFXFloatType(float defaultValue) : base(defaultValue) { }
@@ -154,7 +142,7 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXIntType : VFXPrimitiveType<int>
     {
-        public static Desc Description() { return new Desc("int", "type_integer", "generic_types"); }
+        public static Desc Description() { return new Desc("Int", "type_integer", "Basic"); }
 
         public VFXIntType() : this(0) { }
         VFXIntType(int defaultValue) : base(defaultValue) { }
@@ -162,24 +150,32 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXUintType : VFXPrimitiveType<uint>
     {
+        public static Desc Description() { return new Desc("Uint", "type_integer", "Basic"); }
+
         public VFXUintType() : this(0u) {}
         VFXUintType(uint defaultValue) : base(defaultValue) { }
     }
 
     public partial class VFXTexture2DType : VFXPrimitiveType<Texture2D>
     {
+        public static Desc Description() { return new Desc("Texture2D", "Texture", "Texture"); }
+
         public VFXTexture2DType() : this(null) {}
         VFXTexture2DType(Texture2D defaultValue) : base(defaultValue) { }
     }
 
     public partial class VFXTexture3DType : VFXPrimitiveType<Texture3D>
     {
+        public static Desc Description() { return new Desc("Texture3D", "Volume", "Texture"); }
+
         public VFXTexture3DType() : this(null) {}
         VFXTexture3DType(Texture3D defaultValue) : base(defaultValue) { }
     }
 
     public partial class VFXCurveType : VFXPrimitiveType<AnimationCurve>
     {
+        public static Desc Description() { return new Desc("Curve", "Curve", "Curve"); }
+
         public VFXCurveType() : base(null) {}
 
         public override bool Default(VFXPropertySlot slot)
@@ -191,6 +187,8 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXColorGradientType : VFXPrimitiveType<Gradient>
     {
+        public static Desc Description() { return new Desc("Color Gradient", "Gradient", "Color"); }
+
         public VFXColorGradientType() : base(null) {}
 
         public override bool Default(VFXPropertySlot slot)
@@ -268,6 +266,8 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXFloat2Type : VFXProxyVectorType
     {
+        public static Desc Description() { return new Desc("Float2", "type_vector2", "Basic"); }
+
         public VFXFloat2Type() : this(Vector2.zero) { }
         public VFXFloat2Type(Vector2 defaultValue) : base(2, defaultValue) { }
 
@@ -288,6 +288,8 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXFloat3Type : VFXProxyVectorType
     {
+        public static Desc Description() { return new Desc("Float3", "type_vector3", "Basic"); }
+
         public VFXFloat3Type() : this(Vector3.zero) {}
         public VFXFloat3Type(Vector3 defaultValue)  : base(3, defaultValue) {}
 
@@ -309,6 +311,8 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXFloat4Type : VFXProxyVectorType
     {
+        public static Desc Description() { return new Desc("Float4", "type_vector4", "Basic"); }
+
         public VFXFloat4Type() : this(Vector4.zero) { }
         public VFXFloat4Type(Vector4 defaultValue) : base(4, defaultValue) { }
 
@@ -331,26 +335,36 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXColorRGBType : VFXFloat3Type
     {
+        public static Desc Description() { return new Desc("Color", "type_color", "Color"); }
+
         public VFXColorRGBType() : base(Vector3.one) {} // white as default color
     }
 
     public partial class VFXPositionType : VFXFloat3Type
     {
+        public static Desc Description() { return new Desc("Float3 (Position)", "type_vector3", "Basic"); }
+
         public VFXPositionType() {}
     }
 
     public partial class VFXVectorType : VFXFloat3Type
     {
+        public static Desc Description() { return new Desc("Float3 (Vector)", "type_vector3", "Basic"); }
+
         public VFXVectorType() : base(Vector3.up) { }
     }
 
     public partial class VFXDirectionType : VFXFloat3Type
     {
+        public static Desc Description() { return new Desc("Float3 (Direction)", "type_vector3", "Basic"); }
+
         public VFXDirectionType() : base(Vector3.up) { }
     }
 
     public partial class VFXTransformType : VFXPropertyTypeSemantics
     {
+        public static Desc Description() { return new Desc("Transform", "Position", "Basic"); }
+
         public VFXTransformType() : this(kComponentNames) {}
         protected VFXTransformType(string[] componentNames)
         {
@@ -401,6 +415,8 @@ namespace UnityEngine.Experimental.VFX
     // This is just an alias on VFXTransformType with custom widgets and component names
     public partial class VFXOrientedBoxType : VFXTransformType
     {
+        public static Desc Description() { return new Desc("Box (Oriented)", "Box", "Primitive"); }
+
         public VFXOrientedBoxType() : base(kComponentNames) { }
         private static readonly string[] kComponentNames = new string[3] {"center","rotation","size"};
     }
@@ -408,6 +424,8 @@ namespace UnityEngine.Experimental.VFX
     // Composite types
     public partial class VFXSphereType : VFXPropertyTypeSemantics
     {
+        public static Desc Description() { return new Desc("Sphere", "Sphere", "Primitive"); }
+
         public VFXSphereType() 
         {
             m_Children = new VFXProperty[2];
@@ -418,6 +436,8 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXAABoxType : VFXPropertyTypeSemantics
     {
+        public static Desc Description() { return new Desc("Box (Axis-Aligned)", "Box", "Primitive"); }
+
         public VFXAABoxType()
         {
             m_Children = new VFXProperty[2];
@@ -428,6 +448,8 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXPlaneType : VFXPropertyTypeSemantics
     {
+        public static Desc Description() { return new Desc("Plane", "Plane", "Primitive"); }
+
         public VFXPlaneType()
         {
             m_Children = new VFXProperty[2];

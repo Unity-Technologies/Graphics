@@ -20,9 +20,13 @@ namespace UnityEditor.Experimental
 
         public void SetEnabled(bool value)
         {
-            m_bEnabled = value;
-            m_Parent.Invalidate();
-            m_Parent.Layout();
+            if (m_bEnabled != value)
+            {
+                UpdateModel(UpdateType.Update);
+                m_bEnabled = value;
+                m_Parent.Invalidate();
+                m_Parent.Layout();
+            }
         }
 
         private bool ToggleState(CanvasElement element, Event e, Canvas2D parent)

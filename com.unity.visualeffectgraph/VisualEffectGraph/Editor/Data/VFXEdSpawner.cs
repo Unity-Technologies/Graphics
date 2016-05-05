@@ -84,7 +84,7 @@ namespace UnityEditor.Experimental
     {
         VFXEdDataSource m_DataSource;
         VFXEdCanvas m_Canvas;
-        VFXDataBlock m_InitialBlock;
+        VFXDataBlockDesc m_InitialBlock;
 
         public VFXEdDataNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position)
             : base (position)
@@ -93,7 +93,7 @@ namespace UnityEditor.Experimental
             m_Canvas = canvas;
         }
 
-        public VFXEdDataNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, VFXDataBlock block)
+        public VFXEdDataNodeSpawner(VFXEdDataSource datasource, VFXEdCanvas canvas, Vector2 position, VFXDataBlockDesc block)
             : this (datasource, canvas,position)
         {
             m_InitialBlock = block;
@@ -137,21 +137,21 @@ namespace UnityEditor.Experimental
     internal class VFXEdDataNodeBlockSpawner : VFXEdSpawner
     {
         VFXEdDataNode m_Node;
-        VFXDataBlock m_DataBlock;
+        VFXDataBlockDesc m_DataBlockDesc;
         VFXEdDataSource m_DataSource;
         DataContainerInfo m_dataContainerInfo;
         string m_exposedName;
 
-        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName)
+        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlockDesc datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName)
             : base (position)
         {
-            m_DataBlock = datablock;
+            m_DataBlockDesc = datablock;
             m_Node = node;
             m_DataSource = datasource;
             m_exposedName = exposedName;
         }
 
-        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlock datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName, DataContainerInfo dataContainerInfo)
+        public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlockDesc datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName, DataContainerInfo dataContainerInfo)
             : this (position, datablock, node, datasource, exposedName)
         {
             m_dataContainerInfo = dataContainerInfo;
@@ -160,24 +160,7 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            // TODO Make that work
-            //if (m_DataBlock.editingWidget == null)
-                m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName));
-           /* else
-            {
-                VFXEdDataNodeBlock block = new VFXEdDataNodeBlock(m_DataBlock, m_DataSource, m_exposedName, m_DataBlock.editingWidget);
-                
-                if(m_dataContainerInfo != null)
-                {
-                    block.editingDataContainer = m_dataContainerInfo.CreateDataContainer();
-                }
-
-                m_Node.NodeBlockContainer.AddNodeBlock(block);
-                block.editingWidget.CreateBinding(block);
-            }*/
-               
-
-           
+            m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlockDesc, m_DataSource, m_exposedName));
         }
     }
 

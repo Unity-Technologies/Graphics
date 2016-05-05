@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            if (!collapsed)
+            if (!collapsed && !Owner.Collapsed())
             {
                 Rect r = GetDrawableRect();
                 Color typeColor = VFXEditor.styles.GetTypeColor(ValueType);
@@ -140,7 +140,7 @@ namespace UnityEditor.Experimental
             thisRect.x -= 2;
             thisRect.y += 5;
             GUI.color = VFXEditor.styles.GetTypeColor(ValueType);
-            if (!collapsed)
+            if (!collapsed && !Owner.Collapsed())
             {
                 switch (m_Direction)
                 {

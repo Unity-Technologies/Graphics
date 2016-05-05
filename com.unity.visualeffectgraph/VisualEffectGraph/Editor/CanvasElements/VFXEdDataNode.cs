@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
-using UnityEditor.Experimental.Graph;
+//using UnityEditor.Experimental.Graph;
+using UnityEditor.Experimental.VFX;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
@@ -13,11 +15,14 @@ namespace UnityEditor.Experimental
         public bool exposed { get { return m_ExposeOption.Enabled; } set { m_ExposeOption.Enabled = value; } }
         protected VFXEdExposeDataNodeOption m_ExposeOption;
 
+        private VFXDataNodeModel m_Model;
+
         internal VFXEdDataNode(Vector2 canvasposition, VFXEdDataSource dataSource) 
             : base (canvasposition, dataSource)
         {
+            m_Model = new VFXDataNodeModel();
             m_Title = "Data Node";
-            m_ExposeOption = new VFXEdExposeDataNodeOption();
+            m_ExposeOption = new VFXEdExposeDataNodeOption(m_Model);
             AddChild(m_ExposeOption);
             Layout();
         }
@@ -28,16 +33,26 @@ namespace UnityEditor.Experimental
             m_ExposeOption.translation = m_ClientArea.position + new Vector2(8.0f,-4.0f);
         }
 
+        public override void UpdateModel(UpdateType t)
+        {
+            m_Model.UpdatePosition(translation);
+        }
+
         protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)
         {
            GenericMenu menu = new GenericMenu();
 
-                List<VFXDataBlock> blocks = VFXEditor.DataBlockLibrary.GetBlocks();
+           var blocks = new List<VFXDataBlockDesc>(VFXEditor.BlockLibrary.GetDataBlocks());
+           blocks.Sort((blockA, blockB) =>
+           {
+               int res = blockA.Category.CompareTo(blockB.Category);
+               return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
+           });
 
-                foreach (VFXDataBlock block in blocks)
-                {
-                    menu.AddItem(new GUIContent(block.Path), false, AddNodeBlock, new VFXEdDataNodeBlockSpawner(canvasClickPosition, block, this, m_DataSource, block.Name));
-                }
+           foreach (var block in blocks)
+           {
+               menu.AddItem(new GUIContent(block.Category + "/" + block.Name), false, AddNodeBlock, new VFXEdDataNodeBlockSpawner(canvasClickPosition, block, this, m_DataSource, block.Name));
+           }
 
             return menu;
         }

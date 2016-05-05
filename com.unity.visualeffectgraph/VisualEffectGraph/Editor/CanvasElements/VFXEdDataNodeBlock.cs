@@ -1,39 +1,39 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.Experimental;
+using UnityEditor.Experimental.VFX;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEditor.Experimental;
-using UnityEditor.Experimental.Graph;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
     internal class VFXEdDataNodeBlock : VFXEdNodeBlockDraggable
     {
-        public VFXPropertySlot Slot     { get { return m_Slot; } }
-        public VFXDataBlock DataBlock   { get { return m_DataBlock; } }
+        public VFXDataBlockModel Model      { get { return m_Model; }}
+        public VFXPropertySlot Slot         { get { return m_Model.Slot; } }
+        public VFXDataBlockDesc Desc        { get { return m_Model.Desc; } }
 
         public string m_exposedName;
-        protected VFXDataBlock m_DataBlock;
-        private VFXOutputSlot m_Slot;
 
-        public VFXEdDataNodeBlock(VFXDataBlock datablock, VFXEdDataSource dataSource, string exposedName) : base(dataSource)
+        private VFXDataBlockModel m_Model;
+
+        public VFXEdDataNodeBlock(VFXDataBlockDesc desc, VFXEdDataSource dataSource, string exposedName) : base(dataSource)
         {
-            m_LibraryName = datablock.Name; // TODO dont store the same stuff at two different location
-            m_DataBlock = datablock;
+            m_Model = new VFXDataBlockModel(desc);
+
+            m_LibraryName = Desc.Name; // TODO dont store the same stuff at two different location
             m_exposedName = exposedName;
             
             // For selection
             target = ScriptableObject.CreateInstance<VFXEdDataNodeBlockTarget>();
             (target as VFXEdDataNodeBlockTarget).targetNodeBlock = this;
 
-            m_Slot = new VFXOutputSlot(DataBlock.Property);
             m_Fields = new VFXUIPropertySlotField[1];
-            m_Fields[0] = new VFXUIPropertySlotField(dataSource, m_Slot);
+            m_Fields[0] = new VFXUIPropertySlotField(dataSource, Slot);
             AddChild(m_Fields[0]);
 
-            AddChild(new VFXEdNodeBlockHeader(m_LibraryName, m_DataBlock.Icon, true));
+            AddChild(new VFXEdNodeBlockHeader(m_LibraryName, VFXEditor.styles.GetIcon(Desc.Icon), true));
             AddManipulator(new TooltipManipulator(GetTooltipText));
             Layout();
         }

@@ -1,9 +1,10 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine;
 using UnityEditor.Experimental;
-using UnityEditor.Experimental.Graph;
+using UnityEditor.Experimental.VFX;
+using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
@@ -28,9 +29,16 @@ namespace UnityEditor.Experimental
             }
 
             // Data Nodes
-            foreach(VFXDataBlock block in VFXEditor.DataBlockLibrary.blocks)
+            var blocks = new List<VFXDataBlockDesc>(VFXEditor.BlockLibrary.GetDataBlocks());
+            blocks.Sort((blockA, blockB) =>
             {
-                output.AddItem(new GUIContent("Parameters/"+block.Path), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition, block));
+                int res = blockA.Category.CompareTo(blockB.Category);
+                return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
+            });
+
+            foreach (var block in blocks)
+            {
+                output.AddItem(new GUIContent("Parameters/"+block.Category+"/"+block.Name), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition, block));
             }
             output.AddItem(new GUIContent("Parameters/Empty Data Node"), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition));
 

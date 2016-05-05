@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
+using UnityEditor.Experimental.VFX;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
@@ -12,8 +13,16 @@ namespace UnityEditor.Experimental
     {
         private Color m_Color = new Color(1.0f, 0.5f, 0.0f);
 
-        internal VFXEdExposeDataNodeOption() : base(false) {
+        private VFXDataNodeModel m_Model;  
 
+        internal VFXEdExposeDataNodeOption(VFXDataNodeModel model) : base(false) 
+        {
+            m_Model = model;
+        }
+
+        public override void UpdateModel(UpdateType t)
+        {
+            m_Model.Exposed = Enabled;
         }
 
         protected override Color GetColor()
