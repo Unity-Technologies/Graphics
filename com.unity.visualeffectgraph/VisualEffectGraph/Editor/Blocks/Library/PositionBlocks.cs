@@ -1,195 +1,128 @@
 using System;
+using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
-namespace UnityEngine.Experimental.VFX
+namespace UnityEditor.Experimental.VFX
 {
-    class VFXBlockSetPositionPoint : VFXBlockDesc
+    class VFXBlockSetPositionPoint : VFXBlockType
     {
         public VFXBlockSetPositionPoint()
         {
-            m_Properties = new VFXProperty[1] {
-                VFXProperty.Create<VFXFloat3Type>("position"),
-            };
+            Name = "Set Position (Point)";
+            Icon = "Position";
+            Category = "Position";
 
-            m_Attributes = new VFXAttribute[1] {
-                new VFXAttribute("position",VFXValueType.kFloat3,true),
-            };
+            Add(VFXProperty.Create<VFXFloat3Type>("pos"));
 
-            // TODO this should be derived automatically
-            m_Flag = 0;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+position = value;";
         }
-
-        public override string Source
-        {
-            get { return "position = value;"; }
-        }
-
-        public override string Name     { get { return "Set Position (Point)"; } }
-        public override string IconPath { get { return "Position"; } }     
-        public override string Category { get { return "Position/"; } }
     }
 
-    class VFXBlockSetPositionMap : VFXBlockDesc
+    class VFXBlockSetPositionMap : VFXBlockType
     {
         public VFXBlockSetPositionMap()
         {
-            m_Properties = new VFXProperty[3] {
-                VFXProperty.Create<VFXTexture2DType>("tex"),
-                VFXProperty.Create<VFXOrientedBoxType>("box"),
-                VFXProperty.Create<VFXFloatType>("divergence")
-            };
+            Name = "Set Position (Texture)";
+            Icon = "Position";
+            Category = "Position";
 
-            m_Attributes = new VFXAttribute[1] {
-                new VFXAttribute("position",VFXValueType.kFloat3,true),
-            };
+            Add(VFXProperty.Create<VFXTexture2DType>("tex"));
+            Add(VFXProperty.Create<VFXOrientedBoxType>("box"));
+            Add(VFXProperty.Create<VFXFloatType>("divergence"));
 
-            // TODO this should be derived automatically
-            m_Flag = Flag.kHasRand;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+float3 div = (RAND3 - 0.5f) * (divergence * 2.0f);
+position = (div + tex2Dlod(tex,float4(RAND2,0,0)).rgb) - 0.5f;
+position = mul(box,float4(position.xyz,1.0f)).xyz;"; 
         }
-
-        public override string Source
-        {
-            get 
-            { 
-                return @"float3 div = divergence * 2.0f * (float3(rand(seed),rand(seed),rand(seed)) - 0.5f);
-    position = div + tex2Dlod(tex,float4(rand(seed),rand(seed),0,0)).rgb - 0.5f;
-    position = mul(box,float4(position.xyz,1.0f)).xyz;"; 
-            }
-        }
-
-        public override string Name { get { return "Set Position (Texture)"; } }
-        public override string IconPath { get { return "Position"; } }
-        public override string Category { get { return "Position/"; } }
     }
 
-    class VFXBlockSetPositionAABox : VFXBlockDesc
+    class VFXBlockSetPositionAABox : VFXBlockType
     {
         public VFXBlockSetPositionAABox()
         {
-            m_Properties = new VFXProperty[1] {
-                VFXProperty.Create<VFXAABoxType>("aabox"),
-            };
+            Name = "Set Position (AABox)";
+            Icon = "Position";
+            Category = "Position";
 
-            m_Attributes = new VFXAttribute[1] {
-                new VFXAttribute("position",VFXValueType.kFloat3,true),
-            };
+            Add(VFXProperty.Create<VFXAABoxType>("aabox"));
 
-            // TODO this should be derived automatically
-            m_Flag = Flag.kHasRand;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+float3 minCoord = (aabox_size * -0.5f) + aabox_center;
+position = (RAND3 * aabox_size) + minCoord;";
         }
-
-        public override string Source
-        {
-            get 
-            {
-                return @"aabox_size *= 0.5f;
-    position = (float3(rand(seed),rand(seed),rand(seed)) * aabox_size * 2) + (aabox_center - aabox_size);";
-            }
-        }
-
-        public override string Name { get { return "Set Position (Box)"; } }
-        public override string IconPath { get { return "Position"; } }
-        public override string Category { get { return "Position/"; } }
     }
 
-    class VFXBlockSetPositionSphereSurface : VFXBlockDesc
-    {
-        public VFXBlockSetPositionSphereSurface()
-        {
-            m_Properties = new VFXProperty[1] {
-                VFXProperty.Create<VFXSphereType>("sphere"),
-            };
-
-            m_Attributes = new VFXAttribute[1] {
-                new VFXAttribute("position",VFXValueType.kFloat3,true),
-            };
-
-            // TODO this should be derived automatically
-            m_Flag = Flag.kHasRand;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
-        }
-
-        public override string Source
-        {
-            get
-            {
-                return @"float u1 = 2.0 * rand(seed) - 1.0;
-    float u2 = UNITY_TWO_PI * rand(seed);
-    float2 sincosTheta;
-    sincos(u2,sincosTheta.x,sincosTheta.y);
-    sincosTheta *= sqrt(1.0 - u1*u1);
-    position = (float3(sincosTheta,u1) * sphere_radius) + sphere_center;";
-            }
-        }
-
-        public override string Name { get { return "Set Position (Sphere Surface)"; } }
-        public override string IconPath { get { return "Position"; } }
-        public override string Category { get { return "Position/"; } }
-    }
-
-    class VFXBlockSetPositionBox : VFXBlockDesc
+    class VFXBlockSetPositionBox : VFXBlockType
     {
         public VFXBlockSetPositionBox()
         {
-            m_Properties = new VFXProperty[1] {
-                VFXProperty.Create<VFXOrientedBoxType>("box"),
-            };
+            Name = "Set Position (Oriented Box)";
+            Icon = "Position";
+            Category = "Position";
 
-            m_Attributes = new VFXAttribute[1] {
-                new VFXAttribute("position",VFXValueType.kFloat3,true),
-            };
+            Add(VFXProperty.Create<VFXOrientedBoxType>("box"));
 
-            // TODO this should be derived automatically
-            m_Flag = Flag.kHasRand;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+position = RAND3 - 0.5f;
+position = mul(box,float4(position,1.0f)).xyz;";
         }
-
-        public override string Source
-        {
-            get 
-            {
-                return @"position = float3(rand(seed),rand(seed),rand(seed)) - 0.5f;
-    position = mul(box,float4(position,1.0f)).xyz;";
-            }
-        }
-
-        public override string Name { get { return "Set Position (Oriented Box)"; } }
-        public override string IconPath { get { return "Position"; } }
-        public override string Category { get { return "Position/"; } }
     }
 
-    class VFXBlockTransformPosition : VFXBlockDesc
+    class VFXBlockSetPositionSphereSurface : VFXBlockType
+    {
+        public VFXBlockSetPositionSphereSurface()
+        {
+            Name = "Set Position (Sphere surface)";
+            Icon = "Position";
+            Category = "Position";
+
+            Add(VFXProperty.Create<VFXSphereType>("sphere"));
+
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+float u1 = 2.0 * RAND - 1.0;
+float u2 = UNITY_TWO_PI * RAND;
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+sincosTheta *= sqrt(1.0 - u1*u1);
+position = (float3(sincosTheta,u1) * sphere_radius) + sphere_center;";
+        }
+    }
+
+    class VFXBlockTransformPosition : VFXBlockType
     {
         public VFXBlockTransformPosition()
         {
-            m_Properties = new VFXProperty[1] {
-                VFXProperty.Create<VFXTransformType>("transform"),
-            };
+            Name = "Transform Position";
+            Icon = "Position";
+            Category = "Position";
 
-            m_Attributes = new VFXAttribute[1] {
-                new VFXAttribute("position",VFXValueType.kFloat3,true),
-            };
+            Add(VFXProperty.Create<VFXTransformType>("transform"));
 
-            // TODO this should be derived automatically
-            m_Flag = Flag.kNone;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+position = mul(transform,float4(position,1.0f)).xyz;";
         }
-
-        public override string Source
-        {
-            get
-            {
-                return @"position = mul(transform,float4(position,1.0f)).xyz;";
-            }
-        }
-
-        public override string Name { get { return "Transform Position"; } }
-        public override string IconPath { get { return "Position"; } }
-        public override string Category { get { return "Position/"; } }
     }
 
+   
+
+
+
+    // TODO Convert that in some other files
+/*
     class VFXBlockTransformVelocity : VFXBlockDesc
     {
         public VFXBlockTransformVelocity()
@@ -321,5 +254,5 @@ namespace UnityEngine.Experimental.VFX
         public override string Name { get { return "Test Curve"; } }
         public override string IconPath { get { return "Curve"; } }
         public override string Category { get { return "Tests/"; } }
-    }
+    }*/
 }

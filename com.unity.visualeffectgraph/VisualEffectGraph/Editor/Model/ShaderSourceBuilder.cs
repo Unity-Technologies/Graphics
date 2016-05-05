@@ -135,13 +135,11 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void WriteFunction(VFXBlockModel block, Dictionary<Hash128, string> functions,VFXGeneratedTextureData texData)
+        public void WriteFunction(VFXBlockModel block, HashSet<string> functions,VFXGeneratedTextureData texData)
         {
-            if (!functions.ContainsKey(block.Desc.Hash)) // if not already defined
+            if (!functions.Contains(block.Desc.FunctionName)) // if not already defined
             {
-                // generate function name
-                string name = new string((from c in block.Desc.Name where char.IsLetterOrDigit(c) select c).ToArray());
-                functions[block.Desc.Hash] = name;
+                functions.Add(block.Desc.FunctionName);
 
                 string source = block.Desc.Source;
 
@@ -155,7 +153,7 @@ namespace UnityEditor.Experimental
 
                 // function signature
                 Write("void ");
-                Write(name);
+                Write(block.Desc.FunctionName);
                 Write("(");
 
                 char separator = ' ';
@@ -208,9 +206,7 @@ namespace UnityEditor.Experimental
                 // function body
                 EnterScope();
 
-                source = source.TrimStart(new char[] {'\t'}); // TODO Fix that from importer (no need for first '\t')
-
-                 if (hasGradient || hasCurve)
+                if (hasGradient || hasCurve)
                     WriteSourceWithSamplesResolved(source,block,texData);
                 else
                     Write(source);
@@ -238,13 +234,13 @@ namespace UnityEditor.Experimental
 
         public void WriteFunctionCall(
             VFXBlockModel block,
-            Dictionary<Hash128, string> functions,
+            HashSet<string> functions,
             ShaderMetaData data)
         {
             Dictionary<VFXValue, string> paramToName = data.paramToName;
             Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer = data.attribToBuffer;
 
-            Write(functions[block.Desc.Hash]);
+            Write(block.Desc.FunctionName);
             Write("(");
 
             char separator = ' ';

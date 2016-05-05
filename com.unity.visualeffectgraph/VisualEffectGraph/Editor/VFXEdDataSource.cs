@@ -15,9 +15,7 @@ namespace UnityEditor.Experimental
 
         public void OnEnable()
         {
-            VFXEditor.BlockLibrary.Load(); // Force a reload
         }
-        
 
         public void UndoSnapshot(string Message)
         {
