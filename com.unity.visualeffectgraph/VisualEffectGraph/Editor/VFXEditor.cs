@@ -81,15 +81,6 @@ namespace UnityEditor.Experimental
             }
         }
 
-        internal static VFXDataBlockLibraryCollection DataBlockLibrary
-        {
-            get
-            {
-                InitializeDataBlockLibrary();
-                return s_DataBlockLibrary;
-            }
-        }
-
         public static VFXContextLibraryCollection ContextLibrary
         {
             get
@@ -155,7 +146,6 @@ namespace UnityEditor.Experimental
         private static VFXEditorMetrics s_Metrics;
         private static VFXEditorStyles s_Styles;
         private static VFX.VFXBlockLibrary s_BlockLibrary;
-        private static VFXDataBlockLibraryCollection s_DataBlockLibrary;
         private static VFXContextLibraryCollection s_ContextLibrary;
 		private static VFXAssetModel s_AssetModel;
 
@@ -189,15 +179,6 @@ namespace UnityEditor.Experimental
             {
                 s_BlockLibrary = new VFX.VFXBlockLibrary();
                 s_BlockLibrary.Load();
-            }
-        }
-
-        private static void InitializeDataBlockLibrary()
-        {
-            if (s_DataBlockLibrary == null)
-            {
-                s_DataBlockLibrary = new VFXDataBlockLibraryCollection();
-                s_DataBlockLibrary.Load();
             }
         }
 
@@ -401,7 +382,6 @@ namespace UnityEditor.Experimental
         void OnDestroy()
         {
             s_BlockLibrary = null;
-            s_DataBlockLibrary = null;
             s_ContextLibrary = null;
             s_SpawnTemplates = null;
             
