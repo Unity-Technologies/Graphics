@@ -62,7 +62,8 @@ namespace UnityEditor.Experimental
             if (!Collapsed())
             {
                 Invalidate();
-                ParentCanvas().Repaint();
+                Canvas2D canvas = ParentCanvas();
+                if(canvas != null) canvas.Repaint();
             }
         }
 

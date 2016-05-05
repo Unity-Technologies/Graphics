@@ -3,6 +3,7 @@ using UnityEditor.Experimental;
 using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using System;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -523,6 +524,7 @@ namespace UnityEditor.Experimental
         #endregion
 
     }
+
 
     public class VFXContextLibraryCollection
     {

@@ -153,77 +153,7 @@ position = mul(transform,float4(position,1.0f)).xyz;";
         public override string Category { get { return "Velocity/"; } }
     }
 
-    // TMP to test color
-    class VFXBlockSetColorOverLifetime : VFXBlockDesc
-    {
-        public VFXBlockSetColorOverLifetime()
-        {
-            m_Properties = new VFXProperty[2] {
-                VFXProperty.Create<VFXColorRGBType>("start"),
-                VFXProperty.Create<VFXColorRGBType>("end"),
-            };
-
-            m_Attributes = new VFXAttribute[3] {
-                new VFXAttribute("color",VFXValueType.kFloat3,true),
-                new VFXAttribute("age",VFXValueType.kFloat,false),
-                new VFXAttribute("lifetime",VFXValueType.kFloat,false),
-            };
-
-            // TODO this should be derived automatically
-            m_Flag = Flag.kNone;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
-        }
-
-        public override string Source
-        {
-            get
-            {
-                return @"float ratio = saturate(age / lifetime);
-    color = lerp(start,end,ratio);";
-            }
-        }
-
-        public override string Name { get { return "Color Over Lifetime"; } }
-        public override string IconPath { get { return "Color"; } }
-        public override string Category { get { return "Color/"; } }
-    }
-
-    // Test
-    class VFXBlockGradientTest : VFXBlockDesc
-    {
-        public VFXBlockGradientTest()
-        {
-            m_Properties = new VFXProperty[] {
-                VFXProperty.Create<VFXColorGradientType>("gradient"),
-            };
-
-            m_Attributes = new VFXAttribute[] {
-                new VFXAttribute("color",VFXValueType.kFloat3,true),
-                new VFXAttribute("alpha",VFXValueType.kFloat,true),
-                new VFXAttribute("age",VFXValueType.kFloat,false),
-                new VFXAttribute("lifetime",VFXValueType.kFloat,false),
-            };
-
-            // TODO this should be derived automatically
-            m_Flag = Flag.kNone;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
-        }
-
-        public override string Source 
-        { 
-            get 
-            {
-                return @"float ratio = saturate(age / lifetime);
-    float4 rgba = SAMPLE(gradient,ratio);
-    color = rgba.rgb;
-    alpha = rgba.a;"; 
-            } 
-        }
-
-        public override string Name { get { return "Test Gradient"; } }
-        public override string IconPath { get { return "Color"; } }
-        public override string Category { get { return "Tests/"; } }
-    }
+    
 
     class VFXBlockCurveTest : VFXBlockDesc
     {
