@@ -23,8 +23,36 @@ namespace UnityEngine.Experimental.VFX
         public string m_Name;
     }
 
+    public struct VFXPropertySemanticsDesc
+    {
+        public VFXPropertySemanticsDesc(string name,string icon, string category)
+        {
+            m_Name = name;
+            m_Icon = icon;
+            m_Category = category;
+        }
+
+        public string m_Name;
+        public string m_Icon;
+        public string m_Category;
+    }
+
     public abstract class VFXPropertyTypeSemantics
     {
+        public struct Desc
+        {
+            public Desc(string name, string icon, string category)
+            {
+                m_Name = name;
+                m_Icon = icon;
+                m_Category = category;
+            }
+
+            public string m_Name;
+            public string m_Icon;
+            public string m_Category;
+        }
+
         protected static VFXPropertySlot Slot(VFXPropertySlot slot, bool linked)
         {
             return linked ? slot.CurrentValueRef : slot;
@@ -118,12 +146,16 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXFloatType : VFXPrimitiveType<float>
     {
+        public static Desc Description() { return new Desc("float", "type_float", "generic_types"); }
+
         public VFXFloatType() : this(0.0f) { }
         public VFXFloatType(float defaultValue) : base(defaultValue) { }
     }
 
     public partial class VFXIntType : VFXPrimitiveType<int>
     {
+        public static Desc Description() { return new Desc("int", "type_integer", "generic_types"); }
+
         public VFXIntType() : this(0) { }
         VFXIntType(int defaultValue) : base(defaultValue) { }
     }

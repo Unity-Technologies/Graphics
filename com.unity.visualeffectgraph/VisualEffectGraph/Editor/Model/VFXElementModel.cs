@@ -68,7 +68,7 @@ namespace UnityEditor.Experimental
         }
 
         public abstract bool CanAddChild(VFXElementModel element, int index);
-        public abstract void Invalidate(InvalidationCause cause);
+        public virtual void Invalidate(InvalidationCause cause) {}
 
         public int GetNbChildren()
         {
@@ -126,6 +126,11 @@ namespace UnityEditor.Experimental
                     m_Slots[i].AddObserver(this,true);
                 }
             }
+        }
+
+        protected void InitSlots(VFXProperty desc)
+        {
+            InitSlots(new VFXProperty[] { desc });
         }
 
         public virtual void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
