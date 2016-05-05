@@ -5,8 +5,11 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
+using UnityEditor.Experimental.VFX;
 using UnityEditor.Experimental.Graph;
+
 using Object = UnityEngine.Object;
+using VFXBLKLibrary = UnityEditor.VFXBlockLibrary;
 
 namespace UnityEditor.Experimental
 {
@@ -139,13 +142,13 @@ namespace UnityEditor.Experimental
         {
             GenericMenu menu = new GenericMenu();
 
-            ReadOnlyCollection<VFXBlockDesc> blocks = VFXEditor.BlockLibrary.GetBlocks();
+            var blocks = VFXEditor.BlockLibrary.GetBlocks();
                 
             // Add New...
             foreach (VFXBlockDesc block in blocks)
             {
                 // TODO : Only add item if block is compatible with current context.
-                menu.AddItem(new GUIContent("Add New/"+block.Category + block.Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                menu.AddItem(new GUIContent("Add New/"+block.Category +"/"+ block.Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
             }
             
 
@@ -156,7 +159,7 @@ namespace UnityEditor.Experimental
                 foreach (VFXBlockDesc block in blocks)
                 {
                     // TODO : Only add item if block is compatible with current context.
-                    menu.AddItem(new GUIContent("Replace By/"+block.Category + block.Name), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                    menu.AddItem(new GUIContent("Replace By/"+block.Category +"/"+ block.Name), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
                 }
             }
 
