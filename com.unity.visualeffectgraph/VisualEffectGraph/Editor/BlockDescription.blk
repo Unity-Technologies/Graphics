@@ -18,17 +18,6 @@ color = float3(phase,1 - phase,0.0);
 # TARGET BLOCKS
 #---------------------------------------------------------------------
 
-#block Target (Position Map)
-#icon Position
-#category Target/
-#arg float3 target [inout|param]
-#arg Texture2D positionmap [public]
-#arg float3 center [public]
-#arg float3 scale [public]
-
-target = center+((tex2Dlod(positionmap,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
-
-
 #block Morph Target (PositionMap)
 #icon Position
 #category Target/
@@ -42,26 +31,6 @@ target = center+((tex2Dlod(positionmap,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
 float3 t1 = center+((tex2Dlod(posmap1,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
 float3 t2 = center+((tex2Dlod(posmap2,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
 target = lerp(t1,t2, morph);
-
-#block Attract Target
-#icon Force
-#category Target/
-#arg float3 position [param]
-#arg float3 velocity [inout|param]
-#arg float3 target [param]
-#arg float targetSpeed [public]
-#arg float attractForce [public]
-#arg float attractdistance [public]
-
-float3 delta = position - target;
-float dist = sqrt(dot(delta,delta));
-float t = saturate(dist / attractdistance);
-float3 tgtVelocity = (-delta / dist) * (targetSpeed * t);
-float3 deltaVelocity = tgtVelocity - velocity;
-float deltaSpeed = length(deltaVelocity);
-deltaVelocity /= deltaSpeed;
-velocity += deltaVelocity * min(deltaSpeed, deltaTime * attractForce);
-
 
 
 #block Target Position
@@ -116,33 +85,8 @@ velocity = lerp(velocity, tangent*targetspeed, strength);
 # POSITION BLOCKS
 #---------------------------------------------------------------------
 
-#block Position Map by Time
-#icon Texture
-#category Position/
-#arg float3 position [inout|param]
-#arg Texture2D tex [public] 
-#arg float3 scale [public]
-#arg float3 center [public]
-#arg float CycleDuration [public]
-
-float t = frac(_Time.y/CycleDuration);
-position = center+((tex2Dlod(tex,float4(RAND,t,0,0)).rgb-0.5f)*scale)
-
-#block Add Position Circular
-#icon Circle
-#category Position/
-#arg float3 center [public]
-#arg float radius [public]
-#arg float3 position [inout|param]
-#arg float speed [public]
-
-float2 sc;
-sincos((totalTime/UNITY_PI)*speed, sc.x,sc.y);
-position += center + float3(sc.x, 0.0,sc.y) * radius;
-
 #TODO Factorize these 2 blocks when boolean switches are implemented !
 					
-
 #block Set Position (Cylinder)
 #icon Position
 #category Position/
@@ -177,120 +121,10 @@ position = float3(sincosTheta * radius,u1 * height).xzy + center;
 # COLLISION BLOCKS
 #---------------------------------------------------------------------
 
-#block Collision with Plane
-#icon Position
-#category Collision/
-#arg float3 position [inout|param]
-#arg float3 velocity [inout|param]
-#arg float3 normal [public]
-#arg float3 center [public]
-#arg float elasticity [public]
-
-float3 nextPos = position + velocity * deltaTime;
-float3 dir = center - nextPos;
-float distToPlane = dot(dir,normal);
-if (distToPlane >= 0)
-{
-	float projVelocity = dot(normal,velocity);
-	if (projVelocity < 0)
-		velocity -= ((1 + elasticity) * projVelocity) * normal;
-
-	position += normal * distToPlane;
-}
-
-#block Collision with Sphere
-#icon Sphere
-#category Collision/
-#arg float3 position [inout|param]
-#arg float3 velocity [inout|param]
-#arg float3 center [public]
-#arg float radius [public]
-#arg float elasticity [public]
-
-float3 nextPos = position + velocity * deltaTime;
-float3 dir = center - nextPos;
-float sqrLength = dot(dir,dir);
-if (sqrLength <= radius * radius)
-{	
-	float dist = sqrt(sqrLength);
-	float3 n = dir / dist;	
-	float projVelocity = dot(n,velocity);
-	
-	if (projVelocity > 0)
-		velocity -= ((1 + elasticity) * projVelocity) * n;
-		
-	position += n * (dist - radius);
-}
 
 #---------------------------------------------------------------------
 # SIZE BLOCKS
 #---------------------------------------------------------------------
-
-#block Set Size Constant (Square)
-#icon Size
-#category Size/
-#arg float2 size [inout|param]
-#arg float value [public] 
-
-size = float2(value,value);
-
-#block Set Size Constant (Rectangle)
-#icon Size
-#category Size/
-#arg float2 size [inout|param]
-#arg float2 value [public] 
-
-size = value;
-
-#block Set Size Random (Square)
-#icon Size
-#category Size/
-#arg float2 size [inout|param]
-#arg float minSize [public] 
-#arg float maxSize [public] 
-
-float s = lerp(minSize,maxSize,RAND);
-size = float2( s,s);
-
-#block Apply Random Scale (Conserve Ratio)
-#icon Size
-#category Size/
-#arg float2 size [inout|param]
-#arg float minScale [public] 
-#arg float maxScale [public] 
-
-float s = lerp(minScale,maxScale,RAND);
-size *= s;
-
-#block Size Over Life (Square)
-#icon Size
-#category Size/
-#arg float2 size [inout|param]
-#arg Texture2D curve [public]
-#arg float age [param] 
-#arg float lifetime [param] 
-
-float ratio = saturate(age/lifetime);
-float s = tex2Dlod(curve, float4(ratio,0.0f,0.0f,0.0f) ).r;
-size = float2(s,s);
-
-#block Apply Random Scale
-#icon Size
-#category Size/
-#arg float2 size [inout|param]
-#arg float2 minScale [public] 
-#arg float2 maxScale [public] 
-
-size *= float2(lerp(minScale.x,maxScale.x,RAND),lerp(minScale.y,maxScale.y,RAND));
-
-#block Height Over Velocity
-#icon Size
-#category Size/
-#arg float3 velocity [param]
-#arg float2 size [inout|param]
-#arg float multiplier [public]
-
-size.y = length(velocity) * multiplier;
 
 #---------------------------------------------------------------------
 # ANGLE BLOCKS

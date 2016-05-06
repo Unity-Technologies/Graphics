@@ -446,7 +446,7 @@ namespace UnityEngine.Experimental.VFX
         public VFXAABoxType()
         {
             m_Children = new VFXProperty[2];
-            m_Children[0] = new VFXProperty(new VFXFloat3Type(), "center");
+            m_Children[0] = new VFXProperty(new VFXPositionType(), "center");
             m_Children[1] = new VFXProperty(new VFXFloat3Type(Vector3.one), "size");
         }
     }
@@ -458,8 +458,8 @@ namespace UnityEngine.Experimental.VFX
         public VFXPlaneType()
         {
             m_Children = new VFXProperty[2];
-            m_Children[0] = new VFXProperty(new VFXFloat3Type(), "position");
-            m_Children[1] = new VFXProperty(new VFXFloat3Type(Vector3.up), "normal");
+            m_Children[0] = new VFXProperty(new VFXPositionType(), "position");
+            m_Children[1] = new VFXProperty(new VFXDirectionType(), "normal");
         }
     }
 }

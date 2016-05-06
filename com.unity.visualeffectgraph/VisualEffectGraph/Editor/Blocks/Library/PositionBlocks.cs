@@ -131,16 +131,34 @@ position = float3(sincosTheta,u1) * (u3 * Sphere_radius) + Sphere_center;";
             Icon = "Position";
             Category = "Position";
 
-            Add(VFXProperty.Create<VFXTransformType>("transform"));
+            Add(VFXProperty.Create<VFXTransformType>("Transform"));
 
             Add(new VFXAttribute(CommonAttrib.Position, true));
 
             Source = @"
-position = mul(transform,float4(position,1.0f)).xyz;";
+position = mul(Transform,float4(position,1.0f)).xyz;";
         }
     }
 
-   
+    class VFXBlockAnimatePositionCircular : VFXBlockType
+    {
+        public VFXBlockAnimatePositionCircular()
+        {
+            Name = "Animate Position (Circular)";
+            Icon = "Circle";
+            Category = "Position";
+
+            Add(VFXProperty.Create<VFXTransformType>("Transform"));
+            Add(new VFXProperty(new VFXFloatType(1.0f), "Speed"));
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+float2 sc;
+sincos((totalTime/UNITY_PI)*Speed, sc.x,sc.y);
+float3 pos = float3(sc.x, 0.0,sc.y);
+position += mul(Transform,float4(pos,1.0f)).xyz;";
+        }
+    }
 
 
 

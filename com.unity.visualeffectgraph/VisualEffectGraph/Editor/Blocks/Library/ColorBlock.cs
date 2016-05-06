@@ -109,10 +109,10 @@ alpha = rgba.a;";
             Add(VFXProperty.Create<VFXFloatType>("MinAlpha"));
             Add(VFXProperty.Create<VFXFloatType>("MaxAlpha"));
 
-            Add(new VFXAttribute(CommonAttrib.Color, true));
+            Add(new VFXAttribute(CommonAttrib.Alpha, true));
 
             Source = @"
-alpha = lerp(MinAlpha,MaxAlpha);";
+alpha = lerp(MinAlpha,MaxAlpha,RAND);";
         }
     }
 
