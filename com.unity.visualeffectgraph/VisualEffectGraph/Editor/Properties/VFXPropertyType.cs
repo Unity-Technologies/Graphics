@@ -338,6 +338,8 @@ namespace UnityEngine.Experimental.VFX
         public static Desc Description() { return new Desc("Color", "type_color", "Color"); }
 
         public VFXColorRGBType() : base(Vector3.one) {} // white as default color
+        public VFXColorRGBType(Color c) : base (new Vector3(c.r,c.g,c.b)) { }
+
     }
 
     public partial class VFXPositionType : VFXFloat3Type
@@ -345,6 +347,7 @@ namespace UnityEngine.Experimental.VFX
         public static Desc Description() { return new Desc("Float3 (Position)", "type_vector3", "Basic"); }
 
         public VFXPositionType() {}
+        public VFXPositionType(Vector3 vector) : base (vector) { }
     }
 
     public partial class VFXVectorType : VFXFloat3Type
@@ -352,6 +355,7 @@ namespace UnityEngine.Experimental.VFX
         public static Desc Description() { return new Desc("Float3 (Vector)", "type_vector3", "Basic"); }
 
         public VFXVectorType() : base(Vector3.up) { }
+        public VFXVectorType(Vector3 vector) : base (vector) { }
     }
 
     public partial class VFXDirectionType : VFXFloat3Type
@@ -359,6 +363,7 @@ namespace UnityEngine.Experimental.VFX
         public static Desc Description() { return new Desc("Float3 (Direction)", "type_vector3", "Basic"); }
 
         public VFXDirectionType() : base(Vector3.up) { }
+        public VFXDirectionType(Vector3 vector) : base (vector.normalized) { }
     }
 
     public partial class VFXTransformType : VFXPropertyTypeSemantics
@@ -441,7 +446,7 @@ namespace UnityEngine.Experimental.VFX
         public VFXAABoxType()
         {
             m_Children = new VFXProperty[2];
-            m_Children[0] = new VFXProperty(new VFXFloat3Type(), "center");
+            m_Children[0] = new VFXProperty(new VFXPositionType(), "center");
             m_Children[1] = new VFXProperty(new VFXFloat3Type(Vector3.one), "size");
         }
     }
@@ -453,8 +458,8 @@ namespace UnityEngine.Experimental.VFX
         public VFXPlaneType()
         {
             m_Children = new VFXProperty[2];
-            m_Children[0] = new VFXProperty(new VFXFloat3Type(), "position");
-            m_Children[1] = new VFXProperty(new VFXFloat3Type(Vector3.up), "normal");
+            m_Children[0] = new VFXProperty(new VFXPositionType(), "position");
+            m_Children[1] = new VFXProperty(new VFXDirectionType(), "normal");
         }
     }
 }
