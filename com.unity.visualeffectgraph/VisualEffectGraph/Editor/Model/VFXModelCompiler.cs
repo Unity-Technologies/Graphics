@@ -162,9 +162,9 @@ namespace UnityEditor.Experimental
                             if (uniformName.Contains("global"))
                                 inInit = inUpdate = true;
 
-                            if (inInit)
+                            if (inInit && initKernel != -1)
                                 simulationShader.SetTexture(initKernel, uniformName, tex);
-                            if (inUpdate)
+                            if (inUpdate && updateKernel != -1)
                                 simulationShader.SetTexture(updateKernel, uniformName, tex);
                         }
                     }
