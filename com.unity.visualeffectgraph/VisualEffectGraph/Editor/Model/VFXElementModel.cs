@@ -6,6 +6,12 @@ using System.Collections.Generic;
 
 namespace UnityEditor.Experimental
 {
+    public interface VFXUIDataHolder
+    {
+        void UpdateCollapsed(bool collapsed);
+        void UpdatePosition(Vector2 position);
+    }
+
     public abstract class VFXElementModel
     {
         public enum InvalidationCause
@@ -62,7 +68,7 @@ namespace UnityEditor.Experimental
         }
 
         public abstract bool CanAddChild(VFXElementModel element, int index);
-        public abstract void Invalidate(InvalidationCause cause);
+        public virtual void Invalidate(InvalidationCause cause) {}
 
         public int GetNbChildren()
         {
@@ -102,22 +108,41 @@ namespace UnityEditor.Experimental
         where OwnerType : VFXElementModel
         where ChildrenType : VFXElementModel
     {
-        protected void InitSlots(VFXProperty[] desc)
+        protected void InitSlots(VFXProperty[] inputDesc,VFXProperty[] outputDesc)
         {
-            if (m_Slots != null)
-                foreach (var slot in m_Slots)
+            // Input
+            if (m_InputSlots != null)
+                foreach (var slot in m_InputSlots)
                     slot.UnlinkAll();
 
-            if (desc == null)
-                m_Slots = null;
+            if (inputDesc == null)
+                m_InputSlots = null;
             else
             {
-                int nbSlots = desc.Length;
-                m_Slots = new VFXInputSlot[nbSlots];
+                int nbSlots = inputDesc.Length;
+                m_InputSlots = new VFXInputSlot[nbSlots];
                 for (int i = 0; i < nbSlots; ++i)
                 {
-                    m_Slots[i] = new VFXInputSlot(desc[i]);
-                    m_Slots[i].AddObserver(this,true);
+                    m_InputSlots[i] = new VFXInputSlot(inputDesc[i]);
+                    m_InputSlots[i].AddObserver(this, true);
+                }
+            }
+
+            // Output
+            if (m_OutputSlots != null)
+                foreach (var slot in m_OutputSlots)
+                    slot.UnlinkAll();
+
+            if (outputDesc == null)
+                m_OutputSlots = null;
+            else
+            {
+                int nbSlots = outputDesc.Length;
+                m_OutputSlots = new VFXOutputSlot[nbSlots];
+                for (int i = 0; i < nbSlots; ++i)
+                {
+                    m_OutputSlots[i] = new VFXOutputSlot(outputDesc[i]);
+                    m_OutputSlots[i].AddObserver(this, true);
                 }
             }
         }
@@ -135,16 +160,27 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public VFXInputSlot GetSlot(int index)
+        public VFXInputSlot GetInputSlot(int index)
         {
-            return m_Slots[index];
+            return m_InputSlots[index];
         }
 
-        public int GetNbSlots()
+        public VFXOutputSlot GetOutputSlot(int index)
         {
-            return m_Slots == null ? 0 : m_Slots.Length;
+            return m_OutputSlots[index];
         }
 
-        private VFXInputSlot[] m_Slots;
+        public int GetNbInputSlots()
+        {
+            return m_InputSlots == null ? 0 : m_InputSlots.Length;
+        }
+
+        public int GetNbOutputSlots()
+        {
+            return m_OutputSlots == null ? 0 : m_OutputSlots.Length;
+        }
+
+        private VFXInputSlot[]  m_InputSlots;
+        private VFXOutputSlot[] m_OutputSlots;
     }
 }

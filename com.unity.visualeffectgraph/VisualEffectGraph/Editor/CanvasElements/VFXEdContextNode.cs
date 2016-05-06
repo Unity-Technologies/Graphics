@@ -306,5 +306,11 @@ namespace UnityEditor.Experimental
 
             base.Render(parentRect, canvas);
         }
+
+        public override void UpdateModel(UpdateType t)
+        {
+            Model.UpdateCollapsed(collapsed);
+            Model.UpdatePosition(translation);
+        }
     }
 }

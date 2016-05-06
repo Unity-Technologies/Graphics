@@ -102,6 +102,7 @@ namespace UnityEditor.Experimental
             m_NodeBlocks.Insert(index, block);
             block.translation = Vector3.zero;
             Layout();
+            Invalidate();
 
             // Update the model if inside a Context Node
             VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();

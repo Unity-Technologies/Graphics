@@ -30,6 +30,26 @@ namespace UnityEngine.Experimental.VFX
         public bool m_Writable;
     }
 
+    public sealed class VFXDataBlockDesc
+    {
+        public VFXProperty Property                 { get { return m_Property; } }
+        public VFXPropertyTypeSemantics Semantics   { get { return Property.m_Type; } }
+        public string Name                          { get { return Property.m_Name; } }
+        public string Icon                          { get { return m_Icon; } }
+        public string Category                      { get { return m_Category; } }
+
+        private VFXProperty m_Property;
+        private string m_Icon;
+        private string m_Category;
+
+        public VFXDataBlockDesc(VFXProperty property, string icon, string category)
+        {
+            m_Property = property;
+            m_Icon = icon;
+            m_Category = category;
+        }
+    }
+
     public sealed class VFXBlockDesc
     {
         [Flags]

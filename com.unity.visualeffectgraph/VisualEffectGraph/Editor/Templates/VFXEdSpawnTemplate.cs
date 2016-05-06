@@ -202,10 +202,12 @@ namespace UnityEditor.Experimental
                     spawnedDataNodes.Add(node_kvp.Value, node);
                 }
 
-                foreach(KeyValuePair<string,DataNodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
+                // NOT MAINTAINED
+                /*foreach(KeyValuePair<string,DataNodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)
                 {
                     VFXDataBlock dataBlock = VFXEditor.DataBlockLibrary.GetBlock(block_kvp.Value.BlockLibraryName);
                     VFXEdDataNodeBlockSpawner spawner;
+
                     if(block_kvp.Value.dataContainer == null)
                         spawner = new VFXEdDataNodeBlockSpawner(Vector2.zero, dataBlock, node, datasource, block_kvp.Value.ExposedName);
                     else
@@ -219,7 +221,7 @@ namespace UnityEditor.Experimental
                         block.SetSlotValue(param_kvp.Key, param_kvp.Value.Clone());
                     }
 
-                }
+                }*/
 
                 node.Layout();
                 CurrentDataNodePos.y += node.scale.y + 40.0f;

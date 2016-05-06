@@ -85,5 +85,9 @@ namespace UnityEditor.Experimental
             return VFXEditor.styles.NodeBlockSelected;
         }
 
+        public override void UpdateModel(UpdateType t)
+        {
+            Model.UpdateCollapsed(collapsed);
+        }
     }
 }

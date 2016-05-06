@@ -363,12 +363,12 @@ namespace UnityEditor.Experimental
         }
     }
 
-    public class VFXContextModel : VFXModelWithSlots<VFXSystemModel, VFXBlockModel>
+    public class VFXContextModel : VFXModelWithSlots<VFXSystemModel, VFXBlockModel>, VFXUIDataHolder
     {
         public VFXContextModel(VFXContextDesc desc)
         {
             m_Desc = desc;
-            InitSlots(desc.m_Properties);
+            InitSlots(desc.m_Properties,null);
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
@@ -408,7 +408,7 @@ namespace UnityEditor.Experimental
                     if (m_Desc.m_Type == value.m_Type)
                     {
                         m_Desc = value;
-                        InitSlots(value.m_Properties);
+                        InitSlots(value.m_Properties,null);
                         Invalidate(InvalidationCause.kModelChanged);
                     }
                     else
@@ -417,10 +417,26 @@ namespace UnityEditor.Experimental
             get { return m_Desc; }
         }
 
+        public int GetNbSlots() { return GetNbInputSlots(); }
+        public VFXInputSlot GetSlot(int index) { return GetInputSlot(index); }
+
+        public void UpdateCollapsed(bool collapsed)
+        {
+            m_UICollapsed = collapsed;
+        }
+
+        public void UpdatePosition(Vector2 position)
+        {
+            m_UIPosition = position;
+        }
+
         private VFXContextDesc m_Desc;
+
+        private bool m_UICollapsed;
+        private Vector2 m_UIPosition;
     }
 
-    public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>
+    public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>, VFXUIDataHolder
     {
         public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
         {
@@ -447,7 +463,7 @@ namespace UnityEditor.Experimental
         public VFXBlockModel(VFXBlockDesc desc)
         {
             m_BlockDesc = desc;
-            InitSlots(Properties);
+            InitSlots(Properties,null);
         }
 
         public VFXBlockDesc Desc
@@ -461,19 +477,30 @@ namespace UnityEditor.Experimental
                 if (m_BlockDesc == null || !m_BlockDesc.Equals(value)) // block desc has changed
                 {
                     m_BlockDesc = value;
-                    InitSlots(Properties);
+                    InitSlots(Properties,null);
                     Invalidate(InvalidationCause.kModelChanged);
                 }
             }
         }
+
+        public int GetNbSlots()                 { return GetNbInputSlots(); }
+        public VFXInputSlot GetSlot(int index)  { return GetInputSlot(index); }
 
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             return false; // Nothing can be attached to Blocks !
         }
 
+        public void UpdatePosition(Vector2 position) {}
+        public void UpdateCollapsed(bool collapsed)
+        {
+            m_UICollapsed = collapsed;
+        }
+
         public VFXProperty[] Properties { get { return m_BlockDesc.Properties; } }
 
         private VFXBlockDesc m_BlockDesc;
+
+        private bool m_UICollapsed;
     }
 }

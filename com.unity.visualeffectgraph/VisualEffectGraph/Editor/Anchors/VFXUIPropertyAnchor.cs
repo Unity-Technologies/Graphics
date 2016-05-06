@@ -90,7 +90,7 @@ namespace UnityEditor.Experimental
             if (!collapsed && !Owner.Collapsed())
             {
                 Rect r = GetDrawableRect();
-                Color typeColor = VFXEditor.styles.GetTypeColor(Owner.ValueType);
+                Color typeColor = VFXEditor.styles.GetTypeColor(ValueType);
                 Rect colorzone = r;
                 Texture2D texture = null;
 
@@ -107,7 +107,7 @@ namespace UnityEditor.Experimental
                         break;
                 }
 
-                if (Owner.Slot.IsLinked())
+                if (Slot.IsLinked())
                     GUI.color = Color.Lerp(typeColor, Color.gray, 0.5f);
                 else
                     GUI.color = Color.gray;
