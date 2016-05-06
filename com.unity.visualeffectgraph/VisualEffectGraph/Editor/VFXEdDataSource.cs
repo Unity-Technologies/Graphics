@@ -12,6 +12,11 @@ namespace UnityEditor.Experimental
     internal class VFXEdDataSource : ScriptableObject, ICanvasDataSource
     {
         private List<CanvasElement> m_Elements = new List<CanvasElement>();
+        private List<VFXEdDataNode> m_DataNodes = new List<VFXEdDataNode>();
+        private List<VFXEdContextNode> m_ContextNodes = new List<VFXEdContextNode>();
+        private List<FlowEdge> m_FlowEdges = new List<FlowEdge>();
+        private List<VFXUIPropertyEdge> m_PropertyEdges = new List<VFXUIPropertyEdge>();
+
 
         public void OnEnable()
         {
@@ -32,37 +37,90 @@ namespace UnityEditor.Experimental
             m_Elements.Add(e);
         }
 
+        public void AddElement(VFXEdDataNode datanode)
+        {
+            m_DataNodes.Add(datanode);
+            m_Elements.Add(datanode);
+        }
+
+        public void AddElement(VFXEdContextNode contextnode)
+        {
+            m_ContextNodes.Add(contextnode);
+            m_Elements.Add(contextnode);
+        }
+
+        public void AddElement(FlowEdge flowedge)
+        {
+            m_FlowEdges.Add(flowedge);
+            m_Elements.Add(flowedge);
+        }
+
+        public void AddElement(VFXUIPropertyEdge propertyEdge)
+        {
+            m_PropertyEdges.Add(propertyEdge);
+            m_Elements.Add(propertyEdge);
+        }
+        
+
+
+        public void DeleteElement(VFXEdDataNode node)
+        {
+            Canvas2D canvas = node.ParentCanvas();
+            m_DataNodes.Remove(node);
+            m_Elements.Remove(node);
+            canvas.ReloadData();
+            canvas.Repaint();
+        }
+
+        public void DeleteElement(VFXEdContextNode node)
+        {
+            Canvas2D canvas = node.ParentCanvas();
+            m_ContextNodes.Remove(node);
+            m_Elements.Remove(node);
+            canvas.ReloadData();
+            canvas.Repaint();
+        }
+
+        public void DeleteElement(FlowEdge edge)
+        {
+
+            VFXEdFlowAnchor anchor = edge.Right;
+            var node = anchor.FindParent<VFXEdContextNode>();
+            if (node != null)
+            {
+                VFXSystemModel owner = node.Model.GetOwner();
+                int index = owner.GetIndex(node.Model);
+
+                VFXSystemModel newSystem = new VFXSystemModel();
+                while (owner.GetNbChildren() > index)
+                    owner.GetChild(index).Attach(newSystem);
+                newSystem.Attach(VFXEditor.AssetModel);
+            }
+
+            Canvas2D canvas = edge.ParentCanvas();
+            m_FlowEdges.Remove(edge);
+            m_Elements.Remove(edge);
+            canvas.ReloadData();
+            canvas.Repaint();
+        }
+
+        public void DeleteElement(VFXUIPropertyEdge edge)
+        {
+            VFXUIPropertyAnchor inputAnchor = edge.Right;
+            ((VFXInputSlot)inputAnchor.Slot).Unlink();
+            edge.Left.Invalidate();
+            edge.Right.Invalidate();
+
+            Canvas2D canvas = edge.ParentCanvas();
+            m_PropertyEdges.Remove(edge);
+            m_Elements.Remove(edge);
+            canvas.ReloadData();
+            canvas.Repaint();
+        }
+
         public void DeleteElement(CanvasElement e)
         {
             Canvas2D canvas = e.ParentCanvas();
-
-            // Handle model update when deleting edge here
-            var edge = e as FlowEdge;
-            if (edge != null)
-            {
-                VFXEdFlowAnchor anchor = edge.Right;
-                var node = anchor.FindParent<VFXEdContextNode>();
-                if (node != null)
-                {
-                    VFXSystemModel owner = node.Model.GetOwner();
-                    int index = owner.GetIndex(node.Model);
-
-                    VFXSystemModel newSystem = new VFXSystemModel();
-                    while (owner.GetNbChildren() > index)
-                        owner.GetChild(index).Attach(newSystem);
-                    newSystem.Attach(VFXEditor.AssetModel);
-                }
-            }
-
-            var propertyEdge = e as VFXUIPropertyEdge;
-            if (propertyEdge != null)
-            {
-                VFXUIPropertyAnchor inputAnchor = propertyEdge.Right;
-                ((VFXInputSlot)inputAnchor.Slot).Unlink();
-                propertyEdge.Left.Invalidate();
-                propertyEdge.Right.Invalidate();
-            }
-
             m_Elements.Remove(e);
             canvas.ReloadData();
             canvas.Repaint();
@@ -109,7 +167,7 @@ namespace UnityEditor.Experimental
             b.Owner.CollapseChildren(true);    
 
             ((VFXInputSlot)b.Slot).Link((VFXOutputSlot)a.Slot);
-            m_Elements.Add(new VFXUIPropertyEdge(this, a, b));
+            AddElement(new VFXUIPropertyEdge(this, a, b));
 
             b.Invalidate();
         }
@@ -139,7 +197,7 @@ namespace UnityEditor.Experimental
                     return false;
             }
 
-            m_Elements.Add(new FlowEdge(this, a, b));
+            AddElement(new FlowEdge(this, a, b));
             return true;
         }
 
