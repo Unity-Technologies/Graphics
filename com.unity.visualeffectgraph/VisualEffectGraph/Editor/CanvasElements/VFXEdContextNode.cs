@@ -5,8 +5,11 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
+using UnityEditor.Experimental.VFX;
 using UnityEditor.Experimental.Graph;
+
 using Object = UnityEngine.Object;
+using VFXBLKLibrary = UnityEditor.VFXBlockLibrary;
 
 namespace UnityEditor.Experimental
 {
@@ -135,17 +138,27 @@ namespace UnityEditor.Experimental
 
         }
 
+        private static string FormatMenuString(VFXBlockDesc block)
+        {
+            return block.Category + (block.Category.Length != 0 ? "/" : "") + block.Name;
+        }
+
         protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)
         {
             GenericMenu menu = new GenericMenu();
 
-            ReadOnlyCollection<VFXBlockDesc> blocks = VFXEditor.BlockLibrary.GetBlocks();
+            // Use an additional list to sort blocks in menu
+            var blocks = new List<VFXBlockDesc>(VFXEditor.BlockLibrary.GetBlocks());
+            blocks.Sort((blockA, blockB) => {
+                int res = blockA.Category.CompareTo(blockB.Category);
+                return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
+            });
                 
             // Add New...
             foreach (VFXBlockDesc block in blocks)
             {
                 // TODO : Only add item if block is compatible with current context.
-                menu.AddItem(new GUIContent("Add New/"+block.Category + block.Name), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                menu.AddItem(new GUIContent("Add New/" + FormatMenuString(block)), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
             }
             
 
@@ -156,7 +169,7 @@ namespace UnityEditor.Experimental
                 foreach (VFXBlockDesc block in blocks)
                 {
                     // TODO : Only add item if block is compatible with current context.
-                    menu.AddItem(new GUIContent("Replace By/"+block.Category + block.Name), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
+                    menu.AddItem(new GUIContent("Replace By/"+ FormatMenuString(block)), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
                 }
             }
 

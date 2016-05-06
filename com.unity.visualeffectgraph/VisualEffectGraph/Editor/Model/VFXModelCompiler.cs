@@ -731,13 +731,22 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("#pragma kernel CSVFXUpdate");
             builder.WriteLine();
 
+            builder.WriteLine("#include \"UnityCG.cginc\"");
+            builder.WriteLine("#include \"HLSLSupport.cginc\"");
+            builder.WriteLine();
+
             builder.Write("#define NB_THREADS_PER_GROUP ");
             builder.Write(NB_THREAD_PER_GROUP);
             builder.WriteLine();
             builder.WriteLine();
 
-            builder.WriteLine("#include \"UnityCG.cginc\"");
-            builder.WriteLine("#include \"HLSLSupport.cginc\"");
+            // define semantics
+            builder.WriteLine("#define RAND rand(seed)");
+            builder.WriteLine("#define RAND2 float2(RAND,RAND)");
+            builder.WriteLine("#define RAND3 float3(RAND,RAND,RAND)");
+            builder.WriteLine("#define RAND4 float4(RAND,RAND,RAND,RAND)");
+            builder.WriteLine("#define KILL {kill = true;}");
+            builder.WriteLine("#define SAMPLE sampleSignal");
             builder.WriteLine();
 
             builder.WriteLine("CBUFFER_START(GlobalInfo)");
@@ -850,7 +859,7 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
-            var functionNames = new Dictionary<Hash128,string>();
+            var functionNames = new HashSet<string>();
             foreach (var block in data.initBlocks)
                 builder.WriteFunction(block, functionNames, data.generatedTextureData);
             foreach (var block in data.updateBlocks)

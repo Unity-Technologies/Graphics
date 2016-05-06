@@ -458,7 +458,7 @@ namespace UnityEditor.Experimental
                 if (value == null)
                     throw new ArgumentNullException();
 
-                if (m_BlockDesc == null || !m_BlockDesc.Hash.Equals(value.Hash)) // block desc has changed
+                if (m_BlockDesc == null || !m_BlockDesc.Equals(value)) // block desc has changed
                 {
                     m_BlockDesc = value;
                     InitSlots(Properties);
