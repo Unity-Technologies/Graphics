@@ -137,7 +137,8 @@ namespace UnityEditor.Experimental
 
             foreach(KeyValuePair<string,ContextNodeInfo> node_kvp in m_ContextNodes)
             {
-                VFXEdContextNode node = null;
+                // NOT MAINTAINED
+                /*VFXEdContextNode node = null;
                 string context = node_kvp.Value.Context;
 
                 node = new VFXEdContextNode(CurrentPos[node_kvp.Value.systemIndex], VFXEditor.ContextLibrary.GetContext(context), datasource);
@@ -179,7 +180,7 @@ namespace UnityEditor.Experimental
 
                 node.Layout();
                  
-                CurrentPos[node_kvp.Value.systemIndex].y += node.scale.y + 40.0f;
+                CurrentPos[node_kvp.Value.systemIndex].y += node.scale.y + 40.0f;*/
                
             }
 

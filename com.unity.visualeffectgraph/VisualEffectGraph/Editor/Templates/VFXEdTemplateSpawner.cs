@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental
         public override void Spawn()
         {
             VFXEdSpawnTemplate template = VFXEditor.SpawnTemplates.GetTemplate(m_Path);
-            template.Spawn(m_Datasource, m_Canvas, m_canvasPosition);
+            template.Spawn(m_Datasource, m_Canvas, m_CanvasPosition);
         }
     }
 }

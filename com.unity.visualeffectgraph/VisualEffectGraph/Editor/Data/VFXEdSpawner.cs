@@ -9,11 +9,11 @@ namespace UnityEditor.Experimental
 {
     internal abstract class VFXEdSpawner
     {
-        public readonly Vector2 m_canvasPosition;
+        public readonly Vector2 m_CanvasPosition;
 
         public VFXEdSpawner(Vector2 position)
         {
-            m_canvasPosition = position;
+            m_CanvasPosition = position;
         }
 
         public abstract void Spawn();
@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_DataSource.AddElement(new VFXEdContextNode(m_canvasPosition, m_Desc, m_DataSource));
+            m_DataSource.CreateContext(m_CanvasPosition, m_Desc);
             m_Canvas.ReloadData();
         }
     }
@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_DataSource.AddElement(new VFXEdTriggerNode(m_canvasPosition, m_DataSource));
+            m_DataSource.AddElement(new VFXEdTriggerNode(m_CanvasPosition, m_DataSource));
             m_Canvas.ReloadData();
         }
     }
@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_DataSource.AddElement(new VFXEdEventNode(m_canvasPosition, m_DataSource,m_EventName));
+            m_DataSource.AddElement(new VFXEdEventNode(m_CanvasPosition, m_DataSource, m_EventName));
             m_Canvas.ReloadData();
         }
     }
@@ -101,11 +101,11 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            VFXEdDataNode n = new VFXEdDataNode(m_canvasPosition, m_DataSource);
+            VFXEdDataNode n = new VFXEdDataNode(m_CanvasPosition, m_DataSource);
             m_DataSource.AddElement(n);
             if (m_InitialBlock != null)
             {
-                VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(m_canvasPosition, m_InitialBlock, n, m_DataSource, m_InitialBlock.Name);
+                VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(m_CanvasPosition, m_InitialBlock, n, m_DataSource, m_InitialBlock.Name);
                 spawner.Spawn();
             }
             m_Canvas.ReloadData();
@@ -129,7 +129,7 @@ namespace UnityEditor.Experimental
         public override void Spawn()
         {
             m_Node.NodeBlockContainer.CaptureDrop = true;
-            m_Node.NodeBlockContainer.UpdateCaptureDrop(m_canvasPosition);
+            m_Node.NodeBlockContainer.UpdateCaptureDrop(m_CanvasPosition);
             m_Node.NodeBlockContainer.AcceptDrop(new VFXEdProcessingNodeBlock(m_Block, m_DataSource));
         }
     }

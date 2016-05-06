@@ -13,6 +13,8 @@ namespace UnityEditor.Experimental
     {
         private List<CanvasElement> m_Elements = new List<CanvasElement>();
 
+        private Dictionary<VFXContextModel,VFXEdContextNode> m_ContextModelToUI = new Dictionary<VFXContextModel,VFXEdContextNode>();
+
         public void OnEnable()
         {
         }
@@ -27,6 +29,76 @@ namespace UnityEditor.Experimental
         {
             return m_Elements.ToArray();
         }
+
+        public void CreateContext(Vector2 pos,VFXContextDesc desc)
+        {
+            VFXContextModel context = new VFXContextModel(desc);
+            context.UpdatePosition(pos);
+
+            // Create a tmp system to hold the newly created context
+            VFXSystemModel system = new VFXSystemModel();
+            system.AddChild(context);
+            VFXEditor.AssetModel.AddChild(system);
+
+            CreateContext(context);
+        }
+
+        public void CreateContext(VFXContextModel context)
+        {
+            var contextUI = new VFXEdContextNode(context, this);
+            m_ContextModelToUI.Add(context, contextUI);
+            AddElement(contextUI);
+        }
+
+        public void RemoveContext(VFXContextModel context)
+        {
+            // First remove all blocks recursively
+            for (int i = 0; i < context.GetNbChildren(); ++i)
+                RemoveBlock(context.GetChild(i));
+
+            // Then remove all link to slots (data)
+            // TODO
+
+            // Finally remove all link to context (flow)
+            // TODO
+
+            // Create new system if any
+            VFXSystemModel owner = context.GetOwner();
+            if (owner != null)
+            {
+                int nbChildren = owner.GetNbChildren();
+                int index = owner.GetIndex(context);
+
+                context.Detach();
+                if (index != 0 && index != nbChildren - 1)
+                {
+                    // if the node is in the middle of a system, we need to create a new system
+                    VFXSystemModel newSystem = new VFXSystemModel();
+                    while (owner.GetNbChildren() > index)
+                        owner.GetChild(index).Attach(newSystem);
+                    newSystem.Attach(VFXEditor.AssetModel);
+                }
+            }
+
+            // RemoveUI
+            var contextUI = m_ContextModelToUI[context];
+            m_ContextModelToUI.Remove(context);
+            contextUI.OnRemove();
+            m_Elements.Remove(contextUI);
+        }
+
+
+
+
+
+
+
+        public void RemoveBlock(VFXBlockModel block)
+        {
+
+        }
+
+
 
         public void AddElement(CanvasElement e) {
             m_Elements.Add(e);

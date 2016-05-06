@@ -432,6 +432,9 @@ namespace UnityEditor.Experimental
 
         private VFXContextDesc m_Desc;
 
+        public bool UICollapsed     { get { return m_UICollapsed; } }
+        public Vector2 UIPosition   { get {return m_UIPosition; } }
+        
         private bool m_UICollapsed;
         private Vector2 m_UIPosition;
     }
