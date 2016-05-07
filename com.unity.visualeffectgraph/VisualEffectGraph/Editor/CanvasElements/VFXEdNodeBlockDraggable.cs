@@ -15,7 +15,6 @@ namespace UnityEditor.Experimental
         {
             AddManipulator(new NodeBlockManipulator(this));
             AddManipulator(new NodeBlockDelete());
-            AddManipulator(new ImguiContainer());
         }
 
         public virtual void OnRemoved()
