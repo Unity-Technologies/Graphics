@@ -35,6 +35,8 @@ namespace UnityEditor.Experimental
             translation = Vector3.zero; // zeroed by default, will be relayouted later.
             m_Caps = Capabilities.Normal;
             m_UniqueName = GetType().Name + "_" + Token;
+
+            AddManipulator(new ImguiContainer());
         }
 
         public abstract VFXPropertySlot GetSlot(string name);

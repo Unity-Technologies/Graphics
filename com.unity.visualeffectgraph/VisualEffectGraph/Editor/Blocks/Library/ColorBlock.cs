@@ -25,7 +25,7 @@ color = Color;";
     {
         public VFXBlockSetColorAlphaConstant()
         {
-            Name = "Color & Alpha (Constant)";
+            Name = "Color and Alpha (Constant)";
             Icon = "Color";
             Category = "Color";
 
@@ -82,7 +82,7 @@ color = lerp(FirstColor,AltColor,RAND3);";
     {
         public VFXBlockSetColorRandomGradient()
         {
-            Name = "Color & Alpha (Random from Gradient)";
+            Name = "Color and Alpha (Random from Gradient)";
             Icon = "Color";
             Category = "Color";
 
