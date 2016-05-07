@@ -53,9 +53,9 @@ namespace UnityEditor.Experimental
 
             // FindKernel throws instead of setting value to -1
             try { initKernel = simulationShader.FindKernel("CSVFXInit"); }
-            catch(Exception e) { initKernel = -1; }
+            catch(Exception) { initKernel = -1; }
             try { updateKernel = simulationShader.FindKernel("CSVFXUpdate"); }
-            catch(Exception e) { updateKernel = -1; }
+            catch(Exception) { updateKernel = -1; }
         }
 
         public void UpdateAllUniforms()
