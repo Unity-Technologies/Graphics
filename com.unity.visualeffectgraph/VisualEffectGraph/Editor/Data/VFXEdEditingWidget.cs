@@ -279,40 +279,27 @@ namespace UnityEditor.Experimental
         }
     }
 
-    internal class VFXEdPlaneEditingWidget : VFXEdEditingWidget
+    internal class VFXEdPlaneEditingWidget : VFXUIWidget
     {
         VFXPropertySlot m_Position;
         VFXPropertySlot m_Normal;
-        string m_PositionParamName;
-        string m_NormalParamName;
 
-        private Quaternion m_Quat = new Quaternion(0,0,0,1);
+        private Quaternion m_Quat = new Quaternion();
 
-        public VFXEdPlaneEditingWidget(string PositionParamName, string NormalParamName)
+        public VFXEdPlaneEditingWidget(VFXPropertySlot slot)
         {
-            m_PositionParamName = PositionParamName;
-            m_NormalParamName = NormalParamName;
+            m_Position = slot.GetChild(0);
+            m_Normal = slot.GetChild(1);
         }
 
-        public override void CreateBinding(VFXEdNodeBlock block)
-        {
-            base.CreateBinding(block);
-            m_Position = block.GetSlot(m_PositionParamName);
-            m_Normal = block.GetSlot(m_NormalParamName);
-        }
-
-        public override void OnSceneGUI(SceneView sceneView)
+        public void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
-            bool needsRepaint = false;
+            Vector3 pos = m_Position.Get<Vector3>();
             Vector3 normal = m_Normal.Get<Vector3>().normalized;
 
-            if (m_Quat * Vector3.forward != normal) // if the normal has been changed elsewhere, quaternion must be reinitialized
-            {
-                m_Quat.SetLookRotation(normal, Mathf.Abs(normal.y) > Mathf.Abs(normal.x) ? Vector3.right : Vector3.up); // Just ensure up and front are not collinear
-                needsRepaint = true;
-            }
+            bool needsRepaint = VFXEdHandleUtility.CheckQuaternion(ref m_Quat, normal);
 
             switch(Tools.current)
             {
@@ -339,11 +326,6 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public override void OnInspectorGUI()
-        {
-                m_Position.Set(EditorGUILayout.Vector3Field("Center",m_Position.Get<Vector3>()));
-                m_Normal.Set(EditorGUILayout.Vector3Field("Normal",m_Normal.Get<Vector3>().normalized));
-        }
     }
 
     [Obsolete]
@@ -396,283 +378,6 @@ namespace UnityEditor.Experimental
 
             m_Color.Set(new Vector3(color.r, color.g, color.b));
             m_Alpha.Set(color.a);
-        }
-    }
-
-    internal class VFXEdGradientEditingWidget : VFXEdEditingWidget
-    { 
-        public Texture2D GradientTexture;
-
-        private string m_TextureParamName;
-        private VFXPropertySlot m_TextureParamValue;
-
-        private SerializedObject m_GradientSerializedObject;
-        private SerializedProperty m_GradientSerializedProperty;
-
-        public VFXEdGradientEditingWidget(string textureParameterName)
-        {
-            m_TextureParamName = textureParameterName;
-            IgnoredParamNames.Add(m_TextureParamName);
-        }
-
-        public void UpdateTexture()
-        {
-            Gradient gradient = (m_CurrentlyEditedBlock.editingDataContainer as GradientContainer).Gradient;
-
-            Color32[] colors = new Color32[256];
-            for(int i=0; i<256; i++)
-            {
-                colors[i] = gradient.Evaluate((float)i / 256);
-            }
-            GradientTexture.SetPixels32(colors);
-            GradientTexture.Apply(false);
-
-        }
-        public void InitializeGradient()
-        {
-            if (GradientTexture == null)
-            {
-                GradientTexture = new Texture2D(256, 1, TextureFormat.RGBA32, false, true);
-                GradientTexture.wrapMode = TextureWrapMode.Clamp;
-                GradientTexture.name = "Generated Gradient";
-            }
-
-            if (m_CurrentlyEditedBlock.editingDataContainer == null )
-            {
-                Gradient g = new Gradient();
-                GradientColorKey[] colors = new GradientColorKey[2];
-                GradientAlphaKey[] alphas = new GradientAlphaKey[3];
-                colors[0] = new GradientColorKey(Color.red, 0.0f);
-                colors[1] = new GradientColorKey(Color.blue, 1.0f);
-                alphas[0] = new GradientAlphaKey(0.0f, 0.0f);
-                alphas[1] = new GradientAlphaKey(0.25f, 0.25f);
-                alphas[2] = new GradientAlphaKey(0.0f, 1.0f);
-                g.SetKeys(colors, alphas);
-
-                var gradientContainer = ScriptableObject.CreateInstance<GradientContainer>();
-                gradientContainer.Gradient = g;
-                m_CurrentlyEditedBlock.editingDataContainer = gradientContainer;
-            }
-        }
-
-        public override void CreateBinding(VFXEdNodeBlock block)
-        {
-            base.CreateBinding(block);
-            m_TextureParamValue = block.GetSlot(m_TextureParamName);
-            InitializeGradient();
-            m_TextureParamValue.Set(GradientTexture);
-
-            UpdateTexture();
-            m_GradientSerializedObject = new SerializedObject(block.editingDataContainer);
-            m_GradientSerializedProperty = m_GradientSerializedObject.FindProperty("Gradient");
-        }
-
-        public override void OnInspectorGUI()
-        {
-
-            EditorGUILayout.PropertyField(m_GradientSerializedProperty, new GUIContent("Gradient"));
-            if(m_GradientSerializedObject.ApplyModifiedProperties())
-            {
-                UpdateTexture();
-            }
-            
-
-        }
-
-        public override void OnSceneGUI(SceneView sceneView)
-        {
-            // Nothing Here... yet.
-        }
-    }
-
-    internal class VFXEdCurveFloatEditingWidget : VFXEdEditingWidget
-    {
-        public Texture2D CurveTexture;
-
-        private string m_TextureParamName;
-        private VFXPropertySlot m_TextureParamValue;
-
-        private SerializedObject m_CurveSerializedObject;
-        private SerializedProperty m_CurveSerializedProperty;
-
-        public VFXEdCurveFloatEditingWidget(string textureParameterName)
-        {
-            m_TextureParamName = textureParameterName;
-            IgnoredParamNames.Add(m_TextureParamName);
-        }
-
-        public void UpdateTexture()
-        {
-            AnimationCurve curve = (m_CurrentlyEditedBlock.editingDataContainer as CurveFloatContainer).Curve;
-
-            Color[] colors = new Color[256];
-            for(int i=0; i<256; i++)
-            {
-                float c = curve.Evaluate((float)i / 256);
-                colors[i] = new Color(c,c,c);
-            }
-            CurveTexture.SetPixels(colors);
-            CurveTexture.Apply(false);
-
-        }
-
-        private void InitializeCurve()
-        {
-            if (CurveTexture == null)
-            {
-                CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false, true);
-                CurveTexture.wrapMode = TextureWrapMode.Clamp;
-                CurveTexture.name = "Generated FloatCurve";
-            }
-
-            if (m_CurrentlyEditedBlock.editingDataContainer == null )
-            {
-                AnimationCurve c = new AnimationCurve();
-                c.AddKey(0.0f, 0.0f);
-                c.AddKey(0.25f, 1.0f);
-                c.AddKey(1.0f, 0.0f);
-                var curveContainer = ScriptableObject.CreateInstance<CurveFloatContainer>();
-                curveContainer.Curve = c;
-                m_CurrentlyEditedBlock.editingDataContainer = curveContainer;
-            }
-
-            UpdateTexture();
-        }
-
-        public override void CreateBinding(VFXEdNodeBlock block)
-        {
-            base.CreateBinding(block);
-
-            m_TextureParamValue = block.GetSlot(m_TextureParamName);
-            InitializeCurve();
-            m_TextureParamValue.Set(CurveTexture);
-
-            m_CurveSerializedObject = new SerializedObject(block.editingDataContainer);
-            m_CurveSerializedProperty = m_CurveSerializedObject.FindProperty("Curve");
-
-        }
-
-        public override void OnInspectorGUI()
-        {
-            EditorGUILayout.PropertyField(m_CurveSerializedProperty, new GUIContent("Curve"));
-            if(m_CurveSerializedObject.ApplyModifiedProperties())
-            {
-                UpdateTexture();
-            }
-        }
-
-        public override void OnSceneGUI(SceneView sceneView)
-        {
-            // Nothing Here... yet.
-        }
-    }
-
-    internal class VFXEdCurveVectorEditingWidget : VFXEdEditingWidget
-    {
-
-        public Texture2D CurveTexture;
-        public AnimationCurve CurveX;
-        public AnimationCurve CurveY;
-        public AnimationCurve CurveZ;
-
-        private string m_TextureParamName;
-        private VFXPropertySlot m_TextureParamValue;
-
-        private SerializedObject m_CurveSerializedObject;
-        private SerializedProperty m_CurveXSerializedProperty;
-        private SerializedProperty m_CurveYSerializedProperty;
-        private SerializedProperty m_CurveZSerializedProperty;
-
-        public VFXEdCurveVectorEditingWidget(string textureParameterName)
-        {
-            m_TextureParamName = textureParameterName;
-            IgnoredParamNames.Add(m_TextureParamName);
-        }
-
-        public void UpdateTexture()
-        {
-            CurveVectorContainer container = (m_CurrentlyEditedBlock.editingDataContainer as CurveVectorContainer);
-            AnimationCurve cx = container.CurveX;
-            AnimationCurve cy = container.CurveY;
-            AnimationCurve cz = container.CurveZ;
-
-            Color[] colors = new Color[256];
-            for(int i=0; i<256; i++)
-            {
-                colors[i] = new Color(cx.Evaluate((float)i / 256),cy.Evaluate((float)i / 256),cz.Evaluate((float)i / 256));
-            }
-            CurveTexture.SetPixels(colors);
-            CurveTexture.Apply(false);
-
-        }
-
-        public void InitializeCurve()
-        {
-            if (CurveTexture == null)
-            {
-                CurveTexture = new Texture2D(256, 1, TextureFormat.RGBAHalf, false, true);
-                CurveTexture.wrapMode = TextureWrapMode.Clamp;
-                CurveTexture.name = "Generated VectorCurve";
-            }
-
-            if (m_CurrentlyEditedBlock.editingDataContainer == null )
-            {
-                AnimationCurve cx = new AnimationCurve();
-                AnimationCurve cy = new AnimationCurve();
-                AnimationCurve cz = new AnimationCurve();
-
-                cx.AddKey(0.0f, 0.0f);
-                cx.AddKey(0.25f, 1.0f);
-                cx.AddKey(1.0f, 0.0f);
-
-                cy.AddKey(0.0f, 0.0f);
-                cy.AddKey(0.25f, 1.0f);
-                cy.AddKey(1.0f, 0.0f);
-
-                cz.AddKey(0.0f, 0.0f);
-                cz.AddKey(0.25f, 1.0f);
-                cz.AddKey(1.0f, 0.0f);
-
-                var curveContainer = ScriptableObject.CreateInstance<CurveVectorContainer>();
-                curveContainer.CurveX = cx;
-                curveContainer.CurveY = cy;
-                curveContainer.CurveZ = cz;
-
-                m_CurrentlyEditedBlock.editingDataContainer = curveContainer;
-            }
-
-            UpdateTexture();
-
-        }
-
-        public override void CreateBinding(VFXEdNodeBlock block)
-        {
-            base.CreateBinding(block);
-            m_TextureParamValue = block.GetSlot(m_TextureParamName);
-            InitializeCurve();
-            m_TextureParamValue.Set(CurveTexture);
- 
-            m_CurveSerializedObject = new SerializedObject(block.editingDataContainer);
-            m_CurveXSerializedProperty = m_CurveSerializedObject.FindProperty("CurveX");
-            m_CurveYSerializedProperty = m_CurveSerializedObject.FindProperty("CurveY");
-            m_CurveZSerializedProperty = m_CurveSerializedObject.FindProperty("CurveZ");
-        }
-
-        public override void OnInspectorGUI()
-        {
-            EditorGUILayout.PropertyField(m_CurveXSerializedProperty, new GUIContent("Curve X"));
-            EditorGUILayout.PropertyField(m_CurveYSerializedProperty, new GUIContent("Curve Y"));
-            EditorGUILayout.PropertyField(m_CurveZSerializedProperty, new GUIContent("Curve Z"));
-
-            if(m_CurveSerializedObject.ApplyModifiedProperties())
-            {
-                UpdateTexture();
-            }
-        }
-
-        public override void OnSceneGUI(SceneView sceneView)
-        {
-            // Nothing Here... yet.
         }
     }
 
@@ -780,14 +485,13 @@ namespace UnityEditor.Experimental
             float scale = HandleUtility.GetHandleSize(Position);
 
             Handles.ArrowCap(0, Position, Rotation, scale);
-            Matrix4x4 transform = Matrix4x4.TRS(Position, Rotation, Vector3.one);
 
+            /*
+            Matrix4x4 transform = Matrix4x4.TRS(Position, Rotation, Vector3.one);
+            float INF = 5000.0f;
             Vector3 tangent = transform.GetColumn(0);
             Vector3 binormal = transform.GetColumn(1);
             Vector3 normal = transform.GetColumn(2);
-
-            float INF = 5000.0f;
-
             Handles.color = GridWireColor;
             Handles.DrawLine(Position + tangent * INF, Position - tangent * INF);
             Handles.DrawLine(Position + binormal * INF, Position - binormal * INF);
@@ -804,7 +508,22 @@ namespace UnityEditor.Experimental
                 Handles.DrawLine(Position + (tangent * i) + (binormal * i), Position + (tangent * i) - (binormal * i));
                 Handles.DrawLine(Position + (tangent * -i) + (binormal * i), Position + (tangent * -i) - (binormal * i));
 
+            }*/
+
+            Vector3 normal = Rotation * Vector3.forward;
+            for(int i = 1; i <= 64; i*=2)
+            {
+                Color c = Color.white;
+                ;
+                c.a = GridWireColor.a * (1.0f-((float)i/64));
+                Handles.color = c;
+                Handles.DrawWireDisc(Position, normal, i);
+                Handles.color = new Color(0.1f, 0.15f, 0.2f, 0.1f);
+                Handles.DrawSolidDisc(Position, normal, i);
+
             }
+
+            Handles.DrawSolidDisc(Position, normal, 50000);
 
             Handles.color = Color.white;
 

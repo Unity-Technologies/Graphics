@@ -349,6 +349,11 @@ namespace UnityEngine.Experimental.VFX
             for (int i = 0; i < slot.GetNbChildren(); ++i)
                 slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
+
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        {
+            return new VFXEdPlaneEditingWidget(slot);
+        }
     }
 
     public partial class VFXCylinderType : VFXPropertyTypeSemantics
