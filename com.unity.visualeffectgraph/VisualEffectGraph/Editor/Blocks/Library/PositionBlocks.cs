@@ -150,6 +150,7 @@ position = mul(Transform,float4(position,1.0f)).xyz;";
 
             Add(VFXProperty.Create<VFXTransformType>("Transform"));
             Add(new VFXProperty(new VFXFloatType(1.0f), "Speed"));
+
             Add(new VFXAttribute(CommonAttrib.Position, true));
 
             Source = @"
@@ -160,8 +161,48 @@ position += mul(Transform,float4(pos,1.0f)).xyz;";
         }
     }
 
+    class VFXBlockPositionCylinder : VFXBlockType
+    {
+        public VFXBlockPositionCylinder()
+        {
+            Name = "Set Position (Cylinder)";
+            Icon = "Cylinder";
+            Category = "Position";
 
+            Add(VFXProperty.Create<VFXCylinderType>("Cylinder"));
 
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+float u1 = 1.0 * RAND - 0.5;
+float u2 = UNITY_TWO_PI * RAND;
+float u3 = sqrt(RAND);
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+position = (float3(sincosTheta * u3,u1 * Cylinder_height) * Cylinder_radius).xzy + Cylinder_position;";
+        }
+    }
+
+    class VFXBlockPositionCylinderSurface : VFXBlockType
+    {
+        public VFXBlockPositionCylinderSurface()
+        {
+            Name = "Set Position (Cylinder Surface)";
+            Icon = "Cylinder";
+            Category = "Position";
+
+            Add(VFXProperty.Create<VFXCylinderType>("Cylinder"));
+
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+float u1 = 1.0 * RAND - 0.5;
+float u2 = UNITY_TWO_PI * RAND;
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+position = float3(sincosTheta * Cylinder_radius,u1 * Cylinder_height).xzy + Cylinder_position;";
+        }
+    }
     // TODO Convert that in some other files
 /*
     class VFXBlockTransformVelocity : VFXBlockDesc

@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental
 
         private new VFXUIPropertySlotField[] m_Children;
 
-        public VFXUIPropertySlotField(VFXEdDataSource dataSource, VFXPropertySlot slot, uint depth = 0)
+        public VFXUIPropertySlotField(VFXEdDataSource dataSource, VFXPropertySlot slot, bool createAnchor = true, uint depth = 0)
         {
             m_DataSource = dataSource; 
             m_Slot = slot;
@@ -42,8 +42,11 @@ namespace UnityEditor.Experimental
             else if (slot is VFXOutputSlot)     m_Direction = Direction.Output;
             else throw new ArgumentException("Invalid property slot");
 
-            m_Anchor = new VFXUIPropertyAnchor(this, dataSource, Vector3.zero, m_Direction);
-            AddChild(m_Anchor);
+            if (createAnchor)
+            {
+                m_Anchor = new VFXUIPropertyAnchor(this, Slot, dataSource, Vector3.zero, m_Direction);
+                AddChild(m_Anchor);
+            }
 
             m_FieldCollapsed = depth > 0;
 
@@ -54,7 +57,7 @@ namespace UnityEditor.Experimental
 
             m_Children = new VFXUIPropertySlotField[Slot.GetNbChildren()];
             for (int i = 0; i < Slot.GetNbChildren(); ++i)
-                AddChild(m_Children[i] = new VFXUIPropertySlotField(m_DataSource, Slot.GetChild(i), m_Depth + 1));
+                AddChild(m_Children[i] = new VFXUIPropertySlotField(m_DataSource, Slot.GetChild(i), createAnchor,m_Depth + 1));
         }
 
         public virtual void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
@@ -92,7 +95,7 @@ namespace UnityEditor.Experimental
                     child.translation = childPos;
                     childY += child.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
                 }
-                if (m_Direction == Direction.Output)
+                if (m_Direction == Direction.Output && m_Anchor != null)
                     m_Anchor.translation = new Vector2(scale.x - VFXEditorMetrics.DataAnchorSize.x, m_Anchor.translation.y);
             }
             else
@@ -136,7 +139,8 @@ namespace UnityEditor.Experimental
         {
             foreach (var child in m_Children)
             {
-                m_DataSource.RemoveConnectedEdges<VFXUIPropertyEdge,VFXUIPropertyAnchor>(child.m_Anchor);
+                if (m_Anchor != null)
+                    m_DataSource.RemoveConnectedEdges<VFXUIPropertyEdge,VFXUIPropertyAnchor>(child.m_Anchor);
                 child.DisconnectChildren();
             }
         }
