@@ -230,33 +230,6 @@ velocity += value * deltaTime;
 # UV BLOCKS
 #---------------------------------------------------------------------
 
-#block Set flipbook Index (Random)
-#icon Flipbook
-#category UV/
-#arg float texIndex [inout|param]
-#arg float value1 [public]
-#arg float value2 [public]
-
-texIndex = lerp(value1,value2,RAND);
-
-#block Animate flipbook (Random)
-#icon Flipbook
-#category UV/
-#arg float texIndex [inout|param]
-#arg float speed [public]
-
-texIndex += speed * deltaTime;
-
-#block Animate flipbook (Curve)
-#icon Flipbook
-#category UV/
-#arg float texIndex [inout|param]
-#arg Texture2D curve [public]
-#arg float age [param]
-#arg float lifetime [param]
-
-float r = saturate(age/lifetime);
-texIndex = tex2Dlod(curve, float4(r,0,0,0)).r;
 
 #---------------------------------------------------------------------
 # COMMMON BLOCKS (UNCATEGORIZED)
