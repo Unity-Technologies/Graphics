@@ -194,6 +194,75 @@ namespace UnityEngine.Experimental.VFX
                 child.FlattenOwnedValues(values);
         }
 
+        public void GetStringValues(List<string> output)
+        {
+            if (GetNbChildren() == 0)
+            {
+                switch(ValueType)
+                {
+                    case VFXValueType.kFloat:
+                        output.Add(Value.Get<float>().ToString());
+                        break;
+                    /*case VFXValueType.kFloat2:
+                        output.Add(Value.Get<Vector2>().ToString());
+                        break;
+                    case VFXValueType.kFloat3:
+                        output.Add(Value.Get<Vector3>().ToString());
+                        break;
+                    case VFXValueType.kFloat4:
+                        output.Add(Value.Get<Vector4>().ToString());
+                        break;*/
+                    case VFXValueType.kInt:
+                        output.Add(Value.Get<int>().ToString());
+                        break;
+                    case VFXValueType.kUint:
+                        output.Add(Value.Get<uint>().ToString());
+                        break;
+                    default:
+                        Debug.LogWarning("Cannot serialize value of type "+ValueType);
+                        break;
+                }
+            }
+            else foreach (var child in m_Children)
+                child.GetStringValues(output);
+        }
+
+        public int SetValuesFromString(List<string> input,int index = 0)
+        {
+            if (GetNbChildren() == 0)
+            {
+                switch (ValueType)
+                {
+                    case VFXValueType.kFloat:
+                        Value.Set(float.Parse(input[index++]));
+                        break;
+                   /* case VFXValueType.kFloat2:
+                        Value.Set(Vector2.Parse(input[index]));
+                        break;
+                     case VFXValueType.kFloat3:
+                        output.Add(Value.Get<Vector3>().ToString());
+                        break;de
+                    case VFXValueType.kFloat4:
+                        output.Add(Value.Get<Vector4>().ToString());
+                        break;*/
+                    case VFXValueType.kInt:
+                        Value.Set(int.Parse(input[index++]));
+                        break;
+                    case VFXValueType.kUint:
+                        Value.Set(uint.Parse(input[index++]));
+                        break;
+                    default:
+                        Debug.LogWarning("Cannot deserialize value of type " + ValueType);
+                        break;
+                }
+            }
+            else foreach (var child in m_Children)
+                    index = child.SetValuesFromString(input,index);
+
+            NotifyChange(Event.kValueUpdated); // We shouldnt do that but for some reason combine expressions are not updated...
+            return index;
+        }
+
         // Collect all values in the slot hierarchy with its name used in the shader
         // Called from the model compiler
         public void CollectNamedValues(List<VFXNamedValue> values)
