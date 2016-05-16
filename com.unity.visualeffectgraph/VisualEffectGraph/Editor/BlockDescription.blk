@@ -6,44 +6,9 @@
 # COLOR BLOCKS
 #---------------------------------------------------------------------
 
-#block Phase To Color
-#icon Color
-#category Debug/
-#arg float3 color [inout|param]
-#arg float phase [param] 
-
-color = float3(phase,1 - phase,0.0);
-
 #---------------------------------------------------------------------
 # TARGET BLOCKS
 #---------------------------------------------------------------------
-
-#block Morph Target (PositionMap)
-#icon Position
-#category Target/
-#arg float3 target [inout|param]
-#arg Texture2D posmap1 [public]
-#arg Texture2D posmap2 [public]
-#arg float3 center [public]
-#arg float3 scale [public]
-#arg float morph [public]
-
-float3 t1 = center+((tex2Dlod(posmap1,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
-float3 t2 = center+((tex2Dlod(posmap2,float4(RAND,RAND,0,0)).rgb-0.5f)*scale);
-target = lerp(t1,t2, morph);
-
-
-#block Target Position
-#icon Position
-#category Target/
-#arg float3 position [inout|param]
-#arg float3 target [param]
-#arg float lifetime [param]
-#arg float age [param]
-
-float d = deltaTime / (lifetime - age);
-position = lerp(position, target, d);  
-
 
 #---------------------------------------------------------------------
 # FORCE BLOCKS
@@ -99,153 +64,18 @@ velocity = lerp(velocity, tangent*targetspeed, strength);
 # ANGLE BLOCKS
 #---------------------------------------------------------------------
 
-#block Set Angle (Constant)
-#icon Angle
-#category Angle/
-#arg float angle [inout|param]
-#arg float value [public] 
-
-angle = value;
-
-#block Set Angle (Random)
-#icon Angle
-#category Angle/
-#arg float angle [inout|param]
-#arg float value1 [public] 
-#arg float value2 [public] 
-
-angle = lerp(value1,value2,RAND);
-
-#block Set Angular Velocity (Constant)
-#icon Angle
-#category Angle/
-#arg float angularVelocity [inout|param]
-#arg float value [public] 
-
-angularVelocity = value;
-
-#block Set Angular Velocity (Random)
-#icon Angle
-#category Angle/
-#arg float angularVelocity [inout|param]
-#arg float value1 [public] 
-#arg float value2 [public] 
-
-angularVelocity = lerp(value1,value2,RAND);
-
-#block Apply Angular Force
-#icon Angle
-#category Angle/
-#arg float angularVelocity [inout|param]
-#arg float force [public] 
-
-angularVelocity += force * deltaTime;
-
-#block Apply Angular Drag
-#icon Angle
-#category Angle/
-#arg float angularVelocity [inout|param]
-#arg float drag [public] 
-
-angularVelocity *= max(0.0,(1.0 - multiplier * deltaTime)); // drag - linear only
-
 #---------------------------------------------------------------------
 # VELOCITY BLOCKS
 #---------------------------------------------------------------------
-
-#block Set Velocity (Constant)
-#icon Velocity
-#category Velocity/
-#arg float3 velocity [inout|param]
-#arg float3 value [public]
-
-velocity = value;
-
-#block Set Velocity (Random)
-#icon Velocity
-#category Velocity/
-#arg float3 velocity [inout|param]
-#arg float3 base [public]
-#arg float3 divergence [public] 
-
-velocity = float3(	base.x + (RAND*2-1) * divergence.x,
-					base.y + (RAND*2-1)  * divergence.y,
-					base.z + (RAND*2-1)  * divergence.z);
-					
-#block Set Velocity (Spherical)
-#icon Velocity
-#category Velocity/
-#arg float3 velocity [inout|param]
-#arg float2 angle [public]
-#arg float2 speed [public]
-
-float2 z = cos(radians(angle));
-float u1 = lerp(z.x,z.y,RAND);
-float u2 = UNITY_TWO_PI * RAND;
-float2 sincosTheta;
-sincos(u2,sincosTheta.x,sincosTheta.y);
-sincosTheta *= sqrt(1.0 - u1*u1);
-velocity = float3(sincosTheta,u1).xzy * lerp(speed.x,speed.y,RAND);
-
-#block Add Velocity (Constant)
-#icon Velocity
-#category Velocity/
-#arg float3 velocity [inout|param]
-#arg float3 value [public]
-
-velocity += value * deltaTime;
 
 #---------------------------------------------------------------------
 # UV BLOCKS
 #---------------------------------------------------------------------
 
-
 #---------------------------------------------------------------------
 # COMMMON BLOCKS (UNCATEGORIZED)
 #---------------------------------------------------------------------
 
-#block Age and Reap
-#icon Time
-#category
-#arg float age [inout|param]
-#arg float lifetime [param]
-
-age += deltaTime;
-if (age >= lifetime)
-	KILL;
-
-#block Integrate Velocity (Constant)
-#icon Position
-#arg float3 position [inout|param]
-#arg float3 velocity [param]
-
-position += velocity * deltaTime;
-
-#block Integrate Velocity (Curve)
-#icon Position
-#arg float3 position [inout|param]
-#arg float3 velocity [param]
-#arg float age [param]
-#arg float lifetime [param]
-#arg Texture2D curve [public]
-
-float ratio = saturate(age/lifetime);
-float3 vscale = tex2Dlod(curve,float4(ratio,0,0,0)).xyz;
-position += velocity * vscale * deltaTime;
-
 #--------------------------------------------------------------------------
 # TEST BLOCKS
 #--------------------------------------------------------------------------
-#block Test Compile Failure
-#icon Position
-#category Tests/
-#arg float test [public]
-
-this wont compile !;
-
-#block Test Missing Icon
-#icon missing__
-#category Tests/
-#arg float test [public]
-
-float a = 1; // Dummy
