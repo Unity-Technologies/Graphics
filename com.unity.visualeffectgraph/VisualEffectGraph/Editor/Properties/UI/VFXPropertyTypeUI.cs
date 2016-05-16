@@ -351,4 +351,14 @@ namespace UnityEngine.Experimental.VFX
         }
     }
 
+    public partial class VFXCylinderType : VFXPropertyTypeSemantics
+    {
+        public override void OnInspectorGUI(VFXPropertySlot slot)
+        {
+            EditorGUILayout.LabelField(new GUIContent(slot.Name));
+            for (int i = 0; i < slot.GetNbChildren(); ++i)
+                slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
+        }
+    }
+
 }

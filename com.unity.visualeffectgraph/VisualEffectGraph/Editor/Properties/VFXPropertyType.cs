@@ -462,5 +462,19 @@ namespace UnityEngine.Experimental.VFX
             m_Children[1] = new VFXProperty(new VFXDirectionType(), "normal");
         }
     }
+
+    public partial class VFXCylinderType : VFXPropertyTypeSemantics
+    {
+        public static Desc Description() { return new Desc("Cylinder", "Capsule", "Primitive"); }
+
+        public VFXCylinderType()
+        {
+            m_Children = new VFXProperty[4];
+            m_Children[0] = new VFXProperty(new VFXPositionType(), "position");
+            m_Children[1] = new VFXProperty(new VFXDirectionType(), "orientation");
+            m_Children[2] = new VFXProperty(new VFXFloatType(1.0f), "radius");
+            m_Children[3] = new VFXProperty(new VFXFloatType(2.0f), "height");
+        }
+    }
 }
 

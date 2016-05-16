@@ -85,37 +85,6 @@ velocity = lerp(velocity, tangent*targetspeed, strength);
 # POSITION BLOCKS
 #---------------------------------------------------------------------
 
-#TODO Factorize these 2 blocks when boolean switches are implemented !
-					
-#block Set Position (Cylinder)
-#icon Position
-#category Position/
-#arg float3 position [inout|param]
-#arg float3 center [public] 
-#arg float radius [public]
-#arg float height [public]
-
-float u1 = 1.0 * RAND - 0.5;
-float u2 = UNITY_TWO_PI * RAND;
-float u3 = sqrt(RAND);
-float2 sincosTheta;
-sincos(u2,sincosTheta.x,sincosTheta.y);
-position = (float3(sincosTheta * u3,u1 * height) * radius).xzy + center;
-
-#block Set Position (Cylinder Surface)
-#icon Position
-#category Position/
-#arg float3 position [inout|param]
-#arg float3 center [public] 
-#arg float radius [public]
-#arg float height [public]
-
-float u1 = 1.0 * RAND - 0.5;
-float u2 = UNITY_TWO_PI * RAND;
-float2 sincosTheta;
-sincos(u2,sincosTheta.x,sincosTheta.y);
-position = float3(sincosTheta * radius,u1 * height).xzy + center;
-
 
 #---------------------------------------------------------------------
 # COLLISION BLOCKS
