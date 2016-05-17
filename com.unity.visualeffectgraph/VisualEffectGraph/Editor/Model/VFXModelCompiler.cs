@@ -178,8 +178,10 @@ namespace UnityEditor.Experimental
                     break;
                 }
                 case VFXValueType.kTransform:
-                {
+                { 
                     Matrix4x4 mat = value.Get<Matrix4x4>();
+                    if (uniformName.StartsWith("Inv_"))
+                        mat = mat.inverse;
                     if (output)
                         m_Material.SetMatrix(uniformName, mat);
                     else
@@ -321,6 +323,8 @@ namespace UnityEditor.Experimental
         public Dictionary<VFXValue, string> outputParamToName = new Dictionary<VFXValue, string>();
 
         public VFXGeneratedTextureData generatedTextureData = new VFXGeneratedTextureData();
+
+        public HashSet<VFXExpression> extraUniforms = new HashSet<VFXExpression>();
     }
 
     public static class VFXModelCompiler
@@ -491,11 +495,29 @@ namespace UnityEditor.Experimental
             }
                 
             // UNIFORMS
+
             HashSet<VFXValue> initUniforms = CollectUniforms(initBlocks);
             initGenerator.UpdateUniforms(initUniforms);
             HashSet<VFXValue> updateUniforms = CollectUniforms(updateBlocks);
             updateGenerator.UpdateUniforms(updateUniforms);
 
+            // Generate potential extra uniforms  
+            HashSet<VFXExpression> initGeneratedUniforms = GenerateExtraUniforms(initBlocks);
+            HashSet<VFXExpression> updateGeneratedUniforms = GenerateExtraUniforms(updateBlocks);
+            
+            // Keep track of all generated uniforms
+            HashSet<VFXExpression> generatedUniforms = new HashSet<VFXExpression>();
+            generatedUniforms.UnionWith(initGeneratedUniforms);
+            generatedUniforms.UnionWith(updateGeneratedUniforms);
+
+            // add generated uniforms to uniform list
+            foreach (var uniform in updateGeneratedUniforms)
+                if (uniform.Reduce().IsValue())
+                    initUniforms.Add((VFXValue)uniform.Reduce());
+            foreach (var uniform in initGeneratedUniforms)
+                if (uniform.Reduce().IsValue())
+                    updateUniforms.Add((VFXValue)uniform.Reduce());
+ 
             // collect samplers
             HashSet<VFXValue> initSamplers = CollectAndRemoveSamplers(initUniforms);
             HashSet<VFXValue> updateSamplers = CollectAndRemoveSamplers(updateUniforms);
@@ -556,6 +578,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.paramToName = paramToName;
             shaderMetaData.outputParamToName = outputParamToName;
             shaderMetaData.generatedTextureData = system.GeneratedTextureData;
+            shaderMetaData.extraUniforms = generatedUniforms;
    
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
             string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
@@ -625,6 +648,27 @@ namespace UnityEditor.Experimental
             rtData.UpdateAllUniforms();
 
             return rtData;
+        }
+
+        public static HashSet<VFXExpression> GenerateExtraUniforms(List<VFXBlockModel> blocks)
+        {
+            HashSet<VFXExpression> generated = new HashSet<VFXExpression>();
+
+            List<VFXNamedValue> collectedValues = new List<VFXNamedValue>();
+            foreach (VFXBlockModel block in blocks)
+                for (int i = 0; i < block.Desc.Properties.Length; ++i)
+                {
+                    collectedValues.Clear();
+                    block.GetSlot(i).CollectNamedValues(collectedValues);
+                    foreach (var arg in collectedValues)
+                        if (arg.m_Value.ValueType == VFXValueType.kTransform && ((block.Desc.Flags & VFXBlockDesc.Flag.kNeedsInverseTransform) != 0))
+                        {
+                            var inverseValue = new VFXExpressionInverseTRS(arg.m_Value);
+                            generated.Add(inverseValue);
+                        }
+                }
+
+            return generated;
         }
 
         public static HashSet<VFXValue> CollectUniforms(List<VFXBlockModel> blocks)

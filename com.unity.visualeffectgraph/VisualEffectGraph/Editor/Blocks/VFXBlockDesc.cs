@@ -58,6 +58,7 @@ namespace UnityEngine.Experimental.VFX
             kNone = 0,
             kHasRand = 1 << 0,
             kHasKill = 1 << 1,
+            kNeedsInverseTransform = 1 << 2,
         }
 
         private static readonly bool USE_SAFE_FUNCTION_NAME = false; // Set that to true to use longer but function names guaranteed with no collisions
@@ -214,6 +215,8 @@ namespace UnityEngine.Experimental.VFX
                 flag |= Flag.kHasRand;
             if (src.IndexOf("KILL") != -1)
                 flag |= Flag.kHasKill;
+            if (src.IndexOf("INVERSE") != -1) // TODO This should be done be transform
+                flag |= Flag.kNeedsInverseTransform;
 
             return flag;
         }

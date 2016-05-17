@@ -286,6 +286,16 @@ namespace UnityEditor.Experimental
                         separator = ',';
                         Write(paramToName[(VFXValue)arg.m_Value]);
                     }
+
+                // Write extra parameters
+                foreach (var arg in namedValues)
+                    if (arg.m_Value.IsValue(false) && arg.m_Value.ValueType == VFXValueType.kTransform && ((block.Desc.Flags & VFXBlockDesc.Flag.kNeedsInverseTransform) != 0))
+                    {
+                        Write(separator);
+                        separator = ',';
+                        Write("Inv");
+                        Write(paramToName[(VFXValue)arg.m_Value]);
+                    }
             }
 
             if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
