@@ -151,12 +151,12 @@ velocity += normalize(dir) * (deltaTime * AttractionForce / sqrDist);";
             Add(new VFXAttribute(CommonAttrib.Position, false));
 
             Source = @"
-float3 vectorFieldCoord = mul(transpose(Box), position);
-float3 value = (tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5, 0.0f)) - 0.5f) * 2;
-value = mul(Box,float4(value,0)).xyz;
-float3 vel_force = velocity + deltaTime * value  * Intensity;
-float3 vel_direct = value * Intensity;
-velocity = lerp(vel_force,vel_direct, saturate(Tightness));";
+float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
+float3 value = tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5f, 0.0f)) * 2.0f - 1.0f;
+value = mul(Box,float4(value,0.0f)).xyz;
+float3 updatedVelocity = (deltaTime * Intensity) * value  + velocity;
+float3 directVelocity = value * Intensity;
+velocity = lerp(updatedVelocity,directVelocity, saturate(Tightness));";
         }
 
     }

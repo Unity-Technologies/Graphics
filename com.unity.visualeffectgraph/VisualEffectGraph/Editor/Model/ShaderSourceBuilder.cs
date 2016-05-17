@@ -201,6 +201,20 @@ namespace UnityEditor.Experimental
                         Write(" ");
                         Write(arg.m_Name);
                     }
+
+                    // extra uniforms
+                    foreach (var arg in namedValues)
+                    {
+                        if (arg.m_Value.ValueType == VFXValueType.kTransform && ((block.Desc.Flags & VFXBlockDesc.Flag.kNeedsInverseTransform) != 0))
+                        {
+                            Write(separator);
+                            separator = ',';
+
+                            WriteType(VFXValueType.kTransform);
+                            Write(" Inv");
+                            Write(arg.m_Name);
+                        }
+                    }
                 }
 
                 if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
@@ -291,10 +305,13 @@ namespace UnityEditor.Experimental
                 foreach (var arg in namedValues)
                     if (arg.m_Value.IsValue(false) && arg.m_Value.ValueType == VFXValueType.kTransform && ((block.Desc.Flags & VFXBlockDesc.Flag.kNeedsInverseTransform) != 0))
                     {
-                        Write(separator);
-                        separator = ',';
-                        Write("Inv");
-                        Write(paramToName[(VFXValue)arg.m_Value]);
+                        VFXExpression extraValue = data.extraUniforms[(VFXValue)arg.m_Value];
+                        if (extraValue.IsValue())
+                        {
+                            Write(separator);
+                            separator = ',';
+                            Write(paramToName[(VFXValue)extraValue.Reduce()]);
+                        }
                     }
             }
 
