@@ -54,9 +54,7 @@ velocity += float3( (RAND*2-1) * Divergence,
             Add(new VFXAttribute(CommonAttrib.Velocity, true));
 
             Source = @"
-velocity += float3( (RAND*2-1) * Divergence.x,
-                    (RAND*2-1) * Divergence.y,
-                    (RAND*2-1) * Divergence.z);";
+velocity += (RAND3 * 2 - 1) * Divergence;";
         }
     }
 
@@ -81,6 +79,27 @@ float2 sincosTheta;
 sincos(u2,sincosTheta.x,sincosTheta.y);
 sincosTheta *= sqrt(1.0 - u1*u1);
 velocity += float3(sincosTheta,u1).xzy * lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);";
+        }
+    }
+
+    class VFXBlockVelocityRadialFromOrigin : VFXBlockType
+    {
+        public VFXBlockVelocityRadialFromOrigin()
+        {
+            Name = "Velocity (Radial from origin)";
+            Icon = "Velocity";
+            Category = "Velocity/Radial";
+
+            Add(VFXProperty.Create<VFXPositionType>("Origin"));
+            Add(new VFXProperty(new VFXFloat2Type(new Vector2(0f,0.5f)),"MinMaxSpeed"));
+
+            Add(new VFXAttribute(CommonAttrib.Position, false));
+            Add(new VFXAttribute(CommonAttrib.Velocity, true));
+
+            Source = @"
+float3 dir = normalize(position - Origin);
+float speed = lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);
+velocity += dir * speed;";
         }
     }
 }
