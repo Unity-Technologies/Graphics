@@ -149,8 +149,14 @@ namespace UnityEditor.Experimental
                     break;
 
                 case VFXValueType.kTexture2D:
+                case VFXValueType.kTexture3D:
                 {
-                    Texture2D tex = value.Get<Texture2D>();
+                    Texture tex = null;
+                    if (value.ValueType == VFXValueType.kTexture2D)
+                        tex = value.Get<Texture2D>();
+                    else
+                        tex = value.Get<Texture3D>();
+
                     if (tex != null)
                     {
                         if (output)
@@ -198,8 +204,6 @@ namespace UnityEditor.Experimental
                     simulationShader.SetVector(uniformName, m_GeneratedTextureData.GetCurveUniform(value));
                     break;
                 
-
-                case VFXValueType.kTexture3D: // Texture 3D not handled yet
                 case VFXValueType.kNone:
                     // Not yet implemented
                     break;

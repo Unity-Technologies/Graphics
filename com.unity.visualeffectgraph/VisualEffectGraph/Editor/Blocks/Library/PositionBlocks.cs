@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.VFX
             Add(new VFXAttribute(CommonAttrib.Position, true));
 
             Source = @"
-position = value;";
+position = pos;";
         }
     }
 
@@ -179,7 +179,10 @@ float u2 = UNITY_TWO_PI * RAND;
 float u3 = sqrt(RAND);
 float2 sincosTheta;
 sincos(u2,sincosTheta.x,sincosTheta.y);
-position = (float3(sincosTheta * u3,u1 * Cylinder_height) * Cylinder_radius).xzy + Cylinder_position;";
+sincosTheta *= u3 * Cylinder_radius;
+float3 normal = normalize(cross(Cylinder_direction,Cylinder_direction.zxy));
+float3 binormal = cross(normal,Cylinder_direction);
+position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_direction * (u1 * Cylinder_height) + Cylinder_position;";
         }
     }
 
@@ -200,7 +203,10 @@ float u1 = 1.0 * RAND - 0.5;
 float u2 = UNITY_TWO_PI * RAND;
 float2 sincosTheta;
 sincos(u2,sincosTheta.x,sincosTheta.y);
-position = float3(sincosTheta * Cylinder_radius,u1 * Cylinder_height).xzy + Cylinder_position;";
+sincosTheta *= Cylinder_radius;
+float3 normal = normalize(cross(Cylinder_direction,Cylinder_direction.zxy));
+float3 binormal = cross(normal,Cylinder_direction);
+position = normal * (sincosTheta.x * Cylinder_radius) + binormal * (sincosTheta.y * Cylinder_radius) + Cylinder_direction * (u1 * Cylinder_height) + Cylinder_position;";
         }
     }
     // TODO Convert that in some other files
