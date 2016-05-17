@@ -142,15 +142,21 @@ velocity += normalize(dir) * (deltaTime * AttractionForce / sqrDist);";
             Category = "Forces";
 
             Add(new VFXProperty(new VFXTexture3DType(),"VectorField"));
-            Add(new VFXProperty(new VFXTransformType(), "Transform"));
-            Add(new VFXProperty(new VFXFloatType(1.0f), "Force"));
+            Add(new VFXProperty(new VFXOrientedBoxType(), "Box"));
+            Add(new VFXProperty(new VFXFloatType(1.0f), "Intensity"));
+            Add(new VFXProperty(new VFXFloatType(0.0f), "Tightness"));
+
 
             Add(new VFXAttribute(CommonAttrib.Velocity, true));
             Add(new VFXAttribute(CommonAttrib.Position, false));
 
             Source = @"
-float3 vectorFieldCoord = mul(Transform,position);
-velocity += deltaTime * tex3Dlod(VectorField, float4(vectorFieldCoord, 0.0f)) * Force;";
+float3 vectorFieldCoord = mul(transpose(Box), position);
+float3 value = (tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5, 0.0f)) - 0.5f) * 2;
+value = mul(Box,float4(value,0)).xyz;
+float3 vel_force = velocity + deltaTime * value  * Intensity;
+float3 vel_direct = value * Intensity;
+velocity = lerp(vel_force,vel_direct, saturate(Tightness));";
         }
 
     }
