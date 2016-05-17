@@ -206,7 +206,7 @@ sincos(u2,sincosTheta.x,sincosTheta.y);
 sincosTheta *= Cylinder_radius;
 float3 normal = normalize(cross(Cylinder_direction,Cylinder_direction.zxy));
 float3 binormal = cross(normal,Cylinder_direction);
-position = normal * (sincosTheta.x * Cylinder_radius) + binormal * (sincosTheta.y * Cylinder_radius) + Cylinder_direction * (u1 * Cylinder_height) + Cylinder_position;";
+position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_direction * (u1 * Cylinder_height) + Cylinder_position;";
         }
     }
     // TODO Convert that in some other files
