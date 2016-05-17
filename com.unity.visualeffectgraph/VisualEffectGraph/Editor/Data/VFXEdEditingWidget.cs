@@ -176,17 +176,15 @@ namespace UnityEditor.Experimental
 
         public virtual void OnSceneGUI(SceneView sceneView)
         {
-
             EditorGUI.BeginChangeCheck();
 
             Vector3 dir = m_Direction.Get<Vector3>();
-            float length = dir.magnitude;
 
             bool needsRefresh = VFXEdHandleUtility.CheckQuaternion(ref m_Quat, dir);
 
             Vector3 viewportCenter = Camera.current.ViewportToWorldPoint(new Vector3(0.5f,0.5f,1.0f));
 
-            VFXEdHandleUtility.EditDirection(ref m_Quat, ref dir, viewportCenter, b_ForceNormalized);
+            float length = VFXEdHandleUtility.EditDirection(ref m_Quat, ref dir, viewportCenter, b_ForceNormalized);
 
             if (EditorGUI.EndChangeCheck() || needsRefresh)
                 m_Direction.Set((m_Quat * Vector3.forward) * length);
@@ -540,7 +538,7 @@ namespace UnityEditor.Experimental
                 return false;
         }
 
-        public static void EditDirection(ref Quaternion quaternion, ref Vector3 dir, Vector3 handlePosition, bool forceNormalized)
+        public static float EditDirection(ref Quaternion quaternion, ref Vector3 dir, Vector3 handlePosition, bool forceNormalized)
         {
             float length = dir.magnitude;
             Vector3 normal = dir;
@@ -562,6 +560,8 @@ namespace UnityEditor.Experimental
                 length = Handles.ScaleSlider(length, handlePosition, normal, quaternion, scaleSize, scaleSize);
                 Handles.Label(handlePosition,new GUIContent(length.ToString("0.00")));
             }
+
+            return length;
         }
 
         public static void ShowCylinder(Vector3 position, Quaternion orientation, float radius, float height)
