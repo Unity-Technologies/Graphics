@@ -1,13 +1,79 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    public abstract class BaseMaterialGraph : Graph
+   
+
+    [Serializable]
+    public class SlotReference
+    {
+        [SerializeField]
+        private string m_NodeGUIDSerialized;
+
+        [NonSerialized]
+        private GUID m_NodeGUID;
+
+        [SerializeField]
+        private string m_SlotName;
+
+        public SlotReference(GUID nodeGuid, string slotName)
+        {
+            m_NodeGUID = nodeGuid;
+            m_SlotName = slotName;
+        }
+
+        public GUID nodeGuid
+        {
+            get { return m_NodeGUID; }
+        }
+
+        public string slotName
+        {
+            get { return m_SlotName; }
+        }
+
+        public void BeforeSerialize()
+        {
+            m_NodeGUIDSerialized = m_NodeGUID.ToString();
+        }
+
+        public void AfterDeserialize()
+        {
+            m_NodeGUID = new GUID(m_NodeGUIDSerialized);
+        }
+    }
+
+    [Serializable]
+    public class Edge
+    {
+        [SerializeField]
+        private SlotReference m_OutputSlot;
+        [SerializeField]
+        private SlotReference m_InputSlot;
+
+        public Edge(SlotReference outputSlot, SlotReference inputSlot)
+        {
+            m_OutputSlot = outputSlot;
+            m_InputSlot = inputSlot;
+        }
+
+        public SlotReference outputSlot
+        {
+            get { return m_OutputSlot; }
+        }
+
+        public SlotReference inputSlot
+        {
+            get { return m_InputSlot; }
+        }
+    }
+
+    public abstract class BaseMaterialGraph
     {
         private PreviewRenderUtility m_PreviewUtility;
-
         public PreviewRenderUtility previewUtility
         {
             get
@@ -15,40 +81,61 @@ namespace UnityEditor.MaterialGraph
                 if (m_PreviewUtility == null)
                 {
                     m_PreviewUtility = new PreviewRenderUtility();
-                    EditorUtility.SetCameraAnimateMaterials(m_PreviewUtility.m_Camera, true);
+                   // EditorUtility.SetCameraAnimateMaterials(m_PreviewUtility.m_Camera, true);
                 }
 
                 return m_PreviewUtility;
             }
         }
 
+        private List<BaseMaterialNode> m_Nodes = new List<BaseMaterialNode>();
+        private List<Edge> m_Edges = new List<Edge>();
+
+        protected List<BaseMaterialNode> nodes
+        {
+            get
+            {
+                return m_Nodes;
+            }
+        } 
+
         public bool requiresRepaint
         {
-            get { return isAwake && nodes.Any(x => x is IRequiresTime); }
+            get { return nodes.Any(x => x is IRequiresTime); }
         }
         
-        public override void RemoveEdge(Edge e)
+        public void RemoveEdge(Edge e)
         {
-            base.RemoveEdge(e);
+            m_Edges.Remove(e);
             RevalidateGraph();
         }
 
         public void RemoveEdgeNoRevalidate(Edge e)
         {
-            base.RemoveEdge(e);
+            m_Edges.Remove(e);
         }
 
-        public override void RemoveNode(Node node, bool destroyNode = false)
+        public void RemoveNode(BaseMaterialNode node)
         {
-            if (node is BaseMaterialNode)
-            {
-                if (!((BaseMaterialNode) node).canDeleteNode)
-                    return;
-            }
-            base.RemoveNode(node, destroyNode);
+            if (!node.canDeleteNode)
+                return;
+
+            m_Nodes.Remove(node);
         }
 
-        public override Edge Connect(Slot fromSlot, Slot toSlot)
+        public BaseMaterialNode GetNodeFromGUID(GUID guid)
+        {
+            return m_Nodes.FirstOrDefault(x => x.guid == guid);
+        }
+
+        public IEnumerable<Edge> GetEdges(Slot s)
+        {
+            return m_Edges.Where(x =>
+                (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotName == s.name) 
+                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotName == s.name);
+        }
+
+        public Edge Connect(Slot fromSlot, Slot toSlot)
         {
             Slot outputSlot = null;
             Slot inputSlot = null;
@@ -68,23 +155,18 @@ namespace UnityEditor.MaterialGraph
                 return null;
 
             // remove any inputs that exits before adding
-            foreach (var edge in inputSlot.edges.ToArray())
+            foreach (var edge in GetEdges(inputSlot))
             {
                 Debug.Log("Removing existing edge:" + edge);
                 // call base here as we DO NOT want to
                 // do expensive shader regeneration
-                base.RemoveEdge(edge);
+                RemoveEdge(edge);
             }
             
-            var newEdge = base.Connect(outputSlot, inputSlot);
-            
-            Debug.Log("Connected edge: " + newEdge);
-            var toNode = inputSlot.node as BaseMaterialNode;
-            var fromNode = outputSlot.node as BaseMaterialNode;
+            var newEdge = new Edge(new SlotReference(outputSlot.nodeGuid, outputSlot.name), new SlotReference(inputSlot.nodeGuid, inputSlot.name));
+            m_Edges.Add(newEdge);
 
-            if (fromNode == null || toNode == null)
-                return newEdge;
-            
+            Debug.Log("Connected edge: " + newEdge);
             RevalidateGraph();
             return newEdge;
         }
@@ -102,22 +184,10 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public override void AddNode(Node node)
+        public void AddNode(BaseMaterialNode node)
         {
-            base.AddNode(node);
-            AssetDatabase.AddObjectToAsset(node, this);
+            m_Nodes.Add(node);
             RevalidateGraph();
-        }
-
-        public void AddNodeNoValidate(Node node)
-        {
-            base.AddNode(node);
-            AssetDatabase.AddObjectToAsset(node, this);
-        }
-
-        protected void AddMasterNodeNoAddToAsset(Node node)
-        {
-            base.AddNode(node);
         }
     }
 }

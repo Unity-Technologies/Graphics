@@ -24,7 +24,7 @@ namespace UnityEditor.MaterialGraph
 
             if (m_PixelMasterNode == null)
             {
-                m_PixelMasterNode = CreateInstance<PixelShaderNode>();
+                m_PixelMasterNode = new PixelShaderNode();
                 m_PixelMasterNode.OnCreate();
                 m_PixelMasterNode.position = new Rect(700, m_PixelMasterNode.position.y, m_PixelMasterNode.position.width, m_PixelMasterNode.position.height);
                 if (addToAsset)
