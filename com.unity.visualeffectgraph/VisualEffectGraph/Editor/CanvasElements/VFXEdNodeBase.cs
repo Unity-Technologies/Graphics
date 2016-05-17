@@ -33,7 +33,7 @@ namespace UnityEditor.Experimental
         protected VFXEdDataSource m_DataSource;
         protected Rect m_ClientArea;
 
-        internal VFXEdNodeBase(Vector2 canvasposition, VFXEdDataSource datasource) : base () {
+        internal VFXEdNodeBase(Vector2 canvasposition, VFXEdDataSource datasource, bool deletable = true) : base () {
             m_DataSource = datasource;
             translation = canvasposition;
             m_Inputs = new List<VFXEdFlowAnchor>();
@@ -45,7 +45,9 @@ namespace UnityEditor.Experimental
             m_UniqueName = GetType().Name + "_" + Token;
 
             AddManipulator(new Draggable());
-            AddManipulator(new NodeDelete());
+
+            if (deletable)
+                AddManipulator(new NodeDelete());
         }
 
         public abstract void OnRemove();

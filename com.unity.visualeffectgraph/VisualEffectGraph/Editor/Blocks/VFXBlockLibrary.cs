@@ -112,10 +112,25 @@ namespace UnityEditor.Experimental.VFX
 
         private IEnumerable<Type> FindConcreteSubclasses<T>()
         {
-            return (from domainAssembly in AppDomain.CurrentDomain.GetAssemblies()
-                    from assemblyType in domainAssembly.GetTypes()
-                    where (assemblyType.IsSubclassOf(typeof(T)) && !assemblyType.IsAbstract)
-                    select assemblyType);
+            List<Type> types = new List<Type>();
+            foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type[] assemblyTypes = null;
+                try
+                {
+                    assemblyTypes = domainAssembly.GetTypes();
+                }
+                catch(Exception e)
+                {
+                    Debug.Log("Cannot access assembly: "+domainAssembly);
+                    assemblyTypes = null;
+                }
+                if (assemblyTypes != null)
+                    foreach (var assemblyType in assemblyTypes)
+                        if (assemblyType.IsSubclassOf(typeof(T)) && !assemblyType.IsAbstract)
+                            types.Add (assemblyType);
+            }
+            return types;
         }
 
         private Dictionary<string,VFXBlockDesc> m_Blocks;

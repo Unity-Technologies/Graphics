@@ -48,18 +48,20 @@ namespace UnityEditor.Experimental
     internal class VFXUIPropertyAnchor : CanvasElement, IConnect
     {
         public VFXUIPropertySlotField Owner         { get { return m_Owner; } }
-        public VFXPropertySlot Slot                 { get { return Owner.Slot; } }
+        public VFXPropertySlot Slot                 { get { return m_Slot; } }
         public VFXPropertyTypeSemantics Semantics   { get { return Slot.Semantics; } }
         public VFXValueType ValueType               { get { return Slot.ValueType; } }
 
         private VFXUIPropertySlotField m_Owner;
+        private VFXPropertySlot m_Slot;
         private Direction m_Direction;
         private VFXEdDataSource m_DataSource;
         private VFXSemanticsSource m_Source; 
 
-        public VFXUIPropertyAnchor(VFXUIPropertySlotField owner, VFXEdDataSource dataSource, Vector3 position, Direction direction)
+        public VFXUIPropertyAnchor(VFXUIPropertySlotField owner, VFXPropertySlot slot,VFXEdDataSource dataSource, Vector3 position, Direction direction)
         {
             m_Owner = owner;
+            m_Slot = slot;
             m_Direction = direction;
             m_DataSource = dataSource;
             m_Source = new VFXSemanticsSource(Semantics,direction);
@@ -87,7 +89,7 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            if (!collapsed && !Owner.Collapsed())
+            if (!collapsed && (Owner == null || !Owner.Collapsed()))
             {
                 Rect r = GetDrawableRect();
                 Color typeColor = VFXEditor.styles.GetTypeColor(ValueType);
@@ -140,7 +142,7 @@ namespace UnityEditor.Experimental
             thisRect.x -= 2;
             thisRect.y += 5;
             GUI.color = VFXEditor.styles.GetTypeColor(ValueType);
-            if (!collapsed && !Owner.Collapsed())
+            if (!collapsed && (Owner == null || !Owner.Collapsed()))
             {
                 switch (m_Direction)
                 {
@@ -160,6 +162,7 @@ namespace UnityEditor.Experimental
 
         public void OnConnect(IConnect other)
         {
+            ParentCanvas().ClearSelection();
             VFXUIPropertyAnchor otherConnector = other as VFXUIPropertyAnchor;
             if (otherConnector != null)
             {
