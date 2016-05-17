@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.Graphs;
 using UnityEditorInternal;
 using UnityEngine;
 
@@ -55,62 +54,45 @@ namespace UnityEditor.MaterialGraph
         Collapsed
     }
 
-    [Serializable]
-    class SlotDefaultValueKVP
+    public abstract class BaseMaterialNode : IGenerateProperties, ISerializationCallbackReceiver
     {
-        [SerializeField]
-        public string slotName;
-        [SerializeField]
-        public SlotValue value;
-
-        public SlotDefaultValueKVP(string slotName, SlotValue value)
-        {
-            this.slotName = slotName;
-            this.value = value;
-        }
-    } 
-    
-    public struct MaterialGraphSlot
-    {
-        public Slot slot;
-        public SlotValueType valueType;
-
-        public MaterialGraphSlot(Slot slot, SlotValueType valueType)
-        {
-            this.slot = slot;
-            this.valueType = valueType;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("{0} - {1} - {2}", slot.name, slot.isInputSlot, valueType);
-        }
-    }
-
-    public abstract class BaseMaterialNode : Node, IGenerateProperties
-    {
-
         #region Fields
         private const int kPreviewWidth = 64;
         private const int kPreviewHeight = 64;
         
-        [SerializeField]
-        private List<SlotDefaultValueKVP> m_SlotDefaultValues;
+        [NonSerialized]
+        private GUID m_GUID;
 
         [SerializeField]
-        private string m_GUID = string.Empty;
+        private string m_GUIDSerialzied;
 
-        protected string guid
+        public GUID guid
         {
             get
             {
-                if (string.IsNullOrEmpty(m_GUID))
-                {
-                    var newGUID = Guid.NewGuid();
-                    m_GUID = newGUID.ToString("N");
-                }
                 return m_GUID;
             }
+        }
+
+        private string m_Name;
+        public string name
+        {
+            get { return name; }
+        }
+
+        public BaseMaterialGraph owner { private get; set; }
+
+        [SerializeField]
+        private List<Slot> m_Slots = new List<Slot>();
+
+        private IEnumerable<Slot> inputSlots
+        {
+            get { return m_Slots.Where(x => x.isInputSlot); }
+        }
+
+        private IEnumerable<Slot> outputSlots
+        {
+            get { return m_Slots.Where(x => x.isOutputSlot); }
         }
 
         [SerializeField]
@@ -124,15 +106,17 @@ namespace UnityEditor.MaterialGraph
                 onNeedsRepaint();
         } 
 
-        private readonly Dictionary<string, SlotValueType> m_SlotValueTypes = new Dictionary<string, SlotValueType>();
-        private readonly Dictionary<string, ConcreteSlotValueType> m_ConcreteInputSlotValueTypes = new Dictionary<string, ConcreteSlotValueType>();
-        private readonly Dictionary<string, ConcreteSlotValueType> m_ConcreteOutputSlotValueTypes = new Dictionary<string, ConcreteSlotValueType>();
+        [NonSerialized]
+        private Dictionary<string, SlotValueType> m_SlotValueTypes = new Dictionary<string, SlotValueType>();
+
+        [NonSerialized]
+        private Dictionary<string, ConcreteSlotValueType> m_ConcreteInputSlotValueTypes = new Dictionary<string, ConcreteSlotValueType>();
+
+        [NonSerialized]
+        private Dictionary<string, ConcreteSlotValueType> m_ConcreteOutputSlotValueTypes = new Dictionary<string, ConcreteSlotValueType>();
         #endregion
 
         #region Properties
-        internal PixelGraph pixelGraph { get { return graph as PixelGraph; } }
-        public bool generated { get; set; }
-
         // Nodes that want to have a preview area can override this and return true
         public virtual bool hasPreview { get { return false; } }
         public virtual PreviewMode previewMode { get { return PreviewMode.Preview2D; } }
@@ -142,46 +126,9 @@ namespace UnityEditor.MaterialGraph
             get { return m_DrawMode; }
             set { m_DrawMode = value; }
         }
-
-        public bool isSelected { get; set; }
-
-        // lookup custom slot properties
-        public void SetSlotDefaultValue(string slotName, SlotValue defaultValue)
-        {
-            m_SlotDefaultValues.RemoveAll(x => x.slotName == slotName);
-
-            if (defaultValue == null)
-                return;
-
-            m_SlotDefaultValues.Add(new SlotDefaultValueKVP(slotName, defaultValue));
-        }
-
-        protected void SetSlotDefaultValueType(string slot, SlotValueType slotType)
-        {
-            if (string.IsNullOrEmpty(slot))
-                return;
-
-            if (m_SlotValueTypes.ContainsKey(slot))
-                m_SlotValueTypes[slot] = slotType;
-            else
-                m_SlotValueTypes.Add(slot, slotType);
-        }
         
-        public string precision
-        {
-            get { return "half"; }
-        }
-
-        public string[] m_PrecisionNames = {"half"};
-
         protected virtual bool generateDefaultInputs { get { return true; } }
         public virtual bool canDeleteNode { get { return true; } }
-        
-        public SlotValue GetSlotDefaultValue(string slotName)
-        {
-            var found = m_SlotDefaultValues.FirstOrDefault(x => x.slotName == slotName);
-            return found != null ? found.value : null;
-        }
 
         [SerializeField]
         private string m_LastShader;
@@ -275,19 +222,6 @@ namespace UnityEditor.MaterialGraph
 
         #endregion
 
-        public virtual void OnCreate()
-        {
-            hideFlags = HideFlags.HideInHierarchy;
-        }
-
-        public virtual void OnEnable()
-        {
-            if (m_SlotDefaultValues == null)
-            {
-                m_SlotDefaultValues = new List<SlotDefaultValueKVP>();
-            }
-        }
-
         public virtual float GetNodeUIHeight(float width)
         {
             return 0;
@@ -331,7 +265,7 @@ namespace UnityEditor.MaterialGraph
         // order you can generate a valid code block.
         public List<BaseMaterialNode> CollectChildNodesByExecutionOrder(List<BaseMaterialNode> nodeList, Slot slotToUse = null, bool includeSelf = true)
         {
-            if (slotToUse != null && !slots.Contains(slotToUse))
+            if (slotToUse != null && !m_Slots.Contains(slotToUse))
             {
                 Debug.LogError("Attempting to collect nodes by execution order with an invalid slot on: " + name);
                 return nodeList;
@@ -375,8 +309,8 @@ namespace UnityEditor.MaterialGraph
             // if we are now valid
             if (m_PreviewShader && ShaderHasError(m_PreviewShader))
             {
-                DestroyImmediate(m_PreviewShader, true);
-                DestroyImmediate(m_PreviewMaterial, true);
+                UnityEngine.Object.DestroyImmediate(m_PreviewShader, true);
+                UnityEngine.Object.DestroyImmediate(m_PreviewMaterial, true);
                 m_PreviewShader = null;
                 m_PreviewMaterial = null;
             }
@@ -556,18 +490,18 @@ namespace UnityEditor.MaterialGraph
 
         public virtual void GetValidInputSlots(List<Slot> slotsToFill)
         {
-            for (int i = 0; i < slots.Count; ++i)
+            for (int i = 0; i < m_Slots.Count; ++i)
             {
-                var slot = slots[i];
-                if (slot != null && slot.isInputSlot)
+                var slot = m_Slots[i];
+                if (slot != null && slot.slotType == Slot.SlotType.Input)
                     slotsToFill.Add(slot);
             }
         }
 
         public virtual string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
         {
-            if (s.isInputSlot) Debug.LogError("Attempting to use input slot (" + s + ") for output!");
-            if (!slots.Contains(s)) Debug.LogError("Attempting to use slot (" + s + ") for output on a node that does not have this slot!");
+            if (s.slotType == Slot.SlotType.Input) Debug.LogError("Attempting to use input slot (" + s + ") for output!");
+            if (!m_Slots.Contains(s)) Debug.LogError("Attempting to use slot (" + s + ") for output on a node that does not have this slot!");
 
             return GetOutputVariableNameForNode() + "_" + s.name;
         }
@@ -581,42 +515,52 @@ namespace UnityEditor.MaterialGraph
             return Vector4.one;
         }
 
-        [Obsolete ("This call is not supported for Material Graph. Use: AddSlot(MaterialGraphSlot mgSlot)", true)]
-        public new void AddSlot(Slot slot)
+        public void AddSlot(Slot slot)
         {
-            throw new NotSupportedException("Material graph requires the use of: AddSlot(MaterialGraphSlot mgSlot)");
-        }
-        
-        public void AddSlot(MaterialGraphSlot mgSlot)
-        {
-            if (mgSlot.slot == null)
+            if (slot == null)
                 return;
-            
-            var slot = mgSlot.slot;
 
-            if (this[slot.name] == null)
+            // new slot, just add it, we cool
+            if (!m_Slots.Contains(slot))
             {
-                base.AddSlot(slot);
+                m_Slots.Add(slot);
+                return;
             }
 
-            var slotValue = GetSlotDefaultValue(slot.name);
-            if (slotValue == null || !slotValue.IsValid())
-                SetSlotDefaultValue(slot.name, new SlotValue(this, slot.name, GetNewSlotDefaultValue(mgSlot.valueType)));
+            // old slot found
+            // update the default value, and the slotType!
+            var foundSlots = m_Slots.FindAll(x => x.name == slot.name);
 
-            SetSlotDefaultValueType(slot.name, mgSlot.valueType);
+            // if we are in a bad state (> 1 slot with same name, just reset).
+            if (foundSlots.Count > 1)
+            {
+                Debug.LogWarningFormat("Node {0} has more than one slot with the same name, removing.");
+                foundSlots.ForEach(x => m_Slots.Remove(x));
+                m_Slots.Add(slot);
+                return;
+            }
+
+            var foundSlot = foundSlots[0];
+
+            // if the defualt and current are the same, change the current
+            // to the new default.
+            if (foundSlot.defaultValue == foundSlot.currentValue)
+                foundSlot.currentValue = slot.defaultValue;
+
+            foundSlot.defaultValue = slot.defaultValue;
+            foundSlot.valueType = slot.valueType;
         }
         
-        public override void RemoveSlot(Slot slot)
+        public void RemoveSlot(string name)
         {
-            SetSlotDefaultValue(slot.name, null);
-            base.RemoveSlot(slot);
+            m_Slots.RemoveAll(x => x.name == name);
         }
 
-        public string GenerateSlotName(SlotType type)
+        public string GenerateSlotName(Slot.SlotType type)
         {
-            var slotsToCheck = type == SlotType.InputSlot ? inputSlots.ToArray() : outputSlots.ToArray();
-            string format = type == SlotType.InputSlot ? "I{0:00}" : "O{0:00}";
-            int index = slotsToCheck.Length;
+            var slotsToCheck = type == Slot.SlotType.Input ? inputSlots.ToArray() : outputSlots.ToArray();
+            string format = type == Slot.SlotType.Input ? "I{0:00}" : "O{0:00}";
+            int index = slotsToCheck.Count();
             var slotName = string.Format(format, index);
             if (slotsToCheck.All(x => x.name != slotName))
                 return slotName;
@@ -645,18 +589,17 @@ namespace UnityEditor.MaterialGraph
 
             foreach (var inputSlot in inputSlots)
             {
-                if (inputSlot.edges.Count > 0)
+                var edges = owner.GetEdges(inputSlot);
+                if (edges.Any())
                     continue;
                 
-                var defaultForSlot = GetSlotDefaultValue(inputSlot.name);
-                if (defaultForSlot != null)
-                    defaultForSlot.GeneratePropertyUsages(visitor, generationMode, concreteInputSlotValueTypes[inputSlot.name]);
+                inputSlot.GeneratePropertyUsages(visitor, generationMode, concreteInputSlotValueTypes[inputSlot.name], this);
             }
         }
 
         public Slot FindInputSlot(string name)
         {
-            var slot = inputSlots.FirstOrDefault(x => x.name == name);
+            var slot = m_Slots.FirstOrDefault(x => x.isInputSlot && x.name == name);
             if (slot == null)
                 Debug.LogError("Input slot: " + name + " could be found on node " + GetOutputVariableNameForNode());
             return slot;
@@ -664,7 +607,7 @@ namespace UnityEditor.MaterialGraph
 
         public Slot FindOutputSlot(string name)
         {
-            var slot = outputSlots.FirstOrDefault(x => x.name == name);
+            var slot = m_Slots.FirstOrDefault(x => x.isOutputSlot && x.name == name);
             if (slot == null)
                 Debug.LogError("Output slot: " + name + " could be found on node " + GetOutputVariableNameForNode());
             return slot;
@@ -672,35 +615,28 @@ namespace UnityEditor.MaterialGraph
 
         protected string GetSlotValue(Slot inputSlot, GenerationMode generationMode)
         {
-            bool pointInputConnected = inputSlot.edges.Count > 0;
-            string inputValue;
-            if (pointInputConnected)
+            var edges = owner.GetEdges(inputSlot).ToArray();
+
+            if (edges.Length > 0)
             {
-                inputValue = ShaderGenerator.AdaptNodeOutput(inputSlot.edges[0].fromSlot, generationMode, concreteInputSlotValueTypes[inputSlot.name]);
+                var fromSocketRef = edges[0].outputSlot;
+                var fromNode = owner.GetNodeFromGUID(fromSocketRef.nodeGuid);
+                var slot = fromNode.FindOutputSlot(fromSocketRef.slotName);
+
+                return ShaderGenerator.AdaptNodeOutput(slot, generationMode, concreteInputSlotValueTypes[inputSlot.name]);
             }
-            else
-            {
-                var defaultValue = GetSlotDefaultValue(inputSlot.name);
-                inputValue = defaultValue.GetDefaultValue(generationMode, concreteInputSlotValueTypes[inputSlot.name]);
-            }
-            return inputValue;
+
+            return inputSlot.GetDefaultValue(generationMode, concreteInputSlotValueTypes[inputSlot.name], this);
         }
 
         public void RemoveSlotsNameNotMatching(string[] slotNames)
         {
-            var invalidSlots = slots.Select(x => x.name).Except(slotNames);
+            var invalidSlots = m_Slots.Select(x => x.name).Except(slotNames);
 
             foreach (var invalidSlot in invalidSlots.ToList())
             {
                 Debug.LogWarningFormat("Removing Invalid Slot: {0}", invalidSlot);
-                RemoveSlot(this[invalidSlot]);
-            }
-
-            var invalidSlotDefaults = m_SlotDefaultValues.Select(x => x.slotName).Except(slotNames);
-            foreach (var invalidSlot in invalidSlotDefaults.ToList())
-            {
-                Debug.LogWarningFormat("Removing Invalid Slot Default: {0}", invalidSlot);
-                m_SlotDefaultValues.RemoveAll(x => x.slotName == invalidSlot);
+                RemoveSlot(invalidSlot);
             }
         }
         
@@ -784,13 +720,15 @@ namespace UnityEditor.MaterialGraph
             // so do that here
             foreach (var inputSlot in inputSlots)
             {
-                foreach (var edge in inputSlot.edges)
+                var edges = owner.GetEdges(inputSlot);
+                foreach (var edge in edges)
                 {
-                    var outputSlot = edge.fromSlot;
-                    var outputNode = (BaseMaterialNode) outputSlot.node;
+                    var fromSocketRef = edge.outputSlot;
+                    var outputNode = owner.GetNodeFromGUID(fromSocketRef.nodeGuid);
+                    
                     outputNode.ValidateNode();
                     if (outputNode.hasError)
-                        isInError |= true;
+                        isInError = true;
                 }
             }
 
@@ -805,7 +743,8 @@ namespace UnityEditor.MaterialGraph
             {
                 var inputType = m_SlotValueTypes[inputSlot.name];
                 // if there is a connection
-                if (inputSlot.edges.Count == 0)
+                var edges = owner.GetEdges(inputSlot).ToList();
+                if (!edges.Any())
                 {
                     if (inputType != SlotValueType.Dynamic)
                         m_ConcreteInputSlotValueTypes.Add(inputSlot.name, ToConcreteType(inputType));
@@ -815,8 +754,9 @@ namespace UnityEditor.MaterialGraph
                 }
 
                 // get the output details
-                var outputSlot = inputSlot.edges[0].fromSlot;
-                var outputNode = (BaseMaterialNode) outputSlot.node;
+                var outputSlotRef = edges[0].outputSlot;
+                var outputNode = owner.GetNodeFromGUID(outputSlotRef.nodeGuid);
+                var outputSlot = outputNode.FindOutputSlot(outputSlotRef.slotName);
                 var outputConcreteType = outputNode.GetConcreteOutputSlotValueType(outputSlot);
 
                 // if we have a standard connection... just check the types work!
@@ -833,7 +773,7 @@ namespace UnityEditor.MaterialGraph
                 dynamicInputSlotsToCompare.Add(inputSlot.name, outputConcreteType);
             }
 
-            // we can now figure out the dynamic type
+            // we can now figure out the dynamic slotType
             // from here set all the 
             var dynamicType = ConvertDynamicInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
             foreach (var dynamicKvP in dynamicInputSlotsToCompare)
@@ -844,9 +784,9 @@ namespace UnityEditor.MaterialGraph
             bool inputError = m_ConcreteInputSlotValueTypes.Any(x => x.Value == ConcreteSlotValueType.Error);
 
             // configure the output slots now
-            // their type will either be the default output type
-            // or the above dynanic type for dynamic nodes
-            // or error if there is an input erro
+            // their slotType will either be the default output slotType
+            // or the above dynanic slotType for dynamic nodes
+            // or error if there is an input error
             foreach (var outputSlot in outputSlots)
             {
                 if (inputError)
@@ -946,6 +886,9 @@ namespace UnityEditor.MaterialGraph
         {
             return inputSlots.Where(x => x.edges.Count == 0);
         }
+
+        public abstract void OnBeforeSerialize();
+        public abstract void OnAfterDeserialize();
     }
 
     public enum GUIModificationType

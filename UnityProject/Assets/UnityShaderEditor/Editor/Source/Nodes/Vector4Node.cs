@@ -21,7 +21,7 @@ namespace UnityEditor.MaterialGraph
         public override void OnEnable()
         {
             base.OnEnable();
-            AddSlot(new MaterialGraphSlot(new Slot(SlotType.OutputSlot, kOutputSlotName), SlotValueType.Vector4));
+            AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.OutputSlot, slotType: kOutputSlotName), SlotValueType.Vector4));
         }
 
         public override PropertyType propertyType
