@@ -119,7 +119,10 @@ namespace UnityEditor.Experimental
             switch (Tools.current)
             {
                 case Tool.Move:
-                    position = Handles.PositionHandle(position, rotation);
+                    if(Tools.pivotRotation == PivotRotation.Global)
+                        position = Handles.PositionHandle(position, Quaternion.identity);
+                    else
+                        position = Handles.PositionHandle(position, rotation);
                     break;
                 case Tool.Rotate:
                     rotation = Handles.RotationHandle(rotation, position);
@@ -159,7 +162,7 @@ namespace UnityEditor.Experimental
 
         public virtual void OnSceneGUI(SceneView sceneView)
         {
-            m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), Quaternion.identity));
+                m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), Quaternion.identity));
         }
 
         private VFXPropertySlot m_Position;
@@ -232,7 +235,10 @@ namespace UnityEditor.Experimental
             switch (Tools.current)
             {
                 case Tool.Move:
-                    pos = Handles.PositionHandle(pos, m_Quat);
+                    if(Tools.pivotRotation == PivotRotation.Global)
+                        pos = Handles.PositionHandle(pos, Quaternion.identity);
+                    else
+                        pos = Handles.PositionHandle(pos, m_Quat);
                     break;
                 case Tool.Rotate:
                     // dir = Handles.RotationHandle(pos, Quaternion.AngleAxis(0, dir));

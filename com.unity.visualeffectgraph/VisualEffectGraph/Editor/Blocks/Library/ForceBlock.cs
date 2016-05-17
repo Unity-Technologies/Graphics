@@ -133,4 +133,26 @@ velocity += normalize(dir) * (deltaTime * AttractionForce / sqrDist);";
         }
     }
 
+    class VFXBlockVectorFieldForce : VFXBlockType
+    {
+        public VFXBlockVectorFieldForce()
+        {
+            Name = "Attractor (VectorField)";
+            Icon = "Force";
+            Category = "Forces";
+
+            Add(new VFXProperty(new VFXTexture3DType(),"VectorField"));
+            Add(new VFXProperty(new VFXTransformType(), "Transform"));
+            Add(new VFXProperty(new VFXFloatType(1.0f), "Force"));
+
+            Add(new VFXAttribute(CommonAttrib.Velocity, true));
+            Add(new VFXAttribute(CommonAttrib.Position, false));
+
+            Source = @"
+float3 vectorFieldCoord = mul(Transform,position);
+velocity += deltaTime * tex3Dlod(VectorField, float4(vectorFieldCoord, 0.0f)) * Force;";
+        }
+
+    }
+
 }
