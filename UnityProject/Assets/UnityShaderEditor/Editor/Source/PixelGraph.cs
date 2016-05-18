@@ -1,48 +1,37 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    class PixelGraph : BaseMaterialGraph
+    [Serializable]
+    public class PixelGraph : BaseMaterialGraph
     {
+        [NonSerialized]
         private PixelShaderNode m_PixelMasterNode;
-        
+
+        public PixelGraph(MaterialGraph owner) : base (owner)
+        {
+            m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof(PixelShaderNode)) as PixelShaderNode;
+            if (m_PixelMasterNode == null)
+            {
+                m_PixelMasterNode = new PixelShaderNode(this);
+                AddNode(m_PixelMasterNode);
+                m_PixelMasterNode.position = new Rect(700, m_PixelMasterNode.position.y, m_PixelMasterNode.position.width, m_PixelMasterNode.position.height);
+            }
+        }
+
         public PixelShaderNode pixelMasterNode
         {
             get
             {
-                ConfigureMasterNode(true);
                 return m_PixelMasterNode;
             }
         }
 
-        private void ConfigureMasterNode(bool addToAsset)
-        {
-            if (m_PixelMasterNode == null)
-                m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof(PixelShaderNode)) as PixelShaderNode;
-
-            if (m_PixelMasterNode == null)
-            {
-                m_PixelMasterNode = new PixelShaderNode();
-                m_PixelMasterNode.OnCreate();
-                m_PixelMasterNode.position = new Rect(700, m_PixelMasterNode.position.y, m_PixelMasterNode.position.width, m_PixelMasterNode.position.height);
-                if (addToAsset)
-                    AddNode(m_PixelMasterNode);
-            }
-        }
-
-        public override void OnEnable()
-        {
-            base.OnEnable();
-            ConfigureMasterNode(false);
-        }
-        
-        public void AddSubAssetsToAsset()
-        {
-            AddNodeNoValidate(m_PixelMasterNode);
-        }
-
+ 
+        [NonSerialized]
         private List<BaseMaterialNode> m_ActiveNodes = new List<BaseMaterialNode>();
         public IEnumerable<BaseMaterialNode> activeNodes
         {

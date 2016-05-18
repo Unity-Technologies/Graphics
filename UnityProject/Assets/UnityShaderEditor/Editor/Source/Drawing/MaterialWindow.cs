@@ -98,8 +98,19 @@ namespace UnityEditor.MaterialGraph
             if (posObj == null)
                 return;
 
-            var node = (BaseMaterialNode)CreateInstance(posObj.m_Type);
-            node.OnCreate();
+            BaseMaterialNode node = null;
+            try
+            {
+                var constructorInfo = posObj.m_Type.GetConstructor(new[] {typeof(BaseMaterialGraph)});
+                if (constructorInfo != null)
+                    node = (BaseMaterialNode)constructorInfo.Invoke(new object[] { m_MaterialGraph.currentGraph });
+            }
+            catch
+            {
+                Debug.LogWarningFormat("Could not construct instance of: {0} as there is no single argument constuctor that takes a BaseMaterialGraph", posObj.m_Type);
+                return;
+            }
+            
             node.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, node.position.width, node.position.height);
             m_MaterialGraph.currentGraph.AddNode(node);
 

@@ -17,7 +17,6 @@ namespace UnityEditor.MaterialGraph
             var graph = CreateInstance<MaterialGraph>();
             graph.name = Path.GetFileName(pathName);
             AssetDatabase.CreateAsset(graph, pathName);
-            graph.AddSubAssetsToAsset();
         }
     }
 }

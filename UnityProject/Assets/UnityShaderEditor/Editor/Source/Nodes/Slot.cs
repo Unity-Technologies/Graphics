@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.MaterialGraph
 {
     [Serializable]
-    public class Slot
+    public class Slot : ISerializationCallbackReceiver
     {
         public enum SlotType
         {
@@ -33,10 +33,13 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         private string m_NodeGUIDSerialized;
 
-        [NonSerialized]
-        private GUID m_NodeGUID;
+        [SerializeField]
+        private ConcreteSlotValueType m_ConcreteValueType;
 
-        public Slot(GUID nodeGuid, string name, string displayName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
+        [NonSerialized]
+        private Guid m_NodeGUID;
+
+        public Slot(Guid nodeGuid, string name, string displayName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
         {
             m_Name = name;
             m_DisplayName = displayName;
@@ -72,7 +75,7 @@ namespace UnityEditor.MaterialGraph
             get { return m_DisplayName; }
         }
 
-        public GUID nodeGuid
+        public Guid nodeGuid
         {
             get { return m_NodeGUID; }
         }
@@ -93,6 +96,12 @@ namespace UnityEditor.MaterialGraph
         {
             get { return m_CurrentValue; }
             set { m_CurrentValue = value; }
+        }
+
+        public ConcreteSlotValueType concreteValueType
+        {
+            get { return m_ConcreteValueType; }
+            set { m_ConcreteValueType = value; }
         }
 
         public string GetInputName (BaseMaterialNode node)
@@ -178,14 +187,17 @@ namespace UnityEditor.MaterialGraph
             return EditorGUI.EndChangeCheck();
         }
 
-        public void BeforeSerialize()
+        public virtual void OnBeforeSerialize()
         {
             m_NodeGUIDSerialized = m_NodeGUID.ToString();
         }
 
-        public void AfterDeserialize()
+        public virtual void OnAfterDeserialize()
         {
-            m_NodeGUID = new GUID(m_NodeGUIDSerialized);
+            if (!string.IsNullOrEmpty(m_NodeGUIDSerialized))
+                m_NodeGUID = new Guid(m_NodeGUIDSerialized);
+            else
+                m_NodeGUID = Guid.NewGuid();
         }
     }
 }

@@ -32,7 +32,7 @@ namespace UnityEditor.MaterialGraph
             foreach (var slot in node.inputSlots)
             {
                 pos.y += 22;
-                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data, Direction.Input));
+                AddChild(new NodeAnchor(pos, typeof (Vector4), node, slot, data, Direction.Input));
             }
             var inputYMax = pos.y + 22;
 
@@ -41,12 +41,13 @@ namespace UnityEditor.MaterialGraph
             pos.y = yStart;
             foreach (var slot in node.outputSlots)
             {
+                var edges = node.owner.GetEdges(slot);
                 // don't show empty output slots in collapsed mode
-                if (node.drawMode == DrawMode.Collapsed && slot.edges.Count == 0)
+                if (node.drawMode == DrawMode.Collapsed && !edges.Any())
                     continue;
 
                 pos.y += 22;
-                AddChild(new NodeAnchor(pos, typeof (Vector4), slot, data, Direction.Output));
+                AddChild(new NodeAnchor(pos, typeof (Vector4), node, slot, data, Direction.Output));
             }
             pos.y += 22;
 
@@ -85,7 +86,6 @@ namespace UnityEditor.MaterialGraph
             var pos = m_Node.position;
             pos.min = translation;
             m_Node.position = pos;
-            EditorUtility.SetDirty (m_Node);
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
@@ -117,6 +117,8 @@ namespace UnityEditor.MaterialGraph
                 return;
             }
 
+            //TODO:DATA
+            /*
             if (m_Node.hasPreview 
                 && m_Node.drawMode != DrawMode.Collapsed 
                 && m_PreviewArea.width > 0
@@ -125,8 +127,8 @@ namespace UnityEditor.MaterialGraph
                 GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
                 GUI.DrawTexture(m_PreviewArea, m_Node.RenderPreview(new Rect(0, 0, m_PreviewArea.width, m_PreviewArea.height)), ScaleMode.StretchToFill, false);
                 GL.sRGBWrite = false;
-            }
-            
+            }*/
+
             base.Render(parentRect, canvas);
         }
 
