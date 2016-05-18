@@ -133,4 +133,32 @@ velocity += normalize(dir) * (deltaTime * AttractionForce / sqrDist);";
         }
     }
 
+    class VFXBlockVectorFieldForce : VFXBlockType
+    {
+        public VFXBlockVectorFieldForce()
+        {
+            Name = "Attractor (VectorField)";
+            Icon = "Force";
+            Category = "Forces";
+
+            Add(new VFXProperty(new VFXTexture3DType(),"VectorField"));
+            Add(new VFXProperty(new VFXOrientedBoxType(), "Box"));
+            Add(new VFXProperty(new VFXFloatType(1.0f), "Intensity"));
+            Add(new VFXProperty(new VFXFloatType(0.0f), "Tightness"));
+
+
+            Add(new VFXAttribute(CommonAttrib.Velocity, true));
+            Add(new VFXAttribute(CommonAttrib.Position, false));
+
+            Source = @"
+float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
+float3 value = tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5f, 0.0f)) * 2.0f - 1.0f;
+value = mul(Box,float4(value,0.0f)).xyz;
+float3 updatedVelocity = (deltaTime * Intensity) * value  + velocity;
+float3 directVelocity = value * Intensity;
+velocity = lerp(updatedVelocity,directVelocity, saturate(Tightness));";
+        }
+
+    }
+
 }

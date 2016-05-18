@@ -25,6 +25,8 @@ namespace UnityEditor.Experimental
 
     public class VFXSystemRuntimeData
     {
+        public IEnumerable<VFXExpression> generatedUniforms; // TODO This should not be stored here but rather invalidated when its linked value is invalidated
+
         public Dictionary<VFXValue, string> uniforms = new Dictionary<VFXValue, string>();
         public Dictionary<VFXValue, string> outputUniforms = new Dictionary<VFXValue, string>();
         
@@ -60,6 +62,12 @@ namespace UnityEditor.Experimental
 
         public void UpdateAllUniforms()
         {
+            foreach (var uniform in generatedUniforms)
+            {
+                uniform.Invalidate();
+                uniform.Reduce();
+            }
+
             foreach (var uniform in uniforms)
                 UpdateUniform(uniform.Key,false);
 
@@ -178,8 +186,10 @@ namespace UnityEditor.Experimental
                     break;
                 }
                 case VFXValueType.kTransform:
-                {
+                { 
                     Matrix4x4 mat = value.Get<Matrix4x4>();
+                    if (uniformName.StartsWith("Inv_"))
+                        mat = mat.inverse;
                     if (output)
                         m_Material.SetMatrix(uniformName, mat);
                     else
@@ -321,6 +331,8 @@ namespace UnityEditor.Experimental
         public Dictionary<VFXValue, string> outputParamToName = new Dictionary<VFXValue, string>();
 
         public VFXGeneratedTextureData generatedTextureData = new VFXGeneratedTextureData();
+
+        public Dictionary<VFXValue, VFXExpression> extraUniforms = new Dictionary<VFXValue, VFXExpression>();
     }
 
     public static class VFXModelCompiler
@@ -374,8 +386,8 @@ namespace UnityEditor.Experimental
                 for (int j = 0; j < context.GetNbChildren(); ++j)
                 {
                     VFXBlockModel blockModel = context.GetChild(j);
-                    hasRand |= (blockModel.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0;
-                    hasKill |= (blockModel.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0;
+                    hasRand |= blockModel.Desc.IsSet(VFXBlockDesc.Flag.kHasRand);
+                    hasKill |= blockModel.Desc.IsSet(VFXBlockDesc.Flag.kHasKill);
                     currentList.Add(blockModel);
                 }
 
@@ -491,11 +503,40 @@ namespace UnityEditor.Experimental
             }
                 
             // UNIFORMS
+
             HashSet<VFXValue> initUniforms = CollectUniforms(initBlocks);
             initGenerator.UpdateUniforms(initUniforms);
             HashSet<VFXValue> updateUniforms = CollectUniforms(updateBlocks);
             updateGenerator.UpdateUniforms(updateUniforms);
 
+            // Generate potential extra uniforms  
+            Dictionary<VFXValue, VFXExpression> initGeneratedUniforms = GenerateExtraUniforms(initBlocks);
+            Dictionary<VFXValue, VFXExpression> updateGeneratedUniforms = GenerateExtraUniforms(updateBlocks);
+            
+            // Keep track of all generated uniforms
+            Dictionary<VFXValue, VFXExpression> generatedUniforms = new Dictionary<VFXValue, VFXExpression>();
+
+            // add generated uniforms to uniform list
+            foreach (var uniform in initGeneratedUniforms)
+            {
+                if (!generatedUniforms.ContainsKey(uniform.Key))
+                {
+                    generatedUniforms.Add(uniform.Key,uniform.Value);
+                    if (uniform.Value.Reduce().IsValue())
+                        initUniforms.Add((VFXValue)uniform.Value.Reduce());
+                }
+
+            }
+            foreach (var uniform in updateGeneratedUniforms)
+            {
+                if (!generatedUniforms.ContainsKey(uniform.Key))
+                {
+                    generatedUniforms.Add(uniform.Key,uniform.Value);
+                    if (uniform.Value.Reduce().IsValue())
+                        updateUniforms.Add((VFXValue)uniform.Value.Reduce());
+                }
+            }
+ 
             // collect samplers
             HashSet<VFXValue> initSamplers = CollectAndRemoveSamplers(initUniforms);
             HashSet<VFXValue> updateSamplers = CollectAndRemoveSamplers(updateUniforms);
@@ -556,6 +597,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.paramToName = paramToName;
             shaderMetaData.outputParamToName = outputParamToName;
             shaderMetaData.generatedTextureData = system.GeneratedTextureData;
+            shaderMetaData.extraUniforms = generatedUniforms;
    
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
             string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
@@ -592,6 +634,7 @@ namespace UnityEditor.Experimental
             rtData.hasKill = shaderMetaData.hasKill;
 
             rtData.m_GeneratedTextureData = system.GeneratedTextureData;
+            rtData.generatedUniforms = shaderMetaData.extraUniforms.Values;
 
             // Build the buffer desc to send to component
             var buffersDesc = new List<VFXBufferDesc>();
@@ -625,6 +668,27 @@ namespace UnityEditor.Experimental
             rtData.UpdateAllUniforms();
 
             return rtData;
+        }
+
+        public static Dictionary<VFXValue, VFXExpression> GenerateExtraUniforms(List<VFXBlockModel> blocks)
+        {
+            var generated = new Dictionary<VFXValue, VFXExpression>();
+
+            List<VFXNamedValue> collectedValues = new List<VFXNamedValue>();
+            foreach (VFXBlockModel block in blocks)
+                for (int i = 0; i < block.Desc.Properties.Length; ++i)
+                {
+                    collectedValues.Clear();
+                    block.GetSlot(i).CollectNamedValues(collectedValues);
+                    foreach (var arg in collectedValues)
+                        if (arg.m_Value.IsValue(false) && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
+                        {
+                            var inverseValue = new VFXExpressionInverseTRS(arg.m_Value);
+                            generated.Add((VFXValue)arg.m_Value,inverseValue);
+                        }
+                }
+
+            return generated;
         }
 
         public static HashSet<VFXValue> CollectUniforms(List<VFXBlockModel> blocks)
@@ -751,6 +815,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("#define RAND4 float4(RAND,RAND,RAND,RAND)");
             builder.WriteLine("#define KILL {kill = true;}");
             builder.WriteLine("#define SAMPLE sampleSignal");
+            builder.WriteLine("#define INVERSE(m) Inv##m");
             builder.WriteLine();
 
             builder.WriteLine("CBUFFER_START(GlobalInfo)");

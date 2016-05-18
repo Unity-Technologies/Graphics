@@ -172,4 +172,41 @@ namespace UnityEngine.Experimental.VFX
         private bool m_CacheValid;
     }
 
+    class VFXExpressionInverseTRS : VFXExpression
+    {
+        public VFXExpressionInverseTRS(VFXExpression trs)
+        {
+            m_Trs = trs;
+            m_Cached = new VFXValueTransform();
+        }
+
+        // Reduce the expression and potentially cache the result before returning it
+        public override VFXExpression Reduce()
+        {
+            if (m_CacheValid)
+                return m_Cached;
+
+            if (m_Trs.IsValue())
+            {
+                Matrix4x4 trs = m_Trs.Get<Matrix4x4>();
+                m_Cached.Set(trs.inverse);
+                m_CacheValid = true;
+                return m_Cached;
+            }
+
+            return this;
+        }
+
+        // Invalidate the reduction to impose a recomputation
+        public override void Invalidate()
+        {
+            m_CacheValid = false;
+        }
+
+        private VFXExpression m_Trs;
+
+        private VFXValueTransform m_Cached;
+        private bool m_CacheValid;
+    }
+
 }

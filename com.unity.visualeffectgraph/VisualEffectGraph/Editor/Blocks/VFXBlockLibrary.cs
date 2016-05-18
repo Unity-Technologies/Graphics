@@ -99,7 +99,7 @@ namespace UnityEditor.Experimental.VFX
 
                         var dataBlockDesc = new VFXDataBlockDesc(new VFXProperty(semantics,desc.m_Name),desc.m_Icon,desc.m_Category);
 
-                        m_DataBlocks.Add(semanticType.FullName, dataBlockDesc);
+                        m_DataBlocks.Add(semantics.ID, dataBlockDesc);
                         //Debug.Log("DATABLOCK "+semanticType.Name+" "+dataBlockDesc.Name+" "+dataBlockDesc.Icon+" "+dataBlockDesc.Category);
                     }
                 }
@@ -120,7 +120,7 @@ namespace UnityEditor.Experimental.VFX
                 {
                     assemblyTypes = domainAssembly.GetTypes();
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                     Debug.Log("Cannot access assembly: "+domainAssembly);
                     assemblyTypes = null;

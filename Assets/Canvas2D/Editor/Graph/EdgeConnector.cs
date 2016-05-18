@@ -145,6 +145,9 @@ namespace UnityEditor.Experimental.Graph
                 }
             }
 
+            // THOMASI : Reset m_SnappedSource when ending a drag.
+            m_SnappedSource = null;
+
             EndSnap();
             e.Use();
             canvas.OnOverlay -= HighlightCompatibleAnchors;

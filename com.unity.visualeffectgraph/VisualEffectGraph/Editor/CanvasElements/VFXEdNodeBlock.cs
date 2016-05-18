@@ -20,10 +20,6 @@ namespace UnityEditor.Experimental
         protected string m_LibraryName;
         protected string m_UniqueName;
 
-        // TODO Remove that
-        public DataContainer editingDataContainer;
-        public VFXEdEditingWidget editingWidget;
-
         public VFXUIPropertySlotField[] Fields { get { return m_Fields; } }
         protected VFXUIPropertySlotField[] m_Fields;
 
