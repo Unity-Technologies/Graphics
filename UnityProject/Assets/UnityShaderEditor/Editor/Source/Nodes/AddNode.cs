@@ -5,10 +5,9 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Add Node")]
     public class AddNode : Function2Input, IGeneratesFunction
     {
-        public override void OnCreate()
+        public AddNode()
         {
             name = "AddNode";
-            base.OnCreate();
         }
 
         protected override string GetFunctionName()

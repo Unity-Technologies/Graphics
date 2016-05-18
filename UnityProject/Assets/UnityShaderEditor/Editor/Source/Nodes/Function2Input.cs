@@ -10,9 +10,8 @@ namespace UnityEditor.MaterialGraph
             get { return true; }
         }
 
-        public override void OnEnable()
+        public Function2Input()
         {
-            base.OnEnable();
             AddSlot(GetInputSlot1());
             AddSlot(GetInputSlot2());
             AddSlot(GetOutputSlot());
@@ -24,10 +23,10 @@ namespace UnityEditor.MaterialGraph
             get { return new[] {GetInputSlot1Name(), GetInputSlot2Name(), GetOutputSlotName()}; }
         }
 
-        protected virtual MaterialGraphSlot GetInputSlot1()
+        protected virtual Slot GetInputSlot1()
         {
             var slot = new Slot(SlotType.InputSlot, GetInputSlot1Name());
-            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
+            return new Slot(slot, SlotValueType.Dynamic);
         }
 
         protected virtual MaterialGraphSlot GetInputSlot2()

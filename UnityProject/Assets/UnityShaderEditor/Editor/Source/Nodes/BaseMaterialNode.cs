@@ -78,14 +78,20 @@ namespace UnityEditor.MaterialGraph
         public string name
         {
             get { return name; }
+            set { name = value; }
         }
 
-        public BaseMaterialGraph owner { private get; set; }
+        public string precision
+        {
+            get { return "half"; }
+        }
+
+        public BaseMaterialGraph owner { protected get; set; }
 
         [SerializeField]
         private List<Slot> m_Slots = new List<Slot>();
 
-        private IEnumerable<Slot> inputSlots
+        protected IEnumerable<Slot> inputSlots
         {
             get { return m_Slots.Where(x => x.isInputSlot); }
         }
@@ -372,11 +378,7 @@ namespace UnityEditor.MaterialGraph
                 }
             }
 
-            var bmg = (graph as BaseMaterialGraph);
-            if (bmg == null)
-                return null;
-
-            var previewUtil = bmg.previewUtility;
+            var previewUtil = owner.previewUtility;
             previewUtil.BeginPreview(targetSize, GUIStyle.none);
 
             if (m_GeneratedShaderMode == PreviewMode.Preview3D)
@@ -432,29 +434,23 @@ namespace UnityEditor.MaterialGraph
         
         protected virtual void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
         {
-            var validSlots = ListPool<Slot>.Get();
-            GetValidInputSlots(validSlots);
+            var validSlots = inputSlots.ToArray();
 
-            for (int index = 0; index < validSlots.Count; index++)
+            for (int index = 0; index < validSlots.Length; index++)
             {
                 var s = validSlots[index];
-                if (s.edges.Count > 0)
-                    continue;
-
-                var defaultInput = GetSlotDefaultValue(s.name);
-                if (defaultInput == null)
+                var edges = owner.GetEdges(s);
+                if (edges.Any())
                     continue;
 
                 var pp = new PreviewProperty
                 {
-                    m_Name = defaultInput.inputName,
+                    m_Name = s.GetInputName(this),
                     m_PropType = PropertyType.Vector4,
-                    m_Vector4 = defaultInput.defaultValue
+                    m_Vector4 = s.currentValue
                 };
                 properties.Add(pp);
             }
-
-            ListPool<Slot>.Release(validSlots);
         }
 
         public static void UpdateMaterialProperties(BaseMaterialNode target, Material material)
@@ -488,19 +484,9 @@ namespace UnityEditor.MaterialGraph
 
         #region Slots
 
-        public virtual void GetValidInputSlots(List<Slot> slotsToFill)
-        {
-            for (int i = 0; i < m_Slots.Count; ++i)
-            {
-                var slot = m_Slots[i];
-                if (slot != null && slot.slotType == Slot.SlotType.Input)
-                    slotsToFill.Add(slot);
-            }
-        }
-
         public virtual string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
         {
-            if (s.slotType == Slot.SlotType.Input) Debug.LogError("Attempting to use input slot (" + s + ") for output!");
+            if (s.isInputSlot) Debug.LogError("Attempting to use input slot (" + s + ") for output!");
             if (!m_Slots.Contains(s)) Debug.LogError("Attempting to use slot (" + s + ") for output on a node that does not have this slot!");
 
             return GetOutputVariableNameForNode() + "_" + s.name;
@@ -845,8 +831,11 @@ namespace UnityEditor.MaterialGraph
         {
             GUILayout.Label("Slot Defaults", EditorStyles.boldLabel);
             bool modified = false;
-            foreach (var slot in slots.Where(x => x.isInputSlot && x.edges.Count == 0))
-                modified |= DoSlotUI(this, slot);
+            foreach (var slot in inputSlots)
+            {
+                if(!owner.GetEdges(slot).Any())
+                    modified |= DoSlotUI(this, slot);
+            }
 
             return modified;
         }
@@ -856,35 +845,24 @@ namespace UnityEditor.MaterialGraph
             GUILayout.BeginHorizontal(/*EditorStyles.inspectorBig*/);
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Slot " + slot.title, EditorStyles.largeLabel);
+            GUILayout.Label("Slot " + slot.name, EditorStyles.largeLabel);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
 
-            return DoMaterialSlotUIBody(node, slot);
+            return slot.OnGUI();
         }
-
-        private static bool DoMaterialSlotUIBody(BaseMaterialNode node, Slot slot)
-        {
-            SlotValue value = node.GetSlotDefaultValue(slot.name);
-            if (value == null)
-                return false;
-
-            var def = node.GetSlotDefaultValue(slot.name);
-            return def.OnGUI();
-        }
-
+        
         public virtual bool DrawSlotDefaultInput(Rect rect, Slot inputSlot)
         {
-            var def = GetSlotDefaultValue(inputSlot.name);
             var inputSlotType = GetConcreteInputSlotValueType(inputSlot);
-            return def.OnGUI(rect, inputSlotType);
+            return inputSlot.OnGUI(rect, inputSlotType);
         }
 
         public virtual IEnumerable<Slot> GetDrawableInputProxies()
         {
-            return inputSlots.Where(x => x.edges.Count == 0);
+            return inputSlots.Where(x => !owner.GetEdges(x).Any());
         }
 
         public abstract void OnBeforeSerialize();
