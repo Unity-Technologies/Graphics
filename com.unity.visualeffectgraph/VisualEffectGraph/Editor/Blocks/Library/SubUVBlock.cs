@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockSetSubUVRandom()
         {
-            Name = "Set Flipbook Index (Random)";
+            Name = "Index (Random)";
             Icon = "Flipbook";
             Category = "Flipbook";
 
@@ -21,28 +21,11 @@ texIndex = lerp(MinIndex,MaxIndex,RAND);";
         }
     }
 
-    class VFXBlockSubUVAnimateConstant : VFXBlockType
+    class VFXBlockSubUVAnimateIndexCurve : VFXBlockType
     {
-        public VFXBlockSubUVAnimateConstant()
+        public VFXBlockSubUVAnimateIndexCurve()
         {
-            Name = "Animate Flipbook (Constant)";
-            Icon = "Flipbook";
-            Category = "Flipbook";
-
-            Add(VFXProperty.Create<VFXFloatType>("Framerate"));
-
-            Add(new VFXAttribute(CommonAttrib.TexIndex, true));
-
-            Source = @"
-texIndex += Framerate * DeltaTime;";
-        }
-    }
-
-    class VFXBlockSubUVAnimateCurve : VFXBlockType
-    {
-        public VFXBlockSubUVAnimateCurve()
-        {
-            Name = "Animate Flipbook (Curve)";
+            Name = "Index (Curve)";
             Icon = "Flipbook";
             Category = "Flipbook";
 
@@ -57,6 +40,45 @@ float r = saturate(age/lifetime);
 texIndex = SAMPLE(Curve, r);";
         }
     }
+
+    class VFXBlockSubUVAnimateConstantRate : VFXBlockType
+    {
+        public VFXBlockSubUVAnimateConstantRate()
+        {
+            Name = "Rate (Constant)";
+            Icon = "Flipbook";
+            Category = "Flipbook";
+
+            Add(VFXProperty.Create<VFXFloatType>("Framerate"));
+
+            Add(new VFXAttribute(CommonAttrib.TexIndex, true));
+
+            Source = @"
+texIndex += Framerate * DeltaTime;";
+        }
+    }
+
+    class VFXBlockSubUVAnimateCurveRate : VFXBlockType
+    {
+        public VFXBlockSubUVAnimateCurveRate()
+        {
+            Name = "Rate (Curve)";
+            Icon = "Flipbook";
+            Category = "Flipbook";
+
+            Add(VFXProperty.Create<VFXCurveType>("RateCurve"));
+
+            Add(new VFXAttribute(CommonAttrib.Age, false));
+            Add(new VFXAttribute(CommonAttrib.Lifetime, false));
+            Add(new VFXAttribute(CommonAttrib.TexIndex, true));
+
+            Source = @"
+float r = saturate(age/lifetime);
+texIndex += SAMPLE(RateCurve, r) * DeltaTime;";
+        }
+    }
+
+
 
 
 }

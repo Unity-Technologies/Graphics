@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockSetForceConstant()
         {
-            Name = "Set Force (Constant)";
+            Name = "Constant";
             Icon = "Force";
             Category = "Forces";
 
@@ -25,7 +25,7 @@ velocity += Force * deltaTime;";
     {
         public VFXBlockSetForceRelative()
         {
-            Name = "Set Force (Relative)";
+            Name = "Relative to Speed";
             Icon = "Force";
             Category = "Forces";
 
@@ -44,7 +44,7 @@ velocity += InfluenceSpeed * (DragCoefficient * deltaTime);";
     {
         public VFXBlockSetForceLinearDrag()
         {
-            Name = "Apply Linear Drag (Constant)";
+            Name = "Linear Drag (Constant)";
             Icon = "Drag";
             Category = "Forces";
 
@@ -61,7 +61,7 @@ velocity *= max(0.0,(1.0 - DragCoefficient * deltaTime));";
     {
         public VFXBlockSetForceLinearDragOverLife()
         {
-            Name = "Apply Drag Over Life (Curve)";
+            Name = "OverLife Drag (Curve)";
             Icon = "Drag";
             Category = "Forces";
 
@@ -83,7 +83,7 @@ velocity *= max(0.0,(1.0 - multiplier * deltaTime));";
     {
         public VFXBlockSetForceConformToSphere()
         {
-            Name = "Conform To Sphere";
+            Name = "Attractor (Sphere)";
             Icon = "Force";
             Category = "Forces";
 
@@ -119,8 +119,8 @@ velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,a
             Category = "Forces";
 
             Add(new VFXProperty( new VFXPositionType(),"Center"));
-            Add(new VFXProperty(new VFXFloatType(5.0f), "AttractionForce"));
-            Add(new VFXProperty(new VFXFloatType(0.05f), "AttractionOffset"));
+            Add(new VFXProperty(new VFXFloatType(5.0f), "Force"));
+            Add(new VFXProperty(new VFXFloatType(0.05f), "Offset"));
 
             Add(new VFXAttribute(CommonAttrib.Velocity, true));
             Add(new VFXAttribute(CommonAttrib.Position, false));
@@ -128,8 +128,8 @@ velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,a
 
             Source = @"
 float3 dir = Center - position;
-float sqrDist = dot(dir,dir) + AttractionOffset;
-velocity += normalize(dir) * (deltaTime * AttractionForce / sqrDist);";
+float sqrDist = dot(dir,dir) + Offset;
+velocity += normalize(dir) * (deltaTime * Force / sqrDist);";
         }
     }
 

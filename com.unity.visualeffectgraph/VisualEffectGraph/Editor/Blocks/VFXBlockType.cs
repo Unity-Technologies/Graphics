@@ -65,26 +65,4 @@ namespace UnityEditor.Experimental.VFX
         private List<VFXAttribute> m_Attributes = new List<VFXAttribute>();
     }
 
-    // Test
-    class VFXBlockTest : VFXBlockType
-    {
-        public VFXBlockTest()
-        {
-            Name = "Test";
-            Icon = "";
-            Category = "Tests";
-            Description = "This is a description of the block";
-
-            Add(VFXProperty.Create<VFXCurveType>("myCurve"));
-            Add(VFXProperty.Create<VFXFloatType>("myFloat"));
-
-            Add(new VFXAttribute(CommonAttrib.Position, true));
-
-            Source = @"
-float f = myFloat * 2.0f;
-position = SAMPLE(myCurve,myFloat);";
-
-        }
-    }
-
 }

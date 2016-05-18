@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockSetColorConstant()
         {
-            Name = "Color (Constant)";
+            Name = "RGB Constant";
             Icon = "Color";
             Category = "Color";
 
@@ -25,7 +25,7 @@ color = Color;";
     {
         public VFXBlockSetColorAlphaConstant()
         {
-            Name = "Color and Alpha (Constant)";
+            Name = "RGBA Constant";
             Icon = "Color";
             Category = "Color";
 
@@ -44,7 +44,7 @@ alpha = Alpha;";
     {
         public VFXBlockSetColorRandomUniform()
         {
-            Name = "Color (Random uniform)";
+            Name = "RGB Random Uniform";
             Icon = "Color";
             Category = "Color";
 
@@ -63,7 +63,7 @@ color = lerp(FirstColor,AltColor,RAND);";
     {
         public VFXBlockSetColorRandom()
         {
-            Name = "Color (Random, per-component)";
+            Name = "RGB Random Per-Component";
             Icon = "Color";
             Category = "Color";
 
@@ -82,7 +82,7 @@ color = lerp(FirstColor,AltColor,RAND3);";
     {
         public VFXBlockSetColorRandomGradient()
         {
-            Name = "Color and Alpha (Random from Gradient)";
+            Name = "RGBA Random from Gradient";
             Icon = "Color";
             Category = "Color";
 
@@ -102,7 +102,7 @@ alpha = rgba.a;";
     {
         public VFXBlockSetAlphaRandom()
         {
-            Name = "Alpha (Random)";
+            Name = "Alpha Random";
             Icon = "Color";
             Category = "Color";
 
@@ -120,7 +120,7 @@ alpha = lerp(MinAlpha,MaxAlpha,RAND);";
     {
         public VFXBlockSetColorOverLifetime()
         {
-            Name = "Color over Lifetime (Linear)";
+            Name = "Over Life RGB (Lerp)";
             Icon = "Color";
             Category = "Color";
 
@@ -142,7 +142,7 @@ color = lerp(StartColor,EndColor,ratio);";
 
         public VFXBlockSetAlphaOverLifetime()
         {
-            Name = "Alpha over Lifetime (Linear)";
+            Name = "Over Life Alpha (Lerp)";
             Icon = "Color";
             Category = "Color";
 
@@ -163,7 +163,7 @@ alpha = lerp(StartAlpha,EndAlpha,ratio);";
     {
         public VFXBlockSetColorGradientOverLifetime()
         {
-            Name = "Color over Lifetime (RGBA Gradient)";
+            Name = "Over Life RGBA (Gradient)";
             Icon = "Color";
             Category = "Color";
 
@@ -186,7 +186,7 @@ alpha = rgba.a;";
     {
         public VFXBlockSetAlphaCurveOverLifetime()
         {
-            Name = "Alpha over Lifetime (Curve)";
+            Name = "Over Life Alpha (Curve)";
             Icon = "Color";
             Category = "Color";
 
@@ -206,7 +206,7 @@ alpha = SAMPLE(Curve,ratio);";
     {
         public VFXBlockColorFromTextureProjection()
         {
-            Name = "Color from Texture (Projection)";
+            Name = "RGBA Texture Projection";
             Icon = "Color";
             Category = "Color";
 

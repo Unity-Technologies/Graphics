@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockSetTargetPositionMap()
         {
-            Name = "Target (Position Map)";
+            Name = "From Position Map";
             Icon = "Position";
             Category = "Target";
 
@@ -27,7 +27,7 @@ target = mul(Bounds, float4(pos,1.0)).xyz;";
     {
         public VFXBlockAttractTarget()
         {
-            Name = "Attract Target";
+            Name = "Attract Particles";
             Icon = "Force";
             Category = "Target";
 

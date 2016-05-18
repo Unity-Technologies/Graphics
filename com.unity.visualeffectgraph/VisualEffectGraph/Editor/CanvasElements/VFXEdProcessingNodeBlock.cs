@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental
 
             m_LibraryName = block.Name;
 
-            AddChild(new VFXEdNodeBlockHeader(m_LibraryName, VFXEditor.styles.GetIcon(block.Icon == "" ? "Default" : block.Icon), block.Properties.Length > 0));
+            AddChild(new VFXEdNodeBlockHeader( block.Category.Replace('/',' ') + " : " + block.Name, VFXEditor.styles.GetIcon(block.Icon == "" ? "Default" : block.Icon), block.Properties.Length > 0));
             AddManipulator(new TooltipManipulator(GetTooltipText));
             Layout();
         }

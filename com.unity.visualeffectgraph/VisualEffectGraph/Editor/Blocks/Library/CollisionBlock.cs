@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockCollideWithPlane()
         {
-            Name = "Collision with Plane";
+            Name = "Infinite Plane";
             Icon = "Position";
             Category = "Collision";
 
@@ -38,7 +38,7 @@ if (distToPlane >= 0)
     {
         public VFXBlockCollideWithSphere()
         {
-            Name = "Collision with Sphere";
+            Name = "Sphere";
             Icon = "Sphere";
             Category = "Collision";
 
