@@ -111,6 +111,7 @@ namespace UnityEditor.Experimental
             ((VFXInputSlot)b.Slot).Link((VFXOutputSlot)a.Slot);
             m_Elements.Add(new VFXUIPropertyEdge(this, a, b));
 
+            a.Invalidate();
             b.Invalidate();
         }
 
