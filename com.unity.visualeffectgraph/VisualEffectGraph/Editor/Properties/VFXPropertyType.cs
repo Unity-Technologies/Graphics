@@ -72,6 +72,8 @@ namespace UnityEngine.Experimental.VFX
             return true;
         }
 
+        public string ID { get { return GetType().FullName;  } }
+
         public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
         
         public virtual void CreateValue(VFXPropertySlot slot)

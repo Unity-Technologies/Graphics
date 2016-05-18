@@ -205,7 +205,7 @@ namespace UnityEditor.Experimental
                     // extra uniforms
                     foreach (var arg in namedValues)
                     {
-                        if (arg.m_Value.ValueType == VFXValueType.kTransform && ((block.Desc.Flags & VFXBlockDesc.Flag.kNeedsInverseTransform) != 0))
+                        if (arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
                         {
                             Write(separator);
                             separator = ',';
@@ -217,14 +217,14 @@ namespace UnityEditor.Experimental
                     }
                 }
 
-                if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
+                if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasRand))
                 {
                     Write(separator);
                     separator = ',';
                     Write("inout uint seed");
                 }
 
-                if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0)
+                if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasKill))
                 {
                     Write(separator);
                     separator = ',';
@@ -303,7 +303,7 @@ namespace UnityEditor.Experimental
 
                 // Write extra parameters
                 foreach (var arg in namedValues)
-                    if (arg.m_Value.IsValue(false) && arg.m_Value.ValueType == VFXValueType.kTransform && ((block.Desc.Flags & VFXBlockDesc.Flag.kNeedsInverseTransform) != 0))
+                    if (arg.m_Value.IsValue(false) && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
                     {
                         VFXExpression extraValue = data.extraUniforms[(VFXValue)arg.m_Value];
                         if (extraValue.IsValue())
@@ -315,14 +315,14 @@ namespace UnityEditor.Experimental
                     }
             }
 
-            if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0)
+            if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasRand))
             {
                 Write(separator);
                 separator = ',';
                 WriteAttrib(CommonAttrib.Seed, data);
             }
 
-            if ((block.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0)
+            if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasKill))
             {
                 Write(separator);
                 separator = ',';
