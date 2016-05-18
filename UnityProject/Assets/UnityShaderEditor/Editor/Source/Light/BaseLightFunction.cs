@@ -1,4 +1,5 @@
 using UnityEditor.Graphs;
+using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
@@ -41,14 +42,13 @@ namespace UnityEditor.MaterialGraph
         public override string GetSurfaceOutputStructureName() { return "SurfaceOutputStandard"; }
         public override void DoSlotsForConfiguration(PixelShaderNode node)
         {
-            node.AddSlot(new Slot(node.guid, kAlbedoSlotName, SlotValueType.Vector3, new SlotValue(), ));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kNormalSlotName), SlotValueType.Vector3));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kEmissionSlotName), SlotValueType.Vector3));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kMetallicSlotName), SlotValueType.Vector1));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kSmoothnessSlotName), SlotValueType.Vector1));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kOcclusion), SlotValueType.Vector1));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kAlphaSlotName), SlotValueType.Vector1));
-
+            node.AddSlot(new Slot(node.guid, kAlbedoSlotName, kAlbedoSlotName, Slot.SlotType.Input, SlotValueType.Vector3, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kNormalSlotName, kNormalSlotName, Slot.SlotType.Input, SlotValueType.Vector3, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kMetallicSlotName, kMetallicSlotName, Slot.SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kSmoothnessSlotName, kSmoothnessSlotName, Slot.SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kOcclusion, kOcclusion, Slot.SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kAlphaSlotName, kAlphaSlotName, Slot.SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+          
             // clear out slot names that do not match the slots 
             // we support
             node.RemoveSlotsNameNotMatching(
@@ -78,13 +78,13 @@ namespace UnityEditor.MaterialGraph
         public override string GetSurfaceOutputStructureName() { return "SurfaceOutputStandardSpecular"; }
         public override void DoSlotsForConfiguration(PixelShaderNode node)
         {
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kAlbedoSlotName), SlotValueType.Vector3));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kNormalSlotName), SlotValueType.Vector3));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kSpecularSlotName), SlotValueType.Vector3));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kEmissionSlotName), SlotValueType.Vector3));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kSmoothnessSlotName), SlotValueType.Vector1));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kOcclusion), SlotValueType.Vector1));
-            node.AddSlot(new MaterialGraphSlot(new Slot(name: SlotType.InputSlot, slotType: kAlphaSlotName), SlotValueType.Vector1));
+            node.AddSlot(new Slot(node.guid, kAlbedoSlotName, kAlbedoSlotName, Slot.SlotType.Input, SlotValueType.Vector3, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kNormalSlotName, kNormalSlotName, Slot.SlotType.Input, SlotValueType.Vector3, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kSpecularSlotName, kSpecularSlotName, Slot.SlotType.Input, SlotValueType.Vector3, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kEmissionSlotName, kEmissionSlotName, Slot.SlotType.Input, SlotValueType.Vector3, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kSmoothnessSlotName, kSmoothnessSlotName, Slot.SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kOcclusion, kOcclusion, Slot.SlotType.Input, SlotValueType.Vector1, Vector4.zero));
+            node.AddSlot(new Slot(node.guid, kAlphaSlotName, kAlphaSlotName, Slot.SlotType.Input, SlotValueType.Vector1, Vector4.zero));
 
             // clear out slot names that do not match the slots 
             // we support

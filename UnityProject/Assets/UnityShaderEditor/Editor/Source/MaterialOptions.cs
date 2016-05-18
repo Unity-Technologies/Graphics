@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    public class MaterialOptions : ScriptableObject
+    [Serializable]
+    public class MaterialOptions
     {
         public enum BlendMode
         {

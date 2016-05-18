@@ -12,13 +12,9 @@ namespace UnityEditor.MaterialGraph
 
         [SerializeField]
         private PixelGraph m_PixelGraph;
-        
-        public int GetShaderInstanceID()
-        {
-            return -1;
-            //return m_Shader.GetInstanceID();
-        }
-        
+
+
+      
         public MaterialOptions materialOptions { get { return m_MaterialOptions; } }
 
         public BaseMaterialGraph currentGraph { get { return m_PixelGraph; } }

@@ -5,8 +5,6 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-   
-
     [Serializable]
     public class SlotReference
     {

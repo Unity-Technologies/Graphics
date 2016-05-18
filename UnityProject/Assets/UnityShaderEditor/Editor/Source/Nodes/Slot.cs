@@ -16,6 +16,9 @@ namespace UnityEditor.MaterialGraph
         private string m_Name;
 
         [SerializeField]
+        private string m_DisplayName;
+
+        [SerializeField]
         private SlotType m_SlotType;
 
         [SerializeField]
@@ -33,9 +36,10 @@ namespace UnityEditor.MaterialGraph
         [NonSerialized]
         private GUID m_NodeGUID;
 
-        public Slot(GUID nodeGuid, string name, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
+        public Slot(GUID nodeGuid, string name, string displayName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
         {
             m_Name = name;
+            m_DisplayName = displayName;
             m_SlotType = slotType;
             m_ValueType = valueType;
             m_DefaultValue = defaultValue;
@@ -63,6 +67,11 @@ namespace UnityEditor.MaterialGraph
             get { return m_Name; }
         }
 
+        public string displayName
+        {
+            get { return m_DisplayName; }
+        }
+
         public GUID nodeGuid
         {
             get { return m_NodeGUID; }
@@ -86,31 +95,23 @@ namespace UnityEditor.MaterialGraph
             set { m_CurrentValue = value; }
         }
 
-
-        public void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
+        public string GetInputName (BaseMaterialNode node)
         {
-            // no need to generate a property block.
-            // we can just set the uniforms.
+            return string.Format( "{0}_{1}", node.name, name);
         }
-
-        public string GetInputName (string nodeName)
-        {
-            return string.Format( "{0}_{1}", nodeName, name);
-        }
-
 
         public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType, BaseMaterialNode owner)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk("float" + BaseMaterialNode.ConvertConcreteSlotValueTypeToString(slotValueType) + " " + GetInputName(owner.name) + ";", true);
+            visitor.AddShaderChunk("float" + BaseMaterialNode.ConvertConcreteSlotValueTypeToString(slotValueType) + " " + GetInputName(owner) + ";", true);
         }
 
         public string GetDefaultValue(GenerationMode generationMode, ConcreteSlotValueType slotValueType, BaseMaterialNode owner)
         {
             if (generationMode.IsPreview())
-                return GetInputName(owner.name);
+                return GetInputName(owner);
 
             switch (slotValueType)
             {
