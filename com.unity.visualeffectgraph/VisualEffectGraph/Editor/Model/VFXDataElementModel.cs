@@ -21,10 +21,10 @@ namespace UnityEditor.Experimental.VFX
         public void UpdateCollapsed(bool collapsed) {}
         public void UpdatePosition(Vector2 position)
         {
-            m_Position = position;
+            m_UIPosition = position;
         }
 
-        private Vector2 m_Position;
+        private Vector2 m_UIPosition;
         private bool m_Exposed;
     }
 
@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.VFX
         public void UpdatePosition(Vector2 position) {}
         public void UpdateCollapsed(bool collapsed)
         {
-            m_Collapsed = collapsed;
+            m_UICollapsed = collapsed;
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
@@ -51,6 +51,6 @@ namespace UnityEditor.Experimental.VFX
         }
 
         private VFXDataBlockDesc m_BlockDesc;
-        private bool m_Collapsed;
+        private bool m_UICollapsed;
     }
 }

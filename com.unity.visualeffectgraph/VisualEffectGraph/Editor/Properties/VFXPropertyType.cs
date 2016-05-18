@@ -72,6 +72,8 @@ namespace UnityEngine.Experimental.VFX
             return true;
         }
 
+        public string ID { get { return GetType().FullName;  } }
+
         public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
         
         public virtual void CreateValue(VFXPropertySlot slot)
@@ -335,7 +337,7 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXColorRGBType : VFXFloat3Type
     {
-        public static Desc Description() { return new Desc("Color", "type_color", "Color"); }
+        public static new Desc Description() { return new Desc("Color", "type_color", "Color"); }
 
         public VFXColorRGBType() : base(Vector3.one) {} // white as default color
         public VFXColorRGBType(Color c) : base (new Vector3(c.r,c.g,c.b)) { }
@@ -344,7 +346,7 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXPositionType : VFXFloat3Type
     {
-        public static Desc Description() { return new Desc("Float3 (Position)", "type_vector3", "Basic"); }
+        public static new Desc Description() { return new Desc("Float3 (Position)", "type_vector3", "Basic"); }
 
         public VFXPositionType() {}
         public VFXPositionType(Vector3 vector) : base (vector) { }
@@ -352,7 +354,7 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXVectorType : VFXFloat3Type
     {
-        public static Desc Description() { return new Desc("Float3 (Vector)", "type_vector3", "Basic"); }
+        public static new Desc Description() { return new Desc("Float3 (Vector)", "type_vector3", "Basic"); }
 
         public VFXVectorType() : base(Vector3.up) { }
         public VFXVectorType(Vector3 vector) : base (vector) { }
@@ -360,7 +362,7 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXDirectionType : VFXFloat3Type
     {
-        public static Desc Description() { return new Desc("Float3 (Direction)", "type_vector3", "Basic"); }
+        public static new Desc Description() { return new Desc("Float3 (Direction)", "type_vector3", "Basic"); }
 
         public VFXDirectionType() : base(Vector3.up) { }
         public VFXDirectionType(Vector3 vector) : base (vector.normalized) { }
@@ -420,7 +422,7 @@ namespace UnityEngine.Experimental.VFX
     // This is just an alias on VFXTransformType with custom widgets and component names
     public partial class VFXOrientedBoxType : VFXTransformType
     {
-        public static Desc Description() { return new Desc("Box (Oriented)", "Box", "Primitive"); }
+        public static new Desc Description() { return new Desc("Box (Oriented)", "Box", "Primitive"); }
 
         public VFXOrientedBoxType() : base(kComponentNames) { }
         private static readonly string[] kComponentNames = new string[3] {"center","rotation","size"};

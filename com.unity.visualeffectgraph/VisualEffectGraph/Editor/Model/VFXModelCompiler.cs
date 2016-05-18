@@ -386,8 +386,8 @@ namespace UnityEditor.Experimental
                 for (int j = 0; j < context.GetNbChildren(); ++j)
                 {
                     VFXBlockModel blockModel = context.GetChild(j);
-                    hasRand |= (blockModel.Desc.Flags & VFXBlockDesc.Flag.kHasRand) != 0;
-                    hasKill |= (blockModel.Desc.Flags & VFXBlockDesc.Flag.kHasKill) != 0;
+                    hasRand |= blockModel.Desc.IsSet(VFXBlockDesc.Flag.kHasRand);
+                    hasKill |= blockModel.Desc.IsSet(VFXBlockDesc.Flag.kHasKill);
                     currentList.Add(blockModel);
                 }
 
@@ -681,7 +681,7 @@ namespace UnityEditor.Experimental
                     collectedValues.Clear();
                     block.GetSlot(i).CollectNamedValues(collectedValues);
                     foreach (var arg in collectedValues)
-                        if (arg.m_Value.IsValue(false) && arg.m_Value.ValueType == VFXValueType.kTransform && ((block.Desc.Flags & VFXBlockDesc.Flag.kNeedsInverseTransform) != 0))
+                        if (arg.m_Value.IsValue(false) && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
                         {
                             var inverseValue = new VFXExpressionInverseTRS(arg.m_Value);
                             generated.Add((VFXValue)arg.m_Value,inverseValue);
