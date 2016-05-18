@@ -3,19 +3,31 @@ using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEditor.Graphs;
 
 namespace UnityEditor.MaterialGraph
 {
-    //[Title("Output/Pixel Shader")]
+    [Serializable]
     public class PixelShaderNode : BaseMaterialNode, IGeneratesBodyCode
     {
-        [SerializeField]
-        private string m_LightFunctionClassName;
+        [Serializable]
+        class NodeSpecificData : BaseMaterialNode.NodeSpecificData
+        {
+            [SerializeField]
+            public string m_LightFunctionClassName;
+        }
+
+        private NodeSpecificData m_NodeSpecificData = new NodeSpecificData();
+
+        private string lightFunctionClassName
+        {
+            get { return m_NodeSpecificData.m_LightFunctionClassName; }
+            set { m_NodeSpecificData.m_LightFunctionClassName = value; }
+        }
 
         private static List<BaseLightFunction> s_LightFunctions;
 
-        public PixelShaderNode()
+        public PixelShaderNode(PixelGraph owner) 
+            : base(owner)
         {
             name = "PixelMaster";
             GetLightFunction().DoSlotsForConfiguration(this);
@@ -57,7 +69,7 @@ namespace UnityEditor.MaterialGraph
         private BaseLightFunction GetLightFunction()
         {
             var lightFunctions = GetLightFunctions();
-            var lightFunction = lightFunctions.FirstOrDefault(x => x.GetType().ToString() == m_LightFunctionClassName);
+            var lightFunction = lightFunctions.FirstOrDefault(x => x.GetType().ToString() == lightFunctionClassName);
 
             if (lightFunction == null && lightFunctions.Count > 0)
                 lightFunction = lightFunctions[0];
@@ -152,7 +164,7 @@ namespace UnityEditor.MaterialGraph
 
             EditorGUI.BeginChangeCheck();
             lightFuncIndex = EditorGUI.Popup(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), lightFuncIndex, lightFunctions.Select(x => x.GetLightFunctionName()).ToArray(), EditorStyles.popup);
-            m_LightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
+            lightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
             if (EditorGUI.EndChangeCheck())
             {
                 var function = GetLightFunction();
@@ -174,7 +186,7 @@ namespace UnityEditor.MaterialGraph
 
         protected override bool UpdatePreviewShader()
         {
-            if (hasError)
+           // if (hasError)
                 return false;
 
             var shaderName = "Hidden/PreviewShader/" + name + "_" + guid;
@@ -183,6 +195,17 @@ namespace UnityEditor.MaterialGraph
             m_GeneratedShaderMode = PreviewMode.Preview3D;
             hasError = !InternalUpdatePreviewShader(resultShader);
             return true;
+        }
+
+        protected override void DelegateOnBeforeSerialize()
+        {
+            m_JSONNodeSpecificData = JsonUtility.ToJson(m_NodeSpecificData);
+        }
+
+        protected override void DelegateOnAfterDeserialize()
+        {
+            if (!string.IsNullOrEmpty(m_JSONNodeSpecificData))
+                JsonUtility.FromJsonOverwrite(m_JSONNodeSpecificData, m_NodeSpecificData);
         }
     }
 }

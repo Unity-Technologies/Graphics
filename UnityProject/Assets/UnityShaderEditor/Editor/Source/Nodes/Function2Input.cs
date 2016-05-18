@@ -1,4 +1,3 @@
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -10,7 +9,8 @@ namespace UnityEditor.MaterialGraph
             get { return true; }
         }
 
-        public Function2Input()
+        public Function2Input(BaseMaterialGraph owner)
+            : base(owner)
         {
             AddSlot(GetInputSlot1());
             AddSlot(GetInputSlot2());
@@ -25,20 +25,17 @@ namespace UnityEditor.MaterialGraph
 
         protected virtual Slot GetInputSlot1()
         {
-            var slot = new Slot(SlotType.InputSlot, GetInputSlot1Name());
-            return new Slot(slot, SlotValueType.Dynamic);
+            return new Slot(guid, GetInputSlot1Name(), GetInputSlot1Name(), Slot.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
-        protected virtual MaterialGraphSlot GetInputSlot2()
+        protected virtual Slot GetInputSlot2()
         {
-            var slot = new Slot(SlotType.InputSlot, GetInputSlot2Name());
-            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
+            return new Slot(guid, GetInputSlot2Name(), GetInputSlot2Name(), Slot.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
-        protected virtual MaterialGraphSlot GetOutputSlot()
+        protected virtual Slot GetOutputSlot()
         {
-            var slot = new Slot(SlotType.OutputSlot, GetOutputSlotName());
-            return new MaterialGraphSlot(slot, SlotValueType.Dynamic);
+            return new Slot(guid, GetOutputSlotName(), GetOutputSlotName(), Slot.SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
         }
         
         protected virtual string GetInputSlot1Name()

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -39,10 +38,13 @@ namespace UnityEditor.MaterialGraph
                 {
                     var sourceAnchor =  (NodeAnchor)drawableMaterialNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == slot);
 
-                    foreach (var edge in slot.edges)
+                    var edges = baseNode.owner.GetEdges(slot);
+                    foreach (var edge in edges)
                     {
-                        var targetNode = m_DrawableNodes.FirstOrDefault(x => x.m_Node == edge.toSlot.node);
-                        var targetAnchor = (NodeAnchor)targetNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == edge.toSlot);
+                        var toNode = baseNode.owner.GetNodeFromGUID(edge.inputSlot.nodeGuid);
+                        var toSlot = toNode.FindInputSlot(edge.inputSlot.slotName);
+                        var targetNode = m_DrawableNodes.FirstOrDefault(x => x.m_Node == toNode);
+                        var targetAnchor = (NodeAnchor)targetNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == toSlot);
                         drawableEdges.Add(new Edge<NodeAnchor>(this, sourceAnchor, targetAnchor));
                     }
                 }
@@ -62,7 +64,7 @@ namespace UnityEditor.MaterialGraph
                     if (sourceAnchor == null)
                         continue;
 
-                    nullInputSlots.Add(new NullInputProxy(slot, sourceAnchor));
+                    nullInputSlots.Add(new NullInputProxy(baseNode, slot, sourceAnchor));
                 }
             }
             var toReturn = new List<CanvasElement>();
@@ -85,7 +87,7 @@ namespace UnityEditor.MaterialGraph
         public void DeleteElements(List<CanvasElement> elements)
         {
             // delete selected edges first
-            foreach (var e in elements.Where(x => x is Edge<NodeAnchor>))
+           /* foreach (var e in elements.Where(x => x is Edge<NodeAnchor>))
             {
                 //find the edge
                 var localEdge = (Edge<NodeAnchor>) e;
@@ -123,7 +125,7 @@ namespace UnityEditor.MaterialGraph
                 Debug.Log("Deleting node " + e + " " + node);
                 graph.currentGraph.RemoveNode(node);
             }
-            graph.currentGraph.RevalidateGraph();
+            graph.currentGraph.RevalidateGraph();*/
         }
 
         public void Connect(NodeAnchor a, NodeAnchor b)
@@ -148,7 +150,7 @@ namespace UnityEditor.MaterialGraph
     {
         private BaseMaterialNode m_Node;
 
-        public FloatingPreview(Rect position, Node node)
+        public FloatingPreview(Rect position, BaseMaterialNode node)
         {
             m_Node = node as BaseMaterialNode;
             m_Translation = new Vector2(position.x, position.y);

@@ -13,8 +13,9 @@ namespace UnityEditor.MaterialGraph
         protected Direction m_Direction;
         private MaterialGraphDataSource m_Data;
         public Slot m_Slot;
+        public BaseMaterialNode m_Node;
 
-        public NodeAnchor(Vector3 position, Type type, Slot slot, MaterialGraphDataSource data, Direction direction)
+        public NodeAnchor(Vector3 position, Type type, BaseMaterialNode node, Slot slot, MaterialGraphDataSource data, Direction direction)
         {
             m_Type = type;
             scale = new Vector3(15.0f, 15.0f, 1.0f);
@@ -26,6 +27,7 @@ namespace UnityEditor.MaterialGraph
             Type constructedClass = genericClass.MakeGenericType(type);
             m_Source = Activator.CreateInstance(constructedClass);
             m_Data = data;
+            m_Node = node;
             m_Slot = slot;
         }
 
@@ -62,12 +64,12 @@ namespace UnityEditor.MaterialGraph
             Rect labelRect;
             if (m_Direction == Direction.Input)
             {
-                text += " " + ConcreteSlotValueTypeAsString(((BaseMaterialNode) m_Slot.node).GetConcreteInputSlotValueType(m_Slot));
+                text += " " + ConcreteSlotValueTypeAsString(m_Node.GetConcreteInputSlotValueType(m_Slot));
                 labelRect = new Rect(translation.x + scale.x + 10.0f, translation.y, parentRect.width, 20.0f);
             }
             else
             {
-                text += " " + ConcreteSlotValueTypeAsString(((BaseMaterialNode) m_Slot.node).GetConcreteOutputSlotValueType(m_Slot));
+                text += " " + ConcreteSlotValueTypeAsString(m_Node.GetConcreteOutputSlotValueType(m_Slot));
                 Vector2 sizeOfText = GUIStyle.none.CalcSize(new GUIContent(text));
                 labelRect = new Rect(translation.x - sizeOfText.x - 4.0f, translation.y, sizeOfText.x + 4.0f, sizeOfText.y + 4.0f);
             }

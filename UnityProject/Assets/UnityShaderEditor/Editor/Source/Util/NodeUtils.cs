@@ -1,8 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -19,30 +15,28 @@ namespace UnityEditor.MaterialGraph
             return foundUsedOutputSlots;
         }
 
-        public static void RecurseNodesToFindValidOutputSlots(Node fromNode, Node currentNode, ICollection<Slot> foundUsedOutputSlots)
+        public static void RecurseNodesToFindValidOutputSlots(BaseMaterialNode fromNode, BaseMaterialNode currentNode, ICollection<Slot> foundUsedOutputSlots)
         {
             if (fromNode == null || currentNode == null)
             {
                 Debug.LogError("Recursing to find valid inputs on NULL node");
                 return;
             }
-
-            var bmn = currentNode as BaseMaterialNode;
-            if (bmn == null)
-                return;
-
+            
             var validSlots = ListPool<Slot>.Get();
-            bmn.GetValidInputSlots(validSlots);
+            validSlots.AddRange(currentNode.inputSlots);
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var inputSlot = validSlots[index];
-                for (int i = 0; i < inputSlot.edges.Count; i++)
+                var edges = currentNode.owner.GetEdges(inputSlot);
+                foreach (var edge in edges)
                 {
-                    var edge = inputSlot.edges[i];
-                    if (edge.fromSlot.node == fromNode && !foundUsedOutputSlots.Contains(edge.fromSlot))
-                        foundUsedOutputSlots.Add(edge.fromSlot);
+                    var outputNode = currentNode.owner.GetNodeFromGUID(edge.outputSlot.nodeGuid);
+                    var outputSlot = outputNode.FindOutputSlot(edge.outputSlot.slotName);
+                    if (outputNode == fromNode && !foundUsedOutputSlots.Contains(outputSlot))
+                        foundUsedOutputSlots.Add(outputSlot);
                     else
-                        RecurseNodesToFindValidOutputSlots(fromNode, edge.fromSlot.node, foundUsedOutputSlots);
+                        RecurseNodesToFindValidOutputSlots(fromNode, outputNode, foundUsedOutputSlots);
                 }
             }
             ListPool<Slot>.Release(validSlots);
@@ -57,7 +51,7 @@ namespace UnityEditor.MaterialGraph
                 return;
 
             var validSlots = ListPool<Slot>.Get();
-            node.GetValidInputSlots(validSlots);
+            validSlots.AddRange(node.inputSlots);
             if (slotToUse != null && !validSlots.Contains(slotToUse))
             {
                 ListPool<Slot>.Release(validSlots);
@@ -73,11 +67,12 @@ namespace UnityEditor.MaterialGraph
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var slot = validSlots[index];
-                for (int i = 0; i < slot.edges.Count; i++)
+
+                var edges = node.owner.GetEdges(slot);
+                foreach (var edge in edges)
                 {
-                    var edge = slot.edges[i];
-                    var inputNode = edge.fromSlot.node as BaseMaterialNode;
-                    CollectChildNodesByExecutionOrder(nodeList, inputNode, null);
+                    var outputNode = node.owner.GetNodeFromGUID(edge.outputSlot.nodeGuid);
+                    CollectChildNodesByExecutionOrder(nodeList, outputNode, null);
                 }
             }
 
@@ -94,9 +89,13 @@ namespace UnityEditor.MaterialGraph
                 return;
 
             foreach (var slot in node.outputSlots)
-                foreach (var edge in slot.edges)
-                    CollectDependentNodes(nodeList, edge.toSlot.node as BaseMaterialNode);
-
+            {
+                foreach (var edge in node.owner.GetEdges(slot))
+                {
+                    var inputNode = node.owner.GetNodeFromGUID(edge.inputSlot.nodeGuid);
+                    CollectDependentNodes(nodeList, inputNode);
+                }
+            }
             nodeList.Add(node);
         }
     }

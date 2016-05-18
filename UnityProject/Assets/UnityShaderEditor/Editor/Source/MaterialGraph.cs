@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,53 +6,45 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    public class MaterialGraph : ScriptableObject
+    public class MaterialGraph : ScriptableObject, ISerializationCallbackReceiver
     {
+        [NonSerialized]
+        private Material m_Material;
+
         [SerializeField]
-        private MaterialOptions m_MaterialOptions;
+        private MaterialOptions m_MaterialOptions = new MaterialOptions();
 
         [SerializeField]
         private PixelGraph m_PixelGraph;
 
-
-      
-        public MaterialOptions materialOptions { get { return m_MaterialOptions; } }
-
-        public BaseMaterialGraph currentGraph { get { return m_PixelGraph; } }
-        
-
-        public void OnEnable()
+        private MaterialGraph()
         {
-            if (m_MaterialOptions == null)
-            {
-                m_MaterialOptions = CreateInstance<MaterialOptions>();
-                m_MaterialOptions.Init();
-                m_MaterialOptions.hideFlags = HideFlags.HideInHierarchy;
-            }
+            m_PixelGraph = new PixelGraph(this);
+        }
 
-            if (m_PixelGraph == null)
-            {
-                m_PixelGraph = CreateInstance<PixelGraph>();
-                m_PixelGraph.hideFlags = HideFlags.HideInHierarchy;
-                m_PixelGraph.name = name;
-            }
+        public MaterialOptions materialOptions
+        {
+            get { return m_MaterialOptions; }
+        }
 
+        public BaseMaterialGraph currentGraph
+        {
+            get { return m_PixelGraph; }
+        }
+
+        public void OnBeforeSerialize()
+        {}
+
+        public void OnAfterDeserialize()
+        {
             m_PixelGraph.owner = this;
         }
-        
-        public void AddSubAssetsToAsset()
-        {
-            AssetDatabase.AddObjectToAsset(m_MaterialOptions, this);
-            AssetDatabase.AddObjectToAsset(m_PixelGraph, this);
-            m_PixelGraph.AddSubAssetsToAsset();
-        }
-        
-        private Material m_Material;
+
         public Material GetMaterial()
         {
             if (m_PixelGraph == null)
                 return null;
-            
+
             return m_PixelGraph.GetMaterial();
         }
 
@@ -61,7 +54,7 @@ namespace UnityEditor.MaterialGraph
             var shaderString = ShaderGenerator.GenerateSurfaceShader(this, name, false, out configuredTextures);
             File.WriteAllText(path, shaderString);
             AssetDatabase.Refresh(); // Investigate if this is optimal
-             
+
             var shader = AssetDatabase.LoadAssetAtPath(path, typeof(Shader)) as Shader;
             if (shader == null)
                 return;

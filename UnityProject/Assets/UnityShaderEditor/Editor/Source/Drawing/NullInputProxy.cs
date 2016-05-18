@@ -7,13 +7,15 @@ namespace UnityEditor.MaterialGraph
     public class NullInputProxy : CanvasElement
     {
         private Slot m_InputSlot;
+        private BaseMaterialNode m_Node;
         private NodeAnchor m_NodeAnchor;
 
         private const int kWidth = 180;
 
-        public NullInputProxy(Slot inputSlot, NodeAnchor nodeAnchor)
+        public NullInputProxy(BaseMaterialNode node, Slot inputSlot, NodeAnchor nodeAnchor)
         {
             m_InputSlot = inputSlot;
+            m_Node = node;
             m_NodeAnchor = nodeAnchor;
 
             var size = m_NodeAnchor.scale;
@@ -41,13 +43,11 @@ namespace UnityEditor.MaterialGraph
             var position = m_NodeAnchor.canvasBoundingRect.min;
             position.x -= kWidth;
             translation = position;
-
-            var bmn = (BaseMaterialNode) m_InputSlot.node;
-
+            
             var rect = new Rect(0, 0, scale.x, scale.y);
-            var changed = bmn.DrawSlotDefaultInput(rect, m_InputSlot);
+            var changed = m_Node.DrawSlotDefaultInput(rect, m_InputSlot);
             if (changed)
-                DrawableMaterialNode.RepaintDependentNodes(bmn);
+                DrawableMaterialNode.RepaintDependentNodes(m_Node);
         }
 
         public override void UpdateModel(UpdateType t)
