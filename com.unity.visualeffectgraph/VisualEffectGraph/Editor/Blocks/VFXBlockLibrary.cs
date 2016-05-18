@@ -120,7 +120,7 @@ namespace UnityEditor.Experimental.VFX
                 {
                     assemblyTypes = domainAssembly.GetTypes();
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                     Debug.Log("Cannot access assembly: "+domainAssembly);
                     assemblyTypes = null;

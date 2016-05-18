@@ -477,27 +477,6 @@ namespace UnityEditor.Experimental
                 {
                     VFXEdDataNode node = (e as VFXEdDataNode);
                     t.AddDataNode(node.UniqueName, node.exposed);
-                    
-                    // Data Node Blocks
-                    // TODO Refactor : Make that work again
-                   /* foreach(VFXEdDataNodeBlock block in node.NodeBlockContainer.nodeBlocks)
-                    {
-                        if(block.editingDataContainer != null)
-                            t.AddDataNodeBlock(node.UniqueName, block.UniqueName,block.m_exposedName, block.LibraryName ,block.editingDataContainer);
-                        else
-                            t.AddDataNodeBlock(node.UniqueName, block.UniqueName,block.m_exposedName, block.LibraryName);
-                        for (int i = 0 ;  i < block.Params.Count; i++)
-                        {
-                            // ADD ONLY IF NOT INSIDE A EDITINGWIDGET IGNORE LIST
-                            if(block.editingWidget != null)
-                            {
-                                if (!block.editingWidget.IgnoredParamNames.Contains(block.Params[i].m_Name))
-                                    t.SetDataNodeBlockParameter(node.UniqueName, block.UniqueName, block.Params[i].m_Name, (block.Slots[i].Value as VFXValue).Clone());
-                            }
-                            else
-                                t.SetDataNodeBlockParameter(node.UniqueName, block.UniqueName, block.Params[i].m_Name, (block.Slots[i].Value as VFXValue).Clone());
-                        }
-                    }*/
                 }
             }
 

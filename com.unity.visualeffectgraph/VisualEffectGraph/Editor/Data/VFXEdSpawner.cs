@@ -139,7 +139,6 @@ namespace UnityEditor.Experimental
         VFXEdDataNode m_Node;
         VFXDataBlockDesc m_DataBlockDesc;
         VFXEdDataSource m_DataSource;
-        DataContainerInfo m_dataContainerInfo;
         string m_exposedName;
 
         public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlockDesc datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName)
@@ -153,9 +152,7 @@ namespace UnityEditor.Experimental
 
         public VFXEdDataNodeBlockSpawner(Vector2 position, VFXDataBlockDesc datablock, VFXEdDataNode node, VFXEdDataSource datasource, string exposedName, DataContainerInfo dataContainerInfo)
             : this (position, datablock, node, datasource, exposedName)
-        {
-            m_dataContainerInfo = dataContainerInfo;
-        }
+        {}
 
 
         public override void Spawn()
