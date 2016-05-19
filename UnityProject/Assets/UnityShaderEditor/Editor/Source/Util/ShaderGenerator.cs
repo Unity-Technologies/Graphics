@@ -291,7 +291,7 @@ namespace UnityEditor.MaterialGraph
            if (outputSlot == null)
                 return kErrorString;
            
-            var convertFromType = node.GetConcreteOutputSlotValueType(outputSlot);
+            var convertFromType = outputSlot.concreteValueType;
             var rawOutput = node.GetOutputVariableNameForSlot(outputSlot, mode);
             if (convertFromType == convertToType)
                 return rawOutput;
@@ -339,7 +339,7 @@ namespace UnityEditor.MaterialGraph
            if (outputSlot == null)
                 return kErrorString;
            
-            var convertFromType = node.GetConcreteOutputSlotValueType(outputSlot);
+            var convertFromType = outputSlot.concreteValueType;
 
             // if we are in a normal situation, just convert!
             if (convertFromType >= convertToType || convertFromType == ConcreteSlotValueType.Vector1)

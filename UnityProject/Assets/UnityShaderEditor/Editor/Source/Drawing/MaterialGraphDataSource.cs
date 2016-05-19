@@ -74,7 +74,9 @@ namespace UnityEditor.MaterialGraph
             
             //toReturn.Add(new FloatingPreview(new Rect(Screen.width - 300, Screen.height - 300, 300, 300), pixelGraph.nodes.FirstOrDefault(x => x is PixelShaderNode)));
 
-            Debug.LogFormat("Returning {0} nodes", toReturn.Count);
+            Debug.LogFormat("Returning {0} nodes", m_DrawableNodes.Count);
+            Debug.LogFormat("Returning {0} drawableEdges", drawableEdges.Count);
+            Debug.LogFormat("Returning {0} nullInputSlots", nullInputSlots.Count);
             return toReturn.ToArray();
         }
 

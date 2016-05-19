@@ -8,9 +8,8 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph
 {
-    //Can not be abstract as it needs to be serialzied #justunitythings
     [Serializable]
-    public class BaseMaterialNode : IGenerateProperties, ISerializationCallbackReceiver
+    public abstract class BaseMaterialNode : IGenerateProperties, ISerializationCallbackReceiver
     {
         [Serializable]
         protected class NodeSpecificData
@@ -22,10 +21,7 @@ namespace UnityEditor.MaterialGraph
         private const int kPreviewHeight = 64;
 
         private static readonly Mesh[] s_Meshes = {null, null, null, null};
-
-        [SerializeField]
-        protected string m_JSONNodeSpecificData;
-
+        
         [SerializeField]
         private DrawMode m_DrawMode = DrawMode.Full;
 
@@ -45,10 +41,7 @@ namespace UnityEditor.MaterialGraph
 
         [SerializeField]
         private string m_Name;
-
-        [NonSerialized]
-        private bool m_NodeNeedsValidation = true;
-
+        
         [SerializeField]
         private Rect m_Position;
 
@@ -156,17 +149,10 @@ namespace UnityEditor.MaterialGraph
             get { return kPreviewHeight; }
         }
 
-        public bool nodeNeedsValidation
-        {
-            get { return m_NodeNeedsValidation; }
-        }
-
         public bool hasError
         {
             get
             {
-                if (nodeNeedsValidation)
-                    ValidateNode();
                 return m_HasError;
             }
             protected set
@@ -176,26 +162,6 @@ namespace UnityEditor.MaterialGraph
                     m_HasError = value;
                     ExecuteRepaint();
                 }
-            }
-        }
-
-        public ConcreteSlotValueType concreteValueForSlot
-        {
-            get
-            {
-                if (nodeNeedsValidation)
-                    ValidateNode();
-                return m_ConcreteInputSlotValueTypes;
-            }
-        }
-
-        public Dictionary<string, ConcreteSlotValueType> concreteOutputSlotValueTypes
-        {
-            get
-            {
-                if (nodeNeedsValidation)
-                    ValidateNode();
-                return m_ConcreteOutputSlotValueTypes;
             }
         }
 
@@ -229,34 +195,21 @@ namespace UnityEditor.MaterialGraph
                 if (edges.Any())
                     continue;
 
-                inputSlot.GeneratePropertyUsages(visitor, generationMode, concreteInputSlotValueTypes[inputSlot.name], this);
+                inputSlot.GeneratePropertyUsages(visitor, generationMode, inputSlot.concreteValueType, this);
             }
         }
 
-
-        //#justunitythings Serialization callbacks are not
-        // being called on overrides if serializing from 
-        // base class ref. We are in mega hax town now.
-        protected virtual void DelegateOnBeforeSerialize()
-        { }
-
-        protected virtual void DelegateOnAfterDeserialize()
-        { }
-
-        public void OnBeforeSerialize()
+        public virtual void OnBeforeSerialize()
         {
             m_GUIDSerialized = m_GUID.ToString();
-            DelegateOnBeforeSerialize();
         }
 
-        public void OnAfterDeserialize()
+        public virtual void OnAfterDeserialize()
         {
             if (!string.IsNullOrEmpty(m_GUIDSerialized))
                 m_GUID = new Guid(m_GUIDSerialized);
             else
                 m_GUID = Guid.NewGuid();
-
-            DelegateOnAfterDeserialize();
         }
 
         public virtual float GetNodeUIHeight(float width)
@@ -311,10 +264,10 @@ namespace UnityEditor.MaterialGraph
                 var fromNode = owner.GetNodeFromGUID(fromSocketRef.nodeGuid);
                 var slot = fromNode.FindOutputSlot(fromSocketRef.slotName);
 
-                return ShaderGenerator.AdaptNodeOutput(this, slot, generationMode, concreteInputSlotValueTypes[inputSlot.name]);
+                return ShaderGenerator.AdaptNodeOutput(this, slot, generationMode, inputSlot.concreteValueType);
             }
 
-            return inputSlot.GetDefaultValue(generationMode, concreteInputSlotValueTypes[inputSlot.name], this);
+            return inputSlot.GetDefaultValue(generationMode, inputSlot.concreteValueType, this);
         }
 
         public void RemoveSlotsNameNotMatching(string[] slotNames)
@@ -326,22 +279,6 @@ namespace UnityEditor.MaterialGraph
                 Debug.LogWarningFormat("Removing Invalid Slot: {0}", invalidSlot);
                 RemoveSlot(invalidSlot);
             }
-        }
-
-        public ConcreteSlotValueType GetConcreteOutputSlotValueType(Slot slot)
-        {
-            if (concreteOutputSlotValueTypes.ContainsKey(slot.name))
-                return concreteOutputSlotValueTypes[slot.name];
-
-            return ConcreteSlotValueType.Error;
-        }
-
-        public ConcreteSlotValueType GetConcreteInputSlotValueType(Slot slot)
-        {
-            if (concreteInputSlotValueTypes.ContainsKey(slot.name))
-                return concreteInputSlotValueTypes[slot.name];
-
-            return ConcreteSlotValueType.Error;
         }
 
         private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType @from, ConcreteSlotValueType to)
@@ -399,9 +336,6 @@ namespace UnityEditor.MaterialGraph
 
         public void ValidateNode()
         {
-            if (!nodeNeedsValidation)
-                return;
-
             var isInError = false;
 
             // all children nodes needs to be updated first
@@ -442,7 +376,7 @@ namespace UnityEditor.MaterialGraph
                 var outputSlotRef = edges[0].outputSlot;
                 var outputNode = owner.GetNodeFromGUID(outputSlotRef.nodeGuid);
                 var outputSlot = outputNode.FindOutputSlot(outputSlotRef.slotName);
-                var outputConcreteType = outputNode.GetConcreteOutputSlotValueType(outputSlot);
+                var outputConcreteType = outputSlot.concreteValueType;
 
                 // if we have a standard connection... just check the types work!
                 if (inputType != SlotValueType.Dynamic)
@@ -491,7 +425,6 @@ namespace UnityEditor.MaterialGraph
             isInError |= inputError;
             isInError |= outputSlots.Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
             isInError |= CalculateNodeHasError();
-            m_NodeNeedsValidation = false;
             hasError = isInError;
 
             if (!hasError)
@@ -555,7 +488,7 @@ namespace UnityEditor.MaterialGraph
 
         public virtual bool DrawSlotDefaultInput(Rect rect, Slot inputSlot)
         {
-            var inputSlotType = GetConcreteInputSlotValueType(inputSlot);
+            var inputSlotType = inputSlot.concreteValueType;
             return inputSlot.OnGUI(rect, inputSlotType);
         }
 
@@ -569,12 +502,7 @@ namespace UnityEditor.MaterialGraph
             if (onNeedsRepaint != null)
                 onNeedsRepaint();
         }
-
-        public void InvalidateNode()
-        {
-            m_NodeNeedsValidation = true;
-        }
-
+        
 
         // CollectDependentNodes looks at the current node and calculates
         // which nodes further up the tree (parents) would be effected if this node was changed
@@ -605,7 +533,6 @@ namespace UnityEditor.MaterialGraph
 
             return nodeList;
         }
-
 
         protected virtual bool UpdatePreviewShader()
         {

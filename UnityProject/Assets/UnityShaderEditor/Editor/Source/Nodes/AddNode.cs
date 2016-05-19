@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Add Node")]

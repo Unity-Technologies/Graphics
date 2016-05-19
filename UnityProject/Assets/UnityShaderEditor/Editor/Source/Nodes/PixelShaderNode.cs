@@ -9,28 +9,22 @@ namespace UnityEditor.MaterialGraph
     [Serializable]
     public class PixelShaderNode : BaseMaterialNode, IGeneratesBodyCode
     {
-        [Serializable]
-        class NodeSpecificData : BaseMaterialNode.NodeSpecificData
-        {
-            [SerializeField]
-            public string m_LightFunctionClassName;
-        }
-
-        private NodeSpecificData m_NodeSpecificData = new NodeSpecificData();
+        [SerializeField]
+        public string m_LightFunctionClassName;
 
         private string lightFunctionClassName
         {
-            get { return m_NodeSpecificData.m_LightFunctionClassName; }
-            set { m_NodeSpecificData.m_LightFunctionClassName = value; }
+            get { return m_LightFunctionClassName; }
+            set { m_LightFunctionClassName = value; }
         }
 
         private static List<BaseLightFunction> s_LightFunctions;
 
-        public PixelShaderNode(PixelGraph owner) 
+        public PixelShaderNode(BaseMaterialGraph owner) 
             : base(owner)
         {
             name = "PixelMaster";
-            GetLightFunction().DoSlotsForConfiguration(this);
+            GetLightFunction().DoSlotsForConfiguration(this); 
         }
 
         protected override int previewWidth
@@ -195,17 +189,6 @@ namespace UnityEditor.MaterialGraph
             m_GeneratedShaderMode = PreviewMode.Preview3D;
             hasError = !InternalUpdatePreviewShader(resultShader);
             return true;
-        }
-
-        protected override void DelegateOnBeforeSerialize()
-        {
-            m_JSONNodeSpecificData = JsonUtility.ToJson(m_NodeSpecificData);
-        }
-
-        protected override void DelegateOnAfterDeserialize()
-        {
-            if (!string.IsNullOrEmpty(m_JSONNodeSpecificData))
-                JsonUtility.FromJsonOverwrite(m_JSONNodeSpecificData, m_NodeSpecificData);
         }
     }
 }

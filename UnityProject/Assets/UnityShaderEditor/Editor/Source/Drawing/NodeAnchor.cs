@@ -64,12 +64,12 @@ namespace UnityEditor.MaterialGraph
             Rect labelRect;
             if (m_Direction == Direction.Input)
             {
-                text += " " + ConcreteSlotValueTypeAsString(m_Node.GetConcreteInputSlotValueType(m_Slot));
+                text += " " + ConcreteSlotValueTypeAsString(m_Slot.concreteValueType);
                 labelRect = new Rect(translation.x + scale.x + 10.0f, translation.y, parentRect.width, 20.0f);
             }
             else
             {
-                text += " " + ConcreteSlotValueTypeAsString(m_Node.GetConcreteOutputSlotValueType(m_Slot));
+                text += " " + ConcreteSlotValueTypeAsString(m_Slot.concreteValueType);
                 Vector2 sizeOfText = GUIStyle.none.CalcSize(new GUIContent(text));
                 labelRect = new Rect(translation.x - sizeOfText.x - 4.0f, translation.y, sizeOfText.x + 4.0f, sizeOfText.y + 4.0f);
             }
