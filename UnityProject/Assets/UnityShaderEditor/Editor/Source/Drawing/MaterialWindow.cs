@@ -102,8 +102,7 @@ namespace UnityEditor.MaterialGraph
             try
             {
                 var constructorInfo = posObj.m_Type.GetConstructor(new[] {typeof(BaseMaterialGraph)});
-                if (constructorInfo != null)
-                    node = (BaseMaterialNode)constructorInfo.Invoke(new object[] { m_MaterialGraph.currentGraph });
+                node = (BaseMaterialNode)constructorInfo.Invoke(new object[] { m_MaterialGraph.currentGraph });
             }
             catch
             {

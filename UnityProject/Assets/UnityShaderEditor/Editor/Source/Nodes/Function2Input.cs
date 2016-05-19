@@ -86,17 +86,17 @@ namespace UnityEditor.MaterialGraph
 
         public string outputDimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(concreteOutputSlotValueTypes[GetOutputSlotName()]); }
+            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot(GetOutputSlotName()).concreteValueType); }
         }
 
         public string input1Dimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(concreteInputSlotValueTypes[GetInputSlot1Name()]); }
+            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot(GetInputSlot1Name()).concreteValueType); }
         }
 
         public string input2Dimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(concreteInputSlotValueTypes[GetInputSlot2Name()]); }
+            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot(GetInputSlot2Name()).concreteValueType); }
         }
     }
 }
