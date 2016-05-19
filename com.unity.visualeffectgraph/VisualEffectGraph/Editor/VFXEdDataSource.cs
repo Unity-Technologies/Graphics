@@ -9,14 +9,70 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdDataSource : ScriptableObject, ICanvasDataSource
+    internal class VFXEdDataSource : ScriptableObject, ICanvasDataSource, VFXModelObserver
     {
         private List<CanvasElement> m_Elements = new List<CanvasElement>();
 
         private Dictionary<VFXContextModel,VFXEdContextNode> m_ContextModelToUI = new Dictionary<VFXContextModel,VFXEdContextNode>();
+        private Dictionary<VFXBlockModel, VFXEdProcessingNodeBlock> m_BlockModelToUI = new Dictionary<VFXBlockModel, VFXEdProcessingNodeBlock>();
 
         public void OnEnable()
         {
+        }
+
+        public void OnModelUpdated(VFXElementModel model)
+        {
+            Type type = model.GetType();
+            if (type == typeof(VFXContextModel))
+                OnContextUpdated((VFXContextModel)model);
+            else if (type == typeof(VFXEdProcessingNodeBlock))
+                OnBlockUpdated((VFXEdProcessingNodeBlock)model);
+        }
+
+        private void OnContextUpdated(VFXContextModel model)
+        {
+            VFXEdContextNode contextUI;
+            m_ContextModelToUI.TryGetValue(model,out contextUI);
+            if (contextUI == null) // Create the context UI
+            {
+                contextUI = new VFXEdContextNode(model, this);
+                m_ContextModelToUI.Add(model, contextUI);
+                AddElement(contextUI);
+            }
+        }
+
+        private void OnBlockUpdated(VFXBlockModel model)
+        {
+            var ownerModel = model.GetOwner();
+
+            VFXEdProcessingNodeBlock blockUI;
+            m_BlockModelToUI.TryGetValue(model, out blockUI);
+
+            if (ownerModel != null && blockUI == null)
+            {
+                blockUI = new VFXEdProcessingNodeBlock(model, this);
+                m_BlockModelToUI.Add(model, blockUI);
+                AddElement(blockUI);
+            }
+
+            var parentUI = m_ContextModelToUI[ownerModel];
+            ownerModel.GetIndex(model);
+            
+        }
+
+        public VFXEdProcessingNodeBlock GetBlockUI(VFXBlockModel model)
+        {
+            return m_BlockModelToUI[model];
+        }
+
+        public VFXEdContextNode GetContextUI(VFXContextModel model)
+        {
+            return m_ContextModelToUI[model];
+        }
+            
+        public void OnLinkUpdated(VFXPropertySlot slot)
+        {
+
         }
 
         public void UndoSnapshot(string Message)

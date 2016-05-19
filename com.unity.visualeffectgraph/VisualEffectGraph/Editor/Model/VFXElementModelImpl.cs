@@ -504,6 +504,7 @@ namespace UnityEditor.Experimental
 
         private VFXBlockDesc m_BlockDesc;
 
+        public bool UICollapsed { get { return m_UICollapsed; } }
         private bool m_UICollapsed;
     }
 }
