@@ -110,7 +110,7 @@ namespace UnityEditor.MaterialGraph
                 RemoveEdge(edge);
             }
 
-            var newEdge = new Edge(new SlotReference(outputSlot.nodeGuid, outputSlot.name), new SlotReference(inputSlot.nodeGuid, inputSlot.name));
+            var newEdge = new Edge(new SlotReference(outputSlot.owner.guid, outputSlot.name), new SlotReference(inputSlot.owner.guid, inputSlot.name));
             m_Edges.Add(newEdge);
 
             Debug.Log("Connected edge: " + newEdge);
@@ -191,7 +191,7 @@ namespace UnityEditor.MaterialGraph
                     continue;
 
                 var typeName = GetTypeSerializableAsString(node.GetType());
-                var data = JsonUtility.ToJson(node);
+                var data = JsonUtility.ToJson(node, true);
 
                 if (string.IsNullOrEmpty(typeName) || string.IsNullOrEmpty(data))
                     continue;

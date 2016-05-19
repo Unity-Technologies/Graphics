@@ -128,10 +128,8 @@ namespace UnityEditor.MaterialGraph
         {
             get
             {
-                ValidateNode();
                 if (m_PreviewMaterial == null)
                 {
-                    UpdatePreviewShader();
                     m_PreviewMaterial = new Material(m_PreviewShader) {hideFlags = HideFlags.HideInHierarchy};
                     m_PreviewMaterial.hideFlags = HideFlags.HideInHierarchy;
                 }
@@ -210,6 +208,10 @@ namespace UnityEditor.MaterialGraph
                 m_GUID = new Guid(m_GUIDSerialized);
             else
                 m_GUID = Guid.NewGuid();
+
+            //patch up the slot owner reference
+            foreach (var slot in slots)
+                slot.owner = this;
         }
 
         public virtual float GetNodeUIHeight(float width)
@@ -429,12 +431,11 @@ namespace UnityEditor.MaterialGraph
 
             if (!hasError)
             {
-                //TODO:DATA
-              /*  var valid = UpdatePreviewShader();
-                if (!valid)
-                    hasError = true;*/
+                previewShaderNeedsUpdate = true;
             }
         }
+
+        public bool previewShaderNeedsUpdate { get; set; }
 
         //True if error
         protected virtual bool CalculateNodeHasError()
@@ -590,6 +591,15 @@ namespace UnityEditor.MaterialGraph
         /// </summary>
         public Texture RenderPreview(Rect targetSize)
         {
+            if (hasError)
+                return null;
+
+            if (previewShaderNeedsUpdate)
+            {
+                UpdatePreviewShader();
+                previewShaderNeedsUpdate = false;
+            }
+
             UpdatePreviewProperties();
 
             if (s_Meshes[0] == null)
