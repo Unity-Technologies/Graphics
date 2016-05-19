@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.MaterialGraph
 {
     [Serializable]
-    public class Slot : ISerializationCallbackReceiver
+    public class Slot
     {
         public enum SlotType
         {
@@ -29,17 +29,14 @@ namespace UnityEditor.MaterialGraph
 
         [SerializeField]
         private Vector4 m_CurrentValue;
-
-        [SerializeField]
-        private string m_NodeGUIDSerialized;
-
+        
         [SerializeField]
         private ConcreteSlotValueType m_ConcreteValueType;
 
         [NonSerialized]
-        private Guid m_NodeGUID;
+        private BaseMaterialNode m_Owner;
 
-        public Slot(Guid nodeGuid, string name, string displayName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
+        public Slot(BaseMaterialNode owner, string name, string displayName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
         {
             m_Name = name;
             m_DisplayName = displayName;
@@ -47,7 +44,7 @@ namespace UnityEditor.MaterialGraph
             m_ValueType = valueType;
             m_DefaultValue = defaultValue;
             m_CurrentValue = defaultValue;
-            m_NodeGUID = nodeGuid;
+            m_Owner = owner;
         }
 
         public bool isInputSlot
@@ -75,11 +72,6 @@ namespace UnityEditor.MaterialGraph
             get { return m_DisplayName; }
         }
 
-        public Guid nodeGuid
-        {
-            get { return m_NodeGUID; }
-        }
-
         public Vector4 defaultValue
         {
             get { return m_DefaultValue; }
@@ -102,6 +94,12 @@ namespace UnityEditor.MaterialGraph
         {
             get { return m_ConcreteValueType; }
             set { m_ConcreteValueType = value; }
+        }
+
+        public BaseMaterialNode owner
+        {
+            get { return m_Owner; }
+            set { m_Owner = value; }
         }
 
         public string GetInputName (BaseMaterialNode node)
@@ -185,19 +183,6 @@ namespace UnityEditor.MaterialGraph
                     break;
             }
             return EditorGUI.EndChangeCheck();
-        }
-
-        public virtual void OnBeforeSerialize()
-        {
-            m_NodeGUIDSerialized = m_NodeGUID.ToString();
-        }
-
-        public virtual void OnAfterDeserialize()
-        {
-            if (!string.IsNullOrEmpty(m_NodeGUIDSerialized))
-                m_NodeGUID = new Guid(m_NodeGUIDSerialized);
-            else
-                m_NodeGUID = Guid.NewGuid();
         }
     }
 }

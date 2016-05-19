@@ -10,7 +10,7 @@ namespace UnityEditor.MaterialGraph
        
         private void InternalValidate() 
         {
-            AddSlot(new Slot(guid, kOutputSlotName, kOutputSlotName, Slot.SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new Slot(this, kOutputSlotName, kOutputSlotName, Slot.SlotType.Output, SlotValueType.Vector4, Vector4.zero));
         }
 
         private const string kOutputSlotName = "Value";

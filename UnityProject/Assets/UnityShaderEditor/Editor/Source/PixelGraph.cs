@@ -12,20 +12,23 @@ namespace UnityEditor.MaterialGraph
         private PixelShaderNode m_PixelMasterNode;
 
         public PixelGraph(MaterialGraph owner) : base (owner)
-        {
-            m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof(PixelShaderNode)) as PixelShaderNode;
-            if (m_PixelMasterNode == null)
-            {
-                m_PixelMasterNode = new PixelShaderNode(this);
-                AddNode(m_PixelMasterNode);
-                m_PixelMasterNode.position = new Rect(700, m_PixelMasterNode.position.y, m_PixelMasterNode.position.width, m_PixelMasterNode.position.height);
-            }
-        }
+        {}
 
         public PixelShaderNode pixelMasterNode
         {
             get
             {
+                // find existing node
+                if (m_PixelMasterNode == null)
+                    m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof(PixelShaderNode)) as PixelShaderNode;
+
+                // none exists, so create!
+                if (m_PixelMasterNode == null)
+                {
+                    m_PixelMasterNode = new PixelShaderNode(this);
+                    AddNode(m_PixelMasterNode);
+                    m_PixelMasterNode.position = new Rect(700, m_PixelMasterNode.position.y, m_PixelMasterNode.position.width, m_PixelMasterNode.position.height);
+                }
                 return m_PixelMasterNode;
             }
         }

@@ -180,7 +180,7 @@ namespace UnityEditor.MaterialGraph
 
         protected override bool UpdatePreviewShader()
         {
-           // if (hasError)
+            if (hasError)
                 return false;
 
             var shaderName = "Hidden/PreviewShader/" + name + "_" + guid;
