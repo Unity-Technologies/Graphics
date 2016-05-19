@@ -553,7 +553,7 @@ namespace UnityEditor.MaterialGraph
 
         protected bool InternalUpdatePreviewShader(string resultShader)
         {
-            MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + guid + "\n" + resultShader);
+            MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + guid.ToString().Replace("-","_") + "\n" + resultShader);
 
             // workaround for some internal shader compiler weirdness
             // if we are in error we sometimes to not properly clean 
@@ -743,7 +743,7 @@ namespace UnityEditor.MaterialGraph
 
         public virtual string GetOutputVariableNameForNode()
         {
-            return name + "_" + guid;
+            return name + "_" + guid.ToString().Replace("-", "_");
         }
 
         public virtual Vector4 GetNewSlotDefaultValue(SlotValueType type)
