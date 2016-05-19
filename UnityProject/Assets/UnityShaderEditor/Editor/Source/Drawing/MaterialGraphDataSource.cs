@@ -89,45 +89,28 @@ namespace UnityEditor.MaterialGraph
         public void DeleteElements(List<CanvasElement> elements)
         {
             // delete selected edges first
-           /* foreach (var e in elements.Where(x => x is Edge<NodeAnchor>))
+            foreach (var e in elements.Where(x => x is Edge<NodeAnchor>))
             {
                 //find the edge
                 var localEdge = (Edge<NodeAnchor>) e;
-                var edge = graph.currentGraph.edges.FirstOrDefault(x => x.fromSlot == localEdge.Left.m_Slot && x.toSlot == localEdge.Right.m_Slot);
+                var edge = graph.currentGraph.edges.FirstOrDefault(x => graph.currentGraph.GetNodeFromGUID(x.outputSlot.nodeGuid).FindOutputSlot(x.outputSlot.slotName) == localEdge.Left.m_Slot 
+                    && graph.currentGraph.GetNodeFromGUID(x.inputSlot.nodeGuid).FindInputSlot(x.inputSlot.slotName) == localEdge.Right.m_Slot);
 
                 Debug.Log("Deleting edge " + edge);
                 graph.currentGraph.RemoveEdgeNoRevalidate(edge);
             }
 
-            // now delete edges that the selected nodes use
+            // now delete the nodes
             foreach (var e in elements.Where(x => x is DrawableMaterialNode))
             {
                 var node = ((DrawableMaterialNode) e).m_Node;
                 if (!node.canDeleteNode)
                     continue;
 
-                foreach (var slot in node.slots)
-                {
-                    for (int index = slot.edges.Count -1; index >= 0; --index)
-                    {
-                        var edge = slot.edges[index];
-                        Debug.Log("Deleting edge " + edge);
-                        graph.currentGraph.RemoveEdgeNoRevalidate(edge);
-                    }
-                }
-            }
-
-            // now delete the nodes
-            foreach (var e in elements.Where(x => x is DrawableMaterialNode))
-            {
-                var node = ((DrawableMaterialNode)e).m_Node;
-                if (!node.canDeleteNode)
-                    continue;
-
                 Debug.Log("Deleting node " + e + " " + node);
-                graph.currentGraph.RemoveNode(node);
+                graph.currentGraph.RemoveNodeNoRevalidate(node);
             }
-            graph.currentGraph.RevalidateGraph();*/
+            graph.currentGraph.RevalidateGraph();
         }
 
         public void Connect(NodeAnchor a, NodeAnchor b)

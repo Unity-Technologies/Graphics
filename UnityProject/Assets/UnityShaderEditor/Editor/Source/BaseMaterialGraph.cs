@@ -67,6 +67,15 @@ namespace UnityEditor.MaterialGraph
                 return;
 
             m_Nodes.Remove(node);
+            RevalidateGraph();
+        }
+
+        public void RemoveNodeNoRevalidate(BaseMaterialNode node)
+        {
+            if (!node.canDeleteNode)
+                return;
+
+            m_Nodes.Remove(node);
         }
 
         public BaseMaterialNode GetNodeFromGUID(Guid guid)
@@ -77,8 +86,8 @@ namespace UnityEditor.MaterialGraph
         public IEnumerable<Edge> GetEdges(Slot s)
         {
             return m_Edges.Where(x =>
-                (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotName == s.name)
-                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotName == s.name);
+                (x.outputSlot.nodeGuid == s.owner.guid && x.outputSlot.slotName == s.name)
+                || x.inputSlot.nodeGuid == s.owner.guid && x.inputSlot.slotName == s.name);
         }
 
         public Edge Connect(Slot fromSlot, Slot toSlot)

@@ -1,7 +1,6 @@
 using System;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
-using UnityEditor.Graphs;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
