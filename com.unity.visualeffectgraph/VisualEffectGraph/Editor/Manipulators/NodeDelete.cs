@@ -11,11 +11,6 @@ namespace UnityEditor.Experimental
 {
     internal class NodeDelete : IManipulate
     {
-
-        public NodeDelete()
-        {
-        }
-
         public bool GetCaps(ManipulatorCapability cap)
         {
             if (cap == ManipulatorCapability.MultiSelection)
@@ -41,10 +36,16 @@ namespace UnityEditor.Experimental
             if (!(element is VFXEdNodeBase) || !element.selected)
             {
                 return false;
-            }
+            }  
 
-            // Prepare undo
-            (canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting Node" + (element as VFXEdNodeBase).ToString());
+            // TMP
+            if (element is VFXEdContextNode)
+            {
+                ((VFXEdContextNode)element).Model.Detach();
+                canvas.ReloadData();
+                canvas.Repaint();
+                return true;
+            }
 
             // Delete Edges
             VFXEdNodeBase node = element as VFXEdNodeBase;

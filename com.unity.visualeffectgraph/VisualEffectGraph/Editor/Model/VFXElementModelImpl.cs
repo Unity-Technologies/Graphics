@@ -197,33 +197,74 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public static bool ConnectContext(VFXContextModel context0, VFXContextModel context1)
+        public static bool ConnectContext(VFXContextModel context0, VFXContextModel context1, VFXModelObserver observer = null)
         {
             if (context0 == context1)
                 return false;
 
             VFXSystemModel system0 = context0.GetOwner();
-            int context0Index = system0.m_Children.IndexOf(context0);
+            int context0Index = system0.GetIndex(context0);
+
+            if (system0 == context1.GetOwner() && context0Index > context1.GetOwner().GetIndex(context1))
+                return false;
 
             if (!system0.CanAddChild(context1, context0Index + 1))
                 return false;
 
             // If context0 is not the last one in system0, we need to reattach following contexts to a new one
+            var system0Observer = system0.Observer;
+            system0.Observer = null;
+
             if (system0.GetNbChildren() > context0Index + 1)
             {
                 VFXSystemModel newSystem = new VFXSystemModel();
+
                 while (system0.GetNbChildren() > context0Index + 1)
-                    system0.m_Children[context0Index + 1].Attach(newSystem);
+                    system0.m_Children[context0Index + 1].Attach(newSystem,true,false);
+
+                newSystem.Observer = observer;
                 VFXEditor.AssetModel.AddChild(newSystem);
             }
 
             VFXSystemModel system1 = context1.GetOwner();
+            var system1Observer = system1.Observer;
+            system1.Observer = null;
             int context1Index = system1.m_Children.IndexOf(context1);
 
             // Then we append context1 and all following contexts to system0
             while (system1.GetNbChildren() > context1Index)
-                system1.m_Children[context1Index].Attach(system0);
+                system1.m_Children[context1Index].Attach(system0,true,false);
 
+            // In that order, so that if system0 == system1, the observer is correct
+            system1.Observer = system1Observer;
+            system0.Observer = system0Observer;
+            
+
+            return true;
+        }
+
+
+        public static bool DisconnectContext(VFXContextModel context,VFXModelObserver observer = null)
+        {
+            VFXSystemModel system = context.GetOwner();
+            if (system == null)
+                return false;
+
+            int index = system.GetIndex(context);
+            if (index == 0)
+                return false;
+
+            var systemObserver = system.Observer;
+            system.Observer = null;
+
+            VFXSystemModel newSystem = new VFXSystemModel();
+            while (system.GetNbChildren() > index)
+                system.GetChild(index).Attach(newSystem,true,false);
+            newSystem.Attach(VFXEditor.AssetModel);
+
+            newSystem.Observer = observer;
+            system.Observer = systemObserver;
+            
             return true;
         }
 
@@ -504,6 +545,7 @@ namespace UnityEditor.Experimental
 
         private VFXBlockDesc m_BlockDesc;
 
+        public bool UICollapsed { get { return m_UICollapsed; } }
         private bool m_UICollapsed;
     }
 }

@@ -12,6 +12,12 @@ namespace UnityEditor.Experimental
         void UpdatePosition(Vector2 position);
     }
 
+    public interface VFXModelObserver
+    {
+        void OnModelUpdated(VFXElementModel model);
+        void OnLinkUpdated(VFXPropertySlot slot);
+    }
+
     public abstract class VFXElementModel
     {
         public enum InvalidationCause
@@ -20,24 +26,36 @@ namespace UnityEditor.Experimental
             kParamChanged,
         }
 
-        public void AddChild(VFXElementModel child, int index = -1, bool notify = true)
+        public void AddChild(VFXElementModel child, int index = -1, bool notify = true, bool notifyObserver = true)
         {
-            if (!CanAddChild(child, index))
-                throw new ArgumentException("Cannot attach " + child + " to " + this);
-
-            child.Detach(notify && child.m_Owner != this); // Dont notify if the owner is already this to avoid double invalidation
-
             int realIndex = index == -1 ? m_Children.Count : index;
-            m_Children.Insert(realIndex, child);
-            child.m_Owner = this;
+            if (child.m_Owner != this || realIndex != GetIndex(child))
+            {
+                if (!CanAddChild(child, index))
+                    throw new ArgumentException("Cannot attach " + child + " to " + this);
 
-            if (notify)
-                Invalidate(InvalidationCause.kModelChanged);
+                child.Detach(notify && child.m_Owner != this,false); // Dont notify if the owner is already this to avoid double invalidation + dont notify observer
+
+                realIndex = index == -1 ? m_Children.Count : index; // Recompute as the child may have been removed
+                m_Children.Insert(realIndex, child);
+                child.m_Owner = this;
+
+                if (notify)
+                    Invalidate(InvalidationCause.kModelChanged);
+            }
+
+            if (notifyObserver)
+            {
+                if (child.Observer != null)
+                    child.Observer.OnModelUpdated(child);
+                if (Observer != null)
+                    Observer.OnModelUpdated(this);
+            }
 
             //Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
         }
 
-        public void Remove(VFXElementModel child, bool notify = true)
+        public void Remove(VFXElementModel child, bool notify = true, bool notifyObserver = true)
         {
             if (child.m_Owner != this)
                 return;
@@ -48,23 +66,31 @@ namespace UnityEditor.Experimental
             if (notify)
                 Invalidate(InvalidationCause.kModelChanged);
 
-            //Debug.Log("Detach " + child + " to " + this);
+            if (notifyObserver)
+            {
+                if (child.Observer != null)
+                    child.Observer.OnModelUpdated(child);
+                if (Observer != null)
+                    Observer.OnModelUpdated(this);
+            }
+
+            //Debug.Log("Detach " + child + " to " + this); 
         }
 
-        public void Attach(VFXElementModel owner, bool notify = true)
+        public void Attach(VFXElementModel owner, bool notify = true, bool notifyObserver = true)
         {
             if (owner == null)
                 throw new ArgumentNullException();
 
-            owner.AddChild(this, -1, notify);
+            owner.AddChild(this, -1, notify, notifyObserver);
         }
 
-        public void Detach(bool notify = true)
+        public void Detach(bool notify = true, bool notifyObserver = true)
         {
             if (m_Owner == null)
                 return;
 
-            m_Owner.Remove(this, notify);
+            m_Owner.Remove(this, notify, notifyObserver);
         }
 
         public abstract bool CanAddChild(VFXElementModel element, int index);
@@ -79,6 +105,22 @@ namespace UnityEditor.Experimental
         {
             return m_Children.IndexOf(element);
         }
+
+        public VFXModelObserver Observer 
+        { 
+            get { return m_Observer; }
+            set
+            {
+                if (value != m_Observer)
+                {
+                    m_Observer = value;
+                    if (m_Observer != null)
+                        m_Observer.OnModelUpdated(this);
+                }
+            }
+
+        }
+        private VFXModelObserver m_Observer;
 
         protected VFXElementModel m_Owner;
         protected List<VFXElementModel> m_Children = new List<VFXElementModel>();
@@ -156,6 +198,8 @@ namespace UnityEditor.Experimental
                     break;
                 case VFXPropertySlot.Event.kValueUpdated:
                     Invalidate(InvalidationCause.kParamChanged);
+                    if (Observer != null)
+                        Observer.OnLinkUpdated(slot);
                     break;
             }
         }

@@ -412,17 +412,17 @@ namespace UnityEditor.Experimental
             m_Dependencies.Add(e);
         }
 
-        public CanvasElement[] FindChildren<T>()
+        public T[] FindChildren<T>() where T : CanvasElement
         {
-            List<CanvasElement> filtered = new List<CanvasElement>();
+            List<T> filtered = new List<T>();
             foreach (CanvasElement e in m_Children)
             {
-                CanvasElement[] inner = e.FindChildren<T>();
+                T[] inner = e.FindChildren<T>();
                 filtered.AddRange(inner);
 
                 if (e is T)
                 {
-                    filtered.Add(e);
+                    filtered.Add((T)e);
                 }
             }
 

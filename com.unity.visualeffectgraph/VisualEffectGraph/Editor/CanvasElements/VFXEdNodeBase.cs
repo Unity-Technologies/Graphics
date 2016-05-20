@@ -26,6 +26,8 @@ namespace UnityEditor.Experimental
             get { return m_Outputs; }
         }
 
+        public VFXEdDataSource DataSource { get { return m_DataSource; } }
+
         protected string m_UniqueName;
 
         protected List<VFXEdFlowAnchor> m_Inputs;

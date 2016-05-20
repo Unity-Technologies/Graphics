@@ -7,7 +7,8 @@ namespace UnityEditor.Experimental.VFX
     [Serializable]
     public class VFXAssetSerializedData
     {
-        public List<VFXSystemSerializedData> systems;
+        public List<VFXSystemSerializedData> Systems = new List<VFXSystemSerializedData>();
+        public List<VFXDataNodeSerializedData> DataNodes = new List<VFXDataNodeSerializedData>();
     }
 
     // Data models
@@ -18,7 +19,7 @@ namespace UnityEditor.Experimental.VFX
         public bool Exposed;
         public Vector2 UIPosition;
 
-        public List<VFXBlockSerializedData> blocks;
+        public List<VFXBlockSerializedData> Blocks = new List<VFXBlockSerializedData>();
     }
 
     // Same as VFXBlockSerializeData
@@ -40,9 +41,9 @@ namespace UnityEditor.Experimental.VFX
         public float SpawnRate;
         public BlendMode BlendingMode;
         public int OrderPriority;
-        public int ID;
+        public uint ID;
 
-        public List<VFXContextSerializedData> contexts;
+        public List<VFXContextSerializedData> Contexts = new List<VFXContextSerializedData>();
     }
 
     [Serializable]
@@ -53,7 +54,7 @@ namespace UnityEditor.Experimental.VFX
         public Vector2 UIPosition;
         public bool UICollapsed;
 
-        public List<VFXBlockSerializedData> blocks;
+        public List<VFXBlockSerializedData> Blocks = new List<VFXBlockSerializedData>();
     }
 
     [Serializable]
@@ -62,7 +63,7 @@ namespace UnityEditor.Experimental.VFX
         public string DescId;
         public bool UICollapsed;
 
-        List<VFXPropertySerializeData> properties;   
+        List<VFXPropertySerializeData> Properties = new List<VFXPropertySerializeData>();   
     }
 
     // Properties and links
@@ -70,14 +71,15 @@ namespace UnityEditor.Experimental.VFX
     [Serializable]
     public class VFXPropertySerializeData
     {
-
-        List<VFXLinkSerializedData> links;
+        uint SerializableID; // generated at serialization to link the slots
+        List<VFXLinkSerializedData> Links = new List<VFXLinkSerializedData>();
+        List<string> Values = new List<string>();
     }
 
     [Serializable]
     public class VFXLinkSerializedData
     {
-        uint Slot;
-        uint Depth;
+        uint PropertyID;
+        uint index;
     }
 }
