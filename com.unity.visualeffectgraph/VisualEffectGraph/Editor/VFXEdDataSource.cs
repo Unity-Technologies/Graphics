@@ -37,8 +37,9 @@ namespace UnityEditor.Experimental
 
         public void CreateBlock(VFXBlockDesc desc, VFXContextModel owner, int index)
         {
-            VFXBlockModel block = new VFXBlockModel(desc);
-            owner.AddChild(block, index);
+            VFXBlockModel block = new VFXBlockModel(desc);           
+            block.Observer = this;   
+            owner.AddChild(block, index);        
         }
 
         // This is called by the model when one element has been updated and the view therefore needs to synchronize
@@ -49,8 +50,8 @@ namespace UnityEditor.Experimental
                 OnSystemUpdated((VFXSystemModel)model);
             else if (type == typeof(VFXContextModel))
                 OnContextUpdated((VFXContextModel)model);
-            //else if (type == typeof(VFXEdProcessingNodeBlock))
-            //    OnBlockUpdated((VFXBlockModel)model);
+            else if (type == typeof(VFXBlockModel))
+                OnBlockUpdated((VFXBlockModel)model);
         }
 
         public void OnLinkUpdated(VFXPropertySlot slot)
@@ -95,17 +96,55 @@ namespace UnityEditor.Experimental
 
             if (system == null) // We must delete the contextUI as it is no longer bound to a system
             {
+                for (int i = 0; i < model.GetNbChildren(); ++i)
+                    m_BlockModelToUI.Remove(model.GetChild(i));
+
                 if (contextUI != null)
                 {
                     DeleteContextUI(contextUI);
                     m_ContextModelToUI.Remove(model);
                 }
             }
-            else if (contextUI == null) // Create the context UI if it does not exist
+            else  // Create the context UI if it does not exist
             {
-                contextUI = CreateContextUI(model);
-                m_ContextModelToUI.Add(model, contextUI);
-            }
+                if (contextUI == null)
+                {
+                    contextUI = CreateContextUI(model);
+                    m_ContextModelToUI.Add(model, contextUI);
+                }
+
+                // Collect all blocks in the context
+                List<VFXBlockModel> children = new List<VFXBlockModel>();
+                for (int i = 0; i < model.GetNbChildren(); ++i)
+                    children.Add(model.GetChild(i));
+
+                // Collect all contextUI in the system
+                List<VFXEdProcessingNodeBlock> childrenUI = new List<VFXEdProcessingNodeBlock>();
+                foreach (var child in children)
+                    childrenUI.Add(m_BlockModelToUI[child]); // This should not throw
+
+                VFXEdNodeBlockContainer container = contextUI.NodeBlockContainer;
+
+                // Remove all blocks
+                container.ClearNodeBlocks();
+
+                // Then add them again
+                foreach (var child in childrenUI)
+                    container.AddNodeBlock(child);
+            }         
+        }
+
+        private void OnBlockUpdated(VFXBlockModel model)
+        {
+            var context = model.GetOwner();
+
+            VFXEdProcessingNodeBlock blockUI;
+            m_BlockModelToUI.TryGetValue(model, out blockUI);
+
+            if (context == null) // We must delete the contextUI as it is no longer bound to a system
+                m_BlockModelToUI.Remove(model);
+            else if (blockUI == null)
+                m_BlockModelToUI.Add(model, blockUI = new VFXEdProcessingNodeBlock(model, this));
         }
 
         private VFXEdContextNode CreateContextUI(VFXContextModel model)
@@ -120,14 +159,6 @@ namespace UnityEditor.Experimental
             contextUI.OnRemove();
             m_Elements.Remove(contextUI);
         }
-
-
-
-
-
-
-
-
 
 
         public VFXEdProcessingNodeBlock GetBlockUI(VFXBlockModel model)
@@ -145,9 +176,6 @@ namespace UnityEditor.Experimental
             return m_Elements.ToArray();
         }
 
-       
-
-
         public void AddElement(CanvasElement e) {
             m_Elements.Add(e);
         }
@@ -161,16 +189,11 @@ namespace UnityEditor.Experimental
             // Handle model update when deleting edge here
             var edge = e as FlowEdge;
             if (edge != null)
-            {
-                
+            {   
                 VFXEdFlowAnchor anchor = edge.Right;
                 var node = anchor.FindParent<VFXEdContextNode>();
                 if (node != null)
                     VFXSystemModel.DisconnectContext(node.Model,this);
-                //m_Elements.Remove(e);
-                //return;
-
-                return;
             }
 
             var propertyEdge = e as VFXUIPropertyEdge;

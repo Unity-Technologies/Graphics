@@ -28,17 +28,21 @@ namespace UnityEditor.Experimental
 
         public void AddChild(VFXElementModel child, int index = -1, bool notify = true, bool notifyObserver = true)
         {
-            if (!CanAddChild(child, index))
-                throw new ArgumentException("Cannot attach " + child + " to " + this);
-
-            child.Detach(notify && child.m_Owner != this,false); // Dont notify if the owner is already this to avoid double invalidation + dont notify observer
-
             int realIndex = index == -1 ? m_Children.Count : index;
-            m_Children.Insert(realIndex, child);
-            child.m_Owner = this;
+            if (child.m_Owner != this || realIndex != GetIndex(child))
+            {
+                if (!CanAddChild(child, index))
+                    throw new ArgumentException("Cannot attach " + child + " to " + this);
 
-            if (notify)
-                Invalidate(InvalidationCause.kModelChanged);
+                child.Detach(notify && child.m_Owner != this,false); // Dont notify if the owner is already this to avoid double invalidation + dont notify observer
+
+                realIndex = index == -1 ? m_Children.Count : index; // Recompute as the child may have been removed
+                m_Children.Insert(realIndex, child);
+                child.m_Owner = this;
+
+                if (notify)
+                    Invalidate(InvalidationCause.kModelChanged);
+            }
 
             if (notifyObserver)
             {

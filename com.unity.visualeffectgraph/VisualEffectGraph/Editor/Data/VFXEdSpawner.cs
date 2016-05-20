@@ -114,23 +114,23 @@ namespace UnityEditor.Experimental
 
     internal class VFXEdProcessingNodeBlockSpawner : VFXEdSpawner
     {
-        VFXEdContextNode m_Node;
-        VFXBlockDesc m_Block;
+        VFXBlockDesc m_BlockDesc;
+        VFXContextModel m_Context;
+        int m_Index;
         VFXEdDataSource m_DataSource;
 
         public VFXEdProcessingNodeBlockSpawner(Vector2 position, VFXBlockDesc block, VFXEdContextNode node, VFXEdDataSource datasource)
             : base (position)
         {
-            m_Block = block;
-            m_Node = node;
+            m_Index = node.NodeBlockContainer.GetDropIndex(position);
+            m_Context = node.Model;
+            m_BlockDesc = block;
             m_DataSource = datasource;
         }
 
         public override void Spawn()
         {
-            m_Node.NodeBlockContainer.CaptureDrop = true;
-            m_Node.NodeBlockContainer.UpdateCaptureDrop(m_CanvasPosition);
-            m_Node.NodeBlockContainer.AcceptDrop(new VFXEdProcessingNodeBlock(m_Block, m_DataSource));
+            m_DataSource.CreateBlock(m_BlockDesc, m_Context, m_Index);
         }
     }
 

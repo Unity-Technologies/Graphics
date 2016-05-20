@@ -32,6 +32,15 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public int GetDropIndex(Vector2 mousePosition)
+        {
+            CaptureDrop = true;
+            UpdateCaptureDrop(mousePosition);
+            int index = dropInfo.DropIndex;
+            CaptureDrop = false;
+            return index;
+        }
+
         public  List<VFXEdNodeBlockDraggable> nodeBlocks { get { return m_NodeBlocks; } }
 
         private DropInfo dropInfo;
@@ -103,19 +112,6 @@ namespace UnityEditor.Experimental
             block.translation = Vector3.zero;
             Layout();
             Invalidate();
-
-            // Update the model if inside a Context Node
-            VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
-            if (nodeParent != null)
-                try
-                {
-                    nodeParent.OnAddNodeBlock(block, index);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e.ToString());
-                }
-
         }
 
         public int GetBlockIndex(VFXEdNodeBlockDraggable block)
@@ -127,10 +123,10 @@ namespace UnityEditor.Experimental
         {
             if (m_NodeBlocks.Contains(block))
             {
-                if ((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock == block)
+                /*if ((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock == block)
                 {
                     (ParentCanvas() as VFXEdCanvas).SelectedNodeBlock = null;
-                }
+                }*/
 
                 m_NodeBlocks.Remove(block);
                 m_Children.Remove(block);
@@ -144,7 +140,7 @@ namespace UnityEditor.Experimental
         public void RemoveNodeBlock(VFXEdNodeBlockDraggable block)
         {
                 DetachNodeBlock(block);
-                block.OnRemoved();
+                //block.OnRemoved();
         }
 
         public void ClearNodeBlocks()
@@ -165,14 +161,32 @@ namespace UnityEditor.Experimental
 
         public void AcceptDrop(VFXEdNodeBlockDraggable block)
         {
-            AddNodeBlock(block, dropInfo.DropIndex);
+            //AddNodeBlock(block, dropInfo.DropIndex);
+            // Update the model if inside a Context Node
+            VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
+            if (nodeParent != null)
+                try
+                {
+                    nodeParent.Model.AddChild(((VFXEdProcessingNodeBlock)block).Model, dropInfo.DropIndex);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e.ToString());
+                }
+
             CaptureDrop = false;
             Invalidate();
         }
 
         public void RevertDrop(VFXEdNodeBlockDraggable block, int index)
         {
-            AddNodeBlock(block, index);
+            //AddNodeBlock(block, index);
+            // Update the model if inside a Context Node
+            VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
+            if (nodeParent != null)
+                nodeParent.DataSource.OnModelUpdated(nodeParent.Model); // Force a refresh
+
+
             CaptureDrop = false;
             Invalidate();
         }

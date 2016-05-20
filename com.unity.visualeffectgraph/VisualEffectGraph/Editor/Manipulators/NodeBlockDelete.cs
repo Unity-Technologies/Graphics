@@ -39,9 +39,17 @@ namespace UnityEditor.Experimental
             }
 
             // Delete Edges
-            VFXEdNodeBlockDraggable node = element as VFXEdNodeBlockDraggable;
+            /*VFXEdNodeBlockDraggable node = element as VFXEdNodeBlockDraggable;
             VFXEdNodeBlockContainer container = (node.parent as VFXEdNodeBlockContainer);
-            container.RemoveNodeBlock(node);
+            container.RemoveNodeBlock(node);*/
+
+            if (element is VFXEdProcessingNodeBlock)
+            {
+                ((VFXEdProcessingNodeBlock)element).Model.Detach();
+                canvas.ReloadData();
+                canvas.Repaint();
+                return true;
+            }
 
             // TODO : Delete DataEdges when implemented.
 
