@@ -230,7 +230,7 @@ namespace UnityEditor.Experimental
 
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
         {
-            Model.AddChild((nodeblock as VFXEdProcessingNodeBlock).Model,index);
+            //Model.AddChild((nodeblock as VFXEdProcessingNodeBlock).Model,index);
         }
 
         public override bool AcceptNodeBlock(VFXEdNodeBlock block)
@@ -268,7 +268,7 @@ namespace UnityEditor.Experimental
             }
            
             GUI.Box(r, "", VFXEditor.styles.Node);
-            GUI.Label(new Rect(0, r.y, r.width, 24), title, VFXEditor.styles.NodeTitle);
+            GUI.Label(new Rect(0, r.y, r.width, 24), title + " " + Model.GetOwner().Id, VFXEditor.styles.NodeTitle);
 
             base.Render(parentRect, canvas);
         }
