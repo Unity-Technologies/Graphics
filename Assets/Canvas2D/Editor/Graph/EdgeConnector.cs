@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Graph
 {
     public delegate void EdgeRenderMethod(Canvas2D parent, IConnect source, IConnect target, Vector3 from, Vector3 to);
 
-    internal class EdgeConnector<T> : IManipulate where T : IConnect
+    internal class EdgeConnector<T> : IManipulate where T : CanvasElement, IConnect
     {
         private static readonly Color s_EdgeColor = new Color(1.0f, 1.0f, 1.0f, 0.8f);
         private static readonly Color s_ActiveEdgeColor = new Color(0.2f, 0.4f, 1.0f, 0.8f);
@@ -81,7 +81,7 @@ namespace UnityEditor.Experimental.Graph
 
             CanvasElement[] visibleAnchors = canvas.Pick<T>(screenRect);
             NodeAdapter nodeAdapter = new NodeAdapter();
-            foreach (CanvasElement anchor in visibleAnchors)
+            foreach (var anchor in visibleAnchors)
             {
                 IConnect toCnx = anchor as IConnect;
                 if (toCnx == null)
