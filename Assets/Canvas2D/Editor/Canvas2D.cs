@@ -719,15 +719,15 @@ namespace UnityEditor.Experimental
             RebuildQuadTree();
         }
 
-        public CanvasElement[] Pick<T>(Rect area)
+        public CanvasElement[] Pick<T>(Rect area) where T : CanvasElement
         {
             List<CanvasElement> elems = m_QuadTree.ContainedBy(area);
             List<CanvasElement> returnedElements = new List<CanvasElement>();
 
             foreach (CanvasElement e in elems)
             {
-                CanvasElement[] allTs = e.FindChildren<T>();
-                foreach (CanvasElement c in allTs)
+                T[] allTs = e.FindChildren<T>();
+                foreach (T c in allTs)
                 {
                     returnedElements.Add(c);
                 }
@@ -736,15 +736,15 @@ namespace UnityEditor.Experimental
             return returnedElements.ToArray();
         }
 
-        public CanvasElement PickSingle<T>(Vector2 position)
+        public CanvasElement PickSingle<T>(Vector2 position) where T : CanvasElement
         {
             Vector2 canvasPosition = MouseToCanvas(position);
             Rect mouseRect = new Rect(canvasPosition.x, canvasPosition.y, 10, 10);
             List<CanvasElement> elems = m_QuadTree.ContainedBy(mouseRect);
             foreach (CanvasElement e in elems)
             {
-                CanvasElement[] allTs = e.FindChildren<T>();
-                foreach (CanvasElement c in allTs)
+                T[] allTs = e.FindChildren<T>();
+                foreach (T c in allTs)
                 {
                     if (c.Contains(canvasPosition))
                     {
