@@ -41,6 +41,7 @@ namespace UnityEditor.Experimental
             owner.AddChild(block, index);
         }
 
+        // This is called by the model when one element has been updated and the view therefore needs to synchronize
         public void OnModelUpdated(VFXElementModel model)
         {
             Type type = model.GetType();
@@ -52,15 +53,21 @@ namespace UnityEditor.Experimental
             //    OnBlockUpdated((VFXBlockModel)model);
         }
 
+        public void OnLinkUpdated(VFXPropertySlot slot)
+        {
+            // TODO
+        }
+
         private void OnSystemUpdated(VFXSystemModel model)
         {
             List<VFXContextModel> children = new List<VFXContextModel>();
             for (int i = 0; i < model.GetNbChildren(); ++i)
                 children.Add(model.GetChild(i));
 
+            // Collect all contextUI in the system
             List<VFXEdContextNode> childrenUI = new List<VFXEdContextNode>();
             foreach (var child in children)
-                childrenUI.Add(m_ContextModelToUI[child]);
+                childrenUI.Add(m_ContextModelToUI[child]); // This should not throw
 
             // First remove all edges
             foreach (var childUI in childrenUI)
@@ -86,7 +93,7 @@ namespace UnityEditor.Experimental
             VFXEdContextNode contextUI;
             m_ContextModelToUI.TryGetValue(model,out contextUI);
 
-            if (system == null) // We must delete the contextUI
+            if (system == null) // We must delete the contextUI as it is no longer bound to a system
             {
                 if (contextUI != null)
                 {
@@ -94,11 +101,11 @@ namespace UnityEditor.Experimental
                     m_ContextModelToUI.Remove(model);
                 }
             }
-            else if (contextUI == null)
+            else if (contextUI == null) // Create the context UI if it does not exist
             {
                 contextUI = CreateContextUI(model);
                 m_ContextModelToUI.Add(model, contextUI);
-            }  
+            }
         }
 
         private VFXEdContextNode CreateContextUI(VFXContextModel model)
@@ -110,10 +117,6 @@ namespace UnityEditor.Experimental
 
         private void DeleteContextUI(VFXEdContextNode contextUI)
         {
-           /* var anchors = contextUI.FindChildren<VFXEdFlowAnchor>();
-            foreach (var anchor in anchors)
-                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(anchor);*/
-
             contextUI.OnRemove();
             m_Elements.Remove(contextUI);
         }
@@ -125,24 +128,7 @@ namespace UnityEditor.Experimental
 
 
 
-        private void OnBlockUpdated(VFXBlockModel model)
-        {
-            var ownerModel = model.GetOwner();
 
-            VFXEdProcessingNodeBlock blockUI;
-            m_BlockModelToUI.TryGetValue(model, out blockUI);
-
-            if (ownerModel != null && blockUI == null)
-            {
-                blockUI = new VFXEdProcessingNodeBlock(model.Desc, this); // TODO
-                m_BlockModelToUI.Add(model, blockUI);
-                AddElement(blockUI);
-            }
-
-            var parentUI = m_ContextModelToUI[ownerModel];
-            ownerModel.GetIndex(model);
-            
-        }
 
         public VFXEdProcessingNodeBlock GetBlockUI(VFXBlockModel model)
         {
@@ -154,54 +140,12 @@ namespace UnityEditor.Experimental
             return m_ContextModelToUI[model];
         }
             
-        public void OnLinkUpdated(VFXPropertySlot slot)
-        {
-
-        }
-
-        public void UndoSnapshot(string Message)
-        {
-            // TODO : Make RecordObject work (not working, no errors, have to investigate)
-            Undo.RecordObject(this, Message);
-        }
-
         public CanvasElement[] FetchElements()
         {
             return m_Elements.ToArray();
         }
 
-        public void CreateContext(Vector2 pos,VFXContextDesc desc)
-        {
-            VFXContextModel context = new VFXContextModel(desc);
-            context.UpdatePosition(pos);
-
-            // Create a tmp system to hold the newly created context
-            VFXSystemModel system = new VFXSystemModel();
-            system.AddChild(context);
-            VFXEditor.AssetModel.AddChild(system);
-
-            CreateContext(context);
-        }
-
-        public void CreateContext(VFXContextModel context)
-        {
-            var contextUI = new VFXEdContextNode(context, this);
-            m_ContextModelToUI.Add(context, contextUI);
-            AddElement(contextUI);
-        }
-
-
-
-
-
-
-
-
-        public void RemoveBlock(VFXBlockModel block)
-        {
-
-        }
-
+       
 
 
         public void AddElement(CanvasElement e) {
@@ -209,7 +153,7 @@ namespace UnityEditor.Experimental
         }
 
 
-
+        // This is called by the UI when a component is deleted
         public void DeleteElement(CanvasElement e)
         {
             Canvas2D canvas = e.ParentCanvas();
@@ -225,6 +169,8 @@ namespace UnityEditor.Experimental
                     VFXSystemModel.DisconnectContext(node.Model,this);
                 //m_Elements.Remove(e);
                 //return;
+
+                return;
             }
 
             var propertyEdge = e as VFXUIPropertyEdge;
@@ -268,6 +214,10 @@ namespace UnityEditor.Experimental
             return edges;
         }
 
+
+
+
+
         public void ConnectData(VFXUIPropertyAnchor a, VFXUIPropertyAnchor b)
         {
             // Swap to get a as output and b as input
@@ -300,9 +250,6 @@ namespace UnityEditor.Experimental
                 b = tmp;
             }
 
-           // RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(a);
-           // RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(b);*/
-
             VFXEdContextNode context0 = a.FindParent<VFXEdContextNode>();
             VFXEdContextNode context1 = b.FindParent<VFXEdContextNode>();
 
@@ -315,8 +262,7 @@ namespace UnityEditor.Experimental
                 if (!VFXSystemModel.ConnectContext(model0, model1, this))
                     return false;
             }
-
-           // m_Elements.Add(new FlowEdge(this, a, b));           
+       
             return true;
         }
 
