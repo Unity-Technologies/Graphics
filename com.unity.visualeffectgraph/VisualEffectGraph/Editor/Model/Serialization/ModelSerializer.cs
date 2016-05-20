@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public static VFXAssetSerializedData SerializeModel(VFXAssetModel model)
         {
-
+            return null;
         }
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.Experimental.VFX
 {
     [Serializable]
-    class VFXAssetSerializedData
+    public class VFXAssetSerializedData
     {
         public List<VFXSystemSerializedData> systems;
     }
@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.VFX
     // Data models
 
     [Serializable]
-    class VFXDataNodeSerializedData
+    public class VFXDataNodeSerializedData
     {
         public bool Exposed;
         public Vector2 UIPosition;
@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.VFX
     // System models
 
     [Serializable]
-    class VFXSystemSerializedData
+    public class VFXSystemSerializedData
     {
         public uint MaxNb;
         public float SpawnRate;
@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.VFX
     }
 
     [Serializable]
-    class VFXContextSerializedData
+    public class VFXContextSerializedData
     {
         public string DescId;
 
@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental.VFX
     }
 
     [Serializable]
-    class VFXBlockSerializedData
+    public class VFXBlockSerializedData
     {
         public string DescId;
         public bool UICollapsed;
@@ -68,14 +68,14 @@ namespace UnityEditor.Experimental.VFX
     // Properties and links
 
     [Serializable]
-    class VFXPropertySerializeData
+    public class VFXPropertySerializeData
     {
 
         List<VFXLinkSerializedData> links;
     }
 
     [Serializable]
-    class VFXLinkSerializedData
+    public class VFXLinkSerializedData
     {
         uint Slot;
         uint Depth;
