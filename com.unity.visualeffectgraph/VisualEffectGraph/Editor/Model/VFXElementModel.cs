@@ -40,8 +40,13 @@ namespace UnityEditor.Experimental
             if (notify)
                 Invalidate(InvalidationCause.kModelChanged);
 
-            if (notifyObserver && Observer != null)
-                Observer.OnModelUpdated(child);
+            if (notifyObserver)
+            {
+                if (child.Observer != null)
+                    child.Observer.OnModelUpdated(child);
+                if (Observer != null)
+                    Observer.OnModelUpdated(this);
+            }
 
             //Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
         }
@@ -57,10 +62,15 @@ namespace UnityEditor.Experimental
             if (notify)
                 Invalidate(InvalidationCause.kModelChanged);
 
-            if (notifyObserver && Observer != null)
-                Observer.OnModelUpdated(child);
+            if (notifyObserver)
+            {
+                if (child.Observer != null)
+                    child.Observer.OnModelUpdated(child);
+                if (Observer != null)
+                    Observer.OnModelUpdated(this);
+            }
 
-            //Debug.Log("Detach " + child + " to " + this);
+            //Debug.Log("Detach " + child + " to " + this); 
         }
 
         public void Attach(VFXElementModel owner, bool notify = true, bool notifyObserver = true)
@@ -92,7 +102,20 @@ namespace UnityEditor.Experimental
             return m_Children.IndexOf(element);
         }
 
-        public VFXModelObserver Observer { get { return m_Observer; }}
+        public VFXModelObserver Observer 
+        { 
+            get { return m_Observer; }
+            set
+            {
+                if (value != m_Observer)
+                {
+                    m_Observer = value;
+                    if (m_Observer != null)
+                        m_Observer.OnModelUpdated(this);
+                }
+            }
+
+        }
         private VFXModelObserver m_Observer;
 
         protected VFXElementModel m_Owner;

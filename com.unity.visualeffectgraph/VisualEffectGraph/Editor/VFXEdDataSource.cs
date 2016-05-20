@@ -18,28 +18,112 @@ namespace UnityEditor.Experimental
 
         public void OnEnable()
         {
+
+        }
+
+        public void CreateContext(VFXContextDesc desc,Vector2 pos)
+        {
+            VFXContextModel context = new VFXContextModel(desc);
+            context.UpdatePosition(pos);
+
+            // Create a tmp system to hold the newly created context
+            VFXSystemModel system = new VFXSystemModel();
+            system.AddChild(context);
+            VFXEditor.AssetModel.AddChild(system);
+
+            context.Observer = this;
+            system.Observer = this;
+        }
+
+        public void CreateBlock(VFXBlockDesc desc, VFXContextModel owner, int index)
+        {
+            VFXBlockModel block = new VFXBlockModel(desc);
+            owner.AddChild(block, index);
         }
 
         public void OnModelUpdated(VFXElementModel model)
         {
             Type type = model.GetType();
-            if (type == typeof(VFXContextModel))
+            if (type == typeof(VFXSystemModel))
+                OnSystemUpdated((VFXSystemModel)model);
+            else if (type == typeof(VFXContextModel))
                 OnContextUpdated((VFXContextModel)model);
-            else if (type == typeof(VFXEdProcessingNodeBlock))
-                OnBlockUpdated((VFXEdProcessingNodeBlock)model);
+            //else if (type == typeof(VFXEdProcessingNodeBlock))
+            //    OnBlockUpdated((VFXBlockModel)model);
+        }
+
+        private void OnSystemUpdated(VFXSystemModel model)
+        {
+            List<VFXContextModel> children = new List<VFXContextModel>();
+            for (int i = 0; i < model.GetNbChildren(); ++i)
+                children.Add(model.GetChild(i));
+
+            List<VFXEdContextNode> childrenUI = new List<VFXEdContextNode>();
+            foreach (var child in children)
+                childrenUI.Add(m_ContextModelToUI[child]);
+
+            // First remove all edges
+            foreach (var childUI in childrenUI)
+            {
+                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(childUI.inputs[0]);
+                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(childUI.outputs[0]);
+            }
+
+            // Then recreate edges
+            for (int i = 0; i < childrenUI.Count - 1; ++i)
+            {
+                var output = childrenUI[i].outputs[0];
+                var input = childrenUI[i + 1].inputs[0];
+
+                m_Elements.Add(new FlowEdge(this, output, input));
+            }
         }
 
         private void OnContextUpdated(VFXContextModel model)
         {
+            var system = model.GetOwner();
+
             VFXEdContextNode contextUI;
             m_ContextModelToUI.TryGetValue(model,out contextUI);
-            if (contextUI == null) // Create the context UI
+
+            if (system == null) // We must delete the contextUI
             {
-                contextUI = new VFXEdContextNode(model, this);
-                m_ContextModelToUI.Add(model, contextUI);
-                AddElement(contextUI);
+                if (contextUI != null)
+                {
+                    DeleteContextUI(contextUI);
+                    m_ContextModelToUI.Remove(model);
+                }
             }
+            else if (contextUI == null)
+            {
+                contextUI = CreateContextUI(model);
+                m_ContextModelToUI.Add(model, contextUI);
+            }  
         }
+
+        private VFXEdContextNode CreateContextUI(VFXContextModel model)
+        {
+            var contextUI = new VFXEdContextNode(model, this);
+            AddElement(contextUI);
+            return contextUI;
+        }
+
+        private void DeleteContextUI(VFXEdContextNode contextUI)
+        {
+           /* var anchors = contextUI.FindChildren<VFXEdFlowAnchor>();
+            foreach (var anchor in anchors)
+                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(anchor);*/
+
+            contextUI.OnRemove();
+            m_Elements.Remove(contextUI);
+        }
+
+
+
+
+
+
+
 
         private void OnBlockUpdated(VFXBlockModel model)
         {
@@ -50,7 +134,7 @@ namespace UnityEditor.Experimental
 
             if (ownerModel != null && blockUI == null)
             {
-                blockUI = new VFXEdProcessingNodeBlock(model, this);
+                blockUI = new VFXEdProcessingNodeBlock(model.Desc, this); // TODO
                 m_BlockModelToUI.Add(model, blockUI);
                 AddElement(blockUI);
             }
@@ -106,42 +190,6 @@ namespace UnityEditor.Experimental
             AddElement(contextUI);
         }
 
-        public void RemoveContext(VFXContextModel context)
-        {
-            // First remove all blocks recursively
-            for (int i = 0; i < context.GetNbChildren(); ++i)
-                RemoveBlock(context.GetChild(i));
-
-            // Then remove all link to slots (data)
-            // TODO
-
-            // Finally remove all link to context (flow)
-            // TODO
-
-            // Create new system if any
-            VFXSystemModel owner = context.GetOwner();
-            if (owner != null)
-            {
-                int nbChildren = owner.GetNbChildren();
-                int index = owner.GetIndex(context);
-
-                context.Detach();
-                if (index != 0 && index != nbChildren - 1)
-                {
-                    // if the node is in the middle of a system, we need to create a new system
-                    VFXSystemModel newSystem = new VFXSystemModel();
-                    while (owner.GetNbChildren() > index)
-                        owner.GetChild(index).Attach(newSystem);
-                    newSystem.Attach(VFXEditor.AssetModel);
-                }
-            }
-
-            // RemoveUI
-            var contextUI = m_ContextModelToUI[context];
-            m_ContextModelToUI.Remove(context);
-            contextUI.OnRemove();
-            m_Elements.Remove(contextUI);
-        }
 
 
 
@@ -160,6 +208,8 @@ namespace UnityEditor.Experimental
             m_Elements.Add(e);
         }
 
+
+
         public void DeleteElement(CanvasElement e)
         {
             Canvas2D canvas = e.ParentCanvas();
@@ -168,18 +218,13 @@ namespace UnityEditor.Experimental
             var edge = e as FlowEdge;
             if (edge != null)
             {
+                
                 VFXEdFlowAnchor anchor = edge.Right;
                 var node = anchor.FindParent<VFXEdContextNode>();
                 if (node != null)
-                {
-                    VFXSystemModel owner = node.Model.GetOwner();
-                    int index = owner.GetIndex(node.Model);
-
-                    VFXSystemModel newSystem = new VFXSystemModel();
-                    while (owner.GetNbChildren() > index)
-                        owner.GetChild(index).Attach(newSystem);
-                    newSystem.Attach(VFXEditor.AssetModel);
-                }
+                    VFXSystemModel.DisconnectContext(node.Model,this);
+                //m_Elements.Remove(e);
+                //return;
             }
 
             var propertyEdge = e as VFXUIPropertyEdge;
@@ -192,8 +237,11 @@ namespace UnityEditor.Experimental
             }
 
             m_Elements.Remove(e);
-            canvas.ReloadData();
-            canvas.Repaint();
+            if (canvas != null)
+            {
+                canvas.ReloadData();
+                canvas.Repaint();
+            }
         }
 
         public void RemoveConnectedEdges<T, U>(U anchor) 
@@ -203,7 +251,7 @@ namespace UnityEditor.Experimental
             var edgesToRemove = GetConnectedEdges<T,U>(anchor);
 
             foreach (var edge in edgesToRemove)
-                DeleteElement(edge);
+                m_Elements.Remove(edge);
         }
 
         public List<T> GetConnectedEdges<T, U>(U anchor) 
@@ -252,8 +300,8 @@ namespace UnityEditor.Experimental
                 b = tmp;
             }
 
-            RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(a);
-            RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(b);
+           // RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(a);
+           // RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(b);*/
 
             VFXEdContextNode context0 = a.FindParent<VFXEdContextNode>();
             VFXEdContextNode context1 = b.FindParent<VFXEdContextNode>();
@@ -264,11 +312,11 @@ namespace UnityEditor.Experimental
                 VFXContextModel model0 = context0.Model;
                 VFXContextModel model1 = context1.Model;
 
-                if (!VFXSystemModel.ConnectContext(model0, model1))
+                if (!VFXSystemModel.ConnectContext(model0, model1, this))
                     return false;
             }
 
-            m_Elements.Add(new FlowEdge(this, a, b));
+           // m_Elements.Add(new FlowEdge(this, a, b));           
             return true;
         }
 

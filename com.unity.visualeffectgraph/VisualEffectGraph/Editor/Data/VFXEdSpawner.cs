@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_DataSource.CreateContext(m_CanvasPosition, m_Desc);
+            m_DataSource.CreateContext( m_Desc, m_CanvasPosition);
             m_Canvas.ReloadData();
         }
     }

@@ -44,7 +44,16 @@ namespace UnityEditor.Experimental
             }
 
             // Prepare undo
-            (canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting Node" + (element as VFXEdNodeBase).ToString());
+            (canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting Node" + (element as VFXEdNodeBase).ToString());    
+
+            // TMP
+            if (element is VFXEdContextNode)
+            {
+                ((VFXEdContextNode)element).Model.Detach();
+                canvas.ReloadData();
+                canvas.Repaint();
+                return true;
+            }
 
             // Delete Edges
             VFXEdNodeBase node = element as VFXEdNodeBase;
