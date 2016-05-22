@@ -15,6 +15,11 @@ namespace UnityEditor.Experimental
         kAlpha = 2,
     }
 
+    public interface VFXModelController
+    {
+        void SyncView(VFXElementModel model);
+    }
+
     public class VFXAssetModel : VFXElementModel<VFXElementModel, VFXSystemModel>
     {
         public VFXAssetModel()
@@ -197,7 +202,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public static bool ConnectContext(VFXContextModel context0, VFXContextModel context1, VFXModelObserver observer = null)
+        public static bool ConnectContext(VFXContextModel context0, VFXContextModel context1, VFXModelController controller = null)
         {
             if (context0 == context1)
                 return false;
@@ -211,40 +216,36 @@ namespace UnityEditor.Experimental
             if (!system0.CanAddChild(context1, context0Index + 1))
                 return false;
 
-            // If context0 is not the last one in system0, we need to reattach following contexts to a new one
-            var system0Observer = system0.Observer;
-            system0.Observer = null;
-
             if (system0.GetNbChildren() > context0Index + 1)
             {
                 VFXSystemModel newSystem = new VFXSystemModel();
 
                 while (system0.GetNbChildren() > context0Index + 1)
-                    system0.m_Children[context0Index + 1].Attach(newSystem,true,false);
+                    system0.m_Children[context0Index + 1].Attach(newSystem,true);
 
-                newSystem.Observer = observer;
                 VFXEditor.AssetModel.AddChild(newSystem);
+                if (controller != null)
+                    controller.SyncView(newSystem);
             }
 
             VFXSystemModel system1 = context1.GetOwner();
-            var system1Observer = system1.Observer;
-            system1.Observer = null;
             int context1Index = system1.m_Children.IndexOf(context1);
 
             // Then we append context1 and all following contexts to system0
             while (system1.GetNbChildren() > context1Index)
-                system1.m_Children[context1Index].Attach(system0,true,false);
+                system1.m_Children[context1Index].Attach(system0,true);
 
-            // In that order, so that if system0 == system1, the observer is correct
-            system1.Observer = system1Observer;
-            system0.Observer = system0Observer;
-            
+            if (controller != null)
+            {
+                controller.SyncView(system0);
+                controller.SyncView(system1);
+            }
 
             return true;
         }
 
 
-        public static bool DisconnectContext(VFXContextModel context,VFXModelObserver observer = null)
+        public static bool DisconnectContext(VFXContextModel context,VFXModelController controller = null)
         {
             VFXSystemModel system = context.GetOwner();
             if (system == null)
@@ -254,16 +255,16 @@ namespace UnityEditor.Experimental
             if (index == 0)
                 return false;
 
-            var systemObserver = system.Observer;
-            system.Observer = null;
-
             VFXSystemModel newSystem = new VFXSystemModel();
             while (system.GetNbChildren() > index)
-                system.GetChild(index).Attach(newSystem,true,false);
+                system.GetChild(index).Attach(newSystem,true);
             newSystem.Attach(VFXEditor.AssetModel);
 
-            newSystem.Observer = observer;
-            system.Observer = systemObserver;
+            if (controller != null)
+            {
+                controller.SyncView(newSystem);
+                controller.SyncView(system);
+            }
             
             return true;
         }

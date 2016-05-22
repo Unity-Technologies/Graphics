@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdDataSource : ScriptableObject, ICanvasDataSource, VFXModelObserver
+    internal class VFXEdDataSource : ScriptableObject, ICanvasDataSource, VFXModelController
     {
         private List<CanvasElement> m_Elements = new List<CanvasElement>();
 
@@ -31,19 +31,36 @@ namespace UnityEditor.Experimental
             system.AddChild(context);
             VFXEditor.AssetModel.AddChild(system);
 
-            context.Observer = this;
-            system.Observer = this;
+            SyncContext(context);
+            SyncSystem(system);
         }
 
         public void CreateBlock(VFXBlockDesc desc, VFXContextModel owner, int index)
         {
             VFXBlockModel block = new VFXBlockModel(desc);           
-            block.Observer = this;   
-            owner.AddChild(block, index);        
+            owner.AddChild(block, index);
+
+            SyncBlock(block);
+            SyncContext(owner);
+        }
+
+        public void Remove(VFXElementModel model)
+        {
+            var currentOwner = model.GetOwner();
+            model.Detach();
+            SyncView(model);
+
+            if (currentOwner != null)
+                SyncView(currentOwner);
+        }
+
+        public void AttachBlock(VFXBlockModel block,VFXContextModel owner,int index = -1)
+        {
+
         }
 
         // This is called by the model when one element has been updated and the view therefore needs to synchronize
-        public void OnModelUpdated(VFXElementModel model)
+        /*public void OnModelUpdated(VFXElementModel model)
         {
             Type type = model.GetType();
             if (type == typeof(VFXSystemModel))
@@ -52,14 +69,25 @@ namespace UnityEditor.Experimental
                 OnContextUpdated((VFXContextModel)model);
             else if (type == typeof(VFXBlockModel))
                 OnBlockUpdated((VFXBlockModel)model);
-        }
+        }*/
 
         public void OnLinkUpdated(VFXPropertySlot slot)
         {
             // TODO
         }
 
-        private void OnSystemUpdated(VFXSystemModel model)
+        public void SyncView(VFXElementModel model)
+        {
+            Type modelType = model.GetType();
+            if (modelType == typeof(VFXSystemModel))
+                SyncSystem((VFXSystemModel)model);
+            else if (modelType == typeof(VFXContextModel))
+                SyncContext((VFXContextModel)model);
+            else if (modelType == typeof(VFXBlockModel))
+                SyncBlock((VFXBlockModel)model);
+        }
+
+        public void SyncSystem(VFXSystemModel model)
         {
             List<VFXContextModel> children = new List<VFXContextModel>();
             for (int i = 0; i < model.GetNbChildren(); ++i)
@@ -87,7 +115,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        private void OnContextUpdated(VFXContextModel model)
+        public void SyncContext(VFXContextModel model)
         {
             var system = model.GetOwner();
 
@@ -134,7 +162,7 @@ namespace UnityEditor.Experimental
             }         
         }
 
-        private void OnBlockUpdated(VFXBlockModel model)
+        public void SyncBlock(VFXBlockModel model)
         {
             var context = model.GetOwner();
 

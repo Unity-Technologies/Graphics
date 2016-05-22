@@ -167,7 +167,9 @@ namespace UnityEditor.Experimental
             if (nodeParent != null)
                 try
                 {
+                    var model = ((VFXEdProcessingNodeBlock)block).Model;
                     nodeParent.Model.AddChild(((VFXEdProcessingNodeBlock)block).Model, dropInfo.DropIndex);
+                    nodeParent.DataSource.SyncView(nodeParent.Model);
                 }
                 catch (Exception e)
                 {
@@ -180,12 +182,9 @@ namespace UnityEditor.Experimental
 
         public void RevertDrop(VFXEdNodeBlockDraggable block, int index)
         {
-            //AddNodeBlock(block, index);
-            // Update the model if inside a Context Node
             VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
             if (nodeParent != null)
-                nodeParent.DataSource.OnModelUpdated(nodeParent.Model); // Force a refresh
-
+                nodeParent.DataSource.SyncView(nodeParent.Model); // Force a UI sync
 
             CaptureDrop = false;
             Invalidate();

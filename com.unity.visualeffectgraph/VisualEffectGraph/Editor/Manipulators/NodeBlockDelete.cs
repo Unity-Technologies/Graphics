@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental
 
             if (element is VFXEdProcessingNodeBlock)
             {
-                ((VFXEdProcessingNodeBlock)element).Model.Detach();
+                ((VFXEdDataSource)canvas.dataSource).Remove(((VFXEdProcessingNodeBlock)element).Model);
                 canvas.ReloadData();
                 canvas.Repaint();
                 return true;

@@ -8,8 +8,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal abstract class VFXEdNodeBlockDraggable : VFXEdNodeBlock
+    internal abstract class VFXEdNodeBlockDraggable : VFXEdNodeBlock, VFXModelHolder
     {
+        public abstract VFXElementModel GetAbstractModel();
 
         public VFXEdNodeBlockDraggable(VFXEdDataSource dataSource) : base(dataSource)
         {

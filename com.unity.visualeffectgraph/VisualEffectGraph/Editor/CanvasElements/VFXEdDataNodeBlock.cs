@@ -14,6 +14,8 @@ namespace UnityEditor.Experimental
         public VFXPropertySlot Slot         { get { return m_Model.Slot; } }
         public VFXDataBlockDesc Desc        { get { return m_Model.Desc; } }
 
+        public override VFXElementModel GetAbstractModel() { return Model; }
+
         public string m_exposedName;
 
         private VFXDataBlockModel m_Model;

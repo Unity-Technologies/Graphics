@@ -15,6 +15,8 @@ namespace UnityEditor.Experimental
         public VFXBlockDesc Desc { get { return Model.Desc; } }
         private VFXProperty[] Properties { get { return Model.Properties; } }
 
+        public override VFXElementModel GetAbstractModel() { return Model; }
+
         private VFXBlockModel m_Model;
 
         public VFXEdProcessingNodeBlock(VFXBlockModel block, VFXEdDataSource dataSource) : base(dataSource)

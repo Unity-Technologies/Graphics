@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental
             // TMP
             if (element is VFXEdContextNode)
             {
-                ((VFXEdContextNode)element).Model.Detach();
+                ((VFXEdDataSource)canvas.dataSource).Remove(((VFXEdContextNode)element).Model);
                 canvas.ReloadData();
                 canvas.Repaint();
                 return true;

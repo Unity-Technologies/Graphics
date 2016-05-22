@@ -13,7 +13,7 @@ using VFXBLKLibrary = UnityEditor.VFXBlockLibrary;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdContextNode : VFXEdNode
+    internal class VFXEdContextNode : VFXEdNode, VFXModelHolder
     {
         // TODO Remove this shit
         public static VFXEdContext ConvertType(VFXContextDesc.Type inType)
@@ -57,6 +57,8 @@ namespace UnityEditor.Experimental
         public VFXContextModel Model    { get { return m_Model; } }
         public VFXContextDesc Desc      { get { return Model.Desc; } }
         public VFXEdContext Context     { get { return m_Context; } }
+
+        public VFXElementModel GetAbstractModel() { return Model; }
 
 		protected VFXContextModel m_Model;
         protected VFXEdContext m_Context;

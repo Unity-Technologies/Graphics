@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal abstract class VFXEdNode : VFXEdNodeBase 
+    internal abstract class VFXEdNode : VFXEdNodeBase
     {
 
         public string title
@@ -82,9 +82,12 @@ namespace UnityEditor.Experimental
             {
                 spawner.Spawn();
             }
-            NodeBlockContainer.RemoveNodeBlock((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock);
-            (ParentCanvas() as VFXEdCanvas).SelectedNodeBlock = null;
-            Layout();
+
+            var model = (ParentCanvas() as VFXEdCanvas).SelectedNodeBlock.GetAbstractModel();
+            var owner = model.GetOwner();
+            model.Detach();
+            if (owner != null)
+                DataSource.SyncView(owner);
         }
 
         public override void OnRemove()
