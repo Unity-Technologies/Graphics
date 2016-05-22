@@ -46,17 +46,27 @@ namespace UnityEditor.Experimental
 
         public void Remove(VFXElementModel model)
         {
-            var currentOwner = model.GetOwner();
+            var oldOwner = model.GetOwner();
             model.Detach();
             SyncView(model);
 
-            if (currentOwner != null)
-                SyncView(currentOwner);
+            if (oldOwner != null)
+                SyncView(oldOwner);
         }
 
-        public void AttachBlock(VFXBlockModel block,VFXContextModel owner,int index = -1)
+        public void Attach(VFXElementModel model,VFXElementModel owner,int index = -1)
         {
+            var oldOwner = model.GetOwner();
+            if (owner != null)
+            {
+                owner.AddChild(model, index);
+                SyncView(owner);
+            }
+            else
+                model.Detach();
 
+            if (oldOwner != null && oldOwner != owner)
+                SyncView(oldOwner);
         }
 
         // This is called by the model when one element has been updated and the view therefore needs to synchronize
@@ -76,7 +86,7 @@ namespace UnityEditor.Experimental
             // TODO
         }
 
-        public void SyncView(VFXElementModel model)
+        public void SyncView(VFXElementModel model, bool recursive = false)
         {
             Type modelType = model.GetType();
             if (modelType == typeof(VFXSystemModel))
@@ -85,6 +95,10 @@ namespace UnityEditor.Experimental
                 SyncContext((VFXContextModel)model);
             else if (modelType == typeof(VFXBlockModel))
                 SyncBlock((VFXBlockModel)model);
+
+            if (recursive)
+                for (int i = 0; i < model.GetNbChildren(); ++i)
+                    SyncView(model.GetChild(i), true);
         }
 
         public void SyncSystem(VFXSystemModel model)
@@ -141,6 +155,9 @@ namespace UnityEditor.Experimental
                     m_ContextModelToUI.Add(model, contextUI);
                 }
 
+                // Reset UI data
+                contextUI.translation = model.UIPosition;
+
                 // Collect all blocks in the context
                 List<VFXBlockModel> children = new List<VFXBlockModel>();
                 for (int i = 0; i < model.GetNbChildren(); ++i)
@@ -159,6 +176,8 @@ namespace UnityEditor.Experimental
                 // Then add them again
                 foreach (var child in childrenUI)
                     container.AddNodeBlock(child);
+
+                contextUI.Invalidate();
             }         
         }
 
@@ -173,6 +192,10 @@ namespace UnityEditor.Experimental
                 m_BlockModelToUI.Remove(model);
             else if (blockUI == null)
                 m_BlockModelToUI.Add(model, blockUI = new VFXEdProcessingNodeBlock(model, this));
+
+            // Reset UI data
+            blockUI.collapsed = model.UICollapsed;
+            blockUI.Invalidate();
         }
 
         private VFXEdContextNode CreateContextUI(VFXContextModel model)

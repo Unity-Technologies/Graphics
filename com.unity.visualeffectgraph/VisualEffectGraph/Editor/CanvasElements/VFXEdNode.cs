@@ -79,15 +79,9 @@ namespace UnityEditor.Experimental
         {
             VFXEdSpawner spawner = o as VFXEdSpawner;
             if(spawner != null)
-            {
                 spawner.Spawn();
-            }
 
-            var model = (ParentCanvas() as VFXEdCanvas).SelectedNodeBlock.GetAbstractModel();
-            var owner = model.GetOwner();
-            model.Detach();
-            if (owner != null)
-                DataSource.SyncView(owner);
+            DataSource.Remove((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock.GetAbstractModel());
         }
 
         public override void OnRemove()

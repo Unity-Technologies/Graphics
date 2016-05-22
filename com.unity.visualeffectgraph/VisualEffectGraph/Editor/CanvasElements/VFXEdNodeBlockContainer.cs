@@ -167,9 +167,7 @@ namespace UnityEditor.Experimental
             if (nodeParent != null)
                 try
                 {
-                    var model = ((VFXEdProcessingNodeBlock)block).Model;
-                    nodeParent.Model.AddChild(((VFXEdProcessingNodeBlock)block).Model, dropInfo.DropIndex);
-                    nodeParent.DataSource.SyncView(nodeParent.Model);
+                    nodeParent.DataSource.Attach(((VFXEdProcessingNodeBlock)block).Model,nodeParent.Model,dropInfo.DropIndex);
                 }
                 catch (Exception e)
                 {

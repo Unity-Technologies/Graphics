@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental
 
     public interface VFXModelController
     {
-        void SyncView(VFXElementModel model);
+        void SyncView(VFXElementModel model, bool recursive = false);
     }
 
     public class VFXAssetModel : VFXElementModel<VFXElementModel, VFXSystemModel>
