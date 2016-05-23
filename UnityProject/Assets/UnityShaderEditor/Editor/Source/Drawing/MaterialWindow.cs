@@ -98,15 +98,15 @@ namespace UnityEditor.MaterialGraph
             if (posObj == null)
                 return;
 
-            BaseMaterialNode node = null;
+            AbstractMaterialNode node = null;
             try
             {
-                var constructorInfo = posObj.m_Type.GetConstructor(new[] {typeof(BaseMaterialGraph)});
-                node = (BaseMaterialNode)constructorInfo.Invoke(new object[] { m_MaterialGraph.currentGraph });
+                var constructorInfo = posObj.m_Type.GetConstructor(new[] {typeof(AbstractMaterialGraph)});
+                node = (AbstractMaterialNode)constructorInfo.Invoke(new object[] { m_MaterialGraph.currentGraph });
             }
             catch
             {
-                Debug.LogWarningFormat("Could not construct instance of: {0} as there is no single argument constuctor that takes a BaseMaterialGraph", posObj.m_Type);
+                Debug.LogWarningFormat("Could not construct instance of: {0} as there is no single argument constuctor that takes a AbstractMaterialGraph", posObj.m_Type);
                 return;
             }
             
@@ -121,9 +121,9 @@ namespace UnityEditor.MaterialGraph
         protected bool DoAddNodeMenu(Event @event, Canvas2D parent, Object customData)
         {
             var gm = new GenericMenu();
-            foreach (Type type in Assembly.GetAssembly(typeof(BaseMaterialNode)).GetTypes())
+            foreach (Type type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
             {
-                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(BaseMaterialNode))))
+                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
                 {
                     var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
                     if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))

@@ -27,7 +27,7 @@ namespace UnityEditor.MaterialGraph
             get { return m_MaterialOptions; }
         }
 
-        public BaseMaterialGraph currentGraph
+        public AbstractMaterialGraph currentGraph
         {
             get { return m_PixelGraph; }
         }

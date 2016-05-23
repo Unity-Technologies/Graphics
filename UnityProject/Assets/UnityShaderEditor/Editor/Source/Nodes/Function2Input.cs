@@ -2,14 +2,14 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    public abstract class Function2Input : BaseMaterialNode, IGeneratesBodyCode
+    public abstract class Function2Input : AbstractMaterialNode, IGeneratesBodyCode
     {
         public override bool hasPreview
         {
             get { return true; }
         }
 
-        protected Function2Input(BaseMaterialGraph owner)
+        protected Function2Input(AbstractMaterialGraph owner)
             : base(owner)
         {
             AddSlot(GetInputSlot1());
@@ -23,19 +23,19 @@ namespace UnityEditor.MaterialGraph
             get { return new[] {GetInputSlot1Name(), GetInputSlot2Name(), GetOutputSlotName()}; }
         }
 
-        protected virtual Slot GetInputSlot1()
+        protected virtual MaterialSlot GetInputSlot1()
         {
-            return new Slot(this, GetInputSlot1Name(), GetInputSlot1Name(), Slot.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(this, GetInputSlot1Name(), GetInputSlot1Name(), MaterialSlot.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
-        protected virtual Slot GetInputSlot2()
+        protected virtual MaterialSlot GetInputSlot2()
         {
-            return new Slot(this, GetInputSlot2Name(), GetInputSlot2Name(), Slot.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(this, GetInputSlot2Name(), GetInputSlot2Name(), MaterialSlot.SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
-        protected virtual Slot GetOutputSlot()
+        protected virtual MaterialSlot GetOutputSlot()
         {
-            return new Slot(this, GetOutputSlotName(), GetOutputSlotName(), Slot.SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(this, GetOutputSlotName(), GetOutputSlotName(), MaterialSlot.SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
         }
         
         protected virtual string GetInputSlot1Name()

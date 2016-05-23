@@ -11,10 +11,10 @@ namespace UnityEditor.MaterialGraph
         protected object m_Source;
         protected Direction m_Direction;
         private MaterialGraphDataSource m_Data;
-        public Slot m_Slot;
-        public BaseMaterialNode m_Node;
+        public MaterialSlot m_Slot;
+        public AbstractMaterialNode m_Node;
 
-        public NodeAnchor(Vector3 position, Type type, BaseMaterialNode node, Slot slot, MaterialGraphDataSource data, Direction direction)
+        public NodeAnchor(Vector3 position, Type type, AbstractMaterialNode node, MaterialSlot slot, MaterialGraphDataSource data, Direction direction)
         {
             m_Type = type;
             scale = new Vector3(15.0f, 15.0f, 1.0f);

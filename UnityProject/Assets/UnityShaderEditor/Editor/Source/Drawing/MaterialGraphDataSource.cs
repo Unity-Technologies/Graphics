@@ -25,7 +25,7 @@ namespace UnityEditor.MaterialGraph
             foreach (var node in pixelGraph.nodes)
             {
                 // add the nodes
-                var bmn = node as BaseMaterialNode;
+                var bmn = node as AbstractMaterialNode;
                 m_DrawableNodes.Add(new DrawableMaterialNode(bmn, (bmn is PixelShaderNode) ? 600.0f : 200.0f, this));
             }
 
@@ -41,7 +41,7 @@ namespace UnityEditor.MaterialGraph
                     var edges = baseNode.owner.GetEdges(slot);
                     foreach (var edge in edges)
                     {
-                        var toNode = baseNode.owner.GetNodeFromGUID(edge.inputSlot.nodeGuid);
+                        var toNode = baseNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                         var toSlot = toNode.FindInputSlot(edge.inputSlot.slotName);
                         var targetNode = m_DrawableNodes.FirstOrDefault(x => x.m_Node == toNode);
                         var targetAnchor = (NodeAnchor)targetNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == toSlot);
@@ -93,8 +93,8 @@ namespace UnityEditor.MaterialGraph
             {
                 //find the edge
                 var localEdge = (Edge<NodeAnchor>) e;
-                var edge = graph.currentGraph.edges.FirstOrDefault(x => graph.currentGraph.GetNodeFromGUID(x.outputSlot.nodeGuid).FindOutputSlot(x.outputSlot.slotName) == localEdge.Left.m_Slot 
-                    && graph.currentGraph.GetNodeFromGUID(x.inputSlot.nodeGuid).FindInputSlot(x.inputSlot.slotName) == localEdge.Right.m_Slot);
+                var edge = graph.currentGraph.edges.FirstOrDefault(x => graph.currentGraph.GetNodeFromGuid(x.outputSlot.nodeGuid).FindOutputSlot(x.outputSlot.slotName) == localEdge.Left.m_Slot 
+                    && graph.currentGraph.GetNodeFromGuid(x.inputSlot.nodeGuid).FindInputSlot(x.inputSlot.slotName) == localEdge.Right.m_Slot);
 
                 Debug.Log("Deleting edge " + edge);
                 graph.currentGraph.RemoveEdgeNoRevalidate(edge);
@@ -110,7 +110,7 @@ namespace UnityEditor.MaterialGraph
                 Debug.Log("Deleting node " + e + " " + node);
                 graph.currentGraph.RemoveNodeNoRevalidate(node);
             }
-            graph.currentGraph.RevalidateGraph();
+            graph.currentGraph.ValidateGraph();
         }
 
         public void Connect(NodeAnchor a, NodeAnchor b)
@@ -133,11 +133,11 @@ namespace UnityEditor.MaterialGraph
 
     public class FloatingPreview : CanvasElement
     {
-        private BaseMaterialNode m_Node;
+        private AbstractMaterialNode m_Node;
 
-        public FloatingPreview(Rect position, BaseMaterialNode node)
+        public FloatingPreview(Rect position, AbstractMaterialNode node)
         {
-            m_Node = node as BaseMaterialNode;
+            m_Node = node as AbstractMaterialNode;
             m_Translation = new Vector2(position.x, position.y);
             m_Scale = new Vector3(position.width, position.height, 1);
             m_Caps |= Capabilities.Floating | Capabilities.Unselectable;

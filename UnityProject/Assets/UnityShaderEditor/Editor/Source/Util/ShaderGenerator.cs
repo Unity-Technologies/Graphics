@@ -286,7 +286,7 @@ namespace UnityEditor.MaterialGraph
         }
 
         private const string kErrorString = @"ERROR!";
-        public static string AdaptNodeOutput(BaseMaterialNode node, Slot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType, bool textureSampleUVHack = false)
+        public static string AdaptNodeOutput(AbstractMaterialNode node, MaterialSlot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType, bool textureSampleUVHack = false)
         {
            if (outputSlot == null)
                 return kErrorString;
@@ -334,7 +334,7 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        private static string AdaptNodeOutputForPreview(BaseMaterialNode node, Slot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType)
+        private static string AdaptNodeOutputForPreview(AbstractMaterialNode node, MaterialSlot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType)
         {
            if (outputSlot == null)
                 return kErrorString;
@@ -373,10 +373,10 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public static string GeneratePreviewShader(BaseMaterialNode node, out PreviewMode generatedShaderMode)
+        public static string GeneratePreviewShader(AbstractMaterialNode node, out PreviewMode generatedShaderMode)
         {
             // figure out what kind of preview we want!
-            var activeNodeList = ListPool<BaseMaterialNode>.Get();
+            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
             node.CollectChildNodesByExecutionOrder(activeNodeList);
             var generationMode = GenerationMode.Preview2D;
             generatedShaderMode = PreviewMode.Preview2D;

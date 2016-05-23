@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    public abstract class PropertyNode : BaseMaterialNode
+    public abstract class PropertyNode : AbstractMaterialNode
     {
         [SerializeField]
         public string m_PropertyName;
@@ -15,7 +15,7 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         public bool m_Exposed;
 
-        public PropertyNode(BaseMaterialGraph owner) : base(owner)
+        public PropertyNode(AbstractMaterialGraph owner) : base(owner)
         {}
 
         public bool exposed
@@ -51,7 +51,7 @@ namespace UnityEditor.MaterialGraph
 
         public abstract PreviewProperty GetPreviewProperty();
         
-        public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
+        public override string GetOutputVariableNameForSlot(MaterialSlot s, GenerationMode generationMode)
         {
             return propertyName;
         }
@@ -96,7 +96,7 @@ namespace UnityEditor.MaterialGraph
             var modified = EditorGUI.EndChangeCheck();
             if (modified)
             {
-                owner.RevalidateGraph();
+                owner.ValidateGraph();
             }
 
             if (m_Exposed)
