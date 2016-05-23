@@ -41,6 +41,11 @@ namespace UnityEditor.Experimental
             Layout();
         }
 
+        public override void UpdateModel(UpdateType t)
+        {
+            Model.UpdateCollapsed(collapsed);
+        }
+
         public List<string> GetTooltipText()
         {
             List<string> lines = new List<string>();

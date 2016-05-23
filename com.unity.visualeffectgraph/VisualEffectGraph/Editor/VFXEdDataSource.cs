@@ -14,10 +14,29 @@ namespace UnityEditor.Experimental
     {
         private List<CanvasElement> m_Elements = new List<CanvasElement>();
         private Dictionary<VFXElementModel, VFXModelHolder> m_ModelToUI = new Dictionary<VFXElementModel, VFXModelHolder>();
+        private Dictionary<VFXPropertySlot, VFXUIPropertyAnchor> m_SlotToUI = new Dictionary<VFXPropertySlot, VFXUIPropertyAnchor>();
 
         public void OnEnable()
         {
 
+        }
+
+        public void ClearUI()
+        {
+            m_Elements.Clear();
+            m_ModelToUI.Clear();
+            m_SlotToUI.Clear();
+        }
+
+        public void ResyncViews()
+        {
+            ClearUI();
+
+            for (int i = 0; i < VFXEditor.Graph.systems.GetNbChildren(); ++i)
+                SyncView(VFXEditor.Graph.systems.GetChild(i), true);
+
+            for (int i = 0; i < VFXEditor.Graph.models.GetNbChildren(); ++i)
+                SyncView(VFXEditor.Graph.models.GetChild(i), true);
         }
 
         public void CreateContext(VFXContextDesc desc,Vector2 pos)
@@ -77,41 +96,39 @@ namespace UnityEditor.Experimental
                 SyncView(oldOwner);
         }
 
-
-        public void OnLinkUpdated(VFXPropertySlot slot)
+        public void Register(VFXPropertySlot slot,VFXUIPropertyAnchor anchor)
         {
-            // TODO
+            m_SlotToUI.Add(slot, anchor);
+        }
+
+        public void SyncView(VFXPropertySlot slot, bool recursive = false)
+        {
+            SyncSlot(slot,recursive);
         }
 
         public void SyncView(VFXElementModel model, bool recursive = false)
         {
             Type modelType = model.GetType();
             if (modelType == typeof(VFXSystemModel))
-                SyncSystem((VFXSystemModel)model);
+                SyncSystem((VFXSystemModel)model,recursive);
             else if (modelType == typeof(VFXContextModel))
-                SyncContext((VFXContextModel)model);
+                SyncContext((VFXContextModel)model,recursive);
             else if (modelType == typeof(VFXBlockModel))
-                SyncBlock((VFXBlockModel)model);
+                SyncBlock((VFXBlockModel)model,recursive);
             else if (modelType == typeof(VFXDataNodeModel))
-                SyncDataNode((VFXDataNodeModel)model);
+                SyncDataNode((VFXDataNodeModel)model,recursive);
             else if (modelType == typeof(VFXDataBlockModel))
-                SyncDataBlock((VFXDataBlockModel)model);
-
-            if (recursive)
-                for (int i = 0; i < model.GetNbChildren(); ++i)
-                    SyncView(model.GetChild(i), true);
+                SyncDataBlock((VFXDataBlockModel)model,recursive);   
         }
 
-        public void SyncSystem(VFXSystemModel model)
+        public void SyncSystem(VFXSystemModel model,bool recursive = false)
         {
             List<VFXContextModel> children = new List<VFXContextModel>();
             for (int i = 0; i < model.GetNbChildren(); ++i)
                 children.Add(model.GetChild(i));
 
             // Collect all contextUI in the system
-            List<VFXEdContextNode> childrenUI = new List<VFXEdContextNode>();
-            foreach (var child in children)
-                childrenUI.Add(GetUI<VFXEdContextNode>(child)); // This should not throw
+            List<VFXEdContextNode> childrenUI = CollectOrCreateUI<VFXContextModel, VFXEdContextNode>(children);
 
             // First remove all edges
             foreach (var childUI in childrenUI)
@@ -128,9 +145,12 @@ namespace UnityEditor.Experimental
 
                 m_Elements.Add(new FlowEdge(this, output, input));
             }
+
+            if (recursive)
+                SyncChildren(model);
         }
 
-        public void SyncContext(VFXContextModel model)
+        public void SyncContext(VFXContextModel model,bool recursive = false)
         {
             var system = model.GetOwner();
 
@@ -139,7 +159,7 @@ namespace UnityEditor.Experimental
             if (system == null) // We must delete the contextUI as it is no longer bound to a system
             {
                 for (int i = 0; i < model.GetNbChildren(); ++i)
-                    m_ModelToUI.Remove(model.GetChild(i));
+                    Remove(model.GetChild(i));
 
                 if (contextUI != null)
                 {
@@ -164,10 +184,7 @@ namespace UnityEditor.Experimental
                     children.Add(model.GetChild(i));
 
                 // Collect all contextUI in the system
-                List<VFXEdProcessingNodeBlock> childrenUI = new List<VFXEdProcessingNodeBlock>();
-                foreach (var child in children)
-                    childrenUI.Add(GetUI<VFXEdProcessingNodeBlock>(child)); // This should not throw
-
+                List<VFXEdProcessingNodeBlock> childrenUI = CollectOrCreateUI<VFXBlockModel, VFXEdProcessingNodeBlock>(children);
                 VFXEdNodeBlockContainer container = contextUI.NodeBlockContainer;
 
                 // Remove all blocks
@@ -177,27 +194,40 @@ namespace UnityEditor.Experimental
                 foreach (var child in childrenUI)
                     container.AddNodeBlock(child);
 
+                if (recursive)
+                    SyncChildren(model);
+
+                contextUI.Layout();
                 contextUI.Invalidate();
             }         
         }
 
-        public void SyncBlock(VFXBlockModel model)
+        public void SyncBlock(VFXBlockModel model, bool recursive = false)
         {
             var context = model.GetOwner();
 
             VFXEdProcessingNodeBlock blockUI = TryGetUI<VFXEdProcessingNodeBlock>(model);
 
             if (context == null) // We must delete the contextUI as it is no longer bound to a system
+            {
+                for (int i = 0; i < model.GetNbSlots(); ++i)
+                    RemoveSlot(model.GetSlot(i));
+
                 m_ModelToUI.Remove(model);
+            }
             else if (blockUI == null)
                 m_ModelToUI.Add(model, blockUI = new VFXEdProcessingNodeBlock(model, this));
 
             // Reset UI data
             blockUI.collapsed = model.UICollapsed;
             blockUI.Invalidate();
+
+            if (recursive)
+                for (int i = 0; i < model.GetNbSlots(); ++i)
+                    SyncView(model.GetSlot(i), true);
         }
 
-        public void SyncDataNode(VFXDataNodeModel model)
+        public void SyncDataNode(VFXDataNodeModel model, bool recursive)
         {
             var owner = model.GetOwner();
             VFXEdDataNode nodeUI = TryGetUI<VFXEdDataNode>(model);
@@ -205,7 +235,7 @@ namespace UnityEditor.Experimental
             if (owner == null) // We must delete the contextUI as it is no longer bound to a system
             {
                 for (int i = 0; i < model.GetNbChildren(); ++i)
-                    m_ModelToUI.Remove(model.GetChild(i));
+                    Remove(model.GetChild(i));
 
                 if (nodeUI != null)
                 {
@@ -233,10 +263,7 @@ namespace UnityEditor.Experimental
                     children.Add(model.GetChild(i));
 
                 // Collect all contextUI in the system
-                List<VFXEdDataNodeBlock> childrenUI = new List<VFXEdDataNodeBlock>();
-                foreach (var child in children)
-                    childrenUI.Add(GetUI<VFXEdDataNodeBlock>(child)); // This should not throw
-
+                List<VFXEdDataNodeBlock> childrenUI = CollectOrCreateUI<VFXDataBlockModel, VFXEdDataNodeBlock>(children);
                 VFXEdNodeBlockContainer container = nodeUI.NodeBlockContainer;
 
                 // Remove all blocks
@@ -246,23 +273,69 @@ namespace UnityEditor.Experimental
                 foreach (var child in childrenUI)
                     container.AddNodeBlock(child);
 
+                if (recursive)
+                    SyncChildren(model);
+
+                nodeUI.Layout();
                 nodeUI.Invalidate();
             }
         }
 
-        public void SyncDataBlock(VFXDataBlockModel model)
+        public void SyncDataBlock(VFXDataBlockModel model, bool recursive = false)
         {
             var owner = model.GetOwner();
 
             VFXEdDataNodeBlock blockUI = TryGetUI<VFXEdDataNodeBlock>(model);
 
             if (owner == null) // We must delete the contextUI as it is no longer bound to a system
+            {
                 m_ModelToUI.Remove(model);
+                RemoveSlot(model.Slot);
+            }
             else if (blockUI == null)
-                m_ModelToUI.Add(model, blockUI = new VFXEdDataNodeBlock(model, this,""));
+                m_ModelToUI.Add(model, blockUI = new VFXEdDataNodeBlock(model, this, ""));
 
             // Reset UI data
+            blockUI.collapsed = model.UICollapsed;
             blockUI.Invalidate();
+
+            if (recursive)
+                SyncView(model.Slot, true);
+        }
+
+        public void SyncSlot(VFXPropertySlot slot, bool recursive = true)
+        {
+            var anchor = GetUIAnchor(slot); // Must have been linked
+
+            // Collect all contextUI in the system
+            List<VFXUIPropertyAnchor> linkedAnchors = new List<VFXUIPropertyAnchor>();
+            var connectedSlots = slot.GetConnectedSlots();
+            foreach (var connectedSlot in connectedSlots)
+            {
+                var linkedAnchor = TryGetUIAnchor(connectedSlot);
+                if (linkedAnchor != null) // Anchors cannot be created from here, they must be registered
+                    linkedAnchors.Add(linkedAnchor);
+            }
+
+            RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(anchor);
+
+            foreach (var linkedAnchor in linkedAnchors)
+            {
+                if (anchor.GetDirection() == Direction.Output)
+                    m_Elements.Add(new VFXUIPropertyEdge(this, anchor, linkedAnchor));
+                else
+                    m_Elements.Add(new VFXUIPropertyEdge(this, linkedAnchor, anchor));
+                linkedAnchor.Invalidate();
+            }
+
+            if (anchor.Owner != null)
+                anchor.Owner.CollapseChildren(slot.UICollapsed);
+
+            if (recursive)
+                for (int i = 0; i < slot.GetNbChildren(); ++i)
+                    SyncView(slot.GetChild(i), true);
+
+            anchor.Invalidate();
         }
 
         private VFXEdContextNode CreateContextUI(VFXContextModel model)
@@ -276,6 +349,50 @@ namespace UnityEditor.Experimental
         {
             contextUI.OnRemove();
             m_Elements.Remove(contextUI);
+        }
+
+        private void RemoveSlot(VFXPropertySlot slot)
+        {
+            for (int i = 0; i < slot.GetNbChildren(); ++i)
+                RemoveSlot(slot.GetChild(i));
+
+            slot.UnlinkAll();
+            SyncView(slot);
+            m_SlotToUI.Remove(slot);
+        }
+
+        private List<U> CollectOrCreateUI<T,U>(List<T> models) where T : VFXElementModel where U : VFXModelHolder 
+        {
+            List<U> modelsUI = new List<U>();
+            foreach (var model in models)
+            {
+                var modelUI = TryGetUI<U>(model);
+                if (modelUI == null) // Recreate if necessary
+                {
+                    SyncView(model);
+                    modelUI = GetUI<U>(model);
+                }
+                modelsUI.Add(modelUI);
+            }
+            return modelsUI;
+        }
+
+        private void SyncChildren(VFXElementModel model)
+        {
+            for (int i = 0; i < model.GetNbChildren(); ++i)
+                SyncView(model.GetChild(i), true);
+        }
+
+        public VFXUIPropertyAnchor GetUIAnchor(VFXPropertySlot slot)
+        {
+            return m_SlotToUI[slot];
+        }
+
+        public VFXUIPropertyAnchor TryGetUIAnchor(VFXPropertySlot slot)
+        {
+            VFXUIPropertyAnchor ui = null;
+            m_SlotToUI.TryGetValue(slot, out ui);
+            return ui;
         }
 
         public T GetUI<T>(VFXElementModel model) where T : VFXModelHolder
@@ -320,11 +437,11 @@ namespace UnityEditor.Experimental
             {
                 VFXUIPropertyAnchor inputAnchor = propertyEdge.Right;
                 ((VFXInputSlot)inputAnchor.Slot).Unlink();
-                propertyEdge.Left.Invalidate();
-                propertyEdge.Right.Invalidate();
+
+                SyncView(propertyEdge.Left.Slot);
+                SyncView(propertyEdge.Right.Slot);
             }
 
-            m_Elements.Remove(e);
             if (canvas != null)
             {
                 canvas.ReloadData();
@@ -339,7 +456,11 @@ namespace UnityEditor.Experimental
             var edgesToRemove = GetConnectedEdges<T,U>(anchor);
 
             foreach (var edge in edgesToRemove)
+            {
+                edge.Left.Invalidate();
+                edge.Right.Invalidate();
                 m_Elements.Remove(edge);
+            }
         }
 
         public List<T> GetConnectedEdges<T, U>(U anchor) 
@@ -370,17 +491,21 @@ namespace UnityEditor.Experimental
                 b = tmp;
             }
 
-            RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(b);
+            //RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(b);
 
             // Disconnect connected children anchors and collapse
-            b.Owner.DisconnectChildren();
+            //b.Owner.DisconnectChildren();
             b.Owner.CollapseChildren(true);    
 
             ((VFXInputSlot)b.Slot).Link((VFXOutputSlot)a.Slot);
-            m_Elements.Add(new VFXUIPropertyEdge(this, a, b));
 
-            a.Invalidate();
-            b.Invalidate();
+            //SyncView(a.Slot);
+            SyncView(b.Slot,true);
+
+            //m_Elements.Add(new VFXUIPropertyEdge(this, a, b));
+
+            //a.Invalidate();
+            //b.Invalidate();
         }
 
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)

@@ -124,6 +124,11 @@ namespace UnityEditor.Experimental
         {
             if (e.character == 'd')
             {
+                Debug.Log("Resync View");
+                (dataSource as VFXEdDataSource).ResyncViews();
+                ReloadData();
+                Repaint();
+
                 // TODO Fix that with refactor
                 /*const string TAB = "         ";
                 VFXEditor.Log("\nNb Systems: " + VFXEditor.AssetModel.GetNbChildren());

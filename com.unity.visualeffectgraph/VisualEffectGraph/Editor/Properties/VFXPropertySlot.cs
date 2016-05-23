@@ -232,6 +232,10 @@ namespace UnityEngine.Experimental.VFX
             m_UIChildrenCollapsed = collapsed;
         }
 
+        public bool UICollapsed { get { return m_UIChildrenCollapsed; } }
+
+        public abstract List<VFXPropertySlot> GetConnectedSlots();
+
         private VFXExpression m_OwnedValue;
 
         protected List<VFXPropertySlotObserver> m_Observers = new List<VFXPropertySlotObserver>();
@@ -272,6 +276,11 @@ namespace UnityEngine.Experimental.VFX
                     if (slot != null)
                         slot.InnerAddOutputLink(this);
                     NotifyChange(Event.kLinkUpdated);
+
+                    if (slot != null)
+                        foreach (var child in m_Children)
+                            child.UnlinkRecursively();
+
                     return true;
                 }
             }
@@ -292,6 +301,14 @@ namespace UnityEngine.Experimental.VFX
         public override bool IsLinked()
         {
             return m_ConnectedSlot != null;
+        }
+
+        public override List<VFXPropertySlot> GetConnectedSlots()
+        {
+            List<VFXPropertySlot> connected = new List<VFXPropertySlot>();
+            if (IsLinked())
+                connected.Add(m_ConnectedSlot);
+            return connected;
         }
 
         public void Unlink()
@@ -361,6 +378,14 @@ namespace UnityEngine.Experimental.VFX
             return m_ConnectedSlots.Count > 0;
         }
 
+        public override List<VFXPropertySlot> GetConnectedSlots()
+        {
+            List<VFXPropertySlot> connected = new List<VFXPropertySlot>();
+            foreach (var slot in m_ConnectedSlots)
+                connected.Add(slot);
+            return connected;
+        }
+
         public void Link(VFXInputSlot slot)
         {
             if (slot == null)
@@ -379,7 +404,7 @@ namespace UnityEngine.Experimental.VFX
 
         public override void UnlinkAll()
         {
-            foreach (var slot in m_ConnectedSlots)
+            foreach (var slot in m_ConnectedSlots.ToArray()) // must copy the list else we'll get an issue with iterator invalidation
                 slot.Unlink();
             m_ConnectedSlots.Clear();
         }

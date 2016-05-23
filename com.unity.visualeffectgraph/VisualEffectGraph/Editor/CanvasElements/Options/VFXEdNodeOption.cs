@@ -22,8 +22,8 @@ namespace UnityEditor.Experimental
         {
             if (m_bEnabled != value)
             {
-                UpdateModel(UpdateType.Update);
                 m_bEnabled = value;
+                UpdateModel(UpdateType.Update);
                 m_Parent.Invalidate();
                 m_Parent.Layout();
             }
@@ -37,14 +37,13 @@ namespace UnityEditor.Experimental
             Rect r = VFXEditor.styles.NodeOption.padding.Add(canvasBoundingRect);
             if (r.Contains(parent.MouseToCanvas(e.mousePosition))) 
             {
-                m_bEnabled = !m_bEnabled;
+                SetEnabled(!m_bEnabled);
                 e.Use();
                 element.Invalidate();
                 return true;
             }
 
             return false;
-
         }
 
         protected abstract Color GetColor();

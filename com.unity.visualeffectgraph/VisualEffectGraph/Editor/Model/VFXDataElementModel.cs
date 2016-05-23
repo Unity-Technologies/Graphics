@@ -47,6 +47,8 @@ namespace UnityEditor.Experimental.VFX
             m_UICollapsed = collapsed;
         }
 
+        public bool UICollapsed { get { return m_UICollapsed; } }
+
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             return false; // Nothing can be attached to Blocks !
