@@ -4,18 +4,6 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.Experimental.VFX
 {
-
-    class VFXBlockSeparator : VFXBlockType
-    {
-        public VFXBlockSeparator()
-        {
-            Name = "";
-            Icon = "";
-            Category = "//";
-            Source = @"";
-        }
-
-    }
     class VFXBlockDebugTestCompileFailure : VFXBlockType
     {
         public VFXBlockDebugTestCompileFailure()

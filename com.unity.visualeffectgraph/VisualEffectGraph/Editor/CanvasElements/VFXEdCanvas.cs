@@ -43,6 +43,8 @@ namespace UnityEditor.Experimental
             AddManipulator(new RectangleSelect());
             AddManipulator(new ScreenSpaceGrid());
 
+            AddManipulator(new VFXFilterPopup());
+
             
             MouseDown += ManageNodeBlockSelection;
             ContextClick += ManageRightClick;
