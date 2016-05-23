@@ -170,7 +170,6 @@ namespace UnityEditor.Experimental
 
         private Vector2 m_DebugLogScroll = Vector2.zero;
 
-
         private VFX.VFXBlockLibrary m_BlockLibrary;
 
         private static void InitializeBlockLibrary()
@@ -209,6 +208,7 @@ namespace UnityEditor.Experimental
             if (m_Icon == null)
                 m_Icon = EditorGUIUtility.Load("edicon.psd") as Texture;
 
+            Undo.undoRedoPerformed -= OnUndoRedo;
             Undo.undoRedoPerformed += OnUndoRedo;
 
             Rebuild();

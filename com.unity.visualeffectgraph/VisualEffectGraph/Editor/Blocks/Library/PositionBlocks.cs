@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockSetPositionPoint()
         {
-            Name = "Set Position (Point)";
+            Name = "Point";
             Icon = "Position";
             Category = "Position";
 
@@ -25,7 +25,7 @@ position = pos;";
     {
         public VFXBlockSetPositionMap()
         {
-            Name = "Set Position (Texture)";
+            Name = "PositionMap Texture";
             Icon = "Position";
             Category = "Position";
 
@@ -46,7 +46,7 @@ position = mul(box,float4(position.xyz,1.0f)).xyz;";
     {
         public VFXBlockSetPositionAABox()
         {
-            Name = "Set Position (AABox)";
+            Name = "Box (Axis-Aligned)";
             Icon = "Position";
             Category = "Position";
 
@@ -64,7 +64,7 @@ position = (RAND3 * aabox_size) + minCoord;";
     {
         public VFXBlockSetPositionBox()
         {
-            Name = "Set Position (Oriented Box)";
+            Name = "Box (Oriented)";
             Icon = "Position";
             Category = "Position";
 
@@ -82,7 +82,7 @@ position = mul(box,float4(position,1.0f)).xyz;";
     {
         public VFXBlockSetPositionSphereSurface()
         {
-            Name = "Set Position (Sphere surface)";
+            Name = "Sphere Surface";
             Icon = "Position";
             Category = "Position";
 
@@ -104,7 +104,7 @@ position = (float3(sincosTheta,u1) * Sphere_radius) + Sphere_center;";
     {
         public VFXBlockSetPositionSphereVolume()
         {
-            Name = "Set Position (Sphere volume)";
+            Name = "Sphere Volume";
             Icon = "Position";
             Category = "Position";
 
@@ -127,7 +127,7 @@ position = float3(sincosTheta,u1) * (u3 * Sphere_radius) + Sphere_center;";
     {
         public VFXBlockTransformPosition()
         {
-            Name = "Transform Position";
+            Name = "Transform";
             Icon = "Position";
             Category = "Position";
 
@@ -144,7 +144,7 @@ position = mul(Transform,float4(position,1.0f)).xyz;";
     {
         public VFXBlockAnimatePositionCircular()
         {
-            Name = "Animate Position (Circular)";
+            Name = "Animate (Circular)";
             Icon = "Circle";
             Category = "Position";
 
@@ -165,7 +165,7 @@ position += mul(Transform,float4(pos,1.0f)).xyz;";
     {
         public VFXBlockPositionCylinder()
         {
-            Name = "Set Position (Cylinder)";
+            Name = "Cylinder Volume";
             Icon = "Cylinder";
             Category = "Position";
 
@@ -190,7 +190,7 @@ position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_directio
     {
         public VFXBlockPositionCylinderSurface()
         {
-            Name = "Set Position (Cylinder Surface)";
+            Name = "Cylinder Surface";
             Icon = "Cylinder";
             Category = "Position";
 
@@ -209,68 +209,4 @@ float3 binormal = cross(normal,Cylinder_direction);
 position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_direction * (u1 * Cylinder_height) + Cylinder_position;";
         }
     }
-    // TODO Convert that in some other files
-/*
-    class VFXBlockTransformVelocity : VFXBlockDesc
-    {
-        public VFXBlockTransformVelocity()
-        {
-            m_Properties = new VFXProperty[1] {
-                VFXProperty.Create<VFXTransformType>("transform"),
-            };
-
-            m_Attributes = new VFXAttribute[1] {
-                new VFXAttribute("velocity",VFXValueType.kFloat3,true),
-            };
-
-            // TODO this should be derived automatically
-            m_Flag = Flag.kNone;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
-        }
-
-        public override string Source
-        {
-            get
-            {
-                return @"velocity = mul(transform,float4(velocity,0.0f)).xyz;";
-            }
-        }
-
-        public override string Name { get { return "Transform Velocity"; } }
-        public override string IconPath { get { return "Velocity"; } }
-        public override string Category { get { return "Velocity/"; } }
-    }
-
-    
-
-    class VFXBlockCurveTest : VFXBlockDesc
-    {
-        public VFXBlockCurveTest()
-        {
-            m_Properties = new VFXProperty[] {
-                VFXProperty.Create<VFXCurveType>("curve"),
-            };
-
-            m_Attributes = new VFXAttribute[] {
-                new VFXAttribute("position",VFXValueType.kFloat3,true),
-            };
-
-            // TODO this should be derived automatically
-            m_Flag = Flag.kNone;
-            m_Hash = Hash128.Parse(Name); // dummy but must be unique
-        }
-
-        public override string Source
-        {
-            get
-            {
-                return @"float dist = length(position.xz);
-    position.y = SAMPLE(curve,dist);";
-            }
-        }
-
-        public override string Name { get { return "Test Curve"; } }
-        public override string IconPath { get { return "Curve"; } }
-        public override string Category { get { return "Tests/"; } }
-    }*/
 }

@@ -171,6 +171,80 @@ namespace UnityEditor.Experimental
                 m_DataSource.ConnectData(this,otherConnector);
                 ParentCanvas().ReloadData();
             }
+            else
+            {
+                if (m_Direction == Direction.Input)
+                {
+                    ExposePropertyMenu(ParentCanvas().MouseToCanvas(Event.current.mousePosition));
+                }
+                    
+            }
         }
+
+        public void ExposePropertyMenu(Vector2 position)
+        {
+            ExposePropertyInfo info = new ExposePropertyInfo(position, m_Slot.Semantics.GetType().FullName, this);
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent("Expose Parameter"), false, ExposeProperty, info);
+            menu.ShowAsContext();
+
+        }
+
+        public void ExposeProperty(object propertyInfo)
+        {
+            ExposePropertyInfo info = (ExposePropertyInfo)propertyInfo;
+            VFXDataBlockDesc desc = VFXEditor.BlockLibrary.GetDataBlock(info.DataBlockDescID);
+
+            // Find Underlying Node if present;
+            VFXEdCanvas canvas = (VFXEdCanvas)ParentCanvas();
+            VFXEdDataNode target = null;
+            foreach(CanvasElement e in canvas.Children())
+            {
+                if(e is VFXEdDataNode)
+                {
+                    if(e.canvasBoundingRect.Contains(info.Position))
+                    {
+                        target = (VFXEdDataNode)e;
+                    }
+                }
+            }
+
+            // Add Blocks, and optionally Node if not present.
+            VFXEdDataNodeBlock newblock;
+            if(target == null)
+            {
+                // Offset new node so it's more natural for dropping on mouse pointer.
+                Vector2 OffsetPosition = info.Position - new Vector2(VFXEditorMetrics.NodeDefaultWidth - 40, 80);
+                VFXEdDataNodeSpawner nodeSpawner = new VFXEdDataNodeSpawner(m_DataSource, (VFXEdCanvas)ParentCanvas(), OffsetPosition, desc);
+                nodeSpawner.Spawn();
+                newblock = nodeSpawner.SpawnedNodeBlock;
+            }
+            else
+            {
+                VFXEdDataNodeBlockSpawner blockSpawner = new VFXEdDataNodeBlockSpawner(info.Position, desc, target, m_DataSource, "name");
+                blockSpawner.Spawn();
+                newblock = blockSpawner.SpawnedNodeBlock;
+            }
+
+            // Connect
+            m_DataSource.ConnectData(this, newblock.Anchor);
+            ParentCanvas().ReloadData();
+            
+        }
+    }
+
+    internal class ExposePropertyInfo
+    {
+        public Vector2 Position;
+        public string DataBlockDescID;
+        public VFXUIPropertyAnchor Anchor;
+
+        public ExposePropertyInfo(Vector2 canvasPosition, string id, VFXUIPropertyAnchor anchor)
+        {
+            Position = canvasPosition;
+            DataBlockDescID = id;
+            Anchor = anchor;
+        }
+
     }
 }

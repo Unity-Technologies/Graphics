@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockSizeConstantSquare()
         {
-            Name = "Set Size Constant (Square)";
+            Name = "Constant (Square)";
             Icon = "Size";
             Category = "Size";
 
@@ -25,7 +25,7 @@ size = float2(Size,Size);";
     {
         public VFXBlockSizeConstantRectangle()
         {
-            Name = "Set Size Constant (Rectangle)";
+            Name = "Constant (Rectangle)";
             Icon = "Size";
             Category = "Size";
 
@@ -42,26 +42,7 @@ size = Size;";
     {
         public VFXBlockSizeRandomSquare()
         {
-            Name = "Set Size Random (Square)";
-            Icon = "Size";
-            Category = "Size";
-
-            Add(new VFXProperty(new VFXFloatType(0.1f),"MinSize"));
-            Add(new VFXProperty(new VFXFloatType(0.1f),"MaxSize"));
-
-            Add(new VFXAttribute(CommonAttrib.Size, true));
-
-            Source = @"
-float s = lerp(MinSize,MaxSize,RAND);
-size = float2(s,s);";
-        }
-    }
-
-    public class VFXBlockApplyRandomScaleUniform : VFXBlockType
-    {
-        public VFXBlockApplyRandomScaleUniform()
-        {
-            Name = "Apply Random Scale (Uniform)";
+            Name = "Random (Square)";
             Icon = "Size";
             Category = "Size";
 
@@ -80,7 +61,7 @@ size = float2(s,s);";
     {
         public VFXBlockApplyScaleRatio()
         {
-            Name = "Apply Scale Ratio";
+            Name = "Scale Ratio (Rectangle)";
             Icon = "Size";
             Category = "Size";
 
@@ -97,7 +78,7 @@ size *= float2(1.0,Ratio);";
     {
         public VFXBlockApplyScaleRatioFromVelocity()
         {
-            Name = "Scale Height from Speed (Constant)";
+            Name = "Height from Speed (Constant)";
             Icon = "Size";
             Category = "Size";
 
@@ -115,7 +96,7 @@ size.y = length(velocity) * Multiplier;";
     {
         public VFXBlockApplyScaleRatioFromVelocityCurve()
         {
-            Name = "Scale Height from Speed (Curve)";
+            Name = "Height from Speed (Curve)";
             Icon = "Size";
             Category = "Size";
 
@@ -133,7 +114,7 @@ size.y = SAMPLE(Curve, length(velocity));";
     {
         public VFXBlockSizeOverLifeCurve()
         {
-            Name = "Scale over Life (Curve)";
+            Name = "Over Life (Curve)";
             Icon = "Size";
             Category = "Size";
 
@@ -155,7 +136,7 @@ size = float2(s,s);";
     {
         public VFXBlockSizeOverAgeCurve()
         {
-            Name = "Scale over Age (Curve)";
+            Name = "Over Age (Curve)";
             Icon = "Size";
             Category = "Size";
 

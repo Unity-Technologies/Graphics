@@ -22,6 +22,9 @@ namespace UnityEditor.Experimental
 
     internal class VFXEdContextNodeSpawner : VFXEdSpawner
     {
+        public VFXEdContextNode SpawnedNode { get { return m_SpawnedNode;} }
+        VFXEdContextNode m_SpawnedNode;
+
         VFXEdDataSource m_DataSource;
         VFXEdCanvas m_Canvas;
         VFXContextDesc m_Desc;
@@ -83,6 +86,11 @@ namespace UnityEditor.Experimental
 
     internal class VFXEdDataNodeSpawner : VFXEdSpawner
     {
+        public VFXEdDataNode SpawnedNode { get { return m_SpawnedNode;} }
+        public VFXEdDataNodeBlock SpawnedNodeBlock { get { return m_SpawnedNodeBlock;} }
+        VFXEdDataNode m_SpawnedNode;
+        VFXEdDataNodeBlock m_SpawnedNodeBlock;
+
         VFXEdDataSource m_DataSource;
         VFXEdCanvas m_Canvas;
         VFXDataBlockDesc m_InitialBlock;
@@ -108,6 +116,7 @@ namespace UnityEditor.Experimental
             {
                 VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(m_CanvasPosition, m_InitialBlock, m_DataSource.GetUI<VFXEdDataNode>(node), m_DataSource, m_InitialBlock.Name);
                 spawner.Spawn();
+                m_SpawnedNodeBlock = spawner.SpawnedNodeBlock;
             }
             m_Canvas.ReloadData();
         }
@@ -137,6 +146,9 @@ namespace UnityEditor.Experimental
 
     internal class VFXEdDataNodeBlockSpawner : VFXEdSpawner
     {
+        public VFXEdDataNodeBlock SpawnedNodeBlock { get { return m_SpawnedNodeBlock;} }
+        VFXEdDataNodeBlock m_SpawnedNodeBlock;
+
         VFXDataBlockDesc m_DataBlockDesc;
         VFXDataNodeModel m_Node;    
         VFXEdDataSource m_DataSource;

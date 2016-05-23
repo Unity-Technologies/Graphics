@@ -13,6 +13,7 @@ namespace UnityEditor.Experimental
         public VFXDataBlockModel Model      { get { return m_Model; }}
         public VFXPropertySlot Slot         { get { return m_Model.Slot; } }
         public VFXDataBlockDesc Desc        { get { return m_Model.Desc; } }
+        public VFXUIPropertyAnchor Anchor   { get { return m_Fields[0].Anchor; } }
 
         public override VFXElementModel GetAbstractModel() { return Model; }
 

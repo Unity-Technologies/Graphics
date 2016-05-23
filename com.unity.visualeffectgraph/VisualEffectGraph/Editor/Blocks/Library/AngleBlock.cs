@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockAngleConstant()
         {
-            Name = "Set Angle (Constant)";
+            Name = "Constant";
             Icon = "Angle";
             Category = "Angle";
 
@@ -25,7 +25,7 @@ angle += Value;";
     {
         public VFXBlockAngleRandom()
         {
-            Name = "Set Angle (Random)";
+            Name = "Random";
             Icon = "Angle";
             Category = "Angle";
 
@@ -43,7 +43,7 @@ angle += lerp(Min,Max,RAND);";
     {
         public VFXBlockAngularVelocityConstant()
         {
-            Name = "Set Spin (Constant)";
+            Name = "Constant";
             Icon = "Angle";
             Category = "Angle/Spin";
 
@@ -60,7 +60,7 @@ angularVelocity = Value;";
     {
         public VFXBlockAngularVelocityRandom()
         {
-            Name = "Set Spin (Random)";
+            Name = "Random";
             Icon = "Angle";
             Category = "Angle/Spin";
 
@@ -77,7 +77,7 @@ angularVelocity = lerp(Min,Max,RAND);";
     {
         public VFXBlockAngularForceConstant()
         {
-            Name = "Spin Force (Constant)";
+            Name = "Force (Constant)";
             Icon = "Angle";
             Category = "Angle/Spin";
 

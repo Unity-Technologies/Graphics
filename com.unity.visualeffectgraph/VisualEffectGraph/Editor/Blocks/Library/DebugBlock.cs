@@ -4,25 +4,13 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.Experimental.VFX
 {
-
-    class VFXBlockSeparator : VFXBlockType
-    {
-        public VFXBlockSeparator()
-        {
-            Name = "";
-            Icon = "";
-            Category = "//";
-            Source = @"";
-        }
-
-    }
     class VFXBlockDebugTestCompileFailure : VFXBlockType
     {
         public VFXBlockDebugTestCompileFailure()
         {
             Name = "COMPILE FAILURE";
             Icon = "Position";
-            Category = "DEBUG";
+            Category = "ZZ_DEBUG";
 
             Source = @"
 THIS CODE WILL SURELY NOT COMPILE!;";
@@ -35,7 +23,7 @@ THIS CODE WILL SURELY NOT COMPILE!;";
         {
             Name = "MISSING ICON";
             Icon = "__MISSING__ICON__HERE___";
-            Category = "DEBUG";
+            Category = "ZZ_DEBUG";
 
             Source = @"
 float a = 1;";
@@ -48,7 +36,7 @@ float a = 1;";
         {
             Name = "SamplingCorrection to Color";
             Icon = "Color";
-            Category = "DEBUG";
+            Category = "ZZ_DEBUG";
 
             Add(new VFXAttribute(CommonAttrib.Color, true));
             Add(new VFXAttribute(CommonAttrib.Phase, false));

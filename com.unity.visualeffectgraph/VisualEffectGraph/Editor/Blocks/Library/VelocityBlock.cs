@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockVelocityConstant()
         {
-            Name = "Velocity (Constant)";
+            Name = "Constant";
             Icon = "Velocity";
             Category = "Velocity";
 
@@ -26,7 +26,7 @@ velocity = Direction*Speed;";
     {
         public VFXBlockVelocityRandomUniform()
         {
-            Name = "Velocity (Random Uniform)";
+            Name = "Random Uniform";
             Icon = "Velocity";
             Category = "Velocity";
 
@@ -45,7 +45,7 @@ velocity += float3( (RAND*2-1) * Divergence,
     {
         public VFXBlockVelocityRandomVector()
         {
-            Name = "Velocity (Random Vector)";
+            Name = "Random Vector";
             Icon = "Velocity";
             Category = "Velocity/Radial";
 
@@ -62,7 +62,7 @@ velocity += (RAND3 * 2 - 1) * Divergence;";
     {
         public VFXBlockVelocityRadial()
         {
-            Name = "Velocity (Radial)";
+            Name = "By Angle Uniform";
             Icon = "Velocity";
             Category = "Velocity/Radial";
 
@@ -86,7 +86,7 @@ velocity += float3(sincosTheta,u1).xzy * lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);
     {
         public VFXBlockVelocityRadialFromOrigin()
         {
-            Name = "Velocity (Radial from origin)";
+            Name = "From Origin";
             Icon = "Velocity";
             Category = "Velocity/Radial";
 

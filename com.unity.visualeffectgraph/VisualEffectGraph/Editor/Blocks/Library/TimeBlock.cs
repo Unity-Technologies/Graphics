@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.VFX
     {
         public VFXBlockSetLifetimeConstant()
         {
-            Name = "Set Lifetime (Constant)";
+            Name = "Lifetime (Constant)";
             Icon = "Time";
             Category = "Time";
 
@@ -25,7 +25,7 @@ lifetime = max(Lifetime,0.0f);";
     {
         public VFXBlockSetLifetimeRandom()
         {
-            Name = "Set Lifetime (Random)";
+            Name = "Lifetime (Random)";
             Icon = "Time";
             Category = "Time";
 
@@ -43,7 +43,7 @@ lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);";
     {
         public VFXBlockSetLifetimeCurve()
         {
-            Name = "Set Lifetime (Curve)";
+            Name = "Lifetime by Emitter Time (Curve)";
             Icon = "Time";
             Category = "Time";
 
