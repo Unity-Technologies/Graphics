@@ -69,6 +69,8 @@ namespace UnityEditor.Experimental
             scale = VFXEditorMetrics.DataAnchorSize;
             translation = position;
 
+            dataSource.Register(slot, this);
+
             AddManipulator(new VFXPropertyEdgeConnector());
             AddManipulator(new TooltipManipulator(GetAnchorToolTip));
             zIndex = -998; // ?

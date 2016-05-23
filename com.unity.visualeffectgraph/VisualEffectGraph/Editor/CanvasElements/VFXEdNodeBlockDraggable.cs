@@ -8,8 +8,9 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal abstract class VFXEdNodeBlockDraggable : VFXEdNodeBlock
+    internal abstract class VFXEdNodeBlockDraggable : VFXEdNodeBlock, VFXModelHolder
     {
+        public abstract VFXElementModel GetAbstractModel();
 
         public VFXEdNodeBlockDraggable(VFXEdDataSource dataSource) : base(dataSource)
         {
@@ -19,7 +20,7 @@ namespace UnityEditor.Experimental
 
         public virtual void OnRemoved()
         {
-            List<VFXUIPropertyAnchor> anchors = new List<VFXUIPropertyAnchor>();
+           /*List<VFXUIPropertyAnchor> anchors = new List<VFXUIPropertyAnchor>();
             foreach (var field in m_Fields)
                 if (field.Anchor != null)
                     anchors.Add(field.Anchor);
@@ -27,7 +28,7 @@ namespace UnityEditor.Experimental
             foreach (var anchor in anchors)
                 m_DataSource.RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(anchor);
 
-            ParentCanvas().ReloadData();
+            ParentCanvas().ReloadData();*/
         }
 
         protected override GUIStyle GetNodeBlockStyle()

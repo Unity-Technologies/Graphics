@@ -13,7 +13,7 @@ using VFXBLKLibrary = UnityEditor.VFXBlockLibrary;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdContextNode : VFXEdNode
+    internal class VFXEdContextNode : VFXEdNode, VFXModelHolder
     {
         // TODO Remove this shit
         public static VFXEdContext ConvertType(VFXContextDesc.Type inType)
@@ -54,35 +54,27 @@ namespace UnityEditor.Experimental
         }
         private VFXEdContextNodeBlock m_ContextNodeBlock;
 
-        public VFXContextModel Model
-		{
-			get { return m_Model; }
-		}
+        public VFXContextModel Model    { get { return m_Model; } }
+        public VFXContextDesc Desc      { get { return Model.Desc; } }
+        public VFXEdContext Context     { get { return m_Context; } }
 
-        public VFXEdContext context
-        {
-			get { return m_Context; }
-        }
+        public VFXElementModel GetAbstractModel() { return Model; }
 
 		protected VFXContextModel m_Model;
         protected VFXEdContext m_Context;
 
-        internal VFXEdContextNode(Vector2 canvasPosition, VFXContextDesc desc, VFXEdDataSource dataSource) 
-            : base (canvasPosition, dataSource)
+        internal VFXEdContextNode(VFXContextModel model, VFXEdDataSource dataSource) 
+            : base(model.UIPosition,dataSource)
         {
-            m_Context = ConvertType(desc.m_Type);
-            m_Model = new VFXContextModel(desc);
+            m_Model = model;
+            collapsed = model.UICollapsed;
+            m_Context = ConvertType(Desc.m_Type);
 
-            m_Title = context.ToString();
+            m_Title = Context.ToString();
             target = ScriptableObject.CreateInstance<VFXEdContextNodeTarget>();
             (target as VFXEdContextNodeTarget).targetNode = this;
 
-            // Create a dummy System to hold the newly created context
-            VFXSystemModel systemModel = new VFXSystemModel();
-            systemModel.AddChild(m_Model);
-            VFXEditor.AssetModel.AddChild(systemModel);
-
-            SetContext(desc);
+            SetContext(Desc);
 
             m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), m_Context, m_DataSource, Direction.Input));
             m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), m_Context, m_DataSource, Direction.Output));
@@ -113,29 +105,6 @@ namespace UnityEditor.Experimental
                     model.GetSlot(i).Value = value; 
                 }
             }
-        }
-
-        public override void OnRemove()
-        {
-            base.OnRemove();
-
-            VFXSystemModel owner = Model.GetOwner();
-            if (owner != null)
-            {
-                int nbChildren = owner.GetNbChildren();
-                int index = owner.GetIndex(Model);
-
-                Model.Detach();
-                if (index != 0 && index != nbChildren - 1)
-                {
-                    // if the node is in the middle of a system, we need to create a new system
-                    VFXSystemModel newSystem = new VFXSystemModel();
-                    while (owner.GetNbChildren() > index)
-                        owner.GetChild(index).Attach(newSystem);
-                    newSystem.Attach(VFXEditor.AssetModel);
-                }
-            }
-
         }
 
         private static string FormatMenuString(VFXBlockDesc block)
@@ -216,8 +185,7 @@ namespace UnityEditor.Experimental
                 {
                     ContextNodeBlock = null;
                     Layout();
-                }
-                    
+                }               
             }
 
             Invalidate();
@@ -264,7 +232,7 @@ namespace UnityEditor.Experimental
 
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)
         {
-            Model.AddChild((nodeblock as VFXEdProcessingNodeBlock).Model,index);
+            //Model.AddChild((nodeblock as VFXEdProcessingNodeBlock).Model,index);
         }
 
         public override bool AcceptNodeBlock(VFXEdNodeBlock block)
@@ -302,7 +270,7 @@ namespace UnityEditor.Experimental
             }
            
             GUI.Box(r, "", VFXEditor.styles.Node);
-            GUI.Label(new Rect(0, r.y, r.width, 24), title, VFXEditor.styles.NodeTitle);
+            GUI.Label(new Rect(0, r.y, r.width, 24), title + " " + Model.GetOwner().Id, VFXEditor.styles.NodeTitle);
 
             base.Render(parentRect, canvas);
         }

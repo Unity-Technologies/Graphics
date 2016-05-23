@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal abstract class VFXEdNode : VFXEdNodeBase 
+    internal abstract class VFXEdNode : VFXEdNodeBase
     {
 
         public string title
@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental
             m_Inputs = new List<VFXEdFlowAnchor>();
             m_Outputs = new List<VFXEdFlowAnchor>();
 
-            m_NodeBlockContainer = new VFXEdNodeBlockContainer(this.scale);
+            m_NodeBlockContainer = new VFXEdNodeBlockContainer(this.scale,m_DataSource);
             AddChild(m_NodeBlockContainer);
 
             MouseDown += ManageSelection;
@@ -79,12 +79,9 @@ namespace UnityEditor.Experimental
         {
             VFXEdSpawner spawner = o as VFXEdSpawner;
             if(spawner != null)
-            {
                 spawner.Spawn();
-            }
-            NodeBlockContainer.RemoveNodeBlock((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock);
-            (ParentCanvas() as VFXEdCanvas).SelectedNodeBlock = null;
-            Layout();
+
+            DataSource.Remove((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock.GetAbstractModel());
         }
 
         public override void OnRemove()

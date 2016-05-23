@@ -12,6 +12,11 @@ namespace UnityEditor.Experimental
         void UpdatePosition(Vector2 position);
     }
 
+    public interface VFXModelHolder
+    {
+        VFXElementModel GetAbstractModel();
+    }
+
     public abstract class VFXElementModel
     {
         public enum InvalidationCause
@@ -22,17 +27,21 @@ namespace UnityEditor.Experimental
 
         public void AddChild(VFXElementModel child, int index = -1, bool notify = true)
         {
-            if (!CanAddChild(child, index))
-                throw new ArgumentException("Cannot attach " + child + " to " + this);
-
-            child.Detach(notify && child.m_Owner != this); // Dont notify if the owner is already this to avoid double invalidation
-
             int realIndex = index == -1 ? m_Children.Count : index;
-            m_Children.Insert(realIndex, child);
-            child.m_Owner = this;
+            if (child.m_Owner != this || realIndex != GetIndex(child))
+            {
+                if (!CanAddChild(child, index))
+                    throw new ArgumentException("Cannot attach " + child + " to " + this);
 
-            if (notify)
-                Invalidate(InvalidationCause.kModelChanged);
+                child.Detach(notify && child.m_Owner != this); // Dont notify if the owner is already this to avoid double invalidation
+
+                realIndex = index == -1 ? m_Children.Count : index; // Recompute as the child may have been removed
+                m_Children.Insert(realIndex, child);
+                child.m_Owner = this;
+
+                if (notify)
+                    Invalidate(InvalidationCause.kModelChanged);
+            }
 
             //Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
         }
@@ -48,7 +57,7 @@ namespace UnityEditor.Experimental
             if (notify)
                 Invalidate(InvalidationCause.kModelChanged);
 
-            //Debug.Log("Detach " + child + " to " + this);
+            //Debug.Log("Detach " + child + " to " + this); 
         }
 
         public void Attach(VFXElementModel owner, bool notify = true)
@@ -80,6 +89,16 @@ namespace UnityEditor.Experimental
             return m_Children.IndexOf(element);
         }
 
+        public VFXElementModel GetChild(int index)
+        {
+            return m_Children[index];
+        }
+
+        public VFXElementModel GetOwner()
+        {
+            return m_Owner;
+        }
+
         protected VFXElementModel m_Owner;
         protected List<VFXElementModel> m_Children = new List<VFXElementModel>();
     }
@@ -93,12 +112,12 @@ namespace UnityEditor.Experimental
             return index >= -1 && index <= m_Children.Count && element is ChildrenType;
         }
 
-        public ChildrenType GetChild(int index)
+        public new ChildrenType GetChild(int index)
         {
             return m_Children[index] as ChildrenType;
         }
 
-        public OwnerType GetOwner()
+        public new OwnerType GetOwner()
         {
             return m_Owner as OwnerType;
         }

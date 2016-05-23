@@ -15,13 +15,16 @@ namespace UnityEditor.Experimental
         public VFXDataBlockDesc Desc        { get { return m_Model.Desc; } }
         public VFXUIPropertyAnchor Anchor   { get { return m_Fields[0].Anchor; } }
 
+        public override VFXElementModel GetAbstractModel() { return Model; }
+
         public string m_exposedName;
 
         private VFXDataBlockModel m_Model;
 
-        public VFXEdDataNodeBlock(VFXDataBlockDesc desc, VFXEdDataSource dataSource, string exposedName) : base(dataSource)
+        public VFXEdDataNodeBlock(VFXDataBlockModel model, VFXEdDataSource dataSource, string exposedName)
+            : base(dataSource)
         {
-            m_Model = new VFXDataBlockModel(desc);
+            m_Model = model;
 
             m_LibraryName = Desc.Name; // TODO dont store the same stuff at two different location
             m_exposedName = exposedName;
@@ -37,6 +40,11 @@ namespace UnityEditor.Experimental
             AddChild(new VFXEdNodeBlockHeader(m_LibraryName, VFXEditor.styles.GetIcon(Desc.Icon), true));
             AddManipulator(new TooltipManipulator(GetTooltipText));
             Layout();
+        }
+
+        public override void UpdateModel(UpdateType t)
+        {
+            Model.UpdateCollapsed(collapsed);
         }
 
         public List<string> GetTooltipText()

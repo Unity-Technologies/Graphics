@@ -10,19 +10,23 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdDataNode : VFXEdNode
+    internal class VFXEdDataNode : VFXEdNode, VFXModelHolder
     {
         public bool exposed { get { return m_ExposeOption.Enabled; } set { m_ExposeOption.Enabled = value; } }
+        public VFXDataNodeModel Model { get { return m_Model; } }
+        
         protected VFXEdExposeDataNodeOption m_ExposeOption;
 
         private VFXDataNodeModel m_Model;
 
-        internal VFXEdDataNode(Vector2 canvasposition, VFXEdDataSource dataSource) 
-            : base (canvasposition, dataSource)
+        public VFXElementModel GetAbstractModel() { return Model; }
+
+        internal VFXEdDataNode(VFXDataNodeModel model, VFXEdDataSource dataSource) 
+            : base (model.UIPosition, dataSource)
         {
-            m_Model = new VFXDataNodeModel();
+            m_Model = model;
             m_Title = "Data Node";
-            m_ExposeOption = new VFXEdExposeDataNodeOption(m_Model);
+            m_ExposeOption = new VFXEdExposeDataNodeOption(Model);
             AddChild(m_ExposeOption);
             Layout();
         }
@@ -35,7 +39,7 @@ namespace UnityEditor.Experimental
 
         public override void UpdateModel(UpdateType t)
         {
-            m_Model.UpdatePosition(translation);
+            Model.UpdatePosition(translation);
         }
 
         protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)

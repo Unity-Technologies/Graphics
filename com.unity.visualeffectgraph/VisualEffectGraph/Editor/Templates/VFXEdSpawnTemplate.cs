@@ -137,7 +137,8 @@ namespace UnityEditor.Experimental
 
             foreach(KeyValuePair<string,ContextNodeInfo> node_kvp in m_ContextNodes)
             {
-                VFXEdContextNode node = null;
+                // NOT MAINTAINED
+                /*VFXEdContextNode node = null;
                 string context = node_kvp.Value.Context;
 
                 node = new VFXEdContextNode(CurrentPos[node_kvp.Value.systemIndex], VFXEditor.ContextLibrary.GetContext(context), datasource);
@@ -179,7 +180,7 @@ namespace UnityEditor.Experimental
 
                 node.Layout();
                  
-                CurrentPos[node_kvp.Value.systemIndex].y += node.scale.y + 40.0f;
+                CurrentPos[node_kvp.Value.systemIndex].y += node.scale.y + 40.0f;*/
                
             }
 
@@ -192,7 +193,7 @@ namespace UnityEditor.Experimental
             {
                 VFXEdDataNode node = null;
 
-                node = new VFXEdDataNode(CurrentDataNodePos, datasource);
+                /*node = new VFXEdDataNode(CurrentDataNodePos, datasource);
                 
 
                 if(node != null)
@@ -200,7 +201,7 @@ namespace UnityEditor.Experimental
                     node.exposed = node_kvp.Value.Exposed;
                     datasource.AddElement(node);
                     spawnedDataNodes.Add(node_kvp.Value, node);
-                }
+                }*/
 
                 // NOT MAINTAINED
                 /*foreach(KeyValuePair<string,DataNodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)

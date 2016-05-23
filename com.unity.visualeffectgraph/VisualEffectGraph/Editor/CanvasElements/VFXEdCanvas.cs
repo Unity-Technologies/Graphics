@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental
         public List<string> GetToolTipText()
         {
             List<string> lines = new List<string>();
-            lines = VFXModelDebugInfoProvider.GetInfo(lines, VFXEditor.AssetModel, VFXModelDebugInfoProvider.InfoFlag.kDefault);
+            lines = VFXModelDebugInfoProvider.GetInfo(lines, VFXEditor.Graph.systems, VFXModelDebugInfoProvider.InfoFlag.kDefault);
             return lines;
         }
 
@@ -115,7 +115,7 @@ namespace UnityEditor.Experimental
         {
             if (e.character == 'p')
             {
-                VFXEditor.AssetModel.PhaseShift = !VFXEditor.AssetModel.PhaseShift;
+                VFXEditor.Graph.systems.PhaseShift = !VFXEditor.Graph.systems.PhaseShift;
                 Repaint();
                 return true;
             }
@@ -127,6 +127,11 @@ namespace UnityEditor.Experimental
         {
             if (e.character == 'd')
             {
+                Debug.Log("Resync View");
+                (dataSource as VFXEdDataSource).ResyncViews();
+                ReloadData();
+                Repaint();
+
                 // TODO Fix that with refactor
                 /*const string TAB = "         ";
                 VFXEditor.Log("\nNb Systems: " + VFXEditor.AssetModel.GetNbChildren());
