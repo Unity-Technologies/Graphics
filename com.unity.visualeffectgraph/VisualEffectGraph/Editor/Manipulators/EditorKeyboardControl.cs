@@ -14,17 +14,29 @@ namespace UnityEditor.Experimental
 
         public EditorKeyboardControl()
         {
-
         }
 
         public void AttachTo(CanvasElement e)
         {
             e.KeyDown += OnCanvasKeyDown;
+            SceneView.onSceneGUIDelegate += OnSceneGUIKeyDown;
+        }
+
+        public void OnSceneGUIKeyDown(SceneView sceneview)
+        {
+            Event e = Event.current;
+            if(e.type == EventType.keyDown)
+                    OnKeyDown(e);
         }
 
         private bool OnCanvasKeyDown(CanvasElement element, Event e, Canvas2D parent)
         {
-            if ( e.rawType != EventType.keyDown)
+            return OnKeyDown(e);
+        }
+
+        private bool OnKeyDown(Event e)
+        { 
+            if (e.type == EventType.used)
                 return false;
 
 

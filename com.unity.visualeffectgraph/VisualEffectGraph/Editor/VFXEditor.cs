@@ -208,6 +208,7 @@ namespace UnityEditor.Experimental
             if (m_Icon == null)
                 m_Icon = EditorGUIUtility.Load("edicon.psd") as Texture;
 
+            Undo.undoRedoPerformed -= OnUndoRedo;
             Undo.undoRedoPerformed += OnUndoRedo;
 
             Rebuild();
