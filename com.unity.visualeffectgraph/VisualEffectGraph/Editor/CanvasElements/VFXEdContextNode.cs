@@ -270,7 +270,7 @@ namespace UnityEditor.Experimental
             }
            
             GUI.Box(r, "", VFXEditor.styles.Node);
-            GUI.Label(new Rect(0, r.y, r.width, 24), title + " " + Model.GetOwner().Id, VFXEditor.styles.NodeTitle);
+            GUI.Label(new Rect(0, r.y, r.width, 24), title, VFXEditor.styles.NodeTitle);
 
             base.Render(parentRect, canvas);
         }
