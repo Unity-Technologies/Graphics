@@ -90,13 +90,13 @@ namespace UnityEditor.Experimental
             }
         }
 
-		public static VFXAssetModel AssetModel
+		public static VFXGraph Graph
 		{
 			get
 			{
-				if (s_AssetModel == null)
-					s_AssetModel = new VFXAssetModel();
-				return s_AssetModel;
+                if (s_Graph == null)
+                    s_Graph = new VFXGraph();
+                return s_Graph;
 			}
 		}
 
@@ -147,7 +147,7 @@ namespace UnityEditor.Experimental
         private static VFXEditorStyles s_Styles;
         private static VFX.VFXBlockLibrary s_BlockLibrary;
         private static VFXContextLibraryCollection s_ContextLibrary;
-		private static VFXAssetModel s_AssetModel;
+		private static VFXGraph s_Graph;
 
         private static VFXEdSpawnTemplateLibrary s_SpawnTemplates;
         /* end Singletons */
@@ -376,7 +376,7 @@ namespace UnityEditor.Experimental
 
         void Update()
         {
-            AssetModel.Update();
+            Graph.systems.Update();
         }
 
         void OnDestroy()
@@ -385,15 +385,15 @@ namespace UnityEditor.Experimental
             s_ContextLibrary = null;
             s_SpawnTemplates = null;
             
-            s_AssetModel.Dispose();
-            s_AssetModel = null;
+            s_Graph.systems.Dispose();
+            s_Graph = null;
             
             ClearLog();
         }
 
         private void SetPlayRate(object rate)
         {
-            AssetModel.component.playRate = (float)rate;
+            s_Graph.systems.component.playRate = (float)rate;
         }
 
         void DrawToolbar(Rect rect)
@@ -403,33 +403,33 @@ namespace UnityEditor.Experimental
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton))
             {
-                AssetModel.component.pause = false;
-                AssetModel.component.Reinit();
+                Graph.systems.component.pause = false;
+                Graph.systems.component.Reinit();
             }
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.toolbarButton))
             {
-                AssetModel.component.pause = false;
+                Graph.systems.component.pause = false;
             }
 
-            AssetModel.component.pause = GUILayout.Toggle(AssetModel.component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
+            Graph.systems.component.pause = GUILayout.Toggle(Graph.systems.component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.toolbarButton))
             {
-                AssetModel.component.pause = true;
-                AssetModel.component.Reinit();
+                Graph.systems.component.pause = true;
+                Graph.systems.component.Reinit();
             }
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.toolbarButton))
             {
-                AssetModel.component.pause = true;
-                AssetModel.component.AdvanceOneFrame();
+                Graph.systems.component.pause = true;
+                Graph.systems.component.AdvanceOneFrame();
             }
 
             if (GUILayout.Button("PlayRate", EditorStyles.toolbarDropDown))
             {
                 GenericMenu toolsMenu = new GenericMenu();
-                float rate = AssetModel.component.playRate;
+                float rate = Graph.systems.component.playRate;
                 toolsMenu.AddItem(new GUIContent("800%"), rate == 8.0f, SetPlayRate, 8.0f);
                 toolsMenu.AddItem(new GUIContent("200%"), rate == 2.0f, SetPlayRate, 2.0f);
                 toolsMenu.AddItem(new GUIContent("100% (RealTime)"), rate == 1.0f, SetPlayRate, 1.0f);
@@ -442,16 +442,16 @@ namespace UnityEditor.Experimental
                 EditorGUIUtility.ExitGUI();
             }
 
-            float r = AssetModel.component.playRate;
-            float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(AssetModel.component.playRate), 0.0f, Mathf.Sqrt(8.0f), GUILayout.Width(140.0f)), 2.0f);
+            float r = Graph.systems.component.playRate;
+            float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(Graph.systems.component.playRate), 0.0f, Mathf.Sqrt(8.0f), GUILayout.Width(140.0f)), 2.0f);
             GUILayout.Label(Mathf.Round(nr * 100) + "%", GUILayout.Width(80.0f));
             if (r != nr)
                 SetPlayRate(nr);
 
             GUILayout.FlexibleSpace();
 
-            bool UsePhaseShift = AssetModel.PhaseShift;
-            AssetModel.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
+            bool UsePhaseShift = Graph.systems.PhaseShift;
+            Graph.systems.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
 
             m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "DEBUG PANEL", EditorStyles.toolbarButton);
             m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);

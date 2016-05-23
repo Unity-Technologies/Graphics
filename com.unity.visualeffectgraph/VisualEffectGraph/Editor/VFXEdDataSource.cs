@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental
             // Create a tmp system to hold the newly created context
             VFXSystemModel system = new VFXSystemModel();
             system.AddChild(context);
-            VFXEditor.AssetModel.AddChild(system);
+            VFXEditor.Graph.systems.AddChild(system);
 
             SyncContext(context);
             SyncSystem(system);

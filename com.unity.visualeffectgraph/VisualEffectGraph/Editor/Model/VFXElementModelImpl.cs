@@ -20,9 +20,14 @@ namespace UnityEditor.Experimental
         void SyncView(VFXElementModel model, bool recursive = false);
     }
 
-    public class VFXAssetModel : VFXElementModel<VFXElementModel, VFXSystemModel>
+    public class VFXGraph
     {
-        public VFXAssetModel()
+        public VFXSystemsModel systems = new VFXSystemsModel();
+    }
+
+    public class VFXSystemsModel : VFXElementModel<VFXElementModel, VFXSystemModel>
+    {
+        public VFXSystemsModel()
         {
             RemovePreviousVFXs();
             RemovePreviousShaders();
@@ -84,7 +89,7 @@ namespace UnityEditor.Experimental
 
         public void Update()
         {
-            Profiler.BeginSample("VFXAssetModel.Update");
+            Profiler.BeginSample("VFXSystemsModel.Update");
 
             bool HasRecompiled = false;
             if (m_NeedsCheck)
@@ -153,7 +158,7 @@ namespace UnityEditor.Experimental
         private GameObject m_GameObject;
     }
 
-    public class VFXSystemModel : VFXElementModel<VFXAssetModel, VFXContextModel>
+    public class VFXSystemModel : VFXElementModel<VFXSystemsModel, VFXContextModel>
     {
         public VFXSystemModel()
         {
@@ -180,7 +185,7 @@ namespace UnityEditor.Experimental
             AssetDatabase.DeleteAsset(simulationShaderPath);
             AssetDatabase.DeleteAsset(outputShaderPath);
 
-            VFXEditor.AssetModel.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
+            VFXEditor.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
@@ -223,7 +228,7 @@ namespace UnityEditor.Experimental
                 while (system0.GetNbChildren() > context0Index + 1)
                     system0.m_Children[context0Index + 1].Attach(newSystem,true);
 
-                VFXEditor.AssetModel.AddChild(newSystem);
+                VFXEditor.Graph.systems.AddChild(newSystem);
                 if (controller != null)
                     controller.SyncView(newSystem);
             }
@@ -258,7 +263,7 @@ namespace UnityEditor.Experimental
             VFXSystemModel newSystem = new VFXSystemModel();
             while (system.GetNbChildren() > index)
                 system.GetChild(index).Attach(newSystem,true);
-            newSystem.Attach(VFXEditor.AssetModel);
+            newSystem.Attach(VFXEditor.Graph.systems);
 
             if (controller != null)
             {

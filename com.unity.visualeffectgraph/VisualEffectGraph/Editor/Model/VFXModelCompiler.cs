@@ -432,7 +432,7 @@ namespace UnityEditor.Experimental
             if (!outputGenerator.UpdateAttributes(attribs, ref dummy))
                 return null;
 
-            if (VFXEditor.AssetModel.PhaseShift)
+            if (VFXEditor.Graph.systems.PhaseShift)
             {
                 if (attribs.ContainsKey(CommonAttrib.Position) && attribs.ContainsKey(CommonAttrib.Velocity))
                 {
@@ -444,7 +444,7 @@ namespace UnityEditor.Experimental
                 }
                 else
                 {
-                    VFXEditor.AssetModel.PhaseShift = false;
+                    VFXEditor.Graph.systems.PhaseShift = false;
                     return null;
                 }
             }
@@ -622,7 +622,7 @@ namespace UnityEditor.Experimental
             AssetDatabase.ImportAsset(simulationShaderPath);
             AssetDatabase.ImportAsset(outputShaderPath);
 
-            VFXEditor.AssetModel.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
+            VFXEditor.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
 
             ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(simulationShaderPath);
             Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>(outputShaderPath);
@@ -939,7 +939,7 @@ namespace UnityEditor.Experimental
             if (updateGenerator != null)
                 updateGenerator.WriteFunctions(builder, data);
 
-            bool HasPhaseShift = VFXEditor.AssetModel.PhaseShift;
+            bool HasPhaseShift = VFXEditor.Graph.systems.PhaseShift;
 
             // Write init kernel
             if (hasInit)

@@ -55,7 +55,7 @@ namespace UnityEditor.Experimental
         public List<string> GetToolTipText()
         {
             List<string> lines = new List<string>();
-            lines = VFXModelDebugInfoProvider.GetInfo(lines, VFXEditor.AssetModel, VFXModelDebugInfoProvider.InfoFlag.kDefault);
+            lines = VFXModelDebugInfoProvider.GetInfo(lines, VFXEditor.Graph.systems, VFXModelDebugInfoProvider.InfoFlag.kDefault);
             return lines;
         }
 
@@ -112,7 +112,7 @@ namespace UnityEditor.Experimental
         {
             if (e.character == 'p')
             {
-                VFXEditor.AssetModel.PhaseShift = !VFXEditor.AssetModel.PhaseShift;
+                VFXEditor.Graph.systems.PhaseShift = !VFXEditor.Graph.systems.PhaseShift;
                 Repaint();
                 return true;
             }

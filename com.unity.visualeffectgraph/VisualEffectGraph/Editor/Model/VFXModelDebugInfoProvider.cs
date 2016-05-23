@@ -139,7 +139,7 @@ namespace UnityEditor.Experimental
         }
 
         // Asset Model
-        public static List<string> GetInfo(List<string> info, VFXAssetModel Model, InfoFlag flags)
+        public static List<string> GetInfo(List<string> info, VFXSystemsModel Model, InfoFlag flags)
         {
             int childcount = Model.GetNbChildren();
 

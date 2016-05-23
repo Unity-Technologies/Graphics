@@ -5,7 +5,7 @@ namespace UnityEditor.Experimental.VFX
 {
     public static class ModelSerializer
     {
-        public static VFXAssetSerializedData SerializeModel(VFXAssetModel model)
+       /* public static VFXAssetSerializedData SerializeModel(VFXAssetModel model)
         {
             VFXAssetSerializedData serializedAsset = new VFXAssetSerializedData();
             // Get systems
@@ -48,6 +48,6 @@ namespace UnityEditor.Experimental.VFX
         {
             var model = new VFXAssetModel();
             return null;
-        }
+        }*/
     }
 }
