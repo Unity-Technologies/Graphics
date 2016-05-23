@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
+using UnityEditor.Experimental.VFX;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
 
@@ -29,8 +30,19 @@ namespace UnityEditor.Experimental
             system.AddChild(context);
             VFXEditor.Graph.systems.AddChild(system);
 
-            SyncContext(context);
-            SyncSystem(system);
+            SyncView(context);
+            SyncView(system);
+        }
+
+        public VFXDataNodeModel CreateDataNode(Vector2 pos)
+        {
+            VFXDataNodeModel model = new VFXDataNodeModel();
+            model.UpdatePosition(pos);
+            VFXEditor.Graph.models.AddChild(model);
+            
+            SyncView(model);
+
+            return model;
         }
 
         public void Create(VFXElementModel model,VFXElementModel owner,int index = -1)
@@ -80,6 +92,10 @@ namespace UnityEditor.Experimental
                 SyncContext((VFXContextModel)model);
             else if (modelType == typeof(VFXBlockModel))
                 SyncBlock((VFXBlockModel)model);
+            else if (modelType == typeof(VFXDataNodeModel))
+                SyncDataNode((VFXDataNodeModel)model);
+            else if (modelType == typeof(VFXDataBlockModel))
+                SyncDataBlock((VFXDataBlockModel)model);
 
             if (recursive)
                 for (int i = 0; i < model.GetNbChildren(); ++i)
@@ -178,6 +194,74 @@ namespace UnityEditor.Experimental
 
             // Reset UI data
             blockUI.collapsed = model.UICollapsed;
+            blockUI.Invalidate();
+        }
+
+        public void SyncDataNode(VFXDataNodeModel model)
+        {
+            var owner = model.GetOwner();
+            VFXEdDataNode nodeUI = TryGetUI<VFXEdDataNode>(model);
+
+            if (owner == null) // We must delete the contextUI as it is no longer bound to a system
+            {
+                for (int i = 0; i < model.GetNbChildren(); ++i)
+                    m_ModelToUI.Remove(model.GetChild(i));
+
+                if (nodeUI != null)
+                {
+                    nodeUI.OnRemove();
+                    m_ModelToUI.Remove(model);
+                    m_Elements.Remove(nodeUI);
+                }
+            }
+            else
+            {
+                if (nodeUI == null)
+                {
+                    nodeUI = new VFXEdDataNode(model, this);
+                    m_ModelToUI.Add(model, nodeUI);
+                    AddElement(nodeUI);
+                }
+
+                // Reset UI data
+                nodeUI.translation = model.UIPosition;
+                nodeUI.exposed = model.Exposed;
+
+                // Collect all blocks in the context
+                List<VFXDataBlockModel> children = new List<VFXDataBlockModel>();
+                for (int i = 0; i < model.GetNbChildren(); ++i)
+                    children.Add(model.GetChild(i));
+
+                // Collect all contextUI in the system
+                List<VFXEdDataNodeBlock> childrenUI = new List<VFXEdDataNodeBlock>();
+                foreach (var child in children)
+                    childrenUI.Add(GetUI<VFXEdDataNodeBlock>(child)); // This should not throw
+
+                VFXEdNodeBlockContainer container = nodeUI.NodeBlockContainer;
+
+                // Remove all blocks
+                container.ClearNodeBlocks();
+
+                // Then add them again
+                foreach (var child in childrenUI)
+                    container.AddNodeBlock(child);
+
+                nodeUI.Invalidate();
+            }
+        }
+
+        public void SyncDataBlock(VFXDataBlockModel model)
+        {
+            var owner = model.GetOwner();
+
+            VFXEdDataNodeBlock blockUI = TryGetUI<VFXEdDataNodeBlock>(model);
+
+            if (owner == null) // We must delete the contextUI as it is no longer bound to a system
+                m_ModelToUI.Remove(model);
+            else if (blockUI == null)
+                m_ModelToUI.Add(model, blockUI = new VFXEdDataNodeBlock(model, this,""));
+
+            // Reset UI data
             blockUI.Invalidate();
         }
 

@@ -20,9 +20,10 @@ namespace UnityEditor.Experimental
 
         private VFXDataBlockModel m_Model;
 
-        public VFXEdDataNodeBlock(VFXDataBlockDesc desc, VFXEdDataSource dataSource, string exposedName) : base(dataSource)
+        public VFXEdDataNodeBlock(VFXDataBlockModel model, VFXEdDataSource dataSource, string exposedName)
+            : base(dataSource)
         {
-            m_Model = new VFXDataBlockModel(desc);
+            m_Model = model;
 
             m_LibraryName = Desc.Name; // TODO dont store the same stuff at two different location
             m_exposedName = exposedName;

@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental
             m_Inputs = new List<VFXEdFlowAnchor>();
             m_Outputs = new List<VFXEdFlowAnchor>();
 
-            m_NodeBlockContainer = new VFXEdNodeBlockContainer(this.scale);
+            m_NodeBlockContainer = new VFXEdNodeBlockContainer(this.scale,m_DataSource);
             AddChild(m_NodeBlockContainer);
 
             MouseDown += ManageSelection;

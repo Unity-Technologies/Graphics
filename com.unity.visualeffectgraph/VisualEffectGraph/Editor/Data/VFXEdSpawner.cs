@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor;
+using UnityEditor.Experimental.VFX;
 using System.Collections;
 using Object = UnityEngine.Object;
 using System;
@@ -101,11 +102,11 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            VFXEdDataNode n = new VFXEdDataNode(m_CanvasPosition, m_DataSource);
-            m_DataSource.AddElement(n);
+            var node = m_DataSource.CreateDataNode(m_CanvasPosition);
+
             if (m_InitialBlock != null)
             {
-                VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(m_CanvasPosition, m_InitialBlock, n, m_DataSource, m_InitialBlock.Name);
+                VFXEdDataNodeBlockSpawner spawner = new VFXEdDataNodeBlockSpawner(m_CanvasPosition, m_InitialBlock, m_DataSource.GetUI<VFXEdDataNode>(node), m_DataSource, m_InitialBlock.Name);
                 spawner.Spawn();
             }
             m_Canvas.ReloadData();
@@ -136,8 +137,8 @@ namespace UnityEditor.Experimental
 
     internal class VFXEdDataNodeBlockSpawner : VFXEdSpawner
     {
-        VFXEdDataNode m_Node;
         VFXDataBlockDesc m_DataBlockDesc;
+        VFXDataNodeModel m_Node;    
         VFXEdDataSource m_DataSource;
         string m_exposedName;
 
@@ -145,7 +146,7 @@ namespace UnityEditor.Experimental
             : base (position)
         {
             m_DataBlockDesc = datablock;
-            m_Node = node;
+            m_Node = node.Model;
             m_DataSource = datasource;
             m_exposedName = exposedName;
         }
@@ -154,10 +155,9 @@ namespace UnityEditor.Experimental
             : this (position, datablock, node, datasource, exposedName)
         {}
 
-
         public override void Spawn()
         {
-            m_Node.NodeBlockContainer.AddNodeBlock(new VFXEdDataNodeBlock(m_DataBlockDesc, m_DataSource, m_exposedName));
+            m_DataSource.Create(new VFXDataBlockModel(m_DataBlockDesc), m_Node);
         }
     }
 

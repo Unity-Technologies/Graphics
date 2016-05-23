@@ -193,7 +193,7 @@ namespace UnityEditor.Experimental
             {
                 VFXEdDataNode node = null;
 
-                node = new VFXEdDataNode(CurrentDataNodePos, datasource);
+                /*node = new VFXEdDataNode(CurrentDataNodePos, datasource);
                 
 
                 if(node != null)
@@ -201,7 +201,7 @@ namespace UnityEditor.Experimental
                     node.exposed = node_kvp.Value.Exposed;
                     datasource.AddElement(node);
                     spawnedDataNodes.Add(node_kvp.Value, node);
-                }
+                }*/
 
                 // NOT MAINTAINED
                 /*foreach(KeyValuePair<string,DataNodeBlockInfo> block_kvp in node_kvp.Value.nodeBlocks)

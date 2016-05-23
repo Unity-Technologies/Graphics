@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using UnityEditor.Experimental;
+using UnityEditor.Experimental.VFX;
 
 namespace UnityEditor.Experimental
 {
@@ -23,7 +23,10 @@ namespace UnityEditor.Experimental
     public class VFXGraph
     {
         public VFXSystemsModel systems = new VFXSystemsModel();
+        public VFXModelContainer models = new VFXModelContainer(); // other model (data nodes...)
     }
+
+    public class VFXModelContainer : VFXElementModel<VFXElementModel, VFXElementModel> {} // Generic model container
 
     public class VFXSystemsModel : VFXElementModel<VFXElementModel, VFXSystemModel>
     {

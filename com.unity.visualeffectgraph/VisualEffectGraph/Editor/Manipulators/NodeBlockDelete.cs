@@ -43,9 +43,9 @@ namespace UnityEditor.Experimental
             VFXEdNodeBlockContainer container = (node.parent as VFXEdNodeBlockContainer);
             container.RemoveNodeBlock(node);*/
 
-            if (element is VFXEdProcessingNodeBlock)
+            if (element is VFXModelHolder)
             {
-                ((VFXEdDataSource)canvas.dataSource).Remove(((VFXEdProcessingNodeBlock)element).Model);
+                ((VFXEdDataSource)canvas.dataSource).Remove(((VFXModelHolder)element).GetAbstractModel());
                 canvas.ReloadData();
                 canvas.Repaint();
                 return true;

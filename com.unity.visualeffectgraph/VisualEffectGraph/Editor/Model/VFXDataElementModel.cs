@@ -3,7 +3,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.Experimental.VFX
 {
-    class VFXDataNodeModel : VFXElementModel<VFXElementModel,VFXDataBlockModel>, VFXUIDataHolder
+    public class VFXDataNodeModel : VFXElementModel<VFXElementModel,VFXDataBlockModel>, VFXUIDataHolder
     {
         public bool Exposed
         {
@@ -24,11 +24,13 @@ namespace UnityEditor.Experimental.VFX
             m_UIPosition = position;
         }
 
+        public Vector2 UIPosition { get { return m_UIPosition; } }
+
         private Vector2 m_UIPosition;
         private bool m_Exposed;
     }
 
-    class VFXDataBlockModel : VFXModelWithSlots<VFXDataNodeModel, VFXElementModel>, VFXUIDataHolder
+    public class VFXDataBlockModel : VFXModelWithSlots<VFXDataNodeModel, VFXElementModel>, VFXUIDataHolder
     {
         public VFXDataBlockModel(VFXDataBlockDesc desc)
         {

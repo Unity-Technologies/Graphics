@@ -45,14 +45,16 @@ namespace UnityEditor.Experimental
 
         private DropInfo dropInfo;
         private List<VFXEdNodeBlockDraggable> m_NodeBlocks;
+        private VFXEdDataSource m_DataSource;
 
         public bool OwnsBlock(VFXEdNodeBlockDraggable item)
         {
             return m_NodeBlocks.Contains(item);
         }
 
-        public VFXEdNodeBlockContainer(Vector2 size)
+        public VFXEdNodeBlockContainer(Vector2 size,VFXEdDataSource dataSource)
         {
+            m_DataSource = dataSource;
             translation = VFXEditorMetrics.NodeBlockContainerPosition;
             scale = size + VFXEditorMetrics.NodeBlockContainerSizeOffset;
             m_NodeBlocks = new List<VFXEdNodeBlockDraggable>();
@@ -163,11 +165,11 @@ namespace UnityEditor.Experimental
         {
             //AddNodeBlock(block, dropInfo.DropIndex);
             // Update the model if inside a Context Node
-            VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
-            if (nodeParent != null)
+            VFXModelHolder parentModel = FindParent<VFXModelHolder>();
+            if (parentModel != null)
                 try
                 {
-                    nodeParent.DataSource.Attach(((VFXEdProcessingNodeBlock)block).Model,nodeParent.Model,dropInfo.DropIndex);
+                    m_DataSource.Attach(block.GetAbstractModel(), parentModel.GetAbstractModel(), dropInfo.DropIndex);
                 }
                 catch (Exception e)
                 {
@@ -180,9 +182,9 @@ namespace UnityEditor.Experimental
 
         public void RevertDrop(VFXEdNodeBlockDraggable block, int index)
         {
-            VFXEdContextNode nodeParent = FindParent<VFXEdContextNode>();
-            if (nodeParent != null)
-                nodeParent.DataSource.SyncView(nodeParent.Model); // Force a UI sync
+            var owner = block.GetAbstractModel().GetOwner();
+            if (owner != null)
+                m_DataSource.SyncView(owner); // Force a UI sync
 
             CaptureDrop = false;
             Invalidate();
