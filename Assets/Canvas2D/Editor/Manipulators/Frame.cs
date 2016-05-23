@@ -56,10 +56,10 @@ namespace UnityEditor.Experimental
                     List<CanvasElement> s = parent.selection;
                     if (s.Count == 0)
                         return false;
-                    rectToFit = s[0].boundingRect;
+                    rectToFit = s[0].GetDrawableRect(true);
                     foreach (CanvasElement c in s)
                     {
-                        rectToFit = UnityEditorInternal.Experimental.RectUtils.Encompass(rectToFit, c.boundingRect);
+                        rectToFit = UnityEditorInternal.Experimental.RectUtils.Encompass(rectToFit, c.GetDrawableRect(true));
                     }
                 }
 
