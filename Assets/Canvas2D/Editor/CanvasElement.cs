@@ -470,7 +470,7 @@ namespace UnityEditor.Experimental
         public virtual void AddChild(CanvasElement e)
         {
             e.parent = this;
-            if (!(e.parent is Canvas2D))
+            if (!(e.parent is Canvas2D) && collapsed)
             {
                 e.collapsed = collapsed;
             }
