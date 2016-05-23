@@ -12,9 +12,7 @@ namespace UnityEditor.Experimental
     internal class VFXEdDataSource : ScriptableObject, ICanvasDataSource, VFXModelController
     {
         private List<CanvasElement> m_Elements = new List<CanvasElement>();
-
-        private Dictionary<VFXContextModel,VFXEdContextNode> m_ContextModelToUI = new Dictionary<VFXContextModel,VFXEdContextNode>();
-        private Dictionary<VFXBlockModel, VFXEdProcessingNodeBlock> m_BlockModelToUI = new Dictionary<VFXBlockModel, VFXEdProcessingNodeBlock>();
+        private Dictionary<VFXElementModel, VFXModelHolder> m_ModelToUI = new Dictionary<VFXElementModel, VFXModelHolder>();
 
         public void OnEnable()
         {
@@ -35,13 +33,11 @@ namespace UnityEditor.Experimental
             SyncSystem(system);
         }
 
-        public void CreateBlock(VFXBlockDesc desc, VFXContextModel owner, int index)
+        public void Create(VFXElementModel model,VFXElementModel owner,int index = -1)
         {
-            VFXBlockModel block = new VFXBlockModel(desc);           
-            owner.AddChild(block, index);
-
-            SyncBlock(block);
-            SyncContext(owner);
+            owner.AddChild(model, index);
+            SyncView(model);
+            SyncView(owner);
         }
 
         public void Remove(VFXElementModel model)
@@ -69,17 +65,6 @@ namespace UnityEditor.Experimental
                 SyncView(oldOwner);
         }
 
-        // This is called by the model when one element has been updated and the view therefore needs to synchronize
-        /*public void OnModelUpdated(VFXElementModel model)
-        {
-            Type type = model.GetType();
-            if (type == typeof(VFXSystemModel))
-                OnSystemUpdated((VFXSystemModel)model);
-            else if (type == typeof(VFXContextModel))
-                OnContextUpdated((VFXContextModel)model);
-            else if (type == typeof(VFXBlockModel))
-                OnBlockUpdated((VFXBlockModel)model);
-        }*/
 
         public void OnLinkUpdated(VFXPropertySlot slot)
         {
@@ -110,7 +95,7 @@ namespace UnityEditor.Experimental
             // Collect all contextUI in the system
             List<VFXEdContextNode> childrenUI = new List<VFXEdContextNode>();
             foreach (var child in children)
-                childrenUI.Add(m_ContextModelToUI[child]); // This should not throw
+                childrenUI.Add(GetUI<VFXEdContextNode>(child)); // This should not throw
 
             // First remove all edges
             foreach (var childUI in childrenUI)
@@ -133,18 +118,17 @@ namespace UnityEditor.Experimental
         {
             var system = model.GetOwner();
 
-            VFXEdContextNode contextUI;
-            m_ContextModelToUI.TryGetValue(model,out contextUI);
+            VFXEdContextNode contextUI = TryGetUI<VFXEdContextNode>(model);
 
             if (system == null) // We must delete the contextUI as it is no longer bound to a system
             {
                 for (int i = 0; i < model.GetNbChildren(); ++i)
-                    m_BlockModelToUI.Remove(model.GetChild(i));
+                    m_ModelToUI.Remove(model.GetChild(i));
 
                 if (contextUI != null)
                 {
                     DeleteContextUI(contextUI);
-                    m_ContextModelToUI.Remove(model);
+                    m_ModelToUI.Remove(model);
                 }
             }
             else  // Create the context UI if it does not exist
@@ -152,7 +136,7 @@ namespace UnityEditor.Experimental
                 if (contextUI == null)
                 {
                     contextUI = CreateContextUI(model);
-                    m_ContextModelToUI.Add(model, contextUI);
+                    m_ModelToUI.Add(model, contextUI);
                 }
 
                 // Reset UI data
@@ -166,7 +150,7 @@ namespace UnityEditor.Experimental
                 // Collect all contextUI in the system
                 List<VFXEdProcessingNodeBlock> childrenUI = new List<VFXEdProcessingNodeBlock>();
                 foreach (var child in children)
-                    childrenUI.Add(m_BlockModelToUI[child]); // This should not throw
+                    childrenUI.Add(GetUI<VFXEdProcessingNodeBlock>(child)); // This should not throw
 
                 VFXEdNodeBlockContainer container = contextUI.NodeBlockContainer;
 
@@ -185,13 +169,12 @@ namespace UnityEditor.Experimental
         {
             var context = model.GetOwner();
 
-            VFXEdProcessingNodeBlock blockUI;
-            m_BlockModelToUI.TryGetValue(model, out blockUI);
+            VFXEdProcessingNodeBlock blockUI = TryGetUI<VFXEdProcessingNodeBlock>(model);
 
             if (context == null) // We must delete the contextUI as it is no longer bound to a system
-                m_BlockModelToUI.Remove(model);
+                m_ModelToUI.Remove(model);
             else if (blockUI == null)
-                m_BlockModelToUI.Add(model, blockUI = new VFXEdProcessingNodeBlock(model, this));
+                m_ModelToUI.Add(model, blockUI = new VFXEdProcessingNodeBlock(model, this));
 
             // Reset UI data
             blockUI.collapsed = model.UICollapsed;
@@ -211,15 +194,16 @@ namespace UnityEditor.Experimental
             m_Elements.Remove(contextUI);
         }
 
-
-        public VFXEdProcessingNodeBlock GetBlockUI(VFXBlockModel model)
+        public T GetUI<T>(VFXElementModel model) where T : VFXModelHolder
         {
-            return m_BlockModelToUI[model];
+            return (T)m_ModelToUI[model];
         }
 
-        public VFXEdContextNode GetContextUI(VFXContextModel model)
+        public T TryGetUI<T>(VFXElementModel model) where T : VFXModelHolder
         {
-            return m_ContextModelToUI[model];
+            VFXModelHolder ui = null;
+            m_ModelToUI.TryGetValue(model, out ui);
+            return (T)ui;
         }
             
         public CanvasElement[] FetchElements()

@@ -130,7 +130,7 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_DataSource.CreateBlock(m_BlockDesc, m_Context, m_Index);
+            m_DataSource.Create(new VFXBlockModel(m_BlockDesc), m_Context, m_Index);
         }
     }
 
