@@ -54,7 +54,7 @@ texIndex = SAMPLE(Curve, r);";
             Add(new VFXAttribute(CommonAttrib.TexIndex, true));
 
             Source = @"
-texIndex += Framerate * DeltaTime;";
+texIndex += Framerate * deltaTime;";
         }
     }
 
