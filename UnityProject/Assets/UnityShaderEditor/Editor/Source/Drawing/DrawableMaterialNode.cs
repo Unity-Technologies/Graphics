@@ -10,12 +10,12 @@ namespace UnityEditor.MaterialGraph
     public sealed class DrawableMaterialNode : CanvasElement
     {
         private readonly MaterialGraphDataSource m_Data;
-        public BaseMaterialNode m_Node;
+        public AbstractMaterialNode m_Node;
 
         private Rect m_PreviewArea;
         private Rect m_NodeUIRect;
 
-        public DrawableMaterialNode(BaseMaterialNode node, float width, MaterialGraphDataSource data)
+        public DrawableMaterialNode(AbstractMaterialNode node, float width, MaterialGraphDataSource data)
         {
             translation = node.position.min;
             scale = new Vector2(width, width);
@@ -72,11 +72,11 @@ namespace UnityEditor.MaterialGraph
 
         private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
         {
-            var childrenNodes = ListPool<BaseMaterialNode>.Get();
+            var childrenNodes = ListPool<AbstractMaterialNode>.Get();
             m_Node.CollectChildNodesByExecutionOrder(childrenNodes);
             if (childrenNodes.Any(x => x is IRequiresTime))
                 Invalidate();
-            ListPool<BaseMaterialNode>.Release(childrenNodes);
+            ListPool<AbstractMaterialNode>.Release(childrenNodes);
             return true;
         }
         
@@ -130,7 +130,7 @@ namespace UnityEditor.MaterialGraph
             base.Render(parentRect, canvas);
         }
 
-        public static void RepaintDependentNodes(BaseMaterialNode bmn)
+        public static void RepaintDependentNodes(AbstractMaterialNode bmn)
         {
             var dependentNodes = bmn.CollectDependentNodes();
             foreach (var node in dependentNodes)

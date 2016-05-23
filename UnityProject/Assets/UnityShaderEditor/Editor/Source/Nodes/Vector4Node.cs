@@ -10,14 +10,14 @@ namespace UnityEditor.MaterialGraph
        
         private void InternalValidate() 
         {
-            AddSlot(new Slot(this, kOutputSlotName, kOutputSlotName, Slot.SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new MaterialSlot(this, kOutputSlotName, kOutputSlotName, MaterialSlot.SlotType.Output, SlotValueType.Vector4, Vector4.zero));
         }
 
         private const string kOutputSlotName = "Value";
         
         private NodeSpecificData m_NodeSpecificData = new NodeSpecificData();
 
-        public Vector4Node(BaseMaterialGraph owner) : base(owner)
+        public Vector4Node(AbstractMaterialGraph owner) : base(owner)
         {
             name = "V4Node";
             InternalValidate();
@@ -55,7 +55,10 @@ namespace UnityEditor.MaterialGraph
             EditorGUI.BeginChangeCheck();
             m_Value = EditorGUI.Vector4Field(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), "Value", m_Value);
             if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.SetDirty(owner.owner);
                 return GUIModificationType.Repaint;
+            }
             return GUIModificationType.None;
         }
 

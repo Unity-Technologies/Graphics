@@ -8,14 +8,14 @@ namespace UnityEditor.MaterialGraph
         // GetSlotsThatOutputToNodeRecurse returns a list of output slots on from node that
         // manage to connect to toNode... they may go via some other nodes to reach there.
         // This is done by working backwards from the toNode to the fromNode as graph is one directional
-        public static List<Slot> GetSlotsThatOutputToNodeRecurse(BaseMaterialNode fromNode, BaseMaterialNode toNode)
+        public static List<MaterialSlot> GetSlotsThatOutputToNodeRecurse(AbstractMaterialNode fromNode, AbstractMaterialNode toNode)
         {
-            var foundUsedOutputSlots = new List<Slot>();
+            var foundUsedOutputSlots = new List<MaterialSlot>();
             RecurseNodesToFindValidOutputSlots(fromNode, toNode, foundUsedOutputSlots);
             return foundUsedOutputSlots;
         }
 
-        public static void RecurseNodesToFindValidOutputSlots(BaseMaterialNode fromNode, BaseMaterialNode currentNode, ICollection<Slot> foundUsedOutputSlots)
+        public static void RecurseNodesToFindValidOutputSlots(AbstractMaterialNode fromNode, AbstractMaterialNode currentNode, ICollection<MaterialSlot> foundUsedOutputSlots)
         {
             if (fromNode == null || currentNode == null)
             {
@@ -23,7 +23,7 @@ namespace UnityEditor.MaterialGraph
                 return;
             }
             
-            var validSlots = ListPool<Slot>.Get();
+            var validSlots = ListPool<MaterialSlot>.Get();
             validSlots.AddRange(currentNode.inputSlots);
             for (int index = 0; index < validSlots.Count; index++)
             {
@@ -31,7 +31,7 @@ namespace UnityEditor.MaterialGraph
                 var edges = currentNode.owner.GetEdges(inputSlot);
                 foreach (var edge in edges)
                 {
-                    var outputNode = currentNode.owner.GetNodeFromGUID(edge.outputSlot.nodeGuid);
+                    var outputNode = currentNode.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                     var outputSlot = outputNode.FindOutputSlot(edge.outputSlot.slotName);
                     if (outputNode == fromNode && !foundUsedOutputSlots.Contains(outputSlot))
                         foundUsedOutputSlots.Add(outputSlot);
@@ -39,10 +39,10 @@ namespace UnityEditor.MaterialGraph
                         RecurseNodesToFindValidOutputSlots(fromNode, outputNode, foundUsedOutputSlots);
                 }
             }
-            ListPool<Slot>.Release(validSlots);
+            ListPool<MaterialSlot>.Release(validSlots);
         }
 
-        public static void CollectChildNodesByExecutionOrder(ICollection<BaseMaterialNode> nodeList, BaseMaterialNode node, Slot slotToUse)
+        public static void CollectChildNodesByExecutionOrder(ICollection<AbstractMaterialNode> nodeList, AbstractMaterialNode node, MaterialSlot slotToUse)
         {
             if (node == null)
                 return;
@@ -50,11 +50,11 @@ namespace UnityEditor.MaterialGraph
             if (nodeList.Contains(node))
                 return;
 
-            var validSlots = ListPool<Slot>.Get();
+            var validSlots = ListPool<MaterialSlot>.Get();
             validSlots.AddRange(node.inputSlots);
             if (slotToUse != null && !validSlots.Contains(slotToUse))
             {
-                ListPool<Slot>.Release(validSlots);
+                ListPool<MaterialSlot>.Release(validSlots);
                 return;
             }
 
@@ -71,16 +71,16 @@ namespace UnityEditor.MaterialGraph
                 var edges = node.owner.GetEdges(slot);
                 foreach (var edge in edges)
                 {
-                    var outputNode = node.owner.GetNodeFromGUID(edge.outputSlot.nodeGuid);
+                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                     CollectChildNodesByExecutionOrder(nodeList, outputNode, null);
                 }
             }
 
             nodeList.Add(node);
-            ListPool<Slot>.Release(validSlots);
+            ListPool<MaterialSlot>.Release(validSlots);
         }
 
-        public static void CollectDependentNodes(ICollection<BaseMaterialNode> nodeList, BaseMaterialNode node)
+        public static void CollectDependentNodes(ICollection<AbstractMaterialNode> nodeList, AbstractMaterialNode node)
         {
             if (node == null)
                 return;
@@ -92,7 +92,7 @@ namespace UnityEditor.MaterialGraph
             {
                 foreach (var edge in node.owner.GetEdges(slot))
                 {
-                    var inputNode = node.owner.GetNodeFromGUID(edge.inputSlot.nodeGuid);
+                    var inputNode = node.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                     CollectDependentNodes(nodeList, inputNode);
                 }
             }

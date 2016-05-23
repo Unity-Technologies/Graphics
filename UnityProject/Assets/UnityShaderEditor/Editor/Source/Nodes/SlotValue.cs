@@ -6,9 +6,9 @@ namespace UnityEditor.MaterialGraph
 {
     /*  public static class SlotExtensions
         {
-            public static bool Editable (this Slot slot)
+            public static bool Editable (this MaterialSlot slot)
             {
-                var node = slot.node as BaseMaterialNode;
+                var node = slot.node as AbstractMaterialNode;
                 if (node == null)
                     return false;
                 var properties = node[slot];
@@ -17,9 +17,9 @@ namespace UnityEditor.MaterialGraph
                 return false;
             }
 
-            public static bool Removable (this Slot slot)
+            public static bool Removable (this MaterialSlot slot)
             {
-                var node = slot.node as BaseMaterialNode;
+                var node = slot.node as AbstractMaterialNode;
                 if (node == null)
                     return false;
                 var properties = node[slot];
@@ -28,9 +28,9 @@ namespace UnityEditor.MaterialGraph
                 return false;
             }
 
-            public static bool SupportsDefault (this Slot slot)
+            public static bool SupportsDefault (this MaterialSlot slot)
             {
-                var node = slot.node as BaseMaterialNode;
+                var node = slot.node as AbstractMaterialNode;
                 if (node == null)
                     return true;
                 var properties = node[slot];
@@ -39,9 +39,9 @@ namespace UnityEditor.MaterialGraph
                 return true;
             }
 
-            public static ShaderProperty GetDefaultValue (this Slot slot)
+            public static ShaderProperty GetDefaultValue (this MaterialSlot slot)
             {
-                var node = slot.node as BaseMaterialNode;
+                var node = slot.node as AbstractMaterialNode;
                 if (node == null)
                     return null;
                 var properties = node[slot];
@@ -50,9 +50,9 @@ namespace UnityEditor.MaterialGraph
                 return null;
             }
 
-            public static void SetDefaultValue (this Slot slot, ShaderProperty value)
+            public static void SetDefaultValue (this MaterialSlot slot, ShaderProperty value)
             {
-                var node = slot.node as BaseMaterialNode;
+                var node = slot.node as AbstractMaterialNode;
                 if (node == null)
                     return;
                 var properties = node[slot];
@@ -60,9 +60,9 @@ namespace UnityEditor.MaterialGraph
                     slot.SetDefaultValueForSlot (value);
             }
 
-            public static SlotProperties GetSlotProperties (this Slot slot)
+            public static SlotProperties GetSlotProperties (this MaterialSlot slot)
             {
-                var node = slot.node as BaseMaterialNode;
+                var node = slot.node as AbstractMaterialNode;
                 if (node == null)
                     return null;
                 int index = node.m_SlotPropertiesIndexes.FindIndex (x => x == slot.name);
@@ -71,9 +71,9 @@ namespace UnityEditor.MaterialGraph
                 return null;
             }
 
-            public static void SetDefaultValueForSlot (this Slot slot, ShaderProperty value)
+            public static void SetDefaultValueForSlot (this MaterialSlot slot, ShaderProperty value)
             {
-                var node = slot.node as BaseMaterialNode;
+                var node = slot.node as AbstractMaterialNode;
                 if (node == null)
                     return;
                 var properties = node[slot];
@@ -86,9 +86,9 @@ namespace UnityEditor.MaterialGraph
                 }
             }
 
-            public static void SetPropertiesForSlot (this Slot slot, SlotProperties property)
+            public static void SetPropertiesForSlot (this MaterialSlot slot, SlotProperties property)
             {
-                var node = slot.node as BaseMaterialNode;
+                var node = slot.node as AbstractMaterialNode;
                 if (node == null)
                     return;
                 int index = node.m_SlotPropertiesIndexes.FindIndex (x => x == slot.name);
@@ -120,7 +120,7 @@ namespace UnityEditor.MaterialGraph
                 }
             }
 
-            public static void ClearDefaultValue (this Slot slot)
+            public static void ClearDefaultValue (this MaterialSlot slot)
             {
                 slot.SetDefaultValueForSlot (null);
             }

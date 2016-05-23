@@ -6,13 +6,13 @@ namespace UnityEditor.MaterialGraph
 {
     public class NullInputProxy : CanvasElement
     {
-        private Slot m_InputSlot;
-        private BaseMaterialNode m_Node;
+        private MaterialSlot m_InputSlot;
+        private AbstractMaterialNode m_Node;
         private NodeAnchor m_NodeAnchor;
 
         private const int kWidth = 180;
 
-        public NullInputProxy(BaseMaterialNode node, Slot inputSlot, NodeAnchor nodeAnchor)
+        public NullInputProxy(AbstractMaterialNode node, MaterialSlot inputSlot, NodeAnchor nodeAnchor)
         {
             m_InputSlot = inputSlot;
             m_Node = node;

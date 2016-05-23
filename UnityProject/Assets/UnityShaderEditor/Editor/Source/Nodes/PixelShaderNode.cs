@@ -7,7 +7,7 @@ using System.Reflection;
 namespace UnityEditor.MaterialGraph
 {
     [Serializable]
-    public class PixelShaderNode : BaseMaterialNode, IGeneratesBodyCode
+    public class PixelShaderNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
         public string m_LightFunctionClassName;
@@ -20,7 +20,7 @@ namespace UnityEditor.MaterialGraph
 
         private static List<BaseLightFunction> s_LightFunctions;
 
-        public PixelShaderNode(BaseMaterialGraph owner) 
+        public PixelShaderNode(AbstractMaterialGraph owner) 
             : base(owner)
         {
             name = "PixelMaster";
@@ -90,7 +90,7 @@ namespace UnityEditor.MaterialGraph
             var firstPassSlotName = lightFunction.GetFirstPassSlotName();
             // do the normal slot first so that it can be used later in the shader :)
             var firstPassSlot = FindInputSlot(firstPassSlotName);
-            var nodes = ListPool<BaseMaterialNode>.Get();
+            var nodes = ListPool<AbstractMaterialNode>.Get();
             CollectChildNodesByExecutionOrder(nodes, firstPassSlot, false);
 
             for (int index = 0; index < nodes.Count; index++)
@@ -103,7 +103,7 @@ namespace UnityEditor.MaterialGraph
             foreach (var edge in owner.GetEdges(firstPassSlot))
             {
                 var outputRef = edge.outputSlot;
-                var fromNode = owner.GetNodeFromGUID(outputRef.nodeGuid);
+                var fromNode = owner.GetNodeFromGuid(outputRef.nodeGuid);
                 var fromSlot = fromNode.FindOutputSlot(outputRef.slotName);
                 shaderBody.AddShaderChunk("o." + firstPassSlot.name + " = " + fromNode.GetOutputVariableNameForSlot(fromSlot, generationMode) + ";", true);
             }
@@ -120,7 +120,7 @@ namespace UnityEditor.MaterialGraph
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
 
-           ListPool<BaseMaterialNode>.Release(nodes);
+           ListPool<AbstractMaterialNode>.Release(nodes);
 
             foreach (var slot in inputSlots)
             {
@@ -130,14 +130,14 @@ namespace UnityEditor.MaterialGraph
                 foreach (var edge in owner.GetEdges(slot))
                 {
                     var outputRef = edge.outputSlot;
-                    var fromNode = owner.GetNodeFromGUID(outputRef.nodeGuid);
+                    var fromNode = owner.GetNodeFromGuid(outputRef.nodeGuid);
                     var fromSlot = fromNode.FindOutputSlot(outputRef.slotName);
                     shaderBody.AddShaderChunk("o." + slot.name + " = " + fromNode.GetOutputVariableNameForSlot(fromSlot, generationMode) + ";", true);
                 }
             }
         }
 
-        public override string GetOutputVariableNameForSlot(Slot s, GenerationMode generationMode)
+        public override string GetOutputVariableNameForSlot(MaterialSlot s, GenerationMode generationMode)
         {
             return GetOutputVariableNameForNode();
         }
@@ -163,14 +163,14 @@ namespace UnityEditor.MaterialGraph
             {
                 var function = GetLightFunction();
                 function.DoSlotsForConfiguration(this);
-                owner.RevalidateGraph();
+                owner.ValidateGraph();
                 return GUIModificationType.ModelChanged;
             }
             return GUIModificationType.None;
         }
-        public override IEnumerable<Slot> GetDrawableInputProxies()
+        public override IEnumerable<MaterialSlot> GetDrawableInputProxies()
         {
-            return new List<Slot>();
+            return new List<MaterialSlot>();
         }
 
         public override bool hasPreview

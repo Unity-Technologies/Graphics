@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.MaterialGraph
 {
     [Serializable]
-    public class PixelGraph : BaseMaterialGraph
+    public class PixelGraph : AbstractMaterialGraph
     {
         [NonSerialized]
         private PixelShaderNode m_PixelMasterNode;
@@ -35,8 +35,8 @@ namespace UnityEditor.MaterialGraph
 
  
         [NonSerialized]
-        private List<BaseMaterialNode> m_ActiveNodes = new List<BaseMaterialNode>();
-        public IEnumerable<BaseMaterialNode> activeNodes
+        private List<AbstractMaterialNode> m_ActiveNodes = new List<AbstractMaterialNode>();
+        public IEnumerable<AbstractMaterialNode> activeNodes
         {
             get
             {
@@ -85,7 +85,7 @@ namespace UnityEditor.MaterialGraph
                 return null;
 
             var material = pixelMasterNode.previewMaterial;
-            BaseMaterialNode.UpdateMaterialProperties(pixelMasterNode, material);
+            AbstractMaterialNode.UpdateMaterialProperties(pixelMasterNode, material);
             return material;
         }
     }
