@@ -170,7 +170,6 @@ namespace UnityEditor.Experimental
 
         private Vector2 m_DebugLogScroll = Vector2.zero;
 
-
         private VFX.VFXBlockLibrary m_BlockLibrary;
 
         private static void InitializeBlockLibrary()

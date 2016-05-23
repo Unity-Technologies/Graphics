@@ -44,6 +44,7 @@ namespace UnityEditor.Experimental
             AddManipulator(new ScreenSpaceGrid());
 
             AddManipulator(new VFXFilterPopup());
+            AddManipulator(new EditorKeyboardControl());
 
             
             MouseDown += ManageNodeBlockSelection;
