@@ -169,7 +169,9 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_DataSource.Create(new VFXDataBlockModel(m_DataBlockDesc), m_Node);
+            var blockModel = new VFXDataBlockModel(m_DataBlockDesc);
+            m_DataSource.Create(blockModel, m_Node);
+            m_SpawnedNodeBlock = m_DataSource.GetUI<VFXEdDataNodeBlock>(blockModel);
         }
     }
 
