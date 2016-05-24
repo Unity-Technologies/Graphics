@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Experimental.VFX;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
@@ -157,6 +158,15 @@ namespace UnityEditor.Experimental
                 Repaint();
                 return true;*/
             }
+
+            if (e.character == 's')
+            {
+                Debug.Log("Serialize in XML");
+                var str = ModelSerializer.Serialize(VFXEditor.Graph);
+                Debug.Log(str);
+            }
+
+
 
             return false;
         }
