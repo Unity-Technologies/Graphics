@@ -227,6 +227,16 @@ namespace UnityEngine.Experimental.VFX
                     case VFXValueType.kUint:
                         output.Add(Value.Get<uint>().ToString());
                         break;
+                    case VFXValueType.kTexture2D:
+                        output.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Value.Get<Texture2D>())));
+                        break;
+                    case VFXValueType.kTexture3D:
+                        output.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Value.Get<Texture3D>())));
+                        break;
+                    /*case VFXValueType.kCurve:
+                        var curve = Value.Get<AnimationCurve>();
+                        output.Add(String.Join(",", new List<Keyframe>(curve.keys).ConvertAll(key => key.ToString()).ToArray()));
+                        break;*/
                     default:
                         Debug.LogWarning("Cannot serialize value of type "+ValueType);
                         break;
@@ -260,6 +270,15 @@ namespace UnityEngine.Experimental.VFX
                     case VFXValueType.kUint:
                         Set(uint.Parse(input[index++]));
                         break;
+                    case VFXValueType.kTexture2D:
+                        Set(AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(input[index++])));
+                        break;
+                    case VFXValueType.kTexture3D:
+                        Set(AssetDatabase.LoadAssetAtPath<Texture3D>(AssetDatabase.GUIDToAssetPath(input[index++])));
+                        break;
+                    /*case VFXValueType.kCurve:
+                        index++;
+                        break;*/
                     default:
                         Debug.LogWarning("Cannot deserialize value of type " + ValueType);
                         break;
