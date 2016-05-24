@@ -163,6 +163,9 @@ namespace UnityEditor.Experimental
                 for (int i = 0; i < model.GetNbChildren(); ++i)
                     Remove(model.GetChild(i));
 
+                for (int i = 0; i < model.GetNbSlots(); ++i)
+                    RemoveSlot(model.GetSlot(i));
+
                 if (contextUI != null)
                 {
                     DeleteContextUI(contextUI);
@@ -197,7 +200,13 @@ namespace UnityEditor.Experimental
                     container.AddNodeBlock(child);
 
                 if (recursive)
+                {
                     SyncChildren(model);
+
+                    // Sync context block UI
+                    for (int i = 0; i < model.GetNbSlots(); ++i)
+                        SyncView(model.GetSlot(i), true);
+                }
 
                 contextUI.Layout();
                 contextUI.Invalidate();
@@ -418,7 +427,6 @@ namespace UnityEditor.Experimental
             m_Elements.Add(e);
         }
 
-
         // This is called by the UI when a component is deleted
         public void DeleteElement(CanvasElement e)
         {
@@ -479,10 +487,6 @@ namespace UnityEditor.Experimental
             return edges;
         }
 
-
-
-
-
         public void ConnectData(VFXUIPropertyAnchor a, VFXUIPropertyAnchor b)
         {
             // Swap to get a as output and b as input
@@ -493,21 +497,10 @@ namespace UnityEditor.Experimental
                 b = tmp;
             }
 
-            //RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(b);
-
-            // Disconnect connected children anchors and collapse
-            //b.Owner.DisconnectChildren();
             b.Owner.CollapseChildren(true);    
 
             ((VFXInputSlot)b.Slot).Link((VFXOutputSlot)a.Slot);
-
-            //SyncView(a.Slot);
             SyncView(b.Slot,true);
-
-            //m_Elements.Add(new VFXUIPropertyEdge(this, a, b));
-
-            //a.Invalidate();
-            //b.Invalidate();
         }
 
         public bool ConnectContext(VFXContextModel a, VFXContextModel b)

@@ -146,24 +146,34 @@ namespace UnityEditor.Experimental
 
         public void SetContext(VFXContextDesc context)
         {
-            // TODO Do we need that ?
-            //for(int i = 0; i < Model.GetNbSlots(); i++)
-            //    Model.GetSlot(i).Unlink();
+            if (ContextNodeBlock != null)
+            {
+                for (int i = 0; i < Model.GetNbSlots(); i++)
+                    Model.GetSlot(i).UnlinkRecursively();
+                m_DataSource.SyncView(Model, true); 
+            }
 
             Model.Desc = context;
+            
+
             if (m_Model.Desc.ShowBlock)
                 ContextNodeBlock = new VFXEdContextNodeBlock(m_DataSource, m_Model);
             else
             {
                 if (ContextNodeBlock != null)
                 {
-                    ContextNodeBlock = null;
-                    Layout();
+                    ContextNodeBlock = null;    
                 }               
             }
 
+            Layout();
             Invalidate();
-
+            var canvas = ParentCanvas();
+            if (canvas != null)
+            {
+                canvas.ReloadData();
+                canvas.Repaint();
+            }
         }
 
         public void CollapseUnconnected()
