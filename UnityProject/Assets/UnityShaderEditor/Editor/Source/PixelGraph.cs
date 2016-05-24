@@ -32,7 +32,6 @@ namespace UnityEditor.MaterialGraph
                 return m_PixelMasterNode;
             }
         }
-
  
         [NonSerialized]
         private List<SerializableNode> m_ActiveNodes = new List<SerializableNode>();
@@ -45,8 +44,7 @@ namespace UnityEditor.MaterialGraph
                 return m_ActiveNodes.OfType<AbstractMaterialNode>();
             }
         }
-
-        public MaterialGraph owner { get; set; }
+        
         public void GenerateSurfaceShader(
             ShaderGenerator shaderBody,
             ShaderGenerator inputStruct,

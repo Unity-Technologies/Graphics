@@ -42,12 +42,12 @@ namespace UnityEditor.MaterialGraph
             if (Selection.activeObject == null || !EditorUtility.IsPersistent(Selection.activeObject))
                 return;
 
-            if (Selection.activeObject is MaterialGraph)
+            if (Selection.activeObject is MaterialGraphAsset)
             {
-                var selection = Selection.activeObject as MaterialGraph;
-                if (selection != m_MaterialGraph)
+                var selection = Selection.activeObject as MaterialGraphAsset;
+                if (selection.graph != m_MaterialGraph)
                 {
-                    m_MaterialGraph = selection;
+                    m_MaterialGraph = selection.graph;
                 }
             }
             

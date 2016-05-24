@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    [CustomEditor(typeof (MaterialGraph), true)]
+    [CustomEditor(typeof (MaterialGraphAsset), true)]
     internal class MaterialGraphEditor : Editor
     {
         private PreviewRenderUtility m_PreviewUtility;
@@ -94,11 +94,10 @@ namespace UnityEditor.MaterialGraph
 
         private void DoRenderPreview()
         {
-            var materialGraph = target as MaterialGraph;
+            var materialGraph = target as MaterialGraphAsset;
             if (materialGraph == null)
                 return;
-
-            Material mat = materialGraph.GetMaterial();
+            
             m_PreviewUtility.m_Camera.transform.position = -Vector3.forward * 5;
             m_PreviewUtility.m_Camera.transform.rotation = Quaternion.identity;
             m_PreviewUtility.m_Light[0].intensity = 1.0f;
@@ -116,7 +115,7 @@ namespace UnityEditor.MaterialGraph
             m_PreviewUtility.m_Camera.transform.position = Quaternion.Inverse(rot) * m_PreviewUtility.m_Camera.transform.position;
             m_PreviewUtility.m_Camera.transform.LookAt(Vector3.zero);
             rot = Quaternion.identity;
-            m_PreviewUtility.DrawMesh(mesh, Vector3.zero, rot, mat, 0);
+            m_PreviewUtility.DrawMesh(mesh, Vector3.zero, rot, materialGraph.GetMaterial(), 0);
 
             bool oldFog = RenderSettings.fog;
             Unsupported.SetRenderSettingsUseFogNoDirty(false);

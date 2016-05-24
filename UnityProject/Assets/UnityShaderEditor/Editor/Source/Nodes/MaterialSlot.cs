@@ -26,7 +26,7 @@ namespace UnityEditor.MaterialGraph
             m_CurrentValue = defaultValue;
         }
 
-        internal MaterialSlot (AbstractMaterialNode owner) : base (owner)
+        public MaterialSlot (AbstractMaterialNode owner) : base (owner)
         { }
 
         public Vector4 defaultValue
@@ -36,7 +36,7 @@ namespace UnityEditor.MaterialGraph
         }
 
         public SlotValueType valueType
-        {
+        { 
             get { return m_ValueType; }
             set { m_ValueType = value; }
         }

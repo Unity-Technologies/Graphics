@@ -54,7 +54,8 @@ namespace UnityEditor.MaterialGraph
             m_Value = EditorGUI.Vector4Field(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), "Value", m_Value);
             if (EditorGUI.EndChangeCheck())
             {
-                EditorUtility.SetDirty(materialGraphOwner.owner);
+                //TODO:tidy this shit.
+                //EditorUtility.SetDirty(materialGraphOwner.owner);
                 return GUIModificationType.Repaint;
             }
             return GUIModificationType.None;
