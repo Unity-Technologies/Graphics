@@ -1,11 +1,22 @@
 using System.Linq;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Tests
 {
     [TestFixture]
     public class ScriptableGraphTests
     {
+        [SetUpFixture]
+        public class SetUpClass
+        {
+            [SetUp]
+            void RunBeforeAnyTests()
+            {
+                Debug.logger.logHandler = new ConsoleLogHandler();
+            }
+        }
+
         [Test]
         public void TestCreate()
         {
@@ -60,19 +71,64 @@ namespace UnityEditor.MaterialGraph.Tests
 
             Assert.AreEqual(2, graph.nodes.Count());
 
-            graph.Connect(outputNode.FindOutputSlot("output"), inputNode.FindInputSlot("input"));
+            var createdEdge = graph.Connect(outputNode.FindOutputSlot("output"), inputNode.FindInputSlot("input"));
             Assert.AreEqual(1, graph.edges.Count());
 
             var edge = graph.edges.FirstOrDefault();
+
+            Assert.AreEqual(createdEdge, edge);
+
             var foundOutputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
             var foundOutputSlot = foundOutputNode.FindOutputSlot(edge.outputSlot.slotName);
             Assert.AreEqual(foundOutputNode, outputNode);
             Assert.AreEqual(foundOutputSlot, outputSlot);
 
             var foundInputNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-            var foundInputSlot = foundOutputNode.FindInputSlot(edge.inputSlot.slotName);
+            var foundInputSlot = foundInputNode.FindInputSlot(edge.inputSlot.slotName);
             Assert.AreEqual(foundInputNode, inputNode);
-            Assert.AreEqual(foundInputSlot, outputSlot);
+            Assert.AreEqual(foundInputSlot, inputSlot);
+        }
+
+        [Test]
+        public void TestCanNotConnectTwoOuputSlots()
+        {
+            var graph = new SerializableGraph();
+            var outputNode = new SerializableNode(graph);
+            var outputSlot = new SerializableSlot(outputNode, "output", "output", SlotType.Output);
+            outputNode.AddSlot(outputSlot);
+            graph.AddNode(outputNode);
+
+            var outputNode2 = new SerializableNode(graph);
+            var outputSlot2 = new SerializableSlot(outputNode2, "output", "output", SlotType.Output);
+            outputNode2.AddSlot(outputSlot2);
+            graph.AddNode(outputNode2);
+
+            Assert.AreEqual(2, graph.nodes.Count());
+
+            var createdEdge = graph.Connect(outputNode.FindOutputSlot("output"), outputNode2.FindOutputSlot("output"));
+            Assert.IsNull(createdEdge);
+            Assert.AreEqual(0, graph.edges.Count());
+        }
+
+        [Test]
+        public void TestCanNotConnectTwoInputSlots()
+        {
+            var graph = new SerializableGraph();
+            var inputNode = new SerializableNode(graph);
+            var inputSlot = new SerializableSlot(inputNode, "input", "input", SlotType.Input);
+            inputNode.AddSlot(inputSlot);
+            graph.AddNode(inputNode);
+
+            var inputNode2 = new SerializableNode(graph);
+            var inputSlot2 = new SerializableSlot(inputNode2, "input", "input", SlotType.Input);
+            inputNode2.AddSlot(inputSlot2);
+            graph.AddNode(inputNode2);
+
+            Assert.AreEqual(2, graph.nodes.Count());
+
+            var createdEdge = graph.Connect(inputNode.FindInputSlot("input"), inputNode.FindInputSlot("input"));
+            Assert.IsNull(createdEdge);
+            Assert.AreEqual(0, graph.edges.Count());
         }
     }
 
