@@ -6,18 +6,25 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-    public class MaterialGraph : ScriptableObject, ISerializationCallbackReceiver
+    [Serializable]
+    public class MaterialGraph : ISerializationCallbackReceiver
     {
-        [NonSerialized]
-        private Material m_Material;
-
         [SerializeField]
         private MaterialOptions m_MaterialOptions = new MaterialOptions();
 
         [SerializeField]
         private PixelGraph m_PixelGraph;
 
-        private MaterialGraph()
+        [SerializeField]
+        private string m_Name;
+ 
+        public string name
+        {
+            get { return m_Name; }
+            set { m_Name = value; }
+        }
+
+        public MaterialGraph()
         {
             m_PixelGraph = new PixelGraph(this);
         }
@@ -88,6 +95,11 @@ namespace UnityEditor.MaterialGraph
             shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
 
             shaderImporter.SaveAndReimport();
+        }
+
+        public void PostCreate()
+        {
+            m_PixelGraph.AddNode(new PixelShaderNode(m_PixelGraph));
         }
     }
 }

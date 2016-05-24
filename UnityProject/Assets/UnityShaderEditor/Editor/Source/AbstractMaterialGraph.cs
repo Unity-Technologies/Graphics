@@ -8,7 +8,10 @@ namespace UnityEditor.MaterialGraph
     [Serializable]
     public abstract class AbstractMaterialGraph : SerializableGraph
     {
+        [NonSerialized]
         private PreviewRenderUtility m_PreviewUtility;
+
+        [NonSerialized]
         private MaterialGraph m_Owner;
 
         protected AbstractMaterialGraph(MaterialGraph owner)
@@ -42,9 +45,10 @@ namespace UnityEditor.MaterialGraph
 
         public MaterialGraph owner
         {
-            get { return m_Owner; }
+            get { return m_Owner; } 
+            set { m_Owner = value; }
         }
-
+         
         public override void AddNode(SerializableNode node)
         {
             if (node is AbstractMaterialNode)

@@ -11,7 +11,7 @@ namespace UnityEditor.MaterialGraph
     {
         [SerializeField]
         public string m_LightFunctionClassName;
-
+         
         private string lightFunctionClassName
         {
             get { return m_LightFunctionClassName; }
@@ -41,7 +41,6 @@ namespace UnityEditor.MaterialGraph
 
         public override bool canDeleteNode { get { return false; } }
 
-        
         private static List<BaseLightFunction> GetLightFunctions()
         {
             if (s_LightFunctions == null)

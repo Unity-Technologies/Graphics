@@ -20,9 +20,9 @@ namespace UnityEditor.MaterialGraph
             translation = node.position.min;
             scale = new Vector2(width, width);
 
-            m_Node = node;
+            m_Node = node; 
             m_Data = data;
-            m_Node.onNeedsRepaint += Invalidate;
+            m_Node.onNeedsRepaint += Invalidate; 
 
             const float yStart = 10.0f;
             var vector3 = new Vector3(5.0f, yStart, 0.0f);

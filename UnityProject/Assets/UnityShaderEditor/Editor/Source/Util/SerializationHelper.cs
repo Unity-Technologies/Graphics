@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -57,13 +57,11 @@ namespace UnityEditor.MaterialGraph
             return result;
         }
 
-        public static List<T> Deserialize<T>(List<JSONSerializedElement> list, object[] constructorArgs)
+        public static List<T> Deserialize<T>(List<JSONSerializedElement> list, object[] constructorArgs) where T : class 
         {
             var result = new List<T>();
 
-            Type[] types = constructorArgs.Select(x => x.GetType()).ToArray();
-
-            foreach (var element in list)
+            foreach (var element in list) 
             {
                 if (string.IsNullOrEmpty(element.typeName) || string.IsNullOrEmpty(element.JSONnodeData))
                     continue;
@@ -77,20 +75,22 @@ namespace UnityEditor.MaterialGraph
 
                 T instance;
                 try
-                {
-                    var constructorInfo = type.GetConstructor(types);
-                    instance = (T) constructorInfo.Invoke(constructorArgs);
+                { 
+                    instance = Activator.CreateInstance(type, constructorArgs) as T;
                 }
-                catch
+                catch (Exception e)
                 {
-                    Debug.LogWarningFormat("Could not construct instance of: {0} as there is no single argument constuctor that takes a AbstractMaterialGraph", type);
+                    Debug.LogWarningFormat("Could not construct instance of: {0} - {1}", type, e);
                     continue;
                 }
-                JsonUtility.FromJsonOverwrite(element.JSONnodeData, instance);
-                result.Add(instance);
-            }
-            return result;
-        } 
 
+                if (instance != null)
+                {
+                    JsonUtility.FromJsonOverwrite(element.JSONnodeData, instance);
+                    result.Add(instance);
+                }
+            }
+            return result;  
+        } 
     }
 }

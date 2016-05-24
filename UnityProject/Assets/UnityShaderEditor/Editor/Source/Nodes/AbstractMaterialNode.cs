@@ -22,7 +22,7 @@ namespace UnityEditor.MaterialGraph
         private bool m_HasError;
 
         [SerializeField]
-        private string m_LastShader;
+        private string m_LastShader; 
 
         [NonSerialized]
         private Material m_PreviewMaterial;

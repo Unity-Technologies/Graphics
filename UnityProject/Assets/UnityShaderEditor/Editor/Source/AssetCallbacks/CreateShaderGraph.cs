@@ -14,9 +14,10 @@ namespace UnityEditor.MaterialGraph
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            var graph = CreateInstance<MaterialGraph>();
+            var graph = CreateInstance<MaterialGraphAsset>();
             graph.name = Path.GetFileName(pathName);
             AssetDatabase.CreateAsset(graph, pathName);
+            graph.PostCreate();
         }
     }
 }

@@ -28,16 +28,15 @@ namespace UnityEditor.MaterialGraph.Tests
 
             foreach (var file in filePaths.Where(x => x.Extension == ".ShaderGraph"))
             {
-
                 var filePath = Path.Combine(prjRelativeGraphsPath, file.Name);
-                var graph = AssetDatabase.LoadAssetAtPath<MaterialGraph>(filePath);
+                var graph = AssetDatabase.LoadAssetAtPath<MaterialGraphAsset>(filePath);
 
                 if (graph == null)
                     continue;
 
                 // Generate the shader
                 List<PropertyGenerator.TextureInfo> buff;
-                string shader = ShaderGenerator.GenerateSurfaceShader(graph, graph.name, false, out buff);
+                string shader = ShaderGenerator.GenerateSurfaceShader(graph.graph, graph.name, false, out buff);
 
                 // find the 'reference' shader
                 var dumpFileLocation = string.Format("{0}.{1}", file, "dump");
