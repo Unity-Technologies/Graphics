@@ -146,7 +146,7 @@ namespace UnityEngine.Experimental.VFX
         {
             Int32 hash = 0;
             foreach (var property in Properties)
-                hash = (hash * 3) ^ Animator.StringToHash(property.m_Type.GetType().FullName);
+                hash = (hash * 3) ^ Animator.StringToHash(property.m_Type.ID);
             return hash;
         }
 
