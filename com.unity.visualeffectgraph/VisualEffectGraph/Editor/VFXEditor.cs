@@ -13,6 +13,26 @@ namespace UnityEditor.Experimental
 {
     public class VFXEditor : EditorWindow
     {
+        public static VFXEdResources Resources
+        {
+            get
+            {
+                if (s_Resources == null)
+                    s_Resources = new VFXEdResources();
+                return s_Resources;
+            }
+        }
+        private static VFXEdResources s_Resources;
+
+        public class VFXEdResources
+        {
+            public Texture2D DefaultSpriteTexture;
+
+            public VFXEdResources()
+            {
+                DefaultSpriteTexture = (Texture2D)EditorGUIUtility.LoadRequired("DefaultParticle.tga");
+            }
+        }
 
         [MenuItem("VFXEditor/Export Skin")]
         public static void ExportSkin()

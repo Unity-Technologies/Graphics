@@ -108,7 +108,7 @@ namespace UnityEditor.Experimental
             : base(Type.kTypeOutput, "Billboard Output", true)
         {
             m_Properties = new VFXProperty[2];
-            m_Properties[TextureSlot] = VFXProperty.Create<VFXTexture2DType>("texture");
+            m_Properties[TextureSlot] = new VFXProperty(new VFXTexture2DType(VFXEditor.Resources.DefaultSpriteTexture),"texture");
             m_Properties[FlipBookDimSlot] = VFXProperty.Create<VFXFloat2Type>("flipBook");
         }
 
@@ -130,7 +130,7 @@ namespace UnityEditor.Experimental
             : base(Type.kTypeOutput, "Quad Along Velocity Output", true)
         {
             m_Properties = new VFXProperty[2];
-            m_Properties[TextureSlot] = VFXProperty.Create<VFXTexture2DType>("texture");
+            m_Properties[TextureSlot] = new VFXProperty(new VFXTexture2DType(VFXEditor.Resources.DefaultSpriteTexture),"texture");
             m_Properties[FlipBookDimSlot] = VFXProperty.Create<VFXFloat2Type>("flipBook");
         }
 

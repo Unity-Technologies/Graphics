@@ -163,7 +163,7 @@ namespace UnityEngine.Experimental.VFX
         public static Desc Description() { return new Desc("Texture2D", "Texture", "Texture"); }
 
         public VFXTexture2DType() : this(null) {}
-        VFXTexture2DType(Texture2D defaultValue) : base(defaultValue) { }
+        public VFXTexture2DType(Texture2D defaultValue) : base(defaultValue) { }
     }
 
     public partial class VFXTexture3DType : VFXPrimitiveType<Texture3D>
