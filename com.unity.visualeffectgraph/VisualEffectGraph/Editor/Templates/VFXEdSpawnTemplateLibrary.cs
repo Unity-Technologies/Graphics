@@ -9,7 +9,7 @@ using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
-
+/*
 namespace UnityEditor.Experimental
 {
     public class VFXEdSpawnTemplateLibrary : ScriptableObject
@@ -499,7 +499,7 @@ namespace UnityEditor.Experimental
 
                 }
                 // TODO Refactor - Make that work again
-                /*else if(e is DataEdge)
+                else if(e is DataEdge)
                 {
                     DataEdge edge = (e as DataEdge);
                     VFXEdNodeBlockParameterField input = (edge.Left as VFXEdDataAnchor).GetAnchorField();
@@ -513,7 +513,7 @@ namespace UnityEditor.Experimental
                         new DataParamConnectorInfo(t.DataNodes[inputNode.UniqueName], inputNode.NodeBlockContainer.nodeBlocks.IndexOf(inputBlock), input.Name),
                         new ContextParamConnectorInfo(t.ContextNodes[outputNode.UniqueName], outputNode.NodeBlockContainer.nodeBlocks.IndexOf(outputBlock), output.Name)
                         );
-                }*/
+                }
 
             }
             return t;
@@ -521,3 +521,4 @@ namespace UnityEditor.Experimental
         
     }
 }
+*/

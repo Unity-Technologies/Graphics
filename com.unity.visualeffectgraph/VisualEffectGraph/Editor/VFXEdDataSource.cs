@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental
                 SyncView(VFXEditor.Graph.models.GetChild(i), true);
         }
 
-        public void CreateContext(VFXContextDesc desc,Vector2 pos)
+        public VFXContextModel CreateContext(VFXContextDesc desc,Vector2 pos)
         {
             VFXContextModel context = new VFXContextModel(desc);
             context.UpdatePosition(pos);
@@ -51,6 +51,8 @@ namespace UnityEditor.Experimental
 
             SyncView(context);
             SyncView(system);
+
+            return context;
         }
 
         public VFXDataNodeModel CreateDataNode(Vector2 pos)
@@ -161,6 +163,9 @@ namespace UnityEditor.Experimental
                 for (int i = 0; i < model.GetNbChildren(); ++i)
                     Remove(model.GetChild(i));
 
+                for (int i = 0; i < model.GetNbSlots(); ++i)
+                    RemoveSlot(model.GetSlot(i));
+
                 if (contextUI != null)
                 {
                     DeleteContextUI(contextUI);
@@ -195,7 +200,13 @@ namespace UnityEditor.Experimental
                     container.AddNodeBlock(child);
 
                 if (recursive)
+                {
                     SyncChildren(model);
+
+                    // Sync context block UI
+                    for (int i = 0; i < model.GetNbSlots(); ++i)
+                        SyncView(model.GetSlot(i), true);
+                }
 
                 contextUI.Layout();
                 contextUI.Invalidate();
@@ -416,7 +427,6 @@ namespace UnityEditor.Experimental
             m_Elements.Add(e);
         }
 
-
         // This is called by the UI when a component is deleted
         public void DeleteElement(CanvasElement e)
         {
@@ -477,10 +487,6 @@ namespace UnityEditor.Experimental
             return edges;
         }
 
-
-
-
-
         public void ConnectData(VFXUIPropertyAnchor a, VFXUIPropertyAnchor b)
         {
             // Swap to get a as output and b as input
@@ -491,21 +497,15 @@ namespace UnityEditor.Experimental
                 b = tmp;
             }
 
-            //RemoveConnectedEdges<VFXUIPropertyEdge, VFXUIPropertyAnchor>(b);
-
-            // Disconnect connected children anchors and collapse
-            //b.Owner.DisconnectChildren();
             b.Owner.CollapseChildren(true);    
 
             ((VFXInputSlot)b.Slot).Link((VFXOutputSlot)a.Slot);
-
-            //SyncView(a.Slot);
             SyncView(b.Slot,true);
+        }
 
-            //m_Elements.Add(new VFXUIPropertyEdge(this, a, b));
-
-            //a.Invalidate();
-            //b.Invalidate();
+        public bool ConnectContext(VFXContextModel a, VFXContextModel b)
+        {
+            return VFXSystemModel.ConnectContext(a, b, this);
         }
 
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)
@@ -526,7 +526,7 @@ namespace UnityEditor.Experimental
                 VFXContextModel model0 = context0.Model;
                 VFXContextModel model1 = context1.Model;
 
-                if (!VFXSystemModel.ConnectContext(model0, model1, this))
+                if (!ConnectContext(model0, model1))
                     return false;
             }
        
@@ -540,13 +540,12 @@ namespace UnityEditor.Experimental
         /// <param name="o"> param that should be a VFXEdSpawner</param>
         public void SpawnNode(object o)
         {
-            VFXEdSpawner spawner = o as VFXEdSpawner;
+            VFXEdSpawner spawner = (VFXEdSpawner)o;
             if(spawner != null)
             {
                 spawner.Spawn();
             }
         }
-
 
     }
 }

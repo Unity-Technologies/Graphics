@@ -210,6 +210,7 @@ namespace UnityEditor.Experimental
             }
 
             // Add Blocks, and optionally Node if not present.
+            
             VFXEdDataNodeBlock newblock;
             if(target == null)
             {
@@ -226,9 +227,14 @@ namespace UnityEditor.Experimental
                 newblock = blockSpawner.SpawnedNodeBlock;
             }
 
+            // Copy values to new exposed parameter.
+            List<string> values = new List<string>();
+            m_Slot.GetStringValues(values);
+            newblock.Slot.SetValuesFromString(values);
+
             // Connect
             m_DataSource.ConnectData(this, newblock.Anchor);
-            ParentCanvas().ReloadData();
+            ParentCanvas().ReloadData(); 
             
         }
     }

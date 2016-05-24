@@ -15,6 +15,8 @@ namespace UnityEditor.Experimental
 
             GenericMenu output = new GenericMenu();
 
+            // TODO : Add Again Triggers & Events
+            
             output.AddItem(new GUIContent("New Node/Event/On Start"), false, source.SpawnNode, new VFXEdEventNodeSpawner(source, canvas, canvasClickPosition,"Start"));
             output.AddItem(new GUIContent("New Node/Event/On Stop"), false, source.SpawnNode, new VFXEdEventNodeSpawner(source, canvas, canvasClickPosition,"Stop"));
             output.AddItem(new GUIContent("New Node/Event/On Pause"), false, source.SpawnNode, new VFXEdEventNodeSpawner(source, canvas, canvasClickPosition,"Pause"));
@@ -42,12 +44,14 @@ namespace UnityEditor.Experimental
             }
             output.AddItem(new GUIContent("Parameters/Empty Data Node"), false, source.SpawnNode, new VFXEdDataNodeSpawner(source, canvas, canvasClickPosition));
 
+            /*
             // Templates
             output.AddSeparator("");
             foreach(VFXEdSpawnTemplate t in VFXEditor.SpawnTemplates.Templates)
             {
                 output.AddItem(new GUIContent("Templates/" + t.Path), false, VFXEditor.SpawnTemplates.SpawnFromMenu, new VFXEdTemplateSpawner(t.Path, source, canvas, canvasClickPosition));
             }
+            */
 
             output.ShowAsContext();
         }

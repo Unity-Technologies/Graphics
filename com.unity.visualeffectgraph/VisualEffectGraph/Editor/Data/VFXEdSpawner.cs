@@ -39,8 +39,9 @@ namespace UnityEditor.Experimental
 
         public override void Spawn()
         {
-            m_DataSource.CreateContext( m_Desc, m_CanvasPosition);
+            VFXContextModel context =  m_DataSource.CreateContext( m_Desc, m_CanvasPosition);
             m_Canvas.ReloadData();
+            m_SpawnedNode = m_DataSource.GetUI<VFXEdContextNode>(context);
         }
     }
 

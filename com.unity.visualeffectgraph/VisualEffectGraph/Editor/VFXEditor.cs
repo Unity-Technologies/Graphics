@@ -13,6 +13,26 @@ namespace UnityEditor.Experimental
 {
     public class VFXEditor : EditorWindow
     {
+        public static VFXEdResources Resources
+        {
+            get
+            {
+                if (s_Resources == null)
+                    s_Resources = new VFXEdResources();
+                return s_Resources;
+            }
+        }
+        private static VFXEdResources s_Resources;
+
+        public class VFXEdResources
+        {
+            public Texture2D DefaultSpriteTexture;
+
+            public VFXEdResources()
+            {
+                DefaultSpriteTexture = (Texture2D)EditorGUIUtility.LoadRequired("DefaultParticle.tga");
+            }
+        }
 
         [MenuItem("VFXEditor/Export Skin")]
         public static void ExportSkin()
@@ -100,14 +120,14 @@ namespace UnityEditor.Experimental
 			}
 		}
 
-        public static VFXEdSpawnTemplateLibrary SpawnTemplates
+        /*public static VFXEdSpawnTemplateLibrary SpawnTemplates
         {
             get
             {
                 InitializeSpawnTemplateLibrary();
                 return s_SpawnTemplates;
             }
-        }
+        }*/
 
         // DEBUG OUTPUT
         public static void Log(string s) {
@@ -149,7 +169,7 @@ namespace UnityEditor.Experimental
         private static VFXContextLibraryCollection s_ContextLibrary;
 		private static VFXGraph s_Graph;
 
-        private static VFXEdSpawnTemplateLibrary s_SpawnTemplates;
+        //private static VFXEdSpawnTemplateLibrary s_SpawnTemplates;
         /* end Singletons */
 
         private VFXEdCanvas m_Canvas = null;
@@ -189,13 +209,13 @@ namespace UnityEditor.Experimental
             }
         }
 
-        private static void InitializeSpawnTemplateLibrary()
+        /*private static void InitializeSpawnTemplateLibrary()
         {
             if (s_SpawnTemplates == null)
             {
                 s_SpawnTemplates = VFXEdSpawnTemplateLibrary.Create();
             }
-        }
+        }*/
 
         private void InitializeCanvas()
         {
@@ -294,13 +314,16 @@ namespace UnityEditor.Experimental
 
                 m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
 
+                List<string> debugOutput = VFXEditor.GetDebugOutput();
+                foreach (string str in debugOutput)
+                GUILayout.Label(str);
+
+
+/*
                 switch(m_ShowDebugPage)
                 {
                     case 0: // Debug log
                     {                  
-                        List<string> debugOutput = VFXEditor.GetDebugOutput();
-                        foreach (string str in debugOutput)
-                            GUILayout.Label(str);
                         break;
                     }
 
@@ -314,6 +337,7 @@ namespace UnityEditor.Experimental
                         m_NewTemplateCategory = GUILayout.TextField(m_NewTemplateCategory, 150);
                         GUILayout.Label("Name : ");
                         m_NewTemplateName = GUILayout.TextField(m_NewTemplateName, 150);
+
                         if (GUILayout.Button("Add..."))
                         {
                             VFXEdSpawnTemplate t = VFXEdSpawnTemplateLibrary.CreateTemplateFromSelection(m_Canvas, m_NewTemplateCategory, m_NewTemplateName);
@@ -356,9 +380,9 @@ namespace UnityEditor.Experimental
                         EditorGUI.indentLevel--;
                         break;
                     }
-
                     default: break;
                 }
+*/
 
                 GUILayout.EndScrollView();
                 GUILayout.EndVertical();
@@ -383,7 +407,7 @@ namespace UnityEditor.Experimental
         {
             s_BlockLibrary = null;
             s_ContextLibrary = null;
-            s_SpawnTemplates = null;
+            //s_SpawnTemplates = null;
             
             s_Graph.systems.Dispose();
             s_Graph = null;

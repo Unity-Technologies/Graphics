@@ -14,12 +14,12 @@ namespace UnityEditor.Experimental
         protected Type m_Type;
         protected object m_Source;
         protected Direction m_Direction;
-        private VFXEdDataSource m_Data;
+        private VFXEdDataSource m_DataSource;
         public int m_PortIndex;
-        public VFXEdContext context { get {return m_Context;}}
-        private VFXEdContext m_Context;
+        public VFXContextDesc.Type context { get {return m_Context;}}
+        private VFXContextDesc.Type m_Context;
 
-        public VFXEdFlowAnchor(int portIndex, Type type, VFXEdContext context, VFXEdDataSource data, Direction direction)
+        public VFXEdFlowAnchor(int portIndex, Type type, VFXContextDesc.Type context, VFXEdDataSource data, Direction direction)
         {
             m_Type = type;
             scale = new Vector3(64.0f, 32.0f, 1.0f);
@@ -31,7 +31,7 @@ namespace UnityEditor.Experimental
             Type genericClass = typeof(PortSource<>);
             Type constructedClass = genericClass.MakeGenericType(type);
             m_Source = Activator.CreateInstance(constructedClass);
-            m_Data = data;
+            m_DataSource = data;
             m_PortIndex = portIndex;
             zIndex = -999;
         }
@@ -114,12 +114,77 @@ namespace UnityEditor.Experimental
 
         public void OnConnect(IConnect other)
         {
-            if (other == null)
-                return;
 
-            VFXEdFlowAnchor otherConnector = other as VFXEdFlowAnchor;
-            if (m_Data.ConnectFlow(this, otherConnector))
-				ParentCanvas().ReloadData();
+            if(other != null)
+            {
+                VFXEdFlowAnchor otherConnector = other as VFXEdFlowAnchor;
+                if (m_DataSource.ConnectFlow(this, otherConnector))
+                {
+                    ParentCanvas().ReloadData();
+                }
+            }
+            else
+            {
+                ExposeNodeMenu(Event.current.mousePosition);
+            }
         }
+
+        public void ExposeNodeMenu(Vector2 position)
+        {
+
+            VFXContextDesc currentContextDesc = (parent as VFXEdContextNode).Model.Desc;
+            if(currentContextDesc.m_Type != VFXContextDesc.Type.kTypeOutput)
+            {
+                GenericMenu menu = new GenericMenu();
+                VFXEditor.ContextLibrary.GetContexts();
+
+                bool showInitItems = (currentContextDesc.m_Type != VFXContextDesc.Type.kTypeInit && currentContextDesc.m_Type != VFXContextDesc.Type.kTypeUpdate);
+                bool showUpdateItems = (currentContextDesc.m_Type != VFXContextDesc.Type.kTypeUpdate);
+
+                foreach(VFXContextDesc desc in VFXEditor.ContextLibrary.GetContexts())
+                {
+                    if(!showInitItems && desc.m_Type == VFXContextDesc.Type.kTypeInit)
+                        continue;
+                    if (!showUpdateItems && desc.m_Type == VFXContextDesc.Type.kTypeUpdate)
+                        continue;
+                    menu.AddItem(new GUIContent(VFXContextDesc.GetTypeName(desc.m_Type) + "/" + desc.Name), false, ExposeNode, new ExposeNodeInfo(position, desc, this));
+                }
+            
+                menu.ShowAsContext();
+            }
+        }
+
+        public void ExposeNode(object exposeNodeInfo)
+        {
+            ExposeNodeInfo info = (ExposeNodeInfo)exposeNodeInfo;
+            VFXEdCanvas canvas = (VFXEdCanvas)ParentCanvas();
+
+            VFXContextModel context =  m_DataSource.CreateContext(info.ContextDesc, info.Position);
+            canvas.ReloadData();
+
+            VFXEdContextNode node = m_DataSource.GetUI<VFXEdContextNode>(context);
+
+            // Connect
+            m_DataSource.ConnectFlow(this, node.inputs[0]);
+            ParentCanvas().ReloadData();
+            
+        }
+
+    internal class ExposeNodeInfo
+    {
+        public Vector2 Position;
+        public VFXContextDesc ContextDesc;
+        public VFXEdFlowAnchor Anchor;
+
+        public ExposeNodeInfo(Vector2 canvasPosition, VFXContextDesc desc, VFXEdFlowAnchor anchor)
+        {
+            Position = canvasPosition;
+            ContextDesc = desc;
+            Anchor = anchor;
+        }
+
+    }
+
+
     }
 }
