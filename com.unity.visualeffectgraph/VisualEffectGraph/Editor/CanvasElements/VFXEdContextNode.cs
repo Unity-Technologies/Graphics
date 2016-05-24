@@ -44,14 +44,14 @@ namespace UnityEditor.Experimental
             m_Model = model;
             collapsed = model.UICollapsed;
 
-            m_Title = Context.ToString();
+            m_Title = VFXContextDesc.GetFriendlyName(Context);
             target = ScriptableObject.CreateInstance<VFXEdContextNodeTarget>();
             (target as VFXEdContextNodeTarget).targetNode = this;
 
             SetContext(Desc);
 
-            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), m_Context, m_DataSource, Direction.Input));
-            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), m_Context, m_DataSource, Direction.Output));
+            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), Context, m_DataSource, Direction.Input));
+            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), Context, m_DataSource, Direction.Output));
 
             AddChild(inputs[0]);
             AddChild(outputs[0]);
@@ -236,7 +236,7 @@ namespace UnityEditor.Experimental
 
             if(parent is VFXEdCanvas) {
 
-                Color c =  VFXEditor.styles.GetContextColor(m_Context);
+                Color c =  VFXEditor.styles.GetContextColor(Context);
                 float a = 0.7f;
                 GUI.color = new Color(c.r/a, c.g/a, c.b/a, a);
                 GUI.Box(VFXEditorMetrics.NodeImplicitContextOffset.Add(new Rect(0, 0, scale.x, scale.y)), "", VFXEditor.styles.Context);

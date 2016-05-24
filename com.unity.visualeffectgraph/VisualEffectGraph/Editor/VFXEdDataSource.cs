@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental
                 SyncView(VFXEditor.Graph.models.GetChild(i), true);
         }
 
-        public void CreateContext(VFXContextDesc desc,Vector2 pos)
+        public VFXContextModel CreateContext(VFXContextDesc desc,Vector2 pos)
         {
             VFXContextModel context = new VFXContextModel(desc);
             context.UpdatePosition(pos);
@@ -51,6 +51,8 @@ namespace UnityEditor.Experimental
 
             SyncView(context);
             SyncView(system);
+
+            return context;
         }
 
         public VFXDataNodeModel CreateDataNode(Vector2 pos)

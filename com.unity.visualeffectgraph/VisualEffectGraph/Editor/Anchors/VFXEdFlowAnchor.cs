@@ -138,8 +138,8 @@ namespace UnityEditor.Experimental
                 GenericMenu menu = new GenericMenu();
                 VFXEditor.ContextLibrary.GetContexts();
 
-                bool showInitItems = (currentContextDesc.m_Type != VFXContextDesc.Type.kTypeNone && currentContextDesc.m_Type != VFXContextDesc.Type.kTypeInit);
-                bool showUpdateItems = (currentContextDesc.m_Type != VFXContextDesc.Type.kTypeInit);
+                bool showInitItems = (currentContextDesc.m_Type != VFXContextDesc.Type.kTypeInit && currentContextDesc.m_Type != VFXContextDesc.Type.kTypeUpdate);
+                bool showUpdateItems = (currentContextDesc.m_Type != VFXContextDesc.Type.kTypeUpdate);
 
                 foreach(VFXContextDesc desc in VFXEditor.ContextLibrary.GetContexts())
                 {
