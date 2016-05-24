@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental
             m_EventName = eventname;
             m_DataSource = dataSource;
 
-            m_Outputs.Add(new VFXEdFlowAnchor(0, typeof(float), VFXEdContext.Trigger, m_DataSource, Direction.Output));
+            m_Outputs.Add(new VFXEdFlowAnchor(0, typeof(float), VFXContextDesc.Type.kTypeNone, m_DataSource, Direction.Output));
             m_Output = m_Outputs[0];
             AddChild(m_Output);
             ZSort();

@@ -15,30 +15,6 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdContextNode : VFXEdNode
     {
-        // TODO Remove this shit
-        public static VFXEdContext ConvertType(VFXContextDesc.Type inType)
-        {
-            switch (inType)
-            {
-                case VFXContextDesc.Type.kTypeInit: return VFXEdContext.Initialize;
-                case VFXContextDesc.Type.kTypeUpdate: return VFXEdContext.Update;
-                case VFXContextDesc.Type.kTypeOutput: return VFXEdContext.Output;
-            }
-
-            throw new ArgumentException("Invalid context type");
-        }
-
-        public static VFXContextDesc.Type ConvertType(VFXEdContext inType)
-        {
-            switch (inType)
-            {
-                case VFXEdContext.Initialize : return VFXContextDesc.Type.kTypeInit;
-                case VFXEdContext.Update : return VFXContextDesc.Type.kTypeUpdate;
-                case VFXEdContext.Output: return VFXContextDesc.Type.kTypeOutput;
-            }
-
-            throw new ArgumentException("Invalid context type");
-        }
 
         public VFXEdContextNodeBlock ContextNodeBlock
         {
@@ -59,18 +35,18 @@ namespace UnityEditor.Experimental
 			get { return m_Model; }
 		}
 
-        public VFXEdContext context
+        public VFXContextDesc.Type context
         {
 			get { return m_Context; }
         }
 
 		protected VFXContextModel m_Model;
-        protected VFXEdContext m_Context;
+        protected VFXContextDesc.Type m_Context;
 
         internal VFXEdContextNode(Vector2 canvasPosition, VFXContextDesc desc, VFXEdDataSource dataSource) 
             : base (canvasPosition, dataSource)
         {
-            m_Context = ConvertType(desc.m_Type);
+            m_Context = desc.m_Type;
             m_Model = new VFXContextModel(desc);
 
             m_Title = context.ToString();
