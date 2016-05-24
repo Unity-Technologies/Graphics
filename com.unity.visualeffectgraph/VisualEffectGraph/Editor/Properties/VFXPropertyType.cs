@@ -195,7 +195,23 @@ namespace UnityEngine.Experimental.VFX
 
         public override bool Default(VFXPropertySlot slot)
         {
-            slot.SetInnerValue(new Gradient());
+            Gradient gradient = new Gradient();
+            gradient.SetKeys(
+                           new GradientColorKey[]
+                           {
+                             new GradientColorKey(new Color(0.0f,0.0f,0.0f), 0.0f),
+                             new GradientColorKey(new Color(1.0f,0.4f,0.1f), 0.2f),
+                             new GradientColorKey(new Color(0.1f,0.0f,0.0f), 0.8f),
+                             new GradientColorKey(new Color(0.0f,0.0f,0.0f), 1.0f)
+                           },
+                           new GradientAlphaKey[]
+                           {
+                             new GradientAlphaKey(0.0f, 0.0f),
+                             new GradientAlphaKey(1.0f, 0.2f),
+                             new GradientAlphaKey(0.0f, 1.0f)
+                           }
+                    );
+            slot.SetInnerValue(gradient);
             return true;
         }
     }

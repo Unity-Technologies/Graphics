@@ -15,30 +15,6 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdContextNode : VFXEdNode, VFXModelHolder
     {
-        // TODO Remove this shit
-        public static VFXEdContext ConvertType(VFXContextDesc.Type inType)
-        {
-            switch (inType)
-            {
-                case VFXContextDesc.Type.kTypeInit: return VFXEdContext.Initialize;
-                case VFXContextDesc.Type.kTypeUpdate: return VFXEdContext.Update;
-                case VFXContextDesc.Type.kTypeOutput: return VFXEdContext.Output;
-            }
-
-            throw new ArgumentException("Invalid context type");
-        }
-
-        public static VFXContextDesc.Type ConvertType(VFXEdContext inType)
-        {
-            switch (inType)
-            {
-                case VFXEdContext.Initialize : return VFXContextDesc.Type.kTypeInit;
-                case VFXEdContext.Update : return VFXContextDesc.Type.kTypeUpdate;
-                case VFXEdContext.Output: return VFXContextDesc.Type.kTypeOutput;
-            }
-
-            throw new ArgumentException("Invalid context type");
-        }
 
         public VFXEdContextNodeBlock ContextNodeBlock
         {
@@ -56,28 +32,26 @@ namespace UnityEditor.Experimental
 
         public VFXContextModel Model    { get { return m_Model; } }
         public VFXContextDesc Desc      { get { return Model.Desc; } }
-        public VFXEdContext Context     { get { return m_Context; } }
+        public VFXContextDesc.Type Context     { get { return Desc.m_Type; } }
 
         public VFXElementModel GetAbstractModel() { return Model; }
 
-		protected VFXContextModel m_Model;
-        protected VFXEdContext m_Context;
+	protected VFXContextModel m_Model;
 
         internal VFXEdContextNode(VFXContextModel model, VFXEdDataSource dataSource) 
             : base(model.UIPosition,dataSource)
         {
             m_Model = model;
             collapsed = model.UICollapsed;
-            m_Context = ConvertType(Desc.m_Type);
 
-            m_Title = Context.ToString();
+            m_Title = VFXContextDesc.GetFriendlyName(Context);
             target = ScriptableObject.CreateInstance<VFXEdContextNodeTarget>();
             (target as VFXEdContextNodeTarget).targetNode = this;
 
             SetContext(Desc);
 
-            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), m_Context, m_DataSource, Direction.Input));
-            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), m_Context, m_DataSource, Direction.Output));
+            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), Context, m_DataSource, Direction.Input));
+            m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), Context, m_DataSource, Direction.Output));
 
             AddChild(inputs[0]);
             AddChild(outputs[0]);
@@ -272,7 +246,7 @@ namespace UnityEditor.Experimental
 
             if(parent is VFXEdCanvas) {
 
-                Color c =  VFXEditor.styles.GetContextColor(m_Context);
+                Color c =  VFXEditor.styles.GetContextColor(Context);
                 float a = 0.7f;
                 GUI.color = new Color(c.r/a, c.g/a, c.b/a, a);
                 GUI.Box(VFXEditorMetrics.NodeImplicitContextOffset.Add(new Rect(0, 0, scale.x, scale.y)), "", VFXEditor.styles.Context);

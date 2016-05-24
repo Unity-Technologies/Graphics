@@ -228,7 +228,7 @@ namespace UnityEditor.Experimental
 
             // Connect
             m_DataSource.ConnectData(this, newblock.Anchor);
-            ParentCanvas().ReloadData();
+            ParentCanvas().ReloadData(); 
             
         }
     }

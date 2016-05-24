@@ -85,7 +85,7 @@ namespace UnityEditor.Experimental
 
 
         private Dictionary<string, Texture2D> m_icons;
-        private Dictionary<VFXEdContext, Color> m_ContextColors;
+        private Dictionary<VFXContextDesc.Type, Color> m_ContextColors;
 
         private Dictionary<VFXValueType, Color> m_TypeColors;
 
@@ -105,7 +105,7 @@ namespace UnityEditor.Experimental
             
         }
 
-        internal Color GetContextColor(VFXEdContext c)
+        internal Color GetContextColor(VFXContextDesc.Type c)
         {
             if (m_ContextColors.ContainsKey(c))
             {
@@ -319,13 +319,12 @@ namespace UnityEditor.Experimental
             GetIcon("Default");
 
 
-            m_ContextColors = new Dictionary<VFXEdContext, Color>();
+            m_ContextColors = new Dictionary<VFXContextDesc.Type, Color>();
             
-            m_ContextColors.Add(VFXEdContext.None,          HexColor("#FF0000FF"));
-            m_ContextColors.Add(VFXEdContext.Trigger,       HexColor("#808080FF"));
-            m_ContextColors.Add(VFXEdContext.Initialize,    HexColor("#665736FF")); 
-            m_ContextColors.Add(VFXEdContext.Update,        HexColor("#364C66FF"));
-            m_ContextColors.Add(VFXEdContext.Output,        HexColor("#5c4662FF"));
+            m_ContextColors.Add(VFXContextDesc.Type.kTypeNone,          HexColor("#777777FF")); 
+            m_ContextColors.Add(VFXContextDesc.Type.kTypeInit,          HexColor("#665736FF")); 
+            m_ContextColors.Add(VFXContextDesc.Type.kTypeUpdate,        HexColor("#364C66FF"));
+            m_ContextColors.Add(VFXContextDesc.Type.kTypeOutput,        HexColor("#5c4662FF"));
 
             m_TypeColors = new Dictionary<VFXValueType, Color>();
             m_TypeColors.Add(VFXValueType.kInt,        HexColor("#23a95cFF"));

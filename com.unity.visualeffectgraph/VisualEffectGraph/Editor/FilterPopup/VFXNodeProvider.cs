@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental
             public VFXNodeElement(int level, VFXContextDesc desc, Action<VFXNodeElement> spawncallback)
             {
                 this.level = level;
-                content = new GUIContent(desc.m_Type + " : " + desc.Name);
+                content = new GUIContent(VFXContextDesc.GetFriendlyName(desc.m_Type) + " : " + desc.Name);
                 m_Desc = desc;
                 m_SpawnCallback = spawncallback;
             }
@@ -60,7 +60,7 @@ namespace UnityEditor.Experimental
                 if(!categories.Contains(desc.m_Type.ToString()))
                 {
                     categories.Add(desc.m_Type.ToString());
-                    tree.Add(new VFXFilterWindow.GroupElement(2, desc.m_Type.ToString()));
+                    tree.Add(new VFXFilterWindow.GroupElement(2, VFXContextDesc.GetFriendlyName(desc.m_Type)));
                 }
 
                 tree.Add(new VFXNodeElement(3, desc, SpawnNode));
