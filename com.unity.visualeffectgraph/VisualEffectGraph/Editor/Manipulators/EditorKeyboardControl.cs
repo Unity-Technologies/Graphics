@@ -41,27 +41,29 @@ namespace UnityEditor.Experimental
 
 
             bool needRefresh = false;
+
+            var component = VFXEditor.Graph.systems.component;
             switch(e.keyCode)
             {
-                case KeyCode.Alpha1: VFXEditor.AssetModel.component.playRate = 0.01f; needRefresh = true; break;
-                case KeyCode.Alpha2: VFXEditor.AssetModel.component.playRate = 0.1f; needRefresh = true; break;
-                case KeyCode.Alpha3: VFXEditor.AssetModel.component.playRate = 0.25f; needRefresh = true; break;
-                case KeyCode.Alpha4: VFXEditor.AssetModel.component.playRate = 0.5f; needRefresh = true; break;
-                case KeyCode.Alpha5: VFXEditor.AssetModel.component.playRate = 1.0f; needRefresh = true; break;
-                case KeyCode.Alpha6: VFXEditor.AssetModel.component.playRate = 2.0f; needRefresh = true; break;
-                case KeyCode.Alpha7: VFXEditor.AssetModel.component.playRate = 8.0f; needRefresh = true; break;
+                case KeyCode.Alpha1: component.playRate = 0.01f; needRefresh = true; break;
+                case KeyCode.Alpha2: component.playRate = 0.1f; needRefresh = true; break;
+                case KeyCode.Alpha3: component.playRate = 0.25f; needRefresh = true; break;
+                case KeyCode.Alpha4: component.playRate = 0.5f; needRefresh = true; break;
+                case KeyCode.Alpha5: component.playRate = 1.0f; needRefresh = true; break;
+                case KeyCode.Alpha6: component.playRate = 2.0f; needRefresh = true; break;
+                case KeyCode.Alpha7: component.playRate = 8.0f; needRefresh = true; break;
 
-                case KeyCode.Space: VFXEditor.AssetModel.component.Reinit(); needRefresh = true; break;
+                case KeyCode.Space: component.Reinit(); needRefresh = true; break;
                 case KeyCode.RightArrow:
-                    VFXEditor.AssetModel.component.pause = true;
-                    VFXEditor.AssetModel.component.AdvanceOneFrame();
+                    component.pause = true;
+                    component.AdvanceOneFrame();
                     break;
                 case KeyCode.LeftArrow:
-                    VFXEditor.AssetModel.component.pause = true;
-                    float pr = VFXEditor.AssetModel.component.playRate;
-                    VFXEditor.AssetModel.component.playRate = -pr;
-                    VFXEditor.AssetModel.component.AdvanceOneFrame();
-                    VFXEditor.AssetModel.component.playRate = pr;
+                    component.pause = true;
+                    float pr = component.playRate;
+                    component.playRate = -pr;
+                    component.AdvanceOneFrame();
+                    component.playRate = pr;
                     needRefresh = true;
                     break;
                 default:

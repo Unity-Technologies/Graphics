@@ -12,13 +12,16 @@ namespace UnityEditor.Experimental
     internal class VFXEdProcessingNodeBlock : VFXEdNodeBlockDraggable
     {
         public VFXBlockModel Model { get { return m_Model; } }
+        public VFXBlockDesc Desc { get { return Model.Desc; } }
         private VFXProperty[] Properties { get { return Model.Properties; } }
+
+        public override VFXElementModel GetAbstractModel() { return Model; }
 
         private VFXBlockModel m_Model;
 
-        public VFXEdProcessingNodeBlock(VFXBlockDesc block, VFXEdDataSource dataSource) : base(dataSource)
+        public VFXEdProcessingNodeBlock(VFXBlockModel block, VFXEdDataSource dataSource) : base(dataSource)
         {
-            m_Model = new VFXBlockModel(block);
+            m_Model = block;
             
             // For selection
             target = ScriptableObject.CreateInstance<VFXEdProcessingNodeBlockTarget>();
@@ -37,9 +40,9 @@ namespace UnityEditor.Experimental
             else
                 m_Fields = new VFXUIPropertySlotField[0];
 
-            m_LibraryName = block.Name;
+            m_LibraryName = Model.Desc.Name;
 
-            AddChild(new VFXEdNodeBlockHeader( block.Category.Replace('/',' ') + " : " + block.Name, VFXEditor.styles.GetIcon(block.Icon == "" ? "Default" : block.Icon), block.Properties.Length > 0));
+            AddChild(new VFXEdNodeBlockHeader( Desc.Category.Replace('/',' ') + " : " + Desc.Name, VFXEditor.styles.GetIcon(Desc.Icon == "" ? "Default" : Desc.Icon), block.Properties.Length > 0));
             AddManipulator(new TooltipManipulator(GetTooltipText));
             Layout();
         }

@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using UnityEditor.Experimental;
+using UnityEditor.Experimental.VFX;
 
 namespace UnityEditor.Experimental
 {
@@ -15,9 +15,22 @@ namespace UnityEditor.Experimental
         kAlpha = 2,
     }
 
-    public class VFXAssetModel : VFXElementModel<VFXElementModel, VFXSystemModel>
+    public interface VFXModelController
     {
-        public VFXAssetModel()
+        void SyncView(VFXElementModel model, bool recursive = false);
+    }
+
+    public class VFXGraph
+    {
+        public VFXSystemsModel systems = new VFXSystemsModel();
+        public VFXModelContainer models = new VFXModelContainer(); // other model (data nodes...)
+    }
+
+    public class VFXModelContainer : VFXElementModel<VFXElementModel, VFXElementModel> {} // Generic model container
+
+    public class VFXSystemsModel : VFXElementModel<VFXElementModel, VFXSystemModel>
+    {
+        public VFXSystemsModel()
         {
             RemovePreviousVFXs();
             RemovePreviousShaders();
@@ -79,7 +92,7 @@ namespace UnityEditor.Experimental
 
         public void Update()
         {
-            Profiler.BeginSample("VFXAssetModel.Update");
+            Profiler.BeginSample("VFXSystemsModel.Update");
 
             bool HasRecompiled = false;
             if (m_NeedsCheck)
@@ -148,7 +161,7 @@ namespace UnityEditor.Experimental
         private GameObject m_GameObject;
     }
 
-    public class VFXSystemModel : VFXElementModel<VFXAssetModel, VFXContextModel>
+    public class VFXSystemModel : VFXElementModel<VFXSystemsModel, VFXContextModel>
     {
         public VFXSystemModel()
         {
@@ -175,7 +188,7 @@ namespace UnityEditor.Experimental
             AssetDatabase.DeleteAsset(simulationShaderPath);
             AssetDatabase.DeleteAsset(outputShaderPath);
 
-            VFXEditor.AssetModel.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
+            VFXEditor.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
         }
 
         public override bool CanAddChild(VFXElementModel element, int index)
@@ -197,24 +210,30 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public static bool ConnectContext(VFXContextModel context0, VFXContextModel context1)
+        public static bool ConnectContext(VFXContextModel context0, VFXContextModel context1, VFXModelController controller = null)
         {
             if (context0 == context1)
                 return false;
 
             VFXSystemModel system0 = context0.GetOwner();
-            int context0Index = system0.m_Children.IndexOf(context0);
+            int context0Index = system0.GetIndex(context0);
+
+            if (system0 == context1.GetOwner() && context0Index > context1.GetOwner().GetIndex(context1))
+                return false;
 
             if (!system0.CanAddChild(context1, context0Index + 1))
                 return false;
 
-            // If context0 is not the last one in system0, we need to reattach following contexts to a new one
             if (system0.GetNbChildren() > context0Index + 1)
             {
                 VFXSystemModel newSystem = new VFXSystemModel();
+
                 while (system0.GetNbChildren() > context0Index + 1)
-                    system0.m_Children[context0Index + 1].Attach(newSystem);
-                VFXEditor.AssetModel.AddChild(newSystem);
+                    system0.m_Children[context0Index + 1].Attach(newSystem,true);
+
+                VFXEditor.Graph.systems.AddChild(newSystem);
+                if (controller != null)
+                    controller.SyncView(newSystem);
             }
 
             VFXSystemModel system1 = context1.GetOwner();
@@ -222,8 +241,39 @@ namespace UnityEditor.Experimental
 
             // Then we append context1 and all following contexts to system0
             while (system1.GetNbChildren() > context1Index)
-                system1.m_Children[context1Index].Attach(system0);
+                system1.m_Children[context1Index].Attach(system0,true);
 
+            if (controller != null)
+            {
+                controller.SyncView(system0);
+                controller.SyncView(system1);
+            }
+
+            return true;
+        }
+
+
+        public static bool DisconnectContext(VFXContextModel context,VFXModelController controller = null)
+        {
+            VFXSystemModel system = context.GetOwner();
+            if (system == null)
+                return false;
+
+            int index = system.GetIndex(context);
+            if (index == 0)
+                return false;
+
+            VFXSystemModel newSystem = new VFXSystemModel();
+            while (system.GetNbChildren() > index)
+                system.GetChild(index).Attach(newSystem,true);
+            newSystem.Attach(VFXEditor.Graph.systems);
+
+            if (controller != null)
+            {
+                controller.SyncView(newSystem);
+                controller.SyncView(system);
+            }
+            
             return true;
         }
 
@@ -432,6 +482,9 @@ namespace UnityEditor.Experimental
 
         private VFXContextDesc m_Desc;
 
+        public bool UICollapsed     { get { return m_UICollapsed; } }
+        public Vector2 UIPosition   { get {return m_UIPosition; } }
+        
         private bool m_UICollapsed;
         private Vector2 m_UIPosition;
     }
@@ -501,6 +554,7 @@ namespace UnityEditor.Experimental
 
         private VFXBlockDesc m_BlockDesc;
 
+        public bool UICollapsed { get { return m_UICollapsed; } }
         private bool m_UICollapsed;
     }
 }

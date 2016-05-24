@@ -11,11 +11,6 @@ namespace UnityEditor.Experimental
 {
     internal class NodeBlockDelete : IManipulate
     {
-
-        public NodeBlockDelete()
-        {
-        }
-
         public bool GetCaps(ManipulatorCapability cap)
         {
             if (cap == ManipulatorCapability.MultiSelection)
@@ -43,13 +38,18 @@ namespace UnityEditor.Experimental
                 return false;
             }
 
-            // Prepare undo
-            (canvas.dataSource as VFXEdDataSource).UndoSnapshot("Deleting NodeBlock " + (element as VFXEdNodeBlock).LibraryName);
-
             // Delete Edges
-            VFXEdNodeBlockDraggable node = element as VFXEdNodeBlockDraggable;
+            /*VFXEdNodeBlockDraggable node = element as VFXEdNodeBlockDraggable;
             VFXEdNodeBlockContainer container = (node.parent as VFXEdNodeBlockContainer);
-            container.RemoveNodeBlock(node);
+            container.RemoveNodeBlock(node);*/
+
+            if (element is VFXModelHolder)
+            {
+                ((VFXEdDataSource)canvas.dataSource).Remove(((VFXModelHolder)element).GetAbstractModel());
+                canvas.ReloadData();
+                canvas.Repaint();
+                return true;
+            }
 
             // TODO : Delete DataEdges when implemented.
 
@@ -59,6 +59,5 @@ namespace UnityEditor.Experimental
             canvas.Repaint();
             return true;
         }
-
     };
 }
