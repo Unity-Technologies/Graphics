@@ -164,6 +164,9 @@ namespace UnityEditor.Experimental
                 Debug.Log("Serialize in XML");
                 var str = ModelSerializer.Serialize(VFXEditor.Graph);
                 Debug.Log(str);
+
+                VFXGraph graph = ModelSerializer.Deserialize(str);
+                Debug.Log("DONE");
             }
 
 
