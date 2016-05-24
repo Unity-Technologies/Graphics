@@ -88,6 +88,7 @@ namespace UnityEditor.MaterialGraph
 
         public void DeleteElements(List<CanvasElement> elements)
         {
+            var toRemoveEdge = new List<Edge>();
             // delete selected edges first
             foreach (var e in elements.Where(x => x is Edge<NodeAnchor>))
             {
@@ -96,21 +97,19 @@ namespace UnityEditor.MaterialGraph
                 var edge = graph.currentGraph.edges.FirstOrDefault(x => graph.currentGraph.GetNodeFromGuid(x.outputSlot.nodeGuid).FindOutputSlot(x.outputSlot.slotName) == localEdge.Left.m_Slot 
                     && graph.currentGraph.GetNodeFromGuid(x.inputSlot.nodeGuid).FindInputSlot(x.inputSlot.slotName) == localEdge.Right.m_Slot);
 
-                Debug.Log("Deleting edge " + edge);
-                graph.currentGraph.RemoveEdgeNoRevalidate(edge);
+                toRemoveEdge.Add(edge);
             }
 
+            var toRemoveNode = new List<SerializableNode>();
             // now delete the nodes
             foreach (var e in elements.Where(x => x is DrawableMaterialNode))
             {
                 var node = ((DrawableMaterialNode) e).m_Node;
                 if (!node.canDeleteNode)
                     continue;
-
-                Debug.Log("Deleting node " + e + " " + node);
-                graph.currentGraph.RemoveNodeNoRevalidate(node);
+                toRemoveNode.Add(node);
             }
-            graph.currentGraph.ValidateGraph();
+            graph.currentGraph.RemoveElements(toRemoveNode, toRemoveEdge);
         }
 
         public void Connect(NodeAnchor a, NodeAnchor b)

@@ -7,11 +7,6 @@ namespace UnityEditor.MaterialGraph
     public class SerializableSlot
     {
         private const string kNotInit =  "Not Initilaized";
-        public enum SlotType
-        {
-            Input,
-            Output
-        }
 
         [SerializeField]
         private string m_Name = kNotInit;
@@ -53,9 +48,21 @@ namespace UnityEditor.MaterialGraph
         }
 
         // used via reflection / serialization after deserialize
-        internal SerializableSlot(SerializableNode theOwner)
+        // to reconstruct this slot.
+        protected SerializableSlot(SerializableNode theOwner)
         {
             owner = theOwner;
         }
+
+        public virtual bool OnGUI()
+        {
+            return false;
+        }
+    }
+
+    public enum SlotType
+    {
+        Input,
+        Output
     }
 }

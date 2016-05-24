@@ -35,14 +35,14 @@ namespace UnityEditor.MaterialGraph
 
  
         [NonSerialized]
-        private List<AbstractMaterialNode> m_ActiveNodes = new List<AbstractMaterialNode>();
+        private List<SerializableNode> m_ActiveNodes = new List<SerializableNode>();
         public IEnumerable<AbstractMaterialNode> activeNodes
         {
             get
             {
                 m_ActiveNodes.Clear();
                 pixelMasterNode.CollectChildNodesByExecutionOrder(m_ActiveNodes);
-                return m_ActiveNodes;
+                return m_ActiveNodes.OfType<AbstractMaterialNode>();
             }
         }
 

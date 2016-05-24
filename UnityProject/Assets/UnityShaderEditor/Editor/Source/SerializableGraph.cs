@@ -42,6 +42,14 @@ namespace UnityEditor.MaterialGraph
             ValidateGraph();
         }
 
+        private void RemoveNodeNoValidate(SerializableNode node)
+        {
+            if (!node.canDeleteNode)
+                return;
+
+            m_Nodes.Remove(node);
+        }
+
         public virtual Edge Connect(SerializableSlot fromSlot, SerializableSlot toSlot)
         {
             SerializableSlot outputSlot = null;
@@ -81,6 +89,17 @@ namespace UnityEditor.MaterialGraph
         public virtual void RemoveEdge(Edge e)
         {
             m_Edges.Remove(e);
+            ValidateGraph();
+        }
+
+        public void RemoveElements(IEnumerable<SerializableNode> nodes, IEnumerable<Edge> edges)
+        {
+            foreach (var edge in edges)
+                RemoveEdgeNoValidate(edge);
+
+            foreach (var serializableNode in nodes)
+                RemoveNodeNoValidate(serializableNode);
+
             ValidateGraph();
         }
 

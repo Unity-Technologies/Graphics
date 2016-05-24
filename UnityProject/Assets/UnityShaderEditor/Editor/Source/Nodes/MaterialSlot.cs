@@ -86,7 +86,7 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public bool OnGUI()
+        public override bool OnGUI()
         {
             EditorGUI.BeginChangeCheck();
             m_CurrentValue = EditorGUILayout.Vector4Field("Value", m_CurrentValue);

@@ -376,11 +376,12 @@ namespace UnityEditor.MaterialGraph
         public static string GeneratePreviewShader(AbstractMaterialNode node, out PreviewMode generatedShaderMode)
         {
             // figure out what kind of preview we want!
-            var activeNodeList = ListPool<AbstractMaterialNode>.Get();
+            var activeNodeList = ListPool<SerializableNode>.Get();
             node.CollectChildNodesByExecutionOrder(activeNodeList);
             var generationMode = GenerationMode.Preview2D;
             generatedShaderMode = PreviewMode.Preview2D;
-            if (activeNodeList.Any(x => x.previewMode == PreviewMode.Preview3D))
+            
+            if (activeNodeList.OfType<AbstractMaterialNode>().Any(x => x.previewMode == PreviewMode.Preview3D))
             {
                 generationMode = GenerationMode.Preview3D;
                 generatedShaderMode = PreviewMode.Preview3D;
@@ -399,9 +400,9 @@ namespace UnityEditor.MaterialGraph
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
             var vertexShaderBlock = new ShaderGenerator();
 
-            var shaderName = "Hidden/PreviewShader/" + node.GetOutputVariableNameForSlot(node.outputSlots.First(), generationMode);
+            var shaderName = "Hidden/PreviewShader/" + node.GetOutputVariableNameForSlot(node.materialOuputSlots.First(), generationMode);
            
-            foreach (var activeNode in activeNodeList)
+            foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
                     (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, generationMode);
@@ -422,9 +423,9 @@ namespace UnityEditor.MaterialGraph
             }
 
             if (generationMode == GenerationMode.Preview2D)
-                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.outputSlots.First(), generationMode, ConcreteSlotValueType.Vector4) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.materialOuputSlots.First(), generationMode, ConcreteSlotValueType.Vector4) + ";", true);
             else
-                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node, node.outputSlots.First(), generationMode, ConcreteSlotValueType.Vector3) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node, node.materialOuputSlots.First(), generationMode, ConcreteSlotValueType.Vector3) + ";", true);
 
             template = template.Replace("${ShaderName}", shaderName);
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));

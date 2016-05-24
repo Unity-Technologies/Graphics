@@ -30,10 +30,13 @@ namespace UnityEditor.MaterialGraph
         [NonSerialized]
         private Shader m_PreviewShader;
 
-        public NeedsRepaint onNeedsRepaint;
-
-        protected AbstractMaterialNode(AbstractMaterialGraph theOwner) : base(theOwner)
-        {}
+        public AbstractMaterialGraph materialGraphOwner
+        {
+            get
+            {
+                return owner as AbstractMaterialGraph;;
+            }
+        }
 
         public string precision
         {
@@ -92,6 +95,23 @@ namespace UnityEditor.MaterialGraph
                 }
             }
         }
+
+        public IEnumerable<MaterialSlot> materialSlots
+        {
+            get { return slots.OfType<MaterialSlot>(); }
+        }
+        public IEnumerable<MaterialSlot> materialInputSlots
+        {
+            get { return inputSlots.OfType<MaterialSlot>(); }
+        }
+
+        public IEnumerable<MaterialSlot> materialOuputSlots
+        {
+            get { return outputSlots.OfType<MaterialSlot>(); }
+        }
+
+        protected AbstractMaterialNode(AbstractMaterialGraph theOwner) : base(theOwner)
+        { }
         
         public virtual void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {}
@@ -104,7 +124,7 @@ namespace UnityEditor.MaterialGraph
             if (!generationMode.IsPreview())
                 return;
 
-            foreach (var inputSlot in inputSlots)
+            foreach (var inputSlot in materialInputSlots)
             {
                 var edges = owner.GetEdges(inputSlot);
                 if (edges.Any())
@@ -130,22 +150,6 @@ namespace UnityEditor.MaterialGraph
             GL.sRGBWrite = false;
         }
 
-        public MaterialSlot FindInputSlot(string name)
-        {
-            var slot = m_Slots.FirstOrDefault(x => x.isInputSlot && x.name == name);
-            if (slot == null)
-                Debug.LogError("Input MaterialSlot: " + name + " could be found on node " + GetOutputVariableNameForNode());
-            return slot;
-        }
-
-        public MaterialSlot FindOutputSlot(string name)
-        {
-            var slot = m_Slots.FirstOrDefault(x => x.isOutputSlot && x.name == name);
-            if (slot == null)
-                Debug.LogError("Output MaterialSlot: " + name + " could be found on node " + GetOutputVariableNameForNode());
-            return slot;
-        }
-
         protected string GetSlotValue(MaterialSlot inputSlot, GenerationMode generationMode)
         {
             var edges = owner.GetEdges(inputSlot).ToArray();
@@ -153,8 +157,13 @@ namespace UnityEditor.MaterialGraph
             if (edges.Length > 0)
             {
                 var fromSocketRef = edges[0].outputSlot;
-                var fromNode = owner.GetNodeFromGuid(fromSocketRef.nodeGuid);
-                var slot = fromNode.FindOutputSlot(fromSocketRef.slotName);
+                var fromNode = materialGraphOwner.GetMaterialNodeFromGuid(fromSocketRef.nodeGuid);
+                if (fromNode == null)
+                    return string.Empty;
+               
+                var slot = fromNode.FindOutputSlot(fromSocketRef.slotName) as MaterialSlot;
+                if (slot == null)
+                    return string.Empty;
 
                 return ShaderGenerator.AdaptNodeOutput(this, slot, generationMode, inputSlot.concreteValueType);
             }
@@ -162,17 +171,32 @@ namespace UnityEditor.MaterialGraph
             return inputSlot.GetDefaultValue(generationMode, inputSlot.concreteValueType, this);
         }
 
-        public void RemoveSlotsNameNotMatching(string[] slotNames)
+        public MaterialSlot FindMaterialInputSlot(string name)
         {
-            var invalidSlots = m_Slots.Select(x => x.name).Except(slotNames);
+            var slot = FindInputSlot(name);
+            if (slot == null)
+                return null;
 
-            foreach (var invalidSlot in invalidSlots.ToList())
-            {
-                Debug.LogWarningFormat("Removing Invalid MaterialSlot: {0}", invalidSlot);
-                RemoveSlot(invalidSlot);
-            }
+            if (slot is MaterialSlot)
+                return slot as MaterialSlot;
+
+            Debug.LogErrorFormat("Input Slot: {0} exists but is not of type {1}", name, typeof(MaterialSlot));
+            return null;
         }
 
+        public MaterialSlot FindMaterialOutputSlot(string name)
+        {
+            var slot = FindOutputSlot(name);
+            if (slot == null)
+                return null;
+
+            if (slot is MaterialSlot)
+                return slot as MaterialSlot;
+
+            Debug.LogErrorFormat("Output Slot: {0} exists but is not of type {1}", name, typeof(MaterialSlot));
+            return null;
+        }
+        
         private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType @from, ConcreteSlotValueType to)
         {
             if (ImplicitConversionExists(@from, to))
@@ -238,8 +262,10 @@ namespace UnityEditor.MaterialGraph
                 foreach (var edge in edges)
                 {
                     var fromSocketRef = edge.outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(fromSocketRef.nodeGuid);
-
+                    var outputNode = materialGraphOwner.GetMaterialNodeFromGuid(fromSocketRef.nodeGuid);
+                    if (outputNode == null)
+                        continue;
+                    
                     outputNode.ValidateNode();
                     if (outputNode.hasError)
                         isInError = true;
@@ -250,7 +276,7 @@ namespace UnityEditor.MaterialGraph
             var skippedDynamicSlots = new List<MaterialSlot>();
 
             // iterate the input slots
-            foreach (var inputSlot in inputSlots)
+            foreach (var inputSlot in materialInputSlots)
             {
                 var inputType = inputSlot.valueType;
                 // if there is a connection
@@ -266,8 +292,14 @@ namespace UnityEditor.MaterialGraph
 
                 // get the output details
                 var outputSlotRef = edges[0].outputSlot;
-                var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
-                var outputSlot = outputNode.FindOutputSlot(outputSlotRef.slotName);
+                var outputNode = materialGraphOwner.GetMaterialNodeFromGuid(outputSlotRef.nodeGuid);
+                if (outputNode == null)
+                    continue;
+
+                var outputSlot = outputNode.FindOutputSlot(outputSlotRef.slotName) as MaterialSlot;
+                if (outputSlot == null)
+                    continue;
+         
                 var outputConcreteType = outputSlot.concreteValueType;
 
                 // if we have a standard connection... just check the types work!
@@ -292,13 +324,13 @@ namespace UnityEditor.MaterialGraph
             foreach (var skippedSlot in skippedDynamicSlots)
                 skippedSlot.concreteValueType = dynamicType;
 
-            var inputError = inputSlots.Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
+            var inputError = materialInputSlots.Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
 
             // configure the output slots now
             // their slotType will either be the default output slotType
             // or the above dynanic slotType for dynamic nodes
             // or error if there is an input error
-            foreach (var outputSlot in outputSlots)
+            foreach (var outputSlot in materialOuputSlots)
             {
                 if (inputError)
                 {
@@ -315,7 +347,7 @@ namespace UnityEditor.MaterialGraph
             }
 
             isInError |= inputError;
-            isInError |= outputSlots.Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
+            isInError |= materialOuputSlots.Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
             isInError |= CalculateNodeHasError();
             hasError = isInError;
 
@@ -350,33 +382,6 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public virtual bool OnGUI()
-        {
-            GUILayout.Label("MaterialSlot Defaults", EditorStyles.boldLabel);
-            var modified = false;
-            foreach (var slot in inputSlots)
-            {
-                if (!owner.GetEdges(slot).Any())
-                    modified |= DoSlotUI(this, slot);
-            }
-
-            return modified;
-        }
-
-        public static bool DoSlotUI(AbstractMaterialNode node, MaterialSlot slot)
-        {
-            GUILayout.BeginHorizontal( /*EditorStyles.inspectorBig*/);
-            GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("MaterialSlot " + slot.name, EditorStyles.largeLabel);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
-
-            return slot.OnGUI();
-        }
-
         public virtual bool DrawSlotDefaultInput(Rect rect, MaterialSlot inputSlot)
         {
             var inputSlotType = inputSlot.concreteValueType;
@@ -385,7 +390,7 @@ namespace UnityEditor.MaterialGraph
 
         public virtual IEnumerable<MaterialSlot> GetDrawableInputProxies()
         {
-            return inputSlots.Where(x => !owner.GetEdges(x).Any());
+            return materialInputSlots.Where(x => !owner.GetEdges(x).Any());
         }
 
         public void ExecuteRepaint()
@@ -394,37 +399,6 @@ namespace UnityEditor.MaterialGraph
                 onNeedsRepaint();
         }
         
-
-        // CollectDependentNodes looks at the current node and calculates
-        // which nodes further up the tree (parents) would be effected if this node was changed
-        // it also includes itself in this list
-        public IEnumerable<AbstractMaterialNode> CollectDependentNodes()
-        {
-            var nodeList = new List<AbstractMaterialNode>();
-            NodeUtils.CollectDependentNodes(nodeList, this);
-            return nodeList;
-        }
-
-        // CollectDependentNodes looks at the current node and calculates
-        // which child nodes it depends on for it's calculation.
-        // Results are returned depth first so by processing each node in
-        // order you can generate a valid code block.
-        public List<AbstractMaterialNode> CollectChildNodesByExecutionOrder(List<AbstractMaterialNode> nodeList, MaterialSlot slotToUse = null, bool includeSelf = true)
-        {
-            if (slotToUse != null && !m_Slots.Contains(slotToUse))
-            {
-                Debug.LogError("Attempting to collect nodes by execution order with an invalid MaterialSlot on: " + name);
-                return nodeList;
-            }
-
-            NodeUtils.CollectChildNodesByExecutionOrder(nodeList, this, slotToUse);
-
-            if (!includeSelf)
-                nodeList.Remove(this);
-
-            return nodeList;
-        }
-
         protected virtual bool UpdatePreviewShader()
         {
             if (hasError)
@@ -520,7 +494,7 @@ namespace UnityEditor.MaterialGraph
                 }
             }
 
-            var previewUtil = owner.previewUtility;
+            var previewUtil = materialGraphOwner.previewUtility;
             previewUtil.BeginPreview(targetSize, GUIStyle.none);
 
             if (m_GeneratedShaderMode == PreviewMode.Preview3D)
@@ -576,7 +550,7 @@ namespace UnityEditor.MaterialGraph
 
         protected virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            var validSlots = inputSlots.ToArray();
+            var validSlots = materialInputSlots.ToArray();
 
             for (var index = 0; index < validSlots.Length; index++)
             {
@@ -597,20 +571,23 @@ namespace UnityEditor.MaterialGraph
 
         public static void UpdateMaterialProperties(AbstractMaterialNode target, Material material)
         {
-            var childNodes = ListPool<AbstractMaterialNode>.Get();
+            var childNodes = ListPool<SerializableNode>.Get();
             target.CollectChildNodesByExecutionOrder(childNodes);
 
             var pList = ListPool<PreviewProperty>.Get();
             for (var index = 0; index < childNodes.Count; index++)
             {
-                var node = childNodes[index];
+                var node = childNodes[index] as AbstractMaterialNode;
+                if (node == null)
+                    continue;
+
                 node.CollectPreviewMaterialProperties(pList);
             }
 
             foreach (var prop in pList)
                 SetPreviewMaterialProperty(prop, material);
 
-            ListPool<AbstractMaterialNode>.Release(childNodes);
+            ListPool<SerializableNode>.Release(childNodes);
             ListPool<PreviewProperty>.Release(pList);
         }
 
@@ -622,11 +599,10 @@ namespace UnityEditor.MaterialGraph
             UpdateMaterialProperties(this, previewMaterial);
         }
 
-
         public virtual string GetOutputVariableNameForSlot(MaterialSlot s, GenerationMode generationMode)
         {
             if (s.isInputSlot) Debug.LogError("Attempting to use input MaterialSlot (" + s + ") for output!");
-            if (!m_Slots.Contains(s)) Debug.LogError("Attempting to use MaterialSlot (" + s + ") for output on a node that does not have this MaterialSlot!");
+            if (!materialSlots.Contains(s)) Debug.LogError("Attempting to use MaterialSlot (" + s + ") for output on a node that does not have this MaterialSlot!");
 
             return GetOutputVariableNameForNode() + "_" + s.name;
         }
@@ -635,75 +611,27 @@ namespace UnityEditor.MaterialGraph
         {
             return name + "_" + guid.ToString().Replace("-", "_");
         }
-
-        public virtual Vector4 GetNewSlotDefaultValue(SlotValueType type)
+        
+        public sealed override void AddSlot(SerializableSlot slot)
         {
-            return Vector4.one;
-        }
-
-        public void AddSlot(MaterialSlot slot)
-        {
-            if (slot == null)
-                return;
-
-            // new MaterialSlot, just add it, we cool
-            if (!m_Slots.Contains(slot))
+            if (!(slot is MaterialSlot))
             {
-                m_Slots.Add(slot);
+                Debug.LogWarningFormat("Trying to add slot {0} to Material node {1}, but it is not a {2}", slot, this, typeof(MaterialSlot));
                 return;
             }
 
-            // old MaterialSlot found
-            // update the default value, and the slotType!
-            var foundSlots = m_Slots.FindAll(x => x.name == slot.name);
+            base.AddSlot(slot);
 
-            // if we are in a bad state (> 1 MaterialSlot with same name, just reset).
-            if (foundSlots.Count > 1)
-            {
-                Debug.LogWarningFormat("Node {0} has more than one MaterialSlot with the same name, removing.");
-                foundSlots.ForEach(x => m_Slots.Remove(x));
-                m_Slots.Add(slot);
-                return;
-            }
-
-            var foundSlot = foundSlots[0];
-
-            // if the defualt and current are the same, change the current
+            var addingSlot = (MaterialSlot) slot;
+            var foundSlot = (MaterialSlot)slots.FirstOrDefault(x => x.name == slot.name);
+            
+            // if the default and current are the same, change the current
             // to the new default.
-            if (foundSlot.defaultValue == foundSlot.currentValue)
-                foundSlot.currentValue = slot.defaultValue;
+            if (addingSlot.defaultValue == foundSlot.currentValue)
+                foundSlot.currentValue = addingSlot.defaultValue;
 
-            foundSlot.defaultValue = slot.defaultValue;
-            foundSlot.valueType = slot.valueType;
+            foundSlot.defaultValue = addingSlot.defaultValue;
+            foundSlot.valueType = addingSlot.valueType;
         }
-
-        public void RemoveSlot(string name)
-        {
-            m_Slots.RemoveAll(x => x.name == name);
-        }
-
-        public string GenerateSlotName(SerializableSlot.SlotType type)
-        {
-            var slotsToCheck = type == SerializableSlot.SlotType.Input ? inputSlots.ToArray() : outputSlots.ToArray();
-            var format = type == SerializableSlot.SlotType.Input ? "I{0:00}" : "O{0:00}";
-            var index = slotsToCheck.Count();
-            var slotName = string.Format(format, index);
-            if (slotsToCheck.All(x => x.name != slotName))
-                return slotName;
-            index = 0;
-            do
-            {
-                slotName = string.Format(format, index++);
-            } while (slotsToCheck.Any(x => x.name == slotName));
-
-            return slotName;
-        }
-    }
-
-    public enum GUIModificationType
-    {
-        None,
-        Repaint,
-        ModelChanged
     }
 }

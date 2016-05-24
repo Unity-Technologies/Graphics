@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
@@ -15,14 +16,9 @@ namespace UnityEditor.MaterialGraph
             m_Owner = owner;
         }
 
-        public MaterialGraph owner
-        {
-            get { return m_Owner; }
-        }
-
         public IEnumerable<AbstractMaterialNode> materialNodes
         {
-            get { return nodes.Where(x => x is AbstractMaterialNode).Cast<AbstractMaterialNode>(); }
+            get { return nodes.OfType<AbstractMaterialNode>(); }
         }
 
         public PreviewRenderUtility previewUtility
@@ -44,7 +40,38 @@ namespace UnityEditor.MaterialGraph
             get { return nodes.Any(x => x is IRequiresTime); }
         }
 
+        public MaterialGraph owner
+        {
+            get { return m_Owner; }
+        }
 
+        public override void AddNode(SerializableNode node)
+        {
+            if (node is AbstractMaterialNode)
+            {
+                base.AddNode(node);
+            }
+            else
+            {
+                Debug.LogWarningFormat("Trying to add node {0} to Material graph, but it is not a {1}", node, typeof(AbstractMaterialNode));
+            }
+        }
+
+        public AbstractMaterialNode GetMaterialNodeFromGuid(Guid guid)
+        {
+            var node = GetNodeFromGuid(guid);
+            if (node == null)
+            {
+                Debug.LogWarningFormat("Node with guid {0} either can not be found", guid);
+                return null;
+            }
+            if (node is AbstractMaterialNode)
+                return node as AbstractMaterialNode;
+
+            Debug.LogWarningFormat("Node {0} with guid {1} is not a Material node", guid);
+            return null;
+        }
+        
         public override void ValidateGraph()
         {
             base.ValidateGraph();
