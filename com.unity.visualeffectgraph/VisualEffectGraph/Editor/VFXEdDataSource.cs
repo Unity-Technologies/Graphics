@@ -510,6 +510,11 @@ namespace UnityEditor.Experimental
             //b.Invalidate();
         }
 
+        public bool ConnectContext(VFXContextModel a, VFXContextModel b)
+        {
+            return VFXSystemModel.ConnectContext(a, b, this);
+        }
+
         public bool ConnectFlow(VFXEdFlowAnchor a, VFXEdFlowAnchor b)
         {
             if (a.GetDirection() == Direction.Input)
@@ -528,7 +533,7 @@ namespace UnityEditor.Experimental
                 VFXContextModel model0 = context0.Model;
                 VFXContextModel model1 = context1.Model;
 
-                if (!VFXSystemModel.ConnectContext(model0, model1, this))
+                if (!ConnectContext(model0, model1))
                     return false;
             }
        
@@ -542,13 +547,12 @@ namespace UnityEditor.Experimental
         /// <param name="o"> param that should be a VFXEdSpawner</param>
         public void SpawnNode(object o)
         {
-            VFXEdSpawner spawner = o as VFXEdSpawner;
+            VFXEdSpawner spawner = (VFXEdSpawner)o;
             if(spawner != null)
             {
                 spawner.Spawn();
             }
         }
-
 
     }
 }

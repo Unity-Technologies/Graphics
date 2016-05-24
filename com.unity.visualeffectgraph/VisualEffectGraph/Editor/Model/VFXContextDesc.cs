@@ -8,17 +8,6 @@ namespace UnityEditor.Experimental
 {
     public abstract class VFXContextDesc
     {
-        public static string GetFriendlyName(Type t)
-        {
-            switch(t)
-            {
-                case Type.kTypeNone: return "None";
-                case Type.kTypeInit: return "Initialize";
-                case Type.kTypeUpdate: return "Update";
-                case Type.kTypeOutput: return "Output";
-                default: return t.ToString();
-            }
-        }
 
         public enum Type
         {
@@ -68,7 +57,7 @@ namespace UnityEditor.Experimental
                 case Type.kTypeNone: return "None";
                 case Type.kTypeOutput: return "Output";
                 case Type.kTypeUpdate: return "Update";
-                default: return "INVALID";
+                default: return type.ToString();
             }
         }
 

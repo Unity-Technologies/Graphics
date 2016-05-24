@@ -147,7 +147,7 @@ namespace UnityEditor.Experimental
                         continue;
                     if (!showUpdateItems && desc.m_Type == VFXContextDesc.Type.kTypeUpdate)
                         continue;
-                    menu.AddItem(new GUIContent(VFXContextDesc.GetFriendlyName(desc.m_Type) + "/" + desc.Name), false, ExposeNode, new ExposeNodeInfo(position, desc.Name , this));
+                    menu.AddItem(new GUIContent(VFXContextDesc.GetTypeName(desc.m_Type) + "/" + desc.Name), false, ExposeNode, new ExposeNodeInfo(position, desc, this));
                 }
             
                 menu.ShowAsContext();
@@ -157,12 +157,12 @@ namespace UnityEditor.Experimental
         public void ExposeNode(object exposeNodeInfo)
         {
             ExposeNodeInfo info = (ExposeNodeInfo)exposeNodeInfo;
-            VFXContextDesc desc = VFXEditor.ContextLibrary.GetContext(info.ContextName);
             VFXEdCanvas canvas = (VFXEdCanvas)ParentCanvas();
 
-            VFXEdContextNodeSpawner spawner = new VFXEdContextNodeSpawner(m_DataSource, canvas, info.Position, desc);
-            spawner.Spawn();
-            VFXEdContextNode node = spawner.SpawnedNode;
+            VFXContextModel context =  m_DataSource.CreateContext(info.ContextDesc, info.Position);
+            canvas.ReloadData();
+
+            VFXEdContextNode node = m_DataSource.GetUI<VFXEdContextNode>(context);
 
             // Connect
             m_DataSource.ConnectFlow(this, node.inputs[0]);
@@ -173,13 +173,13 @@ namespace UnityEditor.Experimental
     internal class ExposeNodeInfo
     {
         public Vector2 Position;
-        public string ContextName;
+        public VFXContextDesc ContextDesc;
         public VFXEdFlowAnchor Anchor;
 
-        public ExposeNodeInfo(Vector2 canvasPosition, string contextName, VFXEdFlowAnchor anchor)
+        public ExposeNodeInfo(Vector2 canvasPosition, VFXContextDesc desc, VFXEdFlowAnchor anchor)
         {
             Position = canvasPosition;
-            ContextName = contextName;
+            ContextDesc = desc;
             Anchor = anchor;
         }
 

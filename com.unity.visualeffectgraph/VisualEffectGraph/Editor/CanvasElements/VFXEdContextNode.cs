@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental
             m_Model = model;
             collapsed = model.UICollapsed;
 
-            m_Title = VFXContextDesc.GetFriendlyName(Context);
+            m_Title = VFXContextDesc.GetTypeName(Context);
             target = ScriptableObject.CreateInstance<VFXEdContextNodeTarget>();
             (target as VFXEdContextNodeTarget).targetNode = this;
 
