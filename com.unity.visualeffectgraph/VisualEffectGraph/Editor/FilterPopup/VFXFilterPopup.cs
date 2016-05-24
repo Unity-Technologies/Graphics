@@ -29,9 +29,15 @@ namespace UnityEditor.Experimental
             {
                 if(parent.selection.Count > 0)
                 {
-                    if(((VFXEdCanvas)parent).selection[0] is VFXEdContextNode)
+                    CanvasElement selected = ((VFXEdCanvas)parent).selection[0];
+
+                    if(selected is VFXEdContextNode)
                     {
-                        VFXFilterWindow.Show(new Rect(e.mousePosition.x - 120, e.mousePosition.y - 10, 240, 0), new VFXBlockProvider(e.mousePosition, (VFXEdContextNode)((VFXEdCanvas)parent).selection[0], (VFXEdDataSource)parent.dataSource ));
+                        VFXFilterWindow.Show(new Rect(e.mousePosition.x - 120, e.mousePosition.y - 10, 240, 0), new VFXBlockProvider(e.mousePosition, ((VFXEdContextNode)selected).Model, (VFXEdDataSource)parent.dataSource ));
+                    }
+                    else if(((VFXEdCanvas)parent).selection[0] is VFXEdDataNode)
+                    {
+                        VFXFilterWindow.Show(new Rect(e.mousePosition.x - 120, e.mousePosition.y - 10, 240, 0), new VFXDataBlockProvider(e.mousePosition, ((VFXEdDataNode)selected).Model, (VFXEdDataSource)parent.dataSource ));
                     }
                 }
                 else

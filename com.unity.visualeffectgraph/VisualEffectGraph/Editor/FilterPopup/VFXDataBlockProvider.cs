@@ -1,23 +1,25 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
+
 
 namespace UnityEditor.Experimental
 {
-    public class VFXBlockProvider : IProvider
+    public class VFXDataBlockProvider : IProvider
     {
         Vector2 m_mousePosition;
-        VFXContextModel m_contextModel;
+        VFXDataNodeModel m_dataNodeModel;
         VFXEdDataSource m_dataSource;
 
-        public class VFXBlockElement : VFXFilterWindow.Element
+        public class VFXDataBlockElement : VFXFilterWindow.Element
         {
-            public VFXBlockDesc m_Desc;
-            public Action<VFXBlockElement> m_SpawnCallback;
+            public VFXDataBlockDesc m_Desc;
+            public Action<VFXDataBlockElement> m_SpawnCallback;
 
-            public VFXBlockElement(int level, VFXBlockDesc desc, Action<VFXBlockElement> spawncallback)
+            public VFXDataBlockElement(int level, VFXDataBlockDesc desc, Action<VFXDataBlockElement> spawncallback)
             {
                 this.level = level;
                 content = new GUIContent(desc.Category.Replace("/"," ")+" : " + desc.Name, VFXEditor.styles.GetIcon(desc.Icon));
@@ -26,27 +28,27 @@ namespace UnityEditor.Experimental
             }
         }
 
-        internal VFXBlockProvider(Vector2 mousePosition, VFXContextModel contextModel, VFXEdDataSource dataSource)
+
+        internal VFXDataBlockProvider(Vector2 mousePosition, VFXDataNodeModel model, VFXEdDataSource dataSource)
         {
             m_mousePosition = mousePosition;
-            m_contextModel = contextModel;
+            m_dataNodeModel = model;
             m_dataSource = dataSource;
         }
 
         public void CreateComponentTree(List<VFXFilterWindow.Element> tree)
         {
-            tree.Add(new VFXFilterWindow.GroupElement(0, "NodeBlocks"));
+            tree.Add(new VFXFilterWindow.GroupElement(0, "Parameter Blocks"));
 
-            var blocks = new List<VFXBlockDesc>(VFXEditor.BlockLibrary.GetBlocks());
+            var blocks = new List<VFXDataBlockDesc>(VFXEditor.BlockLibrary.GetDataBlocks());
             blocks.Sort((blockA, blockB) => {
                 int res = blockA.Category.CompareTo(blockB.Category);
                 return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
             });
 
-
             HashSet<string> categories = new HashSet<string>();
 
-            foreach(VFXBlockDesc desc in blocks)
+            foreach(VFXDataBlockDesc desc in blocks)
             {
                 int i = 0; 
 
@@ -73,22 +75,22 @@ namespace UnityEditor.Experimental
                 if (desc.Category != "")
                     i++;
 
-                tree.Add(new VFXBlockElement(i, desc, SpawnBlock));
+                tree.Add(new VFXDataBlockElement(i, desc, SpawnDataBlock));
 
             }
         }
 
-        public void SpawnBlock(VFXBlockElement block)
+        public void SpawnDataBlock(VFXDataBlockElement block)
         {
-            int index = m_dataSource.GetUI<VFXEdContextNode>(m_contextModel).NodeBlockContainer.GetDropIndex(m_mousePosition);
-            m_dataSource.Create(new VFXBlockModel(block.m_Desc), m_contextModel, index);
+            int index = m_dataSource.GetUI<VFXEdDataNode>(m_dataNodeModel).NodeBlockContainer.GetDropIndex(m_mousePosition);
+            m_dataSource.Create(new VFXDataBlockModel(block.m_Desc), m_dataNodeModel, index);
         }
 
         public bool GoToChild(VFXFilterWindow.Element element, bool addIfComponent)
         {
-            if (element is VFXBlockElement)
+            if (element is VFXDataBlockElement)
             {
-                ((VFXBlockElement)element).m_SpawnCallback.Invoke((VFXBlockElement)element);
+                ((VFXDataBlockElement)element).m_SpawnCallback.Invoke((VFXDataBlockElement)element);
                 return true;
             }
 

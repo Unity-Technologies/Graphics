@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
+
 
 namespace UnityEditor.Experimental
 {
@@ -27,6 +29,28 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public class VFXDataNodeElement : VFXFilterWindow.Element
+        {
+            public VFXDataBlockDesc m_Desc;
+            public Action<VFXDataNodeElement> m_SpawnCallback;
+
+            public VFXDataNodeElement(int level, string label, Action<VFXDataNodeElement> spawncallback)
+            {
+                this.level = level;
+                content = new GUIContent(label, VFXEditor.styles.GetIcon("Config"));
+                m_Desc = null;
+                m_SpawnCallback = spawncallback;
+            }
+
+            public VFXDataNodeElement(int level, VFXDataBlockDesc desc, Action<VFXDataNodeElement> spawncallback)
+            {
+                this.level = level;
+                content = new GUIContent(desc.Name,VFXEditor.styles.GetIcon(desc.Icon));
+                m_Desc = desc;
+                m_SpawnCallback = spawncallback;
+            }
+        }
+
         public class VFXNodeSetElement : VFXFilterWindow.Element
         {
             public VFXContextDesc m_Desc;
@@ -36,7 +60,7 @@ namespace UnityEditor.Experimental
             public VFXNodeSetElement(int level, string label, string[] descNames, Action<VFXNodeSetElement> spawncallback)
             {
                 this.level = level;
-                content = new GUIContent(label, VFXEditor.styles.DefaultBlockIcon);
+                content = new GUIContent(label, VFXEditor.styles.GetIcon("Effect"));
                 m_DescNames = descNames;
                 m_SpawnCallback = spawncallback;
             }
@@ -53,15 +77,16 @@ namespace UnityEditor.Experimental
         {
             tree.Add(new VFXFilterWindow.GroupElement(0, "Nodes"));
 
-            tree.Add(new VFXNodeSetElement(1, "Add Particle System...", new string[] {"Initialize","Particle Update", "Billboard Output" }, SpawnNodeSet ));
+            tree.Add(new VFXNodeSetElement(1, "Add Particle System", new string[] {"Initialize","Particle Update", "Billboard Output" }, SpawnNodeSet ));
+            tree.Add(new VFXDataNodeElement(1, "Add Parameter Node", SpawnDataNode));
 
-            tree.Add(new VFXFilterWindow.GroupElement(1, "Events"));
+            //tree.Add(new VFXFilterWindow.GroupElement(1, "Events"));
             // TODO: Add Events here
 
-            tree.Add(new VFXFilterWindow.GroupElement(1, "Triggers"));
+            //tree.Add(new VFXFilterWindow.GroupElement(1, "Triggers"));
             // TODO : Add Triggers here
 
-            tree.Add(new VFXFilterWindow.GroupElement(1, "Context Nodes"));
+            tree.Add(new VFXFilterWindow.GroupElement(1, "Add Context Nodes..."));
 
             var contexts = new List<VFXContextDesc>(VFXEditor.ContextLibrary.GetContexts());
             contexts.Sort((blockA, blockB) => {
@@ -82,6 +107,48 @@ namespace UnityEditor.Experimental
 
                 tree.Add(new VFXNodeElement(3, desc, SpawnNode));
             }
+
+
+
+            tree.Add(new VFXFilterWindow.GroupElement(1, "Add Parameter Node..."));
+            categories.Clear();
+            var dataBlocks = new List<VFXDataBlockDesc>(VFXEditor.BlockLibrary.GetDataBlocks());
+            dataBlocks.Sort((blockA, blockB) => {
+                int res = blockA.Category.CompareTo(blockB.Category);
+                return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
+            });
+
+            foreach(VFXDataBlockDesc desc in dataBlocks)
+            {
+                int i = 0; 
+
+                if(!categories.Contains(desc.Category) && desc.Category != "")
+                {
+                    string[] split = desc.Category.Split('/');
+                    string current = "";
+
+                    while(i < split.Length)
+                    {
+                        current += split[i];
+                        if(!categories.Contains(current))
+                            tree.Add(new VFXFilterWindow.GroupElement(i+2,split[i]));
+                        i++;
+                        current += "/";
+                    }
+                    categories.Add(desc.Category);
+                }
+                else
+                {
+                    i = desc.Category.Split('/').Length;
+                }
+
+                if (desc.Category != "")
+                    i++;
+
+                tree.Add(new VFXDataNodeElement(i+1, desc, SpawnDataNode));
+
+            }
+
         }
 
         public void SpawnNode(VFXNodeElement node)
@@ -90,6 +157,20 @@ namespace UnityEditor.Experimental
 
             if(model != null)
                 m_canvas.ReloadData();
+        }
+
+        public void SpawnDataNode(VFXDataNodeElement node)
+        {
+            VFXDataNodeModel model = m_dataSource.CreateDataNode(m_canvas.MouseToCanvas(m_mousePosition));
+            if(node.m_Desc != null)
+            {
+                var blockModel = new VFXDataBlockModel(node.m_Desc);
+                m_dataSource.Create(blockModel, model);
+            }
+
+            if(model != null)
+                m_canvas.ReloadData();
+
         }
 
         public void SpawnNodeSet(VFXNodeSetElement nodeset)
@@ -127,7 +208,11 @@ namespace UnityEditor.Experimental
             else if (element is VFXNodeSetElement)
             {
                 ((VFXNodeSetElement)element).m_SpawnCallback.Invoke((VFXNodeSetElement)element);
-                
+                return true;
+            }
+            else if(element is VFXDataNodeElement)
+            {
+                ((VFXDataNodeElement)element).m_SpawnCallback.Invoke((VFXDataNodeElement)element);
                 return true;
             }
 
