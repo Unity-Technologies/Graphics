@@ -8,14 +8,14 @@ namespace UnityEditor.MaterialGraph
         // GetSlotsThatOutputToNodeRecurse returns a list of output slots on from node that
         // manage to connect to toNode... they may go via some other nodes to reach there.
         // This is done by working backwards from the toNode to the fromNode as graph is one directional
-        public static List<MaterialSlot> GetSlotsThatOutputToNodeRecurse(AbstractMaterialNode fromNode, AbstractMaterialNode toNode)
+        public static List<SerializableSlot> GetSlotsThatOutputToNodeRecurse(SerializableNode fromNode, SerializableNode toNode)
         {
-            var foundUsedOutputSlots = new List<MaterialSlot>();
+            var foundUsedOutputSlots = new List<SerializableSlot>();
             RecurseNodesToFindValidOutputSlots(fromNode, toNode, foundUsedOutputSlots);
             return foundUsedOutputSlots;
         }
 
-        public static void RecurseNodesToFindValidOutputSlots(AbstractMaterialNode fromNode, AbstractMaterialNode currentNode, ICollection<MaterialSlot> foundUsedOutputSlots)
+        public static void RecurseNodesToFindValidOutputSlots(SerializableNode fromNode, SerializableNode currentNode, ICollection<SerializableSlot> foundUsedOutputSlots)
         {
             if (fromNode == null || currentNode == null)
             {
@@ -23,7 +23,7 @@ namespace UnityEditor.MaterialGraph
                 return;
             }
             
-            var validSlots = ListPool<MaterialSlot>.Get();
+            var validSlots = ListPool<SerializableSlot>.Get();
             validSlots.AddRange(currentNode.inputSlots);
             for (int index = 0; index < validSlots.Count; index++)
             {
@@ -39,10 +39,10 @@ namespace UnityEditor.MaterialGraph
                         RecurseNodesToFindValidOutputSlots(fromNode, outputNode, foundUsedOutputSlots);
                 }
             }
-            ListPool<MaterialSlot>.Release(validSlots);
+            ListPool<SerializableSlot>.Release(validSlots);
         }
 
-        public static void CollectChildNodesByExecutionOrder(ICollection<AbstractMaterialNode> nodeList, AbstractMaterialNode node, MaterialSlot slotToUse)
+        public static void CollectChildNodesByExecutionOrder(List<SerializableNode> nodeList, SerializableNode node, SerializableSlot slotToUse)
         {
             if (node == null)
                 return;
@@ -50,11 +50,11 @@ namespace UnityEditor.MaterialGraph
             if (nodeList.Contains(node))
                 return;
 
-            var validSlots = ListPool<MaterialSlot>.Get();
+            var validSlots = ListPool<SerializableSlot>.Get();
             validSlots.AddRange(node.inputSlots);
             if (slotToUse != null && !validSlots.Contains(slotToUse))
             {
-                ListPool<MaterialSlot>.Release(validSlots);
+                ListPool<SerializableSlot>.Release(validSlots);
                 return;
             }
 
@@ -77,10 +77,10 @@ namespace UnityEditor.MaterialGraph
             }
 
             nodeList.Add(node);
-            ListPool<MaterialSlot>.Release(validSlots);
+            ListPool<SerializableSlot>.Release(validSlots);
         }
 
-        public static void CollectDependentNodes(ICollection<AbstractMaterialNode> nodeList, AbstractMaterialNode node)
+        public static void CollectDependentNodes(List<SerializableNode> nodeList, SerializableNode node)
         {
             if (node == null)
                 return;

@@ -29,7 +29,7 @@ namespace UnityEditor.MaterialGraph
             Vector3 pos = vector3;
 
             // input slots
-            foreach (var slot in node.inputSlots)
+            foreach (var slot in node.materialInputSlots)
             {
                 pos.y += 22;
                 AddChild(new NodeAnchor(pos, typeof (Vector4), node, slot, data, Direction.Input));
@@ -39,7 +39,7 @@ namespace UnityEditor.MaterialGraph
             // output port
             pos.x = width;
             pos.y = yStart;
-            foreach (var slot in node.outputSlots)
+            foreach (var slot in node.materialOuputSlots)
             {
                 var edges = node.owner.GetEdges(slot);
                 // don't show empty output slots in collapsed mode
@@ -72,11 +72,11 @@ namespace UnityEditor.MaterialGraph
 
         private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
         {
-            var childrenNodes = ListPool<AbstractMaterialNode>.Get();
+            var childrenNodes = ListPool<SerializableNode>.Get();
             m_Node.CollectChildNodesByExecutionOrder(childrenNodes);
             if (childrenNodes.Any(x => x is IRequiresTime))
                 Invalidate();
-            ListPool<AbstractMaterialNode>.Release(childrenNodes);
+            ListPool<SerializableNode>.Release(childrenNodes);
             return true;
         }
         
@@ -139,7 +139,7 @@ namespace UnityEditor.MaterialGraph
 
         public static void OnGUI(List<CanvasElement> selection)
         {
-            var drawableMaterialNode = selection.Where(x => x is DrawableMaterialNode).Cast<DrawableMaterialNode>().FirstOrDefault();
+            var drawableMaterialNode = selection.OfType<DrawableMaterialNode>().FirstOrDefault();
             if (drawableMaterialNode != null && drawableMaterialNode.m_Node.OnGUI())
             {
                 // if we were changed, we need to redraw all the
