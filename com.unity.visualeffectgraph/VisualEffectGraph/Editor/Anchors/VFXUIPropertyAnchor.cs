@@ -184,10 +184,21 @@ namespace UnityEditor.Experimental
         public void ExposePropertyMenu(Vector2 position)
         {
             ExposePropertyInfo info = new ExposePropertyInfo(position, m_Slot.Semantics.GetType().FullName, this);
-            GenericMenu menu = new GenericMenu();
-            menu.AddItem(new GUIContent("Expose Parameter"), false, ExposeProperty, info);
-            menu.ShowAsContext();
+            //GenericMenu menu = new GenericMenu();
+            //menu.AddItem(new GUIContent("Expose Parameter"), false, ExposeProperty, info);
+            //menu.ShowAsContext();
 
+            List<MiniMenu.Item> items =  new List<MiniMenu.Item>();
+
+            items.Add(new MiniMenu.HeaderItem("Expose Property?"));
+            items.Add(new MiniMenu.CallbackItem("Ok", ExposeProperty, info));
+
+            MiniMenu.Show(Event.current.mousePosition, items);
+        }
+
+        public void ExposeProperty(Vector2 pos, object propertyInfo)
+        {
+            ExposeProperty(propertyInfo);
         }
 
         public void ExposeProperty(object propertyInfo)

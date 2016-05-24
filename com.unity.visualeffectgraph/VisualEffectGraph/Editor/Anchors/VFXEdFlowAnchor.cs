@@ -135,7 +135,9 @@ namespace UnityEditor.Experimental
             VFXContextDesc currentContextDesc = (parent as VFXEdContextNode).Model.Desc;
             if(currentContextDesc.m_Type != VFXContextDesc.Type.kTypeOutput)
             {
-                GenericMenu menu = new GenericMenu();
+                //GenericMenu menu = new GenericMenu();
+                List<MiniMenu.Item> items = new List<MiniMenu.Item>();
+                items.Add(new MiniMenu.HeaderItem("Add Context"));
                 VFXEditor.ContextLibrary.GetContexts();
 
                 bool showInitItems = (currentContextDesc.m_Type != VFXContextDesc.Type.kTypeInit && currentContextDesc.m_Type != VFXContextDesc.Type.kTypeUpdate);
@@ -147,14 +149,16 @@ namespace UnityEditor.Experimental
                         continue;
                     if (!showUpdateItems && desc.m_Type == VFXContextDesc.Type.kTypeUpdate)
                         continue;
-                    menu.AddItem(new GUIContent(VFXContextDesc.GetTypeName(desc.m_Type) + "/" + desc.Name), false, ExposeNode, new ExposeNodeInfo(position, desc, this));
+                    //menu.AddItem(new GUIContent(VFXContextDesc.GetTypeName(desc.m_Type) + "/" + desc.Name), false, ExposeNode, new ExposeNodeInfo(position, desc, this));
+                    items.Add(new MiniMenu.CallbackItem(VFXContextDesc.GetTypeName(desc.m_Type) + "/" + desc.Name, ExposeNode, new ExposeNodeInfo(position, desc, this)));
                 }
-            
-                menu.ShowAsContext();
+                MiniMenu.Show(position, items);
+                //menu.ShowAsContext();
             }
         }
 
-        public void ExposeNode(object exposeNodeInfo)
+
+        public void ExposeNode(Vector2 position, object exposeNodeInfo)
         {
             ExposeNodeInfo info = (ExposeNodeInfo)exposeNodeInfo;
             VFXEdCanvas canvas = (VFXEdCanvas)ParentCanvas();
