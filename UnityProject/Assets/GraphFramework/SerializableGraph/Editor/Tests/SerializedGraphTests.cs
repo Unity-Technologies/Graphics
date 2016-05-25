@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
-using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph.Tests
+namespace UnityEditor.Graphing.Tests
 {
     [TestFixture]
     public class ScriptableGraphTests
