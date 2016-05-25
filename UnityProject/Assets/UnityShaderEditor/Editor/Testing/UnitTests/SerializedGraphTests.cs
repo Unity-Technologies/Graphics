@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -18,7 +19,7 @@ namespace UnityEditor.MaterialGraph.Tests
         }
 
         [Test]
-        public void TestCreate()
+        public void TestCanCreateSerializableGraph()
         {
             var graph = new SerializableGraph();
 
@@ -27,7 +28,7 @@ namespace UnityEditor.MaterialGraph.Tests
         }
 
         [Test]
-        public void TestAddNode()
+        public void TestCanAddNodeToSerializableGraph()
         {
             var graph = new SerializableGraph();
             var node = new SerializableNode(graph);
@@ -39,7 +40,19 @@ namespace UnityEditor.MaterialGraph.Tests
         }
 
         [Test]
-        public void TestAddSlot()
+        public void TestCanFindNodeInSerializableGraph()
+        {
+            var graph = new SerializableGraph();
+            var node = new SerializableNode(graph);
+            graph.AddNode(node);
+
+            Assert.AreEqual(1, graph.nodes.Count());
+            Assert.IsNotNull(graph.GetNodeFromGuid(node.guid));
+            Assert.IsNull(graph.GetNodeFromGuid(Guid.NewGuid()));
+        }
+
+        [Test]
+        public void TestCanAddSlotToSerializableNode()
         {
             var graph = new SerializableGraph();
             var node = new SerializableNode(graph);
@@ -50,13 +63,66 @@ namespace UnityEditor.MaterialGraph.Tests
 
             Assert.AreEqual(1, graph.nodes.Count());
             var found = graph.nodes.FirstOrDefault();
-            Assert.AreEqual(found.inputSlots.Count(), 1);
-            Assert.AreEqual(found.outputSlots.Count(), 1);
-            Assert.AreEqual(found.slots.Count(), 2);
+            Assert.AreEqual(1, found.inputSlots.Count());
+            Assert.AreEqual("input", found.outputSlots.FirstOrDefault().name);
+            Assert.AreEqual(1, found.outputSlots.Count());
+            Assert.AreEqual("output", found.outputSlots.FirstOrDefault().name);
+            Assert.AreEqual(2, found.slots.Count());
         }
 
         [Test]
-        public void TestCanConnectAndTraverseTwoNodes()
+        public void TestCanNotAddDuplicateSlotToSerializableNode()
+        {
+            var graph = new SerializableGraph();
+            var node = new SerializableNode(graph);
+            node.AddSlot(new SerializableSlot(node, "output", "output", SlotType.Output));
+            node.AddSlot(new SerializableSlot(node, "output", "output", SlotType.Output));
+            node.name = "Test Node";
+            graph.AddNode(node);
+
+            Assert.AreEqual(1, graph.nodes.Count());
+            var found = graph.nodes.FirstOrDefault();
+            Assert.AreEqual(0, found.inputSlots.Count());
+            Assert.AreEqual(1, found.outputSlots.Count());
+            Assert.AreEqual(1, found.slots.Count());
+        }
+
+        [Test]
+        public void TestCanUpdateDisplaynameByReaddingSlotToSerializableNode()
+        {
+            var graph = new SerializableGraph();
+            var node = new SerializableNode(graph);
+            node.AddSlot(new SerializableSlot(node, "output", "output", SlotType.Output));
+            node.AddSlot(new SerializableSlot(node, "output", "output_updated", SlotType.Output));
+            node.name = "Test Node";
+            graph.AddNode(node);
+
+            Assert.AreEqual(1, graph.nodes.Count());
+            var found = graph.nodes.FirstOrDefault();
+            Assert.AreEqual(0 ,found.inputSlots.Count());
+            Assert.AreEqual(1, found.outputSlots.Count());
+            Assert.AreEqual(1, found.slots.Count());
+
+            var slot = found.outputSlots.FirstOrDefault();
+            Assert.AreEqual("output_updated", slot.displayName);
+        }
+
+        [Test]
+        public void TestCanFindSlotOnSerializableNode()
+        {
+            var node = new SerializableNode(null);
+            node.AddSlot(new SerializableSlot(node, "output", "output", SlotType.Output));
+            node.AddSlot(new SerializableSlot(node, "input", "input", SlotType.Input));
+            
+            Assert.AreEqual(2, node.slots.Count());
+            Assert.IsNotNull(node.FindInputSlot("input"));
+            Assert.IsNull(node.FindInputSlot("output"));
+            Assert.IsNotNull(node.FindOutputSlot("output"));
+            Assert.IsNull(node.FindOutputSlot("input"));
+        }
+        
+        [Test]
+        public void TestCanConnectAndTraverseTwoNodesOnSerializableGraph()
         {
             var graph = new SerializableGraph();
             var outputNode = new SerializableNode(graph);
@@ -80,17 +146,17 @@ namespace UnityEditor.MaterialGraph.Tests
 
             var foundOutputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
             var foundOutputSlot = foundOutputNode.FindOutputSlot(edge.outputSlot.slotName);
-            Assert.AreEqual(foundOutputNode, outputNode);
-            Assert.AreEqual(foundOutputSlot, outputSlot);
+            Assert.AreEqual(outputNode, foundOutputNode);
+            Assert.AreEqual(outputSlot, foundOutputSlot);
 
             var foundInputNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
             var foundInputSlot = foundInputNode.FindInputSlot(edge.inputSlot.slotName);
-            Assert.AreEqual(foundInputNode, inputNode);
-            Assert.AreEqual(foundInputSlot, inputSlot);
+            Assert.AreEqual(inputNode, foundInputNode);
+            Assert.AreEqual(inputSlot, foundInputSlot);
         }
 
         [Test]
-        public void TestCanNotConnectTwoOuputSlots()
+        public void TestCanNotConnectTwoOuputSlotsOnSerializableGraph()
         {
             var graph = new SerializableGraph();
             var outputNode = new SerializableNode(graph);
@@ -111,7 +177,7 @@ namespace UnityEditor.MaterialGraph.Tests
         }
 
         [Test]
-        public void TestCanNotConnectTwoInputSlots()
+        public void TestCanNotConnectTwoInputSlotsOnSerializableGraph()
         {
             var graph = new SerializableGraph();
             var inputNode = new SerializableNode(graph);
