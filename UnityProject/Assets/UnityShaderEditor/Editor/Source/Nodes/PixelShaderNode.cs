@@ -179,7 +179,8 @@ namespace UnityEditor.MaterialGraph
             }
             return GUIModificationType.None;
         }
-        public override IEnumerable<MaterialSlot> GetDrawableInputProxies()
+
+        public override IEnumerable<MaterialSlot> GetInputsWithNoConnection()
         {
             return new List<MaterialSlot>();
         }
@@ -196,7 +197,8 @@ namespace UnityEditor.MaterialGraph
 
             var shaderName = "Hidden/PreviewShader/" + name + "_" + guid.ToString().Replace("-","_");
             List<PropertyGenerator.TextureInfo> defaultTextures;
-            var resultShader = ShaderGenerator.GenerateSurfaceShader(materialGraphOwner.owner, shaderName, true, out defaultTextures);
+            //TODO: Fix me
+            var resultShader = string.Empty;//ShaderGenerator.GenerateSurfaceShader(materialGraphOwner.owner, shaderName, true, out defaultTextures);
             m_GeneratedShaderMode = PreviewMode.Preview3D;
             hasError = !InternalUpdatePreviewShader(resultShader);
             return true;

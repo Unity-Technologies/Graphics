@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.MaterialGraph
 {
     [Serializable]
-    public class MaterialGraph : ISerializationCallbackReceiver
+    public class MaterialGraph
     {
         [SerializeField]
         private MaterialOptions m_MaterialOptions = new MaterialOptions();
@@ -26,7 +26,7 @@ namespace UnityEditor.MaterialGraph
 
         public MaterialGraph()
         {
-            m_PixelGraph = new PixelGraph(this);
+            m_PixelGraph = new PixelGraph();
         }
 
         public MaterialOptions materialOptions
@@ -37,14 +37,6 @@ namespace UnityEditor.MaterialGraph
         public AbstractMaterialGraph currentGraph
         {
             get { return m_PixelGraph; }
-        }
-
-        public void OnBeforeSerialize()
-        {}
-
-        public void OnAfterDeserialize()
-        {
-            m_PixelGraph.owner = this;
         }
 
         public Material GetMaterial()

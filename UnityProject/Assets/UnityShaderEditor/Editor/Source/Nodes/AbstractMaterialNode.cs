@@ -389,7 +389,7 @@ namespace UnityEditor.MaterialGraph
             return inputSlot.OnGUI(rect, inputSlotType);
         }
 
-        public virtual IEnumerable<MaterialSlot> GetDrawableInputProxies()
+        public virtual IEnumerable<MaterialSlot> GetInputsWithNoConnection()
         {
             return materialInputSlots.Where(x => !owner.GetEdges(GetSlotReference(x.name)).Any());
         }
