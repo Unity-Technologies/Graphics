@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing
 {
     [Serializable]
     public class SlotReference : ISerializationCallbackReceiver
@@ -20,15 +20,6 @@ namespace UnityEditor.MaterialGraph
             m_NodeGUID = nodeGuid;
             m_SlotName = slotName;
             m_NodeGUIDSerialized = string.Empty;
-        }
-
-        public static SerializableSlot ToSerializableSlot(SerializableGraph graph, SlotReference slotRef)
-        {
-            var node = graph.GetNodeFromGuid(slotRef.nodeGuid);
-            if (node == null)
-                return null;
-
-            return node.FindSlot(slotRef.slotName);
         }
 
         public Guid nodeGuid

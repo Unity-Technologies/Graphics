@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.MaterialGraph
 {
@@ -89,7 +90,7 @@ namespace UnityEditor.MaterialGraph
             var firstPassSlotName = lightFunction.GetFirstPassSlotName();
             // do the normal slot first so that it can be used later in the shader :)
             var firstPassSlot = FindInputSlot(firstPassSlotName);
-            var nodes = ListPool<SerializableNode>.Get();
+            var nodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, firstPassSlot, false);
 
             for (int index = 0; index < nodes.Count; index++)
@@ -125,7 +126,7 @@ namespace UnityEditor.MaterialGraph
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
 
-           ListPool<SerializableNode>.Release(nodes);
+           ListPool<INode>.Release(nodes);
 
             foreach (var slot in inputSlots)
             {

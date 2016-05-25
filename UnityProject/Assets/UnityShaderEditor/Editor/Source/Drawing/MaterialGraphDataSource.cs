@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -88,7 +89,7 @@ namespace UnityEditor.MaterialGraph
 
         public void DeleteElements(List<CanvasElement> elements)
         {
-            var toRemoveEdge = new List<Edge>();
+            var toRemoveEdge = new List<IEdge>();
             // delete selected edges first
             foreach (var e in elements.Where(x => x is Edge<NodeAnchor>))
             {
@@ -100,7 +101,7 @@ namespace UnityEditor.MaterialGraph
                 toRemoveEdge.Add(edge);
             }
 
-            var toRemoveNode = new List<SerializableNode>();
+            var toRemoveNode = new List<INode>();
             // now delete the nodes
             foreach (var e in elements.Where(x => x is DrawableMaterialNode))
             {

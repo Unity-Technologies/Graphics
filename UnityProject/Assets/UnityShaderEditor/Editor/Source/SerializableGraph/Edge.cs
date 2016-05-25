@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing
 {
     [Serializable]
-    public class Edge
+    public class Edge : IEdge
     {
         [SerializeField]
         private SlotReference m_OutputSlot;

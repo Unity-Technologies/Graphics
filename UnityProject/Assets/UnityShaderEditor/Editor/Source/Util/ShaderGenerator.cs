@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -376,7 +377,7 @@ namespace UnityEditor.MaterialGraph
         public static string GeneratePreviewShader(AbstractMaterialNode node, out PreviewMode generatedShaderMode)
         {
             // figure out what kind of preview we want!
-            var activeNodeList = ListPool<SerializableNode>.Get();
+            var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
             var generationMode = GenerationMode.Preview2D;
             generatedShaderMode = PreviewMode.Preview2D;

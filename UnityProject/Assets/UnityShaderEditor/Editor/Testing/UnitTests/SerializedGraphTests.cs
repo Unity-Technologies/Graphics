@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Tests

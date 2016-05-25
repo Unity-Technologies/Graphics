@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing
 {
     internal class ObjectPool<T> where T : new()
     {

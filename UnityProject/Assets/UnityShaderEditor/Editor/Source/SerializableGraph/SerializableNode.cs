@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing
 {
     [Serializable]
-    public class SerializableNode : ISerializationCallbackReceiver
+    public class SerializableNode : ISerializationCallbackReceiver, INode
     {
         public delegate void NeedsRepaint();
         public NeedsRepaint onNeedsRepaint;
@@ -27,12 +27,12 @@ namespace UnityEditor.MaterialGraph
         private Rect m_Position;
 
         [NonSerialized]
-        private List<SerializableSlot> m_Slots = new List<SerializableSlot>();
+        private List<ISlot> m_Slots = new List<ISlot>();
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableSlots = new List<SerializationHelper.JSONSerializedElement>();
 
-        public SerializableGraph owner { get; set; }
+        public IGraph owner { get; set; }
 
         public Guid guid
         {
@@ -66,17 +66,17 @@ namespace UnityEditor.MaterialGraph
             set { m_Position = value; }
         }
 
-        public IEnumerable<SerializableSlot> inputSlots
+        public IEnumerable<ISlot> inputSlots
         {
             get { return m_Slots.Where(x => x.isInputSlot); }
         }
 
-        public IEnumerable<SerializableSlot> outputSlots
+        public IEnumerable<ISlot> outputSlots
         {
             get { return m_Slots.Where(x => x.isOutputSlot); }
         }
 
-        public IEnumerable<SerializableSlot> slots
+        public IEnumerable<ISlot> slots
         {
             get { return m_Slots; }
         }
@@ -87,7 +87,7 @@ namespace UnityEditor.MaterialGraph
             m_Guid = Guid.NewGuid();
         }
 
-        public virtual void AddSlot(SerializableSlot slot)
+        public virtual void AddSlot(ISlot slot)
         {
             if (slot == null)
                 return;
@@ -120,7 +120,7 @@ namespace UnityEditor.MaterialGraph
             return new SlotReference(guid, name);
         }
 
-        public SerializableSlot FindSlot(string name)
+        public ISlot FindSlot(string name)
         {
             var slot = slots.FirstOrDefault(x => x.name == name);
             if (slot == null)
@@ -128,7 +128,7 @@ namespace UnityEditor.MaterialGraph
             return slot;
         }
 
-        public SerializableSlot FindInputSlot(string name)
+        public ISlot FindInputSlot(string name)
         {
             var slot = inputSlots.FirstOrDefault(x => x.name == name);
             if (slot == null)
@@ -136,7 +136,7 @@ namespace UnityEditor.MaterialGraph
             return slot;
         }
 
-        public SerializableSlot FindOutputSlot(string name)
+        public ISlot FindOutputSlot(string name)
         {
             var slot = outputSlots.FirstOrDefault(x => x.name == name);
             if (slot == null)
@@ -167,7 +167,7 @@ namespace UnityEditor.MaterialGraph
             return modified;
         }
 
-        public static bool DoSlotUI(SerializableNode node, SerializableSlot slot)
+        public static bool DoSlotUI(SerializableNode node, ISlot slot)
         {
             GUILayout.BeginHorizontal( /*EditorStyles.inspectorBig*/);
             GUILayout.BeginVertical();
@@ -178,7 +178,9 @@ namespace UnityEditor.MaterialGraph
             GUILayout.EndVertical();
             GUILayout.EndHorizontal();
 
-            return slot.OnGUI();
+            //TODO: fix this
+            return false;
+            //return slot.OnGUI();
         }
 
         public virtual void OnBeforeSerialize()
@@ -194,7 +196,7 @@ namespace UnityEditor.MaterialGraph
             else
                 m_Guid = Guid.NewGuid();
 
-            m_Slots = SerializationHelper.Deserialize<SerializableSlot>(m_SerializableSlots, new object[] { this });
+            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, new object[] { this });
             m_SerializableSlots = null; 
         }
     }

@@ -3,37 +3,40 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing
 {
     [Serializable]
-    public class SerializableGraph : ISerializationCallbackReceiver
+    public class SerializableGraph : IGraph, ISerializationCallbackReceiver
     {
-        [SerializeField]
-        private List<Edge> m_Edges = new List<Edge>();
+        [NonSerialized]
+        private List<IEdge> m_Edges = new List<IEdge>();
 
         [NonSerialized]
-        private List<SerializableNode> m_Nodes = new List<SerializableNode>();
+        private List<INode> m_Nodes = new List<INode>();
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
 
-        public IEnumerable<SerializableNode> nodes
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
+
+        public IEnumerable<INode> nodes
         {
             get { return m_Nodes; }
         }
 
-        public IEnumerable<Edge> edges
+        public IEnumerable<IEdge> edges
         {
             get { return m_Edges; }
         }
 
-        public virtual void AddNode(SerializableNode node)
+        public virtual void AddNode(INode node)
         {
             m_Nodes.Add(node);
             ValidateGraph();
         }
 
-        public virtual void RemoveNode(SerializableNode node)
+        public virtual void RemoveNode(INode node)
         {
             if (!node.canDeleteNode)
                 return;
@@ -42,7 +45,7 @@ namespace UnityEditor.MaterialGraph
             ValidateGraph();
         }
 
-        private void RemoveNodeNoValidate(SerializableNode node)
+        private void RemoveNodeNoValidate(INode node)
         {
             if (!node.canDeleteNode)
                 return;
@@ -50,16 +53,16 @@ namespace UnityEditor.MaterialGraph
             m_Nodes.Remove(node);
         }
 
-        public virtual Edge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
+        public virtual IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
-            SerializableNode fromNode = GetNodeFromGuid(fromSlotRef.nodeGuid);
-            SerializableNode toNode = GetNodeFromGuid(toSlotRef.nodeGuid);
+            var fromNode = GetNodeFromGuid(fromSlotRef.nodeGuid);
+            var toNode = GetNodeFromGuid(toSlotRef.nodeGuid);
 
             if (fromNode == null || toNode == null)
                 return null;
 
-            SerializableSlot fromSlot = fromNode.FindSlot(fromSlotRef.slotName);
-            SerializableSlot toSlot = toNode.FindSlot(toSlotRef.slotName);
+            var fromSlot = fromNode.FindSlot(fromSlotRef.slotName);
+            var toSlot = toNode.FindSlot(toSlotRef.slotName);
 
             SlotReference outputSlot = null;
             SlotReference inputSlot = null;
@@ -96,13 +99,13 @@ namespace UnityEditor.MaterialGraph
             return newEdge;
         }
 
-        public virtual void RemoveEdge(Edge e)
+        public virtual void RemoveEdge(IEdge e)
         {
             m_Edges.Remove(e);
             ValidateGraph();
         }
 
-        public void RemoveElements(IEnumerable<SerializableNode> nodes, IEnumerable<Edge> edges)
+        public void RemoveElements(IEnumerable<INode> nodes, IEnumerable<IEdge> edges)
         {
             foreach (var edge in edges.ToArray())
                 RemoveEdgeNoValidate(edge);
@@ -113,17 +116,17 @@ namespace UnityEditor.MaterialGraph
             ValidateGraph();
         }
 
-        private void RemoveEdgeNoValidate(Edge e)
+        private void RemoveEdgeNoValidate(IEdge e)
         {
             m_Edges.Remove(e);
         }
 
-        public SerializableNode GetNodeFromGuid(Guid guid)
+        public INode GetNodeFromGuid(Guid guid)
         {
             return m_Nodes.FirstOrDefault(x => x.guid == guid);
         }
 
-        public IEnumerable<Edge> GetEdges(SlotReference s)
+        public IEnumerable<IEdge> GetEdges(SlotReference s)
         {
             if (s == null)
                 return new Edge[0];
@@ -136,12 +139,16 @@ namespace UnityEditor.MaterialGraph
         public virtual void OnBeforeSerialize()
         {
             m_SerializableNodes = SerializationHelper.Serialize(m_Nodes);
+            m_SerializableEdges = SerializationHelper.Serialize(m_Edges);
         }
 
         public virtual void OnAfterDeserialize()
         {
-            m_Nodes = SerializationHelper.Deserialize<SerializableNode>(m_SerializableNodes, new object[] {this});
+            m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, new object[] { this });
             m_SerializableNodes = null;
+
+            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, new object[] { });
+            m_SerializableEdges = null;
 
             ValidateGraph();
         }

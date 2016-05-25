@@ -1,5 +1,5 @@
-using UnityEditor.Graphs;
 using UnityEngine;
+using SlotType = UnityEditor.Graphing.SlotType;
 
 namespace UnityEditor.MaterialGraph
 {
