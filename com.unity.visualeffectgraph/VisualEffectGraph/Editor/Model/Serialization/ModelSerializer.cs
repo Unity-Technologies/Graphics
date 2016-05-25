@@ -22,6 +22,111 @@ namespace UnityEditor.Experimental.VFX
             var components = v.Split(',');
             return new Vector2(float.Parse(components[0]), float.Parse(components[1]));
         }
+
+        public static string FromColor(Color c)
+        {
+            return c.r + "," + c.g + "," + c.b + "," + c.a;
+        }
+
+        public static Color ToColor(string c)
+        {
+            var components = c.Split(',');
+            return new Color(
+                float.Parse(components[0]), 
+                float.Parse(components[1]),
+                float.Parse(components[2]),
+                float.Parse(components[3]));
+        }
+
+        public static void WriteCurve(XmlWriter writer,AnimationCurve curve)
+        {
+            writer.WriteStartElement(VFXValueType.kCurve.ToString());
+            writer.WriteAttributeString("PreWrapMode", curve.preWrapMode.ToString());
+            writer.WriteAttributeString("PostWrapMode", curve.postWrapMode.ToString());
+            foreach (var key in curve.keys)
+            {
+                writer.WriteStartElement("KeyFrame");
+                writer.WriteAttributeString("t", key.time.ToString());
+                writer.WriteAttributeString("v", key.value.ToString());
+                writer.WriteAttributeString("inT", key.inTangent.ToString());
+                writer.WriteAttributeString("outT", key.outTangent.ToString());
+                writer.WriteAttributeString("tMode", key.tangentMode.ToString());
+                writer.WriteEndElement();
+            }
+
+            writer.WriteEndElement();
+        }
+
+        public static AnimationCurve ReadCurve(XmlReader reader)
+        {
+            var curve = new AnimationCurve();
+
+            curve.preWrapMode = (WrapMode)Enum.Parse(typeof(WrapMode), reader.GetAttribute("PreWrapMode"));
+            curve.postWrapMode = (WrapMode)Enum.Parse(typeof(WrapMode), reader.GetAttribute("PostWrapMode"));
+
+            reader.Read();
+            while (reader.IsStartElement("KeyFrame"))
+            {
+                Keyframe key = new Keyframe();
+                key.time = float.Parse(reader.GetAttribute("t"));
+                key.value = float.Parse(reader.GetAttribute("v"));
+                key.inTangent = float.Parse(reader.GetAttribute("inT"));
+                key.outTangent = float.Parse(reader.GetAttribute("outT"));
+                key.tangentMode = int.Parse(reader.GetAttribute("tMode"));
+                curve.AddKey(key);
+                reader.Read();
+            }
+
+            return curve;
+        }
+
+        public static void WriteGradient(XmlWriter writer, Gradient gradient)
+        {
+            writer.WriteStartElement(VFXValueType.kColorGradient.ToString());
+            foreach (var key in gradient.colorKeys)
+            {
+                writer.WriteStartElement("ColorKey");
+                writer.WriteAttributeString("t", key.time.ToString());
+                writer.WriteAttributeString("v", SerializationUtils.FromColor(key.color));
+                writer.WriteEndElement();
+            }
+            foreach (var key in gradient.alphaKeys)
+            {
+                writer.WriteStartElement("AlphaKey");
+                writer.WriteAttributeString("t", key.time.ToString());
+                writer.WriteAttributeString("v", key.alpha.ToString());
+                writer.WriteEndElement();
+            }
+            writer.WriteEndElement();
+        }
+
+        public static Gradient ReadGradient(XmlReader reader)
+        {
+            var colorKeys = new List<GradientColorKey>();
+            var alphaKeys = new List<GradientAlphaKey>();
+
+            reader.Read();
+
+            while (reader.IsStartElement("ColorKey"))
+            {
+                var time = float.Parse(reader.GetAttribute("t"));
+                var color = SerializationUtils.ToColor(reader.GetAttribute("v"));
+                colorKeys.Add(new GradientColorKey(color,time));
+                reader.Read();
+            }
+
+            while (reader.IsStartElement("AlphaKey"))
+            {
+                var time = float.Parse(reader.GetAttribute("t"));
+                var alpha = float.Parse(reader.GetAttribute("v"));
+                alphaKeys.Add(new GradientAlphaKey(alpha, time));
+                reader.Read();
+            }
+
+            var gradient = new Gradient();
+            gradient.SetKeys(colorKeys.ToArray(), alphaKeys.ToArray());
+            return gradient;
+        }
     }
 
     public static class ModelSerializer
@@ -101,7 +206,6 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteAttributeString("SpawnRate", system.SpawnRate.ToString());
             writer.WriteAttributeString("BlendingMode", system.BlendingMode.ToString());
             writer.WriteAttributeString("OrderPriority", system.OrderPriority.ToString());
-            //writer.WriteAttributeString("ID", system.Id.ToString());
             for (int i = 0; i < system.GetNbChildren(); ++i)
                 Serialize(writer,system.GetChild(i),data);
             writer.WriteEndElement();
@@ -151,16 +255,13 @@ namespace UnityEditor.Experimental.VFX
         }
 
         private static void Serialize(XmlWriter writer, VFXPropertySlot slot, MetaData data)
-        {
-            List<string> values = new List<string>();
-            
+        {          
             var collapsed = RegisterSlot(slot, data);
 
             writer.WriteStartElement("Slot");
 
-            slot.GetStringValues(values);
             writer.WriteStartElement("Values");
-            writer.WriteValue(values);
+            slot.GetStringValues(writer);
             writer.WriteEndElement();
 
             writer.WriteStartElement("Collapsed");
@@ -274,6 +375,10 @@ namespace UnityEditor.Experimental.VFX
                 context.AddChild(block);
             }
 
+            int index = 0;
+            foreach (var slotXML in xml.Elements("Slot"))
+                DeserializeSlot(slotXML, context.GetSlot(index++));
+
             return context;
         }
 
@@ -284,6 +389,10 @@ namespace UnityEditor.Experimental.VFX
 
             var block = new VFXBlockModel(desc);
             block.UpdateCollapsed(bool.Parse(xml.Attribute("Collapsed").Value));
+
+            int index = 0;
+            foreach (var slotXML in xml.Elements("Slot"))
+                DeserializeSlot(slotXML, block.GetSlot(index++));
 
             return block;
         }
@@ -311,7 +420,31 @@ namespace UnityEditor.Experimental.VFX
             var block = new VFXDataBlockModel(desc);
             block.UpdateCollapsed(bool.Parse(xml.Attribute("Collapsed").Value));
 
+            DeserializeSlot(xml.Element("Slot"), block.Slot);
+
             return block;          
+        }
+
+        private static void DeserializeSlot(XElement xml,VFXPropertySlot dst)
+        {
+            var values = xml.Element("Values");
+            var reader = values.CreateReader();
+            reader.ReadToFollowing("Values");
+            while (reader.Read() && reader.NodeType != XmlNodeType.Element) { } // Advance to element
+            dst.SetValuesFromString(reader);
+
+            var collapsed = xml.Element("Collapsed");
+            string[] collapsedStr = collapsed.Value.Split(' ');
+            bool[] collapsedValues = new bool[collapsedStr.Length];
+            for (int i = 0; i < collapsedStr.Length; ++i)
+                collapsedValues[i] = bool.Parse(collapsedStr[i]);
+
+            /*int index = 0;
+            VFXPropertySlot slot = dst;
+            for (int i = 0; i < collapsedStr.Length; ++i)
+            {
+                slot.UpdateCollapsed(collapsedValues[i])
+            }*/
         }
     }
 }

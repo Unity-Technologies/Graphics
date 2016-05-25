@@ -228,9 +228,7 @@ namespace UnityEditor.Experimental
             }
 
             // Copy values to new exposed parameter.
-            List<string> values = new List<string>();
-            m_Slot.GetStringValues(values);
-            newblock.Slot.SetValuesFromString(values);
+            newblock.Slot.CopyValuesFrom(m_Slot);
 
             // Connect
             m_DataSource.ConnectData(this, newblock.Anchor);
