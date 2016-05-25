@@ -487,6 +487,12 @@ namespace UnityEditor.Experimental
             return edges;
         }
 
+        public void ConnectData(VFXOutputSlot outputSlot, VFXInputSlot inputSlot)
+        {
+            inputSlot.Link(outputSlot);
+            SyncView(inputSlot,true);
+        }
+
         public void ConnectData(VFXUIPropertyAnchor a, VFXUIPropertyAnchor b)
         {
             // Swap to get a as output and b as input
@@ -497,10 +503,8 @@ namespace UnityEditor.Experimental
                 b = tmp;
             }
 
-            b.Owner.CollapseChildren(true);    
-
-            ((VFXInputSlot)b.Slot).Link((VFXOutputSlot)a.Slot);
-            SyncView(b.Slot,true);
+            b.Owner.CollapseChildren(true);
+            ConnectData((VFXOutputSlot)a.Slot,(VFXInputSlot)b.Slot);
         }
 
         public bool ConnectContext(VFXContextModel a, VFXContextModel b)

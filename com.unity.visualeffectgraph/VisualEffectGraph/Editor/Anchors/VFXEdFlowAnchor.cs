@@ -135,35 +135,37 @@ namespace UnityEditor.Experimental
             VFXContextDesc currentContextDesc = (parent as VFXEdContextNode).Model.Desc;
             if(currentContextDesc.m_Type != VFXContextDesc.Type.kTypeOutput)
             {
-                //GenericMenu menu = new GenericMenu();
-                List<MiniMenu.Item> items = new List<MiniMenu.Item>();
-                items.Add(new MiniMenu.HeaderItem("Add Context"));
-                VFXEditor.ContextLibrary.GetContexts();
 
                 bool showInitItems = (currentContextDesc.m_Type != VFXContextDesc.Type.kTypeInit && currentContextDesc.m_Type != VFXContextDesc.Type.kTypeUpdate);
                 bool showUpdateItems = (currentContextDesc.m_Type != VFXContextDesc.Type.kTypeUpdate);
 
-                foreach(VFXContextDesc desc in VFXEditor.ContextLibrary.GetContexts())
+                MiniMenu.MenuSet items = new MiniMenu.MenuSet();
+
+                var contexts = VFXEditor.ContextLibrary.GetContexts();
+
+                foreach(VFXContextDesc desc in contexts)
                 {
                     if(!showInitItems && desc.m_Type == VFXContextDesc.Type.kTypeInit)
                         continue;
                     if (!showUpdateItems && desc.m_Type == VFXContextDesc.Type.kTypeUpdate)
                         continue;
-                    //menu.AddItem(new GUIContent(VFXContextDesc.GetTypeName(desc.m_Type) + "/" + desc.Name), false, ExposeNode, new ExposeNodeInfo(position, desc, this));
-                    items.Add(new MiniMenu.CallbackItem(VFXContextDesc.GetTypeName(desc.m_Type) + "/" + desc.Name, ExposeNode, new ExposeNodeInfo(position, desc, this)));
+                    
+                    items.AddMenuEntry("Add " + VFXContextDesc.GetTypeName(desc.m_Type)+ " ..." , desc.Name , ExposeNode, new ExposeNodeInfo(desc, this));
                 }
+
                 MiniMenu.Show(position, items);
-                //menu.ShowAsContext();
             }
         }
 
 
-        public void ExposeNode(Vector2 position, object exposeNodeInfo)
+        public void ExposeNode(Vector2 mousePosition, object exposeNodeInfo)
         {
             ExposeNodeInfo info = (ExposeNodeInfo)exposeNodeInfo;
             VFXEdCanvas canvas = (VFXEdCanvas)ParentCanvas();
 
-            VFXContextModel context =  m_DataSource.CreateContext(info.ContextDesc, info.Position);
+            Vector2 canvasMousePosition = canvas.MouseToCanvas(mousePosition);
+            Vector2 OffsetPosition = canvasMousePosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth/2 , 10);
+            VFXContextModel context =  m_DataSource.CreateContext(info.ContextDesc, OffsetPosition);
             canvas.ReloadData();
 
             VFXEdContextNode node = m_DataSource.GetUI<VFXEdContextNode>(context);
@@ -176,13 +178,11 @@ namespace UnityEditor.Experimental
 
     internal class ExposeNodeInfo
     {
-        public Vector2 Position;
         public VFXContextDesc ContextDesc;
         public VFXEdFlowAnchor Anchor;
 
-        public ExposeNodeInfo(Vector2 canvasPosition, VFXContextDesc desc, VFXEdFlowAnchor anchor)
+        public ExposeNodeInfo(VFXContextDesc desc, VFXEdFlowAnchor anchor)
         {
-            Position = canvasPosition;
             ContextDesc = desc;
             Anchor = anchor;
         }

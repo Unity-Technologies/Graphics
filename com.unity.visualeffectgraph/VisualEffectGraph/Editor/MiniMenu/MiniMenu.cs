@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental
 
             public override void OnGUI(Rect currentRect, bool selected)
             {
-                EditorGUI.DrawRect(currentRect, Color.gray);
+                EditorGUI.DrawRect(currentRect, new Color(1.0f,1.0f,1.0f,0.1f));
                 GUI.Label(currentRect, content, MiniMenu.Styles.Title);
             }
         }
@@ -72,6 +72,41 @@ namespace UnityEditor.Experimental
 
         }
 
+        public class MenuSet
+        {
+            Dictionary<string,List<Item>> m_Items;
+            
+            public MenuSet() { m_Items = new Dictionary<string, List<Item>>(); }
+
+            public void AddItem(string category, Item item)
+            {
+                if(!m_Items.ContainsKey(category))
+                {
+                    m_Items.Add(category, new List<Item>());
+                }
+                m_Items[category].Add(item);
+            } 
+
+            public void AddMenuEntry(string category, string label, CallbackItem.MenuAction callback, object param)
+            {
+                AddItem(category, new CallbackItem(label, callback, param));
+            }
+
+            public List<Item> GetItems()
+            {
+                List<Item> returnList = new List<Item>();
+                foreach(KeyValuePair<string, List<Item>> kvp in m_Items)
+                {
+                    returnList.Add(new HeaderItem(kvp.Key));
+                    foreach(Item item in kvp.Value)
+                    {
+                        returnList.Add(item);
+                    }
+                }
+                return returnList;
+            }
+        }
+
         public class WindowStyles
         {
             public GUIStyle Title;
@@ -82,7 +117,8 @@ namespace UnityEditor.Experimental
 
             public WindowStyles()
             {
-                Title = new GUIStyle((GUIStyle)typeof(EditorStyles).GetProperty("inspectorBig", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null, null));
+                //Title = new GUIStyle((GUIStyle)typeof(EditorStyles).GetProperty("inspectorBig", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null, null));
+                Title = new GUIStyle(EditorStyles.boldLabel);
                 Title.alignment = TextAnchor.MiddleCenter;
 
                 Background = new GUIStyle("grey_border");
@@ -126,6 +162,11 @@ namespace UnityEditor.Experimental
             s_MiniMenuWindow = null;
         }
 
+        internal static bool Show(Vector2 position, MenuSet menuSet)
+        {
+            return Show(position, menuSet.GetItems());
+        }
+
         internal static bool Show(Vector2 position, List<Item> items)
         {
             // If the window is already open, close it instead.
@@ -157,9 +198,10 @@ namespace UnityEditor.Experimental
             return false;
         }
 
-        public void Init( Vector2 position, List<Item> items)
+        public void Init(Vector2 position, List<Item> items)
         {
             wantsMouseMove = true;
+            m_MousePos = position;
             position = GUIUtility.GUIToScreenPoint(position);
             float width = Styles.DefaultWidth;
             m_Items = items;
