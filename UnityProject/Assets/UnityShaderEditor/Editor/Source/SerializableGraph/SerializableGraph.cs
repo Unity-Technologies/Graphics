@@ -104,10 +104,10 @@ namespace UnityEditor.MaterialGraph
 
         public void RemoveElements(IEnumerable<SerializableNode> nodes, IEnumerable<Edge> edges)
         {
-            foreach (var edge in edges)
+            foreach (var edge in edges.ToArray())
                 RemoveEdgeNoValidate(edge);
 
-            foreach (var serializableNode in nodes)
+            foreach (var serializableNode in nodes.ToArray())
                 RemoveNodeNoValidate(serializableNode);
 
             ValidateGraph();
