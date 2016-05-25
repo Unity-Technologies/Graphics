@@ -105,7 +105,7 @@ namespace UnityEditor.MaterialGraph
         {
             var invalidSlots = m_Slots.Select(x => x.name).Except(slotNames);
 
-            foreach (var invalidSlot in invalidSlots.ToList())
+            foreach (var invalidSlot in invalidSlots.ToArray())
             {
                 Debug.LogFormat("Removing Invalid MaterialSlot: {0}", invalidSlot);
                 RemoveSlot(invalidSlot);
@@ -114,8 +114,12 @@ namespace UnityEditor.MaterialGraph
 
         public SlotReference GetSlotReference(string name)
         {
+            var slot = FindSlot(name);
+            if (slot == null)
+                return null;
             return new SlotReference(guid, name);
         }
+
         public SerializableSlot FindSlot(string name)
         {
             var slot = slots.FirstOrDefault(x => x.name == name);

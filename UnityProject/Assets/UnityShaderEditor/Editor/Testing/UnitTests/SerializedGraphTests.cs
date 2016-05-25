@@ -105,6 +105,49 @@ namespace UnityEditor.MaterialGraph.Tests
         }
 
         [Test]
+        public void TestCanRemoveSlotFromSerializableNode()
+        {
+            var node = new SerializableNode(null);
+            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output));
+            node.AddSlot(new SerializableSlot("input", "input", SlotType.Input));
+
+            Assert.AreEqual(2, node.slots.Count());
+            Assert.AreEqual(1, node.inputSlots.Count());
+            Assert.AreEqual(1, node.outputSlots.Count());
+
+            node.RemoveSlot("input");
+
+            Assert.AreEqual(1, node.slots.Count());
+            Assert.AreEqual(0, node.inputSlots.Count());
+            Assert.AreEqual(1, node.outputSlots.Count());
+        }
+
+        [Test]
+        public void TestCanRemoveSlotsWithNonMathingNameFromSerializableNode()
+        {
+            var node = new SerializableNode(null);
+            node.AddSlot(new SerializableSlot("input1", "input", SlotType.Input));
+            node.AddSlot(new SerializableSlot("input2", "input", SlotType.Input));
+            node.AddSlot(new SerializableSlot("input3", "input", SlotType.Input));
+            node.AddSlot(new SerializableSlot("input4", "input", SlotType.Input));
+
+            Assert.AreEqual(4, node.slots.Count());
+            Assert.AreEqual(4, node.inputSlots.Count());
+            Assert.AreEqual(0, node.outputSlots.Count());
+
+            node.RemoveSlotsNameNotMatching(new []{"input1", "input3"});
+
+            Assert.AreEqual(2, node.slots.Count());
+            Assert.AreEqual(2, node.inputSlots.Count());
+            Assert.AreEqual(0, node.outputSlots.Count());
+
+            Assert.IsNotNull(node.FindInputSlot("input1"));
+            Assert.IsNull(node.FindInputSlot("input2"));
+            Assert.IsNotNull(node.FindInputSlot("input3"));
+            Assert.IsNull(node.FindInputSlot("input4"));
+        }
+
+        [Test]
         public void TestCanNotAddDuplicateSlotToSerializableNode()
         {
             var graph = new SerializableGraph();
@@ -153,6 +196,10 @@ namespace UnityEditor.MaterialGraph.Tests
             Assert.IsNull(node.FindInputSlot("output"));
             Assert.IsNotNull(node.FindOutputSlot("output"));
             Assert.IsNull(node.FindOutputSlot("input"));
+
+            Assert.IsNotNull(node.FindSlot("input"));
+            Assert.IsNotNull(node.FindSlot("output"));
+            Assert.IsNull(node.FindSlot("invalid"));
         }
 
         [Test]
@@ -165,6 +212,7 @@ namespace UnityEditor.MaterialGraph.Tests
             Assert.AreEqual(2, node.slots.Count());
             Assert.IsNotNull(node.GetSlotReference("input"));
             Assert.IsNotNull(node.GetSlotReference("output"));
+            Assert.Null(node.GetSlotReference("invalid"));
         }
 
         [Test]
@@ -222,7 +270,6 @@ namespace UnityEditor.MaterialGraph.Tests
             Assert.IsNull(createdEdge);
             Assert.AreEqual(0, graph.edges.Count());
         }
-
 
         [Test]
         public void TestCanNotConnectTwoInputSlotsOnSerializableGraph()
