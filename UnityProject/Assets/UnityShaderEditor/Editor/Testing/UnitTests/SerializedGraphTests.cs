@@ -378,8 +378,7 @@ namespace UnityEditor.MaterialGraph.Tests
             Assert.AreEqual(2, graph.nodes.Count());
             graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
             Assert.AreEqual(1, graph.edges.Count());
-
-            graph.GetEdges(inputNode.GetSlotReference("iput"));
+            
             Assert.AreEqual(1, graph.GetEdges(inputNode.GetSlotReference("input")).Count());
             Assert.AreEqual(1, graph.GetEdges(outputNode.GetSlotReference("output")).Count());
             Assert.AreEqual(0, graph.GetEdges(outputNode.GetSlotReference("badslot")).Count());

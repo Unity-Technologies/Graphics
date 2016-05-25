@@ -377,7 +377,7 @@ namespace UnityEditor.MaterialGraph
         {
             // figure out what kind of preview we want!
             var activeNodeList = ListPool<SerializableNode>.Get();
-            node.CollectChildNodesByExecutionOrder(activeNodeList);
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
             var generationMode = GenerationMode.Preview2D;
             generatedShaderMode = PreviewMode.Preview2D;
             

@@ -40,7 +40,7 @@ namespace UnityEditor.MaterialGraph
             get
             {
                 m_ActiveNodes.Clear();
-                pixelMasterNode.CollectChildNodesByExecutionOrder(m_ActiveNodes);
+                NodeUtils.DepthFirstCollectNodesFromNode(m_ActiveNodes, pixelMasterNode);
                 return m_ActiveNodes.OfType<AbstractMaterialNode>();
             }
         }

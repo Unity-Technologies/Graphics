@@ -125,6 +125,9 @@ namespace UnityEditor.MaterialGraph
 
         public IEnumerable<Edge> GetEdges(SlotReference s)
         {
+            if (s == null)
+                return new Edge[0];
+
             return m_Edges.Where(x =>
                 (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotName == s.slotName)
                 || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotName == s.slotName);

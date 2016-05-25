@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -42,45 +43,47 @@ namespace UnityEditor.MaterialGraph
             ListPool<SerializableSlot>.Release(validSlots);
         }
 
-        public static void CollectChildNodesByExecutionOrder(List<SerializableNode> nodeList, SerializableNode node, SerializableSlot slotToUse)
+        // CollectNodesNodeFeedsInto looks at the current node and calculates
+        // which child nodes it depends on for it's calculation.
+        // Results are returned depth first so by processing each node in
+        // order you can generate a valid code block.
+        public static void DepthFirstCollectNodesFromNode(List<SerializableNode> nodeList, SerializableNode node, SerializableSlot slotToUse = null, bool includeSelf = true)
         {
+            // no where to start
             if (node == null)
                 return;
 
+            // allready added this node
             if (nodeList.Contains(node))
+                return;
+            
+            // if we have a slot passed in but can not find it on the node abort
+            if (slotToUse != null && node.inputSlots.All(x => x.name != slotToUse.name))
                 return;
 
             var validSlots = ListPool<SerializableSlot>.Get();
-            validSlots.AddRange(node.inputSlots);
-            if (slotToUse != null && !validSlots.Contains(slotToUse))
-            {
-                ListPool<SerializableSlot>.Release(validSlots);
-                return;
-            }
-
             if (slotToUse != null)
-            {
-                validSlots.Clear();
                 validSlots.Add(slotToUse);
-            }
-            
+            else
+                validSlots.AddRange(node.inputSlots);
+        
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var slot = validSlots[index];
-
-                var edges = node.owner.GetEdges(node.GetSlotReference(slot.name));
-                foreach (var edge in edges)
+                
+                foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot.name)))
                 {
                     var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                    CollectChildNodesByExecutionOrder(nodeList, outputNode, null);
+                    DepthFirstCollectNodesFromNode(nodeList, outputNode);
                 }
             }
 
-            nodeList.Add(node);
+            if (includeSelf)
+                nodeList.Add(node);
             ListPool<SerializableSlot>.Release(validSlots);
         }
 
-        public static void CollectDependentNodes(List<SerializableNode> nodeList, SerializableNode node)
+        public static void CollectNodesNodeFeedsInto(List<SerializableNode> nodeList, SerializableNode node, bool includeSelf = true)
         {
             if (node == null)
                 return;
@@ -93,10 +96,11 @@ namespace UnityEditor.MaterialGraph
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot.name)))
                 {
                     var inputNode = node.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-                    CollectDependentNodes(nodeList, inputNode);
+                    CollectNodesNodeFeedsInto(nodeList, inputNode);
                 }
             }
-            nodeList.Add(node);
+            if (includeSelf)
+                nodeList.Add(node);
         }
     }
 }
