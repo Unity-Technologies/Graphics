@@ -38,7 +38,7 @@ namespace UnityEditor.MaterialGraph
                 {
                     var sourceAnchor =  (NodeAnchor)drawableMaterialNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == slot);
 
-                    var edges = baseNode.owner.GetEdges(slot);
+                    var edges = baseNode.owner.GetEdges(new SlotReference(baseNode.guid, slot.name));
                     foreach (var edge in edges)
                     {
                         var toNode = baseNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
@@ -115,7 +115,7 @@ namespace UnityEditor.MaterialGraph
         public void Connect(NodeAnchor a, NodeAnchor b)
         {
             var pixelGraph = graph.currentGraph;
-            pixelGraph.Connect(a.m_Slot, b.m_Slot);
+            pixelGraph.Connect(a.m_Node.GetSlotReference(a.m_Slot.name), b.m_Node.GetSlotReference(b.m_Slot.name));
         }
 
         private string m_LastPath;

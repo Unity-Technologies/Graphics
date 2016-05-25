@@ -112,6 +112,18 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
+        public SlotReference GetSlotReference(string name)
+        {
+            return new SlotReference(guid, name);
+        }
+        public SerializableSlot FindSlot(string name)
+        {
+            var slot = slots.FirstOrDefault(x => x.name == name);
+            if (slot == null)
+                Debug.LogErrorFormat("Input Slot: {0} could be found on node {1}", name, this);
+            return slot;
+        }
+
         public SerializableSlot FindInputSlot(string name)
         {
             var slot = inputSlots.FirstOrDefault(x => x.name == name);
@@ -174,7 +186,7 @@ namespace UnityEditor.MaterialGraph
             var modified = false;
             foreach (var slot in inputSlots)
             {
-                if (!owner.GetEdges(slot).Any())
+                if (!owner.GetEdges(GetSlotReference(slot.name)).Any())
                     modified |= DoSlotUI(this, slot);
             }
 

@@ -25,17 +25,17 @@ namespace UnityEditor.MaterialGraph
 
         protected MaterialSlot GetInputSlot1()
         {
-            return new MaterialSlot(this, GetInputSlot1Name(), GetInputSlot1Name(), SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(GetInputSlot1Name(), GetInputSlot1Name(), SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected MaterialSlot GetInputSlot2()
         {
-            return new MaterialSlot(this, GetInputSlot2Name(), GetInputSlot2Name(), SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(GetInputSlot2Name(), GetInputSlot2Name(), SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(this, GetOutputSlotName(), GetOutputSlotName(), SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(GetOutputSlotName(), GetOutputSlotName(), SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
         }
         
         protected virtual string GetInputSlot1Name()
