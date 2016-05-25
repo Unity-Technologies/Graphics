@@ -113,7 +113,7 @@ namespace UnityEditor.Experimental
         // Static variables
 
         private static Styles s_Styles;
-        private static VFXFilterWindow _sFilterWindow = null;
+        private static VFXFilterWindow s_FilterWindow = null;
         private static long s_LastClosedTime;
         private static bool s_DirtyList = false;
 
@@ -161,15 +161,14 @@ namespace UnityEditor.Experimental
 
         void OnEnable()
         {
-            _sFilterWindow = this;
-
-            m_Search = EditorPrefs.GetString(kComponentSearch, "");
+            s_FilterWindow = this;
+            m_Search = "";
         }
 
         void OnDisable()
         {
             s_LastClosedTime = System.DateTime.Now.Ticks / System.TimeSpan.TicksPerMillisecond;
-            _sFilterWindow = null;
+            s_FilterWindow = null;
         }
 
         internal static bool ValidateAddComponentMenuItem()
@@ -190,7 +189,7 @@ namespace UnityEditor.Experimental
                 }
                 catch (Exception)
                 {
-                    _sFilterWindow = null;
+                    s_FilterWindow = null;
                 }
             }
 
@@ -200,9 +199,9 @@ namespace UnityEditor.Experimental
             if (!justClosed)
             {
                 Event.current.Use();
-                if (_sFilterWindow == null)
-                    _sFilterWindow = ScriptableObject.CreateInstance<VFXFilterWindow>();
-                _sFilterWindow.Init(position, provider);
+                if (s_FilterWindow == null)
+                    s_FilterWindow = ScriptableObject.CreateInstance<VFXFilterWindow>();
+                s_FilterWindow.Init(position, provider);
                 return true;
             }
             return false;
@@ -356,7 +355,7 @@ namespace UnityEditor.Experimental
             if (evt.type == EventType.KeyDown)
             {
                 // Special handling when in new script panel
-                if (!activeParent.HandleKeyboard(evt, _sFilterWindow, GoToParent))
+                if (!activeParent.HandleKeyboard(evt, s_FilterWindow, GoToParent))
                 {
                     // Always do these
                     if (evt.keyCode == KeyCode.DownArrow)
@@ -540,7 +539,7 @@ namespace UnityEditor.Experimental
 
             //GUILayout.Space (10);
 
-            if (!parent.OnGUI(_sFilterWindow))
+            if (!parent.OnGUI(s_FilterWindow))
                 ListGUI(tree, parent);
 
             GUILayout.EndArea();

@@ -86,60 +86,43 @@ namespace UnityEditor.Experimental
             return block.Category + (block.Category.Length != 0 ? "/" : "") + block.Name;
         }
 
-        protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)
+        protected override MiniMenu.MenuSet GetNodeMenu(Vector2 mousePosition)
         {
-            GenericMenu menu = new GenericMenu();
+            VFXEdNodeBlockDraggable selected = ((VFXEdCanvas)ParentCanvas()).SelectedNodeBlock;
 
-            // Use an additional list to sort blocks in menu
-            var blocks = new List<VFXBlockDesc>(VFXEditor.BlockLibrary.GetBlocks());
-            blocks.Sort((blockA, blockB) => {
-                int res = blockA.Category.CompareTo(blockB.Category);
-                return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
-            });
-                
-            // Add New...
-            foreach (VFXBlockDesc block in blocks)
+            MiniMenu.MenuSet menu = new MiniMenu.MenuSet();
+            menu.AddMenuEntry("NodeBlock", "Add New...", AddNodeBlock, null);
+            if( selected != null && selected is VFXEdProcessingNodeBlock && selected.canvasBoundingRect.Contains(ParentCanvas().MouseToCanvas(mousePosition)))
             {
-                // TODO : Only add item if block is compatible with current context.
-                menu.AddItem(new GUIContent("Add New/" + FormatMenuString(block)), false, AddNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
-            }
-            
-
-            // Replace Current...
-            if (OwnsBlock((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock))
-            {
-                menu.AddSeparator("");
-                foreach (VFXBlockDesc block in blocks)
-                {
-                    // TODO : Only add item if block is compatible with current context.
-                    menu.AddItem(new GUIContent("Replace By/"+ FormatMenuString(block)), false, ReplaceNodeBlock, new VFXEdProcessingNodeBlockSpawner(canvasClickPosition,block, this, m_DataSource));
-                }
+                menu.AddMenuEntry("NodeBlock", "Replace by...", ReplaceNodeBlock, selected);
             }
 
-            // Switch Context Types
-
-            ReadOnlyCollection<VFXContextDesc> contexts = VFXEditor.ContextLibrary.GetContexts();
-
-            foreach(VFXContextDesc context in contexts)
+            foreach(VFXContextDesc desc in VFXEditor.ContextLibrary.GetContexts())
             {
-                if(context.m_Type == Model.Desc.m_Type && context.Name != Model.Desc.Name)
-                {
-                    menu.AddItem(new GUIContent("Switch "+ VFXContextDesc.GetTypeName(Model.Desc.m_Type) + " Type/" + context.Name), false, MenuSwitchContext, context);
-                }
+                if(desc.m_Type == Model.Desc.m_Type && desc != Model.Desc)
+                        menu.AddMenuEntry("Switch Context", desc.Name, SwitchContext, desc);
             }
 
-
-            // TODO : Layout Functions
-            menu.AddSeparator("");
-            menu.AddItem(new GUIContent("Layout/Blocks/Collapse UnConnected"), false, CollapseUnconnected);
-            menu.AddItem(new GUIContent("Layout/Blocks/Collapse Connected"), false, CollapseConnected);
-            menu.AddItem(new GUIContent("Layout/Blocks/Collapse All"), false, CollapseAll );
-            menu.AddItem(new GUIContent("Layout/Blocks/Expand All"), false, ExpandAll);
-
+            menu.AddMenuEntry("Layout", "Layout System", LayoutSystem, null);
+            menu.AddMenuEntry("Layout", "Collapse All", CollapseAll, null);
+            menu.AddMenuEntry("Layout", "Expand All", ExpandAll, null);
+            menu.AddMenuEntry("Layout", "Collapse UnConnected", CollapseUnconnected, null);
+            menu.AddMenuEntry("Layout", "Collapse Connected", CollapseConnected, null);
             return menu;
         }
 
-        public void MenuSwitchContext(object o)
+        public void AddNodeBlock(Vector2 position, object o)
+        {
+            VFXFilterPopup.ShowNewBlockPopup(this, position, ParentCanvas(), true);
+        }
+
+        public void ReplaceNodeBlock(Vector2 position, object o)
+        {
+            VFXEdProcessingNodeBlock block = o as VFXEdProcessingNodeBlock;
+            VFXFilterPopup.ShowReplaceBlockPopup(this, block, position, ParentCanvas(), true);
+        }
+
+        public void SwitchContext(Vector2 position, object o)
         {
             SetContext(o as VFXContextDesc);
         }
@@ -154,7 +137,6 @@ namespace UnityEditor.Experimental
             }
 
             Model.Desc = context;
-            
 
             if (m_Model.Desc.ShowBlock)
                 ContextNodeBlock = new VFXEdContextNodeBlock(m_DataSource, m_Model);
@@ -176,7 +158,13 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void CollapseUnconnected()
+
+        public void LayoutSystem(Vector2 position, object o)
+        {
+            VFXEdLayoutUtility.LayoutSystem(Model.GetOwner(),m_DataSource);
+        }
+
+        public void CollapseUnconnected(Vector2 position, object o)
         {
             foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
             {
@@ -185,7 +173,7 @@ namespace UnityEditor.Experimental
             Layout();
         }
 
-        public void CollapseConnected()
+        public void CollapseConnected(Vector2 position, object o)
         {
             foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
             {
@@ -194,8 +182,7 @@ namespace UnityEditor.Experimental
             Layout();
         }
 
-
-        public void CollapseAll()
+        public void CollapseAll(Vector2 position, object o)
         {
             foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
             {
@@ -204,7 +191,7 @@ namespace UnityEditor.Experimental
             Layout();
         }
 
-        public void ExpandAll()
+        public void ExpandAll(Vector2 position, object o)
         {
             foreach(VFXEdNodeBlock block in NodeBlockContainer.nodeBlocks)
             {

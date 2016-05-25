@@ -113,7 +113,7 @@ namespace UnityEditor.Experimental
             public GUIStyle Background;
             public GUIStyle Item;
             public float DefaultWidth = 180.0f;
-            public float ItemHeight = 24.0f;
+            public float ItemHeight = 20.0f;
 
             public WindowStyles()
             {

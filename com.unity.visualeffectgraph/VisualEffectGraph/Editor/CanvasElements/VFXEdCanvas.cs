@@ -177,14 +177,26 @@ namespace UnityEditor.Experimental
         public void ShowCanvasMenu(Vector2 position)
         {
             MiniMenu.MenuSet itemSet = new MiniMenu.MenuSet();
-            itemSet.AddMenuEntry("Add...", "New Node", ShowNewNodePopup, null);
+            itemSet.AddMenuEntry("Add...", "New ParticleSystem", NewParticleSystem, null);
+            itemSet.AddMenuEntry("Add...", "New Node...", ShowNewNodePopup, null);
+            itemSet.AddMenuEntry("Add...", "New Parameter...", ShowNewDataNodePopup, null);
             itemSet.AddMenuEntry("Layout", "Layout All Systems", LayoutAllSystems, null);
             MiniMenu.Show(position, itemSet);
+        }
+
+        public void NewParticleSystem(Vector2 position, object o)
+        {
+            VFXEdUtility.NewParticleSystem(this, m_DataSource, position);
         }
 
         public void ShowNewNodePopup(Vector2 position, object o)
         {
             VFXFilterPopup.ShowNewNodePopup(position, this, true);
+        }
+
+        public void ShowNewDataNodePopup(Vector2 position, object o)
+        {
+            VFXFilterPopup.ShowNewDataNodePopup(position, this, true);
         }
 
         public void LayoutSystem(Vector2 position, object o)

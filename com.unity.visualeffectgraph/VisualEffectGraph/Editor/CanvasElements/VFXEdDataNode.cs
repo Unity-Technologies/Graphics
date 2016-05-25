@@ -42,23 +42,16 @@ namespace UnityEditor.Experimental
             Model.UpdatePosition(translation);
         }
 
-        protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)
+        protected override MiniMenu.MenuSet GetNodeMenu(Vector2 mousePosition)
         {
-           GenericMenu menu = new GenericMenu();
-
-           var blocks = new List<VFXDataBlockDesc>(VFXEditor.BlockLibrary.GetDataBlocks());
-           blocks.Sort((blockA, blockB) =>
-           {
-               int res = blockA.Category.CompareTo(blockB.Category);
-               return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
-           });
-
-           foreach (var block in blocks)
-           {
-               menu.AddItem(new GUIContent(block.Category + "/" + block.Name), false, AddNodeBlock, new VFXEdDataNodeBlockSpawner(canvasClickPosition, block, this, m_DataSource, block.Name));
-           }
-
+            MiniMenu.MenuSet menu = new MiniMenu.MenuSet();
+            menu.AddMenuEntry("Parameters", "Add...", AddParameterBlock, null);
             return menu;
+        }
+
+        public void AddParameterBlock(Vector2 mousePosition, object o)
+        {
+            VFXFilterPopup.ShowNewDataBlockPopup(this, mousePosition, ParentCanvas(), true);
         }
 
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)

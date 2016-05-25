@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental
         Vector2 m_mousePosition;
         VFXContextModel m_contextModel;
         VFXEdDataSource m_dataSource;
+        VFXBlockModel m_blockModel;
 
         public class VFXBlockElement : VFXFilterWindow.Element
         {
@@ -30,7 +31,17 @@ namespace UnityEditor.Experimental
         {
             m_mousePosition = mousePosition;
             m_contextModel = contextModel;
+            m_blockModel = null;
             m_dataSource = dataSource;
+        }
+
+        internal VFXBlockProvider(Vector2 mousePosition, VFXContextModel contextModel, VFXBlockModel blockModel, VFXEdDataSource dataSource)
+        {
+            m_mousePosition = mousePosition;
+            m_contextModel = contextModel;
+            m_blockModel = blockModel;
+            m_dataSource = dataSource;
+            
         }
 
         public void CreateComponentTree(List<VFXFilterWindow.Element> tree)
@@ -81,6 +92,10 @@ namespace UnityEditor.Experimental
         public void SpawnBlock(VFXBlockElement block)
         {
             int index = m_dataSource.GetUI<VFXEdContextNode>(m_contextModel).NodeBlockContainer.GetDropIndex(m_mousePosition);
+
+            if(m_blockModel != null)
+                m_dataSource.Remove(m_blockModel);
+
             m_dataSource.Create(new VFXBlockModel(block.m_Desc), m_contextModel, index);
         }
 

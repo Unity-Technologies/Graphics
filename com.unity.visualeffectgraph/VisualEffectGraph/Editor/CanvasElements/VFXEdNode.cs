@@ -46,15 +46,15 @@ namespace UnityEditor.Experimental
             //AddManipulator(new ImguiContainer());
         }
 
-        protected abstract GenericMenu GetNodeMenu(Vector2 canvasClickPosition);
+        protected abstract MiniMenu.MenuSet GetNodeMenu(Vector2 mousePosition);
 
         private bool ManageRightClick(CanvasElement element, Event e, Canvas2D parent)
         {
             if (e.type == EventType.Used)
                 return false;
 
-            GenericMenu m = GetNodeMenu(parent.MouseToCanvas(e.mousePosition));
-            m.ShowAsContext();
+            MiniMenu.MenuSet menuSet = GetNodeMenu(e.mousePosition);
+            MiniMenu.Show(e.mousePosition, menuSet);
             e.Use();
             return true;
         }

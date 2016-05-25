@@ -33,8 +33,9 @@ namespace UnityEditor.Experimental.VFX
             m_DataBlocks.Clear();
         }
 
-        public VFXBlockDesc GetBlock(string id)                 { return m_Blocks[id]; }
-        public IEnumerable<VFXBlockDesc> GetBlocks()            { return m_Blocks.Values; }
+        public VFXBlockDesc GetBlock<T>() where T : VFXBlockType    { return GetBlock(typeof(T).FullName); }
+        public VFXBlockDesc GetBlock(string id)                     { return m_Blocks[id]; }
+        public IEnumerable<VFXBlockDesc> GetBlocks()                { return m_Blocks.Values; }
 
         public VFXDataBlockDesc GetDataBlock(string id)         { return m_DataBlocks[id]; }
         public IEnumerable<VFXDataBlockDesc> GetDataBlocks()    { return m_DataBlocks.Values; }
