@@ -27,6 +27,7 @@ namespace UnityEditor.MaterialGraph
         public string displayName
         {
             get { return m_DisplayName; }
+            set { m_DisplayName = value; }
         }
 
         public bool isInputSlot
@@ -58,11 +59,5 @@ namespace UnityEditor.MaterialGraph
         {
             return false;
         }
-    }
-
-    public enum SlotType
-    {
-        Input,
-        Output
     }
 }

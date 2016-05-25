@@ -92,26 +92,8 @@ namespace UnityEditor.MaterialGraph
             if (slot == null)
                 return;
 
-            // new MaterialSlot, just add it, we cool
-            if (!m_Slots.Contains(slot))
-            {
-                m_Slots.Add(slot);
-                return;
-            }
-
-            // old Slot found
-            // update the default value, and the slotType!
-            var foundSlots = m_Slots.FindAll(x => x.name == slot.name);
-
-            // if we are in a bad state (> 1 slot with same name).
-            // or our types are differernt now
-            // reset the slot to the new value
-            if (foundSlots.Count > 1 || foundSlots[0].GetType() != slot.GetType())
-            {
-                Debug.LogWarningFormat("Node {0} has more than one MaterialSlot with the same name, removing.");
-                m_Slots.RemoveAll(x => x.name == slot.name);
-                m_Slots.Add(slot);
-            }
+            m_Slots.RemoveAll(x => x.name == slot.name);
+            m_Slots.Add(slot);
         }
 
         public void RemoveSlot(string name)
