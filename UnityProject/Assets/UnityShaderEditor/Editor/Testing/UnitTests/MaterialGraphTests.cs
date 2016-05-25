@@ -1,11 +1,23 @@
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor.Graphing;
+using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Tests
 {
     [TestFixture]
     public class MaterialGraphTests
     {
+        [SetUpFixture]
+        public class SetUpClass
+        {
+            [SetUp]
+            void RunBeforeAnyTests()
+            {
+                Debug.logger.logHandler = new ConsoleLogHandler();
+            }
+        }
+
         [Test]
         public void TestCreateMaterialGraph()
         {
