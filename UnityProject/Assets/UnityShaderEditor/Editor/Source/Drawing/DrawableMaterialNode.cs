@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -71,11 +72,11 @@ namespace UnityEditor.MaterialGraph
 
         private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
         {
-            var childrenNodes = ListPool<SerializableNode>.Get();
+            var childrenNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes, m_Node);
             if (childrenNodes.Any(x => x is IRequiresTime))
                 Invalidate();
-            ListPool<SerializableNode>.Release(childrenNodes);
+            ListPool<INode>.Release(childrenNodes);
             return true;
         }
         
@@ -131,9 +132,9 @@ namespace UnityEditor.MaterialGraph
 
         public static void RepaintDependentNodes(AbstractMaterialNode bmn)
         {
-            var dependentNodes = new List<SerializableNode>();
+            var dependentNodes = new List<INode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, bmn);
-            foreach (var node in dependentNodes)
+            foreach (var node in dependentNodes.OfType<SerializableNode>())
                 node.onNeedsRepaint();
         }
 

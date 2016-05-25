@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
     [Serializable]
-    public abstract class AbstractMaterialGraph : SerializableGraph
+    public abstract class AbstractMaterialGraph : Graphing.SerializableGraph
     {
         [NonSerialized]
         private PreviewRenderUtility m_PreviewUtility;
@@ -35,7 +36,7 @@ namespace UnityEditor.MaterialGraph
             get { return nodes.Any(x => x is IRequiresTime); }
         }
          
-        public override void AddNode(SerializableNode node)
+        public override void AddNode(INode node)
         {
             if (node is AbstractMaterialNode)
             {

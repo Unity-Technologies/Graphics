@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing
 {
     internal static class ListPool<T>
     {

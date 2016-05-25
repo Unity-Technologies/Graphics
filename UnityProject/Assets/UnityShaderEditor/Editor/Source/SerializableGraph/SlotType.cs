@@ -1,4 +1,4 @@
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing
 {
     public enum SlotType
     {

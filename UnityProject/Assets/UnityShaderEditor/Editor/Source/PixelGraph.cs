@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -24,7 +25,7 @@ namespace UnityEditor.MaterialGraph
         }
  
         [NonSerialized]
-        private List<SerializableNode> m_ActiveNodes = new List<SerializableNode>();
+        private List<INode> m_ActiveNodes = new List<INode>();
         public IEnumerable<AbstractMaterialNode> activeNodes
         {
             get
@@ -40,7 +41,7 @@ namespace UnityEditor.MaterialGraph
             m_PixelMasterNode = null;
         }
 
-        public override void AddNode(SerializableNode node)
+        public override void AddNode(INode node)
         {
             if (pixelMasterNode != null && node is PixelShaderNode)
             {

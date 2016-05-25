@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing
 {
     [Serializable]
-    public class SerializableSlot
+    public class SerializableSlot : ISlot
     {
         private const string kNotInit =  "Not Initilaized";
 

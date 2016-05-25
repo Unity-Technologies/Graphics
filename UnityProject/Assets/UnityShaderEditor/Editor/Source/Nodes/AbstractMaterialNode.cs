@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.Graphing;
 using UnityEditorInternal;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -572,7 +573,7 @@ namespace UnityEditor.MaterialGraph
 
         public static void UpdateMaterialProperties(AbstractMaterialNode target, Material material)
         {
-            var childNodes = ListPool<SerializableNode>.Get();
+            var childNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(childNodes, target);
 
             var pList = ListPool<PreviewProperty>.Get();
@@ -588,7 +589,7 @@ namespace UnityEditor.MaterialGraph
             foreach (var prop in pList)
                 SetPreviewMaterialProperty(prop, material);
 
-            ListPool<SerializableNode>.Release(childNodes);
+            ListPool<INode>.Release(childNodes);
             ListPool<PreviewProperty>.Release(pList);
         }
 
@@ -613,7 +614,7 @@ namespace UnityEditor.MaterialGraph
             return name + "_" + guid.ToString().Replace("-", "_");
         }
         
-        public sealed override void AddSlot(SerializableSlot slot)
+        public sealed override void AddSlot(ISlot slot)
         {
             if (!(slot is MaterialSlot))
             {
