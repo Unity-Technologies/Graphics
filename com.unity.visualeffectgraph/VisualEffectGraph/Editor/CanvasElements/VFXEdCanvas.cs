@@ -21,10 +21,12 @@ namespace UnityEditor.Experimental
         }
 
         private VFXEdNodeBlockDraggable m_SelectedNodeBlock;
+        private VFXEdDataSource m_DataSource;
 
         public VFXEdCanvas(Object target, EditorWindow host, ICanvasDataSource dataSource)
             : base(target, host, dataSource)
         {
+            m_DataSource = (VFXEdDataSource)dataSource;
 
             // draggable manipulator allows to move the canvas around. Note that individual elements can have the draggable manipulator on themselves
             AddManipulator(new Draggable(2, EventModifiers.None));
@@ -68,7 +70,7 @@ namespace UnityEditor.Experimental
             if (e.type == EventType.Used)
                 return false;
 
-            VFXEdContextMenu.CanvasMenu(this, parent.MouseToCanvas(e.mousePosition), dataSource as VFXEdDataSource);
+            ShowCanvasMenu(e.mousePosition);
             e.Use();
             return true;
         }
@@ -129,7 +131,7 @@ namespace UnityEditor.Experimental
             if (e.character == 'd')
             {
                 Debug.Log("Resync View");
-                (dataSource as VFXEdDataSource).ResyncViews();
+                m_DataSource.ResyncViews();
                 ReloadData();
                 Repaint();
 
@@ -170,6 +172,33 @@ namespace UnityEditor.Experimental
 
             return false;
         }
+
+
+        public void ShowCanvasMenu(Vector2 position)
+        {
+            MiniMenu.MenuSet itemSet = new MiniMenu.MenuSet();
+            itemSet.AddMenuEntry("Add...", "New Node", ShowNewNodePopup, null);
+            itemSet.AddMenuEntry("Layout", "Layout All Systems", LayoutAllSystems, null);
+            MiniMenu.Show(position, itemSet);
+        }
+
+        public void ShowNewNodePopup(Vector2 position, object o)
+        {
+            VFXFilterPopup.ShowNewNodePopup(position, this, true);
+        }
+
+        public void LayoutSystem(Vector2 position, object o)
+        {
+            VFXEdContextNode node = (VFXEdContextNode)o;
+            VFXEdLayoutUtility.LayoutSystem(node.Model.GetOwner(),m_DataSource);
+        }
+
+        public void LayoutAllSystems(Vector2 position, object o)
+        {
+            var allSystemModel = VFXEditor.Graph.systems;
+            VFXEdLayoutUtility.LayoutAllSystems(allSystemModel, m_DataSource, Vector2.zero);
+        }
+
     }
 
 }

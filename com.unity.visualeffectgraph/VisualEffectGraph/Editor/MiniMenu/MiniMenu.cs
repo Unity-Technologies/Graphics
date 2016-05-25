@@ -144,6 +144,7 @@ namespace UnityEditor.Experimental
         private List<Item> m_Items;
         private Vector2 m_MousePos = Vector2.zero;
         private int m_SelectedItem = -1;
+        private bool m_bExecuteOnClose = false;
 
         static MiniMenu()
         {
@@ -153,12 +154,14 @@ namespace UnityEditor.Experimental
         void OnEnable()
         {
             s_MiniMenuWindow = this;
-
+            m_bExecuteOnClose = false;
         }
 
         void OnDisable()
         {
             s_LastClosedTime = System.DateTime.Now.Ticks / System.TimeSpan.TicksPerMillisecond;
+            if(m_bExecuteOnClose)
+                m_Items[m_SelectedItem].Activate(m_MousePos);
             s_MiniMenuWindow = null;
         }
 
@@ -215,6 +218,7 @@ namespace UnityEditor.Experimental
             float height = Styles.ItemHeight * count;
 
             GUI.Box(new Rect(0, 0, width, height),"", Styles.Background);
+
             using (new GUILayout.VerticalScope())
             {
                 ListGUI();
@@ -265,15 +269,13 @@ namespace UnityEditor.Experimental
 
                 if (Event.current.type == EventType.MouseDown && currentRect.Contains(Event.current.mousePosition))
                 {
-                    Event.current.Use();
                     item.Activate(m_MousePos);
+                    Event.current.Use();
                     Close();
                 }
             }
 
             EditorGUIUtility.SetIconSize(Vector2.zero);
-
-            
         }
 
 

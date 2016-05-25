@@ -108,8 +108,6 @@ namespace UnityEditor.Experimental
                 tree.Add(new VFXNodeElement(3, desc, SpawnNode));
             }
 
-
-
             tree.Add(new VFXFilterWindow.GroupElement(1, "Add Parameter Node..."));
             categories.Clear();
             var dataBlocks = new List<VFXDataBlockDesc>(VFXEditor.BlockLibrary.GetDataBlocks());

@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental
     [InitializeOnLoad]
     public class VFXFilterWindow : EditorWindow
     {
-        public static readonly float DefaultWidth = 400f;
+        public static readonly float DefaultWidth = 240f;
         public static readonly float DefaultHeight = 300f;
 
         #region BaseElements
@@ -177,7 +177,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        internal static bool Show(Rect rect, IProvider provider)
+        internal static bool Show(Vector2 position, IProvider provider)
         {
             // If the window is already open, close it instead.
             UnityEngine.Object[] wins = Resources.FindObjectsOfTypeAll(typeof(VFXFilterWindow));
@@ -202,7 +202,7 @@ namespace UnityEditor.Experimental
                 Event.current.Use();
                 if (_sFilterWindow == null)
                     _sFilterWindow = ScriptableObject.CreateInstance<VFXFilterWindow>();
-                _sFilterWindow.Init(rect, provider);
+                _sFilterWindow.Init(position, provider);
                 return true;
             }
             return false;
@@ -214,11 +214,12 @@ namespace UnityEditor.Experimental
             return mi.Invoke(inst, args);
         }
 
-        void Init(Rect buttonRect, IProvider provider)
+        void Init(Vector2 position, IProvider provider)
         {
             m_Provider = provider;
             // Has to be done before calling Show / ShowWithMode
-            buttonRect = (Rect)Invoke(typeof(GUIUtility), null, "GUIToScreenRect", buttonRect);
+            Vector2 pos = GUIUtility.GUIToScreenPoint(position);
+            Rect buttonRect = new Rect(pos.x - DefaultWidth / 2, pos.y - 16, DefaultWidth, 1);
 
             CreateComponentTree();
 
