@@ -100,6 +100,7 @@ namespace UnityEditor.MaterialGraph
         {
             get { return slots.OfType<MaterialSlot>(); }
         }
+
         public IEnumerable<MaterialSlot> materialInputSlots
         {
             get { return inputSlots.OfType<MaterialSlot>(); }
@@ -126,7 +127,7 @@ namespace UnityEditor.MaterialGraph
 
             foreach (var inputSlot in materialInputSlots)
             {
-                var edges = owner.GetEdges(inputSlot);
+                var edges = owner.GetEdges(GetSlotReference(inputSlot.name));
                 if (edges.Any())
                     continue;
 
@@ -152,7 +153,7 @@ namespace UnityEditor.MaterialGraph
 
         protected string GetSlotValue(MaterialSlot inputSlot, GenerationMode generationMode)
         {
-            var edges = owner.GetEdges(inputSlot).ToArray();
+            var edges = owner.GetEdges(GetSlotReference(inputSlot.name)).ToArray();
 
             if (edges.Length > 0)
             {
@@ -258,7 +259,7 @@ namespace UnityEditor.MaterialGraph
             // so do that here
             foreach (var inputSlot in inputSlots)
             {
-                var edges = owner.GetEdges(inputSlot);
+                var edges = owner.GetEdges(GetSlotReference(inputSlot.name));
                 foreach (var edge in edges)
                 {
                     var fromSocketRef = edge.outputSlot;
@@ -280,7 +281,7 @@ namespace UnityEditor.MaterialGraph
             {
                 var inputType = inputSlot.valueType;
                 // if there is a connection
-                var edges = owner.GetEdges(inputSlot).ToList();
+                var edges = owner.GetEdges(GetSlotReference(inputSlot.name)).ToList();
                 if (!edges.Any())
                 {
                     if (inputType != SlotValueType.Dynamic)
@@ -390,7 +391,7 @@ namespace UnityEditor.MaterialGraph
 
         public virtual IEnumerable<MaterialSlot> GetDrawableInputProxies()
         {
-            return materialInputSlots.Where(x => !owner.GetEdges(x).Any());
+            return materialInputSlots.Where(x => !owner.GetEdges(GetSlotReference(x.name)).Any());
         }
 
         public void ExecuteRepaint()
@@ -555,7 +556,7 @@ namespace UnityEditor.MaterialGraph
             for (var index = 0; index < validSlots.Length; index++)
             {
                 var s = validSlots[index];
-                var edges = owner.GetEdges(s);
+                var edges = owner.GetEdges(GetSlotReference(s.name));
                 if (edges.Any())
                     continue;
 

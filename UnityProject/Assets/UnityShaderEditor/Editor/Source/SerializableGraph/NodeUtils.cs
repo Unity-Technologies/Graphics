@@ -28,7 +28,7 @@ namespace UnityEditor.MaterialGraph
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var inputSlot = validSlots[index];
-                var edges = currentNode.owner.GetEdges(inputSlot);
+                var edges = currentNode.owner.GetEdges(currentNode.GetSlotReference(inputSlot.name));
                 foreach (var edge in edges)
                 {
                     var outputNode = currentNode.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
@@ -68,7 +68,7 @@ namespace UnityEditor.MaterialGraph
             {
                 var slot = validSlots[index];
 
-                var edges = node.owner.GetEdges(slot);
+                var edges = node.owner.GetEdges(node.GetSlotReference(slot.name));
                 foreach (var edge in edges)
                 {
                     var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
@@ -90,7 +90,7 @@ namespace UnityEditor.MaterialGraph
 
             foreach (var slot in node.outputSlots)
             {
-                foreach (var edge in node.owner.GetEdges(slot))
+                foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot.name)))
                 {
                     var inputNode = node.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                     CollectDependentNodes(nodeList, inputNode);

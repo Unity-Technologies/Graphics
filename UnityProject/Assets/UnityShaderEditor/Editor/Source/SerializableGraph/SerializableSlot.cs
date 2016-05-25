@@ -16,9 +16,7 @@ namespace UnityEditor.MaterialGraph
 
         [SerializeField]
         private SlotType m_SlotType;
-
-        public SerializableNode owner { get; set; }
-
+        
         public string name
         {
             get { return m_Name; }
@@ -40,9 +38,8 @@ namespace UnityEditor.MaterialGraph
             get { return m_SlotType == SlotType.Output; }
         }
 
-        public SerializableSlot(SerializableNode theOwner, string name, string displayName, SlotType slotType)
+        public SerializableSlot(string name, string displayName, SlotType slotType)
         {
-            owner = theOwner;
             m_Name = name;
             m_DisplayName = displayName;
             m_SlotType = slotType;
@@ -50,10 +47,8 @@ namespace UnityEditor.MaterialGraph
 
         // used via reflection / serialization after deserialize
         // to reconstruct this slot.
-        protected SerializableSlot(SerializableNode theOwner)
-        {
-            owner = theOwner;
-        }
+        protected SerializableSlot()
+        {}
 
         public virtual bool OnGUI()
         {

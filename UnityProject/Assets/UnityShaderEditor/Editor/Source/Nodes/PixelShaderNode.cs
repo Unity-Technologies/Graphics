@@ -99,7 +99,7 @@ namespace UnityEditor.MaterialGraph
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
 
-            foreach (var edge in owner.GetEdges(firstPassSlot))
+            foreach (var edge in owner.GetEdges(GetSlotReference(firstPassSlot.name)))
             {
                 var outputRef = edge.outputSlot;
                 var fromNode = materialGraphOwner.GetMaterialNodeFromGuid(outputRef.nodeGuid);
@@ -132,7 +132,7 @@ namespace UnityEditor.MaterialGraph
                 if (slot == firstPassSlot)
                     continue;
                 
-                foreach (var edge in owner.GetEdges(slot))
+                foreach (var edge in owner.GetEdges(GetSlotReference(slot.name)))
                 {
                     var outputRef = edge.outputSlot;
                     var fromNode = materialGraphOwner.GetMaterialNodeFromGuid(outputRef.nodeGuid);

@@ -41,7 +41,7 @@ namespace UnityEditor.MaterialGraph
             pos.y = yStart;
             foreach (var slot in node.materialOuputSlots)
             {
-                var edges = node.owner.GetEdges(slot);
+                var edges = node.owner.GetEdges(new SlotReference(node.guid, slot.name));
                 // don't show empty output slots in collapsed mode
                 if (node.drawMode == DrawMode.Collapsed && !edges.Any())
                     continue;

@@ -50,28 +50,37 @@ namespace UnityEditor.MaterialGraph
             m_Nodes.Remove(node);
         }
 
-        public virtual Edge Connect(SerializableSlot fromSlot, SerializableSlot toSlot)
+        public virtual Edge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
-            SerializableSlot outputSlot = null;
-            SerializableSlot inputSlot = null;
+            SerializableNode fromNode = GetNodeFromGuid(fromSlotRef.nodeGuid);
+            SerializableNode toNode = GetNodeFromGuid(toSlotRef.nodeGuid);
+
+            if (fromNode == null || toNode == null)
+                return null;
+
+            SerializableSlot fromSlot = fromNode.FindSlot(fromSlotRef.slotName);
+            SerializableSlot toSlot = toNode.FindSlot(toSlotRef.slotName);
+
+            SlotReference outputSlot = null;
+            SlotReference inputSlot = null;
 
             // output must connect to input
             if (fromSlot.isOutputSlot)
-                outputSlot = fromSlot;
+                outputSlot = fromSlotRef;
             else if (fromSlot.isInputSlot)
-                inputSlot = fromSlot;
+                inputSlot = fromSlotRef;
 
             if (toSlot.isOutputSlot)
-                outputSlot = toSlot;
+                outputSlot = toSlotRef;
             else if (toSlot.isInputSlot)
-                inputSlot = toSlot;
+                inputSlot = toSlotRef;
 
             if (inputSlot == null || outputSlot == null)
                 return null;
 
-            var edges = GetEdges(inputSlot).ToList();
+            var slotEdges = GetEdges(inputSlot).ToList();
             // remove any inputs that exits before adding
-            foreach (var edge in edges)
+            foreach (var edge in slotEdges)
             {
                 Debug.Log("Removing existing edge:" + edge);
                 // call base here as we DO NOT want to
@@ -79,7 +88,7 @@ namespace UnityEditor.MaterialGraph
                 RemoveEdge(edge);
             }
 
-            var newEdge = new Edge(new SlotReference(outputSlot.owner.guid, outputSlot.name), new SlotReference(inputSlot.owner.guid, inputSlot.name));
+            var newEdge = new Edge(outputSlot, inputSlot);
             m_Edges.Add(newEdge);
 
             Debug.Log("Connected edge: " + newEdge);
@@ -114,11 +123,11 @@ namespace UnityEditor.MaterialGraph
             return m_Nodes.FirstOrDefault(x => x.guid == guid);
         }
 
-        public IEnumerable<Edge> GetEdges(SerializableSlot s)
+        public IEnumerable<Edge> GetEdges(SlotReference s)
         {
             return m_Edges.Where(x =>
-                (x.outputSlot.nodeGuid == s.owner.guid && x.outputSlot.slotName == s.name)
-                || x.inputSlot.nodeGuid == s.owner.guid && x.inputSlot.slotName == s.name);
+                (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotName == s.slotName)
+                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotName == s.slotName);
         }
 
         public virtual void OnBeforeSerialize()
