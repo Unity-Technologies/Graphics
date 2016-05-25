@@ -143,37 +143,7 @@ namespace UnityEditor.MaterialGraph
                 Debug.LogErrorFormat("Output Slot: {0} could be found on node {1}", name, this);
             return slot;
         }
-
-        // CollectDependentNodes looks at the current node and calculates
-        // which nodes further up the tree (parents) would be effected if this node was changed
-        // it also includes itself in this list
-        public IEnumerable<SerializableNode> CollectDependentNodes()
-        {
-            var nodeList = new List<SerializableNode>();
-            NodeUtils.CollectDependentNodes(nodeList, this);
-            return nodeList;
-        }
-
-        // CollectDependentNodes looks at the current node and calculates
-        // which child nodes it depends on for it's calculation.
-        // Results are returned depth first so by processing each node in
-        // order you can generate a valid code block.
-        public List<SerializableNode> CollectChildNodesByExecutionOrder(List<SerializableNode> nodeList, SerializableSlot slotToUse = null, bool includeSelf = true)
-        {
-            if (slotToUse != null && !m_Slots.Contains(slotToUse))
-            {
-                Debug.LogError("Attempting to collect nodes by execution order with an invalid MaterialSlot on: " + name);
-                return nodeList;
-            }
-
-            NodeUtils.CollectChildNodesByExecutionOrder(nodeList, this, slotToUse);
-
-            if (!includeSelf)
-                nodeList.Remove(this);
-
-            return nodeList;
-        }
-
+        
         public virtual float GetNodeUIHeight(float width)
         {
             return 0;

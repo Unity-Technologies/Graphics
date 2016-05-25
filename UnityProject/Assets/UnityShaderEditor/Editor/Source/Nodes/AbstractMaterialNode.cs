@@ -573,7 +573,7 @@ namespace UnityEditor.MaterialGraph
         public static void UpdateMaterialProperties(AbstractMaterialNode target, Material material)
         {
             var childNodes = ListPool<SerializableNode>.Get();
-            target.CollectChildNodesByExecutionOrder(childNodes);
+            NodeUtils.DepthFirstCollectNodesFromNode(childNodes, target);
 
             var pList = ListPool<PreviewProperty>.Get();
             for (var index = 0; index < childNodes.Count; index++)

@@ -90,7 +90,7 @@ namespace UnityEditor.MaterialGraph
             // do the normal slot first so that it can be used later in the shader :)
             var firstPassSlot = FindInputSlot(firstPassSlotName);
             var nodes = ListPool<SerializableNode>.Get();
-            CollectChildNodesByExecutionOrder(nodes, firstPassSlot, false);
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, firstPassSlot, false);
 
             for (int index = 0; index < nodes.Count; index++)
             {
@@ -117,7 +117,7 @@ namespace UnityEditor.MaterialGraph
             int pass2StartIndex = nodes.Count;
 
             //Get the rest of the nodes for all the other slots
-            CollectChildNodesByExecutionOrder(nodes, null, false);
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, null, false);
             for (var i = pass2StartIndex; i < nodes.Count; i++)
             {
                 var node = nodes[i];

@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
 {
-
     public sealed class DrawableMaterialNode : CanvasElement
     {
         private readonly MaterialGraphDataSource m_Data;
@@ -73,7 +72,7 @@ namespace UnityEditor.MaterialGraph
         private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
         {
             var childrenNodes = ListPool<SerializableNode>.Get();
-            m_Node.CollectChildNodesByExecutionOrder(childrenNodes);
+            NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes, m_Node);
             if (childrenNodes.Any(x => x is IRequiresTime))
                 Invalidate();
             ListPool<SerializableNode>.Release(childrenNodes);
@@ -132,7 +131,8 @@ namespace UnityEditor.MaterialGraph
 
         public static void RepaintDependentNodes(AbstractMaterialNode bmn)
         {
-            var dependentNodes = bmn.CollectDependentNodes();
+            var dependentNodes = new List<SerializableNode>();
+            NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, bmn);
             foreach (var node in dependentNodes)
                 node.onNeedsRepaint();
         }
