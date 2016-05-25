@@ -11,7 +11,7 @@ using System.IO;
 
 namespace UnityEditor.Experimental
 {
-    public class VFXEditor : EditorWindow
+    public class VFXEditor : EditorWindow, ISerializationCallbackReceiver
     {
         public static VFXEdResources Resources
         {
@@ -112,6 +112,17 @@ namespace UnityEditor.Experimental
 
 		public static VFXGraph Graph
 		{
+            set
+            {
+                if (s_Graph != null)
+                {
+                    for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
+                        s_Graph.systems.GetChild(i).RemoveSystem();
+                    s_Graph.systems.Dispose();
+                }
+                s_Graph = value;
+                s_Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kModelChanged);
+            }
 			get
 			{
                 if (s_Graph == null)
@@ -192,6 +203,40 @@ namespace UnityEditor.Experimental
 
         private VFX.VFXBlockLibrary m_BlockLibrary;
 
+        private static VFXComponent m_Component;
+        private static GameObject m_GameObject;
+
+        public static GameObject gameObject { get { return m_GameObject; } }
+        public static VFXComponent component { get { return m_Component; } }
+
+        private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
+        {
+            var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
+
+            int nbDeleted = 0;
+            foreach (var vfx in vfxs)
+                if (vfx != null && vfx.gameObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(vfx.gameObject);
+                    ++nbDeleted;
+                }
+
+            if (nbDeleted > 0)
+                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
+        }
+
+        private void RemovePreviousShaders()
+        {
+            // Remove any shader assets in generated path
+            string[] guids = AssetDatabase.FindAssets("", new string[] { "Assets/VFXEditor/Generated" });
+
+            foreach (var guid in guids)
+                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
+
+            if (guids.Length > 0)
+                Debug.Log("Remove " + guids.Length + " old VFX shaders");
+        }
+
         private static void InitializeBlockLibrary()
         {
             if (s_BlockLibrary == null)
@@ -199,6 +244,58 @@ namespace UnityEditor.Experimental
                 s_BlockLibrary = new VFX.VFXBlockLibrary();
                 s_BlockLibrary.Load();
             }
+        }
+
+        [SerializeField]
+        private string m_SerializedGraph = null;
+
+        public void OnBeforeSerialize()
+        {
+            Debug.Log("ON BEFORE SERIALIZE **************************");
+            m_SerializedGraph = ModelSerializer.Serialize(s_Graph);
+        }
+
+        public void OnAfterDeserialize()
+        {
+            Debug.Log("ON AFTER SERIALIZE **************************");
+        }
+
+        void OnEnable()
+        {
+            Debug.Log("ON ENABLE **************************");
+            hideFlags = HideFlags.HideAndDontSave;
+
+            RemovePreviousVFXs();
+            RemovePreviousShaders();
+
+            if (m_GameObject != null)
+            {
+                UnityEngine.Object.DestroyImmediate(m_GameObject);
+                m_GameObject = null;
+                m_Component = null;
+            }
+
+            m_GameObject = new GameObject("VFX");
+            //m_GameObject.hideFlags = HideFlags.HideAndDontSave;
+            m_Component = m_GameObject.AddComponent<VFXComponent>();
+
+            if (s_Graph == null)
+                s_Graph = new VFXGraph();
+
+            if (m_SerializedGraph != null)
+            {
+                s_Graph = ModelSerializer.Deserialize(m_SerializedGraph);
+                m_SerializedGraph = null;
+            }
+
+           /* (dataSource as VFXEdDataSource).ResyncViews();
+            ReloadData();
+            Repaint();*/
+        }
+
+        void OnDisable()
+        {
+            Debug.Log("ON DISABLE **************************");
         }
 
         private static void InitializeContextLibrary()
@@ -223,7 +320,13 @@ namespace UnityEditor.Experimental
             {
                 m_DataSource = ScriptableObject.CreateInstance<VFXEdDataSource>();
                 m_Canvas = new VFXEdCanvas(this, m_HostWindow, m_DataSource);
+
+                m_DataSource.ResyncViews();
+                m_Canvas.ReloadData();
+                m_Canvas.Repaint();
             }
+
+
 
             if (m_Icon == null)
                 m_Icon = EditorGUIUtility.Load("edicon.psd") as Texture;
@@ -398,26 +501,62 @@ namespace UnityEditor.Experimental
             DrawWindows(canvasRect);
         }
 
+        private bool isOldPlaying = false;
         void Update()
         {
+            if (Application.isPlaying != isOldPlaying)
+            {
+                Debug.Log("CHANGE PLAY MODE ******************");
+                isOldPlaying = Application.isPlaying;
+
+                RemovePreviousVFXs();
+                RemovePreviousShaders();
+
+                if (m_GameObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(m_GameObject);
+                    m_GameObject = null;
+                    m_Component = null;
+                }
+
+                m_GameObject = new GameObject("VFX");
+                //m_GameObject.hideFlags = HideFlags.HideAndDontSave;
+                m_Component = m_GameObject.AddComponent<VFXComponent>();
+
+                InitializeCanvas();
+                m_Canvas.Invalidate();
+                m_Canvas.RebuildQuadTree();
+                m_Canvas.DeepInvalidate();
+                m_Canvas.Repaint();
+
+                for (int i = 0; i < Graph.systems.GetNbChildren(); ++i)
+                    Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);
+            }
+
             Graph.systems.Update();
         }
 
         void OnDestroy()
         {
+            for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
+                s_Graph.systems.GetChild(i).RemoveSystem();
+            s_Graph.systems.Dispose();
+            s_Graph = null;
+
+            UnityEngine.Object.DestroyImmediate(m_GameObject);
+            m_GameObject = null;
+            m_Component = null;
+
             s_BlockLibrary = null;
             s_ContextLibrary = null;
             //s_SpawnTemplates = null;
-            
-            s_Graph.systems.Dispose();
-            s_Graph = null;
-            
+
             ClearLog();
         }
 
         private void SetPlayRate(object rate)
         {
-            s_Graph.systems.component.playRate = (float)rate;
+            component.playRate = (float)rate;
         }
 
         void DrawToolbar(Rect rect)
@@ -427,33 +566,33 @@ namespace UnityEditor.Experimental
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton))
             {
-                Graph.systems.component.pause = false;
-                Graph.systems.component.Reinit();
+                component.pause = false;
+                component.Reinit();
             }
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.toolbarButton))
             {
-                Graph.systems.component.pause = false;
+                component.pause = false;
             }
 
-            Graph.systems.component.pause = GUILayout.Toggle(Graph.systems.component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
+            component.pause = GUILayout.Toggle(component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.toolbarButton))
             {
-                Graph.systems.component.pause = true;
-                Graph.systems.component.Reinit();
+                component.pause = true;
+                component.Reinit();
             }
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.toolbarButton))
             {
-                Graph.systems.component.pause = true;
-                Graph.systems.component.AdvanceOneFrame();
+                component.pause = true;
+                component.AdvanceOneFrame();
             }
 
             if (GUILayout.Button("PlayRate", EditorStyles.toolbarDropDown))
             {
                 GenericMenu toolsMenu = new GenericMenu();
-                float rate = Graph.systems.component.playRate;
+                float rate = component.playRate;
                 toolsMenu.AddItem(new GUIContent("800%"), rate == 8.0f, SetPlayRate, 8.0f);
                 toolsMenu.AddItem(new GUIContent("200%"), rate == 2.0f, SetPlayRate, 2.0f);
                 toolsMenu.AddItem(new GUIContent("100% (RealTime)"), rate == 1.0f, SetPlayRate, 1.0f);
@@ -466,8 +605,8 @@ namespace UnityEditor.Experimental
                 EditorGUIUtility.ExitGUI();
             }
 
-            float r = Graph.systems.component.playRate;
-            float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(Graph.systems.component.playRate), 0.0f, Mathf.Sqrt(8.0f), GUILayout.Width(140.0f)), 2.0f);
+            float r = component.playRate;
+            float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(component.playRate), 0.0f, Mathf.Sqrt(8.0f), GUILayout.Width(140.0f)), 2.0f);
             GUILayout.Label(Mathf.Round(nr * 100) + "%", GUILayout.Width(80.0f));
             if (r != nr)
                 SetPlayRate(nr);

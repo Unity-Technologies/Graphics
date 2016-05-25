@@ -165,7 +165,11 @@ namespace UnityEditor.Experimental
                 var str = ModelSerializer.Serialize(VFXEditor.Graph);
                 Debug.Log(str);
 
-                VFXGraph graph = ModelSerializer.Deserialize(str);
+                VFXEditor.Graph = ModelSerializer.Deserialize(str);
+                (dataSource as VFXEdDataSource).ResyncViews();
+                ReloadData();
+                Repaint();
+
                 Debug.Log("DONE");
             }
 

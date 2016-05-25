@@ -285,7 +285,7 @@ namespace UnityEditor.Experimental.VFX
                     foreach (var connected in connectedSlots)
                             connectedIds.Add(data.GetId(connected));
 
-                    if (connectedIds.Count > 0)
+                    if (connectedIds.Count > 0) 
                     {
                         writer.WriteStartElement("Connection");
                         writer.WriteAttributeString("Id", i.ToString());
@@ -313,11 +313,9 @@ namespace UnityEditor.Experimental.VFX
 
 
         // DESERIALIZATION
-        public static VFXGraph Deserialize(string xml)
+        public static VFXGraph Deserialize(string xml) 
         {
-            VFXGraph graph = null;// new VFXGraph(); // TMP Needs to remove RTData from graph
-            List<VFXSystemModel> systems = new List<VFXSystemModel>();
-            List<VFXDataNodeModel> dataNodes = new List<VFXDataNodeModel>();
+            VFXGraph graph = new VFXGraph(); // TMP Needs to remove RTData from graph
             try
             {
                 var doc = XDocument.Parse(xml);
@@ -328,10 +326,10 @@ namespace UnityEditor.Experimental.VFX
                 var connectionsXML = root.Elements("Connections");
 
                 foreach (var systemXML in systemsXML)
-                    systems.Add(DeserializeSystem(systemXML));
+                    graph.systems.AddChild(DeserializeSystem(systemXML));
 
                 foreach (var dataNodeXML in dataNodesXML)
-                    dataNodes.Add(DeserializeDataNode(dataNodeXML));
+                    graph.models.AddChild(DeserializeDataNode(dataNodeXML));
             }
             catch(Exception e)
             {

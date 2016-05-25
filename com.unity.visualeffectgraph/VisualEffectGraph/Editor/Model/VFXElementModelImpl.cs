@@ -30,46 +30,8 @@ namespace UnityEditor.Experimental
 
     public class VFXSystemsModel : VFXElementModel<VFXElementModel, VFXSystemModel>
     {
-        public VFXSystemsModel()
-        {
-            RemovePreviousVFXs();
-            RemovePreviousShaders();
-
-            m_GameObject = new GameObject("VFX");
-            m_Component = m_GameObject.AddComponent<VFXComponent>();
-        }
-
-        private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
-        {
-            var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
-           
-            int nbDeleted = 0;
-            foreach (var vfx in vfxs)
-                if (vfx != null && vfx.gameObject != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(vfx.gameObject);
-                    ++nbDeleted;
-                }
-
-            if (nbDeleted > 0)
-                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
-        }
-
-        private void RemovePreviousShaders()
-        {
-            // Remove any shader assets in generated path
-            string[] guids = AssetDatabase.FindAssets("",new string[] {"Assets/VFXEditor/Generated"});
-
-            foreach (var guid in guids)
-                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
-
-            if (guids.Length > 0)
-                Debug.Log("Remove " + guids.Length + " old VFX shaders");
-        }
-
         public void Dispose()
         {
-            UnityEngine.Object.DestroyImmediate(gameObject);
             for (int i = 0; i < GetNbChildren(); ++i)
             {
                 GetChild(i).Dispose();
@@ -131,7 +93,7 @@ namespace UnityEditor.Experimental
             }
 
             if (HasRecompiled) // Restart component 
-                m_Component.Reinit();
+                VFXEditor.component.Reinit();
 
             Profiler.EndSample();
         }
@@ -150,15 +112,9 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public GameObject gameObject { get { return m_GameObject; } }
-        public VFXComponent component { get { return m_Component; } }
-
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
-
-        private VFXComponent m_Component;
-        private GameObject m_GameObject;
     }
 
     public class VFXSystemModel : VFXElementModel<VFXSystemsModel, VFXContextModel>
@@ -311,7 +267,7 @@ namespace UnityEditor.Experimental
         {
             Dispose();
             //if (force || rtData != null)
-            GetOwner().component.RemoveSystem(m_ID);
+            VFXEditor.component.RemoveSystem(m_ID);
             DeleteAssets();   
         }
 
@@ -335,7 +291,7 @@ namespace UnityEditor.Experimental
                 {
                     m_MaxNb = value;
                     UpdateComponentSystem();
-                    GetOwner().component.Reinit();
+                    VFXEditor.component.Reinit();
                 }
             }
         }
@@ -390,7 +346,7 @@ namespace UnityEditor.Experimental
             if (rtData == null)
                 return false;
 
-            GetOwner().component.SetSystem(
+            VFXEditor.component.SetSystem(
                 m_ID,
                 MaxNb,
                 rtData.SimulationShader,

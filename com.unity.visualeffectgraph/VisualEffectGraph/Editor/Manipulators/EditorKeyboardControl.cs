@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental
 
             bool needRefresh = false;
 
-            var component = VFXEditor.Graph.systems.component;
+            var component = VFXEditor.component;
             switch(e.keyCode)
             {
                 case KeyCode.Alpha1: component.playRate = 0.01f; needRefresh = true; break;
