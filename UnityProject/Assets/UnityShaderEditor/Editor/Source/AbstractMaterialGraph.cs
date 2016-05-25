@@ -10,15 +10,7 @@ namespace UnityEditor.MaterialGraph
     {
         [NonSerialized]
         private PreviewRenderUtility m_PreviewUtility;
-
-        [NonSerialized]
-        private MaterialGraph m_Owner;
-
-        protected AbstractMaterialGraph(MaterialGraph owner)
-        {
-            m_Owner = owner;
-        }
-
+        
         public IEnumerable<AbstractMaterialNode> materialNodes
         {
             get { return nodes.OfType<AbstractMaterialNode>(); }
@@ -31,7 +23,7 @@ namespace UnityEditor.MaterialGraph
                 if (m_PreviewUtility == null)
                 {
                     m_PreviewUtility = new PreviewRenderUtility();
-                    // EditorUtility.SetCameraAnimateMaterials(m_PreviewUtility.m_Camera, true);
+                    EditorUtility.SetCameraAnimateMaterials(m_PreviewUtility.m_Camera, true);
                 }
 
                 return m_PreviewUtility;
@@ -41,12 +33,6 @@ namespace UnityEditor.MaterialGraph
         public bool requiresRepaint
         {
             get { return nodes.Any(x => x is IRequiresTime); }
-        }
-
-        public MaterialGraph owner
-        {
-            get { return m_Owner; } 
-            set { m_Owner = value; }
         }
          
         public override void AddNode(SerializableNode node)

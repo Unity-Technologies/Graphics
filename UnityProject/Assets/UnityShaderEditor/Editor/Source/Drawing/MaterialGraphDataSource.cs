@@ -56,7 +56,7 @@ namespace UnityEditor.MaterialGraph
             {
                 var baseNode = drawableMaterialNode.m_Node;
                 // grab the input slots where there are no edges
-                foreach (var slot in baseNode.GetDrawableInputProxies())
+                foreach (var slot in baseNode.GetInputsWithNoConnection())
                 {
                     // if there is no anchor, continue
                     // this can happen if we are in collapsed mode

@@ -11,9 +11,6 @@ namespace UnityEditor.MaterialGraph
         [NonSerialized]
         private PixelShaderNode m_PixelMasterNode;
 
-        public PixelGraph(MaterialGraph owner) : base (owner)
-        {}
-
         public PixelShaderNode pixelMasterNode
         {
             get
@@ -22,13 +19,6 @@ namespace UnityEditor.MaterialGraph
                 if (m_PixelMasterNode == null)
                     m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof(PixelShaderNode)) as PixelShaderNode;
 
-                // none exists, so create!
-                if (m_PixelMasterNode == null)
-                {
-                    m_PixelMasterNode = new PixelShaderNode(this);
-                    AddNode(m_PixelMasterNode);
-                    m_PixelMasterNode.position = new Rect(700, m_PixelMasterNode.position.y, m_PixelMasterNode.position.width, m_PixelMasterNode.position.height);
-                }
                 return m_PixelMasterNode;
             }
         }
@@ -43,6 +33,21 @@ namespace UnityEditor.MaterialGraph
                 NodeUtils.DepthFirstCollectNodesFromNode(m_ActiveNodes, pixelMasterNode);
                 return m_ActiveNodes.OfType<AbstractMaterialNode>();
             }
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            m_PixelMasterNode = null;
+        }
+
+        public override void AddNode(SerializableNode node)
+        {
+            if (pixelMasterNode != null && node is PixelShaderNode)
+            {
+                Debug.LogWarning("Attempting to add second PixelShaderNode to PixelGraph. This is not allowed.");
+                return;
+            }
+            base.AddNode(node);
         }
         
         public void GenerateSurfaceShader(
