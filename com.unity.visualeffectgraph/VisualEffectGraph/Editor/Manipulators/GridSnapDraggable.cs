@@ -11,10 +11,6 @@ namespace UnityEditor.Experimental
         private bool m_DragRegionIsNormalized = false;
         private float m_SnapSize;
 
-        private float m_CurrentX;
-        private float m_CurrentY;
-
-
         public GridSnapDraggable(Rect activeDragRegion, bool normalized, float snapSize) 
             : this (snapSize)
         {
@@ -56,15 +52,13 @@ namespace UnityEditor.Experimental
             element.MouseDrag += MouseDrag;
             element.MouseUp += EndDrag;
             element.MouseDown += StartDrag;
-
-            InitSnap(element);
         }
 
-        private void InitSnap(CanvasElement element)
+        private void Snap(CanvasElement element)
         {
             Vector2 translation = element.translation;
-            translation.x = m_SnapSize * Mathf.Round(m_CurrentX / m_SnapSize);
-            translation.y = m_SnapSize * Mathf.Round(m_CurrentY / m_SnapSize);
+            translation.x = m_SnapSize * Mathf.Round(translation.x / m_SnapSize);
+            translation.y = m_SnapSize * Mathf.Round(translation.y / m_SnapSize);
             element.translation = translation;
         }
 
@@ -93,9 +87,6 @@ namespace UnityEditor.Experimental
                 canvas.AddToSelection(element);
             }
             // END THOMASI
-
-            m_CurrentX = element.translation.x;
-            m_CurrentY = element.translation.y;
 
             canvas.StartCapture(this, element);
             e.Use();
@@ -141,6 +132,8 @@ namespace UnityEditor.Experimental
                 canvas.AddToSelection(element);
             }
 
+            Snap(element);
+
             element.UpdateModel(UpdateType.Update);
             e.Use();
             return true;
@@ -168,15 +161,13 @@ namespace UnityEditor.Experimental
             Vector3 tx = element.translation;
 
             // THOMASI : FLOORED VALUES (FOR TEXT RENDERING ISSUES)
-            m_CurrentX += Mathf.Floor(e.delta.x * scaleFactorX);
-            m_CurrentY += Mathf.Floor(e.delta.y * scaleFactorY);
-
-            tx.x = m_SnapSize * Mathf.Round(m_CurrentX / m_SnapSize);
-            tx.y = m_SnapSize * Mathf.Round(m_CurrentY / m_SnapSize);
+            tx.x +=  Mathf.Floor(e.delta.x * scaleFactorX);
+            tx.y +=  Mathf.Floor(e.delta.y * scaleFactorY);
 
             // END THOMASI
 
             element.translation = tx;
+
             element.UpdateModel(UpdateType.Candidate);
             e.Use();
 
