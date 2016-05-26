@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing.Drawing
 {
     internal class DeleteSelected : IManipulate
     {

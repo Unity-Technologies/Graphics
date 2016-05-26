@@ -2,18 +2,17 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
-using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing.Drawing
 {
-    public class MaterialGraphDataSource : ICanvasDataSource
+    public class GraphDataSource : ICanvasDataSource
     {
-        readonly List<DrawableMaterialNode> m_DrawableNodes = new List<DrawableMaterialNode>();
+        readonly List<DrawableNode> m_DrawableNodes = new List<DrawableNode>();
         
-        public MaterialGraph graph { get; set; }
+        public IGraph graph { get; set; }
 
-        public ICollection<DrawableMaterialNode> lastGeneratedNodes
+        public ICollection<DrawableNode> lastGeneratedNodes
         {
             get { return m_DrawableNodes; }
         }
@@ -21,13 +20,11 @@ namespace UnityEditor.MaterialGraph
         public CanvasElement[] FetchElements()
         {
             m_DrawableNodes.Clear();
-            Debug.Log("trying to convert");
-            var pixelGraph = graph.currentGraph;
-            foreach (var node in pixelGraph.nodes)
+            Debug.LogFormat("Trying to convert: {0}", graph);
+            foreach (var node in graph.nodes)
             {
                 // add the nodes
-                var bmn = node as AbstractMaterialNode;
-                m_DrawableNodes.Add(new DrawableMaterialNode(bmn, (bmn is PixelShaderNode) ? 600.0f : 200.0f, this));
+                m_DrawableNodes.Add(new DrawableNode(node, 200.0f, this));
             }
 
             // Add the edges now
@@ -91,35 +88,32 @@ namespace UnityEditor.MaterialGraph
         {
             var toRemoveEdge = new List<IEdge>();
             // delete selected edges first
-            foreach (var e in elements.Where(x => x is Edge<NodeAnchor>))
+            foreach (var e in elements.OfType<Edge<NodeAnchor>>())
             {
                 //find the edge
-                var localEdge = (Edge<NodeAnchor>) e;
-                var edge = graph.currentGraph.edges.FirstOrDefault(x => graph.currentGraph.GetNodeFromGuid(x.outputSlot.nodeGuid).FindOutputSlot(x.outputSlot.slotName) == localEdge.Left.m_Slot 
-                    && graph.currentGraph.GetNodeFromGuid(x.inputSlot.nodeGuid).FindInputSlot(x.inputSlot.slotName) == localEdge.Right.m_Slot);
+                var edge = graph.edges.FirstOrDefault(x => graph.GetNodeFromGuid(x.outputSlot.nodeGuid).FindOutputSlot(x.outputSlot.slotName) == e.Left.m_Slot 
+                    && graph.GetNodeFromGuid(x.inputSlot.nodeGuid).FindInputSlot(x.inputSlot.slotName) == e.Right.m_Slot);
 
                 toRemoveEdge.Add(edge);
             }
 
             var toRemoveNode = new List<INode>();
             // now delete the nodes
-            foreach (var e in elements.Where(x => x is DrawableMaterialNode))
+            foreach (var e in elements.OfType<DrawableNode>())
             {
-                var node = ((DrawableMaterialNode) e).m_Node;
-                if (!node.canDeleteNode)
+                if (!e.m_Node.canDeleteNode)
                     continue;
-                toRemoveNode.Add(node);
+                toRemoveNode.Add(e.m_Node);
             }
-            graph.currentGraph.RemoveElements(toRemoveNode, toRemoveEdge);
+            graph.RemoveElements(toRemoveNode, toRemoveEdge);
         }
 
         public void Connect(NodeAnchor a, NodeAnchor b)
         {
-            var pixelGraph = graph.currentGraph;
-            pixelGraph.Connect(a.m_Node.GetSlotReference(a.m_Slot.name), b.m_Node.GetSlotReference(b.m_Slot.name));
+            graph.Connect(a.m_Node.GetSlotReference(a.m_Slot.name), b.m_Node.GetSlotReference(b.m_Slot.name));
         }
 
-        private string m_LastPath;
+/*        private string m_LastPath;
         public void Export(bool quickExport)
         {
             var path = quickExport ? m_LastPath : EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
@@ -160,6 +154,6 @@ namespace UnityEditor.MaterialGraph
 
             Invalidate();
             canvas.Repaint();
-        }
+        }*/
     }
 }

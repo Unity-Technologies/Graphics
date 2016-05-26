@@ -10,8 +10,13 @@ namespace UnityEditor.MaterialGraph
             get { return true; }
         }
 
-        protected Function2Input(AbstractMaterialGraph owner)
+        protected Function2Input(IGraph owner)
             : base(owner)
+        {
+            UpdateSlots();
+        }
+
+        private void UpdateSlots()
         {
             AddSlot(GetInputSlot1());
             AddSlot(GetInputSlot2());
@@ -98,6 +103,12 @@ namespace UnityEditor.MaterialGraph
         public string input2Dimension
         {
             get { return ConvertConcreteSlotValueTypeToString(FindMaterialInputSlot(GetInputSlot2Name()).concreteValueType); }
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+            UpdateSlots();
         }
     }
 }

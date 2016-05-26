@@ -1,11 +1,11 @@
-using UnityEngine;
+using UnityEditor.Graphing;
 
 namespace UnityEditor.MaterialGraph
 {
     [Title("Math/Add Node")]
     public class AddNode : Function2Input, IGeneratesFunction
     {
-        public AddNode(AbstractMaterialGraph owner)
+        public AddNode(IGraph owner)
             : base(owner)
         {
             name = "AddNode";

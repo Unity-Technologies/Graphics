@@ -1,18 +1,17 @@
 using UnityEditor.Experimental;
-using UnityEditor.Graphs;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing.Drawing
 {
     public class NullInputProxy : CanvasElement
     {
-        private MaterialSlot m_InputSlot;
-        private AbstractMaterialNode m_Node;
+        private ISlot m_InputSlot;
+        private INode m_Node;
         private NodeAnchor m_NodeAnchor;
 
         private const int kWidth = 180;
 
-        public NullInputProxy(AbstractMaterialNode node, MaterialSlot inputSlot, NodeAnchor nodeAnchor)
+        public NullInputProxy(INode node, ISlot inputSlot, NodeAnchor nodeAnchor)
         {
             m_InputSlot = inputSlot;
             m_Node = node;
@@ -45,9 +44,12 @@ namespace UnityEditor.MaterialGraph
             translation = position;
             
             var rect = new Rect(0, 0, scale.x, scale.y);
-            var changed = m_Node.DrawSlotDefaultInput(rect, m_InputSlot);
+            EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
+
+            //TODO: FIX
+            /*var changed = m_Node.DrawSlotDefaultInput(rect, m_InputSlot);
             if (changed)
-                DrawableMaterialNode.RepaintDependentNodes(m_Node);
+                DrawableMaterialNode.RepaintDependentNodes(m_Node);*/
         }
 
         public override void UpdateModel(UpdateType t)

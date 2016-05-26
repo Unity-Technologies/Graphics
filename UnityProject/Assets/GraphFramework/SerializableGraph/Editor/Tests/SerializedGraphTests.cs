@@ -378,10 +378,33 @@ namespace UnityEditor.Graphing.Tests
             Assert.AreEqual(2, graph.nodes.Count());
             graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
             Assert.AreEqual(1, graph.edges.Count());
-            
+
             Assert.AreEqual(1, graph.GetEdges(inputNode.GetSlotReference("input")).Count());
             Assert.AreEqual(1, graph.GetEdges(outputNode.GetSlotReference("output")).Count());
             Assert.AreEqual(0, graph.GetEdges(outputNode.GetSlotReference("badslot")).Count());
+        }
+
+        [Test]
+        public void TestGetInputsWithNoConnection()
+        {
+            var graph = new SerializableGraph();
+            var outputNode = new SerializableNode(graph);
+            outputNode.AddSlot(new SerializableSlot("output", "output", SlotType.Output));
+            graph.AddNode(outputNode);
+
+            var inputNode = new SerializableNode(graph);
+            inputNode.AddSlot(new SerializableSlot("input", "input", SlotType.Input));
+            inputNode.AddSlot(new SerializableSlot("input2", "input2", SlotType.Input));
+            inputNode.AddSlot(new SerializableSlot("output", "output", SlotType.Output));
+            graph.AddNode(inputNode);
+
+            Assert.AreEqual(2, graph.nodes.Count());
+            graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
+            Assert.AreEqual(1, graph.edges.Count());
+
+            var slots = inputNode.GetInputsWithNoConnection();
+            Assert.AreEqual(1, slots.Count());
+            Assert.AreEqual("input2", slots.FirstOrDefault().name);
         }
     }
 }

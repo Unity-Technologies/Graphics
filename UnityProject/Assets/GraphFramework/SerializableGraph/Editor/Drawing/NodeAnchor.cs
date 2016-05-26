@@ -3,18 +3,18 @@ using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing.Drawing
 {
     public class NodeAnchor : CanvasElement, IConnect
     {
         protected Type m_Type;
         protected object m_Source;
         protected Direction m_Direction;
-        private MaterialGraphDataSource m_Data;
-        public MaterialSlot m_Slot;
-        public AbstractMaterialNode m_Node;
+        private GraphDataSource m_Data;
+        public ISlot m_Slot;
+        public INode m_Node;
 
-        public NodeAnchor(Vector3 position, Type type, AbstractMaterialNode node, MaterialSlot slot, MaterialGraphDataSource data, Direction direction)
+        public NodeAnchor(Vector3 position, Type type, INode node, ISlot slot, GraphDataSource data, Direction direction)
         {
             m_Type = type;
             scale = new Vector3(15.0f, 15.0f, 1.0f);
@@ -35,7 +35,7 @@ namespace UnityEditor.MaterialGraph
             return Orientation.Horizontal;
         }
 
-        private static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
+    /*    private static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
         {
             switch (type)
             {
@@ -51,7 +51,7 @@ namespace UnityEditor.MaterialGraph
                     return "(E)";
 
             }
-        }
+        }*/
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
@@ -59,16 +59,14 @@ namespace UnityEditor.MaterialGraph
             anchorColor.a = 0.7f;
             base.Render(parentRect, canvas);
             EditorGUI.DrawRect(new Rect(translation.x, translation.y, scale.x, scale.y), anchorColor);
-            string text = m_Slot.name;
+            string text = m_Slot.displayName;
             Rect labelRect;
             if (m_Direction == Direction.Input)
             {
-                text += " " + ConcreteSlotValueTypeAsString(m_Slot.concreteValueType);
                 labelRect = new Rect(translation.x + scale.x + 10.0f, translation.y, parentRect.width, 20.0f);
             }
             else
             {
-                text += " " + ConcreteSlotValueTypeAsString(m_Slot.concreteValueType);
                 Vector2 sizeOfText = GUIStyle.none.CalcSize(new GUIContent(text));
                 labelRect = new Rect(translation.x - sizeOfText.x - 4.0f, translation.y, sizeOfText.x + 4.0f, sizeOfText.y + 4.0f);
             }

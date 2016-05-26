@@ -19,6 +19,8 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         private ConcreteSlotValueType m_ConcreteValueType;
 
+        public MaterialSlot() { }
+
         public MaterialSlot(string name, string displayName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue) 
             : base(name, displayName, slotType)
         {

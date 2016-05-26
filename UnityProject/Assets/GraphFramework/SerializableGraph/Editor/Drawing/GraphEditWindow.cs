@@ -1,33 +1,35 @@
-#define DEBUG_MAT_GEN
-
 using System;
 using System.Reflection;
 using UnityEditor.Experimental;
+using UnityEditor.MaterialGraph;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing.Drawing
 {
-    class MaterialWindow : EditorWindow
+    class GraphEditWindow : EditorWindow
     {
-        [MenuItem("Window/Material")]
+        [MenuItem("Window/Graph Editor")]
         public static void OpenMenu()
         {
-            GetWindow<MaterialWindow>();
+            GetWindow<GraphEditWindow>();
         }
 
-        private MaterialGraph m_MaterialGraph;
-        private Canvas2D m_Canvas = null;
-        private EditorWindow m_HostWindow = null;
-        private MaterialGraphDataSource m_DataSource;
-        private Vector2 m_ScrollPos;
-        private bool m_NodeExpanded;
-
+        [SerializeField]
+        private SerializableGraphAsset m_LastSelection;
+        
+        [NonSerialized]
+        private Canvas2D m_Canvas;
+        [NonSerialized]
+        private EditorWindow m_HostWindow;
+        [NonSerialized]
+        private GraphDataSource m_DataSource;
+        
         private bool shouldRepaint
         {
             get
             {
-                return m_MaterialGraph != null && m_MaterialGraph.currentGraph != null && m_MaterialGraph.currentGraph.requiresRepaint;
+                return m_LastSelection != null && m_LastSelection.graph != null;
             }
         }
 
@@ -41,25 +43,24 @@ namespace UnityEditor.MaterialGraph
         {
             if (Selection.activeObject == null || !EditorUtility.IsPersistent(Selection.activeObject))
                 return;
-
-            if (Selection.activeObject is MaterialGraphAsset)
+            
+            if (Selection.activeObject is SerializableGraphAsset)
             {
-                var selection = Selection.activeObject as MaterialGraphAsset;
-                if (selection.graph != m_MaterialGraph)
+                var selection = (SerializableGraphAsset) Selection.activeObject;
+                if (selection != m_LastSelection)
                 {
-                    m_MaterialGraph = selection.graph;
+                    m_LastSelection = selection;
+                    Rebuild();
+                    Repaint();
                 }
             }
-            
-            Rebuild();
-            Repaint();
         }
 
         private void InitializeCanvas()
         {
             if (m_Canvas == null)
             {
-                m_DataSource = new MaterialGraphDataSource();
+                m_DataSource = new GraphDataSource();
                 m_Canvas = new Canvas2D(this, m_HostWindow, m_DataSource);
 
                 // draggable manipulator allows to move the canvas around. Note that individual elements can have the draggable manipulator on themselves
@@ -98,20 +99,22 @@ namespace UnityEditor.MaterialGraph
             if (posObj == null)
                 return;
 
-            AbstractMaterialNode node = null;
+            INode node;
             try
             {
-                var constructorInfo = posObj.m_Type.GetConstructor(new[] {typeof(AbstractMaterialGraph)});
-                node = (AbstractMaterialNode)constructorInfo.Invoke(new object[] { m_MaterialGraph.currentGraph });
+                node = Activator.CreateInstance(posObj.m_Type, m_LastSelection.graph) as INode;
             }
             catch
             {
-                Debug.LogWarningFormat("Could not construct instance of: {0} as there is no single argument constuctor that takes a AbstractMaterialGraph", posObj.m_Type);
+                Debug.LogWarningFormat("Could not construct instance of: {0}", posObj.m_Type);
                 return;
             }
-            
+
+            if (node == null)
+                return;
+
             node.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, node.position.width, node.position.height);
-            m_MaterialGraph.currentGraph.AddNode(node);
+            m_LastSelection.graph.AddNode(node);
 
             Rebuild();
             Repaint();
@@ -138,10 +141,10 @@ namespace UnityEditor.MaterialGraph
 
         private void Rebuild()
         {
-            if (m_Canvas == null || m_MaterialGraph == null)
+            if (m_Canvas == null || m_LastSelection == null || m_LastSelection.graph == null)
                 return;
 
-            m_DataSource.graph = m_MaterialGraph;
+            m_DataSource.graph = m_LastSelection.graph;
             m_Canvas.ReloadData();
         }
 
@@ -153,18 +156,16 @@ namespace UnityEditor.MaterialGraph
                 InitializeCanvas();
             }
 
-            if (m_MaterialGraph == null)
+            if (m_LastSelection == null ||  m_LastSelection.graph == null)
             {
                 GUILayout.Label("No Graph selected");
                 return;
             }
-
-            //m_Canvas.dataSource = m_ActiveGraph;
+            
             m_Canvas.OnGUI(this, new Rect(0, 0, position.width - 250, position.height));
-            RenderOptions(m_MaterialGraph);
         }
 
-        public void RenderOptions(MaterialGraph graph)
+        /*public void RenderOptions(MaterialGraph graph)
         {
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
@@ -184,13 +185,6 @@ namespace UnityEditor.MaterialGraph
 
             GUILayout.EndVertical();
             EditorGUILayout.EndHorizontal();
-        }
-
-        public static void DebugMaterialGraph(string s)
-        {
-#if DEBUG_MAT_GEN
-            Debug.Log(s);
-#endif
-        }
+        }*/
     }
 }
