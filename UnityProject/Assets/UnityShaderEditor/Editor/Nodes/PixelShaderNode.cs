@@ -28,16 +28,6 @@ namespace UnityEditor.MaterialGraph
             GetLightFunction().DoSlotsForConfiguration(this); 
         }
 
-        protected override int previewWidth
-        {
-            get { return 300; }
-        }
-        
-        protected override int previewHeight
-        {
-            get { return 300; }
-        }
-
         protected override bool generateDefaultInputs { get { return false; } }
 
         public override bool canDeleteNode { get { return false; } }

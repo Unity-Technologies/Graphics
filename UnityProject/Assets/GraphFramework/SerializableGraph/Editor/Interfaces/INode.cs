@@ -10,7 +10,6 @@ namespace UnityEditor.Graphing
         Guid guid { get; }
         string name { get; set; }
         bool canDeleteNode { get; }
-        Rect position { get; set; }
         IEnumerable<ISlot> inputSlots { get; }
         IEnumerable<ISlot> outputSlots { get; }
         IEnumerable<ISlot> slots { get; }
@@ -21,5 +20,6 @@ namespace UnityEditor.Graphing
         ISlot FindInputSlot(string name);
         ISlot FindOutputSlot(string name);
         IEnumerable<ISlot> GetInputsWithNoConnection();
+        DrawingData drawState { get; set; }
     }
 }
