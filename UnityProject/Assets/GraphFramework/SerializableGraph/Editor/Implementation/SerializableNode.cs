@@ -6,25 +6,19 @@ using UnityEngine;
 namespace UnityEditor.Graphing
 {
     [Serializable]
-    public class SerializableNode : ISerializationCallbackReceiver, INode
+    public class SerializableNode : INode, ISerializationCallbackReceiver
     {
-        public delegate void NeedsRepaint();
-        public NeedsRepaint onNeedsRepaint;
-        
-        private const int kPreviewWidth = 64;
-        private const int kPreviewHeight = 64;
-
         [NonSerialized]
         private Guid m_Guid;
 
         [SerializeField]
         private string m_GuidSerialized;
-
+        
         [SerializeField]
         private string m_Name;
 
         [SerializeField]
-        private Rect m_Position;
+        private DrawingData m_DrawData;
 
         [NonSerialized]
         private List<ISlot> m_Slots = new List<ISlot>();
@@ -50,20 +44,10 @@ namespace UnityEditor.Graphing
             get { return true; }
         }
 
-        protected virtual int previewWidth
+        public DrawingData drawState
         {
-            get { return kPreviewWidth; }
-        }
-
-        protected virtual int previewHeight
-        {
-            get { return kPreviewHeight; }
-        }
-
-        public Rect position
-        {
-            get { return m_Position; }
-            set { m_Position = value; }
+            get { return m_DrawData; }
+            set { m_DrawData = value; }
         }
 
         public IEnumerable<ISlot> inputSlots

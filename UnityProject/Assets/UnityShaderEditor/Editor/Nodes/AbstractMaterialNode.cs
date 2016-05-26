@@ -12,11 +12,8 @@ namespace UnityEditor.MaterialGraph
     [Serializable]
     public abstract class AbstractMaterialNode : SerializableNode, IGenerateProperties
     {
-       private static readonly Mesh[] s_Meshes = {null, null, null, null};
+        private static readonly Mesh[] s_Meshes = {null, null, null, null};
         
-        [SerializeField]
-        private DrawMode m_DrawMode = DrawMode.Full;
-
         protected PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
 
         [NonSerialized]
@@ -57,12 +54,6 @@ namespace UnityEditor.MaterialGraph
             get { return PreviewMode.Preview2D; }
         }
 
-        public DrawMode drawMode
-        {
-            get { return m_DrawMode; }
-            set { m_DrawMode = value; }
-        }
-
         protected virtual bool generateDefaultInputs
         {
             get { return true; }
@@ -83,18 +74,8 @@ namespace UnityEditor.MaterialGraph
 
         public bool hasError
         {
-            get
-            {
-                return m_HasError;
-            }
-            protected set
-            {
-                if (m_HasError != value)
-                {
-                    m_HasError = value;
-                    ExecuteRepaint();
-                }
-            }
+            get { return m_HasError; }
+            protected set { m_HasError = value; }
         }
 
         public IEnumerable<MaterialSlot> materialSlots
@@ -136,6 +117,7 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
+        /*
         protected virtual void OnPreviewGUI()
         {
             if (!ShaderUtil.hardwareSupportsRectRenderTexture)
@@ -151,7 +133,7 @@ namespace UnityEditor.MaterialGraph
             GUI.DrawTexture(rect, preview, ScaleMode.StretchToFill, false);
             GL.sRGBWrite = false;
         }
-
+        */
         protected string GetSlotValue(MaterialSlot inputSlot, GenerationMode generationMode)
         {
             var edges = owner.GetEdges(GetSlotReference(inputSlot.name)).ToArray();
@@ -388,12 +370,6 @@ namespace UnityEditor.MaterialGraph
         {
             var inputSlotType = inputSlot.concreteValueType;
             return inputSlot.OnGUI(rect, inputSlotType);
-        }
-
-        public void ExecuteRepaint()
-        {
-            if (onNeedsRepaint != null)
-                onNeedsRepaint();
         }
         
         protected virtual bool UpdatePreviewShader()

@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using UnityEngine;
@@ -6,6 +7,21 @@ namespace UnityEditor.Graphing.Drawing
 {
     public sealed class DrawableNode : CanvasElement
     {
+        protected int previewWidth
+        {
+            get { return kPreviewWidth; }
+        }
+
+        protected int previewHeight
+        {
+            get { return kPreviewHeight; }
+        }
+        public delegate void NeedsRepaint();
+        public NeedsRepaint onNeedsRepaint;
+
+        private const int kPreviewWidth = 64;
+        private const int kPreviewHeight = 64;
+
         private readonly GraphDataSource m_Data;
         public INode m_Node;
 
@@ -14,7 +30,8 @@ namespace UnityEditor.Graphing.Drawing
 
         public DrawableNode(INode node, float width, GraphDataSource data)
         {
-            translation = node.position.min;
+            var drawData = node.drawState;
+            translation = drawData.position.min;
             scale = new Vector2(width, width);
 
             m_Node = node;
@@ -40,8 +57,8 @@ namespace UnityEditor.Graphing.Drawing
             {
                 var edges = node.owner.GetEdges(node.GetSlotReference(slot.name));
                 // don't show empty output slots in collapsed mode
-                //if (node.drawMode == DrawMode.Collapsed && !edges.Any())
-                //    continue;
+                if (!node.drawState.expanded && !edges.Any())
+                    continue;
 
                 pos.y += 22;
                 AddChild(new NodeAnchor(pos, typeof(Vector4), node, slot, data, Direction.Output));
@@ -82,9 +99,11 @@ namespace UnityEditor.Graphing.Drawing
         public override void UpdateModel(UpdateType t)
         {
             base.UpdateModel(t);
-            var pos = m_Node.position;
+            var drawState = m_Node.drawState;
+            var pos = drawState.position;
             pos.min = translation;
-            m_Node.position = pos;
+            drawState.position = pos;
+            m_Node.drawState = drawState;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
@@ -94,13 +113,15 @@ namespace UnityEditor.Graphing.Drawing
             EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), selected ? selectedColor : backgroundColor);
             GUI.Label(new Rect(0, 0, scale.x, 26f), GUIContent.none, new GUIStyle("preToolbar"));
             GUI.Label(new Rect(10, 2, scale.x - 20.0f, 16.0f), m_Node.name, EditorStyles.toolbarTextField);
-            /*if (GUI.Button(new Rect(scale.x - 20f, 3f, 14f, 14f), m_Node.drawMode == DrawMode.Full ? "-" : "+"))
+            var drawState = m_Node.drawState;
+            if (GUI.Button(new Rect(scale.x - 20f, 3f, 14f, 14f), drawState.expanded ? "-" : "+"))
             {
-                m_Node.drawMode = m_Node.drawMode == DrawMode.Full ? DrawMode.Collapsed : DrawMode.Full;
+                drawState.expanded = !drawState.expanded;
+                m_Node.drawState = drawState;
                 ParentCanvas().ReloadData();
                 ParentCanvas().Repaint();
                 return;
-            }*/
+            }
 
             /*var modificationType = m_Node.NodeUI(m_NodeUIRect);
             if (modificationType == GUIModificationType.Repaint)
