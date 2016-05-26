@@ -318,18 +318,22 @@ namespace UnityEditor.Experimental.VFX
             VFXGraph graph = new VFXGraph(); // TMP Needs to remove RTData from graph
             try
             {
+                var data = new MetaData();
+
                 var doc = XDocument.Parse(xml);
                 var root = doc.Element("Graph");
 
                 var systemsXML = root.Elements("System");
                 var dataNodesXML = root.Elements("DataNode");
-                var connectionsXML = root.Elements("Connections");
+                var connectionsXML = root.Element("Connections");
 
                 foreach (var systemXML in systemsXML)
-                    graph.systems.AddChild(DeserializeSystem(systemXML));
+                    graph.systems.AddChild(DeserializeSystem(systemXML, data));
 
                 foreach (var dataNodeXML in dataNodesXML)
-                    graph.models.AddChild(DeserializeDataNode(dataNodeXML));
+                    graph.models.AddChild(DeserializeDataNode(dataNodeXML, data));
+
+                DeserializeConnections(connectionsXML, data);
             }
             catch(Exception e)
             {
@@ -340,25 +344,24 @@ namespace UnityEditor.Experimental.VFX
             return graph;
         }
 
-        private static VFXSystemModel DeserializeSystem(XElement xml)
+        private static VFXSystemModel DeserializeSystem(XElement xml, MetaData data)
         {
             var system = new VFXSystemModel();
             system.MaxNb = uint.Parse(xml.Attribute("MaxNb").Value);
             system.SpawnRate = float.Parse(xml.Attribute("SpawnRate").Value);
             system.BlendingMode = (BlendMode)Enum.Parse(typeof(BlendMode), xml.Attribute("BlendingMode").Value);
             system.OrderPriority = int.Parse(xml.Attribute("OrderPriority").Value);
-            //system.Id = uint.Parse(systemXML.Attribute("ID").Value);
 
             foreach (var contextXML in xml.Elements("Context"))
             {
-                var context = DeserializeContext(contextXML);
+                var context = DeserializeContext(contextXML,data);
                 system.AddChild(context);
             }
 
             return system;
         }
 
-        private static VFXContextModel DeserializeContext(XElement xml)
+        private static VFXContextModel DeserializeContext(XElement xml, MetaData data)
         {
             var descId = xml.Attribute("DescId").Value;
             var desc = VFXEditor.ContextLibrary.GetContext(descId);
@@ -369,18 +372,18 @@ namespace UnityEditor.Experimental.VFX
 
             foreach (var blockXML in xml.Elements("Block"))
             {
-                var block = DeserializeBlock(blockXML);
+                var block = DeserializeBlock(blockXML, data);
                 context.AddChild(block);
             }
 
             int index = 0;
             foreach (var slotXML in xml.Elements("Slot"))
-                DeserializeSlot(slotXML, context.GetSlot(index++));
+                DeserializeSlot(slotXML, context.GetSlot(index++), data);
 
             return context;
         }
 
-        private static VFXBlockModel DeserializeBlock(XElement xml)
+        private static VFXBlockModel DeserializeBlock(XElement xml, MetaData data)
         {
             var descId = xml.Attribute("DescId").Value;
             var desc = VFXEditor.BlockLibrary.GetBlock(descId);
@@ -390,12 +393,12 @@ namespace UnityEditor.Experimental.VFX
 
             int index = 0;
             foreach (var slotXML in xml.Elements("Slot"))
-                DeserializeSlot(slotXML, block.GetSlot(index++));
+                DeserializeSlot(slotXML, block.GetSlot(index++), data);
 
             return block;
         }
 
-        private static VFXDataNodeModel DeserializeDataNode(XElement xml)
+        private static VFXDataNodeModel DeserializeDataNode(XElement xml, MetaData data)
         {
             var dataNode = new VFXDataNodeModel();
             dataNode.UpdatePosition(SerializationUtils.ToVector2(xml.Attribute("Position").Value));
@@ -403,14 +406,14 @@ namespace UnityEditor.Experimental.VFX
 
             foreach (var blockXML in xml.Elements("DataBlock"))
             {
-                var block = DeserializeDataBlock(blockXML);
+                var block = DeserializeDataBlock(blockXML, data);
                 dataNode.AddChild(block);
             }
 
             return dataNode;
         }
 
-        private static VFXDataBlockModel DeserializeDataBlock(XElement xml)
+        private static VFXDataBlockModel DeserializeDataBlock(XElement xml, MetaData data)
         {
             var descId = xml.Attribute("DescId").Value;
             var desc = VFXEditor.BlockLibrary.GetDataBlock(descId);
@@ -418,13 +421,15 @@ namespace UnityEditor.Experimental.VFX
             var block = new VFXDataBlockModel(desc);
             block.UpdateCollapsed(bool.Parse(xml.Attribute("Collapsed").Value));
 
-            DeserializeSlot(xml.Element("Slot"), block.Slot);
+            DeserializeSlot(xml.Element("Slot"), block.Slot, data);
 
             return block;          
         }
 
-        private static void DeserializeSlot(XElement xml,VFXPropertySlot dst)
+        private static void DeserializeSlot(XElement xml, VFXPropertySlot dst, MetaData data)
         {
+            RegisterSlot(dst, data);
+
             var values = xml.Element("Values");
             var reader = values.CreateReader();
             reader.ReadToFollowing("Values");
@@ -436,13 +441,20 @@ namespace UnityEditor.Experimental.VFX
             bool[] collapsedValues = new bool[collapsedStr.Length];
             for (int i = 0; i < collapsedStr.Length; ++i)
                 collapsedValues[i] = bool.Parse(collapsedStr[i]);
+        }
 
-            /*int index = 0;
-            VFXPropertySlot slot = dst;
-            for (int i = 0; i < collapsedStr.Length; ++i)
+        private static void DeserializeConnections(XElement xml,MetaData data)
+        {
+            foreach (var connectionXML in xml.Elements("Connection"))
             {
-                slot.UpdateCollapsed(collapsedValues[i])
-            }*/
+                var slotId = int.Parse(connectionXML.Attribute("Id").Value);
+                Debug.Log("SLOT ID: " + slotId);
+                var slot = data.GetSlot(slotId);
+
+                string[] connectedStr = connectionXML.Value.Split(' ');
+                for (int i = 0; i < connectedStr.Length; ++i)
+                    slot.Link(data.GetSlot(int.Parse(connectedStr[i])));
+            }
         }
     }
 }

@@ -178,6 +178,14 @@ namespace UnityEngine.Experimental.VFX
                 child.UnlinkRecursively();
         }
 
+        public void Link(VFXPropertySlot slot)
+        {
+            if (this is VFXInputSlot)
+                ((VFXInputSlot)this).Link((VFXOutputSlot)slot);
+            else
+                ((VFXOutputSlot)this).Link((VFXInputSlot)slot);
+        }
+
         public VFXProperty Property                 { get { return m_Desc; }}
         public string Name                          { get { return m_Desc.m_Name; }}
         public VFXPropertyTypeSemantics Semantics   { get { return m_Desc.m_Type; }}
@@ -380,7 +388,7 @@ namespace UnityEngine.Experimental.VFX
             Init<VFXInputSlot>(null, desc);  
         }
 
-        public bool Link(VFXOutputSlot slot)
+        public new bool Link(VFXOutputSlot slot)
         {
             if (slot != m_ConnectedSlot)
             {
@@ -509,7 +517,7 @@ namespace UnityEngine.Experimental.VFX
             return connected;
         }
 
-        public void Link(VFXInputSlot slot)
+        public new void Link(VFXInputSlot slot)
         {
             if (slot == null)
                 return;
