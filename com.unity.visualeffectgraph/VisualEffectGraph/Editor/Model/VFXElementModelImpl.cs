@@ -26,7 +26,17 @@ namespace UnityEditor.Experimental
         public VFXModelContainer models = new VFXModelContainer(); // other model (data nodes...)
     }
 
-    public class VFXModelContainer : VFXElementModel<VFXElementModel, VFXElementModel> {} // Generic model container
+    // Generic model container
+    public class VFXModelContainer : VFXElementModel<VFXElementModel, VFXElementModel>
+    {
+        protected override void InnerInvalidate(InvalidationCause cause)
+        {
+            ++m_InvalidateID;
+        }
+
+        public int InvalidateID { get { return m_InvalidateID; } }
+        private int m_InvalidateID = 0;    
+    } 
 
     public class VFXSystemsModel : VFXElementModel<VFXElementModel, VFXSystemModel>
     {
@@ -39,8 +49,9 @@ namespace UnityEditor.Experimental
             }             
         }
 
-        public override void Invalidate(InvalidationCause cause)
+        protected override void InnerInvalidate(InvalidationCause cause)
         {
+            ++m_InvalidateID;
             switch(cause)
             {
                 case InvalidationCause.kModelChanged:
@@ -59,6 +70,8 @@ namespace UnityEditor.Experimental
             bool HasRecompiled = false;
             if (m_NeedsCheck)
             {
+                m_NeedsCheck = false;
+
                 VFXEditor.Log("\n**** VFXAsset is dirty ****");
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
@@ -73,12 +86,12 @@ namespace UnityEditor.Experimental
                             GetChild(i).RemoveSystem();
                     }
                 }
-
-                m_NeedsCheck = false;
             }
 
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
+                m_ReloadUniforms = false;
+
                 VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
@@ -88,8 +101,7 @@ namespace UnityEditor.Experimental
 
                     if (system.RtData != null)
                         system.RtData.UpdateAllUniforms();                  
-                }
-                m_ReloadUniforms = false;
+                } 
             }
 
             if (HasRecompiled) // Restart component 
@@ -111,6 +123,9 @@ namespace UnityEditor.Experimental
                 }
             }
         }
+
+        public int InvalidateID { get { return m_InvalidateID; }}
+        private int m_InvalidateID = 0;
 
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
@@ -233,7 +248,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void Invalidate(InvalidationCause cause)
+        protected override void InnerInvalidate(InvalidationCause cause)
         {
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
@@ -244,9 +259,6 @@ namespace UnityEditor.Experimental
 
             if (cause == InvalidationCause.kModelChanged)
                 m_Dirty = true;
-
-            if (m_Owner != null)
-                m_Owner.Invalidate(cause);
         }
 
         public bool RecompileIfNeeded()
@@ -395,12 +407,6 @@ namespace UnityEditor.Experimental
             base.OnSlotEvent(type, slot);
         }
 
-        public override void Invalidate(InvalidationCause cause)
-        {
-            if (m_Owner != null && Desc.m_Type != VFXContextDesc.Type.kTypeNone)
-                m_Owner.Invalidate(cause);
-        }
-
         public VFXContextDesc.Type GetContextType()
         {
             return Desc.m_Type;
@@ -461,12 +467,6 @@ namespace UnityEditor.Experimental
             }
 
             base.OnSlotEvent(type, slot);
-        }
-
-        public override void Invalidate(InvalidationCause cause)
-        {
-            if (m_Owner != null)
-                m_Owner.Invalidate(cause);
         }
 
         public VFXBlockModel(VFXBlockDesc desc)

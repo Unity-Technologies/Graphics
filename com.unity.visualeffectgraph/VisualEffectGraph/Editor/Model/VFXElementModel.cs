@@ -77,7 +77,14 @@ namespace UnityEditor.Experimental
         }
 
         public abstract bool CanAddChild(VFXElementModel element, int index);
-        public virtual void Invalidate(InvalidationCause cause) {}
+        public void Invalidate(InvalidationCause cause)
+        {
+            InnerInvalidate(cause);
+            if (m_Owner != null)
+                m_Owner.Invalidate(cause);
+        }
+
+        protected virtual void InnerInvalidate(InvalidationCause cause) {}
 
         public int GetNbChildren()
         {

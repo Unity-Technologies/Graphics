@@ -132,36 +132,11 @@ namespace UnityEditor.Experimental
                 (dataSource as VFXEdDataSource).ResyncViews();
                 ReloadData();
                 Repaint();
-
-                // TODO Fix that with refactor
-                /*const string TAB = "         ";
-                VFXEditor.Log("\nNb Systems: " + VFXEditor.AssetModel.GetNbChildren());
-                for (int i = 0; i < VFXEditor.AssetModel.GetNbChildren(); ++i)
-                {
-                    VFXSystemModel system = VFXEditor.AssetModel.GetChild(i);
-                    VFXEditor.Log(TAB + "System " + i);
-                    for (int j = 0; j < system.GetNbChildren(); ++j)
-                    {
-                        VFXContextModel context = system.GetChild(j);
-                        VFXEditor.Log(TAB + TAB + j + " " + context.GetContextType());
-                        for (int k = 0; k < context.GetNbChildren(); ++k)
-                        {
-                            VFXBlockModel block = context.GetChild(k);
-                            VFXBlock blockDesc = context.GetChild(k).Desc;
-                            VFXEditor.Log(TAB + TAB + TAB + k + " " + blockDesc.m_Name);
-                            for (int l = 0; l < blockDesc.m_Params.Length; ++l)
-                                VFXEditor.Log(TAB + TAB + TAB + TAB + blockDesc.m_Params[l].m_Name + ": " + block.GetParamValue(l).ToString());
-                        }
-                    }
-                }
-
-                Repaint();
-                return true;*/
             }
 
             if (e.character == 's')
             {
-                Debug.Log("Serialize in XML");
+                /*Debug.Log("Serialize in XML");
                 var str = ModelSerializer.Serialize(VFXEditor.Graph);
                 Debug.Log(str);
 
@@ -170,7 +145,7 @@ namespace UnityEditor.Experimental
                 ReloadData();
                 Repaint();
 
-                Debug.Log("DONE");
+                Debug.Log("DONE");*/
             }
 
 
