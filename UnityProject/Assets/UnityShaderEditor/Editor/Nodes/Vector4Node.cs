@@ -9,19 +9,19 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         public Vector4 m_Value;
        
-        private void InternalValidate() 
+        private const string kOutputSlotName = "Value";
+        
+        public Vector4Node(IGraph owner) : base(owner)
+        {
+            name = "V4Node";
+            UpdateSlots();
+        }
+
+        private void UpdateSlots()
         {
             AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
         }
 
-        private const string kOutputSlotName = "Value";
-        
-        public Vector4Node(AbstractMaterialGraph owner) : base(owner)
-        {
-            name = "V4Node";
-            InternalValidate();
-        }
-        
         public override PropertyType propertyType
         {
             get { return PropertyType.Vector4; }
@@ -70,6 +70,12 @@ namespace UnityEditor.MaterialGraph
                        m_PropType = PropertyType.Vector4,
                        m_Vector4 = m_Value
                    };
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+            UpdateSlots(); 
         }
     }
 }

@@ -1,75 +1,74 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
-using UnityEditor.Graphing;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing.Drawing
 {
-    public sealed class DrawableMaterialNode : CanvasElement
+    public sealed class DrawableNode : CanvasElement
     {
-        private readonly MaterialGraphDataSource m_Data;
-        public AbstractMaterialNode m_Node;
+        private readonly GraphDataSource m_Data;
+        public INode m_Node;
 
         private Rect m_PreviewArea;
         private Rect m_NodeUIRect;
 
-        public DrawableMaterialNode(AbstractMaterialNode node, float width, MaterialGraphDataSource data)
+        public DrawableNode(INode node, float width, GraphDataSource data)
         {
             translation = node.position.min;
             scale = new Vector2(width, width);
 
-            m_Node = node; 
+            m_Node = node;
             m_Data = data;
-            m_Node.onNeedsRepaint += Invalidate; 
+            //m_Node.onNeedsRepaint += Invalidate;
 
             const float yStart = 10.0f;
             var vector3 = new Vector3(5.0f, yStart, 0.0f);
             Vector3 pos = vector3;
 
             // input slots
-            foreach (var slot in node.materialInputSlots)
+            foreach (var slot in node.inputSlots)
             {
                 pos.y += 22;
-                AddChild(new NodeAnchor(pos, typeof (Vector4), node, slot, data, Direction.Input));
+                AddChild(new NodeAnchor(pos, typeof(Vector4), node, slot, data, Direction.Input));
             }
             var inputYMax = pos.y + 22;
 
             // output port
             pos.x = width;
             pos.y = yStart;
-            foreach (var slot in node.materialOuputSlots)
+            foreach (var slot in node.outputSlots)
             {
-                var edges = node.owner.GetEdges(new SlotReference(node.guid, slot.name));
+                var edges = node.owner.GetEdges(node.GetSlotReference(slot.name));
                 // don't show empty output slots in collapsed mode
-                if (node.drawMode == DrawMode.Collapsed && !edges.Any())
-                    continue;
+                //if (node.drawMode == DrawMode.Collapsed && !edges.Any())
+                //    continue;
 
                 pos.y += 22;
-                AddChild(new NodeAnchor(pos, typeof (Vector4), node, slot, data, Direction.Output));
+                AddChild(new NodeAnchor(pos, typeof(Vector4), node, slot, data, Direction.Output));
             }
             pos.y += 22;
 
             pos.y = Mathf.Max(pos.y, inputYMax);
 
+            /*
             var nodeUIHeight = m_Node.GetNodeUIHeight(width);
             m_NodeUIRect = new Rect(10, pos.y, width - 20, nodeUIHeight);
             pos.y += nodeUIHeight;
 
             if (node.hasPreview && node.drawMode != DrawMode.Collapsed)
-            { 
+            {
                 m_PreviewArea = new Rect(10, pos.y, width - 20, width - 20);
                 pos.y += m_PreviewArea.height;
-            }
-            
+            }*/
+
             scale = new Vector3(pos.x, pos.y + 10.0f, 0.0f);
-            OnWidget += MarkDirtyIfNeedsTime;
-            
+            //OnWidget += MarkDirtyIfNeedsTime;
+
             AddManipulator(new ImguiContainer());
             AddManipulator(new Draggable());
         }
 
+        /*
         private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
         {
             var childrenNodes = ListPool<INode>.Get();
@@ -78,8 +77,8 @@ namespace UnityEditor.MaterialGraph
                 Invalidate();
             ListPool<INode>.Release(childrenNodes);
             return true;
-        }
-        
+        }*/
+
         public override void UpdateModel(UpdateType t)
         {
             base.UpdateModel(t);
@@ -92,19 +91,19 @@ namespace UnityEditor.MaterialGraph
         {
             Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
             Color selectedColor = new Color(1.0f, 0.7f, 0.0f, 0.7f);
-            EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), m_Node.hasError ? Color.red : selected ? selectedColor : backgroundColor);
+            EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), selected ? selectedColor : backgroundColor);
             GUI.Label(new Rect(0, 0, scale.x, 26f), GUIContent.none, new GUIStyle("preToolbar"));
             GUI.Label(new Rect(10, 2, scale.x - 20.0f, 16.0f), m_Node.name, EditorStyles.toolbarTextField);
-            if (GUI.Button(new Rect(scale.x - 20f, 3f, 14f, 14f), m_Node.drawMode == DrawMode.Full ? "-" : "+"))
+            /*if (GUI.Button(new Rect(scale.x - 20f, 3f, 14f, 14f), m_Node.drawMode == DrawMode.Full ? "-" : "+"))
             {
                 m_Node.drawMode = m_Node.drawMode == DrawMode.Full ? DrawMode.Collapsed : DrawMode.Full;
                 ParentCanvas().ReloadData();
                 ParentCanvas().Repaint();
                 return;
-            }
+            }*/
 
-            var modificationType = m_Node.NodeUI(m_NodeUIRect);
-            if (modificationType== GUIModificationType.Repaint)
+            /*var modificationType = m_Node.NodeUI(m_NodeUIRect);
+            if (modificationType == GUIModificationType.Repaint)
             {
                 // if we were changed, we need to redraw all the
                 // dependent nodes.
@@ -117,19 +116,20 @@ namespace UnityEditor.MaterialGraph
                 return;
             }
 
-            if (m_Node.hasPreview 
-                && m_Node.drawMode != DrawMode.Collapsed 
+            if (m_Node.hasPreview
+                && m_Node.drawMode != DrawMode.Collapsed
                 && m_PreviewArea.width > 0
                 && m_PreviewArea.height > 0)
             {
                 GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
                 GUI.DrawTexture(m_PreviewArea, m_Node.RenderPreview(new Rect(0, 0, m_PreviewArea.width, m_PreviewArea.height)), ScaleMode.StretchToFill, false);
                 GL.sRGBWrite = false;
-            }
+            }*/
 
             base.Render(parentRect, canvas);
         }
 
+        /*
         public static void RepaintDependentNodes(AbstractMaterialNode bmn)
         {
             var dependentNodes = new List<INode>();
@@ -147,6 +147,6 @@ namespace UnityEditor.MaterialGraph
                 // dependent nodes.
                 RepaintDependentNodes(drawableMaterialNode.m_Node);
             }
-        }
+        }*/
     }
 }

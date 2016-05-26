@@ -11,6 +11,9 @@ namespace UnityEditor.Graphing
         [SerializeField]
         private SlotReference m_InputSlot;
 
+        public Edge()
+        {}
+
         public Edge(SlotReference outputSlot, SlotReference inputSlot)
         {
             m_OutputSlot = outputSlot;

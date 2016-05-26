@@ -1,7 +1,7 @@
 using UnityEditor.Experimental.Graph;
 using UnityEngine;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing.Drawing
 {   
     internal class PortSource<T>
     {

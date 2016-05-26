@@ -181,9 +181,9 @@ namespace UnityEditor.MaterialGraph
             return GUIModificationType.None;
         }
 
-        public override IEnumerable<MaterialSlot> GetInputsWithNoConnection()
+        public override IEnumerable<ISlot> GetInputsWithNoConnection()
         {
-            return new List<MaterialSlot>();
+            return new List<ISlot>();
         }
 
         public override bool hasPreview

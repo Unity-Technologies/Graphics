@@ -20,5 +20,6 @@ namespace UnityEditor.Graphing
         ISlot FindSlot(string name);
         ISlot FindInputSlot(string name);
         ISlot FindOutputSlot(string name);
+        IEnumerable<ISlot> GetInputsWithNoConnection();
     }
 }

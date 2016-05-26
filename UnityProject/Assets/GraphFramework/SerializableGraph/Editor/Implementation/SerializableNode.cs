@@ -81,7 +81,7 @@ namespace UnityEditor.Graphing
             get { return m_Slots; }
         }
 
-        public SerializableNode(SerializableGraph theOwner)
+        public SerializableNode(IGraph theOwner)
         {
             owner = theOwner;
             m_Guid = Guid.NewGuid();
@@ -196,8 +196,13 @@ namespace UnityEditor.Graphing
             else
                 m_Guid = Guid.NewGuid();
 
-            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, new object[] { this });
+            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, new object[] {});
             m_SerializableSlots = null; 
+        }
+
+        public virtual IEnumerable<ISlot> GetInputsWithNoConnection() 
+        {
+            return inputSlots.Where(x => !owner.GetEdges(GetSlotReference(x.name)).Any());
         }
     }
 }

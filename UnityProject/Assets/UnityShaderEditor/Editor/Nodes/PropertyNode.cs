@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Graphing;
 using UnityEngine;
 
 namespace UnityEditor.MaterialGraph
@@ -15,7 +16,7 @@ namespace UnityEditor.MaterialGraph
         [SerializeField]
         public bool m_Exposed;
 
-        public PropertyNode(AbstractMaterialGraph owner) : base(owner)
+        public PropertyNode(IGraph owner) : base(owner)
         {}
 
         public bool exposed

@@ -112,7 +112,7 @@ namespace UnityEditor.MaterialGraph
             get { return outputSlots.OfType<MaterialSlot>(); }
         }
 
-        protected AbstractMaterialNode(AbstractMaterialGraph theOwner) : base(theOwner)
+        protected AbstractMaterialNode(IGraph theOwner) : base(theOwner)
         { }
         
         public virtual void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
@@ -390,11 +390,6 @@ namespace UnityEditor.MaterialGraph
             return inputSlot.OnGUI(rect, inputSlotType);
         }
 
-        public virtual IEnumerable<MaterialSlot> GetInputsWithNoConnection()
-        {
-            return materialInputSlots.Where(x => !owner.GetEdges(GetSlotReference(x.name)).Any());
-        }
-
         public void ExecuteRepaint()
         {
             if (onNeedsRepaint != null)
@@ -419,7 +414,7 @@ namespace UnityEditor.MaterialGraph
 
         protected bool InternalUpdatePreviewShader(string resultShader)
         {
-            MaterialWindow.DebugMaterialGraph("RecreateShaderAndMaterial : " + name + "_" + guid.ToString().Replace("-","_") + "\n" + resultShader);
+            Debug.Log("RecreateShaderAndMaterial : " + name + "_" + guid.ToString().Replace("-","_") + "\n" + resultShader);
 
             // workaround for some internal shader compiler weirdness
             // if we are in error we sometimes to not properly clean 
