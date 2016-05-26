@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
@@ -175,34 +176,41 @@ namespace UnityEditor.Experimental
             {
                 if (m_Direction == Direction.Input)
                 {
-                    ExposePropertyMenu(ParentCanvas().MouseToCanvas(Event.current.mousePosition));
+                    ExposePropertyMenu(Event.current.mousePosition);
                 }
-                    
             }
         }
 
         public void ExposePropertyMenu(Vector2 position)
         {
-            ExposePropertyInfo info = new ExposePropertyInfo(position, m_Slot.Semantics.GetType().FullName, this);
-            GenericMenu menu = new GenericMenu();
-            menu.AddItem(new GUIContent("Expose Parameter"), false, ExposeProperty, info);
-            menu.ShowAsContext();
+            ExposePropertyInfo info = new ExposePropertyInfo(m_Slot.Semantics.GetType().FullName, this);
 
+            List<MiniMenu.Item> items =  new List<MiniMenu.Item>();
+
+            items.Add(new MiniMenu.HeaderItem("Create Parameter?"));
+            items.Add(new MiniMenu.CallbackItem("Ok", ExposeProperty, info));
+
+            MiniMenu.Show(Event.current.mousePosition, items);
         }
 
-        public void ExposeProperty(object propertyInfo)
+        public void ExposeProperty(Vector2 mousePosition, object propertyInfo)
         {
+
             ExposePropertyInfo info = (ExposePropertyInfo)propertyInfo;
             VFXDataBlockDesc desc = VFXEditor.BlockLibrary.GetDataBlock(info.DataBlockDescID);
 
+            Vector2 canvasMousePosition = ParentCanvas().MouseToCanvas(mousePosition);
+
             // Find Underlying Node if present;
             VFXEdCanvas canvas = (VFXEdCanvas)ParentCanvas();
+
             VFXEdDataNode target = null;
+
             foreach(CanvasElement e in canvas.Children())
             {
                 if(e is VFXEdDataNode)
                 {
-                    if(e.canvasBoundingRect.Contains(info.Position))
+                    if(e.canvasBoundingRect.Contains(canvasMousePosition))
                     {
                         target = (VFXEdDataNode)e;
                     }
@@ -210,28 +218,22 @@ namespace UnityEditor.Experimental
             }
 
             // Add Blocks, and optionally Node if not present.
-            
-            VFXEdDataNodeBlock newblock;
             if(target == null)
             {
                 // Offset new node so it's more natural for dropping on mouse pointer.
-                Vector2 OffsetPosition = info.Position - new Vector2(VFXEditorMetrics.NodeDefaultWidth - 40, 80);
-                VFXEdDataNodeSpawner nodeSpawner = new VFXEdDataNodeSpawner(m_DataSource, (VFXEdCanvas)ParentCanvas(), OffsetPosition, desc);
-                nodeSpawner.Spawn();
-                newblock = nodeSpawner.SpawnedNodeBlock;
+                Vector2 OffsetPosition = canvasMousePosition - new Vector2(VFXEditorMetrics.NodeDefaultWidth - 40, 80);
+                VFXDataNodeModel model =  m_DataSource.CreateDataNode(OffsetPosition);
+                target = m_DataSource.GetUI<VFXEdDataNode>(model);
             }
-            else
-            {
-                VFXEdDataNodeBlockSpawner blockSpawner = new VFXEdDataNodeBlockSpawner(info.Position, desc, target, m_DataSource, "name");
-                blockSpawner.Spawn();
-                newblock = blockSpawner.SpawnedNodeBlock;
-            }
+
+            var blockModel = new VFXDataBlockModel(desc);
+            m_DataSource.Create(blockModel, target.Model);
 
             // Copy values to new exposed parameter.
             newblock.Slot.CopyValuesFrom(m_Slot);
 
             // Connect
-            m_DataSource.ConnectData(this, newblock.Anchor);
+            m_DataSource.ConnectData(blockModel.GetOutputSlot(0),(VFXInputSlot)Slot);
             ParentCanvas().ReloadData(); 
             
         }
@@ -239,13 +241,11 @@ namespace UnityEditor.Experimental
 
     internal class ExposePropertyInfo
     {
-        public Vector2 Position;
         public string DataBlockDescID;
         public VFXUIPropertyAnchor Anchor;
 
-        public ExposePropertyInfo(Vector2 canvasPosition, string id, VFXUIPropertyAnchor anchor)
+        public ExposePropertyInfo(string id, VFXUIPropertyAnchor anchor)
         {
-            Position = canvasPosition;
             DataBlockDescID = id;
             Anchor = anchor;
         }

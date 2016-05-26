@@ -14,6 +14,18 @@ namespace UnityEditor.Experimental
                 LayoutSystem(system, datasource, datasource.GetUI<VFXEdContextNode>(system.GetChild(0)).translation);
 
         }
+
+        internal static void LayoutAllSystems(VFXSystemsModel systems, VFXEdDataSource datasource, Vector2 initialPosition)
+        {
+            Vector2 pos = initialPosition;
+
+            for(int i =0; i < systems.GetNbChildren(); ++i)
+            {
+                LayoutSystem(systems.GetChild(i), datasource, pos);
+                pos.x += VFXEditorMetrics.NodeDefaultWidth + 150;
+            }
+        }
+
         internal static void LayoutSystem(VFXSystemModel system, VFXEdDataSource datasource, Vector2 initialPosition)
         {
             Vector2 pos = initialPosition;

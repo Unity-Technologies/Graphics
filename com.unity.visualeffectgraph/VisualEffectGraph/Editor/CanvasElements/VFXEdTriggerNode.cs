@@ -27,11 +27,10 @@ namespace UnityEditor.Experimental
 
         }
 
-        protected override GenericMenu GetNodeMenu(Vector2 canvasClickPosition)
+        protected override MiniMenu.MenuSet GetNodeMenu(Vector2 mousePosition)
         {
-            GenericMenu menu = new GenericMenu();
-            menu.AddItem(new GUIContent("Not implemented yet"), false, null);
-            menu.ShowAsContext();
+            MiniMenu.MenuSet menu = new MiniMenu.MenuSet();
+            menu.AddItem("Not Implemented", new MiniMenu.HeaderItem("Check Back Later!"));
             return menu;
         }
 

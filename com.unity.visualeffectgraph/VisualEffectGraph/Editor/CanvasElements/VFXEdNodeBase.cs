@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental
 
             m_UniqueName = GetType().Name + "_" + Token;
 
-            AddManipulator(new Draggable());
+            AddManipulator(new GridSnapDraggable(10.0f));
 
             if (deletable)
                 AddManipulator(new NodeDelete());
