@@ -187,7 +187,7 @@ namespace UnityEditor.Experimental
 
             List<MiniMenu.Item> items =  new List<MiniMenu.Item>();
 
-            items.Add(new MiniMenu.HeaderItem("Expose Property?"));
+            items.Add(new MiniMenu.HeaderItem("Create Parameter?"));
             items.Add(new MiniMenu.CallbackItem("Ok", ExposeProperty, info));
 
             MiniMenu.Show(Event.current.mousePosition, items);

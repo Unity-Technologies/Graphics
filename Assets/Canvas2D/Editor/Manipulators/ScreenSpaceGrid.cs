@@ -21,6 +21,12 @@ namespace UnityEditor.Experimental
             m_Background = backgroundColor;
         }
 
+        public ScreenSpaceGrid(float spacing, int thickLineFrequency)
+        {
+            m_Spacing = spacing;
+            m_ThickLines = thickLineFrequency;
+        }
+
         public ScreenSpaceGrid(float spacing, int thickLineFrequency, Color lineColor, Color thickLineColor, Color background)
         {
             m_Spacing = spacing;
@@ -85,6 +91,17 @@ namespace UnityEditor.Experimental
 
             Matrix4x4 tx = Matrix4x4.TRS(canvas.translation, Quaternion.identity, Vector3.one);
 
+
+            // Grid Simplification over scale
+            float invScale = 1f/canvas.scale.x;
+            float exponent = Mathf.Floor(Mathf.Sqrt(invScale)) - 1;
+            float spacing = m_Spacing * Mathf.Pow(m_ThickLines , exponent);
+            float progress = Mathf.Sqrt(invScale) % 1f ;
+
+            Color thinlineColor = Color.Lerp(m_LineColor, m_Background, progress);
+            Color thicklineColor = Color.Lerp(m_ThickLineColor, m_LineColor, progress);
+            Color nextthickLineColor = m_ThickLineColor;
+
             // vertical lines
             from = tx.MultiplyPoint(from);
             to = tx.MultiplyPoint(to);
@@ -92,36 +109,38 @@ namespace UnityEditor.Experimental
             float thickGridLineX = from.x;
             float thickGridLineY = from.y;
 
-            from.x = (from.x % (m_Spacing * (canvas.scale.x)) - (m_Spacing * (canvas.scale.x)));
+            from.x = (from.x % (spacing * (canvas.scale.x)) - (spacing * (canvas.scale.x)));
             to.x = from.x;
 
             from.y = clientRect.y;
             to.y = clientRect.y + clientRect.height;
 
             Color oldHandlesColor = Handles.color;
-            Handles.color = m_LineColor;
+            Handles.color = thinlineColor;
 
             while (from.x < clientRect.width)
             {
-                from.x += m_Spacing * (canvas.scale.x);
-                to.x += m_Spacing * (canvas.scale.x);
+                from.x += spacing * (canvas.scale.x);
+                to.x += spacing * (canvas.scale.x);
 
                 var f = Clip(clientRect, from);
                 var t = Clip(clientRect, to);
                 Handles.DrawAAPolyLine(2.0f, new[] { f, t });
             }
 
-            Handles.color = m_ThickLineColor;
-            float thickLineSpacing = (m_Spacing * m_ThickLines);
+            Handles.color = thicklineColor;
+            float thickLineSpacing = (spacing * m_ThickLines);
             from.x = to.x = (thickGridLineX % (thickLineSpacing * (canvas.scale.x)) - (thickLineSpacing * (canvas.scale.x)));
+
             while (from.x < clientRect.width + thickLineSpacing)
             {
                 var f = Clip(clientRect, from);
                 var t = Clip(clientRect, to);
+
                 Handles.DrawAAPolyLine(2.0f, new[] { f, t });
            
-                from.x += (m_Spacing * (canvas.scale.x) * m_ThickLines);
-                to.x += (m_Spacing * (canvas.scale.x) * m_ThickLines);
+                from.x += (spacing * (canvas.scale.x) * m_ThickLines);
+                to.x += (spacing * (canvas.scale.x) * m_ThickLines);
             }
 
             // horizontal lines
@@ -131,24 +150,24 @@ namespace UnityEditor.Experimental
             from = tx.MultiplyPoint(from);
             to = tx.MultiplyPoint(to);
 
-            from.y = (from.y % (m_Spacing * (canvas.scale.y)) - (m_Spacing * (canvas.scale.y)));
+            from.y = (from.y % (spacing * (canvas.scale.y)) - (spacing * (canvas.scale.y)));
             to.y = from.y;
             from.x = 0.0f;
             to.x += clientRect.width;
 
             oldHandlesColor = Handles.color;
-            Handles.color = m_ThickLineColor;
+            Handles.color = thicklineColor;
             while (from.y < clientRect.height)
             {
-                from.y += m_Spacing * (canvas.scale.y);
-                to.y += m_Spacing * (canvas.scale.y);
+                from.y += spacing * (canvas.scale.y);
+                to.y += spacing * (canvas.scale.y);
 
                 var f = Clip(clientRect, from);
                 var t = Clip(clientRect, to);
                 Handles.DrawAAPolyLine(2.0f, new[] { f, t });
             }
 
-            thickLineSpacing = (m_Spacing * m_ThickLines);
+            thickLineSpacing = (spacing * m_ThickLines);
             from.y = to.y = (thickGridLineY % (thickLineSpacing * (canvas.scale.y)) - (thickLineSpacing * (canvas.scale.y)));
             oldHandlesColor = Handles.color;
             Handles.color = m_ThickLineColor;
@@ -158,9 +177,11 @@ namespace UnityEditor.Experimental
                 var t = Clip(clientRect, to);
                 Handles.DrawAAPolyLine(2.0f, new[] { f, t });
 
-                from.y += (m_Spacing * (canvas.scale.y) * m_ThickLines);
-                to.y += (m_Spacing * (canvas.scale.y) * m_ThickLines);
+                from.y += (spacing * (canvas.scale.y) * m_ThickLines);
+                to.y += (spacing * (canvas.scale.y) * m_ThickLines);
             }
+
+            Handles.color = nextthickLineColor;
 
             Handles.color = oldHandlesColor;
             return true;

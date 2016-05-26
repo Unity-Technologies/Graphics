@@ -78,6 +78,8 @@ namespace UnityEditor.Experimental
         public Texture2D ToolbarPause;
         public Texture2D ToolbarFrameAdvance;
 
+        public Texture2D Watermark;
+
         public Color DataEdgeTint = HexColor("#AFAFAF80");
         public Color DataEdgeSelectedTint = HexColor("#FFFFFFFF");
 
@@ -313,6 +315,7 @@ namespace UnityEditor.Experimental
             ToolbarStop = EditorGUIUtility.Load("ToolbarIcons.Stop.png") as Texture2D;
             ToolbarFrameAdvance = EditorGUIUtility.Load("ToolbarIcons.FrameAdvance.png") as Texture2D;
 
+            Watermark = EditorGUIUtility.Load("VFXEditorWatermark.psd") as Texture2D;
 
 
             m_icons = new Dictionary<string, Texture2D>();

@@ -44,8 +44,9 @@ namespace UnityEditor.Experimental
 
             // The following manipulator show how to work with canvas2d overlay and background rendering
             AddManipulator(new RectangleSelect());
-            AddManipulator(new ScreenSpaceGrid());
+            AddManipulator(new ScreenSpaceGrid(VFXEditorMetrics.GridSpacing, VFXEditorMetrics.GridSteps));
 
+            AddManipulator(new Watermark(VFXEditor.styles.Watermark));
             AddManipulator(new VFXFilterPopup());
             AddManipulator(new EditorKeyboardControl());
 
