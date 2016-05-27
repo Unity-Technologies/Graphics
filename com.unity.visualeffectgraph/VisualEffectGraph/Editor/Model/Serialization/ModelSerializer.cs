@@ -143,6 +143,12 @@ namespace UnityEditor.Experimental.VFX
                 slots.Add(slot);      
             }
 
+            public void Skip(int nb)
+            {
+                for (int i = 0; i < nb; ++i)
+                    slots.Add(null);
+            }
+
             public int GetNbSlots()                 { return slots.Count; }
             public VFXPropertySlot GetSlot(int id)  { return slots[id]; }
             public int GetId(VFXPropertySlot slot)  { return slotsToId[slot]; }
@@ -303,8 +309,8 @@ namespace UnityEditor.Experimental.VFX
                 collapsed = new List<bool>();
 
             data.AddSlot(slot);
-
             collapsed.Add(slot.UICollapsed);
+
             for (int i = 0; i < slot.GetNbChildren(); ++i)
                 RegisterSlot(slot.GetChild(i), data, collapsed);
 
@@ -378,7 +384,7 @@ namespace UnityEditor.Experimental.VFX
 
             int index = 0;
             foreach (var slotXML in xml.Elements("Slot"))
-                DeserializeSlot(slotXML, context.GetSlot(index++), data);
+                DeserializeSlot(slotXML, context.GetSlot(index++), data,false); // TODO Should have a hash for context blocks too
 
             return context;
         }
@@ -391,9 +397,14 @@ namespace UnityEditor.Experimental.VFX
             var block = new VFXBlockModel(desc);
             block.UpdateCollapsed(bool.Parse(xml.Attribute("Collapsed").Value));
 
+
+            bool hashTest = int.Parse(xml.Attribute("Hash").Value) == desc.SlotHash; // Check whether serialized slot data is compatible with current slots
+            if (!hashTest)
+                Debug.LogWarning("Slots configuration has changed between serialized data and current data. Slots cannot be deserialized for block " + desc);
+
             int index = 0;
             foreach (var slotXML in xml.Elements("Slot"))
-                DeserializeSlot(slotXML, block.GetSlot(index++), data);
+                DeserializeSlot(slotXML, block.GetSlot(index++), data, !hashTest);
 
             return block;
         }
@@ -421,26 +432,32 @@ namespace UnityEditor.Experimental.VFX
             var block = new VFXDataBlockModel(desc);
             block.UpdateCollapsed(bool.Parse(xml.Attribute("Collapsed").Value));
 
-            DeserializeSlot(xml.Element("Slot"), block.Slot, data);
+            DeserializeSlot(xml.Element("Slot"), block.Slot, data,false);
 
             return block;          
         }
 
-        private static void DeserializeSlot(XElement xml, VFXPropertySlot dst, MetaData data)
+        private static void DeserializeSlot(XElement xml, VFXPropertySlot dst, MetaData data, bool skip)
         {
-            RegisterSlot(dst, data);
+            if (!skip)
+            {
+                RegisterSlot(dst, data); 
 
-            var values = xml.Element("Values");
-            var reader = values.CreateReader();
-            reader.ReadToFollowing("Values");
-            while (reader.Read() && reader.NodeType != XmlNodeType.Element) { } // Advance to element
-            dst.SetValuesFromString(reader);
+                var values = xml.Element("Values");
+                var reader = values.CreateReader();
+                reader.ReadToFollowing("Values");
+                while (reader.Read() && reader.NodeType != XmlNodeType.Element) { } // Advance to element
+                dst.SetValuesFromString(reader);
+            }
 
             var collapsed = xml.Element("Collapsed");
             string[] collapsedStr = collapsed.Value.Split(' ');
             bool[] collapsedValues = new bool[collapsedStr.Length];
             for (int i = 0; i < collapsedStr.Length; ++i)
                 collapsedValues[i] = bool.Parse(collapsedStr[i]);
+
+            if (skip) // Advance the slot array to the number of serialized slots to keep correct indexing
+                data.Skip(collapsedValues.Length);
         }
 
         private static void DeserializeConnections(XElement xml,MetaData data)
@@ -453,7 +470,15 @@ namespace UnityEditor.Experimental.VFX
 
                 string[] connectedStr = connectionXML.Value.Split(' ');
                 for (int i = 0; i < connectedStr.Length; ++i)
-                    slot.Link(data.GetSlot(int.Parse(connectedStr[i])));
+                {
+                    var connectedSlotId = int.Parse(connectedStr[i]);
+                    var connectedSlot = data.GetSlot(connectedSlotId);
+                    if (connectedSlot != null)
+                        slot.Link(connectedSlot);
+                    else
+                        Debug.LogWarning("Cannot connect slots " + slotId + " and " + connectedSlotId + " as the lastest was invalidated");
+
+                }
             }
         }
     }
