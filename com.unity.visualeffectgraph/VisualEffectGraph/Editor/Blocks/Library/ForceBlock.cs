@@ -152,7 +152,7 @@ velocity += normalize(dir) * (deltaTime * Force / sqrDist);";
 
             Source = @"
 float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
-float3 value = tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5f, 0.0f)) * 2.0f - 1.0f;
+float3 value = tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5f, 0.0f)).xyz * 2.0f - 1.0f;
 value = mul(Box,float4(value,0.0f)).xyz;
 float3 updatedVelocity = (deltaTime * Intensity) * value  + velocity;
 float3 directVelocity = value * Intensity;

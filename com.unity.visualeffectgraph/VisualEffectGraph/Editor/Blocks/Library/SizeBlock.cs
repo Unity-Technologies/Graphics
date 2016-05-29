@@ -83,12 +83,13 @@ size *= float2(1.0,Ratio);";
             Category = "Size";
 
             Add(new VFXProperty(new VFXFloatType(0.5f),"Multiplier"));
+            Add(VFXProperty.Create<VFXFloatType>("MinHeight"));
 
             Add(new VFXAttribute(CommonAttrib.Size, true));
             Add(new VFXAttribute(CommonAttrib.Velocity, false));
 
             Source = @"
-size.y = length(velocity) * Multiplier;";
+size.y = max(MinHeight,length(velocity) * Multiplier);";
         }
     }
 

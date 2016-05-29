@@ -230,9 +230,7 @@ namespace UnityEditor.Experimental
             m_DataSource.Create(blockModel, target.Model);
 
             // Copy values to new exposed parameter.
-            List<string> values = new List<string>();
-            m_Slot.GetStringValues(values);
-            blockModel.Slot.SetValuesFromString(values);
+            blockModel.Slot.CopyValuesFrom(m_Slot);
 
             // Connect
             m_DataSource.ConnectData(blockModel.GetOutputSlot(0),(VFXInputSlot)Slot);

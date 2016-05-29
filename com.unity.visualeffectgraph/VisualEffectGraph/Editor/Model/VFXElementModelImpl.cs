@@ -26,50 +26,22 @@ namespace UnityEditor.Experimental
         public VFXModelContainer models = new VFXModelContainer(); // other model (data nodes...)
     }
 
-    public class VFXModelContainer : VFXElementModel<VFXElementModel, VFXElementModel> {} // Generic model container
+    // Generic model container
+    public class VFXModelContainer : VFXElementModel<VFXElementModel, VFXElementModel>
+    {
+        protected override void InnerInvalidate(InvalidationCause cause)
+        {
+            ++m_InvalidateID;
+        }
+
+        public int InvalidateID { get { return m_InvalidateID; } }
+        private int m_InvalidateID = 0;    
+    } 
 
     public class VFXSystemsModel : VFXElementModel<VFXElementModel, VFXSystemModel>
     {
-        public VFXSystemsModel()
-        {
-            RemovePreviousVFXs();
-            RemovePreviousShaders();
-
-            m_GameObject = new GameObject("VFX");
-            m_Component = m_GameObject.AddComponent<VFXComponent>();
-        }
-
-        private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
-        {
-            var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
-           
-            int nbDeleted = 0;
-            foreach (var vfx in vfxs)
-                if (vfx != null && vfx.gameObject != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(vfx.gameObject);
-                    ++nbDeleted;
-                }
-
-            if (nbDeleted > 0)
-                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
-        }
-
-        private void RemovePreviousShaders()
-        {
-            // Remove any shader assets in generated path
-            string[] guids = AssetDatabase.FindAssets("",new string[] {"Assets/VFXEditor/Generated"});
-
-            foreach (var guid in guids)
-                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
-
-            if (guids.Length > 0)
-                Debug.Log("Remove " + guids.Length + " old VFX shaders");
-        }
-
         public void Dispose()
         {
-            UnityEngine.Object.DestroyImmediate(gameObject);
             for (int i = 0; i < GetNbChildren(); ++i)
             {
                 GetChild(i).Dispose();
@@ -77,8 +49,9 @@ namespace UnityEditor.Experimental
             }             
         }
 
-        public override void Invalidate(InvalidationCause cause)
+        protected override void InnerInvalidate(InvalidationCause cause)
         {
+            ++m_InvalidateID;
             switch(cause)
             {
                 case InvalidationCause.kModelChanged:
@@ -94,9 +67,15 @@ namespace UnityEditor.Experimental
         {
             Profiler.BeginSample("VFXSystemsModel.Update");
 
+            for (int i = 0; i < GetNbChildren(); ++i)
+                if (GetChild(i).NeedsComponentUpdate())
+                    GetChild(i).UpdateComponentSystem();
+
             bool HasRecompiled = false;
             if (m_NeedsCheck)
             {
+                m_NeedsCheck = false;
+
                 VFXEditor.Log("\n**** VFXAsset is dirty ****");
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
@@ -111,12 +90,12 @@ namespace UnityEditor.Experimental
                             GetChild(i).RemoveSystem();
                     }
                 }
-
-                m_NeedsCheck = false;
             }
 
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
+                m_ReloadUniforms = false;
+
                 VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
@@ -126,12 +105,11 @@ namespace UnityEditor.Experimental
 
                     if (system.RtData != null)
                         system.RtData.UpdateAllUniforms();                  
-                }
-                m_ReloadUniforms = false;
+                } 
             }
 
             if (HasRecompiled) // Restart component 
-                m_Component.Reinit();
+                VFXEditor.component.Reinit();
 
             Profiler.EndSample();
         }
@@ -150,15 +128,12 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public GameObject gameObject { get { return m_GameObject; } }
-        public VFXComponent component { get { return m_Component; } }
+        public int InvalidateID { get { return m_InvalidateID; }}
+        private int m_InvalidateID = 0;
 
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
-
-        private VFXComponent m_Component;
-        private GameObject m_GameObject;
     }
 
     public class VFXSystemModel : VFXElementModel<VFXSystemsModel, VFXContextModel>
@@ -277,7 +252,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void Invalidate(InvalidationCause cause)
+        protected override void InnerInvalidate(InvalidationCause cause)
         {
             if (m_Children.Count == 0 && m_Owner != null) // If the system has no more attached contexts, remove it
             {
@@ -288,9 +263,6 @@ namespace UnityEditor.Experimental
 
             if (cause == InvalidationCause.kModelChanged)
                 m_Dirty = true;
-
-            if (m_Owner != null)
-                m_Owner.Invalidate(cause);
         }
 
         public bool RecompileIfNeeded()
@@ -311,7 +283,7 @@ namespace UnityEditor.Experimental
         {
             Dispose();
             //if (force || rtData != null)
-            GetOwner().component.RemoveSystem(m_ID);
+            VFXEditor.component.RemoveSystem(m_ID);
             DeleteAssets();   
         }
 
@@ -334,8 +306,7 @@ namespace UnityEditor.Experimental
                 if (m_MaxNb != value)
                 {
                     m_MaxNb = value;
-                    UpdateComponentSystem();
-                    GetOwner().component.Reinit();
+                    m_ForceComponentUpdate = true;
                 }
             }
         }
@@ -349,7 +320,7 @@ namespace UnityEditor.Experimental
                 if (m_SpawnRate != value)
                 {
                     m_SpawnRate = value;
-                    UpdateComponentSystem();
+                    m_ForceComponentUpdate = true;
                 }
             }
         }
@@ -377,7 +348,7 @@ namespace UnityEditor.Experimental
                 if (m_OrderPriority != value)
                 {
                     m_OrderPriority = value;
-                    UpdateComponentSystem();
+                    m_ForceComponentUpdate = true;
                 }
             }
         }
@@ -390,7 +361,7 @@ namespace UnityEditor.Experimental
             if (rtData == null)
                 return false;
 
-            GetOwner().component.SetSystem(
+            VFXEditor.component.SetSystem(
                 m_ID,
                 MaxNb,
                 rtData.SimulationShader,
@@ -401,8 +372,12 @@ namespace UnityEditor.Experimental
                 OrderPriority,
                 rtData.hasKill);
 
+            m_ForceComponentUpdate = false;
             return true;
         }
+
+        public bool NeedsComponentUpdate() { return m_ForceComponentUpdate; }
+        private bool m_ForceComponentUpdate = false;
 
         private static uint NextSystemID = 0;
         private uint m_ID; 
@@ -437,12 +412,6 @@ namespace UnityEditor.Experimental
             }
 
             base.OnSlotEvent(type, slot);
-        }
-
-        public override void Invalidate(InvalidationCause cause)
-        {
-            if (m_Owner != null && Desc.m_Type != VFXContextDesc.Type.kTypeNone)
-                m_Owner.Invalidate(cause);
         }
 
         public VFXContextDesc.Type GetContextType()
@@ -505,12 +474,6 @@ namespace UnityEditor.Experimental
             }
 
             base.OnSlotEvent(type, slot);
-        }
-
-        public override void Invalidate(InvalidationCause cause)
-        {
-            if (m_Owner != null)
-                m_Owner.Invalidate(cause);
         }
 
         public VFXBlockModel(VFXBlockDesc desc)

@@ -1,8 +1,12 @@
-using UnityEngine;
-using UnityEditor; // Shouldnt be included!
-using UnityEditor.Experimental;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Xml;
+using UnityEditor; // Shouldnt be included!
+using UnityEditor.Experimental;
+using UnityEditor.Experimental.VFX;
+using UnityEngine;
 
 namespace UnityEngine.Experimental.VFX
 {
@@ -174,6 +178,14 @@ namespace UnityEngine.Experimental.VFX
                 child.UnlinkRecursively();
         }
 
+        public void Link(VFXPropertySlot slot)
+        {
+            if (this is VFXInputSlot)
+                ((VFXInputSlot)this).Link((VFXOutputSlot)slot);
+            else
+                ((VFXOutputSlot)this).Link((VFXInputSlot)slot);
+        }
+
         public VFXProperty Property                 { get { return m_Desc; }}
         public string Name                          { get { return m_Desc.m_Name; }}
         public VFXPropertyTypeSemantics Semantics   { get { return m_Desc.m_Type; }}
@@ -190,7 +202,7 @@ namespace UnityEngine.Experimental.VFX
                     child.FlattenValues(values);
         }
 
-        public int ApplyValues<T>(List<T> values,int index = 0)
+        public int ApplyValues<T>(List<T> values, int index = 0)
         {
             if (GetNbChildren() == 0)
             {
@@ -198,67 +210,102 @@ namespace UnityEngine.Experimental.VFX
                     Set(values[index++]);
             }
             else foreach (var child in m_Children)
-                index = child.ApplyValues(values, index);
+                    index = child.ApplyValues(values, index);
 
             return index;
         }
 
-        public void GetStringValues(List<string> output)
+        public void GetStringValues(XmlWriter writer)
         {
             if (GetNbChildren() == 0)
             {
-                switch(ValueType)
+                string name = ValueType.ToString();
+                switch (ValueType)
                 {
                     case VFXValueType.kFloat:
-                        output.Add(Value.Get<float>().ToString());
+
+                        writer.WriteElementString(name, Value.Get<float>().ToString());
                         break;
-                   /* case VFXValueType.kFloat2:
-                        output.Add(Value.Get<Vector2>().ToString());
-                        break;
-                    case VFXValueType.kFloat3:
-                        output.Add(Value.Get<Vector3>().ToString());
-                        break;
-                    case VFXValueType.kFloat4:
-                        output.Add(Value.Get<Vector4>().ToString());
-                        break;*/
+                    /* case VFXValueType.kFloat2:
+                         output.Add(Value.Get<Vector2>().ToString());
+                         break;
+                     case VFXValueType.kFloat3:
+                         output.Add(Value.Get<Vector3>().ToString());
+                         break;
+                     case VFXValueType.kFloat4:
+                         output.Add(Value.Get<Vector4>().ToString());
+                         break;*/
                     case VFXValueType.kInt:
-                        output.Add(Value.Get<int>().ToString());
+                        writer.WriteElementString(name, Value.Get<int>().ToString());
                         break;
                     case VFXValueType.kUint:
-                        output.Add(Value.Get<uint>().ToString());
+                        writer.WriteElementString(name, Value.Get<uint>().ToString());
+                        break;
+                    case VFXValueType.kTexture2D:
+                        writer.WriteElementString(name, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Value.Get<Texture2D>())));
+                        break;
+                    case VFXValueType.kTexture3D:
+                        writer.WriteElementString(name, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Value.Get<Texture3D>())));
+                        break;
+                    case VFXValueType.kCurve:
+                        SerializationUtils.WriteCurve(writer, Value.Get<AnimationCurve>());
+                        break;
+                    case VFXValueType.kColorGradient:
+                        SerializationUtils.WriteGradient(writer, Value.Get<Gradient>());
                         break;
                     default:
-                        Debug.LogWarning("Cannot serialize value of type "+ValueType);
+                        Debug.LogWarning("Cannot serialize value of type " + ValueType);
                         break;
                 }
             }
             else foreach (var child in m_Children)
-                child.GetStringValues(output);
+                    child.GetStringValues(writer);
         }
 
-        public int SetValuesFromString(List<string> input,int index = 0)
+        public void SetValuesFromString(XmlReader reader)
         {
             if (GetNbChildren() == 0)
             {
                 switch (ValueType)
                 {
                     case VFXValueType.kFloat:
-                        Set(float.Parse(input[index++]));
+                        reader.MoveToElement();
+                        Debug.Log("VALUE: " + reader.Name + " " + reader.Value);
+                       // reader.MoveToContent();
+                        Set(reader.ReadElementContentAsFloat());
                         break;
-                     /*case VFXValueType.kFloat2:
-                        Set(Vector2.Parse(input[index]));
-                        break;
-                     case VFXValueType.kFloat3:
-                        output.Add(Value.Get<Vector3>().ToString());
-                        break;
-                    case VFXValueType.kFloat4:
-                        output.Add(Value.Get<Vector4>().ToString());
-                        break;*/
+                    /*case VFXValueType.kFloat2:
+                       Set(Vector2.Parse(input[index]));
+                       break;
+                    case VFXValueType.kFloat3:
+                       output.Add(Value.Get<Vector3>().ToString());
+                       break;
+                   case VFXValueType.kFloat4:
+                       output.Add(Value.Get<Vector4>().ToString());
+                       break;*/
                     case VFXValueType.kInt:
-                        Set(int.Parse(input[index++]));
+                        reader.MoveToElement();
+                        Set(reader.ReadElementContentAsInt());
                         break;
                     case VFXValueType.kUint:
-                        Set(uint.Parse(input[index++]));
+                        reader.MoveToElement();
+                        Set((uint)reader.ReadElementContentAsInt());
+                        break;
+                    case VFXValueType.kTexture2D:
+                        reader.MoveToElement();
+                        Set(AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(reader.ReadElementContentAsString())));
+                        break;
+                    case VFXValueType.kTexture3D:
+                        reader.MoveToElement();
+                        Set(AssetDatabase.LoadAssetAtPath<Texture3D>(AssetDatabase.GUIDToAssetPath(reader.ReadElementContentAsString())));
+                        break;
+                    case VFXValueType.kCurve:
+                        reader.MoveToElement();
+                        Set(SerializationUtils.ReadCurve(reader));
+                        break;
+                    case VFXValueType.kColorGradient:
+                        reader.MoveToElement();
+                        Set(SerializationUtils.ReadGradient(reader));
                         break;
                     default:
                         Debug.LogWarning("Cannot deserialize value of type " + ValueType);
@@ -266,10 +313,25 @@ namespace UnityEngine.Experimental.VFX
                 }
             }
             else foreach (var child in m_Children)
-                    index = child.SetValuesFromString(input,index);
+                    child.SetValuesFromString(reader);
+        }
 
-            NotifyChange(Event.kValueUpdated); // We shouldnt do that but for some reason combine expressions are not updated...
-            return index;
+        public void CopyValuesFrom(VFXPropertySlot slot)
+        {
+            var buffer = new StringBuilder();
+            var writer = XmlWriter.Create(buffer);
+            writer.WriteStartElement("Values");
+            slot.GetStringValues(writer);
+            writer.WriteEndElement();
+            writer.Flush();
+
+            var str = buffer.ToString();
+            Debug.Log("SLOT VALUES:\n" + str);
+
+            var reader = XmlReader.Create(new StringReader(buffer.ToString()));
+            reader.ReadToFollowing("Values");
+            while (reader.Read() && reader.NodeType != XmlNodeType.Element) {} // Advance to element
+            SetValuesFromString(reader);
         }
 
         // Collect all values in the slot hierarchy with its name used in the shader
@@ -326,7 +388,7 @@ namespace UnityEngine.Experimental.VFX
             Init<VFXInputSlot>(null, desc);  
         }
 
-        public bool Link(VFXOutputSlot slot)
+        public new bool Link(VFXOutputSlot slot)
         {
             if (slot != m_ConnectedSlot)
             {
@@ -455,7 +517,7 @@ namespace UnityEngine.Experimental.VFX
             return connected;
         }
 
-        public void Link(VFXInputSlot slot)
+        public new void Link(VFXInputSlot slot)
         {
             if (slot == null)
                 return;
