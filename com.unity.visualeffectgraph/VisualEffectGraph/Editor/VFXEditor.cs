@@ -380,6 +380,8 @@ namespace UnityEditor.Experimental
                 //m_GameObject.hideFlags = HideFlags.HideAndDontSave;
                 m_Component = m_GameObject.AddComponent<VFXComponent>();
                 Debug.Log("DONE **************************");
+
+                SetCurrentAsset(m_CurrentAsset); 
             }
 
             // Handle the case when exiting play mode
@@ -530,6 +532,7 @@ namespace UnityEditor.Experimental
                 {
                     EditorUtility.SetDirty(m_CurrentAsset);
                     AssetDatabase.SaveAssets();
+                    Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // Reload uniforms
                 }
 
             GUILayout.FlexibleSpace();

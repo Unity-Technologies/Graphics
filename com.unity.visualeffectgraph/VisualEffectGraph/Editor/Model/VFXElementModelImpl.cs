@@ -67,6 +67,10 @@ namespace UnityEditor.Experimental
         {
             Profiler.BeginSample("VFXSystemsModel.Update");
 
+            for (int i = 0; i < GetNbChildren(); ++i)
+                if (GetChild(i).NeedsComponentUpdate())
+                    GetChild(i).UpdateComponentSystem();
+
             bool HasRecompiled = false;
             if (m_NeedsCheck)
             {
@@ -302,8 +306,7 @@ namespace UnityEditor.Experimental
                 if (m_MaxNb != value)
                 {
                     m_MaxNb = value;
-                    UpdateComponentSystem();
-                    VFXEditor.component.Reinit();
+                    m_ForceComponentUpdate = true;
                 }
             }
         }
@@ -317,7 +320,7 @@ namespace UnityEditor.Experimental
                 if (m_SpawnRate != value)
                 {
                     m_SpawnRate = value;
-                    UpdateComponentSystem();
+                    m_ForceComponentUpdate = true;
                 }
             }
         }
@@ -345,7 +348,7 @@ namespace UnityEditor.Experimental
                 if (m_OrderPriority != value)
                 {
                     m_OrderPriority = value;
-                    UpdateComponentSystem();
+                    m_ForceComponentUpdate = true;
                 }
             }
         }
@@ -369,8 +372,12 @@ namespace UnityEditor.Experimental
                 OrderPriority,
                 rtData.hasKill);
 
+            m_ForceComponentUpdate = false;
             return true;
         }
+
+        public bool NeedsComponentUpdate() { return m_ForceComponentUpdate; }
+        private bool m_ForceComponentUpdate = false;
 
         private static uint NextSystemID = 0;
         private uint m_ID; 

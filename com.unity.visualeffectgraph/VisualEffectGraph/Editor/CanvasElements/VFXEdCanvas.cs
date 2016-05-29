@@ -71,9 +71,14 @@ namespace UnityEditor.Experimental
             if (e.type == EventType.Used)
                 return false;
 
-            ShowCanvasMenu(e.mousePosition);
-            e.Use();
-            return true;
+            if (VFXEditor.Graph != null)
+            {
+                ShowCanvasMenu(e.mousePosition);
+                e.Use();
+                return true;
+            }
+
+            return false;
         }
 
         public void SetSelectedNodeBlock(VFXEdNodeBlockDraggable block)
