@@ -204,7 +204,6 @@ namespace UnityEditor.Experimental
 
         void OnEnable()
         {
-            Debug.Log("ON ENABLE **************************");
             hideFlags = HideFlags.HideAndDontSave;
 
             RemovePreviousVFXs();
@@ -227,8 +226,6 @@ namespace UnityEditor.Experimental
 
         void OnDisable()
         {
-            Debug.Log("ON DISABLE **************************");
-
             SetCurrentAsset(null);
 
             RemovePreviousVFXs();
@@ -375,11 +372,9 @@ namespace UnityEditor.Experimental
                 RemovePreviousVFXs();
                 RemovePreviousShaders();
 
-                Debug.Log("CREATE GAME OBJECT **************************");
                 m_GameObject = new GameObject("VFX");
                 //m_GameObject.hideFlags = HideFlags.HideAndDontSave;
                 m_Component = m_GameObject.AddComponent<VFXComponent>();
-                Debug.Log("DONE **************************");
 
                 SetCurrentAsset(m_CurrentAsset); 
             }
@@ -407,7 +402,6 @@ namespace UnityEditor.Experimental
         {
             SetCurrentAsset(null);
 
-            Debug.Log("DESTROY GAME OBJECT *********************");
             UnityEngine.Object.DestroyImmediate(m_GameObject);
             m_GameObject = null;
             m_Component = null;

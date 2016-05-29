@@ -270,7 +270,6 @@ namespace UnityEngine.Experimental.VFX
                 {
                     case VFXValueType.kFloat:
                         reader.MoveToElement();
-                        Debug.Log("VALUE: " + reader.Name + " " + reader.Value);
                        // reader.MoveToContent();
                         Set(reader.ReadElementContentAsFloat());
                         break;
