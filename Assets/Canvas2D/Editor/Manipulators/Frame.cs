@@ -42,49 +42,53 @@ namespace UnityEditor.Experimental
             };
         }
 
+        public bool Focus(Canvas2D parent,bool animate)
+        {
+            Rect rectToFit = parent.canvasRect;
+            if (m_Type == FrameType.Selection)
+            {
+                List<CanvasElement> s = parent.selection;
+                if (s.Count == 0)
+                    return false;
+                rectToFit = s[0].GetDrawableRect(true);
+                foreach (CanvasElement c in s)
+                {
+                    rectToFit = UnityEditorInternal.Experimental.RectUtils.Encompass(rectToFit, c.GetDrawableRect(true));
+                }
+            }
+
+            Vector3 frameTranslation = Vector3.zero;
+            Vector3 frameScaling = Vector3.one;
+
+            CalculateFrameTransform(parent, rectToFit, out frameTranslation, out frameScaling);
+
+            if (!animate)
+            {
+                parent.scale = frameScaling;
+                parent.translation = frameTranslation;
+            }
+            else
+            {
+                parent.Animate(parent)
+                .Lerp(new string[] { "m_Scale", "m_Translation" },
+                    new object[] { parent.scale, parent.translation },
+                    new object[] { frameScaling, frameTranslation }, 0.08f);
+            }
+
+            return true;
+        }
+
         private bool KeyDown(CanvasElement element, Event e, Canvas2D parent)
         {
             if (e.type == EventType.Used)
                 return false;
 
-            if ((m_Type == FrameType.All && e.keyCode == KeyCode.A) ||
-                (m_Type == FrameType.Selection && e.keyCode == KeyCode.F))
-            {
-                Rect rectToFit = parent.canvasRect;
-                if (m_Type == FrameType.Selection)
+           if ((m_Type == FrameType.All && e.keyCode == KeyCode.A) || (m_Type == FrameType.Selection && e.keyCode == KeyCode.F))
+                if (Focus(parent,m_Animate))
                 {
-                    List<CanvasElement> s = parent.selection;
-                    if (s.Count == 0)
-                        return false;
-                    rectToFit = s[0].GetDrawableRect(true);
-                    foreach (CanvasElement c in s)
-                    {
-                        rectToFit = UnityEditorInternal.Experimental.RectUtils.Encompass(rectToFit, c.GetDrawableRect(true));
-                    }
+                    e.Use();
+                    return true;
                 }
-
-                Vector3 frameTranslation = Vector3.zero;
-                Vector3 frameScaling = Vector3.one;
-
-                CalculateFrameTransform(parent, rectToFit, out frameTranslation, out frameScaling);
-
-                if (m_Animate == false)
-                {
-                    parent.scale = frameScaling;
-                    parent.translation = frameTranslation;
-                }
-                else
-                {
-                    parent.Animate(parent)
-                    .Lerp(new string[] { "m_Scale", "m_Translation" },
-                        new object[] { parent.scale, parent.translation },
-                        new object[] { frameScaling, frameTranslation }, 0.08f);
-                }
-
-                e.Use();
-
-                return true;
-            }
 
             return false;
         }
