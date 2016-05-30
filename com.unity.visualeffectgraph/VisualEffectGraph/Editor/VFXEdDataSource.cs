@@ -231,6 +231,7 @@ namespace UnityEditor.Experimental
 
             // Reset UI data
             blockUI.collapsed = model.UICollapsed;
+            blockUI.Header.Enabled = model.Enabled;
 
             if (recursive)
                 for (int i = 0; i < model.GetNbSlots(); ++i)

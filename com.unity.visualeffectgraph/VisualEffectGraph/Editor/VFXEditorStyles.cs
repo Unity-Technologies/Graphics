@@ -34,6 +34,7 @@ namespace UnityEditor.Experimental
         public GUIStyle DataNodeBlock;
         public GUIStyle DataNodeBlockSelected;
         public GUIStyle NodeBlockTitle;
+        public GUIStyle NodeBlockTitleDisabled;
         public GUIStyle NodeBlockParameter;
         public GUIStyle NodeBlockDropSeparator;
 
@@ -211,6 +212,13 @@ namespace UnityEditor.Experimental
             NodeBlockTitle.padding = new RectOffset(4, 4, 4, 4);
             NodeBlockTitle.alignment = TextAnchor.MiddleLeft;
             NodeBlockTitle.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
+
+            NodeBlockTitleDisabled = new GUIStyle();
+            NodeBlockTitleDisabled.fontSize = 12;
+            NodeBlockTitleDisabled.fontStyle = FontStyle.Bold;
+            NodeBlockTitleDisabled.padding = new RectOffset(4, 4, 4, 4);
+            NodeBlockTitleDisabled.alignment = TextAnchor.MiddleLeft;
+            NodeBlockTitleDisabled.normal.textColor = new Color(0.4f, 0.4f, 0.4f);
 
             NodeBlockParameter = new GUIStyle();
             NodeBlockParameter.fontSize = 12;

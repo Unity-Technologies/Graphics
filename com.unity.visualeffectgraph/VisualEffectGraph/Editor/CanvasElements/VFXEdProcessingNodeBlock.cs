@@ -13,11 +13,14 @@ namespace UnityEditor.Experimental
     {
         public VFXBlockModel Model { get { return m_Model; } }
         public VFXBlockDesc Desc { get { return Model.Desc; } }
+        public VFXEdNodeBlockHeader Header { get { return m_Header; } }
+
         private VFXProperty[] Properties { get { return Model.Properties; } }
 
         public override VFXElementModel GetAbstractModel() { return Model; }
 
         private VFXBlockModel m_Model;
+        private VFXEdNodeBlockHeader m_Header;
 
         public VFXEdProcessingNodeBlock(VFXBlockModel block, VFXEdDataSource dataSource) : base(dataSource)
         {
@@ -42,7 +45,8 @@ namespace UnityEditor.Experimental
 
             m_LibraryName = Model.Desc.Name;
 
-            AddChild(new VFXEdNodeBlockHeader( Desc.Category.Replace('/',' ') + " : " + Desc.Name, VFXEditor.styles.GetIcon(Desc.Icon == "" ? "Default" : Desc.Icon), block.Properties.Length > 0));
+            m_Header = new VFXEdNodeBlockHeader(Desc.Category.Replace('/', ' ') + " : " + Desc.Name, VFXEditor.styles.GetIcon(Desc.Icon == "" ? "Default" : Desc.Icon), block.Properties.Length > 0);
+            AddChild(m_Header);
             AddManipulator(new TooltipManipulator(GetTooltipText));
             Layout();
         }

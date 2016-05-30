@@ -386,9 +386,12 @@ namespace UnityEditor.Experimental
                 for (int j = 0; j < context.GetNbChildren(); ++j)
                 {
                     VFXBlockModel blockModel = context.GetChild(j);
-                    hasRand |= blockModel.Desc.IsSet(VFXBlockDesc.Flag.kHasRand);
-                    hasKill |= blockModel.Desc.IsSet(VFXBlockDesc.Flag.kHasKill);
-                    currentList.Add(blockModel);
+                    if (blockModel.Enabled)
+                    {
+                        hasRand |= blockModel.Desc.IsSet(VFXBlockDesc.Flag.kHasRand);
+                        hasKill |= blockModel.Desc.IsSet(VFXBlockDesc.Flag.kHasKill);
+                        currentList.Add(blockModel);
+                    }
                 }
 
                 switch (context.GetContextType())
