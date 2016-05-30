@@ -499,6 +499,21 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public bool Enabled
+        {
+            get { return m_Enabled; }
+            set
+            {
+                bool oldValue = m_Enabled;
+                if (oldValue != value)
+                {
+                    m_Enabled = value;
+                    Invalidate(InvalidationCause.kModelChanged); // Trigger a recompilation
+                }
+            }
+
+        }
+
         public int GetNbSlots()                 { return GetNbInputSlots(); }
         public VFXInputSlot GetSlot(int index)  { return GetInputSlot(index); }
 
@@ -516,8 +531,9 @@ namespace UnityEditor.Experimental
         public VFXProperty[] Properties { get { return m_BlockDesc.Properties; } }
 
         private VFXBlockDesc m_BlockDesc;
+        private bool m_Enabled = true;
 
         public bool UICollapsed { get { return m_UICollapsed; } }
-        private bool m_UICollapsed;
+        private bool m_UICollapsed;   
     }
 }

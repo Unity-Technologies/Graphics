@@ -92,10 +92,15 @@ namespace UnityEditor.Experimental
 
             MiniMenu.MenuSet menu = new MiniMenu.MenuSet();
             menu.AddMenuEntry("NodeBlock", "Add New...", AddNodeBlock, null);
-            if( selected != null && selected is VFXEdProcessingNodeBlock && selected.canvasBoundingRect.Contains(ParentCanvas().MouseToCanvas(mousePosition)))
+
+            VFXEdProcessingNodeBlock processingNodeBlock = selected as VFXEdProcessingNodeBlock;
+            if( processingNodeBlock != null && processingNodeBlock.canvasBoundingRect.Contains(ParentCanvas().MouseToCanvas(mousePosition)))
             {
-                menu.AddMenuEntry("NodeBlock", "Replace by...", ReplaceNodeBlock, selected);
+                menu.AddMenuEntry("NodeBlock", "Replace by...", ReplaceNodeBlock, processingNodeBlock);
+                menu.AddMenuEntry("NodeBlock", processingNodeBlock.Model.Enabled ? "Disable" : "Enable", ToggleNodeBlockEnabled, processingNodeBlock);
             }
+
+            
 
             foreach(VFXContextDesc desc in VFXEditor.ContextLibrary.GetContexts())
             {
@@ -120,6 +125,13 @@ namespace UnityEditor.Experimental
         {
             VFXEdProcessingNodeBlock block = o as VFXEdProcessingNodeBlock;
             VFXFilterPopup.ShowReplaceBlockPopup(this, block, position, ParentCanvas(), true);
+        }
+
+        public void ToggleNodeBlockEnabled(Vector2 position, object o)
+        {
+            var block = (VFXEdProcessingNodeBlock)o;
+            block.Model.Enabled = !block.Model.Enabled;
+            m_DataSource.SyncView(block.Model);
         }
 
         public void SwitchContext(Vector2 position, object o)
@@ -170,7 +182,7 @@ namespace UnityEditor.Experimental
             {
                 block.collapsed = !block.IsConnected();
             }
-            Layout();
+            NodeBlockContainer.Resync();
         }
 
         public void CollapseConnected(Vector2 position, object o)
@@ -179,7 +191,7 @@ namespace UnityEditor.Experimental
             {
                 block.collapsed = block.IsConnected();
             }
-            Layout();
+            NodeBlockContainer.Resync();
         }
 
         public void CollapseAll(Vector2 position, object o)
@@ -188,7 +200,7 @@ namespace UnityEditor.Experimental
             {
                 block.collapsed = true;
             }
-            Layout();
+            NodeBlockContainer.Resync();
         }
 
         public void ExpandAll(Vector2 position, object o)
@@ -197,7 +209,7 @@ namespace UnityEditor.Experimental
             {
                 block.collapsed = false;
             }
-            Layout();
+            NodeBlockContainer.Resync();
         }
 
 

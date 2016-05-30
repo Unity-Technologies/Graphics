@@ -11,8 +11,10 @@ namespace UnityEditor.Experimental
     internal class VFXEdNodeBlockHeader : CanvasElement
     {
         public bool Collapseable { get { return m_NodeBlockCollapseManipulator.Enabled; } set { m_NodeBlockCollapseManipulator.Enabled = value; } }
+        public bool Enabled { get { return m_Enabled; } set { m_Enabled = value; } }
 
         private Collapsable m_NodeBlockCollapseManipulator;
+        private bool m_Enabled;
         private string m_Name;
         private Texture2D m_Icon;
 
@@ -69,7 +71,7 @@ namespace UnityEditor.Experimental
             }
 
             GUI.DrawTexture(iconrect, m_Icon);
-            GUI.Label(labelrect, m_Name, VFXEditor.styles.NodeBlockTitle);
+            GUI.Label(labelrect, m_Name, m_Enabled ? VFXEditor.styles.NodeBlockTitle : VFXEditor.styles.NodeBlockTitleDisabled);
             base.Render(parentRect, canvas);
         }
 

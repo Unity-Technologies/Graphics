@@ -180,6 +180,13 @@ namespace UnityEditor.Experimental
             Invalidate();
         }
 
+        public void Resync()
+        {
+            VFXModelHolder parent = FindParent<VFXModelHolder>();
+            if (parent != null)
+                m_DataSource.SyncView(parent.GetAbstractModel(), true);
+        }
+
         public void RevertDrop(VFXEdNodeBlockDraggable block, int index)
         {
             var owner = block.GetAbstractModel().GetOwner();

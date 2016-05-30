@@ -131,11 +131,21 @@ namespace UnityEditor.Experimental.VFX
 
     public static class ModelSerializer
     {
+        private const int VERSION = 2;
+
         // SERIALIZATION
         private class MetaData
         {
             private List<VFXPropertySlot> slots = new List<VFXPropertySlot>();
             private Dictionary<VFXPropertySlot,int> slotsToId = new Dictionary<VFXPropertySlot,int>();
+   
+            private int m_Version = VERSION;
+
+            public int Version
+            {
+                get { return m_Version; }
+                set { m_Version = value; }
+            }
 
             public void AddSlot(VFXPropertySlot slot)
             {
@@ -172,10 +182,11 @@ namespace UnityEditor.Experimental.VFX
                 var writer = XmlWriter.Create(buffer, settings);
 
                 var data = new MetaData();
+                data.Version = VERSION;
 
                 writer.WriteStartDocument();
                 writer.WriteStartElement("Graph");
-                writer.WriteAttributeString("Version", "1");
+                writer.WriteAttributeString("Version", VERSION.ToString());
 
                 for (int i = 0; i < graph.systems.GetNbChildren(); ++i)
                     Serialize(writer, graph.systems.GetChild(i), data);
@@ -236,6 +247,7 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteAttributeString("DescId", block.Desc.ID);
             writer.WriteAttributeString("Hash", block.Desc.SlotHash.ToString());
             writer.WriteAttributeString("Collapsed", block.UICollapsed.ToString());
+            writer.WriteAttributeString("Enabled", block.Enabled.ToString()); // version 2
             for (int i = 0; i < block.GetNbSlots(); ++i)
                 Serialize(writer, block.GetSlot(i), data);
             writer.WriteEndElement();
@@ -329,6 +341,8 @@ namespace UnityEditor.Experimental.VFX
                 var doc = XDocument.Parse(xml);
                 var root = doc.Element("Graph");
 
+                data.Version = int.Parse(root.Attribute("Version").Value);
+
                 var systemsXML = root.Elements("System");
                 var dataNodesXML = root.Elements("DataNode");
                 var connectionsXML = root.Element("Connections");
@@ -397,10 +411,12 @@ namespace UnityEditor.Experimental.VFX
             var block = new VFXBlockModel(desc);
             block.UpdateCollapsed(bool.Parse(xml.Attribute("Collapsed").Value));
 
-
             bool hashTest = int.Parse(xml.Attribute("Hash").Value) == desc.SlotHash; // Check whether serialized slot data is compatible with current slots
             if (!hashTest)
                 Debug.LogWarning("Slots configuration has changed between serialized data and current data. Slots cannot be deserialized for block " + desc);
+
+            if (data.Version >= 2)
+                block.Enabled = bool.Parse(xml.Attribute("Enabled").Value);
 
             int index = 0;
             foreach (var slotXML in xml.Elements("Slot"))
