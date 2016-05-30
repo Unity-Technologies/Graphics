@@ -23,6 +23,8 @@ namespace UnityEditor.Experimental
         private VFXEdNodeBlockDraggable m_SelectedNodeBlock;
         private VFXEdDataSource m_DataSource;
 
+        private Frame m_FocusManipulator; 
+
         public VFXEdCanvas(Object target, EditorWindow host, ICanvasDataSource dataSource)
             : base(target, host, dataSource)
         {
@@ -36,7 +38,8 @@ namespace UnityEditor.Experimental
             AddManipulator(new Zoomable(Zoomable.ZoomType.AroundMouse));
 
             // allow framing the selection when hitting "F" (frame) or "A" (all). Basically shows how to trap a key and work with the canvas selection
-            AddManipulator(new Frame(Frame.FrameType.All));
+            m_FocusManipulator = new Frame(Frame.FrameType.All);
+            AddManipulator(m_FocusManipulator);
             AddManipulator(new Frame(Frame.FrameType.Selection));
 
             // add tooltips for all Systems
@@ -57,6 +60,11 @@ namespace UnityEditor.Experimental
             // Debug
             KeyDown += DumpModel;
             KeyDown += TogglePhaseShift;
+        }
+
+        public void FocusElements(bool animate)
+        {
+            m_FocusManipulator.Focus(this,animate);
         }
 
         public List<string> GetToolTipText()

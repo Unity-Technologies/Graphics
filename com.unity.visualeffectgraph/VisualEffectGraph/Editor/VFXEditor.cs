@@ -440,6 +440,7 @@ namespace UnityEditor.Experimental
                         m_DataSource.ResyncViews();
                         m_Canvas.ReloadData();
                         m_Canvas.Repaint();
+                        m_Canvas.FocusElements(false);
                     }
                 }
                 else
