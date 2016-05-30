@@ -97,7 +97,7 @@ namespace UnityEditor.Experimental
                 Texture2D icon = EditorGUIUtility.Load("icons/"+name+".png") as Texture2D;
                 if (icon == null)
                 {
-                    Debug.LogError("ERROR: BlockLibrary requested icon " + name + ".png, which was not found. Using default Icon");
+                    Debug.LogWarning("BlockLibrary requested icon " + name + ".png, which was not found. Using default Icon"); 
                     return VFXEditor.styles.DefaultBlockIcon;
                 }
                 m_icons.Add(name, icon);

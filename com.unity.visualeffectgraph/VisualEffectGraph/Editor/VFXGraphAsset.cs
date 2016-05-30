@@ -23,10 +23,8 @@ namespace UnityEditor.Experimental.VFX
 
         public void OnBeforeSerialize()
         {
-            Debug.Log("VFXGraphAsset - OnBeforeSerialize");
             if (m_SystemsInvalidateID != m_Graph.systems.InvalidateID || m_ModelsInvalidateID != m_Graph.models.InvalidateID)
             {
-                Debug.Log("Regenerate xml string");
                 m_SystemsInvalidateID = m_Graph.systems.InvalidateID;
                 m_ModelsInvalidateID = m_Graph.models.InvalidateID;
                 m_SerializedGraph = ModelSerializer.Serialize(m_Graph); 
@@ -35,12 +33,10 @@ namespace UnityEditor.Experimental.VFX
 
         public void OnAfterDeserialize()
         {
-            Debug.Log("VFXGraphAsset - OnAfterDeserialize");  
         }
 
         void OnEnable()
         {
-            Debug.Log("VFXGraphAsset - OnEnable");
             if (m_SerializedGraph != null)
             {
                 m_Graph = ModelSerializer.Deserialize(m_SerializedGraph);
@@ -56,7 +52,6 @@ namespace UnityEditor.Experimental.VFX
 
         void OnDisable()
         {
-            Debug.Log("VFXGraphAsset - OnDisable");
         }
     }
 
