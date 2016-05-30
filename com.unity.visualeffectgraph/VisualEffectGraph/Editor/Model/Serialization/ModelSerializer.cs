@@ -465,7 +465,6 @@ namespace UnityEditor.Experimental.VFX
             foreach (var connectionXML in xml.Elements("Connection"))
             {
                 var slotId = int.Parse(connectionXML.Attribute("Id").Value);
-                Debug.Log("SLOT ID: " + slotId);
                 var slot = data.GetSlot(slotId);
 
                 string[] connectedStr = connectionXML.Value.Split(' ');

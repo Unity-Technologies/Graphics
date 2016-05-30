@@ -231,11 +231,13 @@ namespace UnityEditor.Experimental
 
             // Reset UI data
             blockUI.collapsed = model.UICollapsed;
-            blockUI.Invalidate();
 
             if (recursive)
                 for (int i = 0; i < model.GetNbSlots(); ++i)
                     SyncView(model.GetSlot(i), true);
+
+            blockUI.Layout();
+            blockUI.Invalidate();
         }
 
         public void SyncDataNode(VFXDataNodeModel model, bool recursive)
@@ -308,10 +310,12 @@ namespace UnityEditor.Experimental
 
             // Reset UI data
             blockUI.collapsed = model.UICollapsed;
-            blockUI.Invalidate();
 
             if (recursive)
                 SyncView(model.Slot, true);
+
+            blockUI.Layout();
+            blockUI.Invalidate();
         }
 
         public void SyncSlot(VFXPropertySlot slot, bool recursive = true)
@@ -346,6 +350,7 @@ namespace UnityEditor.Experimental
                 for (int i = 0; i < slot.GetNbChildren(); ++i)
                     SyncView(slot.GetChild(i), true);
 
+            anchor.Layout();
             anchor.Invalidate();
         }
 

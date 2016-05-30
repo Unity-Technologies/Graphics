@@ -204,6 +204,8 @@ namespace UnityEditor.Experimental
 
         void OnEnable()
         {
+            //Debug.Log("********************* ON ENABLE");
+
             hideFlags = HideFlags.HideAndDontSave;
 
             RemovePreviousVFXs();
@@ -217,16 +219,11 @@ namespace UnityEditor.Experimental
             }
 
             Selection.selectionChanged += OnSelectionChanged;
-
-            if (m_CurrentAsset == null)
-                OnSelectionChanged();
-            else
-                SetCurrentAsset(m_CurrentAsset, true);
         }
 
         void OnDisable()
         {
-            SetCurrentAsset(null);
+            DestroyGraph();
 
             RemovePreviousVFXs();
             RemovePreviousShaders();
@@ -361,6 +358,20 @@ namespace UnityEditor.Experimental
             }
 
             m_Canvas.OnGUI(this, canvasRect);
+
+            if (m_NeedsCanvasReload)
+            {
+                m_DataSource.ResyncViews();
+                m_Canvas.ReloadData();
+                m_Canvas.Invalidate();
+                //m_Canvas.RebuildQuadTree();
+                m_Canvas.Layout();
+                m_Canvas.FocusElements(false);
+                m_Canvas.Repaint();
+                m_NeedsCanvasReload = false;
+                //Debug.Log(">>>>>>>>>>>>>>>> RELOAD CANVAS");
+            }
+
             DrawWindows(canvasRect);
         }
 
@@ -376,21 +387,19 @@ namespace UnityEditor.Experimental
                 //m_GameObject.hideFlags = HideFlags.HideAndDontSave;
                 m_Component = m_GameObject.AddComponent<VFXComponent>();
 
-                SetCurrentAsset(m_CurrentAsset); 
+                SetCurrentAsset(m_CurrentAsset, true);
             }
 
             // Handle the case when exiting play mode
             if (!Application.isPlaying && isOldPlaying)
             {
-                InitializeCanvas();
-                m_Canvas.Invalidate();
-                m_Canvas.RebuildQuadTree();
-                m_Canvas.DeepInvalidate();
+                m_Canvas.Clear();
                 m_Canvas.Repaint();
+                m_NeedsCanvasReload = true;
 
                 if (Graph != null)
                     for (int i = 0; i < Graph.systems.GetNbChildren(); ++i)
-                        Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);                
+                        Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);
             }
             isOldPlaying = Application.isPlaying;
 
@@ -415,39 +424,53 @@ namespace UnityEditor.Experimental
         [SerializeField]
         private VFXGraphAsset m_CurrentAsset;
 
+        public void DestroyGraph()
+        {
+            // Remove systems
+            if (s_Graph != null && m_Component != null)
+            {
+                for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
+                    s_Graph.systems.GetChild(i).RemoveSystem();
+                s_Graph.systems.Dispose();
+                s_Graph = null;
+            }
+        }
+
+        private bool m_NeedsCanvasReload = false;
         public void SetCurrentAsset(VFXGraphAsset asset,bool force = false)
         {
-            if (m_CurrentAsset != asset || force)
+            if (m_CurrentAsset != asset || force) 
             {
                 if (m_CurrentAsset != null)
                 {
+                    //Debug.Log("------------------------ DESTROY OLD ASSET: " + m_CurrentAsset.ToString());
                     // Remove systems
-                    var oldGraph = m_CurrentAsset.Graph;
-                    for (int i = 0; i < oldGraph.systems.GetNbChildren(); ++i)
-                        oldGraph.systems.GetChild(i).RemoveSystem();
-                    oldGraph.systems.Dispose();
+                    DestroyGraph();
                 }
 
                 m_CurrentAsset = asset;
                 if (m_CurrentAsset != null)
                 {
+                    //Debug.Log("------------------------ CREATE NEW GRAPH: " + asset.ToString()); 
+
                     s_Graph = m_CurrentAsset.Graph;
                     for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
-                        s_Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);
-
-                    if (m_Canvas != null)
-                    {
-                        m_DataSource.ResyncViews();
-                        m_Canvas.ReloadData();
-                        m_Canvas.Repaint();
-                        m_Canvas.FocusElements(false);
-                    }
+                        s_Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);  
                 }
                 else
                 {
+                    //Debug.Log("------------------------ SET NULL GRAPH");  
                     s_Graph = null;
                 }
             }
+
+            if (m_Canvas != null)
+            {
+                //Debug.Log(">>>>>>>>>>>>>>>> CLEAR CANVAS");
+                m_Canvas.Clear();
+                m_Canvas.Repaint();    
+            }
+            m_NeedsCanvasReload = true;
         }
 
         private void OnSelectionChanged()
