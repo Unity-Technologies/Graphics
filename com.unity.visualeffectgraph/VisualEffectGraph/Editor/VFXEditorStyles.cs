@@ -73,6 +73,8 @@ namespace UnityEditor.Experimental
         public Texture2D DataEdgeOpacity;
         public Texture2D DataEdgeOpacitySelected;
 
+        public Texture2D DisabledScopeTileable;
+
         public Texture2D ToolbarPlay;
         public Texture2D ToolbarRestart;
         public Texture2D ToolbarStop;
@@ -316,6 +318,8 @@ namespace UnityEditor.Experimental
 
             DataEdgeOpacity = EditorGUIUtility.Load("DataEdge.psd") as Texture2D;
             DataEdgeOpacitySelected = EditorGUIUtility.Load("DataEdge_Selected.psd") as Texture2D;
+
+            DisabledScopeTileable = EditorGUIUtility.Load("DisabledTile.psd") as Texture2D;
 
             ToolbarPlay = EditorGUIUtility.Load("ToolbarIcons.Play.png") as Texture2D;
             ToolbarRestart = EditorGUIUtility.Load("ToolbarIcons.Restart.png") as Texture2D;
