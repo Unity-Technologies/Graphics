@@ -21,7 +21,11 @@ namespace UnityEditor.Experimental.VFX
         public void UpdateCollapsed(bool collapsed) {}
         public void UpdatePosition(Vector2 position)
         {
-            m_UIPosition = position;
+            if (m_UIPosition != position)
+            {
+                m_UIPosition = position;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
         }
 
         public Vector2 UIPosition { get { return m_UIPosition; } }
@@ -44,7 +48,11 @@ namespace UnityEditor.Experimental.VFX
         public void UpdatePosition(Vector2 position) {}
         public void UpdateCollapsed(bool collapsed)
         {
-            m_UICollapsed = collapsed;
+            if (m_UICollapsed != collapsed)
+            {
+                m_UICollapsed = collapsed;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
         }
 
         public bool UICollapsed { get { return m_UICollapsed; } }

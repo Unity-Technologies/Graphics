@@ -32,10 +32,13 @@ namespace UnityEditor.Experimental
         protected override void InnerInvalidate(InvalidationCause cause)
         {
             ++m_InvalidateID;
+            Dirty = true;
         }
 
         public int InvalidateID { get { return m_InvalidateID; } }
-        private int m_InvalidateID = 0;    
+        private int m_InvalidateID = 0;
+
+        public bool Dirty = false;
     } 
 
     public class VFXSystemsModel : VFXElementModel<VFXElementModel, VFXSystemModel>
@@ -52,6 +55,7 @@ namespace UnityEditor.Experimental
         protected override void InnerInvalidate(InvalidationCause cause)
         {
             ++m_InvalidateID;
+            Dirty = true;
             switch(cause)
             {
                 case InvalidationCause.kModelChanged:
@@ -134,6 +138,8 @@ namespace UnityEditor.Experimental
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
+
+        public bool Dirty = false;
     }
 
     public class VFXSystemModel : VFXElementModel<VFXSystemsModel, VFXContextModel>
@@ -441,12 +447,21 @@ namespace UnityEditor.Experimental
 
         public void UpdateCollapsed(bool collapsed)
         {
-            m_UICollapsed = collapsed;
+            if (m_UICollapsed != collapsed)
+            {
+                m_UICollapsed = collapsed;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
         }
 
         public void UpdatePosition(Vector2 position)
         {
-            m_UIPosition = position;
+            if (m_UIPosition != position)
+            {
+                m_UIPosition = position;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
+
         }
 
         private VFXContextDesc m_Desc;
@@ -525,7 +540,12 @@ namespace UnityEditor.Experimental
         public void UpdatePosition(Vector2 position) {}
         public void UpdateCollapsed(bool collapsed)
         {
-            m_UICollapsed = collapsed;
+            if (m_UICollapsed != collapsed)
+            {
+                m_UICollapsed = collapsed;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
+
         }
 
         public VFXProperty[] Properties { get { return m_BlockDesc.Properties; } }
