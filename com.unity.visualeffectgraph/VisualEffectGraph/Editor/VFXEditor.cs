@@ -239,8 +239,15 @@ namespace UnityEditor.Experimental
 
             EditorUtility.SetDirty(m_CurrentAsset);
             AssetDatabase.SaveAssets();
-            if (s_Graph != null)
-                s_Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // Needs to reload uniform once saved
+
+            if (m_CurrentAsset.Graph != null)
+            {
+                m_CurrentAsset.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // Needs to reload uniform once saved
+
+                m_CurrentAsset.Graph.systems.Dirty = false;
+                m_CurrentAsset.Graph.models.Dirty = false;
+            }
+                
             Debug.Log("Save Asset");
         }
 
@@ -560,12 +567,7 @@ namespace UnityEditor.Experimental
             if (m_CurrentAsset != null)
             {
                 if (GUILayout.Button("Save " + m_CurrentAsset.name + (m_CurrentAsset.Graph.systems.Dirty || m_CurrentAsset.Graph.models.Dirty ? "*" : ""), EditorStyles.toolbarButton))
-                {
                     SaveAsset();
-
-                    m_CurrentAsset.Graph.systems.Dirty = false;
-                    m_CurrentAsset.Graph.models.Dirty = false;
-                }
             }
 
             GUILayout.FlexibleSpace();
