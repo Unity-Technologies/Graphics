@@ -37,8 +37,10 @@ namespace UnityEditor.Experimental
         public static readonly float NodeBlockAdditionalHeight = 16f;
         public static readonly Rect NodeBlockHeaderFoldoutRect = new Rect(new Vector2(4f, 8f), new Vector2(16f, 16f));
         //public static readonly Rect NodeBlockHeaderIconRect = new Rect(new Vector2(24f, 4f), new Vector2(16f, 16f));
-        public static readonly Rect NodeBlockHeaderIconRect =new Rect(new Vector2(24f, 4f), new Vector2(24f, 24f));
-        public static readonly Vector2 NodeBlockHeaderLabelPosition = new Vector2(64.0f, 0.0f);
+        public static readonly Rect NodeBlockHeaderIconRect =new Rect(new Vector2(48f, 4f), new Vector2(24f, 24f));
+        public static readonly Rect NodeBlockHeaderToggleRect =new Rect(new Vector2(28f, 8f), new Vector2(16f, 16f));
+
+        public static readonly Vector2 NodeBlockHeaderLabelPosition = new Vector2(72.0f, 0.0f);
 
         // PARAMETER FIELDS
         public static readonly RectOffset ParameterFieldRectOffset = new RectOffset(24, 32, 0, 0);

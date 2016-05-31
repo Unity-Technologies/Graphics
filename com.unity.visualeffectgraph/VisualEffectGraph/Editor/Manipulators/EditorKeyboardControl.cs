@@ -11,9 +11,12 @@ namespace UnityEditor.Experimental
 {
     public class EditorKeyboardControl : IManipulate
     {
+        VFXEdCanvas m_canvas;
 
-        public EditorKeyboardControl()
+
+        internal EditorKeyboardControl(VFXEdCanvas canvas)
         {
+            m_canvas = canvas;
         }
 
         public void AttachTo(CanvasElement e)
@@ -52,19 +55,29 @@ namespace UnityEditor.Experimental
                 case KeyCode.Alpha5: component.playRate = 1.0f; needRefresh = true; break;
                 case KeyCode.Alpha6: component.playRate = 2.0f; needRefresh = true; break;
                 case KeyCode.Alpha7: component.playRate = 8.0f; needRefresh = true; break;
+                case KeyCode.L:
+                    if(m_canvas.selection.Count > 0)
+                    {
+                        List<VFXSystemModel> modelsToLayout = new List<VFXSystemModel>(); 
+                        foreach(CanvasElement selected in m_canvas.selection)
+                        {
+                            if(selected is VFXEdContextNode)
+                            {
+                                VFXEdContextNode node = (selected as VFXEdContextNode);
+                                if (!modelsToLayout.Contains(node.Model.GetOwner()))
+                                    modelsToLayout.Add(node.Model.GetOwner());
+                            }
+                        }
 
-                case KeyCode.Space: component.Reinit(); needRefresh = true; break;
-                case KeyCode.RightArrow:
-                    component.pause = true;
-                    component.AdvanceOneFrame();
+                        foreach(VFXSystemModel model in modelsToLayout)
+                            VFXEdLayoutUtility.LayoutSystem(model, (VFXEdDataSource)m_canvas.dataSource);
+                    }
+                    m_canvas.Repaint();
                     break;
-                case KeyCode.LeftArrow:
+                case KeyCode.Space: component.Reinit(); needRefresh = true; break;
+                case KeyCode.P:
                     component.pause = true;
-                    float pr = component.playRate;
-                    component.playRate = -pr;
                     component.AdvanceOneFrame();
-                    component.playRate = pr;
-                    needRefresh = true;
                     break;
                 default:
                     break;

@@ -13,18 +13,18 @@ namespace UnityEditor.Experimental
     {
         public VFXBlockModel Model { get { return m_Model; } }
         public VFXBlockDesc Desc { get { return Model.Desc; } }
-        public VFXEdNodeBlockHeader Header { get { return m_Header; } }
+        public VFXEdNodeBlockHeaderToggleable Header { get { return m_Header; } }
 
         private VFXProperty[] Properties { get { return Model.Properties; } }
 
         public override VFXElementModel GetAbstractModel() { return Model; }
 
         private VFXBlockModel m_Model;
-        private VFXEdNodeBlockHeader m_Header;
+        private VFXEdNodeBlockHeaderToggleable m_Header;
 
-        public VFXEdProcessingNodeBlock(VFXBlockModel block, VFXEdDataSource dataSource) : base(dataSource)
+        public VFXEdProcessingNodeBlock(VFXBlockModel model, VFXEdDataSource dataSource) : base(dataSource)
         {
-            m_Model = block;
+            m_Model = model;
             
             // For selection
             target = ScriptableObject.CreateInstance<VFXEdProcessingNodeBlockTarget>();
@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental
 
             m_LibraryName = Model.Desc.Name;
 
-            m_Header = new VFXEdNodeBlockHeader(Desc.Category.Replace('/', ' ') + " : " + Desc.Name, VFXEditor.styles.GetIcon(Desc.Icon == "" ? "Default" : Desc.Icon), block.Properties.Length > 0);
+            m_Header = new VFXEdNodeBlockHeaderToggleable(Desc.Category.Replace('/', ' ') + " : " + Desc.Name, VFXEditor.styles.GetIcon(Desc.Icon == "" ? "Default" : Desc.Icon), model.Properties.Length > 0, Model);
             AddChild(m_Header);
             AddManipulator(new TooltipManipulator(GetTooltipText));
             Layout();
@@ -95,6 +95,20 @@ namespace UnityEditor.Experimental
         public override void UpdateModel(UpdateType t)
         {
             Model.UpdateCollapsed(collapsed);
+        }
+
+        public override void Render(Rect parentRect, Canvas2D canvas)
+        {
+            base.Render(parentRect, canvas);
+
+            Rect r = GetDrawableRect();
+            Texture2D tile = VFXEditor.styles.DisabledScopeTileable;
+
+            Rect tileRect = new Rect(0, 0, r.width / tile.width, r.height / tile.height);
+
+            if (!Model.Enabled)
+                //EditorGUI.DrawRect(r, new Color(0.25f,0.25f,0.25f,0.5f));
+                GUI.DrawTextureWithTexCoords(r, tile, tileRect);
         }
     }
 }
