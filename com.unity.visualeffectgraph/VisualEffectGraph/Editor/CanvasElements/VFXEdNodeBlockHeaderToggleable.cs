@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental
             : base(Text, icon, Collapseable)
         {
             m_Model = model;
+            AddManipulator(new Toggleable(VFXEditorMetrics.NodeBlockHeaderToggleRect, model));
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
@@ -28,13 +29,17 @@ namespace UnityEditor.Experimental
             Rect toggleRect = VFXEditorMetrics.NodeBlockHeaderToggleRect;
             toggleRect.min = toggleRect.min + drawablerect.min;
             toggleRect.size = VFXEditorMetrics.NodeBlockHeaderToggleRect.size;
+            if (Event.current.type == EventType.Repaint)
+            {
+                EditorStyles.toggle.Draw(toggleRect, false, Enabled, Enabled, false);
+            }
 
-            bool enabled = GUI.Toggle(toggleRect, m_Enabled, GUIContent.none);
+            /*bool enabled = GUI.Toggle(toggleRect, m_Enabled, GUIContent.none);
             if(enabled != m_Enabled)
             {
                 m_Model.Enabled = enabled;
                 ((VFXEdDataSource)ParentCanvas().dataSource).SyncView(m_Model);
-            }
+            }*/
         }
     }
 }
