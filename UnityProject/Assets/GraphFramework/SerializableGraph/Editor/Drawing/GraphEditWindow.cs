@@ -3,6 +3,8 @@ using System.Reflection;
 using UnityEditor.Experimental;
 using UnityEditor.MaterialGraph;
 using UnityEngine;
+using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Graphing.Drawing
@@ -116,7 +118,7 @@ namespace UnityEditor.Graphing.Drawing
             drawstate.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, drawstate.position.width, drawstate.position.height);
             node.drawState = drawstate;
             m_LastSelection.graph.AddNode(node);
-
+            EditorUtility.SetDirty(m_LastSelection);
             Rebuild();
             Repaint();
         }

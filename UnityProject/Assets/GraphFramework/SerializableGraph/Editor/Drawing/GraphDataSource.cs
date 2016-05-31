@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using UnityEngine;
+using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -24,7 +25,7 @@ namespace UnityEditor.Graphing.Drawing
             foreach (var node in graph.nodes)
             {
                 // add the nodes
-                m_DrawableNodes.Add(new DrawableNode(node, 200.0f, this));
+                m_DrawableNodes.Add(new DrawableNode(node, null, this));
             }
 
             // Add the edges now

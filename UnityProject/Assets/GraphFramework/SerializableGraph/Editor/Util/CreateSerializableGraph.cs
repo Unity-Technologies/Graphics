@@ -1,24 +1,23 @@
 using System.IO;
 using UnityEditor.ProjectWindowCallback;
-using UnityEngine.MaterialGraph;
+using UnityEngine.Graphing;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.Graphing
 {
-    public class CreateShaderGraph : EndNameEditAction
+    public class CreateSerializableGraph : EndNameEditAction
     {
-        [MenuItem("Assets/Create/Shader Graph", false, 208)]
+        [MenuItem("Assets/Create/Serializable Graph", false, 207)]
         public static void CreateMaterialGraph()
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateShaderGraph>(),
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateSerializableGraph>(),
                 "New Shader Graph.ShaderGraph", null, null);
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
-            var graph = CreateInstance<MaterialGraphAsset>();
+            var graph = CreateInstance<SerializableGraphAsset>();
             graph.name = Path.GetFileName(pathName);
             AssetDatabase.CreateAsset(graph, pathName);
-            graph.PostCreate();
         }
     }
 }
