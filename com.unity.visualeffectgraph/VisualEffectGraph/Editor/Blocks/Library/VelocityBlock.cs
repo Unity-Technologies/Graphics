@@ -12,13 +12,12 @@ namespace UnityEditor.Experimental.VFX
             Icon = "Velocity";
             Category = "Velocity";
 
-            Add(VFXProperty.Create<VFXDirectionType>("Direction"));
-            Add(new VFXProperty(new VFXFloatType(1.0f),"Speed"));
+            Add(VFXProperty.Create<VFXVectorType>("Velocity"));
 
             Add(new VFXAttribute(CommonAttrib.Velocity, true));
 
             Source = @"
-velocity = Direction*Speed;";
+velocity += Velocity;";
         }
     }
 
@@ -35,9 +34,7 @@ velocity = Direction*Speed;";
             Add(new VFXAttribute(CommonAttrib.Velocity, true));
 
             Source = @"
-velocity += float3( (RAND*2-1) * Divergence,
-                    (RAND*2-1) * Divergence,
-                    (RAND*2-1) * Divergence);";
+velocity += (RAND3 * 2 - 1) * Divergence;";
         }
     }
 
