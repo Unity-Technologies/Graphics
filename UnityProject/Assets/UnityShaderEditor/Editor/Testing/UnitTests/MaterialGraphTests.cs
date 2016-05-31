@@ -1,7 +1,8 @@
 using System.Linq;
 using NUnit.Framework;
-using UnityEditor.Graphing;
 using UnityEngine;
+using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Tests
 {
@@ -21,7 +22,7 @@ namespace UnityEditor.MaterialGraph.Tests
         [Test]
         public void TestCreateMaterialGraph()
         {
-            MaterialGraph graph = new MaterialGraph();
+            UnityEngine.MaterialGraph.MaterialGraph graph = new UnityEngine.MaterialGraph.MaterialGraph();
 
             Assert.IsNotNull(graph.currentGraph);
             Assert.IsNotNull(graph.materialOptions);

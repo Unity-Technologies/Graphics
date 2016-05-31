@@ -1,42 +1,37 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using UnityEngine;
+using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    public sealed class DrawableNode : CanvasElement
+    public interface ICustomNodeUi
     {
-        protected int previewWidth
-        {
-            get { return kPreviewWidth; }
-        }
+        int GetNodeUiHeight(int width);
+        GUIModificationType Render(Rect area);
+    }
 
-        protected int previewHeight
-        {
-            get { return kPreviewHeight; }
-        }
-        public delegate void NeedsRepaint();
-        public NeedsRepaint onNeedsRepaint;
-
-        private const int kPreviewWidth = 64;
-        private const int kPreviewHeight = 64;
-
+    public class DrawableNode : CanvasElement
+    {
         private readonly GraphDataSource m_Data;
-        public INode m_Node;
 
-        private Rect m_PreviewArea;
-        private Rect m_NodeUIRect;
+        private readonly Rect m_CustomUiRect;
+        public readonly INode m_Node;
+        private readonly ICustomNodeUi m_Ui;
 
-        public DrawableNode(INode node, float width, GraphDataSource data)
+        public DrawableNode(INode node, ICustomNodeUi ui, GraphDataSource data)
         {
+            const int width = 200;
             var drawData = node.drawState;
             translation = drawData.position.min;
             scale = new Vector2(width, width);
 
             m_Node = node;
+            m_Ui = ui;
             m_Data = data;
-            //m_Node.onNeedsRepaint += Invalidate;
 
             const float yStart = 10.0f;
             var vector3 = new Vector3(5.0f, yStart, 0.0f);
@@ -67,11 +62,14 @@ namespace UnityEditor.Graphing.Drawing
 
             pos.y = Mathf.Max(pos.y, inputYMax);
 
-            /*
-            var nodeUIHeight = m_Node.GetNodeUIHeight(width);
-            m_NodeUIRect = new Rect(10, pos.y, width - 20, nodeUIHeight);
-            pos.y += nodeUIHeight;
+            if (ui != null)
+            {
+                var customUiHeight = ui.GetNodeUiHeight(width);
+                m_CustomUiRect = new Rect(10, pos.y, width - 20, customUiHeight);
+                pos.y += customUiHeight;
+            }
 
+            /*
             if (node.hasPreview && node.drawMode != DrawMode.Collapsed)
             {
                 m_PreviewArea = new Rect(10, pos.y, width - 20, width - 20);
@@ -79,13 +77,13 @@ namespace UnityEditor.Graphing.Drawing
             }*/
 
             scale = new Vector3(pos.x, pos.y + 10.0f, 0.0f);
-            //OnWidget += MarkDirtyIfNeedsTime;
+
+            OnWidget += MarkDirtyIfNeedsTime;
 
             AddManipulator(new ImguiContainer());
             AddManipulator(new Draggable());
         }
-
-        /*
+        
         private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
         {
             var childrenNodes = ListPool<INode>.Get();
@@ -94,7 +92,7 @@ namespace UnityEditor.Graphing.Drawing
                 Invalidate();
             ListPool<INode>.Release(childrenNodes);
             return true;
-        }*/
+        }
 
         public override void UpdateModel(UpdateType t)
         {
@@ -123,21 +121,24 @@ namespace UnityEditor.Graphing.Drawing
                 return;
             }
 
-            /*var modificationType = m_Node.NodeUI(m_NodeUIRect);
-            if (modificationType == GUIModificationType.Repaint)
+            if (m_Ui != null)
             {
-                // if we were changed, we need to redraw all the
-                // dependent nodes.
-                RepaintDependentNodes(m_Node);
-            }
-            else if (modificationType == GUIModificationType.ModelChanged)
-            {
-                ParentCanvas().ReloadData();
-                ParentCanvas().Repaint();
-                return;
+                var modificationType = m_Ui.Render(m_CustomUiRect);
+                if (modificationType == GUIModificationType.Repaint)
+                {
+                    // if we were changed, we need to redraw all the
+                    // dependent nodes.
+                    RepaintDependentNodes(m_Node);
+                }
+                else if (modificationType == GUIModificationType.ModelChanged)
+                {
+                    ParentCanvas().ReloadData();
+                    ParentCanvas().Repaint();
+                    return;
+                }
             }
 
-            if (m_Node.hasPreview
+            /*  if (m_Node.hasPreview
                 && m_Node.drawMode != DrawMode.Collapsed
                 && m_PreviewArea.width > 0
                 && m_PreviewArea.height > 0)
@@ -149,16 +150,19 @@ namespace UnityEditor.Graphing.Drawing
 
             base.Render(parentRect, canvas);
         }
-
-        /*
-        public static void RepaintDependentNodes(AbstractMaterialNode bmn)
+        
+        private void RepaintDependentNodes(INode theNode)
         {
             var dependentNodes = new List<INode>();
-            NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, bmn);
-            foreach (var node in dependentNodes.OfType<SerializableNode>())
-                node.onNeedsRepaint();
+            NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, theNode);
+            foreach (var node in dependentNodes)
+            {
+                foreach (var drawableNode in m_Data.lastGeneratedNodes.Where(x => x.m_Node == node))
+                    drawableNode.Invalidate();
+            }
         }
 
+        /*
         public static void OnGUI(List<CanvasElement> selection)
         {
             var drawableMaterialNode = selection.OfType<DrawableMaterialNode>().FirstOrDefault();
@@ -168,6 +172,40 @@ namespace UnityEditor.Graphing.Drawing
                 // dependent nodes.
                 RepaintDependentNodes(drawableMaterialNode.m_Node);
             }
+        }*/
+
+       /* public virtual GUIModificationType NodeUI(Rect drawArea)
+        {
+            return GUIModificationType.None;
+        }
+
+        public virtual bool OnGUI()
+        {
+            GUILayout.Label("MaterialSlot Defaults", EditorStyles.boldLabel);
+            var modified = false;
+            foreach (var slot in inputSlots)
+            {
+                if (!owner.GetEdges(GetSlotReference(slot.name)).Any())
+                    modified |= DoSlotUI(this, slot);
+            }
+
+            return modified;
+        }
+
+        public static bool DoSlotUI(SerializableNode node, ISlot slot)
+        {
+            GUILayout.BeginHorizontal( /*EditorStyles.inspectorBig*);
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("MaterialSlot " + slot.name, EditorStyles.largeLabel);
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+
+            //TODO: fix this
+            return false;
+            //return slot.OnGUI();
         }*/
     }
 }

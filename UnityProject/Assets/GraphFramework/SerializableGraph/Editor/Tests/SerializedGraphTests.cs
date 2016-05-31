@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Tests
 {

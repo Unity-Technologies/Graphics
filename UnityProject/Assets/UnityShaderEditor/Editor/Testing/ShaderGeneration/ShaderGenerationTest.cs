@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Tests
 {

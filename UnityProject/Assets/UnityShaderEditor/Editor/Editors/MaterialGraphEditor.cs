@@ -1,5 +1,6 @@
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph
 {
