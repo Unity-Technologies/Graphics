@@ -399,7 +399,7 @@ namespace UnityEngine.Experimental.VFX
 
                 m_ConnectedSlot = slot;
                 VFXPropertySlot old = m_ValueRef;
-                m_ValueRef = m_ConnectedSlot != null ? m_ConnectedSlot : null;
+                m_ValueRef = m_ConnectedSlot;
       
                 if (m_ValueRef != old)
                 {
@@ -453,7 +453,7 @@ namespace UnityEngine.Experimental.VFX
 
         public override VFXPropertySlot CurrentValueRef
         {
-            get { return m_ValueRef == null ? this : m_ValueRef; }
+            get { return m_ValueRef ?? this; }
         }
       
         private VFXPropertySlot m_ValueRef;
