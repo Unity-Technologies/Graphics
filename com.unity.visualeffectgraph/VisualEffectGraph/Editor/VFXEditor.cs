@@ -223,12 +223,25 @@ namespace UnityEditor.Experimental
 
         void OnDisable()
         {
+            SaveAsset();
             DestroyGraph();
 
             RemovePreviousVFXs();
             RemovePreviousShaders();
 
             Selection.selectionChanged -= OnSelectionChanged;
+        }
+
+        private void SaveAsset()
+        {
+            if (m_CurrentAsset == null)
+                return;
+
+            EditorUtility.SetDirty(m_CurrentAsset);
+            AssetDatabase.SaveAssets();
+            if (s_Graph != null)
+                s_Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // Needs to reload uniform once saved
+            Debug.Log("Save Asset");
         }
 
         private static void InitializeContextLibrary()
@@ -361,10 +374,10 @@ namespace UnityEditor.Experimental
 
             if (m_NeedsCanvasReload)
             {
-                m_DataSource.ResyncViews();
+                if (VFXEditor.Graph != null)
+                    m_DataSource.ResyncViews();
                 m_Canvas.ReloadData();
                 m_Canvas.Invalidate();
-                //m_Canvas.RebuildQuadTree();
                 m_Canvas.Layout();
                 m_Canvas.FocusElements(false);
                 m_Canvas.Repaint();
@@ -443,8 +456,7 @@ namespace UnityEditor.Experimental
             {
                 if (m_CurrentAsset != null)
                 {
-                    //Debug.Log("------------------------ DESTROY OLD ASSET: " + m_CurrentAsset.ToString());
-                    // Remove systems
+                    SaveAsset();
                     DestroyGraph();
                 }
 
@@ -546,12 +558,15 @@ namespace UnityEditor.Experimental
 
 
             if (m_CurrentAsset != null)
-                if (GUILayout.Button("Save " + m_CurrentAsset.name, EditorStyles.toolbarButton))
+            {
+                if (GUILayout.Button("Save " + m_CurrentAsset.name + (m_CurrentAsset.Graph.systems.Dirty || m_CurrentAsset.Graph.models.Dirty ? "*" : ""), EditorStyles.toolbarButton))
                 {
-                    EditorUtility.SetDirty(m_CurrentAsset);
-                    AssetDatabase.SaveAssets();
-                    Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // Reload uniforms
+                    SaveAsset();
+
+                    m_CurrentAsset.Graph.systems.Dirty = false;
+                    m_CurrentAsset.Graph.models.Dirty = false;
                 }
+            }
 
             GUILayout.FlexibleSpace();
 

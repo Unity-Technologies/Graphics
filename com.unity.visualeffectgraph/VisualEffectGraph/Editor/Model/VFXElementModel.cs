@@ -23,6 +23,7 @@ namespace UnityEditor.Experimental
         {
             kModelChanged,
             kParamChanged,
+            kUIChanged,
         }
 
         public void AddChild(VFXElementModel child, int index = -1, bool notify = true)
