@@ -54,9 +54,18 @@ namespace UnityEditor.Experimental
             m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), Context, m_DataSource, Direction.Output));
 
             AddChild(inputs[0]);
-            AddChild(outputs[0]);
 
             AddManipulator(new TooltipManipulator(GetTooltipText));
+
+            // Add stuff for Output Nodes
+            if (model.Desc.m_Type == VFXContextDesc.Type.kTypeOutput)
+            {
+                AddChild(new VFXEdDisableOutputOption(m_Model));
+            }
+            else
+            {
+                AddChild(outputs[0]);
+            }
 
             ZSort();
             Layout();

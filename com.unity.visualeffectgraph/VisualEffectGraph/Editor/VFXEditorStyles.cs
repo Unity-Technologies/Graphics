@@ -89,7 +89,8 @@ namespace UnityEditor.Experimental
         public Color DataEdgeSelectedTint = HexColor("#FFFFFFFF");
 
         public Texture2D DefaultBlockIcon = EditorGUIUtility.Load("icons/default.png") as Texture2D;
-
+        public Texture2D VisibilityIcon = EditorGUIUtility.Load("VisibilityIcon.png") as Texture2D;
+        public Texture2D VisibilityIconDisabled = EditorGUIUtility.Load("VisibilityIconDisabled.png") as Texture2D;
 
         private Dictionary<string, Texture2D> m_icons;
         private Dictionary<VFXContextDesc.Type, Color> m_ContextColors;
