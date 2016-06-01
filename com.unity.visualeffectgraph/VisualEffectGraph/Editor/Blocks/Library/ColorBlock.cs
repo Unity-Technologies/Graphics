@@ -182,6 +182,44 @@ alpha = rgba.a;";
         }
     }
 
+    class VFXBlockSetColorScale : VFXBlockType
+    {
+        public VFXBlockSetColorScale()
+        {
+            Name = "Scale RGB (Constant)";
+            Icon = "Color";
+            Category = "Color";
+
+            Add(VFXProperty.Create<VFXFloatType>("Scale"));
+
+            Add(new VFXAttribute(CommonAttrib.Color, true));
+
+            Source = @"
+color *= Scale;"; 
+        }
+    }
+
+    class VFXBlockSetColorScaleOverLife : VFXBlockType
+    {
+        public VFXBlockSetColorScaleOverLife()
+        {
+            Name = "Over Life Scale RGB (Constant)";
+            Icon = "Color";
+            Category = "Color";
+
+            Add(VFXProperty.Create<VFXCurveType>("ScaleCurve"));
+
+            Add(new VFXAttribute(CommonAttrib.Color, true));
+            Add(new VFXAttribute(CommonAttrib.Age, false));
+            Add(new VFXAttribute(CommonAttrib.Lifetime, false));
+
+            Source = @"
+float ratio = saturate(age / lifetime);
+float scale = SAMPLE(ScaleCurve,ratio);
+color *= scale;"; 
+        }
+    }
+
     class VFXBlockSetAlphaCurveOverLifetime : VFXBlockType
     {
         public VFXBlockSetAlphaCurveOverLifetime()
