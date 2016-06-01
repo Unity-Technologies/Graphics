@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdNodeBlockHeaderToggleable : VFXEdNodeBlockHeader
+    internal class VFXEdNodeBlockHeaderToggleable : VFXEdNodeBlockHeaderSimple
     {
         public bool Enabled { get { return m_Enabled; } set { m_Enabled = value; } }
         protected bool m_Enabled;

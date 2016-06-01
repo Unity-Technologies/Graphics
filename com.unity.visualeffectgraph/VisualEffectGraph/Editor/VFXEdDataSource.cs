@@ -307,7 +307,7 @@ namespace UnityEditor.Experimental
                 RemoveSlot(model.Slot);
             }
             else if (blockUI == null)
-                m_ModelToUI.Add(model, blockUI = new VFXEdDataNodeBlock(model, this, ""));
+                m_ModelToUI.Add(model, blockUI = new VFXEdDataNodeBlock(model, this));
 
             // Reset UI data
             blockUI.collapsed = model.UICollapsed;

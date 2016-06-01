@@ -39,6 +39,7 @@ namespace UnityEditor.Experimental.VFX
         public VFXDataBlockModel(VFXDataBlockDesc desc)
         {
             m_BlockDesc = desc;
+            m_ExposedName = desc.Name;
             InitSlots(null,new VFXProperty[] {desc.Property});
         }
 
@@ -55,6 +56,19 @@ namespace UnityEditor.Experimental.VFX
             }
         }
 
+        public string ExposedName
+        {
+            get { return m_ExposedName; }
+            set
+            {
+                if (value !=  m_ExposedName)
+                {
+                    m_ExposedName = value;
+                    Invalidate(InvalidationCause.kUIChanged);
+                }
+            }
+        }
+
         public bool UICollapsed { get { return m_UICollapsed; } }
 
         public override bool CanAddChild(VFXElementModel element, int index)
@@ -63,6 +77,7 @@ namespace UnityEditor.Experimental.VFX
         }
 
         private VFXDataBlockDesc m_BlockDesc;
+        private string m_ExposedName;
         private bool m_UICollapsed;
     }
 }

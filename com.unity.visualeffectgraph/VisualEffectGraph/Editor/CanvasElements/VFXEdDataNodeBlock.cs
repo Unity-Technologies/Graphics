@@ -17,17 +17,16 @@ namespace UnityEditor.Experimental
 
         public override VFXElementModel GetAbstractModel() { return Model; }
 
-        public string m_exposedName;
+        public string ExposedName { get { return m_Model.ExposedName; } }
 
         private VFXDataBlockModel m_Model;
 
-        public VFXEdDataNodeBlock(VFXDataBlockModel model, VFXEdDataSource dataSource, string exposedName)
+        public VFXEdDataNodeBlock(VFXDataBlockModel model, VFXEdDataSource dataSource)
             : base(dataSource)
         {
             m_Model = model;
 
             m_LibraryName = Desc.Name; // TODO dont store the same stuff at two different location
-            m_exposedName = exposedName;
             
             // For selection
             target = ScriptableObject.CreateInstance<VFXEdDataNodeBlockTarget>();
@@ -37,7 +36,7 @@ namespace UnityEditor.Experimental
             m_Fields[0] = new VFXUIPropertySlotField(dataSource, Slot);
             AddChild(m_Fields[0]);
 
-            AddChild(new VFXEdNodeBlockHeader(m_LibraryName, VFXEditor.styles.GetIcon(Desc.Icon), true));
+            AddChild(new VFXEdNodeBlockHeaderEditable(model, VFXEditor.styles.GetIcon(Desc.Icon), true));
             AddManipulator(new TooltipManipulator(GetTooltipText));
             Layout();
         }

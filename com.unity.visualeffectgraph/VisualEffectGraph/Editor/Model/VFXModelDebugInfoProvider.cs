@@ -196,7 +196,7 @@ namespace UnityEditor.Experimental
         // VFXDataNodeBlock
         internal static List<string> GetInfo(List<string> info, VFXEdDataNodeBlock Block, InfoFlag flags )
         {
-            info.Add("DATA NODEBLOCK : " + Block.m_exposedName + " (" + Block.LibraryName + ")");
+            info.Add("DATA NODEBLOCK : " + Block.Model.ExposedName + " (" + Block.LibraryName + ")");
             info.Add("");
             info.Add("Slot : " + Block.Slot.Name + " (" + Block.Slot.ValueType+")");
             
