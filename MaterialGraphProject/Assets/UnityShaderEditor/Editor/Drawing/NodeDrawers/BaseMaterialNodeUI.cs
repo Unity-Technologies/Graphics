@@ -57,19 +57,14 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
+        private float m_PreviewWidth;
         public virtual float GetNodeUiHeight(float width)
         {
-            return kPreviewHeight;
-        }
+            if (!m_Node.drawState.expanded)
+                return 0;
 
-        protected virtual int previewWidth
-        {
-            get { return kPreviewWidth; }
-        }
-
-        protected virtual int previewHeight
-        {
-            get { return kPreviewHeight; }
+            m_PreviewWidth = width - 20;
+            return m_PreviewWidth;
         }
 
         public void SetNode(INode node)
@@ -80,7 +75,7 @@ namespace UnityEditor.MaterialGraph
 
         public virtual GUIModificationType Render(Rect area)
         {
-            if (m_Node == null)
+            if (m_Node == null || !m_Node.drawState.expanded)
                 return GUIModificationType.None;
 
             if (m_LastShaderVersion != m_Node.version)
@@ -89,15 +84,17 @@ namespace UnityEditor.MaterialGraph
                 m_LastShaderVersion = m_Node.version;
             }
 
-            GUILayout.BeginHorizontal(GUILayout.MinWidth(previewWidth + 10), GUILayout.MinWidth(previewHeight + 10));
+            GUILayout.BeginArea(area);
+            GUILayout.BeginHorizontal(GUILayout.MinWidth(m_PreviewWidth + 10), GUILayout.MinWidth(m_PreviewWidth + 10));
             GUILayout.FlexibleSpace();
-            var rect = GUILayoutUtility.GetRect(previewWidth, previewHeight, GUILayout.ExpandWidth(false));
+            var rect = GUILayoutUtility.GetRect(m_PreviewWidth, m_PreviewWidth, GUILayout.ExpandWidth(false));
             var preview = RenderPreview(rect);
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
             GL.sRGBWrite = QualitySettings.activeColorSpace == ColorSpace.Linear;
             GUI.DrawTexture(rect, preview, ScaleMode.StretchToFill, false);
             GL.sRGBWrite = false;
+            GUILayout.EndArea();
             return GUIModificationType.None;
         }
 
