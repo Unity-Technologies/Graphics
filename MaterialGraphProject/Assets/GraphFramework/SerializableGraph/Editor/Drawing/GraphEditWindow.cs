@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using UnityEditor.Experimental;
-using UnityEditor.MaterialGraph;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -174,7 +173,7 @@ namespace UnityEditor.Graphing.Drawing
             GUILayout.FlexibleSpace();
 
             EditorGUILayout.BeginVertical();
-            m_ScrollPos = GUILayout.BeginScrollView(m_ScrollPos, EditorStyles.textArea, GUILayout.Width(250), GUILayout.ExpandHeight(true));
+            m_ScrollPos = GUILayout.BeginScrollView(m_ScrollPos, EditorStyles.textArea, GUILayout.width(250), GUILayout.ExpandHeight(true));
             graph.materialOptions.DoGUI();
             EditorGUILayout.Separator();
 

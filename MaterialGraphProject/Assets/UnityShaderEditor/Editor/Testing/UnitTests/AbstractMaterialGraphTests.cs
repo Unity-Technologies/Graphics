@@ -64,7 +64,8 @@ namespace UnityEditor.MaterialGraph.Tests
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(1, graph.nodes.Count());
 
-            Assert.AreEqual(node, graph.GetMaterialNodeFromGuid(node.guid));
+            Assert.AreEqual(node, graph.GetNodeFromGuid(node.guid));
+            Assert.AreEqual(node, graph.GetNodeFromGuid<TestableMNode>(node.guid));
         }
 
         [Test]

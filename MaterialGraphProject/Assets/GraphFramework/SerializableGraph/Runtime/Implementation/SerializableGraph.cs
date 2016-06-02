@@ -125,6 +125,11 @@ namespace UnityEngine.Graphing
             return m_Nodes.FirstOrDefault(x => x.guid == guid);
         }
 
+        public T GetNodeFromGuid<T>(Guid guid) where T : INode
+        {
+            return m_Nodes.Where(x => x.guid == guid).OfType<T>().FirstOrDefault();
+        }
+
         public IEnumerable<IEdge> GetEdges(SlotReference s)
         {
             if (s == null)
@@ -169,6 +174,9 @@ namespace UnityEngine.Graphing
                 //orphaned edge
                 RemoveEdgeNoValidate(edge);
             }
+
+            foreach (var node in nodes)
+                node.ValidateNode();
         }
     }
 }

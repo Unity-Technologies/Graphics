@@ -31,29 +31,6 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public AbstractMaterialNode GetMaterialNodeFromGuid(Guid guid)
-        {
-            var node = GetNodeFromGuid(guid);
-            if (node == null)
-            {
-                Debug.LogWarningFormat("Node with guid {0} either can not be found", guid);
-                return null;
-            }
-            if (node is AbstractMaterialNode)
-                return node as AbstractMaterialNode;
-
-            Debug.LogWarningFormat("Node {0} with guid {1} is not a Material node", guid);
-            return null;
-        }
-        
-        public override void ValidateGraph()
-        {
-            base.ValidateGraph();
-
-            foreach (var node in materialNodes)
-                node.ValidateNode();
-        }
-
         /*public PreviewRenderUtility previewUtility
         {
             get

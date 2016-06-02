@@ -51,24 +51,19 @@ namespace UnityEngine.MaterialGraph
             get { return m_ConcreteValueType; }
             set { m_ConcreteValueType = value; }
         }
-
-        public string GetInputName (AbstractMaterialNode node)
-        {
-            return string.Format( "{0}_{1}", node.name, name);
-        }
-
+        
         public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType, AbstractMaterialNode owner)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk("float" + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(slotValueType) + " " + GetInputName(owner) + ";", true);
+            visitor.AddShaderChunk("float" + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(slotValueType) + " " + owner.GetDefaultInputNameForSlot(this) + ";", true);
         }
 
         public string GetDefaultValue(GenerationMode generationMode, ConcreteSlotValueType slotValueType, AbstractMaterialNode owner)
         {
             if (generationMode.IsPreview())
-                return GetInputName(owner);
+                return owner.GetDefaultInputNameForSlot(this);
 
             switch (slotValueType)
             {

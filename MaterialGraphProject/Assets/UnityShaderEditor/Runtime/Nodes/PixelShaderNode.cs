@@ -92,7 +92,7 @@ namespace UnityEngine.MaterialGraph
             foreach (var edge in owner.GetEdges(GetSlotReference(firstPassSlot.name)))
             {
                 var outputRef = edge.outputSlot;
-                var fromNode = materialGraphOwner.GetMaterialNodeFromGuid(outputRef.nodeGuid);
+                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
                 if (fromNode == null)
                     continue;
 
@@ -100,7 +100,7 @@ namespace UnityEngine.MaterialGraph
                 if (fromSlot == null)
                     continue;
 
-                shaderBody.AddShaderChunk("o." + firstPassSlot.name + " = " + fromNode.GetOutputVariableNameForSlot(fromSlot, generationMode) + ";", true);
+                shaderBody.AddShaderChunk("o." + firstPassSlot.name + " = " + fromNode.GetOutputVariableNameForSlot(fromSlot) + ";", true);
             }
 
             // track the last index of nodes... they have already been processed :)
@@ -125,7 +125,7 @@ namespace UnityEngine.MaterialGraph
                 foreach (var edge in owner.GetEdges(GetSlotReference(slot.name)))
                 {
                     var outputRef = edge.outputSlot;
-                    var fromNode = materialGraphOwner.GetMaterialNodeFromGuid(outputRef.nodeGuid);
+                    var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
                     if (fromNode == null)
                         continue;
 
@@ -133,14 +133,14 @@ namespace UnityEngine.MaterialGraph
                     if (fromSlot == null)
                         continue;
 
-                    shaderBody.AddShaderChunk("o." + slot.name + " = " + fromNode.GetOutputVariableNameForSlot(fromSlot, generationMode) + ";", true);
+                    shaderBody.AddShaderChunk("o." + slot.name + " = " + fromNode.GetOutputVariableNameForSlot(fromSlot) + ";", true);
                 }
             }
         }
 
-        public override string GetOutputVariableNameForSlot(MaterialSlot s, GenerationMode generationMode)
+        public override string GetOutputVariableNameForSlot(MaterialSlot s)
         {
-            return GetOutputVariableNameForNode();
+            return GetVariableNameForNode();
         }
 
    /*     public override float GetNodeUIHeight(float width)

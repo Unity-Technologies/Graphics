@@ -20,5 +20,7 @@ namespace UnityEngine.Graphing
         ISlot FindOutputSlot(string name);
         IEnumerable<ISlot> GetInputsWithNoConnection();
         DrawingData drawState { get; set; }
+        bool hasError { get; }
+        void ValidateNode();
     }
 }

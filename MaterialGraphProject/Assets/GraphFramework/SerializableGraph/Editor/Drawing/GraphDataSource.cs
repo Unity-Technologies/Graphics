@@ -1,12 +1,30 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using UnityEngine;
 using UnityEngine.Graphing;
+using UnityEngineInternal;
 
 namespace UnityEditor.Graphing.Drawing
 {
+    [AttributeUsage(AttributeTargets.Class)]
+    sealed class CustomNodeUI : Attribute
+    {
+        private Type m_ModeToDrawFor    ;
+
+        public CustomNodeUI(Type nodeToDrawFor)
+        {
+            m_ModeToDrawFor = nodeToDrawFor;
+        }
+
+        public Type nodeToDrawFor
+        {
+            get { return m_ModeToDrawFor; } } 
+    }
+
     public class GraphDataSource : ICanvasDataSource
     {
         readonly List<DrawableNode> m_DrawableNodes = new List<DrawableNode>();
@@ -18,14 +36,73 @@ namespace UnityEditor.Graphing.Drawing
             get { return m_DrawableNodes; }
         }
 
+        private static Type[] GetTypesFromAssembly(Assembly assembly)
+        {
+            if (assembly == null)
+                return new Type[] {};
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException)
+            {
+                return new Type[] {};
+            }
+        }
+
+        private static Dictionary<Type, Type> s_DrawerUI;
+
+        private static Dictionary<Type, Type> drawerUI
+        {
+            get
+            {
+                if (s_DrawerUI == null)
+                {
+                    s_DrawerUI = new Dictionary<Type, Type>();
+                    var loadedTypes = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => GetTypesFromAssembly(x));
+
+                    foreach (var type in loadedTypes)
+                    {
+                        var attribute = type.GetCustomAttributes(true).OfType<CustomNodeUI>().FirstOrDefault();
+                        if (attribute != null && typeof(ICustomNodeUi).IsAssignableFrom(type))
+                            s_DrawerUI.Add(attribute.nodeToDrawFor, type);
+                    }
+                }
+                return s_DrawerUI;
+            }
+        } 
+
         public CanvasElement[] FetchElements()
         {
             m_DrawableNodes.Clear();
             Debug.LogFormat("Trying to convert: {0}", graph);
             foreach (var node in graph.nodes)
             {
+                var nodeType = node.GetType();
+                Type draweruiType = null;
+
+                while (draweruiType == null && nodeType != null)
+                {
+                    draweruiType = drawerUI.FirstOrDefault(x => x.Key == nodeType).Value;
+                    nodeType = nodeType.BaseType;
+                }
+
+                ICustomNodeUi customUI = null;
+                if (draweruiType != null)
+                {
+                    try
+                    {
+                        customUI = Activator.CreateInstance(draweruiType) as ICustomNodeUi;
+                        customUI.SetNode(node);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarningFormat("Could not construct instance of: {0} - {1}", draweruiType, e);
+                    }
+                }
+
                 // add the nodes
-                m_DrawableNodes.Add(new DrawableNode(node, null, this));
+                m_DrawableNodes.Add(new DrawableNode(node, customUI, this));
             }
 
             // Add the edges now
