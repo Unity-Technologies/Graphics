@@ -11,21 +11,16 @@ namespace UnityEditor.Experimental
     internal class VFXEdNodeBlockHeader : CanvasElement
     {
         public bool Collapseable { get { return m_NodeBlockCollapseManipulator.Enabled; } set { m_NodeBlockCollapseManipulator.Enabled = value; } }
-        public bool Enabled { get { return m_Enabled; } set { m_Enabled = value; } }
 
         private Collapsable m_NodeBlockCollapseManipulator;
-        private bool m_Enabled;
-        private string m_Name;
         private Texture2D m_Icon;
 
-        public VFXEdNodeBlockHeader(string Text, Texture2D icon, bool Collapseable)
+        public VFXEdNodeBlockHeader(Texture2D icon, bool Collapseable, bool bUseDoubleClick)
         {
             translation = Vector3.zero;
             scale = new Vector2(100, VFXEditorMetrics.NodeBlockHeaderHeight);
             m_Icon = icon;
-            m_Name = Text;
-
-            m_NodeBlockCollapseManipulator = new NodeBlockCollapse(Collapseable);
+            m_NodeBlockCollapseManipulator = new NodeBlockCollapse(Collapseable, bUseDoubleClick);
             AddManipulator(m_NodeBlockCollapseManipulator);
 
         }
@@ -40,6 +35,7 @@ namespace UnityEditor.Experimental
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
+            
             Rect drawablerect = GetDrawableRect();
 
             Rect arrowrect = VFXEditorMetrics.NodeBlockHeaderFoldoutRect;
@@ -49,9 +45,6 @@ namespace UnityEditor.Experimental
             Rect iconrect = VFXEditorMetrics.NodeBlockHeaderIconRect;
             iconrect.min = iconrect.min + drawablerect.min;
             iconrect.size = VFXEditorMetrics.NodeBlockHeaderIconRect.size;
-
-            Rect labelrect = drawablerect;
-            labelrect.min += VFXEditorMetrics.NodeBlockHeaderLabelPosition;
 
 
             if (Collapseable)
@@ -71,7 +64,6 @@ namespace UnityEditor.Experimental
             }
 
             GUI.DrawTexture(iconrect, m_Icon);
-            GUI.Label(labelrect, m_Name, m_Enabled ? VFXEditor.styles.NodeBlockTitle : VFXEditor.styles.NodeBlockTitleDisabled);
             base.Render(parentRect, canvas);
         }
 

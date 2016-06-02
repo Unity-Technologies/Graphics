@@ -35,6 +35,8 @@ namespace UnityEditor.Experimental
         public GUIStyle DataNodeBlockSelected;
         public GUIStyle NodeBlockTitle;
         public GUIStyle NodeBlockTitleDisabled;
+        public GUIStyle NodeBlockTitleEditable;
+
         public GUIStyle NodeBlockParameter;
         public GUIStyle NodeBlockDropSeparator;
 
@@ -73,6 +75,8 @@ namespace UnityEditor.Experimental
         public Texture2D DataEdgeOpacity;
         public Texture2D DataEdgeOpacitySelected;
 
+        public Texture2D DisabledScopeTileable;
+
         public Texture2D ToolbarPlay;
         public Texture2D ToolbarRestart;
         public Texture2D ToolbarStop;
@@ -85,7 +89,8 @@ namespace UnityEditor.Experimental
         public Color DataEdgeSelectedTint = HexColor("#FFFFFFFF");
 
         public Texture2D DefaultBlockIcon = EditorGUIUtility.Load("icons/default.png") as Texture2D;
-
+        public Texture2D VisibilityIcon = EditorGUIUtility.Load("VisibilityIcon.png") as Texture2D;
+        public Texture2D VisibilityIconDisabled = EditorGUIUtility.Load("VisibilityIconDisabled.png") as Texture2D;
 
         private Dictionary<string, Texture2D> m_icons;
         private Dictionary<VFXContextDesc.Type, Color> m_ContextColors;
@@ -220,6 +225,14 @@ namespace UnityEditor.Experimental
             NodeBlockTitleDisabled.alignment = TextAnchor.MiddleLeft;
             NodeBlockTitleDisabled.normal.textColor = new Color(0.4f, 0.4f, 0.4f);
 
+            NodeBlockTitleEditable= new GUIStyle(EditorStyles.textField);
+            NodeBlockTitleEditable.fontSize = 12;
+            NodeBlockTitleEditable.fontStyle = FontStyle.Bold;
+            NodeBlockTitleEditable.overflow = new RectOffset(0, -32, -6, -6);
+            NodeBlockTitleEditable.padding = new RectOffset(8, 0, 0, 0);
+            NodeBlockTitleEditable.alignment = TextAnchor.MiddleLeft;
+            NodeBlockTitleEditable.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
+
             NodeBlockParameter = new GUIStyle();
             NodeBlockParameter.fontSize = 12;
             NodeBlockParameter.padding = new RectOffset(4, 4, 4, 4);
@@ -316,6 +329,8 @@ namespace UnityEditor.Experimental
 
             DataEdgeOpacity = EditorGUIUtility.Load("DataEdge.psd") as Texture2D;
             DataEdgeOpacitySelected = EditorGUIUtility.Load("DataEdge_Selected.psd") as Texture2D;
+
+            DisabledScopeTileable = EditorGUIUtility.Load("DisabledTile.psd") as Texture2D;
 
             ToolbarPlay = EditorGUIUtility.Load("ToolbarIcons.Play.png") as Texture2D;
             ToolbarRestart = EditorGUIUtility.Load("ToolbarIcons.Restart.png") as Texture2D;

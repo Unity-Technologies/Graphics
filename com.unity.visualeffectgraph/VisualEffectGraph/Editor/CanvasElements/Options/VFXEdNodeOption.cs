@@ -14,8 +14,10 @@ namespace UnityEditor.Experimental
         protected bool m_bEnabled;
 
         public VFXEdNodeOption(bool defaultvalue) {
+
             this.scale = new Vector3(32.0f, 32.0f);
             this.MouseDown += ToggleState;
+            m_bEnabled = defaultvalue;
         }
 
         public void SetEnabled(bool value)

@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental
             translation = Vector3.zero; 
             m_Caps = Capabilities.Normal;
             
-            m_Header = new VFXEdNodeBlockHeader(desc.Name, VFXEditor.styles.GetIcon("Box"), false);
+            m_Header = new VFXEdNodeBlockHeaderSimple(desc.Name, VFXEditor.styles.GetIcon("Box"), false);
             AddChild(m_Header);
 
             if (desc.m_Properties != null && desc.m_Properties.Length > 0)

@@ -90,10 +90,9 @@ namespace UnityEditor.Experimental
 
         public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
         {
+            builder.WriteLine("float2 offsets : TEXCOORD0;");
             if (m_HasFlipBook)
-                builder.WriteLine("float3 offsets : TEXCOORD0; // u,v and index");
-            else
-                builder.WriteLine("float2 offsets : TEXCOORD0;");
+                builder.WriteLine("nointerpolation float flipbookIndex : TEXCOORD1;");
         }
 
         private void WriteRotation(ShaderSourceBuilder builder, ShaderMetaData data)
@@ -187,7 +186,7 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("o.offsets.xy = o.offsets.xy * 0.5 + 0.5;");
                 if (m_HasFlipBook)
                 {
-                    builder.Write("o.offsets.z = ");
+                    builder.Write("o.flipbookIndex = ");
                     builder.WriteAttrib(CommonAttrib.TexIndex, data);
                     builder.WriteLine(";");
                 }
@@ -248,14 +247,14 @@ namespace UnityEditor.Experimental
 
                     if (!INTERPOLATE)
                     {
-                        builder.WriteLine("float2 uv = GetSubUV(floor(i.offsets.z),i.offsets.xy,dim,invDim);");
+                        builder.WriteLine("float2 uv = GetSubUV(i.flipbookIndex,i.offsets.xy,dim,invDim);");
                         builder.Write("color *= ");
                         WriteTex2DFetch(builder, data, m_Values[TextureIndex], "uv", true);
                     }
                     else
                     {
-                        builder.WriteLine("float ratio = frac(i.offsets.z);");
-                        builder.WriteLine("float index = i.offsets.z - ratio;");
+                        builder.WriteLine("float ratio = frac(i.flipbookIndex);");
+                        builder.WriteLine("float index = i.flipbookIndex - ratio;");
                         builder.WriteLine();
 
                         builder.WriteLine("float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);");
@@ -273,8 +272,8 @@ namespace UnityEditor.Experimental
                 }
                 else
                 {
-                    builder.WriteLine("float ratio = frac(i.offsets.z);");
-                    builder.WriteLine("float index = i.offsets.z - ratio;");
+                    builder.WriteLine("float ratio = frac(i.flipbookIndex);");
+                    builder.WriteLine("float index = i.flipbookIndex - ratio;");
                     builder.WriteLine();
 
                     builder.WriteLine("float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);");

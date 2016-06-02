@@ -131,7 +131,7 @@ namespace UnityEditor.Experimental.VFX
 
     public static class ModelSerializer
     {
-        private const int VERSION = 2;
+        private const int VERSION = 3;
 
         // SERIALIZATION
         private class MetaData
@@ -268,6 +268,7 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteStartElement("DataBlock");
             writer.WriteAttributeString("DescId", dataBlock.Desc.Semantics.ID);
             writer.WriteAttributeString("Collapsed", dataBlock.UICollapsed.ToString());
+            writer.WriteAttributeString("ExposedName", dataBlock.ExposedName.ToString());
             Serialize(writer, dataBlock.Slot,data);
             writer.WriteEndElement();
         }
@@ -447,6 +448,8 @@ namespace UnityEditor.Experimental.VFX
 
             var block = new VFXDataBlockModel(desc);
             block.UpdateCollapsed(bool.Parse(xml.Attribute("Collapsed").Value));
+            if (data.Version >= 3)
+                block.ExposedName = xml.Attribute("ExposedName").Value;
 
             DeserializeSlot(xml.Element("Slot"), block.Slot, data,false);
 

@@ -51,7 +51,7 @@ namespace UnityEditor.Experimental
 
             AddManipulator(new Watermark(VFXEditor.styles.Watermark));
             AddManipulator(new VFXFilterPopup());
-            AddManipulator(new EditorKeyboardControl());
+            AddManipulator(new EditorKeyboardControl(this));
 
             
             MouseDown += ManageNodeBlockSelection;
@@ -59,7 +59,6 @@ namespace UnityEditor.Experimental
 
             // Debug
             KeyDown += DumpModel;
-            KeyDown += TogglePhaseShift;
         }
 
         public void FocusElements(bool animate)
@@ -125,18 +124,6 @@ namespace UnityEditor.Experimental
                 SetSelectedNodeBlock(null);
                 return true;
             }
-            return false;
-        }
-
-        private bool TogglePhaseShift(CanvasElement element, Event e, Canvas2D parent)
-        {
-            if (e.character == 'p')
-            {
-                VFXEditor.Graph.systems.PhaseShift = !VFXEditor.Graph.systems.PhaseShift;
-                Repaint();
-                return true;
-            }
-
             return false;
         }
 
