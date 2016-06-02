@@ -10,14 +10,15 @@ namespace UnityEditor.Graphing.Drawing
 {
     public interface ICustomNodeUi
     {
-        int GetNodeUiHeight(int width);
+        float GetNodeUiHeight(float width);
         GUIModificationType Render(Rect area);
+        void SetNode(INode node);
     }
 
     public class DrawableNode : CanvasElement
     {
         private readonly GraphDataSource m_Data;
-
+         
         private readonly Rect m_CustomUiRect;
         public readonly INode m_Node;
         private readonly ICustomNodeUi m_Ui;
@@ -27,7 +28,7 @@ namespace UnityEditor.Graphing.Drawing
             const int width = 200;
             var drawData = node.drawState;
             translation = drawData.position.min;
-            scale = new Vector2(width, width);
+            scale = new Vector2(drawData.width, drawData.width);
 
             m_Node = node;
             m_Ui = ui;

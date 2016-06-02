@@ -49,6 +49,10 @@ namespace UnityEngine.Graphing
             set { m_DrawData = value; }
         }
 
+        public virtual bool hasError { get; set; }
+        public virtual void ValidateNode()
+        {}
+
         public IEnumerable<ISlot> inputSlots
         {
             get { return m_Slots.Where(x => x.isInputSlot); }
@@ -67,6 +71,7 @@ namespace UnityEngine.Graphing
         public SerializableNode(IGraph theOwner)
         {
             m_DrawData.expanded = true;
+            m_DrawData.width = 200;
             owner = theOwner;
             m_Guid = Guid.NewGuid();
         }

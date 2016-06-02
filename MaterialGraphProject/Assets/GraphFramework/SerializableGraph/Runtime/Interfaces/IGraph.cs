@@ -13,6 +13,7 @@ namespace UnityEngine.Graphing
         void RemoveEdge(IEdge e);
         void RemoveElements(IEnumerable<INode> nodes, IEnumerable<IEdge> edges);
         INode GetNodeFromGuid(Guid guid);
+        T GetNodeFromGuid<T>(Guid guid) where T : INode;
         IEnumerable<IEdge> GetEdges(SlotReference s);
         void ValidateGraph();
     }

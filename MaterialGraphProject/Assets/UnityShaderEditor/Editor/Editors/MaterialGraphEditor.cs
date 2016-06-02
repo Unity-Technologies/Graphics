@@ -4,8 +4,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph
 {
-    [CustomEditor(typeof (MaterialGraphAsset), true)]
-    internal class MaterialGraphEditor : Editor
+    internal class MaterialGraphPreviewGenerator
     {
         private PreviewRenderUtility m_PreviewUtility;
         private static readonly Mesh[] s_Meshes = {null, null, null, null, null};
@@ -14,12 +13,7 @@ namespace UnityEditor.MaterialGraph
         private static readonly GUIContent[] s_LightIcons = {null, null};
         private static readonly GUIContent[] s_TimeIcons = {null, null};
 
-        public override bool HasPreviewGUI()
-        {
-            return false;
-        }
-
-        private void Init()
+        public MaterialGraphPreviewGenerator()
         {
             if (m_PreviewUtility == null)
             {
@@ -73,56 +67,37 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public override void OnPreviewGUI(Rect r, GUIStyle background)
+        public Texture DoRenderPreview(Material mat, PreviewMode mode, Rect size)
         {
+            if (mat == null || mat.shader == null)
+                return Texture2D.blackTexture;
 
-            if (!ShaderUtil.hardwareSupportsRectRenderTexture)
+            m_PreviewUtility.BeginPreview(size, GUIStyle.none);
+
+            if (mode == PreviewMode.Preview3D)
             {
-                if (Event.current.type == EventType.Repaint)
-                    EditorGUI.DropShadowLabel(new Rect(r.x, r.y, r.width, 40), "Material preview \nnot available");
-                return;
+                m_PreviewUtility.m_Camera.transform.position = -Vector3.forward * 5;
+                m_PreviewUtility.m_Camera.transform.rotation = Quaternion.identity;
+                EditorUtility.SetCameraAnimateMaterialsTime(m_PreviewUtility.m_Camera, Time.realtimeSinceStartup);
+                var amb = new Color(.2f, .2f, .2f, 0);
+                m_PreviewUtility.m_Light[0].intensity = 1.0f;
+                m_PreviewUtility.m_Light[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
+                m_PreviewUtility.m_Light[1].intensity = 1.0f;
+
+                InternalEditorUtility.SetCustomLighting(m_PreviewUtility.m_Light, amb);
+                m_PreviewUtility.DrawMesh(s_Meshes[0], Vector3.zero, Quaternion.Euler(-20, 0, 0) * Quaternion.Euler(0, 0, 0), mat, 0);
+                var oldFog = RenderSettings.fog;
+                Unsupported.SetRenderSettingsUseFogNoDirty(false);
+                m_PreviewUtility.m_Camera.Render();
+                Unsupported.SetRenderSettingsUseFogNoDirty(oldFog);
+                InternalEditorUtility.RemoveCustomLighting();
             }
-
-            Init();
-
-            if (Event.current.type != EventType.Repaint)
-                return;
-
-            m_PreviewUtility.BeginPreview(r, background);
-            DoRenderPreview();
-            m_PreviewUtility.EndAndDrawPreview(r);
-        }
-
-        private void DoRenderPreview()
-        {
-            var materialGraph = target as MaterialGraphAsset;
-            if (materialGraph == null)
-                return;
-            
-            m_PreviewUtility.m_Camera.transform.position = -Vector3.forward * 5;
-            m_PreviewUtility.m_Camera.transform.rotation = Quaternion.identity;
-            m_PreviewUtility.m_Light[0].intensity = 1.0f;
-            m_PreviewUtility.m_Light[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
-            m_PreviewUtility.m_Light[1].intensity = 1.0f;
-            var amb = new Color(.2f, .2f, .2f, 0);
-
-            InternalEditorUtility.SetCustomLighting(m_PreviewUtility.m_Light, amb);
-
-            Quaternion rot = Quaternion.identity;
-            Mesh mesh = s_Meshes[0];
-
-            // We need to rotate camera, so we can see different reflections from different angles
-            // If we would only rotate object, the reflections would stay the same
-            m_PreviewUtility.m_Camera.transform.position = Quaternion.Inverse(rot) * m_PreviewUtility.m_Camera.transform.position;
-            m_PreviewUtility.m_Camera.transform.LookAt(Vector3.zero);
-            rot = Quaternion.identity;
-            m_PreviewUtility.DrawMesh(mesh, Vector3.zero, rot, materialGraph.GetMaterial(), 0);
-
-            bool oldFog = RenderSettings.fog;
-            Unsupported.SetRenderSettingsUseFogNoDirty(false);
-            m_PreviewUtility.m_Camera.Render();
-            Unsupported.SetRenderSettingsUseFogNoDirty(oldFog);
-            InternalEditorUtility.RemoveCustomLighting();
+            else
+            {
+                EditorUtility.UpdateGlobalShaderProperties(Time.realtimeSinceStartup);
+                Graphics.Blit(null, mat);
+            }
+            return m_PreviewUtility.EndPreview();
         }
     }
 }
