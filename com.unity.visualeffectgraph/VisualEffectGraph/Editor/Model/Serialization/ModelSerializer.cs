@@ -335,6 +335,10 @@ namespace UnityEditor.Experimental.VFX
         public static VFXGraph Deserialize(string xml) 
         {
             VFXGraph graph = new VFXGraph(); // TMP Needs to remove RTData from graph
+
+            if (xml.Length == 0) // To avoid exception with newly created assets
+                return graph;
+
             try
             {
                 var data = new MetaData();
@@ -359,7 +363,7 @@ namespace UnityEditor.Experimental.VFX
             catch(Exception e)
             {
                 Debug.LogError("Exception while deserializing graph: " + e.ToString());
-                graph = null;
+                graph = new VFXGraph();
             }
 
             return graph;

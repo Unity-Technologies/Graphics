@@ -234,19 +234,19 @@ namespace UnityEditor.Experimental
 
         private void SaveAsset()
         {
-            if (m_CurrentAsset == null)
+            if (m_CurrentAsset == null || s_Graph == null)
                 return;
+
+            m_CurrentAsset.XmlGraph = ModelSerializer.Serialize(s_Graph);
+            Debug.Log("Set XML graph for " + m_CurrentAsset.name + " " + m_CurrentAsset.XmlGraph);
 
             EditorUtility.SetDirty(m_CurrentAsset);
             AssetDatabase.SaveAssets();
 
-            if (m_CurrentAsset.Graph != null)
-            {
-                m_CurrentAsset.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // Needs to reload uniform once saved
+            s_Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // Needs to reload uniform once saved
 
-                m_CurrentAsset.Graph.systems.Dirty = false;
-                m_CurrentAsset.Graph.models.Dirty = false;
-            }
+            s_Graph.systems.Dirty = false;
+            s_Graph.models.Dirty = false;
                 
             Debug.Log("Save Asset");
         }
@@ -442,7 +442,7 @@ namespace UnityEditor.Experimental
         }
 
         [SerializeField]
-        private VFXGraphAsset m_CurrentAsset;
+        private VFXAsset m_CurrentAsset;
 
         public void DestroyGraph()
         {
@@ -457,7 +457,7 @@ namespace UnityEditor.Experimental
         }
 
         private bool m_NeedsCanvasReload = false;
-        public void SetCurrentAsset(VFXGraphAsset asset,bool force = false)
+        public void SetCurrentAsset(VFXAsset asset,bool force = false)
         {
             if (m_CurrentAsset != asset || force) 
             {
@@ -471,8 +471,9 @@ namespace UnityEditor.Experimental
                 if (m_CurrentAsset != null)
                 {
                     //Debug.Log("------------------------ CREATE NEW GRAPH: " + asset.ToString()); 
-
-                    s_Graph = m_CurrentAsset.Graph;
+                    string xml = m_CurrentAsset.XmlGraph;
+                    Debug.Log("Get XML graph from " + m_CurrentAsset.name + " " + m_CurrentAsset.XmlGraph);
+                    s_Graph = ModelSerializer.Deserialize(xml);
                     for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
                         s_Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);  
                 }
@@ -497,7 +498,7 @@ namespace UnityEditor.Experimental
             var assets = Selection.assetGUIDs;
             if (assets.Length == 1)
             {
-                var selected = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(AssetDatabase.GUIDToAssetPath(assets[0]));
+                var selected = AssetDatabase.LoadAssetAtPath<VFXAsset>(AssetDatabase.GUIDToAssetPath(assets[0]));
                 if (selected != null)
                     SetCurrentAsset(selected);
             }
@@ -566,7 +567,7 @@ namespace UnityEditor.Experimental
 
             if (m_CurrentAsset != null)
             {
-                if (GUILayout.Button("Save " + m_CurrentAsset.name + (m_CurrentAsset.Graph.systems.Dirty || m_CurrentAsset.Graph.models.Dirty ? "*" : ""), EditorStyles.toolbarButton))
+                if (GUILayout.Button("Save " + m_CurrentAsset.name + (s_Graph.systems.Dirty || s_Graph.models.Dirty ? "*" : ""), EditorStyles.toolbarButton))
                     SaveAsset();
             }
 
