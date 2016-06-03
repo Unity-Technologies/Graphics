@@ -6,5 +6,6 @@ namespace UnityEngine.Graphing
         string displayName { get; set; }
         bool isInputSlot { get; }
         bool isOutputSlot { get; }
+        int priority { get; set; }
     }
 }

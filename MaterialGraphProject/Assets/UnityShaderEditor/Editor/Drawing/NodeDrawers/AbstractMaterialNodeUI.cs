@@ -11,12 +11,8 @@ namespace UnityEditor.MaterialGraph
 {
 
     [CustomNodeUI(typeof(AbstractMaterialNode))]
-    class BaseMaterialNodeUI : ICustomNodeUi
+    public class AbstractMaterialNodeUI : ICustomNodeUi
     {
-
-        private const int kPreviewWidth = 64;
-        private const int kPreviewHeight = 64;
-
         private MaterialGraphPreviewGenerator m_PreviewGenerator;
 
         [NonSerialized]
@@ -26,10 +22,10 @@ namespace UnityEditor.MaterialGraph
         private Material m_PreviewMaterial;
 
         [NonSerialized]
-        private Shader m_PreviewShader;
+        protected Shader m_PreviewShader;
 
-        private AbstractMaterialNode m_Node;
-        private PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
+        protected AbstractMaterialNode m_Node;
+        protected PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
 
         public Material previewMaterial
         {
@@ -44,7 +40,7 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        public MaterialGraphPreviewGenerator previewGenerator
+        private MaterialGraphPreviewGenerator previewGenerator
         {
             get
             {
@@ -73,6 +69,11 @@ namespace UnityEditor.MaterialGraph
                 m_Node = (AbstractMaterialNode)node;
         }
 
+        public virtual float GetNodeWidth()
+        {
+            return 200;
+        }
+
         public virtual GUIModificationType Render(Rect area)
         {
             if (m_Node == null || !m_Node.drawState.expanded)
@@ -84,18 +85,16 @@ namespace UnityEditor.MaterialGraph
                 m_LastShaderVersion = m_Node.version;
             }
 
-            GUILayout.BeginArea(area);
-            GUILayout.BeginHorizontal(GUILayout.MinWidth(m_PreviewWidth + 10), GUILayout.MinWidth(m_PreviewWidth + 10));
-            GUILayout.FlexibleSpace();
-            var rect = GUILayoutUtility.GetRect(m_PreviewWidth, m_PreviewWidth, GUILayout.ExpandWidth(false));
-            var preview = RenderPreview(rect);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
+            var preview = RenderPreview(area);
             GL.sRGBWrite = QualitySettings.activeColorSpace == ColorSpace.Linear;
-            GUI.DrawTexture(rect, preview, ScaleMode.StretchToFill, false);
+            GUI.DrawTexture(area, preview, ScaleMode.StretchToFill, false);
             GL.sRGBWrite = false;
-            GUILayout.EndArea();
             return GUIModificationType.None;
+        }
+
+        protected virtual string GetPreviewShaderString()
+        {
+            return ShaderGenerator.GeneratePreviewShader(m_Node, out m_GeneratedShaderMode);
         }
 
         private bool UpdatePreviewShader()
@@ -103,9 +102,11 @@ namespace UnityEditor.MaterialGraph
             if (m_Node == null)
                 return false;
 
-            var resultShader = ShaderGenerator.GeneratePreviewShader(m_Node, out m_GeneratedShaderMode);
+            var resultShader = GetPreviewShaderString();
+            Debug.Log("RecreateShaderAndMaterial : " + m_Node.GetVariableNameForNode() + "\n" + resultShader);
 
-            Debug.Log("RecreateShaderAndMaterial : " + m_Node.name + "_" + m_Node.guid.ToString().Replace("-", "_") + "\n" + resultShader);
+            if (string.IsNullOrEmpty(resultShader))
+                return false;
 
             // workaround for some internal shader compiler weirdness
             // if we are in error we sometimes to not properly clean 
@@ -130,7 +131,7 @@ namespace UnityEditor.MaterialGraph
             return !ShaderHasError(m_PreviewShader);
         }
 
-        private static bool ShaderHasError(Shader shader)
+        protected static bool ShaderHasError(Shader shader)
         {
             var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
             var result = hasErrorsCall.Invoke(null, new object[] {shader});

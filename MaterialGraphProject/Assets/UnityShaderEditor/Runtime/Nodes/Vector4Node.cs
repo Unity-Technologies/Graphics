@@ -16,9 +16,9 @@ namespace UnityEngine.MaterialGraph
             UpdateSlots();
         }
 
-        private void UpdateSlots()
+        public sealed override void UpdateSlots()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.zero));
         }
 
         public override PropertyType propertyType
@@ -60,12 +60,6 @@ namespace UnityEngine.MaterialGraph
                 m_PropType = PropertyType.Vector4,
                 m_Vector4 = m_Value
             };
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-            UpdateSlots(); 
         }
     }
 }

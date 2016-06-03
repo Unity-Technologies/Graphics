@@ -7,6 +7,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
+    [Title("Pixel Shader Node")]
     public class PixelShaderNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
@@ -20,18 +21,23 @@ namespace UnityEngine.MaterialGraph
 
         private static List<BaseLightFunction> s_LightFunctions;
 
-        public PixelShaderNode(AbstractMaterialGraph owner) 
+        public PixelShaderNode(IGraph owner) 
             : base(owner)
         {
             name = "PixelMaster";
-            GetLightFunction().DoSlotsForConfiguration(this); 
+            UpdateSlots();
+        }
+
+        public sealed override void UpdateSlots()
+        {
+            GetLightFunction().DoSlotsForConfiguration(this);
         }
 
         protected override bool generateDefaultInputs { get { return false; } }
 
-        public override bool canDeleteNode { get { return false; } }
+       // public override bool canDeleteNode { get { return false; } }
 
-        private static List<BaseLightFunction> GetLightFunctions()
+        public static List<BaseLightFunction> GetLightFunctions()
         {
             if (s_LightFunctions == null)
             {
@@ -49,7 +55,7 @@ namespace UnityEngine.MaterialGraph
             return s_LightFunctions;
         }
 
-        private BaseLightFunction GetLightFunction()
+        public BaseLightFunction GetLightFunction()
         {
             var lightFunctions = GetLightFunctions();
             var lightFunction = lightFunctions.FirstOrDefault(x => x.GetType().ToString() == lightFunctionClassName);

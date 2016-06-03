@@ -31,11 +31,5 @@ namespace UnityEngine.MaterialGraph
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
-
-        /*
-        public override float GetNodeUIHeight(float width)
-        {
-            return EditorGUIUtility.singleLineHeight;
-        }*/
     }
 }

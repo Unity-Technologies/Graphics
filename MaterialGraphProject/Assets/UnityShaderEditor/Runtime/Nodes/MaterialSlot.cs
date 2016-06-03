@@ -20,8 +20,8 @@ namespace UnityEngine.MaterialGraph
 
         public MaterialSlot() { }
 
-        public MaterialSlot(string name, string displayName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue) 
-            : base(name, displayName, slotType)
+        public MaterialSlot(string name, string displayName, SlotType slotType, int priority, SlotValueType valueType, Vector4 defaultValue) 
+            : base(name, displayName, slotType, priority)
         {
             m_ValueType = valueType;
             m_DefaultValue = defaultValue;

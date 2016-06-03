@@ -450,7 +450,7 @@ namespace UnityEngine.MaterialGraph
             return template;
         }
 
-        public static string GenerateSurfaceShader(MaterialGraph graph, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTxtures)
+        public static string GenerateSurfaceShader(PixelShaderNode node, MaterialOptions options, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTxtures)
         {
             var templateLocation = GetTemplatePath("shader.template");
 
@@ -471,7 +471,8 @@ namespace UnityEngine.MaterialGraph
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
             var vertexShaderBlock = new ShaderGenerator();
 
-            (graph.currentGraph as PixelGraph).GenerateSurfaceShader(
+            PixelGraph.GenerateSurfaceShader(
+                node,
                 shaderBodyVisitor,
                 shaderInputVisitor,
                 shaderLightFunctionVisitor,
@@ -493,7 +494,6 @@ namespace UnityEngine.MaterialGraph
             var zTestVisitor = new ShaderGenerator();
             var zWriteVisitor = new ShaderGenerator();
 
-            var options = graph.materialOptions;
             options.GetTags(tagsVisitor);
             options.GetBlend(blendingVisitor);
             options.GetCull(cullingVisitor);

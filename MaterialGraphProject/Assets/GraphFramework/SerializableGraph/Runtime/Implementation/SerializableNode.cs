@@ -49,7 +49,7 @@ namespace UnityEngine.Graphing
             set { m_DrawData = value; }
         }
 
-        public virtual bool hasError { get; set; }
+        public virtual bool hasError { get; protected set; }
         public virtual void ValidateNode()
         {}
 
@@ -71,7 +71,6 @@ namespace UnityEngine.Graphing
         public SerializableNode(IGraph theOwner)
         {
             m_DrawData.expanded = true;
-            m_DrawData.width = 200;
             owner = theOwner;
             m_Guid = Guid.NewGuid();
         }
@@ -153,11 +152,15 @@ namespace UnityEngine.Graphing
 
             m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, new object[] {});
             m_SerializableSlots = null; 
+            UpdateSlots();
         }
 
         public virtual IEnumerable<ISlot> GetInputsWithNoConnection() 
         {
             return inputSlots.Where(x => !owner.GetEdges(GetSlotReference(x.name)).Any());
         }
+
+        public virtual void UpdateSlots()
+        {}
     }
 }
