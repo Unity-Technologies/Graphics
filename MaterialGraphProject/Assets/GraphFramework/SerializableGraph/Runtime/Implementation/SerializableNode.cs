@@ -132,11 +132,6 @@ namespace UnityEngine.Graphing
             return slot;
         }
         
-        public virtual float GetNodeUIHeight(float width)
-        {
-            return 0;
-        }
-        
         public virtual void OnBeforeSerialize()
         {
             m_GuidSerialized = m_Guid.ToString();
@@ -152,7 +147,7 @@ namespace UnityEngine.Graphing
 
             m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, new object[] {});
             m_SerializableSlots = null; 
-            UpdateSlots();
+            UpdateNodeAfterDeserialization();
         }
 
         public virtual IEnumerable<ISlot> GetInputsWithNoConnection() 
@@ -160,7 +155,7 @@ namespace UnityEngine.Graphing
             return inputSlots.Where(x => !owner.GetEdges(GetSlotReference(x.name)).Any());
         }
 
-        public virtual void UpdateSlots()
+        public virtual void UpdateNodeAfterDeserialization()
         {}
     }
 }

@@ -42,7 +42,7 @@ namespace UnityEditor.Graphing.Drawing
             Vector3 pos = vector3;
 
             // input slots
-            foreach (var slot in node.inputSlots)
+            foreach (var slot in node.inputSlots.OrderBy(x => x.priority))
             {
                 pos.y += 22;
                 AddChild(new NodeAnchor(pos, typeof(Vector4), node, slot, data, Direction.Input));
@@ -52,7 +52,7 @@ namespace UnityEditor.Graphing.Drawing
             // output port
             pos.x = width;
             pos.y = yStart;
-            foreach (var slot in node.outputSlots)
+            foreach (var slot in node.outputSlots.OrderBy(x => x.priority))
             {
                 var edges = node.owner.GetEdges(node.GetSlotReference(slot.name));
                 // don't show empty output slots in collapsed mode
@@ -112,7 +112,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
             Color selectedColor = new Color(1.0f, 0.7f, 0.0f, 0.7f);
-            EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), selected ? selectedColor : backgroundColor);
+            EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), m_Node.hasError ? Color.red : selected ? selectedColor : backgroundColor);
             GUI.Label(new Rect(0, 0, scale.x, 26f), GUIContent.none, new GUIStyle("preToolbar"));
             GUI.Label(new Rect(10, 2, scale.x - 20.0f, 16.0f), m_Node.name, EditorStyles.toolbarTextField);
             var drawState = m_Node.drawState;

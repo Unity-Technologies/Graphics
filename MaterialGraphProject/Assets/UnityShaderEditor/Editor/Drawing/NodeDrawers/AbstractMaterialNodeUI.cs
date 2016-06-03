@@ -81,8 +81,8 @@ namespace UnityEditor.MaterialGraph
 
             if (m_LastShaderVersion != m_Node.version)
             {
-                UpdatePreviewShader();
-                m_LastShaderVersion = m_Node.version;
+                if (UpdatePreviewShader())
+                    m_LastShaderVersion = m_Node.version;
             }
 
             var preview = RenderPreview(area);
@@ -99,7 +99,7 @@ namespace UnityEditor.MaterialGraph
 
         private bool UpdatePreviewShader()
         {
-            if (m_Node == null)
+            if (m_Node == null || m_Node.hasError)
                 return false;
 
             var resultShader = GetPreviewShaderString();

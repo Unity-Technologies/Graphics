@@ -25,10 +25,10 @@ namespace UnityEngine.MaterialGraph
             : base(owner)
         {
             name = "PixelMaster";
-            UpdateSlots();
+            UpdateNodeAfterDeserialization();
         }
 
-        public sealed override void UpdateSlots()
+        public sealed override void UpdateNodeAfterDeserialization()
         {
             GetLightFunction().DoSlotsForConfiguration(this);
         }

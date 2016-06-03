@@ -22,6 +22,6 @@ namespace UnityEngine.Graphing
         DrawingData drawState { get; set; }
         bool hasError { get; }
         void ValidateNode();
-        void UpdateSlots();
+        void UpdateNodeAfterDeserialization();
     }
 }

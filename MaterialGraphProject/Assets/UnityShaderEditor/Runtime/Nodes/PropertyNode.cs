@@ -15,7 +15,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         public bool m_Exposed;
 
-        public PropertyNode(IGraph owner) : base(owner)
+        protected PropertyNode(IGraph owner) : base(owner)
         {}
 
         public bool exposed
