@@ -1148,6 +1148,8 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("ZWrite On");
             else
                 builder.WriteLine("ZWrite Off");
+            builder.WriteLine("Cull Off");
+            builder.WriteLine();
             builder.WriteLine("CGPROGRAM");
             builder.WriteLine("#pragma target 5.0");
             builder.WriteLine();

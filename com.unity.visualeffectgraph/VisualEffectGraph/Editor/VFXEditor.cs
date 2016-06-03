@@ -161,9 +161,11 @@ namespace UnityEditor.Experimental
 
         private static VFXComponent m_Component;
         private static GameObject m_GameObject;
+        private static VFXAsset s_Asset;
 
         public static GameObject gameObject { get { return m_GameObject; } }
         public static VFXComponent component { get { return m_Component; } }
+        public static VFXAsset asset { get { return s_Asset; } }
 
         private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
         {
@@ -219,6 +221,8 @@ namespace UnityEditor.Experimental
             }
 
             Selection.selectionChanged += OnSelectionChanged;
+
+            s_Asset = m_CurrentAsset;
         }
 
         void OnDisable()
@@ -468,6 +472,7 @@ namespace UnityEditor.Experimental
                 }
 
                 m_CurrentAsset = asset;
+                s_Asset = m_CurrentAsset;
                 if (m_CurrentAsset != null)
                 {
                     //Debug.Log("------------------------ CREATE NEW GRAPH: " + asset.ToString()); 

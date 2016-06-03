@@ -289,6 +289,10 @@ namespace UnityEditor.Experimental
         {
             Dispose();
             //if (force || rtData != null)
+
+            if (VFXEditor.asset != null)
+                VFXEditor.asset.RemoveSystem(m_ID);
+
             VFXEditor.component.RemoveSystem(m_ID);
             DeleteAssets();   
         }
@@ -366,6 +370,21 @@ namespace UnityEditor.Experimental
         {
             if (rtData == null)
                 return false;
+
+            if (VFXEditor.asset != null)
+            {
+                VFXEditor.asset.SetSystem(
+                    m_ID,
+                    MaxNb,
+                    rtData.SimulationShader,
+                    rtData.m_Material,
+                    rtData.buffersDesc,
+                    rtData.outputType,
+                    SpawnRate,
+                    OrderPriority,
+                    rtData.hasKill
+                );
+            }
 
             VFXEditor.component.SetSystem(
                 m_ID,
