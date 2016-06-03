@@ -2,32 +2,32 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Vector 4 Node")]
-    public class Vector4Node : PropertyNode, IGeneratesBodyCode
+    [Title("Input/Vector 1 Node")]
+    public class Vector1Node : PropertyNode, IGeneratesBodyCode
     {
         [SerializeField]
-        private Vector4 m_Value;
-       
+        private float m_Value;
+
         private const string kOutputSlotName = "Value";
-        
-        public Vector4Node(IGraph owner) : base(owner)
+
+        public Vector1Node(IGraph owner) : base(owner)
         {
-            name = "V4Node";
+            name = "V1Node";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] {kOutputSlotName});
+            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector1, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotName });
         }
-
+        
         public override PropertyType propertyType
         {
-            get { return PropertyType.Vector4; }
+            get { return PropertyType.Float; }
         }
 
-        public Vector4 value
+        public float value
         {
             get { return m_Value; }
             set { m_Value = value; }
@@ -36,30 +36,30 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
             if (exposed)
-                visitor.AddShaderProperty(new VectorPropertyChunk(propertyName, description, m_Value, false));
+                visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, m_Value, false));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType valueType)
         {
             if (exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk("float4 " + propertyName + ";", true);
+               visitor.AddShaderChunk("float " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (exposed || generationMode.IsPreview())
                 return;
-
-            visitor.AddShaderChunk(precision + "4 " +  propertyName + " = " + precision + "4 (" + m_Value.x + ", " + m_Value.y + ", " + m_Value.z + ", " + m_Value.w + ");", true);
+            
+            visitor.AddShaderChunk(precision + " " + propertyName + " = " + m_Value + ";", true);
         }
-
+        
         public override PreviewProperty GetPreviewProperty()
         {
             return new PreviewProperty
             {
                 m_Name = propertyName,
-                m_PropType = PropertyType.Vector4,
-                m_Vector4 = m_Value
+                m_PropType = PropertyType.Float,
+                m_Float = m_Value
             };
         }
     }

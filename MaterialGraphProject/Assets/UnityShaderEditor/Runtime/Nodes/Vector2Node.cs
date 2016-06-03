@@ -2,32 +2,32 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    [Title("Input/Vector 4 Node")]
-    public class Vector4Node : PropertyNode, IGeneratesBodyCode
+    [Title("Input/Vector 2 Node")]
+    public class Vector2Node : PropertyNode, IGeneratesBodyCode
     {
-        [SerializeField]
-        private Vector4 m_Value;
-       
         private const string kOutputSlotName = "Value";
-        
-        public Vector4Node(IGraph owner) : base(owner)
+
+        [SerializeField]
+        private Vector2 m_Value;
+
+        public Vector2Node(IGraph owner) : base(owner)
         {
-            name = "V4Node";
+            name = "V2Node";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] {kOutputSlotName});
+            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector2, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotName });
         }
 
         public override PropertyType propertyType
         {
-            get { return PropertyType.Vector4; }
+            get { return PropertyType.Vector2; }
         }
 
-        public Vector4 value
+        public Vector2 value
         {
             get { return m_Value; }
             set { m_Value = value; }
@@ -42,7 +42,7 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType valueType)
         {
             if (exposed || generationMode.IsPreview())
-                visitor.AddShaderChunk("float4 " + propertyName + ";", true);
+                visitor.AddShaderChunk("float2 " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
@@ -50,7 +50,7 @@ namespace UnityEngine.MaterialGraph
             if (exposed || generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "4 " +  propertyName + " = " + precision + "4 (" + m_Value.x + ", " + m_Value.y + ", " + m_Value.z + ", " + m_Value.w + ");", true);
+            visitor.AddShaderChunk(precision + "2 " +  propertyName + " = " + precision + "2 (" + m_Value.x + ", " + m_Value.y + ");", true);
         }
 
         public override PreviewProperty GetPreviewProperty()
@@ -58,7 +58,7 @@ namespace UnityEngine.MaterialGraph
             return new PreviewProperty
             {
                 m_Name = propertyName,
-                m_PropType = PropertyType.Vector4,
+                m_PropType = PropertyType.Vector2,
                 m_Vector4 = m_Value
             };
         }

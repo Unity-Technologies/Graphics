@@ -40,7 +40,7 @@ namespace UnityEditor.MaterialGraph
             var toReturn = GUIModificationType.None;
             if (EditorGUI.EndChangeCheck())
             {
-               node.UpdateSlots();
+               node.UpdateNodeAfterDeserialization();
                toReturn = GUIModificationType.ModelChanged;
             }
             area.y += EditorGUIUtility.singleLineHeight;
