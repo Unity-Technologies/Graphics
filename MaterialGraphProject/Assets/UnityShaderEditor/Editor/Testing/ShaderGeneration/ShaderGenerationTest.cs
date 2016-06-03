@@ -37,7 +37,8 @@ namespace UnityEditor.MaterialGraph.Tests
 
                 // Generate the shader
                 List<PropertyGenerator.TextureInfo> buff;
-                string shader = ShaderGenerator.GenerateSurfaceShader(graph.graph, graph.name, false, out buff);
+                //TODO: FIX
+                string shader = null;//ShaderGenerator.GenerateSurfaceShader(graph.graph, graph.name, false, out buff);
 
                 // find the 'reference' shader
                 var dumpFileLocation = string.Format("{0}.{1}", file, "dump");

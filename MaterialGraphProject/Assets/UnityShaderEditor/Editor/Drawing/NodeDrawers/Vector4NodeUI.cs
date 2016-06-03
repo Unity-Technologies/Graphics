@@ -37,5 +37,10 @@ namespace UnityEditor.MaterialGraph
             if (node is Vector4Node)
                 m_Node = (Vector4Node) node;
         }
+
+        public float GetNodeWidth()
+        {
+            return 200;
+        }
     }
 }

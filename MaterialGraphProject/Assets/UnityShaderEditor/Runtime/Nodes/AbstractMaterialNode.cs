@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -35,7 +34,7 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
-        public bool hasError
+        public override bool hasError
         {
             get { return m_HasError; }
             protected set { m_HasError = value; }

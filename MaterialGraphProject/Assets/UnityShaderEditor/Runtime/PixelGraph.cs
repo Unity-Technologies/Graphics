@@ -50,7 +50,8 @@ namespace UnityEngine.MaterialGraph
             base.AddNode(node);
         }
         
-        public void GenerateSurfaceShader(
+        public static void GenerateSurfaceShader(
+            PixelShaderNode pixelNode,
             ShaderGenerator shaderBody,
             ShaderGenerator inputStruct,
             ShaderGenerator lightFunction,
@@ -61,12 +62,16 @@ namespace UnityEngine.MaterialGraph
             ShaderGenerator vertexShader,
             bool isPreview)
         {
-            pixelMasterNode.GenerateLightFunction(lightFunction);
-            pixelMasterNode.GenerateSurfaceOutput(surfaceOutput);
+            pixelNode.GenerateLightFunction(lightFunction);
+            pixelNode.GenerateSurfaceOutput(surfaceOutput);
 
             var genMode = isPreview ? GenerationMode.Preview3D : GenerationMode.SurfaceShader;
-            
-            foreach (var node in activeNodes)
+
+            var activeNodes = new List<INode>();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, pixelNode);
+            var activeMaterialNodes = activeNodes.OfType<AbstractMaterialNode>();
+
+            foreach (var node in activeMaterialNodes)
             {
                 if (node is IGeneratesFunction) (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, genMode);
                 if (node is IGeneratesVertexToFragmentBlock) (node as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(inputStruct, genMode);
@@ -79,7 +84,7 @@ namespace UnityEngine.MaterialGraph
                 }
             }
 
-            pixelMasterNode.GenerateNodeCode(shaderBody, genMode);
+            pixelNode.GenerateNodeCode(shaderBody, genMode);
         }
         /*
         public Material GetMaterial()

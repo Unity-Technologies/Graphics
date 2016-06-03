@@ -15,7 +15,7 @@ namespace UnityEngine.MaterialGraph
             UpdateSlots();
         }
 
-        private void UpdateSlots()
+        public sealed override void UpdateSlots()
         {
             AddSlot(GetInputSlot1());
             AddSlot(GetInputSlot2());
@@ -30,17 +30,17 @@ namespace UnityEngine.MaterialGraph
 
         protected MaterialSlot GetInputSlot1()
         {
-            return new MaterialSlot(GetInputSlot1Name(), GetInputSlot1Name(), SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(GetInputSlot1Name(), GetInputSlot1Name(), SlotType.Input, 0, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected MaterialSlot GetInputSlot2()
         {
-            return new MaterialSlot(GetInputSlot2Name(), GetInputSlot2Name(), SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(GetInputSlot2Name(), GetInputSlot2Name(), SlotType.Input, 1, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(GetOutputSlotName(), GetOutputSlotName(), SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(GetOutputSlotName(), GetOutputSlotName(), SlotType.Output, 2, SlotValueType.Dynamic, Vector4.zero);
         }
         
         protected virtual string GetInputSlot1Name()
@@ -102,12 +102,6 @@ namespace UnityEngine.MaterialGraph
         public string input2Dimension
         {
             get { return ConvertConcreteSlotValueTypeToString(FindMaterialInputSlot(GetInputSlot2Name()).concreteValueType); }
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-            UpdateSlots();
         }
     }
 }

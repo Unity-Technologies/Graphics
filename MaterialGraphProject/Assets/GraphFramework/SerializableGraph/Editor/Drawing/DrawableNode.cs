@@ -13,6 +13,7 @@ namespace UnityEditor.Graphing.Drawing
         float GetNodeUiHeight(float width);
         GUIModificationType Render(Rect area);
         void SetNode(INode node);
+        float GetNodeWidth();
     }
 
     public class DrawableNode : CanvasElement
@@ -23,12 +24,14 @@ namespace UnityEditor.Graphing.Drawing
         public readonly INode m_Node;
         private readonly ICustomNodeUi m_Ui;
 
+        private const int kDefaultWidth = 200;
+
         public DrawableNode(INode node, ICustomNodeUi ui, GraphDataSource data)
         {
-            const int width = 200;
             var drawData = node.drawState;
             translation = drawData.position.min;
-            scale = new Vector2(drawData.width, drawData.width);
+            var width = ui != null ? ui.GetNodeWidth() : kDefaultWidth;
+            scale = new Vector2(width, width);
 
             m_Node = node;
             m_Ui = ui;
@@ -133,22 +136,12 @@ namespace UnityEditor.Graphing.Drawing
                 }
                 else if (modificationType == GUIModificationType.ModelChanged)
                 {
+                    ParentCanvas().Invalidate();
                     ParentCanvas().ReloadData();
                     ParentCanvas().Repaint();
                     return;
                 }
             }
-
-            /*  if (m_Node.hasPreview
-                && m_Node.drawMode != DrawMode.Collapsed
-                && m_PreviewArea.width > 0
-                && m_PreviewArea.height > 0)
-            {
-                GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-                GUI.DrawTexture(m_PreviewArea, m_Node.RenderPreview(new Rect(0, 0, m_PreviewArea.width, m_PreviewArea.height)), ScaleMode.StretchToFill, false);
-                GL.sRGBWrite = false;
-            }*/
-
             base.Render(parentRect, canvas);
         }
         

@@ -10,10 +10,7 @@ namespace UnityEngine.Graphing
         
         [SerializeField]
         private Rect m_Position;
-
-        [SerializeField]
-        private int m_Width;
-
+        
         public bool expanded
         {
             get { return m_Expanded; }
@@ -24,12 +21,6 @@ namespace UnityEngine.Graphing
         {
             get { return m_Position; }
             set { m_Position = value; }
-        }
-
-        public int width
-        {
-            get { return m_Width; }
-            set { m_Width = value; }
         }
     }
 }
