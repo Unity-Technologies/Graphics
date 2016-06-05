@@ -152,8 +152,8 @@ namespace UnityEditor.Experimental
 
         public void Dispose()
         {
-            if (rtData != null)
-                UnityEngine.Object.DestroyImmediate(rtData.m_Material);
+            //if (rtData != null)
+            //    UnityEngine.Object.DestroyImmediate(rtData.m_Material);
 
             m_GeneratedTextureData.Dispose();
         }
@@ -165,9 +165,11 @@ namespace UnityEditor.Experimental
 
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
             string outputShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
+            string materialPath = "Assets/VFXEditor/Generated/" + shaderName + ".mat";
 
             AssetDatabase.DeleteAsset(simulationShaderPath);
             AssetDatabase.DeleteAsset(outputShaderPath);
+            AssetDatabase.DeleteAsset(materialPath);
 
             VFXEditor.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
         }
@@ -275,8 +277,8 @@ namespace UnityEditor.Experimental
         {
             if (m_Dirty)
             {
-                if (rtData != null)
-                    UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
+                //if (rtData != null)
+                //    UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
                 rtData = VFXModelCompiler.CompileSystem(this);
                 m_Dirty = false;
                 return true;

@@ -606,6 +606,13 @@ namespace UnityEditor.Experimental
             string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
 
             string shaderName = "VFX_";
+            if (VFXEditor.asset != null)
+            {
+                shaderName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset));
+                shaderName += '_';
+            }
+
+
             shaderName += system.Id;
 
             VFXEditor.Log("\n**** SHADER CODE ****");
@@ -621,6 +628,7 @@ namespace UnityEditor.Experimental
 
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
             string outputShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
+            string materialPath = "Assets/VFXEditor/Generated/" + shaderName + ".mat";
 
             AssetDatabase.ImportAsset(simulationShaderPath);
             AssetDatabase.ImportAsset(outputShaderPath);
@@ -633,6 +641,9 @@ namespace UnityEditor.Experimental
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader);
 
             rtData.m_Material = new Material(outputShader);
+            AssetDatabase.CreateAsset(rtData.m_Material, materialPath);
+            AssetDatabase.ImportAsset(materialPath);
+
             rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
             rtData.hasKill = shaderMetaData.hasKill;
 
