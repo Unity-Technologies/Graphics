@@ -3,6 +3,7 @@ using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEditor.Experimental.VFX;
 
@@ -96,6 +97,12 @@ namespace UnityEditor.Experimental
                 }
             }
 
+            // Update assets properties and expressions for C++ evaluation
+            if (HasRecompiled)
+            {
+                CollectExpressions();
+            }
+
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
                 m_ReloadUniforms = false;
@@ -116,6 +123,102 @@ namespace UnityEditor.Experimental
                 VFXEditor.component.Reinit();
 
             Profiler.EndSample();
+        }
+
+        /*private struct RTExpression
+        {
+            VFXExpression expr;
+            int[] data = new int[4];
+        }*/
+
+        private void CollectExpressions()
+        {
+            Dictionary<VFXExpression,int> expressions = new Dictionary<VFXExpression,int>();
+
+            for (int i = 0; i < GetNbChildren(); ++i)
+            {
+                VFXSystemModel system = GetChild(i);
+                VFXSystemRuntimeData rtData = system.RtData;
+                foreach (var expr in rtData.m_RawExpressions)
+                    AddExpressionRecursive(expressions, expr, 0);
+            }
+
+            Debug.Log("NB EXPRESSIONS: " + expressions.Count);
+            foreach (var expr in expressions)
+            {
+                Debug.Log(expr.Key.ToString()+" | "+expr.Value);
+            }
+
+            // Sort expression per depth so that we're sure dependencies will be evaluated after dependents
+            var sortedList = expressions.ToList();
+            sortedList.Sort((kvpA, kvpB) =>
+            {
+                return kvpB.Value.CompareTo(kvpA.Value);
+            });
+            var expressionList = sortedList.Select(kvp => kvp.Key).ToList();
+
+            Debug.Log("SORTED EXPRESSIONS: " + expressionList.Count);
+            // Finally we dont need the depth anymore, so use that int to store the index in the array instead
+            for (int i = 0; i < expressionList.Count; ++i )
+            {
+                expressions[expressionList[i]] = i;
+                Debug.Log(expressionList[i].ToString());
+            }
+
+            VFXAsset asset = VFXEditor.asset;
+            if (asset != null)
+            {
+                asset.ClearPropertyData();
+                foreach (var expr in expressionList)
+                {
+                    if (expr.IsValue(false)) // check non reduced value
+                    {
+                        VFXValue value = (VFXValue)expr;
+                        switch (value.ValueType)
+                        {
+                            case VFXValueType.kFloat:
+                                asset.AddFloat(value.Get<float>());
+                                break;
+                            case VFXValueType.kFloat2:
+                                asset.AddVector2(value.Get<Vector2>());
+                                break;
+                            case VFXValueType.kFloat3:
+                                asset.AddVector3(value.Get<Vector3>());
+                                break;
+                            case VFXValueType.kFloat4:
+                                asset.AddVector4(value.Get<Vector4>());
+                                break;
+                            default:
+                                asset.AddExpression(VFXExpressionOp.kVFXValueOp, -1); // tmp
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // Needs to fill the dependencies
+                        VFXExpression[] parents = expr.GetParents();
+                        int nbParents = parents.Length;
+                        int[] parentIds = new int[4];
+                        for (int i = 0; i < nbParents; ++i)
+                            parentIds[i] = expressions[parents[i]];
+                        asset.AddExpression(expr.Operation, parentIds[0], parentIds[1], parentIds[2], parentIds[3]);
+                    }
+                }
+            }
+        }
+
+        private void AddExpressionRecursive(Dictionary<VFXExpression, int> expressions, VFXExpression expr, int depth)
+        {
+            int exprDepth;
+            if (!expressions.TryGetValue(expr, out exprDepth))
+                exprDepth = -1;
+            exprDepth = Math.Max(exprDepth, depth);
+
+            expressions[expr] = exprDepth;
+            var parents = expr.GetParents();
+            if (parents != null)
+                foreach (var parent in parents)
+                    AddExpressionRecursive(expressions, parent, exprDepth + 1);
         }
 
         public bool PhaseShift

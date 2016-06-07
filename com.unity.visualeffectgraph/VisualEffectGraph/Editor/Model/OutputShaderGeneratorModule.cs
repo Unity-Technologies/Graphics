@@ -66,7 +66,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void UpdateUniforms(HashSet<VFXValue> uniforms)
+        public override void UpdateUniforms(HashSet<VFXExpression> uniforms)
         {
             if (m_HasTexture)
             {
@@ -78,6 +78,23 @@ namespace UnityEditor.Experimental
                     {
                         uniforms.Add(m_Values[MorphTextureIndex]);
                         uniforms.Add(m_Values[MorphIntensityIndex]);
+                    }
+                }
+            }
+        }
+
+        public override void UpdateExpressions(HashSet<VFXExpression> expressions)
+        {
+            if (m_HasTexture)
+            {
+                expressions.Add(m_Values[TextureIndex]);
+                if (m_HasFlipBook)
+                {
+                    expressions.Add(m_Values[FlipbookDimIndex]);
+                    if (m_HasMotionVectors)
+                    {
+                        expressions.Add(m_Values[MorphTextureIndex]);
+                        expressions.Add(m_Values[MorphIntensityIndex]);
                     }
                 }
             }

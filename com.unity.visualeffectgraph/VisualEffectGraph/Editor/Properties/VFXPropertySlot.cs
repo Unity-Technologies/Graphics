@@ -346,9 +346,20 @@ namespace UnityEngine.Experimental.VFX
             VFXExpression refValue = refSlot.Value;
             
             if (refValue != null) // if not null it means value has a concrete type (not kNone)
-                values.Add(new VFXNamedValue(AggregateName(fullName,Name), refValue.Reduce())); // TODO Reduce must not be performed here
+                values.Add(new VFXNamedValue(AggregateName(fullName,Name), refValue/*.Reduce()*/)); // TODO Reduce must not be performed here
             else foreach (var child in refSlot.m_Children) // Continue only until we found a value
                     child.CollectNamedValues(values, AggregateName(fullName, Name));
+        }
+
+        public void CollectExpressions(HashSet<VFXExpression> expressions)
+        {
+            VFXPropertySlot refSlot = CurrentValueRef;
+            VFXExpression refValue = refSlot.Value;
+
+            if (refValue != null)
+                expressions.Add(refValue);
+            else foreach (var child in refSlot.m_Children) // Continue only until we found a value
+                child.CollectExpressions(expressions); 
         }
 
         private string AggregateName(string parent,string child)

@@ -1,5 +1,6 @@
-using UnityEngine;
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace UnityEngine.Experimental.VFX
 {
@@ -25,6 +26,7 @@ namespace UnityEngine.Experimental.VFX
         public bool Set<T>(T value) { return ((VFXValue<T>)this).SetValue(value); }
 
         public virtual VFXValueType ValueType { get { return VFXValueType.kNone; } }
+        public abstract VFXExpressionOp Operation { get; }
 
         public virtual bool IsValue(bool reduced = true)    { return reduced ? Reduce().IsValue(false) : false; }
         public virtual bool IsConst()                       { return false; } // Allow constant propagation (TODO)
@@ -33,6 +35,8 @@ namespace UnityEngine.Experimental.VFX
         public abstract VFXExpression Reduce();
         // Invalidate the reduction to impose a recomputation
         public abstract void Invalidate();
+        // Returns dependencies
+        public virtual VFXExpression[] GetParents() { return null; }
     }
 
     public abstract class VFXValue : VFXExpression
@@ -119,6 +123,8 @@ namespace UnityEngine.Experimental.VFX
             v.Set(value);
             return v;
         }
+
+        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXValueOp; } }
 
         public override bool IsValue(bool reduced) { return true; }
 

@@ -99,7 +99,7 @@ namespace UnityEditor.Experimental
             WriteLine();
         }
 
-        public void WriteCBuffer(string cbufferName, HashSet<VFXValue> uniforms, Dictionary<VFXValue, string> uniformsToName)
+        public void WriteCBuffer(string cbufferName, HashSet<VFXExpression> uniforms, Dictionary<VFXExpression, string> uniformsToName)
         {
             if (uniforms.Count > 0)
             {
@@ -121,7 +121,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void WriteSamplers(HashSet<VFXValue> samplers, Dictionary<VFXValue, string> samplersToName)
+        public void WriteSamplers(HashSet<VFXExpression> samplers, Dictionary<VFXExpression, string> samplersToName)
         {
             foreach (var sampler in samplers)
             {
@@ -267,7 +267,7 @@ namespace UnityEditor.Experimental
             HashSet<string> functions,
             ShaderMetaData data)
         {
-            Dictionary<VFXValue, string> paramToName = data.paramToName;
+            Dictionary<VFXExpression, string> paramToName = data.paramToName;
             Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer = data.attribToBuffer;
 
             Write(block.Desc.FunctionName);
@@ -294,23 +294,23 @@ namespace UnityEditor.Experimental
                 namedValues.Clear();
                 slot.CollectNamedValues(namedValues);
                 foreach (var arg in namedValues)
-                    if (arg.m_Value.IsValue(false)) // false as already reduced
+                    if (arg.m_Value.IsValue())
                     {
                         Write(separator);
                         separator = ',';
-                        Write(paramToName[(VFXValue)arg.m_Value]);
+                        Write(paramToName[arg.m_Value]);
                     }
 
                 // Write extra parameters
                 foreach (var arg in namedValues)
-                    if (arg.m_Value.IsValue(false) && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
+                    if (arg.m_Value.IsValue() && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
                     {
                         VFXExpression extraValue = data.extraUniforms[(VFXValue)arg.m_Value];
                         if (extraValue.IsValue())
                         {
                             Write(separator);
                             separator = ',';
-                            Write(paramToName[(VFXValue)extraValue.Reduce()]);
+                            Write(paramToName[arg.m_Value/*.Reduce()*/]);
                         }
                     }
             }

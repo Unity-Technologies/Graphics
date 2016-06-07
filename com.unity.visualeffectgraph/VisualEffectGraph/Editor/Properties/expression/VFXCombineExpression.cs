@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace UnityEngine.Experimental.VFX
 {
     class VFXExpressionCombineFloat2 : VFXExpression
@@ -10,6 +12,7 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public override VFXValueType ValueType { get { return VFXValueType.kFloat2; } }
+        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXCombine2fOp; } }
 
         // Reduce the expression and potentially cache the result before returning it
         public override VFXExpression Reduce()
@@ -33,6 +36,11 @@ namespace UnityEngine.Experimental.VFX
             m_CacheValid = false;
         }
 
+        public override VFXExpression[] GetParents()
+        {
+            return new VFXExpression[] { m_X, m_Y };
+        }
+
         private VFXExpression m_X;
         private VFXExpression m_Y;
 
@@ -51,6 +59,7 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } }
+        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXCombine3fOp; } }
 
         // Reduce the expression and potentially cache the result before returning it
         public override VFXExpression Reduce()
@@ -74,6 +83,11 @@ namespace UnityEngine.Experimental.VFX
             m_CacheValid = false;
         }
 
+        public override VFXExpression[] GetParents()
+        {
+            return new VFXExpression[] { m_X, m_Y, m_Z };
+        }
+
         private VFXExpression m_X;
         private VFXExpression m_Y;
         private VFXExpression m_Z;
@@ -94,6 +108,7 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public override VFXValueType ValueType { get { return VFXValueType.kFloat4; } }
+        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXCombine4fOp; } }
 
         // Reduce the expression and potentially cache the result before returning it
         public override VFXExpression Reduce()
@@ -117,6 +132,11 @@ namespace UnityEngine.Experimental.VFX
             m_CacheValid = false;
         }
 
+        public override VFXExpression[] GetParents()
+        {
+            return new VFXExpression[] { m_X, m_Y, m_Z, m_W };
+        }
+
         private VFXExpression m_X;
         private VFXExpression m_Y;
         private VFXExpression m_Z;
@@ -137,6 +157,9 @@ namespace UnityEngine.Experimental.VFX
 
             m_Cached = new VFXValueTransform();
         }
+
+        public override VFXValueType ValueType { get { return VFXValueType.kTransform; } }
+        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXTRSToMatrixOp; } }
 
         // Reduce the expression and potentially cache the result before returning it
         public override VFXExpression Reduce()
@@ -164,6 +187,11 @@ namespace UnityEngine.Experimental.VFX
             m_CacheValid = false;
         }
 
+        public override VFXExpression[] GetParents()
+        {
+            return new VFXExpression[] { m_Position, m_Rotation, m_Scale };
+        }
+
         private VFXExpression m_Position;
         private VFXExpression m_Rotation;
         private VFXExpression m_Scale;
@@ -179,6 +207,9 @@ namespace UnityEngine.Experimental.VFX
             m_Trs = trs;
             m_Cached = new VFXValueTransform();
         }
+
+        public override VFXValueType ValueType { get { return VFXValueType.kTransform; } }
+        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXInverseTRSOp; } }
 
         // Reduce the expression and potentially cache the result before returning it
         public override VFXExpression Reduce()
@@ -201,6 +232,11 @@ namespace UnityEngine.Experimental.VFX
         public override void Invalidate()
         {
             m_CacheValid = false;
+        }
+
+        public override VFXExpression[] GetParents()
+        {
+            return new VFXExpression[] { m_Trs };
         }
 
         private VFXExpression m_Trs;
