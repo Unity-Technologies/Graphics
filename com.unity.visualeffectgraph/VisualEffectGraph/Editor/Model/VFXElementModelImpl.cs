@@ -188,6 +188,12 @@ namespace UnityEditor.Experimental
                             case VFXValueType.kFloat4:
                                 asset.AddVector4(value.Get<Vector4>());
                                 break;
+                            case VFXValueType.kTexture2D:
+                                asset.AddTexture2D(value.Get<Texture2D>());
+                                break;
+                            case VFXValueType.kTexture3D:
+                                asset.AddTexture3D(value.Get<Texture3D>());
+                                break;
                             default:
                                 asset.AddExpression(VFXExpressionOp.kVFXValueOp, -1); // tmp
                                 break;
@@ -489,7 +495,10 @@ namespace UnityEditor.Experimental
                     OrderPriority,
                     rtData.hasKill
                 );
-            }
+
+                // TODO Make that work
+                //VFXEditor.component.vfxAsset = VFXEditor.asset;
+            }  
 
             VFXEditor.component.SetSystem(
                 m_ID,
