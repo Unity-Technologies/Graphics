@@ -77,9 +77,11 @@ namespace UnityEditor.Experimental
                     GetChild(i).UpdateComponentSystem();
 
             bool HasRecompiled = false;
+          //  bool NeedsExpressionsUpdate = false;
             if (m_NeedsCheck)
             {
                 m_NeedsCheck = false;
+            //    NeedsExpressionsUpdate = true;
 
                 VFXEditor.Log("\n**** VFXAsset is dirty ****");
                 for (int i = 0; i < GetNbChildren(); ++i)
@@ -88,20 +90,22 @@ namespace UnityEditor.Experimental
                     if (!GetChild(i).RecompileIfNeeded())
                         VFXEditor.Log("No need to recompile");
                     else
-                    {
+                    {                     
                         if (GetChild(i).UpdateComponentSystem())
                             HasRecompiled = true;
                         else
                             GetChild(i).RemoveSystem();
                     }
                 }
+
+                CollectExpressions();
             }
 
             // Update assets properties and expressions for C++ evaluation
-            if (HasRecompiled)
+           /* if (NeedsExpressionsUpdate)
             {
                 CollectExpressions();
-            }
+            }*/
 
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
@@ -194,8 +198,17 @@ namespace UnityEditor.Experimental
                             case VFXValueType.kTexture3D:
                                 asset.AddTexture3D(value.Get<Texture3D>());
                                 break;
+                            case VFXValueType.kTransform:
+                                asset.AddMatrix(value.Get<Matrix4x4>());
+                                break;
+                            case VFXValueType.kCurve:
+                                // TODO
+                                break;
+                            case VFXValueType.kColorGradient:
+                                // TODO
+                                break;
                             default:
-                                asset.AddExpression(VFXExpressionOp.kVFXValueOp, -1); // tmp
+                                throw new Exception("Invalid value");
                                 break;
                         }
                     }
@@ -497,10 +510,10 @@ namespace UnityEditor.Experimental
                 );
 
                 // TODO Make that work
-                //VFXEditor.component.vfxAsset = VFXEditor.asset;
+                VFXEditor.component.vfxAsset = VFXEditor.asset;
             }  
 
-            VFXEditor.component.SetSystem(
+           /* VFXEditor.component.SetSystem(
                 m_ID,
                 MaxNb,
                 rtData.SimulationShader,
@@ -509,7 +522,7 @@ namespace UnityEditor.Experimental
                 rtData.outputType,
                 SpawnRate,
                 OrderPriority,
-                rtData.hasKill);
+                rtData.hasKill);*/
 
             m_ForceComponentUpdate = false;
             return true;
