@@ -15,9 +15,10 @@ namespace UnityEngine.MaterialGraph
         public TimeNode(IGraph theOwner) : base(theOwner)
         {
             name = "Time";
+            UpdateNodeAfterDeserialization();
         }
 
-        public override void UpdateNodeAfterDeserialization()
+        public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.zero));
             AddSlot(new MaterialSlot(kOutputSlotNameX, kOutputSlotNameX, SlotType.Output, 1, SlotValueType.Vector1, Vector4.zero));

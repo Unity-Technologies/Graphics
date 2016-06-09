@@ -8,7 +8,7 @@ namespace UnityEditor.MaterialGraph
     [CustomNodeUI(typeof(CombineNode))]
     public class CombineNodeUI : AbstractMaterialNodeUI
     {   
-        public float GetNodeUiHeight(float width)
+        public override float GetNodeUiHeight(float width)
         {
             return base.GetNodeUiHeight(width) + EditorGUIUtility.singleLineHeight;
         }
@@ -28,11 +28,11 @@ namespace UnityEditor.MaterialGraph
             var toReturn = GUIModificationType.None;
             if (EditorGUI.EndChangeCheck())
             {
-                toReturn = GUIModificationType.Repaint;
+                toReturn = GUIModificationType.DataChanged;
             }
 
-            area.y += 2 * EditorGUIUtility.singleLineHeight;
-            area.height -= 2 * EditorGUIUtility.singleLineHeight;
+            area.y += EditorGUIUtility.singleLineHeight;
+            area.height -= EditorGUIUtility.singleLineHeight;
             toReturn |= base.Render(area);
             return toReturn;
         }

@@ -16,25 +16,33 @@ namespace UnityEngine.MaterialGraph
         protected const string kUVSlotName = "UV";
 
         [SerializeField]
-        public Texture2D m_DefaultTexture;
+        private Texture2D m_DefaultTexture;
 
         [SerializeField]
-        public TextureType m_TextureType;
-
-        private List<string> m_TextureTypeNames;
-
+        private TextureType m_TextureType;
+        
         public override bool hasPreview { get { return true; } }
+
+        public Texture2D defaultTexture
+        {
+            get { return m_DefaultTexture; }
+            set { m_DefaultTexture = value; }
+        }
+
+        public TextureType textureType
+        {
+            get { return m_TextureType; }
+            set { m_TextureType = value; }
+        }
 
         public TextureNode(IGraph owner) : base(owner)
         {
             name = "Texture";
-            LoadTextureTypes();
+            UpdateNodeAfterDeserialization();
         }
 
-        public override void UpdateNodeAfterDeserialization()
+        public sealed override void UpdateNodeAfterDeserialization()
         {
-            LoadTextureTypes();
-
             AddSlot(new MaterialSlot(kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.zero));
             AddSlot(new MaterialSlot(kOutputSlotRName, kOutputSlotRName, SlotType.Output, 1, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(kOutputSlotGName, kOutputSlotGName, SlotType.Output, 2, SlotValueType.Vector1, Vector4.zero));
@@ -45,16 +53,9 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(validSlots);
         }
 
-
         protected string[] validSlots
         {
             get { return new[] {kOutputSlotRGBAName, kOutputSlotRName, kOutputSlotGName, kOutputSlotBName, kOutputSlotAName, kUVSlotName}; }
-        }
-
-        private void LoadTextureTypes()
-        {
-            if (m_TextureTypeNames == null)
-                m_TextureTypeNames = new List<string>(Enum.GetNames(typeof(TextureType)));
         }
 
         // Node generations
@@ -114,7 +115,7 @@ namespace UnityEngine.MaterialGraph
                 return;
 
             var edges = owner.GetEdges(GetSlotReference(uvSlot.name));
-            if (edges.Any())
+            if (!edges.Any())
                 UVNode.StaticGenerateVertexToFragmentBlock(visitor, generationMode);
         }
 
@@ -125,7 +126,7 @@ namespace UnityEngine.MaterialGraph
                 return;
 
             var edges = owner.GetEdges(GetSlotReference(uvSlot.name));
-            if (edges.Any())
+            if (!edges.Any())
                 UVNode.GenerateVertexShaderBlock(visitor);
         }
 
@@ -140,37 +141,7 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderChunk("sampler2D " + propertyName + ";", true);
         }
 
-        /*
-        public override float GetNodeUIHeight(float width)
-        {
-            return EditorGUIUtility.singleLineHeight * 2;
-        }
-
-        public override GUIModificationType NodeUI(Rect drawArea)
-        {
-            LoadTextureTypes();
-
-            base.NodeUI(drawArea);
-
-            EditorGUI.BeginChangeCheck();
-            m_DefaultTexture = EditorGUI.MiniThumbnailObjectField( new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), new GUIContent("Texture"), m_DefaultTexture, typeof(Texture2D), null) as Texture2D;
-            var texureChanged = EditorGUI.EndChangeCheck();
-
-            drawArea.y += EditorGUIUtility.singleLineHeight;
-            EditorGUI.BeginChangeCheck();
-            m_TextureType = (TextureType) EditorGUI.Popup(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), (int) m_TextureType, m_TextureTypeNames.ToArray(), EditorStyles.popup);
-            var typeChanged = EditorGUI.EndChangeCheck();
-
-            if (typeChanged)
-            {
-                pixelGraph.RevalidateGraph();
-                return GUIModificationType.Repaint;
-            }
-
-            return texureChanged ? GUIModificationType.Repaint : GUIModificationType.None;
-        }
-
-    
+    /*
         public override bool DrawSlotDefaultInput(Rect rect, Slot inputSlot)
         {
             var uvSlot = FindInputSlot(kUVSlotName);

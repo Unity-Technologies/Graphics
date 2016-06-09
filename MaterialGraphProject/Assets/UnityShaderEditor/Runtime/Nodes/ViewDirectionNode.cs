@@ -16,6 +16,7 @@ namespace UnityEngine.MaterialGraph
         public ViewDirectionNode(IGraph theOwner) : base(theOwner)
         {
             name = "View Direction";
+            UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

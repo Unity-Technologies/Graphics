@@ -128,23 +128,31 @@ namespace UnityEditor.Graphing.Drawing
             if (m_Ui != null)
             {
                 var modificationType = m_Ui.Render(m_CustomUiRect);
-                if (modificationType == GUIModificationType.Repaint)
+               
+                if (modificationType == GUIModificationType.ModelChanged)
                 {
-                    // if we were changed, we need to redraw all the
-                    // dependent nodes.
-                    RepaintDependentNodes(m_Node);
-                }
-                else if (modificationType == GUIModificationType.ModelChanged)
-                {
+                    ValidateDependentNodes(m_Node);
                     ParentCanvas().Invalidate();
                     ParentCanvas().ReloadData();
                     ParentCanvas().Repaint();
                     return;
                 }
+
+                if (modificationType == GUIModificationType.DataChanged)
+                {
+                    ValidateDependentNodes(m_Node);
+                    RepaintDependentNodes(m_Node);
+                }
+                else if (modificationType == GUIModificationType.Repaint)
+                {
+                    // if we were changed, we need to redraw all the
+                    // dependent nodes.
+                    RepaintDependentNodes(m_Node);
+                }
             }
             base.Render(parentRect, canvas);
         }
-        
+
         private void RepaintDependentNodes(INode theNode)
         {
             var dependentNodes = new List<INode>();
@@ -154,6 +162,14 @@ namespace UnityEditor.Graphing.Drawing
                 foreach (var drawableNode in m_Data.lastGeneratedNodes.Where(x => x.m_Node == node))
                     drawableNode.Invalidate();
             }
+        }
+
+        private void ValidateDependentNodes(INode theNode)
+        {
+            var dependentNodes = new List<INode>();
+            NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, theNode);
+            foreach (var node in dependentNodes)
+                node.ValidateNode();
         }
 
         /*
@@ -168,38 +184,38 @@ namespace UnityEditor.Graphing.Drawing
             }
         }*/
 
-       /* public virtual GUIModificationType NodeUI(Rect drawArea)
-        {
-            return GUIModificationType.None;
-        }
+        /* public virtual GUIModificationType NodeUI(Rect drawArea)
+         {
+             return GUIModificationType.None;
+         }
 
-        public virtual bool OnGUI()
-        {
-            GUILayout.Label("MaterialSlot Defaults", EditorStyles.boldLabel);
-            var modified = false;
-            foreach (var slot in inputSlots)
-            {
-                if (!owner.GetEdges(GetSlotReference(slot.name)).Any())
-                    modified |= DoSlotUI(this, slot);
-            }
+         public virtual bool OnGUI()
+         {
+             GUILayout.Label("MaterialSlot Defaults", EditorStyles.boldLabel);
+             var modified = false;
+             foreach (var slot in inputSlots)
+             {
+                 if (!owner.GetEdges(GetSlotReference(slot.name)).Any())
+                     modified |= DoSlotUI(this, slot);
+             }
 
-            return modified;
-        }
+             return modified;
+         }
 
-        public static bool DoSlotUI(SerializableNode node, ISlot slot)
-        {
-            GUILayout.BeginHorizontal( /*EditorStyles.inspectorBig*);
-            GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("MaterialSlot " + slot.name, EditorStyles.largeLabel);
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
+         public static bool DoSlotUI(SerializableNode node, ISlot slot)
+         {
+             GUILayout.BeginHorizontal( /*EditorStyles.inspectorBig*);
+             GUILayout.BeginVertical();
+             GUILayout.BeginHorizontal();
+             GUILayout.Label("MaterialSlot " + slot.name, EditorStyles.largeLabel);
+             GUILayout.FlexibleSpace();
+             GUILayout.EndHorizontal();
+             GUILayout.EndVertical();
+             GUILayout.EndHorizontal();
 
-            //TODO: fix this
-            return false;
-            //return slot.OnGUI();
-        }*/
+             //TODO: fix this
+             return false;
+             //return slot.OnGUI();
+         }*/
     }
 }

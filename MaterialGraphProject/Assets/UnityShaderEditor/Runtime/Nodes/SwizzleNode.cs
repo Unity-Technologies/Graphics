@@ -1,4 +1,3 @@
-using UnityEditor;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
