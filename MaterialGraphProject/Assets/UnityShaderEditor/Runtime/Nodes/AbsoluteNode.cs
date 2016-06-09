@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "AbsoluteNode";
         }
-
+        
         protected override string GetFunctionName() {return "unity_absolute_" + precision; }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)

@@ -13,6 +13,7 @@ namespace UnityEngine.MaterialGraph
         public UVNode(IGraph theOwner) : base(theOwner)
         {
             name = "UV";
+            UpdateNodeAfterDeserialization();
         }
 
         public override void UpdateNodeAfterDeserialization()

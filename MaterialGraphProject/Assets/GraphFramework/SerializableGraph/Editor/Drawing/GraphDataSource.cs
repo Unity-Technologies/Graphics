@@ -6,7 +6,6 @@ using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using UnityEngine;
 using UnityEngine.Graphing;
-using UnityEngineInternal;
 
 namespace UnityEditor.Graphing.Drawing
 {
