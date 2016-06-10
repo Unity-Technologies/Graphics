@@ -1,18 +1,16 @@
-/*
-namespace UnityEditor.MaterialGraph
+using UnityEngine.Graphing;
+
+namespace UnityEngine.MaterialGraph
 {
-    public class SubGraphIOBaseNode : BaseMaterialNode
+    public abstract class SubGraphIOBaseNode : AbstractMaterialNode
     {
-        GUIContent kTempContent = new GUIContent("+");
+        protected SubGraphIOBaseNode(IGraph theOwner) : base(theOwner)
+        {}
 
-        public virtual void AddSlot()
-        {
-        }
-
-        public void FooterUI(GraphGUI host)
+        /*public void FooterUI(GraphGUI host)
         {
             // TODO: make it pretty
-            GUIStyle style = this is SubGraphOutputsNode ?
+            GUIStyle style = this is SubGraphOutputNode ?
                 Styles.GetNodeStyle("shader in", Styles.Color.Aqua, false) :
                 Styles.GetNodeStyle("shader out", Styles.Color.Aqua, false);
             var pos = GUILayoutUtility.GetRect(kTempContent, style);
@@ -35,7 +33,6 @@ namespace UnityEditor.MaterialGraph
                     style.Draw(pos, kTempContent, id);
                     break;
             }
-        }
+        }*/
     }
 }
-*/

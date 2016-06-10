@@ -375,6 +375,12 @@ namespace UnityEngine.MaterialGraph
 
         public static string GeneratePreviewShader(AbstractMaterialNode node, out PreviewMode generatedShaderMode)
         {
+            if (!node.materialOuputSlots.Any())
+            {
+                generatedShaderMode = PreviewMode.Preview2D;
+                return string.Empty;
+            }
+
             // figure out what kind of preview we want!
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
