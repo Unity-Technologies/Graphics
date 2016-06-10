@@ -8,16 +8,19 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    class GraphEditWindow : EditorWindow
+    public class GraphEditWindow : AbstractGraphEditWindow<SerializableGraphAsset>
     {
         [MenuItem("Window/Graph Editor")]
         public static void OpenMenu()
         {
             GetWindow<GraphEditWindow>();
         }
+    }
 
+    public abstract class AbstractGraphEditWindow<T> : EditorWindow where T : ScriptableObject, IGraphAsset
+    {
         [SerializeField]
-        private SerializableGraphAsset m_LastSelection;
+        private T m_LastSelection;
         
         [NonSerialized]
         private Canvas2D m_Canvas;
@@ -30,7 +33,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             get
             {
-                return m_LastSelection != null && m_LastSelection.graph != null;
+                return m_LastSelection != null && m_LastSelection.shouldRepaint;
             }
         }
 
@@ -45,9 +48,9 @@ namespace UnityEditor.Graphing.Drawing
             if (Selection.activeObject == null || !EditorUtility.IsPersistent(Selection.activeObject))
                 return;
             
-            if (Selection.activeObject is SerializableGraphAsset)
+            if (Selection.activeObject is T)
             {
-                var selection = (SerializableGraphAsset) Selection.activeObject;
+                var selection = (T) Selection.activeObject;
                 if (selection != m_LastSelection)
                 {
                     m_LastSelection = selection;
@@ -189,4 +192,5 @@ namespace UnityEditor.Graphing.Drawing
             EditorGUILayout.EndHorizontal();
         }*/
     }
+
 }
