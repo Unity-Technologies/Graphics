@@ -1,13 +1,24 @@
 namespace UnityEngine.Graphing
 {
-    public class SerializableGraphAsset : ScriptableObject
+    public interface IGraphAsset
+    {
+        IGraph graph { get; }
+        bool shouldRepaint { get; }
+    }
+
+    public class SerializableGraphAsset : ScriptableObject, IGraphAsset
     {
         [SerializeField]
-        private SerializableGraph m_Graph = new SerializableGraph();
+        protected SerializableGraph m_Graph = new SerializableGraph();
         
-        public SerializableGraph graph
+        public IGraph graph
         {
             get { return m_Graph; }
+        }
+
+        public bool shouldRepaint
+        {
+            get { return false; }
         }
     }
 }

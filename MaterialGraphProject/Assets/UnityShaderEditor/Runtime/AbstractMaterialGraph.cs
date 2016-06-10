@@ -31,6 +31,11 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
+        public override bool RequiresConstantRepaint()
+        {
+            return nodes.OfType<IRequiresTime>().Any();
+        }
+
         /*public PreviewRenderUtility previewUtility
         {
             get

@@ -69,7 +69,7 @@ namespace UnityEditor.Graphing.Drawing
                 }
                 return s_DrawerUI;
             }
-        } 
+        }
 
         public CanvasElement[] FetchElements()
         {

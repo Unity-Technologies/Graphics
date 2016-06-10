@@ -178,5 +178,10 @@ namespace UnityEngine.Graphing
             foreach (var node in nodes)
                 node.ValidateNode();
         }
+
+        public virtual bool RequiresConstantRepaint()
+        {
+            return false;
+        }
     }
 }
