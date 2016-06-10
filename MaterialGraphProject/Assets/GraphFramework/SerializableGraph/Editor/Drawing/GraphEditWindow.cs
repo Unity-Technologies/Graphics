@@ -119,8 +119,7 @@ namespace UnityEditor.Graphing.Drawing
             var drawstate = node.drawState;
             drawstate.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, drawstate.position.width, drawstate.position.height);
             node.drawState = drawstate;
-            m_LastSelection.graph.AddNode(node);
-            EditorUtility.SetDirty(m_LastSelection);
+            m_DataSource.Addnode(node);
             Rebuild();
             Repaint();
         }
@@ -146,10 +145,10 @@ namespace UnityEditor.Graphing.Drawing
 
         private void Rebuild()
         {
-            if (m_Canvas == null || m_LastSelection == null || m_LastSelection.graph == null)
+            if (m_Canvas == null || m_LastSelection == null)
                 return;
 
-            m_DataSource.graph = m_LastSelection.graph;
+            m_DataSource.graphAsset = m_LastSelection;
             m_Canvas.ReloadData();
         }
 

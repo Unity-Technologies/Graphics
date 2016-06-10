@@ -28,7 +28,7 @@ namespace UnityEditor.Graphing.Drawing
     {
         readonly List<DrawableNode> m_DrawableNodes = new List<DrawableNode>();
         
-        public IGraph graph { get; set; }
+        public IGraphAsset graphAsset { get; set; }
 
         public ICollection<DrawableNode> lastGeneratedNodes
         {
@@ -74,7 +74,8 @@ namespace UnityEditor.Graphing.Drawing
         public CanvasElement[] FetchElements()
         {
             m_DrawableNodes.Clear();
-            Debug.LogFormat("Trying to convert: {0}", graph);
+            var graph = graphAsset.graph;
+            Debug.LogFormat("Trying to convert: {0}", graphAsset.graph);
             foreach (var node in graph.nodes)
             {
                 var nodeType = node.GetType();
@@ -163,6 +164,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public void DeleteElements(List<CanvasElement> elements)
         {
+            var graph = graphAsset.graph;
             var toRemoveEdge = new List<IEdge>();
             // delete selected edges first
             foreach (var e in elements.OfType<Edge<NodeAnchor>>())
@@ -183,54 +185,70 @@ namespace UnityEditor.Graphing.Drawing
                 toRemoveNode.Add(e.m_Node);
             }
             graph.RemoveElements(toRemoveNode, toRemoveEdge);
+            MarkDirty();
         }
 
         public void Connect(NodeAnchor a, NodeAnchor b)
         {
+            var graph = graphAsset.graph;
             graph.Connect(a.m_Node.GetSlotReference(a.m_Slot.name), b.m_Node.GetSlotReference(b.m_Slot.name));
+            MarkDirty();
         }
 
-/*        private string m_LastPath;
-        public void Export(bool quickExport)
+        public void Addnode(INode node)
         {
-            var path = quickExport ? m_LastPath : EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
-            m_LastPath = path; // For quick exporting
-            if (!string.IsNullOrEmpty(path))
-                graph.ExportShader(path);
-            else
-                EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
-        }
-    }
-
-    public class FloatingPreview : CanvasElement
-    {
-        private AbstractMaterialNode m_Node;
-
-        public FloatingPreview(Rect position, AbstractMaterialNode node)
-        {
-            m_Node = node as AbstractMaterialNode;
-            m_Translation = new Vector2(position.x, position.y);
-            m_Scale = new Vector3(position.width, position.height, 1);
-            m_Caps |= Capabilities.Floating | Capabilities.Unselectable;
+            var graph = graphAsset.graph;
+            graph.AddNode(node);
+            MarkDirty();
         }
 
-        public override void Render(Rect parentRect, Canvas2D canvas)
+        public void MarkDirty()
         {
-            var drawArea = new Rect(0, 0, scale.x, scale.y);
-            Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
-            EditorGUI.DrawRect(drawArea, backgroundColor);
+            EditorUtility.SetDirty(graphAsset.GetScriptableObject());
+        }
 
-            drawArea.width -= 10;
-            drawArea.height -= 10;
-            drawArea.x += 5;
-            drawArea.y += 5;
+        /*        private string m_LastPath;
+                public void Export(bool quickExport)
+                {
+                    var path = quickExport ? m_LastPath : EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
+                    m_LastPath = path; // For quick exporting
+                    if (!string.IsNullOrEmpty(path))
+                        graph.ExportShader(path);
+                    else
+                        EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
+                }
+            }
 
-            GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-            GUI.DrawTexture(drawArea, m_Node.RenderPreview(new Rect(0, 0, drawArea.width, drawArea.height)), ScaleMode.StretchToFill, false);
-            GL.sRGBWrite = false;
+            public class FloatingPreview : CanvasElement
+            {
+                private AbstractMaterialNode m_Node;
 
-            Invalidate();
-            canvas.Repaint();
-        }*/
+                public FloatingPreview(Rect position, AbstractMaterialNode node)
+                {
+                    m_Node = node as AbstractMaterialNode;
+                    m_Translation = new Vector2(position.x, position.y);
+                    m_Scale = new Vector3(position.width, position.height, 1);
+                    m_Caps |= Capabilities.Floating | Capabilities.Unselectable;
+                }
+
+                public override void Render(Rect parentRect, Canvas2D canvas)
+                {
+                    var drawArea = new Rect(0, 0, scale.x, scale.y);
+                    Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
+                    EditorGUI.DrawRect(drawArea, backgroundColor);
+
+                    drawArea.width -= 10;
+                    drawArea.height -= 10;
+                    drawArea.x += 5;
+                    drawArea.y += 5;
+
+                    GL.sRGBWrite = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+                    GUI.DrawTexture(drawArea, m_Node.RenderPreview(new Rect(0, 0, drawArea.width, drawArea.height)), ScaleMode.StretchToFill, false);
+                    GL.sRGBWrite = false;
+
+                    Invalidate();
+                    canvas.Repaint();
+                }*/
+
     }
 }

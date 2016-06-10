@@ -13,9 +13,14 @@ namespace UnityEngine.MaterialGraph
             get { return m_MaterialGraph.currentGraph; }
         }
 
-        public bool shouldRepaint
+        public bool shouldRepaint 
         {
             get { return graph.nodes.OfType<IRequiresTime>().Any(); }
+        }
+
+        public ScriptableObject GetScriptableObject()
+        {
+            return this;
         }
 
         public Material GetMaterial()

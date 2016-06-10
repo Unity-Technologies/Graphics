@@ -37,6 +37,7 @@ namespace UnityEngine.MaterialGraph
 
         public override void OnAfterDeserialize()
         {
+            base.OnAfterDeserialize();
             m_PixelMasterNode = null;
         }
 

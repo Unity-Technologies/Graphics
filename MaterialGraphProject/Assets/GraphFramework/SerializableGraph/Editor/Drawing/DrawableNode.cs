@@ -8,14 +8,6 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    public interface ICustomNodeUi
-    {
-        float GetNodeUiHeight(float width);
-        GUIModificationType Render(Rect area);
-        void SetNode(INode node);
-        float GetNodeWidth();
-    }
-
     public class DrawableNode : CanvasElement
     {
         private readonly GraphDataSource m_Data;
@@ -72,23 +64,16 @@ namespace UnityEditor.Graphing.Drawing
                 m_CustomUiRect = new Rect(10, pos.y, width - 20, customUiHeight);
                 pos.y += customUiHeight;
             }
-
-            /*
-            if (node.hasPreview && node.drawMode != DrawMode.Collapsed)
-            {
-                m_PreviewArea = new Rect(10, pos.y, width - 20, width - 20);
-                pos.y += m_PreviewArea.height;
-            }*/
-
+            
             scale = new Vector3(pos.x, pos.y + 10.0f, 0.0f);
 
-            OnWidget += MarkDirtyIfNeedsTime;
+            OnWidget += InvalidateUIIfNeedsTime;
 
             AddManipulator(new ImguiContainer());
             AddManipulator(new Draggable());
         }
         
-        private bool MarkDirtyIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
+        private bool InvalidateUIIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
         {
             var childrenNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes, m_Node);
@@ -128,13 +113,16 @@ namespace UnityEditor.Graphing.Drawing
             if (m_Ui != null)
             {
                 var modificationType = m_Ui.Render(m_CustomUiRect);
-               
-                if (modificationType == GUIModificationType.ModelChanged)
+
+                if (modificationType != GUIModificationType.None)
+                    m_Data.MarkDirty();
+
+                if (modificationType == GUIModificationType.DataChanged)
                 {
                     ValidateDependentNodes(m_Node);
                     ParentCanvas().Invalidate();
                     ParentCanvas().ReloadData();
-                    ParentCanvas().Repaint();
+                    ParentCanvas().Repaint(); 
                     return;
                 }
 
