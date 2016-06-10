@@ -106,4 +106,21 @@ angularVelocity += Value * deltaTime;";
 angularVelocity *= max(0.0,(1.0 - Value * deltaTime));";
         }
     }
+
+    public class VFXBlockSetPivot : VFXBlockType
+    {
+        public VFXBlockSetPivot()
+        {
+            Name = "Set Pivot";
+            Icon = "";
+            Category = "Pivot";
+
+            Add(VFXProperty.Create<VFXFloat3Type>("Pivot"));
+
+            Add(new VFXAttribute(CommonAttrib.Pivot, true));
+
+            Source = @"
+pivot = Pivot;";
+        }
+    }
 }

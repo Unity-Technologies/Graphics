@@ -21,6 +21,7 @@ namespace UnityEditor.Experimental
         public static VFXAttribute Angle =              new VFXAttribute("angle", VFXValueType.kFloat);
         public static VFXAttribute AngularVelocity =    new VFXAttribute("angularVelocity", VFXValueType.kFloat);
         public static VFXAttribute TexIndex =           new VFXAttribute("texIndex", VFXValueType.kFloat);
+        public static VFXAttribute Pivot =              new VFXAttribute("pivot", VFXValueType.kFloat3);
     }
 
     public class VFXSystemRuntimeData
