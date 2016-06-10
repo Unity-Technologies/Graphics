@@ -1161,6 +1161,8 @@ namespace UnityEditor.Experimental
             builder.WriteCBuffer("outputUniforms", data.outputUniforms, data.outputParamToName);
             builder.WriteSamplers(data.outputSamplers, data.outputParamToName);
 
+            builder.WriteLine("sampler2D_float _CameraDepthTexture;");
+
             foreach (AttributeBuffer buffer in data.attributeBuffers)
                 if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
                     builder.WriteAttributeBuffer(buffer);
