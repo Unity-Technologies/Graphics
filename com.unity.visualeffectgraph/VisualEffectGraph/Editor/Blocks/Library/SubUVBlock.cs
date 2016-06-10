@@ -58,6 +58,26 @@ texIndex += Framerate * deltaTime;";
         }
     }
 
+    class VFXBlockSubUVAnimateRandomRate : VFXBlockType
+    {
+        public VFXBlockSubUVAnimateRandomRate()
+        {
+            Name = "Rate (Random)";
+            Icon = "Flipbook";
+            Category = "Flipbook";
+
+            Add(VFXProperty.Create<VFXFloatType>("MinFramerate"));
+            Add(VFXProperty.Create<VFXFloatType>("MaxFramerate"));
+
+            Add(new VFXAttribute(CommonAttrib.TexIndex, true));
+            Add(new VFXAttribute(CommonAttrib.Phase, false));
+
+
+            Source = @"
+texIndex += lerp(MinFramerate, MaxFramerate, phase) * deltaTime;";
+        }
+    }
+
     class VFXBlockSubUVAnimateCurveRate : VFXBlockType
     {
         public VFXBlockSubUVAnimateCurveRate()
