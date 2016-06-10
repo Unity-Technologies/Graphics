@@ -1,23 +1,15 @@
-using UnityEngine;
 using System.Collections.Generic;
-/*
-namespace UnityEditor.MaterialGraph
+using UnityEngine.Graphing;
+
+namespace UnityEngine.MaterialGraph
 {
-    public class SubGraphInputsNode : SubGraphIOBaseNode, IGenerateProperties
+    public class SubGraphInputNode : SubGraphIOBaseNode, IGenerateProperties
     {
-        public override void OnCreate()
+        public SubGraphInputNode(IGraph theOwner) : base(theOwner)
         {
             name = "SubGraphInputs";
-            title = "Inputs";
-         //   position = new Rect(BaseMaterialGraphGUI.kDefaultNodeWidth * 4, BaseMaterialGraphGUI.kDefaultNodeHeight * 2, Mathf.Max(300, position.width), position.height);
-            base.OnCreate();
         }
-
-        public override void AddSlot()
-        {
-            //AddSlot(new Slot(SlotType.OutputSlot, GenerateSlotName(SlotType.OutputSlot)));
-        }
-
+/*
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
             base.GeneratePropertyBlock(visitor, generationMode);
@@ -74,6 +66,6 @@ namespace UnityEditor.MaterialGraph
                 };
                 properties.Add (pp);
             }
-        }
+        }*/
     }
-}*/
+}
