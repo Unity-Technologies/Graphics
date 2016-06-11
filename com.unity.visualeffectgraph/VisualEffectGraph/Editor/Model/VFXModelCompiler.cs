@@ -1193,6 +1193,9 @@ namespace UnityEditor.Experimental
 
             outputGenerator.WriteAdditionalVertexOutput(builder, data);
 
+            if (system.HasSoftParticles())
+                builder.WriteLine("float4 projPos : TEXCOORD2;"); // TODO use a counter to set texcoord index
+
             builder.ExitScopeStruct();
             builder.WriteLine();
 
@@ -1225,6 +1228,10 @@ namespace UnityEditor.Experimental
 
             outputGenerator.WritePreBlock(builder, data);
             outputGenerator.WritePostBlock(builder, data);
+
+            // Soft particles
+            if (system.HasSoftParticles())
+                builder.WriteLine("o.projPos = ComputeScreenPos(o.pos); // For depth texture fetch");
 
             if (hasColor || hasAlpha)
             {
@@ -1274,6 +1281,25 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("float4 color = float4(1.0,1.0,1.0,0.5);");
 
             outputGenerator.WritePixelShader(system, builder, data);
+
+            // Soft particles
+            if (system.HasSoftParticles())
+            {
+                builder.WriteLine();
+                builder.WriteLine("// Soft particles");
+                builder.WriteFormat("const float INV_FADE_DISTANCE = {0};",(1.0f / system.SoftParticlesFadeDistance));
+                builder.WriteLine();
+                builder.WriteLine("float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));");
+                builder.WriteLine("float fade = saturate(INV_FADE_DISTANCE * (sceneZ - i.projPos.w));");
+                builder.WriteLine("fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade");
+
+                // NVIDIA Piecewise function 
+                //builder.WriteLine("float output = 0.5 * pow(saturate(2*(( fade > 0.5) ? 1-fade : fade)),1); ");
+                //builder.WriteLine("fade = ( fade > 0.5) ? 1-output : output;");
+
+                builder.WriteLine("color.a *= fade;");
+                builder.WriteLine();
+            }
 
             builder.WriteLine("return color;");
 

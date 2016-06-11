@@ -179,16 +179,20 @@ namespace UnityEditor.Experimental
 
             EditorGUILayout.Space();
 
-            model.GetOwner().OrderPriority = EditorGUILayout.IntField("Order Priority", model.GetOwner().OrderPriority);            
-            model.GetOwner().MaxNb = (uint)EditorGUILayout.DelayedIntField("Max Particles", (int)model.GetOwner().MaxNb);
-            model.GetOwner().SpawnRate = EditorGUILayout.FloatField("Spawn Rate", model.GetOwner().SpawnRate);
+            VFXSystemModel system = model.GetOwner();
+
+            system.OrderPriority = EditorGUILayout.IntField("Order Priority", system.OrderPriority);            
+            system.MaxNb = (uint)EditorGUILayout.DelayedIntField("Max Particles", (int)system.MaxNb);
+            system.SpawnRate = EditorGUILayout.FloatField("Spawn Rate", system.SpawnRate);
             
             EditorGUILayout.Space();
 
             GUIContent[] options = new GUIContent[3] { new GUIContent("Masked"), new GUIContent("Additive"), new GUIContent("AlphaBlend") };
 
-            BlendMode mode = model.GetOwner().BlendingMode;
-            model.GetOwner().BlendingMode = (BlendMode)EditorGUILayout.Popup(new GUIContent("Blend Mode : "),(int)mode,options );
+            // TODO This should be in the output context
+            BlendMode mode = system.BlendingMode;
+            system.BlendingMode = (BlendMode)EditorGUILayout.Popup(new GUIContent("Blend Mode : "),(int)mode,options );
+            system.SoftParticlesFadeDistance = EditorGUILayout.DelayedFloatField("Soft particles fade distance", system.SoftParticlesFadeDistance);
 
             EditorGUILayout.Space();
 

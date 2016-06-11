@@ -29,8 +29,6 @@ namespace UnityEditor.Experimental
 
     public class VFXBillboardOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
     {
-        public const bool SOFT_PARTICLES = false;
-
         public const int TextureIndex = 0;
         public const int FlipbookDimIndex = 1;
         public const int MorphTextureIndex = 2;
@@ -98,8 +96,6 @@ namespace UnityEditor.Experimental
             builder.WriteLine("float2 offsets : TEXCOORD0;");
             if (m_HasFlipBook)
                 builder.WriteLine("nointerpolation float flipbookIndex : TEXCOORD1;");
-            if (SOFT_PARTICLES)
-                builder.WriteLine("float4 projPos : TEXCOORD2;");
         }
 
         private void WriteRotation(ShaderSourceBuilder builder, ShaderMetaData data)
@@ -220,11 +216,6 @@ namespace UnityEditor.Experimental
 
             builder.WriteLine();
             builder.WriteLine("o.pos = mul (UNITY_MATRIX_VP, float4(worldPos,1.0f));");
-
-            if (SOFT_PARTICLES)
-            {
-                builder.WriteLine("o.projPos = ComputeScreenPos(o.pos);");
-            }
         }
 
         public override void WriteFunctions(ShaderSourceBuilder builder, ShaderMetaData data)
@@ -335,15 +326,6 @@ namespace UnityEditor.Experimental
             {
                 builder.Write("color *= ");
                 WriteTex2DFetch(builder, data, m_Values[TextureIndex], "i.offsets", true);
-            }
-
-            if (SOFT_PARTICLES)
-            {
-                builder.WriteLine("float sceneZ = (SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));//LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.projPos)));");
-                builder.WriteLine("float partZ = i.pos.z;");
-                builder.WriteLine("float fade = saturate(50.0f * abs(sceneZ - partZ));//saturate(0.1f * (sceneZ - partZ));");
-               // builder.WriteLine("color = float4(fade.xxx,1.0);//float4(sceneZ,i.pos.z,saturate(abs(sceneZ - i.pos.z)),1.0);");
-                builder.WriteLine("color.a *= fade;");
             }
 
             if (system.BlendingMode == BlendMode.kMasked)
