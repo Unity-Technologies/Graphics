@@ -98,7 +98,8 @@ namespace UnityEditor.Experimental
                     }
                 }
 
-                CollectExpressions();
+                GenerateNativeData();
+                m_ReloadUniforms = true;
             }
 
             // Update assets properties and expressions for C++ evaluation
@@ -110,6 +111,41 @@ namespace UnityEditor.Experimental
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
                 m_ReloadUniforms = false;
+
+                // Update expressions
+                VFXAsset asset = VFXEditor.asset;
+                foreach (var kvp in m_Expressions)
+                {
+                    VFXExpression expr = kvp.Key;
+                    int index = kvp.Value;
+                    if (expr.IsValue(false))
+                    {
+                        switch (expr.ValueType)
+                        {
+                            case VFXValueType.kFloat: 
+                                asset.SetFloat(index,expr.Get<float>()); 
+                                break;
+                            case VFXValueType.kFloat2:
+                                asset.SetVector2(index,expr.Get<Vector2>()); 
+                                break;
+                            case VFXValueType.kFloat3:
+                                asset.SetVector3(index,expr.Get<Vector3>()); 
+                                break;
+                            case VFXValueType.kFloat4:
+                                asset.SetVector4(index,expr.Get<Vector4>()); 
+                                break;
+                            case VFXValueType.kTexture2D:
+                                asset.SetTexture2D(index,expr.Get<Texture2D>());
+                                break;
+                            case VFXValueType.kTexture3D:
+                                asset.SetTexture3D(index,expr.Get<Texture3D>());
+                                break;
+                            case VFXValueType.kTransform:
+                                asset.SetMatrix(index,expr.Get<Matrix4x4>());
+                                break;
+                        }
+                    }
+                }
 
                 VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
@@ -135,26 +171,26 @@ namespace UnityEditor.Experimental
             int[] data = new int[4];
         }*/
 
-        private void CollectExpressions()
+        private void GenerateNativeData()
         {
-            Dictionary<VFXExpression,int> expressions = new Dictionary<VFXExpression,int>();
+            m_Expressions.Clear();
 
             for (int i = 0; i < GetNbChildren(); ++i)
             {
                 VFXSystemModel system = GetChild(i);
                 VFXSystemRuntimeData rtData = system.RtData;
                 foreach (var expr in rtData.m_RawExpressions)
-                    AddExpressionRecursive(expressions, expr, 0);
+                    AddExpressionRecursive(m_Expressions, expr, 0);
             }
 
-            Debug.Log("NB EXPRESSIONS: " + expressions.Count);
-            foreach (var expr in expressions)
+            Debug.Log("NB EXPRESSIONS: " + m_Expressions.Count);
+            foreach (var expr in m_Expressions)
             {
-                Debug.Log(expr.Key.ToString()+" | "+expr.Value);
+                Debug.Log(expr.Key.ToString() + " | " + expr.Value);
             }
 
             // Sort expression per depth so that we're sure dependencies will be evaluated after dependents
-            var sortedList = expressions.ToList();
+            var sortedList = m_Expressions.ToList();
             sortedList.Sort((kvpA, kvpB) =>
             {
                 return kvpB.Value.CompareTo(kvpA.Value);
@@ -163,9 +199,9 @@ namespace UnityEditor.Experimental
 
             Debug.Log("SORTED EXPRESSIONS: " + expressionList.Count);
             // Finally we dont need the depth anymore, so use that int to store the index in the array instead
-            for (int i = 0; i < expressionList.Count; ++i )
+            for (int i = 0; i < expressionList.Count; ++i)
             {
-                expressions[expressionList[i]] = i;
+                m_Expressions[expressionList[i]] = i;
                 Debug.Log(expressionList[i].ToString());
             }
 
@@ -219,9 +255,46 @@ namespace UnityEditor.Experimental
                         int nbParents = parents.Length;
                         int[] parentIds = new int[4];
                         for (int i = 0; i < nbParents; ++i)
-                            parentIds[i] = expressions[parents[i]];
+                            parentIds[i] = m_Expressions[parents[i]];
                         asset.AddExpression(expr.Operation, parentIds[0], parentIds[1], parentIds[2], parentIds[3]);
                     }
+                }
+            }
+
+            // Finally generate the uniforms
+            for (int i = 0; i < GetNbChildren(); ++i)
+            {
+                VFXSystemModel system = GetChild(i);
+                VFXSystemRuntimeData rtData = system.RtData;
+                if (rtData == null)
+                    continue;
+
+                foreach (var uniform in rtData.uniforms)
+                {
+                    int index = m_Expressions[uniform.Key];
+                    if (uniform.Value.StartsWith("init"))
+                    {
+                        asset.AddInitUniform(system.Id,uniform.Value,index);
+                        Debug.Log("ADD INIT UNIFORM: " + uniform.Value + " " + index);
+                    }
+                    else if (uniform.Value.StartsWith("update"))
+                    {
+                        asset.AddUpdateUniform(system.Id,uniform.Value,index);
+                        Debug.Log("ADD UPDATE UNIFORM: " + uniform.Value + " " + index);
+                    }
+                    else if (uniform.Value.StartsWith("global"))
+                    {
+                        asset.AddInitUniform(system.Id,uniform.Value,index);
+                        asset.AddUpdateUniform(system.Id,uniform.Value,index);
+                        Debug.Log("ADD GLOBAL UNIFORM: " + uniform.Value + " " + index);
+                    }
+                }
+
+                foreach (var uniform in rtData.outputUniforms)
+                {
+                    int index = m_Expressions[uniform.Key];
+                    asset.AddOutputUniform(system.Id,uniform.Value,index);
+                    Debug.Log("ADD OUTPUT UNIFORM: " + uniform.Value + " " + index);
                 }
             }
         }
@@ -260,6 +333,8 @@ namespace UnityEditor.Experimental
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
+
+        private Dictionary<VFXExpression, int> m_Expressions = new Dictionary<VFXExpression, int>();
 
         public bool Dirty = false;
     }
