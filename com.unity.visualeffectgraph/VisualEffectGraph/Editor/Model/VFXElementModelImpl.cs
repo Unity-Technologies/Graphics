@@ -473,6 +473,26 @@ namespace UnityEditor.Experimental
             }
         }
 
+        private float m_SoftParticlesFadeDistance = 0.0f;
+        public float SoftParticlesFadeDistance
+        {
+            get { return m_SoftParticlesFadeDistance; }
+            set
+            {
+                float newDistance = Mathf.Max(0.0f, value);
+                if (m_SoftParticlesFadeDistance != newDistance)
+                {
+                    m_SoftParticlesFadeDistance = newDistance;
+                    Invalidate(InvalidationCause.kModelChanged); // Force a recompilation
+                }
+            }
+        }
+
+        public bool HasSoftParticles()
+        {
+            return m_BlendMode != BlendMode.kMasked && m_SoftParticlesFadeDistance > 0.0f;
+        }
+
         private int m_OrderPriority = 0; // TODO Get last priority
         public int OrderPriority
         {

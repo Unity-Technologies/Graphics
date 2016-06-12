@@ -131,7 +131,11 @@ namespace UnityEditor.Experimental.VFX
 
     public static class ModelSerializer
     {
-        private const int VERSION = 3;
+        // 1: Initial
+        // 2: block enable toggle
+        // 3: data block exposed name
+        // 4: soft particle fade distance in system
+        private const int VERSION = 4;
 
         // SERIALIZATION
         private class MetaData
@@ -222,6 +226,7 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteAttributeString("MaxNb", system.MaxNb.ToString());
             writer.WriteAttributeString("SpawnRate", system.SpawnRate.ToString());
             writer.WriteAttributeString("BlendingMode", system.BlendingMode.ToString());
+            writer.WriteAttributeString("SoftParticlesFadeDistance", system.SoftParticlesFadeDistance.ToString());
             writer.WriteAttributeString("OrderPriority", system.OrderPriority.ToString());
             for (int i = 0; i < system.GetNbChildren(); ++i)
                 Serialize(writer,system.GetChild(i),data);
@@ -375,6 +380,8 @@ namespace UnityEditor.Experimental.VFX
             system.MaxNb = uint.Parse(xml.Attribute("MaxNb").Value);
             system.SpawnRate = float.Parse(xml.Attribute("SpawnRate").Value);
             system.BlendingMode = (BlendMode)Enum.Parse(typeof(BlendMode), xml.Attribute("BlendingMode").Value);
+            if (data.Version >= 4)
+                system.SoftParticlesFadeDistance = float.Parse(xml.Attribute("SoftParticlesFadeDistance").Value);
             system.OrderPriority = int.Parse(xml.Attribute("OrderPriority").Value);
 
             foreach (var contextXML in xml.Elements("Context"))

@@ -52,6 +52,7 @@ namespace UnityEditor.Experimental
             UpdateFlag(attribs, CommonAttrib.Alpha, VFXContextDesc.Type.kTypeOutput);
             m_HasSize = UpdateFlag(attribs, CommonAttrib.Size, VFXContextDesc.Type.kTypeOutput);
             m_HasAngle = UpdateFlag(attribs, CommonAttrib.Angle, VFXContextDesc.Type.kTypeOutput);
+            m_HasPivot = UpdateFlag(attribs, CommonAttrib.Pivot, VFXContextDesc.Type.kTypeOutput);
 
             if (m_Values[TextureIndex] != null)
             {
@@ -62,6 +63,8 @@ namespace UnityEditor.Experimental
 
             if (m_OrientAlongVelocity)
                 m_OrientAlongVelocity = UpdateFlag(attribs, CommonAttrib.Velocity, VFXContextDesc.Type.kTypeOutput);
+
+
 
             return true;
         }
@@ -163,6 +166,18 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
+            if (m_HasPivot)
+            {
+                builder.WriteLine("float2 posOffsets = o.offsets.xy - ");
+                builder.WriteAttrib(CommonAttrib.Pivot, data);
+                builder.WriteLine(".xy;");
+                builder.WriteLine();
+            }
+            else
+            {
+                builder.WriteLine("float2 posOffsets = o.offsets.xy;");
+            }
+
             if (m_OrientAlongVelocity)
             {
                 builder.WriteLine("float3 front = UnityWorldSpaceViewDir(worldPos);");
@@ -176,7 +191,7 @@ namespace UnityEditor.Experimental
             }
             else
             {
-                if (m_HasAngle)
+                if (m_HasAngle || m_HasPivot)
                     builder.WriteLine("float3 front = UNITY_MATRIX_MV[2].xyz;");
 
                 builder.WriteLine("float3 side = UNITY_MATRIX_IT_MV[0].xyz;");
@@ -189,13 +204,20 @@ namespace UnityEditor.Experimental
             {
                 WriteRotation(builder, data);
                 builder.WriteLine();
-                builder.WriteLine("worldPos += mul(rot,side) * (o.offsets.x * size.x);");
-                builder.WriteLine("worldPos += mul(rot,up) * (o.offsets.y * size.y);");
+                builder.WriteLine("worldPos += mul(rot,side * posOffsets.x * size.x);");
+                builder.WriteLine("worldPos += mul(rot,up * posOffsets.y * size.y);");
             }
             else
             {
-                builder.WriteLine("worldPos += side * (o.offsets.x * size.x);");
-                builder.WriteLine("worldPos += up * (o.offsets.y * size.y);");
+                builder.WriteLine("worldPos += side * (posOffsets.x * size.x);");
+                builder.WriteLine("worldPos += up * (posOffsets.y * size.y);");
+            }
+
+            if (m_HasPivot)
+            {
+                builder.WriteLine("worldPos -= front * ");
+                builder.WriteAttrib(CommonAttrib.Pivot, data);
+                builder.WriteLine(".z;");
             }
 
             // local space (tmp)
@@ -226,11 +248,6 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("return (tile + uv) * invDim;");
                 builder.ExitScope();
                 builder.WriteLine();
-            }
-
-            if (m_HasAngle)
-            {
-
             }
         }
 
@@ -343,6 +360,8 @@ namespace UnityEditor.Experimental
         private bool m_HasTexture;
         private bool m_OrientAlongVelocity;
         private bool m_HasMotionVectors;
+        private bool m_HasPivot;
+        private bool m_UseSoftParticles;
     }
 }
 
