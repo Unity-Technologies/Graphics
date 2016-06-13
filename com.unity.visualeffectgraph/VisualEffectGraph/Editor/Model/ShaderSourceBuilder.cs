@@ -305,12 +305,12 @@ namespace UnityEditor.Experimental
                 foreach (var arg in namedValues)
                     if (arg.m_Value.IsValue() && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
                     {
-                        VFXExpression extraValue = data.extraUniforms[(VFXValue)arg.m_Value];
+                        VFXExpression extraValue = data.extraUniforms[arg.m_Value];
                         if (extraValue.IsValue())
                         {
                             Write(separator);
                             separator = ',';
-                            Write(paramToName[arg.m_Value/*.Reduce()*/]);
+                            Write(paramToName[extraValue/*.Reduce()*/]);
                         }
                     }
             }

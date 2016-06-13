@@ -154,8 +154,8 @@ namespace UnityEditor.Experimental
 
                     system.GeneratedTextureData.UpdateAndUploadDirty();
 
-                    if (system.RtData != null)
-                        system.RtData.UpdateAllUniforms();                  
+                    /*if (system.RtData != null)
+                        system.RtData.UpdateAllUniforms();*/             
                 } 
             }
 
