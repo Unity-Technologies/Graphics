@@ -143,20 +143,23 @@ namespace UnityEditor.Experimental
                             case VFXValueType.kTransform:
                                 asset.SetMatrix(index,expr.Get<Matrix4x4>());
                                 break;
+                            // curve and gradient uniform dont change, only the correponding textures are updated
                         }
                     }
                 }
 
-                VFXEditor.Log("Uniforms have been modified");
+                m_TextureData.UpdateAndUploadDirty();
+
+               /* VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
                     var system = GetChild(i);
 
                     system.GeneratedTextureData.UpdateAndUploadDirty();
 
-                    /*if (system.RtData != null)
-                        system.RtData.UpdateAllUniforms();*/             
-                } 
+                    if (system.RtData != null)
+                        system.RtData.UpdateAllUniforms();            
+                } */
             }
 
             if (HasRecompiled) // Restart component 
@@ -205,7 +208,23 @@ namespace UnityEditor.Experimental
                 Debug.Log(expressionList[i].ToString());
             }
 
+            // Generate signal texture if needed
+            List<VFXValue> signals = new List<VFXValue>();
+            foreach (var expr in expressionList)
+                if (expr.IsValue(false) && (expr.ValueType == VFXValueType.kColorGradient || expr.ValueType == VFXValueType.kCurve))
+                    signals.Add((VFXValue)expr);
+
+            m_TextureData.RemoveAllValues();
+            m_TextureData.AddValues(signals);
+            m_TextureData.Generate();
+
             VFXAsset asset = VFXEditor.asset;
+
+            if (m_TextureData.HasColorTexture())
+                asset.SetGradientTexture(m_TextureData.ColorTexture);
+            if (m_TextureData.HasFloatTexture())
+                asset.SetCurveTexture(m_TextureData.FloatTexture);
+
             if (asset != null)
             {
                 asset.ClearPropertyData();
@@ -238,10 +257,10 @@ namespace UnityEditor.Experimental
                                 asset.AddMatrix(value.Get<Matrix4x4>());
                                 break;
                             case VFXValueType.kCurve:
-                                // TODO
+                                asset.AddVector4(m_TextureData.GetCurveUniform(value));
                                 break;
                             case VFXValueType.kColorGradient:
-                                // TODO
+                                asset.AddFloat(m_TextureData.GetGradientUniform(value));
                                 break;
                             default:
                                 throw new Exception("Invalid value");
@@ -336,6 +355,9 @@ namespace UnityEditor.Experimental
 
         private Dictionary<VFXExpression, int> m_Expressions = new Dictionary<VFXExpression, int>();
 
+        public VFXGeneratedTextureData GeneratedTextureData { get { return m_TextureData; } }
+        private VFXGeneratedTextureData m_TextureData = new VFXGeneratedTextureData();
+
         public bool Dirty = false;
     }
 
@@ -352,7 +374,7 @@ namespace UnityEditor.Experimental
             //if (rtData != null)
             //    UnityEngine.Object.DestroyImmediate(rtData.m_Material);
 
-            m_GeneratedTextureData.Dispose();
+            //m_GeneratedTextureData.Dispose();
         }
 
         public void DeleteAssets()
@@ -582,8 +604,8 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public VFXGeneratedTextureData GeneratedTextureData { get { return m_GeneratedTextureData; } }
-        private VFXGeneratedTextureData m_GeneratedTextureData = new VFXGeneratedTextureData();
+        public VFXGeneratedTextureData GeneratedTextureData { get { return GetOwner().GeneratedTextureData; } }
+        //private VFXGeneratedTextureData m_GeneratedTextureData = new VFXGeneratedTextureData();
 
         public bool UpdateComponentSystem()
         {

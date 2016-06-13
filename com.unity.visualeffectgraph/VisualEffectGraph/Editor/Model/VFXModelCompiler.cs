@@ -79,21 +79,21 @@ namespace UnityEditor.Experimental
 
             // Set generated texture data
             // atm set texture for both compute shaders, but can be improved by having info by kernel
-            if (m_GeneratedTextureData.HasColorTexture())
+            /*if (GeneratedTextureData.HasColorTexture())
             {
                 if (initKernel != -1)
-                    simulationShader.SetTexture(initKernel, "gradientTexture", m_GeneratedTextureData.ColorTexture);
+                    simulationShader.SetTexture(initKernel, "gradientTexture", GeneratedTextureData.ColorTexture);
                 if (updateKernel != -1)
-                    simulationShader.SetTexture(updateKernel, "gradientTexture", m_GeneratedTextureData.ColorTexture);
+                    simulationShader.SetTexture(updateKernel, "gradientTexture", GeneratedTextureData.ColorTexture);
             }
 
-            if (m_GeneratedTextureData.HasFloatTexture())
+            if (GeneratedTextureData.HasFloatTexture())
             {
                 if (initKernel != -1)
-                    simulationShader.SetTexture(initKernel, "curveTexture", m_GeneratedTextureData.FloatTexture);
+                    simulationShader.SetTexture(initKernel, "curveTexture", GeneratedTextureData.FloatTexture);
                 if (updateKernel != -1)
-                    simulationShader.SetTexture(updateKernel, "curveTexture", m_GeneratedTextureData.FloatTexture);
-            }
+                    simulationShader.SetTexture(updateKernel, "curveTexture", GeneratedTextureData.FloatTexture);
+            }*/
         }
 
         public void UpdateUniform(VFXExpression expr,bool output)
@@ -699,7 +699,7 @@ namespace UnityEditor.Experimental
             rtData.m_RawExpressions = rawExpressions;
 
             // Finally set uniforms
-            rtData.UpdateAllUniforms();
+            //rtData.UpdateAllUniforms();
 
             return rtData;
         }
