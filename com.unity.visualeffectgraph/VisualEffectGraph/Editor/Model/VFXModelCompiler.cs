@@ -34,6 +34,10 @@ namespace UnityEditor.Experimental
         ComputeShader simulationShader; 
         public ComputeShader SimulationShader { get { return simulationShader; } }
 
+        Shader outputShader;
+        public Shader OutputShader { get { return outputShader; } }
+
+        // TODO Remove that
         public Material m_Material = null;
 
         public VFXGeneratedTextureData m_GeneratedTextureData = null;
@@ -52,9 +56,10 @@ namespace UnityEditor.Experimental
 
         private List<ComputeBuffer> buffers = new List<ComputeBuffer>();
 
-        public VFXSystemRuntimeData(ComputeShader shader)
+        public VFXSystemRuntimeData(ComputeShader computeShader,Shader shader)
         {
-            simulationShader = shader;
+            simulationShader = computeShader;
+            outputShader = shader;
 
             // FindKernel throws instead of setting value to -1
             try { initKernel = simulationShader.FindKernel("CSVFXInit"); }
@@ -656,11 +661,11 @@ namespace UnityEditor.Experimental
             ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(simulationShaderPath);
             Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>(outputShaderPath);
 
-            VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader);
+            VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader,outputShader);
 
-            rtData.m_Material = new Material(outputShader);
-            AssetDatabase.CreateAsset(rtData.m_Material, materialPath);
-            AssetDatabase.ImportAsset(materialPath);
+            //rtData.m_Material = new Material(outputShader);
+            //AssetDatabase.CreateAsset(rtData.m_Material, materialPath);
+            //AssetDatabase.ImportAsset(materialPath);
 
             rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
             rtData.hasKill = shaderMetaData.hasKill;

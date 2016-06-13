@@ -618,7 +618,7 @@ namespace UnityEditor.Experimental
                     m_ID,
                     MaxNb,
                     rtData.SimulationShader,
-                    rtData.m_Material,
+                    rtData.OutputShader,
                     rtData.buffersDesc,
                     rtData.outputType,
                     SpawnRate,
