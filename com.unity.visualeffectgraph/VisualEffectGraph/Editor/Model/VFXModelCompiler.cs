@@ -628,13 +628,12 @@ namespace UnityEditor.Experimental
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
             string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
 
-            string shaderName = "VFX_";
+            string shaderName = "";
             if (VFXEditor.asset != null)
             {
                 shaderName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset));
                 shaderName += '_';
             }
-
 
             shaderName += system.Id;
 

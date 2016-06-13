@@ -163,7 +163,8 @@ namespace UnityEditor.Experimental
             }
 
             if (HasRecompiled) // Restart component 
-                VFXEditor.component.Reinit();
+                foreach(var component in VFXEditor.allComponents)
+                    component.Reinit();
 
             Profiler.EndSample();
         }
@@ -278,42 +279,42 @@ namespace UnityEditor.Experimental
                         asset.AddExpression(expr.Operation, parentIds[0], parentIds[1], parentIds[2], parentIds[3]);
                     }
                 }
-            }
 
-            // Finally generate the uniforms
-            for (int i = 0; i < GetNbChildren(); ++i)
-            {
-                VFXSystemModel system = GetChild(i);
-                VFXSystemRuntimeData rtData = system.RtData;
-                if (rtData == null)
-                    continue;
-
-                foreach (var uniform in rtData.uniforms)
+                // Finally generate the uniforms
+                for (int i = 0; i < GetNbChildren(); ++i)
                 {
-                    int index = m_Expressions[uniform.Key];
-                    if (uniform.Value.StartsWith("init"))
-                    {
-                        asset.AddInitUniform(system.Id,uniform.Value,index);
-                        Debug.Log("ADD INIT UNIFORM: " + uniform.Value + " " + index);
-                    }
-                    else if (uniform.Value.StartsWith("update"))
-                    {
-                        asset.AddUpdateUniform(system.Id,uniform.Value,index);
-                        Debug.Log("ADD UPDATE UNIFORM: " + uniform.Value + " " + index);
-                    }
-                    else if (uniform.Value.StartsWith("global"))
-                    {
-                        asset.AddInitUniform(system.Id,uniform.Value,index);
-                        asset.AddUpdateUniform(system.Id,uniform.Value,index);
-                        Debug.Log("ADD GLOBAL UNIFORM: " + uniform.Value + " " + index);
-                    }
-                }
+                    VFXSystemModel system = GetChild(i);
+                    VFXSystemRuntimeData rtData = system.RtData;
+                    if (rtData == null)
+                        continue;
 
-                foreach (var uniform in rtData.outputUniforms)
-                {
-                    int index = m_Expressions[uniform.Key];
-                    asset.AddOutputUniform(system.Id,uniform.Value,index);
-                    Debug.Log("ADD OUTPUT UNIFORM: " + uniform.Value + " " + index);
+                    foreach (var uniform in rtData.uniforms)
+                    {
+                        int index = m_Expressions[uniform.Key];
+                        if (uniform.Value.StartsWith("init"))
+                        {
+                            asset.AddInitUniform(system.Id, uniform.Value, index);
+                            Debug.Log("ADD INIT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                        }
+                        else if (uniform.Value.StartsWith("update"))
+                        {
+                            asset.AddUpdateUniform(system.Id, uniform.Value, index);
+                            Debug.Log("ADD UPDATE UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                        }
+                        else if (uniform.Value.StartsWith("global"))
+                        {
+                            asset.AddInitUniform(system.Id, uniform.Value, index);
+                            asset.AddUpdateUniform(system.Id, uniform.Value, index);
+                            Debug.Log("ADD GLOBAL UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                        }
+                    }
+
+                    foreach (var uniform in rtData.outputUniforms)
+                    {
+                        int index = m_Expressions[uniform.Key];
+                        asset.AddOutputUniform(system.Id, uniform.Value, index);
+                        Debug.Log("ADD OUTPUT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                    }
                 }
             }
         }
@@ -379,7 +380,10 @@ namespace UnityEditor.Experimental
 
         public void DeleteAssets()
         {
-            string shaderName = "VFX_";
+            if (VFXEditor.asset == null)
+                return;
+
+            string shaderName = shaderName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset)); ;
             shaderName += m_ID;
 
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
@@ -514,7 +518,9 @@ namespace UnityEditor.Experimental
             if (VFXEditor.asset != null)
                 VFXEditor.asset.RemoveSystem(m_ID);
 
-            VFXEditor.component.RemoveSystem(m_ID);
+            foreach (var component in VFXEditor.allComponents)
+                component.RemoveSystem(m_ID);
+
             DeleteAssets();   
         }
 
@@ -627,7 +633,8 @@ namespace UnityEditor.Experimental
                 );
 
                 // TODO Make that work
-                VFXEditor.component.vfxAsset = VFXEditor.asset;
+                foreach (var component in VFXEditor.allComponents)
+                    component.vfxAsset = VFXEditor.asset;
             }  
 
            /* VFXEditor.component.SetSystem(

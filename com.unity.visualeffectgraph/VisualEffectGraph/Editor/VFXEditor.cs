@@ -3,6 +3,7 @@ using UnityEditor.Experimental;
 using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
@@ -160,16 +161,26 @@ namespace UnityEditor.Experimental
         private VFX.VFXBlockLibrary m_BlockLibrary;
 
         private static VFXComponent m_Component;
-        private static GameObject m_GameObject;
         private static VFXAsset s_Asset;
 
-        public static GameObject gameObject { get { return m_GameObject; } }
         public static VFXComponent component { get { return m_Component; } }
         public static VFXAsset asset { get { return s_Asset; } }
 
+        public static IEnumerable<VFXComponent> allComponents
+        {
+            get
+            {
+                if (asset == null)
+                    return new List<VFXComponent>();
+
+                VFXComponent[] vfxComponents = FindObjectsOfType<VFXComponent>();
+                return vfxComponents.Where(vfx => vfx.vfxAsset == VFXEditor.asset);
+            }
+        }
+
         private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
         {
-            var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
+            /*var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
 
             int nbDeleted = 0;
             foreach (var vfx in vfxs)
@@ -180,19 +191,19 @@ namespace UnityEditor.Experimental
                 }
 
             if (nbDeleted > 0)
-                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
+                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");*/
         }
 
         private void RemovePreviousShaders()
         {
             // Remove any shader assets in generated path
-            string[] guids = AssetDatabase.FindAssets("", new string[] { "Assets/VFXEditor/Generated" });
+            /*string[] guids = AssetDatabase.FindAssets("", new string[] { "Assets/VFXEditor/Generated" });
 
             foreach (var guid in guids)
                 AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
 
             if (guids.Length > 0)
-                Debug.Log("Remove " + guids.Length + " old VFX shaders");
+                Debug.Log("Remove " + guids.Length + " old VFX shaders");*/
         }
 
         private static void InitializeBlockLibrary()
@@ -210,15 +221,15 @@ namespace UnityEditor.Experimental
 
             hideFlags = HideFlags.HideAndDontSave;
 
-            RemovePreviousVFXs();
-            RemovePreviousShaders();
+            //RemovePreviousVFXs();
+            //RemovePreviousShaders();
 
-            if (m_GameObject != null)
+            /*if (m_GameObject != null)
             {
                 UnityEngine.Object.DestroyImmediate(m_GameObject);
                 m_GameObject = null;
                 m_Component = null;
-            }
+            }*/
 
             Selection.selectionChanged += OnSelectionChanged;
 
@@ -402,17 +413,17 @@ namespace UnityEditor.Experimental
         private bool isOldPlaying = false;
         void Update()
         {
-            if (m_GameObject == null)
+            /*if (m_GameObject == null)
             {
-                RemovePreviousVFXs();
-                RemovePreviousShaders();
+                //RemovePreviousVFXs();
+                //RemovePreviousShaders();
 
                 m_GameObject = new GameObject("VFX");
                 //m_GameObject.hideFlags = HideFlags.HideAndDontSave;
                 m_Component = m_GameObject.AddComponent<VFXComponent>();
 
                 SetCurrentAsset(m_CurrentAsset, true);
-            }
+            }*/
 
             // Handle the case when exiting play mode
             if (!Application.isPlaying && isOldPlaying)
@@ -435,9 +446,9 @@ namespace UnityEditor.Experimental
         {
             SetCurrentAsset(null);
 
-            UnityEngine.Object.DestroyImmediate(m_GameObject);
+            /*UnityEngine.Object.DestroyImmediate(m_GameObject);
             m_GameObject = null;
-            m_Component = null;
+            m_Component = null;*/
 
             s_BlockLibrary = null;
             s_ContextLibrary = null;
