@@ -223,8 +223,12 @@ namespace UnityEditor.Experimental
 
             if (m_TextureData.HasColorTexture())
                 asset.SetGradientTexture(m_TextureData.ColorTexture);
+            else
+                asset.SetGradientTexture(null);
             if (m_TextureData.HasFloatTexture())
                 asset.SetCurveTexture(m_TextureData.FloatTexture);
+            else
+                asset.SetCurveTexture(null);
 
             if (asset != null)
             {
