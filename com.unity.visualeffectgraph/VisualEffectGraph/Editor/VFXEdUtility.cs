@@ -17,11 +17,9 @@ namespace UnityEditor.Experimental
             VFXContextModel update = dataSource.CreateContext(VFXEditor.ContextLibrary.GetContext("Particle Update"), canvas.MouseToCanvas(pos));
             VFXContextModel output = dataSource.CreateContext(VFXEditor.ContextLibrary.GetContext("Billboard Output"), canvas.MouseToCanvas(pos));
 
-
             VFXBlockModel lifetime = new VFXBlockModel(VFXEditor.BlockLibrary.GetBlock<VFXBlockSetLifetimeRandom>());
             lifetime.GetInputSlot(0).Set(0.5f);
             lifetime.GetInputSlot(1).Set(2.5f);
-
 
             VFXBlockModel velocityConstant = new VFXBlockModel(VFXEditor.BlockLibrary.GetBlock<VFXBlockVelocityConstant>());
             velocityConstant.GetInputSlot(0).Set(new Vector3(0.0f,1.0f,0.0f));
@@ -48,6 +46,13 @@ namespace UnityEditor.Experimental
             init.GetOwner().BlendingMode = BlendMode.kAlpha;
 
             VFXEdLayoutUtility.LayoutSystem(init.GetOwner(), dataSource);
+            canvas.ReloadData();
+        }
+
+        public static void NewComment(VFXEdCanvas canvas, VFXEdDataSource dataSource, Vector2 mousePosition)
+        {
+            UnityEngine.Random r = new UnityEngine.Random();
+            dataSource.CreateComment(canvas.MouseToCanvas(mousePosition),new Vector2(400,300),"New Comment", "Body", UnityEngine.Random.ColorHSV(0.0f,1.0f,0.0f,0.5f,0.2f,0.4f));
             canvas.ReloadData();
         }
     }
