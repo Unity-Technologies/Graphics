@@ -413,18 +413,6 @@ namespace UnityEditor.Experimental
         private bool isOldPlaying = false;
         void Update()
         {
-            /*if (m_GameObject == null)
-            {
-                //RemovePreviousVFXs();
-                //RemovePreviousShaders();
-
-                m_GameObject = new GameObject("VFX");
-                //m_GameObject.hideFlags = HideFlags.HideAndDontSave;
-                m_Component = m_GameObject.AddComponent<VFXComponent>();
-
-                SetCurrentAsset(m_CurrentAsset, true);
-            }*/
-
             // Handle the case when exiting play mode
             if (!Application.isPlaying && isOldPlaying)
             {
@@ -489,6 +477,12 @@ namespace UnityEditor.Experimental
                     //Debug.Log("------------------------ CREATE NEW GRAPH: " + asset.ToString()); 
                     string xml = m_CurrentAsset.XmlGraph;
                     Debug.Log("Get XML graph from " + m_CurrentAsset.name + " " + m_CurrentAsset.XmlGraph);
+
+                    // Remove all previous systems as the Ids may have changed
+                    m_CurrentAsset.RemoveAllSystems();
+                    foreach (var component in allComponents)
+                        component.RemoveAllSystems();
+
                     s_Graph = ModelSerializer.Deserialize(xml);
                     for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
                         s_Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);  
