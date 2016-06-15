@@ -9,7 +9,6 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph
 {
-
     [CustomNodeUI(typeof(AbstractMaterialNode))]
     public class AbstractMaterialNodeUI : ICustomNodeUi
     {
@@ -59,6 +58,9 @@ namespace UnityEditor.MaterialGraph
             if (!m_Node.drawState.expanded)
                 return 0;
 
+            if (m_Node.hasPreview == false)
+                return 0;
+
             m_PreviewWidth = width - 20;
             return m_PreviewWidth;
         }
@@ -77,6 +79,9 @@ namespace UnityEditor.MaterialGraph
         public virtual GUIModificationType Render(Rect area)
         {
             if (m_Node == null || !m_Node.drawState.expanded)
+                return GUIModificationType.None;
+
+            if (m_Node.hasPreview == false)
                 return GUIModificationType.None;
 
             if (m_LastShaderVersion != m_Node.version)

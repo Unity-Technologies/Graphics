@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    public class GraphEditWindow : AbstractGraphEditWindow<SerializableGraphAsset>
+    public class GraphEditWindow : AbstractGraphEditWindow<IGraphAsset>
     {
         [MenuItem("Window/Graph Editor")]
         public static void OpenMenu()
@@ -17,10 +17,13 @@ namespace UnityEditor.Graphing.Drawing
         }
     }
 
-    public abstract class AbstractGraphEditWindow<T> : EditorWindow where T : ScriptableObject, IGraphAsset
+    public abstract class AbstractGraphEditWindow<T> : EditorWindow, ISerializationCallbackReceiver where T : class, IGraphAsset
     {
-        [SerializeField]
+        [NonSerialized]
         private T m_LastSelection;
+
+        [SerializeField]
+        private ScriptableObject m_LastSelectedGraphSerialized;
         
         [NonSerialized]
         private Canvas2D m_Canvas;
@@ -48,9 +51,9 @@ namespace UnityEditor.Graphing.Drawing
             if (Selection.activeObject == null || !EditorUtility.IsPersistent(Selection.activeObject))
                 return;
             
-            if (Selection.activeObject is T)
+            if (Selection.activeObject is ScriptableObject)
             {
-                var selection = (T) Selection.activeObject;
+                var selection = Selection.activeObject as T;
                 if (selection != m_LastSelection)
                 {
                     m_LastSelection = selection;
@@ -190,6 +193,21 @@ namespace UnityEditor.Graphing.Drawing
             GUILayout.EndVertical();
             EditorGUILayout.EndHorizontal();
         }*/
+
+        public void OnBeforeSerialize()
+        {
+            var o = m_LastSelection as ScriptableObject;
+            if (o != null)
+                m_LastSelectedGraphSerialized = o;
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if (m_LastSelectedGraphSerialized != null)
+                m_LastSelection = m_LastSelectedGraphSerialized as T;
+
+            m_LastSelectedGraphSerialized = null;
+        }
     }
 
 }
