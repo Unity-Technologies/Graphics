@@ -1,6 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -16,18 +17,47 @@ namespace UnityEngine.MaterialGraph
         protected const string kUVSlotName = "UV";
 
         [SerializeField]
-        private Texture2D m_DefaultTexture;
+        private string m_TextureGuid;
 
         [SerializeField]
         private TextureType m_TextureType;
         
         public override bool hasPreview { get { return true; } }
 
+#if UNITY_EDITOR
         public Texture2D defaultTexture
         {
-            get { return m_DefaultTexture; }
-            set { m_DefaultTexture = value; }
+            get
+            {
+                if (string.IsNullOrEmpty(m_TextureGuid))
+                    return null;
+
+                var path = AssetDatabase.GUIDToAssetPath(m_TextureGuid);
+                if (string.IsNullOrEmpty(path))
+                    return null;
+
+                return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            }
+            set
+            {
+                var assetPath = AssetDatabase.GetAssetPath(value);
+                if (string.IsNullOrEmpty(assetPath))
+                    return;
+
+                m_TextureGuid = AssetDatabase.AssetPathToGUID(assetPath);
+            }
         }
+#else
+        public Texture2D defaultTexture
+        {
+            get
+            {
+                return Texture2D.whiteTexture;
+            }
+            set
+            {}
+        }
+#endif
 
         public TextureType textureType
         {
@@ -133,7 +163,7 @@ namespace UnityEngine.MaterialGraph
         // Properties
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderProperty(new TexturePropertyChunk(propertyName, description, m_DefaultTexture, m_TextureType, false, exposed));
+            visitor.AddShaderProperty(new TexturePropertyChunk(propertyName, description, defaultTexture, m_TextureType, false, exposed));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
@@ -166,10 +196,11 @@ namespace UnityEngine.MaterialGraph
             {
                 m_Name = propertyName,
                 m_PropType = PropertyType.Texture2D,
-                m_Texture = m_DefaultTexture
+                m_Texture = defaultTexture
             };
         }
         
         public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
     }
+    
 }
