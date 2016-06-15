@@ -72,9 +72,13 @@ namespace UnityEditor.Experimental
         {
             Profiler.BeginSample("VFXSystemsModel.Update");
 
+            bool needsNativeDataGeneration = false;
             for (int i = 0; i < GetNbChildren(); ++i)
                 if (GetChild(i).NeedsComponentUpdate())
+                {
                     GetChild(i).UpdateComponentSystem();
+                    needsNativeDataGeneration = true;
+                }
 
             bool HasRecompiled = false;
           //  bool NeedsExpressionsUpdate = false;
@@ -98,15 +102,15 @@ namespace UnityEditor.Experimental
                     }
                 }
 
-                GenerateNativeData();
-                m_ReloadUniforms = true;
+                needsNativeDataGeneration = true;
             }
 
             // Update assets properties and expressions for C++ evaluation
-           /* if (NeedsExpressionsUpdate)
+            if (needsNativeDataGeneration)
             {
-                CollectExpressions();
-            }*/
+                GenerateNativeData();
+                m_ReloadUniforms = true;
+            }
 
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
