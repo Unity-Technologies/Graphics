@@ -340,6 +340,10 @@ namespace UnityEditor.Experimental.VFX
         public static VFXGraph Deserialize(string xml) 
         {
             VFXGraph graph = new VFXGraph(); // TMP Needs to remove RTData from graph
+
+            if (xml.Length == 0) // To avoid exception with newly created assets
+                return graph;
+
             try
             {
                 var data = new MetaData();
@@ -364,7 +368,7 @@ namespace UnityEditor.Experimental.VFX
             catch(Exception e)
             {
                 Debug.LogError("Exception while deserializing graph: " + e.ToString());
-                graph = null;
+                graph = new VFXGraph();
             }
 
             return graph;
@@ -406,7 +410,7 @@ namespace UnityEditor.Experimental.VFX
 
             int index = 0;
             foreach (var slotXML in xml.Elements("Slot"))
-                DeserializeSlot(slotXML, context.GetSlot(index++), data,false); // TODO Should have a hash for context blocks too
+                DeserializeSlot(slotXML, context.GetSlot(index++), data); // TODO Should have a hash for context blocks too
 
             return context;
         }
@@ -428,7 +432,7 @@ namespace UnityEditor.Experimental.VFX
 
             int index = 0;
             foreach (var slotXML in xml.Elements("Slot"))
-                DeserializeSlot(slotXML, block.GetSlot(index++), data, !hashTest);
+                DeserializeSlot(slotXML, hashTest ? block.GetSlot(index++) : null, data);
 
             return block;
         }
@@ -458,14 +462,14 @@ namespace UnityEditor.Experimental.VFX
             if (data.Version >= 3)
                 block.ExposedName = xml.Attribute("ExposedName").Value;
 
-            DeserializeSlot(xml.Element("Slot"), block.Slot, data,false);
+            DeserializeSlot(xml.Element("Slot"), block.Slot, data);
 
             return block;          
         }
 
-        private static void DeserializeSlot(XElement xml, VFXPropertySlot dst, MetaData data, bool skip)
+        private static void DeserializeSlot(XElement xml, VFXPropertySlot dst, MetaData data)
         {
-            if (!skip)
+            if (dst != null)
             {
                 RegisterSlot(dst, data); 
 
@@ -482,7 +486,7 @@ namespace UnityEditor.Experimental.VFX
             for (int i = 0; i < collapsedStr.Length; ++i)
                 collapsedValues[i] = bool.Parse(collapsedStr[i]);
 
-            if (skip) // Advance the slot array to the number of serialized slots to keep correct indexing
+            if (dst == null) // Advance the slot array to the number of serialized slots to keep correct indexing
                 data.Skip(collapsedValues.Length);
         }
 

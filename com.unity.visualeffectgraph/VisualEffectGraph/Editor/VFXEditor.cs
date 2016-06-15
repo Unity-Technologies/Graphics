@@ -3,6 +3,7 @@ using UnityEditor.Experimental;
 using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
@@ -160,14 +161,26 @@ namespace UnityEditor.Experimental
         private VFX.VFXBlockLibrary m_BlockLibrary;
 
         private static VFXComponent m_Component;
-        private static GameObject m_GameObject;
+        private static VFXAsset s_Asset;
 
-        public static GameObject gameObject { get { return m_GameObject; } }
         public static VFXComponent component { get { return m_Component; } }
+        public static VFXAsset asset { get { return s_Asset; } }
+
+        public static IEnumerable<VFXComponent> allComponents
+        {
+            get
+            {
+                if (asset == null)
+                    return new List<VFXComponent>();
+
+                VFXComponent[] vfxComponents = FindObjectsOfType<VFXComponent>();
+                return vfxComponents.Where(vfx => vfx.vfxAsset == VFXEditor.asset);
+            }
+        }
 
         private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
         {
-            var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
+            /*var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
 
             int nbDeleted = 0;
             foreach (var vfx in vfxs)
@@ -178,19 +191,19 @@ namespace UnityEditor.Experimental
                 }
 
             if (nbDeleted > 0)
-                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");
+                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");*/
         }
 
         private void RemovePreviousShaders()
         {
             // Remove any shader assets in generated path
-            string[] guids = AssetDatabase.FindAssets("", new string[] { "Assets/VFXEditor/Generated" });
+            /*string[] guids = AssetDatabase.FindAssets("", new string[] { "Assets/VFXEditor/Generated" });
 
             foreach (var guid in guids)
                 AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
 
             if (guids.Length > 0)
-                Debug.Log("Remove " + guids.Length + " old VFX shaders");
+                Debug.Log("Remove " + guids.Length + " old VFX shaders");*/
         }
 
         private static void InitializeBlockLibrary()
@@ -208,17 +221,19 @@ namespace UnityEditor.Experimental
 
             hideFlags = HideFlags.HideAndDontSave;
 
-            RemovePreviousVFXs();
-            RemovePreviousShaders();
+            //RemovePreviousVFXs();
+            //RemovePreviousShaders();
 
-            if (m_GameObject != null)
+            /*if (m_GameObject != null)
             {
                 UnityEngine.Object.DestroyImmediate(m_GameObject);
                 m_GameObject = null;
                 m_Component = null;
-            }
+            }*/
 
             Selection.selectionChanged += OnSelectionChanged;
+
+            s_Asset = m_CurrentAsset;
         }
 
         void OnDisable()
@@ -234,19 +249,19 @@ namespace UnityEditor.Experimental
 
         private void SaveAsset()
         {
-            if (m_CurrentAsset == null)
+            if (m_CurrentAsset == null || s_Graph == null)
                 return;
+
+            m_CurrentAsset.XmlGraph = ModelSerializer.Serialize(s_Graph);
+            Debug.Log("Set XML graph for " + m_CurrentAsset.name + " " + m_CurrentAsset.XmlGraph);
 
             EditorUtility.SetDirty(m_CurrentAsset);
             AssetDatabase.SaveAssets();
 
-            if (m_CurrentAsset.Graph != null)
-            {
-                m_CurrentAsset.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // Needs to reload uniform once saved
+            s_Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // Needs to reload uniform once saved
 
-                m_CurrentAsset.Graph.systems.Dirty = false;
-                m_CurrentAsset.Graph.models.Dirty = false;
-            }
+            s_Graph.systems.Dirty = false;
+            s_Graph.models.Dirty = false;
                 
             Debug.Log("Save Asset");
         }
@@ -398,18 +413,6 @@ namespace UnityEditor.Experimental
         private bool isOldPlaying = false;
         void Update()
         {
-            if (m_GameObject == null)
-            {
-                RemovePreviousVFXs();
-                RemovePreviousShaders();
-
-                m_GameObject = new GameObject("VFX");
-                //m_GameObject.hideFlags = HideFlags.HideAndDontSave;
-                m_Component = m_GameObject.AddComponent<VFXComponent>();
-
-                SetCurrentAsset(m_CurrentAsset, true);
-            }
-
             // Handle the case when exiting play mode
             if (!Application.isPlaying && isOldPlaying)
             {
@@ -431,9 +434,9 @@ namespace UnityEditor.Experimental
         {
             SetCurrentAsset(null);
 
-            UnityEngine.Object.DestroyImmediate(m_GameObject);
+            /*UnityEngine.Object.DestroyImmediate(m_GameObject);
             m_GameObject = null;
-            m_Component = null;
+            m_Component = null;*/
 
             s_BlockLibrary = null;
             s_ContextLibrary = null;
@@ -442,7 +445,7 @@ namespace UnityEditor.Experimental
         }
 
         [SerializeField]
-        private VFXGraphAsset m_CurrentAsset;
+        private VFXAsset m_CurrentAsset;
 
         public void DestroyGraph()
         {
@@ -457,7 +460,7 @@ namespace UnityEditor.Experimental
         }
 
         private bool m_NeedsCanvasReload = false;
-        public void SetCurrentAsset(VFXGraphAsset asset,bool force = false)
+        public void SetCurrentAsset(VFXAsset asset,bool force = false)
         {
             if (m_CurrentAsset != asset || force) 
             {
@@ -468,11 +471,19 @@ namespace UnityEditor.Experimental
                 }
 
                 m_CurrentAsset = asset;
+                s_Asset = m_CurrentAsset;
                 if (m_CurrentAsset != null)
                 {
                     //Debug.Log("------------------------ CREATE NEW GRAPH: " + asset.ToString()); 
+                    string xml = m_CurrentAsset.XmlGraph;
+                    Debug.Log("Get XML graph from " + m_CurrentAsset.name + " " + m_CurrentAsset.XmlGraph);
 
-                    s_Graph = m_CurrentAsset.Graph;
+                    // Remove all previous systems as the Ids may have changed
+                    m_CurrentAsset.RemoveAllSystems();
+                    foreach (var component in allComponents)
+                        component.RemoveAllSystems();
+
+                    s_Graph = ModelSerializer.Deserialize(xml);
                     for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
                         s_Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);  
                 }
@@ -497,7 +508,7 @@ namespace UnityEditor.Experimental
             var assets = Selection.assetGUIDs;
             if (assets.Length == 1)
             {
-                var selected = AssetDatabase.LoadAssetAtPath<VFXGraphAsset>(AssetDatabase.GUIDToAssetPath(assets[0]));
+                var selected = AssetDatabase.LoadAssetAtPath<VFXAsset>(AssetDatabase.GUIDToAssetPath(assets[0]));
                 if (selected != null)
                     SetCurrentAsset(selected);
             }
@@ -566,7 +577,7 @@ namespace UnityEditor.Experimental
 
             if (m_CurrentAsset != null)
             {
-                if (GUILayout.Button("Save " + m_CurrentAsset.name + (m_CurrentAsset.Graph.systems.Dirty || m_CurrentAsset.Graph.models.Dirty ? "*" : ""), EditorStyles.toolbarButton))
+                if (GUILayout.Button("Save " + m_CurrentAsset.name + (s_Graph.systems.Dirty || s_Graph.models.Dirty ? "*" : ""), EditorStyles.toolbarButton))
                     SaveAsset();
             }
 

@@ -3,6 +3,7 @@ using UnityEngine.Experimental.VFX;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEditor.Experimental.VFX;
 
@@ -71,14 +72,20 @@ namespace UnityEditor.Experimental
         {
             Profiler.BeginSample("VFXSystemsModel.Update");
 
+            bool needsNativeDataGeneration = false;
             for (int i = 0; i < GetNbChildren(); ++i)
                 if (GetChild(i).NeedsComponentUpdate())
+                {
                     GetChild(i).UpdateComponentSystem();
+                    needsNativeDataGeneration = true;
+                }
 
             bool HasRecompiled = false;
+          //  bool NeedsExpressionsUpdate = false;
             if (m_NeedsCheck)
             {
                 m_NeedsCheck = false;
+            //    NeedsExpressionsUpdate = true;
 
                 VFXEditor.Log("\n**** VFXAsset is dirty ****");
                 for (int i = 0; i < GetNbChildren(); ++i)
@@ -87,20 +94,67 @@ namespace UnityEditor.Experimental
                     if (!GetChild(i).RecompileIfNeeded())
                         VFXEditor.Log("No need to recompile");
                     else
-                    {
+                    {                     
                         if (GetChild(i).UpdateComponentSystem())
                             HasRecompiled = true;
                         else
                             GetChild(i).RemoveSystem();
                     }
                 }
+
+                needsNativeDataGeneration = true;
+            }
+
+            // Update assets properties and expressions for C++ evaluation
+            if (needsNativeDataGeneration)
+            {
+                GenerateNativeData();
+                m_ReloadUniforms = true;
             }
 
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
             {
                 m_ReloadUniforms = false;
 
-                VFXEditor.Log("Uniforms have been modified");
+                // Update expressions
+                VFXAsset asset = VFXEditor.asset;
+                foreach (var kvp in m_Expressions)
+                {
+                    VFXExpression expr = kvp.Key;
+                    int index = kvp.Value;
+                    if (expr.IsValue(false))
+                    {
+                        switch (expr.ValueType)
+                        {
+                            case VFXValueType.kFloat: 
+                                asset.SetFloat(index,expr.Get<float>()); 
+                                break;
+                            case VFXValueType.kFloat2:
+                                asset.SetVector2(index,expr.Get<Vector2>()); 
+                                break;
+                            case VFXValueType.kFloat3:
+                                asset.SetVector3(index,expr.Get<Vector3>()); 
+                                break;
+                            case VFXValueType.kFloat4:
+                                asset.SetVector4(index,expr.Get<Vector4>()); 
+                                break;
+                            case VFXValueType.kTexture2D:
+                                asset.SetTexture2D(index,expr.Get<Texture2D>());
+                                break;
+                            case VFXValueType.kTexture3D:
+                                asset.SetTexture3D(index,expr.Get<Texture3D>());
+                                break;
+                            case VFXValueType.kTransform:
+                                asset.SetMatrix(index,expr.Get<Matrix4x4>());
+                                break;
+                            // curve and gradient uniform dont change, only the correponding textures are updated
+                        }
+                    }
+                }
+
+                m_TextureData.UpdateAndUploadDirty();
+
+               /* VFXEditor.Log("Uniforms have been modified");
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
                     var system = GetChild(i);
@@ -108,14 +162,183 @@ namespace UnityEditor.Experimental
                     system.GeneratedTextureData.UpdateAndUploadDirty();
 
                     if (system.RtData != null)
-                        system.RtData.UpdateAllUniforms();                  
-                } 
+                        system.RtData.UpdateAllUniforms();            
+                } */
             }
 
             if (HasRecompiled) // Restart component 
-                VFXEditor.component.Reinit();
+                foreach(var component in VFXEditor.allComponents)
+                    component.Reinit();
 
             Profiler.EndSample();
+        }
+
+        /*private struct RTExpression
+        {
+            VFXExpression expr;
+            int[] data = new int[4];
+        }*/
+
+        private void GenerateNativeData()
+        {
+            m_Expressions.Clear();
+
+            for (int i = 0; i < GetNbChildren(); ++i)
+            {
+                VFXSystemModel system = GetChild(i);
+                VFXSystemRuntimeData rtData = system.RtData;
+                foreach (var expr in rtData.m_RawExpressions)
+                    AddExpressionRecursive(m_Expressions, expr, 0);
+            }
+
+            Debug.Log("NB EXPRESSIONS: " + m_Expressions.Count);
+            foreach (var expr in m_Expressions)
+            {
+                Debug.Log(expr.Key.ToString() + " | " + expr.Value);
+            }
+
+            // Sort expression per depth so that we're sure dependencies will be evaluated after dependents
+            var sortedList = m_Expressions.ToList();
+            sortedList.Sort((kvpA, kvpB) =>
+            {
+                return kvpB.Value.CompareTo(kvpA.Value);
+            });
+            var expressionList = sortedList.Select(kvp => kvp.Key).ToList();
+
+            Debug.Log("SORTED EXPRESSIONS: " + expressionList.Count);
+            // Finally we dont need the depth anymore, so use that int to store the index in the array instead
+            for (int i = 0; i < expressionList.Count; ++i)
+            {
+                m_Expressions[expressionList[i]] = i;
+                Debug.Log(expressionList[i].ToString());
+            }
+
+            // Generate signal texture if needed
+            List<VFXValue> signals = new List<VFXValue>();
+            foreach (var expr in expressionList)
+                if (expr.IsValue(false) && (expr.ValueType == VFXValueType.kColorGradient || expr.ValueType == VFXValueType.kCurve))
+                    signals.Add((VFXValue)expr);
+
+            m_TextureData.RemoveAllValues();
+            m_TextureData.AddValues(signals);
+            m_TextureData.Generate();
+
+            VFXAsset asset = VFXEditor.asset;
+
+            if (m_TextureData.HasColorTexture())
+                asset.SetGradientTexture(m_TextureData.ColorTexture);
+            else
+                asset.SetGradientTexture(null);
+            if (m_TextureData.HasFloatTexture())
+                asset.SetCurveTexture(m_TextureData.FloatTexture);
+            else
+                asset.SetCurveTexture(null);
+
+            if (asset != null)
+            {
+                asset.ClearPropertyData();
+                foreach (var expr in expressionList)
+                {
+                    if (expr.IsValue(false)) // check non reduced value
+                    {
+                        VFXValue value = (VFXValue)expr;
+                        switch (value.ValueType)
+                        {
+                            case VFXValueType.kFloat:
+                                asset.AddFloat(value.Get<float>());
+                                break;
+                            case VFXValueType.kFloat2:
+                                asset.AddVector2(value.Get<Vector2>());
+                                break;
+                            case VFXValueType.kFloat3:
+                                asset.AddVector3(value.Get<Vector3>());
+                                break;
+                            case VFXValueType.kFloat4:
+                                asset.AddVector4(value.Get<Vector4>());
+                                break;
+                            case VFXValueType.kTexture2D:
+                                asset.AddTexture2D(value.Get<Texture2D>());
+                                break;
+                            case VFXValueType.kTexture3D:
+                                asset.AddTexture3D(value.Get<Texture3D>());
+                                break;
+                            case VFXValueType.kTransform:
+                                asset.AddMatrix(value.Get<Matrix4x4>());
+                                break;
+                            case VFXValueType.kCurve:
+                                asset.AddVector4(m_TextureData.GetCurveUniform(value));
+                                break;
+                            case VFXValueType.kColorGradient:
+                                asset.AddFloat(m_TextureData.GetGradientUniform(value));
+                                break;
+                            default:
+                                throw new Exception("Invalid value");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // Needs to fill the dependencies
+                        VFXExpression[] parents = expr.GetParents();
+                        int nbParents = parents.Length;
+                        int[] parentIds = new int[4];
+                        for (int i = 0; i < nbParents; ++i)
+                            parentIds[i] = m_Expressions[parents[i]];
+                        asset.AddExpression(expr.Operation, parentIds[0], parentIds[1], parentIds[2], parentIds[3]);
+                    }
+                }
+
+                // Finally generate the uniforms
+                for (int i = 0; i < GetNbChildren(); ++i)
+                {
+                    VFXSystemModel system = GetChild(i);
+                    VFXSystemRuntimeData rtData = system.RtData;
+                    if (rtData == null)
+                        continue;
+
+                    foreach (var uniform in rtData.uniforms)
+                    {
+                        int index = m_Expressions[uniform.Key];
+                        if (uniform.Value.StartsWith("init"))
+                        {
+                            asset.AddInitUniform(system.Id, uniform.Value, index);
+                            Debug.Log("ADD INIT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                        }
+                        else if (uniform.Value.StartsWith("update"))
+                        {
+                            asset.AddUpdateUniform(system.Id, uniform.Value, index);
+                            Debug.Log("ADD UPDATE UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                        }
+                        else if (uniform.Value.StartsWith("global"))
+                        {
+                            asset.AddInitUniform(system.Id, uniform.Value, index);
+                            asset.AddUpdateUniform(system.Id, uniform.Value, index);
+                            Debug.Log("ADD GLOBAL UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                        }
+                    }
+
+                    foreach (var uniform in rtData.outputUniforms)
+                    {
+                        int index = m_Expressions[uniform.Key];
+                        asset.AddOutputUniform(system.Id, uniform.Value, index);
+                        Debug.Log("ADD OUTPUT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                    }
+                }
+            }
+        }
+
+        private void AddExpressionRecursive(Dictionary<VFXExpression, int> expressions, VFXExpression expr, int depth)
+        {
+            int exprDepth;
+            if (!expressions.TryGetValue(expr, out exprDepth))
+                exprDepth = -1;
+            exprDepth = Math.Max(exprDepth, depth);
+
+            expressions[expr] = exprDepth;
+            var parents = expr.GetParents();
+            if (parents != null)
+                foreach (var parent in parents)
+                    AddExpressionRecursive(expressions, parent, exprDepth + 1);
         }
 
         public bool PhaseShift
@@ -139,6 +362,11 @@ namespace UnityEditor.Experimental
         private bool m_ReloadUniforms = false;
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
 
+        private Dictionary<VFXExpression, int> m_Expressions = new Dictionary<VFXExpression, int>();
+
+        public VFXGeneratedTextureData GeneratedTextureData { get { return m_TextureData; } }
+        private VFXGeneratedTextureData m_TextureData = new VFXGeneratedTextureData();
+
         public bool Dirty = false;
     }
 
@@ -152,22 +380,27 @@ namespace UnityEditor.Experimental
 
         public void Dispose()
         {
-            if (rtData != null)
-                UnityEngine.Object.DestroyImmediate(rtData.m_Material);
+            //if (rtData != null)
+            //    UnityEngine.Object.DestroyImmediate(rtData.m_Material);
 
-            m_GeneratedTextureData.Dispose();
+            //m_GeneratedTextureData.Dispose();
         }
 
         public void DeleteAssets()
         {
-            string shaderName = "VFX_";
+            if (VFXEditor.asset == null)
+                return;
+
+            string shaderName = shaderName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset)); ;
             shaderName += m_ID;
 
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
             string outputShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
+            string materialPath = "Assets/VFXEditor/Generated/" + shaderName + ".mat";
 
             AssetDatabase.DeleteAsset(simulationShaderPath);
             AssetDatabase.DeleteAsset(outputShaderPath);
+            AssetDatabase.DeleteAsset(materialPath);
 
             VFXEditor.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
         }
@@ -275,8 +508,8 @@ namespace UnityEditor.Experimental
         {
             if (m_Dirty)
             {
-                if (rtData != null)
-                    UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
+                //if (rtData != null)
+                //    UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
                 rtData = VFXModelCompiler.CompileSystem(this);
                 m_Dirty = false;
                 return true;
@@ -289,7 +522,13 @@ namespace UnityEditor.Experimental
         {
             Dispose();
             //if (force || rtData != null)
-            VFXEditor.component.RemoveSystem(m_ID);
+
+            if (VFXEditor.asset != null)
+                VFXEditor.asset.RemoveSystem(m_ID);
+
+            foreach (var component in VFXEditor.allComponents)
+                component.RemoveSystem(m_ID);
+
             DeleteAssets();   
         }
 
@@ -379,15 +618,34 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public VFXGeneratedTextureData GeneratedTextureData { get { return m_GeneratedTextureData; } }
-        private VFXGeneratedTextureData m_GeneratedTextureData = new VFXGeneratedTextureData();
+        public VFXGeneratedTextureData GeneratedTextureData { get { return GetOwner().GeneratedTextureData; } }
+        //private VFXGeneratedTextureData m_GeneratedTextureData = new VFXGeneratedTextureData();
 
         public bool UpdateComponentSystem()
         {
             if (rtData == null)
                 return false;
 
-            VFXEditor.component.SetSystem(
+            if (VFXEditor.asset != null)
+            {
+                VFXEditor.asset.SetSystem(
+                    m_ID,
+                    MaxNb,
+                    rtData.SimulationShader,
+                    rtData.OutputShader,
+                    rtData.buffersDesc,
+                    rtData.outputType,
+                    SpawnRate,
+                    OrderPriority,
+                    rtData.hasKill
+                );
+
+                // TODO Make that work
+                foreach (var component in VFXEditor.allComponents)
+                    component.vfxAsset = VFXEditor.asset;
+            }  
+
+           /* VFXEditor.component.SetSystem(
                 m_ID,
                 MaxNb,
                 rtData.SimulationShader,
@@ -396,7 +654,7 @@ namespace UnityEditor.Experimental
                 rtData.outputType,
                 SpawnRate,
                 OrderPriority,
-                rtData.hasKill);
+                rtData.hasKill);*/
 
             m_ForceComponentUpdate = false;
             return true;
