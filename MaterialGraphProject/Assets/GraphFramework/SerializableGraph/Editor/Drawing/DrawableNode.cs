@@ -44,15 +44,17 @@ namespace UnityEditor.Graphing.Drawing
             // output port
             pos.x = width;
             pos.y = yStart;
+            bool first = true;
             foreach (var slot in node.outputSlots.OrderBy(x => x.priority))
             {
                 var edges = node.owner.GetEdges(node.GetSlotReference(slot.name));
                 // don't show empty output slots in collapsed mode
-                if (!node.drawState.expanded && !edges.Any())
+                if (!node.drawState.expanded && !edges.Any() && !first)
                     continue;
 
                 pos.y += 22;
                 AddChild(new NodeAnchor(pos, typeof(Vector4), node, slot, data, Direction.Output));
+                first = false;
             }
             pos.y += 22;
 
@@ -117,9 +119,9 @@ namespace UnityEditor.Graphing.Drawing
                 if (modificationType != GUIModificationType.None)
                     m_Data.MarkDirty();
 
-                if (modificationType == GUIModificationType.DataChanged)
+                if (modificationType == GUIModificationType.ModelChanged)
                 {
-                    ValidateDependentNodes(m_Node);
+                    m_Node.owner.ValidateGraph();
                     ParentCanvas().Invalidate();
                     ParentCanvas().ReloadData();
                     ParentCanvas().Repaint(); 

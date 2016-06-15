@@ -164,15 +164,19 @@ namespace UnityEngine.Graphing
             //manually modifies serialized data
             //of if they delete a node in the inspector
             //debug view.
-            var allNodeGUIDs = nodes.Select(x => x.guid).ToList();
-
             foreach (var edge in edges.ToArray())
             {
-                if (allNodeGUIDs.Contains(edge.inputSlot.nodeGuid) && allNodeGUIDs.Contains(edge.outputSlot.nodeGuid))
-                    continue;
+                var outputNode = GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var inputNode = GetNodeFromGuid(edge.inputSlot.nodeGuid);
 
-                //orphaned edge
-                RemoveEdgeNoValidate(edge);
+                if (outputNode == null 
+                    || inputNode == null
+                    || outputNode.FindOutputSlot(edge.outputSlot.slotName) == null 
+                    || inputNode.FindInputSlot(edge.inputSlot.slotName) == null)
+                {
+                    //orphaned edge
+                    RemoveEdgeNoValidate(edge);
+                }
             }
 
             foreach (var node in nodes)

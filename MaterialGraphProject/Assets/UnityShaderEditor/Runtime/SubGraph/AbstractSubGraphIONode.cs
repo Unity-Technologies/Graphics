@@ -2,9 +2,9 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public abstract class SubGraphIOBaseNode : AbstractMaterialNode
+    public abstract class AbstractSubGraphIONode : AbstractMaterialNode
     {
-        protected SubGraphIOBaseNode(IGraph theOwner) : base(theOwner)
+        protected AbstractSubGraphIONode(IGraph theOwner) : base(theOwner)
         {}
 
         /*public void FooterUI(GraphGUI host)

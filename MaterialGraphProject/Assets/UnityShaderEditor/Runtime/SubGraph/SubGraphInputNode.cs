@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public class SubGraphInputNode : SubGraphIOBaseNode, IGenerateProperties
+    public class SubGraphInputNode : AbstractSubGraphIONode, IGenerateProperties
     {
         public SubGraphInputNode(IGraph theOwner) : base(theOwner)
         {
