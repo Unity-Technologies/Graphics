@@ -52,7 +52,7 @@ namespace UnityEditor.Experimental
                 AddManipulator(new NodeDelete());
         }
 
-        public abstract void OnRemove();
+        //public abstract void OnRemove();
 
     }
 }

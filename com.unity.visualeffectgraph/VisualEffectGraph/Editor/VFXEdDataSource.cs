@@ -66,6 +66,21 @@ namespace UnityEditor.Experimental
             return model;
         }
 
+        public VFXCommentModel CreateComment(Vector2 pos, Vector2 size, string title, string body, Color color)
+        {
+            VFXCommentModel model = new VFXCommentModel();
+            model.UIPosition = pos;
+            model.UISize = size;
+            model.Title = title;
+            model.Body = body;
+            model.Color = color;
+            VFXEditor.Graph.models.AddChild(model);
+            
+            SyncView(model);
+
+            return model;
+        }
+
         public void Create(VFXElementModel model,VFXElementModel owner,int index = -1)
         {
             owner.AddChild(model, index);
@@ -120,7 +135,9 @@ namespace UnityEditor.Experimental
             else if (modelType == typeof(VFXDataNodeModel))
                 SyncDataNode((VFXDataNodeModel)model,recursive);
             else if (modelType == typeof(VFXDataBlockModel))
-                SyncDataBlock((VFXDataBlockModel)model,recursive);   
+                SyncDataBlock((VFXDataBlockModel)model,recursive);
+            else if (modelType == typeof(VFXCommentModel))
+                SyncComment((VFXCommentModel)model);
         }
 
         public void SyncSystem(VFXSystemModel model,bool recursive = false)
@@ -253,7 +270,7 @@ namespace UnityEditor.Experimental
 
                 if (nodeUI != null)
                 {
-                    nodeUI.OnRemove();
+                    //nodeUI.OnRemove();
                     m_ModelToUI.Remove(model);
                     m_Elements.Remove(nodeUI);
                 }
@@ -319,6 +336,29 @@ namespace UnityEditor.Experimental
             blockUI.Invalidate();
         }
 
+        public void SyncComment(VFXCommentModel model)
+        {
+            VFXEdComment commentUI = TryGetUI<VFXEdComment>(model);
+            if (model.GetOwner() == null)
+            {
+                m_ModelToUI.Remove(model);
+                m_Elements.Remove(commentUI);
+            }
+            else
+            {
+                if (commentUI == null)
+                {
+                    m_ModelToUI.Add(model, commentUI = new VFXEdComment(model));
+                    AddElement(commentUI);
+                }
+
+                commentUI.translation = model.UIPosition;
+
+                commentUI.Layout();
+                commentUI.Invalidate();
+            }      
+        }
+
         public void SyncSlot(VFXPropertySlot slot, bool recursive = true)
         {
             var anchor = GetUIAnchor(slot); // Must have been linked
@@ -364,7 +404,7 @@ namespace UnityEditor.Experimental
 
         private void DeleteContextUI(VFXEdContextNode contextUI)
         {
-            contextUI.OnRemove();
+            //contextUI.OnRemove();
             m_Elements.Remove(contextUI);
         }
 

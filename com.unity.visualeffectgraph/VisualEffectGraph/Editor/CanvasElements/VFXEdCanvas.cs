@@ -163,6 +163,7 @@ namespace UnityEditor.Experimental
             itemSet.AddMenuEntry("Add...", "New ParticleSystem", NewParticleSystem, null);
             itemSet.AddMenuEntry("Add...", "New Node...", ShowNewNodePopup, null);
             itemSet.AddMenuEntry("Add...", "New Parameter...", ShowNewDataNodePopup, null);
+            itemSet.AddMenuEntry("Add...", "New Comment", NewComment, null);
             itemSet.AddMenuEntry("Layout", "Layout All Systems", LayoutAllSystems, null);
             MiniMenu.Show(position, itemSet);
         }
@@ -170,6 +171,11 @@ namespace UnityEditor.Experimental
         public void NewParticleSystem(Vector2 position, object o)
         {
             VFXEdUtility.NewParticleSystem(this, m_DataSource, position);
+        }
+
+        public void NewComment(Vector2 position, object o)
+        {
+            VFXEdUtility.NewComment(this, m_DataSource, position);
         }
 
         public void ShowNewNodePopup(Vector2 position, object o)

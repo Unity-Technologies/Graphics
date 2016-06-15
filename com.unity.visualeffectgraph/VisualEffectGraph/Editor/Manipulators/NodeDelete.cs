@@ -33,16 +33,13 @@ namespace UnityEditor.Experimental
                 return false;
             }
 
-            if (!(element is VFXEdNodeBase) || !element.selected)
+            if (!element.selected)
             {
                 return false;
             }  
 
             if (element is VFXModelHolder)
                 ((VFXEdDataSource)canvas.dataSource).Remove(((VFXModelHolder)element).GetAbstractModel());
-
-            VFXEdNodeBase node = element as VFXEdNodeBase;
-            node.OnRemove();
             
             canvas.ReloadData();
             canvas.Repaint();

@@ -64,6 +64,13 @@ namespace UnityEditor.Experimental
         public GUIStyle EventNode;
         public GUIStyle EventNodeText;
 
+        public GUIStyle Comment;
+        public GUIStyle CommentResize;
+        public GUIStyle CommentTitle;
+        public GUIStyle CommentBody;
+        public GUIStyle CommentTitleEdit;
+        public GUIStyle CommentBodyEdit;
+
         public GUIStyle InspectorHeader;
 
         public Texture2D FlowEdgeOpacity;
@@ -340,10 +347,8 @@ namespace UnityEditor.Experimental
 
             Watermark = EditorGUIUtility.Load("VFXEditorWatermark.psd") as Texture2D;
 
-
             m_icons = new Dictionary<string, Texture2D>();
             GetIcon("Default");
-
 
             m_ContextColors = new Dictionary<VFXContextDesc.Type, Color>();
             
@@ -361,6 +366,41 @@ namespace UnityEditor.Experimental
             m_TypeColors.Add(VFXValueType.kTexture2D,  HexColor("#FF2288FF"));
             m_TypeColors.Add(VFXValueType.kTexture3D,  HexColor("#5555FFFF"));
             m_TypeColors.Add(VFXValueType.kNone,    HexColor("#1199FFFF"));
+
+            Comment = new GUIStyle();
+            Comment.name = "Comment";
+            Comment.normal.background = EditorGUIUtility.Load("StickyNote.png") as Texture2D;
+            Comment.border = new RectOffset(9, 36, 41, 13);
+
+            CommentResize = new GUIStyle();
+            CommentResize.name = "CommentResize";
+            CommentResize.normal.background = EditorGUIUtility.Load("StickyNoteCorner.png") as Texture2D;
+
+            CommentTitle = new GUIStyle();
+            CommentTitle.name = "CommentTitle";
+            CommentTitle.font = ImpactFont;
+            CommentTitle.fontSize = 64;
+            CommentTitle.alignment = TextAnchor.UpperLeft;
+            CommentTitle.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
+
+            CommentTitleEdit = new GUIStyle(EditorStyles.textArea);
+            CommentTitleEdit.name = "CommentTitleEdit";
+            CommentTitleEdit.font = ImpactFont;
+            CommentTitleEdit.fontSize = 64;
+            CommentTitleEdit.alignment = TextAnchor.UpperLeft;
+            CommentTitleEdit.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
+
+            CommentBody = new GUIStyle();
+            CommentBody.name = "CommentBody";
+            CommentBody.fontSize = 12;
+            CommentBody.alignment = TextAnchor.UpperLeft;
+            CommentBody.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
+
+            CommentBodyEdit = new GUIStyle(EditorStyles.textArea);
+            CommentBodyEdit.name = "CommentBodyEdit";
+            CommentBody.fontSize = 12;
+            CommentBody.alignment = TextAnchor.UpperLeft;
+            CommentBody.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
 
         }
 

@@ -84,10 +84,10 @@ namespace UnityEditor.Experimental
             DataSource.Remove((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock.GetAbstractModel());
         }
 
-        public override void OnRemove()
+        /*public override void OnRemove()
         {
             NodeBlockContainer.ClearNodeBlocks();
-        }
+        }*/
 
         public abstract bool AcceptNodeBlock(VFXEdNodeBlock block);
 
