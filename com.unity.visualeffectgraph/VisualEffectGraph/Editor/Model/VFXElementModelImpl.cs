@@ -173,12 +173,6 @@ namespace UnityEditor.Experimental
             Profiler.EndSample();
         }
 
-        /*private struct RTExpression
-        {
-            VFXExpression expr;
-            int[] data = new int[4];
-        }*/
-
         private void GenerateNativeData()
         {
             m_Expressions.Clear();
@@ -191,11 +185,11 @@ namespace UnityEditor.Experimental
                     AddExpressionRecursive(m_Expressions, expr, 0);
             }
 
-            Debug.Log("NB EXPRESSIONS: " + m_Expressions.Count);
+            /*Debug.Log("NB EXPRESSIONS: " + m_Expressions.Count);
             foreach (var expr in m_Expressions)
             {
                 Debug.Log(expr.Key.ToString() + " | " + expr.Value);
-            }
+            }*/
 
             // Sort expression per depth so that we're sure dependencies will be evaluated after dependents
             var sortedList = m_Expressions.ToList();
@@ -205,12 +199,12 @@ namespace UnityEditor.Experimental
             });
             var expressionList = sortedList.Select(kvp => kvp.Key).ToList();
 
-            Debug.Log("SORTED EXPRESSIONS: " + expressionList.Count);
+            //Debug.Log("SORTED EXPRESSIONS: " + expressionList.Count);
             // Finally we dont need the depth anymore, so use that int to store the index in the array instead
             for (int i = 0; i < expressionList.Count; ++i)
             {
                 m_Expressions[expressionList[i]] = i;
-                Debug.Log(expressionList[i].ToString());
+                //Debug.Log(expressionList[i].ToString());
             }
 
             // Generate signal texture if needed
@@ -302,18 +296,18 @@ namespace UnityEditor.Experimental
                         if (uniform.Value.StartsWith("init"))
                         {
                             asset.AddInitUniform(system.Id, uniform.Value, index);
-                            Debug.Log("ADD INIT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                            //Debug.Log("ADD INIT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
                         }
                         else if (uniform.Value.StartsWith("update"))
                         {
                             asset.AddUpdateUniform(system.Id, uniform.Value, index);
-                            Debug.Log("ADD UPDATE UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                            //Debug.Log("ADD UPDATE UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
                         }
                         else if (uniform.Value.StartsWith("global"))
                         {
                             asset.AddInitUniform(system.Id, uniform.Value, index);
                             asset.AddUpdateUniform(system.Id, uniform.Value, index);
-                            Debug.Log("ADD GLOBAL UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                            //Debug.Log("ADD GLOBAL UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
                         }
                     }
 
@@ -321,7 +315,7 @@ namespace UnityEditor.Experimental
                     {
                         int index = m_Expressions[uniform.Key];
                         asset.AddOutputUniform(system.Id, uniform.Value, index);
-                        Debug.Log("ADD OUTPUT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
+                        //Debug.Log("ADD OUTPUT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
                     }
                 }
             }
@@ -739,8 +733,26 @@ namespace UnityEditor.Experimental
                 m_UIPosition = position;
                 Invalidate(InvalidationCause.kUIChanged);
             }
-
         }
+
+       /* public bool Link(VFXSpawnerNodeModel spawner,bool reentrant = false)
+        {
+            if (reentrant || spawner.Link(this,true))
+            {
+                spawners.Add(spawner);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool Unlink(VFXSpawnerNodeModel spawner,bool reentrant = false)
+        {
+            if (reentrant || spawner.Unlink(this,true))
+                return spawners.Remove(spawner);
+
+            return false;
+        }*/
 
         private VFXContextDesc m_Desc;
 
@@ -749,6 +761,8 @@ namespace UnityEditor.Experimental
         
         private bool m_UICollapsed;
         private Vector2 m_UIPosition;
+
+        //private List<VFXSpawnerNodeModel> spawners;
     }
 
     public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>, VFXUIDataHolder
