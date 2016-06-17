@@ -59,9 +59,9 @@ namespace UnityEditor.Experimental
             
         }
 
-        public override bool AcceptNodeBlock(VFXEdNodeBlock block)
+        public override bool AcceptNodeBlock(VFXEdNodeBlockDraggable block)
         {
-            return block is VFXEdDataNodeBlock;
+            return Model.CanAddChild(block.GetAbstractModel());
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)

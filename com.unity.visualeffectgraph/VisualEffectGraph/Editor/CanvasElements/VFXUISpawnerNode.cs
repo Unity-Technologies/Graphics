@@ -6,15 +6,20 @@ using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Experimental
+namespace UnityEditor.Experimental.VFX
 {
-    internal class VFXEdTriggerNode : VFXEdNode
+    internal class VFXUISpawnerNode : VFXEdNode, VFXModelHolder
     {
+        public VFXSpawnerNodeModel Model { get { return m_Model; } }
 
-        internal VFXEdTriggerNode(Vector2 canvasPosition, VFXEdDataSource dataSource) 
-            : base (canvasPosition, dataSource)
+        public VFXElementModel GetAbstractModel() { return Model; }
+
+        private VFXSpawnerNodeModel m_Model;
+
+        internal VFXUISpawnerNode(VFXSpawnerNodeModel model, VFXEdDataSource dataSource) 
+            : base (model.UIPosition, dataSource)
         {
-
+            m_Model = model;
             m_Title = "Trigger";
 
             m_Inputs.Add(new VFXEdFlowAnchor(0, typeof(float), VFXContextDesc.Type.kTypeNone, m_DataSource, Direction.Input));
@@ -39,10 +44,9 @@ namespace UnityEditor.Experimental
             throw new NotImplementedException();
         }
 
-        public override bool AcceptNodeBlock(VFXEdNodeBlock block)
+        public override bool AcceptNodeBlock(VFXEdNodeBlockDraggable block)
         {
-            // TODO : Add VFXEdTriggerNodeBlock
-            return false;
+            return Model.CanAddChild(block.GetAbstractModel());
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)

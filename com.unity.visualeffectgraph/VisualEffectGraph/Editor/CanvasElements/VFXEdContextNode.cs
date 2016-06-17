@@ -227,9 +227,9 @@ namespace UnityEditor.Experimental
             //Model.AddChild((nodeblock as VFXEdProcessingNodeBlock).Model,index);
         }
 
-        public override bool AcceptNodeBlock(VFXEdNodeBlock block)
+        public override bool AcceptNodeBlock(VFXEdNodeBlockDraggable block)
         {
-            return block is VFXEdProcessingNodeBlock;
+            return Model.CanAddChild(block.GetAbstractModel());
         }
 
         public override void Layout()

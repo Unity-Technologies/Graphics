@@ -582,21 +582,6 @@ namespace UnityEditor.Experimental
        
             return true;
         }
-
-
-        /// <summary>
-        /// Spawn node is called from context menu, object is expected to be a VFXEdSpawner
-        /// </summary>
-        /// <param name="o"> param that should be a VFXEdSpawner</param>
-        public void SpawnNode(object o)
-        {
-            VFXEdSpawner spawner = (VFXEdSpawner)o;
-            if(spawner != null)
-            {
-                spawner.Spawn();
-            }
-        }
-
     }
 }
 

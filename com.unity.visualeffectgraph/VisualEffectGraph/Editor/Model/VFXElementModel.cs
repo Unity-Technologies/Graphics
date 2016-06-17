@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental
             m_Owner.Remove(this, notify);
         }
 
-        public abstract bool CanAddChild(VFXElementModel element, int index);
+        public abstract bool CanAddChild(VFXElementModel element, int index = -1);
         public void Invalidate(InvalidationCause cause)
         {
             InnerInvalidate(cause);
@@ -115,7 +115,7 @@ namespace UnityEditor.Experimental
         where OwnerType : VFXElementModel
         where ChildrenType : VFXElementModel
     {
-        public override bool CanAddChild(VFXElementModel element, int index)
+        public override bool CanAddChild(VFXElementModel element, int index = -1)
         {
             return index >= -1 && index <= m_Children.Count && element is ChildrenType;
         }

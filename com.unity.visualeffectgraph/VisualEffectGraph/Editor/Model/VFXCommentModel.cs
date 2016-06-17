@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.VFX
     public class VFXCommentModel : VFXElementModel<VFXElementModel,VFXElementModel>
     {
 
-        public override bool CanAddChild(VFXElementModel element, int index)
+        public override bool CanAddChild(VFXElementModel element, int index = -1)
         {
             return false;
         }

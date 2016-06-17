@@ -64,36 +64,9 @@ namespace UnityEditor.Experimental
             return m_NodeBlockContainer.OwnsBlock(block);
         }
 
-        public void AddNodeBlock(object o)
-        {
-            VFXEdSpawner spawner = o as VFXEdSpawner;
-            if(spawner != null)
-            {
-                spawner.Spawn();
-            }
-            (ParentCanvas() as VFXEdCanvas).SelectedNodeBlock = null;
-            Layout();
-        }
-
-        public void ReplaceNodeBlock(object o)
-        {
-            VFXEdSpawner spawner = o as VFXEdSpawner;
-            if(spawner != null)
-                spawner.Spawn();
-
-            DataSource.Remove((ParentCanvas() as VFXEdCanvas).SelectedNodeBlock.GetAbstractModel());
-        }
-
-        /*public override void OnRemove()
-        {
-            NodeBlockContainer.ClearNodeBlocks();
-        }*/
-
-        public abstract bool AcceptNodeBlock(VFXEdNodeBlock block);
+        public abstract bool AcceptNodeBlock(VFXEdNodeBlockDraggable block);
 
         public abstract void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index);
-
-
 
         private bool ManageSelection(CanvasElement element, Event e, Canvas2D parent)
         {

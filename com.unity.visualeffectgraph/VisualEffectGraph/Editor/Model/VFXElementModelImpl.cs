@@ -398,7 +398,7 @@ namespace UnityEditor.Experimental
             VFXEditor.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
         }
 
-        public override bool CanAddChild(VFXElementModel element, int index)
+        public override bool CanAddChild(VFXElementModel element, int index = -1)
         {
             if (!base.CanAddChild(element, index))
                 return false;
@@ -670,7 +670,7 @@ namespace UnityEditor.Experimental
             InitSlots(desc.m_Properties,null);
         }
 
-        public override bool CanAddChild(VFXElementModel element, int index)
+        public override bool CanAddChild(VFXElementModel element, int index = -1)
         {
             return base.CanAddChild(element, index) && m_Desc.m_Type != VFXContextDesc.Type.kTypeNone;
             // TODO Check if the block is compatible with the context
@@ -731,7 +731,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-        /*public bool Link(VFXSpawnerNodeModel spawner,bool reentrant = false)
+        public bool Link(VFXSpawnerNodeModel spawner,bool reentrant = false)
         {
             if (reentrant || spawner.Link(this,true))
             {
@@ -748,7 +748,7 @@ namespace UnityEditor.Experimental
                 return spawners.Remove(spawner);
 
             return false;
-        }*/
+        }
 
         private VFXContextDesc m_Desc;
 
@@ -758,7 +758,7 @@ namespace UnityEditor.Experimental
         private bool m_UICollapsed;
         private Vector2 m_UIPosition;
 
-        //private List<VFXSpawnerNodeModel> spawners = new List<VFXSpawnerNodeModel>();
+        private List<VFXSpawnerNodeModel> spawners = new List<VFXSpawnerNodeModel>();
     }
 
     public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>, VFXUIDataHolder
@@ -820,7 +820,7 @@ namespace UnityEditor.Experimental
         public int GetNbSlots()                 { return GetNbInputSlots(); }
         public VFXInputSlot GetSlot(int index)  { return GetInputSlot(index); }
 
-        public override bool CanAddChild(VFXElementModel element, int index)
+        public override bool CanAddChild(VFXElementModel element, int index = -1)
         {
             return false; // Nothing can be attached to Blocks !
         }

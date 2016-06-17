@@ -216,7 +216,7 @@ namespace UnityEditor.Experimental
                     VFXEdNodeBlockContainer container = (e as VFXEdNodeBlockContainer);
                     container.ParentCanvas().OnOverlay -= container.RenderOverlayForbiddenDrop;
 
-                    bool acceptable = container.FindParent<VFXEdNode>().AcceptNodeBlock(m_Block);
+                    bool acceptable = container.FindParent<VFXEdNode>().AcceptNodeBlock(m_Block as VFXEdNodeBlockDraggable);
                     if(!acceptable) container.ParentCanvas().OnOverlay += container.RenderOverlayForbiddenDrop;
 
                     if (container.Contains(canvasHitPosition) && acceptable)
