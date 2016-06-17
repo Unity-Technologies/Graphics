@@ -227,10 +227,7 @@ namespace UnityEditor.Experimental
 
         private void ListGUI()
         {
-
             EditorGUIUtility.SetIconSize(new Vector2(16, 16));
-
-            List<Item> children = m_Items;
 
             if (Event.current.type == EventType.MouseMove)
             {

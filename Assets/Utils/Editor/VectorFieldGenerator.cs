@@ -120,7 +120,6 @@ public class VectorFieldGenerator : EditorWindow {
 
             for(ulong i = 0; i < length; i++)
             {
-                Color c;
                 if(mode == 0)
                 {
                     float val = br.ReadSingle();

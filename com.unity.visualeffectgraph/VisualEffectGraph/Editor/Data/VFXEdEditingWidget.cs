@@ -309,12 +309,12 @@ namespace UnityEditor.Experimental
             {
                 case Tool.Move:
                     if(Tools.pivotRotation == PivotRotation.Global)
-                        m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), Quaternion.identity));
+                        m_Position.Set(Handles.PositionHandle(pos, Quaternion.identity));
                     else
-                        m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), m_Quat));
+                        m_Position.Set(Handles.PositionHandle(pos, m_Quat));
                     break;
                 case Tool.Rotate:
-                    m_Quat = Handles.RotationHandle(m_Quat, m_Position.Get<Vector3>());
+                    m_Quat = Handles.RotationHandle(m_Quat, pos);
                     break;
 
                 default:

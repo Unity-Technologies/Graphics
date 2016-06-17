@@ -54,8 +54,6 @@ namespace UnityEditor.Experimental
 
         public VFXBufferDesc[] buffersDesc;
 
-        private List<ComputeBuffer> buffers = new List<ComputeBuffer>();
-
         public VFXSystemRuntimeData(ComputeShader computeShader,Shader shader)
         {
             simulationShader = computeShader;
@@ -650,7 +648,6 @@ namespace UnityEditor.Experimental
 
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
             string outputShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
-            string materialPath = "Assets/VFXEditor/Generated/" + shaderName + ".mat";
 
             AssetDatabase.ImportAsset(simulationShaderPath);
             AssetDatabase.ImportAsset(outputShaderPath);

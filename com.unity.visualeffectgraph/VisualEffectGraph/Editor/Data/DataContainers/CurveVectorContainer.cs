@@ -164,10 +164,6 @@ namespace UnityEditor.Experimental
         {
             CurveVectorContainer container = ScriptableObject.CreateInstance<CurveVectorContainer>();
             container.CurveX = new AnimationCurve();
-            foreach(Keyframe k in CurveX.keys)
-            {
-
-            }
             return container;
         }
     }

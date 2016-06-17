@@ -267,7 +267,6 @@ namespace UnityEditor.Experimental
                                 break;
                             default:
                                 throw new Exception("Invalid value");
-                                break;
                         }
                     }
                     else
@@ -385,7 +384,7 @@ namespace UnityEditor.Experimental
             if (VFXEditor.asset == null)
                 return;
 
-            string shaderName = shaderName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset)); ;
+            string shaderName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset)); ;
             shaderName += m_ID;
 
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
@@ -732,7 +731,7 @@ namespace UnityEditor.Experimental
             }
         }
 
-       /* public bool Link(VFXSpawnerNodeModel spawner,bool reentrant = false)
+        /*public bool Link(VFXSpawnerNodeModel spawner,bool reentrant = false)
         {
             if (reentrant || spawner.Link(this,true))
             {
@@ -759,7 +758,7 @@ namespace UnityEditor.Experimental
         private bool m_UICollapsed;
         private Vector2 m_UIPosition;
 
-        //private List<VFXSpawnerNodeModel> spawners;
+        //private List<VFXSpawnerNodeModel> spawners = new List<VFXSpawnerNodeModel>();
     }
 
     public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>, VFXUIDataHolder

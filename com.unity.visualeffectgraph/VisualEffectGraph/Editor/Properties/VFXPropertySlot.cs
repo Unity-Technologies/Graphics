@@ -398,7 +398,7 @@ namespace UnityEngine.Experimental.VFX
             Init<VFXInputSlot>(null, desc);  
         }
 
-        public new bool Link(VFXOutputSlot slot)
+        public bool Link(VFXOutputSlot slot)
         {
             if (slot != m_ConnectedSlot)
             {
@@ -527,7 +527,7 @@ namespace UnityEngine.Experimental.VFX
             return connected;
         }
 
-        public new void Link(VFXInputSlot slot)
+        public void Link(VFXInputSlot slot)
         {
             if (slot == null)
                 return;

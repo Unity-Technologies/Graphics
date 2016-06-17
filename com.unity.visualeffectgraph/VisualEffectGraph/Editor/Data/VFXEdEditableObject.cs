@@ -169,7 +169,6 @@ namespace UnityEditor.Experimental
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            Color c = GUI.color;
             EditorGUILayout.BeginVertical();
 
             GUILayout.Label(new GUIContent("Solver General Parameters"), VFXEditor.styles.InspectorHeader);

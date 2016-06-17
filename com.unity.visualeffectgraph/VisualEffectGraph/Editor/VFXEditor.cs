@@ -104,7 +104,7 @@ namespace UnityEditor.Experimental
         public static void Log(string s) {
             return; // TMP Deactivate logging
 
-            int currentIndex = DebugLines.Count - 1;
+           /* int currentIndex = DebugLines.Count - 1;
 
             if (currentIndex == -1)
             {
@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental
 
             currentStr += s;
             currentStr += "\n";
-            DebugLines[currentIndex] = currentStr;
+            DebugLines[currentIndex] = currentStr;*/
         }
 
         public static void ClearLog() {
@@ -155,8 +155,6 @@ namespace UnityEditor.Experimental
 
         private bool m_bShowDebug = false;
         private int m_ShowDebugPage = 0;
-        private string m_NewTemplateCategory = "";
-        private string m_NewTemplateName = "";
 
         private Vector2 m_DebugLogScroll = Vector2.zero;
 
