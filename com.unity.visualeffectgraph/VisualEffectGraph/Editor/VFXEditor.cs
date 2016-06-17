@@ -173,9 +173,15 @@ namespace UnityEditor.Experimental
                 if (asset == null)
                     return new List<VFXComponent>();
 
-                VFXComponent[] vfxComponents = FindObjectsOfType<VFXComponent>();
+                VFXComponent[] vfxComponents = VFXComponent.GetAllActive();
                 return vfxComponents.Where(vfx => vfx.vfxAsset == VFXEditor.asset);
             }
+        }
+
+        public static void ForeachComponents(Action<VFXComponent> action)
+        {
+            foreach (var component in allComponents)
+                action(component);
         }
 
         private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
@@ -426,6 +432,9 @@ namespace UnityEditor.Experimental
             }
             isOldPlaying = Application.isPlaying;
 
+            if (m_Component != null && m_CurrentAsset != m_Component.vfxAsset)
+                SetCurrentAsset(m_Component.vfxAsset);
+
             if (Graph != null)
                 Graph.systems.Update();
         }
@@ -450,19 +459,25 @@ namespace UnityEditor.Experimental
         public void DestroyGraph()
         {
             // Remove systems
-            if (s_Graph != null && m_Component != null)
+            if (s_Graph != null)
             {
                 for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
                     s_Graph.systems.GetChild(i).RemoveSystem();
                 s_Graph.systems.Dispose();
                 s_Graph = null;
             }
+
+            if (m_DataSource != null)
+            {
+                m_DataSource.ClearUI();
+                m_NeedsCanvasReload = true;
+            }
         }
 
         private bool m_NeedsCanvasReload = false;
         public void SetCurrentAsset(VFXAsset asset,bool force = false)
         {
-            if (m_CurrentAsset != asset || force) 
+            if (m_CurrentAsset != asset || s_Graph == null || force) 
             {
                 if (m_CurrentAsset != null)
                 {
@@ -474,14 +489,17 @@ namespace UnityEditor.Experimental
                 s_Asset = m_CurrentAsset;
                 if (m_CurrentAsset != null)
                 {
+                    // Unselect component if it is not this asset
+                    if (component != null && component.vfxAsset != m_CurrentAsset)
+                        SetCurrentComponent(null);
+
                     //Debug.Log("------------------------ CREATE NEW GRAPH: " + asset.ToString()); 
                     string xml = m_CurrentAsset.XmlGraph;
                     Debug.Log("Get XML graph from " + m_CurrentAsset.name + " " + m_CurrentAsset.XmlGraph);
 
                     // Remove all previous systems as the Ids may have changed
                     m_CurrentAsset.RemoveAllSystems();
-                    foreach (var component in allComponents)
-                        component.RemoveAllSystems();
+                    ForeachComponents(c => c.RemoveAllSystems());
 
                     s_Graph = ModelSerializer.Deserialize(xml);
                     for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
@@ -489,8 +507,9 @@ namespace UnityEditor.Experimental
                 }
                 else
                 {
-                    //Debug.Log("------------------------ SET NULL GRAPH");  
-                    s_Graph = null;
+                    //Debug.Log("------------------------ SET NULL GRAPH");
+                    DestroyGraph();
+                    SetCurrentComponent(null);
                 }
             }
 
@@ -503,14 +522,35 @@ namespace UnityEditor.Experimental
             m_NeedsCanvasReload = true;
         }
 
+        private void SetCurrentComponent(VFXComponent c)
+        {
+            if (m_Component != null)
+                ReinitComponentPlayControls(m_Component);
+
+            m_Component = c;
+        }
+
         private void OnSelectionChanged()
         {
-            var assets = Selection.assetGUIDs;
-            if (assets.Length == 1)
+            var activeGo = Selection.activeGameObject;
+            if (activeGo != null)
             {
-                var selected = AssetDatabase.LoadAssetAtPath<VFXAsset>(AssetDatabase.GUIDToAssetPath(assets[0]));
-                if (selected != null)
-                    SetCurrentAsset(selected);
+                var vfxComponent = activeGo.GetComponent<VFXComponent>();
+                if (vfxComponent != null && m_Component != vfxComponent)
+                {
+                    SetCurrentComponent(vfxComponent);
+                    SetCurrentAsset(vfxComponent.vfxAsset);
+                }
+            }
+            else
+            {
+                var assets = Selection.assetGUIDs;
+                if (assets.Length == 1)
+                {
+                    var selected = AssetDatabase.LoadAssetAtPath<VFXAsset>(AssetDatabase.GUIDToAssetPath(assets[0]));
+                    if (selected != null)
+                        SetCurrentAsset(selected);
+                }
             }
         }
 
@@ -521,24 +561,33 @@ namespace UnityEditor.Experimental
 
         void DrawToolbar(Rect rect)
         {
-            if (Graph == null || component == null)
+            if (Graph == null)
+            {
+                GUILayout.Label("Select a VFX Asset or VFX Component with a valid asset");
                 return;
+            }
 
             GUI.BeginGroup(rect);
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton))
             {
-                component.pause = false;
-                component.Reinit();
+                foreach (var c in allComponents)
+                {
+                    c.pause = false;
+                    c.Reinit();
+                }
             }
+
+            EditorGUI.BeginDisabledGroup(component == null);
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.toolbarButton))
-            {
                 component.pause = false;
-            }
 
-            component.pause = GUILayout.Toggle(component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
+            if (component != null)
+                component.pause = GUILayout.Toggle(component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
+            else
+                GUILayout.Toggle(false, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.toolbarButton);
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.toolbarButton))
             {
@@ -568,12 +617,25 @@ namespace UnityEditor.Experimental
                 EditorGUIUtility.ExitGUI();
             }
 
-            float r = component.playRate;
-            float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(component.playRate), 0.0f, Mathf.Sqrt(8.0f), GUILayout.Width(140.0f)), 2.0f);
-            GUILayout.Label(Mathf.Round(nr * 100) + "%", GUILayout.Width(80.0f));
-            if (r != nr)
-                SetPlayRate(nr);
+            if (component != null)
+            {
+                float r = component.playRate;
+                float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(component.playRate), 0.0f, Mathf.Sqrt(8.0f), GUILayout.Width(140.0f)), 2.0f);
+                GUILayout.Label(Mathf.Round(nr * 100) + "%", GUILayout.Width(50.0f));
+                if (r != nr)
+                    SetPlayRate(nr);
 
+                // Label to select active component
+                if (GUILayout.Button(component.name, EditorStyles.toolbarButton))
+                    Selection.objects = new UnityEngine.Object[] { component.gameObject };
+            }
+            else
+            {
+                GUILayout.HorizontalSlider(0.0f, 0.0f, 1.0f, GUILayout.Width(140.0f));
+                GUILayout.Space(50.0f);
+            }
+
+            EditorGUI.EndDisabledGroup();
 
             if (m_CurrentAsset != null)
             {
@@ -592,6 +654,12 @@ namespace UnityEditor.Experimental
             GUILayout.EndHorizontal();
             GUI.EndGroup();
 
+        }
+
+        private void ReinitComponentPlayControls(VFXComponent c)
+        {
+            c.pause = false;
+            c.playRate = 1.0f;
         }
 
         #region TOOL WINDOWS

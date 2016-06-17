@@ -49,7 +49,7 @@ namespace UnityEditor.Experimental
             for (int i = 0; i < GetNbChildren(); ++i)
             {
                 GetChild(i).Dispose();
-                GetChild(i).DeleteAssets();
+                //GetChild(i).DeleteAssets();
             }             
         }
 
@@ -167,8 +167,7 @@ namespace UnityEditor.Experimental
             }
 
             if (HasRecompiled) // Restart component 
-                foreach(var component in VFXEditor.allComponents)
-                    component.Reinit();
+                VFXEditor.ForeachComponents(c => c.Reinit());
 
             Profiler.EndSample();
         }
@@ -526,8 +525,7 @@ namespace UnityEditor.Experimental
             if (VFXEditor.asset != null)
                 VFXEditor.asset.RemoveSystem(m_ID);
 
-            foreach (var component in VFXEditor.allComponents)
-                component.RemoveSystem(m_ID);
+            VFXEditor.ForeachComponents(c => c.RemoveSystem(m_ID));
 
             DeleteAssets();   
         }
@@ -640,9 +638,7 @@ namespace UnityEditor.Experimental
                     rtData.hasKill
                 );
 
-                // TODO Make that work
-                foreach (var component in VFXEditor.allComponents)
-                    component.vfxAsset = VFXEditor.asset;
+                VFXEditor.ForeachComponents(c => c.vfxAsset = VFXEditor.asset);
             }  
 
            /* VFXEditor.component.SetSystem(

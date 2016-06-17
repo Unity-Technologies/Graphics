@@ -48,13 +48,13 @@ namespace UnityEditor.Experimental
             var component = VFXEditor.component;
             switch(e.keyCode)
             {
-                case KeyCode.Alpha1: component.playRate = 0.01f; needRefresh = true; break;
-                case KeyCode.Alpha2: component.playRate = 0.1f; needRefresh = true; break;
-                case KeyCode.Alpha3: component.playRate = 0.25f; needRefresh = true; break;
-                case KeyCode.Alpha4: component.playRate = 0.5f; needRefresh = true; break;
-                case KeyCode.Alpha5: component.playRate = 1.0f; needRefresh = true; break;
-                case KeyCode.Alpha6: component.playRate = 2.0f; needRefresh = true; break;
-                case KeyCode.Alpha7: component.playRate = 8.0f; needRefresh = true; break;
+                case KeyCode.Alpha1: if (component == null) break; component.playRate = 0.01f; needRefresh = true; break;
+                case KeyCode.Alpha2: if (component == null) break; component.playRate = 0.1f; needRefresh = true; break;
+                case KeyCode.Alpha3: if (component == null) break; component.playRate = 0.25f; needRefresh = true; break;
+                case KeyCode.Alpha4: if (component == null) break; component.playRate = 0.5f; needRefresh = true; break;
+                case KeyCode.Alpha5: if (component == null) break; component.playRate = 1.0f; needRefresh = true; break;
+                case KeyCode.Alpha6: if (component == null) break; component.playRate = 2.0f; needRefresh = true; break;
+                case KeyCode.Alpha7: if (component == null) break; component.playRate = 8.0f; needRefresh = true; break;
                 case KeyCode.L:
                     if(m_canvas.selection.Count > 0)
                     {
@@ -74,10 +74,13 @@ namespace UnityEditor.Experimental
                     }
                     m_canvas.Repaint();
                     break;
-                case KeyCode.Space: component.Reinit(); needRefresh = true; break;
+                case KeyCode.Space: VFXEditor.ForeachComponents(c => c.Reinit()); needRefresh = true; break;
                 case KeyCode.P:
-                    component.pause = true;
-                    component.AdvanceOneFrame();
+                    if (component != null)
+                    {
+                        component.pause = true;
+                        component.AdvanceOneFrame();
+                    }
                     break;
                 default:
                     break;
