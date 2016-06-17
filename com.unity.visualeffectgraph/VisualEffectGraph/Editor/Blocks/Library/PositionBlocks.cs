@@ -32,12 +32,12 @@ position = pos;";
             Add(VFXProperty.Create<VFXTexture2DType>("tex"));
             Add(VFXProperty.Create<VFXOrientedBoxType>("box"));
             Add(VFXProperty.Create<VFXFloatType>("divergence"));
-
+            Add(new VFXProperty(new VFXVectorType(new Vector3(0.5f, 0.5f, 0.5f)), "posmapcenter"));
             Add(new VFXAttribute(CommonAttrib.Position, true));
 
             Source = @"
 float3 div = (RAND3 - 0.5f) * (divergence * 2.0f);
-position = (div + tex2Dlod(tex,float4(RAND2,0,0)).rgb) - 0.5f;
+position = (div + tex2Dlod(tex,float4(RAND2,0,0)).rgb) - posmapcenter;
 position = mul(box,float4(position.xyz,1.0f)).xyz;"; 
         }
     }

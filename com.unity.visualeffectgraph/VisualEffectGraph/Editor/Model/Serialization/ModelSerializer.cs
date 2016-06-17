@@ -198,9 +198,13 @@ namespace UnityEditor.Experimental.VFX
                 for (int i = 0; i < graph.models.GetNbChildren(); ++i)
                 {
                     var model = graph.models.GetChild(i);
-                    var dataNode = model as VFXDataNodeModel;
-                    if (dataNode != null)
-                        Serialize(writer, dataNode, data);
+                    Type modelType = model.GetType();
+                    if (modelType == typeof(VFXDataNodeModel))
+                        Serialize(writer, (VFXDataNodeModel)model, data);
+                    else if (modelType == typeof(VFXCommentModel))
+                        Serialize(writer, (VFXCommentModel)model, data);
+                    else
+                        Debug.LogWarning("Cannot serialize model of type: " + modelType);
                 }
 
                 SerializeConnections(writer, data);
@@ -275,6 +279,17 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteAttributeString("Collapsed", dataBlock.UICollapsed.ToString());
             writer.WriteAttributeString("ExposedName", dataBlock.ExposedName.ToString());
             Serialize(writer, dataBlock.Slot,data);
+            writer.WriteEndElement();
+        }
+
+        private static void Serialize(XmlWriter writer, VFXCommentModel comment, MetaData data)
+        {
+            writer.WriteStartElement("Comment");
+            writer.WriteAttributeString("Position", SerializationUtils.FromVector2(comment.UIPosition));
+            writer.WriteAttributeString("Size", SerializationUtils.FromVector2(comment.UISize));
+            writer.WriteAttributeString("Title", comment.Title);
+            writer.WriteAttributeString("Body", comment.Body);
+            writer.WriteAttributeString("Color", SerializationUtils.FromColor(comment.Color));
             writer.WriteEndElement();
         }
 
@@ -355,6 +370,7 @@ namespace UnityEditor.Experimental.VFX
 
                 var systemsXML = root.Elements("System");
                 var dataNodesXML = root.Elements("DataNode");
+                var commentsXML = root.Elements("Comment");
                 var connectionsXML = root.Element("Connections");
 
                 foreach (var systemXML in systemsXML)
@@ -362,6 +378,9 @@ namespace UnityEditor.Experimental.VFX
 
                 foreach (var dataNodeXML in dataNodesXML)
                     graph.models.AddChild(DeserializeDataNode(dataNodeXML, data));
+
+                foreach (var commentXML in commentsXML)
+                    graph.models.AddChild(DeserializeComment(commentXML, data));
 
                 DeserializeConnections(connectionsXML, data);
             }
@@ -465,6 +484,17 @@ namespace UnityEditor.Experimental.VFX
             DeserializeSlot(xml.Element("Slot"), block.Slot, data);
 
             return block;          
+        }
+
+        private static VFXCommentModel DeserializeComment(XElement xml, MetaData data)
+        {
+            var comment = new VFXCommentModel();
+            comment.UIPosition = SerializationUtils.ToVector2(xml.Attribute("Position").Value);
+            comment.UISize = SerializationUtils.ToVector2(xml.Attribute("Size").Value);
+            comment.Title = xml.Attribute("Title").Value;
+            comment.Body = xml.Attribute("Body").Value;
+            comment.Color = SerializationUtils.ToColor(xml.Attribute("Color").Value);
+            return comment;    
         }
 
         private static void DeserializeSlot(XElement xml, VFXPropertySlot dst, MetaData data)

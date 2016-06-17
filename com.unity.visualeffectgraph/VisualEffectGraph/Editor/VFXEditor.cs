@@ -102,6 +102,8 @@ namespace UnityEditor.Experimental
 
         // DEBUG OUTPUT
         public static void Log(string s) {
+            return; // TMP Deactivate logging
+
             int currentIndex = DebugLines.Count - 1;
 
             if (currentIndex == -1)
