@@ -42,7 +42,6 @@ namespace UnityEditor.Experimental.Graph.Examples
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            EventType t = Event.current.type;
             Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
             Color selectedColor = new Color(1.0f, 0.7f, 0.0f, 0.7f);
             EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), selected ? selectedColor : backgroundColor);

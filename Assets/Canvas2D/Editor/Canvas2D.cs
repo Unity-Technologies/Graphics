@@ -201,8 +201,7 @@ namespace UnityEditor.Experimental
             r.x -= m_ViewOffset.x;
             r.y -= m_ViewOffset.y * 2.0f;
 
-            Vector3 t = m_Translation;
-            var inverseScale = new Vector2(1.0f / m_Scale.x, 1.0f / m_Scale.y);
+            //var inverseScale = new Vector2(1.0f / m_Scale.x, 1.0f / m_Scale.y);
             Matrix4x4 scaleMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, m_Scale);
             Matrix4x4 txMatrix = Matrix4x4.TRS(m_Translation, Quaternion.identity, Vector3.one);
             Matrix4x4 mm = txMatrix * scaleMatrix;

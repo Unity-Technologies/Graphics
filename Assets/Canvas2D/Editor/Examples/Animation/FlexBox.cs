@@ -55,7 +55,6 @@ namespace UnityEditor.Experimental.Graph.Examples
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
-            var currentEvent = Event.current.type;
             base.Render(parentRect, canvas);
 
             if (GUI.Button(new Rect((m_Scale.x / 2.0f) - (m_ButtonWidth / 2.0f), 22, m_ButtonWidth, 20), "grow"))

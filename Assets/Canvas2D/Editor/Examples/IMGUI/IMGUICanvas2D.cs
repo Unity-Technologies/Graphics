@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Graph.Examples
             m_Data.Add(e);
             m_Canvas.ReloadData();
 
-            var scaling = e.scale;
+            //var scaling = e.scale;
         }
 
         private void InitializeCanvas()
