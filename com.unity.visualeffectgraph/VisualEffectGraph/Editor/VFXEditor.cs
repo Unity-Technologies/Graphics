@@ -240,6 +240,7 @@ namespace UnityEditor.Experimental
             }*/
 
             Selection.selectionChanged += OnSelectionChanged;
+            OnSelectionChanged(); // Call when enabled to retrieve the current selection
 
             s_Asset = m_CurrentAsset;
         }
@@ -463,8 +464,8 @@ namespace UnityEditor.Experimental
             // Remove systems
             if (s_Graph != null)
             {
-                for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
-                    s_Graph.systems.GetChild(i).RemoveSystem();
+                /*for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
+                    s_Graph.systems.GetChild(i).RemoveSystem();*/
                 s_Graph.systems.Dispose();
                 s_Graph = null;
             }

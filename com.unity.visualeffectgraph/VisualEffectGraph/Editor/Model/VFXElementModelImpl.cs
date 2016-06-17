@@ -180,8 +180,9 @@ namespace UnityEditor.Experimental
             {
                 VFXSystemModel system = GetChild(i);
                 VFXSystemRuntimeData rtData = system.RtData;
-                foreach (var expr in rtData.m_RawExpressions)
-                    AddExpressionRecursive(m_Expressions, expr, 0);
+                if (rtData != null)
+                    foreach (var expr in rtData.m_RawExpressions)
+                        AddExpressionRecursive(m_Expressions, expr, 0);
             }
 
             /*Debug.Log("NB EXPRESSIONS: " + m_Expressions.Count);
@@ -511,7 +512,7 @@ namespace UnityEditor.Experimental
             return false;
         }
 
-        public void RemoveSystem(/*bool force = false*/)
+        public void RemoveSystem()
         {
             Dispose();
             //if (force || rtData != null)
