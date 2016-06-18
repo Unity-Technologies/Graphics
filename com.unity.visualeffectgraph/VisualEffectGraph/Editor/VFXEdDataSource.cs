@@ -10,16 +10,11 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdDataSource : ScriptableObject, ICanvasDataSource, VFXModelController
+    internal class VFXEdDataSource : ICanvasDataSource, VFXModelController
     {
         private List<CanvasElement> m_Elements = new List<CanvasElement>();
         private Dictionary<VFXElementModel, VFXModelHolder> m_ModelToUI = new Dictionary<VFXElementModel, VFXModelHolder>();
         private Dictionary<VFXPropertySlot, VFXUIPropertyAnchor> m_SlotToUI = new Dictionary<VFXPropertySlot, VFXUIPropertyAnchor>();
-
-        public void OnEnable()
-        {
-
-        }
 
         public void ClearUI()
         {
@@ -81,6 +76,15 @@ namespace UnityEditor.Experimental
             return model;
         }
 
+        public VFXSpawnerNodeModel CreateSpawner(VFXSpawnerNodeModel.Type spawnerType,Vector2 pos)
+        {
+            VFXSpawnerNodeModel model = new VFXSpawnerNodeModel(spawnerType);
+            model.UpdatePosition(pos);
+            VFXEditor.Graph.models.AddChild(model);
+            SyncView(model);
+            return model;
+        }
+
         public void Create(VFXElementModel model,VFXElementModel owner,int index = -1)
         {
             owner.AddChild(model, index);
@@ -127,17 +131,19 @@ namespace UnityEditor.Experimental
         {
             Type modelType = model.GetType();
             if (modelType == typeof(VFXSystemModel))
-                SyncSystem((VFXSystemModel)model,recursive);
+                SyncSystem((VFXSystemModel)model, recursive);
             else if (modelType == typeof(VFXContextModel))
-                SyncContext((VFXContextModel)model,recursive);
+                SyncContext((VFXContextModel)model, recursive);
             else if (modelType == typeof(VFXBlockModel))
-                SyncBlock((VFXBlockModel)model,recursive);
+                SyncBlock((VFXBlockModel)model, recursive);
             else if (modelType == typeof(VFXDataNodeModel))
-                SyncDataNode((VFXDataNodeModel)model,recursive);
+                SyncDataNode((VFXDataNodeModel)model, recursive);
             else if (modelType == typeof(VFXDataBlockModel))
-                SyncDataBlock((VFXDataBlockModel)model,recursive);
+                SyncDataBlock((VFXDataBlockModel)model, recursive);
             else if (modelType == typeof(VFXCommentModel))
                 SyncComment((VFXCommentModel)model);
+            else if (modelType == typeof(VFXSpawnerNodeModel))
+                SyncSpawner((VFXSpawnerNodeModel)model);
         }
 
         public void SyncSystem(VFXSystemModel model,bool recursive = false)
@@ -356,6 +362,31 @@ namespace UnityEditor.Experimental
 
                 commentUI.Layout();
                 commentUI.Invalidate();
+            }      
+        }
+
+        public void SyncSpawner(VFXSpawnerNodeModel model)
+        {
+            VFXUISpawnerNode spawnerUI = TryGetUI<VFXUISpawnerNode>(model);
+            if (model.GetOwner() == null)
+            {
+                m_ModelToUI.Remove(model);
+                m_Elements.Remove(spawnerUI);
+            }
+            else
+            {
+                if (spawnerUI == null)
+                {
+                    m_ModelToUI.Add(model, spawnerUI = new VFXUISpawnerNode(model,this));
+                    AddElement(spawnerUI);
+                }
+
+                // TODO Must resync slot and links
+
+                spawnerUI.translation = model.UIPosition;
+
+                spawnerUI.Layout();
+                spawnerUI.Invalidate();
             }      
         }
 

@@ -384,7 +384,7 @@ namespace UnityEditor.Experimental
             if (VFXEditor.asset == null)
                 return;
 
-            string shaderName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset)); ;
+            string shaderName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset));
             shaderName += m_ID;
 
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
@@ -736,6 +736,7 @@ namespace UnityEditor.Experimental
             if (reentrant || spawner.Link(this,true))
             {
                 spawners.Add(spawner);
+                Invalidate(InvalidationCause.kModelChanged);
                 return true;
             }
 
@@ -744,8 +745,12 @@ namespace UnityEditor.Experimental
 
         public bool Unlink(VFXSpawnerNodeModel spawner,bool reentrant = false)
         {
-            if (reentrant || spawner.Unlink(this,true))
-                return spawners.Remove(spawner);
+            if (reentrant || spawner.Unlink(this, true))
+            {
+                bool res = spawners.Remove(spawner);
+                Invalidate(InvalidationCause.kModelChanged);
+                return res;
+            }
 
             return false;
         }

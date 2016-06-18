@@ -285,7 +285,7 @@ namespace UnityEditor.Experimental
         {
             if (m_Canvas == null)
             {
-                m_DataSource = ScriptableObject.CreateInstance<VFXEdDataSource>();
+                m_DataSource = new VFXEdDataSource();
                 m_Canvas = new VFXEdCanvas(this, m_HostWindow, m_DataSource);
 
                 if (Graph != null)
@@ -501,6 +501,7 @@ namespace UnityEditor.Experimental
                     // Remove all previous systems as the Ids may have changed
                     m_CurrentAsset.RemoveAllSystems();
                     ForeachComponents(c => c.RemoveAllSystems());
+                    RemoveGeneratedShaders(m_CurrentAsset);
 
                     s_Graph = ModelSerializer.Deserialize(xml);
                     for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
@@ -661,6 +662,20 @@ namespace UnityEditor.Experimental
         {
             c.pause = false;
             c.playRate = 1.0f;
+        }
+
+        private void RemoveGeneratedShaders(VFXAsset asset)
+        {
+            string assetGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset));
+            if (assetGuid.Length == 0) // To avoid erasing all the shaders if the asset is not found
+                return;
+
+            string[] guids = AssetDatabase.FindAssets(assetGuid, new string[] { "Assets/VFXEditor/Generated" });
+            foreach (var guid in guids)
+                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
+
+            if (guids.Length > 0)
+                Debug.Log("Removed " + guids.Length + " old VFX shaders for asset "+assetGuid);
         }
 
         #region TOOL WINDOWS

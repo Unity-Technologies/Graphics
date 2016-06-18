@@ -15,17 +15,27 @@ namespace UnityEditor.Experimental
         VFXEdDataSource m_dataSource;
         VFXEdCanvas m_canvas;
 
-        public class VFXNodeElement : VFXFilterWindow.Element
+        private class VFXContextElement : VFXFilterWindow.Element
         {
             public VFXContextDesc m_Desc;
-            public Action<VFXNodeElement> m_SpawnCallback;
 
-            public VFXNodeElement(int level, VFXContextDesc desc, Action<VFXNodeElement> spawncallback)
+            public VFXContextElement(int level, VFXContextDesc desc)
             {
                 this.level = level;
                 content = new GUIContent(VFXContextDesc.GetTypeName(desc.m_Type) + " : " + desc.Name);
                 m_Desc = desc;
-                m_SpawnCallback = spawncallback;
+            }
+        }
+
+        private class VFXSpawnerElement : VFXFilterWindow.Element
+        {
+            public VFXSpawnerNodeModel.Type m_Type;
+
+            public VFXSpawnerElement(int level, VFXSpawnerNodeModel.Type type)
+            {
+                this.level = level;
+                content = new GUIContent("Spawner : " + VFXSpawnerNodeModel.TypeToName(type));
+                m_Type = type;
             }
         }
 
@@ -43,8 +53,9 @@ namespace UnityEditor.Experimental
             tree.Add(new VFXFilterWindow.GroupElement(1, "Events..."));
             // TODO: Add Events here
 
-            tree.Add(new VFXFilterWindow.GroupElement(1, "Triggers..."));
-            // TODO : Add Triggers here
+            tree.Add(new VFXFilterWindow.GroupElement(1, "Spawner"));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerNodeModel.Type.kConstantRate));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerNodeModel.Type.kBurst));
 
             var contexts = new List<VFXContextDesc>(VFXEditor.ContextLibrary.GetContexts());
             contexts.Sort((blockA, blockB) => {
@@ -63,25 +74,29 @@ namespace UnityEditor.Experimental
                     tree.Add(new VFXFilterWindow.GroupElement(1, VFXContextDesc.GetTypeName(desc.m_Type)));
                 }
 
-                tree.Add(new VFXNodeElement(2, desc, SpawnNode));
+                tree.Add(new VFXContextElement(2, desc));
             }
 
         }
 
-        public void SpawnNode(VFXNodeElement node)
-        { 
-            VFXContextModel model = m_dataSource.CreateContext(node.m_Desc, m_canvas.MouseToCanvas(m_mousePosition)- new Vector2(VFXEditorMetrics.NodeDefaultWidth / 2, -20));
-
-            if(model != null)
-                m_canvas.ReloadData();
+        private Vector2 GetSpawnPosition()
+        {
+            return m_canvas.MouseToCanvas(m_mousePosition) - new Vector2(VFXEditorMetrics.NodeDefaultWidth / 2, -20);
         }
-
 
         public bool GoToChild(VFXFilterWindow.Element element, bool addIfComponent)
         {
-            if (element is VFXNodeElement)
+            if (element is VFXContextElement)
             {
-                ((VFXNodeElement)element).m_SpawnCallback.Invoke((VFXNodeElement)element);
+                m_dataSource.CreateContext(((VFXContextElement)element).m_Desc, GetSpawnPosition());
+                m_canvas.ReloadData();
+                return true;
+            }
+
+            if (element is VFXSpawnerElement)
+            {
+                m_dataSource.CreateSpawner(((VFXSpawnerElement)element).m_Type, GetSpawnPosition());
+                m_canvas.ReloadData();
                 return true;
             }
             

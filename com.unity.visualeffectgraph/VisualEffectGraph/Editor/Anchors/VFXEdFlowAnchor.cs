@@ -131,6 +131,9 @@ namespace UnityEditor.Experimental
 
         public void ExposeNodeMenu(Vector2 position)
         {
+            // TMP
+            if (!(parent is VFXEdContextNode))
+                return;
 
             VFXContextDesc currentContextDesc = (parent as VFXEdContextNode).Model.Desc;
             if(currentContextDesc.m_Type != VFXContextDesc.Type.kTypeOutput)
