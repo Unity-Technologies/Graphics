@@ -18,6 +18,14 @@ namespace UnityEditor.Experimental
         public int m_PortIndex;
         public VFXContextDesc.Type context { get {return m_Context;}}
         private VFXContextDesc.Type m_Context;
+        private string m_Label;
+
+        public VFXEdFlowAnchor(int portIndex, Type type, VFXContextDesc.Type context, VFXEdDataSource data, Direction direction, string label)
+            : this(portIndex,type,context,data,direction)
+        {
+            m_Label = label;
+        }
+
 
         public VFXEdFlowAnchor(int portIndex, Type type, VFXContextDesc.Type context, VFXEdDataSource data, Direction direction)
         {
@@ -27,7 +35,7 @@ namespace UnityEditor.Experimental
             AddManipulator(new FlowEdgeConnector());
             m_Direction = direction;
             m_Context = context;
-
+            m_Label = "";
             Type genericClass = typeof(PortSource<>);
             Type constructedClass = genericClass.MakeGenericType(type);
             m_Source = Activator.CreateInstance(constructedClass);
@@ -45,21 +53,28 @@ namespace UnityEditor.Experimental
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             base.Render(parentRect, canvas);
+            Rect rect = GetDrawableRect();
             GUI.color = VFXEditor.styles.GetContextColor(m_Context);
             switch (m_Direction)
             {
                 case Direction.Input:
-                    GUI.DrawTexture(GetDrawableRect(), VFXEditor.styles.FlowConnectorIn.normal.background);
+
+                    GUI.DrawTexture(rect, VFXEditor.styles.FlowConnectorIn.normal.background);
+                    GUI.color = Color.white;
+                    if (m_Label != "")
+                        GUI.Label(rect, m_Label, VFXEditor.styles.FlowConnectorInLabel);
                     break;
 
                 case Direction.Output:
-                    GUI.DrawTexture(GetDrawableRect(), VFXEditor.styles.FlowConnectorOut.normal.background);
+                    GUI.DrawTexture(rect, VFXEditor.styles.FlowConnectorOut.normal.background);
+                    GUI.color = Color.white;
+                    if (m_Label != "")
+                        GUI.Label(rect, m_Label, VFXEditor.styles.FlowConnectorOutLabel);
                     break;
 
                 default:
                     break;
             }
-            GUI.color = Color.white;
         }
 
         public void RenderOverlay(Canvas2D canvas)
@@ -70,7 +85,6 @@ namespace UnityEditor.Experimental
             {
                 case Direction.Input:
                     o = VFXEditor.styles.ConnectorOverlay.overflow;
-                    
                     GUI.DrawTexture(canvas.CanvasToScreen(o.Add(canvasBoundingRect)), VFXEditor.styles.ConnectorOverlay.normal.background);
                     break;
 

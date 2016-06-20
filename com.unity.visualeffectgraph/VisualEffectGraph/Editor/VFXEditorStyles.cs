@@ -52,6 +52,9 @@ namespace UnityEditor.Experimental
 
         public GUIStyle FlowConnectorIn;
         public GUIStyle FlowConnectorOut;
+        public GUIStyle FlowConnectorInLabel;
+        public GUIStyle FlowConnectorOutLabel;
+
 
         public GUIStyle ConnectorOverlay;
 
@@ -289,6 +292,18 @@ namespace UnityEditor.Experimental
             FlowConnectorOut = new GUIStyle();
             FlowConnectorOut.name = "FlowConnectorOut";
             FlowConnectorOut.normal.background = EditorGUIUtility.Load("LayoutFlow_Out.psd") as Texture2D;
+
+            FlowConnectorInLabel = new GUIStyle();
+            FlowConnectorInLabel.fontSize = 10;
+            FlowConnectorInLabel.normal.textColor = Color.white;
+            FlowConnectorInLabel.fontStyle = FontStyle.Bold;
+            FlowConnectorInLabel.alignment = TextAnchor.LowerCenter;
+            FlowConnectorInLabel.padding = new RectOffset(4, 4, 0, 4);
+
+            FlowConnectorOutLabel = new GUIStyle(FlowConnectorInLabel);
+            FlowConnectorOutLabel.alignment = TextAnchor.UpperCenter;
+            FlowConnectorOutLabel.padding = new RectOffset(4, 4, 4, 0);
+
 
             ConnectorOverlay = new GUIStyle();
             ConnectorOverlay.name = "ConnectorOverlay";
