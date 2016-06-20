@@ -5,49 +5,8 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.Experimental.VFX
 {
-    public class VFXSpawnerNodeModel : VFXModelWithSlots<VFXElementModel, VFXElementModel>, VFXUIDataHolder
+    public class VFXSpawnerNodeModel : VFXElementModel<VFXElementModel, VFXSpawnerBlockModel>, VFXUIDataHolder
     {
-        public enum Type
-        {
-            kConstantRate,
-            kBurst,
-        }
-
-        public static string TypeToName(Type spawnerType)
-        {
-            switch (spawnerType)
-            {
-                case Type.kConstantRate:
-                    return "Constant Rate";
-                case Type.kBurst:
-                    return "Burst";
-                default:
-                    throw new ArgumentException("Unknown spawner type");
-            }
-        }
-
-        public VFXSpawnerNodeModel(Type spawnerType)
-        {
-            m_Type = spawnerType;
-            VFXProperty[] properties = CreateProperties(m_Type);
-            InitSlots(properties, null);
-        }
-
-        private static VFXProperty[] CreateProperties(Type spawnerType)
-        {
-            switch (spawnerType)
-            {
-                case Type.kConstantRate:
-                    return new VFXProperty[] { VFXProperty.Create<VFXFloatType>("rate") };
-                case Type.kBurst:
-                    return new VFXProperty[] { VFXProperty.Create<VFXFloat2Type>("nb") };
-                default:
-                    throw new ArgumentException("Unknown spawner type");
-            }
-        }
-
-        public Type SpawnerType { get { return m_Type; } }
-
         public void UpdateCollapsed(bool collapsed) {}
         public void UpdatePosition(Vector2 position)
         {
@@ -95,6 +54,57 @@ namespace UnityEditor.Experimental.VFX
         private Vector2 m_UIPosition;
 
         private List<VFXContextModel> m_Contexts = new List<VFXContextModel>();
+    }
+
+    public class VFXSpawnerBlockModel : VFXModelWithSlots<VFXSpawnerNodeModel, VFXElementModel>, VFXUIDataHolder
+    {
+        public enum Type
+        {
+            kConstantRate,
+            kBurst,
+        }
+
+        public static string TypeToName(Type spawnerType)
+        {
+            switch (spawnerType)
+            {
+                case Type.kConstantRate:
+                    return "Constant Rate";
+                case Type.kBurst:
+                    return "Burst";
+                default:
+                    throw new ArgumentException("Unknown spawner type");
+            }
+        }
+
+        public VFXSpawnerBlockModel(Type spawnerType)
+        {
+            m_Type = spawnerType;
+            VFXProperty[] properties = CreateProperties(m_Type);
+            InitSlots(properties, null);
+        }
+
+        private static VFXProperty[] CreateProperties(Type spawnerType)
+        {
+            switch (spawnerType)
+            {
+                case Type.kConstantRate:
+                    return new VFXProperty[] { VFXProperty.Create<VFXFloatType>("rate") };
+                case Type.kBurst:
+                    return new VFXProperty[] { VFXProperty.Create<VFXFloat2Type>("nb") };
+                default:
+                    throw new ArgumentException("Unknown spawner type");
+            }
+        }
+
+        public void UpdateCollapsed(bool collapsed) { m_UICollapsed = collapsed; }
+        public void UpdatePosition(Vector2 position) {}
+
+        public bool UICollapsed { get { return m_UICollapsed; } }
+        private bool m_UICollapsed;
+
+        public Type SpawnerType { get { return m_Type; } }
+
         private Type m_Type;
     }
 }

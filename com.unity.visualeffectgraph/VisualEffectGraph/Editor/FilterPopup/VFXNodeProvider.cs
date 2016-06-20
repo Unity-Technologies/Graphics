@@ -29,12 +29,12 @@ namespace UnityEditor.Experimental
 
         private class VFXSpawnerElement : VFXFilterWindow.Element
         {
-            public VFXSpawnerNodeModel.Type m_Type;
+            public VFXSpawnerBlockModel.Type m_Type;
 
-            public VFXSpawnerElement(int level, VFXSpawnerNodeModel.Type type)
+            public VFXSpawnerElement(int level, VFXSpawnerBlockModel.Type type)
             {
                 this.level = level;
-                content = new GUIContent("Spawner : " + VFXSpawnerNodeModel.TypeToName(type));
+                content = new GUIContent("Spawner : " + VFXSpawnerBlockModel.TypeToName(type));
                 m_Type = type;
             }
         }
@@ -54,8 +54,8 @@ namespace UnityEditor.Experimental
             // TODO: Add Events here
 
             tree.Add(new VFXFilterWindow.GroupElement(1, "Spawner"));
-            tree.Add(new VFXSpawnerElement(2, VFXSpawnerNodeModel.Type.kConstantRate));
-            tree.Add(new VFXSpawnerElement(2, VFXSpawnerNodeModel.Type.kBurst));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kConstantRate));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kBurst));
 
             var contexts = new List<VFXContextDesc>(VFXEditor.ContextLibrary.GetContexts());
             contexts.Sort((blockA, blockB) => {
@@ -95,7 +95,8 @@ namespace UnityEditor.Experimental
 
             if (element is VFXSpawnerElement)
             {
-                m_dataSource.CreateSpawner(((VFXSpawnerElement)element).m_Type, GetSpawnPosition());
+                var spawnerNode = m_dataSource.CreateNodeSpawner(GetSpawnPosition());
+                m_dataSource.Create(new VFXSpawnerBlockModel(((VFXSpawnerElement)element).m_Type),spawnerNode);
                 m_canvas.ReloadData();
                 return true;
             }

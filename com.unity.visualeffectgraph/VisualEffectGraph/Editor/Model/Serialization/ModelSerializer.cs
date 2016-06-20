@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
@@ -135,13 +136,17 @@ namespace UnityEditor.Experimental.VFX
         // 2: block enable toggle
         // 3: data block exposed name
         // 4: soft particle fade distance in system
-        private const int VERSION = 4;
+        // 5: model id for system and spawner node
+        private const int VERSION = 5;
 
         // SERIALIZATION
         private class MetaData
         {
             private List<VFXPropertySlot> slots = new List<VFXPropertySlot>();
             private Dictionary<VFXPropertySlot,int> slotsToId = new Dictionary<VFXPropertySlot,int>();
+
+            private Dictionary<int, VFXElementModel> idsToModels = new Dictionary<int, VFXElementModel>();
+            private Dictionary<VFXElementModel, int> modelsToIds = new Dictionary<VFXElementModel, int>();
    
             private int m_Version = VERSION;
 
@@ -150,6 +155,20 @@ namespace UnityEditor.Experimental.VFX
                 get { return m_Version; }
                 set { m_Version = value; }
             }
+
+            private int m_CurrentModelId = 0;
+            public int RegisterModel(VFXElementModel model)
+            {
+                return RegisterModel(model, m_CurrentModelId++);
+            }
+            public int RegisterModel(VFXElementModel model, int id)    
+            {
+                modelsToIds.Add(model, id);
+                idsToModels.Add(id, model);
+                return id;
+            }
+            public VFXElementModel GetModel(int id)         { return idsToModels[id]; }
+            public int GetModelId(VFXElementModel model)    { return modelsToIds[model]; }
 
             public void AddSlot(VFXPropertySlot slot)
             {
@@ -195,6 +214,7 @@ namespace UnityEditor.Experimental.VFX
                 for (int i = 0; i < graph.systems.GetNbChildren(); ++i)
                     Serialize(writer, graph.systems.GetChild(i), data);
 
+                List<VFXSpawnerNodeModel> spawners = new List<VFXSpawnerNodeModel>(); // keep tracks of spawners to write connections at the end
                 for (int i = 0; i < graph.models.GetNbChildren(); ++i)
                 {
                     var model = graph.models.GetChild(i);
@@ -203,11 +223,20 @@ namespace UnityEditor.Experimental.VFX
                         Serialize(writer, (VFXDataNodeModel)model, data);
                     else if (modelType == typeof(VFXCommentModel))
                         Serialize(writer, (VFXCommentModel)model, data);
+                    else if (modelType == typeof(VFXSpawnerNodeModel))
+                    {
+                        var spawnerModel = (VFXSpawnerNodeModel)model;
+                        Serialize(writer, spawnerModel, data);
+                        spawners.Add(spawnerModel);
+                    }
                     else
                         Debug.LogWarning("Cannot serialize model of type: " + modelType);
                 }
 
                 SerializeConnections(writer, data);
+
+                foreach (var spawner in spawners)
+                    SerializeSpawnerConnections(writer, spawner, data);
 
                 writer.WriteEndElement();
                 writer.WriteEndDocument();
@@ -224,9 +253,16 @@ namespace UnityEditor.Experimental.VFX
             return res;
         }
 
+        private static void SerializeModelId(XmlWriter writer, VFXElementModel model, MetaData data)
+        {
+            int id = data.RegisterModel(model);
+            writer.WriteAttributeString("ModelId", id.ToString());
+        }
+
         private static void Serialize(XmlWriter writer, VFXSystemModel system, MetaData data)
         {
             writer.WriteStartElement("System");
+            SerializeModelId(writer, system, data);
             writer.WriteAttributeString("MaxNb", system.MaxNb.ToString());
             writer.WriteAttributeString("SpawnRate", system.SpawnRate.ToString());
             writer.WriteAttributeString("BlendingMode", system.BlendingMode.ToString());
@@ -265,6 +301,7 @@ namespace UnityEditor.Experimental.VFX
         private static void Serialize(XmlWriter writer, VFXDataNodeModel dataNode, MetaData data)
         {
             writer.WriteStartElement("DataNode");
+            SerializeModelId(writer, dataNode, data);
             writer.WriteAttributeString("Position", SerializationUtils.FromVector2(dataNode.UIPosition));
             writer.WriteAttributeString("Exposed", dataNode.Exposed.ToString());
             for (int i = 0; i < dataNode.GetNbChildren(); ++i)
@@ -290,6 +327,26 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteAttributeString("Title", comment.Title);
             writer.WriteAttributeString("Body", comment.Body);
             writer.WriteAttributeString("Color", SerializationUtils.FromColor(comment.Color));
+            writer.WriteEndElement();
+        }
+
+        private static void Serialize(XmlWriter writer, VFXSpawnerNodeModel spawnerNode, MetaData data)
+        {
+            writer.WriteStartElement("SpawnerNode");
+            SerializeModelId(writer, spawnerNode, data);
+            writer.WriteAttributeString("Position", SerializationUtils.FromVector2(spawnerNode.UIPosition));
+            for (int i = 0; i < spawnerNode.GetNbChildren(); ++i)
+                Serialize(writer, spawnerNode.GetChild(i), data);
+            writer.WriteEndElement();
+        }
+
+        private static void Serialize(XmlWriter writer, VFXSpawnerBlockModel spawnerBlock, MetaData data)
+        {
+            writer.WriteStartElement("SpawnerBlock");
+            writer.WriteAttributeString("Type", spawnerBlock.SpawnerType.ToString());
+            writer.WriteAttributeString("Collapsed", spawnerBlock.UICollapsed.ToString());
+            for (int i = 0; i < spawnerBlock.GetNbInputSlots(); ++i)
+                Serialize(writer, spawnerBlock.GetInputSlot(i), data);
             writer.WriteEndElement();
         }
 
@@ -336,6 +393,26 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteEndElement();
         }
 
+        private static void SerializeSpawnerConnections(XmlWriter writer,VFXSpawnerNodeModel spawnerNode,MetaData data)
+        {
+            if (spawnerNode.GetNbLinked() == 0)
+                return;
+
+            writer.WriteStartElement("SpawnerConnections");
+            int spawnerId = data.GetModelId(spawnerNode);
+            writer.WriteAttributeString("Id", spawnerId.ToString());
+
+            List<int> linkedIds = new List<int>();
+            for (int i = 0; i < spawnerNode.GetNbLinked(); ++i)
+            {
+                VFXSystemModel system = spawnerNode.GetLinked(i).GetOwner();
+                linkedIds.Add(data.GetModelId(system));
+            }
+
+            writer.WriteValue(linkedIds);
+            writer.WriteEndElement();
+        }
+
         private static List<bool> RegisterSlot(VFXPropertySlot slot,MetaData data,List<bool> collapsed = null)
         {
             if (collapsed == null)
@@ -371,7 +448,10 @@ namespace UnityEditor.Experimental.VFX
                 var systemsXML = root.Elements("System");
                 var dataNodesXML = root.Elements("DataNode");
                 var commentsXML = root.Elements("Comment");
+                var spawnersXML = root.Elements("SpawnerNode");
                 var connectionsXML = root.Element("Connections");
+
+                var spawnerConnectionsXML = root.Elements("SpawnerConnections");
 
                 foreach (var systemXML in systemsXML)
                     graph.systems.AddChild(DeserializeSystem(systemXML, data));
@@ -382,7 +462,13 @@ namespace UnityEditor.Experimental.VFX
                 foreach (var commentXML in commentsXML)
                     graph.models.AddChild(DeserializeComment(commentXML, data));
 
+                foreach (var spawnerXML in spawnersXML)
+                    graph.models.AddChild(DeserializeSpawnerNode(spawnerXML, data));
+
                 DeserializeConnections(connectionsXML, data);
+
+                foreach (var spawnerXML in spawnerConnectionsXML)
+                    DeserializeSpawnerConnections(spawnerXML, data);
             }
             catch(Exception e)
             {
@@ -393,9 +479,19 @@ namespace UnityEditor.Experimental.VFX
             return graph;
         }
 
+        private static void DeserializeModelId(XElement xml, VFXElementModel model, MetaData data)
+        {
+            if (data.Version >= 5)
+            {
+                int id = int.Parse(xml.Attribute("ModelId").Value);
+                data.RegisterModel(model, id);
+            }
+        }
+
         private static VFXSystemModel DeserializeSystem(XElement xml, MetaData data)
         {
             var system = new VFXSystemModel();
+            DeserializeModelId(xml, system, data);
             system.MaxNb = uint.Parse(xml.Attribute("MaxNb").Value);
             system.SpawnRate = float.Parse(xml.Attribute("SpawnRate").Value);
             system.BlendingMode = (BlendMode)Enum.Parse(typeof(BlendMode), xml.Attribute("BlendingMode").Value);
@@ -486,6 +582,34 @@ namespace UnityEditor.Experimental.VFX
             return block;          
         }
 
+        private static VFXSpawnerNodeModel DeserializeSpawnerNode(XElement xml, MetaData data)
+        {
+            var spawnerNode = new VFXSpawnerNodeModel();
+            DeserializeModelId(xml, spawnerNode, data);
+            spawnerNode.UpdatePosition(SerializationUtils.ToVector2(xml.Attribute("Position").Value));
+
+            foreach (var blockXML in xml.Elements("SpawnerBlock"))
+            {
+                var block = DeserializeSpawnerBlock(blockXML, data);
+                spawnerNode.AddChild(block);
+            }
+
+            return spawnerNode;
+        }
+
+        private static VFXSpawnerBlockModel DeserializeSpawnerBlock(XElement xml, MetaData data)
+        {
+            var spawnerType = (VFXSpawnerBlockModel.Type)Enum.Parse(typeof(VFXSpawnerBlockModel.Type), xml.Attribute("Type").Value);
+            var block = new VFXSpawnerBlockModel(spawnerType);
+            block.UpdateCollapsed(bool.Parse(xml.Attribute("Collapsed").Value));
+
+            int index = 0;
+            foreach (var slotXML in xml.Elements("Slot"))
+                DeserializeSlot(slotXML, block.GetInputSlot(index++), data);
+
+            return block;
+        }
+
         private static VFXCommentModel DeserializeComment(XElement xml, MetaData data)
         {
             var comment = new VFXCommentModel();
@@ -536,8 +660,21 @@ namespace UnityEditor.Experimental.VFX
                         slot.Link(connectedSlot);
                     else
                         Debug.LogWarning("Cannot connect slots " + slotId + " and " + connectedSlotId + " as the lastest was invalidated");
-
                 }
+            }
+        }
+
+        private static void DeserializeSpawnerConnections(XElement xml,MetaData data)
+        {
+            var spawnerId = int.Parse(xml.Attribute("Id").Value);
+            var model = (VFXSpawnerNodeModel)data.GetModel(spawnerId);
+
+            string[] linkedStr = xml.Value.Split(' ');
+            var linkedIds = linkedStr.Select(str => int.Parse(str));
+            foreach (var linkedId in linkedIds)
+            {
+                VFXContextModel context = ((VFXSystemModel)data.GetModel(linkedId)).GetChild(0);
+                model.Link(context);
             }
         }
     }

@@ -76,9 +76,9 @@ namespace UnityEditor.Experimental
             return model;
         }
 
-        public VFXSpawnerNodeModel CreateSpawner(VFXSpawnerNodeModel.Type spawnerType,Vector2 pos)
+        public VFXSpawnerNodeModel CreateNodeSpawner(Vector2 pos)
         {
-            VFXSpawnerNodeModel model = new VFXSpawnerNodeModel(spawnerType);
+            VFXSpawnerNodeModel model = new VFXSpawnerNodeModel();
             model.UpdatePosition(pos);
             VFXEditor.Graph.models.AddChild(model);
             SyncView(model);
@@ -143,7 +143,9 @@ namespace UnityEditor.Experimental
             else if (modelType == typeof(VFXCommentModel))
                 SyncComment((VFXCommentModel)model);
             else if (modelType == typeof(VFXSpawnerNodeModel))
-                SyncSpawner((VFXSpawnerNodeModel)model);
+                SyncSpawnerNode((VFXSpawnerNodeModel)model,recursive);
+            else if (modelType == typeof(VFXSpawnerBlockModel))
+                SyncSpawnerBlock((VFXSpawnerBlockModel)model,recursive);
         }
 
         public void SyncSystem(VFXSystemModel model,bool recursive = false)
@@ -211,7 +213,6 @@ namespace UnityEditor.Experimental
                 for (int i = 0; i < model.GetNbChildren(); ++i)
                     children.Add(model.GetChild(i));
 
-                // Collect all contextUI in the system
                 List<VFXEdProcessingNodeBlock> childrenUI = CollectOrCreateUI<VFXBlockModel, VFXEdProcessingNodeBlock>(children);
                 VFXEdNodeBlockContainer container = contextUI.NodeBlockContainer;
 
@@ -365,11 +366,23 @@ namespace UnityEditor.Experimental
             }      
         }
 
-        public void SyncSpawner(VFXSpawnerNodeModel model)
+        public void SyncSpawnerNode(VFXSpawnerNodeModel model,bool recursive)
         {
             VFXUISpawnerNode spawnerUI = TryGetUI<VFXUISpawnerNode>(model);
+
+            if (spawnerUI != null)
+            {
+                // First remove all edges
+                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.inputs[0]);
+                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.inputs[1]);
+                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.outputs[0]);
+            }
+
             if (model.GetOwner() == null)
             {
+                for (int i = 0; i < model.GetNbChildren(); ++i)
+                    Remove(model.GetChild(i));
+
                 m_ModelToUI.Remove(model);
                 m_Elements.Remove(spawnerUI);
             }
@@ -383,10 +396,6 @@ namespace UnityEditor.Experimental
 
                 spawnerUI.translation = model.UIPosition;
 
-                // First remove all edges
-                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.inputs[0]);
-                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.outputs[0]);
-
                 // Then recreate edges
                 for (int i = 0; i < model.GetNbLinked(); ++i)
                 {
@@ -395,9 +404,53 @@ namespace UnityEditor.Experimental
                         m_Elements.Add(new FlowEdge(this, spawnerUI.outputs[0], contextUI.inputs[0]));
                 }
 
+                // Collect all blocks in the context
+                List<VFXSpawnerBlockModel> children = new List<VFXSpawnerBlockModel>();
+                for (int i = 0; i < model.GetNbChildren(); ++i)
+                    children.Add(model.GetChild(i));
+
+                List<VFXUISpawnerBlock> childrenUI = CollectOrCreateUI<VFXSpawnerBlockModel, VFXUISpawnerBlock>(children);
+                VFXEdNodeBlockContainer container = spawnerUI.NodeBlockContainer;
+
+                // Remove all blocks
+                container.ClearNodeBlocks();
+
+                // Then add them again
+                foreach (var child in childrenUI)
+                    container.AddNodeBlock(child);
+
+                if (recursive)
+                    SyncChildren(model);
+
                 spawnerUI.Layout();
                 spawnerUI.Invalidate();
             }      
+        }
+
+        public void SyncSpawnerBlock(VFXSpawnerBlockModel model,bool recursive)
+        {
+            var owner = model.GetOwner();
+
+            VFXUISpawnerBlock blockUI = TryGetUI<VFXUISpawnerBlock>(model);
+
+            if (owner == null)
+            {
+                m_ModelToUI.Remove(model);
+                for (int i = 0; i < model.GetNbInputSlots(); ++i)
+                    RemoveSlot(model.GetInputSlot(i));
+            }
+            else if (blockUI == null)
+                m_ModelToUI.Add(model, blockUI = new VFXUISpawnerBlock(model, this));
+
+            // Reset UI data
+            blockUI.collapsed = model.UICollapsed;
+
+            if (recursive)
+                for (int i = 0; i < model.GetNbInputSlots(); ++i)
+                    SyncView(model.GetInputSlot(i), true);
+
+            blockUI.Layout();
+            blockUI.Invalidate();
         }
 
         public void SyncSlot(VFXPropertySlot slot, bool recursive = true)
