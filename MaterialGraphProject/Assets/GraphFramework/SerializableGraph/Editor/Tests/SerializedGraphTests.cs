@@ -125,11 +125,11 @@ namespace UnityEditor.Graphing.Tests
 
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
             var found = graph.GetNodes<INode>().FirstOrDefault();
-            Assert.AreEqual(1, found.inputSlots.Count());
-            Assert.AreEqual("input", found.inputSlots.FirstOrDefault().name);
-            Assert.AreEqual(1, found.outputSlots.Count());
-            Assert.AreEqual("output", found.outputSlots.FirstOrDefault().name);
-            Assert.AreEqual(2, found.slots.Count());
+            Assert.AreEqual(1, found.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual("input", found.GetInputSlots<ISlot>().FirstOrDefault().name);
+            Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
+            Assert.AreEqual("output", found.GetOutputSlots<ISlot>().FirstOrDefault().name);
+            Assert.AreEqual(2, found.GetSlots<ISlot>().Count());
         }
 
         [Test]
@@ -139,15 +139,15 @@ namespace UnityEditor.Graphing.Tests
             node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
             node.AddSlot(new SerializableSlot("input", "input", SlotType.Input, 0));
 
-            Assert.AreEqual(2, node.slots.Count());
-            Assert.AreEqual(1, node.inputSlots.Count());
-            Assert.AreEqual(1, node.outputSlots.Count());
+            Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
+            Assert.AreEqual(1, node.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual(1, node.GetOutputSlots<ISlot>().Count());
 
             node.RemoveSlot("input");
 
-            Assert.AreEqual(1, node.slots.Count());
-            Assert.AreEqual(0, node.inputSlots.Count());
-            Assert.AreEqual(1, node.outputSlots.Count());
+            Assert.AreEqual(1, node.GetSlots<ISlot>().Count());
+            Assert.AreEqual(0, node.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual(1, node.GetOutputSlots<ISlot>().Count());
         }
 
         [Test]
@@ -159,20 +159,20 @@ namespace UnityEditor.Graphing.Tests
             node.AddSlot(new SerializableSlot("input3", "input", SlotType.Input, 0));
             node.AddSlot(new SerializableSlot("input4", "input", SlotType.Input, 0));
 
-            Assert.AreEqual(4, node.slots.Count());
-            Assert.AreEqual(4, node.inputSlots.Count());
-            Assert.AreEqual(0, node.outputSlots.Count());
+            Assert.AreEqual(4, node.GetSlots<ISlot>().Count());
+            Assert.AreEqual(4, node.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual(0, node.GetOutputSlots<ISlot>().Count());
 
             node.RemoveSlotsNameNotMatching(new []{"input1", "input3"});
 
-            Assert.AreEqual(2, node.slots.Count());
-            Assert.AreEqual(2, node.inputSlots.Count());
-            Assert.AreEqual(0, node.outputSlots.Count());
+            Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
+            Assert.AreEqual(2, node.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual(0, node.GetOutputSlots<ISlot>().Count());
 
-            Assert.IsNotNull(node.FindInputSlot("input1"));
-            Assert.IsNull(node.FindInputSlot("input2"));
-            Assert.IsNotNull(node.FindInputSlot("input3"));
-            Assert.IsNull(node.FindInputSlot("input4"));
+            Assert.IsNotNull(node.FindInputSlot<ISlot>("input1"));
+            Assert.IsNull(node.FindInputSlot<ISlot>("input2"));
+            Assert.IsNotNull(node.FindInputSlot<ISlot>("input3"));
+            Assert.IsNull(node.FindInputSlot<ISlot>("input4"));
         }
 
         [Test]
@@ -187,9 +187,9 @@ namespace UnityEditor.Graphing.Tests
 
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
             var found = graph.GetNodes<INode>().FirstOrDefault();
-            Assert.AreEqual(0, found.inputSlots.Count());
-            Assert.AreEqual(1, found.outputSlots.Count());
-            Assert.AreEqual(1, found.slots.Count());
+            Assert.AreEqual(0, found.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
+            Assert.AreEqual(1, found.GetSlots<ISlot>().Count());
         }
 
         [Test]
@@ -204,11 +204,11 @@ namespace UnityEditor.Graphing.Tests
 
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
             var found = graph.GetNodes<INode>().FirstOrDefault();
-            Assert.AreEqual(0, found.inputSlots.Count());
-            Assert.AreEqual(1, found.outputSlots.Count());
-            Assert.AreEqual(1, found.slots.Count());
+            Assert.AreEqual(0, found.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
+            Assert.AreEqual(1, found.GetSlots<ISlot>().Count());
 
-            var slot = found.outputSlots.FirstOrDefault();
+            var slot = found.GetOutputSlots<ISlot>().FirstOrDefault();
             Assert.AreEqual("output_updated", slot.displayName);
         }
 
@@ -224,11 +224,11 @@ namespace UnityEditor.Graphing.Tests
 
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
             var found = graph.GetNodes<INode>().FirstOrDefault();
-            Assert.AreEqual(0, found.inputSlots.Count());
-            Assert.AreEqual(1, found.outputSlots.Count());
-            Assert.AreEqual(1, found.slots.Count());
+            Assert.AreEqual(0, found.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
+            Assert.AreEqual(1, found.GetSlots<ISlot>().Count());
 
-            var slot = found.outputSlots.FirstOrDefault();
+            var slot = found.GetOutputSlots<ISlot>().FirstOrDefault();
             Assert.AreEqual(1, slot.priority);
         }
 
@@ -239,15 +239,15 @@ namespace UnityEditor.Graphing.Tests
             node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
             node.AddSlot(new SerializableSlot("input", "input", SlotType.Input, 0));
 
-            Assert.AreEqual(2, node.slots.Count());
-            Assert.IsNotNull(node.FindInputSlot("input"));
-            Assert.IsNull(node.FindInputSlot("output"));
-            Assert.IsNotNull(node.FindOutputSlot("output"));
-            Assert.IsNull(node.FindOutputSlot("input"));
+            Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
+            Assert.IsNotNull(node.FindInputSlot<ISlot>("input"));
+            Assert.IsNull(node.FindInputSlot<ISlot>("output"));
+            Assert.IsNotNull(node.FindOutputSlot<ISlot>("output"));
+            Assert.IsNull(node.FindOutputSlot<ISlot>("input"));
 
-            Assert.IsNotNull(node.FindSlot("input"));
-            Assert.IsNotNull(node.FindSlot("output"));
-            Assert.IsNull(node.FindSlot("invalid"));
+            Assert.IsNotNull(node.FindSlot<ISlot>("input"));
+            Assert.IsNotNull(node.FindSlot<ISlot>("output"));
+            Assert.IsNull(node.FindSlot<ISlot>("invalid"));
         }
 
         [Test]
@@ -257,7 +257,7 @@ namespace UnityEditor.Graphing.Tests
             node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
             node.AddSlot(new SerializableSlot("input", "input", SlotType.Input, 0));
 
-            Assert.AreEqual(2, node.slots.Count());
+            Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
             Assert.IsNotNull(node.GetSlotReference("input"));
             Assert.IsNotNull(node.GetSlotReference("output"));
             Assert.Null(node.GetSlotReference("invalid"));
@@ -288,12 +288,12 @@ namespace UnityEditor.Graphing.Tests
             Assert.AreEqual(createdEdge, edge);
 
             var foundOutputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-            var foundOutputSlot = foundOutputNode.FindOutputSlot(edge.outputSlot.slotName);
+            var foundOutputSlot = foundOutputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotName);
             Assert.AreEqual(outputNode, foundOutputNode);
             Assert.AreEqual(outputSlot, foundOutputSlot);
 
             var foundInputNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-            var foundInputSlot = foundInputNode.FindInputSlot(edge.inputSlot.slotName);
+            var foundInputSlot = foundInputNode.FindInputSlot<ISlot>(edge.inputSlot.slotName);
             Assert.AreEqual(inputNode, foundInputNode);
             Assert.AreEqual(inputSlot, foundInputSlot);
         }

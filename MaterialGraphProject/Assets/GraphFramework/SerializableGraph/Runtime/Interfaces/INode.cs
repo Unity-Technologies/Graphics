@@ -9,15 +9,15 @@ namespace UnityEngine.Graphing
         Guid guid { get; }
         string name { get; set; }
         bool canDeleteNode { get; }
-        IEnumerable<ISlot> inputSlots { get; }
-        IEnumerable<ISlot> outputSlots { get; }
-        IEnumerable<ISlot> slots { get; }
+        IEnumerable<T> GetInputSlots<T>() where T : ISlot;
+        IEnumerable<T> GetOutputSlots<T>() where T : ISlot;
+        IEnumerable<T> GetSlots<T>() where T : ISlot;
         void AddSlot(ISlot slot);
         void RemoveSlot(string name);
         SlotReference GetSlotReference(string name);
-        ISlot FindSlot(string name);
-        ISlot FindInputSlot(string name);
-        ISlot FindOutputSlot(string name);
+        T FindSlot<T>(string name) where T : ISlot;
+        T FindInputSlot<T>(string name) where T : ISlot;
+        T FindOutputSlot<T>(string name) where T : ISlot;
         IEnumerable<ISlot> GetInputsWithNoConnection();
         DrawingData drawState { get; set; }
         bool hasError { get; }

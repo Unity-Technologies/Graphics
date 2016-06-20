@@ -24,7 +24,7 @@ namespace UnityEngine.Graphing
             }
             
             var validSlots = ListPool<ISlot>.Get();
-            validSlots.AddRange(currentNode.inputSlots);
+            validSlots.AddRange(currentNode.GetInputSlots<ISlot>());
             for (int index = 0; index < validSlots.Count; index++)
             {
                 var inputSlot = validSlots[index];
@@ -32,7 +32,7 @@ namespace UnityEngine.Graphing
                 foreach (var edge in edges)
                 {
                     var outputNode = currentNode.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                    var outputSlot = outputNode.FindOutputSlot(edge.outputSlot.slotName);
+                    var outputSlot = outputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotName);
                     if (outputNode == fromNode && !foundUsedOutputSlots.Contains(outputSlot))
                         foundUsedOutputSlots.Add(outputSlot);
                     else
@@ -57,14 +57,14 @@ namespace UnityEngine.Graphing
                 return;
             
             // if we have a slot passed in but can not find it on the node abort
-            if (slotToUse != null && node.inputSlots.All(x => x.name != slotToUse.name))
+            if (slotToUse != null && node.GetInputSlots<ISlot>().All(x => x.name != slotToUse.name))
                 return;
 
             var validSlots = ListPool<ISlot>.Get();
             if (slotToUse != null)
                 validSlots.Add(slotToUse);
             else
-                validSlots.AddRange(node.inputSlots);
+                validSlots.AddRange(node.GetInputSlots<ISlot>());
         
             for (int index = 0; index < validSlots.Count; index++)
             {
@@ -90,7 +90,7 @@ namespace UnityEngine.Graphing
             if (nodeList.Contains(node))
                 return;
 
-            foreach (var slot in node.outputSlots)
+            foreach (var slot in node.GetOutputSlots<ISlot>())
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot.name)))
                 {

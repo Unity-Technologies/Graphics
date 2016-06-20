@@ -83,7 +83,7 @@ namespace UnityEngine.MaterialGraph
             var lightFunction = GetLightFunction();
             var firstPassSlotName = lightFunction.GetFirstPassSlotName();
             // do the normal slot first so that it can be used later in the shader :)
-            var firstPassSlot = FindInputSlot(firstPassSlotName);
+            var firstPassSlot = FindInputSlot<MaterialSlot>(firstPassSlotName);
             var nodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, firstPassSlot, false);
 
@@ -101,7 +101,7 @@ namespace UnityEngine.MaterialGraph
                 if (fromNode == null)
                     continue;
 
-                var fromSlot = fromNode.FindOutputSlot(outputRef.slotName) as MaterialSlot;
+                var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(outputRef.slotName) as MaterialSlot;
                 if (fromSlot == null)
                     continue;
 
@@ -122,7 +122,7 @@ namespace UnityEngine.MaterialGraph
 
            ListPool<INode>.Release(nodes);
 
-            foreach (var slot in inputSlots)
+            foreach (var slot in GetInputSlots<MaterialSlot>())
             {
                 if (slot == firstPassSlot)
                     continue;
@@ -134,7 +134,7 @@ namespace UnityEngine.MaterialGraph
                     if (fromNode == null)
                         continue;
 
-                    var fromSlot = fromNode.FindOutputSlot(outputRef.slotName) as MaterialSlot;
+                    var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(outputRef.slotName) as MaterialSlot;
                     if (fromSlot == null)
                         continue;
 

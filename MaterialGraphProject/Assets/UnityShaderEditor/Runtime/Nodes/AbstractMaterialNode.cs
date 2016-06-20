@@ -40,21 +40,6 @@ namespace UnityEngine.MaterialGraph
             protected set { m_HasError = value; }
         }
 
-        public IEnumerable<MaterialSlot> materialSlots
-        {
-            get { return slots.OfType<MaterialSlot>(); }
-        }
-
-        public IEnumerable<MaterialSlot> materialInputSlots
-        {
-            get { return inputSlots.OfType<MaterialSlot>(); }
-        }
-
-        public IEnumerable<MaterialSlot> materialOuputSlots
-        {
-            get { return outputSlots.OfType<MaterialSlot>(); }
-        }
-
         protected AbstractMaterialNode()
         {
             version = 0;
@@ -71,7 +56,7 @@ namespace UnityEngine.MaterialGraph
             if (!generationMode.IsPreview())
                 return;
 
-            foreach (var inputSlot in materialInputSlots)
+            foreach (var inputSlot in GetInputSlots<MaterialSlot>())
             {
                 var edges = owner.GetEdges(GetSlotReference(inputSlot.name));
                 if (edges.Any())
@@ -92,7 +77,7 @@ namespace UnityEngine.MaterialGraph
                 if (fromNode == null)
                     return string.Empty;
                
-                var slot = fromNode.FindOutputSlot(fromSocketRef.slotName) as MaterialSlot;
+                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotName);
                 if (slot == null)
                     return string.Empty;
 
@@ -102,32 +87,6 @@ namespace UnityEngine.MaterialGraph
             return inputSlot.GetDefaultValue(generationMode, inputSlot.concreteValueType, this);
         }
 
-        public MaterialSlot FindMaterialInputSlot(string name)
-        {
-            var slot = FindInputSlot(name);
-            if (slot == null)
-                return null;
-
-            if (slot is MaterialSlot)
-                return slot as MaterialSlot;
-
-            Debug.LogErrorFormat("Input Slot: {0} exists but is not of type {1}", name, typeof(MaterialSlot));
-            return null;
-        }
-
-        public MaterialSlot FindMaterialOutputSlot(string name)
-        {
-            var slot = FindOutputSlot(name);
-            if (slot == null)
-                return null;
-
-            if (slot is MaterialSlot)
-                return slot as MaterialSlot;
-
-            Debug.LogErrorFormat("Output Slot: {0} exists but is not of type {1}", name, typeof(MaterialSlot));
-            return null;
-        }
-        
         private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType from, ConcreteSlotValueType to)
         {
             if (ImplicitConversionExists(from, to))
@@ -187,7 +146,7 @@ namespace UnityEngine.MaterialGraph
 
             // all children nodes needs to be updated first
             // so do that here
-            foreach (var inputSlot in inputSlots)
+            foreach (var inputSlot in GetInputSlots<MaterialSlot>())
             {
                 var edges = owner.GetEdges(GetSlotReference(inputSlot.name));
                 foreach (var edge in edges)
@@ -207,7 +166,7 @@ namespace UnityEngine.MaterialGraph
             var skippedDynamicSlots = new List<MaterialSlot>();
 
             // iterate the input slots
-            foreach (var inputSlot in materialInputSlots)
+            foreach (var inputSlot in GetInputSlots<MaterialSlot>())
             {
                 var inputType = inputSlot.valueType;
                 // if there is a connection
@@ -227,7 +186,7 @@ namespace UnityEngine.MaterialGraph
                 if (outputNode == null)
                     continue;
 
-                var outputSlot = outputNode.FindOutputSlot(outputSlotRef.slotName) as MaterialSlot;
+                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotName);
                 if (outputSlot == null)
                     continue;
          
@@ -255,13 +214,13 @@ namespace UnityEngine.MaterialGraph
             foreach (var skippedSlot in skippedDynamicSlots)
                 skippedSlot.concreteValueType = dynamicType;
 
-            var inputError = materialInputSlots.Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
+            var inputError = GetInputSlots<MaterialSlot>().Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
 
             // configure the output slots now
             // their slotType will either be the default output slotType
             // or the above dynanic slotType for dynamic nodes
             // or error if there is an input error
-            foreach (var outputSlot in materialOuputSlots)
+            foreach (var outputSlot in GetOutputSlots<MaterialSlot>())
             {
                 if (inputError)
                 {
@@ -278,7 +237,7 @@ namespace UnityEngine.MaterialGraph
             }
 
             isInError |= inputError;
-            isInError |= materialOuputSlots.Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
+            isInError |= GetOutputSlots<MaterialSlot>().Any(x => x.concreteValueType == ConcreteSlotValueType.Error);
             isInError |= CalculateNodeHasError();
             hasError = isInError;
 
@@ -324,7 +283,7 @@ namespace UnityEngine.MaterialGraph
 
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            var validSlots = materialInputSlots.ToArray();
+            var validSlots = GetOutputSlots<MaterialSlot>().ToArray();
 
             for (var index = 0; index < validSlots.Length; index++)
             {
@@ -346,7 +305,7 @@ namespace UnityEngine.MaterialGraph
         public virtual string GetOutputVariableNameForSlot(MaterialSlot s)
         {
             if (s.isInputSlot) Debug.LogError("Attempting to use input MaterialSlot (" + s + ") for output!");
-            if (!materialSlots.Contains(s)) Debug.LogError("Attempting to use MaterialSlot (" + s + ") for output on a node that does not have this MaterialSlot!");
+            if (!GetOutputSlots<MaterialSlot>().Contains(s)) Debug.LogError("Attempting to use MaterialSlot (" + s + ") for output on a node that does not have this MaterialSlot!");
 
             return GetVariableNameForNode() + "_" + s.name;
         }
@@ -354,7 +313,7 @@ namespace UnityEngine.MaterialGraph
         public virtual string GetDefaultInputNameForSlot(MaterialSlot s)
         {
             if (s.isOutputSlot) Debug.LogError("Attempting to use output MaterialSlot (" + s + ") for default input!");
-            if (!materialSlots.Contains(s)) Debug.LogError("Attempting to use MaterialSlot (" + s + ") for default input on a node that does not have this MaterialSlot!");
+            if (!GetOutputSlots<MaterialSlot>().Contains(s)) Debug.LogError("Attempting to use MaterialSlot (" + s + ") for default input on a node that does not have this MaterialSlot!");
 
             return GetVariableNameForNode() + "_" + s.name;
         }
@@ -375,7 +334,10 @@ namespace UnityEngine.MaterialGraph
             base.AddSlot(slot);
 
             var addingSlot = (MaterialSlot) slot;
-            var foundSlot = (MaterialSlot)slots.FirstOrDefault(x => x.name == slot.name);
+            var foundSlot = FindSlot<MaterialSlot>(slot.name);
+
+            if (foundSlot == null)
+                return;
             
             // if the default and current are the same, change the current
             // to the new default.
