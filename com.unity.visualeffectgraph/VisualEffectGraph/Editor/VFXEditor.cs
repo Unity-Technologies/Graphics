@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental
             VFXEditor.styles.ExportGUISkin();
         }
 
-        [MenuItem("Window/VFX Editor %R")]
+        [MenuItem("Window/VFX Editor")]
         public static void ShowWindow()
         {
             EditorWindow.GetWindow(typeof(VFXEditor));
