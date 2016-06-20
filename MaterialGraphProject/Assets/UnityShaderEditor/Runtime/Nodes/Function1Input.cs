@@ -43,8 +43,8 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputSlot = FindMaterialOutputSlot(GetOutputSlotName());
-            var inputSlot = FindMaterialInputSlot(GetInputSlotName());
+            var outputSlot = FindOutputSlot<MaterialSlot>(GetOutputSlotName());
+            var inputSlot = FindInputSlot<MaterialSlot>(GetInputSlotName());
 
             if (inputSlot == null || outputSlot == null)
             {
@@ -63,11 +63,11 @@ namespace UnityEngine.MaterialGraph
 
         public string outputDimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindMaterialOutputSlot(GetOutputSlotName()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(GetOutputSlotName()).concreteValueType); }
         }
         public string inputDimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindMaterialInputSlot(GetInputSlotName()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(GetInputSlotName()).concreteValueType); }
         }
     }
 }

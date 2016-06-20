@@ -91,7 +91,7 @@ namespace UnityEngine.MaterialGraph
         // Node generations
         public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var uvSlot = FindInputSlot(kUVSlotName);
+            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotName);
             if (uvSlot == null)
                 return;
 
@@ -103,7 +103,7 @@ namespace UnityEngine.MaterialGraph
             {
                 var edge = edges[0];
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
-                var slot = fromNode.FindMaterialOutputSlot(edge.outputSlot.slotName);
+                var slot = fromNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotName);
                 uvName = ShaderGenerator.AdaptNodeOutput(fromNode, slot, generationMode, ConcreteSlotValueType.Vector2, true);
 
             }
@@ -140,7 +140,7 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var uvSlot = FindInputSlot(kUVSlotName);
+            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotName);
             if (uvSlot == null)
                 return;
 
@@ -151,7 +151,7 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateVertexShaderBlock(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var uvSlot = FindInputSlot(kUVSlotName);
+            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotName);
             if (uvSlot == null)
                 return;
 

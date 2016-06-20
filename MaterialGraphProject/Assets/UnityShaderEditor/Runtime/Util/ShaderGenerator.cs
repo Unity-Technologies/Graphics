@@ -375,7 +375,7 @@ namespace UnityEngine.MaterialGraph
 
         public static string GeneratePreviewShader(AbstractMaterialNode node, out PreviewMode generatedShaderMode)
         {
-            if (!node.materialOuputSlots.Any())
+            if (!node.GetOutputSlots<MaterialSlot>().Any())
             {
                 generatedShaderMode = PreviewMode.Preview2D;
                 return string.Empty;
@@ -406,7 +406,7 @@ namespace UnityEngine.MaterialGraph
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
             var vertexShaderBlock = new ShaderGenerator();
 
-            var shaderName = "Hidden/PreviewShader/" + node.GetOutputVariableNameForSlot(node.materialOuputSlots.First());
+            var shaderName = "Hidden/PreviewShader/" + node.GetOutputVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First());
            
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
@@ -429,9 +429,9 @@ namespace UnityEngine.MaterialGraph
             }
 
             if (generationMode == GenerationMode.Preview2D)
-                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.materialOuputSlots.First(), generationMode, ConcreteSlotValueType.Vector4) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First(), generationMode, ConcreteSlotValueType.Vector4) + ";", true);
             else
-                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node, node.materialOuputSlots.First(), generationMode, ConcreteSlotValueType.Vector3) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First(), generationMode, ConcreteSlotValueType.Vector3) + ";", true);
 
             template = template.Replace("${ShaderName}", shaderName);
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));

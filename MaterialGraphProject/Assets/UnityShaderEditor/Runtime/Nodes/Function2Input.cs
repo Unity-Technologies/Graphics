@@ -68,9 +68,9 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputSlot = FindMaterialOutputSlot(GetOutputSlotName());
-            var inputSlot1 = FindMaterialInputSlot(GetInputSlot1Name());
-            var inputSlot2 = FindMaterialInputSlot(GetInputSlot2Name());
+            var outputSlot = FindOutputSlot<MaterialSlot>(GetOutputSlotName());
+            var inputSlot1 = FindInputSlot<MaterialSlot>(GetInputSlot1Name());
+            var inputSlot2 = FindInputSlot<MaterialSlot>(GetInputSlot2Name());
 
             if (inputSlot1 == null || inputSlot2 == null || outputSlot == null)
             {
@@ -90,17 +90,17 @@ namespace UnityEngine.MaterialGraph
 
         public string outputDimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindMaterialOutputSlot(GetOutputSlotName()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(GetOutputSlotName()).concreteValueType); }
         }
 
         public string input1Dimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindMaterialInputSlot(GetInputSlot1Name()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(GetInputSlot1Name()).concreteValueType); }
         }
 
         public string input2Dimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindMaterialInputSlot(GetInputSlot2Name()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(GetInputSlot2Name()).concreteValueType); }
         }
     }
 }

@@ -34,7 +34,7 @@ namespace UnityEditor.Graphing.Drawing
             Vector3 pos = vector3;
 
             // input slots
-            foreach (var slot in node.inputSlots.OrderBy(x => x.priority))
+            foreach (var slot in node.GetInputSlots<ISlot>().OrderBy(x => x.priority))
             {
                 pos.y += 22;
                 AddChild(new NodeAnchor(pos, typeof(Vector4), node, slot, data, Direction.Input));
@@ -45,7 +45,7 @@ namespace UnityEditor.Graphing.Drawing
             pos.x = width;
             pos.y = yStart;
             bool first = true;
-            foreach (var slot in node.outputSlots.OrderBy(x => x.priority))
+            foreach (var slot in node.GetOutputSlots<ISlot>().OrderBy(x => x.priority))
             {
                 var edges = node.owner.GetEdges(node.GetSlotReference(slot.name));
                 // don't show empty output slots in collapsed mode

@@ -53,19 +53,19 @@ namespace UnityEngine.Graphing
         public virtual void ValidateNode()
         {}
 
-        public IEnumerable<ISlot> inputSlots
+        public IEnumerable<T> GetInputSlots<T>() where T : ISlot
         {
-            get { return m_Slots.Where(x => x.isInputSlot); }
+            return GetSlots<T>().Where(x => x.isInputSlot);
         }
 
-        public IEnumerable<ISlot> outputSlots
+        public IEnumerable<T> GetOutputSlots<T>() where T : ISlot
         {
-            get { return m_Slots.Where(x => x.isOutputSlot); }
+            return GetSlots<T>().Where(x => x.isOutputSlot);
         }
 
-        public IEnumerable<ISlot> slots
+        public IEnumerable<T> GetSlots<T>() where T : ISlot
         {
-            get { return m_Slots; }
+            return m_Slots.OfType<T>();
         }
 
         public SerializableNode()
@@ -101,31 +101,31 @@ namespace UnityEngine.Graphing
 
         public SlotReference GetSlotReference(string name)
         {
-            var slot = FindSlot(name);
+            var slot = FindSlot<ISlot>(name);
             if (slot == null)
                 return null;
             return new SlotReference(guid, name);
         }
 
-        public ISlot FindSlot(string name)
+        public T FindSlot<T>(string name) where T: ISlot
         {
-            var slot = slots.FirstOrDefault(x => x.name == name);
+            var slot = GetSlots<T>().FirstOrDefault(x => x.name == name);
             if (slot == null)
                 Debug.LogErrorFormat("Input Slot: {0} could be found on node {1}", name, this);
             return slot;
         }
 
-        public ISlot FindInputSlot(string name)
+        public T FindInputSlot<T>(string name) where T : ISlot
         {
-            var slot = inputSlots.FirstOrDefault(x => x.name == name);
+            var slot = GetInputSlots<T>().FirstOrDefault(x => x.name == name);
             if (slot == null)
                 Debug.LogErrorFormat("Input Slot: {0} could be found on node {1}", name, this);
             return slot;
         }
 
-        public ISlot FindOutputSlot(string name)
+        public T FindOutputSlot<T>(string name) where T : ISlot
         {
-            var slot = outputSlots.FirstOrDefault(x => x.name == name);
+            var slot = GetOutputSlots<T>().FirstOrDefault(x => x.name == name);
             if (slot == null)
                 Debug.LogErrorFormat("Output Slot: {0} could be found on node {1}", name, this);
             return slot;
@@ -151,7 +151,7 @@ namespace UnityEngine.Graphing
 
         public virtual IEnumerable<ISlot> GetInputsWithNoConnection() 
         {
-            return inputSlots.Where(x => !owner.GetEdges(GetSlotReference(x.name)).Any());
+            return GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.name)).Any());
         }
 
         public virtual void UpdateNodeAfterDeserialization()

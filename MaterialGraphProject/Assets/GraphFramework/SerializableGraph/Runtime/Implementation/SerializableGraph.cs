@@ -61,8 +61,8 @@ namespace UnityEngine.Graphing
             if (fromNode == null || toNode == null)
                 return null;
 
-            var fromSlot = fromNode.FindSlot(fromSlotRef.slotName);
-            var toSlot = toNode.FindSlot(toSlotRef.slotName);
+            var fromSlot = fromNode.FindSlot<ISlot>(fromSlotRef.slotName);
+            var toSlot = toNode.FindSlot<ISlot>(toSlotRef.slotName);
 
             SlotReference outputSlot = null;
             SlotReference inputSlot = null;
@@ -175,8 +175,8 @@ namespace UnityEngine.Graphing
 
                 if (outputNode == null 
                     || inputNode == null
-                    || outputNode.FindOutputSlot(edge.outputSlot.slotName) == null 
-                    || inputNode.FindInputSlot(edge.inputSlot.slotName) == null)
+                    || outputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotName) == null 
+                    || inputNode.FindInputSlot<ISlot>(edge.inputSlot.slotName) == null)
                 {
                     //orphaned edge
                     RemoveEdgeNoValidate(edge);

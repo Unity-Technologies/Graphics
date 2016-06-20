@@ -48,7 +48,7 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputSlot = FindMaterialOutputSlot(kOutputSlotName);
+            var outputSlot = FindOutputSlot<MaterialSlot>(kOutputSlotName);
 
             string uvValue = "IN.meshUV0";
             visitor.AddShaderChunk(precision + "4 " + GetOutputVariableNameForSlot(outputSlot) + " = " + uvValue + ";", true);
