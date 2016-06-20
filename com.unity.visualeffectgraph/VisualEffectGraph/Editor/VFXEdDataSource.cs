@@ -381,9 +381,19 @@ namespace UnityEditor.Experimental
                     AddElement(spawnerUI);
                 }
 
-                // TODO Must resync slot and links
-
                 spawnerUI.translation = model.UIPosition;
+
+                // First remove all edges
+                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.inputs[0]);
+                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.outputs[0]);
+
+                // Then recreate edges
+                for (int i = 0; i < model.GetNbLinked(); ++i)
+                {
+                    var contextUI = TryGetUI<VFXEdContextNode>(model.GetLinked(i));
+                    if (contextUI != null)
+                        m_Elements.Add(new FlowEdge(this, spawnerUI.outputs[0], contextUI.inputs[0]));
+                }
 
                 spawnerUI.Layout();
                 spawnerUI.Invalidate();
@@ -516,7 +526,20 @@ namespace UnityEditor.Experimental
                 VFXEdFlowAnchor anchor = edge.Right;
                 var node = anchor.FindParent<VFXEdContextNode>();
                 if (node != null)
-                    VFXSystemModel.DisconnectContext(node.Model,this);
+                {
+                    if (node.Model.GetOwner().GetIndex(node.Model) > 0)
+                        VFXSystemModel.DisconnectContext(node.Model, this);
+                    else
+                    {
+                        var spawner = edge.Left.FindParent<VFXUISpawnerNode>();
+                        if (spawner != null)
+                        {
+                            spawner.Model.Unlink(node.Model);
+                            SyncView(spawner.Model);
+                        }
+                    }
+
+                }
             }
 
             var propertyEdge = e as VFXUIPropertyEdge;
@@ -609,6 +632,16 @@ namespace UnityEditor.Experimental
 
                 if (!ConnectContext(model0, model1))
                     return false;
+            }
+
+            if (context0 == null && context1 != null)
+            {
+                VFXUISpawnerNode spawner = a.FindParent<VFXUISpawnerNode>();
+                if (spawner != null)
+                {
+                    spawner.Model.Link(context1.Model);
+                    SyncView(spawner.Model);
+                }
             }
        
             return true;

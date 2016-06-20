@@ -101,14 +101,13 @@ namespace UnityEditor.Experimental
         {
             base.Render(parentRect, canvas);
 
-            Rect r = GetDrawableRect();
-            Texture2D tile = VFXEditor.styles.DisabledScopeTileable;
-
-            Rect tileRect = new Rect(0, 0, r.width / tile.width, r.height / tile.height);
-
             if (!Model.Enabled)
-                //EditorGUI.DrawRect(r, new Color(0.25f,0.25f,0.25f,0.5f));
+            {
+                Rect r = GetDrawableRect();
+                Texture2D tile = VFXEditor.styles.DisabledScopeTileable;
+                Rect tileRect = new Rect(0, 0, r.width / tile.width, r.height / tile.height);
                 GUI.DrawTextureWithTexCoords(r, tile, tileRect);
+            }
         }
     }
 }

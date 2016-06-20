@@ -88,10 +88,13 @@ namespace UnityEditor.Experimental.VFX
             return false;
         }
 
+        public int GetNbLinked()                    { return m_Contexts.Count; }
+        public VFXContextModel GetLinked(int index) { return m_Contexts[index]; }
+
         public Vector2 UIPosition { get { return m_UIPosition; } }
         private Vector2 m_UIPosition;
 
-        private List<VFXContextModel> m_Contexts;
+        private List<VFXContextModel> m_Contexts = new List<VFXContextModel>();
         private Type m_Type;
     }
 }

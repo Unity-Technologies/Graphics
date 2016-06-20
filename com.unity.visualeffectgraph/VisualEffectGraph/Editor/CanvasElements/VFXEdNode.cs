@@ -79,6 +79,7 @@ namespace UnityEditor.Experimental
             return false;
         }
 
+        // TODO This is bad. Most of this code should be in VFXEdNodeBase
         public override void Layout()
         {
             base.Layout();
