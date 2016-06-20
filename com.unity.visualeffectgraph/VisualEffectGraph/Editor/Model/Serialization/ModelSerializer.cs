@@ -137,13 +137,14 @@ namespace UnityEditor.Experimental.VFX
         // 3: data block exposed name
         // 4: soft particle fade distance in system
         // 5: model id for system and spawner node
-        private const int VERSION = 5;
+        // 6: change the way slot connections are serialized
+        private const int VERSION = 6;
 
         // SERIALIZATION
         private class MetaData
         {
-            private List<VFXPropertySlot> slots = new List<VFXPropertySlot>();
-            private Dictionary<VFXPropertySlot,int> slotsToId = new Dictionary<VFXPropertySlot,int>();
+            private Dictionary<int, VFXPropertySlot> idsToSlots = new Dictionary<int, VFXPropertySlot>();
+            private Dictionary<VFXPropertySlot, int> slotsToIds = new Dictionary<VFXPropertySlot, int>();
 
             private Dictionary<int, VFXElementModel> idsToModels = new Dictionary<int, VFXElementModel>();
             private Dictionary<VFXElementModel, int> modelsToIds = new Dictionary<VFXElementModel, int>();
@@ -170,21 +171,21 @@ namespace UnityEditor.Experimental.VFX
             public VFXElementModel GetModel(int id)         { return idsToModels[id]; }
             public int GetModelId(VFXElementModel model)    { return modelsToIds[model]; }
 
-            public void AddSlot(VFXPropertySlot slot)
+            private int m_CurrentSlotId = 0;
+            public int RegisterSlot(VFXPropertySlot slot)
             {
-                slotsToId.Add(slot,slots.Count);
-                slots.Add(slot);      
+                return RegisterSlot(slot,m_CurrentSlotId++);
+            }
+            public int RegisterSlot(VFXPropertySlot slot,int id)
+            {
+                slotsToIds.Add(slot, id);
+                idsToSlots.Add(id, slot);
+                return id;
             }
 
-            public void Skip(int nb)
-            {
-                for (int i = 0; i < nb; ++i)
-                    slots.Add(null);
-            }
-
-            public int GetNbSlots()                 { return slots.Count; }
-            public VFXPropertySlot GetSlot(int id)  { return slots[id]; }
-            public int GetId(VFXPropertySlot slot)  { return slotsToId[slot]; }
+            public IEnumerable<VFXPropertySlot> GetSlots()   { return slotsToIds.Keys; }
+            public VFXPropertySlot GetSlot(int id)           { return idsToSlots[id]; }
+            public int GetSlotId(VFXPropertySlot slot)       { return slotsToIds[slot]; }
         }
 
         public static string Serialize(VFXGraph graph)
@@ -351,10 +352,12 @@ namespace UnityEditor.Experimental.VFX
         }
 
         private static void Serialize(XmlWriter writer, VFXPropertySlot slot, MetaData data)
-        {          
+        {
+            writer.WriteStartElement("Slot");
+
             var collapsed = RegisterSlot(slot, data);
 
-            writer.WriteStartElement("Slot");
+            writer.WriteAttributeString("SlotId", data.GetSlotId(slot).ToString());
 
             writer.WriteStartElement("Values");
             slot.GetStringValues(writer);
@@ -370,21 +373,21 @@ namespace UnityEditor.Experimental.VFX
         private static void SerializeConnections(XmlWriter writer,MetaData data)
         {
             writer.WriteStartElement("Connections");
-            for (int i = 0; i < data.GetNbSlots(); ++i)
+
+            foreach (var slot in data.GetSlots())
             {
-                VFXPropertySlot slot = data.GetSlot(i);
                 if (slot.IsLinked() && slot is VFXOutputSlot)
                 {
                     var connectedSlots = slot.GetConnectedSlots();
                     
                     List<int> connectedIds = new List<int>();
                     foreach (var connected in connectedSlots)
-                            connectedIds.Add(data.GetId(connected));
+                            connectedIds.Add(data.GetSlotId(connected));
 
                     if (connectedIds.Count > 0) 
                     {
                         writer.WriteStartElement("Connection");
-                        writer.WriteAttributeString("Id", i.ToString());
+                        writer.WriteAttributeString("Id", data.GetSlotId(slot).ToString());
                         writer.WriteValue(connectedIds);
                         writer.WriteEndElement();
                     }
@@ -413,16 +416,19 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteEndElement();
         }
 
-        private static List<bool> RegisterSlot(VFXPropertySlot slot,MetaData data,List<bool> collapsed = null)
+        private static List<bool> RegisterSlot(VFXPropertySlot slot,MetaData data,List<bool> collapsed = null,int id = -1)
         {
             if (collapsed == null)
                 collapsed = new List<bool>();
 
-            data.AddSlot(slot);
+            if (id == -1)
+                data.RegisterSlot(slot);
+            else
+                data.RegisterSlot(slot, id);
             collapsed.Add(slot.UICollapsed);
 
             for (int i = 0; i < slot.GetNbChildren(); ++i)
-                RegisterSlot(slot.GetChild(i), data, collapsed);
+                RegisterSlot(slot.GetChild(i), data, collapsed, id == -1 ? -1 : id + collapsed.Count);
 
             return collapsed;
         }
@@ -625,7 +631,10 @@ namespace UnityEditor.Experimental.VFX
         {
             if (dst != null)
             {
-                RegisterSlot(dst, data); 
+                var id = -1;
+                if (data.Version >= 6)
+                    id = int.Parse(xml.Attribute("SlotId").Value);
+                RegisterSlot(dst, data, null, id); 
 
                 var values = xml.Element("Values");
                 var reader = values.CreateReader();
@@ -639,9 +648,6 @@ namespace UnityEditor.Experimental.VFX
             bool[] collapsedValues = new bool[collapsedStr.Length];
             for (int i = 0; i < collapsedStr.Length; ++i)
                 collapsedValues[i] = bool.Parse(collapsedStr[i]);
-
-            if (dst == null) // Advance the slot array to the number of serialized slots to keep correct indexing
-                data.Skip(collapsedValues.Length);
         }
 
         private static void DeserializeConnections(XElement xml,MetaData data)
