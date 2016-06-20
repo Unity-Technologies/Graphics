@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Absolute Node")]
     class AbsoluteNode : Function1Input, IGeneratesFunction
     {
-        public AbsoluteNode(IGraph owner) : base(owner)
+        public AbsoluteNode()
         {
             name = "AbsoluteNode";
         }

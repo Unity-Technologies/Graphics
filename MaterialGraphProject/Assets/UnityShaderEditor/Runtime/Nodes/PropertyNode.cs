@@ -14,10 +14,7 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         public bool m_Exposed;
-
-        protected PropertyNode(IGraph owner) : base(owner)
-        {}
-
+        
         public bool exposed
         {
             get { return m_Exposed; }
@@ -67,8 +64,8 @@ namespace UnityEngine.MaterialGraph
             if (!exposed)
                 return false;
 
-            var allNodes = owner.nodes;
-            foreach (var n in allNodes.OfType<PropertyNode>())
+            var propNodes = owner.GetNodes<PropertyNode>();
+            foreach (var n in propNodes)
             {
                 if (n == this)
                     continue;;

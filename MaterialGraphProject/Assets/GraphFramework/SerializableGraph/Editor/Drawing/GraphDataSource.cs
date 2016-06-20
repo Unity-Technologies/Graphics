@@ -76,7 +76,7 @@ namespace UnityEditor.Graphing.Drawing
             m_DrawableNodes.Clear();
             var graph = graphAsset.graph;
             Debug.LogFormat("Trying to convert: {0}", graphAsset.graph);
-            foreach (var node in graph.nodes)
+            foreach (var node in graph.GetNodes<INode>())
             {
                 var nodeType = node.GetType();
                 Type draweruiType = null;

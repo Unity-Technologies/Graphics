@@ -13,7 +13,7 @@ namespace UnityEngine.MaterialGraph
             get { return PreviewMode.Preview3D; }
         }
 
-        public ViewDirectionNode(IGraph theOwner) : base(theOwner)
+        public ViewDirectionNode()
         {
             name = "View Direction";
             UpdateNodeAfterDeserialization();

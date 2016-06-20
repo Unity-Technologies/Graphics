@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Subtract Node")]
     class SubtractNode : Function2Input, IGeneratesFunction
     {
-        public SubtractNode(IGraph owner) : base(owner)
+        public SubtractNode()
         {
             name = "SubtractNode";
         }

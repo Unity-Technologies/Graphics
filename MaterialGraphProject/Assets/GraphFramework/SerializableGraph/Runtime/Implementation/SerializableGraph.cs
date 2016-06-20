@@ -19,9 +19,9 @@ namespace UnityEngine.Graphing
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
 
-        public IEnumerable<INode> nodes
+        public IEnumerable<T> GetNodes<T>() where T : INode
         {
-            get { return m_Nodes; }
+            return m_Nodes.OfType<T>();
         }
 
         public IEnumerable<IEdge> edges
@@ -32,6 +32,7 @@ namespace UnityEngine.Graphing
         public virtual void AddNode(INode node)
         {
             m_Nodes.Add(node);
+            node.owner = this;
             ValidateGraph();
         }
 
@@ -148,10 +149,13 @@ namespace UnityEngine.Graphing
 
         public virtual void OnAfterDeserialize()
         {
-            m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, new object[] { this });
+            m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, new object[] {});
+            foreach (var node in m_Nodes)
+                node.owner = this;
+
             m_SerializableNodes = null;
 
-            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, new object[] { });
+            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, new object[] {});
             m_SerializableEdges = null;
 
             ValidateGraph();
@@ -179,13 +183,8 @@ namespace UnityEngine.Graphing
                 }
             }
 
-            foreach (var node in nodes)
+            foreach (var node in GetNodes<INode>())
                 node.ValidateNode();
-        }
-
-        public virtual bool RequiresConstantRepaint()
-        {
-            return false;
         }
     }
 }

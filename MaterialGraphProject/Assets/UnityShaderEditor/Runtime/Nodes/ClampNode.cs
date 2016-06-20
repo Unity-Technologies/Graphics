@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Clamp Node")]
     public class ClampNode : Function3Input, IGeneratesFunction
     {
-        public ClampNode(IGraph owner) : base(owner)
+        public ClampNode()
         {
             name = "ClampNode";
         }

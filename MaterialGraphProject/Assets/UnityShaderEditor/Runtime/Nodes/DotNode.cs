@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Dot Node")]
     public class DotNode : Function2Input
     {
-        public DotNode(IGraph owner) : base(owner)
+        public DotNode()
         {
             name = "DotNode";
         }

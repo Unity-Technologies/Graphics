@@ -21,8 +21,7 @@ namespace UnityEngine.MaterialGraph
 
         private static List<BaseLightFunction> s_LightFunctions;
 
-        public PixelShaderNode(IGraph owner) 
-            : base(owner)
+        public PixelShaderNode()
         {
             name = "PixelMaster";
             UpdateNodeAfterDeserialization();

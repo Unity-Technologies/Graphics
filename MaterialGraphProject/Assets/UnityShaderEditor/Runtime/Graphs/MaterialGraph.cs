@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -91,7 +88,7 @@ namespace UnityEngine.MaterialGraph
 
         public void PostCreate()
         {
-            m_PixelGraph.AddNode(new PixelShaderNode(m_PixelGraph));
+            m_PixelGraph.AddNode(new PixelShaderNode());
         }
     }
 }

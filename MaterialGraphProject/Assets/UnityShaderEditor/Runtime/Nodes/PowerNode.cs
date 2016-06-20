@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Power Node")]
     public class PowerNode : Function2Input
     {
-        public PowerNode(IGraph owner) : base(owner)
+        public PowerNode()
         {
             name = "PowerNode";
         }

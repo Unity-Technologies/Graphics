@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Channels/Unpack Normal Node")]
     internal class UnpackNormalNode : Function1Input
     {
-        public UnpackNormalNode(IGraph owner) : base(owner)
+        public UnpackNormalNode()
         {
             name = "UnpackNormalNode";
         }

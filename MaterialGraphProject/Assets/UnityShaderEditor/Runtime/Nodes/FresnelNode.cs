@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Fresnel Node")]
     class FresnelNode : Function2Input, IGeneratesFunction
     {
-        public FresnelNode(IGraph owner) : base(owner)
+        public FresnelNode()
         {
             name = "FresnelNode";
         }

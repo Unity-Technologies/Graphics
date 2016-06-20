@@ -68,10 +68,9 @@ namespace UnityEngine.Graphing
             get { return m_Slots; }
         }
 
-        public SerializableNode(IGraph theOwner)
+        public SerializableNode()
         {
             m_DrawData.expanded = true;
-            owner = theOwner;
             m_Guid = Guid.NewGuid();
         }
 

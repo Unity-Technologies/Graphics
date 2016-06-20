@@ -19,7 +19,7 @@ namespace UnityEngine.MaterialGraph
             {
                 // find existing node
                 if (m_InputNode == null)
-                    m_InputNode = nodes.OfType<SubGraphInputNode>().FirstOrDefault();
+                    m_InputNode = GetNodes<SubGraphInputNode>().FirstOrDefault();
 
                 return m_InputNode;
             }
@@ -31,7 +31,7 @@ namespace UnityEngine.MaterialGraph
             {
                 // find existing node
                 if (m_OutputNode == null)
-                    m_OutputNode = nodes.OfType<SubGraphOutputNode>().FirstOrDefault();
+                    m_OutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
 
                 return m_OutputNode;
             }
@@ -74,8 +74,8 @@ namespace UnityEngine.MaterialGraph
 
         public void PostCreate()
         {
-            AddNode(new SubGraphInputNode(this));
-            AddNode(new SubGraphOutputNode(this));
+            AddNode(new SubGraphInputNode());
+            AddNode(new SubGraphOutputNode());
         }
     }
 }

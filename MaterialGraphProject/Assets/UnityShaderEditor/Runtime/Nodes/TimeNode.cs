@@ -12,7 +12,7 @@ namespace UnityEngine.MaterialGraph
         private const string kOutputSlotNameZ = "Time.z";
         private const string kOutputSlotNameW = "Time.w";
 
-        public TimeNode(IGraph theOwner) : base(theOwner)
+        public TimeNode()
         {
             name = "Time";
             UpdateNodeAfterDeserialization();

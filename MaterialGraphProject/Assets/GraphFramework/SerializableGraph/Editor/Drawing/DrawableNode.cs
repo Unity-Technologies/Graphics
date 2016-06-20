@@ -79,7 +79,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             var childrenNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes, m_Node);
-            if (childrenNodes.Any(x => x is IRequiresTime))
+            if (childrenNodes.OfType<IRequiresTime>().Any())
                 Invalidate();
             ListPool<INode>.Release(childrenNodes);
             return true;

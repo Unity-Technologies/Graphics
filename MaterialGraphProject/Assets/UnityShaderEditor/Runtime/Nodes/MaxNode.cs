@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Maximum Node")]
     public class MaximumNode : Function2Input
     {
-        public MaximumNode(IGraph owner) : base(owner)
+        public MaximumNode()
         {
             name = "MaximumNode";
         }

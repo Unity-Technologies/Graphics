@@ -109,7 +109,7 @@ namespace UnityEditor.Graphing.Drawing
             INode node;
             try
             {
-                node = Activator.CreateInstance(posObj.m_Type, m_LastSelection.graph) as INode;
+                node = Activator.CreateInstance(posObj.m_Type) as INode;
             }
             catch
             {

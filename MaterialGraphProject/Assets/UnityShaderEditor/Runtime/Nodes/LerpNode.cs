@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Lerp Node")]
     public class LerpNode : Function3Input, IGeneratesFunction
     {
-        public LerpNode(IGraph owner) : base(owner)
+        public LerpNode()
         {
             name = "LerpNode";
         }

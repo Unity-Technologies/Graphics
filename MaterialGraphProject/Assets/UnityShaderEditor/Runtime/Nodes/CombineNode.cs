@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Art/Combine Node")]
     public class CombineNode : Function2Input, IGeneratesFunction
     {
-        public CombineNode(IGraph owner) : base(owner)
+        public CombineNode()
         {
             name = "CombineNode";
         }

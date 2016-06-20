@@ -55,7 +55,7 @@ namespace UnityEngine.MaterialGraph
             get { return outputSlots.OfType<MaterialSlot>(); }
         }
 
-        protected AbstractMaterialNode(IGraph theOwner) : base(theOwner)
+        protected AbstractMaterialNode()
         {
             version = 0;
         }
@@ -128,9 +128,9 @@ namespace UnityEngine.MaterialGraph
             return null;
         }
         
-        private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType @from, ConcreteSlotValueType to)
+        private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType from, ConcreteSlotValueType to)
         {
-            if (ImplicitConversionExists(@from, to))
+            if (ImplicitConversionExists(from, to))
                 return to;
 
             return ConcreteSlotValueType.Error;

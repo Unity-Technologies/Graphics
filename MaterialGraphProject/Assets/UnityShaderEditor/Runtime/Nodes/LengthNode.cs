@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Length Node")]
     public class LengthNode : Function1Input
     {
-        public LengthNode(IGraph owner) : base(owner)
+        public LengthNode()
         {
             name = "LengthNode";
         }

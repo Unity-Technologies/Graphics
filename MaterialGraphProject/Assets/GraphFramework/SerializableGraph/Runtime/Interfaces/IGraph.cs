@@ -5,7 +5,7 @@ namespace UnityEngine.Graphing
 {
     public interface IGraph
     {
-        IEnumerable<INode> nodes { get; }
+        IEnumerable<T> GetNodes<T>() where T : INode;
         IEnumerable<IEdge> edges { get; }
         void AddNode(INode node);
         void RemoveNode(INode node);

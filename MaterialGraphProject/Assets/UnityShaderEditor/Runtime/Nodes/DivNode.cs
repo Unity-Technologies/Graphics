@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Div Node")]
     public class DivNode : Function2Input, IGeneratesFunction
     {
-        public DivNode(IGraph owner) : base(owner)
+        public DivNode()
         {
             name = "DivNode";
         }

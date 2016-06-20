@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Sine Time Node")]
     public class SinTimeNode : AbstractMaterialNode, IRequiresTime
     {
-        public SinTimeNode(IGraph theOwner) : base(theOwner)
+        public SinTimeNode()
         {
             name = "Sine Time";
             UpdateNodeAfterDeserialization();
