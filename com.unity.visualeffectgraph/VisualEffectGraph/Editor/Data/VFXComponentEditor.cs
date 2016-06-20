@@ -16,9 +16,13 @@ public class VFXComponentEditor : Editor
 
     void OnEnable()
     {
+        if (s_Contents == null)
+           s_Contents = new Contents();
+
+        if (s_Styles == null)
+           s_Styles = new Styles();
+
         var castTarget = (VFXComponent)target;
-        castTarget.GetComponent<Renderer>().hideFlags = HideFlags.HideInInspector;
-        castTarget.GetComponent<Renderer>().sharedMaterial.hideFlags = HideFlags.HideInInspector;
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
     }
@@ -99,12 +103,6 @@ public class VFXComponentEditor : Editor
 
     public override void OnInspectorGUI()
     {
-        if (s_Contents == null)
-           s_Contents = new Contents();
-
-        if (s_Styles == null)
-           s_Styles = new Styles();
-
         var component = (VFXComponent)target;
 
         // ASSET CONTROL
