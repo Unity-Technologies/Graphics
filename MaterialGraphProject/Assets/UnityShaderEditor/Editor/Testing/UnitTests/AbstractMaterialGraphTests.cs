@@ -12,22 +12,14 @@ namespace UnityEditor.MaterialGraph.Tests
         {}
 
         private class TestableMNode : AbstractMaterialNode
-        {
-            public TestableMNode(AbstractMaterialGraph theOwner) : base(theOwner)
-            {}
-        }
-        private class TimeTestableMNode : AbstractMaterialNode, IRequiresTime
-        {
-            public TimeTestableMNode(AbstractMaterialGraph theOwner) : base(theOwner)
-            {}
-        }
+        {}
 
         [Test]
         public void TestCanCreateMaterialGraph()
         {
             TestableMGraph graph = new TestableMGraph();
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(0, graph.nodes.Count());
+            Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
         }
 
         [Test]
@@ -35,11 +27,10 @@ namespace UnityEditor.MaterialGraph.Tests
         {
             TestableMGraph graph = new TestableMGraph();
             
-            var node = new TestableMNode(graph);
+            var node = new TestableMNode();
             graph.AddNode(node);
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(1, graph.nodes.Count());
-            Assert.AreEqual(1, graph.materialNodes.Count());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
         }
 
         [Test]
@@ -47,11 +38,10 @@ namespace UnityEditor.MaterialGraph.Tests
         {
             TestableMGraph graph = new TestableMGraph();
             
-            var node = new SerializableNode(graph);
+            var node = new SerializableNode();
             graph.AddNode(node);
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(0, graph.nodes.Count());
-            Assert.AreEqual(0, graph.materialNodes.Count());
+            Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
         }
 
         [Test]
@@ -59,39 +49,26 @@ namespace UnityEditor.MaterialGraph.Tests
         {
             TestableMGraph graph = new TestableMGraph();
 
-            var node = new TestableMNode(graph);
+            var node = new TestableMNode();
             graph.AddNode(node);
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(1, graph.nodes.Count());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
 
             Assert.AreEqual(node, graph.GetNodeFromGuid(node.guid));
             Assert.AreEqual(node, graph.GetNodeFromGuid<TestableMNode>(node.guid));
         }
 
         [Test]
-        public void TestMaterialGraphNeedsRepaintWhenTimeNodePresent()
-        {
-            TestableMGraph graph = new TestableMGraph();
-            graph.AddNode(new TestableMNode(graph));
-            Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(1, graph.nodes.Count());
-            Assert.IsFalse(graph.requiresRepaint);
-
-            graph.AddNode(new TimeTestableMNode(graph));
-            Assert.IsTrue(graph.requiresRepaint);
-        }
-
-        [Test]
         public void TestCreatePixelShaderGraphWorks()
         {
             var graph = new PixelGraph();
-            Assert.AreEqual(0, graph.nodes.Count());
+            Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            var psn = new PixelShaderNode(graph);
+            var psn = new PixelShaderNode();
             graph.AddNode(psn);
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(1, graph.nodes.Count());
-            Assert.IsInstanceOf(typeof(PixelShaderNode), graph.nodes.FirstOrDefault());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
+            Assert.IsInstanceOf(typeof(PixelShaderNode), graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
             Assert.IsNotNull(graph.pixelMasterNode);
             Assert.AreEqual(1, graph.activeNodes.Count());
         }
@@ -100,17 +77,17 @@ namespace UnityEditor.MaterialGraph.Tests
         public void TestCanOnlyAddOnePixelShaderNode()
         {
             var graph = new PixelGraph();
-            Assert.AreEqual(0, graph.nodes.Count());
+            Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            var psn = new PixelShaderNode(graph);
+            var psn = new PixelShaderNode();
             graph.AddNode(psn);
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(1, graph.nodes.Count());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            var psn2 = new PixelShaderNode(graph);
+            var psn2 = new PixelShaderNode();
             graph.AddNode(psn2);
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(1, graph.nodes.Count());
+            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
         }
     }
 }

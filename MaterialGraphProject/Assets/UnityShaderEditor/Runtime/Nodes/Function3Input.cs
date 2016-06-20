@@ -9,8 +9,7 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
-        protected Function3Input(IGraph owner)
-            : base(owner)
+        protected Function3Input()
         {
             UpdateNodeAfterDeserialization();
         }

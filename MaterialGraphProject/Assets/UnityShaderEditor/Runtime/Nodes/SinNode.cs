@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Sin Node")]
     class SinNode : Function1Input
     {
-        public SinNode(IGraph owner) : base(owner)
+        public SinNode()
         {
             name = "SinNode";
         }

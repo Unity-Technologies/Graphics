@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Screen Pos Node")]
     public class ScreenPosNode : AbstractMaterialNode, IGeneratesVertexToFragmentBlock
     {
-        public ScreenPosNode(IGraph theOwner) : base(theOwner)
+        public ScreenPosNode()
         {
             name = "ScreenPos";
             UpdateNodeAfterDeserialization();

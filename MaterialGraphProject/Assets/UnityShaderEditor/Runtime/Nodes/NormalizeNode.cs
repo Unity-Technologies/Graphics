@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Normalize Node")]
     class NormalizeNode : Function1Input
     {
-        public NormalizeNode(IGraph owner) : base(owner)
+        public NormalizeNode()
         {
             name = "NormalizeNode";
         }

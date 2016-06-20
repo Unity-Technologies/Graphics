@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Multiply Node")]
     public class MultiplyNode : Function2Input, IGeneratesFunction
     {
-        public MultiplyNode(IGraph owner) : base(owner)
+        public MultiplyNode()
         {
             name = "MultiplyNode";
         }

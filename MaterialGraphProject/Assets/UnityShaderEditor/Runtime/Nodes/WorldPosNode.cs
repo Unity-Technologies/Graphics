@@ -14,7 +14,7 @@ namespace UnityEngine.MaterialGraph
             get { return PreviewMode.Preview3D; }
         }
 
-        public WorldPosNode(IGraph theOwner) : base(theOwner)
+        public WorldPosNode()
         {
             name = "WorldPos";
             UpdateNodeAfterDeserialization();

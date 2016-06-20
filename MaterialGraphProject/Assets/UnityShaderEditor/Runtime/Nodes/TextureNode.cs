@@ -65,7 +65,7 @@ namespace UnityEngine.MaterialGraph
             set { m_TextureType = value; }
         }
 
-        public TextureNode(IGraph owner) : base(owner)
+        public TextureNode()
         {
             name = "Texture";
             UpdateNodeAfterDeserialization();

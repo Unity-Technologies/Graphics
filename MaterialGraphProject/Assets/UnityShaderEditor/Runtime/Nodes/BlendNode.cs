@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Art/Blend Node")]
     public class BlendNode : Function2Input, IGeneratesFunction
     {
-        public BlendNode(IGraph owner) : base(owner)
+        public BlendNode()
         {
             name = "BlendNode";
         }

@@ -6,7 +6,7 @@ namespace UnityEditor.MaterialGraph
     [Title("Math/Minimum Node")]
     public class MinimumNode : Function2Input
     {
-        public MinimumNode(IGraph owner) : base(owner)
+        public MinimumNode()
         {
             name = "MinimumNode";
         }

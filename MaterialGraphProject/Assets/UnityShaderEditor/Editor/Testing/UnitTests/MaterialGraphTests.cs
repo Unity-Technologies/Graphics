@@ -22,15 +22,15 @@ namespace UnityEditor.MaterialGraph.Tests
         [Test]
         public void TestCreateMaterialGraph()
         {
-            UnityEngine.MaterialGraph.MaterialGraph graph = new UnityEngine.MaterialGraph.MaterialGraph();
+            var graph = new UnityEngine.MaterialGraph.MaterialGraph();
 
             Assert.IsNotNull(graph.currentGraph);
             Assert.IsNotNull(graph.materialOptions);
 
             graph.PostCreate();
             
-            Assert.AreEqual(1, graph.currentGraph.nodes.Count());
-            Assert.IsInstanceOf(typeof(PixelShaderNode), graph.currentGraph.nodes.FirstOrDefault());
+            Assert.AreEqual(1, graph.currentGraph.GetNodes<AbstractMaterialNode>().Count());
+            Assert.IsInstanceOf(typeof(PixelShaderNode), graph.currentGraph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
         }
     }
 }

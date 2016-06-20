@@ -10,7 +10,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private Vector2 m_Value;
 
-        public Vector2Node(IGraph owner) : base(owner)
+        public Vector2Node()
         {
             name = "V2Node";
             UpdateNodeAfterDeserialization();

@@ -5,8 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Add Node")]
     public class AddNode : Function2Input, IGeneratesFunction
     {
-        public AddNode(IGraph owner)
-            : base(owner)
+        public AddNode()
         {
             name = "AddNode";
         }

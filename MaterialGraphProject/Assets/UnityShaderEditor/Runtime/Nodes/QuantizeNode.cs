@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Quantize Node")]
     class QuantizeNode : Function2Input, IGeneratesFunction
     {
-        public QuantizeNode(IGraph owner) : base(owner)
+        public QuantizeNode()
         {
             name = "QuantizeNode";
         }

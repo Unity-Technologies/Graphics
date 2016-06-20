@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/Reflect Node")]
     class ReflectNode : Function2Input, IGeneratesFunction
     {
-        public ReflectNode(IGraph owner) : base(owner)
+        public ReflectNode()
         {
             name = "ReflectNode";
         }

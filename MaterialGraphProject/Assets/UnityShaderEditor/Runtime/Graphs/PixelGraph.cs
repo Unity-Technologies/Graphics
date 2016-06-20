@@ -17,7 +17,7 @@ namespace UnityEngine.MaterialGraph
             {
                 // find existing node
                 if (m_PixelMasterNode == null)
-                    m_PixelMasterNode = nodes.FirstOrDefault(x => x.GetType() == typeof(PixelShaderNode)) as PixelShaderNode;
+                    m_PixelMasterNode = GetNodes<AbstractMaterialNode>().FirstOrDefault(x => x.GetType() == typeof(PixelShaderNode)) as PixelShaderNode;
 
                 return m_PixelMasterNode;
             }

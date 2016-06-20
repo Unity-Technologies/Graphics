@@ -8,7 +8,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private int[] m_SwizzleChannel = new int[4];
 
-        public SwizzleNode(IGraph owner) : base(owner)
+        public SwizzleNode()
         {
             name = "SwizzleNode";
         }

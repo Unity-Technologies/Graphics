@@ -10,7 +10,7 @@ namespace UnityEngine.MaterialGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public UVNode(IGraph theOwner) : base(theOwner)
+        public UVNode()
         {
             name = "UV";
             UpdateNodeAfterDeserialization();

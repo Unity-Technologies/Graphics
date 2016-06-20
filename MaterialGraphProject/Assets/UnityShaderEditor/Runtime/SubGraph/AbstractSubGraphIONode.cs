@@ -1,12 +1,7 @@
-using UnityEngine.Graphing;
-
 namespace UnityEngine.MaterialGraph
 {
     public abstract class AbstractSubGraphIONode : AbstractMaterialNode
     {
-        protected AbstractSubGraphIONode(IGraph theOwner) : base(theOwner)
-        {}
-
         /*public void FooterUI(GraphGUI host)
         {
             // TODO: make it pretty

@@ -10,7 +10,7 @@ namespace UnityEngine.MaterialGraph
        
         private const string kOutputSlotName = "Value";
         
-        public Vector4Node(IGraph owner) : base(owner)
+        public Vector4Node()
         {
             name = "V4Node";
             UpdateNodeAfterDeserialization();

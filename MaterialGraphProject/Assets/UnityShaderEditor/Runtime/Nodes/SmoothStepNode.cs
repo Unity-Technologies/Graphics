@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Math/SmoothStep Node")]
     class SmoothStepNode : Function3Input, IGeneratesFunction
     {
-        public SmoothStepNode(IGraph owner) : base(owner)
+        public SmoothStepNode()
         {
             name = "SmoothStepNode";
         }

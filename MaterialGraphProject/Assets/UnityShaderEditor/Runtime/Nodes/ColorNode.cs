@@ -10,7 +10,7 @@ namespace UnityEngine.MaterialGraph
 
         private const string kOutputSlotName = "Color";
 
-        public ColorNode(IGraph owner) : base(owner)
+        public ColorNode()
         {
             name = "ColorNode";
             UpdateNodeAfterDeserialization();

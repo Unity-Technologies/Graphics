@@ -1,11 +1,10 @@
 using System.Collections.Generic;
-using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
     public class SubGraphInputNode : AbstractSubGraphIONode, IGenerateProperties
     {
-        public SubGraphInputNode(IGraph theOwner) : base(theOwner)
+        public SubGraphInputNode()
         {
             name = "SubGraphInputs";
         }

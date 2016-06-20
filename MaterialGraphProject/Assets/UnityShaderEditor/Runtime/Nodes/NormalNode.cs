@@ -5,7 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Normal Node")]
     public class NormalNode : AbstractMaterialNode
     {
-        public NormalNode(IGraph theOwner) : base(theOwner)
+        public NormalNode()
         {
             name = "Normal";
             UpdateNodeAfterDeserialization();
