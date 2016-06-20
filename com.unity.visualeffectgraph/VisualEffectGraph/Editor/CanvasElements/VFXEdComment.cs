@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental
 {
     internal class VFXEdComment : CanvasElement, VFXModelHolder
     {
-
+        public VFXCommentModel Model { get { return m_Model; } }
         private VFXCommentModel m_Model;
         private bool m_bEdit;
 
@@ -23,9 +23,12 @@ namespace UnityEditor.Experimental
             scale = model.UISize;
             m_ZIndex = -1000;
 
+            target = ScriptableObject.CreateInstance<VFXEdCommentTarget>();
+            (target as VFXEdCommentTarget).targetComment = this;
+
             AddManipulator(new Draggable());
             AddManipulator(new NodeDelete());
-            AddManipulator(new CommentResize(new Vector2(400, 300)));
+            AddManipulator(new CommentResize(new Vector2(400, 100)));
             AddManipulator(new ImguiContainer());
             m_bEdit = false;
 

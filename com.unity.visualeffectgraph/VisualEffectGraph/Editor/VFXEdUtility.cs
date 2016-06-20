@@ -51,7 +51,7 @@ namespace UnityEditor.Experimental
 
         public static void NewComment(VFXEdCanvas canvas, VFXEdDataSource dataSource, Vector2 mousePosition)
         {
-            dataSource.CreateComment(canvas.MouseToCanvas(mousePosition),new Vector2(400,300),"New Comment", "Body", UnityEngine.Random.ColorHSV(0.0f,1.0f,0.0f,0.5f,0.2f,0.4f));
+            dataSource.CreateComment(canvas.MouseToCanvas(mousePosition), new Vector2(400,300),"New Comment", "", UnityEngine.Random.ColorHSV(0.0f,1.0f,0.0f,0.5f,0.2f,0.4f));
             canvas.ReloadData();
         }
     }

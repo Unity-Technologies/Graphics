@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
+using UnityEditor.Experimental.VFX;
+
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
@@ -31,6 +33,13 @@ namespace UnityEditor.Experimental
         [SerializeField]
         public VFXEdContextNode targetNode;
         public VFXEdContextNodeTarget() { }
+    }
+
+    internal class VFXEdCommentTarget : VFXEdEditableObject
+    {
+        [SerializeField]
+        public VFXEdComment targetComment;
+        public VFXEdCommentTarget() { }
     }
 
     internal class VFXCustomEditor : Editor, VFXPropertySlotObserver
@@ -251,4 +260,32 @@ namespace UnityEditor.Experimental
         }
     }
     
+    [CustomEditor(typeof(VFXEdCommentTarget))]
+    internal class VFXEdCommentTargetEditor: Editor
+    {
+        public VFXCommentModel model { get { return (target as VFXEdCommentTarget).targetComment.Model; } }
+        public VFXEdComment node { get { return (target as VFXEdCommentTarget).targetComment; } }
+
+        public override void OnInspectorGUI()
+        {
+            EditorGUI.BeginChangeCheck();
+            using (new GUILayout.VerticalScope())
+            {
+                
+                GUILayout.Label(new GUIContent("Comment Parameters"), VFXEditor.styles.InspectorHeader);
+                EditorGUI.indentLevel++;
+                model.Title = EditorGUILayout.TextField("Title", model.Title);
+                model.Color = EditorGUILayout.ColorField("Color", model.Color);
+                model.Body = EditorGUILayout.TextArea(model.Body, GUILayout.MinHeight(80f));
+                EditorGUI.indentLevel--;
+                
+            }
+
+            if(EditorGUI.EndChangeCheck())
+            {
+                node.Invalidate();
+                node.ParentCanvas().Repaint();
+            }
+        }
+    }
 }
