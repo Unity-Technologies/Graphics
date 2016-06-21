@@ -6,29 +6,53 @@ namespace UnityEngine.Graphing
     public static class SerializationHelper
     {
         [Serializable]
+        public struct TypeSerializationInfo
+        {
+            [SerializeField]
+            public string fullName;
+
+            [SerializeField]
+            public string assemblyName;
+
+            public bool IsValid()
+            {
+                return !string.IsNullOrEmpty(fullName) && !string.IsNullOrEmpty(assemblyName);
+            }
+
+            public string SearchString()
+            {
+                if (!IsValid())
+                    return string.Empty;
+
+                return string.Format("{0}, {1}", fullName, assemblyName);
+            }
+        }
+
+        [Serializable]
         public struct JSONSerializedElement
         {
             [SerializeField]
-            public string typeName;
+            public TypeSerializationInfo typeInfo;
 
             [SerializeField]
             public string JSONnodeData;
         }
 
-        private static string GetTypeSerializableAsString(Type type)
+        private static TypeSerializationInfo GetTypeSerializableAsString(Type type)
         {
-            if (type == null)
-                return string.Empty;
-
-            return string.Format("{0}, {1}", type.FullName, type.Assembly.GetName().Name);
+            return new TypeSerializationInfo
+            {
+                fullName = type.FullName,
+                assemblyName = type.Assembly.GetName().Name
+            };
         }
 
-        private static Type GetTypeFromSerializedString(string type)
+        private static Type GetTypeFromSerializedString(TypeSerializationInfo typeInfo)
         {
-            if (string.IsNullOrEmpty(type))
+            if (!typeInfo.IsValid())
                 return null;
 
-            return Type.GetType(type);
+            return Type.GetType(typeInfo.SearchString());
         }
 
         public static List<JSONSerializedElement> Serialize<T>(List<T> list)
@@ -40,15 +64,15 @@ namespace UnityEngine.Graphing
                 if (element == null)
                     continue;
 
-                var typeName = GetTypeSerializableAsString(element.GetType());
+                var typeInfo = GetTypeSerializableAsString(element.GetType());
                 var data = JsonUtility.ToJson(element, true);
 
-                if (string.IsNullOrEmpty(typeName) || string.IsNullOrEmpty(data))
+                if (string.IsNullOrEmpty(data))
                     continue;
 
                 result.Add(new JSONSerializedElement()
                 {
-                    typeName = typeName,
+                    typeInfo = typeInfo,
                     JSONnodeData = data
                 });
             }
@@ -61,13 +85,13 @@ namespace UnityEngine.Graphing
 
             foreach (var element in list) 
             {
-                if (string.IsNullOrEmpty(element.typeName) || string.IsNullOrEmpty(element.JSONnodeData))
+                if (!element.typeInfo.IsValid() || string.IsNullOrEmpty(element.JSONnodeData))
                     continue;
 
-                var type = GetTypeFromSerializedString(element.typeName);
+                var type = GetTypeFromSerializedString(element.typeInfo);
                 if (type == null)
                 {
-                    Debug.LogWarningFormat("Could not find node of type {0} in loaded assemblies", element.typeName);
+                    Debug.LogWarningFormat("Could not find node of type {0} in loaded assemblies", element.typeInfo.SearchString());
                     continue;
                 }
 

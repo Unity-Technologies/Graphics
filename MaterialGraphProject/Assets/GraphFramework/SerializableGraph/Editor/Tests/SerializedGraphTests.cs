@@ -454,5 +454,33 @@ namespace UnityEditor.Graphing.Tests
             Assert.AreEqual(1, slots.Count());
             Assert.AreEqual("input2", slots.FirstOrDefault().name);
         }
+
+        [Test]
+        public void TestCyclicConnectionsAreNotAllowedOnGraph()
+        {
+            var graph = new SerializableGraph();
+
+            var nodeA = new SerializableNode();
+            var inputSlotA = new SerializableSlot("input", "input", SlotType.Input, 0);
+            var outputSlotA = new SerializableSlot("output", "output", SlotType.Output, 0);
+            nodeA.AddSlot(inputSlotA);
+            nodeA.AddSlot(outputSlotA);
+            graph.AddNode(nodeA);
+
+            var nodeB = new SerializableNode();
+            var inputSlotB = new SerializableSlot("input", "input", SlotType.Input, 0);
+            var outputSlotB = new SerializableSlot("output", "output", SlotType.Output, 0);
+            nodeB.AddSlot(inputSlotB);
+            nodeB.AddSlot(outputSlotB);
+            graph.AddNode(nodeB);
+            
+            Assert.AreEqual(2, graph.GetNodes<INode>().Count());
+            graph.Connect(nodeA.GetSlotReference("output"), nodeB.GetSlotReference("input"));
+            Assert.AreEqual(1, graph.edges.Count());
+
+            var edge = graph.Connect(nodeB.GetSlotReference("output"), nodeA.GetSlotReference("input"));
+            Assert.IsNull(edge);
+            Assert.AreEqual(1, graph.edges.Count());
+        }
     }
 }

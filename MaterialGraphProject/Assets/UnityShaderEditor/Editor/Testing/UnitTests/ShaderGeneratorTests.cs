@@ -113,7 +113,7 @@ namespace UnityEditor.MaterialGraph.Tests
         }
 
         [Test]
-        public void AdaptNodeOutput2To3CausesError()
+        public void AdaptNodeOutput2To3Fails()
         {
             var node = new TestNode();
             var slot = node.FindOutputSlot<MaterialSlot>("V2Out");
@@ -122,7 +122,7 @@ namespace UnityEditor.MaterialGraph.Tests
         }
 
         [Test]
-        public void AdaptNodeOutput2To4CausesError()
+        public void AdaptNodeOutput2To4Fails()
         {
             var node = new TestNode();
             var slot = node.FindOutputSlot<MaterialSlot>("V2Out");
@@ -158,7 +158,7 @@ namespace UnityEditor.MaterialGraph.Tests
         }
 
         [Test]
-        public void AdaptNodeOutput3To4CausesError()
+        public void AdaptNodeOutput3To4Fails()
         {
             var node = new TestNode();
             var slot = node.FindOutputSlot<MaterialSlot>("V3Out");
