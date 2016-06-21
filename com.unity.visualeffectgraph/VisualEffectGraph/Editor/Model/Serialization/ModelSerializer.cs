@@ -174,10 +174,11 @@ namespace UnityEditor.Experimental.VFX
             private int m_CurrentSlotId = 0;
             public int RegisterSlot(VFXPropertySlot slot)
             {
-                return RegisterSlot(slot,m_CurrentSlotId++);
+                return RegisterSlot(slot,m_CurrentSlotId);
             }
             public int RegisterSlot(VFXPropertySlot slot,int id)
             {
+                m_CurrentSlotId = id + 1;
                 slotsToIds.Add(slot, id);
                 idsToSlots.Add(id, slot);
                 return id;
@@ -428,7 +429,7 @@ namespace UnityEditor.Experimental.VFX
             collapsed.Add(slot.UICollapsed);
 
             for (int i = 0; i < slot.GetNbChildren(); ++i)
-                RegisterSlot(slot.GetChild(i), data, collapsed, id == -1 ? -1 : id + collapsed.Count);
+                RegisterSlot(slot.GetChild(i), data, collapsed);
 
             return collapsed;
         }
