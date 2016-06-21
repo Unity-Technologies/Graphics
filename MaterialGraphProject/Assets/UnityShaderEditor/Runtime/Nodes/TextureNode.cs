@@ -104,7 +104,7 @@ namespace UnityEngine.MaterialGraph
                 var edge = edges[0];
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
                 var slot = fromNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotName);
-                uvName = ShaderGenerator.AdaptNodeOutput(fromNode, slot, generationMode, ConcreteSlotValueType.Vector2, true);
+                uvName = ShaderGenerator.AdaptNodeOutput(fromNode, slot, ConcreteSlotValueType.Vector2, true);
 
             }
 
