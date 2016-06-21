@@ -61,6 +61,15 @@ namespace UnityEngine.Graphing
             if (fromNode == null || toNode == null)
                 return null;
 
+            // if fromNode is already connected to toNode
+            // do now allow a connection as toNode will then
+            // have an edge to fromNode creating a cycle.
+            // if this is parsed it will lead to an infinite loop.
+            var dependentNodes = new List<INode>();
+            NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, toNode);
+            if (dependentNodes.Contains(fromNode))
+                return null;
+
             var fromSlot = fromNode.FindSlot<ISlot>(fromSlotRef.slotName);
             var toSlot = toNode.FindSlot<ISlot>(toSlotRef.slotName);
 
