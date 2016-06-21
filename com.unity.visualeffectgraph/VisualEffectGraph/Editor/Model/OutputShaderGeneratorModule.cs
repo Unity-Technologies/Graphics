@@ -49,14 +49,14 @@ namespace UnityEditor.Experimental
         {
             for (int i = 0; i < Math.Min(slots.Length, 4); ++i)
                 m_Values[i] = slots[i].ValueRef.Reduce() as VFXValue; // TODO Refactor
-            m_orientMode = orientmode;
+            m_OrientMode = orientmode;
         }
 
         public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
 
         private bool CanHaveMotionVectors()
         {
-            return m_orientMode != OrientMode.kRotateAxis && m_orientMode != OrientMode.kFixed;
+            return m_OrientMode != OrientMode.kRotateAxis && m_OrientMode != OrientMode.kFixed;
         }
 
 
@@ -78,10 +78,10 @@ namespace UnityEditor.Experimental
                     m_HasMotionVectors = CanHaveMotionVectors() && m_Values[MorphTextureIndex] != null && m_Values[MorphIntensityIndex] != null && m_Values[MorphTextureIndex].Get<Texture2D>() != null;
             }
 
-            if (m_orientMode == OrientMode.kVelocity)
+            if (m_OrientMode == OrientMode.kVelocity)
             {
                 if(!UpdateFlag(attribs, CommonAttrib.Velocity, VFXContextDesc.Type.kTypeOutput))
-                    m_orientMode = OrientMode.kFaceCamera;
+                    m_OrientMode = OrientMode.kFaceCamera;
             } 
 
             return true;
@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            switch(m_orientMode)
+            switch(m_OrientMode)
             {
                 case OrientMode.kRotateAxis:
                     uniforms.Add(m_Values[FirstLockedAxisIndex]);
@@ -132,7 +132,7 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            switch(m_orientMode)
+            switch(m_OrientMode)
             {
                 case OrientMode.kRotateAxis:
                     expressions.Add(m_Values[FirstLockedAxisIndex]);
@@ -220,7 +220,7 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("float2 posOffsets = o.offsets.xy;");
             }
 
-            switch (m_orientMode)
+            switch (m_OrientMode)
             {
                 case OrientMode.kVelocity:
 
@@ -435,7 +435,7 @@ namespace UnityEditor.Experimental
         private bool m_HasAngle;
         private bool m_HasFlipBook;
         private bool m_HasTexture;
-        private OrientMode m_orientMode;
+        private OrientMode m_OrientMode;
         private bool m_HasMotionVectors;
         private bool m_HasPivot;
         private bool m_UseSoftParticles;
