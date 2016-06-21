@@ -30,6 +30,7 @@ namespace UnityEngine.MaterialGraph
         public abstract string GetPropertyString();
         public string propertyName { get { return m_PropertyName; } }
         public string propertyDescription { get { return m_PropertyDescription; } }
+        public bool hidden { get { return m_Hidden; } }
     }
 
     public class TexturePropertyChunk : PropertyChunk
@@ -49,7 +50,7 @@ namespace UnityEngine.MaterialGraph
         public override string GetPropertyString()
         {
             var result = new StringBuilder();
-            if (m_Hidden)
+            if (hidden)
                 result.Append("[HideInInspector] ");
             if (!m_Modifiable)
                 result.Append("[NonModifiableTextureData] ");
@@ -286,7 +287,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         private const string kErrorString = @"ERROR!";
-        public static string AdaptNodeOutput(AbstractMaterialNode node, MaterialSlot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType, bool textureSampleUVHack = false)
+        public static string AdaptNodeOutput(AbstractMaterialNode node, MaterialSlot outputSlot, ConcreteSlotValueType convertToType, bool textureSampleUVHack = false)
         {
            if (outputSlot == null)
                 return kErrorString;
@@ -334,7 +335,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        private static string AdaptNodeOutputForPreview(AbstractMaterialNode node, MaterialSlot outputSlot, GenerationMode mode, ConcreteSlotValueType convertToType)
+        private static string AdaptNodeOutputForPreview(AbstractMaterialNode node, MaterialSlot outputSlot, ConcreteSlotValueType convertToType)
         {
            if (outputSlot == null)
                 return kErrorString;
@@ -343,7 +344,7 @@ namespace UnityEngine.MaterialGraph
 
             // if we are in a normal situation, just convert!
             if (convertFromType >= convertToType || convertFromType == ConcreteSlotValueType.Vector1)
-                return AdaptNodeOutput(node, outputSlot, mode, convertToType);
+                return AdaptNodeOutput(node, outputSlot, convertToType);
 
             var rawOutput = node.GetOutputVariableNameForSlot(outputSlot);
 
@@ -429,9 +430,9 @@ namespace UnityEngine.MaterialGraph
             }
 
             if (generationMode == GenerationMode.Preview2D)
-                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First(), generationMode, ConcreteSlotValueType.Vector4) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First(), ConcreteSlotValueType.Vector4) + ";", true);
             else
-                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First(), generationMode, ConcreteSlotValueType.Vector3) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First(), ConcreteSlotValueType.Vector3) + ";", true);
 
             template = template.Replace("${ShaderName}", shaderName);
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));

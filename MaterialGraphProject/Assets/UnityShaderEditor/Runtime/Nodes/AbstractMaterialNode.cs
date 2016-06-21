@@ -81,7 +81,7 @@ namespace UnityEngine.MaterialGraph
                 if (slot == null)
                     return string.Empty;
 
-                return ShaderGenerator.AdaptNodeOutput(fromNode, slot, generationMode, inputSlot.concreteValueType);
+                return ShaderGenerator.AdaptNodeOutput(fromNode, slot, inputSlot.concreteValueType);
             }
 
             return inputSlot.GetDefaultValue(generationMode, inputSlot.concreteValueType, this);

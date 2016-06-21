@@ -26,6 +26,22 @@ namespace UnityEngine.MaterialGraph
             m_ValueType = valueType;
             m_DefaultValue = defaultValue;
             m_CurrentValue = defaultValue;
+
+            switch (valueType)
+            {
+                case SlotValueType.Vector1:
+                    concreteValueType = ConcreteSlotValueType.Vector1;
+                    break;
+                case SlotValueType.Vector2:
+                    concreteValueType = ConcreteSlotValueType.Vector2;
+                    break;
+                case SlotValueType.Vector3:
+                    concreteValueType = ConcreteSlotValueType.Vector3;
+                    break;
+                default:
+                    concreteValueType = ConcreteSlotValueType.Vector4;
+                    break;
+            }
         }
         
         public Vector4 defaultValue
