@@ -106,7 +106,7 @@ namespace UnityEditor.Experimental
             VFXPropertySlot[] values = new VFXPropertySlot[2];
             values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetSlot(TextureSlot);
             values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
-            return new VFXBillboardOutputShaderGeneratorModule(values, false); 
+            return new VFXBillboardOutputShaderGeneratorModule(values, VFXBillboardOutputShaderGeneratorModule.OrientMode.kFaceCamera); 
         }
     }
 
@@ -128,7 +128,63 @@ namespace UnityEditor.Experimental
             VFXPropertySlot[] values = new VFXPropertySlot[2];
             values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetSlot(TextureSlot);
             values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
-            return new VFXBillboardOutputShaderGeneratorModule(values, true); 
+            return new VFXBillboardOutputShaderGeneratorModule(values, VFXBillboardOutputShaderGeneratorModule.OrientMode.kVelocity); 
+        }
+    }
+
+    public class VFXQuadRotateAxisOutputDesc : VFXContextDesc
+    {
+        private const int TextureSlot = 0;
+        private const int FlipBookDimSlot = 1;
+        private const int FirstAxisLockDimSlot = 2;
+
+        public VFXQuadRotateAxisOutputDesc()
+            : base(Type.kTypeOutput, "Quad (Rotate Around Axis)", true)
+        {
+            m_Properties = new VFXProperty[3];
+            m_Properties[TextureSlot] = new VFXProperty(new VFXTexture2DType(VFXEditor.Resources.DefaultSpriteTexture),"texture");
+            m_Properties[FlipBookDimSlot] = VFXProperty.Create<VFXFloat2Type>("flipBook");
+            m_Properties[FirstAxisLockDimSlot] = new VFXProperty(new VFXDirectionType(Vector3.up),"rotAxis");
+        }
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
+        {
+            VFXPropertySlot[] values = new VFXPropertySlot[3];
+            values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetSlot(TextureSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.FirstLockedAxisIndex] = model.GetSlot(FirstAxisLockDimSlot);
+
+            return new VFXBillboardOutputShaderGeneratorModule(values, VFXBillboardOutputShaderGeneratorModule.OrientMode.kRotateAxis); 
+        }
+    }
+
+    public class VFXQuadFixedOrientationOutputDesc : VFXContextDesc
+    {
+        private const int TextureSlot = 0;
+        private const int FlipBookDimSlot = 1;
+        private const int FirstAxisLockDimSlot = 2;
+        private const int SecondAxisLockDimSlot = 3;
+
+        public VFXQuadFixedOrientationOutputDesc()
+            : base(Type.kTypeOutput, "Quad (Fixed Orientation)", true)
+        {
+            m_Properties = new VFXProperty[4];
+            m_Properties[TextureSlot] = new VFXProperty(new VFXTexture2DType(VFXEditor.Resources.DefaultSpriteTexture),"texture");
+            m_Properties[FlipBookDimSlot] = VFXProperty.Create<VFXFloat2Type>("flipBook");
+            m_Properties[FirstAxisLockDimSlot] = new VFXProperty(new VFXDirectionType(Vector3.forward),"upAxis");
+            m_Properties[SecondAxisLockDimSlot] = new VFXProperty(new VFXDirectionType(Vector3.up),"normalAxis");
+
+        }
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
+        {
+            VFXPropertySlot[] values = new VFXPropertySlot[4];
+            values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetSlot(TextureSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.FirstLockedAxisIndex] = model.GetSlot(FirstAxisLockDimSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.SecondLockedAxisIndex] = model.GetSlot(SecondAxisLockDimSlot);
+
+            return new VFXBillboardOutputShaderGeneratorModule(values, VFXBillboardOutputShaderGeneratorModule.OrientMode.kFixed); 
         }
     }
 
@@ -157,7 +213,7 @@ namespace UnityEditor.Experimental
             values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
             values[VFXBillboardOutputShaderGeneratorModule.MorphTextureIndex] = model.GetSlot(MorphTextureSlot);
             values[VFXBillboardOutputShaderGeneratorModule.MorphIntensityIndex] = model.GetSlot(MorphIntensitySlot);
-            return new VFXBillboardOutputShaderGeneratorModule(values, false); 
+            return new VFXBillboardOutputShaderGeneratorModule(values, VFXBillboardOutputShaderGeneratorModule.OrientMode.kFaceCamera); 
         }
     }
 
