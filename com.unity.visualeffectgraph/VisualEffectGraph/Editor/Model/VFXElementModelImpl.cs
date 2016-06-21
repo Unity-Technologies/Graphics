@@ -185,13 +185,43 @@ namespace UnityEditor.Experimental
                         AddExpressionRecursive(m_Expressions, expr, 0);
             }
 
-            /*Debug.Log("NB EXPRESSIONS: " + m_Expressions.Count);
-            foreach (var expr in m_Expressions)
-            {
-                Debug.Log(expr.Key.ToString() + " | " + expr.Value);
-            }*/
+            // Collect linked spawners
+            HashSet<VFXExpression> spawnerExpressions = new HashSet<VFXExpression>();
+            Dictionary<VFXSpawnerNodeModel, int> spawners = new Dictionary<VFXSpawnerNodeModel, int>(); // spawner and index
 
-            // Sort expression per depth so that we're sure dependencies will be evaluated after dependents
+            int currentSpawnerIndex = 0;
+            for (int i = 0; i < GetNbChildren(); ++i)
+            {
+                VFXSystemModel system = GetChild(i);
+                if (system.RtData != null) // The system has been compiled
+                {
+                    VFXContextModel context = system.GetChild(0);
+                    if (context.GetContextType() != VFXContextDesc.Type.kTypeInit)
+                        continue;
+
+                    foreach (var spawner in context.GetSpawners())
+                        if (!spawners.ContainsKey(spawner))
+                            spawners.Add(spawner, currentSpawnerIndex++);
+                }
+            }
+
+            // Collect spawner expressions
+            foreach (var spawner in spawners.Keys)
+            {
+                int nbBlocks = spawner.GetNbChildren();
+                for (int i = 0; i < nbBlocks; ++i)
+                {
+                    VFXSpawnerBlockModel block = spawner.GetChild(i);
+                    for (int j = 0; j < block.GetNbInputSlots(); ++j)
+                        block.GetInputSlot(j).CollectExpressions(spawnerExpressions);
+                }
+            }
+
+            // Add Spawner expressions
+            foreach (var expr in spawnerExpressions)
+                AddExpressionRecursive(m_Expressions, expr, 0);
+
+            // Sort expression by depth so that dependencies will be evaluated in order
             var sortedList = m_Expressions.ToList();
             sortedList.Sort((kvpA, kvpB) =>
             {
@@ -199,13 +229,9 @@ namespace UnityEditor.Experimental
             });
             var expressionList = sortedList.Select(kvp => kvp.Key).ToList();
 
-            //Debug.Log("SORTED EXPRESSIONS: " + expressionList.Count);
             // Finally we dont need the depth anymore, so use that int to store the index in the array instead
             for (int i = 0; i < expressionList.Count; ++i)
-            {
                 m_Expressions[expressionList[i]] = i;
-                //Debug.Log(expressionList[i].ToString());
-            }
 
             // Generate signal texture if needed
             List<VFXValue> signals = new List<VFXValue>();
@@ -281,6 +307,9 @@ namespace UnityEditor.Experimental
                     }
                 }
 
+                // Generate spawner native data
+                
+
                 // Finally generate the uniforms
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
@@ -293,20 +322,13 @@ namespace UnityEditor.Experimental
                     {
                         int index = m_Expressions[uniform.Key];
                         if (uniform.Value.StartsWith("init"))
-                        {
                             asset.AddInitUniform(system.Id, uniform.Value, index);
-                            //Debug.Log("ADD INIT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
-                        }
                         else if (uniform.Value.StartsWith("update"))
-                        {
                             asset.AddUpdateUniform(system.Id, uniform.Value, index);
-                            //Debug.Log("ADD UPDATE UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
-                        }
                         else if (uniform.Value.StartsWith("global"))
                         {
                             asset.AddInitUniform(system.Id, uniform.Value, index);
                             asset.AddUpdateUniform(system.Id, uniform.Value, index);
-                            //Debug.Log("ADD GLOBAL UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
                         }
                     }
 
@@ -314,7 +336,6 @@ namespace UnityEditor.Experimental
                     {
                         int index = m_Expressions[uniform.Key];
                         asset.AddOutputUniform(system.Id, uniform.Value, index);
-                        //Debug.Log("ADD OUTPUT UNIFORM: " + system.Id + " " + uniform.Value + " " + index);
                     }
                 }
             }
@@ -735,7 +756,7 @@ namespace UnityEditor.Experimental
         {
             if (reentrant || spawner.Link(this,true))
             {
-                spawners.Add(spawner);
+                m_Spawners.Add(spawner);
                 Invalidate(InvalidationCause.kModelChanged);
                 return true;
             }
@@ -747,13 +768,15 @@ namespace UnityEditor.Experimental
         {
             if (reentrant || spawner.Unlink(this, true))
             {
-                bool res = spawners.Remove(spawner);
+                bool res = m_Spawners.Remove(spawner);
                 Invalidate(InvalidationCause.kModelChanged);
                 return res;
             }
 
             return false;
         }
+
+        public IEnumerable<VFXSpawnerNodeModel> GetSpawners() { return m_Spawners; }
 
         private VFXContextDesc m_Desc;
 
@@ -763,7 +786,7 @@ namespace UnityEditor.Experimental
         private bool m_UICollapsed;
         private Vector2 m_UIPosition;
 
-        private List<VFXSpawnerNodeModel> spawners = new List<VFXSpawnerNodeModel>();
+        private List<VFXSpawnerNodeModel> m_Spawners = new List<VFXSpawnerNodeModel>();
     }
 
     public class VFXBlockModel : VFXModelWithSlots<VFXContextModel, VFXElementModel>, VFXUIDataHolder
