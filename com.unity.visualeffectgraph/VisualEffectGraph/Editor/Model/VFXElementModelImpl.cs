@@ -187,7 +187,7 @@ namespace UnityEditor.Experimental
 
             // Collect linked spawners
             HashSet<VFXExpression> spawnerExpressions = new HashSet<VFXExpression>();
-            Dictionary<VFXSpawnerNodeModel, int> spawners = new Dictionary<VFXSpawnerNodeModel, int>(); // spawner and index
+            HashSet<VFXSpawnerNodeModel> spawners = new HashSet<VFXSpawnerNodeModel>(); // spawner and index
 
             int currentSpawnerIndex = 0;
             for (int i = 0; i < GetNbChildren(); ++i)
@@ -200,13 +200,12 @@ namespace UnityEditor.Experimental
                         continue;
 
                     foreach (var spawner in context.GetSpawners())
-                        if (!spawners.ContainsKey(spawner))
-                            spawners.Add(spawner, currentSpawnerIndex++);
+                        spawners.Add(spawner);
                 }
             }
 
             // Collect spawner expressions
-            foreach (var spawner in spawners.Keys)
+            foreach (var spawner in spawners)
             {
                 int nbBlocks = spawner.GetNbChildren();
                 for (int i = 0; i < nbBlocks; ++i)
@@ -308,7 +307,25 @@ namespace UnityEditor.Experimental
                 }
 
                 // Generate spawner native data
-                
+                asset.ClearSpawnerData();
+                foreach (var spawner in spawners)
+                {
+                    List<uint> spawnerStream = new List<uint>();
+
+                    int nbBlocks = spawner.GetNbChildren();
+                    spawnerStream.Add((uint)nbBlocks);
+                    for (int i = 0; i < nbBlocks; ++i)
+                    {
+                        VFXSpawnerBlockModel block = spawner.GetChild(i);
+                        spawnerStream.Add((uint)block.SpawnerType);
+                        for (int j = 0; j < block.GetNbInputSlots(); ++j)
+                            spawnerStream.Add((uint)m_Expressions[block.GetInputSlot(j).ValueRef]); // Warning: This wont work for composite type
+                    }
+
+                    int spawnerIndex = asset.AddSpawner(spawnerStream.ToArray());
+                    for (int i = 0; i < spawner.GetNbLinked(); ++i)
+                        asset.LinkSpawner(spawner.GetLinked(i).GetOwner().Id, spawnerIndex);
+                }
 
                 // Finally generate the uniforms
                 for (int i = 0; i < GetNbChildren(); ++i)
