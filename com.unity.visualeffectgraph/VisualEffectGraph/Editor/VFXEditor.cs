@@ -740,6 +740,9 @@ namespace UnityEditor.Experimental
             m_Contexts.Add(new VFXBillboardOutputDesc());
             m_Contexts.Add(new VFXMorphSubUVBillboardOutputDesc());
             m_Contexts.Add(new VFXQuadAlongVelocityOutputDesc());
+            m_Contexts.Add(new VFXQuadRotateAxisOutputDesc());
+            m_Contexts.Add(new VFXQuadFixedOrientationOutputDesc());
+
         }
 
         public VFXContextDesc GetContext(string name)

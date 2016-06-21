@@ -29,19 +29,36 @@ namespace UnityEditor.Experimental
 
     public class VFXBillboardOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
     {
+        public enum OrientMode
+        {
+            kFaceCamera,
+            kVelocity,
+            kRotateAxis,
+            kFixed
+        }
+
         public const int TextureIndex = 0;
         public const int FlipbookDimIndex = 1;
         public const int MorphTextureIndex = 2;
         public const int MorphIntensityIndex = 3;
 
-        public VFXBillboardOutputShaderGeneratorModule(VFXPropertySlot[] slots, bool orientAlongVelocity)
+        public const int FirstLockedAxisIndex = 2;
+        public const int SecondLockedAxisIndex = 3;
+
+        public VFXBillboardOutputShaderGeneratorModule(VFXPropertySlot[] slots, OrientMode orientmode)
         {
             for (int i = 0; i < Math.Min(slots.Length, 4); ++i)
                 m_Values[i] = slots[i].ValueRef.Reduce() as VFXValue; // TODO Refactor
-            m_OrientAlongVelocity = orientAlongVelocity;
+            m_OrientMode = orientmode;
         }
 
         public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
+
+        private bool CanHaveMotionVectors()
+        {
+            return m_OrientMode != OrientMode.kRotateAxis && m_OrientMode != OrientMode.kFixed;
+        }
+
 
         public override bool UpdateAttributes(Dictionary<VFXAttribute, int> attribs, ref VFXBlockDesc.Flag flags)
         {
@@ -58,13 +75,14 @@ namespace UnityEditor.Experimental
             {
                 m_HasTexture = true;
                 if (m_HasFlipBook = m_Values[FlipbookDimIndex] != null && UpdateFlag(attribs, CommonAttrib.TexIndex, VFXContextDesc.Type.kTypeOutput))
-                    m_HasMotionVectors = m_Values[MorphTextureIndex] != null && m_Values[MorphIntensityIndex] != null && m_Values[MorphTextureIndex].Get<Texture2D>() != null;
+                    m_HasMotionVectors = CanHaveMotionVectors() && m_Values[MorphTextureIndex] != null && m_Values[MorphIntensityIndex] != null && m_Values[MorphTextureIndex].Get<Texture2D>() != null;
             }
 
-            if (m_OrientAlongVelocity)
-                m_OrientAlongVelocity = UpdateFlag(attribs, CommonAttrib.Velocity, VFXContextDesc.Type.kTypeOutput);
-
-
+            if (m_OrientMode == OrientMode.kVelocity)
+            {
+                if(!UpdateFlag(attribs, CommonAttrib.Velocity, VFXContextDesc.Type.kTypeOutput))
+                    m_OrientMode = OrientMode.kFaceCamera;
+            } 
 
             return true;
         }
@@ -84,6 +102,18 @@ namespace UnityEditor.Experimental
                     }
                 }
             }
+
+            switch(m_OrientMode)
+            {
+                case OrientMode.kRotateAxis:
+                    uniforms.Add(m_Values[FirstLockedAxisIndex]);
+                    break;
+                case OrientMode.kFixed:
+                    uniforms.Add(m_Values[FirstLockedAxisIndex]);
+                    uniforms.Add(m_Values[SecondLockedAxisIndex]);
+                    break;
+                default: break;
+            }
         }
 
         public override void UpdateExpressions(HashSet<VFXExpression> expressions)
@@ -100,6 +130,18 @@ namespace UnityEditor.Experimental
                         expressions.Add(m_Values[MorphIntensityIndex]);
                     }
                 }
+            }
+
+            switch(m_OrientMode)
+            {
+                case OrientMode.kRotateAxis:
+                    expressions.Add(m_Values[FirstLockedAxisIndex]);
+                    break;
+                case OrientMode.kFixed:
+                    expressions.Add(m_Values[FirstLockedAxisIndex]);
+                    expressions.Add(m_Values[SecondLockedAxisIndex]);
+                    break;
+                default: break;
             }
         }
 
@@ -178,25 +220,60 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("float2 posOffsets = o.offsets.xy;");
             }
 
-            if (m_OrientAlongVelocity)
+            switch (m_OrientMode)
             {
-                builder.WriteLine("float3 front = UnityWorldSpaceViewDir(worldPos);");
-                builder.Write("float3 up = normalize(");
-                builder.WriteAttrib(CommonAttrib.Velocity, data);
-                builder.WriteLine(");");
-                builder.WriteLine("float3 side = normalize(cross(front,up));");
+                case OrientMode.kVelocity:
 
-                if (m_HasAngle)
-                    builder.WriteLine("front = cross(up,side);");
-            }
-            else
-            {
-                if (m_HasAngle || m_HasPivot)
-                    builder.WriteLine("float3 front = UNITY_MATRIX_MV[2].xyz;");
+                    builder.WriteLine("float3 front = UnityWorldSpaceViewDir(worldPos);");
+                    builder.Write("float3 up = normalize(");
+                    builder.WriteAttrib(CommonAttrib.Velocity, data);
+                    builder.WriteLine(");");
+                    builder.WriteLine("float3 side = normalize(cross(front,up));");
 
-                builder.WriteLine("float3 side = UNITY_MATRIX_IT_MV[0].xyz;");
-                builder.WriteLine("float3 up = UNITY_MATRIX_IT_MV[1].xyz;");
+                    if (m_HasAngle)
+                        builder.WriteLine("front = cross(up,side);");
+
+                    break;
+
+                case OrientMode.kFaceCamera:
+
+                    if (m_HasAngle || m_HasPivot)
+                        builder.WriteLine("float3 front = UNITY_MATRIX_MV[2].xyz;");
+
+                    builder.WriteLine("float3 side = UNITY_MATRIX_IT_MV[0].xyz;");
+                    builder.WriteLine("float3 up = UNITY_MATRIX_IT_MV[1].xyz;");
+
+                    break;
+
+                case OrientMode.kRotateAxis:
+
+                    builder.WriteLine("float3 front = UnityWorldSpaceViewDir(worldPos);");
+                    builder.Write("float3 up = normalize(");
+                    builder.Write(data.outputParamToName[m_Values[FirstLockedAxisIndex]]);
+                    builder.WriteLine(");");
+                    builder.WriteLine("float3 side = normalize(cross(front,up));");
+
+                    if (m_HasAngle)
+                        builder.WriteLine("front = cross(up,side);");
+                    break;
+
+                case OrientMode.kFixed:
+
+                    builder.Write("float3 front = ");
+                    builder.Write(data.outputParamToName[m_Values[SecondLockedAxisIndex]]);
+                    builder.Write(";");
+                    builder.Write("float3 up = normalize(");
+                    builder.Write(data.outputParamToName[m_Values[FirstLockedAxisIndex]]);
+                    builder.WriteLine(");");
+                    builder.WriteLine("float3 side = normalize(cross(front,up));");
+
+                    if (m_HasAngle)
+                        builder.WriteLine("front = cross(up,side);");
+                    break;
+
+                default: break;
             }
+
 
             builder.WriteLine();
 
@@ -358,7 +435,7 @@ namespace UnityEditor.Experimental
         private bool m_HasAngle;
         private bool m_HasFlipBook;
         private bool m_HasTexture;
-        private bool m_OrientAlongVelocity;
+        private OrientMode m_OrientMode;
         private bool m_HasMotionVectors;
         private bool m_HasPivot;
         private bool m_UseSoftParticles;
