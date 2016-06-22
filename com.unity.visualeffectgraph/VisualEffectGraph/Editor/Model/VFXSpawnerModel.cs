@@ -17,6 +17,16 @@ namespace UnityEditor.Experimental.VFX
             }
         }
 
+        protected override void InnerInvalidate(InvalidationCause cause)
+        {
+            // Change model to data before dispathching to linked contexts to avoid an recompilation of system but force the regeneration of native data
+            if (cause == InvalidationCause.kModelChanged)
+                cause = InvalidationCause.kDataChanged;
+
+            foreach (var context in m_Contexts)
+                context.Invalidate(cause);
+        }
+
         public bool CanLink(VFXContextModel context)
         {
             return context.GetContextType() == VFXContextDesc.Type.kTypeInit && !m_Contexts.Contains(context);
@@ -47,6 +57,13 @@ namespace UnityEditor.Experimental.VFX
             return false;
         }
 
+        protected override void OnRemove()
+        {
+            base.OnRemove();
+            while (m_Contexts.Count > 0)
+                Unlink(m_Contexts[0]);
+        }
+
         public int GetNbLinked()                    { return m_Contexts.Count; }
         public VFXContextModel GetLinked(int index) { return m_Contexts[index]; }
 
@@ -58,10 +75,13 @@ namespace UnityEditor.Experimental.VFX
 
     public class VFXSpawnerBlockModel : VFXModelWithSlots<VFXSpawnerNodeModel, VFXElementModel>, VFXUIDataHolder
     {
+        // Must match C++ side enum
         public enum Type
         {
             kConstantRate,
             kBurst,
+            kPeriodicBurst,
+            kVariableRate,
         }
 
         public static string TypeToName(Type spawnerType)
@@ -91,7 +111,10 @@ namespace UnityEditor.Experimental.VFX
                 case Type.kConstantRate:
                     return new VFXProperty[] { VFXProperty.Create<VFXFloatType>("rate") };
                 case Type.kBurst:
-                    return new VFXProperty[] { VFXProperty.Create<VFXFloat2Type>("nb") };
+                    return new VFXProperty[] { 
+                        VFXProperty.Create<VFXFloat2Type>("nb"),
+                        VFXProperty.Create<VFXFloat2Type>("delay")
+                    };
                 default:
                     throw new ArgumentException("Unknown spawner type");
             }

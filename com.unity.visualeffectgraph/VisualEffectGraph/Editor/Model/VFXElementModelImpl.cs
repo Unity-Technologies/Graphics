@@ -65,6 +65,9 @@ namespace UnityEditor.Experimental
                 case InvalidationCause.kParamChanged:
                     m_ReloadUniforms = true;
                     break;
+                case InvalidationCause.kDataChanged:
+                    m_NeedsNativeDataGeneration = true;
+                    break;
             }
         }
 
@@ -72,20 +75,18 @@ namespace UnityEditor.Experimental
         {
             Profiler.BeginSample("VFXSystemsModel.Update");
 
-            bool needsNativeDataGeneration = false;
+            bool needsReinit = false;
+
             for (int i = 0; i < GetNbChildren(); ++i)
                 if (GetChild(i).NeedsComponentUpdate())
                 {
                     GetChild(i).UpdateComponentSystem();
-                    needsNativeDataGeneration = true;
+                    m_NeedsNativeDataGeneration = true;
                 }
-
-            bool HasRecompiled = false;
-          //  bool NeedsExpressionsUpdate = false;
+         
             if (m_NeedsCheck)
             {
                 m_NeedsCheck = false;
-            //    NeedsExpressionsUpdate = true;
 
                 VFXEditor.Log("\n**** VFXAsset is dirty ****");
                 for (int i = 0; i < GetNbChildren(); ++i)
@@ -96,20 +97,22 @@ namespace UnityEditor.Experimental
                     else
                     {                     
                         if (GetChild(i).UpdateComponentSystem())
-                            HasRecompiled = true;
+                            needsReinit = true;
                         else
                             GetChild(i).RemoveSystem();
                     }
                 }
 
-                needsNativeDataGeneration = true;
+                m_NeedsNativeDataGeneration = true;
             }
 
             // Update assets properties and expressions for C++ evaluation
-            if (needsNativeDataGeneration)
+            if (m_NeedsNativeDataGeneration)
             {
                 GenerateNativeData();
                 m_ReloadUniforms = true;
+                needsReinit = true;
+                m_NeedsNativeDataGeneration = false;
             }
 
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
@@ -153,20 +156,9 @@ namespace UnityEditor.Experimental
                 }
 
                 m_TextureData.UpdateAndUploadDirty();
-
-               /* VFXEditor.Log("Uniforms have been modified");
-                for (int i = 0; i < GetNbChildren(); ++i)
-                {
-                    var system = GetChild(i);
-
-                    system.GeneratedTextureData.UpdateAndUploadDirty();
-
-                    if (system.RtData != null)
-                        system.RtData.UpdateAllUniforms();            
-                } */
             }
 
-            if (HasRecompiled) // Restart component 
+            if (needsReinit) // Restart component 
                 VFXEditor.ForeachComponents(c => c.Reinit());
 
             Profiler.EndSample();
@@ -187,9 +179,8 @@ namespace UnityEditor.Experimental
 
             // Collect linked spawners
             HashSet<VFXExpression> spawnerExpressions = new HashSet<VFXExpression>();
-            Dictionary<VFXSpawnerNodeModel, int> spawners = new Dictionary<VFXSpawnerNodeModel, int>(); // spawner and index
+            HashSet<VFXSpawnerNodeModel> spawners = new HashSet<VFXSpawnerNodeModel>(); // spawner and index
 
-            int currentSpawnerIndex = 0;
             for (int i = 0; i < GetNbChildren(); ++i)
             {
                 VFXSystemModel system = GetChild(i);
@@ -200,13 +191,12 @@ namespace UnityEditor.Experimental
                         continue;
 
                     foreach (var spawner in context.GetSpawners())
-                        if (!spawners.ContainsKey(spawner))
-                            spawners.Add(spawner, currentSpawnerIndex++);
+                        spawners.Add(spawner);
                 }
             }
 
             // Collect spawner expressions
-            foreach (var spawner in spawners.Keys)
+            foreach (var spawner in spawners)
             {
                 int nbBlocks = spawner.GetNbChildren();
                 for (int i = 0; i < nbBlocks; ++i)
@@ -308,7 +298,27 @@ namespace UnityEditor.Experimental
                 }
 
                 // Generate spawner native data
-                
+                asset.ClearSpawnerData();
+                foreach (var spawner in spawners)
+                {
+                    List<uint> spawnerStream = new List<uint>();
+
+                    int nbBlocks = spawner.GetNbChildren();
+                    spawnerStream.Add((uint)nbBlocks);
+                    for (int i = 0; i < nbBlocks; ++i)
+                    {
+                        VFXSpawnerBlockModel block = spawner.GetChild(i);
+                        spawnerStream.Add((uint)block.SpawnerType);
+                        for (int j = 0; j < block.GetNbInputSlots(); ++j)
+                            spawnerStream.Add((uint)m_Expressions[block.GetInputSlot(j).ValueRef]); // Warning: This wont work for composite type
+                    }
+
+                    int spawnerIndex = asset.AddSpawner(spawnerStream.ToArray());
+                    for (int i = 0; i < spawner.GetNbLinked(); ++i)
+                        asset.LinkSpawner(spawner.GetLinked(i).GetOwner().Id, spawnerIndex);
+                }
+                // Sync components runtime spawners data with asset data
+                VFXEditor.ForeachComponents(c => c.SyncSpawners());
 
                 // Finally generate the uniforms
                 for (int i = 0; i < GetNbChildren(); ++i)
@@ -374,6 +384,8 @@ namespace UnityEditor.Experimental
 
         private bool m_NeedsCheck = false;
         private bool m_ReloadUniforms = false;
+        private bool m_NeedsNativeDataGeneration = false;
+
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
 
         private Dictionary<VFXExpression, int> m_Expressions = new Dictionary<VFXExpression, int>();
@@ -432,8 +444,6 @@ namespace UnityEditor.Experimental
             int realIndex = index == -1 ? m_Children.Count : index;
             if (realIndex > 0 && GetChild(realIndex - 1).GetContextType() > contextType)
                 return false;
-            //if (realIndex < m_Children.Count && GetChild(realIndex).GetContextType() < contextType)
-            //	return false;
 
             return true;
         }
@@ -632,7 +642,6 @@ namespace UnityEditor.Experimental
         }
 
         public VFXGeneratedTextureData GeneratedTextureData { get { return GetOwner().GeneratedTextureData; } }
-        //private VFXGeneratedTextureData m_GeneratedTextureData = new VFXGeneratedTextureData();
 
         public bool UpdateComponentSystem()
         {
@@ -655,17 +664,6 @@ namespace UnityEditor.Experimental
 
                 VFXEditor.ForeachComponents(c => c.vfxAsset = VFXEditor.asset);
             }  
-
-           /* VFXEditor.component.SetSystem(
-                m_ID,
-                MaxNb,
-                rtData.SimulationShader,
-                rtData.m_Material,
-                rtData.buffersDesc,
-                rtData.outputType,
-                SpawnRate,
-                OrderPriority,
-                rtData.hasKill);*/
 
             m_ForceComponentUpdate = false;
             return true;
@@ -757,7 +755,7 @@ namespace UnityEditor.Experimental
             if (reentrant || spawner.Link(this,true))
             {
                 m_Spawners.Add(spawner);
-                Invalidate(InvalidationCause.kModelChanged);
+                Invalidate(InvalidationCause.kDataChanged);
                 return true;
             }
 
@@ -769,11 +767,18 @@ namespace UnityEditor.Experimental
             if (reentrant || spawner.Unlink(this, true))
             {
                 bool res = m_Spawners.Remove(spawner);
-                Invalidate(InvalidationCause.kModelChanged);
+                Invalidate(InvalidationCause.kDataChanged);
                 return res;
             }
 
             return false;
+        }
+
+        protected override void OnRemove()
+        {
+            base.OnRemove();
+            while (m_Spawners.Count > 0)
+                Unlink(m_Spawners[0]);
         }
 
         public IEnumerable<VFXSpawnerNodeModel> GetSpawners() { return m_Spawners; }

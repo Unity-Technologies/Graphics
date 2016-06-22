@@ -21,9 +21,10 @@ namespace UnityEditor.Experimental
     {
         public enum InvalidationCause
         {
-            kModelChanged,
-            kParamChanged,
-            kUIChanged,
+            kModelChanged,  // Model layout has changed
+            kParamChanged,  // Some parameter values have changed
+            kDataChanged,   // Data layout have changed
+            kUIChanged,     // UI stuff has changed
         }
 
         public void AddChild(VFXElementModel child, int index = -1, bool notify = true)
@@ -47,11 +48,13 @@ namespace UnityEditor.Experimental
             //Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
         }
 
+        protected virtual void OnRemove() {}
         public void Remove(VFXElementModel child, bool notify = true)
         {
             if (child.m_Owner != this)
                 return;
 
+            child.OnRemove();
             m_Children.Remove(child);
             child.m_Owner = null;
 
