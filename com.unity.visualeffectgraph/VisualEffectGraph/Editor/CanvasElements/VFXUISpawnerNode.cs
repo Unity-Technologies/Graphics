@@ -24,8 +24,8 @@ namespace UnityEditor.Experimental.VFX
             m_Model = model;
             scale = new Vector2(VFXEditorMetrics.NodeDefaultWidth, 100);
 
-            m_Inputs.Add(new VFXEdFlowAnchor(0, typeof(float), VFXContextDesc.Type.kTypeNone, m_DataSource, Direction.Input));
-            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), VFXContextDesc.Type.kTypeNone, m_DataSource, Direction.Input));
+            m_Inputs.Add(new VFXEdFlowAnchor(0, typeof(float), VFXContextDesc.Type.kTypeNone, m_DataSource, Direction.Input, "Start"));
+            m_Inputs.Add(new VFXEdFlowAnchor(1, typeof(float), VFXContextDesc.Type.kTypeNone, m_DataSource, Direction.Input, "Stop"));
 
             m_Outputs.Add(new VFXEdFlowAnchor(2, typeof(float), VFXContextDesc.Type.kTypeNone, m_DataSource, Direction.Output));
 
@@ -40,8 +40,18 @@ namespace UnityEditor.Experimental.VFX
         protected override MiniMenu.MenuSet GetNodeMenu(Vector2 mousePosition)
         {
             MiniMenu.MenuSet menu = new MiniMenu.MenuSet();
-            menu.AddItem("Not Implemented", new MiniMenu.HeaderItem("Check Back Later!"));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Constant Rate", AddSpawnBlock, VFXSpawnerBlockModel.Type.kConstantRate));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Variable Rate", AddSpawnBlock,VFXSpawnerBlockModel.Type.kVariableRate));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Simple Burst", AddSpawnBlock,VFXSpawnerBlockModel.Type.kBurst));
+            menu.AddItem("Add New...", new MiniMenu.CallbackItem("Periodic Burst", AddSpawnBlock,VFXSpawnerBlockModel.Type.kPeriodicBurst));
             return menu;
+        }
+
+        private void AddSpawnBlock(Vector2 position, object type)
+        {
+            VFXSpawnerBlockModel.Type modeltype = (VFXSpawnerBlockModel.Type)type;
+            VFXSpawnerBlockModel spawnerBlock = new VFXSpawnerBlockModel(modeltype);
+            DataSource.Create(spawnerBlock, Model);
         }
 
         public override void OnAddNodeBlock(VFXEdNodeBlock nodeblock, int index)

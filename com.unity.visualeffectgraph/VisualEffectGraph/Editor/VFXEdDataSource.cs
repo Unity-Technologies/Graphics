@@ -660,6 +660,12 @@ namespace UnityEditor.Experimental
             ConnectData((VFXOutputSlot)a.Slot,(VFXInputSlot)b.Slot);
         }
 
+        public void ConnectSpawner(VFXSpawnerNodeModel a, VFXContextModel b)
+        {
+            a.Link(b);
+            SyncView(a);
+        }
+
         public bool ConnectContext(VFXContextModel a, VFXContextModel b)
         {
             return VFXSystemModel.ConnectContext(a, b, this);
@@ -692,8 +698,7 @@ namespace UnityEditor.Experimental
                 VFXUISpawnerNode spawner = a.FindParent<VFXUISpawnerNode>();
                 if (spawner != null)
                 {
-                    spawner.Model.Link(context1.Model);
-                    SyncView(spawner.Model);
+                    ConnectSpawner(spawner.Model, context1.Model);
                 }
             }
        

@@ -113,11 +113,11 @@ namespace UnityEditor.Experimental.VFX
             switch (spawnerType)
             {
                 case Type.kConstantRate:
-                    return new VFXProperty[] { VFXProperty.Create<VFXFloatType>("rate") };
+                    return new VFXProperty[] { new VFXProperty( new VFXFloatType(10.0f),"Rate") };
                 case Type.kBurst:
                     return new VFXProperty[] { 
-                        VFXProperty.Create<VFXFloat2Type>("nb"),
-                        VFXProperty.Create<VFXFloat2Type>("delay")
+                        new VFXProperty(new VFXFloat2Type(new Vector2(0,3)),"Count"),
+                        new VFXProperty(new VFXFloat2Type(new Vector2(0.03f,0.25f)),"Delay")
                     };
                 case Type.kPeriodicBurst:
                     return new VFXProperty[] { 
