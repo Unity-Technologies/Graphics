@@ -4,19 +4,15 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
 
-namespace UnityEditor.Graphing.Tests
+namespace UnityEditor.Graphing.UnitTests
 {
     [TestFixture]
     public class ScriptableGraphTests
     {
-        [SetUpFixture]
-        public class SetUpClass
+        [TestFixtureSetUp]
+        public void RunBeforeAnyTests()
         {
-            [SetUp]
-            void RunBeforeAnyTests()
-            {
-                Debug.logger.logHandler = new ConsoleLogHandler();
-            }
+            Debug.logger.logHandler = new ConsoleLogHandler();
         }
 
         [Test]

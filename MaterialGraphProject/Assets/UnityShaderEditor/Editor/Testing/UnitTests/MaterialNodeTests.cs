@@ -1,10 +1,9 @@
-using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph.Tests
+namespace UnityEditor.MaterialGraph.UnitTests
 {
     [TestFixture]
     public class MaterialNodeTests
@@ -27,6 +26,12 @@ namespace UnityEditor.MaterialGraph.Tests
                 AddSlot(new MaterialSlot("V3In", "V3In", SlotType.Input, 2, SlotValueType.Vector3, Vector4.zero));
                 AddSlot(new MaterialSlot("V4In", "V4In", SlotType.Input, 3, SlotValueType.Vector4, Vector4.zero));
             }
+        }
+
+        [TestFixtureSetUp]
+        public void RunBeforeAnyTests()
+        {
+            Debug.logger.logHandler = new ConsoleLogHandler();
         }
 
         [SetUp]
