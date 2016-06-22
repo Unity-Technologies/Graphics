@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph.Tests
+namespace UnityEditor.MaterialGraph.UnitTests
 {
     [TestFixture]
     public class DynamicSlotTests
@@ -31,6 +31,12 @@ namespace UnityEditor.MaterialGraph.Tests
                 AddSlot(new MaterialSlot("V3Out", "V3Out", SlotType.Output, 2, SlotValueType.Vector3, Vector4.zero));
                 AddSlot(new MaterialSlot("V4Out", "V4Out", SlotType.Output, 3, SlotValueType.Vector4, Vector4.zero));
             }
+        }
+
+        [TestFixtureSetUp]
+        public void RunBeforeAnyTests()
+        {
+            Debug.logger.logHandler = new ConsoleLogHandler();
         }
 
         [SetUp]

@@ -3,11 +3,17 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph.Tests
+namespace UnityEditor.MaterialGraph.UnitTests
 {
     [TestFixture]
     public class ShaderGeneratorTests
     {
+        [TestFixtureSetUp]
+        public void RunBeforeAnyTests()
+        {
+            Debug.logger.logHandler = new ConsoleLogHandler();
+        }
+
         [Test]
         public void TestTexturePropertyChunkGeneratesValidPropertyStringNotHiddenNotModifiable()
         {

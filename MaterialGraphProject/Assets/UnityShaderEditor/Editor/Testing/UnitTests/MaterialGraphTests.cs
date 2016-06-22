@@ -4,19 +4,15 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph.Tests
+namespace UnityEditor.MaterialGraph.UnitTests
 {
     [TestFixture]
     public class MaterialGraphTests
     {
-        [SetUpFixture]
-        public class SetUpClass
+        [TestFixtureSetUp]
+        public void RunBeforeAnyTests()
         {
-            [SetUp]
-            void RunBeforeAnyTests()
-            {
-                Debug.logger.logHandler = new ConsoleLogHandler();
-            }
+            Debug.logger.logHandler = new ConsoleLogHandler();
         }
 
         [Test]

@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph.Tests
+namespace UnityEditor.MaterialGraph.IntegrationTests
 {
 
     public class ShaderGenerationTest
