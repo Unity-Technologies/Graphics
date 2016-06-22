@@ -55,9 +55,11 @@ namespace UnityEngine.Graphing
             return Type.GetType(typeInfo.SearchString());
         }
 
-        public static List<JSONSerializedElement> Serialize<T>(List<T> list)
+        public static List<JSONSerializedElement> Serialize<T>(IEnumerable<T> list)
         {
-            var result = new List<JSONSerializedElement>(list.Count);
+            var result = new List<JSONSerializedElement>();
+            if (list == null)
+                return result;
 
             foreach (var element in list)
             {
@@ -79,9 +81,11 @@ namespace UnityEngine.Graphing
             return result;
         }
 
-        public static List<T> Deserialize<T>(List<JSONSerializedElement> list, object[] constructorArgs) where T : class 
+        public static List<T> Deserialize<T>(IEnumerable<JSONSerializedElement> list, params object[] constructorArgs) where T : class 
         {
             var result = new List<T>();
+            if (list == null)
+                return result;
 
             foreach (var element in list) 
             {
