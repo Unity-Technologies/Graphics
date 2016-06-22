@@ -144,4 +144,35 @@ namespace UnityEditor.Experimental.VFX
 
         private Type m_Type;
     }
+
+    /*class VFXEventModel : VFXModelWithSlots<VFXElementModel, VFXElementModel>, VFXUIDataHolder
+    {
+        VFXEventModel(bool locked)
+        {
+            m_Locked = locked;
+        }
+
+        public void UpdatePosition(Vector2 position)
+        {
+            if (m_UIPosition != position)
+            {
+                m_UIPosition = position;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
+        }
+
+        public Vector2 UIPosition { get { return m_UIPosition; } }
+        private Vector2 m_UIPosition;
+
+        public bool Locked { get { return m_Locked; } }
+
+        public string Name
+        {
+            get { return m_Name; }
+            set { m_Name = value; }
+        }
+
+        private bool m_Locked;
+        private string m_Name;
+    }*/
 }
