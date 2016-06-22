@@ -56,6 +56,8 @@ namespace UnityEditor.Experimental
             tree.Add(new VFXFilterWindow.GroupElement(1, "Spawner"));
             tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kConstantRate));
             tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kBurst));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kPeriodicBurst));
+            tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kVariableRate));
 
             var contexts = new List<VFXContextDesc>(VFXEditor.ContextLibrary.GetContexts());
             contexts.Sort((blockA, blockB) => {

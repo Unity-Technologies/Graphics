@@ -92,6 +92,10 @@ namespace UnityEditor.Experimental.VFX
                     return "Constant Rate";
                 case Type.kBurst:
                     return "Burst";
+                case Type.kPeriodicBurst:
+                    return "Periodic Burst";
+                case Type.kVariableRate:
+                    return "Variable Rate";
                 default:
                     throw new ArgumentException("Unknown spawner type");
             }
@@ -114,6 +118,16 @@ namespace UnityEditor.Experimental.VFX
                     return new VFXProperty[] { 
                         VFXProperty.Create<VFXFloat2Type>("nb"),
                         VFXProperty.Create<VFXFloat2Type>("delay")
+                    };
+                case Type.kPeriodicBurst:
+                    return new VFXProperty[] { 
+                        VFXProperty.Create<VFXFloat2Type>("nb"),
+                        VFXProperty.Create<VFXFloat2Type>("period")
+                    };
+                case Type.kVariableRate:
+                    return new VFXProperty[] { 
+                        VFXProperty.Create<VFXFloat2Type>("nb"),
+                        VFXProperty.Create<VFXFloat2Type>("period")
                     };
                 default:
                     throw new ArgumentException("Unknown spawner type");

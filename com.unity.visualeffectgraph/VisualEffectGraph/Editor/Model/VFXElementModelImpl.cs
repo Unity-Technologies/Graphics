@@ -545,14 +545,23 @@ namespace UnityEditor.Experimental
         public void RemoveSystem()
         {
             Dispose();
-            //if (force || rtData != null)
+            if (rtData == null)
+                return;
+
+            VFXEditor.ForeachComponents(c => c.RemoveSystem(m_ID));
 
             if (VFXEditor.asset != null)
                 VFXEditor.asset.RemoveSystem(m_ID);
 
-            VFXEditor.ForeachComponents(c => c.RemoveSystem(m_ID));
+            DeleteAssets();
+            rtData = null;
+        }
 
-            DeleteAssets();   
+        protected override void OnRemove()
+        {
+            base.OnRemove();
+            RemoveSystem();
+            m_Owner.Invalidate(InvalidationCause.kDataChanged);
         }
 
         private bool m_Dirty = true;
