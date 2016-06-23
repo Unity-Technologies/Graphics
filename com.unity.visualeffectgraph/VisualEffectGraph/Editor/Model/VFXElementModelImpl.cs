@@ -314,8 +314,8 @@ namespace UnityEditor.Experimental
                     }
 
                     int spawnerIndex = asset.AddSpawner(spawnerStream.ToArray());
-                    for (int i = 0; i < spawner.GetNbLinked(); ++i)
-                        asset.LinkSpawner(spawner.GetLinked(i).GetOwner().Id, spawnerIndex);
+                    foreach (var context in spawner.LinkedContexts)
+                        asset.LinkSpawner(context.GetOwner().Id, spawnerIndex);
                 }
                 // Sync components runtime spawners data with asset data
                 VFXEditor.ForeachComponents(c => c.SyncSpawners());

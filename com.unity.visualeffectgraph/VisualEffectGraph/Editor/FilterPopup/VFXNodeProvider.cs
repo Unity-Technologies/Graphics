@@ -27,6 +27,20 @@ namespace UnityEditor.Experimental
             }
         }
 
+        private class VFXEventElement : VFXFilterWindow.Element
+        {
+            public string m_Name;
+            public bool m_Locked;
+
+            public VFXEventElement(int level, string name, bool locked)
+            {
+                this.level = level;
+                content = new GUIContent("Event : " + name);
+                m_Name = name;
+                m_Locked = locked;
+            }
+        }
+
         private class VFXSpawnerElement : VFXFilterWindow.Element
         {
             public VFXSpawnerBlockModel.Type m_Type;
@@ -51,7 +65,9 @@ namespace UnityEditor.Experimental
             tree.Add(new VFXFilterWindow.GroupElement(0, "Add Nodes"));
 
             tree.Add(new VFXFilterWindow.GroupElement(1, "Events..."));
-            // TODO: Add Events here
+            tree.Add(new VFXEventElement(2, "OnStart", true));
+            tree.Add(new VFXEventElement(2, "OnStop", true));
+            tree.Add(new VFXEventElement(2, "Custom", false));
 
             tree.Add(new VFXFilterWindow.GroupElement(1, "Spawner"));
             tree.Add(new VFXSpawnerElement(2, VFXSpawnerBlockModel.Type.kConstantRate));
@@ -97,8 +113,16 @@ namespace UnityEditor.Experimental
 
             if (element is VFXSpawnerElement)
             {
-                var spawnerNode = m_dataSource.CreateNodeSpawner(GetSpawnPosition());
+                var spawnerNode = m_dataSource.CreateSpawnerNode(GetSpawnPosition());
                 m_dataSource.Create(new VFXSpawnerBlockModel(((VFXSpawnerElement)element).m_Type),spawnerNode);
+                m_canvas.ReloadData();
+                return true;
+            }
+
+            if (element is VFXEventElement)
+            {
+                var eventElement = (VFXEventElement)element;
+                var eventNode = m_dataSource.CreateEventNode(GetSpawnPosition(), eventElement.m_Name, eventElement.m_Locked);
                 m_canvas.ReloadData();
                 return true;
             }

@@ -216,7 +216,8 @@ namespace UnityEditor.Experimental.VFX
                 for (int i = 0; i < graph.systems.GetNbChildren(); ++i)
                     Serialize(writer, graph.systems.GetChild(i), data);
 
-                List<VFXSpawnerNodeModel> spawners = new List<VFXSpawnerNodeModel>(); // keep tracks of spawners to write connections at the end
+                var spawners = new List<VFXSpawnerNodeModel>(); // keep tracks of spawners to write connections at the end
+                var events = new List<VFXEventModel>(); // keep tracks of events to write connections at the end
                 for (int i = 0; i < graph.models.GetNbChildren(); ++i)
                 {
                     var model = graph.models.GetChild(i);
@@ -231,6 +232,12 @@ namespace UnityEditor.Experimental.VFX
                         Serialize(writer, spawnerModel, data);
                         spawners.Add(spawnerModel);
                     }
+                    else if (modelType == typeof(VFXEventModel))
+                    {
+                        var eventModel = (VFXEventModel)model;
+                        Serialize(writer, eventModel, data);
+                        events.Add(eventModel);
+                    }
                     else
                         Debug.LogWarning("Cannot serialize model of type: " + modelType);
                 }
@@ -239,6 +246,9 @@ namespace UnityEditor.Experimental.VFX
 
                 foreach (var spawner in spawners)
                     SerializeSpawnerConnections(writer, spawner, data);
+
+                foreach (var e in events)
+                    SerializeEventConnections(writer, e, data);
 
                 writer.WriteEndElement();
                 writer.WriteEndDocument();
@@ -352,6 +362,16 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteEndElement();
         }
 
+        private static void Serialize(XmlWriter writer, VFXEventModel eventNode, MetaData data)
+        {
+            writer.WriteStartElement("EventNode");
+            SerializeModelId(writer, eventNode, data);
+            writer.WriteAttributeString("Position", SerializationUtils.FromVector2(eventNode.UIPosition));
+            writer.WriteAttributeString("Name", eventNode.Name);
+            writer.WriteAttributeString("Locked", eventNode.Locked.ToString());
+            writer.WriteEndElement();
+        }
+
         private static void Serialize(XmlWriter writer, VFXPropertySlot slot, MetaData data)
         {
             writer.WriteStartElement("Slot");
@@ -407,13 +427,39 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteAttributeString("Id", spawnerId.ToString());
 
             List<int> linkedIds = new List<int>();
-            for (int i = 0; i < spawnerNode.GetNbLinked(); ++i)
+            foreach (var context in spawnerNode.LinkedContexts)
             {
-                VFXSystemModel system = spawnerNode.GetLinked(i).GetOwner();
+                VFXSystemModel system = context.GetOwner();
                 linkedIds.Add(data.GetModelId(system));
             }
 
             writer.WriteValue(linkedIds);
+            writer.WriteEndElement();
+        }
+
+        private static void SerializeEventConnections(XmlWriter writer, VFXEventModel eventNode, MetaData data)
+        {
+            if (!eventNode.IsLinked())
+                return;
+
+            writer.WriteStartElement("EventConnections");
+            int eventId = data.GetModelId(eventNode);
+            writer.WriteAttributeString("Id", eventId.ToString());
+
+            List<int> linkedIds = new List<int>();
+            writer.WriteStartElement("Start");
+            foreach (var spawner in eventNode.StartSpawners)
+                linkedIds.Add(data.GetModelId(spawner));
+            writer.WriteValue(linkedIds);
+            writer.WriteEndElement();
+
+            linkedIds.Clear();
+            writer.WriteStartElement("Stop");
+            foreach (var spawner in eventNode.EndSpawners)
+                linkedIds.Add(data.GetModelId(spawner));
+            writer.WriteValue(linkedIds);
+            writer.WriteEndElement();
+
             writer.WriteEndElement();
         }
 
@@ -456,9 +502,11 @@ namespace UnityEditor.Experimental.VFX
                 var dataNodesXML = root.Elements("DataNode");
                 var commentsXML = root.Elements("Comment");
                 var spawnersXML = root.Elements("SpawnerNode");
+                var eventsXML = root.Elements("EventNode");
                 var connectionsXML = root.Element("Connections");
 
                 var spawnerConnectionsXML = root.Elements("SpawnerConnections");
+                var eventConnectionsXML = root.Elements("EventConnections");
 
                 foreach (var systemXML in systemsXML)
                     graph.systems.AddChild(DeserializeSystem(systemXML, data));
@@ -472,10 +520,16 @@ namespace UnityEditor.Experimental.VFX
                 foreach (var spawnerXML in spawnersXML)
                     graph.models.AddChild(DeserializeSpawnerNode(spawnerXML, data));
 
+                foreach (var eventXML in eventsXML)
+                    graph.models.AddChild(DeserializeEventNode(eventXML, data));
+
                 DeserializeConnections(connectionsXML, data);
 
                 foreach (var spawnerXML in spawnerConnectionsXML)
                     DeserializeSpawnerConnections(spawnerXML, data);
+
+                foreach (var eventXML in eventConnectionsXML)
+                    DeserializeEventConnections(eventXML, data);
             }
             catch(Exception e)
             {
@@ -617,6 +671,16 @@ namespace UnityEditor.Experimental.VFX
             return block;
         }
 
+        private static VFXEventModel DeserializeEventNode(XElement xml,MetaData data)
+        {
+            string name = xml.Attribute("Name").Value;
+            bool locked = bool.Parse(xml.Attribute("Locked").Value);
+            var eventNode = new VFXEventModel(name,locked);
+            DeserializeModelId(xml, eventNode, data);
+            eventNode.UpdatePosition(SerializationUtils.ToVector2(xml.Attribute("Position").Value));
+            return eventNode;
+        }
+
         private static VFXCommentModel DeserializeComment(XElement xml, MetaData data)
         {
             var comment = new VFXCommentModel();
@@ -682,6 +746,31 @@ namespace UnityEditor.Experimental.VFX
             {
                 VFXContextModel context = ((VFXSystemModel)data.GetModel(linkedId)).GetChild(0);
                 model.Link(context);
+            }
+        }
+
+        private static void DeserializeEventConnections(XElement xml, MetaData data)
+        {
+            var eventId = int.Parse(xml.Attribute("Id").Value);
+            var model = (VFXEventModel)data.GetModel(eventId);
+
+            var startSpawners = xml.Element("Start");
+            var stopSpawners = xml.Element("Stop");
+
+            if (startSpawners.Value != null && startSpawners.Value.Length > 0)
+            {
+                string[] linkedStr = startSpawners.Value.Split(' ');
+                var linkedIds = linkedStr.Select(str => int.Parse(str));
+                foreach (var linkedId in linkedIds)
+                    model.Link((VFXSpawnerNodeModel)data.GetModel(linkedId), VFXSpawnerNodeModel.EventSlot.kEventSlotStart);
+            }
+
+            if (stopSpawners.Value != null && stopSpawners.Value.Length > 0)
+            {
+                string[] linkedStr = stopSpawners.Value.Split(' ');
+                var linkedIds = linkedStr.Select(str => int.Parse(str));
+                foreach (var linkedId in linkedIds)
+                    model.Link((VFXSpawnerNodeModel)data.GetModel(linkedId), VFXSpawnerNodeModel.EventSlot.kEventSlotStop);
             }
         }
     }

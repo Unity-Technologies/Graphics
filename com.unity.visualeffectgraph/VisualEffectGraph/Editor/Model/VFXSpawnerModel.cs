@@ -7,6 +7,12 @@ namespace UnityEditor.Experimental.VFX
 {
     public class VFXSpawnerNodeModel : VFXElementModel<VFXElementModel, VFXSpawnerBlockModel>, VFXUIDataHolder
     {
+        public enum EventSlot
+        {
+            kEventSlotStart,
+            kEventSlotStop,
+        }
+
         public void UpdateCollapsed(bool collapsed) {}
         public void UpdatePosition(Vector2 position)
         {
@@ -57,6 +63,46 @@ namespace UnityEditor.Experimental.VFX
             return false;
         }
 
+        private List<VFXEventModel> GetEventList(EventSlot slot)
+        {
+            switch(slot)
+            {
+                case EventSlot.kEventSlotStart:   return m_StartEvents;
+                case EventSlot.kEventSlotStop:    return m_EndEvents;
+            }
+
+            throw new Exception();
+        }
+
+        public bool Link(VFXEventModel e,EventSlot slot,bool reentrant = false)
+        {
+            var eventList = GetEventList(slot);
+            if (!eventList.Contains(e))
+            {
+                eventList.Add(e);
+                Invalidate(InvalidationCause.kDataChanged);
+                if (!reentrant)
+                    e.Link(this, slot, true);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool Unlink(VFXEventModel e, EventSlot slot, bool reentrant = false)
+        {
+            var eventList = GetEventList(slot);
+            if (eventList.Remove(e))
+            {
+                Invalidate(InvalidationCause.kDataChanged);
+                if (!reentrant)
+                    e.Unlink(this, slot, true);
+                return true;
+            }
+
+            return false;
+        }
+
         protected override void OnRemove()
         {
             base.OnRemove();
@@ -64,13 +110,17 @@ namespace UnityEditor.Experimental.VFX
                 Unlink(m_Contexts[0]);
         }
 
-        public int GetNbLinked()                    { return m_Contexts.Count; }
-        public VFXContextModel GetLinked(int index) { return m_Contexts[index]; }
+        public int GetNbLinked()                            { return m_Contexts.Count; }
+        public IEnumerable<VFXContextModel> LinkedContexts  { get { return m_Contexts; } }
+        public IEnumerable<VFXEventModel> StartEvents       { get { return m_StartEvents; } }
+        public IEnumerable<VFXEventModel> EndEvents         { get { return m_EndEvents; } }
 
         public Vector2 UIPosition { get { return m_UIPosition; } }
         private Vector2 m_UIPosition;
 
         private List<VFXContextModel> m_Contexts = new List<VFXContextModel>();
+        private List<VFXEventModel> m_StartEvents = new List<VFXEventModel>();
+        private List<VFXEventModel> m_EndEvents = new List<VFXEventModel>();
     }
 
     public class VFXSpawnerBlockModel : VFXModelWithSlots<VFXSpawnerNodeModel, VFXElementModel>, VFXUIDataHolder
@@ -145,13 +195,45 @@ namespace UnityEditor.Experimental.VFX
         private Type m_Type;
     }
 
-    /*class VFXEventModel : VFXModelWithSlots<VFXElementModel, VFXElementModel>, VFXUIDataHolder
+    public class VFXEventModel : VFXModelWithSlots<VFXElementModel, VFXElementModel>, VFXUIDataHolder
     {
-        VFXEventModel(bool locked)
+        public VFXEventModel(string name,bool locked)
         {
+            m_Name = name;
             m_Locked = locked;
         }
 
+        private List<VFXSpawnerNodeModel> GetSpawnerList(VFXSpawnerNodeModel.EventSlot slot)
+        {
+            switch (slot)
+            {
+                case VFXSpawnerNodeModel.EventSlot.kEventSlotStart: return m_StartSpawners;
+                case VFXSpawnerNodeModel.EventSlot.kEventSlotStop: return m_EndSpawners;
+            }
+
+            throw new Exception();
+        }
+
+        public bool Link(VFXSpawnerNodeModel spawner, VFXSpawnerNodeModel.EventSlot slot, bool reentrant = false)
+        {
+            if (reentrant || spawner.Link(this, slot, true))
+            {
+                GetSpawnerList(slot).Add(spawner);
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool Unlink(VFXSpawnerNodeModel spawner, VFXSpawnerNodeModel.EventSlot slot, bool reentrant = false)
+        {
+            if (reentrant || spawner.Unlink(this, slot, true))
+                return GetSpawnerList(slot).Remove(spawner);
+
+            return false;
+        }
+
+        public void UpdateCollapsed(bool collapsed) {}
         public void UpdatePosition(Vector2 position)
         {
             if (m_UIPosition != position)
@@ -169,10 +251,21 @@ namespace UnityEditor.Experimental.VFX
         public string Name
         {
             get { return m_Name; }
-            set { m_Name = value; }
+            set 
+            {
+                if (!m_Locked && m_Name != value)
+                    m_Name = value; 
+            }
         }
 
-        private bool m_Locked;
+        public bool IsLinked() { return m_StartSpawners.Count > 0 || m_EndSpawners.Count > 0;  }
+        public IEnumerable<VFXSpawnerNodeModel> StartSpawners { get { return m_StartSpawners;  } }
+        public IEnumerable<VFXSpawnerNodeModel> EndSpawners { get { return m_EndSpawners;  } }
+
+        private List<VFXSpawnerNodeModel> m_StartSpawners = new List<VFXSpawnerNodeModel>();
+        private List<VFXSpawnerNodeModel> m_EndSpawners = new List<VFXSpawnerNodeModel>();
+
         private string m_Name;
-    }*/
+        private bool m_Locked;
+    }
 }

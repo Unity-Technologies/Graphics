@@ -22,7 +22,6 @@ public class VFXComponentEditor : Editor
         if (s_Styles == null)
            s_Styles = new Styles();
 
-        var castTarget = (VFXComponent)target;
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
     }

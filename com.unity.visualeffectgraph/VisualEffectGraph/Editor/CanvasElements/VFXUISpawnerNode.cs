@@ -15,9 +15,6 @@ namespace UnityEditor.Experimental.VFX
         public VFXElementModel GetAbstractModel() { return Model; }
         private VFXSpawnerNodeModel m_Model;
 
-        public VFXUIPropertySlotField[] Fields { get { return m_Fields; } }
-        protected VFXUIPropertySlotField[] m_Fields;
-
         internal VFXUISpawnerNode(VFXSpawnerNodeModel model, VFXEdDataSource dataSource) 
             : base (model.UIPosition, dataSource)
         {
@@ -67,17 +64,6 @@ namespace UnityEditor.Experimental.VFX
         public override void UpdateModel(UpdateType t)
         {
             Model.UpdatePosition(translation);
-        }
-
-        public virtual float GetHeight()
-        {
-            float height = VFXEditorMetrics.NodeBlockHeaderHeight;
-            foreach (var field in m_Fields)
-            {
-                height += field.scale.y + VFXEditorMetrics.NodeBlockParameterSpacingHeight;
-            }
-            height += VFXEditorMetrics.NodeBlockFooterHeight;
-            return height;
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)

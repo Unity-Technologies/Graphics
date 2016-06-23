@@ -76,9 +76,18 @@ namespace UnityEditor.Experimental
             return model;
         }
 
-        public VFXSpawnerNodeModel CreateNodeSpawner(Vector2 pos)
+        public VFXSpawnerNodeModel CreateSpawnerNode(Vector2 pos)
         {
             VFXSpawnerNodeModel model = new VFXSpawnerNodeModel();
+            model.UpdatePosition(pos);
+            VFXEditor.Graph.models.AddChild(model);
+            SyncView(model);
+            return model;
+        }
+
+        public VFXEventModel CreateEventNode(Vector2 pos,string name,bool locked)
+        {
+            VFXEventModel model = new VFXEventModel(name,locked);
             model.UpdatePosition(pos);
             VFXEditor.Graph.models.AddChild(model);
             SyncView(model);
@@ -146,6 +155,8 @@ namespace UnityEditor.Experimental
                 SyncSpawnerNode((VFXSpawnerNodeModel)model,recursive);
             else if (modelType == typeof(VFXSpawnerBlockModel))
                 SyncSpawnerBlock((VFXSpawnerBlockModel)model,recursive);
+            else if (modelType == typeof(VFXEventModel))
+                SyncEventNode((VFXEventModel)model);
         }
 
         public void SyncSystem(VFXSystemModel model,bool recursive = false)
@@ -371,12 +382,7 @@ namespace UnityEditor.Experimental
             VFXUISpawnerNode spawnerUI = TryGetUI<VFXUISpawnerNode>(model);
 
             if (spawnerUI != null)
-            {
-                // First remove all edges
-                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.inputs[0]);
-                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.inputs[1]);
                 RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(spawnerUI.outputs[0]);
-            }
 
             if (model.GetOwner() == null)
             {
@@ -397,9 +403,9 @@ namespace UnityEditor.Experimental
                 spawnerUI.translation = model.UIPosition;
 
                 // Then recreate edges
-                for (int i = 0; i < model.GetNbLinked(); ++i)
+                foreach (var context in model.LinkedContexts)
                 {
-                    var contextUI = TryGetUI<VFXEdContextNode>(model.GetLinked(i));
+                    var contextUI = TryGetUI<VFXEdContextNode>(context);
                     if (contextUI != null)
                         m_Elements.Add(new FlowEdge(this, spawnerUI.outputs[0], contextUI.inputs[0]));
                 }
@@ -430,7 +436,6 @@ namespace UnityEditor.Experimental
         public void SyncSpawnerBlock(VFXSpawnerBlockModel model,bool recursive)
         {
             var owner = model.GetOwner();
-
             VFXUISpawnerBlock blockUI = TryGetUI<VFXUISpawnerBlock>(model);
 
             if (owner == null)
@@ -451,6 +456,50 @@ namespace UnityEditor.Experimental
 
             blockUI.Layout();
             blockUI.Invalidate();
+        }
+
+        public void SyncEventNode(VFXEventModel model)
+        {
+            var owner = model.GetOwner();
+            VFXEdEventNode eventUI = TryGetUI<VFXEdEventNode>(model);
+
+            if (eventUI != null)
+                RemoveConnectedEdges<FlowEdge, VFXEdFlowAnchor>(eventUI.outputs[0]);
+
+            if (owner == null)
+            {
+                m_ModelToUI.Remove(model);
+                if (eventUI != null)
+                    m_Elements.Remove(eventUI);
+            }
+            else
+            {
+                if (eventUI == null)
+                {
+                    m_ModelToUI.Add(model, eventUI = new VFXEdEventNode(model, this));
+                    AddElement(eventUI);
+                }
+
+                // Then recreate edges
+                foreach (var spawner in model.StartSpawners)
+                {
+                    var spawnerUI = TryGetUI<VFXUISpawnerNode>(spawner);
+                    if (spawnerUI != null)
+                        m_Elements.Add(new FlowEdge(this, eventUI.outputs[0], spawnerUI.inputs[0]));
+                }
+
+                foreach (var spawner in model.EndSpawners)
+                {
+                    var spawnerUI = TryGetUI<VFXUISpawnerNode>(spawner);
+                    if (spawnerUI != null)
+                        m_Elements.Add(new FlowEdge(this, eventUI.outputs[0], spawnerUI.inputs[1]));
+                }
+
+                eventUI.translation = model.UIPosition;
+
+                eventUI.Layout();
+                eventUI.Invalidate();
+            }
         }
 
         public void SyncSlot(VFXPropertySlot slot, bool recursive = true)
@@ -591,7 +640,16 @@ namespace UnityEditor.Experimental
                             SyncView(spawner.Model);
                         }
                     }
-
+                }
+                else
+                {
+                    var spawnerNode = anchor.FindParent<VFXUISpawnerNode>();
+                    var eventNode = edge.Left.FindParent<VFXEdEventNode>();
+                    if (eventNode != null && spawnerNode != null)
+                    {
+                        eventNode.Model.Unlink(spawnerNode.Model, (VFXSpawnerNodeModel.EventSlot)anchor.m_PortIndex);
+                        SyncView(eventNode.Model);
+                    }   
                 }
             }
 
@@ -666,6 +724,12 @@ namespace UnityEditor.Experimental
             SyncView(a);
         }
 
+        public void ConnectEvent(VFXEventModel e,VFXSpawnerNodeModel s, VFXSpawnerNodeModel.EventSlot slot)
+        {
+            e.Link(s, slot);
+            SyncView(e);
+        }
+
         public bool ConnectContext(VFXContextModel a, VFXContextModel b)
         {
             return VFXSystemModel.ConnectContext(a, b, this);
@@ -683,25 +747,27 @@ namespace UnityEditor.Experimental
             VFXEdContextNode context0 = a.FindParent<VFXEdContextNode>();
             VFXEdContextNode context1 = b.FindParent<VFXEdContextNode>();
 
+            VFXUISpawnerNode spawner0 = a.FindParent<VFXUISpawnerNode>();
+            VFXUISpawnerNode spawner1 = b.FindParent<VFXUISpawnerNode>();
+
+            VFXEdEventNode event0 = a.FindParent<VFXEdEventNode>();
+
+            // Context
             if (context0 != null && context1 != null)
-            {
-
-                VFXContextModel model0 = context0.Model;
-                VFXContextModel model1 = context1.Model;
-
-                if (!ConnectContext(model0, model1))
+                if (!ConnectContext(context0.Model, context1.Model))
                     return false;
-            }
 
-            if (context0 == null && context1 != null)
+            // Spawner
+            if (spawner0 != null && context1 != null)
+                ConnectSpawner(spawner0.Model, context1.Model);
+            
+            // Event
+            if (event0 != null && spawner1 != null)
             {
-                VFXUISpawnerNode spawner = a.FindParent<VFXUISpawnerNode>();
-                if (spawner != null)
-                {
-                    ConnectSpawner(spawner.Model, context1.Model);
-                }
+                var slot = (VFXSpawnerNodeModel.EventSlot)b.m_PortIndex;
+                ConnectEvent(event0.Model, spawner1.Model, slot);
             }
-       
+                
             return true;
         }
     }

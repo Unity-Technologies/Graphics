@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental
             Vector2 pos = canvas.MouseToCanvas(mousePosition) - new Vector2(VFXEditorMetrics.NodeDefaultWidth / 2, 10);
             Vector2 systempos = pos + new Vector2(0, 140);
 
-            VFXSpawnerNodeModel spawner = dataSource.CreateNodeSpawner(pos);
+            VFXSpawnerNodeModel spawner = dataSource.CreateSpawnerNode(pos);
             VFXSpawnerBlockModel spawnerBlock = new VFXSpawnerBlockModel(VFXSpawnerBlockModel.Type.kConstantRate);
             spawnerBlock.GetInputSlot(0).Set(10.0f);
 

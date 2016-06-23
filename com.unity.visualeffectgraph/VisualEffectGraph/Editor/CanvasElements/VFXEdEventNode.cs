@@ -4,19 +4,22 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor.Experimental;
 using UnityEditor.Experimental.Graph;
+using UnityEditor.Experimental.VFX;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    internal class VFXEdEventNode : VFXEdNodeBase 
+    internal class VFXEdEventNode : VFXEdNodeBase, VFXModelHolder 
     { 
-
-        protected string m_EventName;
         protected VFXEdFlowAnchor m_Output;
 
-        internal VFXEdEventNode(Vector2 canvasposition, VFXEdDataSource dataSource, string eventname) : base (canvasposition, dataSource)
+        public VFXElementModel GetAbstractModel() { return Model; }
+        public VFXEventModel Model { get { return m_Model; } }
+        private VFXEventModel m_Model;
+
+        internal VFXEdEventNode(VFXEventModel model, VFXEdDataSource dataSource) : base (model.UIPosition, dataSource)
         {
-            m_EventName = eventname;
+            m_Model = model;
             m_DataSource = dataSource;
 
             m_Outputs.Add(new VFXEdFlowAnchor(0, typeof(float), VFXContextDesc.Type.kTypeNone, m_DataSource, Direction.Output));
@@ -24,6 +27,11 @@ namespace UnityEditor.Experimental
             AddChild(m_Output);
             ZSort();
             Layout();
+        }
+
+        public override void UpdateModel(UpdateType t)
+        {
+            Model.UpdatePosition(translation);
         }
 
         public override void Layout()
@@ -35,17 +43,12 @@ namespace UnityEditor.Experimental
             m_Output.translation = new Vector2((s.x / 2) - (m_Output.scale.x / 2), s.y - VFXEditor.styles.NodeSelected.border.bottom);
         }
 
-        /*public override void OnRemove()
-        {
-
-        }*/
-
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             base.Render(parentRect, canvas);
             GUI.Box(m_ClientArea, "", VFXEditor.styles.EventNode);
             Rect textrect = VFXEditorMetrics.EventNodeTextRectOffset.Remove(m_ClientArea);
-            GUI.Label(textrect, m_EventName, VFXEditor.styles.EventNodeText);
+            GUI.Label(textrect, Model.Name, VFXEditor.styles.EventNodeText);
             if(selected) GUI.Box(m_ClientArea, "", VFXEditor.styles.NodeSelected);
         }
     }

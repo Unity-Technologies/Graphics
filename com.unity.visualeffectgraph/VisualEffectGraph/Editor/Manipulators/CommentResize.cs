@@ -7,7 +7,7 @@ namespace UnityEditor.Experimental
         private bool m_Active;
         private Vector2 m_Start;
         private Vector2 m_MinimumScale;
-        private GUIStyle style = new GUIStyle("WindowBottomResize");
+        //private GUIStyle style = new GUIStyle("WindowBottomResize");
 
         public CommentResize(Vector2 minimumScale)
         {
