@@ -36,7 +36,7 @@ velocity += Force * deltaTime;";
 
             Source = @"
 float3 relativeForce = InfluenceSpeed - velocity;
-velocity += InfluenceSpeed * (DragCoefficient * deltaTime);";
+velocity += relativeForce * min(1.0f,(DragCoefficient * deltaTime));";
         }
     }
 
@@ -153,12 +153,37 @@ velocity += normalize(dir) * (deltaTime * Force / sqrDist);";
             Source = @"
 float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
 float3 value = tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5f, 0.0f)).xyz * 2.0f - 1.0f;
-value = mul(Box,float4(value,0.0f)).xyz;
-float3 updatedVelocity = (deltaTime * Intensity) * value  + velocity;
-float3 directVelocity = value * Intensity;
-velocity = lerp(updatedVelocity,directVelocity, saturate(Tightness));";
+value = mul(Box,float4(value,0.0f)).xyz * Intensity;
+float3 updatedVelocity = (deltaTime * value)  + velocity;
+velocity = lerp(updatedVelocity, value, saturate(Tightness));";
         }
 
+    }
+
+
+    class VFXBlockVectorFieldRelativeForce : VFXBlockType
+    {
+        public VFXBlockVectorFieldRelativeForce()
+        {
+            Name = "Relative Force (VectorField)";
+            Icon = "Force";
+            Category = "Forces";
+
+            Add(new VFXProperty(new VFXTexture3DType(),"VectorField"));
+            Add(new VFXProperty(new VFXOrientedBoxType(), "Box"));
+            Add(new VFXProperty(new VFXFloatType(1.0f), "Intensity"));
+            Add(new VFXProperty(new VFXFloatType(1.0f),"DragCoefficient"));
+
+            Add(new VFXAttribute(CommonAttrib.Velocity, true));
+            Add(new VFXAttribute(CommonAttrib.Position, false));
+
+            Source = @"
+float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
+float3 value = tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5f, 0.0f)).xyz * 2.0f - 1.0f;
+value = mul(Box,float4(value,0.0f)).xyz * Intensity;
+float3 relativeForce = value - velocity;
+velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));";
+        }
     }
 
 }
