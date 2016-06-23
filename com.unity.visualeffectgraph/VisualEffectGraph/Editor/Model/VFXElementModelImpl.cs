@@ -316,6 +316,26 @@ namespace UnityEditor.Experimental
                     int spawnerIndex = asset.AddSpawner(spawnerStream.ToArray());
                     foreach (var context in spawner.LinkedContexts)
                         asset.LinkSpawner(context.GetOwner().Id, spawnerIndex);
+
+                    // Add events
+                    bool hasStartEvents = false;
+                    foreach (var e in spawner.StartEvents)
+                    {
+                        asset.LinkStartEvent(e.Name, spawnerIndex);
+                        hasStartEvents = true;
+                    }
+                    if (!hasStartEvents)
+                        asset.LinkStartEvent("OnStart", spawnerIndex); // Implicit start event
+
+                    bool hasStopEvents = false;
+                    foreach (var e in spawner.StopEvents)
+                    {
+                        asset.LinkStopEvent(e.Name, spawnerIndex);
+                        hasStartEvents = true;
+                    }
+                    if (!hasStartEvents)
+                        asset.LinkStopEvent("OnStop", spawnerIndex); // Implicit start event
+
                 }
                 // Sync components runtime spawners data with asset data
                 VFXEditor.ForeachComponents(c => c.SyncSpawners());

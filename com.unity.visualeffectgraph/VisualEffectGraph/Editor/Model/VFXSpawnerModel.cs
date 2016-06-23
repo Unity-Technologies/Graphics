@@ -68,7 +68,7 @@ namespace UnityEditor.Experimental.VFX
             switch(slot)
             {
                 case EventSlot.kEventSlotStart:   return m_StartEvents;
-                case EventSlot.kEventSlotStop:    return m_EndEvents;
+                case EventSlot.kEventSlotStop:    return m_StopEvents;
             }
 
             throw new Exception();
@@ -113,14 +113,14 @@ namespace UnityEditor.Experimental.VFX
         public int GetNbLinked()                            { return m_Contexts.Count; }
         public IEnumerable<VFXContextModel> LinkedContexts  { get { return m_Contexts; } }
         public IEnumerable<VFXEventModel> StartEvents       { get { return m_StartEvents; } }
-        public IEnumerable<VFXEventModel> EndEvents         { get { return m_EndEvents; } }
+        public IEnumerable<VFXEventModel> StopEvents        { get { return m_StopEvents; } }
 
         public Vector2 UIPosition { get { return m_UIPosition; } }
         private Vector2 m_UIPosition;
 
         private List<VFXContextModel> m_Contexts = new List<VFXContextModel>();
         private List<VFXEventModel> m_StartEvents = new List<VFXEventModel>();
-        private List<VFXEventModel> m_EndEvents = new List<VFXEventModel>();
+        private List<VFXEventModel> m_StopEvents = new List<VFXEventModel>();
     }
 
     public class VFXSpawnerBlockModel : VFXModelWithSlots<VFXSpawnerNodeModel, VFXElementModel>, VFXUIDataHolder
@@ -195,7 +195,7 @@ namespace UnityEditor.Experimental.VFX
         private Type m_Type;
     }
 
-    public class VFXEventModel : VFXModelWithSlots<VFXElementModel, VFXElementModel>, VFXUIDataHolder
+    public class VFXEventModel : VFXElementModel<VFXElementModel, VFXElementModel>, VFXUIDataHolder
     {
         public VFXEventModel(string name,bool locked)
         {
@@ -208,7 +208,7 @@ namespace UnityEditor.Experimental.VFX
             switch (slot)
             {
                 case VFXSpawnerNodeModel.EventSlot.kEventSlotStart: return m_StartSpawners;
-                case VFXSpawnerNodeModel.EventSlot.kEventSlotStop: return m_EndSpawners;
+                case VFXSpawnerNodeModel.EventSlot.kEventSlotStop: return m_StopSpawners;
             }
 
             throw new Exception();
@@ -216,7 +216,7 @@ namespace UnityEditor.Experimental.VFX
 
         public bool Link(VFXSpawnerNodeModel spawner, VFXSpawnerNodeModel.EventSlot slot, bool reentrant = false)
         {
-            if (reentrant || spawner.Link(this, slot, true))
+            if (reentrant || spawner.Link(this, slot, true)) // Invalidation is performed in spawner's Link
             {
                 GetSpawnerList(slot).Add(spawner);
                 return true;
@@ -227,7 +227,7 @@ namespace UnityEditor.Experimental.VFX
 
         public bool Unlink(VFXSpawnerNodeModel spawner, VFXSpawnerNodeModel.EventSlot slot, bool reentrant = false)
         {
-            if (reentrant || spawner.Unlink(this, slot, true))
+            if (reentrant || spawner.Unlink(this, slot, true)) // Invalidation is performed in spawner's Unlink
                 return GetSpawnerList(slot).Remove(spawner);
 
             return false;
@@ -254,16 +254,28 @@ namespace UnityEditor.Experimental.VFX
             set 
             {
                 if (!m_Locked && m_Name != value)
-                    m_Name = value; 
+                {
+                    m_Name = value;
+                    Invalidate(InvalidationCause.kDataChanged);
+                }
             }
         }
 
-        public bool IsLinked() { return m_StartSpawners.Count > 0 || m_EndSpawners.Count > 0;  }
+        protected override void InnerInvalidate(InvalidationCause cause)
+        {
+            // Dispatch invalidation to linked spawners
+            foreach (var spawner in m_StartSpawners)
+                spawner.Invalidate(cause);
+            foreach (var spawner in m_StopSpawners)
+                spawner.Invalidate(cause);
+        }
+
+        public bool IsLinked() { return m_StartSpawners.Count > 0 || m_StopSpawners.Count > 0; }
         public IEnumerable<VFXSpawnerNodeModel> StartSpawners { get { return m_StartSpawners;  } }
-        public IEnumerable<VFXSpawnerNodeModel> EndSpawners { get { return m_EndSpawners;  } }
+        public IEnumerable<VFXSpawnerNodeModel> EndSpawners { get { return m_StopSpawners; } }
 
         private List<VFXSpawnerNodeModel> m_StartSpawners = new List<VFXSpawnerNodeModel>();
-        private List<VFXSpawnerNodeModel> m_EndSpawners = new List<VFXSpawnerNodeModel>();
+        private List<VFXSpawnerNodeModel> m_StopSpawners = new List<VFXSpawnerNodeModel>();
 
         private string m_Name;
         private bool m_Locked;
