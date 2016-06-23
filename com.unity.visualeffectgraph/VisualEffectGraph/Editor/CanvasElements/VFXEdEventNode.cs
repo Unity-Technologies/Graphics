@@ -25,6 +25,10 @@ namespace UnityEditor.Experimental
             m_Outputs.Add(new VFXEdFlowAnchor(0, typeof(float), VFXContextDesc.Type.kTypeNone, m_DataSource, Direction.Output));
             m_Output = m_Outputs[0];
             AddChild(m_Output);
+
+            // This is temp
+            AddChild(new VFXEdTriggerEvent(Model));
+
             ZSort();
             Layout();
         }
@@ -44,12 +48,39 @@ namespace UnityEditor.Experimental
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
-        {
-            base.Render(parentRect, canvas);
+        {   
             GUI.Box(m_ClientArea, "", VFXEditor.styles.EventNode);
             Rect textrect = VFXEditorMetrics.EventNodeTextRectOffset.Remove(m_ClientArea);
             GUI.Label(textrect, Model.Name, VFXEditor.styles.EventNodeText);
             if(selected) GUI.Box(m_ClientArea, "", VFXEditor.styles.NodeSelected);
+            base.Render(parentRect, canvas);
         }
+    }
+
+    // This is temp ! Use a button instead of toggle
+    internal class VFXEdTriggerEvent : VFXEdNodeOption
+    {
+        internal VFXEdTriggerEvent(VFXEventModel eventNode) : base(false)
+        {
+            m_Event = eventNode;
+            translation = new Vector2(12.0f, VFXEditorMetrics.EventNodeDefaultScale.y - 44.0f);
+        }
+
+        public override void UpdateModel(UpdateType t)
+        {
+            if (Enabled)
+            {
+                if (VFXEditor.component != null)
+                    VFXEditor.component.SendEvent(m_Event.Name);
+                Enabled = false;
+            }
+        }
+
+        protected override Color GetColor()
+        {
+            return Color.white;
+        }
+
+        private VFXEventModel m_Event;
     }
 }
