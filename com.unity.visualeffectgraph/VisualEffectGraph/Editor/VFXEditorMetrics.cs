@@ -61,8 +61,8 @@ namespace UnityEditor.Experimental
         public static readonly float DataEdgeWidth = 8.0f;
 
         // EVENT NODES
-        public static readonly Vector2 EventNodeDefaultScale = new Vector2(240, 120f);
-        public static readonly RectOffset EventNodeTextRectOffset = new RectOffset(16, 16, 24, 48);
+        public static readonly Vector2 EventNodeDefaultScale = new Vector2(240, 136f);
+        public static readonly RectOffset EventNodeTextRectOffset = new RectOffset(16, 16, 8, 8);
 
         // CANVAS GRID AND SNAPPING
         public static readonly float GridSpacing = 20.0f;
