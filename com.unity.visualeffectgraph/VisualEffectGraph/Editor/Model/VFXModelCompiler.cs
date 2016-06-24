@@ -363,7 +363,7 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            if (outputGenerator == null || initGenerator == null || updateGenerator == null) // Tmp: we need the 3 contexts atm
+            if (outputGenerator == null || (initGenerator == null && updateGenerator == null)) // Tmp: we need the 3 contexts atm
                 return null;
 
             // BLOCKS
@@ -426,13 +426,13 @@ namespace UnityEditor.Experimental
 
             // Update flags with generators
             VFXBlockDesc.Flag initGeneratorFlags = VFXBlockDesc.Flag.kNone;
-            if (!initGenerator.UpdateAttributes(attribs, ref initGeneratorFlags))
+            if (initGenerator != null && !initGenerator.UpdateAttributes(attribs, ref initGeneratorFlags))
                 return null;
 
             initHasRand |= (initGeneratorFlags & VFXBlockDesc.Flag.kHasRand) != 0;
 
             VFXBlockDesc.Flag updateGeneratorFlags = VFXBlockDesc.Flag.kNone;
-            if (!updateGenerator.UpdateAttributes(attribs, ref updateGeneratorFlags))
+            if (updateGenerator != null && !updateGenerator.UpdateAttributes(attribs, ref updateGeneratorFlags))
                 return null;
 
             updateHasRand |= (updateGeneratorFlags & VFXBlockDesc.Flag.kHasRand) != 0;
@@ -526,9 +526,11 @@ namespace UnityEditor.Experimental
                     block.GetSlot(i).CollectExpressions(rawExpressions);
 
             HashSet<VFXExpression> initUniforms = CollectUniforms(initBlocks);
-            initGenerator.UpdateUniforms(initUniforms);
+            if (initGenerator != null)
+                initGenerator.UpdateUniforms(initUniforms);
             HashSet<VFXExpression> updateUniforms = CollectUniforms(updateBlocks);
-            updateGenerator.UpdateUniforms(updateUniforms);
+            if (updateGenerator != null)
+                updateGenerator.UpdateUniforms(updateUniforms);
 
             // Generate potential extra uniforms  
             Dictionary<VFXExpression, VFXExpression> initGeneratedUniforms = GenerateExtraUniforms(initBlocks);

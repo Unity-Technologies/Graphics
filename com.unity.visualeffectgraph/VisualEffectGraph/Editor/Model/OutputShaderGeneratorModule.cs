@@ -11,7 +11,10 @@ namespace UnityEditor.Experimental
         public override bool UpdateAttributes(Dictionary<VFXAttribute, int> attribs, ref VFXBlockDesc.Flag flags)
         {
             if (!UpdateFlag(attribs, CommonAttrib.Position, VFXContextDesc.Type.kTypeOutput))
+            {
+                Debug.LogError("Position attribute is needed for point output context");
                 return false;
+            }
 
             UpdateFlag(attribs, CommonAttrib.Color, VFXContextDesc.Type.kTypeOutput);
             UpdateFlag(attribs, CommonAttrib.Alpha, VFXContextDesc.Type.kTypeOutput);
@@ -63,7 +66,10 @@ namespace UnityEditor.Experimental
         public override bool UpdateAttributes(Dictionary<VFXAttribute, int> attribs, ref VFXBlockDesc.Flag flags)
         {
             if (!UpdateFlag(attribs, CommonAttrib.Position, VFXContextDesc.Type.kTypeOutput))
+            {
+                Debug.LogError("Position attribute is needed for billboard output context");
                 return false;
+            }
 
             UpdateFlag(attribs, CommonAttrib.Color, VFXContextDesc.Type.kTypeOutput);
             UpdateFlag(attribs, CommonAttrib.Alpha, VFXContextDesc.Type.kTypeOutput);

@@ -123,6 +123,8 @@ public class VFXComponentEditor : Editor
             if(GUILayout.Button(s_Contents.SetRandomSeed, EditorStyles.miniButton, s_Styles.MiniButtonWidth))
             {
                 m_RandomSeed.intValue = Random.Range(0, int.MaxValue);
+                component.seed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
+                component.Reinit();
             }
         }
 
