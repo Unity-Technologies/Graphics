@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEditor;
 using UnityEditor.Experimental;
 
 namespace UnityEngine.Experimental.VFX
@@ -84,7 +85,8 @@ namespace UnityEngine.Experimental.VFX
 
             if (m_ColorTexture != null && m_ColorTexture.height != colorHeight)
             {
-                Object.DestroyImmediate(m_ColorTexture);
+                if (!EditorUtility.IsPersistent(m_ColorTexture)) // Do we still have ownership on the texture or has it been serialized within a VFX asset ?
+                    Object.DestroyImmediate(m_ColorTexture);
                 m_ColorTexture = null;
             }
 
@@ -112,7 +114,8 @@ namespace UnityEngine.Experimental.VFX
 
             if (m_FloatTexture != null && m_FloatTexture.height != floatHeight)
             {
-                Object.DestroyImmediate(m_FloatTexture);
+                if (!EditorUtility.IsPersistent(m_FloatTexture)) // Do we still have ownership on the texture or has it been serialized within a VFX asset ?
+                    Object.DestroyImmediate(m_FloatTexture);
                 m_FloatTexture = null;
             }
 

@@ -1163,7 +1163,7 @@ namespace UnityEditor.Experimental
         {
             ShaderSourceBuilder builder = new ShaderSourceBuilder();
 
-            builder.Write("Shader \"Custom/VFX_");
+            builder.Write("Shader \"Hidden/VFX_");
             builder.Write(system.Id);
             builder.WriteLine("\"");
             builder.EnterScope();
