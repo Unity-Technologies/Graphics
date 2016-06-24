@@ -304,6 +304,9 @@ namespace UnityEditor.Experimental
                     List<uint> spawnerStream = new List<uint>();
 
                     int nbBlocks = spawner.GetNbChildren();
+                    if (nbBlocks == 0)
+                        continue;
+
                     spawnerStream.Add((uint)nbBlocks);
                     for (int i = 0; i < nbBlocks; ++i)
                     {
@@ -319,10 +322,13 @@ namespace UnityEditor.Experimental
 
                     // Add events
                     bool hasStartEvents = false;
+                    bool hasStopInStart = false;
                     foreach (var e in spawner.StartEvents)
                     {
                         asset.LinkStartEvent(e.Name, spawnerIndex);
                         hasStartEvents = true;
+                        if (e.Name == "OnStop")
+                            hasStopInStart = true;
                     }
                     if (!hasStartEvents)
                         asset.LinkStartEvent("OnStart", spawnerIndex); // Implicit start event
@@ -333,7 +339,7 @@ namespace UnityEditor.Experimental
                         asset.LinkStopEvent(e.Name, spawnerIndex);
                         hasStopEvents = true;
                     }
-                    if (!hasStopEvents)
+                    if (!hasStopEvents && !hasStopInStart)
                         asset.LinkStopEvent("OnStop", spawnerIndex); // Implicit start event
 
                 }
