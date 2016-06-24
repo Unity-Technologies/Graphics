@@ -42,6 +42,13 @@ namespace UnityEditor.Experimental
         public VFXEdCommentTarget() { }
     }
 
+    internal class VFXEdEventNodeTarget : VFXEdEditableObject
+    {
+        [SerializeField]
+        public VFXEdEventNode eventNode;
+        public VFXEdEventNodeTarget() { }
+    }
+
     internal class VFXCustomEditor : Editor, VFXPropertySlotObserver
     {
         public virtual void OnSlotEvent(VFXPropertySlot.Event type,VFXPropertySlot slot)
@@ -288,4 +295,35 @@ namespace UnityEditor.Experimental
             }
         }
     }
+
+    [CustomEditor(typeof(VFXEdEventNodeTarget))]
+    internal class VFXEdEventNodeTargetEditor: Editor
+    {
+        public VFXEventModel model { get { return (target as VFXEdEventNodeTarget).eventNode.Model; } }
+        public VFXEdEventNode node { get { return (target as VFXEdEventNodeTarget).eventNode; } }
+
+        public override void OnInspectorGUI()
+        {
+            EditorGUI.BeginChangeCheck();
+            using (new GUILayout.VerticalScope())
+            {
+                
+                GUILayout.Label(new GUIContent("Event"), VFXEditor.styles.InspectorHeader);
+                EditorGUI.indentLevel++;
+                EditorGUI.BeginDisabledGroup(model.Locked);
+                model.Name = EditorGUILayout.DelayedTextField(model.Name);
+                EditorGUI.EndDisabledGroup();
+                EditorGUI.indentLevel--;
+                
+            }
+
+            if(EditorGUI.EndChangeCheck())
+            {
+                node.Layout();
+                node.Invalidate();
+                node.ParentCanvas().Repaint();
+            }
+        }
+    }
+
 }

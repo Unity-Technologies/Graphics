@@ -26,6 +26,8 @@ namespace UnityEditor.Experimental
 
         public GUIStyle NodeInfoText;
 
+        public GUIStyle CenteredText;
+
         public GUIStyle NodeOption;
 
 
@@ -179,6 +181,14 @@ namespace UnityEditor.Experimental
             NodeInfoText.padding = new RectOffset(12, 12, 12, 12);
             NodeInfoText.alignment = TextAnchor.MiddleCenter;
             NodeInfoText.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
+
+            CenteredText = new GUIStyle();
+            CenteredText.name = "CenteredText";
+            CenteredText.fontSize = 12;
+            CenteredText.fontStyle = FontStyle.Bold;
+            CenteredText.padding = new RectOffset(4, 4, 4, 8);
+            CenteredText.alignment = TextAnchor.MiddleCenter;
+            CenteredText.normal.textColor = new Color(0.7f, 0.7f, 0.7f);
 
             NodeOption = new GUIStyle();
             NodeOption.name = "NodeOption";
@@ -336,7 +346,7 @@ namespace UnityEditor.Experimental
             EventNodeText.name = "EventNodeText";
             EventNodeText.font = ImpactFont;
             EventNodeText.fontSize = 64;
-            EventNodeText.alignment = TextAnchor.MiddleCenter;
+            EventNodeText.alignment = TextAnchor.UpperCenter;
             EventNodeText.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
 
             InspectorHeader = new GUIStyle("ShurikenModuleTitle");
