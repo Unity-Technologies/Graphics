@@ -233,7 +233,9 @@ namespace UnityEditor.Experimental
             blockModel.Slot.CopyValuesFrom(m_Slot);
 
             // Connect
+            m_DataSource.GetUIAnchor(Slot).Owner.CollapseChildren(true);    // Hackity Hackity Hack! :( 
             m_DataSource.ConnectData(blockModel.GetOutputSlot(0),(VFXInputSlot)Slot);
+
             ParentCanvas().ReloadData(); 
             
         }

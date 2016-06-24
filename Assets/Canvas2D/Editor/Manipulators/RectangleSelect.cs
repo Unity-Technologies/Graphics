@@ -31,7 +31,6 @@ namespace UnityEditor.Experimental
             {
                 parent.OnOverlay += DrawSelection;
                 m_Start = parent.MouseToCanvas(e.mousePosition);
-                var convert = parent.CanvasToScreen(m_Start);
                 m_End = m_Start;
                 m_SelectionActive = true;
                 e.Use();
