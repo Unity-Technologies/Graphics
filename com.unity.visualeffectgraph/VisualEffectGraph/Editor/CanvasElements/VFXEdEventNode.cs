@@ -70,8 +70,7 @@ namespace UnityEditor.Experimental
         {
             if (Enabled)
             {
-                if (VFXEditor.component != null)
-                    VFXEditor.component.SendEvent(m_Event.Name);
+                VFXEditor.ForeachComponents(c => c.SendEvent(m_Event.Name));
                 Enabled = false;
             }
         }
