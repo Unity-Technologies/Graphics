@@ -20,7 +20,7 @@ namespace UnityEditor.Experimental
         private UnityEditorInternal.Experimental.QuadTree<CanvasElement> m_QuadTree = new UnityEditorInternal.Experimental.QuadTree<CanvasElement>();
         private Rect m_CanvasRect;
         private Vector2 m_ViewOffset;
-        private Vector2 m_ViewOffsetUnscaled;
+        //private Vector2 m_ViewOffsetUnscaled;
         private bool m_ShowDebug;
         private string m_DebugEventName = "";
         private RenderTexture m_RenderTexture;
@@ -346,7 +346,7 @@ namespace UnityEditor.Experimental
             m_ScreenHeightOffset = clientRectangle.y;
             float inverseScale = 1.0f / m_Scale.y;
             m_ViewOffset = new Vector2(-clientRectangle.x * inverseScale, -(clientRectangle.yMin - (m_ScreenHeightOffset / 2.0f)) * inverseScale);
-            m_ViewOffsetUnscaled = new Vector2(-clientRectangle.x, -(clientRectangle.yMin - m_ScreenHeightOffset));
+            //m_ViewOffsetUnscaled = new Vector2(-clientRectangle.x, -(clientRectangle.yMin - m_ScreenHeightOffset));
 
             // query quad tree for the list of elements visible
             Rect screenRect = new Rect();

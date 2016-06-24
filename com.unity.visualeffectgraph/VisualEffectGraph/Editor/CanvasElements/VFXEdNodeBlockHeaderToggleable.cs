@@ -12,11 +12,10 @@ namespace UnityEditor.Experimental
     {
         public bool Enabled { get { return m_Enabled; } set { m_Enabled = value; } }
         protected bool m_Enabled;
-        private VFXBlockModel m_Model;
+
         public VFXEdNodeBlockHeaderToggleable(string Text, Texture2D icon, bool Collapseable, VFXBlockModel model) 
             : base(Text, icon, Collapseable)
         {
-            m_Model = model;
             AddManipulator(new Toggleable(VFXEditorMetrics.NodeBlockHeaderToggleRect, model));
         }
 
