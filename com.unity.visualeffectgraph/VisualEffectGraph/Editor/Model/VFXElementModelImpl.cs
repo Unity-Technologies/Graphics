@@ -331,9 +331,9 @@ namespace UnityEditor.Experimental
                     foreach (var e in spawner.StopEvents)
                     {
                         asset.LinkStopEvent(e.Name, spawnerIndex);
-                        hasStartEvents = true;
+                        hasStopEvents = true;
                     }
-                    if (!hasStartEvents)
+                    if (!hasStopEvents)
                         asset.LinkStopEvent("OnStop", spawnerIndex); // Implicit start event
 
                 }

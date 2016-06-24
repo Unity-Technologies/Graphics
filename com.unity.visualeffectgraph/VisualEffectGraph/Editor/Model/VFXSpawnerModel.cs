@@ -108,6 +108,10 @@ namespace UnityEditor.Experimental.VFX
             base.OnRemove();
             while (m_Contexts.Count > 0)
                 Unlink(m_Contexts[0]);
+            while (m_StartEvents.Count > 0)
+                Unlink(m_StartEvents[0],EventSlot.kEventSlotStart);
+            while (m_StopEvents.Count > 0)
+                Unlink(m_StopEvents[0],EventSlot.kEventSlotStop);
         }
 
         public int GetNbLinked()                            { return m_Contexts.Count; }
@@ -268,6 +272,15 @@ namespace UnityEditor.Experimental.VFX
                 spawner.Invalidate(cause);
             foreach (var spawner in m_StopSpawners)
                 spawner.Invalidate(cause);
+        }
+
+        protected override void OnRemove()
+        {
+            base.OnRemove();
+            while (m_StartSpawners.Count > 0)
+                Unlink(m_StartSpawners[0], VFXSpawnerNodeModel.EventSlot.kEventSlotStart);
+            while (m_StopSpawners.Count > 0)
+                Unlink(m_StopSpawners[0], VFXSpawnerNodeModel.EventSlot.kEventSlotStop);
         }
 
         public bool IsLinked() { return m_StartSpawners.Count > 0 || m_StopSpawners.Count > 0; }
