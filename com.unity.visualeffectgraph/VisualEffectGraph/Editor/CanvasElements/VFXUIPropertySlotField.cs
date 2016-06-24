@@ -169,6 +169,7 @@ namespace UnityEditor.Experimental
                 Rect fieldrect = VFXEditorMetrics.ParameterFieldRectOffset.Remove(r);
                 Rect labelrect = new Rect(fieldrect.x + 20.0f + m_Depth * VFXEditorMetrics.ParameterFieldIndentWidth, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth -20 , VFXEditorMetrics.NodeBlockParameterHeight);
                 Rect editrect = new Rect(fieldrect.x + 20.0f +  VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth -20, VFXEditorMetrics.NodeBlockParameterHeight);
+                Rect worldSpaceRect = new Rect(editrect.xMax + 5.0f, fieldrect.y, 32.0f, 32.0f);
 
                 //Rect lineRect = new Rect(r.x, r.y-(VFXEditorMetrics.NodeBlockParameterSpacingHeight/2), r.width, 1);
                 //EditorGUI.DrawRect(lineRect, new Color(0, 0, 0, 0.25f));
@@ -198,6 +199,9 @@ namespace UnityEditor.Experimental
                     //EditorGUI.LabelField(collapserRect,m_ChildrenCollapsed ? "+" : "-");
 
                 EditorGUI.EndDisabledGroup();
+
+                if (Semantics.CanTransform())
+                    GUI.Toggle(worldSpaceRect,false,GUIContent.none);
             }
         }
 
