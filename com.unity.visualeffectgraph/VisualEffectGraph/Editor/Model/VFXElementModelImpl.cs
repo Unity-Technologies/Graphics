@@ -676,6 +676,20 @@ namespace UnityEditor.Experimental
             }
         }
 
+        private bool m_WorldSpace = false;
+        public bool WorldSpace
+        {
+            get { return m_WorldSpace; }
+            set 
+            {
+                if (m_WorldSpace != value)
+                {
+                    m_WorldSpace = value;
+                    Invalidate(InvalidationCause.kModelChanged); // Force a recompilation
+                }
+            }
+        }      
+
         public VFXGeneratedTextureData GeneratedTextureData { get { return GetOwner().GeneratedTextureData; } }
 
         public bool UpdateComponentSystem()

@@ -11,21 +11,13 @@ namespace UnityEditor.Experimental
 {
     public class ShaderSourceBuilder
     {
-        public void WriteFormat(string str,object arg0)
-        {
-            m_Builder.AppendFormat(str,arg0);
-        }
+        public void WriteFormat(string str, object arg0)                                { m_Builder.AppendFormat(str, arg0); }
+        public void WriteFormat(string str, object arg0, object arg1)                   { m_Builder.AppendFormat(str, arg0, arg1); }
+        public void WriteFormat(string str, object arg0, object arg1, object arg2)      { m_Builder.AppendFormat(str, arg0, arg1, arg2); }
 
-        public void WriteFormat(string str, object arg0, object arg1)
-        {
-            m_Builder.AppendFormat(str, arg0, arg1);
-        }
-
-        public void WriteFormat(string str, object arg0, object arg1, object arg2)
-        {
-            m_Builder.AppendFormat(str, arg0, arg1, arg2);
-        }
-
+        public void WriteLineFormat(string str, object arg0)                            { WriteFormat(str, arg0); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0, object arg1)               { WriteFormat(str, arg0, arg1); WriteLine(); }
+        public void WriteLineFormat(string str, object arg0, object arg1, object arg2)  { WriteFormat(str, arg0, arg1, arg2); WriteLine(); }
 
         // Generic builder method
         public void Write<T>(T t)

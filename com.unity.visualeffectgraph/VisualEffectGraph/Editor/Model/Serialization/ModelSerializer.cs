@@ -138,7 +138,8 @@ namespace UnityEditor.Experimental.VFX
         // 4: soft particle fade distance in system
         // 5: model id for system and spawner node
         // 6: change the way slot connections are serialized
-        private const int VERSION = 6;
+        // 7: Add world space / local space
+        private const int VERSION = 7;
 
         // SERIALIZATION
         private class MetaData
@@ -275,6 +276,7 @@ namespace UnityEditor.Experimental.VFX
         {
             writer.WriteStartElement("System");
             SerializeModelId(writer, system, data);
+            writer.WriteAttributeString("WorldSpace", system.WorldSpace.ToString());
             writer.WriteAttributeString("MaxNb", system.MaxNb.ToString());
             writer.WriteAttributeString("SpawnRate", system.SpawnRate.ToString());
             writer.WriteAttributeString("BlendingMode", system.BlendingMode.ToString());
@@ -553,6 +555,8 @@ namespace UnityEditor.Experimental.VFX
         {
             var system = new VFXSystemModel();
             DeserializeModelId(xml, system, data);
+            if (data.Version >= 7)
+                system.WorldSpace = bool.Parse(xml.Attribute("WorldSpace").Value);
             system.MaxNb = uint.Parse(xml.Attribute("MaxNb").Value);
             system.SpawnRate = float.Parse(xml.Attribute("SpawnRate").Value);
             system.BlendingMode = (BlendMode)Enum.Parse(typeof(BlendMode), xml.Attribute("BlendingMode").Value);

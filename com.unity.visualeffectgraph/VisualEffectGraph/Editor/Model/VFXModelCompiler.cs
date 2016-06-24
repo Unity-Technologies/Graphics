@@ -314,6 +314,8 @@ namespace UnityEditor.Experimental
 
     public class ShaderMetaData
     {
+        public VFXSystemModel system;
+
         public List<VFXBlockModel> initBlocks = new List<VFXBlockModel>();
         public List<VFXBlockModel> updateBlocks = new List<VFXBlockModel>();
 
@@ -606,6 +608,7 @@ namespace UnityEditor.Experimental
             VFXEditor.Log("Nb update uniforms: " + updateUniforms.Count);
 
             ShaderMetaData shaderMetaData = new ShaderMetaData();
+            shaderMetaData.system = system;
             shaderMetaData.initBlocks = initBlocks;
             shaderMetaData.updateBlocks = updateBlocks;
             shaderMetaData.hasRand = initHasRand || updateHasRand;
@@ -1315,7 +1318,7 @@ namespace UnityEditor.Experimental
             else
                 builder.WriteLine("float4 color = float4(1.0,1.0,1.0,0.5);");
 
-            outputGenerator.WritePixelShader(system, builder, data);
+            outputGenerator.WritePixelShader(builder, data);
 
             // Soft particles
             if (system.HasSoftParticles())

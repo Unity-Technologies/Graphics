@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental
             builder.Write("float3 worldPos = ");
             builder.WriteAttrib(CommonAttrib.Position, data);
             builder.WriteLine(";");
-            builder.WriteLine("o.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
+            builder.WriteLineFormat("o.pos = mul({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
         }
     }
 
@@ -243,11 +243,14 @@ namespace UnityEditor.Experimental
 
                 case OrientMode.kFaceCamera:
 
-                    if (m_HasAngle || m_HasPivot)
-                        builder.WriteLine("float3 front = UNITY_MATRIX_MV[2].xyz;");
+                    string toViewSpaceMatrix = data.system.WorldSpace ? "unity_WorldToCamera" : "UNITY_MATRIX_MV";
+                    string toViewSpaceMatrixIT = data.system.WorldSpace ? "unity_WorldToCamera" : "UNITY_MATRIX_IT_MV";
 
-                    builder.WriteLine("float3 side = UNITY_MATRIX_IT_MV[0].xyz;");
-                    builder.WriteLine("float3 up = UNITY_MATRIX_IT_MV[1].xyz;");
+                    if (m_HasAngle || m_HasPivot)
+                        builder.WriteLineFormat("float3 front = {0}[2].xyz;", toViewSpaceMatrix);
+
+                    builder.WriteLineFormat("float3 side = {0}[0].xyz;", toViewSpaceMatrixIT);
+                    builder.WriteLineFormat("float3 up = {0}[1].xyz;", toViewSpaceMatrixIT);
 
                     break;
 
@@ -318,7 +321,7 @@ namespace UnityEditor.Experimental
             }
 
             builder.WriteLine();
-            builder.WriteLine("o.pos = mul (UNITY_MATRIX_MVP, float4(worldPos,1.0f));");
+            builder.WriteLineFormat("o.pos = mul ({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
         }
 
         public override void WriteFunctions(ShaderSourceBuilder builder, ShaderMetaData data)
@@ -345,7 +348,7 @@ namespace UnityEditor.Experimental
                 builder.WriteLine(";");
         }
 
-        public override void WritePixelShader(VFXSystemModel system, ShaderSourceBuilder builder, ShaderMetaData data)
+        public override void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             if (!m_HasTexture)
             {
@@ -431,7 +434,7 @@ namespace UnityEditor.Experimental
                 WriteTex2DFetch(builder, data, m_Values[TextureIndex], "i.offsets", true);
             }
 
-            if (system.BlendingMode == BlendMode.kMasked)
+            if (data.system.BlendingMode == BlendMode.kMasked)
                 builder.WriteLine("if (color.a < 0.33333) discard;");
         }
 
