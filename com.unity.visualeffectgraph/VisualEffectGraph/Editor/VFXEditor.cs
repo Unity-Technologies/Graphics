@@ -154,7 +154,6 @@ namespace UnityEditor.Experimental
         private bool m_CannotPreview = false;
 
         private bool m_bShowDebug = false;
-        private int m_ShowDebugPage = 0;
 
         private Vector2 m_DebugLogScroll = Vector2.zero;
 
@@ -373,15 +372,6 @@ namespace UnityEditor.Experimental
                     ClearLog();
 
                 GUILayout.EndHorizontal();
-
-                // Tabs Toolbar
-                GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                GUILayout.Label("Choose Page : ", EditorStyles.toolbarButton);
-                if(GUILayout.Button("Debug Log", EditorStyles.toolbarButton)) m_ShowDebugPage = 0;
-                if(GUILayout.Button("Edit Templates", EditorStyles.toolbarButton)) m_ShowDebugPage = 1;
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-
 
                 m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
 

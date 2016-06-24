@@ -51,12 +51,12 @@ namespace UnityEngine.Experimental.VFX
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            slot.Set((Texture2D)EditorGUI.ObjectField(area, slot.Get<Texture2D>(true), typeof(Texture2D)),true);
+            slot.Set((Texture2D)EditorGUI.ObjectField(area, slot.Get<Texture2D>(true), typeof(Texture2D), false),true);
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
-            slot.Set((Texture2D)EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture2D>(false), typeof(Texture2D)),false);
+            slot.Set((Texture2D)EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture2D>(false), typeof(Texture2D), false),false);
         }
     }
 
@@ -64,12 +64,12 @@ namespace UnityEngine.Experimental.VFX
     {
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            slot.Set((Texture3D)EditorGUI.ObjectField(area, slot.Get<Texture3D>(true), typeof(Texture3D)),true);
+            slot.Set((Texture3D)EditorGUI.ObjectField(area, slot.Get<Texture3D>(true), typeof(Texture3D), false),true);
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
-            slot.Set((Texture3D)EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture3D>(false), typeof(Texture3D)),false);
+            slot.Set((Texture3D)EditorGUILayout.ObjectField(slot.Name, slot.Get<Texture3D>(false), typeof(Texture3D), false),false);
         }
     }
 

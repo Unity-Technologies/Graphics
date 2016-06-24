@@ -122,7 +122,7 @@ namespace UnityEditor.Experimental
             if (element is VFXEventElement)
             {
                 var eventElement = (VFXEventElement)element;
-                var eventNode = m_dataSource.CreateEventNode(GetSpawnPosition(), eventElement.m_Name, eventElement.m_Locked);
+                m_dataSource.CreateEventNode(GetSpawnPosition(), eventElement.m_Name, eventElement.m_Locked);
                 m_canvas.ReloadData();
                 return true;
             }
