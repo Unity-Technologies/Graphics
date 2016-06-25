@@ -167,12 +167,28 @@ namespace UnityEditor.Experimental
                 collapserRect.position += r.position;
 
                 Rect fieldrect = VFXEditorMetrics.ParameterFieldRectOffset.Remove(r);
-                Rect labelrect = new Rect(fieldrect.x + 20.0f + m_Depth * VFXEditorMetrics.ParameterFieldIndentWidth, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth -20 , VFXEditorMetrics.NodeBlockParameterHeight);
+                Rect labelrect = new Rect(fieldrect.x + (Slot.TransformModeVisible ? 40.0f : 20.0f) + m_Depth * VFXEditorMetrics.ParameterFieldIndentWidth, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth -20 , VFXEditorMetrics.NodeBlockParameterHeight);
                 Rect editrect = new Rect(fieldrect.x + 20.0f +  VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth -20, VFXEditorMetrics.NodeBlockParameterHeight);
-                Rect worldSpaceRect = new Rect(editrect.xMax + 5.0f, fieldrect.y, 32.0f, 32.0f);
+                Rect worldSpaceRect = new Rect(fieldrect.x + 20.0f, fieldrect.y, 32.0f, 32.0f);
 
                 //Rect lineRect = new Rect(r.x, r.y-(VFXEditorMetrics.NodeBlockParameterSpacingHeight/2), r.width, 1);
                 //EditorGUI.DrawRect(lineRect, new Color(0, 0, 0, 0.25f));
+
+                if (Slot.TransformModeVisible)
+                {
+                    if (Slot.TransformModeSettable)
+                    {
+                        if (GUI.Button(worldSpaceRect, VFXEditor.styles.GetIcon(Slot.WorldSpace ? "d_SpaceWorld" : "d_SpaceLocal"), GUIStyle.none))
+                            Slot.WorldSpace = !Slot.WorldSpace;
+                    }
+                    else
+                    {
+                        EditorGUI.BeginDisabledGroup(true);
+                        GUI.Button(worldSpaceRect, VFXEditor.styles.GetIcon(Slot.CurrentValueRef.WorldSpace ? "d_SpaceWorld" : "d_SpaceLocal"), GUIStyle.none);
+                        EditorGUI.EndDisabledGroup();
+                    }
+
+                }
 
                 EditorGUI.BeginDisabledGroup(IsConnected());
                 EditorGUI.LabelField(labelrect, Name);
@@ -199,9 +215,6 @@ namespace UnityEditor.Experimental
                     //EditorGUI.LabelField(collapserRect,m_ChildrenCollapsed ? "+" : "-");
 
                 EditorGUI.EndDisabledGroup();
-
-                if (Semantics.CanTransform())
-                    GUI.Toggle(worldSpaceRect,false,GUIContent.none);
             }
         }
 

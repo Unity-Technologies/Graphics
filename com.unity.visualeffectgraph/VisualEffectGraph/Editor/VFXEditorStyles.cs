@@ -332,6 +332,10 @@ namespace UnityEditor.Experimental
             CollapserDisabled.name = "CollapserDisabled";
             CollapserDisabled.normal.background = EditorGUIUtility.Load("Collapser_Disabled.psd") as Texture2D;
 
+            CollapserDisabled = new GUIStyle();
+            CollapserDisabled.name = "CollapserDisabled";
+            CollapserDisabled.normal.background = EditorGUIUtility.Load("Collapser_Disabled.psd") as Texture2D;
+
             Context = new GUIStyle();
             Context.name = "Context";
             Context.normal.background = EditorGUIUtility.Load("Context.psd") as Texture2D;

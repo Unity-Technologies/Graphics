@@ -688,7 +688,12 @@ namespace UnityEditor.Experimental
                     Invalidate(InvalidationCause.kModelChanged); // Force a recompilation
                 }
             }
-        }      
+        }
+
+        public SpaceRef GetSpaceRef()
+        {
+            return WorldSpace ? SpaceRef.kWorld : SpaceRef.kLocal;
+        }
 
         public VFXGeneratedTextureData GeneratedTextureData { get { return GetOwner().GeneratedTextureData; } }
 

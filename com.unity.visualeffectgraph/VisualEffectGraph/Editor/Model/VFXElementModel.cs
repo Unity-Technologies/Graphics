@@ -187,6 +187,9 @@ namespace UnityEditor.Experimental
                 case VFXPropertySlot.Event.kValueUpdated:
                     Invalidate(InvalidationCause.kParamChanged);
                     break;
+                case VFXPropertySlot.Event.kTransformModeUpdated:
+                    Invalidate(InvalidationCause.kDataChanged);
+                    break;
             }
         }
 
