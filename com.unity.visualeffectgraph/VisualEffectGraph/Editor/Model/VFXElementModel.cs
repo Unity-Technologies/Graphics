@@ -182,13 +182,11 @@ namespace UnityEditor.Experimental
             switch (type)
             {
                 case VFXPropertySlot.Event.kLinkUpdated:
+                case VFXPropertySlot.Event.kTransformModeUpdated:
                     Invalidate(InvalidationCause.kModelChanged);
                     break;
                 case VFXPropertySlot.Event.kValueUpdated:
                     Invalidate(InvalidationCause.kParamChanged);
-                    break;
-                case VFXPropertySlot.Event.kTransformModeUpdated:
-                    Invalidate(InvalidationCause.kDataChanged);
                     break;
             }
         }

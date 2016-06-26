@@ -1,53 +1,50 @@
 namespace UnityEngine.Experimental.VFX
 {
-    public class VFXExpressionTransformMatrix : VFXExpression
+    public abstract class VFXTransformExpression : VFXExpression
     {
-        public VFXExpressionTransformMatrix(VFXExpression mat)
+        protected VFXTransformExpression(VFXExpression expr, SpaceRef spaceRef)
         {
-            m_Mat = mat;
+            m_Expr = expr;
+            m_SpaceRef = spaceRef;
         }
 
-        public override VFXValueType ValueType { get { return VFXValueType.kTransform; } }
-        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXTransformMatrixOp; } }
+        public override sealed VFXExpression Reduce() { return m_Expr.Reduce(); } // Just a pass through on C# side (same behavior as with an identity transform)
+        public override sealed void Invalidate() { }
+        public override sealed VFXExpression[] GetParents() { return new VFXExpression[] { m_Expr }; }
 
-        public override VFXExpression Reduce() { return m_Mat.Reduce(); } // Just a pass through on C# side
-        public override void Invalidate() {}
-        public override VFXExpression[] GetParents() { return new VFXExpression[] { m_Mat }; }
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj) && m_SpaceRef == (obj as VFXTransformExpression).m_SpaceRef;
+        }
+        public override int GetHashCode() { return base.GetHashCode(); } // Just to remove a warning
 
-        private VFXExpression m_Mat;
+        public SpaceRef GetSpaceRef() { return m_SpaceRef; }
+
+        protected VFXExpression m_Expr;
+        protected SpaceRef m_SpaceRef;
     }
 
-    public class VFXExpressionTransformPosition : VFXExpression
+    public class VFXExpressionTransformMatrix : VFXTransformExpression
     {
-        public VFXExpressionTransformPosition(VFXExpression pos)
-        {
-            m_Pos = pos;
-        }
+        public VFXExpressionTransformMatrix(VFXExpression mat, SpaceRef spaceRef) : base(mat, spaceRef) {}
+
+        public override VFXValueType ValueType { get { return VFXValueType.kTransform; } }
+        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXTransformMatrixOp; } }        
+    }
+
+    public class VFXExpressionTransformPosition : VFXTransformExpression
+    {
+        public VFXExpressionTransformPosition(VFXExpression pos, SpaceRef spaceRef) : base(pos, spaceRef) { }
 
         public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } }
         public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXTransformPosOp; } }
-
-        public override VFXExpression Reduce() { return m_Pos.Reduce(); } // Just a pass through on C# side
-        public override void Invalidate() {}
-        public override VFXExpression[] GetParents() { return new VFXExpression[] { m_Pos }; }
-
-        private VFXExpression m_Pos;
     }
 
-    public class VFXExpressionTransformVector : VFXExpression
+    public class VFXExpressionTransformVector : VFXTransformExpression
     {
-        public VFXExpressionTransformVector(VFXExpression vec)
-        {
-            m_Vec = vec;
-        }
+        public VFXExpressionTransformVector(VFXExpression vec, SpaceRef spaceRef) : base(vec, spaceRef) { }
 
         public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } }
         public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXTransformVecOp; } }
-
-        public override VFXExpression Reduce() { return m_Vec.Reduce(); } // Just a pass through on C# side
-        public override void Invalidate() {}          
-        public override VFXExpression[] GetParents() { return new VFXExpression[] { m_Vec }; }
-
-        private VFXExpression m_Vec;
     }
 }

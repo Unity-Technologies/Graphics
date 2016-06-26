@@ -517,26 +517,27 @@ namespace UnityEditor.Experimental
             // UNIFORMS
 
             // TMP Clean that
+            SpaceRef spaceRef = system.GetSpaceRef();
             HashSet<VFXExpression> rawExpressions = new HashSet<VFXExpression>();
 
             foreach (VFXBlockModel block in initBlocks)
                 for (int i = 0; i < block.Desc.Properties.Length; ++i)
-                    block.GetSlot(i).CollectExpressions(rawExpressions);
+                    block.GetSlot(i).CollectExpressions(rawExpressions, spaceRef);
 
             foreach (VFXBlockModel block in updateBlocks)
                 for (int i = 0; i < block.Desc.Properties.Length; ++i)
-                    block.GetSlot(i).CollectExpressions(rawExpressions);
+                    block.GetSlot(i).CollectExpressions(rawExpressions, spaceRef);
 
-            HashSet<VFXExpression> initUniforms = CollectUniforms(initBlocks);
+            HashSet<VFXExpression> initUniforms = CollectUniforms(initBlocks, spaceRef);
             if (initGenerator != null)
                 initGenerator.UpdateUniforms(initUniforms);
-            HashSet<VFXExpression> updateUniforms = CollectUniforms(updateBlocks);
+            HashSet<VFXExpression> updateUniforms = CollectUniforms(updateBlocks, spaceRef);
             if (updateGenerator != null)
                 updateGenerator.UpdateUniforms(updateUniforms);
 
             // Generate potential extra uniforms  
-            Dictionary<VFXExpression, VFXExpression> initGeneratedUniforms = GenerateExtraUniforms(initBlocks);
-            Dictionary<VFXExpression, VFXExpression> updateGeneratedUniforms = GenerateExtraUniforms(updateBlocks);
+            Dictionary<VFXExpression, VFXExpression> initGeneratedUniforms = GenerateExtraUniforms(initBlocks, spaceRef);
+            Dictionary<VFXExpression, VFXExpression> updateGeneratedUniforms = GenerateExtraUniforms(updateBlocks, spaceRef);
             
             // Keep track of all generated uniforms
             Dictionary<VFXExpression, VFXExpression> generatedUniforms = new Dictionary<VFXExpression, VFXExpression>();
@@ -710,7 +711,7 @@ namespace UnityEditor.Experimental
             return rtData;
         }
 
-        public static Dictionary<VFXExpression, VFXExpression> GenerateExtraUniforms(List<VFXBlockModel> blocks)
+        public static Dictionary<VFXExpression, VFXExpression> GenerateExtraUniforms(List<VFXBlockModel> blocks, SpaceRef spaceRef)
         {
             var generated = new Dictionary<VFXExpression, VFXExpression>();
 
@@ -719,7 +720,7 @@ namespace UnityEditor.Experimental
                 for (int i = 0; i < block.Desc.Properties.Length; ++i)
                 {
                     collectedValues.Clear();
-                    block.GetSlot(i).CollectNamedValues(collectedValues);
+                    block.GetSlot(i).CollectNamedValues(collectedValues,spaceRef);
                     foreach (var arg in collectedValues)
                         if (arg.m_Value.IsValue() && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
                         {
@@ -731,7 +732,7 @@ namespace UnityEditor.Experimental
             return generated;
         }
 
-        public static HashSet<VFXExpression> CollectUniforms(List<VFXBlockModel> blocks)
+        public static HashSet<VFXExpression> CollectUniforms(List<VFXBlockModel> blocks, SpaceRef spaceRef)
         {
             HashSet<VFXExpression> uniforms = new HashSet<VFXExpression>();
 
@@ -740,7 +741,7 @@ namespace UnityEditor.Experimental
                 for (int i = 0; i < block.Desc.Properties.Length; ++i)
                 {
                     collectedValues.Clear();
-                    block.GetSlot(i).CollectNamedValues(collectedValues);
+                    block.GetSlot(i).CollectNamedValues(collectedValues,spaceRef);
                     foreach (var arg in collectedValues)
                         if (arg.m_Value.IsValue())
                             uniforms.Add(arg.m_Value);

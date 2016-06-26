@@ -183,7 +183,7 @@ namespace UnityEditor.Experimental
                     VFXPropertySlot slot = block.GetSlot(i);
 
                     namedValues.Clear();
-                    slot.CollectNamedValues(namedValues);
+                    slot.CollectNamedValues(namedValues); // We dont care about space reference here as it is just a matter of name and native type
                     foreach (var arg in namedValues)
                     {
                         Write(separator);
@@ -284,7 +284,7 @@ namespace UnityEditor.Experimental
                 VFXPropertySlot slot = block.GetSlot(i);
 
                 namedValues.Clear();
-                slot.CollectNamedValues(namedValues);
+                slot.CollectNamedValues(namedValues,data.system.GetSpaceRef());
                 foreach (var arg in namedValues)
                     if (arg.m_Value.IsValue())
                     {

@@ -22,9 +22,9 @@ namespace UnityEngine.Experimental.VFX
 
     public enum SpaceRef
     {
-        kNone,
-        kLocal,
         kWorld,
+        kLocal,
+        kNone, // None at the end as this enum is cast to int to index an array on C++ side and kNone is never used
     }
 
     public interface VFXPropertySlotObserver
@@ -368,8 +368,6 @@ namespace UnityEngine.Experimental.VFX
         private void CollectNamedValues(List<VFXNamedValue> values, SpaceRef spaceRef, string fullName)
         {
             VFXPropertySlot refSlot = CurrentValueRef;
-            VFXExpression refValue = refSlot.Value;
-
             if (refSlot.Value != null) // if not null it means value has a concrete type (not kNone)
                 values.Add(new VFXNamedValue(AggregateName(fullName, Name), GetTransformedExpression(refSlot, spaceRef)));
             else foreach (var child in refSlot.m_Children) // Continue only until we found a value
@@ -379,7 +377,6 @@ namespace UnityEngine.Experimental.VFX
         public void CollectExpressions(HashSet<VFXExpression> expressions, SpaceRef spaceRef = SpaceRef.kNone)
         {
             VFXPropertySlot refSlot = CurrentValueRef;
-
             if (refSlot.Value != null)
                 expressions.Add(GetTransformedExpression(refSlot, spaceRef));
             else foreach (var child in refSlot.m_Children) // Continue only until we found a value
@@ -398,7 +395,7 @@ namespace UnityEngine.Experimental.VFX
                 && ((slot.WorldSpace && spaceRef == SpaceRef.kLocal)    // Needs a world to local transformation on value
                 || (!slot.WorldSpace && spaceRef == SpaceRef.kWorld));  // Needs a local to world transformation on value
 
-            return needsTransform ? slot.Semantics.GetTransformedExpression(slot) : slot.Value;
+            return needsTransform ? slot.Semantics.GetTransformedExpression(slot, spaceRef) : slot.Value;
         }
 
         public void UpdatePosition(Vector2 position) {}

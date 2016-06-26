@@ -97,7 +97,7 @@ namespace UnityEngine.Experimental.VFX
         public virtual bool UpdateProxy(VFXPropertySlot slot) { return false; }  // Set Proxy value from underlying values
 
         public virtual bool CanTransform() { return false; }
-        public virtual VFXExpression GetTransformedExpression(VFXPropertySlot slot) { return slot.Value; } // No transformation by default
+        public virtual VFXExpression GetTransformedExpression(VFXPropertySlot slot,SpaceRef targetSpace) { return slot.Value; } // No transformation by default
 
         public int GetNbChildren() { return m_Children == null ? 0 : m_Children.Length; }
         public VFXProperty[] GetChildren() { return m_Children; }
@@ -370,7 +370,7 @@ namespace UnityEngine.Experimental.VFX
         public VFXPositionType(Vector3 vector) : base (vector) { }
 
         public override bool CanTransform() { return true; }
-        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot) { return new VFXExpressionTransformPosition(slot.Value); }
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformPosition(slot.Value, targetSpace); }
     }
 
     public partial class VFXVectorType : VFXFloat3Type
@@ -381,7 +381,7 @@ namespace UnityEngine.Experimental.VFX
         public VFXVectorType(Vector3 vector) : base (vector) { }
 
         public override bool CanTransform() { return true; }
-        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot) { return new VFXExpressionTransformVector(slot.Value); }
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformVector(slot.Value, targetSpace); }
     }
 
     public partial class VFXDirectionType : VFXFloat3Type
@@ -392,7 +392,7 @@ namespace UnityEngine.Experimental.VFX
         public VFXDirectionType(Vector3 vector) : base (vector.normalized) { }
 
         public override bool CanTransform() { return true; }
-        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot) { return new VFXExpressionTransformVector(slot.Value); }
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformVector(slot.Value, targetSpace); }
     }
 
     public partial class VFXTransformType : VFXPropertyTypeSemantics
@@ -426,7 +426,7 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public override bool CanTransform() { return true; }
-        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot) { return new VFXExpressionTransformMatrix(slot.Value); }
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformMatrix(slot.Value, targetSpace); }
 
         protected override object InnerGet(VFXPropertySlot slot, bool linked)
         {
