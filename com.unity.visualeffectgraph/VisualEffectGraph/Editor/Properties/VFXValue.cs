@@ -37,6 +37,59 @@ namespace UnityEngine.Experimental.VFX
         public abstract void Invalidate();
         // Returns dependencies
         public virtual VFXExpression[] GetParents() { return null; }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as VFXExpression;
+            if (other == null)
+                return false;
+
+            if (Operation != other.Operation)
+                return false;
+
+            //if (GetHashCode() != obj.GetHashCode())
+            //    return false;
+
+            // TODO Not really optimized for an equal function!
+            var thisParents = GetParents();
+            var otherParents = other.GetParents();
+
+            if (thisParents == null && otherParents == null)
+                return true;
+            if (thisParents == null || otherParents == null)
+                return false;
+            if (thisParents.Length != otherParents.Length)
+                return false;
+
+            for (int i = 0; i < thisParents.Length; ++i)
+                if (!thisParents[i].Equals(otherParents[i]))
+                    return false;
+
+            return true;         
+        }
+
+        public override int GetHashCode()
+        {
+            if (!m_HasCachedHashCode) // Caching the hash allows optimization but prevent any overrides that calls this function...
+            {
+                int hash = GetType().GetHashCode();
+
+                var parents = GetParents();
+                if (parents != null)
+                    for (int i = 0; i < parents.Length; ++i)
+                        hash ^= (parents[i].GetHashCode() * 3 * i);
+
+                m_CachedHashCode = hash;
+                //m_HasCachedHashCode = true; // Uncomment this in case of performance issue with hash computation
+            }
+
+            return m_CachedHashCode;
+        }
+
+        //protected void InvalidateCachedHashCode() { m_HasCachedHashCode = false; }
+
+        private int m_CachedHashCode;
+        private bool m_HasCachedHashCode = false;
     }
 
     public abstract class VFXValue : VFXExpression
@@ -185,6 +238,9 @@ namespace UnityEngine.Experimental.VFX
         }
 
         protected virtual void ConstrainValue() {}
+
+        public override bool Equals(object obj) { return ReferenceEquals(this,obj); }
+        public override int GetHashCode()       { return m_Value.GetHashCode(); } // Poor hash but I dont know how to get a hash of the reference
 
         protected T m_Value;
     }

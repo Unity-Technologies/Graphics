@@ -293,6 +293,14 @@ namespace UnityEditor.Experimental
                         int[] parentIds = new int[4];
                         for (int i = 0; i < nbParents; ++i)
                             parentIds[i] = m_Expressions[parents[i]];
+
+                        // For transform expression store the type in index 1
+                        if (expr is VFXTransformExpression)
+                        {
+                            // VFXTransformExpression ensures the number of parents is 1, so 1 is a free slot
+                            parentIds[1] = (int)((VFXTransformExpression)expr).GetSpaceRef();
+                        }
+
                         asset.AddExpression(expr.Operation, parentIds[0], parentIds[1], parentIds[2], parentIds[3]);
                     }
                 }
@@ -688,7 +696,12 @@ namespace UnityEditor.Experimental
                     Invalidate(InvalidationCause.kModelChanged); // Force a recompilation
                 }
             }
-        }      
+        }
+
+        public SpaceRef GetSpaceRef()
+        {
+            return WorldSpace ? SpaceRef.kWorld : SpaceRef.kLocal;
+        }
 
         public VFXGeneratedTextureData GeneratedTextureData { get { return GetOwner().GeneratedTextureData; } }
 

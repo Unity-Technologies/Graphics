@@ -49,21 +49,37 @@ namespace UnityEditor.Experimental
         public VFXEdEventNodeTarget() { }
     }
 
-    internal class VFXCustomEditor : Editor, VFXPropertySlotObserver
+    internal abstract class VFXCustomEditor : Editor, VFXPropertySlotObserver
     {
         public virtual void OnSlotEvent(VFXPropertySlot.Event type,VFXPropertySlot slot)
         {
+            // Reinit widgets if link or transform mode has changed
+            if (type == VFXPropertySlot.Event.kLinkUpdated || type == VFXPropertySlot.Event.kTransformModeUpdated)
+            {
+                InnerDisable(false);
+                InnerEnable(false);
+            }
+            
             Repaint();
         }
 
-        protected void ObserveSlot(VFXPropertySlot slot,bool createWidget) 
+        void OnEnable()     { InnerEnable(true); }
+        void OnDisable()    { InnerDisable(true); }
+
+        protected abstract void InnerEnable(bool registerSlots);
+        protected abstract void InnerDisable(bool unregisterSlots);
+
+        protected void ObserveSlot(VFXPropertySlot slot, bool createWidget, bool registerSlot) 
         {
-            m_ObservedSlots.Add(slot);
-            slot.AddObserver(this);
+            if (registerSlot)
+            {
+                m_ObservedSlots.Add(slot);
+                slot.AddObserver(this);
+            }
 
             if (createWidget)
             {
-                VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot);
+                VFXUIWidget widget = slot.Semantics.CreateUIWidget(slot,VFXEditor.componentTransform);
                 if (widget != null)
                 {
                     SceneView.onSceneGUIDelegate += widget.OnSceneGUI;
@@ -72,11 +88,14 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void StopObservingSlots()
+        public void StopObservingSlots(bool unregisterSlots)
         {
-            foreach (var slot in m_ObservedSlots)
-                slot.RemoveObserver(this);
-            m_ObservedSlots.Clear();
+            if (unregisterSlots)
+            {
+                foreach (var slot in m_ObservedSlots)
+                    slot.RemoveObserver(this);
+                m_ObservedSlots.Clear();
+            }
 
             foreach (var widget in m_Widgets)
                 SceneView.onSceneGUIDelegate -= widget.OnSceneGUI;
@@ -112,19 +131,19 @@ namespace UnityEditor.Experimental
             serializedObject.ApplyModifiedProperties();
         }
 
-        void OnEnable()
+        protected override void InnerEnable(bool registerSlots)
         {
             VFXBlockModel model = safeTarget.targetNodeBlock.Model;
             for (int i = 0; i < model.GetNbSlots(); ++i)
             {
                 VFXPropertySlot slot = model.GetSlot(i);
-                ObserveSlot(slot, slot.IsValueUsed());
+                ObserveSlot(slot, slot.IsValueUsed(), registerSlots);
             }
         }
 
-        void OnDisable()
+        protected override void InnerDisable(bool unregisterSlots)
         {
-            StopObservingSlots();
+            StopObservingSlots(unregisterSlots);
         }
     }
 
@@ -152,15 +171,15 @@ namespace UnityEditor.Experimental
             serializedObject.ApplyModifiedProperties();
         }
 
-        void OnEnable()
+        protected override void InnerEnable(bool registerSlots)
         {
             var slot = safeTarget.targetNodeBlock.Slot;
-            ObserveSlot(slot,true);
+            ObserveSlot(slot, true, registerSlots);
         }
 
-        void OnDisable()
+        protected override void InnerDisable(bool unregisterSlots)
         {
-            StopObservingSlots();
+            StopObservingSlots(unregisterSlots);
         }
     }
 

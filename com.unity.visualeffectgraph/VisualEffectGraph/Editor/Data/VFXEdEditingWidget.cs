@@ -9,30 +9,91 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Experimental
 {
-    public interface VFXUIWidget
+    public abstract class VFXUIWidget
     {
-        void OnSceneGUI(SceneView sceneView);
+        public VFXUIWidget(VFXPropertySlot slot,Transform t)
+        {
+            m_Transform = t;
+            m_NeedsTransformation = t != null && !slot.WorldSpace;
+        }
+
+        public abstract void OnSceneGUI(SceneView sceneView);
+
+        protected Vector3 TransformPosition(Vector3 pos)
+        {
+            return m_NeedsTransformation ? m_Transform.TransformPoint(pos) : pos;
+        }
+
+        protected Vector3 InvTransformPosition(Vector3 pos)
+        {
+            return m_NeedsTransformation ? m_Transform.InverseTransformPoint(pos) : pos;
+        }
+
+        protected Vector3 TransformVector(Vector3 vec)
+        {
+            return m_NeedsTransformation ? m_Transform.TransformVector(vec) : vec;
+        }
+
+        protected Vector3 InvTransformVector(Vector3 vec)
+        {
+            return m_NeedsTransformation ? m_Transform.InverseTransformVector(vec) : vec;
+        }
+
+        protected Quaternion TransformQuaternion(Quaternion quat)
+        {
+            return m_NeedsTransformation ? m_Transform.rotation * quat : quat;
+        }
+
+        protected Quaternion InvTransformQuaternion(Quaternion quat)
+        {
+            return m_NeedsTransformation ? Quaternion.Inverse(m_Transform.rotation) * quat : quat;
+        }
+
+        protected Vector3 TransformScale(Vector3 scale)
+        {
+            Vector3 tScale = m_Transform.lossyScale;
+            return m_NeedsTransformation ? new Vector3(scale.x * tScale.x, scale.y * tScale.y, scale.z * tScale.z) : scale;
+        }
+
+        protected Vector3 InvTransformScale(Vector3 scale)
+        {
+            Vector3 tScale = m_Transform.lossyScale;
+            return m_NeedsTransformation ? new Vector3(scale.x / tScale.x, scale.y / tScale.y, scale.z / tScale.z) : scale;
+        }
+
+        protected Matrix4x4 TransformMatrix(Matrix4x4 mat)
+        {
+            return m_NeedsTransformation ? m_Transform.localToWorldMatrix * mat : mat;
+        }
+
+        protected Quaternion GetGlobalRotation()
+        {
+            return m_NeedsTransformation ? m_Transform.rotation : Quaternion.identity;
+        }
+
+        private Transform m_Transform;
+        private bool m_NeedsTransformation;
     }
 
     public class VFXUISphereWidget : VFXUIWidget
     {
-        public VFXUISphereWidget(VFXPropertySlot slot) 
+        public VFXUISphereWidget(VFXPropertySlot slot,Transform t) : base(slot,t)
         {
             m_Position = slot.GetChild(0);
             m_Radius = slot.GetChild(1);
         }
 
-        public virtual void OnSceneGUI(SceneView sceneView)
+        public override void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
-            Vector3 pos = m_Position.Get<Vector3>();
-            float radius = m_Radius.Get<float>();
+            Vector3 pos = TransformPosition(m_Position.Get<Vector3>(true));
+            float radius = m_Radius.Get<float>(true);
 
             switch (Tools.current)
             {
                 case Tool.Move:
-                    pos = Handles.PositionHandle(pos, Quaternion.identity);
+                    pos = Handles.PositionHandle(pos, Tools.pivotRotation == PivotRotation.Global ? Quaternion.identity : GetGlobalRotation());
                     break;
                 case Tool.Scale:
                 case Tool.Rect:
@@ -44,7 +105,7 @@ namespace UnityEditor.Experimental
 
             if (EditorGUI.EndChangeCheck())
             {
-                m_Position.Set(pos);
+                m_Position.Set(InvTransformPosition(pos));
                 m_Radius.Set(radius);
             }
         }
@@ -55,24 +116,24 @@ namespace UnityEditor.Experimental
 
     public class VFXUIBoxWidget : VFXUIWidget
     {
-        public VFXUIBoxWidget(VFXPropertySlot slot)
+        public VFXUIBoxWidget(VFXPropertySlot slot,Transform t) : base(slot,t)
         {
             m_Position = slot.GetChild(0);
             m_Size = slot.GetChild(1);
         }
 
-        public virtual void OnSceneGUI(SceneView sceneView)
+        public override void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
             Bounds box = new Bounds(
-                m_Position.Get<Vector3>(),
-                m_Size.Get<Vector3>());
+                TransformPosition(m_Position.Get<Vector3>(true)),
+                m_Size.Get<Vector3>(true));
 
             switch (Tools.current)
             {
                 case Tool.Move:
-                    box.center = Handles.PositionHandle(box.center, Quaternion.identity);
+                    box.center = Handles.PositionHandle(box.center, Tools.pivotRotation == PivotRotation.Global ? Quaternion.identity : GetGlobalRotation());
                     VFXEdHandleUtility.ShowWireBox(box);
                     break;
                 case Tool.Scale:
@@ -89,7 +150,7 @@ namespace UnityEditor.Experimental
 
             if (EditorGUI.EndChangeCheck())
             {
-                m_Position.Set(box.center);
+                m_Position.Set(InvTransformPosition(box.center));
                 m_Size.Set(box.size);
             }
         }
@@ -100,7 +161,7 @@ namespace UnityEditor.Experimental
 
     public class VFXUITransformWidget : VFXUIWidget
     {
-        public VFXUITransformWidget(VFXPropertySlot slot, bool showBox)
+        public VFXUITransformWidget(VFXPropertySlot slot,Transform t,bool showBox) : base(slot,t)
         {
             m_Position = slot.GetChild(0);
             m_Rotation = slot.GetChild(1);
@@ -108,21 +169,18 @@ namespace UnityEditor.Experimental
             m_ShowBox = showBox;
         }
 
-        public virtual void OnSceneGUI(SceneView sceneView)
+        public override void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
-            Vector3 position = m_Position.Get<Vector3>();
-            Quaternion rotation = Quaternion.Euler(m_Rotation.Get<Vector3>());
-            Vector3 scale = m_Scale.Get<Vector3>();
+            Vector3 position = TransformPosition(m_Position.Get<Vector3>(true));
+            Quaternion rotation = TransformQuaternion(Quaternion.Euler(m_Rotation.Get<Vector3>(true)));
+            Vector3 scale = TransformScale(m_Scale.Get<Vector3>(true));
 
             switch (Tools.current)
             {
                 case Tool.Move:
-                    if(Tools.pivotRotation == PivotRotation.Global)
-                        position = Handles.PositionHandle(position, Quaternion.identity);
-                    else
-                        position = Handles.PositionHandle(position, rotation);
+                    position = Handles.PositionHandle(position, Tools.pivotRotation == PivotRotation.Global ? Quaternion.identity : rotation);
                     break;
                 case Tool.Rotate:
                     rotation = Handles.RotationHandle(rotation, position);
@@ -132,18 +190,19 @@ namespace UnityEditor.Experimental
                     break;
             }
 
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_Position.Set(InvTransformPosition(position));
+                m_Rotation.Set(InvTransformQuaternion(rotation).eulerAngles);
+                m_Scale.Set(InvTransformScale(scale));
+            }
+
             if (m_ShowBox)
             {
                 Bounds box = new Bounds(Vector3.zero, Vector3.one);
-                Matrix4x4 mat = Matrix4x4.TRS(position,rotation,scale);
-                VFXEdHandleUtility.ShowWireBox(box,mat);
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_Position.Set(position);
-                m_Rotation.Set(rotation.eulerAngles);
-                m_Scale.Set(scale);
+                // Recompute the matrix to get the correct transformation (with scale) instead of making a TRS from modified values
+                Matrix4x4 mat = TransformMatrix(Matrix4x4.TRS(m_Position.Get<Vector3>(true), Quaternion.Euler(m_Rotation.Get<Vector3>(true)), m_Scale.Get<Vector3>(true)));
+                VFXEdHandleUtility.ShowWireBox(box, mat);
             }
         }
 
@@ -155,14 +214,18 @@ namespace UnityEditor.Experimental
 
     public class VFXUIPositionWidget : VFXUIWidget
     {
-        public VFXUIPositionWidget(VFXPropertySlot slot)
+        public VFXUIPositionWidget(VFXPropertySlot slot,Transform t) : base(slot,t)
         {
             m_Position = slot;
         }
 
-        public virtual void OnSceneGUI(SceneView sceneView)
+        public override void OnSceneGUI(SceneView sceneView)
         {
-                m_Position.Set(Handles.PositionHandle(m_Position.Get<Vector3>(), Quaternion.identity));
+            Vector3 pos = TransformPosition(m_Position.Get<Vector3>(true));
+            EditorGUI.BeginChangeCheck();
+            pos = Handles.PositionHandle(pos, Tools.pivotRotation == PivotRotation.Global ? Quaternion.identity : GetGlobalRotation());
+            if (EditorGUI.EndChangeCheck())
+                m_Position.Set(InvTransformPosition(pos));
         }
 
         private VFXPropertySlot m_Position;
@@ -170,18 +233,18 @@ namespace UnityEditor.Experimental
 
     public class VFXUIVectorWidget : VFXUIWidget
     {
-        public VFXUIVectorWidget(VFXPropertySlot slot, bool forceNormalized)
+        public VFXUIVectorWidget(VFXPropertySlot slot, Transform t, bool forceNormalized) : base(slot,t)
         {
             m_Direction = slot;
-            m_Quat = new Quaternion();
+            m_Quat = Quaternion.identity;
             b_ForceNormalized = forceNormalized;
         }
 
-        public virtual void OnSceneGUI(SceneView sceneView)
+        public override void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
-            Vector3 dir = m_Direction.Get<Vector3>();
+            Vector3 dir = TransformVector(m_Direction.Get<Vector3>(true));
 
             bool needsRefresh = VFXEdHandleUtility.CheckQuaternion(ref m_Quat, dir);
 
@@ -190,7 +253,7 @@ namespace UnityEditor.Experimental
             float length = VFXEdHandleUtility.EditDirection(ref m_Quat, ref dir, viewportCenter, b_ForceNormalized);
 
             if (EditorGUI.EndChangeCheck() || needsRefresh)
-                m_Direction.Set((m_Quat * Vector3.forward) * length);
+                m_Direction.Set(InvTransformVector((m_Quat * Vector3.forward) * length));
         }
 
         private VFXPropertySlot m_Direction;
@@ -207,21 +270,21 @@ namespace UnityEditor.Experimental
 
         Quaternion m_Quat;
 
-        public VFXEdCylinderEditingWidget(VFXPropertySlot slot)
+        public VFXEdCylinderEditingWidget(VFXPropertySlot slot, Transform t) : base(slot,t)
         {
             m_Position = slot.GetChild(0);
             m_Direction = slot.GetChild(1);
             m_Radius = slot.GetChild(2);
             m_Height = slot.GetChild(3);
-            m_Quat = new Quaternion();
+            m_Quat = Quaternion.identity;
         }
 
-        public virtual void OnSceneGUI(SceneView sceneView)
+        public override void OnSceneGUI(SceneView sceneView)
         {
             EditorGUI.BeginChangeCheck();
 
-            Vector3 pos = m_Position.Get<Vector3>();
-            Vector3 dir = m_Direction.Get<Vector3>();
+            Vector3 pos = TransformPosition(m_Position.Get<Vector3>());
+            Vector3 dir = TransformVector(m_Direction.Get<Vector3>());
 
             float radius = m_Radius.Get<float>();
             float height = m_Height.Get<float>();
@@ -233,13 +296,9 @@ namespace UnityEditor.Experimental
             switch (Tools.current)
             {
                 case Tool.Move:
-                    if(Tools.pivotRotation == PivotRotation.Global)
-                        pos = Handles.PositionHandle(pos, Quaternion.identity);
-                    else
-                        pos = Handles.PositionHandle(pos, m_Quat);
+                    pos = Handles.PositionHandle(pos, Tools.pivotRotation == PivotRotation.Global ? Quaternion.identity : m_Quat);
                     break;
                 case Tool.Rotate:
-                    // dir = Handles.RotationHandle(pos, Quaternion.AngleAxis(0, dir));
                     VFXEdHandleUtility.EditDirection(ref m_Quat, ref dir, pos, true);
                     break;
                 case Tool.Scale:
@@ -253,7 +312,6 @@ namespace UnityEditor.Experimental
 
             VFXEdHandleUtility.ShowCylinder(pos, m_Quat, radius, height);
 
-
             if (scale.x != radius)
                 radius = scale.x;
             else
@@ -261,25 +319,11 @@ namespace UnityEditor.Experimental
 
             if (EditorGUI.EndChangeCheck() || needsRefresh)
             {
-                m_Position.Set(pos);
-                m_Direction.Set( (m_Quat * Vector3.forward) * dir.magnitude);
+                m_Position.Set(InvTransformPosition(pos));
+                m_Direction.Set(InvTransformVector(m_Quat * Vector3.forward));
                 m_Radius.Set(Mathf.Abs(radius));
                 m_Height.Set(scale.z);
             }
-        }
-    }
-
-    [Obsolete]
-    internal abstract class VFXEdEditingWidget
-    {
-        protected VFXEdNodeBlock m_CurrentlyEditedBlock;
-        public List<string> IgnoredParamNames = new List<string>();
-        public abstract void OnSceneGUI(SceneView sceneView);
-        public abstract void OnInspectorGUI();
-        public virtual void CreateBinding(VFXEdNodeBlock block)
-        {
-            m_CurrentlyEditedBlock = block;
-            block.DeepInvalidate();
         }
     }
 
@@ -288,100 +332,41 @@ namespace UnityEditor.Experimental
         VFXPropertySlot m_Position;
         VFXPropertySlot m_Normal;
 
-        private Quaternion m_Quat = new Quaternion();
+        private Quaternion m_Quat;
 
-        public VFXEdPlaneEditingWidget(VFXPropertySlot slot)
+        public VFXEdPlaneEditingWidget(VFXPropertySlot slot, Transform t) : base(slot,t)
         {
             m_Position = slot.GetChild(0);
             m_Normal = slot.GetChild(1);
-        }
-
-        public void OnSceneGUI(SceneView sceneView)
-        {
-            EditorGUI.BeginChangeCheck();
-
-            Vector3 pos = m_Position.Get<Vector3>();
-            Vector3 normal = m_Normal.Get<Vector3>().normalized;
-
-            bool needsRepaint = VFXEdHandleUtility.CheckQuaternion(ref m_Quat, normal);
-
-            switch(Tools.current)
-            {
-                case Tool.Move:
-                    if(Tools.pivotRotation == PivotRotation.Global)
-                        m_Position.Set(Handles.PositionHandle(pos, Quaternion.identity));
-                    else
-                        m_Position.Set(Handles.PositionHandle(pos, m_Quat));
-                    break;
-                case Tool.Rotate:
-                    m_Quat = Handles.RotationHandle(m_Quat, pos);
-                    break;
-
-                default:
-                    break;
-            }
-
-            VFXEdHandleUtility.ShowInfinitePlane(m_Position.Get<Vector3>(), m_Quat);
-
-            if (EditorGUI.EndChangeCheck() || needsRepaint)
-            {      
-                m_Normal.Set(m_Quat * Vector3.forward);
-                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-            }
-        }
-
-    }
-
-    [Obsolete]
-    internal class VFXEdColorEditingWidget : VFXEdEditingWidget
-    {
-        VFXPropertySlot m_Color;
-        VFXPropertySlot m_Alpha;
-        string m_ColorParamName;
-        string m_AlphaParamName;
-
-
-        public VFXEdColorEditingWidget(string ColorParamName, string AlphaParamName)
-        {
-            m_ColorParamName = ColorParamName;
-            m_AlphaParamName = AlphaParamName;
-        }
-
-        public override void CreateBinding(VFXEdNodeBlock block)
-        {
-            base.CreateBinding(block);
-            m_Color = block.GetSlot(m_ColorParamName);
-            m_Alpha = block.GetSlot(m_AlphaParamName);
-        }
-
-        public override void OnInspectorGUI()
-        {
-            Vector3 c = m_Color.Get<Vector3>();
-            float a = m_Alpha.Get<float>();
-            Color color = new Color(c.x, c.y, c.z, a);
-            color = EditorGUILayout.ColorField(new GUIContent("Color"), color,true,true,true,new ColorPickerHDRConfig(0.0f,500.0f,0.0f,500.0f));
-            m_Color.Set(new Vector3(color.r, color.g, color.b));
-            m_Alpha.Set(color.a);
+            m_Quat = Quaternion.identity;
         }
 
         public override void OnSceneGUI(SceneView sceneView)
         {
-            Vector3 c = m_Color.Get<Vector3>();
-            float a = m_Alpha.Get<float>();
-            Color color = new Color(c.x, c.y, c.z, a);
+            EditorGUI.BeginChangeCheck();
 
-            GUI.BeginGroup(new Rect(16, 16, 250, 20));
-            GUILayout.BeginArea(new Rect(0, 0, 250, 20), EditorStyles.miniButton);
-            GUILayout.BeginVertical();
-            GUILayout.BeginHorizontal();
-                color = EditorGUILayout.ColorField(new GUIContent("Color"), color,true,true,true,new ColorPickerHDRConfig(0.0f,500.0f,0.0f,500.0f));
-            GUILayout.EndHorizontal();
-            GUILayout.EndVertical();
-            GUILayout.EndArea();
-            GUI.EndGroup();
+            Vector3 pos = TransformPosition(m_Position.Get<Vector3>(true));
+            Vector3 normal = TransformVector(m_Normal.Get<Vector3>(true));
 
-            m_Color.Set(new Vector3(color.r, color.g, color.b));
-            m_Alpha.Set(color.a);
+            bool needsRepaint = VFXEdHandleUtility.CheckQuaternion(ref m_Quat, normal);
+
+            switch (Tools.current)
+            {
+                case Tool.Move:
+                    pos = Handles.PositionHandle(pos, Tools.pivotRotation == PivotRotation.Global ? Quaternion.identity : m_Quat);
+                    break;
+                case Tool.Rotate:
+                    m_Quat = Handles.RotationHandle(m_Quat, pos);
+                    break;
+            }
+
+            VFXEdHandleUtility.ShowInfinitePlane(pos, m_Quat);
+
+            if (EditorGUI.EndChangeCheck() || needsRepaint)
+            {
+                m_Position.Set(InvTransformPosition(pos));
+                m_Normal.Set(InvTransformVector(m_Quat * Vector3.forward));
+            }
         }
     }
 
@@ -518,13 +503,11 @@ namespace UnityEditor.Experimental
             for(int i = 1; i <= 64; i*=2)
             {
                 Color c = Color.white;
-                ;
                 c.a = GridWireColor.a * (1.0f-((float)i/64));
                 Handles.color = c;
                 Handles.DrawWireDisc(Position, normal, i);
-                Handles.color = new Color(0.1f, 0.15f, 0.2f, 0.1f);
+                Handles.color = new Color(0.1f, 0.15f, 0.2f, 0.05f);
                 Handles.DrawSolidDisc(Position, normal, i);
-
             }
 
             Handles.DrawSolidDisc(Position, normal, 50000);
@@ -535,9 +518,9 @@ namespace UnityEditor.Experimental
 
         public static bool CheckQuaternion (ref Quaternion quaternion, Vector3 normal)
         {
-            if (quaternion * Vector3.forward != normal) // if the normal has been changed elsewhere, quaternion must be reinitialized
+            if (quaternion * Vector3.forward != normal.normalized) // if the normal has been changed elsewhere, quaternion must be reinitialized (The test already uses an epsilon)
             {
-                quaternion.SetLookRotation(normal, Mathf.Abs(normal.y) > Mathf.Abs(normal.x) ? Vector3.right : Vector3.up); // Just ensure up and front are not collinear
+                quaternion.SetLookRotation(normal, new Vector3(normal.y,normal.z,normal.x)/*Mathf.Abs(normal.y) > Mathf.Abs(normal.x) ? Vector3.right : Vector3.up*/); // Just ensure up and front are not collinear
                 return true;
             }
             else
@@ -596,5 +579,4 @@ namespace UnityEditor.Experimental
 
         }
     }
-
 }

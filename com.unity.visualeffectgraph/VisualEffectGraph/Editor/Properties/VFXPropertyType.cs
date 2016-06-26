@@ -90,11 +90,14 @@ namespace UnityEngine.Experimental.VFX
         public virtual bool Default(VFXPropertySlot slot)       { return false; }
 
         // UI stuff
-        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value)        { return null; }    
-        public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area)     {}
-        public virtual void OnInspectorGUI(VFXPropertySlot value)               {}
+        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value,Transform t)    { return null; }    
+        public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area)             {}
+        public virtual void OnInspectorGUI(VFXPropertySlot value)                       {}
 
         public virtual bool UpdateProxy(VFXPropertySlot slot) { return false; }  // Set Proxy value from underlying values
+
+        public virtual bool CanTransform() { return false; }
+        public virtual VFXExpression GetTransformedExpression(VFXPropertySlot slot,SpaceRef targetSpace) { return slot.Value; } // No transformation by default
 
         public int GetNbChildren() { return m_Children == null ? 0 : m_Children.Length; }
         public VFXProperty[] GetChildren() { return m_Children; }
@@ -365,6 +368,9 @@ namespace UnityEngine.Experimental.VFX
 
         public VFXPositionType() {}
         public VFXPositionType(Vector3 vector) : base (vector) { }
+
+        public override bool CanTransform() { return true; }
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformPosition(slot.Value, targetSpace); }
     }
 
     public partial class VFXVectorType : VFXFloat3Type
@@ -373,6 +379,9 @@ namespace UnityEngine.Experimental.VFX
 
         public VFXVectorType() : base(Vector3.up) { }
         public VFXVectorType(Vector3 vector) : base (vector) { }
+
+        public override bool CanTransform() { return true; }
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformVector(slot.Value, targetSpace); }
     }
 
     public partial class VFXDirectionType : VFXFloat3Type
@@ -381,6 +390,9 @@ namespace UnityEngine.Experimental.VFX
 
         public VFXDirectionType() : base(Vector3.up) { }
         public VFXDirectionType(Vector3 vector) : base (vector.normalized) { }
+
+        public override bool CanTransform() { return true; }
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformDirection(slot.Value, targetSpace); }
     }
 
     public partial class VFXTransformType : VFXPropertyTypeSemantics
@@ -412,6 +424,9 @@ namespace UnityEngine.Experimental.VFX
 
             return true;
         }
+
+        public override bool CanTransform() { return true; }
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformMatrix(slot.Value, targetSpace); }
 
         protected override object InnerGet(VFXPropertySlot slot, bool linked)
         {
@@ -451,9 +466,11 @@ namespace UnityEngine.Experimental.VFX
         public VFXSphereType() 
         {
             m_Children = new VFXProperty[2];
-            m_Children[0] = new VFXProperty(new VFXFloat3Type(), "center");
+            m_Children[0] = new VFXProperty(new VFXPositionType(), "center");
             m_Children[1] = new VFXProperty(new VFXFloatType(1.0f), "radius");
         }
+
+        public override bool CanTransform() { return true; }
     }
 
     public partial class VFXAABoxType : VFXPropertyTypeSemantics
@@ -466,6 +483,8 @@ namespace UnityEngine.Experimental.VFX
             m_Children[0] = new VFXProperty(new VFXPositionType(), "center");
             m_Children[1] = new VFXProperty(new VFXFloat3Type(Vector3.one), "size");
         }
+
+        public override bool CanTransform() { return true; }
     }
 
     public partial class VFXPlaneType : VFXPropertyTypeSemantics
@@ -478,6 +497,8 @@ namespace UnityEngine.Experimental.VFX
             m_Children[0] = new VFXProperty(new VFXPositionType(), "position");
             m_Children[1] = new VFXProperty(new VFXDirectionType(), "normal");
         }
+
+        public override bool CanTransform() { return true; }
     }
 
     public partial class VFXCylinderType : VFXPropertyTypeSemantics
@@ -492,6 +513,8 @@ namespace UnityEngine.Experimental.VFX
             m_Children[2] = new VFXProperty(new VFXFloatType(1.0f), "radius");
             m_Children[3] = new VFXProperty(new VFXFloatType(2.0f), "height");
         }
+
+        public override bool CanTransform() { return true; }
     }
 }
 

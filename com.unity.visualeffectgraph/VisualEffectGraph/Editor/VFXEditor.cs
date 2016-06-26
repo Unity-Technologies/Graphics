@@ -162,6 +162,16 @@ namespace UnityEditor.Experimental
         private static VFXComponent m_Component;
         private static VFXAsset s_Asset;
 
+        public static Transform componentTransform
+        {
+            get 
+            {
+                if (component != null)
+                    return component.gameObject.transform;
+                return null;
+            }
+        }
+
         public static VFXComponent component { get { return m_Component; } }
         public static VFXAsset asset { get { return s_Asset; } }
 

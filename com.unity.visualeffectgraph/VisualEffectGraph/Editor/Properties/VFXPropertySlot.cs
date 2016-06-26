@@ -10,6 +10,23 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.VFX
 {
+    // Transform mode stuff
+    [Flags]
+    public enum SlotTransformMode
+    {
+        kUsed = 1 << 0,        // Set if semantics CanTransform returns true
+        kInherited = 1 << 1,   // Is the transform inherited from connected slot
+        kHidden = 1 << 2,      // Is the transform hidden in the editor
+        kWorld = 1 << 3,       // Is the transform mode in world (local otherwise)
+    }
+
+    public enum SpaceRef
+    {
+        kWorld,
+        kLocal,
+        kNone, // None at the end as this enum is cast to int to index an array on C++ side and kNone is never used
+    }
+
     public interface VFXPropertySlotObserver
     {
         void OnSlotEvent(VFXPropertySlot.Event type,VFXPropertySlot slot);
@@ -33,6 +50,7 @@ namespace UnityEngine.Experimental.VFX
         {
             kLinkUpdated,
             kValueUpdated,
+            kTransformModeUpdated,
         }
 
         public VFXPropertySlot() {}
@@ -40,7 +58,14 @@ namespace UnityEngine.Experimental.VFX
         protected void Init<T>(VFXPropertySlot parent, VFXProperty desc) where T : VFXPropertySlot, new()
         {
             m_Desc = desc;
- 
+
+            // Init Transform mode
+            m_TransformMode = 0;
+            if (Semantics.CanTransform())
+                m_TransformMode |= SlotTransformMode.kUsed;
+            if (parent != null && (parent.m_TransformMode & (SlotTransformMode.kUsed | SlotTransformMode.kInherited)) != 0)
+                m_TransformMode |= SlotTransformMode.kInherited;
+
             CreateChildren<T>();
             Semantics.CreateValue(this);
             SetDefault();
@@ -335,36 +360,42 @@ namespace UnityEngine.Experimental.VFX
 
         // Collect all values in the slot hierarchy with its name used in the shader
         // Called from the model compiler
-        public void CollectNamedValues(List<VFXNamedValue> values)
+        public void CollectNamedValues(List<VFXNamedValue> values, SpaceRef spaceRef = SpaceRef.kNone)
         {
-            CollectNamedValues(values, "");
+            CollectNamedValues(values, spaceRef, "");
         }
 
-        private void CollectNamedValues(List<VFXNamedValue> values,string fullName)
-        {
-            VFXPropertySlot refSlot = CurrentValueRef;
-            VFXExpression refValue = refSlot.Value;
-            
-            if (refValue != null) // if not null it means value has a concrete type (not kNone)
-                values.Add(new VFXNamedValue(AggregateName(fullName,Name), refValue/*.Reduce()*/)); // TODO Reduce must not be performed here
-            else foreach (var child in refSlot.m_Children) // Continue only until we found a value
-                    child.CollectNamedValues(values, AggregateName(fullName, Name));
-        }
-
-        public void CollectExpressions(HashSet<VFXExpression> expressions)
+        private void CollectNamedValues(List<VFXNamedValue> values, SpaceRef spaceRef, string fullName)
         {
             VFXPropertySlot refSlot = CurrentValueRef;
-            VFXExpression refValue = refSlot.Value;
-
-            if (refValue != null)
-                expressions.Add(refValue);
+            if (refSlot.Value != null) // if not null it means value has a concrete type (not kNone)
+                values.Add(new VFXNamedValue(AggregateName(fullName, Name), GetTransformedExpression(refSlot, spaceRef)));
             else foreach (var child in refSlot.m_Children) // Continue only until we found a value
-                child.CollectExpressions(expressions); 
+                    child.CollectNamedValues(values, spaceRef, AggregateName(fullName, Name));
         }
 
-        private string AggregateName(string parent,string child)
+        public void CollectExpressions(HashSet<VFXExpression> expressions, SpaceRef spaceRef = SpaceRef.kNone)
+        {
+            VFXPropertySlot refSlot = CurrentValueRef;
+            if (refSlot.Value != null)
+                expressions.Add(GetTransformedExpression(refSlot, spaceRef));
+            else foreach (var child in refSlot.m_Children) // Continue only until we found a value
+                    child.CollectExpressions(expressions, spaceRef); 
+        }
+
+        private static string AggregateName(string parent,string child)
         {
             return parent.Length == 0 ? child : parent + "_" + child;
+        }
+
+        private static VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef spaceRef)
+        {
+            bool needsTransform = spaceRef != SpaceRef.kNone // We got a reference space
+                && slot.TransformModeUsed // value can be transformed 
+                && ((slot.WorldSpace && spaceRef == SpaceRef.kLocal)    // Needs a world to local transformation on value
+                || (!slot.WorldSpace && spaceRef == SpaceRef.kWorld));  // Needs a local to world transformation on value
+
+            return needsTransform ? slot.Semantics.GetTransformedExpression(slot, spaceRef) : slot.Value;
         }
 
         public void UpdatePosition(Vector2 position) {}
@@ -387,6 +418,42 @@ namespace UnityEngine.Experimental.VFX
         protected VFXPropertySlot[] m_Children = new VFXPropertySlot[0];
 
         private bool m_UIChildrenCollapsed = true;
+
+        public bool IsTransformWorld() 
+        { 
+            if ((m_TransformMode & SlotTransformMode.kInherited) == 0)
+                return (m_TransformMode & SlotTransformMode.kWorld) != 0;
+            else
+                return CurrentValueRef.IsTransformWorld();
+        }
+
+        public bool WorldSpace
+        {
+            get { return (m_TransformMode & SlotTransformMode.kWorld) != 0; }
+            set
+            {
+                if (TransformModeSettable && WorldSpace != value)
+                    SetAndPropagateWorldSpace(value);
+            }
+        }
+
+        private void SetAndPropagateWorldSpace(bool worldSpace)
+        {
+            m_TransformMode = worldSpace ? (m_TransformMode | SlotTransformMode.kWorld) : (m_TransformMode & ~SlotTransformMode.kWorld);
+            if (TransformModeUsed)
+                NotifyChange(Event.kTransformModeUpdated);
+            foreach (var child in m_Children)
+                child.SetAndPropagateWorldSpace(worldSpace);
+        }
+
+        public bool TransformModeInherited  { get { return (m_TransformMode & SlotTransformMode.kInherited) != 0; } }
+        public bool TransformModeUsed       { get { return (m_TransformMode & SlotTransformMode.kUsed) != 0; } }
+
+        // Used by UI for edition
+        public bool TransformModeVisible    { get { return TransformModeUsed && !TransformModeInherited; } }
+        public bool TransformModeSettable   { get { return TransformModeVisible && (IsValueUsed() || !CurrentValueRef.TransformModeUsed); } } // TODO
+
+        protected SlotTransformMode m_TransformMode;
     }
 
     // Concrete implementation for input slot (can be linked to only one output slot)
