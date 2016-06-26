@@ -320,7 +320,7 @@ namespace UnityEditor.Experimental
             if (EditorGUI.EndChangeCheck() || needsRefresh)
             {
                 m_Position.Set(InvTransformPosition(pos));
-                m_Direction.Set(InvTransformVector((m_Quat * Vector3.forward) * dir.magnitude));
+                m_Direction.Set(InvTransformVector(m_Quat * Vector3.forward));
                 m_Radius.Set(Mathf.Abs(radius));
                 m_Height.Set(scale.z);
             }

@@ -139,7 +139,8 @@ namespace UnityEditor.Experimental.VFX
         // 5: model id for system and spawner node
         // 6: change the way slot connections are serialized
         // 7: Add world space / local space
-        private const int VERSION = 7;
+        // 8: Slot transformation space
+        private const int VERSION = 8;
 
         // SERIALIZATION
         private class MetaData
@@ -188,6 +189,12 @@ namespace UnityEditor.Experimental.VFX
             public IEnumerable<VFXPropertySlot> GetSlots()   { return slotsToIds.Keys; }
             public VFXPropertySlot GetSlot(int id)           { return idsToSlots[id]; }
             public int GetSlotId(VFXPropertySlot slot)       { return slotsToIds[slot]; }
+        }
+
+        private struct SlotData
+        {
+            public bool collapsed;
+            public bool worldSpace;
         }
 
         public static string Serialize(VFXGraph graph)
@@ -378,7 +385,7 @@ namespace UnityEditor.Experimental.VFX
         {
             writer.WriteStartElement("Slot");
 
-            var collapsed = RegisterSlot(slot, data);
+            var slotsData = RegisterSlot(slot, data);
 
             writer.WriteAttributeString("SlotId", data.GetSlotId(slot).ToString());
 
@@ -387,7 +394,11 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteEndElement();
 
             writer.WriteStartElement("Collapsed");
-            writer.WriteValue(collapsed);
+            writer.WriteValue(slotsData.Select(sd => sd.collapsed));
+            writer.WriteEndElement();
+
+            writer.WriteStartElement("WorldSpace");
+            writer.WriteValue(slotsData.Select(sd => sd.worldSpace));
             writer.WriteEndElement();
 
             writer.WriteEndElement();
@@ -465,21 +476,25 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteEndElement();
         }
 
-        private static List<bool> RegisterSlot(VFXPropertySlot slot,MetaData data,List<bool> collapsed = null,int id = -1)
+        private static List<SlotData> RegisterSlot(VFXPropertySlot slot,MetaData data,List<SlotData> slotsData = null,int id = -1)
         {
-            if (collapsed == null)
-                collapsed = new List<bool>();
+            if (slotsData == null)
+                slotsData = new List<SlotData>();
 
             if (id == -1)
                 data.RegisterSlot(slot);
             else
                 data.RegisterSlot(slot, id);
-            collapsed.Add(slot.UICollapsed);
+
+            SlotData slotData = new SlotData();
+            slotData.collapsed = slot.UICollapsed;
+            slotData.worldSpace = slot.WorldSpace;
+            slotsData.Add(slotData);
 
             for (int i = 0; i < slot.GetNbChildren(); ++i)
-                RegisterSlot(slot.GetChild(i), data, collapsed);
+                RegisterSlot(slot.GetChild(i), data, slotsData);
 
-            return collapsed;
+            return slotsData;
         }
 
 
@@ -609,11 +624,14 @@ namespace UnityEditor.Experimental.VFX
 
             if (data.Version >= 2)
                 block.Enabled = bool.Parse(xml.Attribute("Enabled").Value);
-
-            int index = 0;
-            foreach (var slotXML in xml.Elements("Slot"))
-                DeserializeSlot(slotXML, hashTest ? block.GetSlot(index++) : null, data);
-
+ 
+            if (hashTest)
+            {
+                int index = 0;
+                foreach (var slotXML in xml.Elements("Slot"))
+                    DeserializeSlot(slotXML, block.GetSlot(index++), data);
+            }
+            
             return block;
         }
 
@@ -698,25 +716,40 @@ namespace UnityEditor.Experimental.VFX
 
         private static void DeserializeSlot(XElement xml, VFXPropertySlot dst, MetaData data)
         {
-            if (dst != null)
+            var id = -1;
+            if (data.Version >= 6)
+                id = int.Parse(xml.Attribute("SlotId").Value);
+            RegisterSlot(dst, data, null, id); 
+
+            var values = xml.Element("Values");
+            var reader = values.CreateReader();
+            reader.ReadToFollowing("Values");
+            while (reader.Read() && reader.NodeType != XmlNodeType.Element) { } // Advance to element
+            dst.SetValuesFromString(reader);
+
+            if (id != -1)
             {
-                var id = -1;
-                if (data.Version >= 6)
-                    id = int.Parse(xml.Attribute("SlotId").Value);
-                RegisterSlot(dst, data, null, id); 
+                var collapsed = xml.Element("Collapsed");
+                string[] collapsedStr = collapsed.Value.Split(' ');
+                bool[] collapsedValues = new bool[collapsedStr.Length];
+                for (int i = 0; i < collapsedStr.Length; ++i)
+                    collapsedValues[i] = bool.Parse(collapsedStr[i]);
 
-                var values = xml.Element("Values");
-                var reader = values.CreateReader();
-                reader.ReadToFollowing("Values");
-                while (reader.Read() && reader.NodeType != XmlNodeType.Element) { } // Advance to element
-                dst.SetValuesFromString(reader);
+                for (int i = 0; i < collapsedStr.Length; ++i)
+                    data.GetSlot(id + i).UpdateCollapsed(collapsedValues[i]);
+
+                if (data.Version >= 8)
+                {
+                    var worldSpace = xml.Element("WorldSpace");
+                    string[] worldSpaceStr = worldSpace.Value.Split(' ');
+                    bool[] worldSpaceValues = new bool[worldSpaceStr.Length];
+                    for (int i = 0; i < worldSpaceStr.Length; ++i)
+                        worldSpaceValues[i] = bool.Parse(worldSpaceStr[i]);
+
+                    for (int i = 0; i < worldSpaceStr.Length; ++i)
+                        data.GetSlot(id + i).WorldSpace = worldSpaceValues[i];
+                }
             }
-
-            var collapsed = xml.Element("Collapsed");
-            string[] collapsedStr = collapsed.Value.Split(' ');
-            bool[] collapsedValues = new bool[collapsedStr.Length];
-            for (int i = 0; i < collapsedStr.Length; ++i)
-                collapsedValues[i] = bool.Parse(collapsedStr[i]);
         }
 
         private static void DeserializeConnections(XElement xml,MetaData data)

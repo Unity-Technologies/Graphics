@@ -392,7 +392,7 @@ namespace UnityEngine.Experimental.VFX
         public VFXDirectionType(Vector3 vector) : base (vector.normalized) { }
 
         public override bool CanTransform() { return true; }
-        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformVector(slot.Value, targetSpace); }
+        public override VFXExpression GetTransformedExpression(VFXPropertySlot slot, SpaceRef targetSpace) { return new VFXExpressionTransformDirection(slot.Value, targetSpace); }
     }
 
     public partial class VFXTransformType : VFXPropertyTypeSemantics

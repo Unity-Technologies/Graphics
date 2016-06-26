@@ -47,4 +47,12 @@ namespace UnityEngine.Experimental.VFX
         public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } }
         public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXTransformVecOp; } }
     }
+
+    public class VFXExpressionTransformDirection : VFXTransformExpression
+    {
+        public VFXExpressionTransformDirection(VFXExpression vec, SpaceRef spaceRef) : base(vec, spaceRef) { }
+
+        public override VFXValueType ValueType { get { return VFXValueType.kFloat3; } }
+        public override VFXExpressionOp Operation { get { return VFXExpressionOp.kVFXTransformDirOp; } }
+    }
 }
