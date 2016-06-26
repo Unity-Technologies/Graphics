@@ -90,9 +90,9 @@ namespace UnityEngine.Experimental.VFX
         public virtual bool Default(VFXPropertySlot slot)       { return false; }
 
         // UI stuff
-        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value)        { return null; }    
-        public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area)     {}
-        public virtual void OnInspectorGUI(VFXPropertySlot value)               {}
+        public virtual VFXUIWidget CreateUIWidget(VFXPropertySlot value,Transform t)    { return null; }    
+        public virtual void OnCanvas2DGUI(VFXPropertySlot value, Rect area)             {}
+        public virtual void OnInspectorGUI(VFXPropertySlot value)                       {}
 
         public virtual bool UpdateProxy(VFXPropertySlot slot) { return false; }  // Set Proxy value from underlying values
 

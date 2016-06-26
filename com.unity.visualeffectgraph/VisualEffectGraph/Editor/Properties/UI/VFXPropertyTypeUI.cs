@@ -243,9 +243,9 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXPositionType : VFXFloat3Type
     {
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Transform t)
         {
-            return new VFXUIPositionWidget(slot);
+            return new VFXUIPositionWidget(slot,t);
         }
     }
 
@@ -261,9 +261,9 @@ namespace UnityEngine.Experimental.VFX
             slot.Set(dir, false);
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Transform t)
         {
-            return new VFXUIVectorWidget(slot, false);
+            return new VFXUIVectorWidget(slot, t, false);
         }
     }
 
@@ -281,9 +281,9 @@ namespace UnityEngine.Experimental.VFX
             slot.Set(n.normalized,false);
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Transform t)
         {
-            return new VFXUIVectorWidget(slot, true);
+            return new VFXUIVectorWidget(slot,t, true);
         }
     }
 
@@ -296,9 +296,9 @@ namespace UnityEngine.Experimental.VFX
                 slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot,Transform t)
         {
-            return new VFXUITransformWidget(slot, false);
+            return new VFXUITransformWidget(slot,t,false);
         }
     }
 
@@ -312,9 +312,9 @@ namespace UnityEngine.Experimental.VFX
                 slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Transform t)
         {
-            return new VFXUISphereWidget(slot);
+            return new VFXUISphereWidget(slot,t);
         }
     }
 
@@ -327,17 +327,17 @@ namespace UnityEngine.Experimental.VFX
                 slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Transform t)
         {
-            return new VFXUIBoxWidget(slot);
+            return new VFXUIBoxWidget(slot,t);
         }
     }
 
     public partial class VFXOrientedBoxType : VFXTransformType
     {
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Transform t)
         {
-            return new VFXUITransformWidget(slot, true);
+            return new VFXUITransformWidget(slot, t, true);
         }
     }
 
@@ -350,9 +350,9 @@ namespace UnityEngine.Experimental.VFX
                 slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Transform t)
         {
-            return new VFXEdPlaneEditingWidget(slot);
+            return new VFXEdPlaneEditingWidget(slot,t);
         }
     }
 
@@ -365,9 +365,9 @@ namespace UnityEngine.Experimental.VFX
                 slot.GetChild(i).Semantics.OnInspectorGUI(slot.GetChild(i));
         }
 
-        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot)
+        public override VFXUIWidget CreateUIWidget(VFXPropertySlot slot, Transform t)
         {
-            return new VFXEdCylinderEditingWidget(slot);
+            return new VFXEdCylinderEditingWidget(slot,t);
         }
     }
 
