@@ -215,7 +215,7 @@ namespace UnityEditor.Experimental
 
             VFXSystemModel system = model.GetOwner();
 
-            system.WorldSpace = EditorGUILayout.Toggle("World Space", system.WorldSpace); 
+            //system.WorldSpace = EditorGUILayout.Toggle("World Space", system.WorldSpace); 
             system.OrderPriority = EditorGUILayout.IntField("Order Priority", system.OrderPriority);            
             system.MaxNb = (uint)EditorGUILayout.DelayedIntField("Max Particles", (int)system.MaxNb);
             system.SpawnRate = EditorGUILayout.FloatField("Spawn Rate", system.SpawnRate);

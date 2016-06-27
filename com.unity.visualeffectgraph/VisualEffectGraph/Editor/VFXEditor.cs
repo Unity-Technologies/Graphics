@@ -146,14 +146,10 @@ namespace UnityEditor.Experimental
         private VFXEdCanvas m_Canvas = null;
         private EditorWindow m_HostWindow = null;
         private Texture m_Icon = null;
-        private Rect m_LibraryRect;
-        private Rect m_PreviewRect;
         private VFXEdDataSource m_DataSource;
 
-        private bool m_bShowPreview = false;
+        private bool m_bShowHelp = false;
         private bool m_CannotPreview = false;
-
-        private bool m_bShowDebug = false;
 
         private Vector2 m_DebugLogScroll = Vector2.zero;
 
@@ -346,58 +342,7 @@ namespace UnityEditor.Experimental
 
             DrawToolbar(new Rect(0, 0, position.width, EditorStyles.toolbar.fixedHeight));
 
-
-            Rect canvasRect;
-            
-            if(m_bShowDebug)
-            {
-                GUILayout.BeginArea(new Rect(position.width-VFXEditorMetrics.DebugWindowWidth, EditorStyles.toolbar.fixedHeight, VFXEditorMetrics.DebugWindowWidth, position.height -EditorStyles.toolbar.fixedHeight));
-                GUILayout.BeginVertical();
-
-                
-                // Debug Window Toolbar
-                GUILayout.BeginHorizontal(EditorStyles.toolbar);
-
-                GUI.color = Color.green * 4;
-                GUILayout.Label("Canvas2D : ",EditorStyles.toolbarButton);
-                GUI.color = Color.white;
-                m_Canvas.showQuadTree = GUILayout.Toggle(m_Canvas.showQuadTree, "Debug", EditorStyles.toolbarButton);
-                if (GUILayout.Button("Refresh", EditorStyles.toolbarButton))
-                {
-                    m_Canvas.DeepInvalidate();
-                    m_Canvas.Repaint();
-                }
-
-                GUILayout.FlexibleSpace();
-                GUI.color = Color.yellow * 4;
-                GUILayout.Label("VFXEditor :",EditorStyles.toolbarButton);
-                GUI.color = Color.white;
-
-                if (GUILayout.Button("Reload Library", EditorStyles.toolbarButton))
-                {
-                    BlockLibrary.Load();
-                }
-
-                if (GUILayout.Button("Clear Log", EditorStyles.toolbarButton))
-                    ClearLog();
-
-                GUILayout.EndHorizontal();
-
-                m_DebugLogScroll = GUILayout.BeginScrollView(m_DebugLogScroll, false, true);
-
-                List<string> debugOutput = VFXEditor.GetDebugOutput();
-                foreach (string str in debugOutput)
-                GUILayout.Label(str);
-
-                GUILayout.EndScrollView();
-                GUILayout.EndVertical();
-                GUILayout.EndArea();
-                canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width-VFXEditorMetrics.DebugWindowWidth, position.height - EditorStyles.toolbar.fixedHeight);
-            }
-            else
-            {
-                canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height - EditorStyles.toolbar.fixedHeight);
-            }
+            Rect canvasRect = new Rect(0, EditorStyles.toolbar.fixedHeight, position.width, position.height - EditorStyles.toolbar.fixedHeight);
 
             m_Canvas.OnGUI(this, canvasRect);
 
@@ -413,8 +358,8 @@ namespace UnityEditor.Experimental
                 m_NeedsCanvasReload = false;
                 //Debug.Log(">>>>>>>>>>>>>>>> RELOAD CANVAS");
             }
-
-            DrawWindows(canvasRect);
+            if(m_bShowHelp)
+                ShowHelp(canvasRect);
         }
 
         private bool isOldPlaying = false;
@@ -648,10 +593,9 @@ namespace UnityEditor.Experimental
             GUILayout.FlexibleSpace();
 
             bool UsePhaseShift = Graph.systems.PhaseShift;
-            Graph.systems.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
+            //Graph.systems.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
 
-            m_bShowDebug = GUILayout.Toggle(m_bShowDebug, "DEBUG PANEL", EditorStyles.toolbarButton);
-            m_bShowPreview = GUILayout.Toggle(m_bShowPreview, "Preview", EditorStyles.toolbarButton);
+            m_bShowHelp = GUILayout.Toggle(m_bShowHelp, "Help", EditorStyles.toolbarButton);
 
             GUILayout.EndHorizontal();
             GUI.EndGroup();
@@ -679,44 +623,28 @@ namespace UnityEditor.Experimental
         }
 
         #region TOOL WINDOWS
-        void DrawWindows(Rect canvasRect)
+        void ShowHelp(Rect canvasRect)
         {
-            // Calculate Rect's
+            GUI.Label(canvasRect, @"<size=21><b>VFX Editor Controls</b></size>
 
-            m_PreviewRect = new Rect(
-                                            canvasRect.xMax - (VFXEditorMetrics.PreviewWindowWidth + 2 * VFXEditorMetrics.WindowPadding),
-                                            canvasRect.yMax - (VFXEditorMetrics.PreviewWindowHeight + 2 * VFXEditorMetrics.WindowPadding),
-                                            VFXEditorMetrics.PreviewWindowWidth,
-                                            VFXEditorMetrics.PreviewWindowHeight
-                                       );
+<b> * Left Mouse Button:</b> Select nodes, connect
+<b> * Drag Left Mouse (in canvas):</b> Multiple Selection
+<b> * Drag Left Mouse (nodeblocks):</b> Move / Reorder Nodeblocks
+<b> * Right Mouse Button:</b> Contextual Menu
+<b> * Shift + Hold Right Mouse Button</b> Show debug info panel
+<b> * Mouse Wheel:</b> Zoom In/Out
 
+<b> * [TAB] Key:</b> Pop-up tab menu (contextual)
+<b> * [DEL] Key:</b> Delete Selected
+<b> * [D] Key:</b> Refreshes canvas
+<b> * [L] Key (with node selected):</b> Layout system
+<b> * [F] Key :</b> Focus on Selection
+<b> * [A] Key :</b> Focus on All Systems
 
-            if (m_bShowPreview)
-            {
-                m_LibraryRect.height = canvasRect.height - VFXEditorMetrics.PreviewWindowHeight - (5 * VFXEditorMetrics.WindowPadding);
-            }
-
-            BeginWindows();
-            if (m_bShowPreview)
-                GUI.Window(0, m_PreviewRect, DrawPreviewWindowContent, "Preview");
-            EndWindows();
-        }
-
-
-        void DrawPreviewWindowContent(int windowID)
-        {
-            if (m_CannotPreview)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                GUILayout.BeginVertical();
-                GUILayout.FlexibleSpace();
-                EditorGUILayout.HelpBox("  No Preview Available    ", MessageType.Error);
-                GUILayout.FlexibleSpace();
-                GUILayout.EndVertical();
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
-            }
+<b> * [Space] Key:</b> Restart Effect
+<b> * [1,2,3,4,5] Key:</b> Change Simulation Speed
+<b> * [P] Key:</b> Advance one frame
+", VFXEditor.styles.CanvasHelpText);
         }
         #endregion
 

@@ -30,7 +30,6 @@ namespace UnityEditor.Experimental
 
         public GUIStyle NodeOption;
 
-
         public GUIStyle NodeBlock;
         public GUIStyle NodeBlockSelected;
         public GUIStyle DataNodeBlock;
@@ -48,7 +47,6 @@ namespace UnityEditor.Experimental
         public GUIStyle TooltipLineBreak;
         public GUIStyle TooltipText;
 
-
         public GUIStyle ConnectorLeft;
         public GUIStyle ConnectorRight;
 
@@ -56,7 +54,6 @@ namespace UnityEditor.Experimental
         public GUIStyle FlowConnectorOut;
         public GUIStyle FlowConnectorInLabel;
         public GUIStyle FlowConnectorOutLabel;
-
 
         public GUIStyle ConnectorOverlay;
 
@@ -78,6 +75,8 @@ namespace UnityEditor.Experimental
 
         public GUIStyle RefSpaceButtonLocal;
         public GUIStyle RefSpaceButtonWorld;
+
+        public GUIStyle CanvasHelpText;
 
         public GUIStyle InspectorHeader;
 
@@ -446,6 +445,15 @@ namespace UnityEditor.Experimental
 
             RefSpaceButtonWorld = new GUIStyle(RefSpaceButtonLocal);
             RefSpaceButtonWorld.normal.background = EditorGUIUtility.Load("RefSpaceWorldButton.png") as Texture2D;
+
+            CanvasHelpText = new GUIStyle();
+            CanvasHelpText.name = "CanvasHelpText";
+            CanvasHelpText.fontSize = 14;
+            CanvasHelpText.richText = true;
+            CanvasHelpText.alignment = TextAnchor.UpperLeft;
+            CanvasHelpText.padding = new RectOffset(32, 32, 32, 32);
+            CanvasHelpText.normal.textColor = new Color(1.0f,1.0f,1.0f,0.5f);
+
         }
 
         static Color HexColor(string hex) {
