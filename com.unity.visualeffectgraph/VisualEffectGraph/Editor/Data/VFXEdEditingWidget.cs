@@ -51,14 +51,24 @@ namespace UnityEditor.Experimental
 
         protected Vector3 TransformScale(Vector3 scale)
         {
-            Vector3 tScale = m_Transform.lossyScale;
-            return m_NeedsTransformation ? new Vector3(scale.x * tScale.x, scale.y * tScale.y, scale.z * tScale.z) : scale;
+            if (m_NeedsTransformation)
+            {
+                Vector3 tScale = m_Transform.lossyScale;
+                return new Vector3(scale.x * tScale.x, scale.y * tScale.y, scale.z * tScale.z);
+            }
+            
+            return scale;
         }
 
         protected Vector3 InvTransformScale(Vector3 scale)
         {
-            Vector3 tScale = m_Transform.lossyScale;
-            return m_NeedsTransformation ? new Vector3(scale.x / tScale.x, scale.y / tScale.y, scale.z / tScale.z) : scale;
+            if (m_NeedsTransformation)
+            {
+                Vector3 tScale = m_Transform.lossyScale;
+                return new Vector3(scale.x / tScale.x, scale.y / tScale.y, scale.z / tScale.z);
+            }
+
+            return scale;
         }
 
         protected Matrix4x4 TransformMatrix(Matrix4x4 mat)
