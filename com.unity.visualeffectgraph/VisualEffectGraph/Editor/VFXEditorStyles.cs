@@ -76,6 +76,9 @@ namespace UnityEditor.Experimental
         public GUIStyle CommentTitleEdit;
         public GUIStyle CommentBodyEdit;
 
+        public GUIStyle RefSpaceButtonLocal;
+        public GUIStyle RefSpaceButtonWorld;
+
         public GUIStyle InspectorHeader;
 
         public Texture2D FlowEdgeOpacity;
@@ -431,6 +434,18 @@ namespace UnityEditor.Experimental
             CommentBody.alignment = TextAnchor.UpperLeft;
             CommentBody.normal.textColor = new Color(0.75f, 0.75f, 0.75f);
 
+            RefSpaceButtonLocal = new GUIStyle();
+            RefSpaceButtonLocal.name = "RefSpaceButtonLocal";
+            RefSpaceButtonLocal.fontSize = 10;
+            RefSpaceButtonLocal.normal.textColor = Color.white;
+            RefSpaceButtonLocal.fontStyle = FontStyle.Bold;
+            RefSpaceButtonLocal.alignment = TextAnchor.MiddleCenter;
+            RefSpaceButtonLocal.normal.background = EditorGUIUtility.Load("RefSpaceLocalButton.png") as Texture2D;
+            RefSpaceButtonLocal.margin = new RectOffset(4, 4, 4, 8);
+            RefSpaceButtonLocal.border = new RectOffset(4,4,4,4);
+
+            RefSpaceButtonWorld = new GUIStyle(RefSpaceButtonLocal);
+            RefSpaceButtonWorld.normal.background = EditorGUIUtility.Load("RefSpaceWorldButton.png") as Texture2D;
         }
 
         static Color HexColor(string hex) {

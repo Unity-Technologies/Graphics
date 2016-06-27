@@ -36,7 +36,9 @@ namespace UnityEditor.Experimental
 
         public VFXElementModel GetAbstractModel() { return Model; }
 
-	protected VFXContextModel m_Model;
+        protected VFXContextModel m_Model;
+        private Rect m_RefSpaceButtonRect;
+
 
         internal VFXEdContextNode(VFXContextModel model, VFXEdDataSource dataSource) 
             : base(model.UIPosition,dataSource)
@@ -67,8 +69,24 @@ namespace UnityEditor.Experimental
                 AddChild(outputs[0]);
             }
 
+            MouseDown += ManageRefSpaceButtonClick;
+
             ZSort();
             Layout();
+        }
+
+        private bool ManageRefSpaceButtonClick(CanvasElement element, Event e, Canvas2D parent)
+        {
+            Rect canvasButtonRect = new Rect(m_RefSpaceButtonRect.x + element.translation.x, m_RefSpaceButtonRect.y + element.translation.y, m_RefSpaceButtonRect.width, m_RefSpaceButtonRect.height);
+            if (canvasButtonRect.Contains(parent.MouseToCanvas(e.mousePosition)))
+            {
+                var system = Model.GetOwner();
+                system.WorldSpace = !system.WorldSpace;
+                m_DataSource.SyncView(system, true);
+                e.Use();
+                return true;
+            }
+            return false;
         }
 
         protected virtual List<string> GetTooltipText()
@@ -246,6 +264,10 @@ namespace UnityEditor.Experimental
                 m_ContextNodeBlock.translation = m_ClientArea.position + VFXEditorMetrics.NodeBlockContainerPosition;
                 m_ContextNodeBlock.scale = new Vector2(m_NodeBlockContainer.scale.x, m_ContextNodeBlock.GetHeight());
             }
+
+            // Position RefSpace Button
+            m_RefSpaceButtonRect = new Rect(scale.x - 84, 24, 48, 24);
+
         }
 
         public override void Render(Rect parentRect, Canvas2D canvas)
@@ -265,6 +287,10 @@ namespace UnityEditor.Experimental
             GUI.Label(new Rect(0, r.y, r.width, 24), title, VFXEditor.styles.NodeTitle);
 
             base.Render(parentRect, canvas);
+
+            bool world =  Model.GetOwner().WorldSpace;
+            GUI.Box(m_RefSpaceButtonRect, world ? "World" : "Local", world ? VFXEditor.styles.RefSpaceButtonWorld : VFXEditor.styles.RefSpaceButtonLocal);
+
         }
 
         public override void UpdateModel(UpdateType t)

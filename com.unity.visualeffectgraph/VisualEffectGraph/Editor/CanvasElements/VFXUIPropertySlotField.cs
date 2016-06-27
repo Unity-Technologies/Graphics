@@ -169,7 +169,7 @@ namespace UnityEditor.Experimental
                 Rect fieldrect = VFXEditorMetrics.ParameterFieldRectOffset.Remove(r);
                 Rect labelrect = new Rect(fieldrect.x + (Slot.TransformModeVisible ? 40.0f : 20.0f) + m_Depth * VFXEditorMetrics.ParameterFieldIndentWidth, fieldrect.y, VFXEditorMetrics.ParameterFieldLabelWidth -20 , VFXEditorMetrics.NodeBlockParameterHeight);
                 Rect editrect = new Rect(fieldrect.x + 20.0f +  VFXEditorMetrics.ParameterFieldLabelWidth, fieldrect.y, fieldrect.width - VFXEditorMetrics.ParameterFieldLabelWidth -20, VFXEditorMetrics.NodeBlockParameterHeight);
-                Rect worldSpaceRect = new Rect(fieldrect.x + 20.0f, fieldrect.y, 32.0f, 32.0f);
+                Rect worldSpaceRect = new Rect(fieldrect.x + 20.0f, fieldrect.y, 16.0f,16.0f);
 
                 //Rect lineRect = new Rect(r.x, r.y-(VFXEditorMetrics.NodeBlockParameterSpacingHeight/2), r.width, 1);
                 //EditorGUI.DrawRect(lineRect, new Color(0, 0, 0, 0.25f));
@@ -178,13 +178,17 @@ namespace UnityEditor.Experimental
                 {
                     if (Slot.TransformModeSettable)
                     {
-                        if (GUI.Button(worldSpaceRect, VFXEditor.styles.GetIcon(Slot.WorldSpace ? "d_SpaceWorld" : "d_SpaceLocal"), GUIStyle.none))
+                        bool world = Slot.WorldSpace;
+                        //if (GUI.Button(worldSpaceRect, VFXEditor.styles.GetIcon(Slot.WorldSpace ? "d_SpaceWorld" : "d_SpaceLocal"), GUIStyle.none))
+                        if (GUI.Button(worldSpaceRect, world ? "W":"L" ,  world ? VFXEditor.styles.RefSpaceButtonWorld : VFXEditor.styles.RefSpaceButtonLocal))
                             Slot.WorldSpace = !Slot.WorldSpace;
                     }
                     else
                     {
                         EditorGUI.BeginDisabledGroup(true);
-                        GUI.Button(worldSpaceRect, VFXEditor.styles.GetIcon(Slot.CurrentValueRef.WorldSpace ? "d_SpaceWorld" : "d_SpaceLocal"), GUIStyle.none);
+                        bool world = Slot.CurrentValueRef.WorldSpace;
+                        //GUI.Button(worldSpaceRect, VFXEditor.styles.GetIcon(Slot.CurrentValueRef.WorldSpace ? "d_SpaceWorld" : "d_SpaceLocal"), GUIStyle.none);
+                        GUI.Button(worldSpaceRect, world ? "W":"L", world ? VFXEditor.styles.RefSpaceButtonWorld : VFXEditor.styles.RefSpaceButtonLocal);
                         EditorGUI.EndDisabledGroup();
                     }
 
