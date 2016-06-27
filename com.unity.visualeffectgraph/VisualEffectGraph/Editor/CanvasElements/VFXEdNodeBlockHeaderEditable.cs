@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental
             Rect labelrect = drawablerect;
             labelrect.min += VFXEditorMetrics.NodeBlockHeaderLabelPosition;
 
-            m_Model.ExposedName = GUI.TextField(labelrect, m_Model.ExposedName, VFXEditor.styles.NodeBlockTitleEditable);
+            m_Model.ExposedName = EditorGUI.DelayedTextField(labelrect, m_Model.ExposedName, VFXEditor.styles.NodeBlockTitleEditable);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
@@ -14,7 +15,21 @@ namespace UnityEditor.Experimental.VFX
                 {
                     m_Exposed = value;
                     Invalidate(InvalidationCause.kModelChanged);
+                    for (int i = 0; i < GetNbChildren(); ++i)
+                        GetChild(i).Slot.NotifyChange(VFXPropertySlot.Event.kExposedUpdated);
                 }       
+            }
+        }
+
+        public void CollectExposedExpressions(List<VFXNamedValue> exposedExpressions)
+        {
+            if (!m_Exposed) // if not exposed return
+                return;
+
+            for (int i = 0; i < GetNbChildren(); ++i)
+            {
+                VFXDataBlockModel block = GetChild(i);
+                block.Slot.CollectExposableNamedValues(exposedExpressions, block.ExposedName);
             }
         }
 
@@ -56,15 +71,29 @@ namespace UnityEditor.Experimental.VFX
             }
         }
 
+        public void NotifyExposedUpdated()
+        {
+            NotifyExposedUpdatedRecursively(Slot);
+        }
+
+        private static void NotifyExposedUpdatedRecursively(VFXPropertySlot slot)
+        {
+            slot.NotifyChange(VFXPropertySlot.Event.kExposedUpdated);
+            for (int i = 0; i < slot.GetNbChildren(); ++i)
+                NotifyExposedUpdatedRecursively(slot.GetChild(i));
+        }
+
         public string ExposedName
         {
             get { return m_ExposedName; }
             set
             {
-                if (value !=  m_ExposedName)
+                if (value != m_ExposedName)
                 {
                     m_ExposedName = value;
                     Invalidate(InvalidationCause.kUIChanged);
+                    if (GetOwner() != null && GetOwner().Exposed)
+                        Slot.NotifyChange(VFXPropertySlot.Event.kExposedUpdated);
                 }
             }
         }
@@ -74,6 +103,20 @@ namespace UnityEditor.Experimental.VFX
         public override bool CanAddChild(VFXElementModel element, int index)
         {
             return false; // Nothing can be attached to Blocks !
+        }
+
+        protected override void OnRemove()
+        {
+            base.OnRemove();
+            if (GetOwner() != null && GetOwner().Exposed)
+                NotifyExposedUpdated();
+        }
+
+        protected override void OnAdded() 
+        {
+            base.OnAdded();
+            if (GetOwner() != null && GetOwner().Exposed)
+                NotifyExposedUpdated();
         }
 
         private VFXDataBlockDesc m_BlockDesc;

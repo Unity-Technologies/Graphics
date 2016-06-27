@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental
                 foreach (var kvp in m_Expressions)
                 {
                     VFXExpression expr = kvp.Key;
-                    int index = kvp.Value;
+                    int index = kvp.Value.index;
                     if (expr.IsValue(false))
                     {
                         switch (expr.ValueType)
@@ -211,17 +211,51 @@ namespace UnityEditor.Experimental
             foreach (var expr in spawnerExpressions)
                 AddExpressionRecursive(m_Expressions, expr, 0);
 
+            // Exposed expressions
+            var exposedExpressions = new List<VFXNamedValue>();
+            for (int i = 0; i < VFXEditor.Graph.models.GetNbChildren(); ++i)
+            {
+                var child = VFXEditor.Graph.models.GetChild(i);
+                if (child is VFXDataNodeModel)
+                {
+                    var dataNode = (VFXDataNodeModel)child;
+                    dataNode.CollectExposedExpressions(exposedExpressions);
+                }
+            }
+
+            foreach (var exposedExpr in exposedExpressions)
+            {
+                if (m_Expressions.ContainsKey(exposedExpr.m_Value))
+                {
+                    var exprData = m_Expressions[exposedExpr.m_Value];
+                    exprData.exposedName = exposedExpr.m_Name;
+                    //if (exprData.depth != 0) // Must be a value therefore no parents!
+                    //    throw new Exception("Something went wrong with " + exposedExpr.m_Name +" "+exprData.depth);
+                    exprData.depth = int.MaxValue; // So that expressions are placed at the very beginning of the expression list
+                }
+                else
+                    Debug.LogWarning("Exposed expression \"" + exposedExpr.m_Name + "\" is not used. Discarded!");
+            }
+
             // Sort expression by depth so that dependencies will be evaluated in order
             var sortedList = m_Expressions.ToList();
             sortedList.Sort((kvpA, kvpB) =>
             {
-                return kvpB.Value.CompareTo(kvpA.Value);
+                return kvpB.Value.depth.CompareTo(kvpA.Value.depth);
             });
             var expressionList = sortedList.Select(kvp => kvp.Key).ToList();
 
-            // Finally we dont need the depth anymore, so use that int to store the index in the array instead
+            // Store the index in the expression data
             for (int i = 0; i < expressionList.Count; ++i)
-                m_Expressions[expressionList[i]] = i;
+                m_Expressions[expressionList[i]].index = i;
+
+            string debugStr = expressionList.Count + " Expressions:\n";
+            foreach (var expr in expressionList)
+            {
+                var exprData = m_Expressions[expr];
+                debugStr += exprData.index + ": " + expr + " " + exprData.exposedName + "\n"; 
+            }
+            Debug.Log(debugStr);
 
             // Generate signal texture if needed
             List<VFXValue> signals = new List<VFXValue>();
@@ -292,7 +326,7 @@ namespace UnityEditor.Experimental
                         int nbParents = parents.Length;
                         int[] parentIds = new int[4];
                         for (int i = 0; i < nbParents; ++i)
-                            parentIds[i] = m_Expressions[parents[i]];
+                            parentIds[i] = m_Expressions[parents[i]].index;
 
                         // For transform expression store the type in index 1
                         if (expr is VFXTransformExpression)
@@ -321,7 +355,7 @@ namespace UnityEditor.Experimental
                         VFXSpawnerBlockModel block = spawner.GetChild(i);
                         spawnerStream.Add((uint)block.SpawnerType);
                         for (int j = 0; j < block.GetNbInputSlots(); ++j)
-                            spawnerStream.Add((uint)m_Expressions[block.GetInputSlot(j).ValueRef]); // Warning: This wont work for composite type
+                            spawnerStream.Add((uint)m_Expressions[block.GetInputSlot(j).ValueRef].index); // Warning: This wont work for composite type but we dont have any in spawners atm
                     }
 
                     int spawnerIndex = asset.AddSpawner(spawnerStream.ToArray());
@@ -348,7 +382,7 @@ namespace UnityEditor.Experimental
                         hasStopEvents = true;
                     }
                     if (!hasStopEvents && !hasStopInStart)
-                        asset.LinkStopEvent("OnStop", spawnerIndex); // Implicit start event
+                        asset.LinkStopEvent("OnStop", spawnerIndex); // Implicit stop event (only if stop event is not linked to start)
 
                 }
                 // Sync components runtime spawners data with asset data
@@ -364,7 +398,7 @@ namespace UnityEditor.Experimental
 
                     foreach (var uniform in rtData.uniforms)
                     {
-                        int index = m_Expressions[uniform.Key];
+                        int index = m_Expressions[uniform.Key].index;
                         if (uniform.Value.StartsWith("init"))
                             asset.AddInitUniform(system.Id, uniform.Value, index);
                         else if (uniform.Value.StartsWith("update"))
@@ -378,25 +412,25 @@ namespace UnityEditor.Experimental
 
                     foreach (var uniform in rtData.outputUniforms)
                     {
-                        int index = m_Expressions[uniform.Key];
+                        int index = m_Expressions[uniform.Key].index;
                         asset.AddOutputUniform(system.Id, uniform.Value, index);
                     }
                 }
             }
         }
 
-        private void AddExpressionRecursive(Dictionary<VFXExpression, int> expressions, VFXExpression expr, int depth)
+        private void AddExpressionRecursive(Dictionary<VFXExpression, ExpressionData> expressions, VFXExpression expr, int depth)
         {
-            int exprDepth;
-            if (!expressions.TryGetValue(expr, out exprDepth))
-                exprDepth = -1;
-            exprDepth = Math.Max(exprDepth, depth);
+            ExpressionData exprData;
+            if (!expressions.TryGetValue(expr, out exprData))
+                exprData = new ExpressionData();
+            exprData.depth = Math.Max(exprData.depth, depth);
 
-            expressions[expr] = exprDepth;
+            expressions[expr] = exprData;
             var parents = expr.GetParents();
             if (parents != null)
                 foreach (var parent in parents)
-                    AddExpressionRecursive(expressions, parent, exprDepth + 1);
+                    AddExpressionRecursive(expressions, parent, exprData.depth + 1);
         }
 
         public bool PhaseShift
@@ -422,7 +456,21 @@ namespace UnityEditor.Experimental
 
         private bool m_PhaseShift = false; // Used to remove sampling discretization issue
 
-        private Dictionary<VFXExpression, int> m_Expressions = new Dictionary<VFXExpression, int>();
+        private class ExpressionData
+        {
+            public ExpressionData()
+            {
+                exposedName = null;
+                index = -1;
+                depth = -1;
+            }
+
+            public string exposedName;  // null if not exposed else store the exposed name
+            public int index;           // index of the expression in the native buffer
+            public int depth;           // depth of the dependencies tree of the expression (0 means no parent, 1 one level of parents...) - Used to sort expressions in correct order
+        }
+
+        private Dictionary<VFXExpression, ExpressionData> m_Expressions = new Dictionary<VFXExpression, ExpressionData>();
 
         public VFXGeneratedTextureData GeneratedTextureData { get { return m_TextureData; } }
         private VFXGeneratedTextureData m_TextureData = new VFXGeneratedTextureData();

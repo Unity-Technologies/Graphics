@@ -51,6 +51,7 @@ namespace UnityEngine.Experimental.VFX
             kLinkUpdated,
             kValueUpdated,
             kTransformModeUpdated,
+            kExposedUpdated,
         }
 
         public VFXPropertySlot() {}
@@ -372,6 +373,18 @@ namespace UnityEngine.Experimental.VFX
                 values.Add(new VFXNamedValue(AggregateName(fullName, Name), GetTransformedExpression(refSlot, spaceRef)));
             else foreach (var child in refSlot.m_Children) // Continue only until we found a value
                     child.CollectNamedValues(values, spaceRef, AggregateName(fullName, Name));
+        }
+
+        // Collect exposed named values
+        // Always collect the deepest values. For instance for proxy vectors, it will collect the x,y and z component values
+        public void CollectExposableNamedValues(List<VFXNamedValue> values, string fullName, bool skipFirstName = true) 
+        {
+            VFXPropertySlot refSlot = CurrentValueRef;
+            if (refSlot.GetNbChildren() > 0)
+                foreach (var child in refSlot.m_Children) // Continue only until we found a value
+                    child.CollectExposableNamedValues(values, skipFirstName ? fullName : AggregateName(fullName, Name), false);
+            else
+                values.Add(new VFXNamedValue(skipFirstName ? fullName : AggregateName(fullName, Name), refSlot.Value));
         }
 
         public void CollectExpressions(HashSet<VFXExpression> expressions, SpaceRef spaceRef = SpaceRef.kNone)

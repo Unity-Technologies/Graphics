@@ -27,6 +27,9 @@ namespace UnityEditor.Experimental
             kUIChanged,     // UI stuff has changed
         }
 
+        protected virtual void OnAdded()    {}
+        protected virtual void OnRemove()   {}
+
         public void AddChild(VFXElementModel child, int index = -1, bool notify = true)
         {
             int realIndex = index == -1 ? m_Children.Count : index;
@@ -40,6 +43,7 @@ namespace UnityEditor.Experimental
                 realIndex = index == -1 ? m_Children.Count : index; // Recompute as the child may have been removed
                 m_Children.Insert(realIndex, child);
                 child.m_Owner = this;
+                child.OnAdded();
 
                 if (notify)
                     Invalidate(InvalidationCause.kModelChanged);
@@ -47,8 +51,7 @@ namespace UnityEditor.Experimental
 
             //Debug.Log("Attach " + child + " to " + this + " at " + realIndex);
         }
-
-        protected virtual void OnRemove() {}
+    
         public void Remove(VFXElementModel child, bool notify = true)
         {
             if (child.m_Owner != this)
@@ -187,6 +190,9 @@ namespace UnityEditor.Experimental
                     break;
                 case VFXPropertySlot.Event.kValueUpdated:
                     Invalidate(InvalidationCause.kParamChanged);
+                    break;
+                case VFXPropertySlot.Event.kExposedUpdated:
+                    Invalidate(InvalidationCause.kDataChanged);
                     break;
             }
         }

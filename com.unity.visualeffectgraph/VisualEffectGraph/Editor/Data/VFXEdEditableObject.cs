@@ -162,7 +162,7 @@ namespace UnityEditor.Experimental
             EditorGUILayout.BeginVertical();
             GUILayout.Label(block.LibraryName, VFXEditor.styles.InspectorHeader);
 
-            block.Model.ExposedName = EditorGUILayout.TextField("Exposed Name", block.Model.ExposedName);
+            block.Model.ExposedName = EditorGUILayout.DelayedTextField("Exposed Name", block.Model.ExposedName);
 
             EditorGUILayout.Space();
             block.Slot.Semantics.OnInspectorGUI(block.Slot);
