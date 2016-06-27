@@ -11,16 +11,16 @@ public class VFXComponentEditor : Editor
     SerializedProperty m_VFXAsset;
     SerializedProperty m_RandomSeed;
 
-    static Contents s_Contents;
-    static Styles s_Styles;
+    private Contents m_Contents;
+    private Styles m_Styles;
 
     void OnEnable()
     {
-        if (s_Contents == null)
-           s_Contents = new Contents();
+        if (m_Contents == null)
+           m_Contents = new Contents();
 
-        if (s_Styles == null)
-           s_Styles = new Styles();
+        if (m_Styles == null)
+           m_Styles = new Styles();
 
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
@@ -49,25 +49,25 @@ public class VFXComponentEditor : Editor
         // PLAY CONTROLS
         using (new GUILayout.HorizontalScope())
         {
-            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.miniButtonLeft, s_Styles.PlayControlsHeight))
+            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.miniButtonLeft, m_Styles.PlayControlsHeight))
             {
                 component.pause = false;
                 component.Reinit();
             }
 
-            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.miniButtonMid, s_Styles.PlayControlsHeight))
+            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarPlay), EditorStyles.miniButtonMid, m_Styles.PlayControlsHeight))
                 component.pause = false;
 
-            component.pause = GUILayout.Toggle(component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.miniButtonMid, s_Styles.PlayControlsHeight);
+            component.pause = GUILayout.Toggle(component.pause, new GUIContent(VFXEditor.styles.ToolbarPause), EditorStyles.miniButtonMid, m_Styles.PlayControlsHeight);
 
 
-            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.miniButtonMid, s_Styles.PlayControlsHeight))
+            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarStop), EditorStyles.miniButtonMid, m_Styles.PlayControlsHeight))
             {
                 component.pause = true;
                 component.Reinit();
             }
 
-            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.miniButtonRight, s_Styles.PlayControlsHeight))
+            if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarFrameAdvance), EditorStyles.miniButtonRight, m_Styles.PlayControlsHeight))
             {
                 component.pause = true;
                 component.AdvanceOneFrame();
@@ -76,7 +76,7 @@ public class VFXComponentEditor : Editor
 
         using (new GUILayout.HorizontalScope())
         {
-            GUILayout.Label(s_Contents.PlayRate, GUILayout.Width(54));
+            GUILayout.Label(m_Contents.PlayRate, GUILayout.Width(54));
             // Play Rate
             float r = component.playRate;
             float nr = Mathf.Pow(GUILayout.HorizontalSlider(Mathf.Sqrt(component.playRate), 0.0f, Mathf.Sqrt(8.0f)), 2.0f);
@@ -84,7 +84,7 @@ public class VFXComponentEditor : Editor
             if (r != nr)
                 SetPlayRate(nr);
 
-            if (GUILayout.Button(s_Contents.SetPlayRate, EditorStyles.miniButton, s_Styles.MiniButtonWidth))
+            if (GUILayout.Button(m_Contents.SetPlayRate, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 GenericMenu toolsMenu = new GenericMenu();
                 float rate = component.playRate;
@@ -106,12 +106,12 @@ public class VFXComponentEditor : Editor
 
         // ASSET CONTROL
 
-        GUILayout.Label(s_Contents.HeaderMain, s_Styles.InspectorHeader);
+        GUILayout.Label(m_Contents.HeaderMain, m_Styles.InspectorHeader);
 
         using (new GUILayout.HorizontalScope())
         {
-            EditorGUILayout.PropertyField(m_VFXAsset, s_Contents.AssetPath);
-            if(GUILayout.Button(s_Contents.OpenEditor, EditorStyles.miniButton, s_Styles.MiniButtonWidth))
+            EditorGUILayout.PropertyField(m_VFXAsset, m_Contents.AssetPath);
+            if(GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 VFXEditor.ShowWindow();
             }
@@ -119,8 +119,8 @@ public class VFXComponentEditor : Editor
 
         using (new GUILayout.HorizontalScope())
         {
-            EditorGUILayout.PropertyField(m_RandomSeed, s_Contents.RandomSeed);
-            if(GUILayout.Button(s_Contents.SetRandomSeed, EditorStyles.miniButton, s_Styles.MiniButtonWidth))
+            EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
+            if(GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 m_RandomSeed.intValue = Random.Range(0, int.MaxValue);
                 component.seed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
@@ -130,7 +130,7 @@ public class VFXComponentEditor : Editor
 
         // TODO : PARAMETERS
 
-        GUILayout.Label(s_Contents.HeaderParameters, s_Styles.InspectorHeader);
+        GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
         GUILayout.Label("Still need to be done :)");
         serializedObject.ApplyModifiedProperties();
         serializedObject.Update();
