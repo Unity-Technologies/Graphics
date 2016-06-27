@@ -33,6 +33,7 @@ color = Color;";
             Add(VFXProperty.Create<VFXFloatType>("Alpha"));
 
             Add(new VFXAttribute(CommonAttrib.Color, true));
+            Add(new VFXAttribute(CommonAttrib.Alpha, true));
 
             Source = @"
 color = Color;

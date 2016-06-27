@@ -94,7 +94,7 @@ texIndex += lerp(MinFramerate, MaxFramerate, phase) * deltaTime;";
 
             Source = @"
 float r = saturate(age/lifetime);
-texIndex += SAMPLE(RateCurve, r) * DeltaTime;";
+texIndex += SAMPLE(RateCurve, r) * deltaTime;";
         }
     }
 
