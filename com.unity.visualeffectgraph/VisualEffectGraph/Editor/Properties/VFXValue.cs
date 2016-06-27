@@ -240,7 +240,7 @@ namespace UnityEngine.Experimental.VFX
         protected virtual void ConstrainValue() {}
 
         public override bool Equals(object obj) { return ReferenceEquals(this,obj); }
-        public override int GetHashCode()       { return m_Value.GetHashCode(); } // Poor hash but I dont know how to get a hash of the reference
+        public override int GetHashCode()       { return m_Value != null ? m_Value.GetHashCode() : 0; } // Poor hash but I dont know how to get a hash of the reference
 
         protected T m_Value;
     }
