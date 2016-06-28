@@ -16,18 +16,23 @@ public class VFXComponentEditor : Editor
 
     void OnEnable()
     {
+        m_RandomSeed = serializedObject.FindProperty("m_Seed");
+        m_VFXAsset = serializedObject.FindProperty("m_Asset");
+    }
+
+    public void InitializeGUI()
+    {
         if (m_Contents == null)
            m_Contents = new Contents();
 
         if (m_Styles == null)
            m_Styles = new Styles();
-
-        m_RandomSeed = serializedObject.FindProperty("m_Seed");
-        m_VFXAsset = serializedObject.FindProperty("m_Asset");
     }
 
     public void OnSceneGUI()
     {
+        InitializeGUI();
+
         GameObject sceneCamObj = GameObject.Find( "SceneCamera");
         if ( sceneCamObj != null )
         {
@@ -102,6 +107,8 @@ public class VFXComponentEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        InitializeGUI();
+        
         var component = (VFXComponent)target;
 
         // ASSET CONTROL
