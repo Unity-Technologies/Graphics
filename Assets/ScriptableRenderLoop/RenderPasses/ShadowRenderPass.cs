@@ -60,20 +60,6 @@ namespace UnityEngine.ScriptableRenderLoop
 		public ShadowLight[]     	shadowLights;
 		public Vector4[] 			directionalShadowSplitSphereSqr;
 
-		public int GetShadowSliceCountShadowIndex(int lightIndex)
-		{
-			return shadowLights [lightIndex].shadowSliceCount;
-		}
-
-		public ShadowSliceData GetShadowSliceLightIndex(int lightIndex, int sliceIndex)
-		{
-			if (shadowLights[lightIndex].shadowSliceCount >= sliceIndex)
-				throw new System.IndexOutOfRangeException ();
-
-			return shadowSlices[shadowLights[lightIndex].shadowSliceIndex + sliceIndex];
-		}
-
-
 		public int GetShadowSliceCountLightIndex(int lightIndex)
 		{
 			return shadowLights[lightIndex].shadowSliceCount;
@@ -313,7 +299,6 @@ namespace UnityEngine.ScriptableRenderLoop
 			var setRenderTargetCommandBuffer = new CommandBuffer ();
 
 			setRenderTargetCommandBuffer.GetTemporaryRT (m_ShadowTexName, m_Settings.shadowAtlasWidth, m_Settings.shadowAtlasHeight, kDepthBuffer, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Linear);
-			//setRenderTargetCommandBuffer.GetTemporaryRT (m_ShadowTexName, m_Settings.shadowAtlasWidth, m_Settings.shadowAtlasHeight, kDepthBuffer, FilterMode.Bilinear, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 			setRenderTargetCommandBuffer.SetRenderTarget (new RenderTargetIdentifier (m_ShadowTexName));
 
 			setRenderTargetCommandBuffer.ClearRenderTarget (true, true, Color.green);
