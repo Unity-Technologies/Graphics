@@ -685,7 +685,7 @@ namespace UnityEditor.Experimental
             }
             else
             {
-                Debug.Log("Dont rewrite simulation shader as source has not changed");
+                //Debug.Log("Dont rewrite simulation shader as source has not changed");
             }
 
             if (oldOutputShaderSource != outputShaderSource)
@@ -695,7 +695,7 @@ namespace UnityEditor.Experimental
             }
             else
             {
-                Debug.Log("Dont rewrite output shader as source has not changed");
+                //Debug.Log("Dont rewrite output shader as source has not changed");
             }
 
             ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(simulationShaderPath);

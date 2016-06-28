@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace UnityEngine.Experimental.VFX
@@ -77,7 +78,7 @@ namespace UnityEngine.Experimental.VFX
                 var parents = GetParents();
                 if (parents != null)
                     for (int i = 0; i < parents.Length; ++i)
-                        hash ^= (parents[i].GetHashCode() * 3 * i);
+                        hash = (hash * 397) ^ parents[i].GetHashCode(); // 397 taken from resharper
 
                 m_CachedHashCode = hash;
                 //m_HasCachedHashCode = true; // Uncomment this in case of performance issue with hash computation
@@ -240,7 +241,7 @@ namespace UnityEngine.Experimental.VFX
         protected virtual void ConstrainValue() {}
 
         public override bool Equals(object obj) { return ReferenceEquals(this,obj); }
-        public override int GetHashCode()       { return m_Value != null ? m_Value.GetHashCode() : 0; } // Poor hash but I dont know how to get a hash of the reference
+        public override int GetHashCode()       { return RuntimeHelpers.GetHashCode(this); }
 
         protected T m_Value;
     }

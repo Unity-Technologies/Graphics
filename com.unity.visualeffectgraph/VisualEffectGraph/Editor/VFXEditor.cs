@@ -423,6 +423,10 @@ namespace UnityEditor.Experimental
         private bool m_NeedsCanvasReload = false;
         public void SetCurrentAsset(VFXAsset asset,bool force = false)
         {
+            // Remove any edited asset when application is playing
+            if (Application.isPlaying)
+                asset = null;
+
             if (m_CurrentAsset != asset || s_Graph == null || force) 
             {
                 if (m_CurrentAsset != null)

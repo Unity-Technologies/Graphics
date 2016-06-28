@@ -249,13 +249,13 @@ namespace UnityEditor.Experimental
             for (int i = 0; i < expressionList.Count; ++i)
                 m_Expressions[expressionList[i]].index = i;
 
-            string debugStr = expressionList.Count + " Expressions:\n";
+           /* string debugStr = expressionList.Count + " Expressions:\n";
             foreach (var expr in expressionList)
             {
                 var exprData = m_Expressions[expr];
                 debugStr += exprData.index + ": " + expr + " " + exprData.exposedName + "\n"; 
             }
-            Debug.Log(debugStr);
+            Debug.Log(debugStr);*/
 
             // Generate signal texture if needed
             List<VFXValue> signals = new List<VFXValue>();
