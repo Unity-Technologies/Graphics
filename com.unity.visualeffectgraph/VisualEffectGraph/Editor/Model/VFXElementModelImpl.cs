@@ -388,6 +388,10 @@ namespace UnityEditor.Experimental
                 // Sync components runtime spawners data with asset data
                 VFXEditor.ForeachComponents(c => c.SyncSpawners());
 
+                // Sync exposed names
+                asset.SetExposedNames(exposedExpressions.Select(namedValue => namedValue.m_Name).ToArray());
+                VFXEditor.ForeachComponents(c => c.SyncExposedValues());
+
                 // Finally generate the uniforms
                 for (int i = 0; i < GetNbChildren(); ++i)
                 {
