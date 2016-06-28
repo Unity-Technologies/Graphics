@@ -389,7 +389,15 @@ namespace UnityEditor.Experimental
                 VFXEditor.ForeachComponents(c => c.SyncSpawners());
 
                 // Sync exposed names
-                asset.SetExposedNames(exposedExpressions.Select(namedValue => namedValue.m_Name).ToArray());
+                var exposedName = new List<string>();
+                for (int i = 0; i < expressionList.Count; ++i)
+                {
+                    var expr = m_Expressions[expressionList[i]];
+                    if (expr.exposedName != null)
+                        exposedName.Add(expr.exposedName);
+                }
+
+                asset.SetExposedNames(exposedName.ToArray());
                 VFXEditor.ForeachComponents(c => c.SyncExposedValues());
 
                 // Finally generate the uniforms
