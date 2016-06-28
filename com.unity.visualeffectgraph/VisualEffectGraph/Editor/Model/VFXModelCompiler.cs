@@ -348,6 +348,8 @@ namespace UnityEditor.Experimental
     {
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
+            ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Gather blocks");
+
             // Create output compiler
             VFXOutputShaderGeneratorModule outputGenerator = null;
             VFXShaderGeneratorModule initGenerator = null;
@@ -421,6 +423,8 @@ namespace UnityEditor.Experimental
             }
 
             // ATTRIBUTES (TODO Refactor the code !)
+            ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Generate attributes");
+
             Dictionary<VFXAttribute, int> attribs = new Dictionary<VFXAttribute, int>(new AttribComparer());
 
             CollectAttributes(attribs, initBlocks, 0);
@@ -515,6 +519,7 @@ namespace UnityEditor.Experimental
             }
                 
             // UNIFORMS
+            ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Generate uniforms");
 
             // TMP Clean that
             SpaceRef spaceRef = system.GetSpaceRef();
@@ -628,7 +633,8 @@ namespace UnityEditor.Experimental
             shaderMetaData.outputParamToName = outputParamToName;
             shaderMetaData.generatedTextureData = system.GeneratedTextureData;
             shaderMetaData.extraUniforms = generatedUniforms;
-   
+
+            ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Generate shader code");
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
             string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
 
@@ -678,6 +684,7 @@ namespace UnityEditor.Experimental
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
             string renderShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
 
+            ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Write simulation shader");
             if (oldShaderSource != shaderSource)
             {
                 System.IO.File.WriteAllText(computeShaderPath, shaderSource);
@@ -688,6 +695,7 @@ namespace UnityEditor.Experimental
                 //Debug.Log("Dont rewrite simulation shader as source has not changed");
             }
 
+            ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Write output shader");
             if (oldOutputShaderSource != outputShaderSource)
             {
                 System.IO.File.WriteAllText(outputShaderPath, outputShaderSource);
@@ -698,6 +706,7 @@ namespace UnityEditor.Experimental
                 //Debug.Log("Dont rewrite output shader as source has not changed");
             }
 
+            ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Reload shaders");
             ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(simulationShaderPath);
             Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>(renderShaderPath);
 

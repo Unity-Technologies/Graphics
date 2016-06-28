@@ -9,6 +9,38 @@ using UnityEditor.Experimental.VFX;
 
 namespace UnityEditor.Experimental
 {
+    internal static class ProgressBarHelper
+    {
+        public const int GENERATE_DATA_NB_STEPS = 6;
+        public const int COMPILE_SYSTEM_NB_STEPS = 8;
+
+        public static void Init(int nbSteps)
+        {
+            s_CurrentStep = 0;
+            s_NbSteps = nbSteps;
+        }
+
+        public static void IncrementStep(string message)
+        {
+            EditorUtility.DisplayProgressBar("Generate VFX...",message,(float)(s_CurrentStep++) / s_NbSteps);
+        }
+
+        public static void SkipSteps(int nb)
+        {
+            s_NbSteps -= nb;
+        }
+
+        public static void Clear()
+        {
+            EditorUtility.ClearProgressBar();
+            s_CurrentStep = 0;
+            s_NbSteps = 0;
+        }
+
+        private static int s_CurrentStep;
+        private static int s_NbSteps;
+    }
+
     public enum BlendMode
     {
         kMasked = 0,
@@ -86,6 +118,7 @@ namespace UnityEditor.Experimental
          
             if (m_NeedsCheck)
             {
+                ProgressBarHelper.Init(ProgressBarHelper.GENERATE_DATA_NB_STEPS + GetNbChildren() * ProgressBarHelper.COMPILE_SYSTEM_NB_STEPS);
                 m_NeedsCheck = false;
 
                 VFXEditor.Log("\n**** VFXAsset is dirty ****");
@@ -93,9 +126,13 @@ namespace UnityEditor.Experimental
                 {
                     VFXEditor.Log("Recompile system " + i + " if needed ");
                     if (!GetChild(i).RecompileIfNeeded())
+                    {
                         VFXEditor.Log("No need to recompile");
+                        ProgressBarHelper.SkipSteps(ProgressBarHelper.COMPILE_SYSTEM_NB_STEPS);
+                    }
                     else
-                    {                     
+                    {
+                        ProgressBarHelper.IncrementStep("System " + GetChild(i).Id + ": Update asset");
                         if (GetChild(i).UpdateComponentSystem())
                             needsReinit = true;
                         else
@@ -105,6 +142,8 @@ namespace UnityEditor.Experimental
 
                 m_NeedsNativeDataGeneration = true;
             }
+            else if (m_NeedsNativeDataGeneration)
+                ProgressBarHelper.Init(ProgressBarHelper.GENERATE_DATA_NB_STEPS);
 
             // Update assets properties and expressions for C++ evaluation
             if (m_NeedsNativeDataGeneration)
@@ -113,6 +152,8 @@ namespace UnityEditor.Experimental
                 m_ReloadUniforms = true;
                 needsReinit = true;
                 m_NeedsNativeDataGeneration = false;
+
+                ProgressBarHelper.Clear();
             }
 
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?
@@ -166,6 +207,8 @@ namespace UnityEditor.Experimental
 
         private void GenerateNativeData()
         {
+            ProgressBarHelper.IncrementStep("Generate data: Collect Expressions");
+
             m_Expressions.Clear();
 
             for (int i = 0; i < GetNbChildren(); ++i)
@@ -258,6 +301,8 @@ namespace UnityEditor.Experimental
             Debug.Log(debugStr);*/
 
             // Generate signal texture if needed
+            ProgressBarHelper.IncrementStep("Generate data: Generate textures");
+
             List<VFXValue> signals = new List<VFXValue>();
             foreach (var expr in expressionList)
                 if (expr.IsValue(false) && (expr.ValueType == VFXValueType.kColorGradient || expr.ValueType == VFXValueType.kCurve))
@@ -278,6 +323,7 @@ namespace UnityEditor.Experimental
             else
                 asset.SetCurveTexture(null);
 
+            ProgressBarHelper.IncrementStep("Generate data: Update asset expressions");
             if (asset != null)
             {
                 asset.ClearPropertyData();
@@ -340,6 +386,8 @@ namespace UnityEditor.Experimental
                 }
 
                 // Generate spawner native data
+
+                ProgressBarHelper.IncrementStep("Generate data: Sync spawners");
                 asset.ClearSpawnerData();
                 foreach (var spawner in spawners)
                 {
@@ -388,6 +436,7 @@ namespace UnityEditor.Experimental
                 // Sync components runtime spawners data with asset data
                 VFXEditor.ForeachComponents(c => c.SyncSpawners());
 
+                ProgressBarHelper.IncrementStep("Generate data: Sync exposed values");
                 // Sync exposed names
                 var exposedName = new List<string>();
                 for (int i = 0; i < expressionList.Count; ++i)
@@ -399,6 +448,8 @@ namespace UnityEditor.Experimental
 
                 asset.SetExposedNames(exposedName.ToArray());
                 VFXEditor.ForeachComponents(c => c.SyncExposedValues());
+
+                ProgressBarHelper.IncrementStep("Generate data: Generate uniforms");
 
                 // Finally generate the uniforms
                 for (int i = 0; i < GetNbChildren(); ++i)
