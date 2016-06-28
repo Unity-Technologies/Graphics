@@ -632,6 +632,8 @@ namespace UnityEditor.Experimental
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
             string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
 
+            
+
             string shaderName = "";
             if (VFXEditor.asset != null)
             {
@@ -649,19 +651,55 @@ namespace UnityEditor.Experimental
             // Write to file
             string shaderPath = Application.dataPath + "/VFXEditor/Generated/";
             System.IO.Directory.CreateDirectory(shaderPath);
-            System.IO.File.WriteAllText(shaderPath + shaderName + ".compute", shaderSource);
-            System.IO.File.WriteAllText(shaderPath + shaderName + ".shader", outputShaderSource); 
+
+            string computeShaderPath = shaderPath + shaderName + ".compute";
+            string outputShaderPath = shaderPath + shaderName + ".shader";
+
+            string oldShaderSource;
+            try
+            {
+                oldShaderSource = System.IO.File.ReadAllText(computeShaderPath);
+            }
+            catch(Exception)
+            {
+                oldShaderSource = "";
+            }
+
+            string oldOutputShaderSource;
+            try
+            {
+                oldOutputShaderSource = System.IO.File.ReadAllText(outputShaderPath);
+            }
+            catch(Exception)
+            {
+                oldOutputShaderSource = "";
+            }
 
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
-            string outputShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
+            string renderShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
 
-            AssetDatabase.ImportAsset(simulationShaderPath);
-            AssetDatabase.ImportAsset(outputShaderPath);
+            if (oldShaderSource != shaderSource)
+            {
+                System.IO.File.WriteAllText(computeShaderPath, shaderSource);
+                AssetDatabase.ImportAsset(simulationShaderPath);
+            }
+            else
+            {
+                Debug.Log("Dont rewrite simulation shader as source has not changed");
+            }
 
-            VFXEditor.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
+            if (oldOutputShaderSource != outputShaderSource)
+            {
+                System.IO.File.WriteAllText(outputShaderPath, outputShaderSource);
+                AssetDatabase.ImportAsset(renderShaderPath);
+            }
+            else
+            {
+                Debug.Log("Dont rewrite output shader as source has not changed");
+            }
 
             ComputeShader simulationShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(simulationShaderPath);
-            Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>(outputShaderPath);
+            Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>(renderShaderPath);
 
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader,outputShader);
 

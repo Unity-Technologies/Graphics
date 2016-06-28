@@ -794,6 +794,12 @@ namespace UnityEditor.Experimental
         public bool NeedsComponentUpdate() { return m_ForceComponentUpdate; }
         private bool m_ForceComponentUpdate = false;
 
+        // Careful with that !
+        public static void ReinitIDsProvider()
+        {
+            NextSystemID = 0;
+        }
+
         private static uint NextSystemID = 0;
         private uint m_ID; 
 

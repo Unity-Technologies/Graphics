@@ -446,8 +446,9 @@ namespace UnityEditor.Experimental
                     // Remove all previous systems as the Ids may have changed
                     m_CurrentAsset.RemoveAllSystems();
                     ForeachComponents(c => c.RemoveAllSystems());
-                    RemoveGeneratedShaders(m_CurrentAsset);
+                    //RemoveGeneratedShaders(m_CurrentAsset);
 
+                    VFXSystemModel.ReinitIDsProvider();
                     s_Graph = ModelSerializer.Deserialize(xml);
                     for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
                         s_Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);  
