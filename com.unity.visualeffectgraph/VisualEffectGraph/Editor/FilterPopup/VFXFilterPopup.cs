@@ -26,16 +26,16 @@ namespace UnityEditor.Experimental
            if (bFromAnotherPopupWindow)
                 pos = Event.current.mousePosition;
 
-           VFXFilterWindow.Show(pos, new VFXBlockProvider(mousePosition, contextNode.Model, (VFXEdDataSource)canvas.dataSource));
+           VFXFilterWindow.Show(pos, new VFXBlockProvider(canvas.MouseToCanvas(mousePosition), contextNode.Model, (VFXEdDataSource)canvas.dataSource));
         }
 
-        public static void ShowReplaceBlockPopup(VFXEdContextNode contextNode, VFXEdProcessingNodeBlock nodeBlock, Vector2 mousePosition, Canvas2D canvas, bool bFromAnotherPopupWindow)
+        public static void ShowReplaceBlockPopup(VFXEdContextNode contextNode, VFXBlockModel block, Vector2 mousePosition, Canvas2D canvas, bool bFromAnotherPopupWindow)
         {
            Vector2 pos = mousePosition;
            if (bFromAnotherPopupWindow)
                 pos = Event.current.mousePosition;
 
-           VFXFilterWindow.Show(pos, new VFXBlockProvider(mousePosition, contextNode.Model, nodeBlock.Model, (VFXEdDataSource)canvas.dataSource));
+            VFXFilterWindow.Show(pos, new VFXBlockProvider(canvas.MouseToCanvas(mousePosition), contextNode.Model, block, (VFXEdDataSource)canvas.dataSource));
         }
 
         public static void ShowNewDataBlockPopup(VFXEdDataNode dataNode, Vector2 mousePosition, Canvas2D canvas, bool bFromAnotherPopupWindow)
@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental
             if (bFromAnotherPopupWindow)
                 pos = Event.current.mousePosition;
 
-            VFXFilterWindow.Show(pos, new VFXDataBlockProvider(mousePosition, dataNode.Model, (VFXEdDataSource)canvas.dataSource ));
+            VFXFilterWindow.Show(pos, new VFXDataBlockProvider(canvas.MouseToCanvas(mousePosition), dataNode.Model, (VFXEdDataSource)canvas.dataSource ));
         }
 
         public static void ShowNewNodePopup(Vector2 mousePosition, Canvas2D canvas, bool bFromAnotherPopupWindow)

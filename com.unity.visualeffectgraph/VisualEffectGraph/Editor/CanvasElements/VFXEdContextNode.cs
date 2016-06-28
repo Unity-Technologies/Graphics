@@ -115,17 +115,22 @@ namespace UnityEditor.Experimental
 
         protected override MiniMenu.MenuSet GetNodeMenu(Vector2 mousePosition)
         {
-            VFXEdNodeBlockDraggable selected = ((VFXEdCanvas)ParentCanvas()).SelectedNodeBlock;
 
             MiniMenu.MenuSet menu = new MiniMenu.MenuSet();
             menu.AddMenuEntry("NodeBlock", "Add New...", AddNodeBlock, null);
 
-            VFXEdProcessingNodeBlock processingNodeBlock = selected as VFXEdProcessingNodeBlock;
-            if( processingNodeBlock != null && processingNodeBlock.canvasBoundingRect.Contains(ParentCanvas().MouseToCanvas(mousePosition)))
+            int index = m_NodeBlockContainer.GetBlockIndex(ParentCanvas().MouseToCanvas(mousePosition));
+            if(index >= 0)
             {
-                menu.AddMenuEntry("NodeBlock", "Replace by...", ReplaceNodeBlock, processingNodeBlock);
-                menu.AddMenuEntry("NodeBlock", processingNodeBlock.Model.Enabled ? "Disable" : "Enable", ToggleNodeBlockEnabled, processingNodeBlock);
+                VFXBlockModel targetBlock = Model.GetChild(index);
+
+                if( targetBlock != null)
+                {
+                    menu.AddMenuEntry("NodeBlock", "Replace by...", ReplaceNodeBlock, targetBlock);
+                    menu.AddMenuEntry("NodeBlock", targetBlock.Enabled ? "Disable" : "Enable", ToggleNodeBlockEnabled, targetBlock);
+                }
             }
+
 
             
 
@@ -150,7 +155,7 @@ namespace UnityEditor.Experimental
 
         public void ReplaceNodeBlock(Vector2 position, object o)
         {
-            VFXEdProcessingNodeBlock block = o as VFXEdProcessingNodeBlock;
+            VFXBlockModel block = o as VFXBlockModel;
             VFXFilterPopup.ShowReplaceBlockPopup(this, block, position, ParentCanvas(), true);
         }
 
