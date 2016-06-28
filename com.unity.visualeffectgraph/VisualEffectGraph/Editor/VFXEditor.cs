@@ -89,42 +89,11 @@ namespace UnityEditor.Experimental
             }
         }
 
-		public static VFXGraph Graph { get { return s_Graph; }}
+        public static VFXGraph Graph { get { return s_Graph; }}
 
-        /*public static VFXEdSpawnTemplateLibrary SpawnTemplates
-        {
-            get
-            {
-                InitializeSpawnTemplateLibrary();
-                return s_SpawnTemplates;
-            }
-        }*/
-
-        // DEBUG OUTPUT
         public static void Log(string s) {
             return; // TMP Deactivate logging
 
-           /* int currentIndex = DebugLines.Count - 1;
-
-            if (currentIndex == -1)
-            {
-                DebugLines.Add("");
-                ++currentIndex;
-            }
-
-            string currentStr = DebugLines[currentIndex];
-
-            if (currentStr.Length + s.Length > 16384 - 1) // Max number handled for single string rendering (due to 16 bit index buffer and no automatic splitting)
-            {
-                // TODO Dont handle the case where there s more than 16384 char for s
-                ++currentIndex;
-                currentStr = "";
-                DebugLines.Add(currentStr);
-            }
-
-            currentStr += s;
-            currentStr += "\n";
-            DebugLines[currentIndex] = currentStr;*/
         }
 
         public static void ClearLog() {
@@ -189,34 +158,6 @@ namespace UnityEditor.Experimental
                 action(component);
         }
 
-        private void RemovePreviousVFXs() // Hack method to remove previous VFXs just in case...
-        {
-            /*var vfxs = GameObject.FindObjectsOfType(typeof(VFXComponent)) as VFXComponent[];
-
-            int nbDeleted = 0;
-            foreach (var vfx in vfxs)
-                if (vfx != null && vfx.gameObject != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(vfx.gameObject);
-                    ++nbDeleted;
-                }
-
-            if (nbDeleted > 0)
-                Debug.Log("Remove " + nbDeleted + " old VFX gameobjects");*/
-        }
-
-        private void RemovePreviousShaders()
-        {
-            // Remove any shader assets in generated path
-            /*string[] guids = AssetDatabase.FindAssets("", new string[] { "Assets/VFXEditor/Generated" });
-
-            foreach (var guid in guids)
-                AssetDatabase.DeleteAsset(AssetDatabase.GUIDToAssetPath(guid));
-
-            if (guids.Length > 0)
-                Debug.Log("Remove " + guids.Length + " old VFX shaders");*/
-        }
-
         private static void InitializeBlockLibrary()
         {
             if (s_BlockLibrary == null)
@@ -228,19 +169,7 @@ namespace UnityEditor.Experimental
 
         void OnEnable()
         {
-            //Debug.Log("********************* ON ENABLE");
-
             hideFlags = HideFlags.HideAndDontSave;
-
-            //RemovePreviousVFXs();
-            //RemovePreviousShaders();
-
-            /*if (m_GameObject != null)
-            {
-                UnityEngine.Object.DestroyImmediate(m_GameObject);
-                m_GameObject = null;
-                m_Component = null;
-            }*/
 
             Selection.selectionChanged += OnSelectionChanged;
             OnSelectionChanged(); // Call when enabled to retrieve the current selection
@@ -252,9 +181,6 @@ namespace UnityEditor.Experimental
         {
             SaveAsset();
             DestroyGraph();
-
-            RemovePreviousVFXs();
-            RemovePreviousShaders();
 
             Selection.selectionChanged -= OnSelectionChanged;
         }
@@ -339,6 +265,12 @@ namespace UnityEditor.Experimental
             }
 
             titleContent = new GUIContent("VFX Editor", m_Icon);
+            
+            if (Graph == null)
+            {
+                DrawNoAssetGUI();
+                return;
+            }
 
             DrawToolbar(new Rect(0, 0, position.width, EditorStyles.toolbar.fixedHeight));
 
@@ -511,16 +443,61 @@ namespace UnityEditor.Experimental
             component.playRate = (float)rate;
         }
 
+        void DrawNoAssetGUI()
+        {
+            using (new GUILayout.VerticalScope())
+            {
+                GUILayout.FlexibleSpace();
+                using (new GUILayout.HorizontalScope())
+                {
+                    GUILayout.FlexibleSpace();
+                    using (new GUILayout.VerticalScope())
+                    {
+                        GUILayout.Label("NO ASSET SELECTED", styles.EventNodeText);
+                        GUILayout.Label("Please Create or Select a VFX Asset in your project view, or select a VFXComponent with a valid asset to edit in this view.", styles.CanvasHelpText);
+                    }
+                    GUILayout.FlexibleSpace();
+                }
+                GUILayout.FlexibleSpace();
+            }
+                GUILayout.Label("Select a VFX Asset or VFX Component with a valid asset");
+        }
+
         void DrawToolbar(Rect rect)
         {
-            if (Graph == null)
-            {
-                GUILayout.Label("Select a VFX Asset or VFX Component with a valid asset");
-                return;
-            }
-
             GUI.BeginGroup(rect);
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
+
+            if (m_CurrentAsset != null)
+            {
+                if (GUILayout.Button("Save", EditorStyles.toolbarButton))
+                    SaveAsset();
+            }
+
+            if(GUILayout.Button("Select...", EditorStyles.toolbarDropDown))
+            {
+                GenericMenu selectMenu = new GenericMenu();
+
+                selectMenu.AddItem(new GUIContent("Asset in Project"), false, () => { Selection.objects = new UnityEngine.Object[] { asset };});
+                
+                
+                if (component != null)
+                {
+                    selectMenu.AddItem(new GUIContent("Last Component in Scene"), false, () => { Selection.objects = new UnityEngine.Object[] { component.gameObject }; });
+                }
+
+                selectMenu.AddItem(new GUIContent("All Asset Instances in Scene"), false, () => 
+                {
+                    List<GameObject> gameObjects = new List<GameObject>();
+                    VFXEditor.ForeachComponents(c => gameObjects.Add(c.gameObject));
+                    Selection.objects = gameObjects.ToArray();
+                });
+                
+                selectMenu.ShowAsContext();
+            }
+
+            GUILayout.Space(40);
+
 
             if (GUILayout.Button(new GUIContent(VFXEditor.styles.ToolbarRestart), EditorStyles.toolbarButton))
             {
@@ -576,10 +553,6 @@ namespace UnityEditor.Experimental
                 GUILayout.Label(Mathf.Round(nr * 100) + "%", GUILayout.Width(50.0f));
                 if (r != nr)
                     SetPlayRate(nr);
-
-                // Label to select active component
-                if (GUILayout.Button(component.name, EditorStyles.toolbarButton))
-                    Selection.objects = new UnityEngine.Object[] { component.gameObject };
             }
             else
             {
@@ -589,11 +562,9 @@ namespace UnityEditor.Experimental
 
             EditorGUI.EndDisabledGroup();
 
-            if (m_CurrentAsset != null)
-            {
-                if (GUILayout.Button("Save " + m_CurrentAsset.name + (s_Graph.systems.Dirty || s_Graph.models.Dirty ? "*" : ""), EditorStyles.toolbarButton))
-                    SaveAsset();
-            }
+            GUILayout.FlexibleSpace();
+
+            GUILayout.Label("Editing: " + AssetDatabase.GetAssetPath(m_CurrentAsset) + (s_Graph.systems.Dirty || s_Graph.models.Dirty ? "*" : ""), EditorStyles.toolbarButton);
 
             GUILayout.FlexibleSpace();
 

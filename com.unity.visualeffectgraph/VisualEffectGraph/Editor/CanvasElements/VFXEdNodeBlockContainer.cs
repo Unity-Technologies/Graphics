@@ -41,6 +41,18 @@ namespace UnityEditor.Experimental
             return index;
         }
 
+
+        public int GetBlockIndex(Vector2 mousePosition)
+        {
+            int i = 0;
+            foreach(CanvasElement e in m_Children)
+            {
+                if (e.canvasBoundingRect.Contains(mousePosition)) return i;
+                i++;
+            }
+            return -1;
+        }
+
         public  List<VFXEdNodeBlockDraggable> nodeBlocks { get { return m_NodeBlocks; } }
 
         private DropInfo dropInfo;

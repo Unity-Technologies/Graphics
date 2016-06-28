@@ -91,10 +91,16 @@ namespace UnityEditor.Experimental
 
         public void SpawnBlock(VFXBlockElement block)
         {
-            int index = m_dataSource.GetUI<VFXEdContextNode>(m_contextModel).NodeBlockContainer.GetDropIndex(m_mousePosition);
-
+            int index;
             if(m_blockModel != null)
+            {
+                index = m_blockModel.GetOwner().GetIndex(m_blockModel);
                 m_dataSource.Remove(m_blockModel);
+            }
+            else
+            {
+                index = m_dataSource.GetUI<VFXEdContextNode>(m_contextModel).NodeBlockContainer.GetDropIndex(m_mousePosition);
+            }
 
             m_dataSource.Create(new VFXBlockModel(block.m_Desc), m_contextModel, index);
         }
