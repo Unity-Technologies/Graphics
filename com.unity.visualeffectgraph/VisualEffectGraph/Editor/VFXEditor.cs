@@ -583,7 +583,7 @@ namespace UnityEditor.Experimental
 
             GUILayout.FlexibleSpace();
 
-            bool UsePhaseShift = Graph.systems.PhaseShift;
+            //bool UsePhaseShift = Graph.systems.PhaseShift;
             //Graph.systems.PhaseShift = GUILayout.Toggle(UsePhaseShift, UsePhaseShift ? "With Sampling Correction" : "No Sampling Correction", EditorStyles.toolbarButton);
 
             m_bShowHelp = GUILayout.Toggle(m_bShowHelp, "Help", EditorStyles.toolbarButton);

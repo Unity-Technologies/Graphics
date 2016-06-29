@@ -255,6 +255,7 @@ namespace UnityEditor.Experimental
                 AddExpressionRecursive(m_Expressions, expr, 0);
 
             // Exposed expressions
+            var exposedDescs = new List<VFXExposedEditorDesc>();
             var exposedExpressions = new List<VFXNamedValue>();
             for (int i = 0; i < VFXEditor.Graph.models.GetNbChildren(); ++i)
             {
@@ -262,6 +263,18 @@ namespace UnityEditor.Experimental
                 if (child is VFXDataNodeModel)
                 {
                     var dataNode = (VFXDataNodeModel)child;
+
+                    for (int j = 0; j < dataNode.GetNbChildren(); ++j)
+                    {
+                        var dataBlock = dataNode.GetChild(j);
+
+                        var desc = new VFXExposedEditorDesc();
+                        desc.semanticType = dataBlock.Slot.Semantics.ID;
+                        desc.exposedName = dataBlock.ExposedName;
+                        desc.worldSpace = dataBlock.Slot.IsTransformWorld();
+                        exposedDescs.Add(desc);
+                    }
+                  
                     dataNode.CollectExposedExpressions(exposedExpressions);
                 }
             }
@@ -272,13 +285,13 @@ namespace UnityEditor.Experimental
                 {
                     var exprData = m_Expressions[exposedExpr.m_Value];
                     exprData.exposedName = exposedExpr.m_Name;
-                    //if (exprData.depth != 0) // Must be a value therefore no parents!
-                    //    throw new Exception("Something went wrong with " + exposedExpr.m_Name +" "+exprData.depth);
                     exprData.depth = int.MaxValue; // So that expressions are placed at the very beginning of the expression list
                 }
                 else
                     Debug.LogWarning("Exposed expression \"" + exposedExpr.m_Name + "\" is not used. Discarded!");
             }
+
+            // TODO Filter unused exposed desc
 
             // Sort expression by depth so that dependencies will be evaluated in order
             var sortedList = m_Expressions.ToList();
@@ -446,6 +459,7 @@ namespace UnityEditor.Experimental
                         exposedName.Add(expr.exposedName);
                 }
 
+                asset.SetEditorExposedData(exposedDescs.ToArray());
                 asset.SetExposedNames(exposedName.ToArray());
                 VFXEditor.ForeachComponents(c => c.SyncExposedValues());
 
