@@ -790,6 +790,21 @@ namespace UnityEditor.Experimental
             }
         }
 
+        private int m_RenderQueueDelta = 0;
+        public int RenderQueueDelta
+        {
+            get { return m_RenderQueueDelta; }
+            set
+            {
+                int newDelta = value;
+                if (m_RenderQueueDelta != newDelta)
+                {
+                    m_RenderQueueDelta = newDelta;
+                    Invalidate(InvalidationCause.kModelChanged); // Force a recompilation
+                }
+            }
+        }
+
         public bool HasSoftParticles()
         {
             return m_BlendMode != BlendMode.kMasked && m_SoftParticlesFadeDistance > 0.0f;

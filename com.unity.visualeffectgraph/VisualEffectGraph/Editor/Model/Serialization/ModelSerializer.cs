@@ -140,7 +140,8 @@ namespace UnityEditor.Experimental.VFX
         // 6: change the way slot connections are serialized
         // 7: Add world space / local space
         // 8: Slot transformation space
-        private const int VERSION = 8;
+        // 9: Add Render Queue Offset
+        private const int VERSION = 9;
 
         // SERIALIZATION
         private class MetaData
@@ -289,6 +290,7 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteAttributeString("BlendingMode", system.BlendingMode.ToString());
             writer.WriteAttributeString("SoftParticlesFadeDistance", system.SoftParticlesFadeDistance.ToString());
             writer.WriteAttributeString("OrderPriority", system.OrderPriority.ToString());
+            writer.WriteAttributeString("RenderQueueDelta", system.RenderQueueDelta.ToString());
             for (int i = 0; i < system.GetNbChildren(); ++i)
                 Serialize(writer,system.GetChild(i),data);
             writer.WriteEndElement();
@@ -578,6 +580,8 @@ namespace UnityEditor.Experimental.VFX
             if (data.Version >= 4)
                 system.SoftParticlesFadeDistance = float.Parse(xml.Attribute("SoftParticlesFadeDistance").Value);
             system.OrderPriority = int.Parse(xml.Attribute("OrderPriority").Value);
+            if(data.Version >= 9)
+                system.RenderQueueDelta = int.Parse(xml.Attribute("RenderQueueDelta").Value);
 
             foreach (var contextXML in xml.Elements("Context"))
             {
