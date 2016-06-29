@@ -172,6 +172,7 @@ namespace UnityEditor.Experimental
             hideFlags = HideFlags.HideAndDontSave;
 
             Selection.selectionChanged += OnSelectionChanged;
+            SceneView.onSceneGUIDelegate += OnSceneGUI;
             OnSelectionChanged(); // Call when enabled to retrieve the current selection
 
             s_Asset = m_CurrentAsset;
@@ -183,6 +184,7 @@ namespace UnityEditor.Experimental
             DestroyGraph();
 
             Selection.selectionChanged -= OnSelectionChanged;
+            SceneView.onSceneGUIDelegate -= OnSceneGUI;
         }
 
         private void SaveAsset()
@@ -292,6 +294,18 @@ namespace UnityEditor.Experimental
             }
             if(m_bShowHelp)
                 ShowHelp(canvasRect);
+        }
+
+        bool m_EditBounds = false;
+        void OnSceneGUI(SceneView sceneView)
+        {
+            if (m_EditBounds && asset != null)
+            {
+                ForeachComponents(c =>
+                {
+                    asset.bounds = VFXEdHandleUtility.BoxHandle(asset.bounds, c.transform.localToWorldMatrix);
+                });
+            }
         }
 
         private bool isOldPlaying = false;
@@ -565,6 +579,7 @@ namespace UnityEditor.Experimental
             GUILayout.FlexibleSpace();
 
             GUILayout.Label("Editing: " + AssetDatabase.GetAssetPath(m_CurrentAsset) + (s_Graph.systems.Dirty || s_Graph.models.Dirty ? "*" : ""), EditorStyles.toolbarButton);
+            m_EditBounds = GUILayout.Toggle(m_EditBounds, "Edit Bounds", EditorStyles.toolbarButton);
 
             GUILayout.FlexibleSpace();
 

@@ -388,7 +388,8 @@ namespace UnityEditor.Experimental
 
         public const float BoxHandleWireDashSize = 5.0f;
 
-        public static Bounds BoxHandle(Bounds bounds)
+        public static Bounds BoxHandle(Bounds bounds) { return BoxHandle(bounds, Matrix4x4.identity); }
+        public static Bounds BoxHandle(Bounds bounds,Matrix4x4 transform)
         {         
             float minX = bounds.min.x;
             float maxX = bounds.max.x;
@@ -407,22 +408,29 @@ namespace UnityEditor.Experimental
             m_HandlePositions[4] = new Vector3((minX+ maxX)/2,(minY+ maxY)/2,minZ);
             m_HandlePositions[5] = new Vector3((minX+ maxX)/2,(minY+ maxY)/2,maxZ);
 
+            for (int i = 0; i < 6; ++i)
+                m_HandlePositions[i] = transform.MultiplyPoint(m_HandlePositions[i]);
+
             Handles.color = Color.red;
-            minX = Handles.Slider(m_HandlePositions[0], Vector3.left, HandleUtility.GetHandleSize(m_HandlePositions[0]) * CubeCapSize, Handles.CubeCap, 0.1f).x;
-            maxX = Handles.Slider(m_HandlePositions[1], Vector3.right, HandleUtility.GetHandleSize(m_HandlePositions[1]) * CubeCapSize, Handles.CubeCap, 0.1f).x;
+            m_HandlePositions[0] = Handles.Slider(m_HandlePositions[0], -transform.GetColumn(0), HandleUtility.GetHandleSize(m_HandlePositions[0]) * CubeCapSize, Handles.CubeCap, 0.1f);
+            m_HandlePositions[1] = Handles.Slider(m_HandlePositions[1], transform.GetColumn(0), HandleUtility.GetHandleSize(m_HandlePositions[1]) * CubeCapSize, Handles.CubeCap, 0.1f);
 
             Handles.color = Color.green;
-            minY = Handles.Slider(m_HandlePositions[2], Vector3.down, HandleUtility.GetHandleSize(m_HandlePositions[2]) * CubeCapSize, Handles.CubeCap, 0.1f).y;
-            maxY = Handles.Slider(m_HandlePositions[3], Vector3.up, HandleUtility.GetHandleSize(m_HandlePositions[3]) * CubeCapSize, Handles.CubeCap, 0.1f).y;
+            m_HandlePositions[2] = Handles.Slider(m_HandlePositions[2], -transform.GetColumn(1), HandleUtility.GetHandleSize(m_HandlePositions[2]) * CubeCapSize, Handles.CubeCap, 0.1f);
+            m_HandlePositions[3] = Handles.Slider(m_HandlePositions[3], transform.GetColumn(1), HandleUtility.GetHandleSize(m_HandlePositions[3]) * CubeCapSize, Handles.CubeCap, 0.1f);
 
             Handles.color = Color.blue;
-            minZ = Handles.Slider(m_HandlePositions[4], Vector3.back, HandleUtility.GetHandleSize(m_HandlePositions[4]) * CubeCapSize, Handles.CubeCap, 0.1f).z;
-            maxZ = Handles.Slider(m_HandlePositions[5], Vector3.forward, HandleUtility.GetHandleSize(m_HandlePositions[5]) * CubeCapSize, Handles.CubeCap, 0.1f).z;
+            m_HandlePositions[4] = Handles.Slider(m_HandlePositions[4], -transform.GetColumn(2), HandleUtility.GetHandleSize(m_HandlePositions[4]) * CubeCapSize, Handles.CubeCap, 0.1f);
+            m_HandlePositions[5] = Handles.Slider(m_HandlePositions[5], transform.GetColumn(2), HandleUtility.GetHandleSize(m_HandlePositions[5]) * CubeCapSize, Handles.CubeCap, 0.1f);
 
-            bounds.min = new Vector3(minX,minY,minZ);
-            bounds.max = new Vector3(maxX,maxY,maxZ);
+            Matrix4x4 invTransform = transform.inverse;
+            for (int i = 0; i < 6; ++i)
+                m_HandlePositions[i] = invTransform.MultiplyPoint(m_HandlePositions[i]);
 
-            ShowWireBox(bounds);
+            bounds.min = new Vector3(m_HandlePositions[0].x, m_HandlePositions[2].y, m_HandlePositions[4].z);
+            bounds.max = new Vector3(m_HandlePositions[1].x, m_HandlePositions[3].y, m_HandlePositions[5].z);
+
+            ShowWireBox(bounds,transform);
 
             return bounds;
 
