@@ -1221,7 +1221,10 @@ namespace UnityEditor.Experimental
             BlendMode blendMode = system.BlendingMode;
 
             if (blendMode != BlendMode.kMasked)
-                builder.WriteLine("Tags { \"Queue\"=\"Transparent\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+            {
+                string offset = system.RenderQueueDelta == 0 ? "" : (system.RenderQueueDelta > 0 ? "+" : "-") + Mathf.Abs(system.RenderQueueDelta) ;
+                builder.WriteLine("Tags { \"Queue\"=\"Transparent"+offset+"\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
+            }
             builder.WriteLine("Pass");
             builder.EnterScope();
             if (blendMode == BlendMode.kAdditive)

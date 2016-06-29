@@ -186,10 +186,6 @@ namespace UnityEditor.Experimental
     [CustomEditor(typeof(VFXEdContextNodeTarget))]
     internal class VFXEdContextNodeTargetEditor : Editor
     {
-        // TODO : remove here and stor inside VFXSystemModel
-        Bounds bounds = new Bounds(Vector3.zero, new Vector3(50, 50, 50));
-
-
         bool bDebugVisible = true;
         
         public VFXContextModel model { get { return (target as VFXEdContextNodeTarget).targetNode.Model; } }
@@ -208,18 +204,21 @@ namespace UnityEditor.Experimental
 
             GUILayout.Label(new GUIContent("Solver General Parameters"), VFXEditor.styles.InspectorHeader);
             EditorGUI.indentLevel++;
-            
-            EditorGUILayout.BoundsField( new GUIContent("Bounding Box"),bounds);
-
-            EditorGUILayout.Space();
 
             VFXSystemModel system = model.GetOwner();
 
             //system.WorldSpace = EditorGUILayout.Toggle("World Space", system.WorldSpace); 
-            system.OrderPriority = EditorGUILayout.IntField("Order Priority", system.OrderPriority);            
+            EditorGUI.BeginDisabledGroup(system.BlendingMode == BlendMode.kMasked);
+            system.RenderQueueDelta = EditorGUILayout.DelayedIntField("Render Queue Delta", system.RenderQueueDelta);
+            system.OrderPriority = EditorGUILayout.IntField("Order Priority", system.OrderPriority);
+            if(system.RenderQueueDelta != 0)
+            {
+                EditorGUILayout.HelpBox("Render Queue Delta is set to a value different than zero: In this case, order priority will be applied after sorting based on render queues", MessageType.Info);
+            }
+            EditorGUI.EndDisabledGroup();
+
             system.MaxNb = (uint)EditorGUILayout.DelayedIntField("Max Particles", (int)system.MaxNb);
-            system.SpawnRate = EditorGUILayout.FloatField("Spawn Rate", system.SpawnRate);
-            
+
             EditorGUILayout.Space();
 
             GUIContent[] options = new GUIContent[3] { new GUIContent("Masked"), new GUIContent("Additive"), new GUIContent("AlphaBlend") };
