@@ -1,9 +1,84 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
+public class SlotValueBinder : VFXPropertySlotObserver
+{
+    public SlotValueBinder(string name, VFXComponent component, VFXPropertySlot slot)
+    {
+        m_Name = name;
+        m_Component = component;
+        m_Slot = slot;
+
+        Update(); // Update before adding the observer in order not to receive a spurious event
+        m_Slot.AddObserver(this);
+    }
+
+    public bool Update()
+    {
+        switch (m_Slot.ValueType)
+        {
+            case VFXValueType.kFloat:
+                if (m_Component.HasFloat(m_Name))
+                    m_Slot.Set<float>(m_Component.GetFloat(m_Name));
+                break;
+            case VFXValueType.kFloat2:
+                if (m_Component.HasVector2(m_Name))
+                    m_Slot.Set<Vector2>(m_Component.GetVector2(m_Name));
+                break;
+            case VFXValueType.kFloat3:
+                if (m_Component.HasVector3(m_Name))
+                    m_Slot.Set<Vector3>(m_Component.GetVector3(m_Name));
+                break;
+            case VFXValueType.kFloat4:
+                if (m_Component.HasVector4(m_Name))
+                    m_Slot.Set<Vector4>(m_Component.GetVector4(m_Name));
+                break;
+        }
+
+        bool dirty = m_Dirty;
+        m_Dirty = false;
+        return dirty;
+    }
+
+    public void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)
+    {
+        if (m_Slot != slot || type != VFXPropertySlot.Event.kValueUpdated)
+            throw new Exception("Something wrong went on !"); // This should never happen
+
+        switch (slot.ValueType)
+        {
+            case VFXValueType.kFloat:
+                if (m_Component.HasFloat(m_Name))
+                    m_Component.SetFloat(m_Name, m_Slot.Get<float>());
+                break;
+            case VFXValueType.kFloat2:
+                if (m_Component.HasVector2(m_Name))
+                    m_Component.SetVector2(m_Name, m_Slot.Get<Vector2>());
+                break;
+            case VFXValueType.kFloat3:
+                if (m_Component.HasVector3(m_Name))
+                    m_Component.SetVector3(m_Name, m_Slot.Get<Vector3>());
+                break;
+            case VFXValueType.kFloat4:
+                if (m_Component.HasVector4(m_Name))
+                    m_Component.SetVector4(m_Name, m_Slot.Get<Vector4>());
+                break;
+        }
+
+        m_Dirty = true;
+    }
+
+    private string m_Name;
+    private VFXComponent m_Component;
+    private VFXPropertySlot m_Slot;
+    private bool m_Dirty = false;
+}
 
 [CustomEditor(typeof(VFXComponent))]
 public class VFXComponentEditor : Editor
@@ -14,10 +89,68 @@ public class VFXComponentEditor : Editor
     private Contents m_Contents;
     private Styles m_Styles;
 
+    private List<VFXOutputSlot> m_Slots = new List<VFXOutputSlot>();
+    private List<SlotValueBinder> m_ValueBinders = new List<SlotValueBinder>(); 
+
     void OnEnable()
     {
         m_RandomSeed = serializedObject.FindProperty("m_Seed");
         m_VFXAsset = serializedObject.FindProperty("m_Asset");
+
+        InitSlots();
+    }
+
+    void OnDisable()
+    {
+        foreach (var slot in m_Slots)
+            slot.RemoveAllObservers();
+    }
+
+    private void InitSlots()
+    {
+        if (m_VFXAsset == null)
+        {
+            m_Slots.Clear();
+            return;
+        }
+
+        VFXAsset asset = m_VFXAsset.objectReferenceValue as VFXAsset;
+        if (asset == null)
+            return;
+
+        int nbDescs = asset.GetNbEditorExposedDesc();
+        for (int i = 0; i < nbDescs; ++i)
+        {
+            string semanticType = asset.GetEditorExposedDescSemanticType(i);
+            string exposedName = asset.GetEditorExposedDescName(i);
+            bool worldSpace = asset.GetEditorExposedDescWorldSpace(i);
+
+            var dataBlock = VFXEditor.BlockLibrary.GetDataBlock(semanticType);
+            if (dataBlock != null)
+            {
+                var property = new VFXProperty(dataBlock.Semantics, exposedName);
+                var slot = new VFXOutputSlot(property);
+                slot.WorldSpace = worldSpace;
+                m_Slots.Add(slot);
+
+                CreateValueBinders(slot);
+            }
+        }
+    }
+
+    private void CreateValueBinders(VFXPropertySlot slot,string parentName = "")
+    {
+        string name = VFXPropertySlot.AggregateName(parentName, slot.Name);
+        if (slot.GetNbChildren() > 0)
+            for (int i = 0; i < slot.GetNbChildren(); ++i)
+            {
+                var child = slot.GetChild(i);
+                CreateValueBinders(child, name);
+            }
+        else
+        {
+            m_ValueBinders.Add(new SlotValueBinder(name, (VFXComponent)target, slot));
+        }
     }
 
     public void InitializeGUI()
@@ -129,16 +262,29 @@ public class VFXComponentEditor : Editor
             EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
             if(GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
-                m_RandomSeed.intValue = Random.Range(0, int.MaxValue);
+                m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
                 component.seed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
                 component.Reinit();
             }
         }
 
-        // TODO : PARAMETERS
+        // Update parameters
+        bool valueDirty = false;
+        foreach (var valueBinder in m_ValueBinders)
+            valueDirty |= valueBinder.Update();
 
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
-        GUILayout.Label("Still need to be done :)");
+        foreach (var slot in m_Slots)
+            slot.Semantics.OnInspectorGUI(slot);
+
+        if (valueDirty)
+        {
+            // TODO Do that better ?
+            EditorSceneManager.MarkSceneDirty(component.gameObject.scene);
+            serializedObject.SetIsDifferentCacheDirty();
+            serializedObject.Update();
+        }
+
         serializedObject.ApplyModifiedProperties();
         serializedObject.Update();
     }

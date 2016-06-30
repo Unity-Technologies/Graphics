@@ -166,6 +166,12 @@ namespace UnityEngine.Experimental.VFX
                     child.RemoveObserver(observer, true);
         }
 
+        public void RemoveAllObservers(bool recursive = false)
+        {
+            foreach (var observer in m_Observers.ToArray()) // Copy container to avoid iterator invalidation
+                RemoveObserver(observer, recursive);
+        }
+
         public void NotifyChange(Event type)
         {
             // Invalidate expression cache
@@ -396,7 +402,7 @@ namespace UnityEngine.Experimental.VFX
                     child.CollectExpressions(expressions, spaceRef); 
         }
 
-        private static string AggregateName(string parent,string child)
+        public static string AggregateName(string parent,string child)
         {
             return parent.Length == 0 ? child : parent + "_" + child;
         }
