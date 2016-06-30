@@ -112,7 +112,7 @@ angularVelocity *= max(0.0,(1.0 - Value * deltaTime));";
         public VFXBlockSetPivot()
         {
             Name = "Set Pivot";
-            Icon = "";
+            Icon = "Pivot";
             Category = "Pivot";
 
             Add(VFXProperty.Create<VFXFloat3Type>("Pivot"));
