@@ -200,7 +200,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;");
             builder.WriteLine();
 
-            builder.Write("float3 worldPos = ");
+            builder.Write("float3 position = ");
             builder.WriteAttrib(CommonAttrib.Position, data);
             builder.WriteLine(";");
             builder.WriteLine();
@@ -209,7 +209,7 @@ namespace UnityEditor.Experimental
             {
                 builder.WriteLine("// Clamp size so that billboards are never less than one pixel size");
                 builder.WriteLine("const float PIXEL_SIZE = 0.003f; // This should be a uniform depending on fov and viewport dimension");
-                builder.WriteLine("float minSize = dot(UNITY_MATRIX_VP[3],float4(worldPos,1.0f)) * PIXEL_SIZE; // w * pixel size");
+                builder.WriteLine("float minSize = dot(UNITY_MATRIX_VP[3],float4(position,1.0f)) * PIXEL_SIZE; // w * pixel size");
                 builder.WriteLine("size = max(size,minSize);");
                 builder.WriteLine();
             }
@@ -226,11 +226,16 @@ namespace UnityEditor.Experimental
                 builder.WriteLine("float2 posOffsets = o.offsets.xy;");
             }
 
+            if (data.system.WorldSpace)
+                builder.WriteLine("float3 cameraPos = _WorldSpaceCameraPos.xyz;");
+            else
+                builder.WriteLine("float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!"); 
+
             switch (m_OrientMode)
             {
                 case OrientMode.kVelocity:
 
-                    builder.WriteLine("float3 front = UnityWorldSpaceViewDir(worldPos);");
+                    builder.WriteLine("float3 front = cameraPos - position;");
                     builder.Write("float3 up = normalize(");
                     builder.WriteAttrib(CommonAttrib.Velocity, data);
                     builder.WriteLine(");");
@@ -256,7 +261,7 @@ namespace UnityEditor.Experimental
 
                 case OrientMode.kRotateAxis:
 
-                    builder.WriteLine("float3 front = UnityWorldSpaceViewDir(worldPos);");
+                    builder.WriteLine("float3 front = cameraPos - position;");
                     builder.Write("float3 up = normalize(");
                     builder.Write(data.outputParamToName[m_Values[FirstLockedAxisIndex]]);
                     builder.WriteLine(");");
@@ -290,24 +295,21 @@ namespace UnityEditor.Experimental
             {
                 WriteRotation(builder, data);
                 builder.WriteLine();
-                builder.WriteLine("worldPos += mul(rot,side * posOffsets.x * size.x);");
-                builder.WriteLine("worldPos += mul(rot,up * posOffsets.y * size.y);");
+                builder.WriteLine("position += mul(rot,side * posOffsets.x * size.x);");
+                builder.WriteLine("position += mul(rot,up * posOffsets.y * size.y);");
             }
             else
             {
-                builder.WriteLine("worldPos += side * (posOffsets.x * size.x);");
-                builder.WriteLine("worldPos += up * (posOffsets.y * size.y);");
+                builder.WriteLine("position += side * (posOffsets.x * size.x);");
+                builder.WriteLine("position += up * (posOffsets.y * size.y);");
             }
 
             if (m_HasPivot)
             {
-                builder.WriteLine("worldPos -= front * ");
+                builder.WriteLine("position -= front * ");
                 builder.WriteAttrib(CommonAttrib.Pivot, data);
                 builder.WriteLine(".z;");
             }
-
-            // local space (tmp)
-            //builder.WriteLine("worldPos = mul(unity_ObjectToWorld,float4(worldPos,1.0f)).xyz;");
 
             if (m_HasTexture)
             {
@@ -321,7 +323,7 @@ namespace UnityEditor.Experimental
             }
 
             builder.WriteLine();
-            builder.WriteLineFormat("o.pos = mul ({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
+            builder.WriteLineFormat("o.pos = mul ({0}, float4(position,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
         }
 
         public override void WriteFunctions(ShaderSourceBuilder builder, ShaderMetaData data)
