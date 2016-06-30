@@ -145,7 +145,7 @@ position = mul(Transform,float4(position,1.0f)).xyz;";
         public VFXBlockAnimatePositionCircular()
         {
             Name = "Animate (Circular)";
-            Icon = "Circle";
+            Icon = "Disc";
             Category = "Position";
 
             Add(VFXProperty.Create<VFXTransformType>("Transform"));

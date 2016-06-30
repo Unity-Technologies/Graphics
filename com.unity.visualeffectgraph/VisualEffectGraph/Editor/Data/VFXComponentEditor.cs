@@ -134,11 +134,13 @@ public class VFXComponentEditor : Editor
 
     private void InitSlots()
     {
+        foreach (var exposed in m_ExposedData)
+            exposed.slot.RemoveAllObservers();
+
+        m_ExposedData.Clear();
+
         if (m_VFXAsset == null)
-        {
-            m_ExposedData.Clear();
             return;
-        }
 
         VFXAsset asset = m_VFXAsset.objectReferenceValue as VFXAsset;
         if (asset == null)
@@ -283,6 +285,7 @@ public class VFXComponentEditor : Editor
 
         using (new GUILayout.HorizontalScope())
         {
+
             EditorGUILayout.PropertyField(m_VFXAsset, m_Contents.AssetPath);
             if(GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
@@ -312,19 +315,25 @@ public class VFXComponentEditor : Editor
         {
             using (new GUILayout.HorizontalScope())
             {
-                bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget);
+                bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget, m_Styles.ToggleGizmo , GUILayout.Width(10));
                 if (showWidget && exposed.widget == null)
                     exposed.widget = exposed.slot.Semantics.CreateUIWidget(exposed.slot, component.transform);
                 else if (!showWidget && exposed.widget != null)
                     exposed.widget = null;
 
+                using (new GUILayout.VerticalScope())
+                {
+                    int l = EditorGUI.indentLevel;
+                    EditorGUI.indentLevel = 0;
+                    exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
+                    EditorGUI.indentLevel = l;
+                }
+
                 if (GUILayout.Button(m_Contents.ResetOverrides, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
                 {
                     foreach (var valueBinder in exposed.valueBinders)
                         component.ResetOverride(valueBinder.Name);
-                }            
-
-                exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
+                }
             }
         }
 
@@ -336,7 +345,10 @@ public class VFXComponentEditor : Editor
             serializedObject.Update();
         }
 
-        serializedObject.ApplyModifiedProperties();
+        if(serializedObject.ApplyModifiedProperties())
+        {
+            InitSlots();
+        }
         serializedObject.Update();
     }
 
@@ -349,9 +361,11 @@ public class VFXComponentEditor : Editor
     private class Styles
     {
         public GUIStyle InspectorHeader;
+        public GUIStyle ToggleGizmo;
 
         public GUILayoutOption MiniButtonWidth = GUILayout.Width(48);
         public GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
+
 
         public Styles()
         {
@@ -362,6 +376,20 @@ public class VFXComponentEditor : Editor
             InspectorHeader.border = new RectOffset(4, 4, 4, 4);
             InspectorHeader.overflow = new RectOffset(4, 4, 4, 4);
             InspectorHeader.margin = new RectOffset(4, 4, 16, 8);
+
+            Texture2D showIcon = EditorGUIUtility.Load("VisibilityIcon.png") as Texture2D;
+            Texture2D hideIcon = EditorGUIUtility.Load("VisibilityIconDisabled.png") as Texture2D;
+
+            ToggleGizmo = new GUIStyle();
+            ToggleGizmo.margin = new RectOffset(0, 0, 4, 0);
+            ToggleGizmo.active.background = hideIcon;
+            ToggleGizmo.onActive.background = showIcon;
+            ToggleGizmo.normal.background = hideIcon;
+            ToggleGizmo.onNormal.background = showIcon;
+            ToggleGizmo.focused.background = hideIcon;
+            ToggleGizmo.onFocused.background = showIcon;
+            ToggleGizmo.hover.background = hideIcon;
+            ToggleGizmo.onHover.background = showIcon;
         }
     }
 
