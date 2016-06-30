@@ -286,9 +286,7 @@ public class VFXComponentEditor : Editor
         using (new GUILayout.HorizontalScope())
         {
 
-            if (EditorGUILayout.PropertyField(m_VFXAsset, m_Contents.AssetPath))
-                
-
+            EditorGUILayout.PropertyField(m_VFXAsset, m_Contents.AssetPath);
             if(GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
             {
                 VFXEditor.ShowWindow();
