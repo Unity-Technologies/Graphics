@@ -39,6 +39,14 @@ public class SlotValueBinder : VFXPropertySlotObserver
                 if (m_Component.HasVector4(m_Name))
                     m_Slot.Set<Vector4>(m_Component.GetVector4(m_Name));
                 break;
+            case VFXValueType.kTexture2D:
+                if (m_Component.HasTexture2D(m_Name))
+                    m_Slot.Set<Texture2D>(m_Component.GetTexture2D(m_Name));
+                break;
+            case VFXValueType.kTexture3D:
+                if (m_Component.HasTexture3D(m_Name))
+                    m_Slot.Set<Texture3D>(m_Component.GetTexture3D(m_Name));
+                break;
         }
 
         bool dirty = m_Dirty;
@@ -69,10 +77,20 @@ public class SlotValueBinder : VFXPropertySlotObserver
                 if (m_Component.HasVector4(m_Name))
                     m_Component.SetVector4(m_Name, m_Slot.Get<Vector4>());
                 break;
+            case VFXValueType.kTexture2D:
+                if (m_Component.HasTexture2D(m_Name))
+                    m_Component.SetTexture2D(m_Name, m_Slot.Get<Texture2D>());
+                break;
+            case VFXValueType.kTexture3D:
+                if (m_Component.HasTexture3D(m_Name))
+                    m_Component.SetTexture3D(m_Name, m_Slot.Get<Texture3D>());
+                break;
         }
 
         m_Dirty = true;
     }
+
+    public string Name { get { return m_Name; } }
 
     private string m_Name;
     private VFXComponent m_Component;
@@ -89,8 +107,16 @@ public class VFXComponentEditor : Editor
     private Contents m_Contents;
     private Styles m_Styles;
 
-    private List<VFXOutputSlot> m_Slots = new List<VFXOutputSlot>();
-    private List<SlotValueBinder> m_ValueBinders = new List<SlotValueBinder>(); 
+    private class ExposedData
+    {
+        public VFXOutputSlot slot;
+        public List<SlotValueBinder> valueBinders = new List<SlotValueBinder>();
+        public VFXUIWidget widget = null;
+    }
+
+    private List<ExposedData> m_ExposedData = new List<ExposedData>();
+    //private List<VFXOutputSlot> m_Slots = new List<VFXOutputSlot>();
+    //private List<SlotValueBinder> m_ValueBinders = new List<SlotValueBinder>(); 
 
     void OnEnable()
     {
@@ -102,15 +128,15 @@ public class VFXComponentEditor : Editor
 
     void OnDisable()
     {
-        foreach (var slot in m_Slots)
-            slot.RemoveAllObservers();
+        foreach (var exposed in m_ExposedData)
+            exposed.slot.RemoveAllObservers();
     }
 
     private void InitSlots()
     {
         if (m_VFXAsset == null)
         {
-            m_Slots.Clear();
+            m_ExposedData.Clear();
             return;
         }
 
@@ -131,25 +157,28 @@ public class VFXComponentEditor : Editor
                 var property = new VFXProperty(dataBlock.Semantics, exposedName);
                 var slot = new VFXOutputSlot(property);
                 slot.WorldSpace = worldSpace;
-                m_Slots.Add(slot);
 
-                CreateValueBinders(slot);
+                var exposedData = new ExposedData();
+                exposedData.slot = slot;
+                m_ExposedData.Add(exposedData);
+
+                CreateValueBinders(exposedData,slot);
             }
         }
     }
 
-    private void CreateValueBinders(VFXPropertySlot slot,string parentName = "")
+    private void CreateValueBinders(ExposedData data,VFXPropertySlot slot,string parentName = "")
     {
         string name = VFXPropertySlot.AggregateName(parentName, slot.Name);
         if (slot.GetNbChildren() > 0)
             for (int i = 0; i < slot.GetNbChildren(); ++i)
             {
                 var child = slot.GetChild(i);
-                CreateValueBinders(child, name);
+                CreateValueBinders(data,child, name);
             }
         else
         {
-            m_ValueBinders.Add(new SlotValueBinder(name, (VFXComponent)target, slot));
+            data.valueBinders.Add(new SlotValueBinder(name, (VFXComponent)target, slot));
         }
     }
 
@@ -178,6 +207,10 @@ public class VFXComponentEditor : Editor
             Handles.EndGUI();
             GL.sRGBWrite = false;
         }
+
+        foreach (var exposed in m_ExposedData)
+            if (exposed.widget != null)
+                exposed.widget.OnSceneGUI(SceneView.currentDrawingSceneView);
     }
 
     public void DrawPlayControlsWindow(int windowID)
@@ -270,12 +303,30 @@ public class VFXComponentEditor : Editor
 
         // Update parameters
         bool valueDirty = false;
-        foreach (var valueBinder in m_ValueBinders)
-            valueDirty |= valueBinder.Update();
+        foreach (var exposed in m_ExposedData)
+            foreach (var valueBinder in exposed.valueBinders)
+                valueDirty |= valueBinder.Update();
 
         GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
-        foreach (var slot in m_Slots)
-            slot.Semantics.OnInspectorGUI(slot);
+        foreach (var exposed in m_ExposedData)
+        {
+            using (new GUILayout.HorizontalScope())
+            {
+                bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget);
+                if (showWidget && exposed.widget == null)
+                    exposed.widget = exposed.slot.Semantics.CreateUIWidget(exposed.slot, component.transform);
+                else if (!showWidget && exposed.widget != null)
+                    exposed.widget = null;
+
+                if (GUILayout.Button(m_Contents.ResetOverrides, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                {
+                    foreach (var valueBinder in exposed.valueBinders)
+                        component.ResetOverride(valueBinder.Name);
+                }            
+
+                exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
+            }
+        }
 
         if (valueDirty)
         {
@@ -326,7 +377,7 @@ public class VFXComponentEditor : Editor
         public GUIContent SetRandomSeed = new GUIContent("Reseed");
         public GUIContent SetPlayRate = new GUIContent("Set");
         public GUIContent PlayRate = new GUIContent("PlayRate");
-
+        public GUIContent ResetOverrides = new GUIContent("Reset");
 
         public GUIContent ButtonRestart = new GUIContent();
         public GUIContent ButtonPlay = new GUIContent();
@@ -334,6 +385,6 @@ public class VFXComponentEditor : Editor
         public GUIContent ButtonStop = new GUIContent();
         public GUIContent ButtonFrameAdvance = new GUIContent();
 
-
+        public GUIContent ToggleWidget = new GUIContent();
     }
 }

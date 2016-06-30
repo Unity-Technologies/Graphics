@@ -263,6 +263,8 @@ namespace UnityEditor.Experimental
                 if (child is VFXDataNodeModel)
                 {
                     var dataNode = (VFXDataNodeModel)child;
+                    if (!dataNode.Exposed)
+                        continue;
 
                     for (int j = 0; j < dataNode.GetNbChildren(); ++j)
                     {
