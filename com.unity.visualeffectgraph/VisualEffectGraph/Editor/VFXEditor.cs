@@ -474,7 +474,6 @@ namespace UnityEditor.Experimental
                 }
                 GUILayout.FlexibleSpace();
             }
-                GUILayout.Label("Select a VFX Asset or VFX Component with a valid asset");
         }
 
         void DrawToolbar(Rect rect)
