@@ -1175,7 +1175,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92bb16b4ee20841929b24d6bd771738d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderLoop: {fileID: 11400000, guid: 873753be6b0da44d58b061c5ec3d12bc, type: 2}
+  m_RenderLoop: {fileID: 11400000, guid: 873753be6b0da44d58b061c5ec3d12bc, type: 2}
 --- !u!1 &1758207072
 GameObject:
   m_ObjectHideFlags: 0
@@ -1324,7 +1324,7 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1810843056}
-  m_LocalRotation: {x: -0.26871023, y: -0.31149623, z: 0.872998, w: 0.26199108}
+  m_LocalRotation: {x: -0.26871026, y: -0.31149626, z: 0.87299806, w: 0.2619911}
   m_LocalPosition: {x: 28.75, y: 9.26, z: 7.88}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []

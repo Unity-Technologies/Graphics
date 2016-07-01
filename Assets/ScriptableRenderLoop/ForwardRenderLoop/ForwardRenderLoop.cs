@@ -229,5 +229,16 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			// Post effects
 		}
+
+		#if UNITY_EDITOR
+		public override UnityEditor.SupportedRenderingFeatures GetSupportedRenderingFeatures()
+		{
+			var features = new UnityEditor.SupportedRenderingFeatures();
+
+			features.reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation;
+
+			return features;
+		}
+		#endif
 	}
 }
