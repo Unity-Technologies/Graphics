@@ -1326,13 +1326,10 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
 
                 if (data.system.WorldSpace)
-                    builder.WriteLine("float3 cameraPos = _WorldSpaceCameraPos.xyz;");
+                    builder.WriteLine("float planeDist = mul(unity_WorldToCamera,float4(position,1.0f)).z;");
                 else
-                    builder.WriteLine("float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!");
-
-
-                builder.WriteLine("float camDist = length(cameraPos - position);");
-                builder.WriteLineFormat("camFade = smoothstep({0},{1},camDist);",data.system.CameraFadeDistance.x,data.system.CameraFadeDistance.y);
+                    builder.WriteLine("float planeDist = -mul(UNITY_MATRIX_MV,float4(position,1.0f)).z;");
+                builder.WriteLineFormat("camFade = smoothstep({0},{1},planeDist);", data.system.CameraFadeDistance.x, data.system.CameraFadeDistance.y);
                 builder.ExitScope();
                 builder.WriteLine("if (camFade == 0.0f)");
                 builder.EnterScope();
