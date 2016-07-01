@@ -1276,8 +1276,9 @@ namespace UnityEditor.Experimental
 
             bool hasColor = data.attribToBuffer.ContainsKey(CommonAttrib.Color);
             bool hasAlpha = data.attribToBuffer.ContainsKey(CommonAttrib.Alpha);
+            bool needsVertexColor = hasColor || hasAlpha || system.HasCameraFade();
 
-            if (hasColor || hasAlpha)
+            if (needsVertexColor)
                 builder.WriteLine("nointerpolation float4 col : COLOR0;");
 
             outputGenerator.WriteAdditionalVertexOutput(builder, data);
@@ -1315,6 +1316,32 @@ namespace UnityEditor.Experimental
                 }
             builder.WriteLine();
 
+            if (system.HasCameraFade())
+            {
+                builder.WriteLine("float camFade;");
+                builder.EnterScope();
+                builder.Write("float3 position = ");
+                builder.WriteAttrib(CommonAttrib.Position, data);
+                builder.WriteLine(";");
+                builder.WriteLine();
+
+                if (data.system.WorldSpace)
+                    builder.WriteLine("float3 cameraPos = _WorldSpaceCameraPos.xyz;");
+                else
+                    builder.WriteLine("float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!");
+
+
+                builder.WriteLine("float camDist = length(cameraPos - position);");
+                builder.WriteLineFormat("camFade = smoothstep({0},{1},camDist);",data.system.CameraFadeDistance.x,data.system.CameraFadeDistance.y);
+                builder.ExitScope();
+                builder.WriteLine("if (camFade == 0.0f)");
+                builder.EnterScope();
+                builder.WriteLine("o.pos = -1.0;");
+                builder.WriteLine("return o;");
+                builder.ExitScope();
+                builder.WriteLine();
+            }
+
             outputGenerator.WritePreBlock(builder, data);
             outputGenerator.WritePostBlock(builder, data);
 
@@ -1322,7 +1349,7 @@ namespace UnityEditor.Experimental
             if (system.HasSoftParticles())
                 builder.WriteLine("o.projPos = ComputeScreenPos(o.pos); // For depth texture fetch");
 
-            if (hasColor || hasAlpha)
+            if (needsVertexColor)
             {
                 builder.Write("o.col = float4(");
 
@@ -1341,6 +1368,9 @@ namespace UnityEditor.Experimental
                 }
                 else
                     builder.WriteLine("0.5);");
+
+                if (system.HasCameraFade())
+                    builder.WriteLine("o.col.a *= camFade;");
             }
 
             if (data.hasKill)
@@ -1364,7 +1394,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("float4 frag (ps_input i) : COLOR");
             builder.EnterScope();
 
-            if (hasColor || hasAlpha)
+            if (hasColor || hasAlpha || system.HasCameraFade())
                 builder.WriteLine("float4 color = i.col;");
             else
                 builder.WriteLine("float4 color = float4(1.0,1.0,1.0,0.5);");

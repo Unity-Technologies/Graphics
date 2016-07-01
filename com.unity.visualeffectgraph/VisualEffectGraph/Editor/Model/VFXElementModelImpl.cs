@@ -792,6 +792,27 @@ namespace UnityEditor.Experimental
             }
         }
 
+        private Vector2 m_CameraFadeDistance = Vector2.zero;
+        public Vector2 CameraFadeDistance
+        {
+            get { return m_CameraFadeDistance; }
+            set
+            {
+                Vector2 newDistance = Vector2.Max(Vector2.zero, value);
+                if (newDistance.x > newDistance.y)
+                {
+                    float tmp = newDistance.x;
+                    newDistance.x = newDistance.y;
+                    newDistance.y = tmp;
+                }
+                if (m_CameraFadeDistance != newDistance)
+                {
+                    m_CameraFadeDistance = newDistance;
+                    Invalidate(InvalidationCause.kModelChanged); // Force a recompilation
+                }
+            }
+        }
+
         private int m_RenderQueueDelta = 0;
         public int RenderQueueDelta
         {
@@ -810,6 +831,11 @@ namespace UnityEditor.Experimental
         public bool HasSoftParticles()
         {
             return m_BlendMode != BlendMode.kMasked && m_SoftParticlesFadeDistance > 0.0f;
+        }
+
+        public bool HasCameraFade()
+        {
+            return m_BlendMode != BlendMode.kMasked && m_CameraFadeDistance.y > 0.0f;
         }
 
         private int m_OrderPriority = 0; // TODO Get last priority
