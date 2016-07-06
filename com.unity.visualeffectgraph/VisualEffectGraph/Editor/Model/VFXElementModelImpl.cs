@@ -115,45 +115,55 @@ namespace UnityEditor.Experimental
                     GetChild(i).UpdateComponentSystem();
                     m_NeedsNativeDataGeneration = true;
                 }
-         
-            if (m_NeedsCheck)
-            {
-                ProgressBarHelper.Init(ProgressBarHelper.GENERATE_DATA_NB_STEPS + GetNbChildren() * ProgressBarHelper.COMPILE_SYSTEM_NB_STEPS);
-                m_NeedsCheck = false;
 
-                VFXEditor.Log("\n**** VFXAsset is dirty ****");
-                for (int i = 0; i < GetNbChildren(); ++i)
+            try
+            {
+                if (m_NeedsCheck)
                 {
-                    VFXEditor.Log("Recompile system " + i + " if needed ");
-                    if (!GetChild(i).RecompileIfNeeded())
+                    ProgressBarHelper.Init(ProgressBarHelper.GENERATE_DATA_NB_STEPS + GetNbChildren() * ProgressBarHelper.COMPILE_SYSTEM_NB_STEPS);
+                    m_NeedsCheck = false;
+
+                    VFXEditor.Log("\n**** VFXAsset is dirty ****");
+                    for (int i = 0; i < GetNbChildren(); ++i)
                     {
-                        VFXEditor.Log("No need to recompile");
-                        ProgressBarHelper.SkipSteps(ProgressBarHelper.COMPILE_SYSTEM_NB_STEPS);
-                    }
-                    else
-                    {
-                        ProgressBarHelper.IncrementStep("System " + GetChild(i).Id + ": Update asset");
-                        if (GetChild(i).UpdateComponentSystem())
-                            needsReinit = true;
+                        VFXEditor.Log("Recompile system " + i + " if needed ");
+                        if (!GetChild(i).RecompileIfNeeded())
+                        {
+                            VFXEditor.Log("No need to recompile");
+                            ProgressBarHelper.SkipSteps(ProgressBarHelper.COMPILE_SYSTEM_NB_STEPS);
+                        }
                         else
-                            GetChild(i).RemoveSystem();
+                        {
+                            ProgressBarHelper.IncrementStep("System " + GetChild(i).Id + ": Update asset");
+                            if (GetChild(i).UpdateComponentSystem())
+                                needsReinit = true;
+                            else
+                                GetChild(i).RemoveSystem();
+                        }
                     }
+
+                    m_NeedsNativeDataGeneration = true;
                 }
+                else if (m_NeedsNativeDataGeneration)
+                    ProgressBarHelper.Init(ProgressBarHelper.GENERATE_DATA_NB_STEPS);
 
-                m_NeedsNativeDataGeneration = true;
+                // Update assets properties and expressions for C++ evaluation
+                if (m_NeedsNativeDataGeneration)
+                {
+                    m_NeedsNativeDataGeneration = false;
+
+                    GenerateNativeData();
+
+                    m_ReloadUniforms = true;
+                    needsReinit = true;
+
+                    ProgressBarHelper.Clear();
+                }
             }
-            else if (m_NeedsNativeDataGeneration)
-                ProgressBarHelper.Init(ProgressBarHelper.GENERATE_DATA_NB_STEPS);
-
-            // Update assets properties and expressions for C++ evaluation
-            if (m_NeedsNativeDataGeneration)
+            catch(Exception e)
             {
-                GenerateNativeData();
-                m_ReloadUniforms = true;
-                needsReinit = true;
-                m_NeedsNativeDataGeneration = false;
-
-                ProgressBarHelper.Clear();
+                ProgressBarHelper.Clear();  // Clear the progress bar in case of exception
+                throw e; // And rethrow
             }
 
             if (m_ReloadUniforms) // If has recompiled, re-upload all uniforms as they are not stored in C++. TODO store uniform constant in C++ component ?

@@ -65,167 +65,6 @@ namespace UnityEditor.Experimental
             try { updateKernel = simulationShader.FindKernel("CSVFXUpdate"); }
             catch(Exception) { updateKernel = -1; }
         }
-
-        public void UpdateAllUniforms()
-        {
-            foreach (var uniform in generatedUniforms)
-            {
-                uniform.Invalidate();
-                uniform.Reduce();
-            }
-
-            foreach (var uniform in uniforms)
-                UpdateUniform(uniform.Key,false);
-
-            foreach (var uniform in outputUniforms)
-                UpdateUniform(uniform.Key, true);
-
-            // Set generated texture data
-            // atm set texture for both compute shaders, but can be improved by having info by kernel
-            /*if (GeneratedTextureData.HasColorTexture())
-            {
-                if (initKernel != -1)
-                    simulationShader.SetTexture(initKernel, "gradientTexture", GeneratedTextureData.ColorTexture);
-                if (updateKernel != -1)
-                    simulationShader.SetTexture(updateKernel, "gradientTexture", GeneratedTextureData.ColorTexture);
-            }
-
-            if (GeneratedTextureData.HasFloatTexture())
-            {
-                if (initKernel != -1)
-                    simulationShader.SetTexture(initKernel, "curveTexture", GeneratedTextureData.FloatTexture);
-                if (updateKernel != -1)
-                    simulationShader.SetTexture(updateKernel, "curveTexture", GeneratedTextureData.FloatTexture);
-            }*/
-        }
-
-        public void UpdateUniform(VFXExpression expr,bool output)
-        {
-            var currentUniforms = uniforms;
-            if (output)
-                currentUniforms = outputUniforms;
-
-            string uniformName = currentUniforms[expr];
-            VFXValue value = (VFXValue)expr.Reduce();
-            switch (value.ValueType)
-            {
-                case VFXValueType.kFloat:
-                    if (output)
-                        m_Material.SetFloat(uniformName, value.Get<float>());
-                    else
-                        simulationShader.SetFloat(uniformName,value.Get<float>());
-                    break;
-                case VFXValueType.kFloat2:
-                {
-                    Vector2 v = value.Get<Vector2>();
-                    if (output)
-                        m_Material.SetVector(uniformName, v);
-                    else
-                    {
-                        float[] buffer = new float[2];                        
-                        buffer[0] = v.x;
-                        buffer[1] = v.y;
-                        simulationShader.SetFloats(uniformName,buffer);  
-                    }
-                    break;
-                }
-                case VFXValueType.kFloat3:
-                {     
-                    Vector3 v = value.Get<Vector3>();
-                    if (output)
-                        m_Material.SetVector(uniformName, v);
-                    else
-                    {
-                        float[] buffer = new float[3];
-                        buffer[0] = v.x;
-                        buffer[1] = v.y;
-                        buffer[2] = v.z;
-                        simulationShader.SetFloats(uniformName, buffer);
-                    }
-                    break;
-                }
-                case VFXValueType.kFloat4:
-                    if (output)
-                        m_Material.SetVector(uniformName, value.Get<Vector4>());
-                    else
-                        simulationShader.SetVector(uniformName,value.Get<Vector4>());
-                    break;
-                case VFXValueType.kInt:
-                    if (output)
-                        m_Material.SetInt(uniformName, value.Get<int>());
-                    else
-                        simulationShader.SetInt(uniformName,value.Get<int>());
-                    break;
-                case VFXValueType.kUint:
-                    if (output)
-                        m_Material.SetInt(uniformName, (int)value.Get<uint>());
-                    else
-                        simulationShader.SetInt(uniformName,(int)value.Get<uint>());
-                    break;
-
-                case VFXValueType.kTexture2D:
-                case VFXValueType.kTexture3D:
-                {
-                    Texture tex = null;
-                    if (value.ValueType == VFXValueType.kTexture2D)
-                        tex = value.Get<Texture2D>();
-                    else
-                        tex = value.Get<Texture3D>();
-
-                    if (tex != null)
-                    {
-                        if (output)
-                            m_Material.SetTexture(uniformName, tex);
-                        else
-                        {
-                            bool inInit = uniformName.Contains("init");
-                            bool inUpdate = uniformName.Contains("update");
-                            if (uniformName.Contains("global"))
-                                inInit = inUpdate = true;
-
-                            if (inInit && initKernel != -1)
-                                simulationShader.SetTexture(initKernel, uniformName, tex);
-                            if (inUpdate && updateKernel != -1)
-                                simulationShader.SetTexture(updateKernel, uniformName, tex);
-                        }
-                    }
-
-                    break;
-                }
-                case VFXValueType.kTransform:
-                { 
-                    Matrix4x4 mat = value.Get<Matrix4x4>();
-                    if (uniformName.StartsWith("Inv_"))
-                        mat = mat.inverse;
-                    if (output)
-                        m_Material.SetMatrix(uniformName, mat);
-                    else
-                    {
-                        float[] buffer = new float[16];
-                        for (int i = 0; i < 16; ++i)
-                            buffer[i] = mat[i];
-                        simulationShader.SetFloats(uniformName, buffer);
-                    }
-                    break;
-                }
-
-                case VFXValueType.kColorGradient:
-                    if (output)
-                        throw new NotImplementedException("TODO");
-                    simulationShader.SetFloat(uniformName, m_GeneratedTextureData.GetGradientUniform(value));
-                    break;
-
-                case VFXValueType.kCurve:
-                    if (output)
-                        throw new NotImplementedException("TODO");
-                    simulationShader.SetVector(uniformName, m_GeneratedTextureData.GetCurveUniform(value));
-                    break;
-                
-                case VFXValueType.kNone:
-                    // Not yet implemented
-                    break;
-            }
-        }
     }
 
     public class AttributeBuffer
@@ -324,6 +163,7 @@ namespace UnityEditor.Experimental
 
         public List<AttributeBuffer> attributeBuffers = new List<AttributeBuffer>();
         public Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer = new Dictionary<VFXAttribute, AttributeBuffer>(new AttribComparer());
+        public Dictionary<VFXAttribute, int> localAttribs;
 
         public HashSet<VFXExpression> globalUniforms = new HashSet<VFXExpression>();
         public HashSet<VFXExpression> initUniforms = new HashSet<VFXExpression>();
@@ -467,10 +307,7 @@ namespace UnityEditor.Experimental
 
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
-            {
-                updateHasRand = true;
                 attribs[CommonAttrib.Seed] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
-            }
 
             // Find unitialized attribs and remove 
             List<VFXAttribute> unitializedAttribs = new List<VFXAttribute>(); 
@@ -489,8 +326,31 @@ namespace UnityEditor.Experimental
             foreach (var attrib in unitializedAttribs)
                 attribs[attrib] = attribs[attrib] | 0x3;
 
+            // Find local attributes and store them aside (as they dont go into buffers but are used locally in shaders)
+            Dictionary<VFXAttribute, int> localAttribs = new Dictionary<VFXAttribute, int>(new AttribComparer()); 
+            foreach (var attrib in attribs)
+            {
+                // local attribs are the ones used only in init or in output
+                switch (attrib.Value)
+                {
+                    case 0x01: // Init R
+                    case 0x03: // Init RW
+                    case 0x10: // Output R
+                    case 0x30: // Output RW
+                        localAttribs.Add(attrib.Key,attrib.Value);
+                        break;
+                }
+            }
+
+            foreach (var attrib in localAttribs)
+            {
+                Debug.Log("attrib " + attrib.Key.m_Name + " is local (usage:" + attrib.Value + ")");
+                attribs.Remove(attrib.Key);
+            }
+           
+
             // Sort attrib by usage and by size
-            List<AttributeBuffer> buffers = VFXAttributePacker.Pack(attribs,6);
+            List<AttributeBuffer> buffers = VFXAttributePacker.Pack(attribs,6); // 8 being the maximum UAV, reserve 2 for dead list and flags
 
             if (buffers.Count > 6)
             {
@@ -621,6 +481,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.hasKill = updateHasKill;
             shaderMetaData.attributeBuffers = buffers;
             shaderMetaData.attribToBuffer = attribToBuffer;
+            shaderMetaData.localAttribs = localAttribs;
             shaderMetaData.globalUniforms = globalUniforms;
             shaderMetaData.initUniforms = initUniforms;
             shaderMetaData.updateUniforms = updateUniforms;
@@ -637,8 +498,6 @@ namespace UnityEditor.Experimental
             ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Generate shader code");
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
             string outputShaderSource = WriteOutputShader(system,shaderMetaData,outputGenerator);
-
-            
 
             string shaderName = "";
             if (VFXEditor.asset != null)
@@ -661,49 +520,35 @@ namespace UnityEditor.Experimental
             string computeShaderPath = shaderPath + shaderName + ".compute";
             string outputShaderPath = shaderPath + shaderName + ".shader";
 
-            string oldShaderSource;
+            string oldShaderSource = "";
             try
             {
                 oldShaderSource = System.IO.File.ReadAllText(computeShaderPath);
             }
-            catch(Exception)
-            {
-                oldShaderSource = "";
-            }
+            catch (Exception) {}
 
-            string oldOutputShaderSource;
+            string oldOutputShaderSource = "";
             try
             {
                 oldOutputShaderSource = System.IO.File.ReadAllText(outputShaderPath);
             }
-            catch(Exception)
-            {
-                oldOutputShaderSource = "";
-            }
+            catch (Exception) {}
 
             string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
             string renderShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
 
             ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Write simulation shader");
-            if (oldShaderSource != shaderSource)
+            if (oldShaderSource != shaderSource) // Rewrite shader only if source has changed, this saves a lot of processing time!
             {
                 System.IO.File.WriteAllText(computeShaderPath, shaderSource);
                 AssetDatabase.ImportAsset(simulationShaderPath);
             }
-            else
-            {
-                //Debug.Log("Dont rewrite simulation shader as source has not changed");
-            }
 
             ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Write output shader");
-            if (oldOutputShaderSource != outputShaderSource)
+            if (oldOutputShaderSource != outputShaderSource) // Rewrite shader only if source has changed, this saves a lot of processing time!
             {
                 System.IO.File.WriteAllText(outputShaderPath, outputShaderSource);
                 AssetDatabase.ImportAsset(renderShaderPath);
-            }
-            else
-            {
-                //Debug.Log("Dont rewrite output shader as source has not changed");
             }
 
             ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Reload shaders");
@@ -711,10 +556,6 @@ namespace UnityEditor.Experimental
             Shader outputShader = AssetDatabase.LoadAssetAtPath<Shader>(renderShaderPath);
 
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader,outputShader);
-
-            //rtData.m_Material = new Material(outputShader);
-            //AssetDatabase.CreateAsset(rtData.m_Material, materialPath);
-            //AssetDatabase.ImportAsset(materialPath);
 
             rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
             rtData.hasKill = shaderMetaData.hasKill;
@@ -751,9 +592,6 @@ namespace UnityEditor.Experimental
             rtData.outputUniforms = shaderMetaData.outputParamToName;
 
             rtData.m_RawExpressions = rawExpressions;
-
-            // Finally set uniforms
-            //rtData.UpdateAllUniforms();
 
             return rtData;
         }
@@ -821,10 +659,6 @@ namespace UnityEditor.Experimental
             foreach (var param in uniforms)
                 if (param.ValueType == VFXValueType.kColorGradient || param.ValueType == VFXValueType.kCurve)
                     signals.Add((VFXValue)param);
-
-            // Remove samplers from uniforms
-            //foreach (var param in signals)
-            //   uniforms.Remove(param);
 
             return signals;
         }
@@ -986,22 +820,20 @@ namespace UnityEditor.Experimental
             {
                 builder.WriteLine("float rand(inout uint seed)");
                 builder.EnterScope();
+
                 builder.WriteLine("seed = 1664525 * seed + 1013904223;");
                 builder.WriteLine("return float(seed) / 4294967296.0;");
-                builder.ExitScope();
-                builder.WriteLine();
 
                 // XOR Style 
                 /*
-                builder.WriteLine("float rand(inout uint seed)");
-                builder.EnterScope();
                 builder.WriteLine("seed ^= (seed << 13);");
                 builder.WriteLine("seed ^= (seed >> 17);");
                 builder.WriteLine("seed ^= (seed << 5);");
                 builder.WriteLine("return float(seed) / 4294967296.0;");
+                */
+
                 builder.ExitScope();
                 builder.WriteLine();
-                */
             }
 
             if (data.generatedTextureData.HasColorTexture())
@@ -1058,6 +890,8 @@ namespace UnityEditor.Experimental
                     builder.WriteLine(")0;");
                 }
                 builder.WriteLine();
+
+                builder.WriteLocalAttribDeclaration(data, 0x3);
 
                 // Init random
                 if (data.hasRand)
@@ -1153,6 +987,8 @@ namespace UnityEditor.Experimental
                     }
                 }
                 builder.WriteLine();
+
+                builder.WriteLocalAttribDeclaration(data, 0xC);
 
                 // Add phase shift
                 if (HasPhaseShift)
@@ -1315,6 +1151,8 @@ namespace UnityEditor.Experimental
                     builder.WriteLine("[index];");
                 }
             builder.WriteLine();
+
+            builder.WriteLocalAttribDeclaration(data, 0x30);
 
             if (system.HasCameraFade())
             {

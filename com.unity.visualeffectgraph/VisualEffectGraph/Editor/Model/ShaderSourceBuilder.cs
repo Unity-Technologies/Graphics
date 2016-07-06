@@ -260,7 +260,6 @@ namespace UnityEditor.Experimental
             ShaderMetaData data)
         {
             Dictionary<VFXExpression, string> paramToName = data.paramToName;
-            Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer = data.attribToBuffer;
 
             Write(block.Desc.FunctionName);
             Write("(");
@@ -270,12 +269,7 @@ namespace UnityEditor.Experimental
             {
                 Write(separator);
                 separator = ',';
-
-                int index = attribToBuffer[arg].Index;
-                Write("attrib");
-                Write(index);
-                Write(".");
-                Write(arg.m_Name);
+                WriteAttrib(arg, data);
             }
 
             List<VFXNamedValue> namedValues = new List<VFXNamedValue>();
@@ -348,11 +342,33 @@ namespace UnityEditor.Experimental
 
         public void WriteAttrib(VFXAttribute attrib, ShaderMetaData data)
         {
-            int attribIndex = data.attribToBuffer[attrib].Index;
-            Write("attrib");
-            Write(attribIndex);
-            Write(".");
-            Write(attrib.m_Name);
+            AttributeBuffer buffer;
+            if (data.attribToBuffer.TryGetValue(attrib,out buffer))
+            {
+                Write("attrib");
+                Write(buffer.Index);
+                Write(".");
+                Write(attrib.m_Name);
+            }
+            else // local attribute (dont even check if it is in the localAttrib dictionary but we should for consistency)
+            {
+                Write("local_");
+                Write(attrib.m_Name);
+            }
+        }
+
+        public void WriteLocalAttribDeclaration(ShaderMetaData data,int flag)
+        {
+            bool hasWritten = false;
+            foreach (var attrib in data.localAttribs)
+                if ((attrib.Value & flag) != 0)
+                {
+                    WriteType(attrib.Key.m_Type);
+                    WriteLineFormat(" local_{0};", attrib.Key.m_Name);
+                    hasWritten = true;
+                }
+            if (hasWritten)
+                WriteLine();
         }
 
         public void WriteKernelHeader(string name)
