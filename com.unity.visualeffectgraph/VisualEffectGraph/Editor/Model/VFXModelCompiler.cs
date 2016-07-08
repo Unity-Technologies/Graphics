@@ -22,6 +22,7 @@ namespace UnityEditor.Experimental
         public static VFXAttribute AngularVelocity =    new VFXAttribute("angularVelocity", VFXValueType.kFloat);
         public static VFXAttribute TexIndex =           new VFXAttribute("texIndex", VFXValueType.kFloat);
         public static VFXAttribute Pivot =              new VFXAttribute("pivot", VFXValueType.kFloat3);
+        public static VFXAttribute ParticleId =         new VFXAttribute("particleId", VFXValueType.kUint);
     }
 
     public class VFXSystemRuntimeData
@@ -182,6 +183,11 @@ namespace UnityEditor.Experimental
         public VFXGeneratedTextureData generatedTextureData = new VFXGeneratedTextureData();
 
         public Dictionary<VFXExpression, VFXExpression> extraUniforms = new Dictionary<VFXExpression, VFXExpression>();
+
+        public bool HasAttribute(VFXAttribute attrib) // TODO Check against usage ?
+        {
+            return attribToBuffer.ContainsKey(attrib) || localAttribs.ContainsKey(attrib);
+        }
     }
 
     public static class VFXModelCompiler
@@ -906,6 +912,12 @@ namespace UnityEditor.Experimental
                     builder.WriteAttrib(CommonAttrib.Seed, data);
                     builder.WriteLine(" = seed;");
                     builder.WriteLine();
+                }
+
+                if (data.HasAttribute(CommonAttrib.ParticleId))
+                {
+                    builder.WriteAttrib(CommonAttrib.ParticleId, data);
+                    builder.WriteLine(" = spawnIndex + id.x;");
                 }
 
                 // Init phase

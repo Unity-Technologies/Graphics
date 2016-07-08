@@ -209,4 +209,31 @@ float3 binormal = cross(normal,Cylinder_direction);
 position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_direction * (u1 * Cylinder_height) + Cylinder_position;";
         }
     }
+
+    class VFXBlockPositionCylinderSurfaceSequence : VFXBlockType
+    {
+    public VFXBlockPositionCylinderSurfaceSequence()
+        {
+            Name = "Cylinder Surface Sequence";
+            Icon = "Cylinder";
+            Category = "Position";
+
+            Add(VFXProperty.Create<VFXCylinderType>("Cylinder"));
+            Add(VFXProperty.Create<VFXFloatType>("RotationalRate"));
+            Add(VFXProperty.Create<VFXFloatType>("LinearRate"));
+
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+            Add(new VFXAttribute(CommonAttrib.ParticleId, false));
+
+            Source = @"
+float u1 = fmod(LinearRate * particleId,Cylinder_height) - (Cylinder_height * 0.5f);
+float u2 = radians(RotationalRate * particleId);
+float2 sincosTheta;
+sincos(u2,sincosTheta.x,sincosTheta.y);
+sincosTheta *= Cylinder_radius;
+float3 normal = normalize(cross(Cylinder_direction,Cylinder_direction.zxy));
+float3 binormal = cross(normal,Cylinder_direction);
+position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_direction * u1 + Cylinder_position;";
+        }
+    }
 }
