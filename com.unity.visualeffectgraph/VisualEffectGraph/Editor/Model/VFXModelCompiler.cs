@@ -514,7 +514,7 @@ namespace UnityEditor.Experimental
             VFXEditor.Log("\n*********************");
 
             // Write to file
-            string shaderPath = Application.dataPath + "/VFXEditor/Generated/";
+            string shaderPath = VFXEditor.GlobalShaderDir();
             System.IO.Directory.CreateDirectory(shaderPath);
 
             string computeShaderPath = shaderPath + shaderName + ".compute";
@@ -534,8 +534,9 @@ namespace UnityEditor.Experimental
             }
             catch (Exception) {}
 
-            string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
-            string renderShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
+            string localShaderPath = VFXEditor.LocalShaderDir() + shaderName;
+            string simulationShaderPath = localShaderPath + ".compute";
+            string renderShaderPath = localShaderPath + ".shader";
 
             ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Write simulation shader");
             if (oldShaderSource != shaderSource) // Rewrite shader only if source has changed, this saves a lot of processing time!

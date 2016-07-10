@@ -14,6 +14,10 @@ namespace UnityEditor.Experimental
 {
     public class VFXEditor : EditorWindow
     {
+        public static readonly string ShaderDir = "/VFXShaders/";
+        public static string GlobalShaderDir()  { return Application.dataPath + VFXEditor.ShaderDir; }
+        public static string LocalShaderDir()   { return "Assets" + ShaderDir; }
+
         public static VFXEdResources Resources
         {
             get
@@ -118,9 +122,6 @@ namespace UnityEditor.Experimental
         private VFXEdDataSource m_DataSource;
 
         private bool m_bShowHelp = false;
-        private bool m_CannotPreview = false;
-
-        private Vector2 m_DebugLogScroll = Vector2.zero;
 
         private VFX.VFXBlockLibrary m_BlockLibrary;
 

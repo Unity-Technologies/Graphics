@@ -591,13 +591,12 @@ namespace UnityEditor.Experimental
             string shaderName = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(VFXEditor.asset));
             shaderName += m_ID;
 
-            string simulationShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".compute";
-            string outputShaderPath = "Assets/VFXEditor/Generated/" + shaderName + ".shader";
-            string materialPath = "Assets/VFXEditor/Generated/" + shaderName + ".mat";
+            string localShaderPath = VFXEditor.LocalShaderDir() + shaderName;
+            string simulationShaderPath = localShaderPath + ".compute";
+            string outputShaderPath = localShaderPath + ".shader";
 
             AssetDatabase.DeleteAsset(simulationShaderPath);
             AssetDatabase.DeleteAsset(outputShaderPath);
-            AssetDatabase.DeleteAsset(materialPath);
 
             VFXEditor.Graph.systems.Invalidate(VFXElementModel.InvalidationCause.kParamChanged); // TMP Trigger a uniform reload as importing asset cause material properties to be invalidated
         }
