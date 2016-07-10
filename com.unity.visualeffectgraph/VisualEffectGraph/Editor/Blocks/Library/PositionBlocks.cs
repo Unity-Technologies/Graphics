@@ -93,10 +93,7 @@ position = mul(box,float4(position,1.0f)).xyz;";
             Source = @"
 float u1 = 2.0 * RAND - 1.0;
 float u2 = UNITY_TWO_PI * RAND;
-float2 sincosTheta;
-sincos(u2,sincosTheta.x,sincosTheta.y);
-sincosTheta *= sqrt(1.0 - u1*u1);
-position = (float3(sincosTheta,u1) * Sphere_radius) + Sphere_center;";
+position = VFXPositionOnSphereSurface(Sphere,u1,u2);";
         }
     }
 
@@ -116,10 +113,7 @@ position = (float3(sincosTheta,u1) * Sphere_radius) + Sphere_center;";
 float u1 = 2.0 * RAND - 1.0;
 float u2 = UNITY_TWO_PI * RAND;
 float u3 = pow(RAND,1.0/3.0);
-float2 sincosTheta;
-sincos(u2,sincosTheta.x,sincosTheta.y);
-sincosTheta *= sqrt(1.0 - u1*u1);
-position = float3(sincosTheta,u1) * (u3 * Sphere_radius) + Sphere_center;";
+position = VFXPositionOnSphere(Sphere,u1,u2,u3);";
         }
     }
 
@@ -177,12 +171,7 @@ position += mul(Transform,float4(pos,1.0f)).xyz;";
 float u1 = 1.0 * RAND - 0.5;
 float u2 = UNITY_TWO_PI * RAND;
 float u3 = sqrt(RAND);
-float2 sincosTheta;
-sincos(u2,sincosTheta.x,sincosTheta.y);
-sincosTheta *= u3 * Cylinder_radius;
-float3 normal = normalize(cross(Cylinder_direction,Cylinder_direction.zxy));
-float3 binormal = cross(normal,Cylinder_direction);
-position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_direction * (u1 * Cylinder_height) + Cylinder_position;";
+position = VFXPositionOnCylinder(Cylinder,u1,u2,u3);";
         }
     }
 
@@ -201,12 +190,7 @@ position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_directio
             Source = @"
 float u1 = 1.0 * RAND - 0.5;
 float u2 = UNITY_TWO_PI * RAND;
-float2 sincosTheta;
-sincos(u2,sincosTheta.x,sincosTheta.y);
-sincosTheta *= Cylinder_radius;
-float3 normal = normalize(cross(Cylinder_direction,Cylinder_direction.zxy));
-float3 binormal = cross(normal,Cylinder_direction);
-position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_direction * (u1 * Cylinder_height) + Cylinder_position;";
+position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);";
         }
     }
 
@@ -226,14 +210,9 @@ position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_directio
             Add(new VFXAttribute(CommonAttrib.ParticleId, false));
 
             Source = @"
-float u1 = fmod(LinearRate * particleId,Cylinder_height) - (Cylinder_height * 0.5f);
+float u1 = fmod(LinearRate * particleId,1.0f) - 0.5f;
 float u2 = radians(RotationalRate * particleId);
-float2 sincosTheta;
-sincos(u2,sincosTheta.x,sincosTheta.y);
-sincosTheta *= Cylinder_radius;
-float3 normal = normalize(cross(Cylinder_direction,Cylinder_direction.zxy));
-float3 binormal = cross(normal,Cylinder_direction);
-position = normal * sincosTheta.x + binormal * sincosTheta.y + Cylinder_direction * u1 + Cylinder_position;";
+position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);";
         }
     }
 }

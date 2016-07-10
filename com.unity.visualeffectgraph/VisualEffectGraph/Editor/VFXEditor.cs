@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental
 {
     public class VFXEditor : EditorWindow
     {
-        public static readonly string ShaderDir = "/VFXShaders/";
+        public static readonly string ShaderDir = "/VFXShaders/Generated/";
         public static string GlobalShaderDir()  { return Application.dataPath + VFXEditor.ShaderDir; }
         public static string LocalShaderDir()   { return "Assets" + ShaderDir; }
 
