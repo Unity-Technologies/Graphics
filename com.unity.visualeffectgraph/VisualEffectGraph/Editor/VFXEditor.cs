@@ -181,7 +181,7 @@ namespace UnityEditor.Experimental
 
         void OnDisable()
         {
-            SaveAsset();
+            SetCurrentAsset(null);
             DestroyGraph();
 
             Selection.selectionChanged -= OnSelectionChanged;
@@ -376,6 +376,16 @@ namespace UnityEditor.Experimental
 
             if (m_CurrentAsset != asset || s_Graph == null || force) 
             {
+                // Made all systems visible
+                if (s_Graph != null)
+                {
+                    ForeachComponents(c =>
+                    {
+                        for (int i = 0; i < s_Graph.systems.GetNbChildren(); ++i)
+                            c.SetHidden(s_Graph.systems.GetChild(i).Id, false);
+                    });
+                }
+
                 if (m_CurrentAsset != null)
                 {
                     SaveAsset();

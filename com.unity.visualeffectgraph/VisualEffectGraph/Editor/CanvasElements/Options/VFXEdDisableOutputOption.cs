@@ -12,17 +12,18 @@ namespace UnityEditor.Experimental
     internal class VFXEdDisableOutputOption : VFXEdNodeOption
     {
         private Color m_Color = VFXEditor.styles.GetContextColor(VFXContextDesc.Type.kTypeOutput);
+        private VFXContextModel m_Model;
 
         internal VFXEdDisableOutputOption(VFXContextModel model) 
             : base(true) 
         {
-            // TODO : replace base(true) by model.isEnabled;
+            m_Model = model;
             translation = new Vector3(26, 26);
         }
 
         public override void UpdateModel(UpdateType t)
         {
-            // TODO : Disable Here!
+            VFXEditor.ForeachComponents(c => c.SetHidden(m_Model.GetOwner().Id, !Enabled));
         }
 
         protected override Color GetColor()
