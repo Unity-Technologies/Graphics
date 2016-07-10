@@ -5,12 +5,62 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Experimental;
 using UnityEditor.Experimental.VFX;
 
 namespace UnityEngine.Experimental.VFX
 {
     public struct VFXAttribute
     {
+        [Flags]
+        public enum Usage
+        {
+            kNone = 0,
+
+            kInitR = 1 << 0,
+            kInitW = 1 << 1,
+            kUpdateR = 1 << 2,
+            kUpdateW = 1 << 3,
+            kOutputR = 1 << 4,
+            kOutputW = 1 << 5, 
+
+            kInitRW = kInitR | kInitW,
+            kUpdateRW = kUpdateR | kUpdateW,
+            kOutputRW = kOutputR | kOutputW,
+        }
+
+        public static Usage ContextToUsage(VFXContextDesc.Type context,bool rw)
+        {
+            switch(context)
+            {
+                case VFXContextDesc.Type.kTypeInit:
+                    return rw ? Usage.kInitRW : Usage.kInitR;
+                case VFXContextDesc.Type.kTypeUpdate:
+                    return rw ? Usage.kUpdateRW : Usage.kUpdateR;
+                case VFXContextDesc.Type.kTypeOutput:
+                    return rw ? Usage.kOutputRW : Usage.kOutputR;
+            }
+
+            throw new ArgumentException("Invalid context type");
+        }
+
+        public static bool Used(Usage usage, VFXContextDesc.Type context)
+        {
+            return (usage & ContextToUsage(context, true)) != 0;
+        }
+
+        public static bool Writable(Usage usage, VFXContextDesc.Type context)
+        {
+            Usage writableFlag = Usage.kNone;
+            switch (context)
+            {
+                case VFXContextDesc.Type.kTypeInit:     writableFlag = Usage.kInitW; break;
+                case VFXContextDesc.Type.kTypeUpdate:   writableFlag = Usage.kUpdateW; break;
+                case VFXContextDesc.Type.kTypeOutput:   writableFlag = Usage.kOutputW; break;
+            }
+            return (usage & writableFlag) != 0;
+        }
+
         public VFXAttribute(string name, VFXValueType type, bool writable = false)
         {
             m_Name = name;

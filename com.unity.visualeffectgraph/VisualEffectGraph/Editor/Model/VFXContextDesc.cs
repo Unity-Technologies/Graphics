@@ -225,7 +225,7 @@ namespace UnityEditor.Experimental
 
         private class ShaderGenerator : VFXShaderGeneratorModule
         {
-            public override bool UpdateAttributes(Dictionary<VFXAttribute, int> attribs, ref VFXBlockDesc.Flag flags)
+            public override bool UpdateAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, ref VFXBlockDesc.Flag flags)
             {
                 if (attribs.ContainsKey(CommonAttrib.Velocity))
                 {

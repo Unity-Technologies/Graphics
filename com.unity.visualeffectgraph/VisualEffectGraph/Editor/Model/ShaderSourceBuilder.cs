@@ -357,11 +357,11 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void WriteLocalAttribDeclaration(ShaderMetaData data,int flag)
+        public void WriteLocalAttribDeclaration(ShaderMetaData data,VFXContextDesc.Type context)
         {
             bool hasWritten = false;
             foreach (var attrib in data.localAttribs)
-                if ((attrib.Value & flag) != 0)
+                if (VFXAttribute.Used(attrib.Value,context))
                 {
                     WriteType(attrib.Key.m_Type);
                     WriteLineFormat(" local_{0};", attrib.Key.m_Name);

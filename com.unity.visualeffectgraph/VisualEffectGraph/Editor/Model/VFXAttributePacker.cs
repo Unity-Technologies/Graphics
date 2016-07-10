@@ -10,9 +10,9 @@ namespace UnityEditor.Experimental
     class VFXAttributePacker
     {
         // This code is dirty, clean it
-        public static List<AttributeBuffer> Pack(Dictionary<VFXAttribute, int> attribs, int MaxBuffers)
+        public static List<AttributeBuffer> Pack(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, int MaxBuffers)
         {
-            var sortedAttribs = new Dictionary<int, List<VFXAttribute>[]>();
+            var sortedAttribs = new Dictionary<VFXAttribute.Usage, List<VFXAttribute>[]>();
             foreach (var attrib in attribs)
             {
                 List<VFXAttribute>[] attribsForUsage;

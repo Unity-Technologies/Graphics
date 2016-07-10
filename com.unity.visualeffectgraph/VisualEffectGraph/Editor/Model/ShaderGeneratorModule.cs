@@ -8,17 +8,12 @@ namespace UnityEditor.Experimental
 {
     public class VFXShaderGeneratorModule
     {
-        private static int GetFlag(VFXContextDesc.Type type, bool writable = false)
+        protected static bool UpdateFlag(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, VFXAttribute attrib, VFXContextDesc.Type type, bool writable = false)
         {
-            return (writable ? 0x3 : 0x1) << (((int)type - 1) << 1);
-        }
-
-        protected static bool UpdateFlag(Dictionary<VFXAttribute, int> attribs, VFXAttribute attrib, VFXContextDesc.Type type, bool writable = false)
-        {
-            int attribFlag;
+            VFXAttribute.Usage attribFlag;
             if (attribs.TryGetValue(attrib, out attribFlag))
             {
-                attribFlag |= GetFlag(type,writable);
+                attribFlag |= VFXAttribute.ContextToUsage(type,writable);
                 attribs[attrib] = attribFlag;
                 return true;
             }
@@ -26,18 +21,18 @@ namespace UnityEditor.Experimental
             return false;
         }
 
-        protected static void AddOrUpdateFlag(Dictionary<VFXAttribute, int> attribs, VFXAttribute attrib, VFXContextDesc.Type type, bool writable = false)
+        protected static void AddOrUpdateFlag(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, VFXAttribute attrib, VFXContextDesc.Type type, bool writable = false)
         {
             if (!UpdateFlag(attribs,attrib,type,writable))
-                attribs[attrib] = GetFlag(type, writable);
+                attribs[attrib] = VFXAttribute.ContextToUsage(type, writable);
         }
 
-        public virtual bool UpdateAttributes(Dictionary<VFXAttribute, int> attribs, ref VFXBlockDesc.Flag flags)    { return true; }
-        public virtual void UpdateUniforms(HashSet<VFXExpression> uniforms)                                         { }
-        public virtual void UpdateExpressions(HashSet<VFXExpression> expressions)                                   { }
-        public virtual void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data)                         { }
-        public virtual void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)                        { }
-        public virtual void WriteFunctions(ShaderSourceBuilder builder, ShaderMetaData data)                        { }
+        public virtual bool UpdateAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, ref VFXBlockDesc.Flag flags) { return true; }
+        public virtual void UpdateUniforms(HashSet<VFXExpression> uniforms) { }
+        public virtual void UpdateExpressions(HashSet<VFXExpression> expressions) { }
+        public virtual void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data) { }
+        public virtual void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data) { }
+        public virtual void WriteFunctions(ShaderSourceBuilder builder, ShaderMetaData data) { }
     } 
 
     public class VFXOutputShaderGeneratorModule : VFXShaderGeneratorModule

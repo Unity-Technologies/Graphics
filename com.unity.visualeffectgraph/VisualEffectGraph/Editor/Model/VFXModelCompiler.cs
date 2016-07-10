@@ -70,7 +70,7 @@ namespace UnityEditor.Experimental
 
     public class AttributeBuffer
     {
-        public AttributeBuffer(int index, int usage)
+        public AttributeBuffer(int index, VFXAttribute.Usage usage)
         {
             m_Index = index;
             m_Usage = usage;
@@ -95,15 +95,9 @@ namespace UnityEditor.Experimental
         }
 
         // return usage per pass + RW
-        public int Usage
+        public VFXAttribute.Usage Usage
         {
             get { return m_Usage; }
-        }
-
-        // return usage per pass
-        public int MergedUsage
-        {
-            get { return ((m_Usage & 0xAA >> 1) | m_Usage) & 0x55; }
         }
 
         public int Count
@@ -118,12 +112,12 @@ namespace UnityEditor.Experimental
 
         public bool Used(VFXContextDesc.Type type)
         {
-            return (m_Usage & (0x3 << (((int)type - 1) * 2))) != 0;
+            return VFXAttribute.Used(m_Usage, type);
         }
 
         public bool Writable(VFXContextDesc.Type type)
         {
-            return (m_Usage & (0x2 << (((int)type - 1) * 2))) != 0;
+            return VFXAttribute.Writable(m_Usage,type);
         }
 
         public int GetSizeInBytes()
@@ -135,7 +129,7 @@ namespace UnityEditor.Experimental
         }
 
         int m_Index;
-        int m_Usage;
+        VFXAttribute.Usage m_Usage;
         List<VFXAttribute> m_Attribs;
     }
 
@@ -164,7 +158,7 @@ namespace UnityEditor.Experimental
 
         public List<AttributeBuffer> attributeBuffers = new List<AttributeBuffer>();
         public Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer = new Dictionary<VFXAttribute, AttributeBuffer>(new AttribComparer());
-        public Dictionary<VFXAttribute, int> localAttribs;
+        public Dictionary<VFXAttribute, VFXAttribute.Usage> localAttribs;
 
         public HashSet<VFXExpression> globalUniforms = new HashSet<VFXExpression>();
         public HashSet<VFXExpression> initUniforms = new HashSet<VFXExpression>();
@@ -271,10 +265,10 @@ namespace UnityEditor.Experimental
             // ATTRIBUTES (TODO Refactor the code !)
             ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Generate attributes");
 
-            Dictionary<VFXAttribute, int> attribs = new Dictionary<VFXAttribute, int>(new AttribComparer());
+            Dictionary<VFXAttribute, VFXAttribute.Usage> attribs = new Dictionary<VFXAttribute, VFXAttribute.Usage>(new AttribComparer());
 
-            CollectAttributes(attribs, initBlocks, 0);
-            CollectAttributes(attribs, updateBlocks, 1);
+            CollectAttributes(attribs, initBlocks, VFXContextDesc.Type.kTypeInit);
+            CollectAttributes(attribs, updateBlocks, VFXContextDesc.Type.kTypeUpdate);
 
             // Update flags with generators
             VFXBlockDesc.Flag initGeneratorFlags = VFXBlockDesc.Flag.kNone;
@@ -298,9 +292,9 @@ namespace UnityEditor.Experimental
             {
                 if (attribs.ContainsKey(CommonAttrib.Position) && attribs.ContainsKey(CommonAttrib.Velocity))
                 {
-                    attribs[CommonAttrib.Phase] = 0x7; // Add phase attribute   
-                    attribs[CommonAttrib.Position] = attribs[CommonAttrib.Position] | 0xF; // Ensure position is writable in init and update
-                    attribs[CommonAttrib.Velocity] = attribs[CommonAttrib.Velocity] | 0x7; // Ensure velocity is readable in init and update
+                    attribs[CommonAttrib.Phase] = VFXAttribute.Usage.kInitRW | VFXAttribute.Usage.kUpdateR; // Add phase attribute   
+                    attribs[CommonAttrib.Position] = attribs[CommonAttrib.Position] | VFXAttribute.Usage.kInitRW | VFXAttribute.Usage.kUpdateRW; // Ensure position is writable in init and update
+                    attribs[CommonAttrib.Velocity] = attribs[CommonAttrib.Velocity] | VFXAttribute.Usage.kInitRW | VFXAttribute.Usage.kUpdateRW; // Ensure velocity is readable in init and update
 
                     initHasRand = true; // phase needs rand as initialization
                 }
@@ -313,13 +307,13 @@ namespace UnityEditor.Experimental
 
             // Add the seed attribute in case we need PRG
             if (initHasRand || updateHasRand)
-                attribs[CommonAttrib.Seed] = (initHasRand ? 0x3 : 0x0) | (updateHasRand ? 0xC : 0x0);
+                attribs[CommonAttrib.Seed] = (initHasRand ? VFXAttribute.Usage.kInitRW : VFXAttribute.Usage.kNone) | (updateHasRand ? VFXAttribute.Usage.kUpdateRW : VFXAttribute.Usage.kNone);
 
             // Find unitialized attribs and remove 
             List<VFXAttribute> unitializedAttribs = new List<VFXAttribute>(); 
             foreach (var attrib in attribs)
             {
-                if ((attrib.Value & 0x3) == 0) // Unitialized attribute
+                if ((attrib.Value & VFXAttribute.Usage.kInitRW) == 0) // Unitialized attribute
                 {
                     if (attrib.Key.m_Name != "seed" || attrib.Key.m_Name != "age") // Dont log anything for those as initialization is implicit
                         VFXEditor.Log("WARNING: " + attrib.Key.m_Name + " is not initialized. Use default value");
@@ -330,19 +324,19 @@ namespace UnityEditor.Experimental
 
             // Update the usage
             foreach (var attrib in unitializedAttribs)
-                attribs[attrib] = attribs[attrib] | 0x3;
+                attribs[attrib] = attribs[attrib] | VFXAttribute.Usage.kInitRW;
 
             // Find local attributes and store them aside (as they dont go into buffers but are used locally in shaders)
-            Dictionary<VFXAttribute, int> localAttribs = new Dictionary<VFXAttribute, int>(new AttribComparer()); 
+            Dictionary<VFXAttribute, VFXAttribute.Usage> localAttribs = new Dictionary<VFXAttribute, VFXAttribute.Usage>(new AttribComparer()); 
             foreach (var attrib in attribs)
             {
                 // local attribs are the ones used only in init or in output
                 switch (attrib.Value)
                 {
-                    case 0x01: // Init R
-                    case 0x03: // Init RW
-                    case 0x10: // Output R
-                    case 0x30: // Output RW
+                    case VFXAttribute.Usage.kInitR:
+                    case VFXAttribute.Usage.kInitRW:
+                    case VFXAttribute.Usage.kOutputR:
+                    case VFXAttribute.Usage.kOutputRW:
                         localAttribs.Add(attrib.Key,attrib.Value);
                         break;
                 }
@@ -699,15 +693,15 @@ namespace UnityEditor.Experimental
         }
 
         // Collect all attributes from blocks and fills them in attribs
-        public static void CollectAttributes(Dictionary<VFXAttribute, int> attribs, List<VFXBlockModel> blocks, int index)
+        public static void CollectAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, List<VFXBlockModel> blocks, VFXContextDesc.Type context)
         {
             foreach (VFXBlockModel block in blocks)
                 for (int i = 0; i < block.Desc.Attributes.Length; ++i)
                 {
                     VFXAttribute attr = block.Desc.Attributes[i];
-                    int usage;
+                    VFXAttribute.Usage usage;
                     attribs.TryGetValue(attr, out usage);
-                    int currentUsage = (0x1 | (attr.m_Writable ? 0x2 : 0x0)) << (index * 2);
+                    VFXAttribute.Usage currentUsage = VFXAttribute.ContextToUsage(context, attr.m_Writable);
                     attribs[attr] = usage | currentUsage;
                 }
         }
@@ -897,7 +891,7 @@ namespace UnityEditor.Experimental
                 }
                 builder.WriteLine();
 
-                builder.WriteLocalAttribDeclaration(data, 0x3);
+                builder.WriteLocalAttribDeclaration(data, VFXContextDesc.Type.kTypeInit);
 
                 // Init random
                 if (data.hasRand)
@@ -1000,7 +994,7 @@ namespace UnityEditor.Experimental
                 }
                 builder.WriteLine();
 
-                builder.WriteLocalAttribDeclaration(data, 0xC);
+                builder.WriteLocalAttribDeclaration(data, VFXContextDesc.Type.kTypeUpdate);
 
                 // Add phase shift
                 if (HasPhaseShift)
@@ -1164,7 +1158,7 @@ namespace UnityEditor.Experimental
                 }
             builder.WriteLine();
 
-            builder.WriteLocalAttribDeclaration(data, 0x30);
+            builder.WriteLocalAttribDeclaration(data, VFXContextDesc.Type.kTypeOutput);
 
             if (system.HasCameraFade())
             {
