@@ -244,7 +244,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public void OnGUI(EditorWindow parent, Rect clientRectangle)
+        public virtual void OnGUI(EditorWindow parent, Rect clientRectangle)
         {
             m_ClientRectangle = clientRectangle;
 

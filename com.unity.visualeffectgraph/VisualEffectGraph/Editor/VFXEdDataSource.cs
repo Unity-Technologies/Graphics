@@ -16,11 +16,37 @@ namespace UnityEditor.Experimental
         private Dictionary<VFXElementModel, VFXModelHolder> m_ModelToUI = new Dictionary<VFXElementModel, VFXModelHolder>();
         private Dictionary<VFXPropertySlot, VFXUIPropertyAnchor> m_SlotToUI = new Dictionary<VFXPropertySlot, VFXUIPropertyAnchor>();
 
+        private bool m_Dirty = true;
+        private bool m_Resync = true;
+
+        public void RequestResync()
+        {
+            m_Resync = true;
+        }
+
+        public void ResyncIfNeeded()
+        {
+            if (m_Resync)
+            {
+                ResyncViews();
+                m_Resync = false;
+            }
+        }
+
+        public bool FlushDirty()
+        {
+            bool oldDirty = m_Dirty;
+            m_Dirty = false;
+            return oldDirty;
+        }
+
         public void ClearUI()
         {
             m_Elements.Clear();
             m_ModelToUI.Clear();
             m_SlotToUI.Clear();
+
+            m_Dirty = true;
         }
 
         public void ResyncViews()
@@ -157,6 +183,9 @@ namespace UnityEditor.Experimental
                 SyncSpawnerBlock((VFXSpawnerBlockModel)model,recursive);
             else if (modelType == typeof(VFXEventModel))
                 SyncEventNode((VFXEventModel)model);
+
+            m_Resync = true; // This is a hack to force a full resync as there are issues with partial resync
+            m_Dirty = true;
         }
 
         public void SyncSystem(VFXSystemModel model,bool recursive = false)
@@ -176,6 +205,18 @@ namespace UnityEditor.Experimental
             }
 
             // Then recreate edges
+            // spawners
+            if (children.Count > 0)
+            {
+                foreach (var spawner in children[0].GetSpawners())
+                {
+                    var spawnerUI = TryGetUI<VFXUISpawnerNode>(spawner);
+                    if (spawnerUI != null)
+                        m_Elements.Add(new FlowEdge(this, spawnerUI.outputs[0], childrenUI[0].inputs[0]));
+                }
+            }
+            
+            // linked context
             for (int i = 0; i < childrenUI.Count - 1; ++i)
             {
                 var output = childrenUI[i].outputs[0];

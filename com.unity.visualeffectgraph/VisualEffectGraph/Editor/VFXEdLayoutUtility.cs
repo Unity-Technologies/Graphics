@@ -35,6 +35,7 @@ namespace UnityEditor.Experimental
                 VFXContextModel context = system.GetChild(i);
                 VFXEdContextNode node = datasource.GetUI<VFXEdContextNode>(context);
                 node.translation = pos;
+                node.UpdateModel(UpdateType.Update);
                 pos.y += node.scale.y + 50;
             }
             

@@ -156,6 +156,18 @@ namespace UnityEditor.Experimental
             return false;
         }
 
+        public virtual void OnGUI(EditorWindow parent, Rect clientRectangle)
+        {
+            m_DataSource.ResyncIfNeeded();
+            if (m_DataSource.FlushDirty())
+            {
+                ReloadData();
+                Repaint();
+            }
+
+            base.OnGUI(parent, clientRectangle);
+        }
+
 
         public void ShowCanvasMenu(Vector2 position)
         {

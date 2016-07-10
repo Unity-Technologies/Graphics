@@ -110,11 +110,8 @@ namespace UnityEditor.Experimental
             bool needsReinit = false;
 
             for (int i = 0; i < GetNbChildren(); ++i)
-                if (GetChild(i).NeedsComponentUpdate())
-                {
-                    GetChild(i).UpdateComponentSystem();
+                if (GetChild(i).NeedsComponentUpdate() && GetChild(i).UpdateComponentSystem())
                     m_NeedsNativeDataGeneration = true;
-                }
 
             try
             {
@@ -887,6 +884,8 @@ namespace UnityEditor.Experimental
             if (rtData == null)
                 return false;
 
+            m_ForceComponentUpdate = false;
+
             if (VFXEditor.asset != null)
             {
                 VFXEditor.asset.SetSystem(
@@ -903,8 +902,7 @@ namespace UnityEditor.Experimental
 
                 VFXEditor.ForeachComponents(c => c.vfxAsset = VFXEditor.asset);
             }  
-
-            m_ForceComponentUpdate = false;
+   
             return true;
         }
 
