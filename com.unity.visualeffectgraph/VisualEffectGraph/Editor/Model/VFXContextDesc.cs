@@ -92,6 +92,28 @@ namespace UnityEditor.Experimental
         public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) { return new VFXPointOutputShaderGeneratorModule(); }
     }
 
+    public class VFXQuadOutputDesc : VFXContextDesc
+    {
+        private const int TextureSlot = 0;
+        private const int FlipBookDimSlot = 1;
+
+        public VFXQuadOutputDesc()
+            : base(Type.kTypeOutput, "Quad Output", true)
+        {
+            m_Properties = new VFXProperty[2];
+            m_Properties[TextureSlot] = new VFXProperty(new VFXTexture2DType(VFXEditor.Resources.DefaultSpriteTexture),"texture");
+            m_Properties[FlipBookDimSlot] = VFXProperty.Create<VFXFloat2Type>("flipBook");
+        }
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model) 
+        {
+            VFXPropertySlot[] values = new VFXPropertySlot[2];
+            values[VFXBillboardOutputShaderGeneratorModule.TextureIndex] = model.GetSlot(TextureSlot);
+            values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
+            return new VFXBillboardOutputShaderGeneratorModule(values, VFXBillboardOutputShaderGeneratorModule.OrientMode.kCustom); 
+        }
+    }
+
     public class VFXBillboardOutputDesc : VFXContextDesc
     {
         private const int TextureSlot = 0;

@@ -37,7 +37,8 @@ namespace UnityEditor.Experimental
             kFaceCamera,
             kVelocity,
             kRotateAxis,
-            kFixed
+            kFixed,
+            kCustom,
         }
 
         public const int TextureIndex = 0;
@@ -88,7 +89,11 @@ namespace UnityEditor.Experimental
             {
                 if(!UpdateFlag(attribs, CommonAttrib.Velocity, VFXContextDesc.Type.kTypeOutput))
                     m_OrientMode = OrientMode.kFaceCamera;
-            } 
+            }
+
+            m_HasFront = UpdateFlag(attribs, CommonAttrib.Front, VFXContextDesc.Type.kTypeOutput);
+            m_HasSide = UpdateFlag(attribs, CommonAttrib.Side, VFXContextDesc.Type.kTypeOutput);
+            m_HasUp = UpdateFlag(attribs, CommonAttrib.Up, VFXContextDesc.Type.kTypeOutput);
 
             return true;
         }
@@ -238,7 +243,7 @@ namespace UnityEditor.Experimental
 
                     builder.WriteLine("float3 front = cameraPos - position;");
                     builder.Write("float3 up = normalize(");
-                    builder.Write(data.paramToName[m_Values[FirstLockedAxisIndex]]);
+                    builder.Write(data.outputParamToName[m_Values[FirstLockedAxisIndex]]);
                     builder.WriteLine(");");
                     builder.WriteLine("float3 side = normalize(cross(front,up));");
 
@@ -249,10 +254,10 @@ namespace UnityEditor.Experimental
                 case OrientMode.kFixed:
 
                     builder.Write("float3 front = ");
-                    builder.Write(data.paramToName[m_Values[SecondLockedAxisIndex]]);
+                    builder.Write(data.outputParamToName[m_Values[SecondLockedAxisIndex]]);
                     builder.Write(";");
                     builder.Write("float3 up = normalize(");
-                    builder.Write(data.paramToName[m_Values[FirstLockedAxisIndex]]);
+                    builder.Write(data.outputParamToName[m_Values[FirstLockedAxisIndex]]);
                     builder.WriteLine(");");
                     builder.WriteLine("float3 side = normalize(cross(front,up));");
 
@@ -260,9 +265,35 @@ namespace UnityEditor.Experimental
                         builder.WriteLine("front = cross(up,side);");
                     break;
 
+                case OrientMode.kCustom:
+
+                    if (m_HasAngle || m_HasPivot)
+                    {          
+                        builder.Write("float3 front = ");
+                        if (m_HasFront)
+                            builder.WriteAttrib(CommonAttrib.Front, data);
+                        else
+                            builder.Write("float3(0.0f,0.0f,1.0f)");
+                        builder.WriteLine(";");
+                    }
+                    
+                    builder.Write("float3 side = ");
+                    if (m_HasSide)
+                        builder.WriteAttrib(CommonAttrib.Side, data);
+                    else
+                        builder.Write("float3(1.0f,0.0f,0.0f)");
+                    builder.WriteLine(";");
+
+                    builder.Write("float3 up = ");
+                    if (m_HasUp)
+                        builder.WriteAttrib(CommonAttrib.Up, data);
+                    else
+                        builder.Write("float3(0.0f,1.0f,0.0f)");
+                    builder.WriteLine(";");
+                    break;
+
                 default: break;
             }
-
 
             builder.WriteLine();
 
@@ -317,7 +348,7 @@ namespace UnityEditor.Experimental
         private static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXValue texture, string uv, bool endLine)
         {
             builder.Write("tex2D(");
-            builder.Write(data.paramToName[texture]);
+            builder.Write(data.outputParamToName[texture]);
             builder.Write(",");
             builder.Write(uv);
             builder.Write(")");
@@ -337,7 +368,7 @@ namespace UnityEditor.Experimental
             else if (m_HasFlipBook)
             {
                 builder.Write("float2 dim = ");
-                builder.Write(data.paramToName[m_Values[FlipbookDimIndex]]);
+                builder.Write(data.outputParamToName[m_Values[FlipbookDimIndex]]);
                 builder.WriteLine(";");
                 builder.WriteLine("float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
 
@@ -389,7 +420,7 @@ namespace UnityEditor.Experimental
                     builder.WriteLine();
 
                     builder.Write("float morphIntensity = ");
-                    builder.Write(data.paramToName[m_Values[MorphIntensityIndex]]);
+                    builder.Write(data.outputParamToName[m_Values[MorphIntensityIndex]]);
                     builder.WriteLine(";");
                     builder.WriteLine("duv1 *= morphIntensity * ratio;");
                     builder.WriteLine("duv2 *= morphIntensity * (ratio - 1.0);");
@@ -425,6 +456,9 @@ namespace UnityEditor.Experimental
         private bool m_HasMotionVectors;
         private bool m_HasPivot;
         private bool m_UseSoftParticles;
+        private bool m_HasFront;
+        private bool m_HasSide;
+        private bool m_HasUp;
     }
 }
 
