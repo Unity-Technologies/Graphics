@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data)
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             builder.Write("float3 worldPos = ");
             builder.WriteAttrib(CommonAttrib.Position, data);
@@ -122,35 +122,6 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public override void UpdateExpressions(HashSet<VFXExpression> expressions)
-        {
-            if (m_HasTexture)
-            {
-                expressions.Add(m_Values[TextureIndex]);
-                if (m_HasFlipBook)
-                {
-                    expressions.Add(m_Values[FlipbookDimIndex]);
-                    if (m_HasMotionVectors)
-                    {
-                        expressions.Add(m_Values[MorphTextureIndex]);
-                        expressions.Add(m_Values[MorphIntensityIndex]);
-                    }
-                }
-            }
-
-            switch(m_OrientMode)
-            {
-                case OrientMode.kRotateAxis:
-                    expressions.Add(m_Values[FirstLockedAxisIndex]);
-                    break;
-                case OrientMode.kFixed:
-                    expressions.Add(m_Values[FirstLockedAxisIndex]);
-                    expressions.Add(m_Values[SecondLockedAxisIndex]);
-                    break;
-                default: break;
-            }
-        }
-
         public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             builder.WriteLine("uint index = (id >> 2) + instanceID * 16384;");
@@ -183,7 +154,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
         }
 
-        public override void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data)
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             const bool CLAMP_SIZE = false; // false atm
 
@@ -216,7 +187,7 @@ namespace UnityEditor.Experimental
 
             if (m_HasPivot)
             {
-                builder.WriteLine("float2 posOffsets = o.offsets.xy - ");
+                builder.Write("float2 posOffsets = o.offsets.xy - ");
                 builder.WriteAttrib(CommonAttrib.Pivot, data);
                 builder.WriteLine(".xy;");
                 builder.WriteLine();
@@ -248,11 +219,15 @@ namespace UnityEditor.Experimental
 
                 case OrientMode.kFaceCamera:
 
-                    string toViewSpaceMatrix = data.system.WorldSpace ? "unity_WorldToCamera" : "UNITY_MATRIX_MV";
                     string toViewSpaceMatrixIT = data.system.WorldSpace ? "unity_WorldToCamera" : "UNITY_MATRIX_IT_MV";
 
                     if (m_HasAngle || m_HasPivot)
-                        builder.WriteLineFormat("float3 front = {0}[2].xyz;", toViewSpaceMatrix);
+                    {
+                        if (data.system.WorldSpace)
+                            builder.WriteLine("float3 front = unity_WorldToCamera[2].xyz;");
+                        else
+                            builder.WriteLine("float3 front = -UNITY_MATRIX_MV[2].xyz;");
+                    }
 
                     builder.WriteLineFormat("float3 side = {0}[0].xyz;", toViewSpaceMatrixIT);
                     builder.WriteLineFormat("float3 up = {0}[1].xyz;", toViewSpaceMatrixIT);
@@ -263,7 +238,7 @@ namespace UnityEditor.Experimental
 
                     builder.WriteLine("float3 front = cameraPos - position;");
                     builder.Write("float3 up = normalize(");
-                    builder.Write(data.outputParamToName[m_Values[FirstLockedAxisIndex]]);
+                    builder.Write(data.paramToName[m_Values[FirstLockedAxisIndex]]);
                     builder.WriteLine(");");
                     builder.WriteLine("float3 side = normalize(cross(front,up));");
 
@@ -274,10 +249,10 @@ namespace UnityEditor.Experimental
                 case OrientMode.kFixed:
 
                     builder.Write("float3 front = ");
-                    builder.Write(data.outputParamToName[m_Values[SecondLockedAxisIndex]]);
+                    builder.Write(data.paramToName[m_Values[SecondLockedAxisIndex]]);
                     builder.Write(";");
                     builder.Write("float3 up = normalize(");
-                    builder.Write(data.outputParamToName[m_Values[FirstLockedAxisIndex]]);
+                    builder.Write(data.paramToName[m_Values[FirstLockedAxisIndex]]);
                     builder.WriteLine(");");
                     builder.WriteLine("float3 side = normalize(cross(front,up));");
 
@@ -306,7 +281,7 @@ namespace UnityEditor.Experimental
 
             if (m_HasPivot)
             {
-                builder.WriteLine("position -= front * ");
+                builder.Write("position -= front * ");
                 builder.WriteAttrib(CommonAttrib.Pivot, data);
                 builder.WriteLine(".z;");
             }
@@ -342,7 +317,7 @@ namespace UnityEditor.Experimental
         private static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXValue texture, string uv, bool endLine)
         {
             builder.Write("tex2D(");
-            builder.Write(data.outputParamToName[texture]);
+            builder.Write(data.paramToName[texture]);
             builder.Write(",");
             builder.Write(uv);
             builder.Write(")");
@@ -362,7 +337,7 @@ namespace UnityEditor.Experimental
             else if (m_HasFlipBook)
             {
                 builder.Write("float2 dim = ");
-                builder.Write(data.outputParamToName[m_Values[FlipbookDimIndex]]);
+                builder.Write(data.paramToName[m_Values[FlipbookDimIndex]]);
                 builder.WriteLine(";");
                 builder.WriteLine("float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
 
@@ -414,7 +389,7 @@ namespace UnityEditor.Experimental
                     builder.WriteLine();
 
                     builder.Write("float morphIntensity = ");
-                    builder.Write(data.outputParamToName[m_Values[MorphIntensityIndex]]);
+                    builder.Write(data.paramToName[m_Values[MorphIntensityIndex]]);
                     builder.WriteLine(";");
                     builder.WriteLine("duv1 *= morphIntensity * ratio;");
                     builder.WriteLine("duv2 *= morphIntensity * (ratio - 1.0);");

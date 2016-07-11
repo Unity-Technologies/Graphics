@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental.VFX
             Name = "Infinite Plane";
             Icon = "Position";
             Category = "Collision";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXPlaneType>("Plane"));
             Add(new VFXProperty(new VFXFloatType(0.66666f), "Elasticity"));
@@ -41,6 +42,7 @@ if (distToPlane >= 0)
             Name = "Sphere";
             Icon = "Sphere";
             Category = "Collision";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXSphereType>("Sphere"));
             Add(new VFXProperty(new VFXFloatType(0.66666f), "Elasticity"));

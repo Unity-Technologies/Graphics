@@ -113,17 +113,18 @@ namespace UnityEngine.Experimental.VFX
 
         private static readonly bool USE_SAFE_FUNCTION_NAME = false; // Set that to true to use longer but function names guaranteed with no collisions
 
-        public string ID                    { get { return m_ID; } }
-        public string FunctionName          { get { return m_FunctionName; } }
-        public string Name                  { get { return m_Name; } }
-        public string Icon                  { get { return m_Icon; } }
-        public string Category              { get { return m_Category; } }
-        public string Description           { get { return m_Description; } }
-        public string Source                { get { return m_Source; } }
-        public VFXProperty[] Properties     { get { return m_Properties; } }
-        public VFXAttribute[] Attributes    { get { return m_Attributes; } }
-        public Flag Flags                   { get { return m_Flags; } }
-        public int SlotHash                 { get { return m_SlotHash; } }
+        public string ID                                { get { return m_ID; } }
+        public string FunctionName                      { get { return m_FunctionName; } }
+        public string Name                              { get { return m_Name; } }
+        public string Icon                              { get { return m_Icon; } }
+        public string Category                          { get { return m_Category; } }
+        public string Description                       { get { return m_Description; } }
+        public string Source                            { get { return m_Source; } }
+        public VFXProperty[] Properties                 { get { return m_Properties; } }
+        public VFXAttribute[] Attributes                { get { return m_Attributes; } }
+        public Flag Flags                               { get { return m_Flags; } }
+        public int SlotHash                             { get { return m_SlotHash; } }
+        public VFXContextDesc.Type CompatibleContexts   { get { return m_CompatibleContexts; } }
 
         public bool IsSet(Flag flag)
         {
@@ -145,6 +146,7 @@ namespace UnityEngine.Experimental.VFX
             m_Flags = GetFlags(m_Source);
 
             m_SlotHash = ComputeSlotHash();
+            m_CompatibleContexts = blockType.CompatibleContexts;
         }
 
         // Constructor from legacy block
@@ -188,6 +190,7 @@ namespace UnityEngine.Experimental.VFX
                 m_Flags |= Flag.kHasKill;
 
             m_SlotHash = ComputeSlotHash();
+            m_CompatibleContexts = VFXContextDesc.Type.kAll;
         }
 
         // SlotHash is useful to determine whether the list of properties has changed. In that case links and values in the slot cannot be deserialized and must be discarded.
@@ -284,5 +287,6 @@ namespace UnityEngine.Experimental.VFX
 
         private int m_SlotHash;
         private Flag m_Flags;
+        private VFXContextDesc.Type m_CompatibleContexts;
     }
 }

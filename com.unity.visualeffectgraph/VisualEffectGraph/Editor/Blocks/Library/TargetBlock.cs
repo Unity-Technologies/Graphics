@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental.VFX
             Name = "From Position Map";
             Icon = "Position";
             Category = "Target";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXOrientedBoxType>("Bounds"));
             Add(VFXProperty.Create<VFXTexture2DType>("PositionMap"));
@@ -30,6 +31,7 @@ target = mul(Bounds, float4(pos,1.0)).xyz;";
             Name = "Attract Particles";
             Icon = "Force";
             Category = "Target";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty( new VFXFloatType(5.0f) ,"targetSpeed"));
             Add(new VFXProperty( new VFXFloatType(5.0f) ,"attractForce"));

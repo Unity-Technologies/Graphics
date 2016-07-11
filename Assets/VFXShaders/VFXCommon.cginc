@@ -19,6 +19,14 @@
 #define SAMPLE sampleSignal
 #define INVERSE(m) Inv##m
 
+#ifdef VFX_WORLD_SPACE // World Space
+float3 VFXCameraPos() 					{ return _WorldSpaceCameraPos.xyz; }
+float VFXNearPlaneDist(float3 position) { return mul(unity_WorldToCamera,float4(position,1.0f)).z; } 
+#elif defined(VFX_LOCAL_SPACE) // Local space
+float3 VFXCameraPos() 					{ return mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; }
+float VFXNearPlaneDist(float3 position) { return -mul(UNITY_MATRIX_MV,float4(position,1.0f)).z; }
+#endif
+
 // Macros to use Sphere semantic type directly
 #define VFXPositionOnSphere(SphereName,cosPhi,theta,rNorm)	PositionOnSphere(SphereName##_center,SphereName##_radius,cosPhi,theta,rNorm)
 #define VFXPositionOnSphereSurface(SphereName,cosPhi,theta)	PositionOnSphereSurface(SphereName##_center,SphereName##_radius,cosPhi,theta)

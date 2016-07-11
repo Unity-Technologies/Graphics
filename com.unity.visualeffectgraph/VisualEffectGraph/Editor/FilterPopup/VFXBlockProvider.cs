@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
@@ -49,15 +50,17 @@ namespace UnityEditor.Experimental
             tree.Add(new VFXFilterWindow.GroupElement(0, "NodeBlocks"));
 
             var blocks = new List<VFXBlockDesc>(VFXEditor.BlockLibrary.GetBlocks());
-            blocks.Sort((blockA, blockB) => {
+
+            var filteredBlocks = blocks.Where(b => m_contextModel.Accept(b)).ToList();
+
+            filteredBlocks.Sort((blockA, blockB) => {
                 int res = blockA.Category.CompareTo(blockB.Category);
                 return res != 0 ? res : blockA.Name.CompareTo(blockB.Name);
             });
 
-
             HashSet<string> categories = new HashSet<string>();
 
-            foreach(VFXBlockDesc desc in blocks)
+            foreach(VFXBlockDesc desc in filteredBlocks)
             {
                 int i = 0; 
 

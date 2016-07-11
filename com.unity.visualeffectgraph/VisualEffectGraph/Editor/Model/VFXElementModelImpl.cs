@@ -494,12 +494,9 @@ namespace UnityEditor.Experimental
                             asset.AddInitUniform(system.Id, uniform.Value, index);
                             asset.AddUpdateUniform(system.Id, uniform.Value, index);
                         }
-                    }
+                        else if (uniform.Value.StartsWith("output"))
+                            asset.AddOutputUniform(system.Id, uniform.Value, index);
 
-                    foreach (var uniform in rtData.outputUniforms)
-                    {
-                        int index = m_Expressions[uniform.Key].index;
-                        asset.AddOutputUniform(system.Id, uniform.Value, index);
                     }
                 }
             }
@@ -574,10 +571,6 @@ namespace UnityEditor.Experimental
 
         public void Dispose()
         {
-            //if (rtData != null)
-            //    UnityEngine.Object.DestroyImmediate(rtData.m_Material);
-
-            //m_GeneratedTextureData.Dispose();
         }
 
         public void DeleteAssets()
@@ -699,8 +692,6 @@ namespace UnityEditor.Experimental
         {
             if (m_Dirty)
             {
-                //if (rtData != null)
-                //    UnityEngine.Object.DestroyImmediate(rtData.m_Material); 
                 rtData = VFXModelCompiler.CompileSystem(this);
                 m_Dirty = false;
                 return true;
@@ -932,10 +923,27 @@ namespace UnityEditor.Experimental
             InitSlots(desc.m_Properties,null);
         }
 
+        public bool Accept(VFXBlockDesc block)
+        {
+            if ((block.CompatibleContexts & m_Desc.m_Type) == 0)
+                return false;
+
+            if (m_Desc.m_Type == VFXContextDesc.Type.kTypeOutput)
+            {
+                if (block.IsSet(VFXBlockDesc.Flag.kHasRand) || block.IsSet(VFXBlockDesc.Flag.kHasKill))
+                    return false; // Cant add block that needs a random number or can kill to output
+            }
+
+            return true;
+        }
+
         public override bool CanAddChild(VFXElementModel element, int index = -1)
         {
-            return base.CanAddChild(element, index) && m_Desc.m_Type != VFXContextDesc.Type.kTypeNone;
-            // TODO Check if the block is compatible with the context
+            if (!base.CanAddChild(element, index) || m_Desc.m_Type == VFXContextDesc.Type.kTypeNone)
+                return false;
+
+            VFXBlockModel block = (VFXBlockModel)element; // Wont throw as we know it is a block model at this point
+            return Accept(block.Desc);
         }
 
         public override void OnSlotEvent(VFXPropertySlot.Event type, VFXPropertySlot slot)

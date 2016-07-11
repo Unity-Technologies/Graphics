@@ -50,6 +50,12 @@ namespace UnityEditor.Experimental.VFX
             get { return m_Properties; }
         }
 
+        public VFXContextDesc.Type CompatibleContexts
+        {
+            get { return m_CompatibleContexts; }
+            protected set { m_CompatibleContexts = value; }
+        }
+
         public List<VFXAttribute> Attributes
         {
             get { return m_Attributes; }
@@ -60,9 +66,9 @@ namespace UnityEditor.Experimental.VFX
         private string m_Category = "";
         private string m_Description = "";
         private string m_Source = "";
+        private VFXContextDesc.Type m_CompatibleContexts = VFXContextDesc.Type.kAll;
 
         private List<VFXProperty> m_Properties = new List<VFXProperty>();
         private List<VFXAttribute> m_Attributes = new List<VFXAttribute>();
     }
-
 }

@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental.VFX
             Name = "Age And Reap";
             Icon = "Time";
             Category = "";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXAttribute(CommonAttrib.Age, true));
             Add(new VFXAttribute(CommonAttrib.Lifetime, false));
@@ -30,6 +31,7 @@ if (age >= lifetime)
             Name = "Integrate Velocity (Constant)";
             Icon = "Position";
             Category = "";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXAttribute(CommonAttrib.Position, true));
             Add(new VFXAttribute(CommonAttrib.Velocity, false));
@@ -48,6 +50,7 @@ position += velocity * deltaTime;
             Name = "Integrate Velocity (Curve)";
             Icon = "Position";
             Category = "";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXCurveType>("Curve"));
 

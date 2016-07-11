@@ -10,6 +10,7 @@ namespace UnityEditor.Experimental.VFX
             Name = "Index (Random)";
             Icon = "Flipbook";
             Category = "Flipbook";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXFloatType>("MinIndex"));
             Add(VFXProperty.Create<VFXFloatType>("MaxIndex"));
@@ -48,6 +49,7 @@ texIndex = SAMPLE(Curve, r);";
             Name = "Rate (Constant)";
             Icon = "Flipbook";
             Category = "Flipbook";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXFloatType>("Framerate"));
 
@@ -65,6 +67,7 @@ texIndex += Framerate * deltaTime;";
             Name = "Rate (Random)";
             Icon = "Flipbook";
             Category = "Flipbook";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXFloatType>("MinFramerate"));
             Add(VFXProperty.Create<VFXFloatType>("MaxFramerate"));
@@ -85,6 +88,7 @@ texIndex += lerp(MinFramerate, MaxFramerate, phase) * deltaTime;";
             Name = "Rate (Curve)";
             Icon = "Flipbook";
             Category = "Flipbook";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXCurveType>("RateCurve"));
 

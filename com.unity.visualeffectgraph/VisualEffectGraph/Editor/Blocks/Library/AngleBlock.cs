@@ -28,6 +28,7 @@ angle += Value;";
             Name = "Random";
             Icon = "Angle";
             Category = "Angle";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(0f),"Min"));
             Add(new VFXProperty(new VFXFloatType(360f),"Max"));
@@ -46,6 +47,7 @@ angle += lerp(Min,Max,RAND);";
             Name = "Constant";
             Icon = "Angle";
             Category = "Angle/Spin";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(30f),"Value"));
 
@@ -63,6 +65,7 @@ angularVelocity = Value;";
             Name = "Random";
             Icon = "Angle";
             Category = "Angle/Spin";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(-30f),"Min"));
             Add(new VFXProperty(new VFXFloatType(30f),"Max"));
@@ -80,6 +83,7 @@ angularVelocity = lerp(Min,Max,RAND);";
             Name = "Force (Constant)";
             Icon = "Angle";
             Category = "Angle/Spin";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(30f),"Value"));
 
@@ -97,6 +101,7 @@ angularVelocity += Value * deltaTime;";
             Name = "Spin Drag (Constant)";
             Icon = "Angle";
             Category = "Angle/Spin";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(1f),"Value"));
 

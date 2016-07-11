@@ -8,13 +8,17 @@ namespace UnityEditor.Experimental
 {
     public abstract class VFXContextDesc
     {
-
+        [Flags]
         public enum Type
         {
-            kTypeNone,
-            kTypeInit,
-            kTypeUpdate,
-            kTypeOutput,
+            kTypeNone = 0,
+
+            kTypeInit = 1 << 0,
+            kTypeUpdate = 1 << 1,
+            kTypeOutput = 1 << 2,
+
+            kInitAndUpdate = kTypeInit | kTypeUpdate,
+            kAll = kTypeInit | kTypeUpdate | kTypeOutput,
         };
 
         public static VFXContextDesc CreateBasic(Type type)

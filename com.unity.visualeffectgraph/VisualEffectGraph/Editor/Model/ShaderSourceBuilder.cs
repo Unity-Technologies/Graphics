@@ -364,7 +364,9 @@ namespace UnityEditor.Experimental
                 if (VFXAttribute.Used(attrib.Value,context))
                 {
                     WriteType(attrib.Key.m_Type);
-                    WriteLineFormat(" local_{0};", attrib.Key.m_Name);
+                    WriteFormat(" local_{0} = (", attrib.Key.m_Name);
+                    WriteType(attrib.Key.m_Type);
+                    WriteLine(")0;");
                     hasWritten = true;
                 }
             if (hasWritten)

@@ -45,6 +45,7 @@ size = Size;";
             Name = "Random (Square)";
             Icon = "Size";
             Category = "Size";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(0.1f),"MinSize"));
             Add(new VFXProperty(new VFXFloatType(0.1f),"MaxSize"));

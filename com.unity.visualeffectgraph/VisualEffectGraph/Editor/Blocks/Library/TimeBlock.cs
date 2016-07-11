@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental.VFX
             Name = "Lifetime (Constant)";
             Icon = "Time";
             Category = "Time";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(1.0f),"Lifetime"));
 
@@ -28,6 +29,7 @@ lifetime = max(Lifetime,0.0f);";
             Name = "Lifetime (Random)";
             Icon = "Time";
             Category = "Time";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(0.25f),"MinLifetime"));
             Add(new VFXProperty(new VFXFloatType(1.0f),"MaxLifetime"));
@@ -46,6 +48,7 @@ lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);";
             Name = "Lifetime by Emitter Time (Curve)";
             Icon = "Time";
             Category = "Time";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXCurveType>("Curve"));
 

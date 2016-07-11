@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental.VFX
             Name = "Point";
             Icon = "Position";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXPositionType>("pos"));
 
@@ -28,6 +29,7 @@ position = pos;";
             Name = "PositionMap Texture";
             Icon = "Position";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXTexture2DType>("tex"));
             Add(VFXProperty.Create<VFXOrientedBoxType>("box"));
@@ -49,6 +51,7 @@ position = mul(box,float4(position.xyz,1.0f)).xyz;";
             Name = "Box (Axis-Aligned)";
             Icon = "Position";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXAABoxType>("aabox"));
 
@@ -67,6 +70,7 @@ position = (RAND3 * aabox_size) + minCoord;";
             Name = "Box (Oriented)";
             Icon = "Position";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXOrientedBoxType>("box"));
 
@@ -85,6 +89,7 @@ position = mul(box,float4(position,1.0f)).xyz;";
             Name = "Sphere Surface";
             Icon = "Position";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXSphereType>("Sphere"));
 
@@ -104,6 +109,7 @@ position = VFXPositionOnSphereSurface(Sphere,u1,u2);";
             Name = "Sphere Volume";
             Icon = "Position";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXSphereType>("Sphere"));
 
@@ -124,6 +130,7 @@ position = VFXPositionOnSphere(Sphere,u1,u2,u3);";
             Name = "Transform";
             Icon = "Position";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXTransformType>("Transform"));
 
@@ -141,6 +148,7 @@ position = mul(Transform,float4(position,1.0f)).xyz;";
             Name = "Animate (Circular)";
             Icon = "Disc";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXTransformType>("Transform"));
             Add(new VFXProperty(new VFXFloatType(1.0f), "Speed"));
@@ -162,6 +170,7 @@ position += mul(Transform,float4(pos,1.0f)).xyz;";
             Name = "Cylinder Volume";
             Icon = "Cylinder";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXCylinderType>("Cylinder"));
 
@@ -182,6 +191,7 @@ position = VFXPositionOnCylinder(Cylinder,u1,u2,u3);";
             Name = "Cylinder Surface";
             Icon = "Cylinder";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXCylinderType>("Cylinder"));
 
@@ -201,6 +211,7 @@ position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);";
             Name = "Cylinder Surface Sequence";
             Icon = "Cylinder";
             Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXCylinderType>("Cylinder"));
             Add(VFXProperty.Create<VFXFloatType>("RotationalRate"));

@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental.VFX
             Name = "Constant";
             Icon = "Velocity";
             Category = "Velocity";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXVectorType>("Velocity"));
 
@@ -28,6 +29,7 @@ velocity += Velocity;";
             Name = "Random Uniform";
             Icon = "Velocity";
             Category = "Velocity";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(1.0f),"Divergence"));
 
@@ -45,6 +47,7 @@ velocity += (RAND3 * 2 - 1) * Divergence;";
             Name = "Random Vector";
             Icon = "Velocity";
             Category = "Velocity/Radial";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXVectorType(new Vector3(0.25f,0.25f,0.5f)),"Divergence"));
 
@@ -62,6 +65,7 @@ velocity += (RAND3 * 2 - 1) * Divergence;";
             Name = "By Angle Uniform";
             Icon = "Velocity";
             Category = "Velocity/Radial";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloat2Type(new Vector2(0f,180f)),"MinMaxAngle"));
             Add(new VFXProperty(new VFXFloat2Type(new Vector2(0f,0.5f)),"MinMaxSpeed"));
@@ -86,6 +90,7 @@ velocity += float3(sincosTheta,u1).xzy * lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);
             Name = "From Origin";
             Icon = "Velocity";
             Category = "Velocity/Radial";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXPositionType>("Origin"));
             Add(new VFXProperty(new VFXFloat2Type(new Vector2(0f,0.5f)),"MinMaxSpeed"));

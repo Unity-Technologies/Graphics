@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental.VFX
             Name = "Constant";
             Icon = "Force";
             Category = "Forces";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXVectorType(new Vector3(0.0f,-9.81f,0.0f)),"Force"));
 
@@ -28,6 +29,7 @@ velocity += Force * deltaTime;";
             Name = "Relative to Speed";
             Icon = "Force";
             Category = "Forces";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXVectorType(new Vector3(1.0f,0.0f,0.0f)),"InfluenceSpeed"));
             Add(new VFXProperty(new VFXFloatType(1.0f),"DragCoefficient"));
@@ -47,6 +49,7 @@ velocity += relativeForce * min(1.0f,(DragCoefficient * deltaTime));";
             Name = "Linear Drag (Constant)";
             Icon = "Drag";
             Category = "Forces";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXFloatType(1.0f),"DragCoefficient"));
 
@@ -64,6 +67,7 @@ velocity *= max(0.0,(1.0 - DragCoefficient * deltaTime));";
             Name = "OverLife Drag (Curve)";
             Icon = "Drag";
             Category = "Forces";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXCurveType>("DragCurve"));
 
@@ -86,6 +90,7 @@ velocity *= max(0.0,(1.0 - multiplier * deltaTime));";
             Name = "Attractor (Sphere)";
             Icon = "Force";
             Category = "Forces";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty( new VFXSphereType(),"Sphere"));
             Add(new VFXProperty(new VFXFloatType(5.0f), "attractionSpeed"));
@@ -117,6 +122,7 @@ velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,a
             Name = "Attractor (Point)";
             Icon = "Force";
             Category = "Forces";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty( new VFXPositionType(),"Center"));
             Add(new VFXProperty(new VFXFloatType(5.0f), "Force"));
@@ -140,6 +146,7 @@ velocity += normalize(dir) * (deltaTime * Force / sqrDist);";
             Name = "Attractor (VectorField)";
             Icon = "Force";
             Category = "Forces";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXTexture3DType(),"VectorField"));
             Add(new VFXProperty(new VFXOrientedBoxType(), "Box"));
@@ -168,6 +175,7 @@ velocity = lerp(updatedVelocity, value, saturate(Tightness));";
             Name = "Relative Force (VectorField)";
             Icon = "Force";
             Category = "Forces";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(new VFXProperty(new VFXTexture3DType(),"VectorField"));
             Add(new VFXProperty(new VFXOrientedBoxType(), "Box"));
