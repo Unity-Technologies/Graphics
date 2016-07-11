@@ -319,9 +319,12 @@ namespace UnityEditor.Experimental
                 if ((attrib.Value & VFXAttribute.Usage.kInitRW) == 0 && (attrib.Value & VFXAttribute.Usage.kUpdateRW) != 0) // Unitialized attribute
                 {
                     if (attrib.Key.m_Name != "seed" || attrib.Key.m_Name != "age") // Dont log anything for those as initialization is implicit
-                        VFXEditor.Log("WARNING: " + attrib.Key.m_Name + " is not initialized. Use default value");
+                        Debug.LogWarning(attrib.Key.m_Name + " is used in update but not initialized. Use default value (0)");
                     unitializedAttribs.Add(attrib.Key);
                 }
+                else if ((attrib.Value & VFXAttribute.Usage.kOutputR) != 0 && (attrib.Value & VFXAttribute.Usage.kOutputW) == 0)
+                    Debug.LogWarning(attrib.Key.m_Name + " is read in output but not initialized. Use default value (0)");
+               
                 // TODO attrib to remove (when written and never used for instance) ! But must also remove blocks using them...
             }
 
@@ -353,12 +356,12 @@ namespace UnityEditor.Experimental
            
 
             // Sort attrib by usage and by size
-            List<AttributeBuffer> buffers = VFXAttributePacker.Pack(attribs,6); // 8 being the maximum UAV, reserve 2 for dead list and flags
+            List<AttributeBuffer> buffers = VFXAttributePacker.Pack(attribs,6); // 8 being the maximum UAV, reserve 2 for dead list and flags (TODO On mobile it is 4 max)
 
             if (buffers.Count > 6)
             {
                 // TODO : Merge appropriate buffers in that case
-                VFXEditor.Log("ERROR: too many buffers used (max is 6 + 2 reserved)");
+                Debug.LogError("Too many buffers used: "+buffers.Count);
                 return null;
             }
 
@@ -785,12 +788,12 @@ namespace UnityEditor.Experimental
             builder.WriteSamplers(data.updateSamplers, data.paramToName);
 
             // Write generated texture samplers
-            if (data.generatedTextureData.HasColorTexture() && (data.colorTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
+            if ((data.colorTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
             {
                 builder.WriteLine("sampler2D gradientTexture;");
                 builder.WriteLine();
             }
-            if (data.generatedTextureData.HasFloatTexture() && (data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
+            if ((data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
             {
                 builder.WriteLine("sampler2D curveTexture;");
                 builder.WriteLine();
@@ -852,13 +855,13 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
-            if (data.generatedTextureData.HasColorTexture() && (data.colorTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
+            if ((data.colorTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
             {
                 data.generatedTextureData.WriteSampleGradientFunction(builder);
                 builder.WriteLine();
             }
 
-            if (data.generatedTextureData.HasFloatTexture() && (data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
+            if ((data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
             {
                 data.generatedTextureData.WriteSampleCurveFunction(builder);
                 builder.WriteLine();
@@ -1118,12 +1121,12 @@ namespace UnityEditor.Experimental
             builder.WriteSamplers(data.outputSamplers, data.paramToName);
 
             // Write generated texture samplers
-            if (data.generatedTextureData.HasColorTexture() && (data.colorTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
+            if ((data.colorTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
             {
                 builder.WriteLine("sampler2D gradientTexture;");
                 builder.WriteLine();
             }
-            if (data.generatedTextureData.HasFloatTexture() && (data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
+            if ((data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
             {
                 builder.WriteLine("sampler2D curveTexture;");
                 builder.WriteLine();
@@ -1172,13 +1175,13 @@ namespace UnityEditor.Experimental
             builder.ExitScopeStruct();
             builder.WriteLine();
 
-            if (data.generatedTextureData.HasColorTexture() && (data.colorTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
+            if ((data.colorTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
             {
                 data.generatedTextureData.WriteSampleGradientFunction(builder);
                 builder.WriteLine();
             }
 
-            if (data.generatedTextureData.HasFloatTexture() && (data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
+            if ((data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
             {
                 data.generatedTextureData.WriteSampleCurveFunction(builder);
                 builder.WriteLine();

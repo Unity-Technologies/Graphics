@@ -330,7 +330,7 @@ namespace UnityEditor.Experimental
                 if (expr.IsValue(false) && (expr.ValueType == VFXValueType.kColorGradient || expr.ValueType == VFXValueType.kCurve))
                     signals.Add((VFXValue)expr);
 
-            m_TextureData.RemoveAllValues();
+            m_TextureData.Dispose();
             m_TextureData.AddValues(signals);
             m_TextureData.Generate();
 

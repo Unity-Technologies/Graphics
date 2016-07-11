@@ -36,13 +36,6 @@ namespace UnityEngine.Experimental.VFX
         public Texture2D ColorTexture { get { return m_ColorTexture; } }
         public Texture2D FloatTexture { get { return m_FloatTexture; } }
 
-        public void Reinit(IEnumerable<VFXValue> allValues)
-        {
-            RemoveAllValues();
-            AddValues(allValues);
-            Generate();
-        }
-
         public void SetDirty(VFXValue value)
         {
             if (value.ValueType == VFXValueType.kColorGradient || value.ValueType == VFXValueType.kCurve)
