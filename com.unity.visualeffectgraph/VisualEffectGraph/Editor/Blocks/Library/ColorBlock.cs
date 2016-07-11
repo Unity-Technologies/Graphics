@@ -104,7 +104,7 @@ alpha = rgba.a;";
         public VFXBlockSetAlphaRandom()
         {
             Name = "Alpha Random";
-            Icon = "Color";
+            Icon = "Alpha";
             Category = "Color";
 
             Add(VFXProperty.Create<VFXFloatType>("MinAlpha"));
@@ -144,7 +144,7 @@ color = lerp(StartColor,EndColor,ratio);";
         public VFXBlockSetAlphaOverLifetime()
         {
             Name = "Over Life Alpha (Lerp)";
-            Icon = "Color";
+            Icon = "Alpha";
             Category = "Color";
 
             Add(new VFXProperty(new VFXFloatType(1.0f),"StartAlpha"));
@@ -221,12 +221,29 @@ color *= scale;";
         }
     }
 
+    class VFXBlockSetAlphaScale : VFXBlockType
+    {
+        public VFXBlockSetAlphaScale()
+        {
+            Name = "Scale Alpha (Constant)";
+            Icon = "Alpha";
+            Category = "Color";
+
+            Add(VFXProperty.Create<VFXFloatType>("Scale"));
+
+            Add(new VFXAttribute(CommonAttrib.Alpha, true));
+
+            Source = @"
+alpha *= Scale;";
+        }
+    }
+
     class VFXBlockSetAlphaCurveOverLifetime : VFXBlockType
     {
         public VFXBlockSetAlphaCurveOverLifetime()
         {
             Name = "Over Life Alpha (Curve)";
-            Icon = "Color";
+            Icon = "Alpha";
             Category = "Color";
 
             Add(VFXProperty.Create<VFXCurveType>("Curve"));

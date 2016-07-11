@@ -330,7 +330,7 @@ namespace UnityEditor.Experimental
                 if (expr.IsValue(false) && (expr.ValueType == VFXValueType.kColorGradient || expr.ValueType == VFXValueType.kCurve))
                     signals.Add((VFXValue)expr);
 
-            m_TextureData.Dispose();
+            m_TextureData.RemoveAllValues();
             m_TextureData.AddValues(signals);
             m_TextureData.Generate();
 
@@ -494,9 +494,12 @@ namespace UnityEditor.Experimental
                             asset.AddInitUniform(system.Id, uniform.Value, index);
                             asset.AddUpdateUniform(system.Id, uniform.Value, index);
                         }
-                        else if (uniform.Value.StartsWith("output"))
-                            asset.AddOutputUniform(system.Id, uniform.Value, index);
+                    }
 
+                    foreach (var uniform in rtData.outputUniforms)
+                    {
+                        int index = m_Expressions[uniform.Key].index;
+                        asset.AddOutputUniform(system.Id, uniform.Value, index);
                     }
                 }
             }
@@ -740,8 +743,13 @@ namespace UnityEditor.Experimental
             {
                 if (m_MaxNb != value)
                 {
+                    bool needsRecompile = value < 256 || m_MaxNb < 256;
                     m_MaxNb = value;
                     m_ForceComponentUpdate = true;
+                    if (needsRecompile)
+                        Invalidate(InvalidationCause.kModelChanged); // Force a recompilation
+                    else
+                        m_ForceComponentUpdate = true;
                 }
             }
         }

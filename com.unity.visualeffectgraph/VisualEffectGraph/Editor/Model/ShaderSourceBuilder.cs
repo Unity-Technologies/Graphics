@@ -257,9 +257,10 @@ namespace UnityEditor.Experimental
         public void WriteFunctionCall(
             VFXBlockModel block,
             HashSet<string> functions,
-            ShaderMetaData data)
+            ShaderMetaData data,
+            bool output)
         {
-            Dictionary<VFXExpression, string> paramToName = data.paramToName;
+            Dictionary<VFXExpression, string> paramToName = output ? data.outputParamToName : data.paramToName;
 
             Write(block.Desc.FunctionName);
             Write("(");

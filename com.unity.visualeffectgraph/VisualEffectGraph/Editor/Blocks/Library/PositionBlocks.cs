@@ -34,7 +34,7 @@ position = pos;";
             Add(VFXProperty.Create<VFXTexture2DType>("tex"));
             Add(VFXProperty.Create<VFXOrientedBoxType>("box"));
             Add(VFXProperty.Create<VFXFloatType>("divergence"));
-            Add(new VFXProperty(new VFXVectorType(new Vector3(0.5f, 0.5f, 0.5f)), "posmapcenter"));
+            Add(new VFXProperty(new VFXFloat3Type(new Vector3(0.5f, 0.5f, 0.5f)), "posmapcenter"));
             Add(new VFXAttribute(CommonAttrib.Position, true));
 
             Source = @"
@@ -49,7 +49,7 @@ position = mul(box,float4(position.xyz,1.0f)).xyz;";
         public VFXBlockSetPositionAABox()
         {
             Name = "Box (Axis-Aligned)";
-            Icon = "Position";
+            Icon = "Box";
             Category = "Position";
             CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
@@ -68,7 +68,7 @@ position = (RAND3 * aabox_size) + minCoord;";
         public VFXBlockSetPositionBox()
         {
             Name = "Box (Oriented)";
-            Icon = "Position";
+            Icon = "Box";
             Category = "Position";
             CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
@@ -87,7 +87,7 @@ position = mul(box,float4(position,1.0f)).xyz;";
         public VFXBlockSetPositionSphereSurface()
         {
             Name = "Sphere Surface";
-            Icon = "Position";
+            Icon = "Sphere";
             Category = "Position";
             CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
@@ -107,7 +107,7 @@ position = VFXPositionOnSphereSurface(Sphere,u1,u2);";
         public VFXBlockSetPositionSphereVolume()
         {
             Name = "Sphere Volume";
-            Icon = "Position";
+            Icon = "Sphere";
             Category = "Position";
             CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
@@ -224,6 +224,31 @@ position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);";
 float u1 = fmod(LinearRate * particleId,1.0f) - 0.5f;
 float u2 = radians(RotationalRate * particleId);
 position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);";
+        }
+    }
+
+    class VFXBlockPositionAABBSequence : VFXBlockType
+    {
+        public VFXBlockPositionAABBSequence()
+        {
+            Name = "AABB Sequence";
+            Icon = "Box";
+            Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
+
+            Add(VFXProperty.Create<VFXAABoxType>("Box"));
+            Add(new VFXProperty(new VFXFloat3Type(Vector3.one),"Number"));
+
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+            Add(new VFXAttribute(CommonAttrib.ParticleId, false));
+
+            Source = @"
+float3 nPos;
+nPos.x = fmod(particleId,Number.x);
+nPos.y = fmod((int)(particleId / Number.x),Number.y);
+nPos.z = fmod((int)(particleId / (Number.x * Number.y)),Number.z);
+nPos = nPos / Number - 0.5f;
+position = nPos * Box_size + Box_center;";
         }
     }
 }
