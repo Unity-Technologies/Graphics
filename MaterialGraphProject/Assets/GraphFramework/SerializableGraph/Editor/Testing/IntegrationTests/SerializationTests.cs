@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -18,10 +17,13 @@ namespace UnityEditor.Graphing.IntegrationTests
         {
             [SerializeField]
             public string stringValue;
+
             [SerializeField]
             public int intValue;
+
             [SerializeField]
             public float floatValue;
+
             [SerializeField]
             public int[] arrayValue;
 
@@ -192,7 +194,7 @@ namespace UnityEditor.Graphing.IntegrationTests
             {
                 SimpleSerializeClass.instance
             };
-            
+
             var serialized = SerializationHelper.Serialize(toSerialize);
             Assert.AreEqual(1, serialized.Count);
 
@@ -209,6 +211,32 @@ namespace UnityEditor.Graphing.IntegrationTests
             Assert.IsInstanceOf<SimpleSerializeClass>(loaded[0]);
             loaded[0].AssertAsReference();
         }
-        
+
+        [Test]
+        public void TestSerializableSlotCanSerialize()
+        {
+            var toSerialize = new List<SerializableSlot>()
+            {
+                new SerializableSlot("InSlot", "InSlot", SlotType.Input, 0),
+                new SerializableSlot("OutSlot", "OutSlot", SlotType.Output, 0),
+            };
+
+            var serialized = SerializationHelper.Serialize(toSerialize);
+            var loaded = SerializationHelper.Deserialize<SerializableSlot>(serialized);
+            Assert.AreEqual(2, loaded.Count);
+
+            Assert.IsInstanceOf<SerializableSlot>(loaded[0]);
+            Assert.IsInstanceOf<SerializableSlot>(loaded[1]);
+
+            Assert.AreEqual("InSlot", loaded[0].name);
+            Assert.AreEqual("InSlot", loaded[0].displayName);
+            Assert.IsTrue(loaded[0].isInputSlot);
+            Assert.AreEqual(0, loaded[0].priority);
+
+            Assert.AreEqual("OutSlot", loaded[1].name);
+            Assert.AreEqual("OutSlot", loaded[1].displayName);
+            Assert.IsTrue(loaded[1].isOutputSlot);
+            Assert.AreEqual(0, loaded[1].priority);
+        }
     }
 }
