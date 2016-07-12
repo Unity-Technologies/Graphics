@@ -733,7 +733,7 @@ namespace UnityEditor.Experimental
             get { return rtData; }
         }
 
-        private const uint INITIAL_MAX_NB = 1 << 20;
+        private const uint INITIAL_MAX_NB = 10000;
 
         private uint m_MaxNb = INITIAL_MAX_NB;
         public uint MaxNb

@@ -333,10 +333,7 @@ namespace UnityEditor.Experimental
                     if (attrib.Key.m_Name != "seed" || attrib.Key.m_Name != "age") // Dont log anything for those as initialization is implicit
                         Debug.LogWarning(attrib.Key.m_Name + " is used in update but not initialized. Use default value (0)");
                     unitializedAttribs.Add(attrib.Key);
-                }
-                else if ((attrib.Value & VFXAttribute.Usage.kOutputR) != 0 && (attrib.Value & VFXAttribute.Usage.kOutputW) == 0)
-                    Debug.LogWarning(attrib.Key.m_Name + " is read in output but not initialized. Use default value (0)");
-               
+                }               
                 // TODO attrib to remove (when written and never used for instance) ! But must also remove blocks using them...
             }
 

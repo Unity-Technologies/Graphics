@@ -222,7 +222,7 @@ namespace UnityEditor.Experimental
         private const int MorphIntensitySlot = 3;
 
         public VFXMorphSubUVBillboardOutputDesc()
-            : base(Type.kTypeOutput, "SubUV Morph Billboard", true)
+            : base(Type.kTypeOutput, "SubUV Morph Quad", true)
         {
             m_Properties = new VFXProperty[4];
             m_Properties[TextureSlot] = VFXProperty.Create<VFXTexture2DType>("texture");
@@ -239,7 +239,7 @@ namespace UnityEditor.Experimental
             values[VFXBillboardOutputShaderGeneratorModule.FlipbookDimIndex] = model.GetSlot(FlipBookDimSlot);
             values[VFXBillboardOutputShaderGeneratorModule.MorphTextureIndex] = model.GetSlot(MorphTextureSlot);
             values[VFXBillboardOutputShaderGeneratorModule.MorphIntensityIndex] = model.GetSlot(MorphIntensitySlot);
-            return new VFXBillboardOutputShaderGeneratorModule(values, VFXBillboardOutputShaderGeneratorModule.OrientMode.kFaceCamera); 
+            return new VFXBillboardOutputShaderGeneratorModule(values, VFXBillboardOutputShaderGeneratorModule.OrientMode.kCustom); 
         }
     }
 

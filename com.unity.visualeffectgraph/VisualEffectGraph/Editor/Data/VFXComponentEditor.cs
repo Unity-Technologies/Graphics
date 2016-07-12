@@ -59,6 +59,9 @@ public class SlotValueBinder : VFXPropertySlotObserver
         if (m_Slot != slot || type != VFXPropertySlot.Event.kValueUpdated)
             throw new Exception("Something wrong went on !"); // This should never happen
 
+        if (!VFXComponentEditor.CanSetOverride) // Hack
+            return;
+
         switch (slot.ValueType)
         {
             case VFXValueType.kFloat:
@@ -101,6 +104,8 @@ public class SlotValueBinder : VFXPropertySlotObserver
 [CustomEditor(typeof(VFXComponent))]
 public class VFXComponentEditor : Editor
 {
+    public static bool CanSetOverride = false;
+
     SerializedProperty m_VFXAsset;
     SerializedProperty m_RandomSeed;
 
@@ -315,6 +320,7 @@ public class VFXComponentEditor : Editor
         {
             using (new GUILayout.HorizontalScope())
             {
+                CanSetOverride = true;
                 bool showWidget = GUILayout.Toggle(exposed.widget != null, m_Contents.ToggleWidget, m_Styles.ToggleGizmo , GUILayout.Width(10));
                 if (showWidget && exposed.widget == null)
                     exposed.widget = exposed.slot.Semantics.CreateUIWidget(exposed.slot, component.transform);
@@ -328,6 +334,7 @@ public class VFXComponentEditor : Editor
                     exposed.slot.Semantics.OnInspectorGUI(exposed.slot);
                     EditorGUI.indentLevel = l;
                 }
+                CanSetOverride = false;
 
                 if (GUILayout.Button(m_Contents.ResetOverrides, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
                 {
@@ -337,11 +344,11 @@ public class VFXComponentEditor : Editor
             }
         }
 
-        if (valueDirty)
+        if (valueDirty && !Application.isPlaying)
         {
             // TODO Do that better ?
             EditorSceneManager.MarkSceneDirty(component.gameObject.scene);
-            serializedObject.SetIsDifferentCacheDirty();
+            //serializedObject.SetIsDifferentCacheDirty();
             serializedObject.Update();
         }
 

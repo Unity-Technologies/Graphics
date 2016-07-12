@@ -309,22 +309,8 @@ namespace UnityEditor.Experimental
             }
         }
 
-        private bool isOldPlaying = false;
         void Update()
         {
-            // Handle the case when exiting play mode
-            if (!Application.isPlaying && isOldPlaying)
-            {
-                m_Canvas.Clear();
-                m_Canvas.Repaint();
-                m_NeedsCanvasReload = true;
-
-                if (Graph != null)
-                    for (int i = 0; i < Graph.systems.GetNbChildren(); ++i)
-                        Graph.systems.GetChild(i).Invalidate(VFXElementModel.InvalidationCause.kModelChanged);
-            }
-            isOldPlaying = Application.isPlaying;
-
             if (m_Component != null && m_CurrentAsset != m_Component.vfxAsset)
                 SetCurrentAsset(m_Component.vfxAsset);
 
@@ -335,10 +321,6 @@ namespace UnityEditor.Experimental
         void OnDestroy()
         {
             SetCurrentAsset(null);
-
-            /*UnityEngine.Object.DestroyImmediate(m_GameObject);
-            m_GameObject = null;
-            m_Component = null;*/
 
             s_BlockLibrary = null;
             s_ContextLibrary = null;
@@ -669,9 +651,9 @@ namespace UnityEditor.Experimental
             m_Contexts.Add(new VFXQuadOutputDesc());
             m_Contexts.Add(new VFXBillboardOutputDesc());
             m_Contexts.Add(new VFXMorphSubUVBillboardOutputDesc());
-            m_Contexts.Add(new VFXQuadAlongVelocityOutputDesc());
-            m_Contexts.Add(new VFXQuadRotateAxisOutputDesc());
-            m_Contexts.Add(new VFXQuadFixedOrientationOutputDesc());
+            //m_Contexts.Add(new VFXQuadAlongVelocityOutputDesc());
+            //m_Contexts.Add(new VFXQuadRotateAxisOutputDesc());
+            //m_Contexts.Add(new VFXQuadFixedOrientationOutputDesc());
 
         }
 
