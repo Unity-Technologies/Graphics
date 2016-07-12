@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.InteropServices;
 
 namespace UnityEngine.Graphing
 {
@@ -15,7 +14,7 @@ namespace UnityEngine.Graphing
         private string m_DisplayName = kNotInit;
 
         [SerializeField]
-        private SlotType m_SlotType;
+        private SlotType m_SlotType = SlotType.Input;
 
         [SerializeField]
         private int m_Priority;
@@ -46,6 +45,11 @@ namespace UnityEngine.Graphing
             get { return m_Priority; }
             set { m_Priority = value; } 
         }
+        
+        // used via reflection / serialization after deserialize
+        // to reconstruct this slot.
+        public SerializableSlot()
+        { }
 
         public SerializableSlot(string name, string displayName, SlotType slotType, int priority)
         {
@@ -54,11 +58,6 @@ namespace UnityEngine.Graphing
             m_SlotType = slotType;
             m_Priority = priority;
         }
-
-        // used via reflection / serialization after deserialize
-        // to reconstruct this slot.
-        protected SerializableSlot()
-        {}
 
         public virtual bool OnGUI()
         {
