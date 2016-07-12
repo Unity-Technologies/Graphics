@@ -227,7 +227,6 @@ namespace UnityEditor.Experimental
             BlendMode mode = system.BlendingMode;
             system.BlendingMode = (BlendMode)EditorGUILayout.Popup(new GUIContent("Blend Mode : "),(int)mode,options );
             system.SoftParticlesFadeDistance = EditorGUILayout.DelayedFloatField("Soft particles fade distance", system.SoftParticlesFadeDistance);
-            system.CameraFadeDistance = EditorGUILayout.Vector2Field("Camera fade distance", system.CameraFadeDistance);
             EditorGUILayout.Space();
 
             EditorGUI.indentLevel--;

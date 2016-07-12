@@ -21,6 +21,8 @@ namespace UnityEditor.Experimental.VFX
             Source = @"
 float planeDist = VFXNearPlaneDist(position);
 float camFade = smoothstep(FadeDistances.x,FadeDistances.y,planeDist);
+if (camFade == 0.0f)
+    KILL;
 alpha *= camFade;";
         }
     }

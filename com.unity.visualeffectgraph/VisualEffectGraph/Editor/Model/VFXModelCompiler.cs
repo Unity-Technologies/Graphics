@@ -158,6 +158,7 @@ namespace UnityEditor.Experimental
 
         public bool hasKill;
         public bool hasRand;
+        public bool hasCull;
 
         public List<AttributeBuffer> attributeBuffers;
         public Dictionary<VFXAttribute, AttributeBuffer> attribToBuffer;
@@ -222,6 +223,7 @@ namespace UnityEditor.Experimental
             bool initHasRand = false;
             bool updateHasRand = false;
             bool updateHasKill = false;
+            bool outputHasCull = false;
 
             // Collapses the contexts into one big init and update
             for (int i = 0; i < system.GetNbChildren(); ++i)
@@ -260,6 +262,9 @@ namespace UnityEditor.Experimental
                     case VFXContextDesc.Type.kTypeUpdate: 
                         updateHasRand |= hasRand;
                         updateHasKill |= hasKill;
+                        break;
+                    case VFXContextDesc.Type.kTypeOutput:
+                        outputHasCull |= hasKill;
                         break;
                 }
             }
@@ -515,6 +520,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.outputBlocks = outputBlocks;
             shaderMetaData.hasRand = initHasRand || updateHasRand;
             shaderMetaData.hasKill = updateHasKill;
+            shaderMetaData.hasCull = outputHasCull;
             shaderMetaData.attributeBuffers = buffers;
             shaderMetaData.attribToBuffer = attribToBuffer;
             shaderMetaData.localAttribs = localAttribs;
@@ -1174,7 +1180,7 @@ namespace UnityEditor.Experimental
 
             bool hasColor = data.HasAttribute(CommonAttrib.Color);
             bool hasAlpha = data.HasAttribute(CommonAttrib.Alpha);
-            bool needsVertexColor = hasColor || hasAlpha || system.HasCameraFade();
+            bool needsVertexColor = hasColor || hasAlpha;
 
             if (needsVertexColor)
                 builder.WriteLine("nointerpolation float4 col : COLOR0;");
@@ -1217,6 +1223,12 @@ namespace UnityEditor.Experimental
                 builder.EnterScope();
             }
 
+            if (data.hasCull)
+            {
+                builder.WriteLine("bool kill = false;");
+                builder.WriteLine();
+            }
+
             foreach (var buffer in data.attributeBuffers)
                 if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
                 {
@@ -1231,29 +1243,6 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
 
             builder.WriteLocalAttribDeclaration(data, VFXContextDesc.Type.kTypeOutput);
-
-            if (system.HasCameraFade())
-            {
-                builder.WriteLine("float camFade;");
-                builder.EnterScope();
-                builder.Write("float3 position = ");
-                builder.WriteAttrib(CommonAttrib.Position, data);
-                builder.WriteLine(";");
-                builder.WriteLine();
-
-                if (data.system.WorldSpace)
-                    builder.WriteLine("float planeDist = mul(unity_WorldToCamera,float4(position,1.0f)).z;");
-                else
-                    builder.WriteLine("float planeDist = -mul(UNITY_MATRIX_MV,float4(position,1.0f)).z;");
-                builder.WriteLineFormat("camFade = smoothstep({0},{1},planeDist);", data.system.CameraFadeDistance.x, data.system.CameraFadeDistance.y);
-                builder.ExitScope();
-                builder.WriteLine("if (camFade == 0.0f)");
-                builder.EnterScope();
-                builder.WriteLine("o.pos = -1.0;");
-                builder.WriteLine("return o;");
-                builder.ExitScope();
-                builder.WriteLine();
-            }
 
             outputGenerator.WritePreBlock(builder, data);
 
@@ -1286,9 +1275,16 @@ namespace UnityEditor.Experimental
                 }
                 else
                     builder.WriteLine("0.5);");
+            }
 
-                if (system.HasCameraFade())
-                    builder.WriteLine("o.col.a *= camFade;");
+            if (data.hasCull)
+            {
+                builder.WriteLine("if (kill)");
+                builder.EnterScope();
+                builder.WriteLine("o.pos = -1.0;");
+                if (hasColor)
+                    builder.WriteLine("o.col = 0;");
+                builder.ExitScope();
             }
 
             if (data.hasKill)
@@ -1312,7 +1308,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("float4 frag (ps_input i) : COLOR");
             builder.EnterScope();
 
-            if (hasColor || hasAlpha || system.HasCameraFade())
+            if (hasColor || hasAlpha)
                 builder.WriteLine("float4 color = i.col;");
             else
                 builder.WriteLine("float4 color = float4(1.0,1.0,1.0,0.5);");

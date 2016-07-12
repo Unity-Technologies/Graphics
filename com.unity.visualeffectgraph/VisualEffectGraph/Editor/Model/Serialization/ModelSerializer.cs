@@ -297,7 +297,6 @@ namespace UnityEditor.Experimental.VFX
             writer.WriteAttributeString("SpawnRate", system.SpawnRate.ToString());
             writer.WriteAttributeString("BlendingMode", system.BlendingMode.ToString());
             writer.WriteAttributeString("SoftParticlesFadeDistance", system.SoftParticlesFadeDistance.ToString());
-            writer.WriteAttributeString("CameraFadeDistance", SerializationUtils.FromVector2(system.CameraFadeDistance));
             writer.WriteAttributeString("OrderPriority", system.OrderPriority.ToString());
             writer.WriteAttributeString("RenderQueueDelta", system.RenderQueueDelta.ToString());
             for (int i = 0; i < system.GetNbChildren(); ++i)
@@ -588,8 +587,6 @@ namespace UnityEditor.Experimental.VFX
             system.BlendingMode = (BlendMode)Enum.Parse(typeof(BlendMode), xml.Attribute("BlendingMode").Value);
             if (data.Version >= 4)
                 system.SoftParticlesFadeDistance = float.Parse(xml.Attribute("SoftParticlesFadeDistance").Value);
-            if (data.Version >= 10)
-                system.CameraFadeDistance = SerializationUtils.ToVector2(xml.Attribute("CameraFadeDistance").Value);
             system.OrderPriority = int.Parse(xml.Attribute("OrderPriority").Value);
             if(data.Version >= 9)
                 system.RenderQueueDelta = int.Parse(xml.Attribute("RenderQueueDelta").Value);
