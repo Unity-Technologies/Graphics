@@ -1,89 +1,47 @@
-/*using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Graphs;
 using UnityEngine;
+using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph
 {
-    //[Title("Sub-graph/Sub-graph Node")]
-    public class SubGraphNode : BaseMaterialNode, IGeneratesBodyCode, IGeneratesVertexToFragmentBlock, IGeneratesFunction, IGeneratesVertexShaderBlock
+    [Title("Sub-graph/Sub-graph Node")]
+    public class SubGraphNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
-        private MaterialSubGraph m_SubGraphAsset;
+        private MaterialSubGraphAsset m_SubGraphAsset;
 
-        public MaterialSubGraph subGraphAsset { get { return m_SubGraphAsset; } }
-
-        public override PreviewMode previewMode
+        public MaterialSubGraphAsset subGraphAsset
         {
-            get
-            {
-                if (subGraphAsset == null)
-                    return PreviewMode.Preview2D;
-                var nodes = ListPool<BaseMaterialNode>.Get();
-                var preview3D = subGraphAsset.outputsNode.CollectChildNodesByExecutionOrder(nodes).Any(x => x.previewMode == PreviewMode.Preview3D);
-                ListPool <BaseMaterialNode >.Release(nodes);
-                return preview3D ? PreviewMode.Preview3D : PreviewMode.Preview2D;
-            }
+            get { return m_SubGraphAsset; }
+            set { m_SubGraphAsset = value; }
         }
 
-        public const int kMaxSlots = 16;
-
-        public override void OnCreate()
+        public SubGraphNode()
         {
-            base.OnCreate();
             name = "SubGraph";
-            position = new Rect(position.x, position.y, Mathf.Max(300, position.width), position.height);
+            UpdateNodeAfterDeserialization();
         }
-
-        static string GetInputSlotName(int n)
+   
+        public sealed override void UpdateNodeAfterDeserialization()
         {
-            return string.Format("I{0:00}", n);
-        }
-
-        static string GetOutputSlotName(int n)
-        {
-            return string.Format("O{0:00}", n);
-        }
-
-       /* public override IEnumerable<Slot> GetValidInputSlots()
-        {
-            // We only want to return the input slots that are internally wired to an output slot
-            return base.GetValidInputSlots().Where(slot => m_SubGraphAsset.InputInternallyWired(slot.name, this)).ToList();
-        }*
-
-        public override void NodeUI(GraphGUI host)
-        {
-            EditorGUI.BeginChangeCheck();
-            m_SubGraphAsset = (MaterialSubGraph)EditorGUILayout.ObjectField(GUIContent.none, m_SubGraphAsset, typeof(MaterialSubGraph), false);
-            if (EditorGUI.EndChangeCheck() && m_SubGraphAsset != null)
-            {
-                SubGraphChanged(m_SubGraphAsset);
-            }
-        }
-
-        private void SubGraphChanged(MaterialSubGraph sender)
-        {
-            RefreshSlots(SlotType.InputSlot, inputSlots.ToList(), sender.inputsNode.slots, (s) => true);
-            RefreshSlots(SlotType.OutputSlot, outputSlots.ToList(), sender.outputsNode.slots, sender.OutputInternallyWired);
-            pixelGraph.RevalidateGraph();
-        }
-
-        private void RefreshSlots(SlotType type, IEnumerable<Slot> current, IEnumerable<Slot> updated, Func<string, bool> slotFilter)
-        {
-            var innerOutputSlots = updated.Where(n => slotFilter(n.name)).ToArray();
-            foreach (var slot in innerOutputSlots)
-            {
-                var s = current.FirstOrDefault(n => n.name == slot.name);
-                if (s != null)
-                    s.title = slot.title;
-               // else
-               //     AddSlot(new Slot(type, slot.name, slot.title));
-            }
-
-            var danglingSlots = current.Except(innerOutputSlots, (ls, rs) =>  ls.name == rs.name).ToArray();
-            foreach (var slot in danglingSlots)
+            foreach (var slot in GetSlots<MaterialSlot>().Select(x => x.name).ToArray())
                 RemoveSlot(slot);
+
+            if (m_SubGraphAsset == null)
+                return;
+
+            var subGraphInputNode = m_SubGraphAsset.subGraph.inputNode;
+            foreach (var slot in subGraphInputNode.GetOutputSlots<MaterialSlot>())
+            {
+                AddSlot(new MaterialSlot(slot.name, slot.displayName, SlotType.Input, slot.priority, slot.valueType, slot.defaultValue ));
+            }
+
+            var subGraphOutputNode = m_SubGraphAsset.subGraph.outputNode;
+            foreach (var slot in subGraphOutputNode.GetInputSlots<MaterialSlot>())
+            {
+                AddSlot(new MaterialSlot(slot.name, slot.displayName, SlotType.Output, slot.priority, slot.valueType, slot.defaultValue));
+            }
         }
 
         public void GenerateNodeCode(ShaderGenerator shaderBodyVisitor, GenerationMode generationMode)
@@ -92,19 +50,22 @@ namespace UnityEditor.MaterialGraph
                 return;
 
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk("// Subgraph for node " + GetOutputVariableNameForNode(), false);
+            outputString.AddShaderChunk("// Subgraph for node " + GetVariableNameForNode(), false);
 
             // Step 1...
             // find out which output slots are actually used
             //TODO: Be smarter about this and only output ones that are actually USED, not just connected
             //var validOutputSlots = NodeUtils.GetSlotsThatOutputToNodeRecurse(this, (graph as BaseMaterialGraph).masterNode);
-            var validOutputSlots = outputSlots.Where(x => x.edges.Count > 0);
-            foreach (var slot in validOutputSlots)
+            foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
+                var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
+
                 outputString.AddShaderChunk(
-                    "float4 "
-                    + GetOutputVariableNameForSlot(slot, generationMode)
-                    + " = float4(0, 0, 0, 0);", false);
+                    "float"
+                    + outDimension
+                    + " "
+                    + GetOutputVariableNameForSlot(slot)
+                    + " = 0;", false);
             }
 
             // Step 2...
@@ -115,54 +76,52 @@ namespace UnityEditor.MaterialGraph
             // Step 3...
             // For each input that is used and connects through we want to generate code.
             // First we assign the input variables to the subgraph
-            foreach (var slot in slots)
+            var subGraphInputNode = m_SubGraphAsset.subGraph.inputNode;
+
+            foreach (var slot in GetInputSlots<MaterialSlot>())
             {
-                if (!slot.isInputSlot)
-                    continue;
+                var varName = subGraphInputNode.GetOutputVariableNameForSlot(subGraphInputNode.FindOutputSlot<MaterialSlot>(slot.name));
+                var varValue = GetSlotValue(slot, generationMode);
 
-                // see if the input connects all the way though to the output
-                // if it does allow generation
-                var inputWired = m_SubGraphAsset.InputInternallyWired(slot.name, this);
-                if (!inputWired)
-                    continue;
-
-                var varName = m_SubGraphAsset.GetInputVariableNameForSlotByName(slot.name, this, generationMode);
-                var varValue = "float4(0, 0, 0, 0);";
-                var slotDefaultValue = GetSlotDefaultValue(slot.name);
-                if (slotDefaultValue != null)
-                {
-                    varValue = slotDefaultValue.GetDefaultValue(generationMode, concreteInputSlotValueTypes[slot.name]);
-                }
-                bool externallyWired = slot.edges.Count > 0;
-                if (externallyWired)
-                {
-                    var fromSlot = slot.edges[0].fromSlot;
-                    var fromNode = slot.edges[0].fromSlot.node as BaseMaterialNode;
-                    varValue = fromNode.GetOutputVariableNameForSlot(fromSlot, generationMode);
-                }
-
-                outputString.AddShaderChunk("float4 " + varName + " = " + varValue + ";", false);
+                var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
+                outputString.AddShaderChunk(
+                    "float"
+                    + outDimension 
+                    + " " 
+                    + varName 
+                    + " = " 
+                    + varValue 
+                    + ";", false);
             }
-
+           
             // Step 4...
             // Using the inputs we can now generate the shader body :)
             var bodyGenerator = new ShaderGenerator();
-            m_SubGraphAsset.GenerateNodeCode(bodyGenerator, this);
+            var subGraphOutputNode = m_SubGraphAsset.subGraph.outputNode;
+
+            var nodes = ListPool<INode>.Get();
+            //Get the rest of the nodes for all the other slots
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, subGraphOutputNode, null, false);
+            foreach (var node in nodes)
+            {
+                if (node is IGeneratesBodyCode)
+                    (node as IGeneratesBodyCode).GenerateNodeCode(bodyGenerator, generationMode);
+            }
+            ListPool<INode>.Release(nodes);
             outputString.AddShaderChunk(bodyGenerator.GetShaderString(0), false);
 
             // Step 5...
             // Copy the outputs to the parent context name);
-            foreach (var slot in validOutputSlots)
+            foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
-                bool internallyWired = m_SubGraphAsset.OutputInternallyWired(slot.name);
-                if (internallyWired)
-                {
-                    outputString.AddShaderChunk(
-                        GetOutputVariableNameForSlot(slot, generationMode)
-                        + " = "
-                        + m_SubGraphAsset.GetOutputVariableNameForSlotByName(slot.name, this, generationMode)
-                        + ";", false);
-                }
+                var inputSlot = subGraphOutputNode.FindInputSlot<MaterialSlot>(slot.name);
+                var inputValue = subGraphOutputNode.GetSlotValue(inputSlot, generationMode);
+
+                outputString.AddShaderChunk(
+                    GetOutputVariableNameForSlot(slot)
+                    + " = "
+                    + inputValue 
+                    + ";", false);
             }
 
             outputString.Deindent();
@@ -172,7 +131,7 @@ namespace UnityEditor.MaterialGraph
             shaderBodyVisitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }
 
-        public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
+      /*  public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
         {
             m_SubGraphAsset.GenerateVertexToFragmentBlock(visitor, GenerationMode.SurfaceShader);
         }
@@ -203,6 +162,6 @@ namespace UnityEditor.MaterialGraph
         {
             base.CollectPreviewMaterialProperties(properties);
             properties.AddRange(m_SubGraphAsset.GetPreviewProperties());
-        }
+        }*/
     }
-}*/
+}

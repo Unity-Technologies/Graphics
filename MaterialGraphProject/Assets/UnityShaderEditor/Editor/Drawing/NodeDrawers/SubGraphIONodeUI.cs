@@ -13,14 +13,28 @@ namespace UnityEditor.MaterialGraph
         
         public float GetNodeUiHeight(float width)
         {
-            return EditorGUIUtility.singleLineHeight;
+            return 2 * EditorGUIUtility.singleLineHeight;
         }
 
         public GUIModificationType Render(Rect area)
         {
-            return GUIModificationType.None;
-        }
+            if (m_Node == null)
+                return GUIModificationType.None;
 
+            var modification = GUIModificationType.None;
+            if (GUI.Button(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), "Add Slot"))
+            {
+                m_Node.AddSlot();
+                modification |= GUIModificationType.ModelChanged;
+            }
+
+            if (GUI.Button(new Rect(area.x, area.y + EditorGUIUtility.singleLineHeight, area.width, EditorGUIUtility.singleLineHeight), "Remove Slot"))
+            {
+                m_Node.RemoveSlot();
+                modification |= GUIModificationType.ModelChanged;
+            }
+            return modification;
+        }
 
         public void SetNode(INode node)
         {

@@ -1,70 +1,53 @@
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public class SubGraphInputNode : AbstractSubGraphIONode, IGenerateProperties
+    public class SubGraphInputNode : AbstractSubGraphIONode
     {
         public SubGraphInputNode()
         {
             name = "SubGraphInputs";
         }
-/*
-        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
+        public override void AddSlot()
         {
-            base.GeneratePropertyBlock(visitor, generationMode);
+            var index = GetOutputSlots<ISlot>().Count();
+            AddSlot(new MaterialSlot("Input" + index, "Input" + index, SlotType.Output, index, SlotValueType.Vector4, Vector4.zero));
+        }
 
-            if (!generationMode.IsPreview())
+        public override void RemoveSlot()
+        {
+            var index = GetOutputSlots<ISlot>().Count();
+            if (index == 0)
                 return;
 
-            foreach (var slot in outputSlots)
+            RemoveSlot("Input" + (index - 1));
+        }
+        
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType valueType)
+        {
+            foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
-                if (slot.edges.Count == 0)
-                    continue;
-
-                var defaultValue = GetSlotDefaultValue(slot.name);
-                if (defaultValue != null)
-                    defaultValue.GeneratePropertyBlock(visitor, generationMode);
+                var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
+                visitor.AddShaderChunk("float" + outDimension + " " + GetOutputVariableNameForSlot(slot) + ";", true);
             }
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
-        {
-            base.GeneratePropertyUsages(visitor, generationMode, slotValueType);
-
-            if (!generationMode.IsPreview())
-                return;
-
-            foreach (var slot in outputSlots)
-            {
-                if (slot.edges.Count == 0)
-                    continue;
-
-                var defaultValue = GetSlotDefaultValue(slot.name);
-                if (defaultValue != null)
-                    defaultValue.GeneratePropertyUsages(visitor, generationMode, slotValueType);
-            }
-        }
-
-        protected override void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
-            foreach (var slot in outputSlots)
+            foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
-                if (slot.edges.Count == 0)
-                    continue;
-
-                var defaultOutput = GetSlotDefaultValue(slot.name);
-                if (defaultOutput == null)
-                    continue;
-
-                var pp = new PreviewProperty
-                {
-                    m_Name = defaultOutput.inputName,
-                    m_PropType = PropertyType.Vector4,
-                    m_Vector4 = defaultOutput.defaultValue
-                };
-                properties.Add (pp);
+                properties.Add(
+                     new PreviewProperty
+                     {
+                         m_Name = GetOutputVariableNameForSlot(slot),
+                         m_PropType = PropertyType.Vector4,
+                         m_Vector4 = slot.defaultValue
+                     }
+                );
             }
-        }*/
+        }
     }
 }

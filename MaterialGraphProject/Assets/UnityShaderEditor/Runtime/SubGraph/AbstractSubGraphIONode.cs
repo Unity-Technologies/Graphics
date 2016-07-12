@@ -2,6 +2,10 @@ namespace UnityEngine.MaterialGraph
 {
     public abstract class AbstractSubGraphIONode : AbstractMaterialNode
     {
+        public abstract void AddSlot();
+
+        public abstract void RemoveSlot();
+
         /*public void FooterUI(GraphGUI host)
         {
             // TODO: make it pretty

@@ -111,9 +111,9 @@ namespace UnityEditor.Graphing.Drawing
             {
                 node = Activator.CreateInstance(posObj.m_Type) as INode;
             }
-            catch
+            catch (Exception e)
             {
-                Debug.LogWarningFormat("Could not construct instance of: {0}", posObj.m_Type);
+                Debug.LogWarningFormat("Could not construct instance of: {0} - {1}", posObj.m_Type, e);
                 return;
             }
 

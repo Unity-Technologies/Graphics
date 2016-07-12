@@ -66,7 +66,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        protected string GetSlotValue(MaterialSlot inputSlot, GenerationMode generationMode)
+        public string GetSlotValue(MaterialSlot inputSlot, GenerationMode generationMode)
         {
             var edges = owner.GetEdges(GetSlotReference(inputSlot.name)).ToArray();
 
@@ -84,7 +84,7 @@ namespace UnityEngine.MaterialGraph
                 return ShaderGenerator.AdaptNodeOutput(fromNode, slot, inputSlot.concreteValueType);
             }
 
-            return inputSlot.GetDefaultValue(generationMode, inputSlot.concreteValueType, this);
+            return inputSlot.GetDefaultValue(generationMode, this);
         }
 
         private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType from, ConcreteSlotValueType to)
@@ -294,7 +294,7 @@ namespace UnityEngine.MaterialGraph
 
                 var pp = new PreviewProperty
                 {
-                    m_Name = GetDefaultInputNameForSlot(s),
+                    m_Name = GetOutputVariableNameForSlot(s),
                     m_PropType = PropertyType.Vector4,
                     m_Vector4 = s.currentValue
                 };
@@ -304,16 +304,20 @@ namespace UnityEngine.MaterialGraph
         
         public virtual string GetOutputVariableNameForSlot(MaterialSlot s)
         {
-            if (s.isInputSlot) Debug.LogError("Attempting to use input MaterialSlot (" + s + ") for output!");
-            if (!GetOutputSlots<MaterialSlot>().Contains(s)) Debug.LogError("Attempting to use MaterialSlot (" + s + ") for output on a node that does not have this MaterialSlot!");
+            if (s.isInputSlot)
+                Debug.LogError("Attempting to use input MaterialSlot (" + s + ") for output!");
+            if (!GetOutputSlots<MaterialSlot>().Contains(s))
+                Debug.LogError("Attempting to use MaterialSlot (" + s + ") for output on a node that does not have this MaterialSlot!");
 
             return GetVariableNameForNode() + "_" + s.name;
         }
 
-        public virtual string GetDefaultInputNameForSlot(MaterialSlot s)
+        public virtual string GetInputVariableNameForSlot(MaterialSlot s)
         {
-            if (s.isOutputSlot) Debug.LogError("Attempting to use output MaterialSlot (" + s + ") for default input!");
-            if (!GetOutputSlots<MaterialSlot>().Contains(s)) Debug.LogError("Attempting to use MaterialSlot (" + s + ") for default input on a node that does not have this MaterialSlot!");
+            if (s.isOutputSlot)
+                Debug.LogError("Attempting to use output MaterialSlot (" + s + ") for default input!");
+            if (!GetInputSlots<MaterialSlot>().Contains(s))
+                Debug.LogError("Attempting to use MaterialSlot (" + s + ") for default input on a node that does not have this MaterialSlot!");
 
             return GetVariableNameForNode() + "_" + s.name;
         }
