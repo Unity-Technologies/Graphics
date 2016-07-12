@@ -127,10 +127,10 @@ half4 frag (v2f i) : SV_Target
 
 	
 	float3 c = ExecuteLightList(pixCoord, offs);
-	c = OverlayHeatMap(FetchLightCount(offs), c);
+	//c = OverlayHeatMap(FetchLightCount(offs), c);
 
-	//return float4(c,1.0);
-	return float4(pow(c,1/2.2),1.0);
+	return float4(c,1.0);
+	//return float4(pow(c,1/2.2),1.0);
 }
 
 struct UnityStandardData

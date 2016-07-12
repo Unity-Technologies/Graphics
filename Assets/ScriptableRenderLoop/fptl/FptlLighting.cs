@@ -108,8 +108,8 @@ namespace UnityEngine.ScriptableRenderLoop
         void OnDisable()
         {
            // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
-            DestroyImmediate(m_DeferredMaterial);
-            DestroyImmediate(m_DeferredReflectionMaterial);
+            if(m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
+            if(m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
             m_cookieTexArray.Release();
             m_cubeCookieTexArray.Release();
             m_cubeReflTexArray.Release();
@@ -333,7 +333,9 @@ namespace UnityEngine.ScriptableRenderLoop
                     //Assert(false);
                 }
 
-                ++i;
+                // next light
+                if (cl.lightType == LightType.Spot || cl.lightType == LightType.Point)
+                    ++i;
             }
 
 
@@ -475,10 +477,10 @@ namespace UnityEngine.ScriptableRenderLoop
             // do anything we need to do upon a new frame.
             NewFrame();
 
-            m_DeferredMaterial.SetInt("_SrcBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.DstColor);
-            m_DeferredMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
-            m_DeferredReflectionMaterial.SetInt("_SrcBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.DstColor);
-            m_DeferredReflectionMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
+            //m_DeferredMaterial.SetInt("_SrcBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.DstColor);
+            //m_DeferredMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
+            //m_DeferredReflectionMaterial.SetInt("_SrcBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.DstColor);
+            //m_DeferredReflectionMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
             loop.SetupCameraProperties(camera);
             RenderGBuffer(cullResults, camera, loop);
 
