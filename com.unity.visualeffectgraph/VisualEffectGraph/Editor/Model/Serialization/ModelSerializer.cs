@@ -191,6 +191,13 @@ namespace UnityEditor.Experimental.VFX
             public IEnumerable<VFXPropertySlot> GetSlots()   { return slotsToIds.Keys; }
             public VFXPropertySlot GetSlot(int id)           { return idsToSlots[id]; }
             public int GetSlotId(VFXPropertySlot slot)       { return slotsToIds[slot]; }
+
+            public VFXPropertySlot GetSlotSafe(int id) // This wont throw
+            {
+                VFXPropertySlot res;
+                idsToSlots.TryGetValue(id, out res);
+                return res;
+            }
         }
 
         private struct SlotData
@@ -628,7 +635,7 @@ namespace UnityEditor.Experimental.VFX
 
             bool hashTest = int.Parse(xml.Attribute("Hash").Value) == desc.SlotHash; // Check whether serialized slot data is compatible with current slots
             if (!hashTest)
-                Debug.LogWarning("Slots configuration has changed between serialized data and current data. Slots cannot be deserialized for block " + desc);
+                Debug.LogError("Slots configuration has changed between serialized data and current data. Slots cannot be deserialized for block " + desc);
 
             if (data.Version >= 2)
                 block.Enabled = bool.Parse(xml.Attribute("Enabled").Value);
@@ -771,11 +778,11 @@ namespace UnityEditor.Experimental.VFX
                 for (int i = 0; i < connectedStr.Length; ++i)
                 {
                     var connectedSlotId = int.Parse(connectedStr[i]);
-                    var connectedSlot = data.GetSlot(connectedSlotId);
+                    var connectedSlot = data.GetSlotSafe(connectedSlotId);
                     if (connectedSlot != null)
                         slot.Link(connectedSlot);
                     else
-                        Debug.LogWarning("Cannot connect slots " + slotId + " and " + connectedSlotId + " as the lastest was invalidated");
+                        Debug.LogError("Cannot connect slots " + slotId + " and " + connectedSlotId + " as the latest was invalidated");
                 }
             }
         }

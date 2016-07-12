@@ -103,8 +103,8 @@ up = cross(side,front);";
             Add(new VFXAttribute(CommonAttrib.Side, true));
             Add(new VFXAttribute(CommonAttrib.Up, true));
 
-            Add(VFXProperty.Create<VFXDirectionType>("Front"));
-            Add(VFXProperty.Create<VFXDirectionType>("Up"));
+            Add(new VFXProperty(new VFXDirectionType(new Vector3(0.0f,0.0f,1.0f)), "Front"));
+            Add(new VFXProperty(new VFXDirectionType(new Vector3(0.0f,1.0f,0.0f)),"Up"));
 
             Source = @"
 front = Front;
@@ -117,7 +117,7 @@ up = cross(side,front);";
     {
         public VFXBlockFixedAxis()
         {
-            Name = "Fixed Axis Orientation";
+            Name = "Axis Constrained Orientation";
             Icon = "Position";
             Category = "Orientation";
             CompatibleContexts = VFXContextDesc.Type.kTypeOutput;
@@ -136,4 +136,28 @@ side = normalize(cross(front,up));
 front = cross(up,side);";
         }
     }
+
+    class VFXBlockOrientAlongVelocity : VFXBlockType
+    {
+        public VFXBlockOrientAlongVelocity()
+        {
+            Name = "Orient Along Velocity";
+            Icon = "Position";
+            Category = "Orientation";
+            CompatibleContexts = VFXContextDesc.Type.kTypeOutput;
+
+            Add(new VFXAttribute(CommonAttrib.Front, true));
+            Add(new VFXAttribute(CommonAttrib.Side, true));
+            Add(new VFXAttribute(CommonAttrib.Up, true));
+            Add(new VFXAttribute(CommonAttrib.Velocity, false));
+            Add(new VFXAttribute(CommonAttrib.Position, false));
+
+            Source = @"
+up = normalize(velocity);
+front = VFXCameraPos() - position;
+side = normalize(cross(front,up));
+front = cross(up,side);";
+        }
+    }
 }
+

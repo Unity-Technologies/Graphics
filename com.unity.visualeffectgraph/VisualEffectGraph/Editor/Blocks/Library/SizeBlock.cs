@@ -58,6 +58,27 @@ size = float2(s,s);";
         }
     }
 
+    public class VFXBlockSizeRandomRectangle : VFXBlockType
+    {
+        public VFXBlockSizeRandomRectangle()
+        {
+            Name = "Random (Rectangle)";
+            Icon = "Size";
+            Category = "Size";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
+
+            Add(new VFXProperty(new VFXFloat2Type(new Vector2(0.1f, 0.2f)), "MinSize"));
+            Add(new VFXProperty(new VFXFloat2Type(new Vector2(0.1f, 0.2f)), "MaxSize"));
+
+            Add(new VFXAttribute(CommonAttrib.Size, true));
+
+            Source = @"
+float sizeX = lerp(MinSize.x,MaxSize.x,RAND);
+float sizeY = lerp(MinSize.y,MaxSize.y,RAND);
+size = float2(sizeX,sizeY);";
+        }
+    }
+
     public class VFXBlockApplyScaleRatio : VFXBlockType
     {
         public VFXBlockApplyScaleRatio()
@@ -121,7 +142,6 @@ size.y = SAMPLE(Curve, length(velocity));";
             Category = "Size";
 
             Add(VFXProperty.Create<VFXCurveType>("Curve"));
-            Add(new VFXProperty(new VFXFloatType(0.1f),"MaxSize"));
 
             Add(new VFXAttribute(CommonAttrib.Size, true));
             Add(new VFXAttribute(CommonAttrib.Age, false));
