@@ -1,0 +1,119 @@
+#pragma kernel CSVFXInit
+#pragma kernel CSVFXUpdate
+
+#include "HLSLSupport.cginc"
+#include "..\VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 256
+
+CBUFFER_START(GlobalInfo)
+	float deltaTime;
+	float totalTime;
+	uint nbMax;
+CBUFFER_END
+
+CBUFFER_START(SpawnInfo)
+	uint nbSpawned;
+	uint spawnIndex;
+CBUFFER_END
+
+CBUFFER_START(initUniforms)
+	float3 initUniform0;
+	float3 initUniform1;
+	float initUniform2;
+	float initUniform3;
+	float initUniform4;
+	float initUniform5;
+	float initUniform6;
+CBUFFER_END
+
+struct Attribute0
+{
+	float3 position;
+	float _PADDING_;
+};
+
+struct Attribute1
+{
+	float lifetime;
+};
+
+struct Attribute2
+{
+	float age;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+RWStructuredBuffer<Attribute1> attribBuffer1;
+StructuredBuffer<Attribute1> attribBuffer1_RO;
+RWStructuredBuffer<Attribute2> attribBuffer2;
+
+RWStructuredBuffer<int> flags;
+ConsumeStructuredBuffer<uint> deadListIn;
+AppendStructuredBuffer<uint> deadListOut;
+Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
+
+void VFXBlockPositionCylinderSurfaceSequence( inout float3 position,uint particleId,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,float RotationalRate,float LinearRate)
+{
+	float u1 = fmod(LinearRate * particleId,1.0f) - 0.5f;
+	float u2 = radians(RotationalRate * particleId);
+	position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);
+}
+
+void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
+{
+	lifetime = max(Lifetime,0.0f);
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x < min(nbSpawned,deadListCount[0]))
+	{
+		uint index = deadListIn.Consume();
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		Attribute1 attrib1 = (Attribute1)0;
+		Attribute2 attrib2 = (Attribute2)0;
+		
+		uint local_particleId = (uint)0;
+		
+		local_particleId = spawnIndex + id.x;
+		VFXBlockPositionCylinderSurfaceSequence( attrib0.position,local_particleId,initUniform0,initUniform1,initUniform2,initUniform3,initUniform4,initUniform5);
+		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform6);
+		
+		attribBuffer0[index] = attrib0;
+		attribBuffer1[index] = attrib1;
+		attribBuffer2[index] = attrib2;
+		
+		flags[index] = 1;
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x < nbMax && flags[id.x] == 1)
+	{
+		uint index = id.x;
+		bool kill = false;
+		
+		Attribute1 attrib1 = attribBuffer1_RO[index];
+		Attribute2 attrib2 = attribBuffer2[index];
+		
+		
+		attrib2.age += deltaTime;
+		if (attrib2.age >= attrib1.lifetime)
+			kill = true;
+		
+		if (kill)
+		{
+			flags[index] = 0;
+			deadListOut.Append(index);
+			return;
+		}
+		
+		attribBuffer2[index] = attrib2;
+	}
+}
+

@@ -1,0 +1,98 @@
+#pragma kernel CSVFXInit
+#pragma kernel CSVFXUpdate
+
+#include "HLSLSupport.cginc"
+#include "..\VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 1
+
+CBUFFER_START(GlobalInfo)
+	float deltaTime;
+	float totalTime;
+	uint nbMax;
+CBUFFER_END
+
+CBUFFER_START(SpawnInfo)
+	uint nbSpawned;
+	uint spawnIndex;
+CBUFFER_END
+
+CBUFFER_START(initUniforms)
+	float3 initUniform0;
+	float initUniform1;
+CBUFFER_END
+
+CBUFFER_START(updateUniforms)
+	float updateUniform0;
+CBUFFER_END
+
+struct Attribute0
+{
+	float3 position;
+	float _PADDING_;
+};
+
+struct Attribute1
+{
+	float2 size;
+};
+
+struct Attribute2
+{
+	float texIndex;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+RWStructuredBuffer<Attribute1> attribBuffer1;
+RWStructuredBuffer<Attribute2> attribBuffer2;
+
+void VFXBlockSetPositionPoint( inout float3 position,float3 pos)
+{
+	position = pos;
+}
+
+void VFXBlockSizeConstantSquare( inout float2 size,float Size)
+{
+	size = float2(Size,Size);
+}
+
+void VFXBlockSubUVAnimateConstantRate( inout float texIndex,float Framerate)
+{
+	texIndex += Framerate * deltaTime;
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x < nbSpawned)
+	{
+		uint index = id.x + spawnIndex;
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		Attribute1 attrib1 = (Attribute1)0;
+		Attribute2 attrib2 = (Attribute2)0;
+		
+		VFXBlockSetPositionPoint( attrib0.position,initUniform0);
+		VFXBlockSizeConstantSquare( attrib1.size,initUniform1);
+		
+		attribBuffer0[index] = attrib0;
+		attribBuffer1[index] = attrib1;
+		attribBuffer2[index] = attrib2;
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x < nbMax)
+	{
+		uint index = id.x;
+		
+		Attribute2 attrib2 = attribBuffer2[index];
+		
+		VFXBlockSubUVAnimateConstantRate( attrib2.texIndex,updateUniform0);
+		
+		attribBuffer2[index] = attrib2;
+	}
+}
+

@@ -1,0 +1,60 @@
+#pragma kernel CSVFXInit
+
+#include "HLSLSupport.cginc"
+#include "..\VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 256
+
+CBUFFER_START(GlobalInfo)
+	float deltaTime;
+	float totalTime;
+	uint nbMax;
+CBUFFER_END
+
+CBUFFER_START(SpawnInfo)
+	uint nbSpawned;
+	uint spawnIndex;
+CBUFFER_END
+
+CBUFFER_START(initUniforms)
+	float3 initUniform0;
+	float3 initUniform1;
+	float3 initUniform2;
+CBUFFER_END
+
+struct Attribute0
+{
+	float3 position;
+	float _PADDING_;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+
+void VFXBlockPositionAABBSequence( inout float3 position,uint particleId,float3 Box_center,float3 Box_size,float3 Number)
+{
+	float3 nPos;
+	nPos.x = fmod(particleId,Number.x);
+	nPos.y = fmod((int)(particleId / Number.x),Number.y);
+	nPos.z = fmod((int)(particleId / (Number.x * Number.y)),Number.z);
+	nPos = nPos / Number - 0.5f;
+	position = nPos * Box_size + Box_center;
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x < nbSpawned)
+	{
+		uint index = id.x + spawnIndex;
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		
+		uint local_particleId = (uint)0;
+		
+		local_particleId = spawnIndex + id.x;
+		VFXBlockPositionAABBSequence( attrib0.position,local_particleId,initUniform0,initUniform1,initUniform2);
+		
+		attribBuffer0[index] = attrib0;
+	}
+}
+

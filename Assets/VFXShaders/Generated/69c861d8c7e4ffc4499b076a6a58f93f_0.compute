@@ -1,0 +1,70 @@
+#pragma kernel CSVFXInit
+
+#include "HLSLSupport.cginc"
+#include "..\VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 256
+
+CBUFFER_START(GlobalInfo)
+	float deltaTime;
+	float totalTime;
+	uint nbMax;
+	uint systemSeed;
+CBUFFER_END
+
+CBUFFER_START(SpawnInfo)
+	uint nbSpawned;
+	uint spawnIndex;
+CBUFFER_END
+
+CBUFFER_START(initUniforms)
+	float3 initUniform0;
+	float initUniform1;
+CBUFFER_END
+
+struct Attribute0
+{
+	float3 position;
+	float _PADDING_;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+
+float rand(inout uint seed)
+{
+	seed = 1664525 * seed + 1013904223;
+	return float(seed) / 4294967296.0;
+}
+
+void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
+{
+	float u1 = 2.0 * RAND - 1.0;
+	float u2 = UNITY_TWO_PI * RAND;
+	position = VFXPositionOnSphereSurface(Sphere,u1,u2);
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x < nbSpawned)
+	{
+		uint index = id.x + spawnIndex;
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		
+		uint local_seed = (uint)0;
+		
+		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		seed = (seed ^ 61) ^ (seed >> 16);
+		seed *= 9;
+		seed = seed ^ (seed >> 4);
+		seed *= 0x27d4eb2d;
+		seed = seed ^ (seed >> 15);
+		local_seed = seed;
+		
+		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0,initUniform1,local_seed);
+		
+		attribBuffer0[index] = attrib0;
+	}
+}
+
