@@ -12,6 +12,10 @@ namespace UnityEngine.MaterialGraph
         {
             get { return m_MaterialSubGraph; }
         }
+        public SubGraph subGraph
+        {
+            get { return m_MaterialSubGraph; }
+        }
 
         public bool shouldRepaint 
         {
