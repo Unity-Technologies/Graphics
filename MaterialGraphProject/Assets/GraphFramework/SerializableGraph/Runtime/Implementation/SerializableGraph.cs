@@ -195,5 +195,13 @@ namespace UnityEngine.Graphing
             foreach (var node in GetNodes<INode>())
                 node.ValidateNode();
         }
+
+        public void OnEnable()
+        {
+            foreach (var node in GetNodes<INode>().OfType<IOnAssetEnabled>())
+            {
+                node.OnEnable();
+            }
+        }
     }
 }

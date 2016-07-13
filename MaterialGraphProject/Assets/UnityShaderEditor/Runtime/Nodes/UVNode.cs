@@ -51,7 +51,7 @@ namespace UnityEngine.MaterialGraph
             var outputSlot = FindOutputSlot<MaterialSlot>(kOutputSlotName);
 
             string uvValue = "IN.meshUV0";
-            visitor.AddShaderChunk(precision + "4 " + GetOutputVariableNameForSlot(outputSlot) + " = " + uvValue + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(outputSlot) + " = " + uvValue + ";", true);
         }
     }
 }

@@ -25,12 +25,12 @@ namespace UnityEngine.MaterialGraph
             RemoveSlot("Input" + (index - 1));
         }
         
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType valueType)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
                 var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
-                visitor.AddShaderChunk("float" + outDimension + " " + GetOutputVariableNameForSlot(slot) + ";", true);
+                visitor.AddShaderChunk("float" + outDimension + " " + GetVariableNameForSlot(slot) + ";", true);
             }
         }
 
@@ -42,7 +42,7 @@ namespace UnityEngine.MaterialGraph
                 properties.Add(
                      new PreviewProperty
                      {
-                         m_Name = GetOutputVariableNameForSlot(slot),
+                         m_Name = GetVariableNameForSlot(slot),
                          m_PropType = PropertyType.Vector4,
                          m_Vector4 = slot.defaultValue
                      }

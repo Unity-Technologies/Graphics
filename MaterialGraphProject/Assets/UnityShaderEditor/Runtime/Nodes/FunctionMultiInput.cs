@@ -69,7 +69,7 @@ namespace UnityEditor.MaterialGraph
             var inputValues = new List<string>(inputSlotCount);
             MaterialWindow.DebugMaterialGraph("Generating On Node: " + GetOutputVariableNameForNode() + " - Preview is: " + generationMode);
             inputValues.AddRange(inputSlots.Select(inputSlot => GetSlotValue(inputSlot, generationMode)));
-            visitor.AddShaderChunk(precision + "4 " + GetOutputVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(inputValues) + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(outputSlot, generationMode) + " = " + GetFunctionCallBody(inputValues) + ";", true);
         }
 
         protected virtual string GetFunctionCallBody(List<string> inputValues)

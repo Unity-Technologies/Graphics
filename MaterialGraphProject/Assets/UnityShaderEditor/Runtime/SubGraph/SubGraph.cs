@@ -7,9 +7,15 @@ namespace UnityEngine.MaterialGraph
 {
     [Serializable]
     public class SubGraph : AbstractMaterialGraph
+        , IGeneratesBodyCode
+        , IGeneratesFunction
+        , IGenerateProperties
+        , IGeneratesVertexShaderBlock
+        , IGeneratesVertexToFragmentBlock
     {
         [NonSerialized]
         private SubGraphInputNode m_InputNode;
+
         [NonSerialized]
         private SubGraphOutputNode m_OutputNode;
 
@@ -36,9 +42,10 @@ namespace UnityEngine.MaterialGraph
                 return m_OutputNode;
             }
         }
- 
+
         [NonSerialized]
         private List<INode> m_ActiveNodes = new List<INode>();
+
         public IEnumerable<AbstractMaterialNode> activeNodes
         {
             get
@@ -76,6 +83,85 @@ namespace UnityEngine.MaterialGraph
         {
             AddNode(new SubGraphInputNode());
             AddNode(new SubGraphOutputNode());
+        }
+
+        private IEnumerable<AbstractMaterialNode> usedNodes
+        {
+            get
+            {
+                var nodes = new List<INode>();
+                //Get the rest of the nodes for all the other slots
+                NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode, null, false);
+                return nodes.OfType<AbstractMaterialNode>();
+            }
+        }
+
+        public PreviewMode previewMode
+        {
+            get { return usedNodes.Any(x => x.previewMode == PreviewMode.Preview3D) ? PreviewMode.Preview3D : PreviewMode.Preview2D; }
+        }
+
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            foreach (var node in usedNodes)
+            {
+                if (node is IGeneratesBodyCode)
+                    (node as IGeneratesBodyCode).GenerateNodeCode(visitor, generationMode);
+            }
+        }
+
+        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            foreach (var node in usedNodes)
+            {
+                if (node is IGeneratesFunction)
+                    (node as IGeneratesFunction).GenerateNodeFunction(visitor, generationMode);
+            }
+        }
+
+        public void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
+        {
+
+            foreach (var node in usedNodes)
+            {
+                if (node is IGenerateProperties)
+                    (node as IGenerateProperties).GeneratePropertyBlock(visitor, generationMode);
+            }
+        }
+
+        public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            foreach (var node in usedNodes)
+            {
+                if (node is IGenerateProperties)
+                    (node as IGenerateProperties).GeneratePropertyUsages(visitor, generationMode);
+            }
+        }
+
+        public void GenerateVertexShaderBlock(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            foreach (var node in usedNodes)
+            {
+                if (node is IGeneratesVertexShaderBlock)
+                    (node as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(visitor, generationMode);
+            }
+        }
+
+        public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            foreach (var node in usedNodes)
+            {
+                if (node is IGeneratesVertexToFragmentBlock)
+                    (node as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(visitor, generationMode);
+            }
+        }
+
+        public IEnumerable<PreviewProperty> GetPreviewProperties()
+        {
+            List<PreviewProperty> props = new List<PreviewProperty>();
+            foreach (var node in usedNodes)
+                node.CollectPreviewMaterialProperties(props);
+            return props;
         }
     }
 }

@@ -131,9 +131,11 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanRemoveSlotFromSerializableNode()
         {
+            var graph = new SerializableGraph();
             var node = new SerializableNode();
             node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
             node.AddSlot(new SerializableSlot("input", "input", SlotType.Input, 0));
+            graph.AddNode(node);
 
             Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
             Assert.AreEqual(1, node.GetInputSlots<ISlot>().Count());
@@ -149,7 +151,9 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanRemoveSlotsWithNonMathingNameFromSerializableNode()
         {
+            var graph = new SerializableGraph();
             var node = new SerializableNode();
+            graph.AddNode(node);
             node.AddSlot(new SerializableSlot("input1", "input", SlotType.Input, 0));
             node.AddSlot(new SerializableSlot("input2", "input", SlotType.Input, 0));
             node.AddSlot(new SerializableSlot("input3", "input", SlotType.Input, 0));

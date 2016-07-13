@@ -81,7 +81,7 @@ namespace UnityEngine.MaterialGraph
                 if (node is IGenerateProperties)
                 {
                     (node as IGenerateProperties).GeneratePropertyBlock(shaderProperties, genMode);
-                    (node as IGenerateProperties).GeneratePropertyUsages(propertyUsages, genMode, ConcreteSlotValueType.Vector4);
+                    (node as IGenerateProperties).GeneratePropertyUsages(propertyUsages, genMode);
                 }
             }
 

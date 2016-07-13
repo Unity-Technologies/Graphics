@@ -85,10 +85,17 @@ namespace UnityEngine.Graphing
 
         public void RemoveSlot(string name)
         {
+            //Remove edges that use this slot
+            var edges = owner.GetEdges(GetSlotReference(name));
+
+            foreach (var edge in edges.ToArray())
+                owner.RemoveEdge(edge);
+            
+            //remove slots
             m_Slots.RemoveAll(x => x.name == name);
         }
 
-        public void RemoveSlotsNameNotMatching(string[] slotNames)
+        public void RemoveSlotsNameNotMatching(IEnumerable<string> slotNames)
         {
             var invalidSlots = m_Slots.Select(x => x.name).Except(slotNames);
 

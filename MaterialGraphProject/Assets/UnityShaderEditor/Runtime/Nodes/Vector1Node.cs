@@ -39,7 +39,7 @@ namespace UnityEngine.MaterialGraph
                 visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, m_Value, false));
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType valueType)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (exposed || generationMode.IsPreview())
                visitor.AddShaderChunk("float " + propertyName + ";", true);

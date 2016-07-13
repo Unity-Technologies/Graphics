@@ -114,7 +114,7 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderChunk("float4 " + GetVariableNameForNode() + " = " + body + ";", true);
         }
 
-        public override string GetOutputVariableNameForSlot(MaterialSlot s)
+        public override string GetVariableNameForSlot(MaterialSlot s)
         {
             string slotOutput;
             switch (s.name)
@@ -166,7 +166,7 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderProperty(new TexturePropertyChunk(propertyName, description, defaultTexture, m_TextureType, false, exposed));
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             visitor.AddShaderChunk("sampler2D " + propertyName + ";", true);
         }

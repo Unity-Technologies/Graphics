@@ -46,7 +46,7 @@ namespace UnityEngine.MaterialGraph
 
         public abstract PreviewProperty GetPreviewProperty();
         
-        public override string GetOutputVariableNameForSlot(MaterialSlot s)
+        public override string GetVariableNameForSlot(MaterialSlot s)
         {
             return propertyName;
         }

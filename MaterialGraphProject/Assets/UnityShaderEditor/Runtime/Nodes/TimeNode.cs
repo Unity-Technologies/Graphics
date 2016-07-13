@@ -33,7 +33,7 @@ namespace UnityEngine.MaterialGraph
             get { return new[] {kOutputSlotName, kOutputSlotNameX, kOutputSlotNameY, kOutputSlotNameZ, kOutputSlotName}; }
         }
 
-        public override string GetOutputVariableNameForSlot(MaterialSlot s)
+        public override string GetVariableNameForSlot(MaterialSlot s)
         {
             switch (s.name)
             {
