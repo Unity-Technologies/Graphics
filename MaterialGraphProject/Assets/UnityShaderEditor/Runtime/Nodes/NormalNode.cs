@@ -29,7 +29,7 @@ namespace UnityEngine.MaterialGraph
             get { return PreviewMode.Preview3D; }
         }
 
-        public override string GetOutputVariableNameForSlot(MaterialSlot s)
+        public override string GetVariableNameForSlot(MaterialSlot s)
         {
             return "o.Normal";
         }

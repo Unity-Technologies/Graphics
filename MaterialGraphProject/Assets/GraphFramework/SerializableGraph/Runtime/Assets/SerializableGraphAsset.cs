@@ -1,6 +1,6 @@
 namespace UnityEngine.Graphing
 {
-    public class SerializableGraphAsset : ScriptableObject, IGraphAsset
+    public class SerializableGraphAsset : ScriptableObject, IGraphAsset, IOnAssetEnabled
     {
         [SerializeField]
         protected SerializableGraph m_Graph = new SerializableGraph();
@@ -18,6 +18,11 @@ namespace UnityEngine.Graphing
         public ScriptableObject GetScriptableObject()
         {
             return this;
+        }
+
+        public void OnEnable()
+        {
+            graph.OnEnable();
         }
     }
 }

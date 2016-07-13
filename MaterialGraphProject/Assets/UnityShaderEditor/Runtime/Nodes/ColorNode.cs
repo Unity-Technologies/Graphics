@@ -33,7 +33,7 @@ namespace UnityEngine.MaterialGraph
             set { m_Color = value; }
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType)
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (exposed || generationMode.IsPreview())
                 visitor.AddShaderChunk("float4 " + propertyName + ";", true);

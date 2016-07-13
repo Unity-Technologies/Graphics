@@ -12,6 +12,7 @@ namespace UnityEngine.MaterialGraph
         {
             get { return m_MaterialSubGraph; }
         }
+
         public SubGraph subGraph
         {
             get { return m_MaterialSubGraph; }
@@ -25,6 +26,11 @@ namespace UnityEngine.MaterialGraph
         public ScriptableObject GetScriptableObject()
         {
             return this;
+        }
+
+        public void OnEnable()
+        {
+            graph.OnEnable();
         }
 
         public void PostCreate()

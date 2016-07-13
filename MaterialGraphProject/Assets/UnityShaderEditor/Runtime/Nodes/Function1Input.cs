@@ -53,7 +53,7 @@ namespace UnityEngine.MaterialGraph
             }
 
             var inputValue = GetSlotValue(inputSlot, generationMode);
-            visitor.AddShaderChunk(precision + outputDimension + " " + GetOutputVariableNameForSlot(outputSlot) + " = " + GetFunctionCallBody(inputValue) + ";", true);
+            visitor.AddShaderChunk(precision + outputDimension + " " + GetVariableNameForSlot(outputSlot) + " = " + GetFunctionCallBody(inputValue) + ";", true);
         }
 
         protected virtual string GetFunctionCallBody(string inputValue)

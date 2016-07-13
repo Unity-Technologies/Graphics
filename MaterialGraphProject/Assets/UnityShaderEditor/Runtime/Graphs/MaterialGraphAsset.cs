@@ -23,6 +23,11 @@ namespace UnityEngine.MaterialGraph
             return this;
         }
 
+        public void OnEnable()
+        {
+            graph.OnEnable();
+        }
+
         public Material GetMaterial()
         {
             return null;

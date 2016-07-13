@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Graphing
 {
-    public interface IGraph
+    public interface IGraph : IOnAssetEnabled
     {
         IEnumerable<T> GetNodes<T>() where T : INode;
         IEnumerable<IEdge> edges { get; }

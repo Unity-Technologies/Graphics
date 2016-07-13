@@ -56,6 +56,9 @@ namespace UnityEditor.Graphing.Drawing
                 var selection = Selection.activeObject as T;
                 if (selection != m_LastSelection)
                 {
+                    var graph = selection.graph;
+                    graph.OnEnable();
+                    graph.ValidateGraph();
                     m_LastSelection = selection;
                     Rebuild();
                     Repaint();

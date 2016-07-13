@@ -293,7 +293,7 @@ namespace UnityEngine.MaterialGraph
                 return kErrorString;
            
             var convertFromType = outputSlot.concreteValueType;
-            var rawOutput = node.GetOutputVariableNameForSlot(outputSlot);
+            var rawOutput = node.GetVariableNameForSlot(outputSlot);
             if (convertFromType == convertToType)
                 return rawOutput;
 
@@ -346,7 +346,7 @@ namespace UnityEngine.MaterialGraph
             if (convertFromType >= convertToType || convertFromType == ConcreteSlotValueType.Vector1)
                 return AdaptNodeOutput(node, outputSlot, convertToType);
 
-            var rawOutput = node.GetOutputVariableNameForSlot(outputSlot);
+            var rawOutput = node.GetVariableNameForSlot(outputSlot);
 
             // otherwise we need to pad output for the preview!
             switch (convertToType)
@@ -407,7 +407,7 @@ namespace UnityEngine.MaterialGraph
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
             var vertexShaderBlock = new ShaderGenerator();
 
-            var shaderName = "Hidden/PreviewShader/" + node.GetOutputVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First());
+            var shaderName = "Hidden/PreviewShader/" + node.GetVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First());
            
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
@@ -421,7 +421,7 @@ namespace UnityEngine.MaterialGraph
                     (activeNode as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(vertexShaderBlock, generationMode);
 
                 activeNode.GeneratePropertyBlock(shaderPropertiesVisitor, generationMode);
-                activeNode.GeneratePropertyUsages(shaderPropertyUsagesVisitor, generationMode, ConcreteSlotValueType.Vector4);
+                activeNode.GeneratePropertyUsages(shaderPropertyUsagesVisitor, generationMode);
             }
 
             if (shaderInputVisitor.numberOfChunks == 0)

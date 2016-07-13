@@ -1,50 +1,39 @@
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine;
-using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph
 {
     [CustomNodeUI(typeof(SubGraphNode))]
-    public class SubgraphNodeUI : ICustomNodeUi
+    public class SubgraphNodeUI : AbstractMaterialNodeUI
     {
-        private SubGraphNode m_Node;
-        
         public float GetNodeUiHeight(float width)
         {
-            return 1 * EditorGUIUtility.singleLineHeight;
+            return base.GetNodeUiHeight(width) + 2 * EditorGUIUtility.singleLineHeight;
         }
 
-        public GUIModificationType Render(Rect area)
+        public override GUIModificationType Render(Rect area)
         {
-            if (m_Node == null)
-                return GUIModificationType.None;
+            var node = m_Node as SubGraphNode;
+            if (node == null)
+                return base.Render(area);
 
             EditorGUI.BeginChangeCheck();
-            m_Node.subGraphAsset = (MaterialSubGraphAsset) EditorGUI.ObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight),
+            node.subGraphAsset = (MaterialSubGraphAsset) EditorGUI.ObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight),
                 new GUIContent("SubGraph"),
-                m_Node.subGraphAsset,
+                node.subGraphAsset,
                 typeof(MaterialSubGraphAsset), false);
 
+            var toReturn = GUIModificationType.None;
+
             if (EditorGUI.EndChangeCheck())
-            {
-                m_Node.UpdateNodeAfterDeserialization();
-                return GUIModificationType.ModelChanged;
-            }
+                toReturn |= GUIModificationType.ModelChanged;
 
-            return GUIModificationType.None;
-        }
-
-        public void SetNode(INode node)
-        {
-            if (node is SubGraphNode)
-                m_Node = (SubGraphNode) node;
-        }
-
-        public float GetNodeWidth()
-        {
-            return 200;
+            area.y += EditorGUIUtility.singleLineHeight;
+            area.height -= EditorGUIUtility.singleLineHeight;
+            toReturn |= base.Render(area);
+            return toReturn;
         }
     }
 }
