@@ -8,9 +8,9 @@ namespace UnityEditor.MaterialGraph
     [CustomNodeUI(typeof(SubGraphNode))]
     public class SubgraphNodeUI : AbstractMaterialNodeUI
     {
-        public float GetNodeUiHeight(float width)
+        public override float GetNodeUiHeight(float width)
         {
-            return base.GetNodeUiHeight(width) + 2 * EditorGUIUtility.singleLineHeight;
+            return base.GetNodeUiHeight(width) + EditorGUIUtility.singleLineHeight;
         }
 
         public override GUIModificationType Render(Rect area)

@@ -50,8 +50,22 @@ namespace UnityEngine.Graphing
         }
 
         public virtual bool hasError { get; protected set; }
+
+  
+        public SerializableNode()
+        {
+            m_DrawData.expanded = true;
+            m_Guid = Guid.NewGuid();
+        }
+
+        public Guid RewriteGuid()
+        {
+            m_Guid = Guid.NewGuid();
+            return m_Guid; 
+        }
+
         public virtual void ValidateNode()
-        {}
+        { }
 
         public IEnumerable<T> GetInputSlots<T>() where T : ISlot
         {
@@ -66,12 +80,6 @@ namespace UnityEngine.Graphing
         public IEnumerable<T> GetSlots<T>() where T : ISlot
         {
             return m_Slots.OfType<T>();
-        }
-
-        public SerializableNode()
-        {
-            m_DrawData.expanded = true;
-            m_Guid = Guid.NewGuid();
         }
 
         public virtual void AddSlot(ISlot slot)

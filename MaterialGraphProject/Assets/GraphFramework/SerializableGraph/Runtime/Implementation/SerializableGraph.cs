@@ -52,7 +52,7 @@ namespace UnityEngine.Graphing
 
             m_Nodes.Remove(node);
         }
-
+        
         public virtual IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
             var fromNode = GetNodeFromGuid(fromSlotRef.nodeGuid);
@@ -158,13 +158,13 @@ namespace UnityEngine.Graphing
 
         public virtual void OnAfterDeserialize()
         {
-            m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, new object[] {});
+            m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes);
             foreach (var node in m_Nodes)
                 node.owner = this;
 
             m_SerializableNodes = null;
 
-            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, new object[] {});
+            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges);
             m_SerializableEdges = null;
 
             ValidateGraph();

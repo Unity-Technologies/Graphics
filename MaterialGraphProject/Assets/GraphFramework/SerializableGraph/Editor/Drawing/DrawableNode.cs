@@ -97,6 +97,23 @@ namespace UnityEditor.Graphing.Drawing
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
+            // some imgui elements eat key down events
+            // this is okay a lot of the time
+            // but for delete key it is not desired.
+            // if we have a delete key here
+            // just return. This allows us to get
+            // a validate / execute later on that can
+            // be handled by the graph.
+            var evt = Event.current;
+            if (evt.type == EventType.keyDown 
+                && (evt.keyCode == KeyCode.Backspace || evt.keyCode == KeyCode.Delete))
+            {
+                return;
+            }
+
+            if (evt.type == EventType.ValidateCommand || evt.type == EventType.ExecuteCommand)
+                return;
+
             Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
             Color selectedColor = new Color(1.0f, 0.7f, 0.0f, 0.7f);
             EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), m_Node.hasError ? Color.red : selected ? selectedColor : backgroundColor);

@@ -9,12 +9,10 @@ namespace UnityEditor.Graphing.Drawing
         public delegate void DeleteElements(List<CanvasElement> elements);
 
         private readonly DeleteElements m_DeletionCallback;
-        private readonly Canvas2D m_Canvas;
 
-        public DeleteSelected(DeleteElements deletionCallback, Canvas2D canvas)
+        public DeleteSelected(DeleteElements deletionCallback)
         {
             m_DeletionCallback = deletionCallback;
-            m_Canvas = canvas;
         }
 
         public bool GetCaps(ManipulatorCapability cap)
@@ -24,25 +22,39 @@ namespace UnityEditor.Graphing.Drawing
 
         public void AttachTo(CanvasElement element)
         {
-            element.KeyDown += KeyDown;
+            element.ValidateCommand += Validate;
+            element.ExecuteCommand += Delete;
         }
 
-        private bool KeyDown(CanvasElement element, Event e, Canvas2D parent)
+        private bool Validate(CanvasElement element, Event e, Canvas2D parent)
         {
             if (e.type == EventType.Used)
                 return false;
 
-            if (e.keyCode == KeyCode.Delete)
+            if (e.commandName != "Delete" && e.commandName != "SoftDelete")
+                return false;
+
+            e.Use();
+            return true;
+        }
+
+        private bool Delete(CanvasElement element, Event e, Canvas2D parent)
+        {
+            if (e.type == EventType.Used)
+                return false;
+
+            if (e.commandName != "Delete" && e.commandName != "SoftDelete")
+                return false;
+
+           
+            if (m_DeletionCallback != null)
             {
-                if (m_DeletionCallback != null)
-                {
-                    m_DeletionCallback(parent.selection);
-                    m_Canvas.ReloadData();
-                    m_Canvas.Repaint();
-                    return true;
-                }
+                m_DeletionCallback(parent.selection);
+                parent.ReloadData();
+                parent.Repaint();
             }
-            return false;
+            e.Use();
+            return true;
         }
     }
 }

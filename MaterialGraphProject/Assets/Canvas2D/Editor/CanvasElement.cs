@@ -39,6 +39,8 @@ namespace UnityEditor.Experimental
         public event CanvasEvent DoubleClick;
         public event CanvasEvent ScrollWheel;
         public event CanvasEvent KeyDown;
+        public event CanvasEvent ValidateCommand;
+        public event CanvasEvent ExecuteCommand;
         public event CanvasEvent OnWidget;
         public event CanvasEvent ContextClick;
         public event CanvasEvent DragPerform;
@@ -576,6 +578,12 @@ namespace UnityEditor.Experimental
                     break;
                 case EventType.ContextClick:
                     handled = ContextClick == null ? false : ContextClick(target, evt, parent);
+                    break;
+                case EventType.ValidateCommand:
+                    handled = ValidateCommand == null ? false : ValidateCommand(target, evt, parent);
+                    break;
+                case EventType.ExecuteCommand:
+                    handled = ExecuteCommand == null ? false : ExecuteCommand(target, evt, parent);
                     break;
             }
 
