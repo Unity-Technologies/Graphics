@@ -77,7 +77,7 @@ namespace UnityEditor.Graphing.Drawing
             if (e.type == EventType.Used)
                 return false;
 
-            if (e.commandName != "Copy" && e.commandName != "Paste")
+            if (e.commandName != "Copy" && e.commandName != "Paste" && e.commandName != "Duplicate")
                 return false;
 
             e.Use();
@@ -89,14 +89,14 @@ namespace UnityEditor.Graphing.Drawing
             if (e.type == EventType.Used)
                 return false;
 
-            if (e.commandName != "Copy" && e.commandName != "Paste")
+            if (e.commandName != "Copy" && e.commandName != "Paste" && e.commandName != "Duplicate")
                 return false;
 
 
-            if (e.commandName == "Copy")
+            if (e.commandName == "Copy" || e.commandName == "Duplicate")
                 DoCopy(parent);
 
-            if (e.commandName == "Paste")
+            if (e.commandName == "Paste" || e.commandName == "Duplicate")
                 DoPaste(parent);
             
             e.Use();
