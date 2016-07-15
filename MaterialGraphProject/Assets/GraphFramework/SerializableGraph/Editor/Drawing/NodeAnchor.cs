@@ -36,24 +36,6 @@ namespace UnityEditor.Graphing.Drawing
             return Orientation.Horizontal;
         }
 
-    /*    private static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
-        {
-            switch (type)
-            {
-                case ConcreteSlotValueType.Vector1:
-                    return "(1)";
-                case ConcreteSlotValueType.Vector2:
-                    return "(2)";
-                case ConcreteSlotValueType.Vector3:
-                    return "(3)";
-                case ConcreteSlotValueType.Vector4:
-                    return "(4)";
-                default:
-                    return "(E)";
-
-            }
-        }*/
-
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
             var anchorColor = Color.yellow;

@@ -106,7 +106,7 @@ namespace UnityEditor.Graphing.Drawing
             }
 
             // Add the edges now
-            var drawableEdges = new List<Edge<NodeAnchor>>();
+            var drawableEdges = new List<DrawableEdge<NodeAnchor>>();
             foreach (var drawableMaterialNode in m_DrawableNodes)
             {
                 var baseNode = drawableMaterialNode.m_Node;
@@ -121,7 +121,7 @@ namespace UnityEditor.Graphing.Drawing
                         var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotName);
                         var targetNode = m_DrawableNodes.FirstOrDefault(x => x.m_Node == toNode);
                         var targetAnchor = (NodeAnchor)targetNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == toSlot);
-                        drawableEdges.Add(new Edge<NodeAnchor>(this, sourceAnchor, targetAnchor));
+                        drawableEdges.Add(new DrawableEdge<NodeAnchor>(edge, this, sourceAnchor, targetAnchor));
                     }
                 }
             }

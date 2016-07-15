@@ -24,7 +24,7 @@ namespace UnityEngine.Graphing
             get { return m_Name; }
         }
 
-        public string displayName
+        public virtual string displayName
         {
             get { return m_DisplayName; }
             set { m_DisplayName = value; }
@@ -57,11 +57,6 @@ namespace UnityEngine.Graphing
             m_DisplayName = displayName;
             m_SlotType = slotType;
             m_Priority = priority;
-        }
-
-        public virtual bool OnGUI()
-        {
-            return false;
         }
     }
 }

@@ -43,7 +43,31 @@ namespace UnityEngine.MaterialGraph
                     break;
             }
         }
-        
+
+        private static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
+        {
+            switch (type)
+            {
+                case ConcreteSlotValueType.Vector1:
+                    return "(1)";
+                case ConcreteSlotValueType.Vector2:
+                    return "(2)";
+                case ConcreteSlotValueType.Vector3:
+                    return "(3)";
+                case ConcreteSlotValueType.Vector4:
+                    return "(4)";
+                default:
+                    return "(E)";
+
+            }
+        }
+
+        public override string displayName
+        {
+            get { return base.displayName + ConcreteSlotValueTypeAsString(concreteValueType); }
+            set { base.displayName = value; }
+        }
+
         public Vector4 defaultValue
         {
             get { return m_DefaultValue; }

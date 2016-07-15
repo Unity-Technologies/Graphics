@@ -7,6 +7,7 @@ namespace UnityEngine.Graphing
     {
         IGraph owner { get; set; }
         Guid guid { get; }
+        Guid RewriteGuid();
         string name { get; set; }
         bool canDeleteNode { get; }
         IEnumerable<T> GetInputSlots<T>() where T : ISlot;
