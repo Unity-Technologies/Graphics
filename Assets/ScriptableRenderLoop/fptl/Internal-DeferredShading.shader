@@ -105,7 +105,7 @@ struct v2f {
 v2f vert (float4 vertex : POSITION, float2 texcoord : TEXCOORD0)
 {
 	v2f o;
-	o.vertex = UnityObjectToClipPosMono(vertex);
+	o.vertex = UnityObjectToClipPos(vertex);
 	o.texcoord = texcoord.xy;
 	return o;
 }
@@ -222,6 +222,7 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			UnityLight light;
 			light.color.xyz = lgtDat.vCol.xyz*atten;
 			light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;		//unity_CameraToWorld
+			light.ndotl = LambertTerm(data.normalWorld, light.dir.xyz);
 
 			ints += UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind);
 					
@@ -254,6 +255,7 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			UnityLight light;
 			light.color.xyz = lgtDat.vCol.xyz*atten;
 			light.dir.xyz = vLw;
+			light.ndotl = LambertTerm(data.normalWorld, vLw);
 					
 			ints += UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind);
 					

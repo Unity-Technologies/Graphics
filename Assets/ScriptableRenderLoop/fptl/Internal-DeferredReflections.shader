@@ -100,7 +100,7 @@ struct v2f {
 v2f vert (float4 vertex : POSITION, float2 texcoord : TEXCOORD0)
 {
 	v2f o;
-	o.vertex = UnityObjectToClipPosMono(vertex);
+	o.vertex = UnityObjectToClipPos(vertex);
 	o.texcoord = texcoord.xy;
 	return o;
 }
