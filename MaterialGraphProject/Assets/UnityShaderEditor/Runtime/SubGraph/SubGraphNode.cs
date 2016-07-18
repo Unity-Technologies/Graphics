@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -77,7 +76,7 @@ namespace UnityEditor.MaterialGraph
                 if (subGraphAsset == null)
                     return PreviewMode.Preview2D;
 
-                return subGraph.previewMode;
+                return PreviewMode.Preview3D;
             }
         }
 
