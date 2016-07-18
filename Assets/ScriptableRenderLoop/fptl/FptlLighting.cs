@@ -91,7 +91,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			m_DeferredMaterial = new Material(deferredShader);
 			m_DeferredReflectionMaterial = new Material(deferredReflectionShader);
-
+			m_DeferredMaterial.hideFlags = HideFlags.HideAndDontSave;
+			m_DeferredReflectionMaterial.hideFlags = HideFlags.HideAndDontSave;
 
 			kGenAABBKernel = m_BuildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 			kGenListPerTileKernel = m_BuildPerTileLightListShader.FindKernel("TileLightListGen");
