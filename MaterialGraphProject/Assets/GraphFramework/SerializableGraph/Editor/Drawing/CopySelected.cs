@@ -11,10 +11,10 @@ namespace UnityEditor.Graphing.Drawing
     internal class CopyPasteGraph : ISerializationCallbackReceiver
     {
         [NonSerialized]
-        private List<IEdge> m_Edges = new List<IEdge>();
+        private HashSet<IEdge> m_Edges = new HashSet<IEdge>();
 
         [NonSerialized]
-        private List<INode> m_Nodes = new List<INode>();
+        private HashSet<INode> m_Nodes = new HashSet<INode>();
 
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
@@ -49,10 +49,16 @@ namespace UnityEditor.Graphing.Drawing
 
         public virtual void OnAfterDeserialize()
         {
-            m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes);
+            var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes);
+            m_Nodes.Clear();
+            foreach (var node in nodes)
+                m_Nodes.Add(node);
             m_SerializableNodes = null;
 
-            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges);
+            var edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges);
+            m_Edges.Clear();
+            foreach (var edge in edges)
+                m_Edges.Add(edge);
             m_SerializableEdges = null;
         }
     }
@@ -91,8 +97,7 @@ namespace UnityEditor.Graphing.Drawing
 
             if (e.commandName != "Copy" && e.commandName != "Paste" && e.commandName != "Duplicate")
                 return false;
-
-
+            
             if (e.commandName == "Copy" || e.commandName == "Duplicate")
                 DoCopy(parent);
 
@@ -103,7 +108,12 @@ namespace UnityEditor.Graphing.Drawing
             return true;
         }
 
-        private void DoCopy(Canvas2D parent)
+        private static void DoCopy(Canvas2D parent)
+        {
+            EditorGUIUtility.systemCopyBuffer = SerializeSelectedElements(parent);
+        }
+        
+        public static string SerializeSelectedElements(Canvas2D parent)
         {
             var selectedElements = parent.selection;
 
@@ -116,7 +126,8 @@ namespace UnityEditor.Graphing.Drawing
                 if (dNode != null)
                 {
                     graph.AddNode(dNode.m_Node);
-                    continue;
+                    foreach (var edge in NodeUtils.GetAllEdges(dNode.m_Node))
+                        graph.AddEdge(edge);
                 }
 
                 var dEdge = thing as DrawableEdge<NodeAnchor>;
@@ -127,26 +138,29 @@ namespace UnityEditor.Graphing.Drawing
             }
             // serialize then break references
             var serialized = JsonUtility.ToJson(graph, true);
-            EditorGUIUtility.systemCopyBuffer = serialized;
+            return serialized;
         }
 
-        private void DoPaste(Canvas2D parent)
+        public static CopyPasteGraph DeserializeSelectedElements(string toDeserialize)
         {
-            var copyText = EditorGUIUtility.systemCopyBuffer;
-            if (string.IsNullOrEmpty(copyText))
-                return;
-
-            CopyPasteGraph pastedGraph;
             try
             {
-                pastedGraph = JsonUtility.FromJson<CopyPasteGraph>(copyText);
+                return JsonUtility.FromJson<CopyPasteGraph>(toDeserialize);
             }
             catch
             {
                 // ignored. just means copy buffer was not a graph :(
-                return;
+                return null;
             }
-
+        }
+        
+        private static void DoPaste(Canvas2D parent)
+        {
+            var copyText = EditorGUIUtility.systemCopyBuffer;
+            if (string.IsNullOrEmpty(copyText))
+                return;
+            
+            var pastedGraph = DeserializeSelectedElements(copyText);
             if (pastedGraph == null)
                 return;
             
@@ -162,7 +176,7 @@ namespace UnityEditor.Graphing.Drawing
                 return;
 
             var graph = asset.graph;
-            if (asset.graph == null)
+            if (graph == null)
                 return;
 
             var addedNodes = new List<INode>();

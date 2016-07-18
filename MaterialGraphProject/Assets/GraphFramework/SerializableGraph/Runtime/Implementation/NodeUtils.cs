@@ -15,6 +15,30 @@ namespace UnityEngine.Graphing
             return foundUsedOutputSlots;
         }
 
+        public static IEnumerable<IEdge> GetAllEdges(INode node)
+        {
+            var result = new List<IEdge>();
+            var validSlots = ListPool<ISlot>.Get();
+
+            validSlots.AddRange(node.GetInputSlots<ISlot>());
+            for (int index = 0; index < validSlots.Count; index++)
+            {
+                var inputSlot = validSlots[index];
+                result.AddRange(node.owner.GetEdges(node.GetSlotReference(inputSlot.name)));
+            }
+
+            validSlots.Clear();
+            validSlots.AddRange(node.GetOutputSlots<ISlot>());
+            for (int index = 0; index < validSlots.Count; index++)
+            {
+                var outputSlot = validSlots[index];
+                result.AddRange(node.owner.GetEdges(node.GetSlotReference(outputSlot.name)));
+            }
+
+            ListPool<ISlot>.Release(validSlots);
+            return result;
+        }
+
         public static void RecurseNodesToFindValidOutputSlots(INode fromNode, INode currentNode, ICollection<ISlot> foundUsedOutputSlots)
         {
             if (fromNode == null || currentNode == null)

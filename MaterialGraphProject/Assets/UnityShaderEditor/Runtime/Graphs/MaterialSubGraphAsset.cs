@@ -6,7 +6,7 @@ namespace UnityEngine.MaterialGraph
     public class MaterialSubGraphAsset : ScriptableObject, IMaterialGraphAsset
     {
         [SerializeField]
-        private SubGraph m_MaterialSubGraph;
+        private SubGraph m_MaterialSubGraph = new SubGraph();
 
         public IGraph graph
         {
