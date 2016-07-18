@@ -46,20 +46,37 @@ namespace UnityEngine.ScriptableRenderLoop
         private TextureCache2D m_cookieTexArray;
         private TextureCacheCubemap m_cubeCookieTexArray;
         private TextureCacheCubemap m_cubeReflTexArray;
-
-        void OnEnable()
+				
+		void OnEnable()
         {
-            Rebuild();
-        }
+			Rebuild();
+		}
 
         void OnValidate()
         {
             Rebuild();
         }
 
+		void ClearComputeBuffers()
+		{
+			if (m_aabbBoundsBuffer != null)
+				m_aabbBoundsBuffer.Release();
+
+			if (m_convexBoundsBuffer != null)
+				m_convexBoundsBuffer.Release();
+
+			if (m_lightDataBuffer != null)
+				m_lightDataBuffer.Release();
+
+			if (lightList != null)
+				lightList.Release();
+		}
+
         void Rebuild()
         {
-            kGBufferAlbedo = Shader.PropertyToID("_CameraGBufferTexture0");
+			ClearComputeBuffers();
+
+			kGBufferAlbedo = Shader.PropertyToID("_CameraGBufferTexture0");
             kGBufferSpecRough = Shader.PropertyToID("_CameraGBufferTexture1");
             kGBufferNormal = Shader.PropertyToID("_CameraGBufferTexture2");
             kGBufferEmission = Shader.PropertyToID("_CameraGBufferTexture3");
@@ -107,8 +124,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void OnDisable()
         {
-           // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
-            if(m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
+			// RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
+			if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
             if(m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
             m_cookieTexArray.Release();
             m_cubeCookieTexArray.Release();
