@@ -23,6 +23,14 @@ public class SlotValueBinder : VFXPropertySlotObserver
     {
         switch (m_Slot.ValueType)
         {
+            case VFXValueType.kInt:
+                if (m_Component.HasInt(m_Name))
+                    m_Slot.Set<int>(m_Component.GetInt(m_Name));
+                break;
+            case VFXValueType.kUint:
+                if (m_Component.HasUInt(m_Name))
+                    m_Slot.Set<UInt32>(m_Component.GetUInt(m_Name));
+                break;
             case VFXValueType.kFloat:
                 if (m_Component.HasFloat(m_Name))
                     m_Slot.Set<float>(m_Component.GetFloat(m_Name));

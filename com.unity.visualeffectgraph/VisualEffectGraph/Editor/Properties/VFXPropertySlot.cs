@@ -255,7 +255,6 @@ namespace UnityEngine.Experimental.VFX
                 switch (ValueType)
                 {
                     case VFXValueType.kFloat:
-
                         writer.WriteElementString(name, Value.Get<float>().ToString());
                         break;
                     /* case VFXValueType.kFloat2:

@@ -177,6 +177,12 @@ namespace UnityEditor.Experimental
                     {
                         switch (expr.ValueType)
                         {
+                           case VFXValueType.kInt: 
+                                asset.SetInt(index,expr.Get<int>());
+                                break;
+                           case VFXValueType.kUint: 
+                                asset.SetUInt(index,expr.Get<UInt32>()); 
+                                break;
                             case VFXValueType.kFloat: 
                                 asset.SetFloat(index,expr.Get<float>()); 
                                 break;
@@ -356,6 +362,12 @@ namespace UnityEditor.Experimental
                         VFXValue value = (VFXValue)expr;
                         switch (value.ValueType)
                         {
+                            case VFXValueType.kInt:
+                                asset.AddInt(value.Get<int>());
+                                break;
+                            case VFXValueType.kUint:
+                                asset.AddUInt(value.Get<UInt32>());
+                                break;
                             case VFXValueType.kFloat:
                                 asset.AddFloat(value.Get<float>());
                                 break;
