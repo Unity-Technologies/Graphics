@@ -1,7 +1,4 @@
-using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
-
-namespace UnityEditor.MaterialGraph
+namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Minimum Node")]
     public class MinimumNode : Function2Input

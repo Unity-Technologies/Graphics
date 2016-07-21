@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEditor;
 using UnityEngine.Graphing;
-using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEngine.MaterialGraph
 {
     [Title("Sub-graph/Sub-graph Node")]
     public class SubGraphNode : AbstractMaterialNode

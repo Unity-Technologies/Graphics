@@ -15,15 +15,14 @@ namespace UnityEngine.MaterialGraph
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
-            foreach (var precision in m_PrecisionNames)
-            {
-                outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
-                outputString.AddShaderChunk("{", false);
-                outputString.Indent();
-                outputString.AddShaderChunk("return arg1 - arg2;", false);
-                outputString.Deindent();
-                outputString.AddShaderChunk("}", false);
-            }
+
+            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
+            outputString.AddShaderChunk("{", false);
+            outputString.Indent();
+            outputString.AddShaderChunk("return arg1 - arg2;", false);
+            outputString.Deindent();
+            outputString.AddShaderChunk("}", false);
+
 
             visitor.AddShaderChunk(outputString.GetShaderString(0), true);
         }

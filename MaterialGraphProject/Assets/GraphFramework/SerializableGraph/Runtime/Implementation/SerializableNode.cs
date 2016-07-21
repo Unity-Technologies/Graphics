@@ -51,7 +51,6 @@ namespace UnityEngine.Graphing
 
         public virtual bool hasError { get; protected set; }
 
-  
         public SerializableNode()
         {
             m_DrawData.expanded = true;
@@ -159,7 +158,7 @@ namespace UnityEngine.Graphing
             else
                 m_Guid = Guid.NewGuid();
 
-            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, new object[] {});
+            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots);
             m_SerializableSlots = null; 
             UpdateNodeAfterDeserialization();
         }

@@ -5,16 +5,6 @@ namespace UnityEngine.Graphing
 {
     public class NodeUtils
     {
-        // GetSlotsThatOutputToNodeRecurse returns a list of output slots on from node that
-        // manage to connect to toNode... they may go via some other nodes to reach there.
-        // This is done by working backwards from the toNode to the fromNode as graph is one directional
-        public static List<ISlot> GetSlotsThatOutputToNodeRecurse(INode fromNode, INode toNode)
-        {
-            var foundUsedOutputSlots = new List<ISlot>();
-            RecurseNodesToFindValidOutputSlots(fromNode, toNode, foundUsedOutputSlots);
-            return foundUsedOutputSlots;
-        }
-
         public static IEnumerable<IEdge> GetAllEdges(INode node)
         {
             var result = new List<IEdge>();
@@ -37,33 +27,6 @@ namespace UnityEngine.Graphing
 
             ListPool<ISlot>.Release(validSlots);
             return result;
-        }
-
-        public static void RecurseNodesToFindValidOutputSlots(INode fromNode, INode currentNode, ICollection<ISlot> foundUsedOutputSlots)
-        {
-            if (fromNode == null || currentNode == null)
-            {
-                Debug.LogError("Recursing to find valid inputs on NULL node");
-                return;
-            }
-            
-            var validSlots = ListPool<ISlot>.Get();
-            validSlots.AddRange(currentNode.GetInputSlots<ISlot>());
-            for (int index = 0; index < validSlots.Count; index++)
-            {
-                var inputSlot = validSlots[index];
-                var edges = currentNode.owner.GetEdges(currentNode.GetSlotReference(inputSlot.name));
-                foreach (var edge in edges)
-                {
-                    var outputNode = currentNode.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                    var outputSlot = outputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotName);
-                    if (outputNode == fromNode && !foundUsedOutputSlots.Contains(outputSlot))
-                        foundUsedOutputSlots.Add(outputSlot);
-                    else
-                        RecurseNodesToFindValidOutputSlots(fromNode, outputNode, foundUsedOutputSlots);
-                }
-            }
-            ListPool<ISlot>.Release(validSlots);
         }
 
         // CollectNodesNodeFeedsInto looks at the current node and calculates

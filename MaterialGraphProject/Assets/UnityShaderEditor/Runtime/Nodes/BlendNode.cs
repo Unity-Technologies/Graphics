@@ -45,7 +45,7 @@ namespace UnityEngine.MaterialGraph
             return GetFunctionName() + "(" + input1Value + ", " + input2Value + ", " + m_Blend + ")";
         }
 
-        protected void AddOperationBody(ShaderGenerator visitor, string name, string body, string precision)
+        protected void AddOperationBody(ShaderGenerator visitor, string name, string body)
         {
             var outputString = new ShaderGenerator();
             outputString.AddShaderChunk("inline " + precision + outputDimension +" unity_blend_" + name + "_" + precision + " (" + precision + outputDimension + " arg1, " + precision + outputDimension + " arg2, " + precision + " blend)", false);
@@ -59,11 +59,8 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            foreach (var precision in m_PrecisionNames)
-            {
-                AddOperationBody(visitor, kOpNames[(int)Operation.Normal], "return lerp(arg1, arg2, blend);", precision);
-                AddOperationBody(visitor, kOpNames[(int)Operation.Additive], "return (arg1 + arg2) * blend;", precision);
-            }
+            AddOperationBody(visitor, kOpNames[(int)Operation.Normal], "return lerp(arg1, arg2, blend);");
+            AddOperationBody(visitor, kOpNames[(int)Operation.Additive], "return (arg1 + arg2) * blend;");
         }
     }
 }

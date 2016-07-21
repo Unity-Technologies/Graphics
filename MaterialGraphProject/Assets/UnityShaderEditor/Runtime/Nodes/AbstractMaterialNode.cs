@@ -8,17 +8,26 @@ namespace UnityEngine.MaterialGraph
     [Serializable]
     public abstract class AbstractMaterialNode : SerializableNode, IGenerateProperties
     {
+        public enum OutputPrecision
+        {
+            @fixed,
+            @half,
+            @float
+        }
+
         [NonSerialized]
         private bool m_HasError;
 
-        public string precision
+        public OutputPrecision precision
         {
-            get { return "half"; }
+            get { return m_OutputPrecision; }
+            set { m_OutputPrecision = value; }
         }
+        
+        [SerializeField]
+        private OutputPrecision m_OutputPrecision = OutputPrecision.half;
 
-        public string[] m_PrecisionNames = { "half" };
-       
-        // Nodes that want to have a preview area can override this and return true
+         // Nodes that want to have a preview area can override this and return true
         public virtual bool hasPreview
         {
             get { return false; }

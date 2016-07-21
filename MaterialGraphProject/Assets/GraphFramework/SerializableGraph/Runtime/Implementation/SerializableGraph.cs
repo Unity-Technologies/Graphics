@@ -55,6 +55,9 @@ namespace UnityEngine.Graphing
         
         public virtual IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
+            if (fromSlotRef == null || toSlotRef == null)
+                return null;
+
             var fromNode = GetNodeFromGuid(fromSlotRef.nodeGuid);
             var toNode = GetNodeFromGuid(toSlotRef.nodeGuid);
 
@@ -94,10 +97,7 @@ namespace UnityEngine.Graphing
             // remove any inputs that exits before adding
             foreach (var edge in slotEdges)
             {
-                Debug.Log("Removing existing edge:" + edge);
-                // call base here as we DO NOT want to
-                // do expensive shader regeneration
-                RemoveEdge(edge);
+                RemoveEdgeNoValidate(edge);
             }
 
             var newEdge = new Edge(outputSlot, inputSlot);
@@ -107,7 +107,7 @@ namespace UnityEngine.Graphing
             ValidateGraph();
             return newEdge;
         }
-
+        
         public virtual void RemoveEdge(IEdge e)
         {
             m_Edges.Remove(e);
