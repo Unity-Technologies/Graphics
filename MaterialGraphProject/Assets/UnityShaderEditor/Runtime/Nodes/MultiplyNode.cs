@@ -18,7 +18,7 @@ namespace UnityEngine.MaterialGraph
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk("inline " + precision + outputDimension + " " + GetFunctionName() + " (" + precision + input1Dimension + " arg1, " + precision + input2Dimension + " arg2)", false);
+            outputString.AddShaderChunk(GetFunctionPrototype("arg1", "arg2"), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
             outputString.AddShaderChunk("return arg1 * arg2;", false);

@@ -40,6 +40,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         protected override string GetFunctionName() { return "unity_blend_" + kOpNames[(int)m_Operation] + "_" + precision; }
+
         protected override string GetFunctionCallBody(string input1Value, string input2Value)
         {
             return GetFunctionName() + "(" + input1Value + ", " + input2Value + ", " + m_Blend + ")";

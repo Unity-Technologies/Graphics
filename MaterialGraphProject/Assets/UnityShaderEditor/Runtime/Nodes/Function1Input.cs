@@ -40,6 +40,12 @@ namespace UnityEngine.MaterialGraph
         protected virtual string GetOutputSlotName() {return "Output"; }
 
         protected abstract string GetFunctionName();
+        
+        protected virtual string GetFunctionPrototype(string argName)
+        {
+            return "inline " + precision + outputDimension + " " + GetFunctionName() + " ("
+                + precision + inputDimension + " " + argName + ")";
+        }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {

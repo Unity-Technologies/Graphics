@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace UnityEngine.Graphing
 {
-    public class NodeUtils
+    public static class NodeUtils
     {
         public static IEnumerable<IEdge> GetAllEdges(INode node)
         {
