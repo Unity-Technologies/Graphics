@@ -42,7 +42,7 @@ CGPROGRAM
 uniform float4x4 g_mViewToWorld;
 uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
-
+uniform float g_flipVertical; // giant temp hack, see DoTiledDeferredLighting()
 
 Texture2D _CameraDepthTexture;
 Texture2D _CameraGBufferTexture0;
@@ -120,7 +120,8 @@ half4 frag (v2f i) : SV_Target
 	uint nrTilesX = (iWidth+15)/16;
 	uint nrTilesY = (iHeight+15)/16;
 
-	pixCoord.y = (iHeight-1) - pixCoord.y;
+	if (g_flipVertical > 0)
+		pixCoord.y = (iHeight-1) - pixCoord.y;
 	uint2 tileIDX = pixCoord / 16;
 
 	const int offs = tileIDX.y*nrTilesX+tileIDX.x;

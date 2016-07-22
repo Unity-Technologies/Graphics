@@ -182,7 +182,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.Dispose();
 		}
 
-		void DoTiledDeferredLighting(RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, ComputeBuffer lightList)
+		void DoTiledDeferredLighting(Camera camera, RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, ComputeBuffer lightList)
 		{
 			m_DeferredMaterial.SetBuffer("g_vLightList", lightList);
 			m_DeferredReflectionMaterial.SetBuffer("g_vLightList", lightList);
@@ -191,14 +191,26 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			//cmd.SetRenderTarget(new RenderTargetIdentifier(kGBufferEmission), new RenderTargetIdentifier(kGBufferZ));
 
+			// for whatever reason, the output is flipped in the scene view whenever writing to the camera target.
+			// TODO:  fix this properly.
+			if (camera.cameraType == CameraType.SceneView)
+			{
+				cmd.SetGlobalFloat("g_flipVertical", 0);
+			}
+			else
+			{
+				cmd.SetGlobalFloat("g_flipVertical", 1);
+			}
+
 			cmd.SetGlobalMatrix("g_mViewToWorld", viewToWorld);
 			cmd.SetGlobalMatrix("g_mWorldToView", viewToWorld.inverse);
 			cmd.SetGlobalMatrix("g_mScrProjection", scrProj);
 			cmd.SetGlobalMatrix("g_mInvScrProjection", incScrProj);
 
 			//cmd.Blit (kGBufferNormal, (RenderTexture)null); // debug: display normals
-			cmd.Blit(kGBufferEmission, (RenderTexture)null, m_DeferredMaterial, 0);
-			cmd.Blit(kGBufferEmission, (RenderTexture)null, m_DeferredReflectionMaterial, 0);
+
+			cmd.Blit(kGBufferEmission, BuiltinRenderTextureType.CameraTarget, m_DeferredMaterial, 0);
+			cmd.Blit(kGBufferEmission, BuiltinRenderTextureType.CameraTarget, m_DeferredReflectionMaterial, 0);
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 		}
@@ -555,7 +567,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
-			DoTiledDeferredLighting(loop, camera.cameraToWorldMatrix, projscr, invProjscr, lightList);
+			DoTiledDeferredLighting(camera, loop, camera.cameraToWorldMatrix, projscr, invProjscr, lightList);
 
 
 			//lightList.Release();
