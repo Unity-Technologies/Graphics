@@ -1096,7 +1096,7 @@ namespace UnityEditor.Experimental
 
             BlendMode blendMode = system.BlendingMode;
 
-            if (blendMode != BlendMode.kMasked)
+            if (blendMode != BlendMode.kMasked && blendMode != BlendMode.kDithered)
             {
                 string offset = system.RenderQueueDelta == 0 ? "" : (system.RenderQueueDelta > 0 ? "+" : "-") + Mathf.Abs(system.RenderQueueDelta) ;
                 builder.WriteLine("Tags { \"Queue\"=\"Transparent"+offset+"\" \"IgnoreProjector\"=\"True\" \"RenderType\"=\"Transparent\" }");
@@ -1108,7 +1108,7 @@ namespace UnityEditor.Experimental
             else if (blendMode == BlendMode.kAlpha)
                 builder.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
             builder.WriteLine("ZTest LEqual");
-            if (blendMode == BlendMode.kMasked)
+            if (blendMode == BlendMode.kMasked || blendMode == BlendMode.kDithered)
                 builder.WriteLine("ZWrite On");
             else
                 builder.WriteLine("ZWrite Off");
@@ -1302,7 +1302,12 @@ namespace UnityEditor.Experimental
             builder.WriteLine("return o;");
             builder.ExitScope();
             builder.WriteLine();
-            builder.WriteLine("float4 frag (ps_input i) : COLOR");
+
+           // if (data.system.BlendingMode == BlendMode.kMasked)
+           //     builder.WriteLine("float4 frag (ps_input i,float4 screenPos : VPOS) : COLOR");
+           // else
+                builder.WriteLine("float4 frag (ps_input i) : COLOR");
+
             builder.EnterScope();
 
             if (hasColor || hasAlpha)

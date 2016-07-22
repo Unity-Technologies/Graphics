@@ -444,6 +444,16 @@ namespace UnityEditor.Experimental
 
             if (data.system.BlendingMode == BlendMode.kMasked)
                 builder.WriteLine("if (color.a < 0.33333) discard;");
+            else if (data.system.BlendingMode == BlendMode.kDithered)
+            {
+                // bayer
+                builder.WriteLine("const float kernel[16] = {1,9,3,11,13,5,15,7,4,12,2,10,16,8,14,6};");
+                // half toning
+                //builder.WriteLine("const float kernel[16] = {7,8,9,10,6,1,2,11,5,4,3,12,16,15,14,13};");
+
+                builder.WriteLine("int kernelIndex = (((int)i.pos.y & 3) << 2) + ((int)i.pos.x & 3);");
+                builder.WriteLine("clip(color.a  - kernel[kernelIndex] / 17.0f);");
+            }
         }
 
         private VFXValue[] m_Values = new VFXValue[4];

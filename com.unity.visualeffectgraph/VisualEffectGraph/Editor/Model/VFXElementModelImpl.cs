@@ -46,6 +46,7 @@ namespace UnityEditor.Experimental
         kMasked = 0,
         kAdditive = 1,
         kAlpha = 2,
+        kDithered = 3,
     }
 
     public interface VFXModelController

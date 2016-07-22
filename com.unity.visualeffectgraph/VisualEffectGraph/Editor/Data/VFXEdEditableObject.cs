@@ -208,7 +208,7 @@ namespace UnityEditor.Experimental
             VFXSystemModel system = model.GetOwner();
 
             //system.WorldSpace = EditorGUILayout.Toggle("World Space", system.WorldSpace); 
-            EditorGUI.BeginDisabledGroup(system.BlendingMode == BlendMode.kMasked);
+            EditorGUI.BeginDisabledGroup(system.BlendingMode == BlendMode.kMasked || system.BlendingMode == BlendMode.kDithered);
             system.RenderQueueDelta = EditorGUILayout.DelayedIntField("Render Queue Delta", system.RenderQueueDelta);
             system.OrderPriority = EditorGUILayout.IntField("Order Priority", system.OrderPriority);
             if(system.RenderQueueDelta != 0)
@@ -221,7 +221,7 @@ namespace UnityEditor.Experimental
 
             EditorGUILayout.Space();
 
-            GUIContent[] options = new GUIContent[3] { new GUIContent("Masked"), new GUIContent("Additive"), new GUIContent("AlphaBlend") };
+            GUIContent[] options = new GUIContent[4] { new GUIContent("Masked"), new GUIContent("Additive"), new GUIContent("AlphaBlend"), new GUIContent("Dithered") };
 
             // TODO This should be in the output context
             BlendMode mode = system.BlendingMode;
