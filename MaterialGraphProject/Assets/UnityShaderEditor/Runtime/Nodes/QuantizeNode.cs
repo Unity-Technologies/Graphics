@@ -15,7 +15,7 @@ namespace UnityEngine.MaterialGraph
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk("inline " + precision + "4 unity_quantize_" + precision + " (" + precision + "4 input, " + precision + "4 stepsize)", false);
+            outputString.AddShaderChunk(GetFunctionPrototype("input", "stepsize"), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
             outputString.AddShaderChunk("return floor(input / stepsize) * stepsize;", false);

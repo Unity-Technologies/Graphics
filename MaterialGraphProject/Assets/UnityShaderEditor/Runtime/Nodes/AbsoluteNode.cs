@@ -1,29 +1,13 @@
-using UnityEngine.Graphing;
-
 namespace UnityEngine.MaterialGraph
 { 
     [Title("Math/Absolute Node")]
-    class AbsoluteNode : Function1Input, IGeneratesFunction
+    class AbsoluteNode : Function1Input
     {
         public AbsoluteNode()
         {
             name = "AbsoluteNode";
         }
         
-        protected override string GetFunctionName() {return "unity_absolute_" + precision; }
-
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var outputString = new ShaderGenerator();
-            
-            outputString.AddShaderChunk("inline " + precision + outputDimension + " unity_absolute_" + precision + " (" + precision + outputDimension + " arg1)", false);
-            outputString.AddShaderChunk("{", false);
-            outputString.Indent();
-            outputString.AddShaderChunk("return abs(arg1);", false);
-            outputString.Deindent();
-            outputString.AddShaderChunk("}", false);
-
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
-        }
+        protected override string GetFunctionName() {return "abs"; }
     }
 }

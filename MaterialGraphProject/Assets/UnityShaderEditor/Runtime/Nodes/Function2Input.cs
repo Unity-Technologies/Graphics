@@ -93,12 +93,12 @@ namespace UnityEngine.MaterialGraph
             get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(GetOutputSlotName()).concreteValueType); }
         }
 
-        public string input1Dimension
+        private string input1Dimension
         {
             get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(GetInputSlot1Name()).concreteValueType); }
         }
 
-        public string input2Dimension
+        private string input2Dimension
         {
             get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(GetInputSlot2Name()).concreteValueType); }
         }

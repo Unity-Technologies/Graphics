@@ -14,17 +14,32 @@ namespace UnityEngine.MaterialGraph
         protected override string GetInputSlot2Name() {return "Direction"; }
         protected override string GetOutputSlotName() {return "Reflection"; }
 
+        protected override MaterialSlot GetInputSlot1()
+        {
+            return new MaterialSlot(GetInputSlot1Name(), GetInputSlot1Name(), SlotType.Input, 0, SlotValueType.Vector3, Vector4.zero);
+        }
+
+        protected override MaterialSlot GetInputSlot2()
+        {
+            return new MaterialSlot(GetInputSlot2Name(), GetInputSlot2Name(), SlotType.Input, 1, SlotValueType.Vector3, Vector4.zero);
+        }
+
+        protected override MaterialSlot GetOutputSlot()
+        {
+            return new MaterialSlot(GetOutputSlotName(), GetOutputSlotName(), SlotType.Output, 0, SlotValueType.Vector3, Vector4.zero);
+        }
+
         protected override string GetFunctionName() {return "unity_reflect_" + precision; }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
         {
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk("inline " + precision + "4 unity_reflect_" + precision + " (" + precision + "4 normal, " + precision + "4 direction)", false);
+            outputString.AddShaderChunk(GetFunctionPrototype("normal", "direction"), false);
             outputString.AddShaderChunk("{", false);
             outputString.Indent();
-            outputString.AddShaderChunk(precision + "3 vn = normalize(normal.xyz);", false);
-            outputString.AddShaderChunk(precision + "3 vd = normalize(direction.xyz);", false);
-            outputString.AddShaderChunk("return half4 (2 * dot(vn, vd) * vn - vd, 1.0);", false);
+            outputString.AddShaderChunk(precision + "3 vn = normalize(normal);", false);
+            outputString.AddShaderChunk(precision + "3 vd = normalize(direction);", false);
+            outputString.AddShaderChunk("return 2 * dot(vn, vd) * vn - vd, 1.0;", false);
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
 

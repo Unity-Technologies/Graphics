@@ -18,6 +18,7 @@ namespace UnityEngine.MaterialGraph
         {
             AddSlot(GetInputSlot1());
             AddSlot(GetInputSlot2());
+            AddSlot(GetInputSlot3());
             AddSlot(GetOutputSlot());
             RemoveSlotsNameNotMatching(validSlots);
         }
@@ -100,11 +101,6 @@ namespace UnityEngine.MaterialGraph
         protected virtual string GetFunctionCallBody(string inputValue1, string inputValue2, string inputValue3)
         {
             return GetFunctionName() + " (" + inputValue1 + ", " + inputValue2 + ", " + inputValue3 + ")";
-        }
-
-                protected virtual string GetFunctionCallBody(string inputValue)
-        {
-            return GetFunctionName() + " (" + inputValue + ")";
         }
 
         public string outputDimension
