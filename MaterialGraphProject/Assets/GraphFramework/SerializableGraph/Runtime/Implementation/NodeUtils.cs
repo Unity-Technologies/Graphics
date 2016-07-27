@@ -4,22 +4,22 @@ using System.Linq;
 
 namespace UnityEngine.Graphing
 {
+    public class SlotConfigurationException : Exception
+    {
+        public SlotConfigurationException()
+        { }
+
+        public SlotConfigurationException(string message)
+            : base(message)
+        { }
+
+        public SlotConfigurationException(string message, Exception inner)
+            : base(message, inner)
+        { }
+    }
+
     public static class NodeUtils
     {
-        public class SlotConfigurationException : Exception
-        {
-            public SlotConfigurationException()
-            { }
-
-            public SlotConfigurationException(string message)
-                : base(message)
-            {}
-
-            public SlotConfigurationException(string message, Exception inner)
-                : base(message, inner)
-            {}
-        }
-
         public static void SlotConfigurationExceptionIfBadConfiguration(INode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots )
         {
             var missingSlots = new List<int>();
