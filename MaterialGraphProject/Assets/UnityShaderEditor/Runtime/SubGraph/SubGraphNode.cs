@@ -130,7 +130,7 @@ namespace UnityEngine.MaterialGraph
                     "float"
                     + outDimension
                     + " "
-                    + GetVariableNameForSlot(slot)
+                    + GetVariableNameForSlot(slot.id)
                     + " = 0;", false);
             }
 
@@ -146,8 +146,8 @@ namespace UnityEngine.MaterialGraph
 
             foreach (var slot in GetInputSlots<MaterialSlot>())
             {
-                var varName = subGraphInputNode.GetVariableNameForSlot(subGraphInputNode.FindOutputSlot<MaterialSlot>(slot.id));
-                var varValue = GetSlotValue(slot, GenerationMode.SurfaceShader);
+                var varName = subGraphInputNode.GetVariableNameForSlot(slot.id);
+                var varValue = GetSlotValue(slot.id, GenerationMode.SurfaceShader);
 
                 var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
                 outputString.AddShaderChunk(
@@ -171,11 +171,10 @@ namespace UnityEngine.MaterialGraph
             // Copy the outputs to the parent context name);
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
-                var inputSlot = subGraphOutputNode.FindInputSlot<MaterialSlot>(slot.id);
-                var inputValue = subGraphOutputNode.GetSlotValue(inputSlot, GenerationMode.SurfaceShader);
+                var inputValue = subGraphOutputNode.GetSlotValue(slot.id, GenerationMode.SurfaceShader);
 
                 outputString.AddShaderChunk(
-                    GetVariableNameForSlot(slot)
+                    GetVariableNameForSlot(slot.id)
                     + " = "
                     + inputValue 
                     + ";", false);

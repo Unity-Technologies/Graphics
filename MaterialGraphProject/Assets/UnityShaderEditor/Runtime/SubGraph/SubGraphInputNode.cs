@@ -32,7 +32,7 @@ namespace UnityEngine.MaterialGraph
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
                 var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
-                visitor.AddShaderChunk("float" + outDimension + " " + GetVariableNameForSlot(slot) + ";", true);
+                visitor.AddShaderChunk("float" + outDimension + " " + GetVariableNameForSlot(slot.id) + ";", true);
             }
         }
 
@@ -44,7 +44,7 @@ namespace UnityEngine.MaterialGraph
                 properties.Add(
                      new PreviewProperty
                      {
-                         m_Name = GetVariableNameForSlot(slot),
+                         m_Name = GetVariableNameForSlot(slot.id),
                          m_PropType = PropertyType.Vector4,
                          m_Vector4 = slot.defaultValue
                      }

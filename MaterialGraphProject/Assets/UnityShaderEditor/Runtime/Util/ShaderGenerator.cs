@@ -287,13 +287,15 @@ namespace UnityEngine.MaterialGraph
         }
 
         private const string kErrorString = @"ERROR!";
-        public static string AdaptNodeOutput(AbstractMaterialNode node, MaterialSlot outputSlot, ConcreteSlotValueType convertToType, bool textureSampleUVHack = false)
+        public static string AdaptNodeOutput(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType, bool textureSampleUVHack = false)
         {
+            var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
+
            if (outputSlot == null)
                 return kErrorString;
            
             var convertFromType = outputSlot.concreteValueType;
-            var rawOutput = node.GetVariableNameForSlot(outputSlot);
+            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
             if (convertFromType == convertToType)
                 return rawOutput;
 
@@ -335,18 +337,20 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        private static string AdaptNodeOutputForPreview(AbstractMaterialNode node, MaterialSlot outputSlot, ConcreteSlotValueType convertToType)
+        private static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType)
         {
-           if (outputSlot == null)
+            var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
+
+            if (outputSlot == null)
                 return kErrorString;
-           
+
             var convertFromType = outputSlot.concreteValueType;
 
             // if we are in a normal situation, just convert!
             if (convertFromType >= convertToType || convertFromType == ConcreteSlotValueType.Vector1)
-                return AdaptNodeOutput(node, outputSlot, convertToType);
+                return AdaptNodeOutput(node, outputSlotId, convertToType);
 
-            var rawOutput = node.GetVariableNameForSlot(outputSlot);
+            var rawOutput = node.GetVariableNameForSlot(outputSlotId);
 
             // otherwise we need to pad output for the preview!
             switch (convertToType)
@@ -407,7 +411,7 @@ namespace UnityEngine.MaterialGraph
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
             var vertexShaderBlock = new ShaderGenerator();
 
-            var shaderName = "Hidden/PreviewShader/" + node.GetVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First());
+            var shaderName = "Hidden/PreviewShader/" + node.GetVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First().id);
            
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
@@ -430,9 +434,9 @@ namespace UnityEngine.MaterialGraph
             }
 
             if (generationMode == GenerationMode.Preview2D)
-                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First(), ConcreteSlotValueType.Vector4) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id, ConcreteSlotValueType.Vector4) + ";", true);
             else
-                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First(), ConcreteSlotValueType.Vector3) + ";", true);
+                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id, ConcreteSlotValueType.Vector3) + ";", true);
 
             template = template.Replace("${ShaderName}", shaderName);
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));

@@ -101,11 +101,7 @@ namespace UnityEngine.MaterialGraph
                 if (fromNode == null)
                     continue;
 
-                var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(outputRef.slotId) as MaterialSlot;
-                if (fromSlot == null)
-                    continue;
-
-                shaderBody.AddShaderChunk("o." + firstPassSlot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(fromSlot) + ";", true);
+                shaderBody.AddShaderChunk("o." + firstPassSlot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
             }
 
             // track the last index of nodes... they have already been processed :)
@@ -133,17 +129,13 @@ namespace UnityEngine.MaterialGraph
                     var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
                     if (fromNode == null)
                         continue;
-
-                    var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(outputRef.slotId) as MaterialSlot;
-                    if (fromSlot == null)
-                        continue;
-
-                    shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(fromSlot) + ";", true);
+                    
+                    shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
                 }
             }
         }
 
-        public override string GetVariableNameForSlot(MaterialSlot s)
+        public override string GetVariableNameForSlot(int slotId)
         {
             return GetVariableNameForNode();
         }

@@ -73,27 +73,24 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void AdaptNodeOutput1To1Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V1Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector1);
-            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V1Out, ConcreteSlotValueType.Vector1);
+            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
 
         [Test]
         public void AdaptNodeOutput1To2Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V1Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector2);
-            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V1Out, ConcreteSlotValueType.Vector2);
+            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
 
         [Test]
         public void AdaptNodeOutput1To3Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V1Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector3);
-            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V1Out, ConcreteSlotValueType.Vector3);
+            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
 
         [Test]
@@ -101,8 +98,8 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var node = new TestNode();
             var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V1Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector4);
-            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V1Out, ConcreteSlotValueType.Vector4);
+            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
 
         [Test]
@@ -110,25 +107,23 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var node = new TestNode();
             var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V2Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector1);
-            Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V2Out, ConcreteSlotValueType.Vector1);
+            Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(TestNode.V2Out)), result);
         }
 
         [Test]
         public void AdaptNodeOutput2To2Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V2Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector2);
-            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V2Out, ConcreteSlotValueType.Vector2);
+            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V2Out)), result);
         }
 
         [Test]
         public void AdaptNodeOutput2To3Fails()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V2Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector3);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V2Out, ConcreteSlotValueType.Vector3);
             Assert.AreEqual("ERROR!", result);
         }
 
@@ -136,8 +131,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void AdaptNodeOutput2To4Fails()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V2Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector4);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V2Out, ConcreteSlotValueType.Vector4);
             Assert.AreEqual("ERROR!", result);
         }
 
@@ -145,35 +139,31 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void AdaptNodeOutput3To1Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V3Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector1);
-            Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V3Out, ConcreteSlotValueType.Vector1);
+            Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(TestNode.V3Out)), result);
         }
 
         [Test]
         public void AdaptNodeOutput3To2Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V3Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector2);
-            Assert.AreEqual(string.Format("({0}.xy)", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V3Out, ConcreteSlotValueType.Vector2);
+            Assert.AreEqual(string.Format("({0}.xy)", node.GetVariableNameForSlot(TestNode.V3Out)), result);
         }
 
         [Test]
         public void AdaptNodeOutput3To3Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V3Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector3);
-            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V3Out, ConcreteSlotValueType.Vector3);
+            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V3Out)), result);
         }
 
         [Test]
         public void AdaptNodeOutput3To4Fails()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V3Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector4);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V3Out, ConcreteSlotValueType.Vector4);
             Assert.AreEqual("ERROR!", result);
         }
 
@@ -181,18 +171,16 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void AdaptNodeOutput4To1Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V4Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector1);
-            Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V4Out, ConcreteSlotValueType.Vector1);
+            Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(TestNode.V4Out)), result);
         }
 
         [Test]
         public void AdaptNodeOutput4To2Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V4Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector2);
-            Assert.AreEqual(string.Format("({0}.xy)", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V4Out, ConcreteSlotValueType.Vector2);
+            Assert.AreEqual(string.Format("({0}.xy)", node.GetVariableNameForSlot(TestNode.V4Out)), result);
         }
 
         [Test]
@@ -200,17 +188,16 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var node = new TestNode();
             var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V4Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector3);
-            Assert.AreEqual(string.Format("({0}.xyz)", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V4Out, ConcreteSlotValueType.Vector3);
+            Assert.AreEqual(string.Format("({0}.xyz)", node.GetVariableNameForSlot(TestNode.V4Out)), result);
         }
 
         [Test]
         public void AdaptNodeOutput4To4Works()
         {
             var node = new TestNode();
-            var slot = node.FindOutputSlot<MaterialSlot>(TestNode.V4Out);
-            var result = ShaderGenerator.AdaptNodeOutput(node, slot, ConcreteSlotValueType.Vector4);
-            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(slot)), result);
+            var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V4Out, ConcreteSlotValueType.Vector4);
+            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V4Out)), result);
         }
 
 

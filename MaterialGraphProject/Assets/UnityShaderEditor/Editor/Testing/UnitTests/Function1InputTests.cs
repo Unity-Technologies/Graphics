@@ -67,8 +67,8 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void TestGenerateNodeCodeGeneratesCorrectCode()
         {
             string expected = string.Format("half {0} = unity_test_half ({1});"
-                , m_TestNode.GetVariableNameForSlot(m_TestNode.GetOutputSlots<MaterialSlot>().FirstOrDefault())
-                , m_InputOne.GetVariableNameForSlot(m_InputOne.GetOutputSlots<MaterialSlot>().FirstOrDefault())
+                , m_TestNode.GetVariableNameForSlot(Function1Input.OutputSlotId)
+                , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
                 );
 
             ShaderGenerator visitor = new ShaderGenerator();

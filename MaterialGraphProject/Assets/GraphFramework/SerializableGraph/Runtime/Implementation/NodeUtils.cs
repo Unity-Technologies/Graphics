@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -5,6 +6,38 @@ namespace UnityEngine.Graphing
 {
     public static class NodeUtils
     {
+        public class SlotConfigurationException : Exception
+        {
+            public SlotConfigurationException()
+            { }
+
+            public SlotConfigurationException(string message)
+                : base(message)
+            {}
+
+            public SlotConfigurationException(string message, Exception inner)
+                : base(message, inner)
+            {}
+        }
+
+        public static void SlotConfigurationExceptionIfBadConfiguration(INode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots )
+        {
+            var missingSlots = new List<int>();
+
+            var inputSlots = expectedInputSlots as IList<int> ?? expectedInputSlots.ToList();
+            missingSlots.AddRange(inputSlots.Except(node.GetInputSlots<ISlot>().Select(x => x.id)));
+
+            var outputSlots = expectedOutputSlots as IList<int> ?? expectedOutputSlots.ToList();
+            missingSlots.AddRange(outputSlots.Except(node.GetOutputSlots<ISlot>().Select(x => x.id)));
+
+            if (missingSlots.Count == 0)
+                return;
+
+            var toPrint = missingSlots.Select(x => x.ToString());
+              
+            throw new SlotConfigurationException(string.Format("Missing slots {0} on node {1}", string.Join(", ", toPrint.ToArray()), node));
+        }
+
         public static IEnumerable<IEdge> GetAllEdges(INode node)
         {
             var result = new List<IEdge>();

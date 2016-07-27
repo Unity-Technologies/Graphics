@@ -90,22 +90,12 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
-            var inputSlot1 = FindInputSlot<MaterialSlot>(InputSlot1Id);
-            var inputSlot2 = FindInputSlot<MaterialSlot>(InputSlot2Id);
-            var inputSlot3 = FindInputSlot<MaterialSlot>(InputSlot3Id);
+            NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] { InputSlot1Id, InputSlot2Id, InputSlot3Id }, new[] { OutputSlotId });
+            string input1Value = GetSlotValue(InputSlot1Id, generationMode);
+            string input2Value = GetSlotValue(InputSlot2Id, generationMode);
+            string input3Value = GetSlotValue(InputSlot3Id, generationMode);
 
-            if (inputSlot1 == null || inputSlot2 == null || inputSlot3 == null || outputSlot == null)
-            {
-                Debug.LogError("Invalid slot configuration on node: " + name);
-                return;
-            }
-
-            string input1Value = GetSlotValue(inputSlot1, generationMode);
-            string input2Value = GetSlotValue(inputSlot2, generationMode);
-            string input3Value = GetSlotValue(inputSlot3, generationMode);
-
-            visitor.AddShaderChunk(precision + outputDimension + " " + GetVariableNameForSlot(outputSlot) + " = " + GetFunctionCallBody(input1Value, input2Value, input3Value) + ";", true);
+            visitor.AddShaderChunk(precision + outputDimension + " " + GetVariableNameForSlot(OutputSlotId) + " = " + GetFunctionCallBody(input1Value, input2Value, input3Value) + ";", true);
         }
 
         protected virtual string GetFunctionCallBody(string inputValue1, string inputValue2, string inputValue3)

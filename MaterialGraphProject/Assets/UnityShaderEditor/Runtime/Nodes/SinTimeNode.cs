@@ -25,7 +25,7 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
-        public override string GetVariableNameForSlot(MaterialSlot s)
+        public override string GetVariableNameForSlot(int slotIds)
         {
             return "_SinTime";
         }
