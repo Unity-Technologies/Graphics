@@ -476,6 +476,44 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
+        public void TestExceptionIfBadNodeConfigurationWorks()
+        {
+            var node = new TestableNode();
+            Assert.DoesNotThrow(
+                                () =>
+                                    NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                                                                                           node,
+                                        new[] {TestableNode.Input0, TestableNode.Input1, TestableNode.Input2},
+                                        new[] {TestableNode.Output0, TestableNode.Output1, TestableNode.Output2,})
+                );
+
+
+            Assert.Throws<SlotConfigurationException>(
+                                                      () =>
+                                                          NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                                                                                                                 node,
+                                                              new[] {666, TestableNode.Input1, TestableNode.Input2},
+                                                              new[] {TestableNode.Output0, TestableNode.Output1, TestableNode.Output2,})
+                );
+
+            Assert.Throws<SlotConfigurationException>(
+                                                      () =>
+                                                          NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                                                                                                                 node,
+                                                              new[] {TestableNode.Input0, TestableNode.Input1, TestableNode.Input2},
+                                                              new[] {666, TestableNode.Output1, TestableNode.Output2,})
+                );
+
+            Assert.DoesNotThrow(
+                                () =>
+                                    NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                                                                                           node,
+                                        new[] {TestableNode.Input0},
+                                        new[] {TestableNode.Output0})
+                );
+        }
+
+        [Test]
         public void TestConectionToSameInputReplacesOldInput()
         {
             var graph = new SerializableGraph();
