@@ -8,7 +8,7 @@ using UnityEngine.Graphing;
 namespace UnityEditor.Graphing.UnitTests
 {
     [TestFixture]
-    public class ScriptableGraphTests
+    public class SerializableGraphTests
     {
         [TestFixtureSetUp]
         public void RunBeforeAnyTests()
