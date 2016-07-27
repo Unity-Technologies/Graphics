@@ -27,7 +27,7 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
         
-        public override string GetVariableNameForSlot(MaterialSlot slot)
+        public override string GetVariableNameForSlot(int slotId)
         {
             return "IN.screenPos";
         }

@@ -124,26 +124,17 @@ namespace UnityEngine.Graphing
 
         public T FindSlot<T>(int slotId) where T: ISlot
         {
-            var slot = GetSlots<T>().FirstOrDefault(x => x.id == slotId);
-            if (slot == null)
-                Debug.LogErrorFormat("Input Slot: {0} could be found on node {1}", name, this);
-            return slot;
+            return GetSlots<T>().FirstOrDefault(x => x.id == slotId);
         }
 
         public T FindInputSlot<T>(int slotId) where T : ISlot
         {
-            var slot = GetInputSlots<T>().FirstOrDefault(x => x.id == slotId);
-            if (slot == null)
-                Debug.LogErrorFormat("Input Slot: {0} could be found on node {1}", name, this);
-            return slot;
+            return GetInputSlots<T>().FirstOrDefault(x => x.id == slotId);
         }
 
         public T FindOutputSlot<T>(int slotId) where T : ISlot
         {
-            var slot = GetOutputSlots<T>().FirstOrDefault(x => x.id == slotId);
-            if (slot == null)
-                Debug.LogErrorFormat("Output Slot: {0} could be found on node {1}", name, this);
-            return slot;
+            return GetOutputSlots<T>().FirstOrDefault(x => x.id == slotId);
         }
         
         public virtual void OnBeforeSerialize()

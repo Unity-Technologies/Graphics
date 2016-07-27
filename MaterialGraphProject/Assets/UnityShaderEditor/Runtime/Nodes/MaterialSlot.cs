@@ -118,13 +118,13 @@ namespace UnityEngine.MaterialGraph
             if (!generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk("float" + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(slotValueType) + " " + owner.GetVariableNameForSlot(this) + ";", true);
+            visitor.AddShaderChunk("float" + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(slotValueType) + " " + owner.GetVariableNameForSlot(id) + ";", true);
         }
 
         public string GetDefaultValue(GenerationMode generationMode, AbstractMaterialNode owner)
         {
             if (generationMode.IsPreview())
-                return owner.GetVariableNameForSlot(this);
+                return owner.GetVariableNameForSlot(id);
 
             switch (concreteValueType)
             {

@@ -16,12 +16,12 @@ namespace UnityEngine.MaterialGraph
         protected const string kOutputSlotBName = "B";
         protected const string kOutputSlotAName = "A";
 
-        protected const int kUVSlotId = 0;
-        protected const int kOutputSlotRGBAId = 1;
-        protected const int kOutputSlotRId =2;
-        protected const int kOutputSlotGId =3;
-        protected const int kOutputSlotBId = 4;
-        protected const int kOutputSlotAId = 5;
+        public const int UvSlotId = 0;
+        public const int OutputSlotRgbaId = 1;
+        public const int OutputSlotRId =2;
+        public const int OutputSlotGId =3;
+        public const int OutputSlotBId = 4;
+        public const int OutputSlotAId = 5;
 
         [SerializeField]
         private string m_TextureGuid;
@@ -80,25 +80,25 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotRGBAId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotRId, kOutputSlotRName, kOutputSlotRName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotRgbaId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotRId, kOutputSlotRName, kOutputSlotRName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
 
-            AddSlot(new MaterialSlot(kUVSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector2, Vector4.zero));
+            AddSlot(new MaterialSlot(UvSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector2, Vector4.zero));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
         protected int[] validSlots
         {
-            get { return new[] {kOutputSlotRGBAId, kOutputSlotRId, kOutputSlotGId, kOutputSlotBId, kOutputSlotAId, kUVSlotId}; }
+            get { return new[] {OutputSlotRgbaId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, UvSlotId}; }
         }
 
         // Node generations
         public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotId);
+            var uvSlot = FindInputSlot<MaterialSlot>(UvSlotId);
             if (uvSlot == null)
                 return;
 
@@ -110,8 +110,7 @@ namespace UnityEngine.MaterialGraph
             {
                 var edge = edges[0];
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
-                uvName = ShaderGenerator.AdaptNodeOutput(fromNode, slot, ConcreteSlotValueType.Vector2, true);
+                uvName = ShaderGenerator.AdaptNodeOutput(fromNode, edge.outputSlot.slotId, ConcreteSlotValueType.Vector2, true);
 
             }
 
@@ -121,21 +120,21 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderChunk("float4 " + GetVariableNameForNode() + " = " + body + ";", true);
         }
 
-        public override string GetVariableNameForSlot(MaterialSlot s)
+        public override string GetVariableNameForSlot(int slotId)
         {
             string slotOutput;
-            switch (s.id)
+            switch (slotId)
             {
-                case kOutputSlotRId:
+                case OutputSlotRId:
                     slotOutput = ".r";
                     break;
-                case kOutputSlotGId:
+                case OutputSlotGId:
                     slotOutput = ".g";
                     break;
-                case kOutputSlotBId:
+                case OutputSlotBId:
                     slotOutput = ".b";
                     break;
-                case kOutputSlotAId:
+                case OutputSlotAId:
                     slotOutput = ".a";
                     break;
                 default:
@@ -147,7 +146,7 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotId);
+            var uvSlot = FindInputSlot<MaterialSlot>(UvSlotId);
             if (uvSlot == null)
                 return;
 
@@ -158,7 +157,7 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateVertexShaderBlock(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotId);
+            var uvSlot = FindInputSlot<MaterialSlot>(UvSlotId);
             if (uvSlot == null)
                 return;
 

@@ -55,17 +55,9 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
-            var inputSlot = FindInputSlot<MaterialSlot>(InputSlotId);
-
-            if (inputSlot == null || outputSlot == null)
-            {
-                Debug.LogError("Invalid slot configuration on node: " + name);
-                return;
-            }
-
-            var inputValue = GetSlotValue(inputSlot, generationMode);
-            visitor.AddShaderChunk(precision + outputDimension + " " + GetVariableNameForSlot(outputSlot) + " = " + GetFunctionCallBody(inputValue) + ";", true);
+            NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new []{InputSlotId}, new[] {OutputSlotId});
+            var inputValue = GetSlotValue(InputSlotId, generationMode);
+            visitor.AddShaderChunk(precision + outputDimension + " " + GetVariableNameForSlot(OutputSlotId) + " = " + GetFunctionCallBody(inputValue) + ";", true);
         }
 
         protected virtual string GetFunctionCallBody(string inputValue)

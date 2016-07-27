@@ -75,8 +75,9 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public string GetSlotValue(MaterialSlot inputSlot, GenerationMode generationMode)
+        public string GetSlotValue(int inputSlotId, GenerationMode generationMode)
         {
+            var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
             var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
 
             if (edges.Any())
@@ -90,7 +91,7 @@ namespace UnityEngine.MaterialGraph
                 if (slot == null)
                     return string.Empty;
 
-                return ShaderGenerator.AdaptNodeOutput(fromNode, slot, inputSlot.concreteValueType);
+                return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, slot.concreteValueType);
             }
 
             return inputSlot.GetDefaultValue(generationMode, this);
@@ -303,7 +304,7 @@ namespace UnityEngine.MaterialGraph
 
                 var pp = new PreviewProperty
                 {
-                    m_Name = GetVariableNameForSlot(s),
+                    m_Name = GetVariableNameForSlot(s.id),
                     m_PropType = PropertyType.Vector4,
                     m_Vector4 = s.currentValue
                 };
@@ -311,12 +312,13 @@ namespace UnityEngine.MaterialGraph
             }
         }
         
-        public virtual string GetVariableNameForSlot(MaterialSlot s)
+        public virtual string GetVariableNameForSlot(int slotId)
         {
-            if (!GetSlots<MaterialSlot>().Contains(s))
-                Debug.LogError("Attempting to use MaterialSlot (" + s + ") on a node that does not have this MaterialSlot!");
-
-            return GetVariableNameForNode() + "_" + s.id;
+            var slot = FindSlot<MaterialSlot>(slotId);
+            if (slot == null)
+                throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
+               
+            return GetVariableNameForNode() + "_" + slot.shaderOutputName;
         }
 
         public virtual string GetVariableNameForNode()
