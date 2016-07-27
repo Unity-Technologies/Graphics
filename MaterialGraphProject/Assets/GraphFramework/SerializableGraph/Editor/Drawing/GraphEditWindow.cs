@@ -220,8 +220,8 @@ namespace UnityEditor.Graphing.Drawing
                 // pasting nice internal links!
                 if (outputRemapExists && inputRemapExists)
                 {
-                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotName);
-                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotName);
+                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
+                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
                     graph.Connect(outputSlotRef, inputSlotRef);
                 }
                 // one edge needs to go to outside world
@@ -242,14 +242,13 @@ namespace UnityEditor.Graphing.Drawing
             foreach (var group in uniqueOutputs)
             {
                 var inputNode = graph.inputNode;
-                var index = inputNode.GetOutputSlots<ISlot>().Count();
-                inputNode.AddSlot();
+                var slotId = inputNode.AddSlot();
 
-                var outputSlotRef = new SlotReference(inputNode.guid, "Input" + index);
+                var outputSlotRef = new SlotReference(inputNode.guid, slotId);
 
                 foreach (var edge in group)
                 {
-                    var newEdge = graph.Connect(outputSlotRef, new SlotReference(nodeGuidMap[edge.inputSlot.nodeGuid], edge.inputSlot.slotName));
+                    var newEdge = graph.Connect(outputSlotRef, new SlotReference(nodeGuidMap[edge.inputSlot.nodeGuid], edge.inputSlot.slotId));
                     inputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
                 }
             }
@@ -259,14 +258,13 @@ namespace UnityEditor.Graphing.Drawing
             foreach (var group in uniqueInputs)
             {
                 var outputNode = graph.outputNode;
-                var index = outputNode.GetInputSlots<ISlot>().Count();
-                outputNode.AddSlot();
+                var slotId = outputNode.AddSlot();
 
-                var inputSlotRef = new SlotReference(outputNode.guid, "Output" + index);
+                var inputSlotRef = new SlotReference(outputNode.guid, slotId);
 
                 foreach (var edge in group)
                 {
-                    var newEdge = graph.Connect(new SlotReference(nodeGuidMap[edge.outputSlot.nodeGuid], edge.outputSlot.slotName), inputSlotRef);
+                    var newEdge = graph.Connect(new SlotReference(nodeGuidMap[edge.outputSlot.nodeGuid], edge.outputSlot.slotId), inputSlotRef);
                     outputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
                 }
             }
@@ -278,11 +276,11 @@ namespace UnityEditor.Graphing.Drawing
 
             foreach (var edgeMap in inputsNeedingConnection)
             {
-                targetGraph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotName));
+                targetGraph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.outputSlot.slotId));
             }
             foreach (var edgeMap in outputsNeedingConnection)
             {
-                targetGraph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotName), edgeMap.Key.inputSlot);
+                targetGraph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
             }
 
             var toDelete = m_Canvas.selection.Where(x => x is DrawableNode).ToList();

@@ -11,12 +11,13 @@ namespace UnityEngine.MaterialGraph
             UpdateNodeAfterDeserialization();
         }
 
+        private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "SinTime";
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.one));
-            RemoveSlotsNameNotMatching(new[] {kOutputSlotName});
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.one));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
         
         public override bool hasPreview

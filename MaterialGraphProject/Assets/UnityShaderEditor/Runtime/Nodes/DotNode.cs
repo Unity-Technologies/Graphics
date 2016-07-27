@@ -17,17 +17,17 @@ namespace UnityEngine.MaterialGraph
 
         protected override MaterialSlot GetInputSlot1()
         {
-            return new MaterialSlot(GetInputSlot1Name(), GetInputSlot1Name(), SlotType.Input, 0, SlotValueType.Vector3, Vector4.zero);
+            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
         }
 
         protected override MaterialSlot GetInputSlot2()
         {
-            return new MaterialSlot(GetInputSlot2Name(), GetInputSlot2Name(), SlotType.Input, 1, SlotValueType.Vector3, Vector4.zero);
+            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Vector3, Vector4.zero);
         }
 
         protected override MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(GetOutputSlotName(), GetOutputSlotName(), SlotType.Output, 2, SlotValueType.Vector1, Vector4.zero);
+            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector1, Vector4.zero);
         }
     }
 }

@@ -8,6 +8,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private float m_Value;
 
+        public const int OutputSlotId = 0;
         private const string kOutputSlotName = "Value";
 
         public Vector1Node()
@@ -18,8 +19,8 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector1, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlotName });
+            AddSlot(new MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
         
         public override PropertyType propertyType

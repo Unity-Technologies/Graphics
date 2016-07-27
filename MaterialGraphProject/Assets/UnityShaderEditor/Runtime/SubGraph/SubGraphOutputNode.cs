@@ -10,10 +10,11 @@ namespace UnityEngine.MaterialGraph
             name = "SubGraphOutputs";
         }
         
-        public override void AddSlot()
+        public override int AddSlot()
         {
-            var index = GetInputSlots<ISlot>().Count();
-            AddSlot(new MaterialSlot("Output" + index, "Output" + index, SlotType.Input, index, SlotValueType.Vector4, Vector4.zero));
+            var index = GetInputSlots<ISlot>().Count() + 1;
+            AddSlot(new MaterialSlot(index, "Output " + index, "Output" + index, SlotType.Input, SlotValueType.Vector4, Vector4.zero));
+            return index;
         }
 
         public override void RemoveSlot()
@@ -22,7 +23,7 @@ namespace UnityEngine.MaterialGraph
             if (index == 0)
                 return;
 
-            RemoveSlot("Output" + (index - 1));
+            RemoveSlot(index);
         }
     }
 }

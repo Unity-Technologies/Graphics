@@ -217,8 +217,8 @@ namespace UnityEditor.Graphing.IntegrationTests
         {
             var toSerialize = new List<SerializableSlot>()
             {
-                new SerializableSlot("InSlot", "InSlot", SlotType.Input, 0),
-                new SerializableSlot("OutSlot", "OutSlot", SlotType.Output, 0),
+                new SerializableSlot(0, "InSlot", SlotType.Input, 0),
+                new SerializableSlot(1, "OutSlot", SlotType.Output, 5),
             };
 
             var serialized = SerializationHelper.Serialize(toSerialize);
@@ -228,15 +228,15 @@ namespace UnityEditor.Graphing.IntegrationTests
             Assert.IsInstanceOf<SerializableSlot>(loaded[0]);
             Assert.IsInstanceOf<SerializableSlot>(loaded[1]);
 
-            Assert.AreEqual("InSlot", loaded[0].name);
+            Assert.AreEqual(0, loaded[0].id);
             Assert.AreEqual("InSlot", loaded[0].displayName);
             Assert.IsTrue(loaded[0].isInputSlot);
             Assert.AreEqual(0, loaded[0].priority);
 
-            Assert.AreEqual("OutSlot", loaded[1].name);
+            Assert.AreEqual(1, loaded[1].id);
             Assert.AreEqual("OutSlot", loaded[1].displayName);
             Assert.IsTrue(loaded[1].isOutputSlot);
-            Assert.AreEqual(0, loaded[1].priority);
+            Assert.AreEqual(5, loaded[1].priority);
         }
     }
 }

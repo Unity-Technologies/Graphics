@@ -62,10 +62,10 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             m_InputOne.value = 0.2f;
             m_InputTwo.value = 0.3f;
-            
-            m_Graph.Connect(m_InputOne.GetSlotReference("Value"), m_TestNode.GetSlotReference("Input1"));
-            m_Graph.Connect(m_InputTwo.GetSlotReference("Value"), m_TestNode.GetSlotReference("Input2"));
-            m_Graph.Connect(m_TestNode.GetSlotReference("Output"), m_Graph.pixelMasterNode.GetSlotReference("Emission"));
+
+            m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_TestNode.GetSlotReference(Function2Input.InputSlot1Id));
+            m_Graph.Connect(m_InputTwo.GetSlotReference(Vector1Node.OutputSlotId), m_TestNode.GetSlotReference(Function2Input.InputSlot2Id));
+            m_Graph.Connect(m_TestNode.GetSlotReference(Function2Input.OutputSlotId), m_Graph.pixelMasterNode.GetSlotReference(BaseLightFunction.NormalSlotId));
         }
         
         [Test]

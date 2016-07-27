@@ -5,6 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/View Direction Node")]
     public class ViewDirectionNode : AbstractMaterialNode, IGeneratesVertexToFragmentBlock
     {
+        private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "ViewDirection";
 
         public override bool hasPreview { get { return true; } }
@@ -21,8 +22,8 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector3, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlotName });
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector3, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public override string GetVariableNameForSlot(MaterialSlot slot)

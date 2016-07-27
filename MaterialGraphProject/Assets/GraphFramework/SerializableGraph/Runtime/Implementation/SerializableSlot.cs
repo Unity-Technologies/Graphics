@@ -8,7 +8,7 @@ namespace UnityEngine.Graphing
         private const string kNotInit =  "Not Initilaized";
 
         [SerializeField]
-        private string m_Name = kNotInit;
+        private int m_Id;
 
         [SerializeField]
         private string m_DisplayName = kNotInit;
@@ -17,17 +17,30 @@ namespace UnityEngine.Graphing
         private SlotType m_SlotType = SlotType.Input;
 
         [SerializeField]
-        private int m_Priority;
-        
-        public string name
+        private int m_Priority = int.MaxValue;
+
+        public SlotReference slotReference
         {
-            get { return m_Name; }
+            get { return new SlotReference(owner.guid, m_Id); }
+        }
+
+        public INode owner { get; set; }
+
+        public int id
+        {
+            get { return m_Id;}
         }
 
         public virtual string displayName
         {
             get { return m_DisplayName; }
             set { m_DisplayName = value; }
+        }
+
+        public int priority
+        {
+            get { return m_Priority; }
+            set { m_Priority = value; } 
         }
 
         public bool isInputSlot
@@ -39,24 +52,25 @@ namespace UnityEngine.Graphing
         {
             get { return m_SlotType == SlotType.Output; }
         }
-
-        public int priority
-        {
-            get { return m_Priority; }
-            set { m_Priority = value; } 
-        }
         
         // used via reflection / serialization after deserialize
         // to reconstruct this slot.
         public SerializableSlot()
         { }
 
-        public SerializableSlot(string name, string displayName, SlotType slotType, int priority)
+        public SerializableSlot(int id, string displayName, SlotType slotType, int priority)
         {
-            m_Name = name;
+            m_Id = id;
             m_DisplayName = displayName;
             m_SlotType = slotType;
             m_Priority = priority;
+        }
+
+        public SerializableSlot(int id, string displayName, SlotType slotType)
+        {
+            m_Id = id;
+            m_DisplayName = displayName;
+            m_SlotType = slotType;
         }
     }
 }

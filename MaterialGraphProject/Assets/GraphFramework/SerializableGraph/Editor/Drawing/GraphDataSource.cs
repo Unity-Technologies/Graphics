@@ -114,11 +114,11 @@ namespace UnityEditor.Graphing.Drawing
                 {
                     var sourceAnchor =  (NodeAnchor)drawableMaterialNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == slot);
 
-                    var edges = baseNode.owner.GetEdges(new SlotReference(baseNode.guid, slot.name));
+                    var edges = baseNode.owner.GetEdges(new SlotReference(baseNode.guid, slot.id));
                     foreach (var edge in edges)
                     {
                         var toNode = baseNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-                        var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotName);
+                        var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
                         var targetNode = m_DrawableNodes.FirstOrDefault(x => x.m_Node == toNode);
                         var targetAnchor = (NodeAnchor)targetNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == toSlot);
                         drawableEdges.Add(new DrawableEdge<NodeAnchor>(edge, this, sourceAnchor, targetAnchor));
@@ -170,8 +170,8 @@ namespace UnityEditor.Graphing.Drawing
             foreach (var e in elements.OfType<Edge<NodeAnchor>>())
             {
                 //find the edge
-                var edge = graph.edges.FirstOrDefault(x => graph.GetNodeFromGuid(x.outputSlot.nodeGuid).FindOutputSlot<ISlot>(x.outputSlot.slotName) == e.Left.m_Slot 
-                    && graph.GetNodeFromGuid(x.inputSlot.nodeGuid).FindInputSlot<ISlot>(x.inputSlot.slotName) == e.Right.m_Slot);
+                var edge = graph.edges.FirstOrDefault(x => graph.GetNodeFromGuid(x.outputSlot.nodeGuid).FindOutputSlot<ISlot>(x.outputSlot.slotId) == e.Left.m_Slot 
+                    && graph.GetNodeFromGuid(x.inputSlot.nodeGuid).FindInputSlot<ISlot>(x.inputSlot.slotId) == e.Right.m_Slot);
 
                 toRemoveEdge.Add(edge);
             }
@@ -191,7 +191,7 @@ namespace UnityEditor.Graphing.Drawing
         public void Connect(NodeAnchor a, NodeAnchor b)
         {
             var graph = graphAsset.graph;
-            graph.Connect(a.m_Node.GetSlotReference(a.m_Slot.name), b.m_Node.GetSlotReference(b.m_Slot.name));
+            graph.Connect(a.m_Node.GetSlotReference(a.m_Slot.id), b.m_Node.GetSlotReference(b.m_Slot.id));
             MarkDirty();
         }
 

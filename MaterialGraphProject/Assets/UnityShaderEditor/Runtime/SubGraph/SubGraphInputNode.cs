@@ -10,19 +10,21 @@ namespace UnityEngine.MaterialGraph
         {
             name = "SubGraphInputs";
         }
-        public override void AddSlot()
+
+        public override int AddSlot()
         {
-            var index = GetOutputSlots<ISlot>().Count();
-            AddSlot(new MaterialSlot("Input" + index, "Input" + index, SlotType.Output, index, SlotValueType.Vector4, Vector4.zero));
+            var nextSlotId = GetOutputSlots<ISlot>().Count() + 1;
+            AddSlot(new MaterialSlot(-nextSlotId, "Input " + nextSlotId, "Input" + nextSlotId, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            return -nextSlotId;
         }
 
         public override void RemoveSlot()
         {
-            var index = GetOutputSlots<ISlot>().Count();
-            if (index == 0)
+            var lastSlotId = GetOutputSlots<ISlot>().Count();
+            if (lastSlotId == 0)
                 return;
 
-            RemoveSlot("Input" + (index - 1));
+            RemoveSlot(-lastSlotId);
         }
         
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)

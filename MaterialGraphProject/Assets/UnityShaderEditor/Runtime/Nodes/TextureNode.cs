@@ -9,12 +9,19 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Texture Node")]
     public class TextureNode : PropertyNode, IGeneratesBodyCode, IGeneratesVertexShaderBlock, IGeneratesVertexToFragmentBlock
     {
+        protected const string kUVSlotName = "UV";
         protected const string kOutputSlotRGBAName = "RGBA";
         protected const string kOutputSlotRName = "R";
         protected const string kOutputSlotGName = "G";
         protected const string kOutputSlotBName = "B";
         protected const string kOutputSlotAName = "A";
-        protected const string kUVSlotName = "UV";
+
+        protected const int kUVSlotId = 0;
+        protected const int kOutputSlotRGBAId = 1;
+        protected const int kOutputSlotRId =2;
+        protected const int kOutputSlotGId =3;
+        protected const int kOutputSlotBId = 4;
+        protected const int kOutputSlotAId = 5;
 
         [SerializeField]
         private string m_TextureGuid;
@@ -73,37 +80,37 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotRName, kOutputSlotRName, SlotType.Output, 1, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotGName, kOutputSlotGName, SlotType.Output, 2, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotBName, kOutputSlotBName, SlotType.Output, 3, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotAName, kOutputSlotAName, SlotType.Output, 4, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotRGBAId, kOutputSlotRGBAName, kOutputSlotRGBAName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotRId, kOutputSlotRName, kOutputSlotRName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
 
-            AddSlot(new MaterialSlot(kUVSlotName, kUVSlotName, SlotType.Input, 0, SlotValueType.Vector2, Vector4.zero));
+            AddSlot(new MaterialSlot(kUVSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector2, Vector4.zero));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
-        protected string[] validSlots
+        protected int[] validSlots
         {
-            get { return new[] {kOutputSlotRGBAName, kOutputSlotRName, kOutputSlotGName, kOutputSlotBName, kOutputSlotAName, kUVSlotName}; }
+            get { return new[] {kOutputSlotRGBAId, kOutputSlotRId, kOutputSlotGId, kOutputSlotBId, kOutputSlotAId, kUVSlotId}; }
         }
 
         // Node generations
         public virtual void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotName);
+            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotId);
             if (uvSlot == null)
                 return;
 
             var uvName = "IN.meshUV0.xy";
 
-            var edges = owner.GetEdges(GetSlotReference(uvSlot.name)).ToList();
+            var edges = owner.GetEdges(uvSlot.slotReference).ToList();
 
             if (edges.Count > 0)
             {
                 var edge = edges[0];
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotName);
+                var slot = fromNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
                 uvName = ShaderGenerator.AdaptNodeOutput(fromNode, slot, ConcreteSlotValueType.Vector2, true);
 
             }
@@ -117,18 +124,18 @@ namespace UnityEngine.MaterialGraph
         public override string GetVariableNameForSlot(MaterialSlot s)
         {
             string slotOutput;
-            switch (s.name)
+            switch (s.id)
             {
-                case kOutputSlotRName:
+                case kOutputSlotRId:
                     slotOutput = ".r";
                     break;
-                case kOutputSlotGName:
+                case kOutputSlotGId:
                     slotOutput = ".g";
                     break;
-                case kOutputSlotBName:
+                case kOutputSlotBId:
                     slotOutput = ".b";
                     break;
-                case kOutputSlotAName:
+                case kOutputSlotAId:
                     slotOutput = ".a";
                     break;
                 default:
@@ -140,22 +147,22 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotName);
+            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotId);
             if (uvSlot == null)
                 return;
 
-            var edges = owner.GetEdges(GetSlotReference(uvSlot.name));
+            var edges = owner.GetEdges(uvSlot.slotReference);
             if (!edges.Any())
                 UVNode.StaticGenerateVertexToFragmentBlock(visitor, generationMode);
         }
 
         public void GenerateVertexShaderBlock(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotName);
+            var uvSlot = FindInputSlot<MaterialSlot>(kUVSlotId);
             if (uvSlot == null)
                 return;
 
-            var edges = owner.GetEdges(GetSlotReference(uvSlot.name));
+            var edges = owner.GetEdges(uvSlot.slotReference);
             if (!edges.Any())
                 UVNode.GenerateVertexShaderBlock(visitor);
         }
