@@ -2,7 +2,7 @@ namespace UnityEngine.MaterialGraph
 {
     public abstract class AbstractSubGraphIONode : AbstractMaterialNode
     {
-        public abstract void AddSlot();
+        public abstract int AddSlot();
 
         public abstract void RemoveSlot();
 

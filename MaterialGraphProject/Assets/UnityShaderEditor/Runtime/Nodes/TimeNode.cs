@@ -12,6 +12,12 @@ namespace UnityEngine.MaterialGraph
         private const string kOutputSlotNameZ = "Time.z";
         private const string kOutputSlotNameW = "Time.w";
 
+        private const int kOutputSlotId = 0;
+        private const int kOutputSlotIdX = 1;
+        private const int kOutputSlotIdY = 2;
+        private const int kOutputSlotIdZ = 3;
+        private const int kOutputSlotIdW = 4;
+
         public TimeNode()
         {
             name = "Time";
@@ -20,30 +26,30 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotNameX, kOutputSlotNameX, SlotType.Output, 1, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotNameY, kOutputSlotNameY, SlotType.Output, 2, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotNameZ, kOutputSlotNameZ, SlotType.Output, 3, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlot(kOutputSlotNameW, kOutputSlotNameW, SlotType.Output, 4, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotIdX, kOutputSlotNameX, kOutputSlotNameX, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotIdY, kOutputSlotNameY, kOutputSlotNameY, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotIdZ, kOutputSlotNameZ, kOutputSlotNameZ, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
+            AddSlot(new MaterialSlot(kOutputSlotIdW, kOutputSlotNameW, kOutputSlotNameW, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
-        protected string[] validSlots
+        protected int[] validSlots
         {
-            get { return new[] {kOutputSlotName, kOutputSlotNameX, kOutputSlotNameY, kOutputSlotNameZ, kOutputSlotName}; }
+            get { return new[] {kOutputSlotId, kOutputSlotIdX, kOutputSlotIdY, kOutputSlotIdZ, kOutputSlotId}; }
         }
 
         public override string GetVariableNameForSlot(MaterialSlot s)
         {
-            switch (s.name)
+            switch (s.id)
             {
-                case kOutputSlotNameX:
+                case kOutputSlotIdX:
                     return "_Time.x";
-                case kOutputSlotNameY:
+                case kOutputSlotIdY:
                     return "_Time.y";
-                case kOutputSlotNameZ:
+                case kOutputSlotIdZ:
                     return "_Time.z";
-                case kOutputSlotNameW:
+                case kOutputSlotIdW:
                     return "_Time.w";
                 default:
                     return "_Time";

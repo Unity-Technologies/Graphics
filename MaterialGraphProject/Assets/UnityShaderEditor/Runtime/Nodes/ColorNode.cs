@@ -8,6 +8,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private Color m_Color;
 
+        private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Color";
 
         public ColorNode()
@@ -18,8 +19,8 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] {kOutputSlotName});
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public override PropertyType propertyType

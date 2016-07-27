@@ -86,25 +86,26 @@ namespace UnityEngine.Graphing
             if (slot == null)
                 return;
 
-            m_Slots.RemoveAll(x => x.name == slot.name);
+            m_Slots.RemoveAll(x => x.id == slot.id);
             m_Slots.Add(slot);
+            slot.owner = this;
         }
 
-        public void RemoveSlot(string name)
+        public void RemoveSlot(int slotId)
         {
             //Remove edges that use this slot
-            var edges = owner.GetEdges(GetSlotReference(name));
+            var edges = owner.GetEdges(GetSlotReference(slotId));
 
             foreach (var edge in edges.ToArray())
                 owner.RemoveEdge(edge);
             
             //remove slots
-            m_Slots.RemoveAll(x => x.name == name);
+            m_Slots.RemoveAll(x => x.id == slotId);
         }
 
-        public void RemoveSlotsNameNotMatching(IEnumerable<string> slotNames)
+        public void RemoveSlotsNameNotMatching(IEnumerable<int> slotIds)
         {
-            var invalidSlots = m_Slots.Select(x => x.name).Except(slotNames);
+            var invalidSlots = m_Slots.Select(x => x.id).Except(slotIds);
 
             foreach (var invalidSlot in invalidSlots.ToArray())
             {
@@ -113,33 +114,33 @@ namespace UnityEngine.Graphing
             }
         }
 
-        public SlotReference GetSlotReference(string name)
+        public SlotReference GetSlotReference(int slotId)
         {
-            var slot = FindSlot<ISlot>(name);
+            var slot = FindSlot<ISlot>(slotId);
             if (slot == null)
                 return null;
-            return new SlotReference(guid, name);
+            return new SlotReference(guid, slotId);
         }
 
-        public T FindSlot<T>(string name) where T: ISlot
+        public T FindSlot<T>(int slotId) where T: ISlot
         {
-            var slot = GetSlots<T>().FirstOrDefault(x => x.name == name);
+            var slot = GetSlots<T>().FirstOrDefault(x => x.id == slotId);
             if (slot == null)
                 Debug.LogErrorFormat("Input Slot: {0} could be found on node {1}", name, this);
             return slot;
         }
 
-        public T FindInputSlot<T>(string name) where T : ISlot
+        public T FindInputSlot<T>(int slotId) where T : ISlot
         {
-            var slot = GetInputSlots<T>().FirstOrDefault(x => x.name == name);
+            var slot = GetInputSlots<T>().FirstOrDefault(x => x.id == slotId);
             if (slot == null)
                 Debug.LogErrorFormat("Input Slot: {0} could be found on node {1}", name, this);
             return slot;
         }
 
-        public T FindOutputSlot<T>(string name) where T : ISlot
+        public T FindOutputSlot<T>(int slotId) where T : ISlot
         {
-            var slot = GetOutputSlots<T>().FirstOrDefault(x => x.name == name);
+            var slot = GetOutputSlots<T>().FirstOrDefault(x => x.id == slotId);
             if (slot == null)
                 Debug.LogErrorFormat("Output Slot: {0} could be found on node {1}", name, this);
             return slot;
@@ -159,13 +160,15 @@ namespace UnityEngine.Graphing
                 m_Guid = Guid.NewGuid();
 
             m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots);
-            m_SerializableSlots = null; 
+            m_SerializableSlots = null;
+            foreach (var s in m_Slots)
+                s.owner = this;
             UpdateNodeAfterDeserialization();
         }
 
         public virtual IEnumerable<ISlot> GetInputsWithNoConnection() 
         {
-            return GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.name)).Any());
+            return GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
         }
 
         public virtual void UpdateNodeAfterDeserialization()

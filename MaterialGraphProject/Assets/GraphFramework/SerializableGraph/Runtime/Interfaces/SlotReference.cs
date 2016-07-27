@@ -6,7 +6,7 @@ namespace UnityEngine.Graphing
     public class SlotReference : ISerializationCallbackReceiver
     {
         [SerializeField]
-        private string m_SlotName;
+        private int m_SlotId;
 
         [NonSerialized]
         private Guid m_NodeGUID;
@@ -14,10 +14,10 @@ namespace UnityEngine.Graphing
         [SerializeField]
         private string m_NodeGUIDSerialized;
         
-        public SlotReference(Guid nodeGuid, string slotName)
+        public SlotReference(Guid nodeGuid, int slotId)
         {
             m_NodeGUID = nodeGuid;
-            m_SlotName = slotName;
+            m_SlotId = slotId;
             m_NodeGUIDSerialized = string.Empty;
         }
 
@@ -26,9 +26,9 @@ namespace UnityEngine.Graphing
             get { return m_NodeGUID; }
         }
 
-        public string slotName
+        public int slotId
         {
-            get { return m_SlotName; }
+            get { return m_SlotId; }
         }
 
         public void OnBeforeSerialize()

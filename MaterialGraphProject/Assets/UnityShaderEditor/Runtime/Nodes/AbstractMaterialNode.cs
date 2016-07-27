@@ -67,7 +67,7 @@ namespace UnityEngine.MaterialGraph
 
             foreach (var inputSlot in GetInputSlots<MaterialSlot>())
             {
-                var edges = owner.GetEdges(GetSlotReference(inputSlot.name));
+                var edges = owner.GetEdges(inputSlot.slotReference);
                 if (edges.Any())
                     continue;
 
@@ -77,7 +77,7 @@ namespace UnityEngine.MaterialGraph
 
         public string GetSlotValue(MaterialSlot inputSlot, GenerationMode generationMode)
         {
-            var edges = owner.GetEdges(GetSlotReference(inputSlot.name)).ToArray();
+            var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
 
             if (edges.Any())
             {
@@ -86,7 +86,7 @@ namespace UnityEngine.MaterialGraph
                 if (fromNode == null)
                     return string.Empty;
                
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotName);
+                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
                 if (slot == null)
                     return string.Empty;
 
@@ -157,7 +157,7 @@ namespace UnityEngine.MaterialGraph
             // so do that here
             foreach (var inputSlot in GetInputSlots<MaterialSlot>())
             {
-                var edges = owner.GetEdges(GetSlotReference(inputSlot.name));
+                var edges = owner.GetEdges(inputSlot.slotReference);
                 foreach (var edge in edges)
                 {
                     var fromSocketRef = edge.outputSlot;
@@ -179,7 +179,7 @@ namespace UnityEngine.MaterialGraph
             {
                 var inputType = inputSlot.valueType;
                 // if there is a connection
-                var edges = owner.GetEdges(GetSlotReference(inputSlot.name)).ToList();
+                var edges = owner.GetEdges(inputSlot.slotReference).ToList();
                 if (!edges.Any())
                 {
                     if (inputType != SlotValueType.Dynamic)
@@ -195,7 +195,7 @@ namespace UnityEngine.MaterialGraph
                 if (outputNode == null)
                     continue;
 
-                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotName);
+                var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
                 if (outputSlot == null)
                     continue;
          
@@ -297,7 +297,7 @@ namespace UnityEngine.MaterialGraph
             for (var index = 0; index < validSlots.Length; index++)
             {
                 var s = validSlots[index];
-                var edges = owner.GetEdges(GetSlotReference(s.name));
+                var edges = owner.GetEdges(s.slotReference);
                 if (edges.Any())
                     continue;
 
@@ -316,7 +316,7 @@ namespace UnityEngine.MaterialGraph
             if (!GetSlots<MaterialSlot>().Contains(s))
                 Debug.LogError("Attempting to use MaterialSlot (" + s + ") on a node that does not have this MaterialSlot!");
 
-            return GetVariableNameForNode() + "_" + s.name;
+            return GetVariableNameForNode() + "_" + s.id;
         }
 
         public virtual string GetVariableNameForNode()
@@ -331,22 +331,19 @@ namespace UnityEngine.MaterialGraph
                 Debug.LogWarningFormat("Trying to add slot {0} to Material node {1}, but it is not a {2}", slot, this, typeof(MaterialSlot));
                 return;
             }
-
-            base.AddSlot(slot);
-
+            
             var addingSlot = (MaterialSlot) slot;
-            var foundSlot = FindSlot<MaterialSlot>(slot.name);
+            var foundSlot = FindSlot<MaterialSlot>(slot.id);
+
+            // this will remove the old slot and add a new one
+            // if an old one was found. This allows updating values
+            base.AddSlot(slot);
 
             if (foundSlot == null)
                 return;
-            
-            // if the default and current are the same, change the current
-            // to the new default.
-            if (addingSlot.defaultValue == foundSlot.currentValue)
-                foundSlot.currentValue = addingSlot.defaultValue;
 
-            foundSlot.defaultValue = addingSlot.defaultValue;
-            foundSlot.valueType = addingSlot.valueType;
+            // preserve the old current value. 
+            addingSlot.currentValue = foundSlot.currentValue;
         }
     }
 }

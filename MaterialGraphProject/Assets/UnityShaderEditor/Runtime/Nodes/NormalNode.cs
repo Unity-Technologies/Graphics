@@ -5,6 +5,9 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Normal Node")]
     public class NormalNode : AbstractMaterialNode
     {
+        private const int kOutputSlotId = 0;
+        private const string kOutputSlotName = "Normal";
+
         public NormalNode()
         {
             name = "Normal";
@@ -13,11 +16,10 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector3, new Vector4(0,0,1,1)));
-            RemoveSlotsNameNotMatching(new[] {kOutputSlotName});
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector3, new Vector4(0, 0, 1, 1)));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        private const string kOutputSlotName = "Normal";
 
         public override bool hasPreview
         {

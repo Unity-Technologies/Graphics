@@ -18,14 +18,14 @@ namespace UnityEngine.MaterialGraph
 
         protected virtual MaterialSlot GetInputSlot()
         {
-            return new MaterialSlot(GetInputSlotName(), GetInputSlotName(), SlotType.Input, 0, SlotValueType.Vector4, Vector4.zero);
+            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector4, Vector4.zero);
         }
 
         protected virtual MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(GetOutputSlotName(), GetOutputSlotName(), SlotType.Output, 0, SlotValueType.Vector3, Vector4.zero);
+            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
         }
-
+       
         protected override string GetInputSlotName() {return "PackedNormal"; }
         protected override string GetOutputSlotName() {return "Normal"; }
 

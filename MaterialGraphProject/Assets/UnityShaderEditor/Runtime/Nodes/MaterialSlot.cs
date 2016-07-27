@@ -18,16 +18,31 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private ConcreteSlotValueType m_ConcreteValueType;
 
+        [SerializeField]
+        private string m_ShaderOutputName;
+
         public MaterialSlot() { }
 
-        public MaterialSlot(string name, string displayName, SlotType slotType, int priority, SlotValueType valueType, Vector4 defaultValue) 
-            : base(name, displayName, slotType, priority)
+        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, int priority)
+            : base(slotId, displayName, slotType, priority)
         {
-            m_ValueType = valueType;
-            m_DefaultValue = defaultValue;
-            m_CurrentValue = defaultValue;
+            SharedInitialize(shaderOutputName, valueType, defaultValue);
+        }
 
-            switch (valueType)
+        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue) 
+            : base(slotId, displayName, slotType)
+        {
+            SharedInitialize(shaderOutputName, valueType, defaultValue);
+        }
+
+        private void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, Vector4 inDefaultValue)
+        {
+            m_ShaderOutputName = inShaderOutputName;
+            m_ValueType = inValueType;
+            m_DefaultValue = inDefaultValue;
+            m_CurrentValue = inDefaultValue;
+
+            switch (inValueType)
             {
                 case SlotValueType.Vector1:
                     concreteValueType = ConcreteSlotValueType.Vector1;
@@ -91,7 +106,13 @@ namespace UnityEngine.MaterialGraph
             get { return m_ConcreteValueType; }
             set { m_ConcreteValueType = value; }
         }
-        
+
+        public string shaderOutputName
+        {
+            get { return m_ShaderOutputName; }
+            set { m_ShaderOutputName = value; }
+        }
+
         public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType, AbstractMaterialNode owner)
         {
             if (!generationMode.IsPreview())

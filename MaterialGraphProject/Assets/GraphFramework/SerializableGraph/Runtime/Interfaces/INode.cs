@@ -14,11 +14,11 @@ namespace UnityEngine.Graphing
         IEnumerable<T> GetOutputSlots<T>() where T : ISlot;
         IEnumerable<T> GetSlots<T>() where T : ISlot;
         void AddSlot(ISlot slot);
-        void RemoveSlot(string name);
-        SlotReference GetSlotReference(string name);
-        T FindSlot<T>(string name) where T : ISlot;
-        T FindInputSlot<T>(string name) where T : ISlot;
-        T FindOutputSlot<T>(string name) where T : ISlot;
+        void RemoveSlot(int slotId);
+        SlotReference GetSlotReference(int slotId);
+        T FindSlot<T>(int slotId) where T : ISlot;
+        T FindInputSlot<T>(int slotId) where T : ISlot;
+        T FindOutputSlot<T>(int slotId) where T : ISlot;
         IEnumerable<ISlot> GetInputsWithNoConnection();
         DrawingData drawState { get; set; }
         bool hasError { get; }

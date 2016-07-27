@@ -73,8 +73,8 @@ namespace UnityEngine.Graphing
             if (dependentNodes.Contains(fromNode))
                 return null;
 
-            var fromSlot = fromNode.FindSlot<ISlot>(fromSlotRef.slotName);
-            var toSlot = toNode.FindSlot<ISlot>(toSlotRef.slotName);
+            var fromSlot = fromNode.FindSlot<ISlot>(fromSlotRef.slotId);
+            var toSlot = toNode.FindSlot<ISlot>(toSlotRef.slotId);
 
             SlotReference outputSlot = null;
             SlotReference inputSlot = null;
@@ -146,8 +146,8 @@ namespace UnityEngine.Graphing
                 return new Edge[0];
 
             return m_Edges.Where(x =>
-                (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotName == s.slotName)
-                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotName == s.slotName);
+                (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotId == s.slotId)
+                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotId == s.slotId);
         }
 
         public virtual void OnBeforeSerialize()
@@ -184,8 +184,8 @@ namespace UnityEngine.Graphing
 
                 if (outputNode == null 
                     || inputNode == null
-                    || outputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotName) == null 
-                    || inputNode.FindInputSlot<ISlot>(edge.inputSlot.slotName) == null)
+                    || outputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId) == null 
+                    || inputNode.FindInputSlot<ISlot>(edge.inputSlot.slotId) == null)
                 {
                     //orphaned edge
                     RemoveEdgeNoValidate(edge);

@@ -99,22 +99,41 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreNotEqual(guid, newGuid);
         }
 
+
+        public class TestableNode : SerializableNode
+        {
+            public const int Input0 = 0;
+            public const int Input1 = 1;
+            public const int Input2 = 2;
+
+            public const int Output0 = 3;
+            public const int Output1 = 4;
+            public const int Output2 = 5;
+
+            public TestableNode()
+            {
+                AddSlot(new SerializableSlot(Input0, "Input", SlotType.Input));
+                AddSlot(new SerializableSlot(Input1, "Input", SlotType.Input));
+                AddSlot(new SerializableSlot(Input2, "Input", SlotType.Input));
+
+                AddSlot(new SerializableSlot(Output0, "Output", SlotType.Output));
+                AddSlot(new SerializableSlot(Output1, "Output", SlotType.Output));
+                AddSlot(new SerializableSlot(Output2, "Output", SlotType.Output));
+            }
+        }
+
         [Test]
         public void TestRemoveNodeFromSerializableGraphCleansEdges()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputSlot);
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
-            var inputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode.AddSlot(inputSlot);
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
-            var createdEdge = graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
+            var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
             var edge = graph.edges.FirstOrDefault();
@@ -185,17 +204,17 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new SerializableGraph();
             var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
-            node.AddSlot(new SerializableSlot("input", "input", SlotType.Input, 0));
+            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
+            node.AddSlot(new SerializableSlot(1, "input", SlotType.Input));
             node.name = "Test Node";
             graph.AddNode(node);
 
             Assert.AreEqual(1, graph.GetNodes<INode>().Count());
             var found = graph.GetNodes<INode>().FirstOrDefault();
             Assert.AreEqual(1, found.GetInputSlots<ISlot>().Count());
-            Assert.AreEqual("input", found.GetInputSlots<ISlot>().FirstOrDefault().name);
+            Assert.AreEqual(1, found.GetInputSlots<ISlot>().FirstOrDefault().id);
             Assert.AreEqual(1, found.GetOutputSlots<ISlot>().Count());
-            Assert.AreEqual("output", found.GetOutputSlots<ISlot>().FirstOrDefault().name);
+            Assert.AreEqual(0, found.GetOutputSlots<ISlot>().FirstOrDefault().id);
             Assert.AreEqual(2, found.GetSlots<ISlot>().Count());
         }
 
@@ -213,15 +232,15 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new SerializableGraph();
             var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
-            node.AddSlot(new SerializableSlot("input", "input", SlotType.Input, 0));
+            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
+            node.AddSlot(new SerializableSlot(1, "input", SlotType.Input));
             graph.AddNode(node);
 
             Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
             Assert.AreEqual(1, node.GetInputSlots<ISlot>().Count());
             Assert.AreEqual(1, node.GetOutputSlots<ISlot>().Count());
 
-            node.RemoveSlot("input");
+            node.RemoveSlot(1);
 
             Assert.AreEqual(1, node.GetSlots<ISlot>().Count());
             Assert.AreEqual(0, node.GetInputSlots<ISlot>().Count());
@@ -232,27 +251,22 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanRemoveSlotsWithNonMathingNameFromSerializableNode()
         {
             var graph = new SerializableGraph();
-            var node = new SerializableNode();
+            var node = new TestableNode();
             graph.AddNode(node);
-            node.AddSlot(new SerializableSlot("input1", "input", SlotType.Input, 0));
-            node.AddSlot(new SerializableSlot("input2", "input", SlotType.Input, 0));
-            node.AddSlot(new SerializableSlot("input3", "input", SlotType.Input, 0));
-            node.AddSlot(new SerializableSlot("input4", "input", SlotType.Input, 0));
 
-            Assert.AreEqual(4, node.GetSlots<ISlot>().Count());
-            Assert.AreEqual(4, node.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual(6, node.GetSlots<ISlot>().Count());
+            Assert.AreEqual(3, node.GetInputSlots<ISlot>().Count());
+            Assert.AreEqual(3, node.GetOutputSlots<ISlot>().Count());
+
+            node.RemoveSlotsNameNotMatching(new []{TestableNode.Input1});
+
+            Assert.AreEqual(1, node.GetSlots<ISlot>().Count());
+            Assert.AreEqual(1, node.GetInputSlots<ISlot>().Count());
             Assert.AreEqual(0, node.GetOutputSlots<ISlot>().Count());
 
-            node.RemoveSlotsNameNotMatching(new []{"input1", "input3"});
-
-            Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
-            Assert.AreEqual(2, node.GetInputSlots<ISlot>().Count());
-            Assert.AreEqual(0, node.GetOutputSlots<ISlot>().Count());
-
-            Assert.IsNotNull(node.FindInputSlot<ISlot>("input1"));
-            Assert.IsNull(node.FindInputSlot<ISlot>("input2"));
-            Assert.IsNotNull(node.FindInputSlot<ISlot>("input3"));
-            Assert.IsNull(node.FindInputSlot<ISlot>("input4"));
+            Assert.IsNull(node.FindInputSlot<ISlot>(TestableNode.Input0));
+            Assert.IsNotNull(node.FindInputSlot<ISlot>(TestableNode.Input1));
+            Assert.IsNull(node.FindInputSlot<ISlot>(TestableNode.Input2));
         }
 
         [Test]
@@ -260,8 +274,8 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new SerializableGraph();
             var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
+            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
+            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -277,8 +291,8 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new SerializableGraph();
             var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
-            node.AddSlot(new SerializableSlot("output", "output_updated", SlotType.Output, 0));
+            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
+            node.AddSlot(new SerializableSlot(0, "output_updated", SlotType.Output));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -297,7 +311,7 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new SerializableGraph();
             var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
+            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 0));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -318,8 +332,8 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new SerializableGraph();
             var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 1));
+            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 0));
+            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output, 5));
             node.name = "Test Node";
             graph.AddNode(node);
 
@@ -330,7 +344,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(1, found.GetSlots<ISlot>().Count());
 
             var slot = found.GetOutputSlots<ISlot>().FirstOrDefault();
-            Assert.AreEqual(1, slot.priority);
+            Assert.AreEqual(5, slot.priority);
         }
 
 
@@ -338,7 +352,7 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanUpdateSlotDisplayName()
         {
             var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
+            node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
             
             Assert.AreEqual(0, node.GetInputSlots<ISlot>().Count());
@@ -355,52 +369,45 @@ namespace UnityEditor.Graphing.UnitTests
         [Test]
         public void TestCanFindSlotOnSerializableNode()
         {
-            var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
-            node.AddSlot(new SerializableSlot("input", "input", SlotType.Input, 0));
+            var node = new TestableNode();
 
-            Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
-            Assert.IsNotNull(node.FindInputSlot<ISlot>("input"));
-            Assert.IsNull(node.FindInputSlot<ISlot>("output"));
-            Assert.IsNotNull(node.FindOutputSlot<ISlot>("output"));
-            Assert.IsNull(node.FindOutputSlot<ISlot>("input"));
+            Assert.AreEqual(6, node.GetSlots<ISlot>().Count());
+            Assert.IsNotNull(node.FindInputSlot<ISlot>(TestableNode.Input0));
+            Assert.IsNull(node.FindInputSlot<ISlot>(TestableNode.Output0));
+            Assert.IsNotNull(node.FindOutputSlot<ISlot>(TestableNode.Output0));
+            Assert.IsNull(node.FindOutputSlot<ISlot>(TestableNode.Input0));
 
-            Assert.IsNotNull(node.FindSlot<ISlot>("input"));
-            Assert.IsNotNull(node.FindSlot<ISlot>("output"));
-            Assert.IsNull(node.FindSlot<ISlot>("invalid"));
+            Assert.IsNotNull(node.FindSlot<ISlot>(TestableNode.Input0));
+            Assert.IsNotNull(node.FindSlot<ISlot>(TestableNode.Output0));
+            Assert.IsNull(node.FindSlot<ISlot>(555));
         }
 
         [Test]
         public void TestCanFindSlotReferenceOnSerializableNode()
         {
-            var node = new SerializableNode();
-            node.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
-            node.AddSlot(new SerializableSlot("input", "input", SlotType.Input, 0));
+            var node = new TestableNode();
 
-            Assert.AreEqual(2, node.GetSlots<ISlot>().Count());
-            Assert.IsNotNull(node.GetSlotReference("input"));
-            Assert.IsNotNull(node.GetSlotReference("output"));
-            Assert.Null(node.GetSlotReference("invalid"));
+            Assert.AreEqual(6, node.GetSlots<ISlot>().Count());
+            Assert.IsNotNull(node.GetSlotReference(TestableNode.Input0));
+            Assert.IsNotNull(node.GetSlotReference(TestableNode.Output0));
+            Assert.Null(node.GetSlotReference(555));
         }
 
         [Test]
         public void TestCanConnectAndTraverseTwoNodesOnSerializableGraph()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputSlot);
+
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
-            var inputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode.AddSlot(inputSlot);
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
 
 
-            var createdEdge = graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
+            var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
             var edge = graph.edges.FirstOrDefault();
@@ -408,45 +415,36 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(createdEdge, edge);
 
             var foundOutputNode = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-            var foundOutputSlot = foundOutputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotName);
+            var foundOutputSlot = foundOutputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
             Assert.AreEqual(outputNode, foundOutputNode);
-            Assert.AreEqual(outputSlot, foundOutputSlot);
+            Assert.IsNotNull(foundOutputSlot);
 
             var foundInputNode = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
-            var foundInputSlot = foundInputNode.FindInputSlot<ISlot>(edge.inputSlot.slotName);
+            var foundInputSlot = foundInputNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
             Assert.AreEqual(inputNode, foundInputNode);
-            Assert.AreEqual(inputSlot, foundInputSlot);
+            Assert.IsNotNull(foundInputSlot);
         }
 
         [Test]
         public void TestCanConnectAndTraverseThreeNodesOnSerializableGraph()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputNodeOutputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputNodeOutputSlot);
+
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var middleNode = new SerializableNode();
-            var middleNodeInputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            var middleNodeoutputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            middleNode.AddSlot(middleNodeInputSlot);
-            middleNode.AddSlot(middleNodeoutputSlot);
+            var middleNode = new TestableNode();
             graph.AddNode(middleNode);
 
-            var inputNode = new SerializableNode();
-            var inputNodeInputSlot1 = new SerializableSlot("input1", "input1", SlotType.Input, 0);
-            var inputNodeInputSlot2 = new SerializableSlot("input2", "input2", SlotType.Input, 1);
-            inputNode.AddSlot(inputNodeInputSlot1);
-            inputNode.AddSlot(inputNodeInputSlot2);
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
             
             Assert.AreEqual(3, graph.GetNodes<INode>().Count());
 
-            graph.Connect(outputNode.GetSlotReference("output"), middleNode.GetSlotReference("input"));
+            graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), middleNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
-            graph.Connect(middleNode.GetSlotReference("output"), inputNode.GetSlotReference("input1"));
+            graph.Connect(middleNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(2, graph.edges.Count());
             
             var edgesOnMiddleNode = NodeUtils.GetAllEdges(middleNode);
@@ -457,19 +455,19 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(3, result.Count);
 
             result.Clear();
-            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, inputNodeInputSlot1);
+            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, TestableNode.Input0);
             Assert.AreEqual(3, result.Count);
 
             result.Clear();
-            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, inputNodeInputSlot2);
+            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, TestableNode.Input1);
             Assert.AreEqual(1, result.Count);
 
             result.Clear();
-            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, inputNodeInputSlot1, false);
+            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, TestableNode.Input0, false);
             Assert.AreEqual(2, result.Count);
 
             result.Clear();
-            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, inputNodeInputSlot2, false);
+            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, TestableNode.Input1, false);
             Assert.AreEqual(0, result.Count);
             
             result.Clear();
@@ -481,26 +479,21 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestConectionToSameInputReplacesOldInput()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot1 = new SerializableSlot("output1", "output1", SlotType.Output, 0);
-            var outputSlot2 = new SerializableSlot("output2", "output2", SlotType.Output, 1);
-            outputNode.AddSlot(outputSlot1);
-            outputNode.AddSlot(outputSlot2);
+
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
-            var inputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode.AddSlot(inputSlot);
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
 
-            var createdEdge = graph.Connect(outputNode.GetSlotReference("output1"), inputNode.GetSlotReference("input"));
+            var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
             var edge = graph.edges.FirstOrDefault();
             Assert.AreEqual(createdEdge, edge);
 
-            var createdEdge2 = graph.Connect(outputNode.GetSlotReference("output2"), inputNode.GetSlotReference("input"));
+            var createdEdge2 = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
             var edge2 = graph.edges.FirstOrDefault();
             Assert.AreEqual(createdEdge2, edge2);
@@ -510,22 +503,19 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestRemovingSlotRemovesConnectedEdges()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputSlot);
+
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
-            var inputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode.AddSlot(inputSlot);
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
 
-            graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
+            graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
-           
-            inputNode.RemoveSlot("input");
+
+            outputNode.RemoveSlot(TestableNode.Output0);
             Assert.AreEqual(0, graph.edges.Count());
         }
 
@@ -533,9 +523,8 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanNotConnectToNullSlot()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputSlot);
+
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
             var inputNode = new SerializableNode();
@@ -543,11 +532,11 @@ namespace UnityEditor.Graphing.UnitTests
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
 
-            var createdEdge = graph.Connect(outputNode.GetSlotReference("output"), null);
+            var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), null);
             Assert.AreEqual(0, graph.edges.Count());
             Assert.IsNull(createdEdge);
 
-            var createdEdge2 = graph.Connect(outputNode.GetSlotReference("output"), new SlotReference(Guid.NewGuid(), "nope"));
+            var createdEdge2 = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), new SlotReference(Guid.NewGuid(), 666));
             Assert.AreEqual(0, graph.edges.Count());
             Assert.IsNull(createdEdge2);
         }
@@ -556,19 +545,16 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanNotConnectTwoOuputSlotsOnSerializableGraph()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputSlot);
+
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var outputNode2 = new SerializableNode();
-            var outputSlot2 = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode2.AddSlot(outputSlot2);
+            var outputNode2 = new TestableNode();
             graph.AddNode(outputNode2);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
 
-            var createdEdge = graph.Connect(outputNode.GetSlotReference("output"), outputNode2.GetSlotReference("output"));
+            var createdEdge = graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), outputNode2.GetSlotReference(TestableNode.Output0));
             Assert.IsNull(createdEdge);
             Assert.AreEqual(0, graph.edges.Count());
         }
@@ -577,19 +563,16 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanNotConnectTwoInputSlotsOnSerializableGraph()
         {
             var graph = new SerializableGraph();
-            var inputNode = new SerializableNode();
-            var inputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode.AddSlot(inputSlot);
+
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
-            var inputNode2 = new SerializableNode();
-            var inputSlot2 = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode2.AddSlot(inputSlot2);
+            var inputNode2 = new TestableNode();
             graph.AddNode(inputNode2);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
 
-            var createdEdge = graph.Connect(inputNode.GetSlotReference("input"), inputNode2.GetSlotReference("input"));
+            var createdEdge = graph.Connect(inputNode.GetSlotReference(TestableNode.Input0), inputNode2.GetSlotReference(TestableNode.Input0));
             Assert.IsNull(createdEdge);
             Assert.AreEqual(0, graph.edges.Count());
         }
@@ -598,18 +581,14 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestRemovingNodeRemovesConectedEdgesOnSerializableGraph()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputSlot);
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
-            var inputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode.AddSlot(inputSlot);
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
-            graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
+            graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
             graph.RemoveNode(graph.GetNodes<INode>().FirstOrDefault());
@@ -621,18 +600,14 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestRemovingEdgeOnSerializableGraph()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputSlot);
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
-            var inputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode.AddSlot(inputSlot);
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
-            graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
+            graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
             graph.RemoveEdge(graph.edges.FirstOrDefault());
@@ -644,18 +619,14 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestRemovingElementsFromSerializableGraph()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputSlot);
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
-            var inputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode.AddSlot(inputSlot);
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
-            graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
+            graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
             graph.RemoveElements(graph.GetNodes<INode>(), graph.edges);
@@ -667,46 +638,39 @@ namespace UnityEditor.Graphing.UnitTests
         public void TestCanGetEdgesOnSerializableGraphFromSlotReference()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            var outputSlot = new SerializableSlot("output", "output", SlotType.Output, 0);
-            outputNode.AddSlot(outputSlot);
+            var outputNode = new TestableNode();
             graph.AddNode(outputNode);
 
-            var inputNode = new SerializableNode();
-            var inputSlot = new SerializableSlot("input", "input", SlotType.Input, 0);
-            inputNode.AddSlot(inputSlot);
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
-            graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
+            graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
-            Assert.AreEqual(1, graph.GetEdges(inputNode.GetSlotReference("input")).Count());
-            Assert.AreEqual(1, graph.GetEdges(outputNode.GetSlotReference("output")).Count());
-            Assert.AreEqual(0, graph.GetEdges(outputNode.GetSlotReference("badslot")).Count());
+            Assert.AreEqual(1, graph.GetEdges(inputNode.GetSlotReference(TestableNode.Input0)).Count());
+            Assert.AreEqual(1, graph.GetEdges(outputNode.GetSlotReference(TestableNode.Output0)).Count());
+            Assert.AreEqual(0, graph.GetEdges(outputNode.GetSlotReference(666)).Count());
         }
 
         [Test]
         public void TestGetInputsWithNoConnection()
         {
             var graph = new SerializableGraph();
-            var outputNode = new SerializableNode();
-            outputNode.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
-            graph.AddNode(outputNode); 
 
-            var inputNode = new SerializableNode();
-            inputNode.AddSlot(new SerializableSlot("input", "input", SlotType.Input, 0));
-            inputNode.AddSlot(new SerializableSlot("input2", "input2", SlotType.Input, 1));
-            inputNode.AddSlot(new SerializableSlot("output", "output", SlotType.Output, 0));
+            var outputNode = new TestableNode();
+            graph.AddNode(outputNode);
+
+            var inputNode = new TestableNode();
             graph.AddNode(inputNode);
 
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
-            graph.Connect(outputNode.GetSlotReference("output"), inputNode.GetSlotReference("input"));
+            graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
             var slots = inputNode.GetInputsWithNoConnection();
-            Assert.AreEqual(1, slots.Count());
-            Assert.AreEqual("input2", slots.FirstOrDefault().name);
+            Assert.AreEqual(2, slots.Count());
+            CollectionAssert.AreEqual(new [] { TestableNode.Input1, TestableNode.Input2 }, slots.Select(x => x.id));
         }
 
         [Test]
@@ -714,25 +678,18 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var graph = new SerializableGraph();
 
-            var nodeA = new SerializableNode();
-            var inputSlotA = new SerializableSlot("input", "input", SlotType.Input, 0);
-            var outputSlotA = new SerializableSlot("output", "output", SlotType.Output, 0);
-            nodeA.AddSlot(inputSlotA);
-            nodeA.AddSlot(outputSlotA);
+            var nodeA = new TestableNode();
+            
             graph.AddNode(nodeA);
 
-            var nodeB = new SerializableNode();
-            var inputSlotB = new SerializableSlot("input", "input", SlotType.Input, 0);
-            var outputSlotB = new SerializableSlot("output", "output", SlotType.Output, 0);
-            nodeB.AddSlot(inputSlotB);
-            nodeB.AddSlot(outputSlotB);
+            var nodeB = new TestableNode();
             graph.AddNode(nodeB);
             
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
-            graph.Connect(nodeA.GetSlotReference("output"), nodeB.GetSlotReference("input"));
+            graph.Connect(nodeA.GetSlotReference(TestableNode.Output0), nodeB.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());
 
-            var edge = graph.Connect(nodeB.GetSlotReference("output"), nodeA.GetSlotReference("input"));
+            var edge = graph.Connect(nodeB.GetSlotReference(TestableNode.Output0), nodeA.GetSlotReference(TestableNode.Input0));
             Assert.IsNull(edge);
             Assert.AreEqual(1, graph.edges.Count());
         }

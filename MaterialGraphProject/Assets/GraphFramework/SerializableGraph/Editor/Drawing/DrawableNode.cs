@@ -45,9 +45,9 @@ namespace UnityEditor.Graphing.Drawing
             pos.x = width;
             pos.y = yStart;
             bool first = true;
-            foreach (var slot in node.GetOutputSlots<ISlot>().OrderBy(x => x.priority))
+            foreach (var slot in node.GetOutputSlots<ISlot>().OrderBy(x => x.priority).ThenBy(x => x.id))
             {
-                var edges = node.owner.GetEdges(node.GetSlotReference(slot.name));
+                var edges = node.owner.GetEdges(node.GetSlotReference(slot.id));
                 // don't show empty output slots in collapsed mode
                 if (!node.drawState.expanded && !edges.Any() && !first)
                     continue;

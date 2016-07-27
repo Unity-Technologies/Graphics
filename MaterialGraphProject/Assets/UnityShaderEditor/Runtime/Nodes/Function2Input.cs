@@ -4,6 +4,14 @@ namespace UnityEngine.MaterialGraph
 {
     public abstract class Function2Input : AbstractMaterialNode, IGeneratesBodyCode
     {
+        protected const string kInputSlot1ShaderName = "Input1";
+        protected const string kInputSlot2ShaderName = "Input2";
+        protected const string kOutputSlotShaderName = "Output";
+
+        public const int InputSlot1Id = 0;
+        public const int InputSlot2Id = 1;
+        public const int OutputSlotId = 2;
+
         public override bool hasPreview
         {
             get { return true; }
@@ -22,24 +30,24 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(validSlots);
         }
 
-        protected string[] validSlots
+        protected int[] validSlots
         {
-            get { return new[] {GetInputSlot1Name(), GetInputSlot2Name(), GetOutputSlotName()}; }
+            get { return new[] {InputSlot1Id, InputSlot2Id, OutputSlotId}; }
         }
 
         protected virtual MaterialSlot GetInputSlot1()
         {
-            return new MaterialSlot(GetInputSlot1Name(), GetInputSlot1Name(), SlotType.Input, 0, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(InputSlot1Id, GetInputSlot1Name(), kInputSlot1ShaderName, SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected virtual MaterialSlot GetInputSlot2()
         {
-            return new MaterialSlot(GetInputSlot2Name(), GetInputSlot2Name(), SlotType.Input, 1, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(InputSlot2Id, GetInputSlot2Name(), kInputSlot2ShaderName, SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected virtual MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(GetOutputSlotName(), GetOutputSlotName(), SlotType.Output, 0, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected virtual string GetInputSlot1Name()
@@ -68,9 +76,9 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputSlot = FindOutputSlot<MaterialSlot>(GetOutputSlotName());
-            var inputSlot1 = FindInputSlot<MaterialSlot>(GetInputSlot1Name());
-            var inputSlot2 = FindInputSlot<MaterialSlot>(GetInputSlot2Name());
+            var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
+            var inputSlot1 = FindInputSlot<MaterialSlot>(InputSlot1Id);
+            var inputSlot2 = FindInputSlot<MaterialSlot>(InputSlot2Id);
 
             if (inputSlot1 == null || inputSlot2 == null || outputSlot == null)
             {
@@ -90,17 +98,17 @@ namespace UnityEngine.MaterialGraph
 
         public string outputDimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(GetOutputSlotName()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType); }
         }
 
         private string input1Dimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(GetInputSlot1Name()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlot1Id).concreteValueType); }
         }
 
         private string input2Dimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(GetInputSlot2Name()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlot2Id).concreteValueType); }
         }
     }
 }

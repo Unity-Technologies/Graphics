@@ -5,6 +5,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/Vector 3 Node")]
     public class Vector3Node : PropertyNode, IGeneratesBodyCode
     {
+        private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Value";
 
         [SerializeField]
@@ -18,8 +19,8 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector3, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] { kOutputSlotName });
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector3, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public override PropertyType propertyType

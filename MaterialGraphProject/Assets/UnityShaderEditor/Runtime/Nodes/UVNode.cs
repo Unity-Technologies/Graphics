@@ -6,6 +6,7 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/UV Node")]
     public class UVNode : AbstractMaterialNode, IGeneratesVertexToFragmentBlock, IGeneratesVertexShaderBlock, IGeneratesBodyCode
     {
+        private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "UV";
 
         public override bool hasPreview { get { return true; } }
@@ -18,8 +19,8 @@ namespace UnityEngine.MaterialGraph
 
         public override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotName, kOutputSlotName, SlotType.Output, 0, SlotValueType.Vector4, Vector4.zero));
-            RemoveSlotsNameNotMatching(new[] {kOutputSlotName});
+            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
+            RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
         
         public static void StaticGenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
@@ -48,7 +49,7 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputSlot = FindOutputSlot<MaterialSlot>(kOutputSlotName);
+            var outputSlot = FindOutputSlot<MaterialSlot>(kOutputSlotId);
 
             string uvValue = "IN.meshUV0";
             visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(outputSlot) + " = " + uvValue + ";", true);

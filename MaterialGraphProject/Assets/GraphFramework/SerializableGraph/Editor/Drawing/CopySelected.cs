@@ -212,8 +212,8 @@ namespace UnityEditor.Graphing.Drawing
                 if (nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid)
                     && nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid))
                 {
-                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotName);
-                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotName);
+                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
+                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
                     addedEdges.Add(graph.Connect(outputSlotRef, inputSlotRef));
                 }
             }

@@ -86,7 +86,7 @@ namespace UnityEngine.MaterialGraph
 
         public void OnEnable()
         {
-            List<string> validNames = new List<string>();
+            var validNames = new List<int>();
             if (subGraphAsset == null)
             {
                 RemoveSlotsNameNotMatching(validNames);
@@ -96,15 +96,15 @@ namespace UnityEngine.MaterialGraph
             var subGraphInputNode = subGraphAsset.subGraph.inputNode;
             foreach (var slot in subGraphInputNode.GetOutputSlots<MaterialSlot>())
             {
-                AddSlot(new MaterialSlot(slot.name, slot.displayName, SlotType.Input, slot.priority, slot.valueType, slot.defaultValue));
-                validNames.Add(slot.name);
+                AddSlot(new MaterialSlot(slot.id, slot.displayName, slot.shaderOutputName, SlotType.Input, slot.valueType, slot.defaultValue));
+                validNames.Add(slot.id);
             }
 
             var subGraphOutputNode = subGraphAsset.subGraph.outputNode;
             foreach (var slot in subGraphOutputNode.GetInputSlots<MaterialSlot>())
             {
-                AddSlot(new MaterialSlot(slot.name, slot.displayName, SlotType.Output, slot.priority, slot.valueType, slot.defaultValue));
-                validNames.Add(slot.name);
+                AddSlot(new MaterialSlot(slot.id, slot.displayName, slot.shaderOutputName, SlotType.Output, slot.valueType, slot.defaultValue));
+                validNames.Add(slot.id);
             }
 
             RemoveSlotsNameNotMatching(validNames);
@@ -146,7 +146,7 @@ namespace UnityEngine.MaterialGraph
 
             foreach (var slot in GetInputSlots<MaterialSlot>())
             {
-                var varName = subGraphInputNode.GetVariableNameForSlot(subGraphInputNode.FindOutputSlot<MaterialSlot>(slot.name));
+                var varName = subGraphInputNode.GetVariableNameForSlot(subGraphInputNode.FindOutputSlot<MaterialSlot>(slot.id));
                 var varValue = GetSlotValue(slot, GenerationMode.SurfaceShader);
 
                 var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
@@ -171,7 +171,7 @@ namespace UnityEngine.MaterialGraph
             // Copy the outputs to the parent context name);
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
-                var inputSlot = subGraphOutputNode.FindInputSlot<MaterialSlot>(slot.name);
+                var inputSlot = subGraphOutputNode.FindInputSlot<MaterialSlot>(slot.id);
                 var inputValue = subGraphOutputNode.GetSlotValue(inputSlot, GenerationMode.SurfaceShader);
 
                 outputString.AddShaderChunk(

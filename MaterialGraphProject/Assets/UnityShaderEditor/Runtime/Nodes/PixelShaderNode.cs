@@ -81,11 +81,11 @@ namespace UnityEngine.MaterialGraph
         public void GenerateNodeCode(ShaderGenerator shaderBody, GenerationMode generationMode)
         {
             var lightFunction = GetLightFunction();
-            var firstPassSlotName = lightFunction.GetFirstPassSlotName();
+            var firstPassSlotId = lightFunction.GetFirstPassSlotId();
             // do the normal slot first so that it can be used later in the shader :)
-            var firstPassSlot = FindInputSlot<MaterialSlot>(firstPassSlotName);
+            var firstPassSlot = FindInputSlot<MaterialSlot>(firstPassSlotId);
             var nodes = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, firstPassSlot, false);
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, firstPassSlotId, false);
 
             for (int index = 0; index < nodes.Count; index++)
             {
@@ -94,18 +94,18 @@ namespace UnityEngine.MaterialGraph
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
 
-            foreach (var edge in owner.GetEdges(GetSlotReference(firstPassSlot.name)))
+            foreach (var edge in owner.GetEdges(firstPassSlot.slotReference))
             {
                 var outputRef = edge.outputSlot;
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
                 if (fromNode == null)
                     continue;
 
-                var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(outputRef.slotName) as MaterialSlot;
+                var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(outputRef.slotId) as MaterialSlot;
                 if (fromSlot == null)
                     continue;
 
-                shaderBody.AddShaderChunk("o." + firstPassSlot.name + " = " + fromNode.GetVariableNameForSlot(fromSlot) + ";", true);
+                shaderBody.AddShaderChunk("o." + firstPassSlot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(fromSlot) + ";", true);
             }
 
             // track the last index of nodes... they have already been processed :)
@@ -127,18 +127,18 @@ namespace UnityEngine.MaterialGraph
                 if (slot == firstPassSlot)
                     continue;
                 
-                foreach (var edge in owner.GetEdges(GetSlotReference(slot.name)))
+                foreach (var edge in owner.GetEdges(slot.slotReference))
                 {
                     var outputRef = edge.outputSlot;
                     var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
                     if (fromNode == null)
                         continue;
 
-                    var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(outputRef.slotName) as MaterialSlot;
+                    var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(outputRef.slotId) as MaterialSlot;
                     if (fromSlot == null)
                         continue;
 
-                    shaderBody.AddShaderChunk("o." + slot.name + " = " + fromNode.GetVariableNameForSlot(fromSlot) + ";", true);
+                    shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(fromSlot) + ";", true);
                 }
             }
         }

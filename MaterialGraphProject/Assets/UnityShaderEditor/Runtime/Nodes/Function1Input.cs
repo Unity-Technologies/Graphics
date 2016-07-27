@@ -4,6 +4,12 @@ namespace UnityEngine.MaterialGraph
 {
     public abstract class Function1Input : AbstractMaterialNode, IGeneratesBodyCode
     {
+        protected const string kInputSlotShaderName = "Input";
+        protected const string kOutputSlotShaderName = "Output";
+
+        public const int InputSlotId = 0;
+        public const int OutputSlotId = 1;
+
         public override bool hasPreview
         {
             get { return true; }
@@ -21,19 +27,19 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(validSlots);
         }
    
-        protected string[] validSlots
+        protected int[] validSlots
         {
-            get { return new[] {GetInputSlotName(), GetOutputSlotName()}; }
+            get { return new[] { InputSlotId, OutputSlotId }; }
         }
 
         protected virtual MaterialSlot GetInputSlot()
         {
-            return new MaterialSlot(GetInputSlotName(), GetInputSlotName(), SlotType.Input, 0, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected virtual MaterialSlot GetOutputSlot()
         {
-            return new MaterialSlot(GetOutputSlotName(), GetOutputSlotName(), SlotType.Output, 0, SlotValueType.Dynamic, Vector4.zero);
+            return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
         }
 
         protected virtual string GetInputSlotName() {return "Input"; }
@@ -49,8 +55,8 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            var outputSlot = FindOutputSlot<MaterialSlot>(GetOutputSlotName());
-            var inputSlot = FindInputSlot<MaterialSlot>(GetInputSlotName());
+            var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
+            var inputSlot = FindInputSlot<MaterialSlot>(InputSlotId);
 
             if (inputSlot == null || outputSlot == null)
             {
@@ -69,11 +75,11 @@ namespace UnityEngine.MaterialGraph
 
         public string outputDimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(GetOutputSlotName()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType); }
         }
         public string inputDimension
         {
-            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(GetInputSlotName()).concreteValueType); }
+            get { return ConvertConcreteSlotValueTypeToString(FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType); }
         }
     }
 }
