@@ -21,10 +21,11 @@ namespace UnityEditor.MaterialGraph
         private Material m_PreviewMaterial;
 
         [NonSerialized]
-        protected Shader m_PreviewShader;
+        private Shader m_PreviewShader;
 
-        protected AbstractMaterialNode m_Node;
-        protected PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
+        private AbstractMaterialNode m_Node;
+
+        private PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
 
         public Material previewMaterial
         {
@@ -46,7 +47,6 @@ namespace UnityEditor.MaterialGraph
                 if (m_PreviewGenerator == null)
                 {
                     m_PreviewGenerator = new MaterialGraphPreviewGenerator();
-
                 }
                 return m_PreviewGenerator;
             }
@@ -65,10 +65,21 @@ namespace UnityEditor.MaterialGraph
             return m_PreviewWidth;
         }
 
-        public void SetNode(INode node)
+        public INode node
         {
-            if (node is AbstractMaterialNode)
-                m_Node = (AbstractMaterialNode)node;
+            get { return m_Node; }
+            set
+            {
+                var materialNode = value as AbstractMaterialNode;
+                if (materialNode != null)
+                    m_Node = materialNode;
+            }
+        }
+
+        public PreviewMode generatedShaderMode
+        {
+            get { return m_GeneratedShaderMode; }
+            set { m_GeneratedShaderMode = value; }
         }
 
         public virtual float GetNodeWidth()

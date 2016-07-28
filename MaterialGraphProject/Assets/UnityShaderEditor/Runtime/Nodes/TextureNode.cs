@@ -169,7 +169,15 @@ namespace UnityEngine.MaterialGraph
         // Properties
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderProperty(new TexturePropertyChunk(propertyName, description, defaultTexture, m_TextureType, false, exposed));
+            visitor.AddShaderProperty(
+                new TexturePropertyChunk(
+                    propertyName, 
+                    description, 
+                    defaultTexture, m_TextureType, 
+                    PropertyChunk.HideState.Visible, 
+                    exposedState == ExposedState.Exposed ? 
+                        TexturePropertyChunk.ModifiableState.Modifiable 
+                        : TexturePropertyChunk.ModifiableState.NonModifiable));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)

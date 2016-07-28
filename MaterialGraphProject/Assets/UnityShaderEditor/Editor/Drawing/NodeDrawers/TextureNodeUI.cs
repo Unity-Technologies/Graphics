@@ -27,21 +27,22 @@ namespace UnityEditor.MaterialGraph
 
         public override GUIModificationType Render(Rect area)
         {
-            var node = m_Node as TextureNode;
-            if (node == null)
-                return base.Render(area);
 
-            if (m_Node == null)
+            var localNode = node as TextureNode;
+            if (localNode == null)
+                return base.Render(area);
+            
+            if (localNode == null)
                 return GUIModificationType.None;
 
             EditorGUI.BeginChangeCheck();
-            node.defaultTexture = EditorGUI.MiniThumbnailObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), new GUIContent("Texture"), node.defaultTexture, typeof(Texture2D), null) as Texture2D;
+            localNode.defaultTexture = EditorGUI.MiniThumbnailObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), new GUIContent("Texture"), localNode.defaultTexture, typeof(Texture2D), null) as Texture2D;
             var texureChanged = EditorGUI.EndChangeCheck();
             area.y += EditorGUIUtility.singleLineHeight;
             area.height -= EditorGUIUtility.singleLineHeight;
 
             EditorGUI.BeginChangeCheck();
-            node.textureType = (TextureType)EditorGUI.Popup(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), (int)node.textureType, textureTypeNames, EditorStyles.popup);
+            localNode.textureType = (TextureType)EditorGUI.Popup(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), (int)localNode.textureType, textureTypeNames, EditorStyles.popup);
             var typeChanged = EditorGUI.EndChangeCheck();
             
             var toReturn = GUIModificationType.None;

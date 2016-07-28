@@ -7,209 +7,6 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public enum TextureType
-    {
-        White,
-        Gray,
-        Black,
-        Bump
-    }
-
-    public abstract class PropertyChunk
-    {
-        protected string m_PropertyName;
-        protected string m_PropertyDescription;
-        protected bool m_Hidden;
-        protected PropertyChunk(string propertyName, string propertyDescription, bool hidden)
-        {
-            m_PropertyName = propertyName;
-            m_PropertyDescription = propertyDescription;
-            m_Hidden = hidden;
-        }
-
-        public abstract string GetPropertyString();
-        public string propertyName { get { return m_PropertyName; } }
-        public string propertyDescription { get { return m_PropertyDescription; } }
-        public bool hidden { get { return m_Hidden; } }
-    }
-
-    public class TexturePropertyChunk : PropertyChunk
-    {
-        private readonly Texture m_DefaultTexture;
-        private readonly TextureType m_DefaultTextureType;
-        private readonly bool m_Modifiable;
-
-        public TexturePropertyChunk(string propertyName, string propertyDescription, Texture defaultTexture, TextureType defaultTextureType, bool hidden, bool modifiable)
-            : base(propertyName, propertyDescription, hidden)
-        {
-            m_DefaultTexture = defaultTexture;
-            m_DefaultTextureType = defaultTextureType;
-	        m_Modifiable = modifiable;
-        }
-
-        public override string GetPropertyString()
-        {
-            var result = new StringBuilder();
-            if (hidden)
-                result.Append("[HideInInspector] ");
-            if (!m_Modifiable)
-                result.Append("[NonModifiableTextureData] ");
-
-            result.Append(m_PropertyName);
-            result.Append("(\"");
-            result.Append(m_PropertyDescription);
-            result.Append("\", 2D) = \"");
-            result.Append(Enum.GetName(typeof(TextureType), m_DefaultTextureType).ToLower());
-            result.Append("\" {}");
-            return result.ToString();
-        }
-
-        public Texture defaultTexture
-        {
-            get
-            {
-                return m_DefaultTexture;
-            }
-        }
-        public bool modifiable
-        {
-            get
-            {
-                return m_Modifiable;
-            }
-        }
-    }
-
-    public class ColorPropertyChunk : PropertyChunk
-    {
-        private Color m_DefaultColor;
-
-        public ColorPropertyChunk(string propertyName, string propertyDescription, Color defaultColor, bool hidden)
-            : base(propertyName, propertyDescription, hidden)
-        {
-            m_DefaultColor = defaultColor;
-        }
-
-        public override string GetPropertyString()
-        {
-            var result = new StringBuilder();
-            result.Append(m_PropertyName);
-            result.Append("(\"");
-            result.Append(m_PropertyDescription);
-            result.Append("\", Color) = (");
-            result.Append(m_DefaultColor.r);
-            result.Append(",");
-            result.Append(m_DefaultColor.g);
-            result.Append(",");
-            result.Append(m_DefaultColor.b);
-            result.Append(",");
-            result.Append(m_DefaultColor.a);
-            result.Append(")");
-            return result.ToString();
-        }
-    }
-
-    public class FloatPropertyChunk : PropertyChunk
-    {
-        private readonly float m_DefaultValue;
-        public FloatPropertyChunk(string propertyName, string propertyDescription, float defaultValue, bool hidden)
-            : base(propertyName, propertyDescription, hidden)
-        {
-            m_DefaultValue = defaultValue;
-        }
-
-        public override string GetPropertyString()
-        {
-            var result = new StringBuilder();
-            result.Append(m_PropertyName);
-            result.Append("(\"");
-            result.Append(m_PropertyDescription);
-            result.Append("\", Float) = ");
-            result.Append(m_DefaultValue);
-            return result.ToString();
-        }
-    }
-
-    public class VectorPropertyChunk : PropertyChunk
-    {
-        private readonly Vector4 m_DefaultVector;
-        public VectorPropertyChunk(string propertyName, string propertyDescription, Vector4 defaultVector, bool hidden)
-            : base(propertyName, propertyDescription, hidden)
-        {
-            m_DefaultVector = defaultVector;
-        }
-
-        public override string GetPropertyString()
-        {
-            var result = new StringBuilder();
-            result.Append(m_PropertyName);
-            result.Append("(\"");
-            result.Append(m_PropertyDescription);
-            result.Append("\", Vector) = (");
-            result.Append(m_DefaultVector.x);
-            result.Append(",");
-            result.Append(m_DefaultVector.y);
-            result.Append(",");
-            result.Append(m_DefaultVector.z);
-            result.Append(",");
-            result.Append(m_DefaultVector.w);
-            result.Append(")");
-            return result.ToString();
-        }
-    }
-
-    public class PropertyGenerator
-    {
-        public struct TextureInfo
-        {
-            public string name;
-            public int textureId;
-            public bool modifiable;
-        }
-
-        private readonly List<PropertyChunk> m_Properties = new List<PropertyChunk>();
-
-        public void AddShaderProperty(PropertyChunk chunk)
-        {
-            m_Properties.Add(chunk);
-        }
-
-        public string GetShaderString(int baseIndentLevel)
-        {
-            var sb = new StringBuilder();
-            foreach (var prop in m_Properties)
-            {
-                for (var i = 0; i < baseIndentLevel; i++)
-                {
-                    sb.Append("\t");
-                }
-                sb.Append(prop.GetPropertyString());
-                sb.Append("\n");
-            }
-            return sb.ToString();
-        }
-
-        public List<TextureInfo> GetConfiguredTexutres()
-        {
-            var result = new List<TextureInfo>();
-
-            foreach (var prop in m_Properties.OfType<TexturePropertyChunk>())
-            {
-                if (prop.propertyName != null)
-                {
-                    var textureInfo = new TextureInfo
-                    {
-                        name = prop.propertyName,
-                        textureId = prop.defaultTexture != null ? prop.defaultTexture.GetInstanceID() : 0,
-                        modifiable = prop.modifiable
-                    };
-                    result.Add(textureInfo);
-                }
-            }
-            return result;
-        }
-    }
-
     public class ShaderGenerator
     {
         private struct ShaderChunk
@@ -461,13 +258,13 @@ namespace UnityEngine.MaterialGraph
             return template;
         }
 
-        public static string GenerateSurfaceShader(PixelShaderNode node, MaterialOptions options, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTxtures)
+        public static string GenerateSurfaceShader(PixelShaderNode node, MaterialOptions options, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
             var templateLocation = GetTemplatePath("shader.template");
 
             if (!File.Exists(templateLocation))
             {
-                configuredTxtures = new List<PropertyGenerator.TextureInfo>();
+                configuredTextures = new List<PropertyGenerator.TextureInfo>();
                 return string.Empty;
             }
 
@@ -538,7 +335,7 @@ namespace UnityEngine.MaterialGraph
                 resultShader = resultShader.Replace("${VertexShaderBody}", "");
             }
                         
-            configuredTxtures = shaderPropertiesVisitor.GetConfiguredTexutres();
+            configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return resultShader;
         }
 

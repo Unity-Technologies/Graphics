@@ -91,7 +91,7 @@ namespace UnityEngine.MaterialGraph
             {
                 var nodes = new List<INode>();
                 //Get the rest of the nodes for all the other slots
-                NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode, null, false);
+                NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode, null, NodeUtils.IncludeSelf.Exclude);
                 return nodes.OfType<AbstractMaterialNode>();
             }
         }

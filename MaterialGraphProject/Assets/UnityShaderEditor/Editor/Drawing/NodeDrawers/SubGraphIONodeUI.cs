@@ -36,12 +36,18 @@ namespace UnityEditor.MaterialGraph
             return modification;
         }
 
-        public void SetNode(INode node)
-        {
-            if (node is AbstractSubGraphIONode)
-                m_Node = (AbstractSubGraphIONode) node;
-        }
 
+        public INode node
+        {
+            get { return m_Node; }
+            set
+            {
+                var materialNode = value as AbstractSubGraphIONode;
+                if (materialNode != null)
+                    m_Node = materialNode;
+            }
+        }
+        
         public float GetNodeWidth()
         {
             return 100;

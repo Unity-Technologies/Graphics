@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -10,32 +13,16 @@ namespace UnityEditor.MaterialGraph.UnitTests
     {
         private PixelGraph m_Graph;
         private TestNode m_NodeA;
-        private TestNode m_NodeB;
 
         class TestNode : AbstractMaterialNode
         {
             public const int V1Out = 0;
-            public const int V2Out = 1;
-            public const int V3Out = 2;
-            public const int V4Out = 3;
-
-
-            public const int V1In = 4;
-            public const int V2In = 5;
-            public const int V3In = 6;
-            public const int V4In = 7;
+            public const int V1In = 1;
 
             public TestNode()
             {
                 AddSlot(new MaterialSlot(V1Out, "V1Out", "V1Out", SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-                AddSlot(new MaterialSlot(V2Out, "V2Out", "V2Out", SlotType.Output, SlotValueType.Vector2, Vector4.zero));
-                AddSlot(new MaterialSlot(V3Out, "V3Out", "V3Out", SlotType.Output, SlotValueType.Vector3, Vector4.zero));
-                AddSlot(new MaterialSlot(V4Out, "V4Out", "V4Out", SlotType.Output, SlotValueType.Vector4, Vector4.zero));
-           
                 AddSlot(new MaterialSlot(V1In, "V1In", "V1In", SlotType.Input, SlotValueType.Vector1, Vector4.zero));
-                AddSlot(new MaterialSlot(V2In, "V2In", "V2In", SlotType.Input, SlotValueType.Vector2, Vector4.zero));
-                AddSlot(new MaterialSlot(V3In, "V3In", "V3In", SlotType.Input, SlotValueType.Vector3, Vector4.zero));
-                AddSlot(new MaterialSlot(V4In, "V4In", "V4In", SlotType.Input, SlotValueType.Vector4, Vector4.zero));
             }
         }
 
@@ -50,121 +37,89 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             m_Graph = new PixelGraph();
             m_NodeA = new TestNode();
-            m_NodeB = new TestNode();
             m_Graph.AddNode(m_NodeA);
-            m_Graph.AddNode(m_NodeB);
         }
 
         [Test]
-        public void ConnectV1ToV1Works()
+        public void GetVariableNameForSlotThrowsWhenInvalid()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V1Out), m_NodeB.GetSlotReference(TestNode.V1In));
-            Assert.IsFalse(m_NodeB.hasError);
+            Assert.Throws<ArgumentException>(() => m_NodeA.GetVariableNameForSlot(666));
+        }
+        
+        [Test]
+        public void AddingNonMaterialSlotToNodeThrows()
+        {
+            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot( new SerializableSlot(0, string.Empty, SlotType.Input)));
         }
 
         [Test]
-        public void ConnectV1ToV2Works()
+        public void ReplacingMaterialSlotPreservesTheOldCurrentValue()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V1Out), m_NodeB.GetSlotReference(TestNode.V2In));
-            Assert.IsFalse(m_NodeB.hasError);
+            m_NodeA.AddSlot(new MaterialSlot(TestNode.V1In, "V1In", "V1In", SlotType.Input, SlotValueType.Vector1, Vector4.one));
+            Assert.AreEqual(2, m_NodeA.GetSlots<MaterialSlot>().Count());
+            Assert.AreEqual(1, m_NodeA.GetInputSlots<MaterialSlot>().Count());
+
+            var slot = m_NodeA.GetInputSlots<MaterialSlot>().FirstOrDefault();
+            Assert.AreEqual(Vector4.one, slot.defaultValue);
+            Assert.AreEqual(Vector4.zero, slot.currentValue);
         }
 
         [Test]
-        public void ConnectV1ToV3Works()
+        public void CanConvertConcreteSlotValueTypeToOutputChunkProperly()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V1Out), m_NodeB.GetSlotReference(TestNode.V3In));
-            Assert.IsFalse(m_NodeB.hasError);
+            Assert.AreEqual(string.Empty, AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector1));
+            Assert.AreEqual("2", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector2));
+            Assert.AreEqual("3", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector3));
+            Assert.AreEqual("4", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Vector4));
+            Assert.AreEqual("Error", AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(ConcreteSlotValueType.Error));
         }
 
         [Test]
-        public void ConnectV1ToV4Works()
+        public void CanGetDefaultInputsFromNodeAsPreviewProperties()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V1Out), m_NodeB.GetSlotReference(TestNode.V4In));
-            Assert.IsFalse(m_NodeB.hasError);
+            var properties = new List<PreviewProperty>();
+            m_NodeA.CollectPreviewMaterialProperties(properties);
+            var slot = m_NodeA.GetInputSlots<MaterialSlot>().FirstOrDefault();
+
+            Assert.AreEqual(1, properties.Count);
+            var pp = properties.FirstOrDefault();
+
+            Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.id), pp.m_Name);
+            Assert.AreEqual(PropertyType.Vector4, pp.m_PropType);
+            Assert.AreEqual(slot.currentValue, pp.m_Vector4);
         }
 
         [Test]
-        public void ConnectV2ToV1Works()
+        public void CanGetDefaultSlotValueWhenNoEdgesConnected()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V1In));
-            Assert.IsFalse(m_NodeB.hasError);
+            string expected = string.Format("{0}", m_NodeA.GetVariableNameForSlot(TestNode.V1In));
+
+            var slot = m_NodeA.GetInputSlots<MaterialSlot>().FirstOrDefault();
+            var result = m_NodeA.GetSlotValue(slot.id, GenerationMode.Preview2D);
+            Assert.AreEqual(expected, result);
         }
 
-        [Test]
-        public void ConnectV2ToV2Works()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V2In));
-            Assert.IsFalse(m_NodeB.hasError);
-        }
 
         [Test]
-        public void ConnectV2ToV3Fails()
+        public void NodeGenerateCorrectPreviewPropertyUsages()
         {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V3In));
-            Assert.IsTrue(m_NodeB.hasError);
-        }
+            string expected = string.Format("{0} {1};\r\n", AbstractMaterialNode.OutputPrecision.@fixed, m_NodeA.GetVariableNameForSlot(TestNode.V1In));
+            var visitor = new ShaderGenerator();
+            m_NodeA.precision = AbstractMaterialNode.OutputPrecision.@fixed;
+            m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);
+            Assert.AreEqual(expected, visitor.GetShaderString(0));
 
-        [Test]
-        public void ConnectV2ToV4Fails()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V2Out), m_NodeB.GetSlotReference(TestNode.V4In));
-            Assert.IsTrue(m_NodeB.hasError);
-        }
+            expected = string.Format("{0} {1};\r\n", AbstractMaterialNode.OutputPrecision.@float, m_NodeA.GetVariableNameForSlot(TestNode.V1In));
+            visitor = new ShaderGenerator();
+            m_NodeA.precision = AbstractMaterialNode.OutputPrecision.@float;
+            m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);
+            Assert.AreEqual(expected, visitor.GetShaderString(0));
 
-        [Test]
-        public void ConnectV3ToV1Works()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V3Out), m_NodeB.GetSlotReference(TestNode.V1In));
-            Assert.IsFalse(m_NodeB.hasError);
-        }
-
-        [Test]
-        public void ConnectV3ToV2Works()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V3Out), m_NodeB.GetSlotReference(TestNode.V2In));
-            Assert.IsFalse(m_NodeB.hasError);
-        }
-
-        [Test]
-        public void ConnectV3ToV3Works()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V3Out), m_NodeB.GetSlotReference(TestNode.V3In));
-            Assert.IsFalse(m_NodeB.hasError);
-        }
-
-        [Test]
-        public void ConnectV3ToV4Fails()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V3Out), m_NodeB.GetSlotReference(TestNode.V4In));
-            Assert.IsTrue(m_NodeB.hasError);
-        }
-
-        [Test]
-        public void ConnectV4ToV1Works()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V4Out), m_NodeB.GetSlotReference(TestNode.V1In));
-            Assert.IsFalse(m_NodeB.hasError);
-        }
-
-        [Test]
-        public void ConnectV4ToV2Works()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V4Out), m_NodeB.GetSlotReference(TestNode.V2In));
-            Assert.IsFalse(m_NodeB.hasError);
-        }
-
-        [Test]
-        public void ConnectV4ToV3Works()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V4Out), m_NodeB.GetSlotReference(TestNode.V3In));
-            Assert.IsFalse(m_NodeB.hasError);
-        }
-
-        [Test]
-        public void ConnectV4ToV4Works()
-        {
-            m_Graph.Connect(m_NodeA.GetSlotReference(TestNode.V4Out), m_NodeB.GetSlotReference(TestNode.V4In));
-            Assert.IsFalse(m_NodeB.hasError);
+            expected = string.Format("{0} {1};\r\n", AbstractMaterialNode.OutputPrecision.half, m_NodeA.GetVariableNameForSlot(TestNode.V1In));
+            visitor = new ShaderGenerator();
+            m_NodeA.precision = AbstractMaterialNode.OutputPrecision.half;
+            m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);
+            Assert.AreEqual(expected, visitor.GetShaderString(0));
         }
     }
 }

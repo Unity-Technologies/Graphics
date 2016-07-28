@@ -93,7 +93,7 @@ namespace UnityEditor.Graphing.Drawing
                     try
                     {
                         customUI = Activator.CreateInstance(draweruiType) as ICustomNodeUi;
-                        customUI.SetNode(node);
+                        customUI.node = node;
                     }
                     catch (Exception e)
                     {

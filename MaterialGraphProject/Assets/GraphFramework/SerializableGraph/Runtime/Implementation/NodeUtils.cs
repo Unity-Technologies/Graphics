@@ -6,15 +6,8 @@ namespace UnityEngine.Graphing
 {
     public class SlotConfigurationException : Exception
     {
-        public SlotConfigurationException()
-        { }
-
         public SlotConfigurationException(string message)
             : base(message)
-        { }
-
-        public SlotConfigurationException(string message, Exception inner)
-            : base(message, inner)
         { }
     }
 
@@ -66,7 +59,13 @@ namespace UnityEngine.Graphing
         // which child nodes it depends on for it's calculation.
         // Results are returned depth first so by processing each node in
         // order you can generate a valid code block.
-        public static void DepthFirstCollectNodesFromNode(List<INode> nodeList, INode node, int? slotId = null, bool includeSelf = true)
+        public enum IncludeSelf
+        {
+            Include,
+            Exclude
+        }
+
+        public static void DepthFirstCollectNodesFromNode(List<INode> nodeList, INode node, int? slotId = null, IncludeSelf includeSelf = IncludeSelf.Include)
         {
             // no where to start
             if (node == null)
@@ -95,12 +94,12 @@ namespace UnityEngine.Graphing
                 }
             }
 
-            if (includeSelf)
+            if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
             ListPool<int>.Release(validSlots);
         }
 
-        public static void CollectNodesNodeFeedsInto(List<INode> nodeList, INode node, bool includeSelf = true)
+        public static void CollectNodesNodeFeedsInto(List<INode> nodeList, INode node, IncludeSelf includeSelf = IncludeSelf.Include)
         {
             if (node == null)
                 return;
@@ -116,7 +115,7 @@ namespace UnityEngine.Graphing
                     CollectNodesNodeFeedsInto(nodeList, inputNode);
                 }
             }
-            if (includeSelf)
+            if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
         }
     }

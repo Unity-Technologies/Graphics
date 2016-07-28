@@ -15,14 +15,14 @@ namespace UnityEditor.MaterialGraph
 
         public override GUIModificationType Render(Rect area)
         {
-            var node = m_Node as SubGraphNode;
-            if (node == null)
+            var localNode = node as SubGraphNode;
+            if (localNode == null)
                 return base.Render(area);
 
             EditorGUI.BeginChangeCheck();
-            node.subGraphAsset = (MaterialSubGraphAsset) EditorGUI.ObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight),
+            localNode.subGraphAsset = (MaterialSubGraphAsset) EditorGUI.ObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight),
                 new GUIContent("SubGraph"),
-                node.subGraphAsset,
+                localNode.subGraphAsset,
                 typeof(MaterialSubGraphAsset), false);
 
             var toReturn = GUIModificationType.None;

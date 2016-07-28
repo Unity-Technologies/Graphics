@@ -85,7 +85,7 @@ namespace UnityEngine.MaterialGraph
             // do the normal slot first so that it can be used later in the shader :)
             var firstPassSlot = FindInputSlot<MaterialSlot>(firstPassSlotId);
             var nodes = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, firstPassSlotId, false);
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, firstPassSlotId, NodeUtils.IncludeSelf.Exclude);
 
             for (int index = 0; index < nodes.Count; index++)
             {
@@ -108,7 +108,7 @@ namespace UnityEngine.MaterialGraph
             int pass2StartIndex = nodes.Count;
 
             //Get the rest of the nodes for all the other slots
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, null, false);
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, null, NodeUtils.IncludeSelf.Exclude);
             for (var i = pass2StartIndex; i < nodes.Count; i++)
             {
                 var node = nodes[i];

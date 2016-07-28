@@ -71,13 +71,16 @@ namespace UnityEngine.MaterialGraph
                 if (edges.Any())
                     continue;
 
-                inputSlot.GeneratePropertyUsages(visitor, generationMode, inputSlot.concreteValueType, this);
+                inputSlot.GeneratePropertyUsages(visitor, generationMode);
             }
         }
 
         public string GetSlotValue(int inputSlotId, GenerationMode generationMode)
         {
             var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
+            if (inputSlot == null)
+                return string.Empty;
+
             var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
 
             if (edges.Any())
@@ -94,7 +97,7 @@ namespace UnityEngine.MaterialGraph
                 return ShaderGenerator.AdaptNodeOutput(fromNode, slot.id, slot.concreteValueType);
             }
 
-            return inputSlot.GetDefaultValue(generationMode, this);
+            return inputSlot.GetDefaultValue(generationMode);
         }
 
         private ConcreteSlotValueType FindCommonChannelType(ConcreteSlotValueType from, ConcreteSlotValueType to)
@@ -126,7 +129,7 @@ namespace UnityEngine.MaterialGraph
             return from >= to || from == ConcreteSlotValueType.Vector1;
         }
 
-        protected virtual ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
+        private ConcreteSlotValueType ConvertDynamicInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)
         {
             var concreteSlotValueTypes = inputTypes as IList<ConcreteSlotValueType> ?? inputTypes.ToList();
             if (concreteSlotValueTypes.Any(x => x == ConcreteSlotValueType.Error))
@@ -329,11 +332,8 @@ namespace UnityEngine.MaterialGraph
         public sealed override void AddSlot(ISlot slot)
         {
             if (!(slot is MaterialSlot))
-            {
-                Debug.LogWarningFormat("Trying to add slot {0} to Material node {1}, but it is not a {2}", slot, this, typeof(MaterialSlot));
-                return;
-            }
-            
+                throw new ArgumentException(string.Format("Trying to add slot {0} to Material node {1}, but it is not a {2}", slot, this, typeof(MaterialSlot)));
+
             var addingSlot = (MaterialSlot) slot;
             var foundSlot = FindSlot<MaterialSlot>(slot.id);
 

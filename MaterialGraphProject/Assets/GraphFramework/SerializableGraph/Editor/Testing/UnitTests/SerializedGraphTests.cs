@@ -463,11 +463,11 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(1, result.Count);
 
             result.Clear();
-            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, TestableNode.Input0, false);
+            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, TestableNode.Input0, NodeUtils.IncludeSelf.Exclude);
             Assert.AreEqual(2, result.Count);
 
             result.Clear();
-            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, TestableNode.Input1, false);
+            NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, TestableNode.Input1, NodeUtils.IncludeSelf.Exclude);
             Assert.AreEqual(0, result.Count);
             
             result.Clear();

@@ -3,7 +3,7 @@ namespace UnityEngine.Graphing
     public class SerializableGraphAsset : ScriptableObject, IGraphAsset, IOnAssetEnabled
     {
         [SerializeField]
-        protected SerializableGraph m_Graph = new SerializableGraph();
+        private SerializableGraph m_Graph = new SerializableGraph();
         
         public IGraph graph
         {
