@@ -7,7 +7,7 @@ namespace UnityEditor.Graphing.Drawing
     {
         float GetNodeUiHeight(float width);
         GUIModificationType Render(Rect area);
-        void SetNode(INode node);
+        INode node { get; set; }
         float GetNodeWidth();
     }
 }

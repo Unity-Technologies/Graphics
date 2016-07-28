@@ -36,19 +36,19 @@ namespace UnityEngine.MaterialGraph
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
-            if (exposed)
-                visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, m_Value, false));
+            if (exposedState == ExposedState.Exposed)
+                visitor.AddShaderProperty(new FloatPropertyChunk(propertyName, description, m_Value, PropertyChunk.HideState.Visible));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (exposed || generationMode.IsPreview())
+            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                visitor.AddShaderChunk("float " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (exposed || generationMode.IsPreview())
+            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                 return;
             
             visitor.AddShaderChunk(precision + " " + propertyName + " = " + m_Value + ";", true);

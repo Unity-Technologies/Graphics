@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -34,8 +35,8 @@ namespace UnityEngine.MaterialGraph
         public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (generationMode == GenerationMode.Preview2D)
-                Debug.LogError("Trying to generate 2D preview on a node that does not support it!");
-
+                throw new InvalidEnumArgumentException(string.Format("Trying to generate 2D preview on {0}. This is not supported!", this));
+                
             visitor.AddShaderChunk("float3 viewDir;", true);
         }
     }

@@ -38,25 +38,9 @@ namespace UnityEngine.MaterialGraph
         private void SharedInitialize(string inShaderOutputName, SlotValueType inValueType, Vector4 inDefaultValue)
         {
             m_ShaderOutputName = inShaderOutputName;
-            m_ValueType = inValueType;
+            valueType = inValueType;
             m_DefaultValue = inDefaultValue;
             m_CurrentValue = inDefaultValue;
-
-            switch (inValueType)
-            {
-                case SlotValueType.Vector1:
-                    concreteValueType = ConcreteSlotValueType.Vector1;
-                    break;
-                case SlotValueType.Vector2:
-                    concreteValueType = ConcreteSlotValueType.Vector2;
-                    break;
-                case SlotValueType.Vector3:
-                    concreteValueType = ConcreteSlotValueType.Vector3;
-                    break;
-                default:
-                    concreteValueType = ConcreteSlotValueType.Vector4;
-                    break;
-            }
         }
 
         private static string ConcreteSlotValueTypeAsString(ConcreteSlotValueType type)
@@ -92,7 +76,25 @@ namespace UnityEngine.MaterialGraph
         public SlotValueType valueType
         { 
             get { return m_ValueType; }
-            set { m_ValueType = value; }
+            set
+            {
+                switch (value)
+                {
+                    case SlotValueType.Vector1:
+                        concreteValueType = ConcreteSlotValueType.Vector1;
+                        break;
+                    case SlotValueType.Vector2:
+                        concreteValueType = ConcreteSlotValueType.Vector2;
+                        break;
+                    case SlotValueType.Vector3:
+                        concreteValueType = ConcreteSlotValueType.Vector3;
+                        break;
+                    default:
+                        concreteValueType = ConcreteSlotValueType.Vector4;
+                        break;
+                }
+                m_ValueType = value;
+            }
         }
 
         public Vector4 currentValue
@@ -113,29 +115,37 @@ namespace UnityEngine.MaterialGraph
             set { m_ShaderOutputName = value; }
         }
 
-        public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode, ConcreteSlotValueType slotValueType, AbstractMaterialNode owner)
+        public void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (!generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk("float" + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(slotValueType) + " " + owner.GetVariableNameForSlot(id) + ";", true);
+            var matOwner = owner as AbstractMaterialNode;
+            if (matOwner == null)
+                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
+            
+            visitor.AddShaderChunk(matOwner.precision + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(concreteValueType) + " " + matOwner.GetVariableNameForSlot(id) + ";", true);
         }
 
-        public string GetDefaultValue(GenerationMode generationMode, AbstractMaterialNode owner)
+        public string GetDefaultValue(GenerationMode generationMode)
         {
+            var matOwner = owner as AbstractMaterialNode;
+            if (matOwner == null)
+                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
+
             if (generationMode.IsPreview())
-                return owner.GetVariableNameForSlot(id);
+                return matOwner.GetVariableNameForSlot(id);
 
             switch (concreteValueType)
             {
                 case ConcreteSlotValueType.Vector1:
                     return m_CurrentValue.x.ToString();
                 case ConcreteSlotValueType.Vector2:
-                    return "half2 (" + m_CurrentValue.x + "," + m_CurrentValue.y + ")";
+                    return matOwner.precision + "2 (" + m_CurrentValue.x + "," + m_CurrentValue.y + ")";
                 case ConcreteSlotValueType.Vector3:
-                    return "half3 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + ")";
+                    return matOwner.precision + "3 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + ")";
                 case ConcreteSlotValueType.Vector4:
-                    return "half4 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + "," + m_CurrentValue.w + ")";
+                    return matOwner.precision + "4 (" + m_CurrentValue.x + "," + m_CurrentValue.y + "," + m_CurrentValue.z + "," + m_CurrentValue.w + ")";
                 default:
                     return "error";
             }

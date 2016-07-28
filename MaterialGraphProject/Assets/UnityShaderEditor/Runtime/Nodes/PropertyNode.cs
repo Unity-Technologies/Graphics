@@ -4,16 +4,22 @@ namespace UnityEngine.MaterialGraph
 {
     public abstract class PropertyNode : AbstractMaterialNode
     {
-        [SerializeField]
-        public string m_PropertyName;
+        public enum ExposedState
+        {
+            Exposed,
+            NotExposed
+        }
 
         [SerializeField]
-        public string m_Description;
+        private string m_PropertyName = string.Empty;
 
         [SerializeField]
-        public bool m_Exposed;
+        private string m_Description = string.Empty;
+
+        [SerializeField]
+        private ExposedState m_Exposed = ExposedState.NotExposed;
         
-        public bool exposed
+        public ExposedState exposedState
         {
             get { return m_Exposed; }
         }
@@ -34,7 +40,7 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-                if (!exposed || string.IsNullOrEmpty(m_PropertyName))
+                if (exposedState == ExposedState.NotExposed || string.IsNullOrEmpty(m_PropertyName))
                     return string.Format("{0}_{1}_Uniform", name, guid.ToString().Replace("-","_"));
 
                 return m_PropertyName + "_Uniform";
@@ -59,7 +65,7 @@ namespace UnityEngine.MaterialGraph
         
         protected override bool CalculateNodeHasError()
         {
-            if (!exposed)
+            if (exposedState == ExposedState.NotExposed)
                 return false;
 
             var propNodes = owner.GetNodes<PropertyNode>();

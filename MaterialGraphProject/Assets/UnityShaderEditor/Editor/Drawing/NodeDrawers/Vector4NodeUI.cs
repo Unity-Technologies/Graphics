@@ -32,12 +32,18 @@ namespace UnityEditor.MaterialGraph
             return GUIModificationType.None;
         }
 
-        public void SetNode(INode node)
-        {
-            if (node is Vector4Node)
-                m_Node = (Vector4Node) node;
-        }
 
+        public INode node
+        {
+            get { return m_Node; }
+            set
+            {
+                var materialNode = value as Vector4Node;
+                if (materialNode != null)
+                    m_Node = materialNode;
+            }
+        }
+        
         public float GetNodeWidth()
         {
             return 200;

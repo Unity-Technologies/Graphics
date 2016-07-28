@@ -14,45 +14,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Debug.logger.logHandler = new ConsoleLogHandler();
         }
 
-        [Test]
-        public void TestTexturePropertyChunkGeneratesValidPropertyStringNotHiddenNotModifiable()
-        {
-            var chunk = new TexturePropertyChunk("TexProp", "Description", null, TextureType.White, false, false);
-            Assert.AreEqual("[NonModifiableTextureData] TexProp(\"Description\", 2D) = \"white\" {}" , chunk.GetPropertyString());
-            Assert.IsFalse(chunk.modifiable);
-            Assert.IsFalse(chunk.hidden);
-        }
-
-        [Test]
-        public void TestTexturePropertyChunkGeneratesValidPropertyStringHiddenNotModifiable()
-        {
-            var chunk = new TexturePropertyChunk("TexProp", "Description", null, TextureType.White, true, false);
-            Assert.AreEqual("[HideInInspector] [NonModifiableTextureData] TexProp(\"Description\", 2D) = \"white\" {}", chunk.GetPropertyString());
-            Assert.IsFalse(chunk.modifiable);
-            Assert.IsTrue(chunk.hidden);
-        }
-
-        [Test]
-        public void TestColorPropertyChunkGeneratesValidPropertyString()
-        {
-            var chunk = new ColorPropertyChunk("ColProp", "Description", Color.green, false);
-            Assert.AreEqual("ColProp(\"Description\", Color) = (0,1,0,1)", chunk.GetPropertyString());
-        }
-
-        [Test]
-        public void TestFloatPropertyChunkGeneratesValidPropertyString()
-        {
-            var chunk = new FloatPropertyChunk("FloatProp", "Description", 0.3f, false);
-            Assert.AreEqual("FloatProp(\"Description\", Float) = 0.3", chunk.GetPropertyString());
-        }
-
-        [Test]
-        public void VectorPropertyChunkGeneratesValidPropertyString()
-        {
-            var chunk = new VectorPropertyChunk("VectorProp", "Description", new Vector4(0, 0, 1, 0), false);
-            Assert.AreEqual("VectorProp(\"Description\", Vector) = (0,0,1,0)", chunk.GetPropertyString());
-        }
-
         class TestNode : AbstractMaterialNode
         {
             public const int V1Out = 0;

@@ -36,14 +36,14 @@ namespace UnityEngine.MaterialGraph
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (exposed || generationMode.IsPreview())
+            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                 visitor.AddShaderChunk("float4 " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             // we only need to generate node code if we are using a constant... otherwise we can just refer to the property :)
-            if (exposed || generationMode.IsPreview())
+            if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                 return;
 
             visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + precision + "4 (" + m_Color.r + ", " + m_Color.g + ", " + m_Color.b + ", " + m_Color.a + ");", true);

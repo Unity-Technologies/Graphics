@@ -23,12 +23,12 @@ namespace UnityEditor.MaterialGraph
 
         public override GUIModificationType Render(Rect area)
         {
-            var node = m_Node as PixelShaderNode;
-            if (node == null)
+            var localNode = node as PixelShaderNode;
+            if (localNode == null)
                 return base.Render(area);
 
             var lightFunctions = PixelShaderNode.GetLightFunctions();
-            var lightFunction = node.GetLightFunction();
+            var lightFunction = localNode.GetLightFunction();
 
             int lightFuncIndex = 0;
             if (lightFunction != null)
@@ -36,11 +36,11 @@ namespace UnityEditor.MaterialGraph
 
             EditorGUI.BeginChangeCheck();
             lightFuncIndex = EditorGUI.Popup(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), lightFuncIndex, lightFunctions.Select(x => x.GetLightFunctionName()).ToArray(), EditorStyles.popup);
-            node.m_LightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
+            localNode.m_LightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
             var toReturn = GUIModificationType.None;
             if (EditorGUI.EndChangeCheck())
             {
-               node.UpdateNodeAfterDeserialization();
+               localNode.UpdateNodeAfterDeserialization();
                toReturn = GUIModificationType.ModelChanged;
             }
             area.y += EditorGUIUtility.singleLineHeight;
@@ -51,11 +51,15 @@ namespace UnityEditor.MaterialGraph
 
         protected override string GetPreviewShaderString()
         {
-            var shaderName = "Hidden/PreviewShader/" + m_Node.GetVariableNameForNode();
+            var localNode = node as PixelShaderNode;
+            if (localNode == null)
+                return string.Empty;
+
+            var shaderName = "Hidden/PreviewShader/" + localNode.GetVariableNameForNode();
             List<PropertyGenerator.TextureInfo> defaultTextures;
             //TODO: Need to get the real options somehow
-            var resultShader = ShaderGenerator.GenerateSurfaceShader(m_Node as PixelShaderNode, new MaterialOptions(), shaderName, true, out defaultTextures);
-            m_GeneratedShaderMode = PreviewMode.Preview3D;
+            var resultShader = ShaderGenerator.GenerateSurfaceShader(localNode, new MaterialOptions(), shaderName, true, out defaultTextures);
+            generatedShaderMode = PreviewMode.Preview3D;
             return resultShader;
         }
     }

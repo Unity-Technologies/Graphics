@@ -15,15 +15,12 @@ namespace UnityEditor.MaterialGraph
 
         public override GUIModificationType Render(Rect area)
         {
-            var node = m_Node as CombineNode;
-            if (node == null)
+            var localNode = node as CombineNode;
+            if (localNode == null)
                 return base.Render(area);
 
-            if (m_Node == null)
-                return GUIModificationType.None;
-
             EditorGUI.BeginChangeCheck();
-            node.operation = (CombineNode.Operation)EditorGUI.EnumPopup(area, node.operation);
+            localNode.operation = (CombineNode.Operation)EditorGUI.EnumPopup(area, localNode.operation);
 
             var toReturn = GUIModificationType.None;
             if (EditorGUI.EndChangeCheck())
