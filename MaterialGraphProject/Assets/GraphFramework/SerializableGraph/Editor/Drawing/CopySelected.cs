@@ -43,8 +43,8 @@ namespace UnityEditor.Graphing.Drawing
 
         public virtual void OnBeforeSerialize()
         {
-            m_SerializableNodes = SerializationHelper.Serialize(m_Nodes);
-            m_SerializableEdges = SerializationHelper.Serialize(m_Edges);
+            m_SerializableNodes = SerializationHelper.Serialize<INode>(m_Nodes);
+            m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
         }
 
         public virtual void OnAfterDeserialize()

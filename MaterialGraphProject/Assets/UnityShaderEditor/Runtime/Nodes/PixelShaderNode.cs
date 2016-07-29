@@ -11,15 +11,25 @@ namespace UnityEngine.MaterialGraph
     public class PixelShaderNode : AbstractMaterialNode, IGeneratesBodyCode
     {
         [SerializeField]
-        public string m_LightFunctionClassName;
-         
-        private string lightFunctionClassName
-        {
-            get { return m_LightFunctionClassName; }
-            set { m_LightFunctionClassName = value; }
-        }
+        private SerializationHelper.JSONSerializedElement m_SerializedLightFunction;
 
+        [NonSerialized]
+        private BaseLightFunction m_LightFunction = new PBRMetalicLightFunction();
+            
         private static List<BaseLightFunction> s_LightFunctions;
+
+        public BaseLightFunction lightFunction
+        {
+            get { return m_LightFunction; }
+            set
+            {
+                if (m_LightFunction == value)
+                    return;
+
+                m_LightFunction = value;
+                UpdateNodeAfterDeserialization();
+            }
+        }
 
         public PixelShaderNode()
         {
@@ -29,7 +39,7 @@ namespace UnityEngine.MaterialGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            GetLightFunction().DoSlotsForConfiguration(this);
+            m_LightFunction.DoSlotsForConfiguration(this);
         }
 
         protected override bool generateDefaultInputs { get { return false; } }
@@ -54,33 +64,19 @@ namespace UnityEngine.MaterialGraph
             return s_LightFunctions;
         }
 
-        public BaseLightFunction GetLightFunction()
-        {
-            var lightFunctions = GetLightFunctions();
-            var lightFunction = lightFunctions.FirstOrDefault(x => x.GetType().ToString() == lightFunctionClassName);
-
-            if (lightFunction == null && lightFunctions.Count > 0)
-                lightFunction = lightFunctions[0];
-
-            return lightFunction;
-        }
-
         public virtual void GenerateLightFunction(ShaderGenerator visitor)
         {
-            var lightFunction = GetLightFunction();
             lightFunction.GenerateLightFunctionName(visitor);
             lightFunction.GenerateLightFunctionBody(visitor);
         }
 
         public void GenerateSurfaceOutput(ShaderGenerator visitor)
         {
-            var lightFunction = GetLightFunction();
             lightFunction.GenerateSurfaceOutputStructureName(visitor);
         }
         
         public void GenerateNodeCode(ShaderGenerator shaderBody, GenerationMode generationMode)
         {
-            var lightFunction = GetLightFunction();
             var firstPassSlotId = lightFunction.GetFirstPassSlotId();
             // do the normal slot first so that it can be used later in the shader :)
             var firstPassSlot = FindInputSlot<MaterialSlot>(firstPassSlotId);
@@ -135,11 +131,6 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            return GetVariableNameForNode();
-        }
-
    /*     public override float GetNodeUIHeight(float width)
         {
             return EditorGUIUtility.singleLineHeight;
@@ -176,8 +167,34 @@ namespace UnityEngine.MaterialGraph
         {
             get { return true; }
         }
+        
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+            try
+            {
+                m_SerializedLightFunction = SerializationHelper.Serialize(m_LightFunction);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+        }
 
+        public override void OnAfterDeserialize()
+        {
+            try
+            {
+                m_LightFunction = SerializationHelper.Deserialize<BaseLightFunction>(m_SerializedLightFunction);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
 
+            base.OnAfterDeserialize();
+        }
+        
         /*
         protected override bool UpdatePreviewShader()
         {

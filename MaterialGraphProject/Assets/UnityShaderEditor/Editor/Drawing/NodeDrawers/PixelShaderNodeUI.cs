@@ -28,15 +28,15 @@ namespace UnityEditor.MaterialGraph
                 return base.Render(area);
 
             var lightFunctions = PixelShaderNode.GetLightFunctions();
-            var lightFunction = localNode.GetLightFunction();
+            var lightFunction = localNode.lightFunction;
 
             int lightFuncIndex = 0;
             if (lightFunction != null)
                 lightFuncIndex = lightFunctions.IndexOf(lightFunction);
 
             EditorGUI.BeginChangeCheck();
-            lightFuncIndex = EditorGUI.Popup(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), lightFuncIndex, lightFunctions.Select(x => x.GetLightFunctionName()).ToArray(), EditorStyles.popup);
-            localNode.m_LightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
+            lightFuncIndex = EditorGUI.Popup(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), lightFuncIndex, lightFunctions.Select(x => x.lightFunctionName).ToArray(), EditorStyles.popup);
+            localNode.lightFunction = lightFunctions[lightFuncIndex];
             var toReturn = GUIModificationType.None;
             if (EditorGUI.EndChangeCheck())
             {

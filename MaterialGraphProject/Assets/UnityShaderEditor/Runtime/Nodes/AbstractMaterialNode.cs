@@ -328,13 +328,13 @@ namespace UnityEngine.MaterialGraph
         {
             return name + "_" + guid.ToString().Replace("-", "_");
         }
-        
+
         public sealed override void AddSlot(ISlot slot)
         {
             if (!(slot is MaterialSlot))
                 throw new ArgumentException(string.Format("Trying to add slot {0} to Material node {1}, but it is not a {2}", slot, this, typeof(MaterialSlot)));
 
-            var addingSlot = (MaterialSlot) slot;
+            var addingSlot = (MaterialSlot)slot;
             var foundSlot = FindSlot<MaterialSlot>(slot.id);
 
             // this will remove the old slot and add a new one
