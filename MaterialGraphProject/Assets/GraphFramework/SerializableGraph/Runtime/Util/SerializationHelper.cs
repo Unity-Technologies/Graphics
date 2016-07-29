@@ -38,6 +38,14 @@ namespace UnityEngine.Graphing
             public string JSONnodeData;
         }
 
+        public static JSONSerializedElement nullElement
+        {
+            get
+            {
+                return new JSONSerializedElement();
+            }
+        }
+
         private static TypeSerializationInfo GetTypeSerializableAsString(Type type)
         {
             return new TypeSerializationInfo
@@ -55,6 +63,51 @@ namespace UnityEngine.Graphing
             return Type.GetType(typeInfo.SearchString());
         }
 
+        public static JSONSerializedElement Serialize<T>(T item)
+        {
+            if (item == null)
+                throw new ArgumentNullException("item", "Can not serialize null element");
+
+            var typeInfo = GetTypeSerializableAsString(item.GetType());
+            var data = JsonUtility.ToJson(item, true);
+
+            if (string.IsNullOrEmpty(data))
+                throw new ArgumentException(string.Format("Can not serialize {0}", item)); ;
+
+            return new JSONSerializedElement
+            {
+                typeInfo = typeInfo,
+                JSONnodeData = data
+            };
+        }
+
+        public static T Deserialize<T>(JSONSerializedElement item, params object[] constructorArgs) where T : class
+        {
+            if (!item.typeInfo.IsValid() || string.IsNullOrEmpty(item.JSONnodeData))
+                throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item)); ;
+
+            var type = GetTypeFromSerializedString(item.typeInfo);
+            if (type == null)
+                throw new ArgumentException(string.Format("Can not deserialize {0}, type {1} is invalid", item.typeInfo));
+
+            T instance;
+            try
+            {
+                instance = Activator.CreateInstance(type, constructorArgs) as T;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(string.Format("Could not construct instance of: {0}", type), e);
+            }
+
+            if (instance != null)
+            {
+                JsonUtility.FromJsonOverwrite(item.JSONnodeData, instance);
+                return instance;
+            }
+            return null;
+        }
+
         public static List<JSONSerializedElement> Serialize<T>(IEnumerable<T> list)
         {
             var result = new List<JSONSerializedElement>();
@@ -63,20 +116,14 @@ namespace UnityEngine.Graphing
 
             foreach (var element in list)
             {
-                if (element == null)
-                    continue;
-
-                var typeInfo = GetTypeSerializableAsString(element.GetType());
-                var data = JsonUtility.ToJson(element, true);
-
-                if (string.IsNullOrEmpty(data))
-                    continue;
-
-                result.Add(new JSONSerializedElement()
+                try
                 {
-                    typeInfo = typeInfo,
-                    JSONnodeData = data
-                });
+                    result.Add(Serialize(element));
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
             return result;
         }
@@ -89,31 +136,13 @@ namespace UnityEngine.Graphing
 
             foreach (var element in list) 
             {
-                if (!element.typeInfo.IsValid() || string.IsNullOrEmpty(element.JSONnodeData))
-                    continue;
-
-                var type = GetTypeFromSerializedString(element.typeInfo);
-                if (type == null)
-                {
-                    Debug.LogWarningFormat("Could not find node of type {0} in loaded assemblies", element.typeInfo.SearchString());
-                    continue;
-                }
-
-                T instance;
                 try
-                { 
-                    instance = Activator.CreateInstance(type, constructorArgs) as T;
+                {
+                    result.Add(Deserialize<T>(element));
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarningFormat("Could not construct instance of: {0} - {1}", type, e);
-                    continue;
-                }
-
-                if (instance != null)
-                {
-                    JsonUtility.FromJsonOverwrite(element.JSONnodeData, instance);
-                    result.Add(instance);
+                    Debug.LogException(e);
                 }
             }
             return result;  

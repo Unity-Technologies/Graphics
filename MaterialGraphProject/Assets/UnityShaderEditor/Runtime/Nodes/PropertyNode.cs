@@ -22,6 +22,7 @@ namespace UnityEngine.MaterialGraph
         public ExposedState exposedState
         {
             get { return m_Exposed; }
+            set { m_Exposed = value; }
         }
 
         public string description
@@ -29,14 +30,14 @@ namespace UnityEngine.MaterialGraph
             get
             {
                 if (string.IsNullOrEmpty(m_Description))
-                    return propertyName;
+                    return m_PropertyName;
 
                 return m_Description;
             }
             set { m_Description = value; }
         }
 
-        public virtual string propertyName
+        public string propertyName
         {
             get
             {
@@ -71,7 +72,7 @@ namespace UnityEngine.MaterialGraph
             var propNodes = owner.GetNodes<PropertyNode>();
             foreach (var n in propNodes)
             {
-                if (n == this)
+                if (n == this || n.exposedState == ExposedState.NotExposed)
                     continue;;
 
                 if (n.propertyName == propertyName)

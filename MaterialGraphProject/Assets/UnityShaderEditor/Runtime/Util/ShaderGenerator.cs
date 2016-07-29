@@ -26,7 +26,7 @@ namespace UnityEngine.MaterialGraph
 
         private readonly List<ShaderChunk> m_ShaderChunks = new List<ShaderChunk>();
         private int m_IndentLevel;
-        private string m_Pragma;
+        private string m_Pragma = string.Empty;
 
         public void AddPragmaChunk(string s)
         {

@@ -132,7 +132,7 @@ namespace UnityEditor.Graphing.IntegrationTests
                 SimpleSerializeClass.instance
             };
 
-            var serialized = SerializationHelper.Serialize(toSerialize);
+            var serialized = SerializationHelper.Serialize<SimpleSerializeClass>(toSerialize);
             Assert.AreEqual(1, serialized.Count);
 
             var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(serialized);
@@ -151,7 +151,7 @@ namespace UnityEditor.Graphing.IntegrationTests
                 ChildClassB.instance
             };
 
-            var serialized = SerializationHelper.Serialize(toSerialize);
+            var serialized = SerializationHelper.Serialize<SimpleSerializeClass>(toSerialize);
             Assert.AreEqual(3, serialized.Count);
 
             var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(serialized);
@@ -174,7 +174,7 @@ namespace UnityEditor.Graphing.IntegrationTests
                 ChildClassB.instance
             };
 
-            var serialized = SerializationHelper.Serialize(toSerialize);
+            var serialized = SerializationHelper.Serialize<ITestInterface>(toSerialize);
             Assert.AreEqual(3, serialized.Count);
 
             var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(serialized);
@@ -195,7 +195,7 @@ namespace UnityEditor.Graphing.IntegrationTests
                 SimpleSerializeClass.instance
             };
 
-            var serialized = SerializationHelper.Serialize(toSerialize);
+            var serialized = SerializationHelper.Serialize<SimpleSerializeClass>(toSerialize);
             Assert.AreEqual(1, serialized.Count);
 
             var container = new SerializationContainer
@@ -221,7 +221,7 @@ namespace UnityEditor.Graphing.IntegrationTests
                 new SerializableSlot(1, "OutSlot", SlotType.Output, 5),
             };
 
-            var serialized = SerializationHelper.Serialize(toSerialize);
+            var serialized = SerializationHelper.Serialize<SerializableSlot>(toSerialize);
             var loaded = SerializationHelper.Deserialize<SerializableSlot>(serialized);
             Assert.AreEqual(2, loaded.Count);
 

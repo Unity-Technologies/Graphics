@@ -43,7 +43,7 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-               visitor.AddShaderChunk("float " + propertyName + ";", true);
+               visitor.AddShaderChunk(precision + " " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)

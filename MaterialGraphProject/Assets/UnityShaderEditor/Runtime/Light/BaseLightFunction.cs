@@ -1,25 +1,35 @@
 
+using System;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
+    [Serializable]
     public abstract class BaseLightFunction
     {
         public const string kNormalSlotName = "Normal";
         public const int NormalSlotId = 1;
 
-        public virtual string GetLightFunctionName() { return ""; }
-        public virtual string GetSurfaceOutputStructureName() { return ""; }
+        public virtual string lightFunctionName
+        {
+            get { return ""; }
+        }
+
+        public virtual string surfaceOutputStructureName
+        {
+            get { return ""; }
+        }
+
         public virtual void GenerateLightFunctionBody(ShaderGenerator visitor) {}
 
         public virtual void GenerateLightFunctionName(ShaderGenerator visitor)
         {
-            visitor.AddPragmaChunk(GetLightFunctionName());
+            visitor.AddPragmaChunk(lightFunctionName);
         }
 
         public virtual void GenerateSurfaceOutputStructureName(ShaderGenerator visitor)
         {
-            visitor.AddPragmaChunk(GetSurfaceOutputStructureName());
+            visitor.AddPragmaChunk(surfaceOutputStructureName);
         }
 
         public abstract void DoSlotsForConfiguration(PixelShaderNode node);
@@ -30,7 +40,8 @@ namespace UnityEngine.MaterialGraph
         }
     }
 
-    class PBRMetalicLightFunction : BaseLightFunction
+    [Serializable]
+    public class PBRMetalicLightFunction : BaseLightFunction
     {
         public const string AlbedoSlotName = "Albedo";
         public const string MetallicSlotName = "Metallic";
@@ -39,6 +50,9 @@ namespace UnityEngine.MaterialGraph
         public const string OcclusionSlotName = "Occlusion";
         public const string AlphaSlotName = "Alpha";
 
+        public const string LightFunctionName =  "Standard";
+        public const string SurfaceOutputStructureName = "SurfaceOutputStandard";
+
         public const int AlbedoSlotId = 0;
         public const int MetallicSlotId = 2;
         public const int EmissionSlotId = 3;
@@ -46,8 +60,16 @@ namespace UnityEngine.MaterialGraph
         public const int OcclusionSlotId = 5;
         public const int AlphaSlotId = 6;
 
-        public override string GetLightFunctionName() { return "Standard"; }
-        public override string GetSurfaceOutputStructureName() { return "SurfaceOutputStandard"; }
+        public override string lightFunctionName
+        {
+            get { return LightFunctionName; }
+        }
+
+        public override string surfaceOutputStructureName
+        {
+            get { return SurfaceOutputStructureName; }
+        }
+
         public override void DoSlotsForConfiguration(PixelShaderNode node)
         {
             node.AddSlot(new MaterialSlot(AlbedoSlotId, AlbedoSlotName, AlbedoSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));
@@ -74,7 +96,8 @@ namespace UnityEngine.MaterialGraph
         }
     }
 
-    class PBRSpecularLightFunction : BaseLightFunction
+    [Serializable]
+    public class PBRSpecularLightFunction : BaseLightFunction
     {
         public const string kAlbedoSlotName = "Albedo";
         public const string kSpecularSlotName = "Specular";
@@ -90,8 +113,16 @@ namespace UnityEngine.MaterialGraph
         public const int kOcclusionSlotId = 5;
         public const int kAlphaSlotId = 6;
 
-        public override string GetLightFunctionName() { return "StandardSpecular"; }
-        public override string GetSurfaceOutputStructureName() { return "SurfaceOutputStandardSpecular"; }
+        public override string lightFunctionName
+        {
+            get { return "StandardSpecular"; }
+        }
+
+        public override string surfaceOutputStructureName
+        {
+            get { return "SurfaceOutputStandardSpecular"; }
+        }
+
         public override void DoSlotsForConfiguration(PixelShaderNode node)
         {
             node.AddSlot(new MaterialSlot(kAlbedoSlotId, kAlbedoSlotName, kAlbedoSlotName, SlotType.Input, SlotValueType.Vector3, Vector4.zero));

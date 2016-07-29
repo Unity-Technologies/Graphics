@@ -117,7 +117,7 @@ namespace UnityEngine.MaterialGraph
             string body = "tex2D (" + propertyName + ", " + uvName + ")";
             if (m_TextureType == TextureType.Bump)
                 body = precision + "4(UnpackNormal(" + body + "), 0)";
-            visitor.AddShaderChunk("float4 " + GetVariableNameForNode() + " = " + body + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForNode() + " = " + body + ";", true);
         }
 
         public override string GetVariableNameForSlot(int slotId)

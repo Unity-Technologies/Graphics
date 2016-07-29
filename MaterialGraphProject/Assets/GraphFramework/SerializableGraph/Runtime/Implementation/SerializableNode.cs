@@ -136,11 +136,16 @@ namespace UnityEngine.Graphing
         {
             return GetOutputSlots<T>().FirstOrDefault(x => x.id == slotId);
         }
-        
+
+        public virtual IEnumerable<ISlot> GetInputsWithNoConnection()
+        {
+            return GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
+        }
+
         public virtual void OnBeforeSerialize()
         {
             m_GuidSerialized = m_Guid.ToString();
-            m_SerializableSlots = SerializationHelper.Serialize(m_Slots);
+            m_SerializableSlots = SerializationHelper.Serialize<ISlot>(m_Slots);
         }
         
         public virtual void OnAfterDeserialize()
@@ -155,11 +160,6 @@ namespace UnityEngine.Graphing
             foreach (var s in m_Slots)
                 s.owner = this;
             UpdateNodeAfterDeserialization();
-        }
-
-        public virtual IEnumerable<ISlot> GetInputsWithNoConnection() 
-        {
-            return GetInputSlots<ISlot>().Where(x => !owner.GetEdges(GetSlotReference(x.id)).Any());
         }
 
         public virtual void UpdateNodeAfterDeserialization()

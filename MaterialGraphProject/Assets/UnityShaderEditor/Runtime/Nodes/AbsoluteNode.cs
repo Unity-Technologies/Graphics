@@ -1,7 +1,7 @@
 namespace UnityEngine.MaterialGraph
 { 
     [Title("Math/Absolute Node")]
-    class AbsoluteNode : Function1Input
+    public class AbsoluteNode : Function1Input
     {
         public AbsoluteNode()
         {

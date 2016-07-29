@@ -16,12 +16,12 @@ namespace UnityEngine.MaterialGraph
             get { return false; }
         }
 
-        protected virtual MaterialSlot GetInputSlot()
+        protected override MaterialSlot GetInputSlot()
         {
             return new MaterialSlot(InputSlotId, GetInputSlotName(), kInputSlotShaderName, SlotType.Input, SlotValueType.Vector4, Vector4.zero);
         }
 
-        protected virtual MaterialSlot GetOutputSlot()
+        protected override MaterialSlot GetOutputSlot()
         {
             return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
         }
