@@ -187,7 +187,11 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_DeferredMaterial.SetBuffer("g_vLightList", lightList);
 			m_DeferredReflectionMaterial.SetBuffer("g_vLightList", lightList);
 
+			m_DeferredMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
+			m_DeferredReflectionMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
+
 			var cmd = new CommandBuffer();
+			cmd.name = "DoTiledDeferredLighting";
 
 			//cmd.SetRenderTarget(new RenderTargetIdentifier(kGBufferEmission), new RenderTargetIdentifier(kGBufferZ));
 
@@ -551,6 +555,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			var cmd = new CommandBuffer();
 
+			cmd.name = "Build light list";
 			cmd.SetComputeIntParam(m_BuildScreenAABBShader, "g_iNrVisibLights", numLights);
 			SetMatrixCS(cmd, m_BuildScreenAABBShader, "g_mProjection", projh);
 			SetMatrixCS(cmd, m_BuildScreenAABBShader, "g_mInvProjection", invProjh);
