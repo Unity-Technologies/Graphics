@@ -144,7 +144,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010))
 				format10 = RenderTextureFormat.ARGB2101010;
 			//@TODO: GetGraphicsCaps().buggyMRTSRGBWriteFlag
-			cmd.GetTemporaryRT(kGBufferAlbedo, -1, -1, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+			cmd.GetTemporaryRT(kGBufferAlbedo, -1, -1, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
 			cmd.GetTemporaryRT(kGBufferSpecRough, -1, -1, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
 			cmd.GetTemporaryRT(kGBufferNormal, -1, -1, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
 			cmd.GetTemporaryRT(kGBufferEmission, -1, -1, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear); //@TODO: HDR
