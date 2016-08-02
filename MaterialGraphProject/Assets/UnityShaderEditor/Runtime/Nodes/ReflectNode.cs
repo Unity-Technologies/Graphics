@@ -43,7 +43,7 @@ namespace UnityEngine.MaterialGraph
             outputString.Deindent();
             outputString.AddShaderChunk("}", false);
 
-            visitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            visitor.AddShaderChunk(outputString.GetShaderString(0), true, false);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -180,7 +181,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + m_Vector1Node.description
                 + "\", Float) = "
                 + m_Vector1Node.value
-                + "\n";
+                + Environment.NewLine;
 
             m_Vector1Node.exposedState = PropertyNode.ExposedState.Exposed;
             m_Vector1Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
@@ -199,7 +200,8 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var expected = m_Vector1Node.precision
                 + " "
                 + m_Vector1Node.propertyName
-                + ";\r\n";
+                +";"
+                + Environment.NewLine;
 
             m_Vector1Node.exposedState = PropertyNode.ExposedState.Exposed;
             m_Vector1Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);

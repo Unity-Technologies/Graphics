@@ -102,19 +102,19 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [Test]
         public void NodeGenerateCorrectPreviewPropertyUsages()
         {
-            string expected = string.Format("{0} {1};\r\n", AbstractMaterialNode.OutputPrecision.@fixed, m_NodeA.GetVariableNameForSlot(TestNode.V1In));
+            string expected = string.Format("{0} {1};{2}", AbstractMaterialNode.OutputPrecision.@fixed, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
             var visitor = new ShaderGenerator();
             m_NodeA.precision = AbstractMaterialNode.OutputPrecision.@fixed;
             m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
 
-            expected = string.Format("{0} {1};\r\n", AbstractMaterialNode.OutputPrecision.@float, m_NodeA.GetVariableNameForSlot(TestNode.V1In));
+            expected = string.Format("{0} {1};{2}", AbstractMaterialNode.OutputPrecision.@float, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
             visitor = new ShaderGenerator();
             m_NodeA.precision = AbstractMaterialNode.OutputPrecision.@float;
             m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
 
-            expected = string.Format("{0} {1};\r\n", AbstractMaterialNode.OutputPrecision.half, m_NodeA.GetVariableNameForSlot(TestNode.V1In));
+            expected = string.Format("{0} {1};{2}", AbstractMaterialNode.OutputPrecision.half, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
             visitor = new ShaderGenerator();
             m_NodeA.precision = AbstractMaterialNode.OutputPrecision.half;
             m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);

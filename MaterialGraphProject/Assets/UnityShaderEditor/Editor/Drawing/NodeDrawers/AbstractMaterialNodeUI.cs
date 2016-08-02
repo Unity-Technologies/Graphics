@@ -119,7 +119,7 @@ namespace UnityEditor.MaterialGraph
                 return false;
 
             var resultShader = GetPreviewShaderString();
-            Debug.Log("RecreateShaderAndMaterial : " + m_Node.GetVariableNameForNode() + "\n" + resultShader);
+            Debug.Log("RecreateShaderAndMaterial : " + m_Node.GetVariableNameForNode() + Environment.NewLine + resultShader);
 
             if (string.IsNullOrEmpty(resultShader))
                 return false;

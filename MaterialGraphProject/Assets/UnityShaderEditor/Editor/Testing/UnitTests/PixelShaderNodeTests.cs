@@ -66,10 +66,10 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [Test]
         public void TestNodeGeneratesCorrectNodeCode()
         {
-            string expected = string.Format("half {0} = 0.2;\r\n"
-                    + "o.Normal = {0};\r\n"
-                    + "half {1} = abs ({0});\r\n"
-                    + "o.Albedo = {1};\r\n"
+            string expected = string.Format("half {0} = 0.2;" + Environment.NewLine
+                    + "o.Normal = {0};" + Environment.NewLine
+                    + "half {1} = abs ({0});" + Environment.NewLine
+                    + "o.Albedo = {1};" + Environment.NewLine
                     , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
                     , m_Abs.GetVariableNameForSlot(Function1Input.OutputSlotId));
 

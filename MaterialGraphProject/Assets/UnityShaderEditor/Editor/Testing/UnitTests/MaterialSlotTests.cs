@@ -101,7 +101,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [Test]
         public void MaterialSlotCanGeneratePropertyUsagesForPreview()
         {
-            string expected = string.Format("{0} {1};\r\n", m_NodeA.precision, m_NodeA.GetVariableNameForSlot(TestNode.V1In));
+            string expected = string.Format("{0} {1};{2}", m_NodeA.precision, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
 
             var slot = m_NodeA.slot;
             var visitor = new ShaderGenerator();
