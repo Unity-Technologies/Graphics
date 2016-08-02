@@ -164,7 +164,7 @@ namespace UnityEngine.MaterialGraph
             var bodyGenerator = new ShaderGenerator();
             subGraph.GenerateNodeCode(bodyGenerator, GenerationMode.SurfaceShader);
             var subGraphOutputNode = subGraphAsset.subGraph.outputNode;
-            outputString.AddShaderChunk(bodyGenerator.GetShaderString(0), false);
+            outputString.AddShaderChunk(bodyGenerator.GetShaderString(0), false, false);
 
             // Step 5...
             // Copy the outputs to the parent context name);
@@ -183,7 +183,7 @@ namespace UnityEngine.MaterialGraph
             outputString.AddShaderChunk("}", false);
             outputString.AddShaderChunk("// Subgraph ends", false);
 
-            shaderBodyVisitor.AddShaderChunk(outputString.GetShaderString(0), true);
+            shaderBodyVisitor.AddShaderChunk(outputString.GetShaderString(0), true, false);
         }
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)

@@ -11,17 +11,20 @@ namespace UnityEngine.MaterialGraph
     {
         private struct ShaderChunk
         {
-            public ShaderChunk(int indentLevel, string shaderChunkString)
+            public ShaderChunk(int indentLevel, string shaderChunkString, bool appendNewLineAfter)
             {
                 m_IndentLevel = indentLevel;
                 m_ShaderChunkString = shaderChunkString;
+                m_AppendNewLineAfter = appendNewLineAfter;
             }
 
             private readonly int m_IndentLevel;
             private readonly string m_ShaderChunkString;
+            private readonly bool m_AppendNewLineAfter;
 
             public int chunkIndentLevel { get { return m_IndentLevel; } }
             public string chunkString { get { return m_ShaderChunkString; } }
+            public bool appendNewLineAfter { get { return m_AppendNewLineAfter; } }
         }
 
         private readonly List<ShaderChunk> m_ShaderChunks = new List<ShaderChunk>();
@@ -38,12 +41,12 @@ namespace UnityEngine.MaterialGraph
             return m_Pragma;
         }
 
-        public void AddShaderChunk(string s, bool unique)
+        public void AddShaderChunk(string s, bool unique, bool appendNewLineAfter = true)
         {
             if (unique && m_ShaderChunks.Any(x => x.chunkString == s))
                 return;
 
-            m_ShaderChunks.Add(new ShaderChunk(m_IndentLevel, s));
+            m_ShaderChunks.Add(new ShaderChunk(m_IndentLevel, s, appendNewLineAfter));
         }
 
         public void Indent() { m_IndentLevel++; }
@@ -54,13 +57,13 @@ namespace UnityEngine.MaterialGraph
             var sb = new StringBuilder();
             foreach (var shaderChunk in m_ShaderChunks)
             {
-                var replaceString = "\n";
                 for (var i = 0; i < shaderChunk.chunkIndentLevel + baseIndentLevel; i++)
-                {
                     sb.Append("\t");
-                    replaceString += "\t";
-                }
-                sb.AppendLine(shaderChunk.chunkString.Replace("\n", replaceString));
+
+                if (shaderChunk.appendNewLineAfter)
+                    sb.AppendLine(shaderChunk.chunkString);
+                else
+                    sb.Append(shaderChunk.chunkString);
             }
             return sb.ToString();
         }

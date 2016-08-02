@@ -8,15 +8,9 @@ namespace UnityEngine.MaterialGraph
         public const string kNormalSlotName = "Normal";
         public const int NormalSlotId = 1;
 
-        public virtual string lightFunctionName
-        {
-            get { return ""; }
-        }
+        public abstract string lightFunctionName { get; }
 
-        public virtual string surfaceOutputStructureName
-        {
-            get { return ""; }
-        }
+        public abstract string surfaceOutputStructureName { get; }
 
         public virtual void GenerateLightFunctionBody(ShaderGenerator visitor) {}
 

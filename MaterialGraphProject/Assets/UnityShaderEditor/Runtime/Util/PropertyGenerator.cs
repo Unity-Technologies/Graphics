@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -26,11 +27,8 @@ namespace UnityEngine.MaterialGraph
             foreach (var prop in m_Properties)
             {
                 for (var i = 0; i < baseIndentLevel; i++)
-                {
                     sb.Append("\t");
-                }
-                sb.Append(prop.GetPropertyString());
-                sb.Append("\n");
+                sb.AppendLine(prop.GetPropertyString());
             }
             return sb.ToString();
         }

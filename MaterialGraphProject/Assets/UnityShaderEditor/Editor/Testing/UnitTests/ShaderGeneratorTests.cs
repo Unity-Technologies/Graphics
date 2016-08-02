@@ -157,5 +157,8 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V4Out, ConcreteSlotValueType.Vector4);
             Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V4Out)), result);
         }
+
+
+
     }
 }

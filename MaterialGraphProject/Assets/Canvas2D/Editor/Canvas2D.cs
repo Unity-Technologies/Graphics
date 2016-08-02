@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -482,7 +483,7 @@ namespace UnityEditor.Experimental
                 {
                     if (logEvent)
                     {
-                        m_DebugEventName += " handled by capture session\n";
+                        m_DebugEventName += " handled by capture session" + Environment.NewLine;
                     }
                     evt.Use();
                     return true;
