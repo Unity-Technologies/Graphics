@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -258,7 +259,7 @@ namespace UnityEngine.MaterialGraph
                 template = template.Replace("${VertexShaderBody}", vertexShaderBody);
             }
 
-            return template;
+            return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
 
         public static string GenerateSurfaceShader(PixelShaderNode node, MaterialOptions options, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTextures)
@@ -339,7 +340,8 @@ namespace UnityEngine.MaterialGraph
             }
 
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
-            return resultShader;
+
+            return Regex.Replace(resultShader, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
 
         public int numberOfChunks
