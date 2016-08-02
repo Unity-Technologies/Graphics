@@ -32,12 +32,12 @@ namespace UnityEditor.Graphing.IntegrationTests
                 get
                 {
                     return new SimpleSerializeClass
-                    {
-                        stringValue = "ABCD",
-                        intValue = 5,
-                        floatValue = 7.7f,
-                        arrayValue = new[] {1, 2, 3, 4}
-                    };
+                           {
+                               stringValue = "ABCD",
+                               intValue = 5,
+                               floatValue = 7.7f,
+                               arrayValue = new[] {1, 2, 3, 4}
+                           };
                 }
             }
 
@@ -63,13 +63,13 @@ namespace UnityEditor.Graphing.IntegrationTests
                 get
                 {
                     return new ChildClassA
-                    {
-                        stringValue = "qwee",
-                        intValue = 5,
-                        floatValue = 6f,
-                        arrayValue = new[] {5, 6, 7, 8},
-                        childString = "CHILD"
-                    };
+                           {
+                               stringValue = "qwee",
+                               intValue = 5,
+                               floatValue = 6f,
+                               arrayValue = new[] {5, 6, 7, 8},
+                               childString = "CHILD"
+                           };
                 }
             }
 
@@ -96,13 +96,13 @@ namespace UnityEditor.Graphing.IntegrationTests
                 get
                 {
                     return new ChildClassB
-                    {
-                        stringValue = "qwee",
-                        intValue = 5,
-                        floatValue = 6f,
-                        arrayValue = new[] {5, 6, 7, 8},
-                        childInt = 666
-                    };
+                           {
+                               stringValue = "qwee",
+                               intValue = 5,
+                               floatValue = 6f,
+                               arrayValue = new[] {5, 6, 7, 8},
+                               childInt = 666
+                           };
                 }
             }
 

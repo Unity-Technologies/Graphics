@@ -10,7 +10,7 @@ namespace UnityEditor.MaterialGraph
     public class ColorNodeUI : ICustomNodeUi
     {
         private ColorNode m_Node;
-        
+
         public float GetNodeUiHeight(float width)
         {
             return 2 * EditorGUIUtility.singleLineHeight;

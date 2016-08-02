@@ -1,4 +1,3 @@
-
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -22,7 +21,7 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
-        
+
         public static void StaticGenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
         {
             string temp = "half4 meshUV0";

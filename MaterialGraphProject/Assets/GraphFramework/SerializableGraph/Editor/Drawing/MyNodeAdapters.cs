@@ -2,7 +2,7 @@ using UnityEditor.Experimental.Graph;
 using UnityEngine;
 
 namespace UnityEditor.Graphing.Drawing
-{   
+{
     internal class PortSource<T>
     {
     }
@@ -44,6 +44,7 @@ namespace UnityEditor.Graphing.Drawing
             // run adapt code for vec3 to Color connections
             return true;
         }
+
         internal static bool Adapt(this NodeAdapter value, PortSource<Vector4> a, PortSource<Vector4> b)
         {
             // run adapt code for vec3 to Color connections

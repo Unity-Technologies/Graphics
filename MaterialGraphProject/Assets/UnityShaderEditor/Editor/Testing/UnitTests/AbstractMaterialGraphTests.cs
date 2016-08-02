@@ -33,7 +33,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void TestCanAddMaterialNodeToMaterialGraph()
         {
             TestableMGraph graph = new TestableMGraph();
-            
+
             var node = new TestableMNode();
             graph.AddNode(node);
             Assert.AreEqual(0, graph.edges.Count());
@@ -44,7 +44,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void TestCanNotAddSerializableNodeToMaterialGraph()
         {
             TestableMGraph graph = new TestableMGraph();
-            
+
             var node = new SerializableNode();
             graph.AddNode(node);
             Assert.AreEqual(0, graph.edges.Count());

@@ -31,7 +31,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 outputString.AddShaderChunk("return arg1 + arg2 + arg3;", false);
                 outputString.Deindent();
                 outputString.AddShaderChunk("}", false);
-                  
+
                 visitor.AddShaderChunk(outputString.GetShaderString(0), true);
             }
         }
@@ -77,10 +77,10 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void TestGenerateNodeCodeGeneratesCorrectCode()
         {
             string expected = string.Format("half {0} = unity_test_half ({1}, {2}, {3});"
-                , m_TestNode.GetVariableNameForSlot(Function3Input.OutputSlotId)
-                , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
-                , m_InputTwo.GetVariableNameForSlot(Vector1Node.OutputSlotId)
-                , m_InputThree.GetVariableNameForSlot(Vector1Node.OutputSlotId));
+                    , m_TestNode.GetVariableNameForSlot(Function3Input.OutputSlotId)
+                    , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
+                    , m_InputTwo.GetVariableNameForSlot(Vector1Node.OutputSlotId)
+                    , m_InputThree.GetVariableNameForSlot(Vector1Node.OutputSlotId));
 
             ShaderGenerator visitor = new ShaderGenerator();
             m_TestNode.GenerateNodeCode(visitor, GenerationMode.SurfaceShader);
@@ -93,7 +93,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             string expected =
                 "inline half unity_test_half (half arg1, half arg2, half arg3)\r\n"
                 + "{\r\n"
-                + "	return arg1 + arg2 + arg3;\r\n"
+                + "\treturn arg1 + arg2 + arg3;\r\n"
                 + "}";
 
             ShaderGenerator visitor = new ShaderGenerator();

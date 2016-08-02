@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "MinimumNode";
         }
-        
+
         protected override string GetFunctionName() { return "min"; }
     }
 }

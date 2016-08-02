@@ -18,7 +18,7 @@ namespace UnityEngine.MaterialGraph
             get { return m_MaterialSubGraph; }
         }
 
-        public bool shouldRepaint 
+        public bool shouldRepaint
         {
             get { return graph.GetNodes<AbstractMaterialNode>().OfType<IRequiresTime>().Any(); }
         }

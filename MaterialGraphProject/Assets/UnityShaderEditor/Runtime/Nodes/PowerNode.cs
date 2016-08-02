@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "PowerNode";
         }
-        
+
         protected override string GetFunctionName() { return "pow"; }
     }
 }

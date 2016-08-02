@@ -19,7 +19,7 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector4, Vector4.one));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
-        
+
         public override bool hasPreview
         {
             get { return true; }

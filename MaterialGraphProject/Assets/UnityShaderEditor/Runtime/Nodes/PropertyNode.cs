@@ -18,7 +18,7 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private ExposedState m_Exposed = ExposedState.NotExposed;
-        
+
         public ExposedState exposedState
         {
             get { return m_Exposed; }
@@ -42,7 +42,7 @@ namespace UnityEngine.MaterialGraph
             get
             {
                 if (exposedState == ExposedState.NotExposed || string.IsNullOrEmpty(m_PropertyName))
-                    return string.Format("{0}_{1}_Uniform", name, guid.ToString().Replace("-","_"));
+                    return string.Format("{0}_{1}_Uniform", name, guid.ToString().Replace("-", "_"));
 
                 return m_PropertyName + "_Uniform";
             }
@@ -52,18 +52,18 @@ namespace UnityEngine.MaterialGraph
         public abstract PropertyType propertyType { get; }
 
         public abstract PreviewProperty GetPreviewProperty();
-        
+
         public override string GetVariableNameForSlot(int slotId)
         {
             return propertyName;
         }
 
-        public override void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
             properties.Add(GetPreviewProperty());
         }
-        
+
         protected override bool CalculateNodeHasError()
         {
             if (exposedState == ExposedState.NotExposed)
@@ -73,7 +73,7 @@ namespace UnityEngine.MaterialGraph
             foreach (var n in propNodes)
             {
                 if (n == this || n.exposedState == ExposedState.NotExposed)
-                    continue;;
+                    continue;
 
                 if (n.propertyName == propertyName)
                 {
@@ -104,7 +104,7 @@ namespace UnityEngine.MaterialGraph
 
             if (m_Exposed)
                 m_Description = EditorGUILayout.TextField("Description", m_Description);
-            
+
             modified |= base.OnGUI();
             return modified;
         }*/

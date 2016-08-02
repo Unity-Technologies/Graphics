@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "MultiplyNode";
         }
-        
+
         protected override string GetFunctionName()
         {
             return "unity_multiply_" + precision;

@@ -10,7 +10,7 @@ namespace UnityEditor.MaterialGraph
     public class Vector4NodeUI : ICustomNodeUi
     {
         private Vector4Node m_Node;
-        
+
         public float GetNodeUiHeight(float width)
         {
             return 2 * EditorGUIUtility.singleLineHeight;
@@ -32,7 +32,6 @@ namespace UnityEditor.MaterialGraph
             return GUIModificationType.None;
         }
 
-
         public INode node
         {
             get { return m_Node; }
@@ -43,7 +42,7 @@ namespace UnityEditor.MaterialGraph
                     m_Node = materialNode;
             }
         }
-        
+
         public float GetNodeWidth()
         {
             return 200;

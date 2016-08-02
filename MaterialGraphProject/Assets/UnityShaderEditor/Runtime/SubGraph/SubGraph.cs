@@ -121,7 +121,6 @@ namespace UnityEngine.MaterialGraph
 
         public void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
-
             foreach (var node in usedNodes)
             {
                 if (node is IGenerateProperties)

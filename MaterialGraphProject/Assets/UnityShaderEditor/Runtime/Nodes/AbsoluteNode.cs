@@ -1,5 +1,5 @@
 namespace UnityEngine.MaterialGraph
-{ 
+{
     [Title("Math/Absolute Node")]
     public class AbsoluteNode : Function1Input
     {
@@ -7,7 +7,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "AbsoluteNode";
         }
-        
+
         protected override string GetFunctionName() {return "abs"; }
     }
 }

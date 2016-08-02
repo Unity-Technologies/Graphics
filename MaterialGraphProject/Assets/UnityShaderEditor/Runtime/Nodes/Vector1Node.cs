@@ -22,7 +22,7 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
-        
+
         public override PropertyType propertyType
         {
             get { return PropertyType.Float; }
@@ -43,25 +43,25 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
-               visitor.AddShaderChunk(precision + " " + propertyName + ";", true);
+                visitor.AddShaderChunk(precision + " " + propertyName + ";", true);
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                 return;
-            
+
             visitor.AddShaderChunk(precision + " " + propertyName + " = " + m_Value + ";", true);
         }
-        
+
         public override PreviewProperty GetPreviewProperty()
         {
             return new PreviewProperty
-            {
-                m_Name = propertyName,
-                m_PropType = PropertyType.Float,
-                m_Float = m_Value
-            };
+                   {
+                       m_Name = propertyName,
+                       m_PropType = PropertyType.Float,
+                       m_Float = m_Value
+                   };
         }
     }
 }

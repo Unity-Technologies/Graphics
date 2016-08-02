@@ -12,7 +12,6 @@ namespace UnityEngine.MaterialGraph
         , IGeneratesVertexToFragmentBlock
         , IOnAssetEnabled
     {
-
         [SerializeField]
         private string m_SubGraphAssetGuid;
 
@@ -152,14 +151,14 @@ namespace UnityEngine.MaterialGraph
                 var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
                 outputString.AddShaderChunk(
                     "float"
-                    + outDimension 
-                    + " " 
-                    + varName 
-                    + " = " 
-                    + varValue 
+                    + outDimension
+                    + " "
+                    + varName
+                    + " = "
+                    + varValue
                     + ";", false);
             }
-           
+
             // Step 4...
             // Using the inputs we can now generate the shader body :)
             var bodyGenerator = new ShaderGenerator();
@@ -176,7 +175,7 @@ namespace UnityEngine.MaterialGraph
                 outputString.AddShaderChunk(
                     GetVariableNameForSlot(slot.id)
                     + " = "
-                    + inputValue 
+                    + inputValue
                     + ";", false);
             }
 
@@ -207,7 +206,7 @@ namespace UnityEngine.MaterialGraph
             subGraph.GeneratePropertyUsages(visitor, GenerationMode.SurfaceShader);
         }
 
-        public override void CollectPreviewMaterialProperties (List<PreviewProperty> properties)
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
 

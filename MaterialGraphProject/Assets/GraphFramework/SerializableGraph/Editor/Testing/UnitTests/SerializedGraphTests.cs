@@ -50,7 +50,7 @@ namespace UnityEditor.Graphing.UnitTests
             graph.RemoveNode(graph.GetNodes<INode>().FirstOrDefault());
             Assert.AreEqual(0, graph.GetNodes<INode>().Count());
         }
-        
+
         [Test]
         public void TestCanModifyNodeDrawState()
         {
@@ -58,7 +58,7 @@ namespace UnityEditor.Graphing.UnitTests
             node.name = "Test Node";
 
             var drawState = node.drawState;
-            var newPos = new Rect(10,10,10,10);
+            var newPos = new Rect(10, 10, 10, 10);
             drawState.position = newPos;
             drawState.expanded = false;
             node.drawState = drawState;
@@ -74,6 +74,7 @@ namespace UnityEditor.Graphing.UnitTests
             {
                 hasError = true;
             }
+
             public void ClearError()
             {
                 hasError = false;
@@ -98,7 +99,6 @@ namespace UnityEditor.Graphing.UnitTests
             var newGuid = node.RewriteGuid();
             Assert.AreNotEqual(guid, newGuid);
         }
-
 
         public class TestableNode : SerializableNode
         {
@@ -181,7 +181,7 @@ namespace UnityEditor.Graphing.UnitTests
             var node = new OnEnableNode();
             node.name = "Test Node";
             graph.AddNode(node);
-            
+
             Assert.IsFalse(node.called);
             graph.OnEnable();
             Assert.IsTrue(node.called);
@@ -258,7 +258,7 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(3, node.GetInputSlots<ISlot>().Count());
             Assert.AreEqual(3, node.GetOutputSlots<ISlot>().Count());
 
-            node.RemoveSlotsNameNotMatching(new []{TestableNode.Input1});
+            node.RemoveSlotsNameNotMatching(new[] {TestableNode.Input1});
 
             Assert.AreEqual(1, node.GetSlots<ISlot>().Count());
             Assert.AreEqual(1, node.GetInputSlots<ISlot>().Count());
@@ -347,14 +347,13 @@ namespace UnityEditor.Graphing.UnitTests
             Assert.AreEqual(5, slot.priority);
         }
 
-
         [Test]
         public void TestCanUpdateSlotDisplayName()
         {
             var node = new SerializableNode();
             node.AddSlot(new SerializableSlot(0, "output", SlotType.Output));
             node.name = "Test Node";
-            
+
             Assert.AreEqual(0, node.GetInputSlots<ISlot>().Count());
             Assert.AreEqual(1, node.GetOutputSlots<ISlot>().Count());
             Assert.AreEqual(1, node.GetSlots<ISlot>().Count());
@@ -438,7 +437,7 @@ namespace UnityEditor.Graphing.UnitTests
 
             var inputNode = new TestableNode();
             graph.AddNode(inputNode);
-            
+
             Assert.AreEqual(3, graph.GetNodes<INode>().Count());
 
             graph.Connect(outputNode.GetSlotReference(TestableNode.Output0), middleNode.GetSlotReference(TestableNode.Input0));
@@ -446,7 +445,7 @@ namespace UnityEditor.Graphing.UnitTests
 
             graph.Connect(middleNode.GetSlotReference(TestableNode.Output0), inputNode.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(2, graph.edges.Count());
-            
+
             var edgesOnMiddleNode = NodeUtils.GetAllEdges(middleNode);
             Assert.AreEqual(2, edgesOnMiddleNode.Count());
 
@@ -469,7 +468,7 @@ namespace UnityEditor.Graphing.UnitTests
             result.Clear();
             NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode, TestableNode.Input1, NodeUtils.IncludeSelf.Exclude);
             Assert.AreEqual(0, result.Count);
-            
+
             result.Clear();
             NodeUtils.DepthFirstCollectNodesFromNode(result, null);
             Assert.AreEqual(0, result.Count);
@@ -480,36 +479,36 @@ namespace UnityEditor.Graphing.UnitTests
         {
             var node = new TestableNode();
             Assert.DoesNotThrow(
-                                () =>
-                                    NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
-                                                                                           node,
-                                        new[] {TestableNode.Input0, TestableNode.Input1, TestableNode.Input2},
-                                        new[] {TestableNode.Output0, TestableNode.Output1, TestableNode.Output2,})
+                () =>
+                NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                    node,
+                    new[] {TestableNode.Input0, TestableNode.Input1, TestableNode.Input2},
+                    new[] {TestableNode.Output0, TestableNode.Output1, TestableNode.Output2, })
                 );
 
 
             Assert.Throws<SlotConfigurationException>(
-                                                      () =>
-                                                          NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
-                                                                                                                 node,
-                                                              new[] {666, TestableNode.Input1, TestableNode.Input2},
-                                                              new[] {TestableNode.Output0, TestableNode.Output1, TestableNode.Output2,})
+                () =>
+                NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                    node,
+                    new[] {666, TestableNode.Input1, TestableNode.Input2},
+                    new[] {TestableNode.Output0, TestableNode.Output1, TestableNode.Output2, })
                 );
 
             Assert.Throws<SlotConfigurationException>(
-                                                      () =>
-                                                          NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
-                                                                                                                 node,
-                                                              new[] {TestableNode.Input0, TestableNode.Input1, TestableNode.Input2},
-                                                              new[] {666, TestableNode.Output1, TestableNode.Output2,})
+                () =>
+                NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                    node,
+                    new[] {TestableNode.Input0, TestableNode.Input1, TestableNode.Input2},
+                    new[] {666, TestableNode.Output1, TestableNode.Output2, })
                 );
 
             Assert.DoesNotThrow(
-                                () =>
-                                    NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
-                                                                                           node,
-                                        new[] {TestableNode.Input0},
-                                        new[] {TestableNode.Output0})
+                () =>
+                NodeUtils.SlotConfigurationExceptionIfBadConfiguration(
+                    node,
+                    new[] {TestableNode.Input0},
+                    new[] {TestableNode.Output0})
                 );
         }
 
@@ -708,7 +707,7 @@ namespace UnityEditor.Graphing.UnitTests
 
             var slots = inputNode.GetInputsWithNoConnection();
             Assert.AreEqual(2, slots.Count());
-            CollectionAssert.AreEqual(new [] { TestableNode.Input1, TestableNode.Input2 }, slots.Select(x => x.id));
+            CollectionAssert.AreEqual(new[] { TestableNode.Input1, TestableNode.Input2 }, slots.Select(x => x.id));
         }
 
         [Test]
@@ -717,12 +716,12 @@ namespace UnityEditor.Graphing.UnitTests
             var graph = new SerializableGraph();
 
             var nodeA = new TestableNode();
-            
+
             graph.AddNode(nodeA);
 
             var nodeB = new TestableNode();
             graph.AddNode(nodeB);
-            
+
             Assert.AreEqual(2, graph.GetNodes<INode>().Count());
             graph.Connect(nodeA.GetSlotReference(TestableNode.Output0), nodeB.GetSlotReference(TestableNode.Input0));
             Assert.AreEqual(1, graph.edges.Count());

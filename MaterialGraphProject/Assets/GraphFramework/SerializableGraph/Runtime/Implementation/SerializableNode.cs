@@ -12,7 +12,7 @@ namespace UnityEngine.Graphing
 
         [SerializeField]
         private string m_GuidSerialized;
-        
+
         [SerializeField]
         private string m_Name;
 
@@ -60,11 +60,11 @@ namespace UnityEngine.Graphing
         public Guid RewriteGuid()
         {
             m_Guid = Guid.NewGuid();
-            return m_Guid; 
+            return m_Guid;
         }
 
         public virtual void ValidateNode()
-        { }
+        {}
 
         public IEnumerable<T> GetInputSlots<T>() where T : ISlot
         {
@@ -98,7 +98,7 @@ namespace UnityEngine.Graphing
 
             foreach (var edge in edges.ToArray())
                 owner.RemoveEdge(edge);
-            
+
             //remove slots
             m_Slots.RemoveAll(x => x.id == slotId);
         }
@@ -122,7 +122,7 @@ namespace UnityEngine.Graphing
             return new SlotReference(guid, slotId);
         }
 
-        public T FindSlot<T>(int slotId) where T: ISlot
+        public T FindSlot<T>(int slotId) where T : ISlot
         {
             return GetSlots<T>().FirstOrDefault(x => x.id == slotId);
         }
@@ -147,10 +147,10 @@ namespace UnityEngine.Graphing
             m_GuidSerialized = m_Guid.ToString();
             m_SerializableSlots = SerializationHelper.Serialize<ISlot>(m_Slots);
         }
-        
+
         public virtual void OnAfterDeserialize()
         {
-            if (!string.IsNullOrEmpty(m_GuidSerialized)) 
+            if (!string.IsNullOrEmpty(m_GuidSerialized))
                 m_Guid = new Guid(m_GuidSerialized);
             else
                 m_Guid = Guid.NewGuid();

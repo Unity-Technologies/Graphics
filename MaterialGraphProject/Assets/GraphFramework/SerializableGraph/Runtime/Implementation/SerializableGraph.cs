@@ -52,7 +52,7 @@ namespace UnityEngine.Graphing
 
             m_Nodes.Remove(node);
         }
-        
+
         public virtual IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
             if (fromSlotRef == null || toSlotRef == null)
@@ -107,7 +107,7 @@ namespace UnityEngine.Graphing
             ValidateGraph();
             return newEdge;
         }
-        
+
         public virtual void RemoveEdge(IEdge e)
         {
             m_Edges.Remove(e);
@@ -182,9 +182,9 @@ namespace UnityEngine.Graphing
                 var outputNode = GetNodeFromGuid(edge.outputSlot.nodeGuid);
                 var inputNode = GetNodeFromGuid(edge.inputSlot.nodeGuid);
 
-                if (outputNode == null 
+                if (outputNode == null
                     || inputNode == null
-                    || outputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId) == null 
+                    || outputNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId) == null
                     || inputNode.FindInputSlot<ISlot>(edge.inputSlot.slotId) == null)
                 {
                     //orphaned edge

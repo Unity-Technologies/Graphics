@@ -7,7 +7,6 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.IntegrationTests
 {
-
     public class ShaderGenerationTest
     {
         [Test]
@@ -21,7 +20,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
                 "ShaderGeneration",
                 "Graphs"
             };
-            
+
             var absoluteGraphsPath = path.Aggregate(Application.dataPath, Path.Combine);
             var prjRelativeGraphsPath = path.Aggregate("Assets", Path.Combine);
 

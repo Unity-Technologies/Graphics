@@ -125,7 +125,7 @@ namespace UnityEditor.MaterialGraph
                 return false;
 
             // workaround for some internal shader compiler weirdness
-            // if we are in error we sometimes to not properly clean 
+            // if we are in error we sometimes to not properly clean
             // out the error flags and will stay in error, even
             // if we are now valid
             if (m_PreviewShader && ShaderHasError(m_PreviewShader))
@@ -151,7 +151,7 @@ namespace UnityEditor.MaterialGraph
         {
             var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
             var result = hasErrorsCall.Invoke(null, new object[] {shader});
-            return (int) result != 0;
+            return (int)result != 0;
         }
 
         /// <summary>

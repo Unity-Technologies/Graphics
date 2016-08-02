@@ -8,7 +8,7 @@ namespace UnityEditor.MaterialGraph
 
         private const float kHeadingSpace = 22.0f;
         private readonly GUIStyle m_Header = "ShurikenModuleTitle";
-        
+
         private MaterialGraphStyles()
         {
             m_Header.font = (new GUIStyle("Label")).font;
@@ -21,7 +21,7 @@ namespace UnityEditor.MaterialGraph
         {
             get { return s_Styles ?? (s_Styles = new MaterialGraphStyles()); }
         }
-        
+
         public static bool DoDrawDefaultInspector(SerializedObject obj)
         {
             EditorGUI.BeginChangeCheck();

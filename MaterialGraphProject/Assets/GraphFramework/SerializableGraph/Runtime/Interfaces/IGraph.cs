@@ -5,7 +5,7 @@ namespace UnityEngine.Graphing
 {
     public interface IGraph : IOnAssetEnabled
     {
-        IEnumerable<T> GetNodes<T>() where T : INode;
+        IEnumerable<T> GetNodes<T>() where T: INode;
         IEnumerable<IEdge> edges { get; }
         void AddNode(INode node);
         void RemoveNode(INode node);
@@ -13,7 +13,7 @@ namespace UnityEngine.Graphing
         void RemoveEdge(IEdge e);
         void RemoveElements(IEnumerable<INode> nodes, IEnumerable<IEdge> edges);
         INode GetNodeFromGuid(Guid guid);
-        T GetNodeFromGuid<T>(Guid guid) where T : INode;
+        T GetNodeFromGuid<T>(Guid guid) where T: INode;
         IEnumerable<IEdge> GetEdges(SlotReference s);
         void ValidateGraph();
     }

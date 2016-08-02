@@ -15,18 +15,18 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             public override PropertyType propertyType
             {
-                get { return PropertyType.Float;}
+                get { return PropertyType.Float; }
             }
 
             public override PreviewProperty GetPreviewProperty()
             {
                 return new PreviewProperty()
-                {
-                    m_Name = TestPropertyName
-                };
+                       {
+                           m_Name = TestPropertyName
+                       };
             }
         }
-        
+
         private PixelGraph m_Graph;
         private Vector1Node m_Vector1Node;
         private Vector2Node m_Vector2Node;
@@ -65,7 +65,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Graph.AddNode(m_TextureNode);
             m_Graph.AddNode(m_PropertyNode);
         }
-        
+
         [Test]
         public void TestExposedPropertyReturnsRawName()
         {
@@ -176,11 +176,11 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector1Node.propertyName
-                           + "(\""
-                           + m_Vector1Node.description
-                           + "\", Float) = "
-                           + m_Vector1Node.value
-                           + "\n";
+                + "(\""
+                + m_Vector1Node.description
+                + "\", Float) = "
+                + m_Vector1Node.value
+                + "\n";
 
             m_Vector1Node.exposedState = PropertyNode.ExposedState.Exposed;
             m_Vector1Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
@@ -197,9 +197,9 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector1Node.precision
-                           + " "
-                           + m_Vector1Node.propertyName
-                           + ";\r\n";
+                + " "
+                + m_Vector1Node.propertyName
+                + ";\r\n";
 
             m_Vector1Node.exposedState = PropertyNode.ExposedState.Exposed;
             m_Vector1Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);

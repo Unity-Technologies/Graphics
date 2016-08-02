@@ -49,10 +49,10 @@ namespace UnityEngine.Graphing
         private static TypeSerializationInfo GetTypeSerializableAsString(Type type)
         {
             return new TypeSerializationInfo
-            {
-                fullName = type.FullName,
-                assemblyName = type.Assembly.GetName().Name
-            };
+                   {
+                       fullName = type.FullName,
+                       assemblyName = type.Assembly.GetName().Name
+                   };
         }
 
         private static Type GetTypeFromSerializedString(TypeSerializationInfo typeInfo)
@@ -72,19 +72,20 @@ namespace UnityEngine.Graphing
             var data = JsonUtility.ToJson(item, true);
 
             if (string.IsNullOrEmpty(data))
-                throw new ArgumentException(string.Format("Can not serialize {0}", item)); ;
+                throw new ArgumentException(string.Format("Can not serialize {0}", item));
+            ;
 
             return new JSONSerializedElement
-            {
-                typeInfo = typeInfo,
-                JSONnodeData = data
-            };
+                   {
+                       typeInfo = typeInfo,
+                       JSONnodeData = data
+                   };
         }
 
         public static T Deserialize<T>(JSONSerializedElement item, params object[] constructorArgs) where T : class
         {
             if (!item.typeInfo.IsValid() || string.IsNullOrEmpty(item.JSONnodeData))
-                throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item)); ;
+                throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item));
 
             var type = GetTypeFromSerializedString(item.typeInfo);
             if (type == null)
@@ -128,13 +129,13 @@ namespace UnityEngine.Graphing
             return result;
         }
 
-        public static List<T> Deserialize<T>(IEnumerable<JSONSerializedElement> list, params object[] constructorArgs) where T : class 
+        public static List<T> Deserialize<T>(IEnumerable<JSONSerializedElement> list, params object[] constructorArgs) where T : class
         {
             var result = new List<T>();
             if (list == null)
                 return result;
 
-            foreach (var element in list) 
+            foreach (var element in list)
             {
                 try
                 {
@@ -145,7 +146,7 @@ namespace UnityEngine.Graphing
                     Debug.LogException(e);
                 }
             }
-            return result;  
-        } 
+            return result;
+        }
     }
 }

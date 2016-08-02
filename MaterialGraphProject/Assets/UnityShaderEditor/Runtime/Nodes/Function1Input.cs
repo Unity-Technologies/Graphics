@@ -26,7 +26,7 @@ namespace UnityEngine.MaterialGraph
             AddSlot(GetOutputSlot());
             RemoveSlotsNameNotMatching(validSlots);
         }
-   
+
         protected int[] validSlots
         {
             get { return new[] { InputSlotId, OutputSlotId }; }
@@ -46,16 +46,16 @@ namespace UnityEngine.MaterialGraph
         protected virtual string GetOutputSlotName() {return "Output"; }
 
         protected abstract string GetFunctionName();
-        
+
         protected virtual string GetFunctionPrototype(string argName)
         {
             return "inline " + precision + outputDimension + " " + GetFunctionName() + " ("
-                + precision + inputDimension + " " + argName + ")";
+                   + precision + inputDimension + " " + argName + ")";
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new []{InputSlotId}, new[] {OutputSlotId});
+            NodeUtils.SlotConfigurationExceptionIfBadConfiguration(this, new[] {InputSlotId}, new[] {OutputSlotId});
             var inputValue = GetSlotValue(InputSlotId, generationMode);
             visitor.AddShaderChunk(precision + outputDimension + " " + GetVariableNameForSlot(OutputSlotId) + " = " + GetFunctionCallBody(inputValue) + ";", true);
         }

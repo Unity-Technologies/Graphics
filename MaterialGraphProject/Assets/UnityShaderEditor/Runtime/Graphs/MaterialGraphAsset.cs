@@ -13,7 +13,7 @@ namespace UnityEngine.MaterialGraph
             get { return m_MaterialGraph.currentGraph; }
         }
 
-        public bool shouldRepaint 
+        public bool shouldRepaint
         {
             get { return graph.GetNodes<AbstractMaterialNode>().OfType<IRequiresTime>().Any(); }
         }

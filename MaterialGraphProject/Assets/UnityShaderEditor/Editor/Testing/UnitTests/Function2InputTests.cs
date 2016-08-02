@@ -31,7 +31,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 outputString.AddShaderChunk("return arg1 + arg2;", false);
                 outputString.Deindent();
                 outputString.AddShaderChunk("}", false);
-                  
+
                 visitor.AddShaderChunk(outputString.GetShaderString(0), true);
             }
         }
@@ -67,15 +67,15 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Graph.Connect(m_InputTwo.GetSlotReference(Vector1Node.OutputSlotId), m_TestNode.GetSlotReference(Function2Input.InputSlot2Id));
             m_Graph.Connect(m_TestNode.GetSlotReference(Function2Input.OutputSlotId), m_Graph.pixelMasterNode.GetSlotReference(BaseLightFunction.NormalSlotId));
         }
-        
+
         [Test]
         public void TestGenerateNodeCodeGeneratesCorrectCode()
         {
             string expected = string.Format("half {0} = unity_test_half ({1}, {2});"
-                , m_TestNode.GetVariableNameForSlot(Function2Input.OutputSlotId)
-                , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
-                , m_InputTwo.GetVariableNameForSlot(Vector1Node.OutputSlotId)
-                );
+                    , m_TestNode.GetVariableNameForSlot(Function2Input.OutputSlotId)
+                    , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
+                    , m_InputTwo.GetVariableNameForSlot(Vector1Node.OutputSlotId)
+                    );
 
             ShaderGenerator visitor = new ShaderGenerator();
             m_TestNode.GenerateNodeCode(visitor, GenerationMode.SurfaceShader);
@@ -88,13 +88,12 @@ namespace UnityEditor.MaterialGraph.UnitTests
             string expected =
                 "inline half unity_test_half (half arg1, half arg2)\r\n"
                 + "{\r\n"
-                + "	return arg1 + arg2;\r\n"
+                + "\treturn arg1 + arg2;\r\n"
                 + "}";
 
             ShaderGenerator visitor = new ShaderGenerator();
             m_TestNode.GenerateNodeFunction(visitor, GenerationMode.SurfaceShader);
             Assert.AreEqual(expected, visitor.GetShaderString(0).Trim());
         }
-
     }
 }

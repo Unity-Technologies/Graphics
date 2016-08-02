@@ -13,7 +13,7 @@ namespace UnityEngine.Graphing
 
         [SerializeField]
         private string m_NodeGUIDSerialized;
-        
+
         public SlotReference(Guid nodeGuid, int slotId)
         {
             m_NodeGUID = nodeGuid;

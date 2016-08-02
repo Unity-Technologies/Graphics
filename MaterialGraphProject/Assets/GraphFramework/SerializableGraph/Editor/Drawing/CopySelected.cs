@@ -26,6 +26,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             m_Nodes.Add(node);
         }
+
         public void AddEdge(IEdge edge)
         {
             m_Edges.Add(edge);
@@ -97,13 +98,13 @@ namespace UnityEditor.Graphing.Drawing
 
             if (e.commandName != "Copy" && e.commandName != "Paste" && e.commandName != "Duplicate")
                 return false;
-            
+
             if (e.commandName == "Copy" || e.commandName == "Duplicate")
                 DoCopy(parent);
 
             if (e.commandName == "Paste" || e.commandName == "Duplicate")
                 DoPaste(parent);
-            
+
             e.Use();
             return true;
         }
@@ -112,7 +113,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             EditorGUIUtility.systemCopyBuffer = SerializeSelectedElements(parent);
         }
-        
+
         public static string SerializeSelectedElements(Canvas2D parent)
         {
             var selectedElements = parent.selection;
@@ -153,17 +154,17 @@ namespace UnityEditor.Graphing.Drawing
                 return null;
             }
         }
-        
+
         private static void DoPaste(Canvas2D parent)
         {
             var copyText = EditorGUIUtility.systemCopyBuffer;
             if (string.IsNullOrEmpty(copyText))
                 return;
-            
+
             var pastedGraph = DeserializeSelectedElements(copyText);
             if (pastedGraph == null)
                 return;
-            
+
             if (parent.dataSource == null)
                 return;
 

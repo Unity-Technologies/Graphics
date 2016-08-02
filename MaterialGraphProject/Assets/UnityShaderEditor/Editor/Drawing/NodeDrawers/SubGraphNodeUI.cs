@@ -20,10 +20,10 @@ namespace UnityEditor.MaterialGraph
                 return base.Render(area);
 
             EditorGUI.BeginChangeCheck();
-            localNode.subGraphAsset = (MaterialSubGraphAsset) EditorGUI.ObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight),
-                new GUIContent("SubGraph"),
-                localNode.subGraphAsset,
-                typeof(MaterialSubGraphAsset), false);
+            localNode.subGraphAsset = (MaterialSubGraphAsset)EditorGUI.ObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight),
+                    new GUIContent("SubGraph"),
+                    localNode.subGraphAsset,
+                    typeof(MaterialSubGraphAsset), false);
 
             var toReturn = GUIModificationType.None;
 

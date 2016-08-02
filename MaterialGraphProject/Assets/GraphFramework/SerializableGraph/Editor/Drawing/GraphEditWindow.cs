@@ -28,14 +28,14 @@ namespace UnityEditor.Graphing.Drawing
 
         [SerializeField]
         private ScriptableObject m_LastSelectedGraphSerialized;
-        
+
         [NonSerialized]
         private Canvas2D m_Canvas;
         [NonSerialized]
         private EditorWindow m_HostWindow;
         [NonSerialized]
         private GraphDataSource m_DataSource;
-        
+
         private bool shouldRepaint
         {
             get
@@ -54,7 +54,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             if (Selection.activeObject == null || !EditorUtility.IsPersistent(Selection.activeObject))
                 return;
-            
+
             if (Selection.activeObject is ScriptableObject)
             {
                 var selection = Selection.activeObject as T;
@@ -92,7 +92,7 @@ namespace UnityEditor.Graphing.Drawing
                 m_Canvas.AddManipulator(new RectangleSelect());
                 m_Canvas.AddManipulator(new ScreenSpaceGrid());
                 m_Canvas.AddManipulator(new ContextualMenu(DoContextMenu));
-                
+
                 m_Canvas.AddManipulator(new DeleteSelected(m_DataSource.DeleteElements));
                 m_Canvas.AddManipulator(new CopySelected());
             }
@@ -152,7 +152,7 @@ namespace UnityEditor.Graphing.Drawing
             }
 
             //gm.AddSeparator("");
-           // gm.AddItem(new GUIContent("Convert To/SubGraph"), true, ConvertSelectionToSubGraph);
+            // gm.AddItem(new GUIContent("Convert To/SubGraph"), true, ConvertSelectionToSubGraph);
             gm.ShowAsContext();
             return true;
         }
@@ -235,7 +235,7 @@ namespace UnityEditor.Graphing.Drawing
                 }
             }
 
-            // we do a grouping here as the same output can 
+            // we do a grouping here as the same output can
             // point to multiple inputs
             var uniqueOutputs = outputEdgeNeedsRemap.GroupBy(edge => edge.outputSlot);
             var inputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
@@ -322,7 +322,7 @@ namespace UnityEditor.Graphing.Drawing
                 GUILayout.Label("No Graph selected");
                 return;
             }
-            
+
             m_Canvas.OnGUI(this, new Rect(0, 0, position.width - 250, position.height));
 
             if (GUI.Button(new Rect(position.width - 250, 0, 250, 50), "Convert to Sub-Graph"))
@@ -342,7 +342,7 @@ namespace UnityEditor.Graphing.Drawing
             m_NodeExpanded = MaterialGraphStyles.Header("Selected", m_NodeExpanded);
             if (m_NodeExpanded)
                 DrawableMaterialNode.OnGUI(m_Canvas.selection);
-      
+
             GUILayout.EndScrollView();
             if (GUILayout.Button("Export"))
                 m_DataSource.Export(false);
@@ -366,5 +366,4 @@ namespace UnityEditor.Graphing.Drawing
             m_LastSelectedGraphSerialized = null;
         }
     }
-
 }

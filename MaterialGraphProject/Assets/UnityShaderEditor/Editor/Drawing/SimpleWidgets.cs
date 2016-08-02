@@ -23,11 +23,11 @@ namespace UnityEditor.MaterialGraph
             EditorGUI.DrawRect(new Rect(0, 0, scale.x, scale.y), error ? Color.red : selected ? selectedColor : backgroundColor);
             GUI.Label(new Rect(0, 0, scale.x, 26f), GUIContent.none, new GUIStyle("preToolbar"));
             GUI.Label(new Rect(10, 2, scale.x - 20.0f, 16.0f), m_Title, EditorStyles.toolbarTextField);
-            
+
             base.Render(parentRect, canvas);
         }
     }
-    
+
     public class MoveableBox : SimpleBox
     {
         public MoveableBox(Vector2 position, float width)
@@ -119,8 +119,7 @@ namespace UnityEditor.MaterialGraph
             m_Text2 = GUI.TextField(new Rect(0, currentY, 80, 20), m_Text2);
             currentY += 22;
 
-            m_aTexture = EditorGUI.ObjectField(new Rect(0, currentY, 80, 100), m_aTexture, typeof (Texture2D), false) as Texture2D;
-
+            m_aTexture = EditorGUI.ObjectField(new Rect(0, currentY, 80, 100), m_aTexture, typeof(Texture2D), false) as Texture2D;
         }
     }
 }

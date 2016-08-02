@@ -30,7 +30,6 @@ namespace UnityEditor.Graphing.Drawing
             translation = position;
             AddManipulator(new ImguiContainer());
         }
-        
 
         public override void Render(Rect parentRect, Canvas2D canvas)
         {
@@ -43,7 +42,7 @@ namespace UnityEditor.Graphing.Drawing
             var position = m_NodeAnchor.canvasBoundingRect.min;
             position.x -= kWidth;
             translation = position;
-            
+
             var rect = new Rect(0, 0, scale.x, scale.y);
             EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
 

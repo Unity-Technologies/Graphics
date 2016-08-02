@@ -46,7 +46,7 @@ namespace UnityEditor.Graphing.Drawing
             if (e.commandName != "Delete" && e.commandName != "SoftDelete")
                 return false;
 
-           
+
             if (m_DeletionCallback != null)
             {
                 m_DeletionCallback(parent.selection);

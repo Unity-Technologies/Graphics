@@ -31,7 +31,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 AddSlot(new MaterialSlot(V2Out, "V2Out", "V2Out", SlotType.Output, SlotValueType.Vector2, Vector4.zero));
                 AddSlot(new MaterialSlot(V3Out, "V3Out", "V3Out", SlotType.Output, SlotValueType.Vector3, Vector4.zero));
                 AddSlot(new MaterialSlot(V4Out, "V4Out", "V4Out", SlotType.Output, SlotValueType.Vector4, Vector4.zero));
-           
+
                 AddSlot(new MaterialSlot(V1In, "V1In", "V1In", SlotType.Input, SlotValueType.Vector1, Vector4.zero));
                 AddSlot(new MaterialSlot(V2In, "V2In", "V2In", SlotType.Input, SlotValueType.Vector2, Vector4.zero));
                 AddSlot(new MaterialSlot(V3In, "V3In", "V3In", SlotType.Input, SlotValueType.Vector3, Vector4.zero));

@@ -7,10 +7,10 @@ namespace UnityEngine.Graphing
     {
         [SerializeField]
         private bool m_Expanded;
-        
+
         [SerializeField]
         private Rect m_Position;
-        
+
         public bool expanded
         {
             get { return m_Expanded; }

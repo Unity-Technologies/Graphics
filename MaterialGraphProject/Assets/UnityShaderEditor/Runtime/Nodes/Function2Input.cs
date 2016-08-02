@@ -69,9 +69,9 @@ namespace UnityEngine.MaterialGraph
 
         protected virtual string GetFunctionPrototype(string arg1Name, string arg2Name)
         {
-            return "inline " + precision + outputDimension + " " + GetFunctionName() + " (" 
-                + precision + input1Dimension + " " + arg1Name + ", " 
-                + precision + input2Dimension + " " + arg2Name + ")";
+            return "inline " + precision + outputDimension + " " + GetFunctionName() + " ("
+                   + precision + input1Dimension + " " + arg1Name + ", "
+                   + precision + input2Dimension + " " + arg2Name + ")";
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)

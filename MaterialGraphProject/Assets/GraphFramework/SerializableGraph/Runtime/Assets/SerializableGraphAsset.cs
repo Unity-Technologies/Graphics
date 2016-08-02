@@ -4,7 +4,7 @@ namespace UnityEngine.Graphing
     {
         [SerializeField]
         private SerializableGraph m_Graph = new SerializableGraph();
-        
+
         public IGraph graph
         {
             get { return m_Graph; }

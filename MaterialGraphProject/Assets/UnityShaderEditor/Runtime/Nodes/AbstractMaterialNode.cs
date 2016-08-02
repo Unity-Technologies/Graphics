@@ -23,11 +23,11 @@ namespace UnityEngine.MaterialGraph
             get { return m_OutputPrecision; }
             set { m_OutputPrecision = value; }
         }
-        
+
         [SerializeField]
         private OutputPrecision m_OutputPrecision = OutputPrecision.half;
 
-         // Nodes that want to have a preview area can override this and return true
+        // Nodes that want to have a preview area can override this and return true
         public virtual bool hasPreview
         {
             get { return false; }
@@ -53,7 +53,7 @@ namespace UnityEngine.MaterialGraph
         {
             version = 0;
         }
-        
+
         public virtual void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {}
 
@@ -89,7 +89,7 @@ namespace UnityEngine.MaterialGraph
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
                 if (fromNode == null)
                     return string.Empty;
-               
+
                 var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
                 if (slot == null)
                     return string.Empty;
@@ -168,13 +168,13 @@ namespace UnityEngine.MaterialGraph
                     var outputNode = owner.GetNodeFromGuid(fromSocketRef.nodeGuid);
                     if (outputNode == null)
                         continue;
-                    
+
                     outputNode.ValidateNode();
                     if (outputNode.hasError)
                         isInError = true;
                 }
             }
-            
+
             var dynamicInputSlotsToCompare = new Dictionary<MaterialSlot, ConcreteSlotValueType>();
             var skippedDynamicSlots = new List<MaterialSlot>();
 
@@ -202,7 +202,7 @@ namespace UnityEngine.MaterialGraph
                 var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(outputSlotRef.slotId);
                 if (outputSlot == null)
                     continue;
-         
+
                 var outputConcreteType = outputSlot.concreteValueType;
 
                 // if we have a standard connection... just check the types work!
@@ -220,10 +220,10 @@ namespace UnityEngine.MaterialGraph
             }
 
             // we can now figure out the dynamic slotType
-            // from here set all the 
+            // from here set all the
             var dynamicType = ConvertDynamicInputTypeToConcrete(dynamicInputSlotsToCompare.Values);
             foreach (var dynamicKvP in dynamicInputSlotsToCompare)
-                dynamicKvP.Key.concreteValueType= dynamicType;
+                dynamicKvP.Key.concreteValueType = dynamicType;
             foreach (var skippedSlot in skippedDynamicSlots)
                 skippedSlot.concreteValueType = dynamicType;
 
@@ -291,7 +291,7 @@ namespace UnityEngine.MaterialGraph
             var inputSlotType = inputSlot.concreteValueType;
             return inputSlot.OnGUI(rect, inputSlotType);
         }
-        
+
       */
 
         public virtual void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -314,13 +314,13 @@ namespace UnityEngine.MaterialGraph
                 properties.Add(pp);
             }
         }
-        
+
         public virtual string GetVariableNameForSlot(int slotId)
         {
             var slot = FindSlot<MaterialSlot>(slotId);
             if (slot == null)
                 throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
-               
+
             return GetVariableNameForNode() + "_" + slot.shaderOutputName;
         }
 
@@ -344,7 +344,7 @@ namespace UnityEngine.MaterialGraph
             if (foundSlot == null)
                 return;
 
-            // preserve the old current value. 
+            // preserve the old current value.
             addingSlot.currentValue = foundSlot.currentValue;
         }
     }

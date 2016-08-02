@@ -7,10 +7,10 @@ namespace UnityEngine.MaterialGraph
     {
         [SerializeField]
         private Vector4 m_Value;
-       
+
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Value";
-        
+
         public Vector4Node()
         {
             name = "V4Node";
@@ -57,11 +57,11 @@ namespace UnityEngine.MaterialGraph
         public override PreviewProperty GetPreviewProperty()
         {
             return new PreviewProperty
-            {
-                m_Name = propertyName,
-                m_PropType = PropertyType.Vector4,
-                m_Vector4 = m_Value
-            };
+                   {
+                       m_Name = propertyName,
+                       m_PropType = PropertyType.Vector4,
+                       m_Vector4 = m_Value
+                   };
         }
     }
 }

@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "DivNode";
         }
-        
+
         protected override string GetFunctionName() {return "unity_div_" + precision; }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
