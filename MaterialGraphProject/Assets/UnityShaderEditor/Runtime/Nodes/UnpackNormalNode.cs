@@ -25,7 +25,7 @@ namespace UnityEngine.MaterialGraph
         {
             return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
         }
-       
+
         protected override string GetInputSlotName() {return "PackedNormal"; }
         protected override string GetOutputSlotName() {return "Normal"; }
 

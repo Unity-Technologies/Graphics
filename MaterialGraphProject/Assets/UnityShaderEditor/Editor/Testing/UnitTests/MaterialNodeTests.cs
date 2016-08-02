@@ -45,11 +45,11 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             Assert.Throws<ArgumentException>(() => m_NodeA.GetVariableNameForSlot(666));
         }
-        
+
         [Test]
         public void AddingNonMaterialSlotToNodeThrows()
         {
-            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot( new SerializableSlot(0, string.Empty, SlotType.Input)));
+            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot(new SerializableSlot(0, string.Empty, SlotType.Input)));
         }
 
         [Test]
@@ -98,7 +98,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var result = m_NodeA.GetSlotValue(slot.id, GenerationMode.Preview2D);
             Assert.AreEqual(expected, result);
         }
-
 
         [Test]
         public void NodeGenerateCorrectPreviewPropertyUsages()

@@ -8,10 +8,9 @@ namespace UnityEditor.MaterialGraph.UnitTests
     [TestFixture]
     public class PropertyChunkTests
     {
-
         class TestPropertyChunch : PropertyChunk
         {
-            public TestPropertyChunch(string propertyName, string propertyDescription, HideState hideState) 
+            public TestPropertyChunch(string propertyName, string propertyDescription, HideState hideState)
                 : base(propertyName, propertyDescription, hideState)
             {}
 
@@ -30,7 +29,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-          
         }
 
         private const string kPropertyName = "ThePropertyName";

@@ -23,7 +23,7 @@ namespace UnityEditor.MaterialGraph
 
             if (s_Meshes[0] == null)
             {
-                var handleGo = (GameObject) EditorGUIUtility.LoadRequired("Previews/PreviewMaterials.fbx");
+                var handleGo = (GameObject)EditorGUIUtility.LoadRequired("Previews/PreviewMaterials.fbx");
                 // @TODO: temp workaround to make it not render in the scene
                 handleGo.SetActive(false);
                 foreach (Transform t in handleGo.transform)
@@ -61,7 +61,7 @@ namespace UnityEditor.MaterialGraph
                 s_TimeIcons[0] = EditorGUIUtility.IconContent("PlayButton");
                 s_TimeIcons[1] = EditorGUIUtility.IconContent("PauseButton");
 
-                Mesh quadMesh = Resources.GetBuiltinResource(typeof (Mesh), "Quad.fbx") as Mesh;
+                Mesh quadMesh = Resources.GetBuiltinResource(typeof(Mesh), "Quad.fbx") as Mesh;
                 s_Meshes[4] = quadMesh;
                 s_PlaneMesh = quadMesh;
             }

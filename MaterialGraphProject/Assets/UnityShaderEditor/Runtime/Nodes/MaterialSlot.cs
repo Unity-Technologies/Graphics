@@ -14,14 +14,14 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private Vector4 m_CurrentValue;
-        
+
         [SerializeField]
         private ConcreteSlotValueType m_ConcreteValueType;
 
         [SerializeField]
         private string m_ShaderOutputName;
 
-        public MaterialSlot() { }
+        public MaterialSlot() {}
 
         public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue, int priority)
             : base(slotId, displayName, slotType, priority)
@@ -29,7 +29,7 @@ namespace UnityEngine.MaterialGraph
             SharedInitialize(shaderOutputName, valueType, defaultValue);
         }
 
-        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue) 
+        public MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, Vector4 defaultValue)
             : base(slotId, displayName, slotType)
         {
             SharedInitialize(shaderOutputName, valueType, defaultValue);
@@ -57,7 +57,6 @@ namespace UnityEngine.MaterialGraph
                     return "(4)";
                 default:
                     return "(E)";
-
             }
         }
 
@@ -74,7 +73,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         public SlotValueType valueType
-        { 
+        {
             get { return m_ValueType; }
             set
             {
@@ -123,7 +122,7 @@ namespace UnityEngine.MaterialGraph
             var matOwner = owner as AbstractMaterialNode;
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
-            
+
             visitor.AddShaderChunk(matOwner.precision + AbstractMaterialNode.ConvertConcreteSlotValueTypeToString(concreteValueType) + " " + matOwner.GetVariableNameForSlot(id) + ";", true);
         }
 
@@ -150,6 +149,7 @@ namespace UnityEngine.MaterialGraph
                     return "error";
             }
         }
+
         /*
         public override bool OnGUI()
         {

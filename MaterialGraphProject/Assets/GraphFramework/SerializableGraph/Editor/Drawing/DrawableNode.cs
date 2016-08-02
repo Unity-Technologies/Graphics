@@ -11,7 +11,7 @@ namespace UnityEditor.Graphing.Drawing
     public class DrawableNode : CanvasElement
     {
         private readonly GraphDataSource m_Data;
-         
+
         private readonly Rect m_CustomUiRect;
         public readonly INode m_Node;
         private readonly ICustomNodeUi m_Ui;
@@ -66,7 +66,7 @@ namespace UnityEditor.Graphing.Drawing
                 m_CustomUiRect = new Rect(10, pos.y, width - 20, customUiHeight);
                 pos.y += customUiHeight;
             }
-            
+
             scale = new Vector3(pos.x, pos.y + 10.0f, 0.0f);
 
             OnWidget += InvalidateUIIfNeedsTime;
@@ -74,7 +74,7 @@ namespace UnityEditor.Graphing.Drawing
             AddManipulator(new ImguiContainer());
             AddManipulator(new Draggable());
         }
-        
+
         private bool InvalidateUIIfNeedsTime(CanvasElement element, Event e, Canvas2D parent)
         {
             var childrenNodes = ListPool<INode>.Get();
@@ -124,7 +124,7 @@ namespace UnityEditor.Graphing.Drawing
                     m_Node.owner.ValidateGraph();
                     ParentCanvas().Invalidate();
                     ParentCanvas().ReloadData();
-                    ParentCanvas().Repaint(); 
+                    ParentCanvas().Repaint();
                     return;
                 }
 

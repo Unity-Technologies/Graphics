@@ -15,7 +15,7 @@ namespace UnityEngine.MaterialGraph
 
         [NonSerialized]
         private BaseLightFunction m_LightFunction = new PBRMetalicLightFunction();
-            
+
         private static List<BaseLightFunction> s_LightFunctions;
 
         public BaseLightFunction lightFunction
@@ -44,7 +44,7 @@ namespace UnityEngine.MaterialGraph
 
         protected override bool generateDefaultInputs { get { return false; } }
 
-       // public override bool canDeleteNode { get { return false; } }
+        // public override bool canDeleteNode { get { return false; } }
 
         public static List<BaseLightFunction> GetLightFunctions()
         {
@@ -74,7 +74,7 @@ namespace UnityEngine.MaterialGraph
         {
             lightFunction.GenerateSurfaceOutputStructureName(visitor);
         }
-        
+
         public void GenerateNodeCode(ShaderGenerator shaderBody, GenerationMode generationMode)
         {
             var firstPassSlotId = lightFunction.GetFirstPassSlotId();
@@ -112,51 +112,51 @@ namespace UnityEngine.MaterialGraph
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
 
-           ListPool<INode>.Release(nodes);
+            ListPool<INode>.Release(nodes);
 
             foreach (var slot in GetInputSlots<MaterialSlot>())
             {
                 if (slot == firstPassSlot)
                     continue;
-                
+
                 foreach (var edge in owner.GetEdges(slot.slotReference))
                 {
                     var outputRef = edge.outputSlot;
                     var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
                     if (fromNode == null)
                         continue;
-                    
+
                     shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
                 }
             }
         }
 
-   /*     public override float GetNodeUIHeight(float width)
-        {
-            return EditorGUIUtility.singleLineHeight;
-        }
+        /*     public override float GetNodeUIHeight(float width)
+             {
+                 return EditorGUIUtility.singleLineHeight;
+             }
 
-        public override GUIModificationType NodeUI(Rect drawArea)
-        {
-            var lightFunctions = GetLightFunctions();
-            var lightFunction = GetLightFunction();
+             public override GUIModificationType NodeUI(Rect drawArea)
+             {
+                 var lightFunctions = GetLightFunctions();
+                 var lightFunction = GetLightFunction();
 
-            int lightFuncIndex = 0;
-            if (lightFunction != null)
-                lightFuncIndex = lightFunctions.IndexOf(lightFunction);
+                 int lightFuncIndex = 0;
+                 if (lightFunction != null)
+                     lightFuncIndex = lightFunctions.IndexOf(lightFunction);
 
-            EditorGUI.BeginChangeCheck();
-            lightFuncIndex = EditorGUI.Popup(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), lightFuncIndex, lightFunctions.Select(x => x.GetLightFunctionName()).ToArray(), EditorStyles.popup);
-            lightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
-            if (EditorGUI.EndChangeCheck())
-            {
-                var function = GetLightFunction();
-                function.DoSlotsForConfiguration(this);
-                owner.ValidateGraph();
-                return GUIModificationType.ModelChanged;
-            }
-            return GUIModificationType.None;
-        }*/
+                 EditorGUI.BeginChangeCheck();
+                 lightFuncIndex = EditorGUI.Popup(new Rect(drawArea.x, drawArea.y, drawArea.width, EditorGUIUtility.singleLineHeight), lightFuncIndex, lightFunctions.Select(x => x.GetLightFunctionName()).ToArray(), EditorStyles.popup);
+                 lightFunctionClassName = lightFunctions[lightFuncIndex].GetType().ToString();
+                 if (EditorGUI.EndChangeCheck())
+                 {
+                     var function = GetLightFunction();
+                     function.DoSlotsForConfiguration(this);
+                     owner.ValidateGraph();
+                     return GUIModificationType.ModelChanged;
+                 }
+                 return GUIModificationType.None;
+             }*/
 
         public override IEnumerable<ISlot> GetInputsWithNoConnection()
         {
@@ -167,7 +167,7 @@ namespace UnityEngine.MaterialGraph
         {
             get { return true; }
         }
-        
+
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
@@ -194,7 +194,7 @@ namespace UnityEngine.MaterialGraph
 
             base.OnAfterDeserialize();
         }
-        
+
         /*
         protected override bool UpdatePreviewShader()
         {

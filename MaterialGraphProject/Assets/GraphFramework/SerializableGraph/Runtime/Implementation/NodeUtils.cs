@@ -8,12 +8,12 @@ namespace UnityEngine.Graphing
     {
         public SlotConfigurationException(string message)
             : base(message)
-        { }
+        {}
     }
 
     public static class NodeUtils
     {
-        public static void SlotConfigurationExceptionIfBadConfiguration(INode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots )
+        public static void SlotConfigurationExceptionIfBadConfiguration(INode node, IEnumerable<int> expectedInputSlots, IEnumerable<int> expectedOutputSlots)
         {
             var missingSlots = new List<int>();
 
@@ -27,7 +27,7 @@ namespace UnityEngine.Graphing
                 return;
 
             var toPrint = missingSlots.Select(x => x.ToString());
-              
+
             throw new SlotConfigurationException(string.Format("Missing slots {0} on node {1}", string.Join(", ", toPrint.ToArray()), node));
         }
 
@@ -74,7 +74,7 @@ namespace UnityEngine.Graphing
             // allready added this node
             if (nodeList.Contains(node))
                 return;
-            
+
             // if we have a slot passed in but can not find it on the node abort
             if (slotId.HasValue && node.GetInputSlots<ISlot>().All(x => x.id != slotId.Value))
                 return;
@@ -84,7 +84,7 @@ namespace UnityEngine.Graphing
                 validSlots.Add(slotId.Value);
             else
                 validSlots.AddRange(node.GetInputSlots<ISlot>().Select(x => x.id));
-        
+
             foreach (var slot in validSlots)
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))

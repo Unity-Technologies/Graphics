@@ -28,7 +28,7 @@ namespace UnityEngine.Graphing
 
         public int id
         {
-            get { return m_Id;}
+            get { return m_Id; }
         }
 
         public virtual string displayName
@@ -40,7 +40,7 @@ namespace UnityEngine.Graphing
         public int priority
         {
             get { return m_Priority; }
-            set { m_Priority = value; } 
+            set { m_Priority = value; }
         }
 
         public bool isInputSlot
@@ -52,11 +52,11 @@ namespace UnityEngine.Graphing
         {
             get { return m_SlotType == SlotType.Output; }
         }
-        
+
         // used via reflection / serialization after deserialize
         // to reconstruct this slot.
         public SerializableSlot()
-        { }
+        {}
 
         public SerializableSlot(int id, string displayName, SlotType slotType, int priority)
         {

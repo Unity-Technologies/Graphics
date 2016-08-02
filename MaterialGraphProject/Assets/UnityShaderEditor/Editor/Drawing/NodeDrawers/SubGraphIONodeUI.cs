@@ -10,7 +10,7 @@ namespace UnityEditor.MaterialGraph
     public class SubGraphIONodeUI : ICustomNodeUi
     {
         private AbstractSubGraphIONode m_Node;
-        
+
         public float GetNodeUiHeight(float width)
         {
             return 2 * EditorGUIUtility.singleLineHeight;
@@ -36,7 +36,6 @@ namespace UnityEditor.MaterialGraph
             return modification;
         }
 
-
         public INode node
         {
             get { return m_Node; }
@@ -47,7 +46,7 @@ namespace UnityEditor.MaterialGraph
                     m_Node = materialNode;
             }
         }
-        
+
         public float GetNodeWidth()
         {
             return 100;

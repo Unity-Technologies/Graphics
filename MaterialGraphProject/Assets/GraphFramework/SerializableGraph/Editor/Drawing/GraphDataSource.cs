@@ -12,7 +12,7 @@ namespace UnityEditor.Graphing.Drawing
     [AttributeUsage(AttributeTargets.Class)]
     sealed class CustomNodeUI : Attribute
     {
-        private Type m_ModeToDrawFor    ;
+        private Type m_ModeToDrawFor;
 
         public CustomNodeUI(Type nodeToDrawFor)
         {
@@ -21,13 +21,13 @@ namespace UnityEditor.Graphing.Drawing
 
         public Type nodeToDrawFor
         {
-            get { return m_ModeToDrawFor; } } 
+            get { return m_ModeToDrawFor; } }
     }
 
     public class GraphDataSource : ICanvasDataSource
     {
         readonly List<DrawableNode> m_DrawableNodes = new List<DrawableNode>();
-        
+
         public IGraphAsset graphAsset { get; set; }
 
         public ICollection<DrawableNode> lastGeneratedNodes
@@ -112,7 +112,7 @@ namespace UnityEditor.Graphing.Drawing
                 var baseNode = drawableMaterialNode.m_Node;
                 foreach (var slot in baseNode.GetOutputSlots<ISlot>())
                 {
-                    var sourceAnchor =  (NodeAnchor)drawableMaterialNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == slot);
+                    var sourceAnchor =  (NodeAnchor)drawableMaterialNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor)x).m_Slot == slot);
 
                     var edges = baseNode.owner.GetEdges(new SlotReference(baseNode.guid, slot.id));
                     foreach (var edge in edges)
@@ -120,12 +120,12 @@ namespace UnityEditor.Graphing.Drawing
                         var toNode = baseNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                         var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
                         var targetNode = m_DrawableNodes.FirstOrDefault(x => x.m_Node == toNode);
-                        var targetAnchor = (NodeAnchor)targetNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor) x).m_Slot == toSlot);
+                        var targetAnchor = (NodeAnchor)targetNode.Children().FirstOrDefault(x => x is NodeAnchor && ((NodeAnchor)x).m_Slot == toSlot);
                         drawableEdges.Add(new DrawableEdge<NodeAnchor>(edge, this, sourceAnchor, targetAnchor));
                     }
                 }
             }
-            
+
             // Add proxy inputs for when edges are not connect
             var nullInputSlots = new List<NullInputProxy>();
             foreach (var drawableMaterialNode in m_DrawableNodes)
@@ -147,7 +147,7 @@ namespace UnityEditor.Graphing.Drawing
             toReturn.AddRange(m_DrawableNodes.Select(x => (CanvasElement)x));
             toReturn.AddRange(drawableEdges.Select(x => (CanvasElement)x));
             toReturn.AddRange(nullInputSlots.Select(x => (CanvasElement)x));
-            
+
             //toReturn.Add(new FloatingPreview(new Rect(Screen.width - 300, Screen.height - 300, 300, 300), pixelGraph.nodes.FirstOrDefault(x => x is PixelShaderNode)));
 
             Debug.LogFormat("Returning {0} nodes", m_DrawableNodes.Count);
@@ -170,8 +170,8 @@ namespace UnityEditor.Graphing.Drawing
             foreach (var e in elements.OfType<Edge<NodeAnchor>>())
             {
                 //find the edge
-                var edge = graph.edges.FirstOrDefault(x => graph.GetNodeFromGuid(x.outputSlot.nodeGuid).FindOutputSlot<ISlot>(x.outputSlot.slotId) == e.Left.m_Slot 
-                    && graph.GetNodeFromGuid(x.inputSlot.nodeGuid).FindInputSlot<ISlot>(x.inputSlot.slotId) == e.Right.m_Slot);
+                var edge = graph.edges.FirstOrDefault(x => graph.GetNodeFromGuid(x.outputSlot.nodeGuid).FindOutputSlot<ISlot>(x.outputSlot.slotId) == e.Left.m_Slot
+                        && graph.GetNodeFromGuid(x.inputSlot.nodeGuid).FindInputSlot<ISlot>(x.inputSlot.slotId) == e.Right.m_Slot);
 
                 toRemoveEdge.Add(edge);
             }
@@ -249,6 +249,5 @@ namespace UnityEditor.Graphing.Drawing
                     Invalidate();
                     canvas.Repaint();
                 }*/
-
     }
 }

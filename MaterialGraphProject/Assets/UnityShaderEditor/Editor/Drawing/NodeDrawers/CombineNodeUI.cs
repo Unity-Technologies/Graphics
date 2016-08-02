@@ -7,7 +7,7 @@ namespace UnityEditor.MaterialGraph
 {
     [CustomNodeUI(typeof(CombineNode))]
     public class CombineNodeUI : AbstractMaterialNodeUI
-    {   
+    {
         public override float GetNodeUiHeight(float width)
         {
             return base.GetNodeUiHeight(width) + EditorGUIUtility.singleLineHeight;

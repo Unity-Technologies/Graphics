@@ -11,7 +11,7 @@ namespace UnityEngine.MaterialGraph
         Vector2,
         Vector1
     }
-    
+
     public enum ConcreteSlotValueType
     {
         Vector4 = 4,

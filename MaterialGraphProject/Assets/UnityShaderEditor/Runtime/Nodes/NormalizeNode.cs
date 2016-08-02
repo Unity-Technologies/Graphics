@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "NormalizeNode";
         }
-        
+
         protected override string GetFunctionName() { return "normalize"; }
     }
 }

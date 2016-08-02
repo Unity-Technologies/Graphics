@@ -26,7 +26,7 @@ namespace UnityEngine.MaterialGraph
 
             RemoveSlot(-lastSlotId);
         }
-        
+
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             foreach (var slot in GetOutputSlots<MaterialSlot>())
@@ -42,13 +42,13 @@ namespace UnityEngine.MaterialGraph
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
                 properties.Add(
-                     new PreviewProperty
-                     {
-                         m_Name = GetVariableNameForSlot(slot.id),
-                         m_PropType = PropertyType.Vector4,
-                         m_Vector4 = slot.defaultValue
-                     }
-                );
+                    new PreviewProperty
+                {
+                    m_Name = GetVariableNameForSlot(slot.id),
+                    m_PropType = PropertyType.Vector4,
+                    m_Vector4 = slot.defaultValue
+                }
+                    );
             }
         }
     }

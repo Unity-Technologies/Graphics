@@ -12,7 +12,7 @@ namespace UnityEngine.MaterialGraph
         public const string kSmoothnessSlotName = "Smoothness";
         public const string kOcclusionSlotName = "Occlusion";
         public const string kAlphaSlotName = "Alpha";
-        
+
         public const int kAlbedoSlotId = 0;
         public const int kSpecularSlotId = 2;
         public const int kEmissionSlotId = 3;
@@ -40,19 +40,19 @@ namespace UnityEngine.MaterialGraph
             node.AddSlot(new MaterialSlot(kOcclusionSlotId, kOcclusionSlotName, kOcclusionSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             node.AddSlot(new MaterialSlot(kAlphaSlotId, kAlphaSlotName, kAlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
 
-            // clear out slot names that do not match the slots 
+            // clear out slot names that do not match the slots
             // we support
             node.RemoveSlotsNameNotMatching(
-                                            new[]
-                                            {
-                                                kAlbedoSlotId,
-                                                NormalSlotId,
-                                                kSpecularSlotId,
-                                                kEmissionSlotId,
-                                                kSmoothnessSlotId,
-                                                kOcclusionSlotId,
-                                                kAlphaSlotId
-                                            });
+                new[]
+            {
+                kAlbedoSlotId,
+                NormalSlotId,
+                kSpecularSlotId,
+                kEmissionSlotId,
+                kSmoothnessSlotId,
+                kOcclusionSlotId,
+                kAlphaSlotId
+            });
         }
     }
 }

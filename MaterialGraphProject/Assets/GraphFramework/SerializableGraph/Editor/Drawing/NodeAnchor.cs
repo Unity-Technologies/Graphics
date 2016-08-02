@@ -23,7 +23,7 @@ namespace UnityEditor.Graphing.Drawing
             AddManipulator(new EdgeConnector<NodeAnchor>());
             m_Direction = direction;
 
-            Type genericClass = typeof (PortSource<>);
+            Type genericClass = typeof(PortSource<>);
             Type constructedClass = genericClass.MakeGenericType(type);
             m_Source = Activator.CreateInstance(constructedClass);
             m_Data = data;
@@ -97,6 +97,5 @@ namespace UnityEditor.Graphing.Drawing
 
             ParentCanvas().ReloadData();
         }
-
     };
 }

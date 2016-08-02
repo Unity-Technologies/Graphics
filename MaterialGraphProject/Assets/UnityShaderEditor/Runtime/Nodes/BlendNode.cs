@@ -21,7 +21,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private float m_Blend = 0.5f;
 
-        private static readonly string[] kOpNames = 
+        private static readonly string[] kOpNames =
         {
             "normal",
             "add"
@@ -49,7 +49,7 @@ namespace UnityEngine.MaterialGraph
         protected void AddOperationBody(ShaderGenerator visitor, string name, string body)
         {
             var outputString = new ShaderGenerator();
-            outputString.AddShaderChunk("inline " + precision + outputDimension +" unity_blend_" + name + "_" + precision + " (" + precision + outputDimension + " arg1, " + precision + outputDimension + " arg2, " + precision + " blend)", false);
+            outputString.AddShaderChunk("inline " + precision + outputDimension + " unity_blend_" + name + "_" + precision + " (" + precision + outputDimension + " arg1, " + precision + outputDimension + " arg2, " + precision + " blend)", false);
             outputString.AddShaderChunk("{", false); outputString.Indent();
             outputString.AddShaderChunk(body, false);
             outputString.Deindent();

@@ -88,9 +88,9 @@ namespace UnityEngine.MaterialGraph
         {
             var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
 
-           if (outputSlot == null)
+            if (outputSlot == null)
                 return kErrorString;
-           
+
             var convertFromType = outputSlot.concreteValueType;
             var rawOutput = node.GetVariableNameForSlot(outputSlotId);
             if (convertFromType == convertToType)
@@ -188,7 +188,7 @@ namespace UnityEngine.MaterialGraph
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
             var generationMode = GenerationMode.Preview2D;
             generatedShaderMode = PreviewMode.Preview2D;
-            
+
             if (activeNodeList.OfType<AbstractMaterialNode>().Any(x => x.previewMode == PreviewMode.Preview3D))
             {
                 generationMode = GenerationMode.Preview3D;
@@ -209,7 +209,7 @@ namespace UnityEngine.MaterialGraph
             var vertexShaderBlock = new ShaderGenerator();
 
             var shaderName = "Hidden/PreviewShader/" + node.GetVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First().id);
-           
+
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
@@ -334,7 +334,7 @@ namespace UnityEngine.MaterialGraph
                 resultShader = resultShader.Replace("${VertexShaderDecl}", "");
                 resultShader = resultShader.Replace("${VertexShaderBody}", "");
             }
-                        
+
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
             return resultShader;
         }

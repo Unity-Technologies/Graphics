@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "ReflectNode";
         }
-        
+
         protected override string GetInputSlot1Name() {return "Normal"; }
         protected override string GetInputSlot2Name() {return "Direction"; }
         protected override string GetOutputSlotName() {return "Reflection"; }
@@ -28,7 +28,7 @@ namespace UnityEngine.MaterialGraph
         {
             return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Vector3, Vector4.zero);
         }
-        
+
         protected override string GetFunctionName() {return "unity_reflect_" + precision; }
 
         public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)

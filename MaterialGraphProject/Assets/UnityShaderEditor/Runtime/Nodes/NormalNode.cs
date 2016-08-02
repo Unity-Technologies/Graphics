@@ -20,7 +20,6 @@ namespace UnityEngine.MaterialGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-
         public override bool hasPreview
         {
             get { return true; }

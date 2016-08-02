@@ -7,7 +7,6 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph
 {
-
     [CustomNodeUI(typeof(PixelShaderNode))]
     public class PixelShaderNodeUI : AbstractMaterialNodeUI
     {
@@ -28,11 +27,11 @@ namespace UnityEditor.MaterialGraph
                 return base.Render(area);
 
             var lightFunctions = PixelShaderNode.GetLightFunctions();
-			var lightFunction = localNode.lightFunction.GetType();
+            var lightFunction = localNode.lightFunction.GetType();
 
             int lightFuncIndex = 0;
             if (lightFunction != null)
-				lightFuncIndex = lightFunctions.Select(x => x.GetType()).ToList().IndexOf(lightFunction);
+                lightFuncIndex = lightFunctions.Select(x => x.GetType()).ToList().IndexOf(lightFunction);
 
             EditorGUI.BeginChangeCheck();
             lightFuncIndex = EditorGUI.Popup(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), lightFuncIndex, lightFunctions.Select(x => x.lightFunctionName).ToArray(), EditorStyles.popup);
@@ -40,14 +39,14 @@ namespace UnityEditor.MaterialGraph
             var toReturn = GUIModificationType.None;
             if (EditorGUI.EndChangeCheck())
             {
-               localNode.UpdateNodeAfterDeserialization();
-               toReturn = GUIModificationType.ModelChanged;
+                localNode.UpdateNodeAfterDeserialization();
+                toReturn = GUIModificationType.ModelChanged;
             }
             area.y += EditorGUIUtility.singleLineHeight;
             area.height -= EditorGUIUtility.singleLineHeight;
             toReturn |= base.Render(area);
             return toReturn;
-        } 
+        }
 
         protected override string GetPreviewShaderString()
         {

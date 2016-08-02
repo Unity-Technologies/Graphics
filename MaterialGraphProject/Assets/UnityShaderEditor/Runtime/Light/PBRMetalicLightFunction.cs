@@ -42,20 +42,20 @@ namespace UnityEngine.MaterialGraph
             node.AddSlot(new MaterialSlot(SmoothnessSlotId, SmoothnessSlotName, SmoothnessSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             node.AddSlot(new MaterialSlot(OcclusionSlotId, OcclusionSlotName, OcclusionSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
             node.AddSlot(new MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, SlotValueType.Vector1, Vector4.zero));
-          
-            // clear out slot names that do not match the slots 
+
+            // clear out slot names that do not match the slots
             // we support
             node.RemoveSlotsNameNotMatching(
-                                            new[]
-                                            {
-                                                AlbedoSlotId,
-                                                NormalSlotId,
-                                                EmissionSlotId,
-                                                MetallicSlotId,
-                                                SmoothnessSlotId,
-                                                OcclusionSlotId,
-                                                AlphaSlotId
-                                            });
+                new[]
+            {
+                AlbedoSlotId,
+                NormalSlotId,
+                EmissionSlotId,
+                MetallicSlotId,
+                SmoothnessSlotId,
+                OcclusionSlotId,
+                AlphaSlotId
+            });
         }
     }
 }

@@ -36,7 +36,7 @@ namespace UnityEngine.MaterialGraph
         {
             if (generationMode == GenerationMode.Preview2D)
                 throw new InvalidEnumArgumentException(string.Format("Trying to generate 2D preview on {0}. This is not supported!", this));
-                
+
             visitor.AddShaderChunk("float3 viewDir;", true);
         }
     }

@@ -22,7 +22,7 @@ namespace UnityEngine.MaterialGraph
                 return m_PixelMasterNode;
             }
         }
- 
+
         [NonSerialized]
         private List<INode> m_ActiveNodes = new List<INode>();
         public IEnumerable<AbstractMaterialNode> activeNodes
@@ -50,7 +50,7 @@ namespace UnityEngine.MaterialGraph
             }
             base.AddNode(node);
         }
-        
+
         public static void GenerateSurfaceShader(
             PixelShaderNode pixelNode,
             ShaderGenerator shaderBody,
@@ -87,6 +87,7 @@ namespace UnityEngine.MaterialGraph
 
             pixelNode.GenerateNodeCode(shaderBody, genMode);
         }
+
         /*
         public Material GetMaterial()
         {

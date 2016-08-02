@@ -18,8 +18,8 @@ namespace UnityEngine.MaterialGraph
 
         public const int UvSlotId = 0;
         public const int OutputSlotRgbaId = 1;
-        public const int OutputSlotRId =2;
-        public const int OutputSlotGId =3;
+        public const int OutputSlotRId = 2;
+        public const int OutputSlotGId = 3;
         public const int OutputSlotBId = 4;
         public const int OutputSlotAId = 5;
 
@@ -28,7 +28,7 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private TextureType m_TextureType;
-        
+
         public override bool hasPreview { get { return true; } }
 
 #if UNITY_EDITOR
@@ -111,7 +111,6 @@ namespace UnityEngine.MaterialGraph
                 var edge = edges[0];
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
                 uvName = ShaderGenerator.AdaptNodeOutput(fromNode, edge.outputSlot.slotId, ConcreteSlotValueType.Vector2, true);
-
             }
 
             string body = "tex2D (" + propertyName + ", " + uvName + ")";
@@ -171,13 +170,13 @@ namespace UnityEngine.MaterialGraph
         {
             visitor.AddShaderProperty(
                 new TexturePropertyChunk(
-                    propertyName, 
-                    description, 
-                    defaultTexture, m_TextureType, 
-                    PropertyChunk.HideState.Visible, 
-                    exposedState == ExposedState.Exposed ? 
-                        TexturePropertyChunk.ModifiableState.Modifiable 
-                        : TexturePropertyChunk.ModifiableState.NonModifiable));
+                    propertyName,
+                    description,
+                    defaultTexture, m_TextureType,
+                    PropertyChunk.HideState.Visible,
+                    exposedState == ExposedState.Exposed ?
+                    TexturePropertyChunk.ModifiableState.Modifiable
+                    : TexturePropertyChunk.ModifiableState.NonModifiable));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
@@ -185,36 +184,35 @@ namespace UnityEngine.MaterialGraph
             visitor.AddShaderChunk("sampler2D " + propertyName + ";", true);
         }
 
-    /*
-        public override bool DrawSlotDefaultInput(Rect rect, Slot inputSlot)
-        {
-            var uvSlot = FindInputSlot(kUVSlotName);
-            if (uvSlot != inputSlot)
-                return base.DrawSlotDefaultInput(rect, inputSlot);
+        /*
+            public override bool DrawSlotDefaultInput(Rect rect, Slot inputSlot)
+            {
+                var uvSlot = FindInputSlot(kUVSlotName);
+                if (uvSlot != inputSlot)
+                    return base.DrawSlotDefaultInput(rect, inputSlot);
 
 
-            var rectXmax = rect.xMax;
-            rect.x = rectXmax - 70;
-            rect.width = 70;
+                var rectXmax = rect.xMax;
+                rect.x = rectXmax - 70;
+                rect.width = 70;
 
-            EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
-            GUI.Label(rect, "From Mesh");
+                EditorGUI.DrawRect(rect, new Color(0.0f, 0.0f, 0.0f, 0.7f));
+                GUI.Label(rect, "From Mesh");
 
-            return false;
-        }
-        */
+                return false;
+            }
+            */
 
         public override PreviewProperty GetPreviewProperty()
         {
             return new PreviewProperty
-            {
-                m_Name = propertyName,
-                m_PropType = PropertyType.Texture2D,
-                m_Texture = defaultTexture
-            };
+                   {
+                       m_Name = propertyName,
+                       m_PropType = PropertyType.Texture2D,
+                       m_Texture = defaultTexture
+                   };
         }
-        
+
         public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
     }
-    
 }

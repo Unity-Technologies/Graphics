@@ -13,7 +13,7 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private string m_Name;
- 
+
         public string name
         {
             get { return m_Name; }

@@ -48,16 +48,15 @@ namespace UnityEngine.MaterialGraph
 
             visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + precision + "4 (" + m_Color.r + ", " + m_Color.g + ", " + m_Color.b + ", " + m_Color.a + ");", true);
         }
-        
+
         public override PreviewProperty GetPreviewProperty()
         {
             return new PreviewProperty
-            {
-                m_Name = propertyName,
-                m_PropType = PropertyType.Color,
-                m_Color = m_Color
-            };
+                   {
+                       m_Name = propertyName,
+                       m_PropType = PropertyType.Color,
+                       m_Color = m_Color
+                   };
         }
-
     }
 }

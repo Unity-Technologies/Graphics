@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "SubGraphOutputs";
         }
-        
+
         public override int AddSlot()
         {
             var index = GetInputSlots<ISlot>().Count() + 1;

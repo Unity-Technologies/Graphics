@@ -35,20 +35,20 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Graph.AddNode(m_Abs);
 
             m_InputOne.value = 0.2f;
-            
+
             m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_PixelNode.GetSlotReference(BaseLightFunction.NormalSlotId));
 
 
             m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_Abs.GetSlotReference(Function1Input.InputSlotId));
             m_Graph.Connect(m_Abs.GetSlotReference(Function1Input.OutputSlotId), m_PixelNode.GetSlotReference(PBRMetalicLightFunction.AlbedoSlotId));
         }
-        
+
         [Test]
         public void TestNodeGeneratesLightFuntionProperly()
         {
             var generator = new ShaderGenerator();
             m_PixelNode.GenerateLightFunction(generator);
-            
+
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
             Assert.AreEqual(PBRMetalicLightFunction.LightFunctionName, generator.GetPragmaString());
         }
@@ -63,16 +63,15 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(PBRMetalicLightFunction.SurfaceOutputStructureName, generator.GetPragmaString());
         }
 
-
         [Test]
         public void TestNodeGeneratesCorrectNodeCode()
         {
             string expected = string.Format("half {0} = 0.2;\r\n"
-                              + "o.Normal = {0};\r\n"
-                              + "half {1} = abs ({0});\r\n"
-                              + "o.Albedo = {1};\r\n"
-                              , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
-                              , m_Abs.GetVariableNameForSlot(Function1Input.OutputSlotId));
+                    + "o.Normal = {0};\r\n"
+                    + "half {1} = abs ({0});\r\n"
+                    + "o.Albedo = {1};\r\n"
+                    , m_InputOne.GetVariableNameForSlot(Vector1Node.OutputSlotId)
+                    , m_Abs.GetVariableNameForSlot(Function1Input.OutputSlotId));
 
             var generator = new ShaderGenerator();
             m_PixelNode.GenerateNodeCode(generator, GenerationMode.SurfaceShader);

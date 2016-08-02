@@ -57,11 +57,11 @@ namespace UnityEngine.MaterialGraph
         public override PreviewProperty GetPreviewProperty()
         {
             return new PreviewProperty
-            {
-                m_Name = propertyName,
-                m_PropType = PropertyType.Vector2,
-                m_Vector4 = m_Value
-            };
+                   {
+                       m_Name = propertyName,
+                       m_PropType = PropertyType.Vector2,
+                       m_Vector4 = m_Value
+                   };
         }
     }
 }

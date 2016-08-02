@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "LengthNode";
         }
-        
+
         protected override string GetFunctionName() { return "length"; }
     }
 }

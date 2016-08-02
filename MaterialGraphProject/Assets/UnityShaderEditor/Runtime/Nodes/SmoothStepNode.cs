@@ -11,6 +11,5 @@ namespace UnityEngine.MaterialGraph
         }
 
         protected override string GetFunctionName() {return "smoothstep"; }
-
     }
 }

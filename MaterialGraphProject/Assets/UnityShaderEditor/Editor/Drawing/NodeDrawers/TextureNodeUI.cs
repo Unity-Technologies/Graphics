@@ -8,14 +8,14 @@ namespace UnityEditor.MaterialGraph
 {
     [CustomNodeUI(typeof(TextureNode))]
     public class TextureNodeUI : AbstractMaterialNodeUI
-    {   
+    {
         public override float GetNodeUiHeight(float width)
         {
             return base.GetNodeUiHeight(width) + EditorGUIUtility.singleLineHeight * 2;
         }
 
         private string[] m_TextureTypeNames;
-        private string[] textureTypeNames 
+        private string[] textureTypeNames
         {
             get
             {
@@ -27,11 +27,10 @@ namespace UnityEditor.MaterialGraph
 
         public override GUIModificationType Render(Rect area)
         {
-
             var localNode = node as TextureNode;
             if (localNode == null)
                 return base.Render(area);
-            
+
             if (localNode == null)
                 return GUIModificationType.None;
 
@@ -44,7 +43,7 @@ namespace UnityEditor.MaterialGraph
             EditorGUI.BeginChangeCheck();
             localNode.textureType = (TextureType)EditorGUI.Popup(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), (int)localNode.textureType, textureTypeNames, EditorStyles.popup);
             var typeChanged = EditorGUI.EndChangeCheck();
-            
+
             var toReturn = GUIModificationType.None;
             if (typeChanged)
             {
@@ -53,7 +52,7 @@ namespace UnityEditor.MaterialGraph
 
             if (texureChanged)
                 toReturn |= GUIModificationType.Repaint;
-            
+
             area.y += EditorGUIUtility.singleLineHeight;
             area.height -= EditorGUIUtility.singleLineHeight;
             toReturn |= base.Render(area);

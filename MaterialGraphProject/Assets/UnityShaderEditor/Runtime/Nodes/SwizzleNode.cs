@@ -12,6 +12,7 @@ namespace UnityEngine.MaterialGraph
         {
             name = "SwizzleNode";
         }
+
         /*
         public override float GetNodeUIHeight(float width)
         {

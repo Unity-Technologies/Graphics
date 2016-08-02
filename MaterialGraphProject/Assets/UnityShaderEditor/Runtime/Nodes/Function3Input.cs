@@ -57,7 +57,7 @@ namespace UnityEngine.MaterialGraph
         {
             return new MaterialSlot(OutputSlotId, GetOutputSlotName(), kOutputSlotShaderName, SlotType.Output, SlotValueType.Dynamic, Vector4.zero);
         }
-        
+
         protected virtual string GetInputSlot1Name()
         {
             return "Input1";
@@ -82,10 +82,10 @@ namespace UnityEngine.MaterialGraph
 
         protected virtual string GetFunctionPrototype(string arg1Name, string arg2Name, string arg3Name)
         {
-            return "inline " + precision + outputDimension + " " + GetFunctionName() + " (" 
-                + precision + input1Dimension + " " + arg1Name + ", " 
-                + precision + input2Dimension + " " + arg2Name + ", "
-                + precision + input3Dimension + " " + arg3Name + ")";
+            return "inline " + precision + outputDimension + " " + GetFunctionName() + " ("
+                   + precision + input1Dimension + " " + arg1Name + ", "
+                   + precision + input2Dimension + " " + arg2Name + ", "
+                   + precision + input3Dimension + " " + arg3Name + ")";
         }
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)

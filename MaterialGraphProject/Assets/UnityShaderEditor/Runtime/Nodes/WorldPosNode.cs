@@ -26,7 +26,7 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector3, Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
-       
+
         public override string GetVariableNameForSlot(int slotId)
         {
             return "IN.worldPos";
