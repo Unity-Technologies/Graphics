@@ -30,7 +30,7 @@ public struct SFiniteLightData
     public Vec3 vBoxInvRange;
     public float fPad0;
 
-    public Vec3 vProbeBoxOffset;
+    public Vec3 vLocalCubeCapturePoint;
     public float fProbeBlendDistance;
     
 };

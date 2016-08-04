@@ -376,14 +376,8 @@ namespace UnityEngine.ScriptableRenderLoop
 			// probe.m_BlendDistance
 			// Vector3f extents = 0.5*Abs(probe.m_BoxSize);
 			// C center of rendered refl box <-- GetComponent (Transform).GetPosition() + m_BoxOffset;
-			// P parameter position to shader: GetComponent (Transform).GetPosition()
+			// cube map capture point: GetComponent (Transform).GetPosition()
 			// shader parameter min and max are C+/-(extents+blendDistance)
-
-			//Vector3[] Ps = new Vector3[3] { new Vector3(6.28f, -1.18f, -5.67f), new Vector3(14.23f, -1.18f, 0.21f), new Vector3(6.28f, -1.18f, 1.91f) };
-			//Vector3[] boxSizes = new Vector3[3] { new Vector3(20.0f, 10.0f, 10.0f), new Vector3(10.0f, 10.0f, 10.0f), new Vector3(10.0f, 10.0f, 10.0f) };
-			//Vector3 boxOffset = new Vector3(0.0f, 0.0f, 0.0f);
-			//float[] bd = new float[3] { 4.0f, 4.0f, 4.0f };
-
 
 			int numProbesOut = 0;
 			foreach (var rl in probes)
@@ -396,29 +390,27 @@ namespace UnityEngine.ScriptableRenderLoop
 					lightData[i].flags = 0;
 
 					Bounds bnds = rl.bounds;
-					Vector3 boxOffset = rl.center;
+					Vector3 boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
 					float blendDistance = rl.blendDistance;
 					float imp = rl.importance;
 
                     Matrix4x4 mat = rl.transform.localToWorldMatrix;
-                    Vector3 reflPos = mat.GetColumn(3);
+                    Vector3 cubeCapturePos = mat.GetColumn(3);      // cube map capture position in world space
 
 
 					// implicit in CalculateHDRDecodeValues() --> float ints = rl.intensity;
 					bool boxProj = rl.boxProjection;
 					Vector4 decodeVals = rl.CalculateHDRDecodeValues();
 
+                    // C is reflection volume center in world space (NOT same as cube map capture point)
 					Vector3 e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
 					//Vector3 C = bnds.center;        // P + boxOffset;
                     Vector3 C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
                     
 					//Vector3 posForShaderParam = bnds.center - boxOffset;    // gives same as rl.GetComponent<Transform>().position;
-                    Vector3 posForShaderParam = reflPos;        // same as commented out line above when rot is identity
+                    Vector3 posForShaderParam = cubeCapturePos;        // same as commented out line above when rot is identity
 					Vector3 combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
 
-					//Vector3 vx = new Vector3(1, 0, 0);     // always axis aligned in world space for now
-					//Vector3 vy = new Vector3(0, 1, 0);
-					//Vector3 vz = new Vector3(0, 0, 1);
                     Vector3 vx = mat.GetColumn(0);
                     Vector3 vy = mat.GetColumn(1);
                     Vector3 vz = mat.GetColumn(2);
@@ -436,7 +428,7 @@ namespace UnityEngine.ScriptableRenderLoop
 					lightData[i].vLaxisX = vx;
 					lightData[i].vLaxisY = vy;
 					lightData[i].vLaxisZ = vz;
-					lightData[i].vProbeBoxOffset = boxOffset;
+					lightData[i].vLocalCubeCapturePoint = -boxOffset;
 					lightData[i].fProbeBlendDistance = blendDistance;
 
 					lightData[i].fLightIntensity = decodeVals.x;
