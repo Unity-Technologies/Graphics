@@ -200,11 +200,314 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var expected = m_Vector1Node.precision
                 + " "
                 + m_Vector1Node.propertyName
-                +";"
+                + ";"
                 + Environment.NewLine;
 
             m_Vector1Node.exposedState = PropertyNode.ExposedState.Exposed;
             m_Vector1Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(expected, generator.GetShaderString(0));
+        }
+
+        [Test]
+        public void TestVector2NodeTypeIsCorrect()
+        {
+            Assert.AreEqual(PropertyType.Vector2, m_Vector2Node.propertyType);
+        }
+
+        [Test]
+        public void TestVector2NodeReturnsCorrectValue()
+        {
+            var value = new Vector2(0.6f, 0.7f);
+            m_Vector2Node.value = value;
+            Assert.AreEqual(value, m_Vector2Node.value);
+        }
+
+        [Test]
+        public void TestVector2NodeReturnsPreviewProperty()
+        {
+            var value = new Vector2(0.6f, 0.7f);
+            var props = new List<PreviewProperty>();
+            m_Vector2Node.value = value;
+            m_Vector2Node.CollectPreviewMaterialProperties(props);
+            Assert.AreEqual(props.Count, 1);
+            Assert.AreEqual(m_Vector2Node.propertyName, props[0].m_Name);
+            Assert.AreEqual(m_Vector2Node.propertyType, props[0].m_PropType);
+            Assert.AreEqual(value, m_Vector2Node.value);
+        }
+
+        [Test]
+        public void TestVector2NodeGeneratesCorrectPropertyBlock()
+        {
+            var value = new Vector2(0.6f, 0.7f);
+            m_Vector2Node.value = value;
+            m_Vector2Node.exposedState = PropertyNode.ExposedState.NotExposed;
+            var generator = new PropertyGenerator();
+            m_Vector2Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
+
+            var expected = m_Vector2Node.propertyName
+                + "(\""
+                + m_Vector2Node.description
+                + "\", Vector) = ("
+                + m_Vector2Node.value.x
+                + ","
+                + m_Vector2Node.value.y
+                + ",0,0)"
+                + Environment.NewLine;
+
+            m_Vector2Node.exposedState = PropertyNode.ExposedState.Exposed;
+            m_Vector2Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(expected, generator.GetShaderString(0));
+        }
+
+        [Test]
+        public void TestVector2NodeGeneratesCorrectPropertyUsages()
+        {
+            var value = new Vector2(0.6f, 0.7f);
+            m_Vector2Node.value = value;
+            m_Vector2Node.exposedState = PropertyNode.ExposedState.NotExposed;
+            var generator = new ShaderGenerator();
+            m_Vector2Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
+
+            var expected = m_Vector2Node.precision
+                + "2 "
+                + m_Vector2Node.propertyName
+                + ";"
+                + Environment.NewLine;
+
+            m_Vector2Node.exposedState = PropertyNode.ExposedState.Exposed;
+            m_Vector2Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(expected, generator.GetShaderString(0));
+        }
+
+
+        [Test]
+        public void TestVector3NodeTypeIsCorrect()
+        {
+            Assert.AreEqual(PropertyType.Vector3, m_Vector3Node.propertyType);
+        }
+
+        [Test]
+        public void TestVector3NodeReturnsCorrectValue()
+        {
+            var value = new Vector3(0.6f, 0.7f, 0.4f);
+            m_Vector3Node.value = value;
+            Assert.AreEqual(value, m_Vector3Node.value);
+        }
+
+        [Test]
+        public void TestVector3NodeReturnsPreviewProperty()
+        {
+            var value = new Vector3(0.6f, 0.7f, 0.4f);
+            var props = new List<PreviewProperty>();
+            m_Vector3Node.value = value;
+            m_Vector3Node.CollectPreviewMaterialProperties(props);
+            Assert.AreEqual(props.Count, 1);
+            Assert.AreEqual(m_Vector3Node.propertyName, props[0].m_Name);
+            Assert.AreEqual(m_Vector3Node.propertyType, props[0].m_PropType);
+            Assert.AreEqual(value, m_Vector3Node.value);
+        }
+
+        [Test]
+        public void TestVector3NodeGeneratesCorrectPropertyBlock()
+        {
+            var value = new Vector3(0.6f, 0.7f, 0.4f);
+            m_Vector3Node.value = value;
+            m_Vector3Node.exposedState = PropertyNode.ExposedState.NotExposed;
+            var generator = new PropertyGenerator();
+            m_Vector3Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
+
+            var expected = m_Vector3Node.propertyName
+                + "(\""
+                + m_Vector3Node.description
+                + "\", Vector) = ("
+                + m_Vector3Node.value.x
+                + ","
+                + m_Vector3Node.value.y
+                + ","
+                + m_Vector3Node.value.z
+                + ",0)"
+                + Environment.NewLine;
+
+            m_Vector3Node.exposedState = PropertyNode.ExposedState.Exposed;
+            m_Vector3Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(expected, generator.GetShaderString(0));
+        }
+
+        [Test]
+        public void TestVector3NodeGeneratesCorrectPropertyUsages()
+        {
+            var value = new Vector3(0.6f, 0.7f, 0.4f);
+            m_Vector3Node.value = value;
+            m_Vector3Node.exposedState = PropertyNode.ExposedState.NotExposed;
+            var generator = new ShaderGenerator();
+            m_Vector3Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
+
+            var expected = m_Vector3Node.precision
+                + "3 "
+                + m_Vector3Node.propertyName
+                + ";"
+                + Environment.NewLine;
+
+            m_Vector3Node.exposedState = PropertyNode.ExposedState.Exposed;
+            m_Vector3Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(expected, generator.GetShaderString(0));
+        }
+
+        [Test]
+        public void TestVector4NodeTypeIsCorrect()
+        {
+            Assert.AreEqual(PropertyType.Vector4, m_Vector4Node.propertyType);
+        }
+
+        [Test]
+        public void TestVector4NodeReturnsCorrectValue()
+        {
+            var value = new Vector4(0.6f, 0.7f, 0.4f, 0.3f);
+            m_Vector4Node.value = value;
+            Assert.AreEqual(value, m_Vector4Node.value);
+        }
+
+        [Test]
+        public void TestVector4NodeReturnsPreviewProperty()
+        {
+            var value = new Vector4(0.6f, 0.7f, 0.4f, 0.3f);
+            var props = new List<PreviewProperty>();
+            m_Vector4Node.value = value;
+            m_Vector4Node.CollectPreviewMaterialProperties(props);
+            Assert.AreEqual(props.Count, 1);
+            Assert.AreEqual(m_Vector4Node.propertyName, props[0].m_Name);
+            Assert.AreEqual(m_Vector4Node.propertyType, props[0].m_PropType);
+            Assert.AreEqual(value, m_Vector4Node.value);
+        }
+
+        [Test]
+        public void TestVector4NodeGeneratesCorrectPropertyBlock()
+        {
+            var value = new Vector4(0.6f, 0.7f, 0.4f, 0.3f);
+            m_Vector4Node.value = value;
+            m_Vector4Node.exposedState = PropertyNode.ExposedState.NotExposed;
+            var generator = new PropertyGenerator();
+            m_Vector4Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
+
+            var expected = m_Vector4Node.propertyName
+                + "(\""
+                + m_Vector4Node.description
+                + "\", Vector) = ("
+                + m_Vector4Node.value.x
+                + ","
+                + m_Vector4Node.value.y
+                + ","
+                + m_Vector4Node.value.z
+                + ","
+                + m_Vector4Node.value.w
+                + ")"
+                + Environment.NewLine;
+
+            m_Vector4Node.exposedState = PropertyNode.ExposedState.Exposed;
+            m_Vector4Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(expected, generator.GetShaderString(0));
+        }
+
+        [Test]
+        public void TestVector4NodeGeneratesCorrectPropertyUsages()
+        {
+            var value = new Vector4(0.6f, 0.7f, 0.4f, 0.3f);
+            m_Vector4Node.value = value;
+            m_Vector4Node.exposedState = PropertyNode.ExposedState.NotExposed;
+            var generator = new ShaderGenerator();
+            m_Vector4Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
+
+            var expected = m_Vector4Node.precision
+                + "4 "
+                + m_Vector4Node.propertyName
+                + ";"
+                + Environment.NewLine;
+
+            m_Vector4Node.exposedState = PropertyNode.ExposedState.Exposed;
+            m_Vector4Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(expected, generator.GetShaderString(0));
+        }
+
+        [Test]
+        public void TestColorNodeTypeIsCorrect()
+        {
+            Assert.AreEqual(PropertyType.Color, m_ColorNode.propertyType);
+        }
+
+        [Test]
+        public void TestColorNodeReturnsCorrectValue()
+        {
+            var value = new Color(0.6f, 0.7f, 0.4f, 0.3f);
+            m_ColorNode.color = value;
+            Assert.AreEqual(value, m_ColorNode.color);
+        }
+
+        [Test]
+        public void TestColorNodeReturnsPreviewProperty()
+        {
+            var value = new Color(0.6f, 0.7f, 0.4f, 0.3f);
+            var props = new List<PreviewProperty>();
+            m_ColorNode.color = value;
+            m_ColorNode.CollectPreviewMaterialProperties(props);
+            Assert.AreEqual(props.Count, 1);
+            Assert.AreEqual(m_ColorNode.propertyName, props[0].m_Name);
+            Assert.AreEqual(m_ColorNode.propertyType, props[0].m_PropType);
+            Assert.AreEqual(value, m_ColorNode.color);
+        }
+
+        [Test]
+        public void TestColorNodeGeneratesCorrectPropertyBlock()
+        {
+            var value = new Color(0.6f, 0.7f, 0.4f, 0.3f);
+            m_ColorNode.color = value;
+            m_ColorNode.exposedState = PropertyNode.ExposedState.NotExposed;
+            var generator = new PropertyGenerator();
+            m_ColorNode.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
+
+            var expected = m_ColorNode.propertyName
+                + "(\""
+                + m_ColorNode.description
+                + "\", Color) = ("
+                + m_ColorNode.color.r
+                + ","
+                + m_ColorNode.color.g
+                + ","
+                + m_ColorNode.color.b
+                + ","
+                + m_ColorNode.color.a
+                + ")"
+                + Environment.NewLine;
+
+            m_ColorNode.exposedState = PropertyNode.ExposedState.Exposed;
+            m_ColorNode.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(expected, generator.GetShaderString(0));
+        }
+
+        [Test]
+        public void TestColorNodeGeneratesCorrectPropertyUsages()
+        {
+            var value = new Color(0.6f, 0.7f, 0.4f, 0.3f);
+            m_ColorNode.color = value;
+            m_ColorNode.exposedState = PropertyNode.ExposedState.NotExposed;
+            var generator = new ShaderGenerator();
+            m_ColorNode.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
+
+            var expected = m_ColorNode.precision
+                + "4 "
+                + m_ColorNode.propertyName
+                + ";"
+                + Environment.NewLine;
+
+            m_ColorNode.exposedState = PropertyNode.ExposedState.Exposed;
+            m_ColorNode.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
     }

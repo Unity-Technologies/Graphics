@@ -34,6 +34,12 @@ namespace UnityEngine.MaterialGraph
             set { m_Color = value; }
         }
 
+        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
+        {
+            if (exposedState == ExposedState.Exposed)
+                visitor.AddShaderProperty(new ColorPropertyChunk(propertyName, description, m_Color, PropertyChunk.HideState.Visible));
+        }
+
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
