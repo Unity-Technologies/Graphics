@@ -138,7 +138,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        private static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType)
+        public static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType)
         {
             var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
 
@@ -262,6 +262,43 @@ namespace UnityEngine.MaterialGraph
             return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
         }
 
+        private static void GenerateSurfaceShaderInternal(
+            PixelShaderNode pixelNode,
+            ShaderGenerator shaderBody,
+            ShaderGenerator inputStruct,
+            ShaderGenerator lightFunction,
+            ShaderGenerator surfaceOutput,
+            ShaderGenerator nodeFunction,
+            PropertyGenerator shaderProperties,
+            ShaderGenerator propertyUsages,
+            ShaderGenerator vertexShader,
+            bool isPreview)
+        {
+            pixelNode.GenerateLightFunction(lightFunction);
+            pixelNode.GenerateSurfaceOutput(surfaceOutput);
+
+            var genMode = isPreview ? GenerationMode.Preview3D : GenerationMode.SurfaceShader;
+
+            var activeNodes = new List<INode>();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, pixelNode);
+            var activeMaterialNodes = activeNodes.OfType<AbstractMaterialNode>();
+
+            foreach (var node in activeMaterialNodes)
+            {
+                if (node is IGeneratesFunction) (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, genMode);
+                if (node is IGeneratesVertexToFragmentBlock) (node as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(inputStruct, genMode);
+                if (node is IGeneratesVertexShaderBlock) (node as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(vertexShader, genMode);
+
+                if (node is IGenerateProperties)
+                {
+                    (node as IGenerateProperties).GeneratePropertyBlock(shaderProperties, genMode);
+                    (node as IGenerateProperties).GeneratePropertyUsages(propertyUsages, genMode);
+                }
+            }
+
+            pixelNode.GenerateNodeCode(shaderBody, genMode);
+        }
+
         public static string GenerateSurfaceShader(PixelShaderNode node, MaterialOptions options, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
             var templateLocation = GetTemplatePath("shader.template");
@@ -283,7 +320,7 @@ namespace UnityEngine.MaterialGraph
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
             var vertexShaderBlock = new ShaderGenerator();
 
-            PixelGraph.GenerateSurfaceShader(
+            GenerateSurfaceShaderInternal(
                 node,
                 shaderBodyVisitor,
                 shaderInputVisitor,
