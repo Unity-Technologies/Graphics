@@ -399,19 +399,29 @@ namespace UnityEngine.ScriptableRenderLoop
 					Vector3 boxOffset = rl.center;
 					float blendDistance = rl.blendDistance;
 					float imp = rl.importance;
+
+                    Matrix4x4 mat = rl.transform.localToWorldMatrix;
+                    Vector3 reflPos = mat.GetColumn(3);
+
+
 					// implicit in CalculateHDRDecodeValues() --> float ints = rl.intensity;
 					bool boxProj = rl.boxProjection;
 					Vector4 decodeVals = rl.CalculateHDRDecodeValues();
 
 					Vector3 e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
-					Vector3 C = bnds.center;        // P + boxOffset;
-
-					Vector3 posForShaderParam = bnds.center - boxOffset;    // gives same as rl.GetComponent<Transform>().position;
+					//Vector3 C = bnds.center;        // P + boxOffset;
+                    Vector3 C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
+                    
+					//Vector3 posForShaderParam = bnds.center - boxOffset;    // gives same as rl.GetComponent<Transform>().position;
+                    Vector3 posForShaderParam = reflPos;        // same as commented out line above when rot is identity
 					Vector3 combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
 
-					Vector3 vx = new Vector3(1, 0, 0);     // always axis aligned in world space for now
-					Vector3 vy = new Vector3(0, 1, 0);
-					Vector3 vz = new Vector3(0, 0, 1);
+					//Vector3 vx = new Vector3(1, 0, 0);     // always axis aligned in world space for now
+					//Vector3 vy = new Vector3(0, 1, 0);
+					//Vector3 vz = new Vector3(0, 0, 1);
+                    Vector3 vx = mat.GetColumn(0);
+                    Vector3 vy = mat.GetColumn(1);
+                    Vector3 vz = mat.GetColumn(2);
 
 					// transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
 					vx = worldToView.MultiplyVector(vx);
