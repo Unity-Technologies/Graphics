@@ -203,37 +203,37 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 		{
 			SFiniteLightData lgtDat = g_vLightData[uIndex];	
 			float3 vLp = lgtDat.vLpos.xyz;
-			float3 fromProbeToSurfPoint  = vP - vLp;		// in camera space
-			float3 posInProbeSpace = float3( dot(fromProbeToSurfPoint, lgtDat.vLaxisX), dot(fromProbeToSurfPoint, lgtDat.vLaxisY), dot(fromProbeToSurfPoint, lgtDat.vLaxisZ) );
+			float3 vecToSurfPos  = vP - vLp;		// vector from reflection volume to surface position in camera space
+			float3 posInReflVolumeSpace = float3( dot(vecToSurfPos, lgtDat.vLaxisX), dot(vecToSurfPos, lgtDat.vLaxisY), dot(vecToSurfPos, lgtDat.vLaxisZ) );
 
 
 			float blendDistance = lgtDat.fProbeBlendDistance;//unity_SpecCube1_ProbePosition.w; // will be set to blend distance for this probe
 
-			float3 worldNormal0;
+			float3 sampleDir;
 			if((lgtDat.flags&IS_BOX_PROJECTED)!=0)
 			{
 				// For box projection, use expanded bounds as they are rendered; otherwise
 				// box projection artifacts when outside of the box.
 				//float4 boxMin = unity_SpecCube0_BoxMin - float4(blendDistance,blendDistance,blendDistance,0);
 				//float4 boxMax = unity_SpecCube0_BoxMax + float4(blendDistance,blendDistance,blendDistance,0);
-				//worldNormal0 = BoxProjectedCubemapDirection (worldNormalRefl, worldPos, unity_SpecCube0_ProbePosition, boxMin, boxMax);
+				//sampleDir = BoxProjectedCubemapDirection (worldNormalRefl, worldPos, unity_SpecCube0_ProbePosition, boxMin, boxMax);
 
 				float4 vBoxOuterDistance = float4( lgtDat.vBoxInnerDist + float3(blendDistance, blendDistance, blendDistance), 0.0 );
 #if 0
 				// if rotation is NOT supported
-				worldNormal0 = BoxProjectedCubemapDirection(worldNormalRefl, posInProbeSpace, float4(lgtDat.vLocalCubeCapturePoint, 1.0), -vBoxOuterDistance, vBoxOuterDistance);
+				sampleDir = BoxProjectedCubemapDirection(worldNormalRefl, posInReflVolumeSpace, float4(lgtDat.vLocalCubeCapturePoint, 1.0), -vBoxOuterDistance, vBoxOuterDistance);
 #else
-				float3 probeSpaceRefl = float3( dot(vspaceRefl, lgtDat.vLaxisX), dot(vspaceRefl, lgtDat.vLaxisY), dot(vspaceRefl, lgtDat.vLaxisZ) );
-				float3 vPR = BoxProjectedCubemapDirection(probeSpaceRefl, posInProbeSpace, float4(lgtDat.vLocalCubeCapturePoint, 1.0), -vBoxOuterDistance, vBoxOuterDistance);	// probe space corrected reflection vector
-				worldNormal0 = mul( (float3x3) g_mViewToWorld, vPR.x*lgtDat.vLaxisX + vPR.y*lgtDat.vLaxisY + vPR.z*lgtDat.vLaxisZ );
+				float3 volumeSpaceRefl = float3( dot(vspaceRefl, lgtDat.vLaxisX), dot(vspaceRefl, lgtDat.vLaxisY), dot(vspaceRefl, lgtDat.vLaxisZ) );
+				float3 vPR = BoxProjectedCubemapDirection(volumeSpaceRefl, posInReflVolumeSpace, float4(lgtDat.vLocalCubeCapturePoint, 1.0), -vBoxOuterDistance, vBoxOuterDistance);	// Volume space corrected reflection vector
+				sampleDir = mul( (float3x3) g_mViewToWorld, vPR.x*lgtDat.vLaxisX + vPR.y*lgtDat.vLaxisY + vPR.z*lgtDat.vLaxisZ );
 #endif
 			}
 			else
-				worldNormal0 = worldNormalRefl;
+				sampleDir = worldNormalRefl;
 
 			Unity_GlossyEnvironmentData g;
 			g.roughness		= 1 - data.smoothness;
-			g.reflUVW		= worldNormal0;
+			g.reflUVW		= sampleDir;
 
 			half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), lgtDat.iSliceIndex, float4(lgtDat.fLightIntensity, lgtDat.fDecodeExp, 0.0, 0.0), g);
 			
@@ -244,11 +244,11 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 
 			half3 rgb = UNITY_BRDF_PBS(0, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind).rgb;
 
-			// Calculate falloff value, so reflections on the edges of the probe would gradually blend to previous reflection.
-			// Also this ensures that pixels not located in the reflection probe AABB won't
-			// accidentally pick up reflections from this probe.
+			// Calculate falloff value, so reflections on the edges of the Volume would gradually blend to previous reflection.
+			// Also this ensures that pixels not located in the reflection Volume AABB won't
+			// accidentally pick up reflections from this Volume.
 			//half3 distance = distanceFromAABB(worldPos, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
-			half3 distance = distanceFromAABB(posInProbeSpace, -lgtDat.vBoxInnerDist, lgtDat.vBoxInnerDist);
+			half3 distance = distanceFromAABB(posInReflVolumeSpace, -lgtDat.vBoxInnerDist, lgtDat.vBoxInnerDist);
 			half falloff = saturate(1.0 - length(distance)/blendDistance);
 
 			ints = lerp(ints, rgb, falloff);
