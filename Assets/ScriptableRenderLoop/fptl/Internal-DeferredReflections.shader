@@ -221,10 +221,10 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 				float4 vBoxOuterDistance = float4( lgtDat.vBoxInnerDist + float3(blendDistance, blendDistance, blendDistance), 0.0 );
 #if 0
 				// if rotation is NOT supported
-				worldNormal0 = BoxProjectedCubemapDirection(worldNormalRefl, posInProbeSpace, float4(-lgtDat.vProbeBoxOffset, 1.0), -vBoxOuterDistance, vBoxOuterDistance);
+				worldNormal0 = BoxProjectedCubemapDirection(worldNormalRefl, posInProbeSpace, float4(lgtDat.vLocalCubeCapturePoint, 1.0), -vBoxOuterDistance, vBoxOuterDistance);
 #else
 				float3 probeSpaceRefl = float3( dot(vspaceRefl, lgtDat.vLaxisX), dot(vspaceRefl, lgtDat.vLaxisY), dot(vspaceRefl, lgtDat.vLaxisZ) );
-				float3 vPR = BoxProjectedCubemapDirection(probeSpaceRefl, posInProbeSpace, float4(-lgtDat.vProbeBoxOffset, 1.0), -vBoxOuterDistance, vBoxOuterDistance);	// probe space corrected reflection vector
+				float3 vPR = BoxProjectedCubemapDirection(probeSpaceRefl, posInProbeSpace, float4(lgtDat.vLocalCubeCapturePoint, 1.0), -vBoxOuterDistance, vBoxOuterDistance);	// probe space corrected reflection vector
 				worldNormal0 = mul( (float3x3) g_mViewToWorld, vPR.x*lgtDat.vLaxisX + vPR.y*lgtDat.vLaxisY + vPR.z*lgtDat.vLaxisZ );
 #endif
 			}
