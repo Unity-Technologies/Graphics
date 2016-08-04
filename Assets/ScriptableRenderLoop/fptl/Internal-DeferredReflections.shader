@@ -220,6 +220,7 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 
 				float4 vBoxOuterDistance = float4( lgtDat.vBoxInnerDist + float3(blendDistance, blendDistance, blendDistance), 0.0 );
 #if 0
+				// if rotation is NOT supported
 				worldNormal0 = BoxProjectedCubemapDirection(worldNormalRefl, posInProbeSpace, float4(-lgtDat.vProbeBoxOffset, 1.0), -vBoxOuterDistance, vBoxOuterDistance);
 #else
 				float3 probeSpaceRefl = float3( dot(vspaceRefl, lgtDat.vLaxisX), dot(vspaceRefl, lgtDat.vLaxisY), dot(vspaceRefl, lgtDat.vLaxisZ) );
