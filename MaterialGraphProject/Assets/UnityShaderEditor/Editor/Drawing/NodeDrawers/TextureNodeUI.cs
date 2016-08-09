@@ -6,9 +6,37 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph
 {
-    [CustomNodeUI(typeof(TextureNode))]
-    public class TextureNodeUI : AbstractMaterialNodeUI
+    [CustomNodeUI(typeof(PropertyNode))]
+    public class PropertyNodeUI : AbstractMaterialNodeUI
     {
+        public override float GetNodeUiHeight(float width)
+        {
+            return base.GetNodeUiHeight(width) + EditorGUIUtility.singleLineHeight * 1;
+        }
+
+        public override GUIModificationType Render(Rect area)
+        {
+            var localNode = node as PropertyNode;
+            if (localNode == null)
+                return base.Render(area);
+
+            var toReturn = GUIModificationType.None;
+
+            EditorGUI.BeginChangeCheck();
+            localNode.exposedState = (PropertyNode.ExposedState)EditorGUI.EnumPopup(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), new GUIContent("Exposed"), localNode.exposedState);
+            if (EditorGUI.EndChangeCheck())
+                toReturn |= GUIModificationType.DataChanged;
+
+            area.y += EditorGUIUtility.singleLineHeight;
+            area.height -= EditorGUIUtility.singleLineHeight;
+            toReturn |= base.Render(area);
+            return toReturn;
+        }
+    }
+
+    [CustomNodeUI(typeof(TextureNode))]
+    public class TextureNodeUI : PropertyNodeUI
+        {
         public override float GetNodeUiHeight(float width)
         {
             return base.GetNodeUiHeight(width) + EditorGUIUtility.singleLineHeight * 2;
@@ -30,9 +58,6 @@ namespace UnityEditor.MaterialGraph
             var localNode = node as TextureNode;
             if (localNode == null)
                 return base.Render(area);
-
-            if (localNode == null)
-                return GUIModificationType.None;
 
             EditorGUI.BeginChangeCheck();
             localNode.defaultTexture = EditorGUI.MiniThumbnailObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), new GUIContent("Texture"), localNode.defaultTexture, typeof(Texture2D), null) as Texture2D;

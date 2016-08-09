@@ -22,9 +22,7 @@ ${ZWrite}
 		#pragma debug
 
 ${LightingFunction}
-
 ${ShaderFunctions}
-
 ${ShaderPropertyUsages}
 
 		struct Input 

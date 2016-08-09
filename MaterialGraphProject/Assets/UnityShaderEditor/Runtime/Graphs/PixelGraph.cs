@@ -35,6 +35,11 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
+        public string name
+        {
+            get { return "Graph_ " + pixelMasterNode.GetVariableNameForNode(); }
+        }
+
         public override void OnAfterDeserialize()
         {
             base.OnAfterDeserialize();

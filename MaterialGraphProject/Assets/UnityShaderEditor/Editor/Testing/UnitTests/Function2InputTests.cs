@@ -32,7 +32,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 outputString.Deindent();
                 outputString.AddShaderChunk("}", false);
 
-                visitor.AddShaderChunk(outputString.GetShaderString(0), true, false);
+                visitor.AddShaderChunk(outputString.GetShaderString(0), true);
             }
         }
 
@@ -84,7 +84,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         }
 
         [Test]
-        public void TestGenerateNodeFunctionGeneratesCorrectCode()
+        public void TestGenerateNodeFunctionGeneratesCorrectCodeIndent0()
         {
             string expected =
                 "inline half unity_test_half (half arg1, half arg2)" + Environment.NewLine
@@ -95,6 +95,20 @@ namespace UnityEditor.MaterialGraph.UnitTests
             ShaderGenerator visitor = new ShaderGenerator();
             m_TestNode.GenerateNodeFunction(visitor, GenerationMode.SurfaceShader);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
+        }
+
+        [Test]
+        public void TestGenerateNodeFunctionGeneratesCorrectCodeIndent1()
+        {
+            string expected =
+                "\tinline half unity_test_half (half arg1, half arg2)" + Environment.NewLine
+                + "\t{" + Environment.NewLine
+                + "\t\treturn arg1 + arg2;" + Environment.NewLine
+                + "\t}" + Environment.NewLine;
+
+            ShaderGenerator visitor = new ShaderGenerator();
+            m_TestNode.GenerateNodeFunction(visitor, GenerationMode.SurfaceShader);
+            Assert.AreEqual(expected, visitor.GetShaderString(1));
         }
     }
 }

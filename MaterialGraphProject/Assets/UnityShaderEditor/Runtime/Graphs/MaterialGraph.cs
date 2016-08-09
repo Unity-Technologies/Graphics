@@ -42,50 +42,8 @@ namespace UnityEngine.MaterialGraph
                 return null;
 
             return m_PixelGraph.GetMaterial();
-        }
-
-        public void ExportShader(string path)
-        {
-            List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString = ShaderGenerator.GenerateSurfaceShader(this, name, false, out configuredTextures);
-            File.WriteAllText(path, shaderString);
-            AssetDatabase.Refresh(); // Investigate if this is optimal
-
-            var shader = AssetDatabase.LoadAssetAtPath(path, typeof(Shader)) as Shader;
-            if (shader == null)
-                return;
-
-            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
-            if (shaderImporter == null)
-                return;
-
-            var textureNames = new List<string>();
-            var textures = new List<Texture>();
-            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable))
-            {
-                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-                if (texture == null)
-                    continue;
-                textureNames.Add(textureInfo.name);
-                textures.Add(texture);
-            }
-            shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
-
-            textureNames.Clear();
-            textures.Clear();
-            foreach (var textureInfo in configuredTextures.Where(x => !x.modifiable))
-            {
-                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
-                if (texture == null)
-                    continue;
-                textureNames.Add(textureInfo.name);
-                textures.Add(texture);
-            }
-            shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
-
-            shaderImporter.SaveAndReimport();
         }*/
-
+        
         public void PostCreate()
         {
             m_PixelGraph.AddNode(new PixelShaderNode());
