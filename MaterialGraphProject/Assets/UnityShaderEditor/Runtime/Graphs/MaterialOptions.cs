@@ -62,25 +62,25 @@ namespace UnityEngine.MaterialGraph
         }
 
         [SerializeField]
-        private BlendMode m_SrcBlend;
+        private BlendMode m_SrcBlend = BlendMode.One;
 
         [SerializeField]
-        private BlendMode m_DstBlend;
+        private BlendMode m_DstBlend = BlendMode.Zero;
 
         [SerializeField]
-        private CullMode m_CullMode;
+        private CullMode m_CullMode = CullMode.Back;
 
         [SerializeField]
-        private ZTest m_ZTest;
+        private ZTest m_ZTest = ZTest.LEqual;
 
         [SerializeField]
-        private ZWrite m_ZWrite;
+        private ZWrite m_ZWrite = ZWrite.On;
 
         [SerializeField]
-        private RenderQueue m_RenderQueue;
+        private RenderQueue m_RenderQueue = RenderQueue.Geometry;
 
         [SerializeField]
-        private RenderType m_RenderType;
+        private RenderType m_RenderType = RenderType.Opaque;
 
         [SerializeField]
         private bool m_ShadowPass;
@@ -134,7 +134,8 @@ namespace UnityEngine.MaterialGraph
 
         public void GetTags(ShaderGenerator visitor)
         {
-            visitor.AddShaderChunk("Tags {", false);
+            visitor.AddShaderChunk("Tags", false);
+            visitor.AddShaderChunk("{", false);
             visitor.Indent();
             visitor.AddShaderChunk("\"RenderType\"=\"" + renderType + "\"", false);
             visitor.AddShaderChunk("\"Queue\"=\"" + renderQueue + "\"", false);

@@ -207,16 +207,7 @@ namespace UnityEditor.Graphing.Drawing
             EditorUtility.SetDirty(graphAsset.GetScriptableObject());
         }
 
-        /*        private string m_LastPath;
-                public void Export(bool quickExport)
-                {
-                    var path = quickExport ? m_LastPath : EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
-                    m_LastPath = path; // For quick exporting
-                    if (!string.IsNullOrEmpty(path))
-                        graph.ExportShader(path);
-                    else
-                        EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
-                }
+        /*      
             }
 
             public class FloatingPreview : CanvasElement

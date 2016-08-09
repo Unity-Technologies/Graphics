@@ -7,45 +7,35 @@ using UnityEngine.MaterialGraph;
 namespace UnityEditor.MaterialGraph
 {
     [CustomNodeUI(typeof(Vector1Node))]
-    public class Vector1NodeUI : ICustomNodeUi
+    public class Vector1NodeUI : PropertyNodeUI
     {
-        private Vector1Node m_Node;
-
-        public float GetNodeUiHeight(float width)
+        public override float GetNodeUiHeight(float width)
         {
-            return 2 * EditorGUIUtility.singleLineHeight;
+            return base.GetNodeUiHeight(width) + EditorGUIUtility.singleLineHeight;
         }
 
-        public GUIModificationType Render(Rect area)
+        public override GUIModificationType Render(Rect area)
         {
-            if (m_Node == null)
-                return GUIModificationType.None;
+            var localNode = node as Vector1Node;
+            if (localNode == null)
+                return base.Render(area);
 
             EditorGUI.BeginChangeCheck();
-            m_Node.value = EditorGUI.FloatField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), "Value", m_Node.value);
+            localNode.value = EditorGUI.FloatField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), "Value", localNode.value);
+            
+            var toReturn = GUIModificationType.None;
+
             if (EditorGUI.EndChangeCheck())
             {
                 //TODO:tidy this shit.
                 //EditorUtility.SetDirty(materialGraphOwner.owner);
-                return GUIModificationType.Repaint;
+                toReturn |= GUIModificationType.Repaint;
             }
-            return GUIModificationType.None;
-        }
 
-        public INode node
-        {
-            get { return m_Node; }
-            set
-            {
-                var materialNode = value as Vector1Node;
-                if (materialNode != null)
-                    m_Node = materialNode;
-            }
-        }
-
-        public float GetNodeWidth()
-        {
-            return 200;
+            area.y += EditorGUIUtility.singleLineHeight;
+            area.height -= EditorGUIUtility.singleLineHeight;
+            toReturn |= base.Render(area);
+            return toReturn;
         }
     }
 }

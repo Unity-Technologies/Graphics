@@ -21,7 +21,13 @@ namespace UnityEngine.MaterialGraph
 
         public ExposedState exposedState
         {
-            get { return m_Exposed; }
+            get
+            {
+                if (owner is SubGraph)
+                    return ExposedState.NotExposed;
+
+                return m_Exposed;
+            }
             set { m_Exposed = value; }
         }
 

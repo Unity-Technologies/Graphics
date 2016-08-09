@@ -317,7 +317,7 @@ namespace UnityEditor.Graphing.Drawing
                 InitializeCanvas();
             }
 
-            if (m_LastSelection == null ||  m_LastSelection.graph == null)
+            if (m_LastSelection == null || m_LastSelection.graph == null)
             {
                 GUILayout.Label("No Graph selected");
                 return;
@@ -327,6 +327,69 @@ namespace UnityEditor.Graphing.Drawing
 
             if (GUI.Button(new Rect(position.width - 250, 0, 250, 50), "Convert to Sub-Graph"))
                 ConvertSelectionToSubGraph();
+
+            if (GUI.Button(new Rect(position.width - 250, 70, 250, 50), "Export"))
+                Export(false);
+
+
+            if (GUI.Button(new Rect(position.width - 250, 140, 250, 50), "Export - quick"))
+                Export(true);
+        }
+
+        private string m_LastPath;
+        public void Export(bool quickExport)
+        {
+            var path = quickExport ? m_LastPath : EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
+            m_LastPath = path; // For quick exporting
+            if (!string.IsNullOrEmpty(path))
+                ExportShader(path);
+            else
+                EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
+        }
+
+        private void ExportShader(string path)
+        {
+            List<PropertyGenerator.TextureInfo> configuredTextures;
+
+            var materialGraph = m_DataSource.graphAsset.graph as PixelGraph;
+
+            var shaderString = ShaderGenerator.GenerateSurfaceShader(materialGraph.pixelMasterNode, new MaterialOptions(), materialGraph.name, false, out configuredTextures);
+            File.WriteAllText(path, shaderString);
+            AssetDatabase.Refresh(); // Investigate if this is optimal
+
+            var shader = AssetDatabase.LoadAssetAtPath(path, typeof(Shader)) as Shader;
+            if (shader == null)
+                return;
+
+            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
+            if (shaderImporter == null)
+                return;
+
+            var textureNames = new List<string>();
+            var textures = new List<Texture>();
+            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
+            {
+                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
+                if (texture == null)
+                    continue;
+                textureNames.Add(textureInfo.name);
+                textures.Add(texture);
+            }
+            shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
+
+            textureNames.Clear();
+            textures.Clear();
+            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
+            {
+                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
+                if (texture == null)
+                    continue;
+                textureNames.Add(textureInfo.name);
+                textures.Add(texture);
+            }
+            shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
+
+            shaderImporter.SaveAndReimport();
         }
 
         /*public void RenderOptions(MaterialGraph graph)

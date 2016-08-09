@@ -32,7 +32,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 outputString.Deindent();
                 outputString.AddShaderChunk("}", false);
 
-                visitor.AddShaderChunk(outputString.GetShaderString(0), true, false);
+                visitor.AddShaderChunk(outputString.GetShaderString(0), true);
             }
         }
 

@@ -143,6 +143,19 @@ namespace UnityEditor.MaterialGraph.UnitTests
         }
 
         [Test]
+        public void TestPropertyExposedOnSubgraphReturnsFalse()
+        {
+            var subGraph = new SubGraph();
+            var subNode = new TestPropertyNode();
+            subNode.exposedState = PropertyNode.ExposedState.Exposed;
+            subGraph.AddNode(subNode);
+            Assert.AreEqual(PropertyNode.ExposedState.NotExposed, subNode.exposedState);
+
+            m_PropertyNode.exposedState = PropertyNode.ExposedState.Exposed;
+            Assert.AreEqual(PropertyNode.ExposedState.Exposed, m_PropertyNode.exposedState);
+        }
+
+        [Test]
         public void TestVector1NodeTypeIsCorrect()
         {
             Assert.AreEqual(PropertyType.Float, m_Vector1Node.propertyType);

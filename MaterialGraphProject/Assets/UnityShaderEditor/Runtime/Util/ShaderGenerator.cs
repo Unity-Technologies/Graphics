@@ -12,20 +12,17 @@ namespace UnityEngine.MaterialGraph
     {
         private struct ShaderChunk
         {
-            public ShaderChunk(int indentLevel, string shaderChunkString, bool appendNewLineAfter)
+            public ShaderChunk(int indentLevel, string shaderChunkString)
             {
                 m_IndentLevel = indentLevel;
                 m_ShaderChunkString = shaderChunkString;
-                m_AppendNewLineAfter = appendNewLineAfter;
             }
 
             private readonly int m_IndentLevel;
             private readonly string m_ShaderChunkString;
-            private readonly bool m_AppendNewLineAfter;
 
             public int chunkIndentLevel { get { return m_IndentLevel; } }
             public string chunkString { get { return m_ShaderChunkString; } }
-            public bool appendNewLineAfter { get { return m_AppendNewLineAfter; } }
         }
 
         private readonly List<ShaderChunk> m_ShaderChunks = new List<ShaderChunk>();
@@ -42,12 +39,12 @@ namespace UnityEngine.MaterialGraph
             return m_Pragma;
         }
 
-        public void AddShaderChunk(string s, bool unique, bool appendNewLineAfter = true)
+        public void AddShaderChunk(string s, bool unique)
         {
             if (unique && m_ShaderChunks.Any(x => x.chunkString == s))
                 return;
 
-            m_ShaderChunks.Add(new ShaderChunk(m_IndentLevel, s, appendNewLineAfter));
+            m_ShaderChunks.Add(new ShaderChunk(m_IndentLevel, s));
         }
 
         public void Indent() { m_IndentLevel++; }
@@ -58,13 +55,15 @@ namespace UnityEngine.MaterialGraph
             var sb = new StringBuilder();
             foreach (var shaderChunk in m_ShaderChunks)
             {
-                for (var i = 0; i < shaderChunk.chunkIndentLevel + baseIndentLevel; i++)
-                    sb.Append("\t");
-
-                if (shaderChunk.appendNewLineAfter)
-                    sb.AppendLine(shaderChunk.chunkString);
-                else
-                    sb.Append(shaderChunk.chunkString);
+                var lines = shaderChunk.chunkString.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                for (int index = 0; index < lines.Length; index++)
+                {
+                    var line = lines[index];
+                    for (var i = 0; i < shaderChunk.chunkIndentLevel + baseIndentLevel; i++)
+                        sb.Append("\t");
+                    
+                    sb.AppendLine(line);
+                }
             }
             return sb.ToString();
         }
