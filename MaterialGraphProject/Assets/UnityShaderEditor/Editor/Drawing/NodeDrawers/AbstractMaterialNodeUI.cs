@@ -137,7 +137,7 @@ namespace UnityEditor.MaterialGraph
             if (m_PreviewShader == null)
             {
                 m_PreviewShader = ShaderUtil.CreateShaderAsset(resultShader);
-                m_PreviewShader.hideFlags = HideFlags.HideInHierarchy;
+                m_PreviewShader.hideFlags = HideFlags.HideAndDontSave;
             }
             else
             {
@@ -147,7 +147,7 @@ namespace UnityEditor.MaterialGraph
             return !ShaderHasError(m_PreviewShader);
         }
 
-        protected static bool ShaderHasError(Shader shader)
+        public static bool ShaderHasError(Shader shader)
         {
             var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
             var result = hasErrorsCall.Invoke(null, new object[] {shader});

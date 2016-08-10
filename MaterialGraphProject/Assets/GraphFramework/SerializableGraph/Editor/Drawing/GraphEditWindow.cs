@@ -23,6 +23,8 @@ namespace UnityEditor.Graphing.Drawing
 
     public abstract class AbstractGraphEditWindow<T> : EditorWindow, ISerializationCallbackReceiver where T : class, IGraphAsset
     {
+        public RenderTexture rt;
+
         [NonSerialized]
         private T m_LastSelection;
 
@@ -334,6 +336,9 @@ namespace UnityEditor.Graphing.Drawing
 
             if (GUI.Button(new Rect(position.width - 250, 140, 250, 50), "Export - quick"))
                 Export(true);
+
+
+            EditorGUI.ObjectField(new Rect(position.width - 250, 210, 250, 50), rt, typeof(RenderTexture), false);
         }
 
         private string m_LastPath;
@@ -342,28 +347,32 @@ namespace UnityEditor.Graphing.Drawing
             var path = quickExport ? m_LastPath : EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
             m_LastPath = path; // For quick exporting
             if (!string.IsNullOrEmpty(path))
-                ExportShader(path);
+                ExportShader(m_DataSource.graphAsset as MaterialGraphAsset, path);
             else
                 EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
         }
 
-        private void ExportShader(string path)
+        public static Shader ExportShader(MaterialGraphAsset graphAsset, string path)
         {
+            if (graphAsset == null)
+                return null;
+
+            var materialGraph = graphAsset.graph as PixelGraph;
+            if (materialGraph == null)
+                return null;
+
             List<PropertyGenerator.TextureInfo> configuredTextures;
-
-            var materialGraph = m_DataSource.graphAsset.graph as PixelGraph;
-
             var shaderString = ShaderGenerator.GenerateSurfaceShader(materialGraph.pixelMasterNode, new MaterialOptions(), materialGraph.name, false, out configuredTextures);
             File.WriteAllText(path, shaderString);
             AssetDatabase.Refresh(); // Investigate if this is optimal
 
             var shader = AssetDatabase.LoadAssetAtPath(path, typeof(Shader)) as Shader;
             if (shader == null)
-                return;
+                return null;
 
             var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
             if (shaderImporter == null)
-                return;
+                return null;
 
             var textureNames = new List<string>();
             var textures = new List<Texture>();
@@ -390,6 +399,8 @@ namespace UnityEditor.Graphing.Drawing
             shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
 
             shaderImporter.SaveAndReimport();
+
+            return shaderImporter.GetShader();
         }
 
         /*public void RenderOptions(MaterialGraph graph)
