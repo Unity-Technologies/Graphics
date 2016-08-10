@@ -69,6 +69,11 @@ namespace UnityEditor.MaterialGraph
 
         public Texture DoRenderPreview(Material mat, PreviewMode mode, Rect size)
         {
+            return DoRenderPreview(mat, mode, size, Time.realtimeSinceStartup);
+        }
+
+        public Texture DoRenderPreview(Material mat, PreviewMode mode, Rect size, float time)
+        {
             if (mat == null || mat.shader == null)
                 return Texture2D.blackTexture;
 
@@ -78,7 +83,7 @@ namespace UnityEditor.MaterialGraph
             {
                 m_PreviewUtility.m_Camera.transform.position = -Vector3.forward * 5;
                 m_PreviewUtility.m_Camera.transform.rotation = Quaternion.identity;
-                EditorUtility.SetCameraAnimateMaterialsTime(m_PreviewUtility.m_Camera, Time.realtimeSinceStartup);
+                EditorUtility.SetCameraAnimateMaterialsTime(m_PreviewUtility.m_Camera, time);
                 var amb = new Color(.2f, .2f, .2f, 0);
                 m_PreviewUtility.m_Light[0].intensity = 1.0f;
                 m_PreviewUtility.m_Light[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
