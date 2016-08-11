@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -20,6 +22,24 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             Debug.logger.logHandler = new ConsoleLogHandler();
         }
 
+        private static readonly string[] s_TexturePath =
+        {
+            "Assets",
+            "UnityShaderEditor",
+            "Editor",
+            "Testing",
+            "IntegrationTests",
+            "Textures",
+            "MudDiffuse.tif"
+
+        };
+
+        private static Texture2D FindTestTexture()
+        {
+            var texturePath = s_TexturePath.Aggregate(Path.Combine);
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+        }
+
         [SetUp]
         public void TestSetUp()
         {
@@ -37,8 +57,8 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
         [Test]
         public void TestTextureNodeReturnsCorrectValue()
         {
-            m_TextureNode.defaultTexture = null;
-            Assert.AreEqual(null, m_TextureNode.defaultTexture);
+            m_TextureNode.defaultTexture = FindTestTexture();
+            Assert.AreEqual(FindTestTexture(), m_TextureNode.defaultTexture);
 
             m_TextureNode.textureType = TextureType.Bump;
             Assert.AreEqual(TextureType.Bump, m_TextureNode.textureType);
@@ -48,13 +68,13 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
         public void TestTextureNodeReturnsPreviewProperty()
         {
             var props = new List<PreviewProperty>();
-            m_TextureNode.defaultTexture = null;
+            m_TextureNode.defaultTexture = FindTestTexture();
             m_TextureNode.CollectPreviewMaterialProperties(props);
-            Assert.AreEqual(props.Count, 1);
+            Assert.AreEqual(1, props.Count);
             Assert.AreEqual(m_TextureNode.propertyName, props[0].m_Name);
             Assert.AreEqual(m_TextureNode.propertyType, props[0].m_PropType);
             Assert.AreEqual(m_TextureNode.defaultTexture, props[0].m_Texture);
-            Assert.AreEqual(null, m_TextureNode.defaultTexture);
+            Assert.AreEqual(FindTestTexture(), m_TextureNode.defaultTexture);
         }
 
         [Test]
@@ -65,19 +85,24 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             m_TextureNode.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new PropertyGenerator();
             m_TextureNode.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
-            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
-            var expected = m_TextureNode.propertyName
+            var expected1 = "[NonModifiableTextureData] "
+                           + m_TextureNode.propertyName
                            + "(\""
                            + m_TextureNode.description
-                           + "\", Texture) = ("
-
-                           + ")"
+                           + "\", 2D) = \"bump\" {}"
                            + Environment.NewLine;
-
+            Assert.AreEqual(expected1, generator.GetShaderString(0));
+            
+            var expected2 = m_TextureNode.propertyName
+                           + "(\""
+                           + m_TextureNode.description
+                           + "\", 2D) = \"bump\" {}"
+                           + Environment.NewLine;
             m_TextureNode.exposedState = PropertyNode.ExposedState.Exposed;
+            generator = new PropertyGenerator();
             m_TextureNode.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
-            Assert.AreEqual(expected, generator.GetShaderString(0));
+            Assert.AreEqual(expected2, generator.GetShaderString(0));
         }
 
         [Test]
@@ -87,15 +112,14 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             m_TextureNode.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new ShaderGenerator();
             m_TextureNode.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
-            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
-
-            var expected = m_TextureNode.precision
-                           + "4 "
-                           + m_TextureNode.propertyName
-                           + ";"
-                           + Environment.NewLine;
-
+            var expected = "sampler2D "
+                          + m_TextureNode.propertyName
+                          + ";"
+                          + Environment.NewLine;
+            Assert.AreEqual(expected, generator.GetShaderString(0));
+           
             m_TextureNode.exposedState = PropertyNode.ExposedState.Exposed;
+            generator = new ShaderGenerator();
             m_TextureNode.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }

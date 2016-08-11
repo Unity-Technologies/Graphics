@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -24,11 +26,17 @@ namespace UnityEngine.MaterialGraph
         public const int OutputSlotAId = 5;
 
         [SerializeField]
-        private string m_TextureGuid;
+        private string m_SerializedTexture;
 
         [SerializeField]
         private TextureType m_TextureType;
 
+        [Serializable]
+        private class TextureHelper
+        {
+            public Texture2D texture;
+        }
+        
         public override bool hasPreview { get { return true; } }
 
 #if UNITY_EDITOR
@@ -36,34 +44,22 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-                if (string.IsNullOrEmpty(m_TextureGuid))
+                if (string.IsNullOrEmpty(m_SerializedTexture))
                     return null;
 
-                var path = AssetDatabase.GUIDToAssetPath(m_TextureGuid);
-                if (string.IsNullOrEmpty(path))
-                    return null;
-
-                return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                var tex = new TextureHelper();
+                EditorJsonUtility.FromJsonOverwrite(m_SerializedTexture, tex);
+                return tex.texture;
             }
             set
             {
-                var assetPath = AssetDatabase.GetAssetPath(value);
-                if (string.IsNullOrEmpty(assetPath))
-                    return;
-
-                m_TextureGuid = AssetDatabase.AssetPathToGUID(assetPath);
+                var tex = new TextureHelper();
+                tex.texture = value;
+                m_SerializedTexture = EditorJsonUtility.ToJson(tex, true);
             }
         }
 #else
-        public Texture2D defaultTexture
-        {
-            get
-            {
-                return Texture2D.whiteTexture;
-            }
-            set
-            {}
-        }
+        public Texture2D defaultTexture {get;set;}
 #endif
 
         public TextureType textureType
@@ -141,6 +137,11 @@ namespace UnityEngine.MaterialGraph
                     break;
             }
             return GetVariableNameForNode() + slotOutput;
+        }
+
+        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            properties.Add(GetPreviewProperty());
         }
 
         public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
