@@ -37,7 +37,7 @@ namespace UnityEngine.MaterialGraph
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
         {
             if (exposedState == ExposedState.Exposed)
-                visitor.AddShaderProperty(new ColorPropertyChunk(propertyName, description, m_Color, PropertyChunk.HideState.Visible));
+                visitor.AddShaderProperty(new ColorPropertyChunk(propertyName, description, color, PropertyChunk.HideState.Visible));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
@@ -52,7 +52,7 @@ namespace UnityEngine.MaterialGraph
             if (exposedState == ExposedState.Exposed || generationMode.IsPreview())
                 return;
 
-            visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + precision + "4 (" + m_Color.r + ", " + m_Color.g + ", " + m_Color.b + ", " + m_Color.a + ");", true);
+            visitor.AddShaderChunk(precision + "4 " + propertyName + " = " + precision + "4 (" + color.r + ", " + color.g + ", " + color.b + ", " + color.a + ");", true);
         }
 
         public override PreviewProperty GetPreviewProperty()
@@ -61,7 +61,7 @@ namespace UnityEngine.MaterialGraph
                    {
                        m_Name = propertyName,
                        m_PropType = PropertyType.Color,
-                       m_Color = m_Color
+                       m_Color = color
                    };
         }
     }
