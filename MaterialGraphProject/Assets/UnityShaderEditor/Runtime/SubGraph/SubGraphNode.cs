@@ -74,7 +74,7 @@ namespace UnityEngine.MaterialGraph
             mark dirty damn 
         }*/
 #else
-        public MaterialSubGraphAsset subGraphAsset {get; set:}
+        public MaterialSubGraphAsset subGraphAsset {get; set;}
 #endif
 
         private SubGraph subGraph
