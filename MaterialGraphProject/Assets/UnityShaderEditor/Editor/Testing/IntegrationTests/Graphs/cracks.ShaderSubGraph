@@ -122,8 +122,9 @@ MonoBehaviour:
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
         2,\\n    \\\"m_ShaderOutputName\\\": \\\"UV\\\"\\n}\"\n        }\n    ],\n
         \   \"m_OutputPrecision\": 1,\n    \"m_PropertyName\": \"\",\n    \"m_Description\":
-        \"\",\n    \"m_Exposed\": 1,\n    \"m_TextureGuid\": \"6e8d12f68bae2294da814f9d4c81b29a\",\n
-        \   \"m_TextureType\": 0\n}"
+        \"\",\n    \"m_Exposed\": 1,\n    \"m_SerializedTexture\": \"{\\n    \\\"texture\\\":
+        {\\n        \\\"fileID\\\": 2800000,\\n        \\\"guid\\\": \\\"6e8d12f68bae2294da814f9d4c81b29a\\\",\\n
+        \       \\\"type\\\": 3\\n    }\\n}\",\n    \"m_TextureType\": 0\n}"
     - typeInfo:
         fullName: UnityEngine.MaterialGraph.SubtractNode
         assemblyName: Assembly-CSharp
