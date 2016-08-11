@@ -9,7 +9,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 562bd27a5e73fc64d80a1d9d936ffbd5, type: 3}
-  m_Name: New Shader Graph 1
+  m_Name: WithSubGraph
   m_EditorClassIdentifier: 
   m_MaterialGraph:
     m_MaterialOptions:
@@ -181,8 +181,10 @@ MonoBehaviour:
           \       \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n
           \   },\\n    \\\"m_ConcreteValueType\\\": 2,\\n    \\\"m_ShaderOutputName\\\":
           \\\"UV\\\"\\n}\"\n        }\n    ],\n    \"m_OutputPrecision\": 1,\n    \"m_PropertyName\":
-          \"\",\n    \"m_Description\": \"\",\n    \"m_Exposed\": 1,\n    \"m_TextureGuid\":
-          \"76c3d794167d8524481195736f067518\",\n    \"m_TextureType\": 0\n}"
+          \"\",\n    \"m_Description\": \"\",\n    \"m_Exposed\": 1,\n    \"m_SerializedTexture\":
+          \"{\\n    \\\"texture\\\": {\\n        \\\"fileID\\\": 2800000,\\n        \\\"guid\\\":
+          \\\"76c3d794167d8524481195736f067518\\\",\\n        \\\"type\\\": 3\\n    }\\n}\",\n
+          \   \"m_TextureType\": 0\n}"
       - typeInfo:
           fullName: UnityEngine.MaterialGraph.Vector1Node
           assemblyName: Assembly-CSharp
@@ -265,7 +267,10 @@ MonoBehaviour:
           \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
           \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 4,\\n
           \   \\\"m_ShaderOutputName\\\": \\\"Output1\\\"\\n}\"\n        }\n    ],\n
-          \   \"m_OutputPrecision\": 1,\n    \"m_SubGraphAssetGuid\": \"63179f4461979734ba87324ec6b1268d\"\n}"
+          \   \"m_OutputPrecision\": 1,\n    \"m_SerializedSubGraph\": \"{\\n    \\\"subGraph\\\":
+          {\\n        \\\"fileID\\\": 11400000,\\n        \\\"guid\\\": \\\"63179f4461979734ba87324ec6b1268d\\\",\\n
+          \       \\\"type\\\": 2\\n    }\\n}\",\n    \"m_SubGraphAssetGuid\": \"\",\n
+          \   \"serializedVersion\": 1\n}"
       - typeInfo:
           fullName: UnityEngine.MaterialGraph.TextureNode
           assemblyName: Assembly-CSharp
@@ -333,8 +338,10 @@ MonoBehaviour:
           \       \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n
           \   },\\n    \\\"m_ConcreteValueType\\\": 2,\\n    \\\"m_ShaderOutputName\\\":
           \\\"UV\\\"\\n}\"\n        }\n    ],\n    \"m_OutputPrecision\": 1,\n    \"m_PropertyName\":
-          \"\",\n    \"m_Description\": \"\",\n    \"m_Exposed\": 1,\n    \"m_TextureGuid\":
-          \"5a5e07ee958edbd468227e1d9ac4726a\",\n    \"m_TextureType\": 3\n}"
+          \"\",\n    \"m_Description\": \"\",\n    \"m_Exposed\": 1,\n    \"m_SerializedTexture\":
+          \"{\\n    \\\"texture\\\": {\\n        \\\"fileID\\\": 2800000,\\n        \\\"guid\\\":
+          \\\"65e6d39bbd36f9c45a618111370cb870\\\",\\n        \\\"type\\\": 3\\n    }\\n}\",\n
+          \   \"m_TextureType\": 3\n}"
       - typeInfo:
           fullName: UnityEngine.MaterialGraph.ColorNode
           assemblyName: Assembly-CSharp
@@ -455,7 +462,10 @@ MonoBehaviour:
           \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
           \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 4,\\n
           \   \\\"m_ShaderOutputName\\\": \\\"Output1\\\"\\n}\"\n        }\n    ],\n
-          \   \"m_OutputPrecision\": 1,\n    \"m_SubGraphAssetGuid\": \"10c41d675e06a124a845154dccbcafa8\"\n}"
+          \   \"m_OutputPrecision\": 1,\n    \"m_SerializedSubGraph\": \"{\\n    \\\"subGraph\\\":
+          {\\n        \\\"fileID\\\": 11400000,\\n        \\\"guid\\\": \\\"10c41d675e06a124a845154dccbcafa8\\\",\\n
+          \       \\\"type\\\": 2\\n    }\\n}\",\n    \"m_SubGraphAssetGuid\": \"\",\n
+          \   \"serializedVersion\": 1\n}"
       m_SerializableEdges:
       - typeInfo:
           fullName: UnityEngine.Graphing.Edge

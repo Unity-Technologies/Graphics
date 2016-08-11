@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -13,42 +16,66 @@ namespace UnityEngine.MaterialGraph
         , IOnAssetEnabled
     {
         [SerializeField]
-        private string m_SubGraphAssetGuid;
+        private string m_SerializedSubGraph = string.Empty;
+
+        [Serializable]
+        private class SubGraphHelper
+        {
+            public MaterialSubGraphAsset subGraph;
+        }
+
 
 #if UNITY_EDITOR
         public MaterialSubGraphAsset subGraphAsset
         {
             get
             {
-                if (string.IsNullOrEmpty(m_SubGraphAssetGuid))
+
+                if (serializedVersion < kCurrentSerializedVersion)
+                    DoUpgrade();
+
+                if (string.IsNullOrEmpty(m_SerializedSubGraph))
                     return null;
 
-                var path = AssetDatabase.GUIDToAssetPath(m_SubGraphAssetGuid);
-                if (string.IsNullOrEmpty(path))
-                    return null;
-
-                return AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(path);
+                var helper = new SubGraphHelper();
+                EditorJsonUtility.FromJsonOverwrite(m_SerializedSubGraph, helper);
+                return helper.subGraph;
             }
             set
             {
-                var assetPath = AssetDatabase.GetAssetPath(value);
-                if (string.IsNullOrEmpty(assetPath))
-                    return;
-
-                m_SubGraphAssetGuid = AssetDatabase.AssetPathToGUID(assetPath);
+                var helper = new SubGraphHelper();
+                helper.subGraph = value;
+                m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
                 OnEnable();
             }
         }
-#else
-        public MaterialSubGraphAsset subGraphAsset
+
+       // SAVED FOR LATER
+        [SerializeField]
+        private string m_SubGraphAssetGuid;
+
+        [SerializeField]
+        private int serializedVersion = 0;
+        const int kCurrentSerializedVersion = 1;
+        
+        private void DoUpgrade()
         {
-            get
-            {
-                return null;
-            }
-            set
-            {}
+            var helper = new SubGraphHelper();
+            if (string.IsNullOrEmpty(m_SubGraphAssetGuid))
+                helper.subGraph = null;
+
+            var path = AssetDatabase.GUIDToAssetPath(m_SubGraphAssetGuid);
+            if (string.IsNullOrEmpty(path))
+                helper.subGraph = null;
+
+            helper.subGraph = AssetDatabase.LoadAssetAtPath<MaterialSubGraphAsset>(path);
+
+            m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
+            serializedVersion = kCurrentSerializedVersion;
+            m_SubGraphAssetGuid = string.Empty;
         }
+#else
+        public MaterialSubGraphAsset subGraphAsset {get; set:}
 #endif
 
         private SubGraph subGraph
