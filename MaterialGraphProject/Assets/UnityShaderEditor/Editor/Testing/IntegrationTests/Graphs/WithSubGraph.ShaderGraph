@@ -120,8 +120,8 @@ MonoBehaviour:
         JSONnodeData: "{\n    \"m_GuidSerialized\": \"f4d20b5e-052c-48dd-8232-e0a67d391307\",\n
           \   \"m_Name\": \"Texture\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
           false,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-          \           \"x\": -30.83177947998047,\n            \"y\": -514.542236328125,\n
-          \           \"width\": -1367.957763671875,\n            \"height\": 568.8974609375\n
+          \           \"x\": -49.50739288330078,\n            \"y\": -533.2178344726563,\n
+          \           \"width\": -1349.2821044921875,\n            \"height\": 587.5730590820313\n
           \       }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\":
           {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
           \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
@@ -182,7 +182,7 @@ MonoBehaviour:
           \   },\\n    \\\"m_ConcreteValueType\\\": 2,\\n    \\\"m_ShaderOutputName\\\":
           \\\"UV\\\"\\n}\"\n        }\n    ],\n    \"m_OutputPrecision\": 1,\n    \"m_PropertyName\":
           \"\",\n    \"m_Description\": \"\",\n    \"m_Exposed\": 1,\n    \"m_TextureGuid\":
-          \"28bdf1ba8c076ef4e910b59cc1baf342\",\n    \"m_TextureType\": 0\n}"
+          \"76c3d794167d8524481195736f067518\",\n    \"m_TextureType\": 0\n}"
       - typeInfo:
           fullName: UnityEngine.MaterialGraph.Vector1Node
           assemblyName: Assembly-CSharp
