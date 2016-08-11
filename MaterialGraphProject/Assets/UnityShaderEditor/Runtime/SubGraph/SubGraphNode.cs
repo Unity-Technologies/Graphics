@@ -30,10 +30,6 @@ namespace UnityEngine.MaterialGraph
         {
             get
             {
-
-                if (serializedVersion < kCurrentSerializedVersion)
-                    DoUpgrade();
-
                 if (string.IsNullOrEmpty(m_SerializedSubGraph))
                     return null;
 
@@ -49,8 +45,10 @@ namespace UnityEngine.MaterialGraph
                 OnEnable();
             }
         }
-
+        /*
        // SAVED FOR LATER
+        if (serializedVersion<kCurrentSerializedVersion)
+                    DoUpgrade();
         [SerializeField]
         private string m_SubGraphAssetGuid;
 
@@ -73,7 +71,8 @@ namespace UnityEngine.MaterialGraph
             m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
             serializedVersion = kCurrentSerializedVersion;
             m_SubGraphAssetGuid = string.Empty;
-        }
+            mark dirty damn 
+        }*/
 #else
         public MaterialSubGraphAsset subGraphAsset {get; set:}
 #endif
