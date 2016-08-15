@@ -134,7 +134,7 @@ half4 frag (v2f i) : SV_Target
 	//return float4(pow(c,1/2.2),1.0);
 }
 
-struct UnityStandardData
+struct StandardData
 {
 	float3 specularColor;
 	float3 diffuseColor;
@@ -142,9 +142,9 @@ struct UnityStandardData
 	float smoothness;
 };
 
-UnityStandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, float4 gbuffer2)
+StandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, float4 gbuffer2)
 {
-	UnityStandardData data;
+	StandardData data;
 
 	data.normalWorld = normalize(2*gbuffer2.xyz-1);
 	data.smoothness = gbuffer1.a;
@@ -166,7 +166,7 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 	float4 gbuffer1 = _CameraGBufferTexture1.Load( uint3(pixCoord.xy, 0) );
 	float4 gbuffer2 = _CameraGBufferTexture2.Load( uint3(pixCoord.xy, 0) );
 
-	UnityStandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+	StandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
 
 
 	float oneMinusReflectivity = 1.0 - SpecularStrength(data.specularColor.rgb);
@@ -223,7 +223,6 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			UnityLight light;
 			light.color.xyz = lgtDat.vCol.xyz*atten;
 			light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;		//unity_CameraToWorld
-			light.ndotl = LambertTerm(data.normalWorld, light.dir.xyz);
 
 			ints += UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind);
 					
@@ -256,7 +255,6 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			UnityLight light;
 			light.color.xyz = lgtDat.vCol.xyz*atten;
 			light.dir.xyz = vLw;
-			light.ndotl = LambertTerm(data.normalWorld, vLw);
 					
 			ints += UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind);
 					

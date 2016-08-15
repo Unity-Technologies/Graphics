@@ -128,7 +128,7 @@ half4 frag (v2f i) : SV_Target
 	return float4(c,1.0);
 }
 
-struct UnityStandardData
+struct StandardData
 {
 	float3 specularColor;
 	float3 diffuseColor;
@@ -137,9 +137,9 @@ struct UnityStandardData
 	float occlusion;
 };
 
-UnityStandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, float4 gbuffer2)
+StandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, float4 gbuffer2)
 {
-	UnityStandardData data;
+	StandardData data;
 
 	data.normalWorld = normalize(2*gbuffer2.xyz-1);
 	data.smoothness = gbuffer1.a;
@@ -169,7 +169,7 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 	float4 gbuffer1 = _CameraGBufferTexture1.Load( uint3(pixCoord.xy, 0) );
 	float4 gbuffer2 = _CameraGBufferTexture2.Load( uint3(pixCoord.xy, 0) );
 
-	UnityStandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+	StandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
 	
 	float oneMinusReflectivity = 1.0 - SpecularStrength(data.specularColor.rgb);
 	float3 worldNormalRefl = reflect(-vWSpaceVDir, data.normalWorld);
@@ -180,7 +180,7 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 	UnityLight light;
 	light.color = 0;
 	light.dir = 0;
-	light.ndotl = 0;
+	//light.ndotl = 0;
 
 	float3 ints = 0;
 
@@ -231,7 +231,7 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 				worldNormal0 = worldNormalRefl;
 
 			Unity_GlossyEnvironmentData g;
-			g.roughness		= 1 - data.smoothness;
+			g.perceptualRoughness = SmoothnessToPerceptualRoughness(data.smoothness);
 			g.reflUVW		= worldNormal0;
 
 			half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), lgtDat.iSliceIndex, float4(lgtDat.fLightIntensity, lgtDat.fDecodeExp, 0.0, 0.0), g);
@@ -301,9 +301,9 @@ half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, hal
 {
 #if UNITY_GLOSS_MATCHES_MARMOSET_TOOLBAG2 && (SHADER_TARGET >= 30)
 	// TODO: remove pow, store cubemap mips differently
-	half roughness = pow(glossIn.roughness, 3.0/4.0);
+	half roughness = pow(glossIn.perceptualRoughness, 3.0/4.0);
 #else
-	half roughness = glossIn.roughness;			// MM: switched to this
+	half roughness = glossIn.perceptualRoughness;			// MM: switched to this
 #endif
 	//roughness = sqrt(sqrt(2/(64.0+2)));		// spec power to the square root of real roughness
 
