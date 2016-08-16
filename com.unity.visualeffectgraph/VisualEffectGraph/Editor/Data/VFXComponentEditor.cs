@@ -223,9 +223,12 @@ public class VFXComponentEditor : Editor
             GL.sRGBWrite = false;
         }
 
+        CanSetOverride = true;
         foreach (var exposed in m_ExposedData)
             if (exposed.widget != null)
                 exposed.widget.OnSceneGUI(SceneView.currentDrawingSceneView);
+        CanSetOverride = false;
+
     }
 
     public void DrawPlayControlsWindow(int windowID)
