@@ -218,7 +218,7 @@ float ComputeShadow_PCF_3x3_Gaussian(float3 vPositionWs, float4x4 matWorldToShad
 		return 1.0f;
 
 	//float objDepth = saturate( vPositionTextureSpace.z - 0.000001 );
-	float objDepth = (vPositionTextureSpace.z);
+	float objDepth = 1 - vPositionTextureSpace.z;
 
 	/* // Depth texture visualization
 	if ( 1 )
