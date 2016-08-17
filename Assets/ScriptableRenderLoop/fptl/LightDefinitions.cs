@@ -28,7 +28,7 @@ public struct SFiniteLightData
     public float fDecodeExp;
 
     public Vec3 vBoxInvRange;
-    public float fPad0;
+	public uint uShadowLightIndex;
 
     public Vec3 vLocalCubeCapturePoint;
     public float fProbeBlendDistance;
@@ -43,6 +43,21 @@ public struct SFiniteLightBound
     public Vec3 vCen;		// a center in camera space inside the bounding volume of the light source.
     public Vec2 vScaleXY;
     public float fRadius;
+};
+
+public struct DirectionalLight
+{
+	public Vec3 vCol;
+	public float fLightIntensity;
+
+	public Vec3 vLaxisX;
+	public int iSliceIndex;
+
+	public Vec3 vLaxisY;
+	public float fPad0;
+
+	public Vec3 vLaxisZ;
+	public float fPad1;
 };
 
 #if !__HLSL

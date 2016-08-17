@@ -57,6 +57,34 @@ StructuredBuffer<uint> g_vLightList;
 StructuredBuffer<SFiniteLightData> g_vLightData;
 
 
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+// TODO:  clean up.. -va
+#define MAX_SHADOW_LIGHTS 10
+#define MAX_SHADOWMAP_PER_LIGHT 6
+#define MAX_DIRECTIONAL_SPLIT  4
+
+#define CUBEMAPFACE_POSITIVE_X 0
+#define CUBEMAPFACE_NEGATIVE_X 1
+#define CUBEMAPFACE_POSITIVE_Y 2
+#define CUBEMAPFACE_NEGATIVE_Y 3
+#define CUBEMAPFACE_POSITIVE_Z 4
+#define CUBEMAPFACE_NEGATIVE_Z 5
+
+CBUFFER_START(ShadowLightData)
+
+float4 g_vShadow3x3PCFTerms0;
+float4 g_vShadow3x3PCFTerms1;
+float4 g_vShadow3x3PCFTerms2;
+float4 g_vShadow3x3PCFTerms3;
+
+float4 g_vDirShadowSplitSpheres[MAX_DIRECTIONAL_SPLIT];
+float4x4 g_matWorldToShadow[MAX_SHADOW_LIGHTS * MAX_SHADOWMAP_PER_LIGHT];
+
+CBUFFER_END
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 float GetLinearDepth(float3 vP)
 {
 	Vec3 var = 1.0;
@@ -96,6 +124,101 @@ uint FetchIndex(const uint tileOffs, const uint l)
 float3 ExecuteLightList(uint2 pixCoord, const uint offs);
 float3 OverlayHeatMap(uint uNumLights, float3 c);
 
+#define VALVE_DECLARE_SHADOWMAP( tex ) Texture2D tex; SamplerComparisonState sampler##tex
+#define VALVE_SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, (coord).z )
+
+VALVE_DECLARE_SHADOWMAP(g_tShadowBuffer);
+
+float ComputeShadow_PCF_3x3_Gaussian(float3 vPositionWs, float4x4 matWorldToShadow)
+{
+	float4 vPositionTextureSpace = mul(float4(vPositionWs.xyz, 1.0), matWorldToShadow);
+	vPositionTextureSpace.xyz /= vPositionTextureSpace.w;
+
+	float2 shadowMapCenter = vPositionTextureSpace.xy;
+
+	if ((shadowMapCenter.x < 0.0f) || (shadowMapCenter.x > 1.0f) || (shadowMapCenter.y < 0.0f) || (shadowMapCenter.y > 1.0f))
+		return 1.0f;
+
+	float objDepth = saturate(1.001f - vPositionTextureSpace.z);
+
+	float4 v20Taps;
+	v20Taps.x = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.xy, objDepth)).x; //  1  1
+	v20Taps.y = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.zy, objDepth)).x; // -1  1
+	v20Taps.z = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.xw, objDepth)).x; //  1 -1
+	v20Taps.w = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.zw, objDepth)).x; // -1 -1
+	float flSum = dot(v20Taps.xyzw, float4(0.25, 0.25, 0.25, 0.25));
+	if ((flSum == 0.0) || (flSum == 1.0))
+		return flSum;
+	flSum *= g_vShadow3x3PCFTerms0.x * 4.0;
+
+	float4 v33Taps;
+	v33Taps.x = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms2.xz, objDepth)).x; //  1  0
+	v33Taps.y = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms3.xz, objDepth)).x; // -1  0
+	v33Taps.z = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms3.zy, objDepth)).x; //  0 -1
+	v33Taps.w = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms2.zy, objDepth)).x; //  0  1
+	flSum += dot(v33Taps.xyzw, g_vShadow3x3PCFTerms0.yyyy);
+
+	flSum += VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy, objDepth)).x * g_vShadow3x3PCFTerms0.z;
+
+	return flSum;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+/**
+* Gets the cascade weights based on the world position of the fragment and the positions of the split spheres for each cascade.
+* Returns an invalid split index if past shadowDistance (ie 4 is invalid for cascade)
+*/
+float GetSplitSphereIndexForDirshadows(float3 wpos)
+{
+	float3 fromCenter0 = wpos.xyz - g_vDirShadowSplitSpheres[0].xyz;
+	float3 fromCenter1 = wpos.xyz - g_vDirShadowSplitSpheres[1].xyz;
+	float3 fromCenter2 = wpos.xyz - g_vDirShadowSplitSpheres[2].xyz;
+	float3 fromCenter3 = wpos.xyz - g_vDirShadowSplitSpheres[3].xyz;
+	float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
+
+	float4 vDirShadowSplitSphereSqRadii;
+	vDirShadowSplitSphereSqRadii.x = g_vDirShadowSplitSpheres[0].w;
+	vDirShadowSplitSphereSqRadii.y = g_vDirShadowSplitSpheres[1].w;
+	vDirShadowSplitSphereSqRadii.z = g_vDirShadowSplitSpheres[2].w;
+	vDirShadowSplitSphereSqRadii.w = g_vDirShadowSplitSpheres[3].w;
+	fixed4 weights = float4(distances2 < vDirShadowSplitSphereSqRadii);
+	weights.yzw = saturate(weights.yzw - weights.xyz);
+	return 4 - dot(weights, float4(4, 3, 2, 1));
+}
+
+float SampleShadow(uint type, float3 vPositionWs, float3 vPositionToLightDirWs, uint lightIndex)
+{
+	float flShadowScalar = 1.0;
+	int shadowSplitIndex = 0;
+
+	/*if (type == DIRECTIONAL_LIGHT)
+	{
+		shadowSplitIndex = GetSplitSphereIndexForDirshadows(vPositionWs);
+	}
+
+	else */if (type == SPHERE_LIGHT)
+	{
+		float3 absPos = abs(vPositionToLightDirWs);
+		shadowSplitIndex = (vPositionToLightDirWs.z > 0) ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
+		if (absPos.x > absPos.y)
+		{
+			if (absPos.x > absPos.z)
+			{
+				shadowSplitIndex = (vPositionToLightDirWs.x > 0) ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
+			}
+		}
+		else
+		{
+			if (absPos.y > absPos.z)
+			{
+				shadowSplitIndex = (vPositionToLightDirWs.y > 0) ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
+			}
+		}
+	}
+
+	flShadowScalar = ComputeShadow_PCF_3x3_Gaussian(vPositionWs.xyz, g_matWorldToShadow[lightIndex * MAX_SHADOWMAP_PER_LIGHT + shadowSplitIndex]);
+	return flShadowScalar;
+}
 
 struct v2f {
 	float4 vertex : SV_POSITION;
@@ -183,6 +306,8 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 	
 	uint l=0;
 
+	float3 vPositionWs = mul(g_mViewToWorld, float4(vP, 1));
+
 	// we need this outer loop for when we cannot assume a wavefront is 64 wide
 	// since in this case we cannot assume the lights will remain sorted by type
 	// during processing in lightlist_cs.hlsl
@@ -202,7 +327,7 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			float3 toLight  = vLp - vP;
 			float dist = length(toLight);
 			float3 vL = toLight / dist;
-
+			
 			float attLookUp = dist*lgtDat.fRecipRange; attLookUp *= attLookUp;
 			float atten = tex2Dlod(_LightTextureB0, float4(attLookUp.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
 					
@@ -219,6 +344,8 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			}
 			atten *= angularAtt*(fProjVec>0.0);                           // finally apply this to the dist att.
 					
+			float shadowScalar = SampleShadow(SPOT_LIGHT, vPositionWs, 0, lgtDat.uShadowLightIndex);
+			atten *= shadowScalar;
 
 			UnityLight light;
 			light.color.xyz = lgtDat.vCol.xyz*atten;
@@ -250,7 +377,9 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			{
 				atten *= UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(-vLw, lgtDat.iSliceIndex), 0.0).w;
 			}
-					
+			
+			float shadowScalar = SampleShadow(SPHERE_LIGHT, vPositionWs, vLw, lgtDat.uShadowLightIndex);
+			atten *= shadowScalar;
 
 			UnityLight light;
 			light.color.xyz = lgtDat.vCol.xyz*atten;
