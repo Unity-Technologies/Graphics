@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
+using System;
 using System.Collections;
-
 using UnityEditor;
 
 namespace UnityEngine.ScriptableRenderLoop
@@ -16,6 +16,10 @@ namespace UnityEngine.ScriptableRenderLoop
 			AssetDatabase.CreateAsset(instance, "Assets/renderloopfptl.asset");
 			//AssetDatabase.CreateAsset(instance, "Assets/ScriptableRenderLoop/fptl/renderloopfptl.asset");
 		}
+
+		[SerializeField]
+		ShadowSettings m_ShadowSettings = ShadowSettings.Default;
+		ShadowRenderPass m_ShadowPass;
 
 		public Shader m_DeferredShader;
 		public Shader m_DeferredReflectionShader;
@@ -42,6 +46,15 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		public const int gMaxNumLights = 1024;
 		public const float gFltMax = 3.402823466e+38F;
+
+		const int MAX_LIGHTS = 10;
+		const int MAX_SHADOWMAP_PER_LIGHTS = 6;
+		const int MAX_DIRECTIONAL_SPLIT = 4;
+		// Directional lights become spotlights at a far distance. This is the distance we pull back to set the spotlight origin.
+		const float DIRECTIONAL_LIGHT_PULLBACK_DISTANCE = 10000.0f;
+
+		[NonSerialized]
+		private int m_nWarnedTooManyLights = 0;
 
 		private TextureCache2D m_cookieTexArray;
 		private TextureCacheCubemap m_cubeCookieTexArray;
@@ -121,6 +134,8 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
 			m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
 			m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
+
+			m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
 		}
 
 		void OnDisable()
@@ -230,6 +245,109 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.SetComputeFloatParams(shadercs, name, data);
 		}
 
+		//---------------------------------------------------------------------------------------------------------------------------------------------------
+		void UpdateShadowConstants(ActiveLight[] activeLights, ref ShadowOutput shadow)
+		{
+			int nNumLightsIncludingTooMany = 0;
+
+			int g_nNumLights = 0;
+
+			Vector4[] g_vLightShadowIndex_vLightParams = new Vector4[MAX_LIGHTS];
+			Vector4[] g_vLightFalloffParams = new Vector4[MAX_LIGHTS];
+			Matrix4x4[] g_matWorldToShadow = new Matrix4x4[MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS];
+			Vector4[] g_vDirShadowSplitSpheres = new Vector4[MAX_DIRECTIONAL_SPLIT];
+
+			for (int nLight = 0; nLight < activeLights.Length; nLight++)
+			{
+
+				nNumLightsIncludingTooMany++;
+				if (nNumLightsIncludingTooMany > MAX_LIGHTS)
+					continue;
+
+				ActiveLight light = activeLights[nLight];
+				LightType lightType = light.lightType;
+				Vector3 position = light.light.transform.position;
+				Vector3 lightDir = light.light.transform.forward.normalized;
+
+				// Setup shadow data arrays
+				bool hasShadows = shadow.GetShadowSliceCountLightIndex(nLight) != 0;
+
+				if (lightType == LightType.Directional)
+				{
+					g_vLightShadowIndex_vLightParams[g_nNumLights] = new Vector4(0, 0, 1, 1);
+					g_vLightFalloffParams[g_nNumLights] = new Vector4(0.0f, 0.0f, float.MaxValue, (float)lightType);
+
+					if (hasShadows)
+					{
+						for (int s = 0; s < MAX_DIRECTIONAL_SPLIT; ++s)
+						{
+							g_vDirShadowSplitSpheres[s] = shadow.directionalShadowSplitSphereSqr[s];
+						}
+					}
+				}
+				else if (lightType == LightType.Point)
+				{
+					g_vLightShadowIndex_vLightParams[g_nNumLights] = new Vector4(0, 0, 1, 1);
+					g_vLightFalloffParams[g_nNumLights] = new Vector4(1.0f, 0.0f, light.range * light.range, (float)lightType);
+				}
+				else if (lightType == LightType.Spot)
+				{
+					g_vLightShadowIndex_vLightParams[g_nNumLights] = new Vector4(0, 0, 1, 1);
+					g_vLightFalloffParams[g_nNumLights] = new Vector4(1.0f, 0.0f, light.range * light.range, (float)lightType);
+				}
+
+				if (hasShadows)
+				{
+					// Enable shadows
+					g_vLightShadowIndex_vLightParams[g_nNumLights].x = 1;
+					for (int s = 0; s < shadow.GetShadowSliceCountLightIndex(nLight); ++s)
+					{
+						int shadowSliceIndex = shadow.GetShadowSliceIndex(nLight, s);
+						g_matWorldToShadow[g_nNumLights * MAX_SHADOWMAP_PER_LIGHTS + s] = shadow.shadowSlices[shadowSliceIndex].shadowTransform.transpose;
+					}
+				}
+
+				g_nNumLights++;
+			}
+
+			// Warn if too many lights found
+			if (nNumLightsIncludingTooMany > MAX_LIGHTS)
+			{
+				if (nNumLightsIncludingTooMany > m_nWarnedTooManyLights)
+				{
+					Debug.LogError("ERROR! Found " + nNumLightsIncludingTooMany + " runtime lights! Valve renderer supports up to " + MAX_LIGHTS +
+						" active runtime lights at a time!\nDisabling " + (nNumLightsIncludingTooMany - MAX_LIGHTS) + " runtime light" +
+						((nNumLightsIncludingTooMany - MAX_LIGHTS) > 1 ? "s" : "") + "!\n");
+				}
+				m_nWarnedTooManyLights = nNumLightsIncludingTooMany;
+			}
+			else
+			{
+				if (m_nWarnedTooManyLights > 0)
+				{
+					m_nWarnedTooManyLights = 0;
+					Debug.Log("SUCCESS! Found " + nNumLightsIncludingTooMany + " runtime lights which is within the supported number of lights, " + MAX_LIGHTS + ".\n\n");
+				}
+			}
+
+			// Send constants to shaders
+			Shader.SetGlobalMatrixArray("g_matWorldToShadow", g_matWorldToShadow);
+			Shader.SetGlobalVectorArray("g_vDirShadowSplitSpheres", g_vDirShadowSplitSpheres);
+
+			// PCF 3x3 Shadows
+			float flTexelEpsilonX = 1.0f / m_ShadowSettings.shadowAtlasWidth;
+			float flTexelEpsilonY = 1.0f / m_ShadowSettings.shadowAtlasHeight;
+			Vector4 g_vShadow3x3PCFTerms0 = new Vector4(20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f);
+			Vector4 g_vShadow3x3PCFTerms1 = new Vector4(flTexelEpsilonX, flTexelEpsilonY, -flTexelEpsilonX, -flTexelEpsilonY);
+			Vector4 g_vShadow3x3PCFTerms2 = new Vector4(flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f);
+			Vector4 g_vShadow3x3PCFTerms3 = new Vector4(-flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f);
+
+			Shader.SetGlobalVector("g_vShadow3x3PCFTerms0", g_vShadow3x3PCFTerms0);
+			Shader.SetGlobalVector("g_vShadow3x3PCFTerms1", g_vShadow3x3PCFTerms1);
+			Shader.SetGlobalVector("g_vShadow3x3PCFTerms2", g_vShadow3x3PCFTerms2);
+			Shader.SetGlobalVector("g_vShadow3x3PCFTerms3", g_vShadow3x3PCFTerms3);
+		}
+
 		int GenerateSourceLightBuffers(Camera camera, CullResults inputs)
 		{
 			ReflectionProbe[] probes = Object.FindObjectsOfType<ReflectionProbe>();
@@ -244,6 +362,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			Matrix4x4 worldToView = camera.worldToCameraMatrix;
 
 			int i = 0;
+			uint shadowLightIndex = 0;
 			foreach (var cl in inputs.culledLights)
 			{
 				float range = cl.range;
@@ -264,6 +383,8 @@ namespace UnityEngine.ScriptableRenderLoop
 				lightData[i].vCol = new Vec3(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
 				lightData[i].iSliceIndex = 0;
 				lightData[i].uLightModel = (uint)LightDefinitions.DIRECT_LIGHT;
+				lightData[i].uShadowLightIndex = shadowLightIndex;
+				shadowLightIndex++;
 
 				bool bHasCookie = cl.light.cookie != null;
 
@@ -503,6 +624,8 @@ namespace UnityEngine.ScriptableRenderLoop
 				if (!CullResults.GetCullingParameters(camera, out cullingParams))
 					continue;
 
+				m_ShadowPass.UpdateCullingParameters(ref cullingParams);
+
 				if (CullResults.Cull(camera, renderLoop, out cullResults))
 					ExecuteRenderLoop(camera, cullResults, renderLoop);
 			}
@@ -513,11 +636,17 @@ namespace UnityEngine.ScriptableRenderLoop
 			// do anything we need to do upon a new frame.
 			NewFrame();
 
+			ShadowOutput shadows;
+			m_ShadowPass.Render(loop, cullResults, out shadows);
+
 			//m_DeferredMaterial.SetInt("_SrcBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.DstColor);
 			//m_DeferredMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
 			//m_DeferredReflectionMaterial.SetInt("_SrcBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.DstColor);
 			//m_DeferredReflectionMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
 			loop.SetupCameraProperties(camera);
+
+			UpdateShadowConstants(cullResults.culledLights, ref shadows);
+
 			RenderGBuffer(cullResults, camera, loop);
 
 			//@TODO: render forward-only objects into depth buffer
