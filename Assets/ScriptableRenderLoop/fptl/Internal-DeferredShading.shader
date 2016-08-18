@@ -45,19 +45,7 @@ uniform float4x4 g_mViewToWorld;
 uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
 uniform float g_flipVertical; // giant temp hack, see DoTiledDeferredLighting()
-
-Texture2D _CameraDepthTexture;
-Texture2D _CameraGBufferTexture0;
-Texture2D _CameraGBufferTexture1;
-Texture2D _CameraGBufferTexture2;
-//UNITY_DECLARE_TEX2D(_LightTextureB0);
-sampler2D _LightTextureB0;
-UNITY_DECLARE_TEX2DARRAY(_spotCookieTextures);
-UNITY_DECLARE_TEXCUBEARRAY(_pointCookieTextures);
-		
-StructuredBuffer<uint> g_vLightList;
-StructuredBuffer<SFiniteLightData> g_vLightData;
-
+uniform uint g_nDirLights;
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
 // TODO:  clean up.. -va
@@ -84,6 +72,22 @@ float4x4 g_matWorldToShadow[MAX_SHADOW_LIGHTS * MAX_SHADOWMAP_PER_LIGHT];
 
 CBUFFER_END
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Texture2D _CameraDepthTexture;
+Texture2D _CameraGBufferTexture0;
+Texture2D _CameraGBufferTexture1;
+Texture2D _CameraGBufferTexture2;
+//UNITY_DECLARE_TEX2D(_LightTextureB0);
+sampler2D _LightTextureB0;
+UNITY_DECLARE_TEX2DARRAY(_spotCookieTextures);
+UNITY_DECLARE_TEXCUBEARRAY(_pointCookieTextures);
+		
+StructuredBuffer<uint> g_vLightList;
+StructuredBuffer<SFiniteLightData> g_vLightData;
+StructuredBuffer<DirectionalLight> g_dirLightData;
+
+
 
 
 
@@ -141,7 +145,7 @@ float ComputeShadow_PCF_3x3_Gaussian(float3 vPositionWs, float4x4 matWorldToShad
 	if ((shadowMapCenter.x < 0.0f) || (shadowMapCenter.x > 1.0f) || (shadowMapCenter.y < 0.0f) || (shadowMapCenter.y > 1.0f))
 		return 1.0f;
 
-	float objDepth = saturate(1.001f - vPositionTextureSpace.z);
+	float objDepth = saturate(257.0 / 256.0 - vPositionTextureSpace.z);
 
 	float4 v20Taps;
 	v20Taps.x = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.xy, objDepth)).x; //  1  1
@@ -193,12 +197,12 @@ float SampleShadow(uint type, float3 vPositionWs, float3 vPositionToLightDirWs, 
 	float flShadowScalar = 1.0;
 	int shadowSplitIndex = 0;
 
-	/*if (type == DIRECTIONAL_LIGHT)
+	if (type == DIRECTIONAL_LIGHT)
 	{
 		shadowSplitIndex = GetSplitSphereIndexForDirshadows(vPositionWs);
 	}
 
-	else */if (type == SPHERE_LIGHT)
+	else if (type == SPHERE_LIGHT)
 	{
 		float3 absPos = abs(vPositionToLightDirWs);
 		shadowSplitIndex = (vPositionToLightDirWs.z > 0) ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
@@ -253,12 +257,13 @@ half4 frag (v2f i) : SV_Target
 
 	
 	float3 c = ExecuteLightList(pixCoord, offs);
+
 	//c = OverlayHeatMap(FetchLightCount(offs), c);
 
 #if defined(UNITY_COLORSPACE_GAMMA)
-	return float4(c, 1.0);
+	return float4(c,1.0);
 #else
-	return float4(pow(c, 1 / 2.2), 1.0);
+	return float4(pow(c,1/2.2),1.0);
 #endif
 }
 
@@ -313,6 +318,22 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 
 	float3 vPositionWs = mul(g_mViewToWorld, float4(vP, 1));
 
+	for (int i = 0; i < g_nDirLights; i++)
+	{
+		DirectionalLight lightData = g_dirLightData[i];
+		float atten = 1;
+
+		float shadowScalar = SampleShadow(DIRECTIONAL_LIGHT, vPositionWs, 0, lightData.uShadowLightIndex);
+		atten *= shadowScalar;
+
+		UnityLight light;
+		light.color.xyz = lightData.vCol.xyz * atten;
+		light.dir.xyz = mul((float3x3) g_mViewToWorld, -lightData.vLaxisZ).xyz;
+
+		ints += UNITY_BRDF_PBS(data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind);
+//		ints += LambertTerm(data.normalWorld, lightDir) * light.vCol;
+	}
+
 	// we need this outer loop for when we cannot assume a wavefront is 64 wide
 	// since in this case we cannot assume the lights will remain sorted by type
 	// during processing in lightlist_cs.hlsl
@@ -357,7 +378,6 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;		//unity_CameraToWorld
 
 			ints += UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind);
-					
 
 			++l; uIndex = l<uNrLights ? FetchIndex(offs, l) : 0;
 			uLgtType = l<uNrLights ? g_vLightData[uIndex].uLightType : 0;

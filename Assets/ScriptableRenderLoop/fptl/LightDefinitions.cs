@@ -51,7 +51,7 @@ public struct DirectionalLight
 	public float fLightIntensity;
 
 	public Vec3 vLaxisX;
-	public int iSliceIndex;
+	public uint uShadowLightIndex;
 
 	public Vec3 vLaxisY;
 	public float fPad0;
@@ -80,9 +80,10 @@ public class LightDefinitions
     public static int SPOT_LIGHT = 0;
     public static int SPHERE_LIGHT = 1;
     public static int BOX_LIGHT = 2;
+	public static int DIRECTIONAL_LIGHT = 3;
 
-    // direct lights and reflection probes for now
-    public static int NR_LIGHT_MODELS = 2;
+	// direct lights and reflection probes for now
+	public static int NR_LIGHT_MODELS = 2;
     public static int DIRECT_LIGHT = 0;
     public static int REFLECTION_LIGHT = 1;
 
