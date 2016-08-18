@@ -2,6 +2,7 @@
 using UnityEngine.Rendering;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
 
 namespace UnityEngine.ScriptableRenderLoop
@@ -43,8 +44,14 @@ namespace UnityEngine.ScriptableRenderLoop
 		static private ComputeBuffer m_convexBoundsBuffer;
 		static private ComputeBuffer m_aabbBoundsBuffer;
 		static private ComputeBuffer lightList;
+		static private ComputeBuffer m_dirLightList;
+
+		Matrix4x4[] g_matWorldToShadow = new Matrix4x4[MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS];
+		Vector4[] g_vDirShadowSplitSpheres = new Vector4[MAX_DIRECTIONAL_SPLIT];
+		Vector4[] g_vShadow3x3PCFTerms = new Vector4[4];
 
 		public const int gMaxNumLights = 1024;
+		public const int gMaxNumDirLights = 2;
 		public const float gFltMax = 3.402823466e+38F;
 
 		const int MAX_LIGHTS = 10;
@@ -83,6 +90,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			if (lightList != null)
 				lightList.Release();
+
+			if (m_dirLightList != null)
+				m_dirLightList.Release();
 		}
 
 		void Rebuild()
@@ -112,12 +122,14 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_aabbBoundsBuffer = new ComputeBuffer(2 * gMaxNumLights, 3 * sizeof(float));
 			m_convexBoundsBuffer = new ComputeBuffer(gMaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
 			m_lightDataBuffer = new ComputeBuffer(gMaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
+			m_dirLightList = new ComputeBuffer(gMaxNumDirLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLight)));
 
 			lightList = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * 1024 * 1024, sizeof(uint));       // enough list memory for a 4k x 4k display
 
 			m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_data", m_convexBoundsBuffer);
 			//m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
 			m_DeferredMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
+			m_DeferredMaterial.SetBuffer("g_dirLightData", m_dirLightList);
 			m_DeferredReflectionMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
 
 			m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
@@ -135,6 +147,9 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
 			m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
 
+			g_matWorldToShadow = new Matrix4x4[MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS];
+			g_vDirShadowSplitSpheres = new Vector4[MAX_DIRECTIONAL_SPLIT];
+			g_vShadow3x3PCFTerms = new Vector4[4];
 			m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
 		}
 
@@ -151,6 +166,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_convexBoundsBuffer.Release();
 			m_lightDataBuffer.Release();
 			lightList.Release();
+			m_dirLightList.Release();
 		}
 
 		static void SetupGBuffer(CommandBuffer cmd)
@@ -205,6 +221,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_DeferredMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
 			m_DeferredReflectionMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
 
+			m_DeferredMaterial.SetBuffer("g_dirLightData", m_dirLightList);
 			var cmd = new CommandBuffer();
 			cmd.name = "DoTiledDeferredLighting";
 
@@ -226,6 +243,14 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.SetGlobalMatrix("g_mScrProjection", scrProj);
 			cmd.SetGlobalMatrix("g_mInvScrProjection", incScrProj);
 
+			// Shadow constants
+			cmd.SetGlobalMatrixArray("g_matWorldToShadow", g_matWorldToShadow);
+			cmd.SetGlobalVectorArray("g_vDirShadowSplitSpheres", g_vDirShadowSplitSpheres);
+			cmd.SetGlobalVector("g_vShadow3x3PCFTerms0", g_vShadow3x3PCFTerms[0]);
+			cmd.SetGlobalVector("g_vShadow3x3PCFTerms1", g_vShadow3x3PCFTerms[1]);
+			cmd.SetGlobalVector("g_vShadow3x3PCFTerms2", g_vShadow3x3PCFTerms[2]);
+			cmd.SetGlobalVector("g_vShadow3x3PCFTerms3", g_vShadow3x3PCFTerms[3]);
+
 			//cmd.Blit (kGBufferNormal, (RenderTexture)null); // debug: display normals
 
 			cmd.Blit(kGBufferEmission, BuiltinRenderTextureType.CameraTarget, m_DeferredMaterial, 0);
@@ -245,7 +270,54 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.SetComputeFloatParams(shadercs, name, data);
 		}
 
-		//---------------------------------------------------------------------------------------------------------------------------------------------------
+		void UpdateDirectionalLights(Camera camera, ActiveLight[] activeLights)
+		{
+			int dirLightCount = 0;
+			List<DirectionalLight> lights = new List<DirectionalLight>();
+			Matrix4x4 worldToView = camera.worldToCameraMatrix;
+
+			for (int nLight = 0; nLight < activeLights.Length; nLight++)
+			{
+				ActiveLight light = activeLights[nLight];
+				if (light.lightType == LightType.Directional)
+				{
+					Debug.Assert(dirLightCount < gMaxNumDirLights, "Too many directional lights.");
+
+					DirectionalLight l = new DirectionalLight();
+
+					float range = light.range;
+
+					Matrix4x4 lightToWorld = light.localToWorld;
+
+					Vector3 lightPos = lightToWorld.GetColumn(3);
+					Vector3 lightDir = lightToWorld.GetColumn(2);   // Z axis in world space
+
+					// represents a left hand coordinate system in world space
+					Vector3 vx = lightToWorld.GetColumn(0);     // X axis in world space
+					Vector3 vy = lightToWorld.GetColumn(1);     // Y axis in world space
+					Vector3 vz = lightDir;                      // Z axis in world space
+
+					vx = worldToView.MultiplyVector(vx);
+					vy = worldToView.MultiplyVector(vy);
+					vz = worldToView.MultiplyVector(vz);
+
+					l.uShadowLightIndex = (uint)nLight;
+
+					l.vLaxisX = vx;
+					l.vLaxisY = vy;
+					l.vLaxisZ = vz;
+					
+					l.vCol = new Vec3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
+					l.fLightIntensity = light.light.intensity;
+
+					lights.Add(l);
+					dirLightCount++;
+				}
+			}
+			m_dirLightList.SetData(lights.ToArray());
+			m_DeferredMaterial.SetInt("g_nDirLights", dirLightCount);
+		}
+		
 		void UpdateShadowConstants(ActiveLight[] activeLights, ref ShadowOutput shadow)
 		{
 			int nNumLightsIncludingTooMany = 0;
@@ -254,8 +326,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			Vector4[] g_vLightShadowIndex_vLightParams = new Vector4[MAX_LIGHTS];
 			Vector4[] g_vLightFalloffParams = new Vector4[MAX_LIGHTS];
-			Matrix4x4[] g_matWorldToShadow = new Matrix4x4[MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS];
-			Vector4[] g_vDirShadowSplitSpheres = new Vector4[MAX_DIRECTIONAL_SPLIT];
 
 			for (int nLight = 0; nLight < activeLights.Length; nLight++)
 			{
@@ -329,23 +399,14 @@ namespace UnityEngine.ScriptableRenderLoop
 					Debug.Log("SUCCESS! Found " + nNumLightsIncludingTooMany + " runtime lights which is within the supported number of lights, " + MAX_LIGHTS + ".\n\n");
 				}
 			}
-
-			// Send constants to shaders
-			Shader.SetGlobalMatrixArray("g_matWorldToShadow", g_matWorldToShadow);
-			Shader.SetGlobalVectorArray("g_vDirShadowSplitSpheres", g_vDirShadowSplitSpheres);
-
+			
 			// PCF 3x3 Shadows
 			float flTexelEpsilonX = 1.0f / m_ShadowSettings.shadowAtlasWidth;
 			float flTexelEpsilonY = 1.0f / m_ShadowSettings.shadowAtlasHeight;
-			Vector4 g_vShadow3x3PCFTerms0 = new Vector4(20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f);
-			Vector4 g_vShadow3x3PCFTerms1 = new Vector4(flTexelEpsilonX, flTexelEpsilonY, -flTexelEpsilonX, -flTexelEpsilonY);
-			Vector4 g_vShadow3x3PCFTerms2 = new Vector4(flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f);
-			Vector4 g_vShadow3x3PCFTerms3 = new Vector4(-flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f);
-
-			Shader.SetGlobalVector("g_vShadow3x3PCFTerms0", g_vShadow3x3PCFTerms0);
-			Shader.SetGlobalVector("g_vShadow3x3PCFTerms1", g_vShadow3x3PCFTerms1);
-			Shader.SetGlobalVector("g_vShadow3x3PCFTerms2", g_vShadow3x3PCFTerms2);
-			Shader.SetGlobalVector("g_vShadow3x3PCFTerms3", g_vShadow3x3PCFTerms3);
+			g_vShadow3x3PCFTerms[0] = new Vector4(20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f);
+			g_vShadow3x3PCFTerms[1] = new Vector4(flTexelEpsilonX, flTexelEpsilonY, -flTexelEpsilonX, -flTexelEpsilonY);
+			g_vShadow3x3PCFTerms[2] = new Vector4(flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f);
+			g_vShadow3x3PCFTerms[3] = new Vector4(-flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f);
 		}
 
 		int GenerateSourceLightBuffers(Camera camera, CullResults inputs)
@@ -702,6 +763,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
+
+			UpdateDirectionalLights(camera, cullResults.culledLights);
 
 			DoTiledDeferredLighting(camera, loop, camera.cameraToWorldMatrix, projscr, invProjscr, lightList);
 
