@@ -24,6 +24,8 @@ CGPROGRAM
 #pragma vertex vert
 #pragma fragment frag
 
+#pragma multi_compile __ UNITY_COLORSPACE_GAMMA
+
 //#include "UnityCG.cginc"
 //#include "UnityPBSLighting.cginc"
 //#include "UnityDeferredLibrary.cginc"
@@ -253,8 +255,11 @@ half4 frag (v2f i) : SV_Target
 	float3 c = ExecuteLightList(pixCoord, offs);
 	//c = OverlayHeatMap(FetchLightCount(offs), c);
 
-	return float4(c,1.0);
-	//return float4(pow(c,1/2.2),1.0);
+#if defined(UNITY_COLORSPACE_GAMMA)
+	return float4(c, 1.0);
+#else
+	return float4(pow(c, 1 / 2.2), 1.0);
+#endif
 }
 
 struct StandardData
