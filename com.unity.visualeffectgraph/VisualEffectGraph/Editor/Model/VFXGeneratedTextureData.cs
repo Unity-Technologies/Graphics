@@ -239,9 +239,9 @@ namespace UnityEngine.Experimental.VFX
             builder.WriteLine("float4 sampleSignal(float v,float u) // sample gradient");
             builder.EnterScope();
 
-            builder.Write("return tex2Dlod(gradientTexture,float4(");
+            builder.Write("return gradientTexture.SampleLevel(samplergradientTexture,float2(");
             WriteHalfTexelOffset(builder, "saturate(u)");
-            builder.WriteLine(",v,0,0));");
+            builder.WriteLine(",v),0);");
 
             builder.ExitScope();
         }
@@ -276,7 +276,7 @@ namespace UnityEngine.Experimental.VFX
 
             builder.ExitScope();
 
-            builder.WriteLine("return tex2Dlod(curveTexture,float4(uNorm,curveData.z,0,0))[asuint(curveData.w) & 0x3];");
+            builder.WriteLine("return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];");
 
             builder.ExitScope();
         }

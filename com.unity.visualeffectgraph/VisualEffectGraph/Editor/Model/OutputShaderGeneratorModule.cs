@@ -347,11 +347,7 @@ namespace UnityEditor.Experimental
 
         private static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXValue texture, string uv, bool endLine)
         {
-            builder.Write("tex2D(");
-            builder.Write(data.outputParamToName[texture]);
-            builder.Write(",");
-            builder.Write(uv);
-            builder.Write(")");
+            builder.WriteFormat("{0}Texture.Sample(sampler{0}Texture,{1})",data.outputParamToName[texture],uv);
             if (endLine)
                 builder.WriteLine(";");
         }

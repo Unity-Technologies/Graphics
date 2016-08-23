@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental.VFX
             Add(new VFXAttribute("target", VFXValueType.kFloat3, true));
 
             Source = @"
-float3 pos = ((tex2Dlod(PositionMap,float4(RAND2,0,0)).rgb-0.5f));
+float3 pos = SampleTexture(PositionMap,RAND2).rgb - 0.5f;
 target = mul(Bounds, float4(pos,1.0)).xyz;";
         }
     }

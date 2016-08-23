@@ -34,7 +34,8 @@ CBUFFER_START(updateUniforms)
 	float3 updateUniform0;
 CBUFFER_END
 
-sampler2D gradientTexture;
+Texture2D gradientTexture;
+SamplerState samplergradientTexture;
 
 struct Attribute0
 {
@@ -84,7 +85,7 @@ float rand(inout uint seed)
 
 float4 sampleSignal(float v,float u) // sample gradient
 {
-	return tex2Dlod(gradientTexture,float4(((0.9921875 * saturate(u)) + 0.00390625),v,0,0));
+	return gradientTexture.SampleLevel(samplergradientTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 }
 
 void VFXBlockSetPositionPoint( inout float3 position,float3 pos)
@@ -145,6 +146,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID)
 		
 		uint local_seed = (uint)0;
 		
+		
 		uint seed = (id.x + spawnIndex) ^ systemSeed;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
@@ -181,6 +183,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
 		Attribute0 attrib0 = attribBuffer0[index];
 		Attribute1 attrib1 = attribBuffer1[index];
 		Attribute2 attrib2 = attribBuffer2_RO[index];
+		
 		
 		VFXBlockSetForceConstant( attrib0.velocity,updateUniform0);
 		

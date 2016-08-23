@@ -159,7 +159,7 @@ velocity += normalize(dir) * (deltaTime * Force / sqrDist);";
 
             Source = @"
 float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
-float3 value = tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5f, 0.0f)).xyz * 2.0f - 1.0f;
+float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;
 value = mul(Box,float4(value,0.0f)).xyz * Intensity;
 float3 updatedVelocity = (deltaTime * value)  + velocity;
 velocity = lerp(updatedVelocity, value, saturate(Tightness));";
@@ -187,7 +187,7 @@ velocity = lerp(updatedVelocity, value, saturate(Tightness));";
 
             Source = @"
 float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
-float3 value = tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5f, 0.0f)).xyz * 2.0f - 1.0f;
+float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;
 value = mul(Box,float4(value,0.0f)).xyz * Intensity;
 float3 relativeForce = value - velocity;
 velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));";

@@ -72,6 +72,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID)
 		Attribute1 attrib1 = (Attribute1)0;
 		Attribute2 attrib2 = (Attribute2)0;
 		
+		
 		VFXBlockSetPositionPoint( attrib0.position,initUniform0);
 		VFXBlockSizeConstantSquare( attrib1.size,initUniform1);
 		
@@ -89,6 +90,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
 		uint index = id.x;
 		
 		Attribute2 attrib2 = attribBuffer2[index];
+		
 		
 		VFXBlockSubUVAnimateConstantRate( attrib2.texIndex,updateUniform0);
 		

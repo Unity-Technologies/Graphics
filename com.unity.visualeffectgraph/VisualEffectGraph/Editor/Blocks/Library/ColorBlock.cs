@@ -280,7 +280,7 @@ alpha = SAMPLE(Curve,ratio);";
                 float u = dot(side,pos) / dot(side,side);
                 float3 up = t[2];
                 float v = dot(up,pos) / dot(up,up);
-                float4 rgba = tex2Dlod(ColorTexture, float4(float2(u,v)+0.5,0,0));
+                float4 rgba = SampleTexture(ColorTexture, float2(u,v)+0.5);
                 color = rgba.rgb;
                 alpha = rgba.a;";
         }

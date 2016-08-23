@@ -27,9 +27,11 @@ Shader "Hidden/VFX_0"
 				float4 outputUniform1;
 			CBUFFER_END
 			
-			sampler2D outputSampler0;
+			Texture2D outputSampler0Texture;
+			SamplerState sampleroutputSampler0Texture;
 			
-			sampler2D curveTexture;
+			Texture2D curveTexture;
+			SamplerState samplercurveTexture;
 			
 			struct Attribute0
 			{
@@ -69,7 +71,7 @@ Shader "Hidden/VFX_0"
 					case 2: uNorm = ((0.9921875 * frac(max(0.0f,uNorm))) + 0.00390625); break; // clamp start
 					case 3: uNorm = ((0.9921875 * saturate(uNorm)) + 0.00390625); break; // clamp both
 				}
-				return tex2Dlod(curveTexture,float4(uNorm,curveData.z,0,0))[asuint(curveData.w) & 0x3];
+				return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 			}
 			
 			void VFXBlockFaceCameraPosition( inout float3 front,inout float3 side,inout float3 up,float3 position)
@@ -140,7 +142,7 @@ Shader "Hidden/VFX_0"
 			float4 frag (ps_input i) : COLOR
 			{
 				float4 color = i.col;
-				color *= tex2D(outputSampler0,i.offsets);
+				color *= outputSampler0Texture.Sample(sampleroutputSampler0Texture,i.offsets);
 				return color;
 			}
 			

@@ -19,6 +19,18 @@
 #define SAMPLE sampleSignal
 #define INVERSE(m) Inv##m
 
+struct VFXSampler2D
+{
+	Texture2D t;
+	SamplerState s;
+};
+
+struct VFXSampler3D
+{
+	Texture3D t;
+	SamplerState s;
+};
+
 #ifdef VFX_WORLD_SPACE // World Space
 float3 VFXCameraPos() 					{ return _WorldSpaceCameraPos.xyz; }
 float3 VFXCameraLook()					{ return -unity_WorldToCamera[2].xyz; }
@@ -73,4 +85,30 @@ float3 PositionOnCylinder(float3 pos,float3 dir,float height,float radius,float 
 float3 PositionOnCylinderSurface(float3 pos,float3 dir,float height,float radius,float hNorm,float theta)
 {	
 	return PositionOnCylinder(pos,dir,height,radius,hNorm,theta,1.0f);
+}
+
+float4 SampleTexture(VFXSampler2D s,float2 coords)
+{
+	return s.t.SampleLevel(s.s,coords,0.0f);
+}
+
+float4 SampleTexture(VFXSampler3D s,float3 coords)
+{
+	return s.t.SampleLevel(s.s,coords,0.0f);
+}
+
+VFXSampler2D InitSampler(Texture2D t,SamplerState s)
+{
+	VFXSampler2D vfxSampler;
+	vfxSampler.t = t;
+	vfxSampler.s = s;
+	return vfxSampler;
+}
+
+VFXSampler3D InitSampler(Texture3D t,SamplerState s)
+{
+	VFXSampler3D vfxSampler;
+	vfxSampler.t = t;
+	vfxSampler.s = s;
+	return vfxSampler;
 }

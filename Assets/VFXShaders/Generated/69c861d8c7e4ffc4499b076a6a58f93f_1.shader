@@ -22,7 +22,8 @@ Shader "Hidden/VFX_1"
 			#include "HLSLSupport.cginc"
 			#include "..\VFXCommon.cginc"
 			
-			sampler2D outputSampler0;
+			Texture2D outputSampler0Texture;
+			SamplerState sampleroutputSampler0Texture;
 			
 			struct Attribute0
 			{
@@ -76,7 +77,7 @@ Shader "Hidden/VFX_1"
 			float4 frag (ps_input i) : COLOR
 			{
 				float4 color = float4(1.0,1.0,1.0,0.5);
-				color *= tex2D(outputSampler0,i.offsets);
+				color *= outputSampler0Texture.Sample(sampleroutputSampler0Texture,i.offsets);
 				return color;
 			}
 			

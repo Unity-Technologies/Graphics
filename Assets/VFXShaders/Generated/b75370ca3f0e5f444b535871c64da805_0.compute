@@ -33,7 +33,8 @@ CBUFFER_START(updateUniforms)
 	float4x4 updateUniform3;
 CBUFFER_END
 
-sampler3D updateSampler0;
+Texture3D updateSampler0Texture;
+SamplerState samplerupdateSampler0Texture;
 
 struct Attribute0
 {
@@ -92,10 +93,10 @@ void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float Max
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,sampler3D VectorField,float4x4 Box,float4x4 InvBox,float Intensity,float DragCoefficient)
+void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFXSampler3D VectorField,float4x4 Box,float4x4 InvBox,float Intensity,float DragCoefficient)
 {
 	float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
-	float3 value = tex3Dlod(VectorField, float4(vectorFieldCoord + 0.5f, 0.0f)).xyz * 2.0f - 1.0f;
+	float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;
 	value = mul(Box,float4(value,0.0f)).xyz * Intensity;
 	float3 relativeForce = value - velocity;
 	velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));
@@ -114,6 +115,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID)
 		Attribute3 attrib3 = (Attribute3)0;
 		
 		uint local_seed = (uint)0;
+		
 		
 		uint seed = (id.x + spawnIndex) ^ systemSeed;
 		seed = (seed ^ 61) ^ (seed >> 16);
@@ -147,6 +149,8 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
 		Attribute0 attrib0 = attribBuffer0[index];
 		Attribute2 attrib2 = attribBuffer2_RO[index];
 		Attribute3 attrib3 = attribBuffer3[index];
+		
+		VFXSampler3D updateSampler0 = InitSampler(updateSampler0Texture,samplerupdateSampler0Texture);
 		
 		VFXBlockVectorFieldRelativeForce( attrib3.velocity,attrib0.position,updateSampler0,updateUniform0,updateUniform3,updateUniform1,updateUniform2);
 		

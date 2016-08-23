@@ -25,7 +25,8 @@ CBUFFER_START(initUniforms)
 	float initUniform3;
 CBUFFER_END
 
-sampler2D initSampler0;
+Texture2D initSampler0Texture;
+SamplerState samplerinitSampler0Texture;
 
 struct Attribute0
 {
@@ -59,10 +60,10 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionMap( inout float3 position,sampler2D tex,float4x4 box,float divergence,float3 posmapcenter,inout uint seed)
+void VFXBlockSetPositionMap( inout float3 position,VFXSampler2D tex,float4x4 box,float divergence,float3 posmapcenter,inout uint seed)
 {
 	float3 div = (RAND3 - 0.5f) * (divergence * 2.0f);
-	position = (div + tex2Dlod(tex,float4(RAND2,0,0)).rgb) - posmapcenter;
+	position = (div + SampleTexture(tex,RAND2).rgb) - posmapcenter;
 	position = mul(box,float4(position.xyz,1.0f)).xyz;
 }
 
@@ -83,6 +84,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID)
 		Attribute2 attrib2 = (Attribute2)0;
 		
 		uint local_seed = (uint)0;
+		
+		VFXSampler2D initSampler0 = InitSampler(initSampler0Texture,samplerinitSampler0Texture);
 		
 		uint seed = (id.x + spawnIndex) ^ systemSeed;
 		seed = (seed ^ 61) ^ (seed >> 16);
@@ -113,6 +116,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
 		
 		Attribute1 attrib1 = attribBuffer1_RO[index];
 		Attribute2 attrib2 = attribBuffer2[index];
+		
 		
 		
 		attrib2.age += deltaTime;

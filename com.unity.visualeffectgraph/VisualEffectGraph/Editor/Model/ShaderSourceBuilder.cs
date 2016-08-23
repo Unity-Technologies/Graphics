@@ -116,18 +116,30 @@ namespace UnityEditor.Experimental
         public void WriteSamplers(HashSet<VFXExpression> samplers, Dictionary<VFXExpression, string> samplersToName)
         {
             foreach (var sampler in samplers)
-            {
-                if (sampler.ValueType == VFXValueType.kTexture2D)
-                    Write("sampler2D ");
-                else if (sampler.ValueType == VFXValueType.kTexture3D)
-                    Write("sampler3D ");
-                else
-                    continue;
+                WriteSampler(sampler.ValueType, samplersToName[sampler] + "Texture");
+        }
 
-                Write(samplersToName[sampler]);
-                WriteLine(";");
-                WriteLine();
-            }
+        public void WriteSampler(VFXValueType samplerType,string name)
+        {
+            if (samplerType == VFXValueType.kTexture2D)
+                Write("Texture2D ");
+            else if (samplerType == VFXValueType.kTexture3D)
+                Write("Texture3D ");
+            else
+                return;
+
+            WriteLineFormat("{0};", name);
+            WriteLineFormat("SamplerState sampler{0};", name);
+
+            WriteLine();
+        }
+
+        public void WriteInitVFXSampler(VFXValueType samplerType,string name)
+        {
+            if (samplerType == VFXValueType.kTexture2D)
+                WriteLineFormat("VFXSampler2D {0} = InitSampler({0}Texture,sampler{0}Texture);", name);
+            else if (samplerType == VFXValueType.kTexture3D)
+                WriteLineFormat("VFXSampler3D {0} = InitSampler({0}Texture,sampler{0}Texture);", name);
         }
 
         public void WriteType(VFXValueType type)
@@ -135,8 +147,8 @@ namespace UnityEditor.Experimental
             // tmp transform texture to sampler TODO This must be handled directly in C++ conversion array
             switch (type)
             {
-                case VFXValueType.kTexture2D:       Write("sampler2D"); break;
-                case VFXValueType.kTexture3D:       Write("sampler3D"); break;
+                case VFXValueType.kTexture2D:       Write("VFXSampler2D"); break;
+                case VFXValueType.kTexture3D:       Write("VFXSampler3D"); break;
                 case VFXValueType.kCurve:           Write("float4"); break;
                 case VFXValueType.kColorGradient:   Write("float"); break;
                 default:                            Write(VFXValue.TypeToName(type)); break;

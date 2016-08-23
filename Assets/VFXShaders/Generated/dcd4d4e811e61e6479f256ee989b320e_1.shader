@@ -29,9 +29,11 @@ Shader "Hidden/VFX_1"
 				float outputUniform3;
 			CBUFFER_END
 			
-			sampler2D outputSampler0;
+			Texture2D outputSampler0Texture;
+			SamplerState sampleroutputSampler0Texture;
 			
-			sampler2D outputSampler1;
+			Texture2D outputSampler1Texture;
+			SamplerState sampleroutputSampler1Texture;
 			
 			struct Attribute0
 			{
@@ -128,17 +130,17 @@ Shader "Hidden/VFX_1"
 				float index = i.flipbookIndex - ratio;
 				
 				float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);
-				float2 duv1 = tex2D(outputSampler1,uv1).rg - 0.5;
+				float2 duv1 = outputSampler1Texture.Sample(sampleroutputSampler1Texture,uv1).rg - 0.5;
 				
 				float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);
-				float2 duv2 = tex2D(outputSampler1,uv2).rg - 0.5;
+				float2 duv2 = outputSampler1Texture.Sample(sampleroutputSampler1Texture,uv2).rg - 0.5;
 				
 				float morphIntensity = outputUniform3;
 				duv1 *= morphIntensity * ratio;
 				duv2 *= morphIntensity * (ratio - 1.0);
 				
-				float4 col1 = tex2D(outputSampler0,uv1 - duv1);
-				float4 col2 = tex2D(outputSampler0,uv2 - duv2);
+				float4 col1 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv1 - duv1);
+				float4 col2 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv2 - duv2);
 				
 				color *= lerp(col1,col2,ratio);
 				return color;

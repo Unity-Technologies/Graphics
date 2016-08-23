@@ -96,6 +96,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID)
 		
 		uint local_seed = (uint)0;
 		
+		
 		uint seed = (id.x + spawnIndex) ^ systemSeed;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
@@ -127,6 +128,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
 		
 		Attribute2 attrib2 = attribBuffer2_RO[index];
 		Attribute3 attrib3 = attribBuffer3[index];
+		
 		
 		
 		attrib3.age += deltaTime;

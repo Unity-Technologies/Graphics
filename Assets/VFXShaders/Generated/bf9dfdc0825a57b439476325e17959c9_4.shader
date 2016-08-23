@@ -30,9 +30,11 @@ Shader "Hidden/VFX_4"
 				float2 outputUniform4;
 			CBUFFER_END
 			
-			sampler2D outputSampler0;
+			Texture2D outputSampler0Texture;
+			SamplerState sampleroutputSampler0Texture;
 			
-			sampler2D curveTexture;
+			Texture2D curveTexture;
+			SamplerState samplercurveTexture;
 			
 			struct Attribute0
 			{
@@ -87,7 +89,7 @@ Shader "Hidden/VFX_4"
 					case 2: uNorm = ((0.9921875 * frac(max(0.0f,uNorm))) + 0.00390625); break; // clamp start
 					case 3: uNorm = ((0.9921875 * saturate(uNorm)) + 0.00390625); break; // clamp both
 				}
-				return tex2Dlod(curveTexture,float4(uNorm,curveData.z,0,0))[asuint(curveData.w) & 0x3];
+				return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 			}
 			
 			void VFXBlockOrientAlongVelocity( inout float3 front,inout float3 side,inout float3 up,float3 velocity,float3 position)
@@ -179,10 +181,10 @@ Shader "Hidden/VFX_4"
 				float index = i.flipbookIndex - ratio;
 				
 				float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);
-				float4 col1 = tex2D(outputSampler0,uv1);
+				float4 col1 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv1);
 				
 				float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);
-				float4 col2 = tex2D(outputSampler0,uv2);
+				float4 col2 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv2);
 				
 				color *= lerp(col1,col2,ratio);
 				return color;

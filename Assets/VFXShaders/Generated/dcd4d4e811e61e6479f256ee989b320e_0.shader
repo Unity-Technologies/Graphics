@@ -28,7 +28,8 @@ Shader "Hidden/VFX_0"
 				float2 outputUniform2;
 			CBUFFER_END
 			
-			sampler2D outputSampler0;
+			Texture2D outputSampler0Texture;
+			SamplerState sampleroutputSampler0Texture;
 			
 			struct Attribute0
 			{
@@ -113,10 +114,10 @@ Shader "Hidden/VFX_0"
 				float index = i.flipbookIndex - ratio;
 				
 				float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);
-				float4 col1 = tex2D(outputSampler0,uv1);
+				float4 col1 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv1);
 				
 				float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);
-				float4 col2 = tex2D(outputSampler0,uv2);
+				float4 col2 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv2);
 				
 				color *= lerp(col1,col2,ratio);
 				return color;

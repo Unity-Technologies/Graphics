@@ -25,7 +25,8 @@ Shader "Hidden/VFX_3"
 				float3 outputUniform1;
 			CBUFFER_END
 			
-			sampler2D outputSampler0;
+			Texture2D outputSampler0Texture;
+			SamplerState sampleroutputSampler0Texture;
 			
 			struct Attribute0
 			{
@@ -98,7 +99,7 @@ Shader "Hidden/VFX_3"
 			float4 frag (ps_input i) : COLOR
 			{
 				float4 color = i.col;
-				color *= tex2D(outputSampler0,i.offsets);
+				color *= outputSampler0Texture.Sample(sampleroutputSampler0Texture,i.offsets);
 				if (color.a < 0.33333) discard;
 				return color;
 			}

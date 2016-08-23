@@ -24,9 +24,11 @@ Shader "Hidden/VFX_3"
 				float outputUniform0;
 			CBUFFER_END
 			
-			sampler2D outputSampler0;
+			Texture2D outputSampler0Texture;
+			SamplerState sampleroutputSampler0Texture;
 			
-			sampler2D gradientTexture;
+			Texture2D gradientTexture;
+			SamplerState samplergradientTexture;
 			
 			struct Attribute0
 			{
@@ -58,7 +60,7 @@ Shader "Hidden/VFX_3"
 			
 			float4 sampleSignal(float v,float u) // sample gradient
 			{
-				return tex2Dlod(gradientTexture,float4(((0.9921875 * saturate(u)) + 0.00390625),v,0,0));
+				return gradientTexture.SampleLevel(samplergradientTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 			}
 			
 			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
@@ -114,7 +116,7 @@ Shader "Hidden/VFX_3"
 			float4 frag (ps_input i) : COLOR
 			{
 				float4 color = i.col;
-				color *= tex2D(outputSampler0,i.offsets);
+				color *= outputSampler0Texture.Sample(sampleroutputSampler0Texture,i.offsets);
 				if (color.a < 0.33333) discard;
 				return color;
 			}

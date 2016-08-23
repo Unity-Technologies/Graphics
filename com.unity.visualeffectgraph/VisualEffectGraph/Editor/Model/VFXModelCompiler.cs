@@ -804,15 +804,9 @@ namespace UnityEditor.Experimental
 
             // Write generated texture samplers
             if ((data.colorTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
-            {
-                builder.WriteLine("sampler2D gradientTexture;");
-                builder.WriteLine();
-            }
+                builder.WriteSampler(VFXValueType.kTexture2D, "gradientTexture");
             if ((data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
-            {
-                builder.WriteLine("sampler2D curveTexture;");
-                builder.WriteLine();
-            }
+                builder.WriteSampler(VFXValueType.kTexture2D, "curveTexture");
 
             // Write attribute struct
             foreach (var attribBuffer in data.attributeBuffers)
@@ -927,6 +921,12 @@ namespace UnityEditor.Experimental
 
                 builder.WriteLocalAttribDeclaration(data, VFXContextDesc.Type.kTypeInit);
 
+                foreach (var sampler in data.initSamplers)
+                    builder.WriteInitVFXSampler(sampler.ValueType, data.paramToName[sampler]);
+                foreach (var sampler in data.globalSamplers)
+                    builder.WriteInitVFXSampler(sampler.ValueType, data.paramToName[sampler]);
+                builder.WriteLine();
+
                 // Init random
                 if (data.hasRand)
                 {
@@ -1026,6 +1026,12 @@ namespace UnityEditor.Experimental
                         builder.WriteLine("[index];");
                     }
                 }
+                builder.WriteLine();
+
+                foreach (var sampler in data.updateSamplers)
+                    builder.WriteInitVFXSampler(sampler.ValueType, data.paramToName[sampler]);
+                foreach (var sampler in data.globalSamplers)
+                    builder.WriteInitVFXSampler(sampler.ValueType, data.paramToName[sampler]);
                 builder.WriteLine();
 
                 builder.WriteLocalAttribDeclaration(data, VFXContextDesc.Type.kTypeUpdate);
@@ -1137,15 +1143,9 @@ namespace UnityEditor.Experimental
 
             // Write generated texture samplers
             if ((data.colorTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
-            {
-                builder.WriteLine("sampler2D gradientTexture;");
-                builder.WriteLine();
-            }
+                builder.WriteSampler(VFXValueType.kTexture2D,"gradientTexture");
             if ((data.floatTextureContexts & VFXContextDesc.Type.kTypeOutput) != 0)
-            {
-                builder.WriteLine("sampler2D curveTexture;");
-                builder.WriteLine();
-            }
+                builder.WriteSampler(VFXValueType.kTexture2D, "curveTexture");
 
             if (system.HasSoftParticles())
             {

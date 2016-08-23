@@ -39,7 +39,7 @@ position = pos;";
 
             Source = @"
 float3 div = (RAND3 - 0.5f) * (divergence * 2.0f);
-position = (div + tex2Dlod(tex,float4(RAND2,0,0)).rgb) - posmapcenter;
+position = (div + SampleTexture(tex,RAND2).rgb) - posmapcenter;
 position = mul(box,float4(position.xyz,1.0f)).xyz;"; 
         }
     }

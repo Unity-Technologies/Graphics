@@ -54,6 +54,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID)
 		
 		uint local_seed = (uint)0;
 		
+		
 		uint seed = (id.x + spawnIndex) ^ systemSeed;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;

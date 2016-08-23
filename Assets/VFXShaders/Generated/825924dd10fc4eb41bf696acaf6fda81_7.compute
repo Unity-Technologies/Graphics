@@ -78,6 +78,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID)
 		
 		uint local_particleId = (uint)0;
 		
+		
 		local_particleId = spawnIndex + id.x;
 		VFXBlockPositionAABBSequence( attrib0.position,local_particleId,initUniform0,initUniform1,initUniform2);
 		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform3);
@@ -100,6 +101,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
 		
 		Attribute1 attrib1 = attribBuffer1_RO[index];
 		Attribute2 attrib2 = attribBuffer2[index];
+		
 		
 		
 		attrib2.age += deltaTime;

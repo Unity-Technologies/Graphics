@@ -51,6 +51,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID)
 		
 		uint local_particleId = (uint)0;
 		
+		
 		local_particleId = spawnIndex + id.x;
 		VFXBlockPositionAABBSequence( attrib0.position,local_particleId,initUniform0,initUniform1,initUniform2);
 		

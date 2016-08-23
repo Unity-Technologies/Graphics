@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEngine.Profiling;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -498,21 +499,27 @@ namespace UnityEditor.Experimental
                     foreach (var uniform in rtData.uniforms)
                     {
                         int index = m_Expressions[uniform.Key].index;
+                        string name = uniform.Value;
+                        if (uniform.Key.ValueType == VFXValueType.kTexture2D || uniform.Key.ValueType == VFXValueType.kTexture3D)
+                            name += "Texture";
                         if (uniform.Value.StartsWith("init"))
-                            asset.AddInitUniform(system.Id, uniform.Value, index);
+                            asset.AddInitUniform(system.Id, name, index);
                         else if (uniform.Value.StartsWith("update"))
-                            asset.AddUpdateUniform(system.Id, uniform.Value, index);
+                            asset.AddUpdateUniform(system.Id, name, index);
                         else if (uniform.Value.StartsWith("global"))
                         {
-                            asset.AddInitUniform(system.Id, uniform.Value, index);
-                            asset.AddUpdateUniform(system.Id, uniform.Value, index);
+                            asset.AddInitUniform(system.Id, name, index);
+                            asset.AddUpdateUniform(system.Id, name, index);
                         }
                     }
 
                     foreach (var uniform in rtData.outputUniforms)
                     {
                         int index = m_Expressions[uniform.Key].index;
-                        asset.AddOutputUniform(system.Id, uniform.Value, index);
+                        string name = uniform.Value;
+                        if (uniform.Key.ValueType == VFXValueType.kTexture2D || uniform.Key.ValueType == VFXValueType.kTexture3D)
+                            name += "Texture";
+                        asset.AddOutputUniform(system.Id, name, index);
                     }
                 }
             }
