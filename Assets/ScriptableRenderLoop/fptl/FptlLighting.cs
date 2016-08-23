@@ -687,8 +687,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				m_ShadowPass.UpdateCullingParameters(ref cullingParams);
 
-				if (CullResults.Cull(camera, renderLoop, out cullResults))
-					ExecuteRenderLoop(camera, cullResults, renderLoop);
+				cullResults = CullResults.Cull(ref cullingParams, renderLoop);
+				ExecuteRenderLoop(camera, cullResults, renderLoop);
 			}
 		}
 
