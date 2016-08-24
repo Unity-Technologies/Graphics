@@ -140,7 +140,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_cubeReflTexArray = new TextureCacheCubemap();
 			m_cookieTexArray.AllocTextureArray(8, 128, 128, TextureFormat.Alpha8, true);
 			m_cubeCookieTexArray.AllocTextureArray(4, 512, 512, TextureFormat.Alpha8, true);
-			m_cubeReflTexArray.AllocTextureArray(64, 128, 128, TextureFormat.DXT5, true);
+            m_cubeReflTexArray.AllocTextureArray(64, 128, 128, TextureFormat.BC6H, true);
 
 
 			m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
