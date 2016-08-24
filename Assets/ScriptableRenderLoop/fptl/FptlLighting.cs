@@ -448,6 +448,7 @@ namespace UnityEngine.ScriptableRenderLoop
 				shadowLightIndex++;
 
 				bool bHasCookie = cl.light.cookie != null;
+                bool bHasShadow = cl.light.shadows != LightShadows.None;
 
 				if (cl.lightType == LightType.Spot)
 				{
@@ -522,6 +523,7 @@ namespace UnityEngine.ScriptableRenderLoop
 					lightData[i].flags |= (bIsCircularSpot ? LightDefinitions.IS_CIRCULAR_SPOT_SHAPE : 0);
 
 					lightData[i].flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
+                    lightData[i].flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
 				}
 				else if (cl.lightType == LightType.Point)
 				{
@@ -543,6 +545,7 @@ namespace UnityEngine.ScriptableRenderLoop
 					lightData[i].fSphRadiusSq = range * range;
 
 					lightData[i].flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
+                    lightData[i].flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
 				}
 				else
 				{

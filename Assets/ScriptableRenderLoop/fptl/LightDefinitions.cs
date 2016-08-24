@@ -72,6 +72,7 @@ public class LightDefinitions
     public static int IS_CIRCULAR_SPOT_SHAPE = 1;
     public static int HAS_COOKIE_TEXTURE = 2;
     public static int IS_BOX_PROJECTED = 4;
+    public static int HAS_SHADOW = 8;
 
 
     // types

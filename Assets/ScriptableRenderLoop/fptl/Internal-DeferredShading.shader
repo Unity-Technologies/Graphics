@@ -369,9 +369,13 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 				angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, lgtDat.iSliceIndex), 0.0).w;
 			}
 			atten *= angularAtt*(fProjVec>0.0);                           // finally apply this to the dist att.
-					
-			float shadowScalar = SampleShadow(SPOT_LIGHT, vPositionWs, 0, lgtDat.uShadowLightIndex);
-			atten *= shadowScalar;
+			
+			const bool bHasShadow = (lgtDat.flags&HAS_SHADOW)!=0;
+			[branch]if(bHasShadow)
+			{
+				float shadowScalar = SampleShadow(SPOT_LIGHT, vPositionWs, 0, lgtDat.uShadowLightIndex);
+				atten *= shadowScalar;
+			}
 
 			UnityLight light;
 			light.color.xyz = lgtDat.vCol.xyz*atten;
@@ -403,8 +407,12 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 				atten *= UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(-vLw, lgtDat.iSliceIndex), 0.0).w;
 			}
 			
-			float shadowScalar = SampleShadow(SPHERE_LIGHT, vPositionWs, vLw, lgtDat.uShadowLightIndex);
-			atten *= shadowScalar;
+			const bool bHasShadow = (lgtDat.flags&HAS_SHADOW)!=0;
+			[branch]if(bHasShadow)
+			{
+				float shadowScalar = SampleShadow(SPHERE_LIGHT, vPositionWs, vLw, lgtDat.uShadowLightIndex);
+				atten *= shadowScalar;
+			}
 
 			UnityLight light;
 			light.color.xyz = lgtDat.vCol.xyz*atten;
