@@ -38,7 +38,6 @@ namespace UnityEngine.ScriptableRenderLoop
 		static private int kCameraTarget;
 		static private int kCameraDepthTexture;
 
-
 		static private int kGenAABBKernel;
 		static private int kGenListPerTileKernel;
 		static private ComputeBuffer m_lightDataBuffer;
@@ -67,6 +66,10 @@ namespace UnityEngine.ScriptableRenderLoop
 		private TextureCache2D m_cookieTexArray;
 		private TextureCacheCubemap m_cubeCookieTexArray;
 		private TextureCacheCubemap m_cubeReflTexArray;
+
+		private SkyboxHelper m_skyboxHelper;
+
+		private Material m_blitMaterial;
 
 		void OnEnable()
 		{
@@ -106,6 +109,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			kGBufferEmission = Shader.PropertyToID("_CameraGBufferTexture3");
 			kGBufferZ = Shader.PropertyToID("_CameraGBufferZ"); // used while rendering into G-buffer+
 			kCameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture"); // copy of that for later sampling in shaders
+			kCameraTarget = Shader.PropertyToID("_CameraTarget");
 
 			//   RenderLoop.renderLoopDelegate += ExecuteRenderLoop;
 			//var deferredShader = GraphicsSettings.GetCustomShader (BuiltinShaderType.DeferredShading);
@@ -151,6 +155,11 @@ namespace UnityEngine.ScriptableRenderLoop
 			g_vDirShadowSplitSpheres = new Vector4[MAX_DIRECTIONAL_SPLIT];
 			g_vShadow3x3PCFTerms = new Vector4[4];
 			m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
+
+			m_skyboxHelper = new SkyboxHelper();
+			m_skyboxHelper.CreateMesh();
+
+			m_blitMaterial = new Material(Shader.Find("Hidden/BlitCopy"));
 		}
 
 		void OnDisable()
@@ -181,6 +190,9 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.GetTemporaryRT(kGBufferEmission, -1, -1, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear); //@TODO: HDR
 			cmd.GetTemporaryRT(kGBufferZ, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
 			cmd.GetTemporaryRT(kCameraDepthTexture, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
+
+			cmd.GetTemporaryRT(kCameraTarget, -1, -1, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
+
 			var colorMRTs = new RenderTargetIdentifier[4] { kGBufferAlbedo, kGBufferSpecRough, kGBufferNormal, kGBufferEmission };
 			cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(kGBufferZ));
 			cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
@@ -241,6 +253,12 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.SetGlobalVector("g_vShadow3x3PCFTerms3", g_vShadow3x3PCFTerms[3]);
 
 			//cmd.Blit (kGBufferNormal, (RenderTexture)null); // debug: display normals
+
+			cmd.Blit(kGBufferEmission, kCameraTarget, m_DeferredMaterial, 0);
+			cmd.Blit(kGBufferEmission, kCameraTarget, m_DeferredReflectionMaterial, 0);
+
+			// Set the intermediate target for compositing (skybox, etc)
+			cmd.SetRenderTarget(new RenderTargetIdentifier(kCameraTarget), new RenderTargetIdentifier(kCameraDepthTexture));
 
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
@@ -682,6 +700,15 @@ namespace UnityEngine.ScriptableRenderLoop
 			}
 		}
 
+		void FinalPass(RenderLoop loop)
+		{
+			CommandBuffer cmd = new CommandBuffer();
+			cmd.name = "FinalPass";
+			cmd.Blit(kCameraTarget, BuiltinRenderTextureType.CameraTarget, m_blitMaterial, 0);
+			loop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
+		}
+
 		void ExecuteRenderLoop(Camera camera, CullResults cullResults, RenderLoop loop)
 		{
 			// do anything we need to do upon a new frame.
@@ -758,7 +785,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			DoTiledDeferredLighting(camera, loop, camera.cameraToWorldMatrix, projscr, invProjscr, lightList);
 
+			m_skyboxHelper.Draw(loop, camera);
 
+			FinalPass(loop);
 
 			loop.Submit();
 		}
