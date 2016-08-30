@@ -87,18 +87,12 @@ public class SkyboxHelper
 		CommandBuffer cmd = new CommandBuffer();
 		cmd.name = "Skybox";
 
-		Light sunLight = RenderSettings.sun;
-		Color sunColor = new Color(0, 0, 0);
-		Vector3 sunDir = new Vector3(0, 0, -1);
-
-		if (sunLight != null)
-		{
-			sunColor = sunLight.color;
-			Transform xform = sunLight.transform;
-			sunDir = xform.TransformDirection(sunDir);
-		}
-
 		Material mat = RenderSettings.skybox;
+
+		if (mat == null)
+		{
+			return;
+		}
 
 		bool looksLikeSixSidedShader = true;
 		looksLikeSixSidedShader &= (mat.passCount == 6); // should have six passes
@@ -114,9 +108,6 @@ public class SkyboxHelper
 			{
 				CreateMesh();
 			}
-
-			cmd.SetGlobalVector("_LightColor0", sunColor);
-			cmd.SetGlobalVector("_WorldSpaceLightPos0", sunDir);
 			
 			float dist = camera.farClipPlane * 10.0f;
 
