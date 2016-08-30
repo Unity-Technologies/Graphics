@@ -24,17 +24,10 @@ CGPROGRAM
 #pragma vertex vert
 #pragma fragment frag
 
-#pragma multi_compile __ UNITY_COLORSPACE_GAMMA
-
-//#include "UnityCG.cginc"
-//#include "UnityPBSLighting.cginc"
-//#include "UnityDeferredLibrary.cginc"
-
 #include "UnityCG.cginc"
 #include "UnityStandardBRDF.cginc"
 #include "UnityStandardUtils.cginc"
 #include "UnityPBSLighting.cginc"
-
 
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs"
@@ -252,16 +245,9 @@ half4 frag (v2f i) : SV_Target
 
 	const int offs = tileIDX.y*nrTilesX+tileIDX.x;
 
-	
 	float3 c = ExecuteLightList(pixCoord, offs);
-
 	//c = OverlayHeatMap(FetchLightCount(offs), c);
-
-#if defined(UNITY_COLORSPACE_GAMMA)
 	return float4(c,1.0);
-#else
-	return float4(pow(c,1/2.2),1.0);
-#endif
 }
 
 struct StandardData
@@ -328,7 +314,6 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 		light.dir.xyz = mul((float3x3) g_mViewToWorld, -lightData.vLaxisZ).xyz;
 
 		ints += UNITY_BRDF_PBS(data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind);
-//		ints += LambertTerm(data.normalWorld, lightDir) * light.vCol;
 	}
 
 	// we need this outer loop for when we cannot assume a wavefront is 64 wide

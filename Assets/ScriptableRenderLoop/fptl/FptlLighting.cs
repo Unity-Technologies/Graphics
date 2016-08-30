@@ -159,7 +159,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_skyboxHelper = new SkyboxHelper();
 			m_skyboxHelper.CreateMesh();
 
-			m_blitMaterial = new Material(Shader.Find("Hidden/BlitCopy"));
+			m_blitMaterial = new Material(Shader.Find("Hidden/FinalPass"));
 		}
 
 		void OnDisable()
@@ -290,11 +290,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					DirectionalLight l = new DirectionalLight();
 
-					float range = light.range;
-
 					Matrix4x4 lightToWorld = light.localToWorld;
 
-					Vector3 lightPos = lightToWorld.GetColumn(3);
 					Vector3 lightDir = lightToWorld.GetColumn(2);   // Z axis in world space
 
 					// represents a left hand coordinate system in world space
