@@ -160,6 +160,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_skyboxHelper.CreateMesh();
 
 			m_blitMaterial = new Material(Shader.Find("Hidden/FinalPass"));
+			m_blitMaterial.hideFlags = HideFlags.HideAndDontSave;
 		}
 
 		void OnDisable()
@@ -167,6 +168,8 @@ namespace UnityEngine.ScriptableRenderLoop
 			// RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
 			if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
 			if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
+			if (m_blitMaterial) DestroyImmediate(m_blitMaterial);
+
 			m_cookieTexArray.Release();
 			m_cubeCookieTexArray.Release();
 			m_cubeReflTexArray.Release();
