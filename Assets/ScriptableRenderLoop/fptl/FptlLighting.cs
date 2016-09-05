@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 using System;
 using System.Collections;
@@ -798,6 +798,10 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_cookieTexArray.NewFrame();
 			m_cubeCookieTexArray.NewFrame();
 			m_cubeReflTexArray.NewFrame();
+
+			m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
+			m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
+			m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
 		}
 	}
 }
