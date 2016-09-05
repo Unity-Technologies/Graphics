@@ -52,12 +52,12 @@ public class TextureCacheCubemap : TextureCache
         return cache;
     }
 
-    public bool AllocTextureArray(int numCubeMaps, int width, int height, TextureFormat format, bool isMipMapped)
+    public bool AllocTextureArray(int numCubeMaps, int width, TextureFormat format, bool isMipMapped)
     {
         bool res = AllocTextureArray(6*numCubeMaps);
-        m_numMipLevels = GetNumMips(width, height);
+        m_numMipLevels = GetNumMips(width, width);
 
-        cache = new CubemapArray(width, height, numCubeMaps, format, isMipMapped);
+        cache = new CubemapArray(width, numCubeMaps, format, isMipMapped);
         cache.wrapMode = TextureWrapMode.Clamp;
 
         return res;
