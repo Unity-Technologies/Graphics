@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEditor;
 //using System;
 using System.Collections.Generic;
 
@@ -10,8 +11,8 @@ public class TextureCache2D : TextureCache
 
     public override void TransferToSlice(int sliceIndex, Texture texture)
     {
-        for (int m=0; m<m_numMipLevels; m++)
-            Graphics.CopyTexture(texture, 0, m, cache, sliceIndex, m);
+		for (int m = 0; m < m_numMipLevels; m++)
+			Graphics.CopyTexture(texture, 0, m, cache, sliceIndex, m);
     }
 
     public override Texture GetTexCache()
@@ -25,7 +26,8 @@ public class TextureCache2D : TextureCache
         m_numMipLevels = GetNumMips(width, height);
 
         cache = new Texture2DArray(width, height, numTextures, format, isMipMapped);
-        cache.wrapMode = TextureWrapMode.Clamp;
+		cache.hideFlags = HideFlags.HideAndDontSave;
+		cache.wrapMode = TextureWrapMode.Clamp;
 
         return res;
     }
@@ -58,7 +60,8 @@ public class TextureCacheCubemap : TextureCache
         m_numMipLevels = GetNumMips(width, width);
 
         cache = new CubemapArray(width, numCubeMaps, format, isMipMapped);
-        cache.wrapMode = TextureWrapMode.Clamp;
+		cache.hideFlags = HideFlags.HideAndDontSave;
+		cache.wrapMode = TextureWrapMode.Clamp;
 
         return res;
     }
@@ -74,6 +77,16 @@ abstract public class TextureCache : Object
 {
     protected int m_numMipLevels;
 
+	public static int ms_GlobalTextureCacheVersion = 0;
+	public int m_TextureCacheVersion = 0;
+
+	internal class AssetReloader : AssetPostprocessor
+	{
+		void OnPostprocessTexture(Texture texture)
+		{
+			ms_GlobalTextureCacheVersion++;
+		}
+	}
 
     private struct SSliceEntry
     {
@@ -84,8 +97,9 @@ abstract public class TextureCache : Object
     private int m_numTextures;
     private int [] m_SortedIdxArray;
     private SSliceEntry [] m_SliceArray;
+	private AssetReloader m_assetReloader;
 
-    Dictionary<uint, int> m_locatorInSliceArray;
+	Dictionary<uint, int> m_locatorInSliceArray;
 
     private static uint g_MaxFrameCount = unchecked( (uint) (-1) );
     private static uint g_InvalidTexID = (uint) 0;
@@ -102,11 +116,19 @@ abstract public class TextureCache : Object
         int sliceIndex = -1;
 
         // search for existing copy
-        if(m_locatorInSliceArray.ContainsKey(TexID))
+		if(m_locatorInSliceArray.ContainsKey(TexID))
         {
-            sliceIndex = m_locatorInSliceArray[TexID];
-            bFoundAvailOrExistingSlice = true;
-
+			if (m_TextureCacheVersion != ms_GlobalTextureCacheVersion)
+			{
+				m_locatorInSliceArray.Remove(TexID);
+				m_TextureCacheVersion++;
+				Debug.Assert(m_TextureCacheVersion <= ms_GlobalTextureCacheVersion);
+			}
+			else
+			{
+				sliceIndex = m_locatorInSliceArray[TexID];
+				bFoundAvailOrExistingSlice = true;
+			}
             //assert(m_SliceArray[sliceIndex].TexID==TexID);
         }
 
@@ -195,7 +217,7 @@ abstract public class TextureCache : Object
     {
 	    m_numTextures=0;
         m_numMipLevels=0;
-    }
+	}
 
     public virtual void TransferToSlice(int sliceIndex, Texture texture)
     {
