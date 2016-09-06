@@ -553,10 +553,20 @@ namespace UnityEngine.ScriptableRenderLoop
 					boundData[i].vScaleXY = new Vec2(1.0f, 1.0f);
 					boundData[i].fRadius = range;
 
+					// represents a left hand coordinate system in world space
+					Matrix4x4 lightToView = worldToView * lightToWorld;
+					Vector3 vx = lightToView.GetColumn(0);
+					Vector3 vy = lightToView.GetColumn(1);
+					Vector3 vz = lightToView.GetColumn(2);
+
 					// fill up ldata
 					lightData[i].uLightType = (uint)LightDefinitions.SPHERE_LIGHT;
 					lightData[i].vLpos = boundData[i].vCen;
 					lightData[i].fSphRadiusSq = range * range;
+
+					lightData[i].vLaxisX = vx;
+					lightData[i].vLaxisY = vy;
+					lightData[i].vLaxisZ = vz;
 
 					lightData[i].flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
                     lightData[i].flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);

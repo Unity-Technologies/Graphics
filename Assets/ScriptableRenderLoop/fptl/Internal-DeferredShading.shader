@@ -386,10 +386,12 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 
 			float4 cookieColor = float4(1,1,1,1);
 
+			float3 cookieCoord = float3(dot(vL, lgtDat.vLaxisX.xyz), dot(vL, lgtDat.vLaxisY.xyz), -dot(vL, lgtDat.vLaxisZ.xyz));
+			
 			const bool bHasCookie = (lgtDat.flags&HAS_COOKIE_TEXTURE)!=0;
 			[branch]if(bHasCookie)
 			{
-				cookieColor = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(-vLw, lgtDat.iSliceIndex), 0.0);
+				cookieColor = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(cookieCoord, lgtDat.iSliceIndex), 0.0);
 				atten *= cookieColor.w;
 			}
 			
