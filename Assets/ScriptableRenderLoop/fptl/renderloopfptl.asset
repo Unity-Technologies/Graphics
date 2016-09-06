@@ -11,6 +11,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad5bf4f8e45bdd1429eadc3445df2c89, type: 3}
   m_Name: renderloopfptl
   m_EditorClassIdentifier: 
+  m_ShadowSettings:
+    enabled: 1
+    shadowAtlasWidth: 4096
+    shadowAtlasHeight: 4096
+    maxShadowDistance: 1000
+    directionalLightCascadeCount: 4
+    directionalLightCascades: {x: 0.05, y: 0.2, z: 0.3}
+  m_TextureSettings:
+    spotCookieSize: 512
+    pointCookieSize: 256
   m_DeferredShader: {fileID: 4800000, guid: 1c102a89f3460254a8c413dbdcd63a2a, type: 3}
   m_DeferredReflectionShader: {fileID: 4800000, guid: 3899e06d641c2cb4cbff794df0da536b,
     type: 3}

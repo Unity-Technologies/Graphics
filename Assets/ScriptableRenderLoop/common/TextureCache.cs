@@ -11,8 +11,44 @@ public class TextureCache2D : TextureCache
 
 	public override void TransferToSlice(int sliceIndex, Texture texture)
 	{
-		for (int m = 0; m < m_numMipLevels; m++)
-			Graphics.CopyTexture(texture, 0, m, cache, sliceIndex, m);
+		bool mismatch = (cache.width != texture.width) || (cache.height != texture.height);
+
+		if (!mismatch)
+		{
+			if (texture is Texture2D)
+			{
+				mismatch = cache.format != (texture as Texture2D).format;
+			}
+		}
+
+		if (!mismatch)
+		{
+			Graphics.CopyTexture(texture, 0, cache, sliceIndex);
+		}
+		else
+		{
+			// TODO:  move to C++
+			Texture2D src = texture as Texture2D;
+			if (src == null)
+			{
+				Debug.LogError("TransferToSlice() requires size conversion, but the input texture is not a Texture2D.");
+				return;
+			}
+
+			Color[] data = cache.GetPixels(sliceIndex);
+			float sx = 1.0f / (float)cache.width;
+			float sy = 1.0f / (float)cache.height;
+
+			for (int i = 0; i < data.Length; i++)
+			{
+				int x = i % cache.width;
+				int y = i / cache.width;
+
+				data[i] = src.GetPixelBilinear(sx * (float)x, sy * (float)y);
+			}
+			cache.SetPixels(data, sliceIndex);
+			cache.Apply();
+		}
 	}
 
 	public override Texture GetTexCache()
@@ -44,9 +80,51 @@ public class TextureCacheCubemap : TextureCache
 
 	public override void TransferToSlice(int sliceIndex, Texture texture)
 	{
-		for (int f = 0; f < 6; f++)
-			for (int m = 0; m < m_numMipLevels; m++)
-				Graphics.CopyTexture(texture, f, m, cache, 6 * sliceIndex + f, m);
+		bool mismatch = (cache.width != texture.width) || (cache.height != texture.height);
+
+		if (!mismatch)
+		{
+			if (texture is Cubemap)
+			{
+				mismatch = cache.format != (texture as Cubemap).format;
+			}
+		}
+
+		if (!mismatch)
+		{
+			for (int f = 0; f < 6; f++)
+				Graphics.CopyTexture(texture, f, cache, 6 * sliceIndex + f);
+		}
+		else
+		{
+			// TODO:  move to C++
+			Cubemap src = texture as Cubemap;
+			if (src == null)
+			{
+				Debug.LogError("TransferToSlice() requires size conversion, but the input texture is not a Texture2D.");
+				return;
+			}
+
+			for (int f = 0; f < 6; f++)
+			{
+				Color[] rpixels = cache.GetPixels((CubemapFace)f, sliceIndex);
+				float sx = 1.0f / (float)cache.width;
+				float sy = 1.0f / (float)cache.height;
+
+				for (int i = 0; i < rpixels.Length; i++)
+				{
+					int x = i % cache.width;
+					int y = i / cache.width;
+
+					rpixels[i] = src.GetPixelBilinear((CubemapFace)f, sx * (float)x, sy * (float)y);
+				}
+				cache.SetPixels(rpixels, (CubemapFace)f, sliceIndex);
+				cache.Apply();
+			}
+		}
+
+
+		
 	}
 
 	public override Texture GetTexCache()
