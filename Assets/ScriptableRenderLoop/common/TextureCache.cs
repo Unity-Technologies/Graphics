@@ -13,42 +13,19 @@ public class TextureCache2D : TextureCache
 	{
 		bool mismatch = (cache.width != texture.width) || (cache.height != texture.height);
 
-		if (!mismatch)
+		if (texture is Texture2D)
 		{
-			if (texture is Texture2D)
-			{
-				mismatch = cache.format != (texture as Texture2D).format;
-			}
+			mismatch |= (cache.format != (texture as Texture2D).format);
 		}
 
-		if (!mismatch)
+		if (mismatch)
 		{
-			Graphics.CopyTexture(texture, 0, cache, sliceIndex);
+			Debug.LogErrorFormat(texture, "Texture size or format of \"{0}\" doesn't match renderloop settings (should be {1}x{2} {3})",
+				texture.name, cache.width, cache.height, cache.format);
+			return;
 		}
-		else
-		{
-			// TODO:  move to C++
-			Texture2D src = texture as Texture2D;
-			if (src == null)
-			{
-				Debug.LogError("TransferToSlice() requires size conversion, but the input texture is not a Texture2D.");
-				return;
-			}
 
-			Color[] data = cache.GetPixels(sliceIndex);
-			float sx = 1.0f / (float)cache.width;
-			float sy = 1.0f / (float)cache.height;
-
-			for (int i = 0; i < data.Length; i++)
-			{
-				int x = i % cache.width;
-				int y = i / cache.width;
-
-				data[i] = src.GetPixelBilinear(sx * (float)x, sy * (float)y);
-			}
-			cache.SetPixels(data, sliceIndex);
-			cache.Apply();
-		}
+		Graphics.CopyTexture(texture, 0, cache, sliceIndex);
 	}
 
 	public override Texture GetTexCache()
@@ -82,49 +59,20 @@ public class TextureCacheCubemap : TextureCache
 	{
 		bool mismatch = (cache.width != texture.width) || (cache.height != texture.height);
 
-		if (!mismatch)
+		if (texture is Cubemap)
 		{
-			if (texture is Cubemap)
-			{
-				mismatch = cache.format != (texture as Cubemap).format;
-			}
+			mismatch |= (cache.format != (texture as Cubemap).format);
 		}
 
-		if (!mismatch)
+		if (mismatch)
 		{
-			for (int f = 0; f < 6; f++)
-				Graphics.CopyTexture(texture, f, cache, 6 * sliceIndex + f);
-		}
-		else
-		{
-			// TODO:  move to C++
-			Cubemap src = texture as Cubemap;
-			if (src == null)
-			{
-				Debug.LogError("TransferToSlice() requires size conversion, but the input texture is not a Texture2D.");
-				return;
-			}
-
-			for (int f = 0; f < 6; f++)
-			{
-				Color[] rpixels = cache.GetPixels((CubemapFace)f, sliceIndex);
-				float sx = 1.0f / (float)cache.width;
-				float sy = 1.0f / (float)cache.height;
-
-				for (int i = 0; i < rpixels.Length; i++)
-				{
-					int x = i % cache.width;
-					int y = i / cache.width;
-
-					rpixels[i] = src.GetPixelBilinear((CubemapFace)f, sx * (float)x, sy * (float)y);
-				}
-				cache.SetPixels(rpixels, (CubemapFace)f, sliceIndex);
-			}
-			cache.Apply();
+			Debug.LogErrorFormat(texture, "Texture size or format of \"{0}\" doesn't match renderloop settings (should be {1}x{2} {3})",
+				texture.name, cache.width, cache.height, cache.format);
+			return;
 		}
 
-
-		
+		for (int f = 0; f < 6; f++)
+			Graphics.CopyTexture(texture, f, cache, 6 * sliceIndex + f);
 	}
 
 	public override Texture GetTexCache()

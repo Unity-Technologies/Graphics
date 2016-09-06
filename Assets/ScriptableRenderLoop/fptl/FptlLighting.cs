@@ -81,12 +81,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		void OnValidate()
 		{
-			if (!Mathf.IsPowerOfTwo((int)m_TextureSettings.pointCookieSize) ||
-				!Mathf.IsPowerOfTwo((int)m_TextureSettings.spotCookieSize))
-			{
-				// let the user type in peace..
-				return;
-			}
 			Rebuild();
 		}
 
@@ -153,8 +147,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_cubeReflTexArray = new TextureCacheCubemap();
 			m_cookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
 			m_cubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-            m_cubeReflTexArray.AllocTextureArray(64, 128, TextureFormat.BC6H, true);
-
+			m_cubeReflTexArray.AllocTextureArray(64, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
 			m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
 			m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());

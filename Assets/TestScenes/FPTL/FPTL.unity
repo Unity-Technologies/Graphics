@@ -71,7 +71,7 @@ LightmapSettings:
     m_FinalGatherFiltering: 1
     m_FinalGatherRayCount: 1024
     m_ReflectionCompression: 2
-  m_LightingDataAsset: {fileID: 112000001, guid: 7c15940932339a94eaebfe5f1346f44c,
+  m_LightingDataAsset: {fileID: 112000001, guid: 69881ce3df6a158419708b1cb7429d87,
     type: 2}
   m_RuntimeCPUUsage: 25
 --- !u!196 &4
