@@ -546,7 +546,7 @@ namespace UnityEngine.ScriptableRenderLoop
 					boundData[i].vScaleXY = new Vec2(1.0f, 1.0f);
 					boundData[i].fRadius = range;
 
-					// represents a left hand coordinate system in world space
+                    // represents a left hand coordinate system in world space since det(worldToView)<0
 					Matrix4x4 lightToView = worldToView * lightToWorld;
 					Vector3 vx = lightToView.GetColumn(0);
 					Vector3 vy = lightToView.GetColumn(1);

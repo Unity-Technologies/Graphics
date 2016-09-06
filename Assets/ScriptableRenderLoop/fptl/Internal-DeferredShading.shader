@@ -385,12 +385,11 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			float atten = tex2Dlod(_LightTextureB0, float4(attLookUp.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
 
 			float4 cookieColor = float4(1,1,1,1);
-
-			float3 cookieCoord = float3(dot(vL, lgtDat.vLaxisX.xyz), dot(vL, lgtDat.vLaxisY.xyz), -dot(vL, lgtDat.vLaxisZ.xyz));
 			
 			const bool bHasCookie = (lgtDat.flags&HAS_COOKIE_TEXTURE)!=0;
 			[branch]if(bHasCookie)
 			{
+				float3 cookieCoord = -float3(dot(vL, lgtDat.vLaxisX.xyz), dot(vL, lgtDat.vLaxisY.xyz), dot(vL, lgtDat.vLaxisZ.xyz));	// negate to make vL a fromLight vector
 				cookieColor = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(cookieCoord, lgtDat.iSliceIndex), 0.0);
 				atten *= cookieColor.w;
 			}
