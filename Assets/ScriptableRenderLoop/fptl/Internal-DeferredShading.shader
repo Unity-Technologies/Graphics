@@ -344,13 +344,14 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			float2 cookCoord = (-lgtDat.cotan)*float2( dot(vL, lgtDat.vLaxisX.xyz), dot(vL, lgtDat.vLaxisY.xyz) ) / fProjVec;
 
 			const bool bHasCookie = (lgtDat.flags&IS_CIRCULAR_SPOT_SHAPE)==0;		// all square spots have cookies
-			float d0=0.65, angularAtt = smoothstep(0.0, 1.0-d0, 1.0-length(cookCoord));
+			float d0 = 0.65;
+			float4 angularAtt = float4(1,1,1,smoothstep(0.0, 1.0-d0, 1.0-length(cookCoord)));
 			[branch]if(bHasCookie)
 			{
 				cookCoord = cookCoord*0.5 + 0.5;
-				angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, lgtDat.iSliceIndex), 0.0).w;
+				angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, lgtDat.iSliceIndex), 0.0);
 			}
-			atten *= angularAtt*(fProjVec>0.0);                           // finally apply this to the dist att.
+			atten *= angularAtt.w*(fProjVec>0.0);                           // finally apply this to the dist att.
 			
 			const bool bHasShadow = (lgtDat.flags&HAS_SHADOW)!=0;
 			[branch]if(bHasShadow)
@@ -360,7 +361,7 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			}
 
 			UnityLight light;
-			light.color.xyz = lgtDat.vCol.xyz*atten;
+			light.color.xyz = lgtDat.vCol.xyz*atten*angularAtt.xyz;
 			light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;		//unity_CameraToWorld
 
 			ints += UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind);
@@ -383,10 +384,13 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			float attLookUp = dist*lgtDat.fRecipRange; attLookUp *= attLookUp;
 			float atten = tex2Dlod(_LightTextureB0, float4(attLookUp.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
 
+			float4 cookieColor = float4(1,1,1,1);
+
 			const bool bHasCookie = (lgtDat.flags&HAS_COOKIE_TEXTURE)!=0;
 			[branch]if(bHasCookie)
 			{
-				atten *= UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(-vLw, lgtDat.iSliceIndex), 0.0).w;
+				cookieColor = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(-vLw, lgtDat.iSliceIndex), 0.0);
+				atten *= cookieColor.w;
 			}
 			
 			const bool bHasShadow = (lgtDat.flags&HAS_SHADOW)!=0;
@@ -397,7 +401,7 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 			}
 
 			UnityLight light;
-			light.color.xyz = lgtDat.vCol.xyz*atten;
+			light.color.xyz = lgtDat.vCol.xyz*atten*cookieColor.xyz;
 			light.dir.xyz = vLw;
 					
 			ints += UNITY_BRDF_PBS (data.diffuseColor, data.specularColor, oneMinusReflectivity, data.smoothness, data.normalWorld, vWSpaceVDir, light, ind);

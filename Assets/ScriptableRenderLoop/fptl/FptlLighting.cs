@@ -22,6 +22,9 @@ namespace UnityEngine.ScriptableRenderLoop
 		ShadowSettings m_ShadowSettings = ShadowSettings.Default;
 		ShadowRenderPass m_ShadowPass;
 
+		[SerializeField]
+		TextureSettings m_TextureSettings = TextureSettings.Default;
+		
 		public Shader m_DeferredShader;
 		public Shader m_DeferredReflectionShader;
 
@@ -78,6 +81,12 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		void OnValidate()
 		{
+			if (!Mathf.IsPowerOfTwo((int)m_TextureSettings.pointCookieSize) ||
+				!Mathf.IsPowerOfTwo((int)m_TextureSettings.spotCookieSize))
+			{
+				// let the user type in peace..
+				return;
+			}
 			Rebuild();
 		}
 
@@ -142,8 +151,8 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_cookieTexArray = new TextureCache2D();
 			m_cubeCookieTexArray = new TextureCacheCubemap();
 			m_cubeReflTexArray = new TextureCacheCubemap();
-			m_cookieTexArray.AllocTextureArray(8, 128, 128, TextureFormat.Alpha8, true);
-			m_cubeCookieTexArray.AllocTextureArray(4, 512, TextureFormat.Alpha8, true);
+			m_cookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
+			m_cubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
             m_cubeReflTexArray.AllocTextureArray(64, 128, TextureFormat.BC6H, true);
 
 
