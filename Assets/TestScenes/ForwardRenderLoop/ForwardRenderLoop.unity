@@ -79,16 +79,17 @@ NavMeshSettings:
   m_ObjectHideFlags: 0
   m_BuildSettings:
     serializedVersion: 2
+    agentTypeID: 0
     agentRadius: 0.5
     agentHeight: 2
     agentSlope: 45
     agentClimb: 0.4
     ledgeDropHeight: 0
     maxJumpAcrossDistance: 0
-    accuratePlacement: 0
     minRegionArea: 2
-    cellSize: 0.16666667
     manualCellSize: 0
+    cellSize: 0.16666667
+    accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
 --- !u!1001 &317665640
 Prefab:
@@ -137,11 +138,11 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 550164699}
-  - 108: {fileID: 550164698}
-  - 114: {fileID: 550164697}
+  - component: {fileID: 550164699}
+  - component: {fileID: 550164698}
+  - component: {fileID: 550164697}
   m_Layer: 0
   m_Name: Spotlight (10)
   m_TagString: Untagged
@@ -179,6 +180,7 @@ Light:
   m_Shadows:
     m_Type: 1
     m_Resolution: -1
+    m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0.05
     m_NormalBias: 0.4
@@ -213,11 +215,11 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 756999131}
-  - 108: {fileID: 756999130}
-  - 114: {fileID: 756999129}
+  - component: {fileID: 756999131}
+  - component: {fileID: 756999130}
+  - component: {fileID: 756999129}
   m_Layer: 0
   m_Name: Spotlight (11)
   m_TagString: Untagged
@@ -255,6 +257,7 @@ Light:
   m_Shadows:
     m_Type: 1
     m_Resolution: -1
+    m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0.05
     m_NormalBias: 0.4
@@ -289,12 +292,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 942239538}
-  - 33: {fileID: 942239537}
-  - 135: {fileID: 942239536}
-  - 23: {fileID: 942239535}
+  - component: {fileID: 942239538}
+  - component: {fileID: 942239537}
+  - component: {fileID: 942239536}
+  - component: {fileID: 942239535}
   m_Layer: 0
   m_Name: Sphere (8)
   m_TagString: Untagged
@@ -316,7 +319,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -368,12 +373,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1064871616}
-  - 33: {fileID: 1064871615}
-  - 64: {fileID: 1064871614}
-  - 23: {fileID: 1064871613}
+  - component: {fileID: 1064871616}
+  - component: {fileID: 1064871615}
+  - component: {fileID: 1064871614}
+  - component: {fileID: 1064871613}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -395,7 +400,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -421,6 +428,8 @@ MeshCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Convex: 0
+  m_InflateMesh: 0
+  m_SkinWidth: 0.01
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!33 &1064871615
 MeshFilter:
@@ -447,12 +456,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1090653692}
-  - 33: {fileID: 1090653691}
-  - 135: {fileID: 1090653690}
-  - 23: {fileID: 1090653689}
+  - component: {fileID: 1090653692}
+  - component: {fileID: 1090653691}
+  - component: {fileID: 1090653690}
+  - component: {fileID: 1090653689}
   m_Layer: 0
   m_Name: Sphere (11)
   m_TagString: Untagged
@@ -474,7 +483,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -526,12 +537,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1100543303}
-  - 33: {fileID: 1100543302}
-  - 135: {fileID: 1100543301}
-  - 23: {fileID: 1100543300}
+  - component: {fileID: 1100543303}
+  - component: {fileID: 1100543302}
+  - component: {fileID: 1100543301}
+  - component: {fileID: 1100543300}
   m_Layer: 0
   m_Name: Sphere (2)
   m_TagString: Untagged
@@ -553,7 +564,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -606,12 +619,12 @@ GameObject:
   m_PrefabParentObject: {fileID: 1000012080249286, guid: de937cf09e81b4862bae4a2fb6c7f459,
     type: 2}
   m_PrefabInternal: {fileID: 317665640}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1256381301}
-  - 33: {fileID: 1256381300}
-  - 135: {fileID: 1256381299}
-  - 23: {fileID: 1256381298}
+  - component: {fileID: 1256381301}
+  - component: {fileID: 1256381300}
+  - component: {fileID: 1256381299}
+  - component: {fileID: 1256381298}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -634,7 +647,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -689,11 +704,11 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1403765356}
-  - 108: {fileID: 1403765355}
-  - 114: {fileID: 1403765354}
+  - component: {fileID: 1403765356}
+  - component: {fileID: 1403765355}
+  - component: {fileID: 1403765354}
   m_Layer: 0
   m_Name: Spotlight (9)
   m_TagString: Untagged
@@ -731,6 +746,7 @@ Light:
   m_Shadows:
     m_Type: 1
     m_Resolution: -1
+    m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0.05
     m_NormalBias: 0.4
@@ -765,12 +781,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1409545159}
-  - 33: {fileID: 1409545158}
-  - 135: {fileID: 1409545157}
-  - 23: {fileID: 1409545156}
+  - component: {fileID: 1409545159}
+  - component: {fileID: 1409545158}
+  - component: {fileID: 1409545157}
+  - component: {fileID: 1409545156}
   m_Layer: 0
   m_Name: Sphere (6)
   m_TagString: Untagged
@@ -792,7 +808,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -844,12 +862,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1469174317}
-  - 33: {fileID: 1469174316}
-  - 135: {fileID: 1469174315}
-  - 23: {fileID: 1469174314}
+  - component: {fileID: 1469174317}
+  - component: {fileID: 1469174316}
+  - component: {fileID: 1469174315}
+  - component: {fileID: 1469174314}
   m_Layer: 0
   m_Name: Sphere (3)
   m_TagString: Untagged
@@ -871,7 +889,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -923,12 +943,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1506796426}
-  - 33: {fileID: 1506796425}
-  - 135: {fileID: 1506796424}
-  - 23: {fileID: 1506796423}
+  - component: {fileID: 1506796426}
+  - component: {fileID: 1506796425}
+  - component: {fileID: 1506796424}
+  - component: {fileID: 1506796423}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -950,7 +970,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -1002,12 +1024,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1597621870}
-  - 33: {fileID: 1597621869}
-  - 135: {fileID: 1597621868}
-  - 23: {fileID: 1597621867}
+  - component: {fileID: 1597621870}
+  - component: {fileID: 1597621869}
+  - component: {fileID: 1597621868}
+  - component: {fileID: 1597621867}
   m_Layer: 0
   m_Name: Sphere (7)
   m_TagString: Untagged
@@ -1029,7 +1051,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -1081,14 +1105,14 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1713034013}
-  - 20: {fileID: 1713034012}
-  - 92: {fileID: 1713034011}
-  - 124: {fileID: 1713034010}
-  - 81: {fileID: 1713034009}
-  - 114: {fileID: 1713034014}
+  - component: {fileID: 1713034013}
+  - component: {fileID: 1713034012}
+  - component: {fileID: 1713034011}
+  - component: {fileID: 1713034010}
+  - component: {fileID: 1713034009}
+  - component: {fileID: 1713034014}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1175,18 +1199,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92bb16b4ee20841929b24d6bd771738d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_RenderLoop: {fileID: 11400000, guid: 4dc14083116279a438e1b2de3830999f, type: 2}
+  m_RenderLoop: {fileID: 11400000, guid: 873753be6b0da44d58b061c5ec3d12bc, type: 2}
 --- !u!1 &1758207072
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1758207076}
-  - 33: {fileID: 1758207075}
-  - 135: {fileID: 1758207074}
-  - 23: {fileID: 1758207073}
+  - component: {fileID: 1758207076}
+  - component: {fileID: 1758207075}
+  - component: {fileID: 1758207074}
+  - component: {fileID: 1758207073}
   m_Layer: 0
   m_Name: Sphere (5)
   m_TagString: Untagged
@@ -1208,7 +1232,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -1260,11 +1286,11 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1810843059}
-  - 108: {fileID: 1810843058}
-  - 114: {fileID: 1810843057}
+  - component: {fileID: 1810843059}
+  - component: {fileID: 1810843058}
+  - component: {fileID: 1810843057}
   m_Layer: 0
   m_Name: Spotlight (12)
   m_TagString: Untagged
@@ -1302,6 +1328,7 @@ Light:
   m_Shadows:
     m_Type: 1
     m_Resolution: -1
+    m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0.05
     m_NormalBias: 0.4
@@ -1336,12 +1363,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1818419759}
-  - 33: {fileID: 1818419758}
-  - 135: {fileID: 1818419757}
-  - 23: {fileID: 1818419756}
+  - component: {fileID: 1818419759}
+  - component: {fileID: 1818419758}
+  - component: {fileID: 1818419757}
+  - component: {fileID: 1818419756}
   m_Layer: 0
   m_Name: Sphere (4)
   m_TagString: Untagged
@@ -1363,7 +1390,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -1415,12 +1444,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 1946201413}
-  - 33: {fileID: 1946201412}
-  - 135: {fileID: 1946201411}
-  - 23: {fileID: 1946201410}
+  - component: {fileID: 1946201413}
+  - component: {fileID: 1946201412}
+  - component: {fileID: 1946201411}
+  - component: {fileID: 1946201410}
   m_Layer: 0
   m_Name: Sphere (12)
   m_TagString: Untagged
@@ -1442,7 +1471,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -1494,12 +1525,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 2054101904}
-  - 33: {fileID: 2054101903}
-  - 135: {fileID: 2054101902}
-  - 23: {fileID: 2054101901}
+  - component: {fileID: 2054101904}
+  - component: {fileID: 2054101903}
+  - component: {fileID: 2054101902}
+  - component: {fileID: 2054101901}
   m_Layer: 0
   m_Name: Sphere (9)
   m_TagString: Untagged
@@ -1521,7 +1552,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
@@ -1573,12 +1606,12 @@ GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Component:
-  - 4: {fileID: 2136471015}
-  - 33: {fileID: 2136471014}
-  - 135: {fileID: 2136471013}
-  - 23: {fileID: 2136471012}
+  - component: {fileID: 2136471015}
+  - component: {fileID: 2136471014}
+  - component: {fileID: 2136471013}
+  - component: {fileID: 2136471012}
   m_Layer: 0
   m_Name: Sphere (1)
   m_TagString: Untagged
@@ -1600,7 +1633,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: b4d74419a10f9614aaf2624ff3c83e80, type: 2}
-  m_SubsetIndices: 
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}

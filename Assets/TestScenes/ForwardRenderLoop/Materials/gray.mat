@@ -7,12 +7,12 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: gray
-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
-  m_ShaderKeywords: S_RECEIVE_SHADOWS S_SPECULAR_METALLIC _EMISSION
-  m_LightmapFlags: 1
+  m_Shader: {fileID: 4800000, guid: 908b379d4818cd64184b95a21123d909, type: 3}
+  m_ShaderKeywords: S_RECEIVE_SHADOWS S_SPECULAR_METALLIC
+  m_LightmapFlags: 5
   m_CustomRenderQueue: -1
   stringTagMap:
-    OriginalShader: Standard (Specular setup)
+    OriginalShader: Standard
   m_SavedProperties:
     serializedVersion: 2
     m_TexEnvs:
