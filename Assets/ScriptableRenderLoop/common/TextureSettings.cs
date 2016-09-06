@@ -8,6 +8,7 @@ public struct TextureSettings
 {
 	public uint spotCookieSize;
 	public uint pointCookieSize;
+	public uint reflectionCubemapSize;
 
 	static public TextureSettings Default
 	{
@@ -16,6 +17,7 @@ public struct TextureSettings
 			TextureSettings settings;
 			settings.spotCookieSize = 128;
 			settings.pointCookieSize = 512;
+			settings.reflectionCubemapSize = 64;
 			return settings;
 		}
 	}
