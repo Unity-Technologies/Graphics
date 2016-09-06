@@ -119,8 +119,8 @@ public class TextureCacheCubemap : TextureCache
 					rpixels[i] = src.GetPixelBilinear((CubemapFace)f, sx * (float)x, sy * (float)y);
 				}
 				cache.SetPixels(rpixels, (CubemapFace)f, sliceIndex);
-				cache.Apply();
 			}
+			cache.Apply();
 		}
 
 
