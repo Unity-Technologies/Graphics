@@ -391,7 +391,7 @@ namespace UnityEditor.Experimental
             WriteLine("[numthreads(NB_THREADS_PER_GROUP,1,1)]");
             Write("void ");
             Write(name);
-            WriteLine("(uint3 id : SV_DispatchThreadID)");
+            WriteLine("(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)");
             EnterScope();
         }
 

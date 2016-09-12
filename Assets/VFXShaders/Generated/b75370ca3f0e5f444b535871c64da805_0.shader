@@ -16,7 +16,7 @@ Shader "Hidden/VFX_0"
 			#pragma vertex vert
 			#pragma fragment frag
 			
-			#define VFX_LOCAL_SPACE
+			#define VFX_WORLD_SPACE
 			
 			#include "UnityCG.cginc"
 			#include "HLSLSupport.cginc"
@@ -119,7 +119,7 @@ Shader "Hidden/VFX_0"
 					float3 position = attrib0.position;
 					
 					float2 posOffsets = o.offsets.xy;
-					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
+					float3 cameraPos = _WorldSpaceCameraPos.xyz;
 					float3 side = local_side;
 					float3 up = local_up;
 					
@@ -127,7 +127,7 @@ Shader "Hidden/VFX_0"
 					position += up * (posOffsets.y * size.y);
 					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
 					
-					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+					o.pos = mul (UNITY_MATRIX_VP, float4(position,1.0f));
 					o.col = float4(local_color.xyz,local_alpha);
 				}
 				else

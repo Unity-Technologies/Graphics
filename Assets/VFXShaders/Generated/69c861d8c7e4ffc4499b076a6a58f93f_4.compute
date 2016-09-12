@@ -79,6 +79,8 @@ ConsumeStructuredBuffer<uint> deadListIn;
 AppendStructuredBuffer<uint> deadListOut;
 Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
 
+RWStructuredBuffer<uint3> bounds;
+
 float rand(inout uint seed)
 {
 	seed = 1664525 * seed + 1013904223;
@@ -121,7 +123,7 @@ void VFXBlockSetForceConstant( inout float3 velocity,float3 Force)
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
-void CSVFXInit(uint3 id : SV_DispatchThreadID)
+void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 {
 	if (id.x < min(nbSpawned,deadListCount[0]))
 	{
@@ -163,7 +165,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID)
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
-void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
+void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 {
 	if (id.x < nbMax && flags[id.x] == 1)
 	{
@@ -191,12 +193,13 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID)
 		{
 			flags[index] = 0;
 			deadListOut.Append(index);
-			return;
 		}
-		
-		attribBuffer0[index] = attrib0;
-		attribBuffer1[index] = attrib1;
-		attribBuffer2[index] = attrib2;
+		else
+		{
+			attribBuffer0[index] = attrib0;
+			attribBuffer1[index] = attrib1;
+			attribBuffer2[index] = attrib2;
+		}
 	}
 }
 

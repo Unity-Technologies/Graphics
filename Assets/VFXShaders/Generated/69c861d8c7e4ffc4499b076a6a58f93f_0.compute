@@ -30,6 +30,8 @@ struct Attribute0
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
 
+RWStructuredBuffer<uint3> bounds;
+
 float rand(inout uint seed)
 {
 	seed = 1664525 * seed + 1013904223;
@@ -44,7 +46,7 @@ void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_cente
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
-void CSVFXInit(uint3 id : SV_DispatchThreadID)
+void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 {
 	if (id.x < nbSpawned)
 	{

@@ -112,3 +112,18 @@ VFXSampler3D InitSampler(Texture3D t,SamplerState s)
 	vfxSampler.s = s;
 	return vfxSampler;
 }
+
+uint ConvertFloatToSortableUint(float f)
+{
+	int mask = (-(int)(asuint(f) >> 31)) | 0x80000000;
+	return asuint(f) ^ mask;
+}
+
+uint3 ConvertFloatToSortableUint(float3 f)
+{
+	uint3 res;
+	res.x = ConvertFloatToSortableUint(f.x);
+	res.y = ConvertFloatToSortableUint(f.y);
+	res.z = ConvertFloatToSortableUint(f.z);
+	return res;
+}

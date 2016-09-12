@@ -192,6 +192,8 @@ namespace UnityEditor.Experimental
 
     public static class VFXModelCompiler
     {
+        const bool USE_DYNAMIC_AABB = false;
+
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
             ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Gather blocks");
@@ -843,6 +845,9 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
+            builder.WriteLine("RWStructuredBuffer<uint3> bounds;");
+            builder.WriteLine();
+
             // Write functions
             if (data.hasRand)
             {
@@ -873,6 +878,12 @@ namespace UnityEditor.Experimental
             if ((data.floatTextureContexts & VFXContextDesc.Type.kInitAndUpdate) != 0)
             {
                 data.generatedTextureData.WriteSampleCurveFunction(builder);
+                builder.WriteLine();
+            }
+
+            if (hasUpdate && USE_DYNAMIC_AABB)
+            {
+                builder.WriteLine("groupshared uint3 boundsLDS[2];");
                 builder.WriteLine();
             }
 
@@ -998,6 +1009,21 @@ namespace UnityEditor.Experimental
             {
                 builder.WriteKernelHeader("CSVFXUpdate");
 
+                if (USE_DYNAMIC_AABB)
+                {
+                    builder.WriteLine("if (groupId.x == 0)");
+                    builder.EnterScope();
+
+                    builder.WriteLine("boundsLDS[0] = (uint3)0xFFFFFFFF;");
+                    builder.WriteLine("boundsLDS[1] = (uint3)0;");
+
+                    builder.ExitScope();
+                    builder.WriteLine();
+
+                    builder.WriteLine("GroupMemoryBarrierWithGroupSync();");
+                    builder.WriteLine();
+                }
+
                 builder.Write("if (id.x < nbMax");
                 if (data.hasKill)
                     builder.WriteLine(" && flags[id.x] == 1)");
@@ -1047,7 +1073,7 @@ namespace UnityEditor.Experimental
 
                 foreach (var block in data.updateBlocks)
                     builder.WriteFunctionCall(block, functionNames, data, false);
-                builder.WriteLine();
+                builder.WriteLine(); 
 
                 updateGenerator.WritePostBlock(builder, data);
 
@@ -1064,9 +1090,11 @@ namespace UnityEditor.Experimental
                     builder.EnterScope();
                     builder.WriteLine("flags[index] = 0;");
                     builder.WriteLine("deadListOut.Append(index);");
-                    builder.WriteLine("return;");
+                    //builder.WriteLine("return;");
                     builder.ExitScope();
-                    builder.WriteLine();
+
+                    builder.WriteLine("else");
+                    builder.EnterScope();
                 }
 
                 foreach (var attribBuffer in data.attributeBuffers)
@@ -1081,7 +1109,45 @@ namespace UnityEditor.Experimental
                     }
                 }
 
+                if (USE_DYNAMIC_AABB)
+                {
+                    builder.WriteLine();
+                    builder.Write("uint3 sortablePos = ConvertFloatToSortableUint(");
+                    builder.WriteAttrib(CommonAttrib.Position, data);
+                    builder.WriteLine(");");
+                    builder.WriteLine();
+                    builder.WriteLine("InterlockedMin(boundsLDS[0].x,sortablePos.x);");
+                    builder.WriteLine("InterlockedMin(boundsLDS[0].y,sortablePos.y);");
+                    builder.WriteLine("InterlockedMin(boundsLDS[0].z,sortablePos.z);");
+                    builder.WriteLine();
+                    builder.WriteLine("InterlockedMax(boundsLDS[1].x,sortablePos.x);");
+                    builder.WriteLine("InterlockedMax(boundsLDS[1].y,sortablePos.y);");
+                    builder.WriteLine("InterlockedMax(boundsLDS[1].z,sortablePos.z);");    
+                }
+
+                if (data.hasKill)
+                    builder.ExitScope();
+
                 builder.ExitScope();
+
+                if (USE_DYNAMIC_AABB)
+                {
+                    builder.WriteLine();
+                    builder.WriteLine("GroupMemoryBarrierWithGroupSync();");
+                    builder.WriteLine();
+
+                    builder.WriteLine("if (groupId.x == 0)");
+                    builder.EnterScope();
+                    builder.WriteLine("InterlockedMin(bounds[0].x,boundsLDS[0].x);");
+                    builder.WriteLine("InterlockedMin(bounds[0].y,boundsLDS[0].y);");
+                    builder.WriteLine("InterlockedMin(bounds[0].z,boundsLDS[0].z);");
+                    builder.WriteLine();
+                    builder.WriteLine("InterlockedMax(bounds[1].x,boundsLDS[1].x);");
+                    builder.WriteLine("InterlockedMax(bounds[1].y,boundsLDS[1].y);");
+                    builder.WriteLine("InterlockedMax(bounds[1].z,boundsLDS[1].z);");
+                    builder.ExitScope();
+                }
+
                 builder.ExitScope();
                 builder.WriteLine();
             }
