@@ -131,6 +131,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		//---------------------------------------------------------------------------------------------------------------------------------------------------
 		bool AutoPackLightsIntoShadowTexture(List<InputShadowLightData> shadowLights, ActiveLight[] lights, out ShadowOutput packedShadows)
 		{
+			Dictionary<int, InputShadowLightData> activeShadowLights = new Dictionary<int, InputShadowLightData>();
 			List<int> shadowIndices = new List<int>();
 
 			//@TODO: Disallow multiple directional lights
@@ -138,6 +139,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			for (int i = 0; i < shadowLights.Count; i++)
 			{
 				shadowIndices.Add (shadowLights[i].lightIndex);
+				activeShadowLights[shadowLights[i].lightIndex] = shadowLights[i];
 			}
 
 			// World's stupidest sheet packer:
@@ -153,7 +155,7 @@ namespace UnityEngine.ScriptableRenderLoop
 				{
 					int nCompare = 0;
 					// Sort shadow-casting lights by shadow resolution
-					nCompare = shadowLights[l1].shadowResolution.CompareTo(shadowLights[l2].shadowResolution); // Sort by shadow size
+					nCompare = activeShadowLights[l1].shadowResolution.CompareTo(activeShadowLights[l2].shadowResolution); // Sort by shadow size
 
 					if ( nCompare == 0 ) // Same, so sort by range to stabilize sort results
 						nCompare = lights[l1].range.CompareTo( lights[l2].range ); // Sort by shadow size
@@ -188,7 +190,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			foreach (AtlasEntry entry in requestedPages)
 			{
-				int shadowResolution = shadowLights[entry.lightIndex].shadowResolution;
+				int shadowResolution = activeShadowLights[entry.lightIndex].shadowResolution;
 
 				// Check if first texture is too wide
 				if ( nCurrentY == -1 )
@@ -299,6 +301,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		{
 			var setRenderTargetCommandBuffer = new CommandBuffer ();
 
+			setRenderTargetCommandBuffer.name = "Render packed shadows";
 			setRenderTargetCommandBuffer.GetTemporaryRT (m_ShadowTexName, m_Settings.shadowAtlasWidth, m_Settings.shadowAtlasHeight, kDepthBuffer, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Linear);
 			setRenderTargetCommandBuffer.SetRenderTarget (new RenderTargetIdentifier (m_ShadowTexName));
 
