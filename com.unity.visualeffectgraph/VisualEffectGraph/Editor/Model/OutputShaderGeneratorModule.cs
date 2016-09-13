@@ -63,7 +63,6 @@ namespace UnityEditor.Experimental
             return m_OrientMode != OrientMode.kRotateAxis && m_OrientMode != OrientMode.kFixed;
         }
 
-
         public override bool UpdateAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, ref VFXBlockDesc.Flag flags)
         {
             if (!UpdateFlag(attribs, CommonAttrib.Position, VFXContextDesc.Type.kTypeOutput))
@@ -465,6 +464,129 @@ namespace UnityEditor.Experimental
         private bool m_HasFront;
         private bool m_HasSide;
         private bool m_HasUp;
+    }
+
+    // Experimental
+    public class VFXSphereOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
+    {
+        public VFXSphereOutputShaderGeneratorModule(VFXPropertySlot[] slots)
+        {
+            m_Values[0] = slots[0].ValueRef.Reduce() as VFXValue;
+            m_Values[1] = slots[1].ValueRef.Reduce() as VFXValue;
+        }
+
+        public override bool UpdateAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, ref VFXBlockDesc.Flag flags)
+        {
+            if (!UpdateFlag(attribs, CommonAttrib.Position, VFXContextDesc.Type.kTypeOutput))
+            {
+                Debug.LogError("Position attribute is needed for point output context");
+                return false;
+            }
+
+            UpdateFlag(attribs, CommonAttrib.Color, VFXContextDesc.Type.kTypeOutput);
+            m_HasSize = UpdateFlag(attribs, CommonAttrib.Size, VFXContextDesc.Type.kTypeOutput);
+            return true;
+        }
+
+        public override void UpdateUniforms(HashSet<VFXExpression> uniforms)
+        {
+            uniforms.Add(m_Values[MetallicSlot]);
+            uniforms.Add(m_Values[SmoothnessSlot]);
+        }
+
+        public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
+
+        public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine("uint index = (id >> 2) + instanceID * 16384;");
+        }
+
+        public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine("float2 offsets : TEXCOORD0;");
+            builder.WriteLine("nointerpolation float size : TEXCORRD1;");
+        }
+
+        public override void WriteAdditionalPixelOutput(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine("float4 spec_smoothness : SV_Target1;");
+            builder.WriteLine("float4 normal : SV_Target2;");
+            builder.WriteLine("float4 emission : SV_Target3;");
+            builder.WriteLine("float depth : SV_DepthLessEqual;");
+        }
+
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            if (m_HasSize)
+            {
+                builder.Write("float2 size = ");
+                builder.WriteAttrib(CommonAttrib.Size, data);
+                builder.WriteLine(" * 0.5f;");
+            }
+            else
+                builder.WriteLine("float2 size = float2(0.005,0.005);");
+
+            builder.WriteLine("o.offsets.x = 2.0 * float(id & 1) - 1.0;");
+            builder.WriteLine("o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;");
+            builder.WriteLine();
+
+            builder.Write("float3 position = ");
+            builder.WriteAttrib(CommonAttrib.Position, data);
+            builder.WriteLine(";");
+            builder.WriteLine();
+
+            builder.WriteLine("float4x4 cameraMat = VFXCameraMatrix();");
+            //builder.WriteLine("innerFront = -VFXCameraLook();");
+            //builder.WriteLine("innerSide = cameraMat[0].xyz;");
+            //builder.WriteLine("innerUp = cameraMat[1].xyz;");
+
+            builder.WriteLine("float camDist = dot(cameraMat[2].xyz,position - VFXCameraPos());");
+            //builder.WriteLine("if (camDist < 0.0f) discard;");
+            builder.WriteLine("float scale = 1.0f - size.x / camDist;");
+
+            builder.WriteLine("position += cameraMat[0].xyz * (o.offsets.x * size.x) * scale;");
+            builder.WriteLine("position += cameraMat[1].xyz * (o.offsets.y * size.y) * scale;");
+            builder.WriteLine("position += -cameraMat[2].xyz * size.x;");
+
+            builder.WriteLine();
+            builder.WriteLine("o.size = size;");
+            builder.WriteLineFormat("o.pos = mul ({0}, float4(position,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
+        }
+
+        public override void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data)
+        {
+            builder.WriteLine("float lsqr = dot(i.offsets, i.offsets);");
+            builder.WriteLine("if (lsqr > 1.0)");
+            builder.WriteLine("\tdiscard;");
+            builder.WriteLine();
+
+            builder.WriteLine("float nDepthOffset = 1.0f - sqrt(1.0f - lsqr); // normalized depth offset");
+
+            builder.WriteLine("float depth = DECODE_EYEDEPTH(i.pos.z) + nDepthOffset * i.size;");
+            builder.WriteLine("o.depth = (1.0f - depth * _ZBufferParams.w) / (depth * _ZBufferParams.z);");
+
+            builder.WriteLine("float3 specColor = (float3)0;");
+            builder.WriteLine("float oneMinusReflectivity = 0;");
+            builder.WriteLineFormat("float metalness = saturate({0});", data.outputParamToName[m_Values[MetallicSlot]]);
+            builder.WriteLine("color.rgb = DiffuseAndSpecularFromMetallic(color.rgb,metalness,specColor,oneMinusReflectivity);");
+
+            builder.WriteLine("color.a = 0.0f;"); // occlusion
+
+            builder.WriteLine("float3 normal = float3(i.offsets.x,i.offsets.y,nDepthOffset - 1.0f);");
+            //builder.WriteLine("color.xyz = mul(unity_CameraToWorld, float4(normal,0.0f)).xyz * 0.5f + 0.5f;");
+            builder.WriteLineFormat("o.spec_smoothness = float4(specColor,{0});",data.outputParamToName[m_Values[SmoothnessSlot]]);
+            builder.WriteLine("o.normal = mul(unity_CameraToWorld, float4(normal,0.0f)) * 0.5f + 0.5f;");
+            //builder.WriteLine("color = (float4)0.0f;"); // occlusion
+
+            builder.WriteLine("half3 ambient = color.xyz * 0.0f;//ShadeSHPerPixel(normal, float4(color.xyz, 1) * 0.1, float3(0, 0, 0));");
+            builder.WriteLine("o.emission = float4(ambient, 0);");
+        }
+
+        public const int MetallicSlot = 0;
+        public const int SmoothnessSlot = 1;
+
+        private VFXValue[] m_Values = new VFXValue[2];
+        private bool m_HasSize;
     }
 }
 

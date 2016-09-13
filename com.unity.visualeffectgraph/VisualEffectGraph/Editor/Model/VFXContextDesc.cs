@@ -243,6 +243,25 @@ namespace UnityEditor.Experimental
         }
     }
 
+    public class VFXSphereOutputDesc : VFXContextDesc
+    {
+        public VFXSphereOutputDesc()
+            : base(Type.kTypeOutput, "Sphere Output", true)
+        {
+            m_Properties = new VFXProperty[2];
+            m_Properties[VFXSphereOutputShaderGeneratorModule.MetallicSlot] = VFXProperty.Create<VFXFloatType>("metalness"); 
+            m_Properties[VFXSphereOutputShaderGeneratorModule.SmoothnessSlot] = VFXProperty.Create<VFXFloatType>("smoothness");
+        }
+
+        public override VFXShaderGeneratorModule CreateShaderGenerator(VFXContextModel model)
+        {
+            VFXPropertySlot[] values = new VFXPropertySlot[2];
+            values[VFXSphereOutputShaderGeneratorModule.MetallicSlot] = model.GetSlot(VFXSphereOutputShaderGeneratorModule.MetallicSlot);
+            values[VFXSphereOutputShaderGeneratorModule.SmoothnessSlot] = model.GetSlot(VFXSphereOutputShaderGeneratorModule.SmoothnessSlot);
+            return new VFXSphereOutputShaderGeneratorModule(values);
+        }
+    }
+
     public class VFXParticleUpdate : VFXContextDesc
     {
         public VFXParticleUpdate()

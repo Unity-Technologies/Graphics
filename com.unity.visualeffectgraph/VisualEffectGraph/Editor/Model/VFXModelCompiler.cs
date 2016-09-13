@@ -1175,6 +1175,7 @@ namespace UnityEditor.Experimental
             }
             builder.WriteLine("Pass");
             builder.EnterScope();
+            builder.WriteLine("Tags { \"LightMode\" = \"Deferred\" }");
             if (blendMode == BlendMode.kAdditive)
                 builder.WriteLine("Blend SrcAlpha One");
             else if (blendMode == BlendMode.kAlpha)
@@ -1200,6 +1201,7 @@ namespace UnityEditor.Experimental
 
             builder.WriteLine();
             builder.WriteLine("#include \"UnityCG.cginc\"");
+            builder.WriteLine("#include \"UnityStandardUtils.cginc\"");
             builder.WriteLine("#include \"HLSLSupport.cginc\"");
             builder.WriteLine("#include \"..\\VFXCommon.cginc\"");
             builder.WriteLine();
@@ -1239,14 +1241,14 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
             builder.WriteLine("struct ps_input");
             builder.EnterScope();
-            builder.WriteLine("float4 pos : SV_POSITION;");
+            builder.WriteLine("linear noperspective centroid float4 pos : SV_POSITION;");
 
             bool hasColor = data.HasAttribute(CommonAttrib.Color);
             bool hasAlpha = data.HasAttribute(CommonAttrib.Alpha);
             bool needsVertexColor = hasColor || hasAlpha;
 
             if (needsVertexColor)
-                builder.WriteLine("nointerpolation float4 col : COLOR0;");
+                builder.WriteLine("nointerpolation float4 col : SV_Target0;");
 
             outputGenerator.WriteAdditionalVertexOutput(builder, data);
 
@@ -1369,12 +1371,19 @@ namespace UnityEditor.Experimental
             builder.ExitScope();
             builder.WriteLine();
 
-           // if (data.system.BlendingMode == BlendMode.kMasked)
-           //     builder.WriteLine("float4 frag (ps_input i,float4 screenPos : VPOS) : COLOR");
-           // else
-                builder.WriteLine("float4 frag (ps_input i) : COLOR");
+            builder.WriteLine("struct ps_output");
+            builder.EnterScope();
+            builder.WriteLine("float4 col : SV_Target0;");
+            outputGenerator.WriteAdditionalPixelOutput(builder, data);
+            builder.ExitScopeStruct();
+            builder.WriteLine();
+
+            builder.WriteLine("ps_output frag (ps_input i)");
 
             builder.EnterScope();
+
+            builder.WriteLine("ps_output o = (ps_output)0;");
+            builder.WriteLine();
 
             if (hasColor || hasAlpha)
                 builder.WriteLine("float4 color = i.col;");
@@ -1399,10 +1408,11 @@ namespace UnityEditor.Experimental
                 //builder.WriteLine("fade = ( fade > 0.5) ? 1-output : output;");
 
                 builder.WriteLine("color.a *= fade;");
-                builder.WriteLine();
             }
 
-            builder.WriteLine("return color;");
+            builder.WriteLine();
+            builder.WriteLine("o.col = color;");
+            builder.WriteLine("return o;");
 
             builder.ExitScope();
             builder.WriteLine();
