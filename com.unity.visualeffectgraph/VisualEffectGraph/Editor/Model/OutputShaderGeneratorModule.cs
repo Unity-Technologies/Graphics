@@ -504,7 +504,8 @@ namespace UnityEditor.Experimental
         public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             builder.WriteLine("float2 offsets : TEXCOORD0;");
-            builder.WriteLine("nointerpolation float size : TEXCORRD1;");
+            builder.WriteLine("nointerpolation float3 viewCenterPos : TEXCOORD1;");
+            builder.WriteLine("float4 viewPosAndSize : TEXCOORD2;");
         }
 
         public override void WriteAdditionalPixelOutput(ShaderSourceBuilder builder, ShaderMetaData data)
@@ -535,21 +536,24 @@ namespace UnityEditor.Experimental
             builder.WriteLine(";");
             builder.WriteLine();
 
-            builder.WriteLine("float4x4 cameraMat = VFXCameraMatrix();");
-            //builder.WriteLine("innerFront = -VFXCameraLook();");
-            //builder.WriteLine("innerSide = cameraMat[0].xyz;");
-            //builder.WriteLine("innerUp = cameraMat[1].xyz;");
-
-            builder.WriteLine("float camDist = dot(cameraMat[2].xyz,position - VFXCameraPos());");
-            //builder.WriteLine("if (camDist < 0.0f) discard;");
+            builder.WriteLine("float3 posToCam = VFXCameraPos() - position;");
+            builder.WriteLine("float camDist = length(posToCam);");
             builder.WriteLine("float scale = 1.0f - size.x / camDist;");
-
-            builder.WriteLine("position += cameraMat[0].xyz * (o.offsets.x * size.x) * scale;");
-            builder.WriteLine("position += cameraMat[1].xyz * (o.offsets.y * size.y) * scale;");
-            builder.WriteLine("position += -cameraMat[2].xyz * size.x;");
+            builder.WriteLine("float3 front = posToCam / camDist;");
+            builder.WriteLine("float3 side = normalize(cross(front,VFXCameraMatrix()[1].xyz));");
+            builder.WriteLine("float3 up = cross(side,front);");
 
             builder.WriteLine();
-            builder.WriteLine("o.size = size;");
+
+            builder.WriteLineFormat("o.viewCenterPos = mul({0},float4(position,1.0f)).xyz;", (data.system.WorldSpace ? "UNITY_MATRIX_V" : "UNITY_MATRIX_MV"));
+
+            builder.WriteLine("position += side * (o.offsets.x * size.x) * scale;");
+            builder.WriteLine("position += up * (o.offsets.y * size.y) * scale;");
+            builder.WriteLine("position += front * size.x;");
+
+            builder.WriteLine();
+
+            builder.WriteLineFormat("o.viewPosAndSize = float4(mul({0},float4(position,1.0f)).xyz,size.x);", (data.system.WorldSpace ? "UNITY_MATRIX_V" : "UNITY_MATRIX_MV"));
             builder.WriteLineFormat("o.pos = mul ({0}, float4(position,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
         }
 
@@ -562,8 +566,10 @@ namespace UnityEditor.Experimental
 
             builder.WriteLine("float nDepthOffset = 1.0f - sqrt(1.0f - lsqr); // normalized depth offset");
 
-            builder.WriteLine("float depth = DECODE_EYEDEPTH(i.pos.z) + nDepthOffset * i.size;");
-            builder.WriteLine("o.depth = (1.0f - depth * _ZBufferParams.w) / (depth * _ZBufferParams.z);");
+            builder.WriteLine("float3 camToPosDir = normalize(i.viewPosAndSize.xyz);");
+            builder.WriteLine("float3 viewPos = i.viewPosAndSize.xyz + (camToPosDir * (nDepthOffset * i.viewPosAndSize.w));");
+            //builder.WriteLine("float depth = -viewPos.z;");
+            builder.WriteLine("o.depth = -(1.0f + viewPos.z * _ZBufferParams.w) / (viewPos.z * _ZBufferParams.z);");
 
             builder.WriteLine("float3 specColor = (float3)0;");
             builder.WriteLine("float oneMinusReflectivity = 0;");
@@ -572,6 +578,7 @@ namespace UnityEditor.Experimental
 
             builder.WriteLine("color.a = 0.0f;"); // occlusion
 
+            //builder.WriteLine("float3 normal = normalize(i.viewCenterPos - viewPos);//float3(i.offsets.x,i.offsets.y,nDepthOffset - 1.0f);");
             builder.WriteLine("float3 normal = float3(i.offsets.x,i.offsets.y,nDepthOffset - 1.0f);");
             //builder.WriteLine("color.xyz = mul(unity_CameraToWorld, float4(normal,0.0f)).xyz * 0.5f + 0.5f;");
             builder.WriteLineFormat("o.spec_smoothness = float4(specColor,{0});",data.outputParamToName[m_Values[SmoothnessSlot]]);

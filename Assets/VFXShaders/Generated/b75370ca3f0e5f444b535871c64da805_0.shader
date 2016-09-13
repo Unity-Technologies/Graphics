@@ -48,7 +48,8 @@ Shader "Hidden/VFX_0"
 				linear noperspective centroid float4 pos : SV_POSITION;
 				nointerpolation float4 col : SV_Target0;
 				float2 offsets : TEXCOORD0;
-				nointerpolation float size : TEXCORRD1;
+				nointerpolation float3 viewCenterPos : TEXCOORD1;
+				float4 viewPosAndSize : TEXCOORD2;
 			};
 			
 			void VFXBlockSetColorConstant( inout float3 color,float3 Color)
@@ -75,14 +76,19 @@ Shader "Hidden/VFX_0"
 					
 					float3 position = attrib1.position;
 					
-					float4x4 cameraMat = VFXCameraMatrix();
-					float camDist = dot(cameraMat[2].xyz,position - VFXCameraPos());
+					float3 posToCam = VFXCameraPos() - position;
+					float camDist = length(posToCam);
 					float scale = 1.0f - size.x / camDist;
-					position += cameraMat[0].xyz * (o.offsets.x * size.x) * scale;
-					position += cameraMat[1].xyz * (o.offsets.y * size.y) * scale;
-					position += -cameraMat[2].xyz * size.x;
+					float3 front = posToCam / camDist;
+					float3 side = normalize(cross(front,VFXCameraMatrix()[1].xyz));
+					float3 up = cross(side,front);
 					
-					o.size = size;
+					o.viewCenterPos = mul(UNITY_MATRIX_MV,float4(position,1.0f)).xyz;
+					position += side * (o.offsets.x * size.x) * scale;
+					position += up * (o.offsets.y * size.y) * scale;
+					position += front * size.x;
+					
+					o.viewPosAndSize = float4(mul(UNITY_MATRIX_MV,float4(position,1.0f)).xyz,size.x);
 					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
 					o.col = float4(local_color.xyz,0.5);
 				}
@@ -114,8 +120,9 @@ Shader "Hidden/VFX_0"
 					discard;
 				
 				float nDepthOffset = 1.0f - sqrt(1.0f - lsqr); // normalized depth offset
-				float depth = DECODE_EYEDEPTH(i.pos.z) + nDepthOffset * i.size;
-				o.depth = (1.0f - depth * _ZBufferParams.w) / (depth * _ZBufferParams.z);
+				float3 camToPosDir = normalize(i.viewPosAndSize.xyz);
+				float3 viewPos = i.viewPosAndSize.xyz + (camToPosDir * (nDepthOffset * i.viewPosAndSize.w));
+				o.depth = -(1.0f + viewPos.z * _ZBufferParams.w) / (viewPos.z * _ZBufferParams.z);
 				float3 specColor = (float3)0;
 				float oneMinusReflectivity = 0;
 				float metalness = saturate(outputUniform1);
