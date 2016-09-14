@@ -578,11 +578,11 @@ namespace UnityEditor.Experimental
 
             builder.WriteLine("color.a = 0.0f;"); // occlusion
 
-            //builder.WriteLine("float3 normal = normalize(i.viewCenterPos - viewPos);//float3(i.offsets.x,i.offsets.y,nDepthOffset - 1.0f);");
-            builder.WriteLine("float3 normal = float3(i.offsets.x,i.offsets.y,nDepthOffset - 1.0f);");
+            //builder.WriteLine("float3 normal = float3(i.offsets.x,i.offsets.y,nDepthOffset - 1.0f);");
+            builder.WriteLine("float3 normal = normalize(viewPos - i.viewCenterPos) * float3(1,1,-1);");
             //builder.WriteLine("color.xyz = mul(unity_CameraToWorld, float4(normal,0.0f)).xyz * 0.5f + 0.5f;");
             builder.WriteLineFormat("o.spec_smoothness = float4(specColor,{0});",data.outputParamToName[m_Values[SmoothnessSlot]]);
-            builder.WriteLine("o.normal = mul(unity_CameraToWorld, float4(normal,0.0f)) * 0.5f + 0.5f;");
+            builder.WriteLine("o.normal = mul(unity_CameraToWorld, float4(normal,0.0f)) * 0.5f + 0.5f;"); // -float4(normal,0.0f) * 0.5f + 0.5f;//
             //builder.WriteLine("color = (float4)0.0f;"); // occlusion
 
             builder.WriteLine("half3 ambient = color.xyz * 0.0f;//ShadeSHPerPixel(normal, float4(color.xyz, 1) * 0.1, float3(0, 0, 0));");

@@ -128,7 +128,7 @@ Shader "Hidden/VFX_0"
 				float metalness = saturate(outputUniform1);
 				color.rgb = DiffuseAndSpecularFromMetallic(color.rgb,metalness,specColor,oneMinusReflectivity);
 				color.a = 0.0f;
-				float3 normal = float3(i.offsets.x,i.offsets.y,nDepthOffset - 1.0f);
+				float3 normal = normalize(viewPos - i.viewCenterPos) * float3(1,1,-1);
 				o.spec_smoothness = float4(specColor,outputUniform2);
 				o.normal = mul(unity_CameraToWorld, float4(normal,0.0f)) * 0.5f + 0.5f;
 				half3 ambient = color.xyz * 0.0f;//ShadeSHPerPixel(normal, float4(color.xyz, 1) * 0.1, float3(0, 0, 0));
