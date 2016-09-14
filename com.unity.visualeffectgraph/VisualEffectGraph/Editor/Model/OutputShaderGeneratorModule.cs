@@ -516,6 +516,8 @@ namespace UnityEditor.Experimental
             builder.WriteLine("float depth : SV_DepthLessEqual;");
         }
 
+        public override bool CanUseDeferred() { return true; }
+
         public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             if (m_HasSize)

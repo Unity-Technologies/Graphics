@@ -1175,7 +1175,8 @@ namespace UnityEditor.Experimental
             }
             builder.WriteLine("Pass");
             builder.EnterScope();
-            builder.WriteLine("Tags { \"LightMode\" = \"Deferred\" }");
+            if (outputGenerator.CanUseDeferred())
+                builder.WriteLine("Tags { \"LightMode\" = \"Deferred\" }");
             if (blendMode == BlendMode.kAdditive)
                 builder.WriteLine("Blend SrcAlpha One");
             else if (blendMode == BlendMode.kAlpha)

@@ -18,61 +18,50 @@ CBUFFER_START(SpawnInfo)
 	uint spawnIndex;
 CBUFFER_END
 
-CBUFFER_START(GlobalUniforms)
-	float3 globalUniform0;
-	float globalUniform1;
-CBUFFER_END
-
 CBUFFER_START(initUniforms)
-	float initUniform0;
+	float3 initUniform0;
+	float initUniform1;
+	float initUniform2;
+	float initUniform3;
+	float initUniform4;
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float4 updateUniform0;
+	float4x4 updateUniform0;
 	float updateUniform1;
-	float4x4 updateUniform2;
-	float updateUniform3;
-	float updateUniform4;
-	float updateUniform5;
-	float updateUniform6;
-	float updateUniform7;
-	float updateUniform8;
-	float updateUniform9;
-	float4x4 updateUniform10;
+	float updateUniform2;
+	float4x4 updateUniform3;
 CBUFFER_END
 
 Texture3D updateSampler0Texture;
 SamplerState samplerupdateSampler0Texture;
 
-Texture2D curveTexture;
-SamplerState samplercurveTexture;
-
 struct Attribute0
 {
-	float lifetime;
+	float3 position;
+	float age;
 };
 
 struct Attribute1
 {
-	float3 position;
-	float _PADDING_;
+	float2 size;
 };
 
 struct Attribute2
 {
-	float2 size;
+	float lifetime;
 };
 
 struct Attribute3
 {
 	float3 velocity;
-	float age;
+	float _PADDING_;
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
-StructuredBuffer<Attribute0> attribBuffer0_RO;
 RWStructuredBuffer<Attribute1> attribBuffer1;
 RWStructuredBuffer<Attribute2> attribBuffer2;
+StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
 
 RWStructuredBuffer<int> flags;
@@ -88,54 +77,22 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-// Non optimized generic function to allow curve edition without recompiling
-float sampleSignal(float4 curveData,float u) // sample curve
-{
-	float uNorm = (u * curveData.x) + curveData.y;
-	switch(asuint(curveData.w) >> 2)
-	{
-		case 1: uNorm = ((0.9921875 * frac(min(1.0f - 1e-5f,uNorm))) + 0.00390625); break; // clamp end
-		case 2: uNorm = ((0.9921875 * frac(max(0.0f,uNorm))) + 0.00390625); break; // clamp start
-		case 3: uNorm = ((0.9921875 * saturate(uNorm)) + 0.00390625); break; // clamp both
-	}
-	return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
-}
-
-void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
-{
-	lifetime = max(Lifetime,0.0f);
-}
-
-void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
+void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;
-	position = VFXPositionOnSphereSurface(Sphere,u1,u2);
+	float u3 = pow(RAND,1.0/3.0);
+	position = VFXPositionOnSphere(Sphere,u1,u2,u3);
 }
 
-void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float4 Curve)
+void VFXBlockSizeConstantSquare( inout float2 size,float Size)
 {
-	float ratio = saturate(age/lifetime);
-	float s = sampleSignal(Curve, ratio);
-	size = float2(s,s);
+	size = float2(Size,Size);
 }
 
-void VFXBlockCollideWithSphere( inout float3 position,inout float3 velocity,float3 Sphere_center,float Sphere_radius,float Elasticity)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
-	float3 nextPos = position + velocity * deltaTime;
-	float3 dir = Sphere_center - nextPos;
-	float sqrLength = dot(dir,dir);
-	if (sqrLength <= Sphere_radius * Sphere_radius)
-	{	
-		float dist = sqrt(sqrLength);
-		float3 n = dir / dist;	
-		float projVelocity = dot(n,velocity);
-		
-		if (projVelocity > 0)
-			velocity -= ((1 + Elasticity) * projVelocity) * n;
-			
-		position += n * (dist - Sphere_radius);
-	}
+	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
 void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFXSampler3D VectorField,float4x4 Box,float4x4 InvBox,float Intensity,float DragCoefficient)
@@ -145,24 +102,6 @@ void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFX
 	value = mul(Box,float4(value,0.0f)).xyz * Intensity;
 	float3 relativeForce = value - velocity;
 	velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));
-}
-
-void VFXBlockSetForceConformToSphere( inout float3 velocity,float3 position,float3 Sphere_center,float Sphere_radius,float attractionSpeed,float attractionForce,float stickForce,float stickDistance)
-{
-	float3 dir = Sphere_center - position;
-	float distToCenter = length(dir);
-	float distToSurface = distToCenter - Sphere_radius;
-	dir /= distToCenter;
-	float spdNormal = dot(dir,velocity);
-	float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));
-	float tgtSpeed = sign(distToSurface) * attractionSpeed * ratio;
-	float deltaSpeed = tgtSpeed - spdNormal;
-	velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir;
-}
-
-void VFXBlockSetForceLinearDrag( inout float3 velocity,float DragCoefficient)
-{
-	velocity *= max(0.0,(1.0 - DragCoefficient * deltaTime));
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
@@ -188,8 +127,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetLifetimeConstant( attrib0.lifetime,initUniform0);
-		VFXBlockSetPositionSphereSurface( attrib1.position,globalUniform0,globalUniform1,local_seed);
+		VFXBlockSetPositionSphereVolume( attrib0.position,initUniform0,initUniform1,local_seed);
+		VFXBlockSizeConstantSquare( attrib1.size,initUniform2);
+		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform3,initUniform4,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -208,23 +148,18 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		uint index = id.x;
 		bool kill = false;
 		
-		Attribute0 attrib0 = attribBuffer0_RO[index];
-		Attribute1 attrib1 = attribBuffer1[index];
-		Attribute2 attrib2 = attribBuffer2[index];
+		Attribute0 attrib0 = attribBuffer0[index];
+		Attribute2 attrib2 = attribBuffer2_RO[index];
 		Attribute3 attrib3 = attribBuffer3[index];
 		
 		VFXSampler3D updateSampler0 = InitSampler(updateSampler0Texture,samplerupdateSampler0Texture);
 		
-		VFXBlockSizeOverLifeCurve( attrib2.size,attrib3.age,attrib0.lifetime,updateUniform0);
-		VFXBlockCollideWithSphere( attrib1.position,attrib3.velocity,globalUniform0,globalUniform1,updateUniform1);
-		VFXBlockVectorFieldRelativeForce( attrib3.velocity,attrib1.position,updateSampler0,updateUniform2,updateUniform10,updateUniform3,updateUniform4);
-		VFXBlockSetForceConformToSphere( attrib3.velocity,attrib1.position,globalUniform0,globalUniform1,updateUniform5,updateUniform6,updateUniform7,updateUniform8);
-		VFXBlockSetForceLinearDrag( attrib3.velocity,updateUniform9);
+		VFXBlockVectorFieldRelativeForce( attrib3.velocity,attrib0.position,updateSampler0,updateUniform0,updateUniform3,updateUniform1,updateUniform2);
 		
-		attrib1.position += attrib3.velocity * deltaTime;
+		attrib0.position += attrib3.velocity * deltaTime;
 		
-		attrib3.age += deltaTime;
-		if (attrib3.age >= attrib0.lifetime)
+		attrib0.age += deltaTime;
+		if (attrib0.age >= attrib2.lifetime)
 			kill = true;
 		
 		if (kill)
@@ -234,8 +169,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		}
 		else
 		{
-			attribBuffer1[index] = attrib1;
-			attribBuffer2[index] = attrib2;
+			attribBuffer0[index] = attrib0;
 			attribBuffer3[index] = attrib3;
 		}
 	}
