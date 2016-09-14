@@ -38,6 +38,7 @@ namespace UnityEditor.Experimental
     {
         public virtual void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data) { builder.WriteLine("uint index = id;"); }
         public virtual void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
+        public virtual void WriteAdditionalPixelOutput(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
         public virtual void WritePixelShader(ShaderSourceBuilder builder, ShaderMetaData data) { } // TMP
         public virtual int[] GetSingleIndexBuffer(ShaderMetaData data)                              { return null; }
     }
