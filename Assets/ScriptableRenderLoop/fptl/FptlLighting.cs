@@ -225,6 +225,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		static void CopyDepthAfterGBuffer(RenderLoop loop)
 		{
 			var cmd = new CommandBuffer();
+			cmd.name = "Copy depth";
 			cmd.CopyTexture(new RenderTargetIdentifier(kGBufferZ), new RenderTargetIdentifier(kCameraDepthTexture));
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
@@ -336,7 +337,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			for (int nLight = 0; nLight < activeLights.Length; nLight++)
 			{
-
 				nNumLightsIncludingTooMany++;
 				if (nNumLightsIncludingTooMany > MAX_LIGHTS)
 					continue;
@@ -710,6 +710,8 @@ namespace UnityEngine.ScriptableRenderLoop
 				cullResults = CullResults.Cull(ref cullingParams, renderLoop);
 				ExecuteRenderLoop(camera, cullResults, renderLoop);
 			}
+
+			renderLoop.Submit();
 		}
 
 		void FinalPass(RenderLoop loop)
@@ -800,8 +802,6 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_skyboxHelper.Draw(loop, camera);
 
 			FinalPass(loop);
-
-			loop.Submit();
 		}
 
 		void NewFrame()
