@@ -309,7 +309,7 @@ namespace UnityEngine.ScriptableRenderLoop
 					vy = worldToView.MultiplyVector(vy);
 					vz = worldToView.MultiplyVector(vz);
 
-					l.uShadowLightIndex = (uint)nLight;
+					l.uShadowLightIndex = (light.light.shadows != LightShadows.None) ? (uint)nLight : 0xffffffff;
 
 					l.vLaxisX = vx;
 					l.vLaxisY = vy;
