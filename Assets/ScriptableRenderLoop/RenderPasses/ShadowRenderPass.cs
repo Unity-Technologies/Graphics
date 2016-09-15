@@ -3,7 +3,6 @@ using System.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using System.Collections.Generic;
-using UnityEngine.Profiling;
 using System;
 
 namespace UnityEngine.ScriptableRenderLoop
