@@ -25,6 +25,7 @@ MonoBehaviour:
   m_DeferredShader: {fileID: 4800000, guid: 1c102a89f3460254a8c413dbdcd63a2a, type: 3}
   m_DeferredReflectionShader: {fileID: 4800000, guid: 3899e06d641c2cb4cbff794df0da536b,
     type: 3}
+  m_FinalPassShader: {fileID: 4800000, guid: b0988b3639dcc0e4a9f62ae7f85660ce, type: 3}
   m_BuildScreenAABBShader: {fileID: 7200000, guid: e7a739144e735934b89a42a4b9d9e23c,
     type: 3}
   m_BuildPerTileLightListShader: {fileID: 7200000, guid: f54ef7cb596a714488693ef9cdaf63fb,

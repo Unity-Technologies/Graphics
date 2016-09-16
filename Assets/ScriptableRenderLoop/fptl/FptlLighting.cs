@@ -3,20 +3,22 @@ using UnityEngine.Rendering;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 
 namespace UnityEngine.ScriptableRenderLoop
 {
-	//[ExecuteInEditMode]
+	[ExecuteInEditMode]
 	public class FptlLighting : ScriptableRenderLoop
 	{
-		[MenuItem("Renderloop/CreateRenderLoopFPTL")]
+
+#if UNITY_EDITOR
+		[UnityEditor.MenuItem("Renderloop/CreateRenderLoopFPTL")]
 		static void CreateRenderLoopFPTL()
 		{
 			var instance = ScriptableObject.CreateInstance<FptlLighting>();
-			AssetDatabase.CreateAsset(instance, "Assets/renderloopfptl.asset");
+			UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/renderloopfptl.asset");
 			//AssetDatabase.CreateAsset(instance, "Assets/ScriptableRenderLoop/fptl/renderloopfptl.asset");
 		}
+#endif
 
 		[SerializeField]
 		ShadowSettings m_ShadowSettings = ShadowSettings.Default;
@@ -27,6 +29,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		
 		public Shader m_DeferredShader;
 		public Shader m_DeferredReflectionShader;
+		public Shader m_FinalPassShader;
 
 		public ComputeShader m_BuildScreenAABBShader;
 		public ComputeShader m_BuildPerTileLightListShader;
@@ -161,7 +164,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_skyboxHelper = new SkyboxHelper();
 			m_skyboxHelper.CreateMesh();
 
-			m_blitMaterial = new Material(Shader.Find("Hidden/FinalPass"));
+			m_blitMaterial = new Material(m_FinalPassShader);
 			m_blitMaterial.hideFlags = HideFlags.HideAndDontSave;
 		}
 

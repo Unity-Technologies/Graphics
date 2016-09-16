@@ -4,3 +4,25 @@ Temp/*
 *.csproj
 *.sln
 *.suo
+DataSource/app.info
+DataSource/globalgamemanagers
+DataSource/globalgamemanagers.assets
+DataSource/level0
+DataSource/Mono/etc/mono/config
+DataSource/Mono/etc/mono/mconfig/config.xml
+DataSource/PlayerConnectionConfigFile
+DataSource/Resources/unity default resources
+DataSource/sharedassets0.assets
+DataSource/Resources/unity_builtin_extra
+DataSource/Mono/etc/mono/1.0/machine.config
+DataSource/Mono/etc/mono/2.0/machine.config
+DataSource/Mono/etc/mono/2.0/web.config
+*.dll
+*.mdb
+*.browser
+*.map
+*.ini
+*.resS
+*.exe
+*.aspx
+
