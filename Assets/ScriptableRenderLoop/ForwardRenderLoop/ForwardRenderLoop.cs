@@ -4,18 +4,18 @@ using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
 
-using UnityEditor;
-
 namespace UnityEngine.ScriptableRenderLoop
 {
 	public class ForwardRenderLoop : ScriptableRenderLoop
 	{
-		[MenuItem("Renderloop/CreateForwardRenderLoop")]
+#if UNITY_EDITOR
+		[UnityEditor.MenuItem("Renderloop/CreateForwardRenderLoop")]
 		static void CreateForwardRenderLoop()
 		{
 			var instance = ScriptableObject.CreateInstance<ForwardRenderLoop>();
-			AssetDatabase.CreateAsset(instance, "Assets/forwardrenderloop.asset");
+			UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/forwardrenderloop.asset");
 		}
+#endif
 
 		[SerializeField]
 		ShadowSettings m_ShadowSettings = ShadowSettings.Default;
