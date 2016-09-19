@@ -306,8 +306,12 @@ float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 		DirectionalLight lightData = g_dirLightData[i];
 		float atten = 1;
 
-		float shadowScalar = SampleShadow(DIRECTIONAL_LIGHT, vPositionWs, 0, lightData.uShadowLightIndex);
-		atten *= shadowScalar;
+		[branch]
+		if (lightData.uShadowLightIndex != 0xffffffff)
+		{
+			float shadowScalar = SampleShadow(DIRECTIONAL_LIGHT, vPositionWs, 0, lightData.uShadowLightIndex);
+			atten *= shadowScalar;
+		}
 
 		UnityLight light;
 		light.color.xyz = lightData.vCol.xyz * atten;
