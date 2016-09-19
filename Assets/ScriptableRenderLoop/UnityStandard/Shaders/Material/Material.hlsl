@@ -1,7 +1,7 @@
 #ifndef UNITY_MATERIAL_INCLUDED
 #define UNITY_MATERIAL_INCLUDED
 
-#include "Packing.hlsl"
+#include "../../ShaderLibrary/Packing.hlsl"
 
 #define DisneyGGXSurfaceData SurfaceData
 #define DisneyGGXBSDFData BSDFData
