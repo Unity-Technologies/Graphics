@@ -28,7 +28,6 @@ VertexOutputDeferred vertDeferred (VertexInput v)
 	o.tangentToWorldAndParallax[1].xyz = tangentToWorld[1];
 	o.tangentToWorldAndParallax[2].xyz = tangentToWorld[2];
 
-
 	return o;
 }
 
