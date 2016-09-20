@@ -1,6 +1,27 @@
 #ifndef UNITY_COMMON_INCLUDED
 #define UNITY_COMMON_INCLUDED
 
+// Convention:
+// space at the end of the variable name
+// WS: world space
+// VS: view space
+// OS: object space
+// HS: Homogenous clip space
+// CS: clips space
+// Example: NormalWS
+
+// normalized / unormalized vector
+// normalized direction are almost everywhere, we tag unormalized vector with un.
+// Example: unL for unormalized light vector
+
+// use capital letter for regular vector, vector are always pointing outward the current pixel position (ready for lighting equation)
+// capital letter mean the vector is normalize, unless we put un in front of it.
+// V: View vector  (no eye vector)
+// L: Light vector
+// N: Normal vector
+// H: Half vector
+
+
 // Include platform header
 #if defined(SHADER_API_XBOXONE)
 #include "Platform/XboxOne.hlsl"
@@ -9,8 +30,6 @@
 // Include language header
 #if defined(SHADER_API_D3D11)
 #include "API/D3D11.hlsl"
-#endif
-
 #endif
 
 // ----------------------------------------------------------------------------
@@ -47,7 +66,7 @@ float FastASin(float x)
 // Eberly's odd polynomial degree 5 - respect bounds
 // 4 VGPR, 14 FR (10 FR, 1 QR), 2 scalar
 // input [0, infinity] and output [0, PI/2]
-float FastATanPos(float inX) 
+float FastATanPos(float x) 
 { 
     float t0 = (x < 1.0f) ? x : 1.0f / x;
     float t1 = t0 * t0;
@@ -65,5 +84,9 @@ float FastATan(float x)
     float t0 = FastATanPos(abs(x));     
     return (x < 0.0f) ? -t0: t0; 
 }
+
+// ----------------------------------------------------------------------------
+// World position reconstruction / transformation
+// ----------------------------------------------------------------------------
 
 #endif // UNITY_COMMON_INCLUDED

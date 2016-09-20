@@ -10,7 +10,7 @@ namespace UnityEngine.ScriptableRenderLoop
 {
 	public class UnityStandardRenderLoop : ScriptableRenderLoop
 	{
-		[MenuItem("Renderloop/UnityStandardRenderLoop")]
+        [MenuItem("Renderloop/CreateUnityStandardRenderLoop")]
 		static void CreateUnityStandardRenderLoop()
 		{
 			var instance = ScriptableObject.CreateInstance<UnityStandardRenderLoop>();
@@ -223,7 +223,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				renderLoop.SetupCameraProperties (camera);
 
-				UpdateLightConstants(cullResults.culledLights, ref shadows);
+				//UpdateLightConstants(cullResults.culledLights, ref shadows);
 
 				DrawRendererSettings settings = new DrawRendererSettings (cullResults, camera, new ShaderPassName("Forward"));
 				settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;

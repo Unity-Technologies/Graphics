@@ -19,6 +19,7 @@
 #define UNITY_MATRIX_T_MV glstate_matrix_transpose_modelview0
 #define UNITY_MATRIX_IT_MV glstate_matrix_invtrans_modelview0
 
+
 // ----------------------------------------------------------------------------
 
 
@@ -131,4 +132,60 @@ CBUFFER_START(UnityPerFrame)
 
 CBUFFER_END
 
+// ----------------------------------------------------------------------------
+
 #endif // UNITY_SHADER_VARIABLES_INCLUDED
+
+
+float4x4 GetObjectToWorldMatrix()
+{
+	return unity_ObjectToWorld;
+}
+
+float4x4 GetWorldToObjectMatrix()
+{
+	return unity_WorldToObject;
+}
+
+// Transform to homogenous clip space
+float4x4 GetWorldToHClipMatrix()
+{
+	return unity_MatrixVP;
+}
+
+float3 TransformObjectToWorld(float3 position)
+{
+	return mul(GetObjectToWorldMatrix(), float4(position, 1.0));
+}
+
+float3 TransformObjectToWorldDir(float3 dir)
+{
+	// Normalize to support uniform scaling
+	return normalize(mul((float3x3)GetObjectToWorldMatrix(), dir));
+}
+
+// Transforms normal from object to world space
+float3 TransformObjectToWorldNormal(float3 norm)
+{
+#ifdef UNITY_ASSUME_UNIFORM_SCALING
+	return UnityObjectToWorldDir(norm);
+#else
+	// Normal need to be multiply by inverse transpose
+	// mul(IT_M, norm) => mul(norm, I_M) => {dot(norm, I_M.col0), dot(norm, I_M.col1), dot(norm, I_M.col2)}
+	return normalize(mul(norm, (float3x3)GetWorldToObjectMatrix()));
+#endif
+}
+
+// Tranforms position from view to homogenous space
+float4 TransformWorldToHClip(float3 pos)
+{
+	return mul(GetWorldToHClipMatrix(), float4(pos, 1.0));
+}
+
+float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
+{
+	// For odd-negative scale transforms we need to flip the sign
+	float sign = tangentSign * unity_WorldTransformParams.w;
+	float3 binormal = cross(normal, tangent) * sign;
+		return float3x3(tangent, binormal, normal);
+}
