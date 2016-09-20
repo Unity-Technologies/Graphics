@@ -153,33 +153,33 @@ float4x4 GetWorldToHClipMatrix()
 	return unity_MatrixVP;
 }
 
-float3 TransformObjectToWorld(float3 position)
+float3 TransformObjectToWorld(float3 positionOS)
 {
-	return mul(GetObjectToWorldMatrix(), float4(position, 1.0));
+	return mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0));
 }
 
-float3 TransformObjectToWorldDir(float3 dir)
+float3 TransformObjectToWorldDir(float3 dirOS)
 {
 	// Normalize to support uniform scaling
-	return normalize(mul((float3x3)GetObjectToWorldMatrix(), dir));
+	return normalize(mul((float3x3)GetObjectToWorldMatrix(), dirOS));
 }
 
 // Transforms normal from object to world space
-float3 TransformObjectToWorldNormal(float3 norm)
+float3 TransformObjectToWorldNormal(float3 normalOS)
 {
 #ifdef UNITY_ASSUME_UNIFORM_SCALING
-	return UnityObjectToWorldDir(norm);
+	return UnityObjectToWorldDir(normalOS);
 #else
 	// Normal need to be multiply by inverse transpose
 	// mul(IT_M, norm) => mul(norm, I_M) => {dot(norm, I_M.col0), dot(norm, I_M.col1), dot(norm, I_M.col2)}
-	return normalize(mul(norm, (float3x3)GetWorldToObjectMatrix()));
+	return normalize(mul(normalOS, (float3x3)GetWorldToObjectMatrix()));
 #endif
 }
 
 // Tranforms position from view to homogenous space
-float4 TransformWorldToHClip(float3 pos)
+float4 TransformWorldToHClip(float3 positionWS)
 {
-	return mul(GetWorldToHClipMatrix(), float4(pos, 1.0));
+	return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
 }
 
 float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
@@ -187,5 +187,12 @@ float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
 	// For odd-negative scale transforms we need to flip the sign
 	float sign = tangentSign * unity_WorldTransformParams.w;
 	float3 binormal = cross(normal, tangent) * sign;
-		return float3x3(tangent, binormal, normal);
+	
+	return float3x3(tangent, binormal, normal);
+}
+
+// Computes world space view direction, from object space position
+float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
+{
+	return normalize(_WorldSpaceCameraPos.xyz - positionWS);
 }
