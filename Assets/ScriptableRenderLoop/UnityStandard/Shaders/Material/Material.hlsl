@@ -2,6 +2,8 @@
 #define UNITY_MATERIAL_INCLUDED
 
 #include "../../ShaderLibrary/Packing.hlsl"
+#include "../../ShaderLibrary/BSDF.hlsl"
+#include "../Lighting/Lighting.hlsl"
 
 #define DisneyGGXSurfaceData SurfaceData
 #define DisneyGGXBSDFData BSDFData
@@ -31,6 +33,7 @@ struct DisneyGGXBSDFData
 	float	roughness;	
 
 	float3	normalWS;
+	float	perceptualRoughness;
 };
 
 //-----------------------------------------------------------------------------
@@ -67,13 +70,14 @@ DisneyGGXBSDFData ConvertSurfaceDataToBSDFData(DisneyGGXSurfaceData data)
 {
 	DisneyGGXBSDFData output;
 
-	output.diffuseColor		= data.diffuseColor;	
-	output.occlusion		= data.occlusion;
+	output.diffuseColor			= data.diffuseColor;	
+	output.occlusion			= data.occlusion;
 	
-	output.fresnel0			= data.specularColor;
-	output.roughness		= SmoothnessToRoughness(data.smoothness);
+	output.fresnel0				= data.specularColor;
+	output.roughness			= SmoothnessToRoughness(data.smoothness);
 
-	output.normalWS			= data.normal;
+	output.normalWS				= data.normal;
+	output.perceptualRoughness = SmoothnessToPerceptualRoughness(data.smoothness);
 
 	return output;
 }
@@ -115,11 +119,11 @@ void EvaluateBSDF_Punctual_DisneyGGX(	float3 V, float3 positionWS, PunctualLight
 										out float4 diffuseLighting,
 										out float4 specularLighting)
 {
-    float3 unormalizedLightVector = light.pos - positionWS;
-    float3 L = normalize(unormalizedLightVector);
+	float3 unL = light.positionWS - positionWS;
+    float3 L = normalize(unL);
 
     // Always done, directional have it neutral
-    float attenuation = GetDistanceAttenuation(unormalizedLightVector, light.invSqrAttenuationRadius);
+	float attenuation = GetDistanceAttenuation(unL, light.invSqrAttenuationRadius);
 	// Always done, point and dir have it neutral
     attenuation *= GetAngleAttenuation(L, light.forward, light.angleScale, light.angleOffset);
     float illuminance = saturate(dot(material.normalWS, L)) * attenuation;
@@ -132,9 +136,10 @@ void EvaluateBSDF_Punctual_DisneyGGX(	float3 V, float3 positionWS, PunctualLight
         float NdotV = abs(dot(material.normalWS, V)) + 1e-5f; // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
         float3 H = normalize(V + L);
         float LdotH = saturate(dot(L, H));
+		float NdotH = saturate(dot(material.normalWS, H));
         float NdotL = saturate(dot(material.normalWS, L));
         float3 F = F_Schlick(material.fresnel0, LdotH);
-        float Vis = V_SmithGGX(NdotL, NdotV, material.roughness);
+        float Vis = V_SmithJointGGX(NdotL, NdotV, material.roughness);
         float D = D_GGX(NdotH, material.roughness);
         specularLighting.rgb = F * Vis * D;
         float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, material.perceptualRoughness);

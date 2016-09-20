@@ -26,6 +26,7 @@ Shader "Unity/UnityStandard"
 	CGINCLUDE
 	
 	#include "Material/Material.hlsl"
+	#include "ShaderVariables.hlsl"
 
 	ENDCG
 
@@ -47,10 +48,6 @@ Shader "Unity/UnityStandard"
 			CGPROGRAM
 			#pragma target 5.0
 			#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
-
-			// Include
-			#include "ShaderVariables.hlsl"
-			
 			
 			#pragma vertex MainVS
 			#pragma fragment MainPS
@@ -61,35 +58,45 @@ Shader "Unity/UnityStandard"
 
 			struct VSInput
 			{
-				float4 vertex	: POSITION;
-				half3 normal	: NORMAL;
-				float2 uv0		: TEXCOORD0;
-				//float2 uv1		: TEXCOORD1;
-				//#if defined(DYNAMICLIGHTMAP_ON) || defined(UNITY_PASS_META)
-				//	float2 uv2		: TEXCOORD2;
-				//#endif
-				//#ifdef _TANGENT_TO_WORLD
-					half4 tangent	: TANGENT;
-				//#endif
-				//UNITY_INSTANCE_ID
+				float4 positionOS	: POSITION; // TODO: why do we provide w here ? putting constant to 1 will save a float
+				half3 normalOS		: NORMAL;
+				float2 uv0			: TEXCOORD0;
+				half4 tangentOS		: TANGENT;
 			};
 			
 			struct VSOutput
 			{
-				float4 positionWS : SV_POSITION;
+				float4 positionHS : SV_POSITION;
 				float2 texCoord0 : TEXCOORD0;
-				float4 tangentToWorldAndParallax : TANGENT; // [3x3:tangentToWorld | 1x3:viewDirForParallax]
-			};				
+				float4 tangentToWorld[3] : TEXCOORD1; // [3x3:tangentToWorld | 1x3:viewDirForParallax]
+			};
 
 			VSOutput MainVS( VSInput i )
 			{
-				// TODO : here we must support anykind of vertex animation
-				PSInput o;
+				// TODO : here we must support anykind of vertex animation (GPU skinning, morphing) or better do it in compute.
+				VSOutput o;
 
-				o.positionWS = UnityObjectToClipPos(v.vertex);
+				float3 positionWS = TransformObjectToWorld(i.positionOS.xyz);
+				// TODO deal with camera center rendering and instancing (This is the reason why we always perform tow step transform to clip space + instancing matrix)
+				o.positionHS = TransformWorldToHClip(positionWS);
+
+				float3 normalWS = TransformObjectToWorldNormal(i.normalOS);
 	
-				float3 positionWS = mul( unity_ObjectToWorld, i.vPositionOs.xyzw ).xyz;
-				o.positionWS.xyzw = mul( UNITY_MATRIX_MVP, float4( mul( unity_WorldToObject, float4( vPositionWs.xyz, 1.0 ) ).xyz, 1.0 ) );
+				o.texCoord0 = i.uv0;
+
+				#ifdef _TANGENT_TO_WORLD
+				float4 tangentWS = float4(TransformObjectToWorldDir(i.tangentOS.xyz), i.tangentOS.w);
+
+				float3x3 tangentToWorld = CreateTangentToWorld(normalWorld, tangentWorld.xyz, tangentWorld.w);
+				o.tangentToWorld[0].xyz = tangentToWorld[0];
+				o.tangentToWorld[1].xyz = tangentToWorld[1];
+				o.tangentToWorld[2].xyz = tangentToWorld[2];
+				#else
+				o.tangentToWorld[0].xyz = 0;
+				o.tangentToWorld[1].xyz = 0;
+				o.tangentToWorld[2].xyz = normalWS;
+				#endif
+
 				return o;
 			}
 
