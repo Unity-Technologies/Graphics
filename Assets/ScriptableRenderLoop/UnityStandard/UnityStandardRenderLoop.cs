@@ -47,8 +47,14 @@ namespace UnityEngine.ScriptableRenderLoop
 		}
 
 		//---------------------------------------------------------------------------------------------------------------------------------------------------
-		void UpdateLightConstants(ActiveLight[] activeLights, ref ShadowOutput shadow)
+		void UpdateLightConstants(ActiveLight[] activeLights /*, ref ShadowOutput shadow */)
 		{
+            for ( int nLight = 0; nLight < Math.Min(activeLights.Length, 4); nLight++ )
+			{
+                
+            }
+            _LightCount
+
 			/*
 			int nNumLightsIncludingTooMany = 0;
 
@@ -223,7 +229,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				renderLoop.SetupCameraProperties (camera);
 
-				//UpdateLightConstants(cullResults.culledLights, ref shadows);
+				UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
 
 				DrawRendererSettings settings = new DrawRendererSettings (cullResults, camera, new ShaderPassName("Forward"));
 				settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
