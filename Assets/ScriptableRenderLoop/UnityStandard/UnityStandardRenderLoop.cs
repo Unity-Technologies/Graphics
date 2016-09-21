@@ -49,12 +49,6 @@ namespace UnityEngine.ScriptableRenderLoop
 		//---------------------------------------------------------------------------------------------------------------------------------------------------
 		void UpdateLightConstants(ActiveLight[] activeLights /*, ref ShadowOutput shadow */)
 		{
-            for ( int nLight = 0; nLight < Math.Min(activeLights.Length, 4); nLight++ )
-			{
-                
-            }
-            _LightCount
-
 			/*
 			int nNumLightsIncludingTooMany = 0;
 

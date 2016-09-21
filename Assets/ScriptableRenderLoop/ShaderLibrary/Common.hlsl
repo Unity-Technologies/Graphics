@@ -21,15 +21,24 @@
 // N: Normal vector
 // H: Half vector
 
+// Input/Outputs structs in PascalCase and prefixed by entry type
+// struct AttributesDefault
+// struct VaryingsDefault
+// use input/output as variable name when using these structures
 
-// Include platform header
-#if defined(SHADER_API_XBOXONE)
-#include "Platform/XboxOne.hlsl"
-#endif
+// Entry program name
+// VertDefault
+// FragDefault / FragForward / FragDeferred
+
+// constant floating number written as 1.0  (not 1, not 1.0f, not 1.0h)
+
+// uniform have g_ as prefix (still lowercaseThenCamelCase)
 
 // Include language header
 #if defined(SHADER_API_D3D11)
 #include "API/D3D11.hlsl"
+#elif defined(SHADER_API_XBOXONE)
+#include "API/D3D11_1.hlsl"
 #endif
 
 // ----------------------------------------------------------------------------
