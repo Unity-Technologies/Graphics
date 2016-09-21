@@ -19,6 +19,7 @@ Shader "Hidden/VFX_0"
 			#define VFX_LOCAL_SPACE
 			
 			#include "UnityCG.cginc"
+			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
 			#include "..\VFXCommon.cginc"
 			
@@ -53,8 +54,8 @@ Shader "Hidden/VFX_0"
 			
 			struct ps_input
 			{
-				float4 pos : SV_POSITION;
-				nointerpolation float4 col : COLOR0;
+				linear noperspective centroid float4 pos : SV_POSITION;
+				nointerpolation float4 col : SV_Target0;
 				float2 offsets : TEXCOORD0;
 				nointerpolation float flipbookIndex : TEXCOORD1;
 			};
@@ -105,8 +106,15 @@ Shader "Hidden/VFX_0"
 				return o;
 			}
 			
-			float4 frag (ps_input i) : COLOR
+			struct ps_output
 			{
+				float4 col : SV_Target0;
+			};
+			
+			ps_output frag (ps_input i)
+			{
+				ps_output o = (ps_output)0;
+				
 				float4 color = i.col;
 				float2 dim = outputUniform2;
 				float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU
@@ -120,7 +128,9 @@ Shader "Hidden/VFX_0"
 				float4 col2 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv2);
 				
 				color *= lerp(col1,col2,ratio);
-				return color;
+				
+				o.col = color;
+				return o;
 			}
 			
 			ENDCG

@@ -19,6 +19,7 @@ Shader "Hidden/VFX_0"
 			#define VFX_LOCAL_SPACE
 			
 			#include "UnityCG.cginc"
+			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
 			#include "..\VFXCommon.cginc"
 			
@@ -37,8 +38,8 @@ Shader "Hidden/VFX_0"
 			
 			struct ps_input
 			{
-				float4 pos : SV_POSITION;
-				nointerpolation float4 col : COLOR0;
+				linear noperspective centroid float4 pos : SV_POSITION;
+				nointerpolation float4 col : SV_Target0;
 			};
 			
 			void VFXBlockSetColorConstant( inout float3 color,float3 Color)
@@ -71,10 +72,19 @@ Shader "Hidden/VFX_0"
 				return o;
 			}
 			
-			float4 frag (ps_input i) : COLOR
+			struct ps_output
 			{
+				float4 col : SV_Target0;
+			};
+			
+			ps_output frag (ps_input i)
+			{
+				ps_output o = (ps_output)0;
+				
 				float4 color = i.col;
-				return color;
+				
+				o.col = color;
+				return o;
 			}
 			
 			ENDCG

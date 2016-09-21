@@ -192,7 +192,7 @@ namespace UnityEditor.Experimental
 
     public static class VFXModelCompiler
     {
-        const bool USE_DYNAMIC_AABB = false;
+        const bool USE_DYNAMIC_AABB = false; // experimental
 
         public static VFXSystemRuntimeData CompileSystem(VFXSystemModel system)
         {
