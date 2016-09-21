@@ -62,11 +62,11 @@ Shader "Unity/DisneyGGX"
 				float3 positionWS = input.positionWS;
 				SurfaceData surfaceData = GetSurfaceData(input);
 
-				BSDFData BSDFData = ConvertSurfaceDataToBSDFData(surfaceData);
+				BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
 				float4 diffuseLighting;
 				float4 specularLighting;
-				ForwardLighting(V, positionWS, BSDFData, diffuseLighting, specularLighting);
+				ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
 
 				return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
 			}

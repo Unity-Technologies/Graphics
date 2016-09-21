@@ -17,18 +17,12 @@ namespace UnityEngine.ScriptableRenderLoop
 			AssetDatabase.CreateAsset(instance, "Assets/UnityStandardRenderLoop.asset");
 		}
 
-		[SerializeField]
+		//[SerializeField]
 		//ShadowSettings m_ShadowSettings = ShadowSettings.Default;
 		//ShadowRenderPass m_ShadowPass;
 
-
-		const int MAX_LIGHTS = 10;
-		const int MAX_SHADOWMAP_PER_LIGHTS = 6;
-		const int MAX_DIRECTIONAL_SPLIT = 4;
-		// Directional lights become spotlights at a far distance. This is the distance we pull back to set the spotlight origin.
-		const float DIRECTIONAL_LIGHT_PULLBACK_DISTANCE = 10000.0f; 
-
-		[NonSerialized] private int m_nWarnedTooManyLights = 0;
+        static private ComputeBuffer m_punctualLightList;
+        public const int MAX_LIGHTS = 1024;
 
 
 		void OnEnable()
@@ -41,12 +35,78 @@ namespace UnityEngine.ScriptableRenderLoop
 			Rebuild ();
 		}
 
+        void ClearComputeBuffers()
+        {
+            if (m_punctualLightList != null)
+                m_punctualLightList.Release();
+        }
+
 		void Rebuild()
 		{
+            ClearComputeBuffers();
+
 			// m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
+            m_punctualLightList = new ComputeBuffer(MAX_LIGHTS, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
 		}
 
+        void OnDisable()
+        {
+            m_punctualLightList.Release();
+        }
+
 		//---------------------------------------------------------------------------------------------------------------------------------------------------
+
+        void UpdatePunctualLights(ActiveLight[] activeLights)
+        {
+            int punctualLightCount = 0;
+            List<PunctualLightData> lights = new List<PunctualLightData>();
+
+            for (int lightIndex = 0; lightIndex < Math.Min(activeLights.Length, MAX_LIGHTS); lightIndex++)
+            {
+                ActiveLight light = activeLights[lightIndex];
+                if (light.lightType == LightType.Spot || light.lightType == LightType.Point)
+                {
+                    Matrix4x4 lightToWorld = light.localToWorld;
+
+                    PunctualLightData l = new PunctualLightData();
+
+                    l.positionWS = lightToWorld.GetColumn(3);
+                    l.invSqrAttenuationRadius  = 1.0f / (light.range * light.range);
+                    l.color = new Vec3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
+                    l.forward = lightToWorld.GetColumn(0);
+                    l.up =  lightToWorld.GetColumn(1);
+                    l.right =  lightToWorld.GetColumn(2);
+                    
+                    l.diffuseScale = 1.0f;
+                    l.specularScale = 1.0f;
+                    l.shadowDimmer = 1.0f;
+
+        	        if (light.lightType == LightType.Spot)
+	                {
+                        // TODO: Add support of cosine inner and outer for spot light to get nicer spotlight...                        
+                        float cosSpotOuterHalfAngle = 1.0f / light.invCosHalfSpotAngle;
+                        float cosSpotInnerHalfAngle = cosSpotOuterHalfAngle;
+
+		                l.angleScale	= 1.0f / Math.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
+		                l.angleOffset	= -cosSpotOuterHalfAngle * l.angleScale;
+	                }
+	                else
+	                {
+		                // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
+                        l.angleScale = 1.0f;
+                        l.angleOffset = 2.0f;
+	                }                  
+
+                    lights.Add(l);
+                    punctualLightCount++;
+                }
+            }
+            m_punctualLightList.SetData(lights.ToArray());
+
+            Shader.SetGlobalBuffer("g_punctualLightList", m_punctualLightList);
+            Shader.SetGlobalInt("g_punctualLightCount", punctualLightCount);
+        }
+
 		void UpdateLightConstants(ActiveLight[] activeLights /*, ref ShadowOutput shadow */)
 		{
 			/*
@@ -59,7 +119,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			Vector4[] g_vLightDirection = new Vector4[ MAX_LIGHTS ];
 			Vector4[] g_vLightShadowIndex_vLightParams = new Vector4[ MAX_LIGHTS ];
 			Vector4[] g_vLightFalloffParams = new Vector4[ MAX_LIGHTS ];
-			Vector4[] g_vSpotLightInnerOuterConeCosines = new Vector4[ MAX_LIGHTS ];
+			Vector4[] g_vSpotLightInnersuterConeCosines = new Vector4[ MAX_LIGHTS ];
 			Matrix4x4[] g_matWorldToShadow = new Matrix4x4[ MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS ];
 			Vector4[] g_vDirShadowSplitSpheres = new Vector4[ MAX_DIRECTIONAL_SPLIT ];
 
@@ -204,10 +264,12 @@ namespace UnityEngine.ScriptableRenderLoop
 		public override void Render(Camera[] cameras, RenderLoop renderLoop)
 		{
 			// Set Frame constant buffer
+            // TODO...
 
 			foreach (var camera in cameras)
 			{
 				// Set camera constant buffer
+                // TODO...
 
 				CullResults cullResults;
 				CullingParameters cullingParams;
@@ -223,7 +285,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				renderLoop.SetupCameraProperties (camera);
 
-				UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
+				//UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
+
+                UpdatePunctualLights(cullResults.culledLights);
 
 				DrawRendererSettings settings = new DrawRendererSettings (cullResults, camera, new ShaderPassName("Forward"));
 				settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
