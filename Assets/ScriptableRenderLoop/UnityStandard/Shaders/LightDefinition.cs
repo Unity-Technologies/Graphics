@@ -4,39 +4,48 @@
 // structure definition
 //-----------------------------------------------------------------------------
 
-struct PunctualLightData
+#if !__HLSL
+namespace UnityEngine.ScriptableRenderLoop
 {
-    public Vec3 positionWS;
-    public float invSqrAttenuationRadius;
-    public Vec3 color;
-    public float unused;
+#endif
 
-    public Vec3 forward;
-    public float diffuseScale;
+    struct PunctualLightData
+    {
+        public Vec3 positionWS;
+        public float invSqrAttenuationRadius;
+        public Vec3 color;
+        public float unused;
 
-    public Vec3 up;
-    public float specularScale;
+        public Vec3 forward;
+        public float diffuseScale;
 
-    public Vec3 right;
-    public float shadowDimmer;
+        public Vec3 up;
+        public float specularScale;
 
-    public float angleScale;
-    public float angleOffset;
-    public Vec2 unused2;
-};
+        public Vec3 right;
+        public float shadowDimmer;
 
-struct AreaLightData
-{
-    public Vec3 positionWS;
-};
+        public float angleScale;
+        public float angleOffset;
+        public Vec2 unused2;
+    };
 
-struct EnvLightData
-{
-    public Vec3 positionWS;
-};
+    struct AreaLightData
+    {
+        public Vec3 positionWS;
+    };
 
-struct PlanarLightData
-{
-    public Vec3 positionWS;
-};
+    struct EnvLightData
+    {
+        public Vec3 positionWS;
+    };
+
+    struct PlanarLightData
+    {
+        public Vec3 positionWS;
+    };
+
+#if !__HLSL
+} // namespace UnityEngine.ScriptableRenderLoop
+#endif
 
