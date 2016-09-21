@@ -5,7 +5,7 @@
 #include "../../ShaderLibrary/BSDF.hlsl"
 #include "../../ShaderLibrary/CommonLighting.hlsl"
 
-#include "../Lighting/LightingDefinition.hlsl"
+#include "../LightDefinition.cs"
 #include "CommonMaterial.hlsl"
 
 // Here we include all the different lighting model supported by the renderloop based on define done in .shader
