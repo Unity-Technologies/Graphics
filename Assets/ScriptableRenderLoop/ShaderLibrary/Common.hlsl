@@ -42,6 +42,17 @@
 #endif
 
 // ----------------------------------------------------------------------------
+// Common define allowing to include shared file between C# and hlsl
+// ----------------------------------------------------------------------------
+
+#define __HLSL		1
+#define public
+#define Vec2		float2
+#define Vec3		float3
+#define Vec4		float4
+#define Mat44		float4x4
+
+// ----------------------------------------------------------------------------
 // Common math definition and fastmath function
 // ----------------------------------------------------------------------------
 
