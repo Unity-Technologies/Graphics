@@ -1,59 +1,44 @@
 #ifndef UNITY_LIGHTING_INCLUDED 
 #define UNITY_LIGHTING_INCLUDED
 
-struct PunctualLightData
-{
-	float3	positionWS;
-	float	invSqrAttenuationRadius;
-	float3	color;
-	float	unused;
-
-	float3	forward;
-	float	diffuseScale;
-
-	float3	up;
-	float	specularScale;
-
-	float3	right;
-	float	shadowDimmer;
-
-	float	angleScale;
-	float	angleOffset;
-	float2	unused2;
-};
+#include "../Material/Material.hlsl"
 
 //-----------------------------------------------------------------------------
-// Attenuation functions
+// Simple forward loop architecture
 //-----------------------------------------------------------------------------
 
-// Ref: Moving Frostbite to PBR
-float SmoothDistanceAttenuation(float squaredDistance, float invSqrAttenuationRadius)
+StructuredBuffer<PunctualLightData> g_punctualLightData;
+float g_lightCount;
+
+// TODO: Think about how to apply Disney diffuse preconvolve on indirect diffuse => must be done during GBuffer layout! Else emissive will be fucked...
+// That's mean we need to read DFG texture during Gbuffer...
+void ForwardLighting(	float3 V, float3 positionWS, BSDFData material,
+						out float4 diffuseLighting,
+						out float4 specularLighting)
 {
-	float factor = squaredDistance * invSqrAttenuationRadius;
-	float smoothFactor = saturate(1.0f - factor * factor);
-	return smoothFactor * smoothFactor;
+	diffuseLighting		= float4(0.0, 0.0, 0.0, 0.0);
+	specularLighting	= float4(0.0, 0.0, 0.0, 0.0);
+
+	for (uint i = 0; i < (uint)g_lightCount; ++i)
+	{
+		float4 localDiffuseLighting;
+		float4 localSpecularLighting;
+		EvaluateBSDF_Punctual(V, positionWS, g_punctualLightData[i], material, localDiffuseLighting, localSpecularLighting);
+		diffuseLighting += localDiffuseLighting;
+		specularLighting += localSpecularLighting;
+	}
+
+	/*
+	for (int i = 0; i < 4; ++i)
+	{
+		float4 localDiffuseLighting;
+		float4 localSpecularLighting;
+		EvaluateBSDF_Area(V, positionWS, areaLightData[i], material, localDiffuseLighting, localSpecularLighting);
+		diffuseLighting += localDiffuseLighting;
+		specularLighting += localSpecularLighting;
+	}
+	*/
 }
 
-#define PUNCTUAL_LIGHT_THRESHOLD 0.01 // 1cm (in Unity 1 is 1m)
-
-float GetDistanceAttenuation(float3 unL, float invSqrAttenuationRadius)
-{
-	float sqrDist = dot(unL, unL);
-	float attenuation = 1.0f / (max(PUNCTUAL_LIGHT_THRESHOLD * PUNCTUAL_LIGHT_THRESHOLD, sqrDist));
-	// Non physically based hack to limit light influence to attenuationRadius. 
-	attenuation *= SmoothDistanceAttenuation(sqrDist, invSqrAttenuationRadius);
-
-	return attenuation;
-}
-
-float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, float lightAngleOffset)
-{
-	float cd = dot(lightDir, L);
-	float attenuation = saturate(cd * lightAngleScale + lightAngleOffset);
-	// smooth the transition
-	attenuation *= attenuation;
-
-	return attenuation;
-}
 
 #endif
