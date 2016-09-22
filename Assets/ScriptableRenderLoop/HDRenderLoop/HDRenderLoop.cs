@@ -92,9 +92,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
         	        if (light.lightType == LightType.Spot)
 	                {
-                        // TODO: Add support of cosine inner and outer for spot light to get nicer spotlight...                        
-                        float cosSpotOuterHalfAngle = 1.0f / light.invCosHalfSpotAngle;
-                        float cosSpotInnerHalfAngle = cosSpotOuterHalfAngle;
+                        float spotAngle = light.light.spotAngle;
+                        AdditionalLightData additionalLightData = light.light.GetComponent<AdditionalLightData>();
+                        float innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
+                        float cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
+                        float cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
 
                         float val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
 		                l.angleScale	= 1.0f / val;
