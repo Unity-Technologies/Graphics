@@ -1,9 +1,5 @@
 using UnityEngine;
-using UnityEditor;
-//using System;
 using System.Collections.Generic;
-
-
 
 public class TextureCache2D : TextureCache
 {
@@ -106,13 +102,16 @@ abstract public class TextureCache : Object
 	public static int ms_GlobalTextureCacheVersion = 0;
 	public int m_TextureCacheVersion = 0;
 
-	internal class AssetReloader : AssetPostprocessor
+#if UNITY_EDITOR
+	internal class AssetReloader : UnityEditor.AssetPostprocessor
 	{
 		void OnPostprocessTexture(Texture texture)
 		{
 			ms_GlobalTextureCacheVersion++;
 		}
 	}
+	private AssetReloader m_assetReloader;
+#endif
 
 	private struct SSliceEntry
 	{
@@ -123,8 +122,7 @@ abstract public class TextureCache : Object
 	private int m_numTextures;
 	private int[] m_SortedIdxArray;
 	private SSliceEntry[] m_SliceArray;
-	private AssetReloader m_assetReloader;
-
+	
 	Dictionary<uint, int> m_locatorInSliceArray;
 
 	private static uint g_MaxFrameCount = unchecked((uint)(-1));
