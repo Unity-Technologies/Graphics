@@ -33,10 +33,12 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		void SyncRenderingFeatures ()
 		{
+#if UNITY_EDITOR
 			if (m_RenderLoop != null && isActiveAndEnabled)
 				UnityEditor.SupportedRenderingFeatures.active = m_RenderLoop.GetSupportedRenderingFeatures();
 			else
 				UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
+#endif
 		}
 
 		void OnDisable ()
