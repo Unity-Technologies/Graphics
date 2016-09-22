@@ -38,6 +38,8 @@
 // These structures need to be align on float4 to respectect various packing rules from sahder language.
 // This mean that these structure need to be padded.
 
+// Do not use "in", only "out" or "inout" as califier, not "inline" keyword either, useless.
+
 
 // Include language header
 #if defined(SHADER_API_D3D11)

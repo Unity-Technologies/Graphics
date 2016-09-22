@@ -70,12 +70,14 @@ namespace UnityEngine.ScriptableRenderLoop
 
                     PunctualLightData l = new PunctualLightData();
 
-                    l.positionWS = lightToWorld.GetColumn(3);
+                    l.positionWS = light.light.transform.position;
                     l.invSqrAttenuationRadius  = 1.0f / (light.range * light.range);
                     l.color = new Vec3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
-                    l.forward = lightToWorld.GetColumn(0);
-                    l.up =  lightToWorld.GetColumn(1);
-                    l.right =  lightToWorld.GetColumn(2);
+                    // Light direction is opposite to the forward direction...
+                    l.forward = -light.light.transform.forward;
+                    // CAUTION: For IES as we inverse forward maybe this will need rotation.
+                    l.up = light.light.transform.up;
+                    l.right = light.light.transform.right;
                     
                     l.diffuseScale = 1.0f;
                     l.specularScale = 1.0f;
