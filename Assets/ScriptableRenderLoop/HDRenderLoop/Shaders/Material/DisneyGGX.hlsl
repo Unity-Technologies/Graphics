@@ -102,11 +102,11 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PunctualLightData light
 	{
 		float NdotV = abs(dot(material.normalWS, V)) + 1e-5f; // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
 		float3 H = normalize(V + L);
-			float LdotH = saturate(dot(L, H));
+		float LdotH = saturate(dot(L, H));
 		float NdotH = saturate(dot(material.normalWS, H));
 		float NdotL = saturate(dot(material.normalWS, L));
 		float3 F = F_Schlick(material.fresnel0, LdotH);
-			float Vis = V_SmithJointGGX(NdotL, NdotV, material.roughness);
+		float Vis = V_SmithJointGGX(NdotL, NdotV, material.roughness);
 		float D = D_GGX(NdotH, material.roughness);
 		specularLighting.rgb = F * Vis * D;
 		float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, material.perceptualRoughness);

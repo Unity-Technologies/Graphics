@@ -34,6 +34,11 @@
 
 // uniform have g_ as prefix (still lowercaseThenCamelCase)
 
+// Structure definition that are share between C# and hlsl.
+// These structures need to be align on float4 to respectect various packing rules from sahder language.
+// This mean that these structure need to be padded.
+
+
 // Include language header
 #if defined(SHADER_API_D3D11)
 #include "API/D3D11.hlsl"
