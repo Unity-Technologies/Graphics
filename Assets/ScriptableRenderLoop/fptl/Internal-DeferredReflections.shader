@@ -228,7 +228,7 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 				sampleDir = worldNormalRefl;
 
 			Unity_GlossyEnvironmentData g;
-			g.perceptualRoughness = SmoothnessToPerceptualRoughness(data.smoothness);
+			g.roughness = SmoothnessToPerceptualRoughness(data.smoothness);
 			g.reflUVW		= sampleDir;
 
 			half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), lgtDat.iSliceIndex, float4(lgtDat.fLightIntensity, lgtDat.fDecodeExp, 0.0, 0.0), g);
@@ -300,7 +300,7 @@ half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, hal
 	// TODO: remove pow, store cubemap mips differently
 	half roughness = pow(glossIn.perceptualRoughness, 3.0/4.0);
 #else
-	half roughness = glossIn.perceptualRoughness;			// MM: switched to this
+	half roughness = glossIn.roughness;			// MM: switched to this
 #endif
 	//roughness = sqrt(sqrt(2/(64.0+2)));		// spec power to the square root of real roughness
 
