@@ -40,6 +40,8 @@
 
 // Do not use "in", only "out" or "inout" as califier, not "inline" keyword either, useless.
 
+// The lighting code assume that 1 Unity unit (1uu) == 1 meters.  This is very important regarding physically based light unit and inverse square attenuation
+
 
 // Include language header
 #if defined(SHADER_API_D3D11)
