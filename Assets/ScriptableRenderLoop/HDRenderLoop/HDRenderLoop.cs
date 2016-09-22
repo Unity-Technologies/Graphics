@@ -72,7 +72,14 @@ namespace UnityEngine.ScriptableRenderLoop
 
                     l.positionWS = light.light.transform.position;
                     l.invSqrAttenuationRadius  = 1.0f / (light.range * light.range);
-                    l.color = new Vec3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
+
+                    // Correct intensity calculation (Different from Unity)
+                    float lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
+                    float lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
+                    float lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
+
+                    l.color = new Vec3(lightColorR, lightColorG, lightColorB);
+
                     // Light direction is opposite to the forward direction...
                     l.forward = -light.light.transform.forward;
                     // CAUTION: For IES as we inverse forward maybe this will need rotation.
