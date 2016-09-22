@@ -9,10 +9,12 @@ namespace UnityEngine.ScriptableRenderLoop
 {
 #endif
 
+	// These structures share between C# and hlsl need to be align on float4, so we pad them.
     struct PunctualLightData
     {
         public Vec3 positionWS;
         public float invSqrAttenuationRadius;
+
         public Vec3 color;
         public float unused;
 
