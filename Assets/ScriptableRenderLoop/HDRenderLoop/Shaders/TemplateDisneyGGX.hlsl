@@ -34,7 +34,7 @@ sampler2D _NormalMap;
 // Forward
 struct Attributes
 {
-	float4 positionOS	: POSITION; // TODO: why do we provide w here ? putting constant to 1 will save a float
+	float4 positionOS	: POSITION;
 	half3 normalOS		: NORMAL;
 	float2 uv0			: TEXCOORD0;
 	half4 tangentOS		: TANGENT;
