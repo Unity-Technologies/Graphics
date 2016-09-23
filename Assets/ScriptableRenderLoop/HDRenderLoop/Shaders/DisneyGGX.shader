@@ -77,7 +77,7 @@ Shader "Unity/DisneyGGX"
 		//  Deferred pass
 		Pass
 		{
-			Name "DEFERRED"
+			Name "GBuffer"
 			Tags { "LightMode" = "Deferred" }
 
 			CGPROGRAM
