@@ -49,8 +49,10 @@
 #elif defined(SHADER_API_XBOXONE)
 #include "API/D3D11_1.hlsl"
 #else
-unsupported shader api
+#error unsupported shader api
 #endif
+#include "API/Validate.hlsl"
+
 
 // ----------------------------------------------------------------------------
 // Common define allowing to include shared file between C# and hlsl
