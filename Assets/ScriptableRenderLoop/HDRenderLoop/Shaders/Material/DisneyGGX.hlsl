@@ -65,17 +65,19 @@ void EncodeIntoGBuffer(SurfaceData data, out half4 outGBuffer0, out half4 outGBu
 // This decode the Gbuffer in a BSDFData struct
 BSDFData DecodeFromGBuffer(half4 inGBuffer0, half4 inGBuffer1, half4 inGBuffer2)
 {
-	BSDFData data;
+	BSDFData output;
 
-	data.diffuseColor = inGBuffer0.rgb;
-	data.occlusion = inGBuffer0.a;
+	output.diffuseColor = inGBuffer0.rgb;
+	output.occlusion = inGBuffer0.a;
 
-	data.fresnel0 = inGBuffer1.rgb;
-	data.roughness = inGBuffer1.a;
+	output.fresnel0 = inGBuffer1.rgb;
+	output.roughness = inGBuffer1.a;
 
-	data.normalWS = UnpackNormalCartesian(inGBuffer2.rgb);
+	output.normalWS = UnpackNormalCartesian(inGBuffer2.rgb);
 
-	return data;
+	output.perceptualRoughness = SmoothnessToPerceptualRoughness(output.smoothness);
+
+	return output;
 }
 
 //-----------------------------------------------------------------------------
