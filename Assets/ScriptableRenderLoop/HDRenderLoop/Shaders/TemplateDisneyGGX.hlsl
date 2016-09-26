@@ -29,7 +29,7 @@ sampler2D _NormalMap;
 //-------------------------------------------------------------------------------------
 
 // TODO: Check if we will have different Varyings based on different pass, not sure about that...
-#if UNITY_SHADERRENDERPASS == UNITY_SHADERRENDERPASS_DEFERRED || UNITY_SHADERRENDERPASS == UNITY_SHADERRENDERPASS_FORWARD
+#if UNITY_SHADERRENDERPASS == UNITY_SHADERRENDERPASS_GBUFFER || UNITY_SHADERRENDERPASS == UNITY_SHADERRENDERPASS_FORWARD
 
 // Forward
 struct Attributes
@@ -37,7 +37,7 @@ struct Attributes
 	float3 positionOS	: POSITION;
 	float3 normalOS		: NORMAL;
 	float2 uv0			: TEXCOORD0;
-	float4 tangentOS		: TANGENT;
+	float4 tangentOS	: TANGENT;
 };
 
 struct Varyings
@@ -89,7 +89,7 @@ PackedVaryings VertDefault(Attributes input)
 {
 	Varyings output;
 
-	output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
+	output.positionWS = TransformObjectToWorld(input.positionOS);
 	// TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
 	output.positionHS = TransformWorldToHClip(output.positionWS);
 

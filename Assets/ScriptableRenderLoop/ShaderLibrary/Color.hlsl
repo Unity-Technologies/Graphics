@@ -124,13 +124,13 @@ float4 FastLinearToSRGB(float4 c)
 
 // Convert rgb to luminance
 // with rgb in linear space with sRGB primaries and D65 white point
-half Luminance(half3 linearRgb)
+float Luminance(float3 linearRgb)
 {   
-	return dot(linearRgb, half3(0.2126729f,  0.7151522f, 0.0721750f));
+	return dot(linearRgb, float3(0.2126729f, 0.7151522f, 0.0721750f));
 }
 
 // Ref: http://realtimecollisiondetection.net/blog/?p=15
-float4 PackLogLuv(in float3 vRGB)
+float4 PackLogLuv(float3 vRGB)
 {
 	// M matrix, for encoding
 	const float3x3 M = float3x3(
@@ -148,7 +148,7 @@ float4 PackLogLuv(in float3 vRGB)
     return vResult;
 }
 
-float3 UnpackLogLuv(in float4 vLogLuv)
+float3 UnpackLogLuv(float4 vLogLuv)
 {
 	// Inverse M matrix, for decoding
 	const float3x3 InverseM = float3x3(
@@ -167,7 +167,7 @@ float3 UnpackLogLuv(in float4 vLogLuv)
 
 // TODO: check what is really use by the lightmap... should be hardcoded
 // This function must handle various crappy case of lightmap ?
-half4 UnityEncodeRGBM (half3 rgb, float maxRGBM)
+float4 UnityEncodeRGBM (float3 rgb, float maxRGBM)
 {
 	float kOneOverRGBMMaxRange = 1.0 / maxRGBM;
 	const float kMinMultiplier = 2.0 * 1e-2;

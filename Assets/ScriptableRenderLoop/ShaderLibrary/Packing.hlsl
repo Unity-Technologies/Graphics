@@ -31,7 +31,7 @@ float3 UnpackNormalMaxComponent(float3 n)
 // Ref: http://jcgt.org/published/0003/02/01/paper.pdf
 // Encode with Oct, this function work with any size of output
 // return float between [-1, 1]
-float2 PackNormalOctEncode(in float3 v)
+float2 PackNormalOctEncode(float3 v)
 {
 	float l1norm	= abs(v.x) + abs(v.y) + abs(v.z);
 	float2 res0		= v.xy * (1.0f / l1norm);
@@ -40,7 +40,7 @@ float2 PackNormalOctEncode(in float3 v)
 	return (v.zz < float2(0.0f, 0.0f) ? (res0 >= 0.0f ? val : -val) : res0);
 }
 
-float3 UnpackNormalOctEncode(in float x, in float y)
+float3 UnpackNormalOctEncode(float x, float y)
 {
 	float3 v = float3(x, y, 1.0f - abs(x) - abs(y));
 

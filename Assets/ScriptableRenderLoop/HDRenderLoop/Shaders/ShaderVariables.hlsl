@@ -160,9 +160,19 @@ float4x4 GetWorldToHClipMatrix()
 	return unity_MatrixVP;
 }
 
+float4x4 GetObjectToWorldViewMatrix()
+{
+	return glstate_matrix_modelview0;
+}
+
 float3 TransformObjectToWorld(float3 positionOS)
 {
 	return mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0));
+}
+
+float3 TransformObjectToView(float3 positionOS)
+{
+	return mul(GetObjectToWorldViewMatrix(), float4(positionOS, 1.0));
 }
 
 float3 TransformObjectToWorldDir(float3 dirOS)
@@ -202,4 +212,13 @@ float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
 	return normalize(_WorldSpaceCameraPos.xyz - positionWS);
+}
+
+float4 ComputeScreenPos(float4 positionH)
+{
+	// TODO: upgrade this function to work for compute shader and pixel shaders
+	float4 positionSS = positionH * 0.5f;
+	positionSS.xy = float2(positionSS.x, positionSS.y * _ProjectionParams.x) + positionSS.w;
+	positionSS.zw = positionH.zw;
+	return positionSS;
 }

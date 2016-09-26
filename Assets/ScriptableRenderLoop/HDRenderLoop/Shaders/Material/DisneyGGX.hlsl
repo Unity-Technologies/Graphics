@@ -51,20 +51,20 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData data)
 }
 
 // This will encode UnityStandardData into GBuffer
-void EncodeIntoGBuffer(SurfaceData data, out half4 outGBuffer0, out half4 outGBuffer1, out half4 outGBuffer2)
+void EncodeIntoGBuffer(SurfaceData data, out float4 outGBuffer0, out float4 outGBuffer1, out float4 outGBuffer2)
 {
 	// RT0: diffuse color (rgb), occlusion (a) - sRGB rendertarget
-	outGBuffer0 = half4(data.diffuseColor, data.occlusion);
+	outGBuffer0 = float4(data.diffuseColor, data.occlusion);
 
 	// RT1: spec color (rgb), perceptual roughness (a) - sRGB rendertarget
-	outGBuffer1 = half4(data.specularColor, SmoothnessToPerceptualRoughness(data.smoothness));
+	outGBuffer1 = float4(data.specularColor, SmoothnessToPerceptualRoughness(data.smoothness));
 
 	// RT2: normal (rgb), --unused, very low precision-- (a) 
-	outGBuffer2 = half4(PackNormalCartesian(data.normal), 1.0f);
+	outGBuffer2 = float4(PackNormalCartesian(data.normal), 1.0f);
 }
 
 // This decode the Gbuffer in a BSDFData struct
-BSDFData DecodeFromGBuffer(half4 inGBuffer0, half4 inGBuffer1, half4 inGBuffer2)
+BSDFData DecodeFromGBuffer(float4 inGBuffer0, float4 inGBuffer1, float4 inGBuffer2)
 {
 	BSDFData output;
 
