@@ -1,8 +1,3 @@
-#ifndef UNITY_D3D11_INCLUDED
-#define UNITY_D3D11_INCLUDED
-
 // This file assume SHADER_API_D3D11 is defined
 
 #define UNITY_UV_STARTS_AT_TOP 1
-
-#endif // UNITY_D3D11_INCLUDED
