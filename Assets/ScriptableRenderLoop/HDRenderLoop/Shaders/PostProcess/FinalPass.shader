@@ -35,7 +35,7 @@ Shader "Hidden/Unity/FinalPass"
 				return output;
 			}
 
-			fixed4 Frag(Varyings input) : SV_Target
+			float4 Frag(Varyings input) : SV_Target
 			{
 				float4 c = tex2D(_MainTex, input.texcoord);
 				// Gamma correction

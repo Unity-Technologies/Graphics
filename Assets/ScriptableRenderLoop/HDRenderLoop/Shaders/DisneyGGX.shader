@@ -39,7 +39,7 @@ Shader "Unity/DisneyGGX"
 		Pass
 		{
 			Name "Forward" // Name is not used
-			Tags { "LightMode" = "Forward" }
+			Tags { "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
 			Blend [_SrcBlend] [_DstBlend]
 			ZWrite [_ZWrite]
@@ -79,7 +79,7 @@ Shader "Unity/DisneyGGX"
 		Pass
 		{
 			Name "GBuffer"  // Name is not used
-			Tags { "LightMode" = "GBuffer" }
+			Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
 			CGPROGRAM
 			#pragma target 5.0
@@ -88,14 +88,14 @@ Shader "Unity/DisneyGGX"
 			#pragma vertex VertDefault
 			#pragma fragment FragDeferred
 
-			#define UNITY_SHADERRENDERPASS UNITY_SHADERRENDERPASS_DEFERRED
+			#define UNITY_SHADERRENDERPASS UNITY_SHADERRENDERPASS_GBUFFER
 			#include "TemplateDisneyGGX.hlsl"
 
 			void FragDeferred(	PackedVaryings packedInput,
-								out half4 outGBuffer0 : SV_Target0,
-								out half4 outGBuffer1 : SV_Target1,
-								out half4 outGBuffer2 : SV_Target2,
-								out half4 outEmission : SV_Target3
+								out float4 outGBuffer0 : SV_Target0,
+								out float4 outGBuffer1 : SV_Target1,
+								out float4 outGBuffer2 : SV_Target2,
+								out float4 outEmission : SV_Target3
 								)
 			{
 				Varyings input = UnpackVaryings(packedInput);

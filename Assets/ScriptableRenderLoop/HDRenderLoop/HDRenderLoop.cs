@@ -104,9 +104,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
             s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
 
-            // Shader deferredMaterial = Shader.Find("Hidden/Unity/DeferredShading") as Shader;
-            // m_DeferredMaterial = new Material(deferredMaterial);
-            // m_DeferredMaterial.hideFlags = HideFlags.HideAndDontSave;
+            Shader deferredMaterial = Shader.Find("Hidden/Unity/LightingDeferred") as Shader;
+            m_DeferredMaterial = new Material(deferredMaterial);
+            m_DeferredMaterial.hideFlags = HideFlags.HideAndDontSave;
 
             Shader finalPassShader = Shader.Find("Hidden/Unity/FinalPass") as Shader;
             m_FinalPassMaterial = new Material(finalPassShader);
