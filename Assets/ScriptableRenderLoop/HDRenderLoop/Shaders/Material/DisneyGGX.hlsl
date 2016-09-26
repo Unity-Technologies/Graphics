@@ -40,11 +40,12 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData data)
 	output.diffuseColor = data.diffuseColor;
 	output.occlusion = data.occlusion;
 
-	output.fresnel0 = data.specularColor;
-	output.roughness = SmoothnessToRoughness(data.smoothness);
+	output.fresnel0 = data.specularColor;	
+	output.perceptualRoughness = SmoothnessToPerceptualRoughness(data.smoothness);
 
 	output.normalWS = data.normal;
-	output.perceptualRoughness = SmoothnessToPerceptualRoughness(data.smoothness);
+	output.roughness = PerceptualRoughnessToRoughness(output.perceptualRoughness);
+	
 
 	return output;
 }
@@ -74,7 +75,6 @@ BSDFData DecodeFromGBuffer(half4 inGBuffer0, half4 inGBuffer1, half4 inGBuffer2)
 	output.perceptualRoughness = inGBuffer1.a;
 
 	output.normalWS = UnpackNormalCartesian(inGBuffer2.rgb);
-
 	output.roughness = PerceptualRoughnessToRoughness(output.perceptualRoughness);
 
 	return output;

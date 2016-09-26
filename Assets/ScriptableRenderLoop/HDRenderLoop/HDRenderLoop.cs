@@ -8,6 +8,7 @@ using UnityEditor;
 
 namespace UnityEngine.ScriptableRenderLoop
 {
+    // This HDRenderLoop assume linear lighting. Don't work with gamma.
 	public class HDRenderLoop : ScriptableRenderLoop
 	{
         [MenuItem("Renderloop/CreateHDRenderLoop")]
@@ -17,13 +18,60 @@ namespace UnityEngine.ScriptableRenderLoop
 			AssetDatabase.CreateAsset(instance, "Assets/HDRenderLoop.asset");
 		}
 
+        public class GBufferManager
+        {
+            public const int MaxGbuffer = 8;
+
+            public void SetBufferDescription(int index, string stringID, RenderTextureFormat inFormat, RenderTextureReadWrite inSRGBWrite)
+            {
+                ID[index] = Shader.PropertyToID(stringID);
+                RTID[index] = new RenderTargetIdentifier(ID[index]);
+                format[index] = inFormat;
+                sRGBWrite[index] = inSRGBWrite;
+            }
+
+            public void InitGBuffers(CommandBuffer cmd)
+            {
+                for (int index = 0; index < gbufferCount; index++)
+                {
+                    cmd.GetTemporaryRT(ID[index], -1, -1, 0, FilterMode.Point, format[index], sRGBWrite[index]);
+                }
+            }
+
+            public RenderTargetIdentifier[] GetGBuffers(CommandBuffer cmd)
+            {
+                var colorMRTs = new RenderTargetIdentifier[gbufferCount];
+                for (int index = 0; index < gbufferCount; index++)
+                {
+                    colorMRTs[index] = RTID[index];
+                }
+
+                return colorMRTs;
+            }
+
+        
+            public int gbufferCount { get; set; }
+            int[] ID = new int[MaxGbuffer];
+            RenderTargetIdentifier[] RTID = new RenderTargetIdentifier[MaxGbuffer];
+            RenderTextureFormat[] format = new RenderTextureFormat[MaxGbuffer];
+            RenderTextureReadWrite[] sRGBWrite = new RenderTextureReadWrite[MaxGbuffer];
+        }
+
+        public const int MaxLights = 32;
+
 		//[SerializeField]
 		//ShadowSettings m_ShadowSettings = ShadowSettings.Default;
 		//ShadowRenderPass m_ShadowPass;
 
-        static private ComputeBuffer m_punctualLightList;
-        public const int MAX_LIGHTS = 1024;
+        Material m_DeferredMaterial;
+        Material m_FinalPassMaterial;
 
+        GBufferManager gbufferManager = new GBufferManager();
+
+        static private int s_CameraColorBuffer;
+        static private int s_CameraDepthBuffer;
+
+        static private ComputeBuffer s_punctualLightList;
 
 		void OnEnable()
 		{
@@ -37,21 +85,147 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void ClearComputeBuffers()
         {
-            if (m_punctualLightList != null)
-                m_punctualLightList.Release();
+            if (s_punctualLightList != null)
+                s_punctualLightList.Release();
         }
 
 		void Rebuild()
 		{
             ClearComputeBuffers();
 
-			// m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
-            m_punctualLightList = new ComputeBuffer(MAX_LIGHTS, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
+            gbufferManager.gbufferCount = 4;
+            gbufferManager.SetBufferDescription(0, "_CameraGBufferTexture0", RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);     // Store diffuse color => sRGB
+            gbufferManager.SetBufferDescription(1, "_CameraGBufferTexture1", RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            gbufferManager.SetBufferDescription(2, "_CameraGBufferTexture2", RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear); // Store normal => higher precision
+            gbufferManager.SetBufferDescription(3, "_CameraGBufferTexture3", RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+
+            s_CameraColorBuffer = Shader.PropertyToID("_CameraColorBuffer");
+            s_CameraDepthBuffer = Shader.PropertyToID("_CameraDepthBuffer");
+
+            s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
+
+            // Shader deferredMaterial = Shader.Find("Hidden/Unity/DeferredShading") as Shader;
+            // m_DeferredMaterial = new Material(deferredMaterial);
+            // m_DeferredMaterial.hideFlags = HideFlags.HideAndDontSave;
+
+            Shader finalPassShader = Shader.Find("Hidden/Unity/FinalPass") as Shader;
+            m_FinalPassMaterial = new Material(finalPassShader);
+            m_FinalPassMaterial.hideFlags = HideFlags.HideAndDontSave;
+
+            // m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
 		}
 
         void OnDisable()
         {
-            m_punctualLightList.Release();
+            s_punctualLightList.Release();
+
+            if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
+            if (m_FinalPassMaterial) DestroyImmediate(m_FinalPassMaterial);
+        }
+
+        void InitAndClearBuffer(Camera camera, RenderLoop renderLoop)
+        {
+            // We clear only the depth buffer, no need to clear the various color buffer as we overwrite them.          
+            // Clear depth/stencil and init buffers
+            {
+                var cmd = new CommandBuffer();
+                cmd.name = "InitGBuffers and clear Depth/Stencil";
+
+                // Init buffer
+                // With scriptable render loop we must allocate ourself depth and color buffer (We must be independent of backbuffer for now, hope to fix that later).
+                // Also we manage ourself the HDR format, here allocating fp16 directly.
+                // With scriptable render loop we can allocate temporary RT in a command buffer, they will not be release with ExecuteCommandBuffer
+                // These temporary surface are release automatically at the end of the scriptable renderloop if not release explicitly
+                cmd.GetTemporaryRT(s_CameraColorBuffer, -1, -1, 0, FilterMode.Point, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Default);
+                cmd.GetTemporaryRT(s_CameraDepthBuffer, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                gbufferManager.InitGBuffers(cmd);
+
+                cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+                cmd.ClearRenderTarget(true, false, new Color(0, 0, 0, 0));
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
+
+
+            // TEMP: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
+
+            // Clear HDR target
+            {
+                var cmd = new CommandBuffer();
+                cmd.name = "Clear HDR target";
+                cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+                cmd.ClearRenderTarget(false, true, new Color(0, 0, 0, 0));
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
+
+
+            // Clear GBuffers
+            {
+                var cmd = new CommandBuffer();
+                cmd.name = "Clear GBuffer";
+                // Write into the Camera Depth buffer
+                cmd.SetRenderTarget(gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
+                // Clear everything
+                // TODO: Clear is not required for color as we rewrite everything, will save performance.
+                cmd.ClearRenderTarget(false, true, new Color(0, 0, 0, 0));
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
+
+            // END TEMP
+        }
+
+        void RenderGBuffer(CullResults cull, Camera camera, RenderLoop renderLoop)
+		{
+			// setup GBuffer for rendering
+			var cmd = new CommandBuffer();
+			cmd.name = "GBuffer Pass";
+            cmd.SetRenderTarget(gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            renderLoop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
+
+			// render opaque objects into GBuffer
+			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("GBuffer"));
+			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+			settings.inputCullingOptions.SetQueuesOpaque();
+            renderLoop.DrawRenderers(ref settings);
+		}
+
+        void RenderDeferredLighting(CullResults cull, Camera camera, RenderLoop renderLoop)
+        {
+            // setup GBuffer for rendering
+            var cmd = new CommandBuffer();
+            cmd.name = "Deferred Ligthing Pass";
+            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+
+        void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop)
+        {
+            // setup GBuffer for rendering
+            var cmd = new CommandBuffer();
+            cmd.name = "Forward Pass";
+            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+
+            DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("Forward"));
+            settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
+            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+
+            renderLoop.DrawRenderers(ref settings);
+        }
+
+        void FinalPass(RenderLoop renderLoop)
+        {
+            CommandBuffer cmd = new CommandBuffer();
+            cmd.name = "FinalPass";
+            // Resolve our HDR texture to CameraTarget.
+            cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
         }
 
 		//---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -61,13 +235,11 @@ namespace UnityEngine.ScriptableRenderLoop
             int punctualLightCount = 0;
             List<PunctualLightData> lights = new List<PunctualLightData>();
 
-            for (int lightIndex = 0; lightIndex < Math.Min(activeLights.Length, MAX_LIGHTS); lightIndex++)
+            for (int lightIndex = 0; lightIndex < Math.Min(activeLights.Length, MaxLights); lightIndex++)
             {
                 ActiveLight light = activeLights[lightIndex];
                 if (light.lightType == LightType.Spot || light.lightType == LightType.Point)
                 {
-                    Matrix4x4 lightToWorld = light.localToWorld;
-
                     PunctualLightData l = new PunctualLightData();
 
                     l.positionWS = light.light.transform.position;
@@ -113,9 +285,9 @@ namespace UnityEngine.ScriptableRenderLoop
                     punctualLightCount++;
                 }
             }
-            m_punctualLightList.SetData(lights.ToArray());
+            s_punctualLightList.SetData(lights.ToArray());
 
-            Shader.SetGlobalBuffer("g_punctualLightList", m_punctualLightList);
+            Shader.SetGlobalBuffer("g_punctualLightList", s_punctualLightList);
             Shader.SetGlobalInt("g_punctualLightCount", punctualLightCount);
         }
 
@@ -273,13 +445,68 @@ namespace UnityEngine.ScriptableRenderLoop
 			 */
 		}
 
+        /*
+        void RenderDeferredLighting(Camera camera, CullingInputs inputs, RenderLoop loop)
+        {
+            var props = new MaterialPropertyBlock();
+
+            var cmd = new CommandBuffer();
+            cmd.SetRenderTarget(new RenderTargetIdentifier(kGBufferEmission), new RenderTargetIdentifier(kGBufferZ));
+            foreach (var cl in inputs.culledLights)
+            {
+                bool renderAsQuad = (cl.flags & VisibleLightFlags.IntersectsNearPlane) != 0 || (cl.flags & VisibleLightFlags.IntersectsFarPlane) != 0 || (cl.lightType == LightType.Directional);
+
+                Vector3 lightPos = cl.localToWorld.GetColumn(3);
+                float range = cl.range;
+                cmd.DisableShaderKeyword("POINT");
+                cmd.DisableShaderKeyword("POINT_COOKIE");
+                cmd.DisableShaderKeyword("SPOT");
+                cmd.DisableShaderKeyword("DIRECTIONAL");
+                cmd.DisableShaderKeyword("DIRECTIONAL_COOKIE");
+                //cmd.EnableShaderKeyword ("UNITY_HDR_ON");
+                switch (cl.lightType)
+                {
+                    case LightType.Point:
+                        cmd.EnableShaderKeyword("POINT");
+                        break;
+                    case LightType.Spot:
+                        cmd.EnableShaderKeyword("SPOT");
+                        break;
+                    case LightType.Directional:
+                        cmd.EnableShaderKeyword("DIRECTIONAL");
+                        break;
+                }
+                props.SetFloat("_LightAsQuad", renderAsQuad ? 1 : 0);
+                props.SetVector("_LightPos", new Vector4(lightPos.x, lightPos.y, lightPos.z, 1.0f / (range * range)));
+                props.SetVector("_LightColor", cl.finalColor);
+                Debug.Log("Light color : " + cl.finalColor.ToString());
+                props.SetMatrix("_WorldToLight", cl.worldToLocal);
+
+                ///@TODO: cleanup, remove this from Internal-PrePassLighting shader
+                //DeferredPrivate::s_LightMaterial->SetTexture (ShaderLab::Property ("_LightTextureB0"), builtintex::GetAttenuationTexture ());
+
+                if (renderAsQuad)
+                {
+                    cmd.DrawMesh(m_QuadMesh, Matrix4x4.identity, m_DeferredMaterial, 0, 0, props);
+                }
+                else
+                {
+                    var matrix = Matrix4x4.TRS(lightPos, Quaternion.identity, new Vector3(range, range, range));
+                    cmd.DrawMesh(m_PointLightMesh, matrix, m_DeferredMaterial, 0, 0, props);
+                }
+            }
+            loop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
+         */
+
 		public override void Render(Camera[] cameras, RenderLoop renderLoop)
 		{
 			// Set Frame constant buffer
             // TODO...
 
 			foreach (var camera in cameras)
-			{
+			{                
 				// Set camera constant buffer
                 // TODO...
 
@@ -301,11 +528,14 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 UpdatePunctualLights(cullResults.culledLights);
 
-				DrawRendererSettings settings = new DrawRendererSettings (cullResults, camera, new ShaderPassName("Forward"));
-				settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
-				settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+                InitAndClearBuffer(camera, renderLoop);
 
-				renderLoop.DrawRenderers (ref settings);
+                RenderGBuffer(cullResults, camera, renderLoop);
+
+                RenderForward(cullResults, camera, renderLoop);
+
+                FinalPass(renderLoop);
+
 				renderLoop.Submit ();
 			}
 

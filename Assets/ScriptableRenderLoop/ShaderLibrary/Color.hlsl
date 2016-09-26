@@ -49,7 +49,7 @@ float3 Gamma22ToLinear(float3 c)
 	return pow(c.rgb, float3(2.2, 2.2, 2.2));
 }
 
-float3 Gamma22ToLinear(float3 c)
+float4 Gamma22ToLinear(float4 c)
 {
 	return float4(Gamma22ToLinear(c.rgb), c.a);
 }
@@ -64,7 +64,7 @@ float3 LinearToGamma22(float3 c)
 	return pow(c.rgb, float3(0.454545454545455, 0.454545454545455, 0.454545454545455));
 }
 
-float3 LinearToGamma22(float3 c)
+float4 LinearToGamma22(float4 c)
 {
 	return float4(LinearToGamma22(c.rgb), c.a);
 }
@@ -80,7 +80,7 @@ float3 SRGBToLinear(float3 c)
 
 float4 SRGBToLinear(float4 c)
 {
-	return float4(SRGBToLinear(c), c.a);
+	return float4(SRGBToLinear(c.rgb), c.a);
 }
 
 float3 LinearToSRGB(float3 c)
@@ -93,7 +93,7 @@ float3 LinearToSRGB(float3 c)
 
 float4 LinearToSRGB(float4 c)
 {
-	return float4(LinearToSRGB(c), c.a);
+	return float4(LinearToSRGB(c.rgb), c.a);
 }
 
 // TODO: Seb - To verify and refit!
@@ -103,7 +103,7 @@ float3 FastSRGBToLinear(float3 c)
 	return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 }
 
-float3 FastSRGBToLinear(float3 c)
+float4 FastSRGBToLinear(float4 c)
 {
 	return float4(FastSRGBToLinear(c.rgb), c.a);
 }
@@ -115,7 +115,7 @@ float3 FastLinearToSRGB(float3 c)
 
 float4 FastLinearToSRGB(float4 c)
 {
-	return float4(FastLinearToSRGB(c), c.a);
+	return float4(FastLinearToSRGB(c.rgb), c.a);
 }
 
 //-----------------------------------------------------------------------------

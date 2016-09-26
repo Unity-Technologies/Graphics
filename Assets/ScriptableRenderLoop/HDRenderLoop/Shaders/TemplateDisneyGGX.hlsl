@@ -34,10 +34,10 @@ sampler2D _NormalMap;
 // Forward
 struct Attributes
 {
-	float4 positionOS	: POSITION;
-	half3 normalOS		: NORMAL;
+	float3 positionOS	: POSITION;
+	float3 normalOS		: NORMAL;
 	float2 uv0			: TEXCOORD0;
-	half4 tangentOS		: TANGENT;
+	float4 tangentOS		: TANGENT;
 };
 
 struct Varyings
@@ -54,7 +54,7 @@ struct PackedVaryings
 	float4 interpolators[5] : TEXCOORD0;
 };
 
-// Function to pack data to use as few interpolator as possible, the ShaderGraph should generate this functions
+// Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
 PackedVaryings PackVaryings(Varyings input)
 {
 	PackedVaryings output;
@@ -90,25 +90,19 @@ PackedVaryings VertDefault(Attributes input)
 	Varyings output;
 
 	output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
-	// TODO deal with camera center rendering and instancing (This is the reason why we always perform tow step transform to clip space + instancing matrix)
+	// TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
 	output.positionHS = TransformWorldToHClip(output.positionWS);
 
 	float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 
 	output.texCoord0 = input.uv0;
 
-	//	#ifdef _TANGENT_TO_WORLD
 	float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 
 	float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
 	output.tangentToWorld[0].xyz = tangentToWorld[0];
 	output.tangentToWorld[1].xyz = tangentToWorld[1];
 	output.tangentToWorld[2].xyz = tangentToWorld[2];
-	//	#else
-	//	output.tangentToWorld[0].xyz = 0;
-	//	output.tangentToWorld[1].xyz = 0;
-	//	output.tangentToWorld[2].xyz = normalWS;
-	//	#endif
 
 	output.tangentToWorld[0].w = 0;
 	output.tangentToWorld[1].w = 0;

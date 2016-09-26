@@ -38,7 +38,7 @@ Shader "Unity/DisneyGGX"
 		//  forward pass
 		Pass
 		{
-			Name "FORWARD" 
+			Name "Forward" // Name is not used
 			Tags { "LightMode" = "Forward" }
 
 			Blend [_SrcBlend] [_DstBlend]
@@ -73,12 +73,13 @@ Shader "Unity/DisneyGGX"
 
 			ENDCG
 		}
+
 		// ------------------------------------------------------------------
 		//  Deferred pass
 		Pass
 		{
-			Name "GBuffer"
-			Tags { "LightMode" = "Deferred" }
+			Name "GBuffer"  // Name is not used
+			Tags { "LightMode" = "GBuffer" }
 
 			CGPROGRAM
 			#pragma target 5.0
