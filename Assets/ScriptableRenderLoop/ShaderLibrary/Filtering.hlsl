@@ -58,3 +58,25 @@ float4 SampleTextureCatmullRom(in Texture2D<float4> tex, in SamplerState linearS
 
     return result;
 }
+
+/*
+
+// manual tri-linearly interpolated texture fetch
+// not really needed: used hard-wired texture interpolation
+vec4 manualTexture3D( sampler3D samp, vec3 p ){
+vec3 qa = p*uvMapSize + vec3(0.5);
+vec3 qi = floor(qa);
+qa -= qi;
+qi -= vec3(0.5);
+return
+mix( mix( mix( texture3D( samp, (qi+vec3(0.0,0.0,0.0))*oneOverUvMapSize ),
+texture3D( samp, (qi+vec3(1.0,0.0,0.0))*oneOverUvMapSize ), qa.x ),
+mix( texture3D( samp, (qi+vec3(0.0,1.0,0.0))*oneOverUvMapSize ),
+texture3D( samp, (qi+vec3(1.0,1.0,0.0))*oneOverUvMapSize ), qa.x ), qa.y ),
+mix( mix( texture3D( samp, (qi+vec3(0.0,0.0,1.0))*oneOverUvMapSize ),
+texture3D( samp, (qi+vec3(1.0,0.0,1.0))*oneOverUvMapSize ), qa.x ),
+mix( texture3D( samp, (qi+vec3(0.0,1.0,1.0))*oneOverUvMapSize ),
+texture3D( samp, (qi+vec3(1.0,1.0,1.0))*oneOverUvMapSize ), qa.x ), qa.y ), qa.z );
+
+}
+*/
