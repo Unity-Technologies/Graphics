@@ -23,10 +23,10 @@ struct BSDFData
 	float	occlusion;
 
 	float3	fresnel0;
-	float	roughness;
+	float	perceptualRoughness;
 
 	float3	normalWS;
-	float	perceptualRoughness;
+	float	roughness; 
 };
 
 //-----------------------------------------------------------------------------
@@ -55,8 +55,8 @@ void EncodeIntoGBuffer(SurfaceData data, out half4 outGBuffer0, out half4 outGBu
 	// RT0: diffuse color (rgb), occlusion (a) - sRGB rendertarget
 	outGBuffer0 = half4(data.diffuseColor, data.occlusion);
 
-	// RT1: spec color (rgb), roughness (a) - sRGB rendertarget
-	outGBuffer1 = half4(data.specularColor, SmoothnessToRoughness(data.smoothness));
+	// RT1: spec color (rgb), perceptual roughness (a) - sRGB rendertarget
+	outGBuffer1 = half4(data.specularColor, SmoothnessToPerceptualRoughness(data.smoothness));
 
 	// RT2: normal (rgb), --unused, very low precision-- (a) 
 	outGBuffer2 = half4(PackNormalCartesian(data.normal), 1.0f);
@@ -71,11 +71,11 @@ BSDFData DecodeFromGBuffer(half4 inGBuffer0, half4 inGBuffer1, half4 inGBuffer2)
 	output.occlusion = inGBuffer0.a;
 
 	output.fresnel0 = inGBuffer1.rgb;
-	output.roughness = inGBuffer1.a;
+	output.perceptualRoughness = inGBuffer1.a;
 
 	output.normalWS = UnpackNormalCartesian(inGBuffer2.rgb);
 
-	output.perceptualRoughness = SmoothnessToPerceptualRoughness(output.smoothness);
+	output.roughness = PerceptualRoughnessToRoughness(output.perceptualRoughness);
 
 	return output;
 }
