@@ -42,6 +42,8 @@
 
 // The lighting code assume that 1 Unity unit (1uu) == 1 meters.  This is very important regarding physically based light unit and inverse square attenuation
 
+// When declaring "out" argument of function, they are always last
+
 
 // Include language header
 #if defined(SHADER_API_D3D11)
@@ -77,6 +79,8 @@
 #define INV_FOUR_PI	0.07957747155f
 #define HALF_PI		1.57079632679f
 #define INV_HALF_PI	0.636619772367f
+
+#define MERGE_NAME(X, Y) X##Y
 
 // Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
 float FastACos(float inX) 
@@ -121,5 +125,57 @@ float FastATan(float x)
 // ----------------------------------------------------------------------------
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------
+
+struct Coordinate
+{
+	// Normalize coordinates
+	float2	positionSS;
+	// Unormalize coordinates
+	int2	unPositionSS;
+};
+
+// This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
+// This allow to easily share code.
+// If a compute shader call this function inPositionSS is an interger usually calculate like: uint2 inPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
+// else it is current unormalized screen coordinate like return by VPOS
+Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
+{
+	Coordinate coord;
+	coord.positionSS = inPositionSS;
+	// TODO: How to detect automatically that we are a compute shader ?
+// #if 
+	// In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
+//	coord.positionSS.xy += float2(0.5f, 0.5f);
+//#endif
+	coord.positionSS *= invScreenSize;
+
+	coord.unPositionSS = int2(inPositionSS);
+
+	return coord;
+}
+
+// screenPos is screen coordinate in [0..1]
+// depth come directly from the depth buffer without any transformation
+float4 GetClipPosition(float depth, float2 screenPos)
+{
+	float4 positionCS = float4(screenPos.xy, depth, 1.0);
+	positionCS.xyz = positionCS.xyz * 2.0f - 1.0f;
+
+#if UNITY_UV_STARTS_AT_TOP == 1
+	positionCS.y = -positionCS.y;
+#endif
+
+	return positionCS;
+}
+
+// screenPos is screen coordinate in [0..1]
+// (can be provide by VPOS and divide by screen size)
+float3 UnprojectToWorld(float depth, float2 screenPos, float4x4 invViewProjectionMatrix)
+{
+	float4 positionCS = GetClipPosition(depth, screenPos);
+	float4 hpositionWS = mul(invViewProjectionMatrix, positionCS);
+
+	return hpositionWS.xyz / hpositionWS.w;
+}
 
 #endif // UNITY_COMMON_INCLUDED

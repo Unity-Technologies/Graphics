@@ -5,6 +5,8 @@
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
 // This need to be fixed.
 
+float4x4 glstate_matrix_inv_projection;
+
 #ifndef UNITY_SHADER_VARIABLES_INCLUDED
 #define UNITY_SHADER_VARIABLES_INCLUDED
 
@@ -160,6 +162,13 @@ float4x4 GetWorldToHClipMatrix()
 	return unity_MatrixVP;
 }
 
+// Transform from clip space to homogenous world space
+float4x4 GetClipToHWorldMatrix()
+{
+	return glstate_matrix_inv_projection;
+}
+
+
 float4x4 GetObjectToWorldViewMatrix()
 {
 	return glstate_matrix_modelview0;
@@ -193,7 +202,7 @@ float3 TransformObjectToWorldNormal(float3 normalOS)
 #endif
 }
 
-// Tranforms position from view to homogenous space
+// Tranforms position from world space to homogenous space
 float4 TransformWorldToHClip(float3 positionWS)
 {
 	return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
@@ -212,13 +221,4 @@ float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
 	return normalize(_WorldSpaceCameraPos.xyz - positionWS);
-}
-
-float4 ComputeScreenPos(float4 positionH)
-{
-	// TODO: upgrade this function to work for compute shader and pixel shaders
-	float4 positionSS = positionH * 0.5f;
-	positionSS.xy = float2(positionSS.x, positionSS.y * _ProjectionParams.x) + positionSS.w;
-	positionSS.zw = positionH.zw;
-	return positionSS;
 }

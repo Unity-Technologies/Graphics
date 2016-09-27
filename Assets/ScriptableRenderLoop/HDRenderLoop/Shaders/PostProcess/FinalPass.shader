@@ -15,7 +15,6 @@ Shader "Hidden/Unity/FinalPass"
 			#include "../ShaderVariables.hlsl"
 
 			sampler2D _MainTex;
-			uniform float4 _MainTex_ST;
 
 			struct Attributes {
 				float3 vertex : POSITION;

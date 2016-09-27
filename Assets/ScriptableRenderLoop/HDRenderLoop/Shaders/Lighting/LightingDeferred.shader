@@ -1,99 +1,84 @@
-Shader "Hidden/Unity/LightingDeferred" {
-	Properties{
-	_SrcBlend("", Float) = 1
-	_DstBlend("", Float) = 1
-}
-	SubShader{
+Shader "Hidden/Unity/LightingDeferred" 
+{
+	Properties
+	{
+		_SrcBlend("", Float) = 1
+		_DstBlend("", Float) = 1
+	}
+		
+	SubShader
+	{
 
-		Pass{
-		ZWrite Off
-		Blend[_SrcBlend][_DstBlend]
-
-		CGPROGRAM
-		#pragma target 5.0
-		#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
-
-		#pragma vertex VertDeferred
-		#pragma fragment FragDeferred
-
-		#define UNITY_SHADERRENDERPASS UNITY_SHADERRENDERPASS_DEFERRED
-		// CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_DISNEYGXX
-		#define UNITY_MATERIAL_DISNEYGXX // Need to be define before including Material.hlsl
-		#include "Lighting/Lighting.hlsl" // This include Material.hlsl
-		#include "ShaderVariables.hlsl"
-
-		sampler2D _CameraGBufferTexture0;
-		sampler2D _CameraGBufferTexture1;
-		sampler2D _CameraGBufferTexture2;
-		sampler2D _CameraGBufferTexture3;
-
-		sampler2D_float _CameraDepthTexture;
-
-		float _LightAsQuad;
-
-		struct Attributes
+		Pass
 		{
-			float3 positionOS : POSITION;
-			float3 normalOS : NORMAL;
-		};
+			ZWrite Off
+			Blend[_SrcBlend][_DstBlend]
 
-		struct Varyings
-		{
-			float4 positionHS : SV_POSITION;
-			float4 uv : TEXCOORD0;
-			float3 ray : TEXCOORD1;
-		};
+			CGPROGRAM
+			#pragma target 5.0
+			#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
-		Varyings VertDeferred(Attributes input)
-		{
-			Varyings output;
-			output.positionWS = TransformObjectToWorld(input.positionOS);
-			output.positionHS = TransformWorldToHClip(output.positionWS);
-			output.uv = ComputeScreenPos(o.positionOS);
-			output.ray = TransformObjectToView(input.positionOS) * float3(-1, -1, 1);
+			#pragma vertex VertDeferred
+			#pragma fragment FragDeferred
 
-			// normal contains a ray pointing from the camera to one of near plane's
-			// corners in camera space when we are drawing a full screen quad.
-			// Otherwise, when rendering 3D shapes, use the ray calculated here.
-			output.ray = lerp(output.ray, normalOS, _LightAsQuad);
+			#define UNITY_SHADERRENDERPASS UNITY_SHADERRENDERPASS_DEFERRED
+			// CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_DISNEYGXX
+			#define UNITY_MATERIAL_DISNEYGXX // Need to be define before including Material.hlsl
+			#include "Lighting.hlsl" // This include Material.hlsl
+			#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
 
-			return output;
-		}
+			DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);
+			Texture2D _CameraDepthTexture;
 
-		float4 FragDeferred(Varyings input) : SV_Target
-		{
-			/*
-			input.ray = input.ray * tex2D(_CameraDepthTexture.z / input.ray.z);
-			float2 uv = input.uv.xy / input.uv.w;
+			float4x4 _InvProjMatrix;
 
-			// read depth and reconstruct world position
-			float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-			depth = Linear01Depth(depth);
-			float4 vpos = float4(i.ray * depth, 1);
-			float3 wpos = mul(unity_CameraToWorld, vpos).xyz;
+			struct Attributes
+			{
+				float3 positionOS : POSITION;
+			};
 
-			// read depth and reconstruct world position
-			float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv);
-			depth = Linear01Depth(depth);
-			float4 vpos = float4(i.ray * depth, 1);
-			float3 wpos = mul(unity_CameraToWorld, vpos).xyz;
+			struct Varyings
+			{
+				float4 positionHS : SV_POSITION;
+			};
 
-			// unpack Gbuffer
-			float4 gbuffer0 = tex2D(_CameraGBufferTexture0, input.uv);
-			float4 gbuffer1 = tex2D(_CameraGBufferTexture1, input.uv);
-			float4 gbuffer2 = tex2D(_CameraGBufferTexture2, input.uv);
-			float4 gbuffer3 = tex2D(_CameraGBufferTexture3, input.uv);
+			Varyings VertDeferred(Attributes input)
+			{
+				// TODO: implement SV_vertexID full screen quad
+				// Lights are draw as one fullscreen quad
+				Varyings output;
+				float3 positionWS = TransformObjectToWorld(input.positionOS);
+				output.positionHS = TransformWorldToHClip(positionWS);
 
-			BSDFData bsdfData = DecodeFromGBuffer(gbuffer0, gbuffer1, gbuffer2);
+				return output;
+			}
 
-			return bsdfData.diffuseColor;
-			*/
+			float4 FragDeferred(Varyings input) : SV_Target
+			{
+				// TEMP: It is cheaper to pass inv screen size than using GetDimension on GCN
+				uint width;
+				uint height;
+				_CameraDepthTexture.GetDimensions(width, height);
+				Coordinate coord = GetCoordinate(input.positionHS.xy, float2(width, height));
 
-			return float4(1, 0, 0, 0);
-		}
+				// No need to manage inverse depth, this is handled by the projection matrix
+				float depth = _CameraDepthTexture.Load(uint3(coord.unPositionSS, 0)).x;
+				float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvProjMatrix);
+				float3 V = GetWorldSpaceNormalizeViewDir(positionWS);
+
+				FETCH_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
+				BSDFData bsdfData = DECODE_FROM_GBUFFER(gbuffer);
+
+				// NOTE: Currently calling the forward loop, same code... :)
+				float4 diffuseLighting;
+				float4 specularLighting;
+				ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
+
+				return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
+			}
 
 		ENDCG
-	}
+		}
 
 	}
 	Fallback Off

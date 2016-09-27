@@ -114,7 +114,7 @@ PackedVaryings VertDefault(Attributes input)
 #endif
 
 //-------------------------------------------------------------------------------------
-// Fill SurfaceData function
+// Fill SurfaceData/Lighting data function
 //-------------------------------------------------------------------------------------
 
 SurfaceData GetSurfaceData(Varyings input)
@@ -128,6 +128,14 @@ SurfaceData GetSurfaceData(Varyings input)
 	data.smoothness = _Smoothness;
 
 	data.normal = input.tangentToWorld[2].xyz;//UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
+
+	// TODO: Sample lightmap/lightprobe/volume proxy
+	// This should also handle projective lightmap
+	// Note that data input above can be use to sample into lightmap (like normal)
+	data.baked = float3(0.0, 0.0, 0.0);
+
+	data.emissiveColor = float3(0.0, 0.0, 0.0);
+	data.emissiveIntensity = 0.0;
 
 	return data;
 }

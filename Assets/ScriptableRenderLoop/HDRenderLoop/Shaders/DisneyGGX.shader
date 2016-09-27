@@ -92,19 +92,12 @@ Shader "Unity/DisneyGGX"
 			#include "TemplateDisneyGGX.hlsl"
 
 			void FragDeferred(	PackedVaryings packedInput,
-								out float4 outGBuffer0 : SV_Target0,
-								out float4 outGBuffer1 : SV_Target1,
-								out float4 outGBuffer2 : SV_Target2,
-								out float4 outEmission : SV_Target3
+								OUTPUT_GBUFFER(outGBuffer)
 								)
 			{
 				Varyings input = UnpackVaryings(packedInput);
 				SurfaceData surfaceData = GetSurfaceData(input);
-
-				EncodeIntoGBuffer(surfaceData, outGBuffer0, outGBuffer1, outGBuffer2);
-
-				// Lightmap + Emisive lighting buffer
-				outEmission = float4(0, 0, 0, 1);
+				ENCODE_INTO_GBUFFER(surfaceData, outGBuffer);
 			}
 
 			ENDCG
