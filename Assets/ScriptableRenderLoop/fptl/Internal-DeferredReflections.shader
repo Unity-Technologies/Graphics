@@ -228,7 +228,7 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 				sampleDir = worldNormalRefl;
 
 			Unity_GlossyEnvironmentData g;
-			g.roughness = SmoothnessToPerceptualRoughness(data.smoothness);
+			g.perceptualRoughness = SmoothnessToPerceptualRoughness(data.smoothness);
 			g.reflUVW		= sampleDir;
 
 			half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), lgtDat.iSliceIndex, float4(lgtDat.fLightIntensity, lgtDat.fDecodeExp, 0.0, 0.0), g);
@@ -298,28 +298,28 @@ half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, hal
 {
 #if UNITY_GLOSS_MATCHES_MARMOSET_TOOLBAG2 && (SHADER_TARGET >= 30)
 	// TODO: remove pow, store cubemap mips differently
-	half roughness = pow(glossIn.perceptualRoughness, 3.0/4.0);
+	half perceptualRoughness = pow(glossIn.perceptualRoughness, 3.0/4.0);
 #else
-	half roughness = glossIn.roughness;			// MM: switched to this
+	half perceptualRoughness = glossIn.perceptualRoughness;			// MM: switched to this
 #endif
-	//roughness = sqrt(sqrt(2/(64.0+2)));		// spec power to the square root of real roughness
+	//perceptualRoughness = sqrt(sqrt(2/(64.0+2)));		// spec power to the square root of real roughness
 
 #if 0
-	float m = roughness*roughness;				// m is the real roughness parameter
+	float m = perceptualRoughness*perceptualRoughness;				// m is the real roughness parameter
 	const float fEps = 1.192092896e-07F;        // smallest such that 1.0+FLT_EPSILON != 1.0  (+1e-4h is NOT good here. is visibly very wrong)
 	float n =  (2.0/max(fEps, m*m))-2.0;		// remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
 
 	n /= 4;									    // remap from n_dot_h formulatino to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
 
-	roughness = pow( 2/(n+2), 0.25);			// remap back to square root of real roughness
+	perceptualRoughness = pow( 2/(n+2), 0.25);			// remap back to square root of real roughness
 #else
 	// MM: came up with a surprisingly close approximation to what the #if 0'ed out code above does.
-	roughness = roughness*(1.7 - 0.7*roughness);
+	perceptualRoughness = perceptualRoughness*(1.7 - 0.7*perceptualRoughness);
 #endif
 
 
 
-	half mip = roughness * UNITY_SPECCUBE_LOD_STEPS;
+	half mip = perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 	half4 rgbm = UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex, float4(glossIn.reflUVW.xyz, sliceIndex), mip);
 
 	//return rgbm.xyz;
