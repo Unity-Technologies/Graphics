@@ -35,6 +35,7 @@ unsigned int GetClip(const float4 P);
 int ClipAgainstPlane(const int iSrcIndex, const int iNrSrcVerts, const int subLigt, const int p);
 void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, out float2 vMax, float4x4 InvProjection, float3 pos_view_space, float r);
 void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int sideIndex);
+void GetPlane(out float3 p0, out float3 vN, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int sideIndex);
 
 
 [numthreads(NR_THREADS, 1, 1)]
@@ -233,22 +234,13 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				uint uVisibFl = 0xff;
 				for(f=0; f<6; f++)
 				{
-					float3 vP0, vP1, vP2, vP3;
-					GetQuad(vP0, vP1, vP2, vP3, vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, f);
-
-					// one edge might be zero length so we do all 4
-					float3 vN = cross(vP1-vP0, vP3-vP0) + cross(vP2-vP1, vP0-vP1) + cross(vP3-vP2, vP1-vP2) + cross(vP0-vP3, vP2-vP3);
-					float fLen = length(vN);
-					if(fLen>1) vN = normalize(vN);		// this won't necessarily be a non zero vector (spot lights have all 4 top points as the same)
+					float3 vP0, vN;
+					GetPlane(vP0, vN, vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, f);
 
 					for(i=0; i<8; i++)
 					{
 						float3 vViewSpace = float3(posX[subLigt*MAX_PNTS*2 + i], posY[subLigt*MAX_PNTS*2 + i], posZ[subLigt*MAX_PNTS*2 + i]);
-#ifdef LEFT_HAND_COORDINATES
 						uVisibFl &= ( dot(vViewSpace-vP0, vN)<0 ? 0xff : (~(1<<i)) );
-#else
-						uVisibFl &= ( dot(vViewSpace-vP0, vN)>0 ? 0xff : (~(1<<i)) );
-#endif
 					}
 				}
 
@@ -429,10 +421,40 @@ void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const f
 
 	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? vScaleXY.x : vScaleXY.y); vB2 *= (iAbsSide == 0 ? vScaleXY.y : vScaleXY.x); }
 
-	p0 = vCen + vA + vB - vC;		// vCen + vA is center of face when vScaleXY is 1.0
-	p1 = vCen + vA2 + vB2 + vC;
-	p2 = vCen + vA2 - vB2 + vC;
-	p3 = vCen + vA - vB - vC;
+	// delivered counterclockwise in right hand space and clockwise in left hand space
+	p0 = vCen + (vA + vB - vC);		// vCen + vA is center of face when vScaleXY is 1.0
+	p1 = vCen + (vA - vB - vC);
+	p2 = vCen + (vA2 - vB2 + vC);
+	p3 = vCen + (vA2 + vB2 + vC);
+}
+
+void GetPlane(out float3 p0, out float3 vN, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int sideIndex)
+{
+	const int iAbsSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
+	const float fS = (sideIndex & 1) != 0 ? 1 : (-1);
+
+	float3 vA = fS*(iAbsSide == 0 ? vBoxX : (iAbsSide == 1 ? (-vBoxY) : vBoxZ));
+	float3 vB = fS*(iAbsSide == 0 ? (-vBoxY) : (iAbsSide == 1 ? (-vBoxX) : (-vBoxY)));
+	float3 vC = iAbsSide == 0 ? vBoxZ : (iAbsSide == 1 ? vBoxZ : (-vBoxX));
+
+	bool bIsTopQuad = iAbsSide == 2 && (sideIndex & 1) != 0;		// in this case all 4 verts get scaled.
+	bool bIsSideQuad = (iAbsSide == 0 || iAbsSide == 1);		// if side quad only two verts get scaled (impacts q1 and q2)
+
+	if (bIsTopQuad) { vB *= vScaleXY.y; vC *= vScaleXY.x; }
+
+	float3 vA2 = vA;
+	float3 vB2 = vB;
+
+	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? vScaleXY.x : vScaleXY.y); vB2 *= (iAbsSide == 0 ? vScaleXY.y : vScaleXY.x); }
+
+	p0 = vCen + (vA + vB - vC);		// vCen + vA is center of face when vScaleXY is 1.0
+	vNout = cross( vB2, 0.5*(vA-vA2) - vC );
+
+#ifdef LEFT_HAND_COORDINATES
+	vNout = -vNout;
+#endif
+
+	vN = vNout;
 }
 
 
