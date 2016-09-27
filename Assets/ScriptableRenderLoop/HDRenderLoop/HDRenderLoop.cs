@@ -8,15 +8,18 @@ using UnityEditor;
 
 namespace UnityEngine.ScriptableRenderLoop
 {
+	[ExecuteInEditMode]
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
 	public class HDRenderLoop : ScriptableRenderLoop
 	{
+		#if UNITY_EDITOR
         [MenuItem("Renderloop/CreateHDRenderLoop")]
 		static void CreateHDRenderLoop()
 		{
 			var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
-			AssetDatabase.CreateAsset(instance, "Assets/HDRenderLoop.asset");
+			UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset");
 		}
+		#endif
 
         public class GBufferManager
         {
@@ -24,17 +27,17 @@ namespace UnityEngine.ScriptableRenderLoop
 
             public void SetBufferDescription(int index, string stringID, RenderTextureFormat inFormat, RenderTextureReadWrite inSRGBWrite)
             {
-                ID[index] = Shader.PropertyToID(stringID);
-                RTID[index] = new RenderTargetIdentifier(ID[index]);
-                format[index] = inFormat;
-                sRGBWrite[index] = inSRGBWrite;
+                IDs[index] = Shader.PropertyToID(stringID);
+                RTIDs[index] = new RenderTargetIdentifier(IDs[index]);
+                formats[index] = inFormat;
+                sRGBWrites[index] = inSRGBWrite;
             }
 
             public void InitGBuffers(CommandBuffer cmd)
             {
                 for (int index = 0; index < gbufferCount; index++)
                 {
-                    cmd.GetTemporaryRT(ID[index], -1, -1, 0, FilterMode.Point, format[index], sRGBWrite[index]);
+                    /* RTs[index] = */ cmd.GetTemporaryRT(IDs[index], -1, -1, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
                 }
             }
 
@@ -43,18 +46,28 @@ namespace UnityEngine.ScriptableRenderLoop
                 var colorMRTs = new RenderTargetIdentifier[gbufferCount];
                 for (int index = 0; index < gbufferCount; index++)
                 {
-                    colorMRTs[index] = RTID[index];
+                    colorMRTs[index] = RTIDs[index];
                 }
 
                 return colorMRTs;
             }
 
+            /*
+            public void BindBuffers(Material mat)
+            {
+                for (int index = 0; index < gbufferCount; index++)
+                {
+                    mat.SetTexture(IDs[index], RTs[index]);
+                }
+            }
+            */
+
         
             public int gbufferCount { get; set; }
-            int[] ID = new int[MaxGbuffer];
-            RenderTargetIdentifier[] RTID = new RenderTargetIdentifier[MaxGbuffer];
-            RenderTextureFormat[] format = new RenderTextureFormat[MaxGbuffer];
-            RenderTextureReadWrite[] sRGBWrite = new RenderTextureReadWrite[MaxGbuffer];
+            int[] IDs = new int[MaxGbuffer];
+            RenderTargetIdentifier[] RTIDs = new RenderTargetIdentifier[MaxGbuffer];
+            RenderTextureFormat[] formats = new RenderTextureFormat[MaxGbuffer];
+            RenderTextureReadWrite[] sRGBWrites = new RenderTextureReadWrite[MaxGbuffer];
         }
 
         public const int MaxLights = 32;
@@ -97,10 +110,10 @@ namespace UnityEngine.ScriptableRenderLoop
             gbufferManager.SetBufferDescription(0, "_CameraGBufferTexture0", RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);     // Store diffuse color => sRGB
             gbufferManager.SetBufferDescription(1, "_CameraGBufferTexture1", RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             gbufferManager.SetBufferDescription(2, "_CameraGBufferTexture2", RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear); // Store normal => higher precision
-            gbufferManager.SetBufferDescription(3, "_CameraGBufferTexture3", RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+            gbufferManager.SetBufferDescription(3, "_CameraGBufferTexture3", RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
 
-            s_CameraColorBuffer = Shader.PropertyToID("_CameraColorBuffer");
-            s_CameraDepthBuffer = Shader.PropertyToID("_CameraDepthBuffer");
+            s_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
+            s_CameraDepthBuffer = Shader.PropertyToID("_CameraDepthTexture");
 
             s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
 
@@ -136,7 +149,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 // Also we manage ourself the HDR format, here allocating fp16 directly.
                 // With scriptable render loop we can allocate temporary RT in a command buffer, they will not be release with ExecuteCommandBuffer
                 // These temporary surface are release automatically at the end of the scriptable renderloop if not release explicitly
-                cmd.GetTemporaryRT(s_CameraColorBuffer, -1, -1, 0, FilterMode.Point, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Default);
+                cmd.GetTemporaryRT(s_CameraColorBuffer, -1, -1, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Default);
                 cmd.GetTemporaryRT(s_CameraDepthBuffer, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
                 gbufferManager.InitGBuffers(cmd);
 
@@ -192,12 +205,25 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.DrawRenderers(ref settings);
 		}
 
-        void RenderDeferredLighting(CullResults cull, Camera camera, RenderLoop renderLoop)
+        void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
         {
-            // setup GBuffer for rendering
+            // Calculate inverse projection matrix as this is not done by Unity
+            Matrix4x4 proj = camera.projectionMatrix;
+            // Unity projection matrix project z in -1 .. 1, so change it to reconstruct from a z with 0..1
+            Matrix4x4 temp = new Matrix4x4();
+            temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+            temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+            temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
+            temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+            Matrix4x4 projh = temp * proj;
+            Matrix4x4 invProjh = projh.inverse;
+            m_DeferredMaterial.SetMatrix("_InvProjMatrix", invProjh);
+
+            // gbufferManager.BindBuffers(m_DeferredMaterial);
+            // TODO: Bind depth textures
             var cmd = new CommandBuffer();
-            cmd.name = "Deferred Ligthing Pass";
-            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.name = "Deferred Ligthing Pass";            
+            cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DeferredMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
@@ -530,7 +556,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 InitAndClearBuffer(camera, renderLoop);
 
-                RenderGBuffer(cullResults, camera, renderLoop);
+             //   RenderGBuffer(cullResults, camera, renderLoop);
+
+            //    RenderDeferredLighting(camera, renderLoop);
 
                 RenderForward(cullResults, camera, renderLoop);
 
