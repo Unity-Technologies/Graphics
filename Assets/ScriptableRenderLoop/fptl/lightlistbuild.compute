@@ -40,8 +40,15 @@ groupshared int ldsNrLightsFinal;
 groupshared int ldsModelListCount[2];		// since NR_LIGHT_MODELS is 2
 
 
-float GetLinearDepth(float3 vP)
+//float GetLinearDepth(float3 vP)
+//{
+//	float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
+//	return v4Pres.z / v4Pres.w;
+//}
+
+float GetLinearDepth(float zDptBufSpace)	// 0 is near 1 is far
 {
+	float3 vP = float3(0.0f,0.0f,zDptBufSpace);
 	float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
 	return v4Pres.z / v4Pres.w;
 }
@@ -163,7 +170,7 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 			int idx = t + i*NR_THREADS;
 			uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
 			float3 v3ScrPos = float3(uCrd.x+0.5, uCrd.y+0.5, FetchDepth(g_depth_tex, uCrd));
-			vLinDepths[i] = GetLinearDepth(v3ScrPos);
+			vLinDepths[i] = GetLinearDepth(v3ScrPos.z);
 		}
 
 		uint uLightsFlags[2] = {0,0};
