@@ -448,7 +448,13 @@ void GetPlane(out float3 p0, out float3 vN, const float3 vBoxX, const float3 vBo
 	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? vScaleXY.x : vScaleXY.y); vB2 *= (iAbsSide == 0 ? vScaleXY.y : vScaleXY.x); }
 
 	p0 = vCen + (vA + vB - vC);		// vCen + vA is center of face when vScaleXY is 1.0
-	vN = cross( vB2, 0.5*(vA-vA2) - vC );
+	vNout = cross( vB2, 0.5*(vA-vA2) - vC );
+
+#ifdef LEFT_HAND_COORDINATES
+	vNout = -vNout;
+#endif
+
+	vN = vNout;
 }
 
 
