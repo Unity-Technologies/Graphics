@@ -81,12 +81,9 @@ StructuredBuffer<DirectionalLight> g_dirLightData;
 
 
 
-
-
-float GetLinearDepth(float3 vP)
+float GetLinearDepth(float zDptBufSpace)	// 0 is near 1 is far
 {
-	Vec3 var = 1.0;
-	//float4 v4Pres = mul(float4(vP,1.0), g_mInvScrProjection);
+	float3 vP = float3(0.0f,0.0f,zDptBufSpace);
 	float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
 	return v4Pres.z / v4Pres.w;
 }
@@ -273,7 +270,7 @@ StandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, floa
 float3 ExecuteLightList(uint2 pixCoord, const uint offs)
 {
 	float3 v3ScrPos = float3(pixCoord.x+0.5, pixCoord.y+0.5, FetchDepth(_CameraDepthTexture, pixCoord.xy).x);
-	float linDepth = GetLinearDepth(v3ScrPos);
+	float linDepth = GetLinearDepth(v3ScrPos.z);
 	float3 vP = GetViewPosFromLinDepth(v3ScrPos.xy, linDepth);
 
 	float3 vWSpaceVDir = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);		//unity_CameraToWorld
