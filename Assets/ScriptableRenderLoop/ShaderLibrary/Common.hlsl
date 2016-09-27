@@ -143,10 +143,10 @@ Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
 	Coordinate coord;
 	coord.positionSS = inPositionSS;
 	// TODO: How to detect automatically that we are a compute shader ?
-// #if 
+ #if 0
 	// In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
-//	coord.positionSS.xy += float2(0.5f, 0.5f);
-//#endif
+	coord.positionSS.xy += float2(0.5f, 0.5f);
+#endif
 	coord.positionSS *= invScreenSize;
 
 	coord.unPositionSS = int2(inPositionSS);

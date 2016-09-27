@@ -219,6 +219,13 @@ namespace UnityEngine.ScriptableRenderLoop
             Matrix4x4 invProjh = projh.inverse;
             m_DeferredMaterial.SetMatrix("_InvProjMatrix", invProjh);
 
+            Vector4 screenSize = new Vector4();
+            screenSize.x = camera.pixelWidth;
+            screenSize.y = camera.pixelHeight;
+            screenSize.z = 1.0f / camera.pixelWidth;
+            screenSize.w = 1.0f / camera.pixelHeight;
+            m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
+
             // gbufferManager.BindBuffers(m_DeferredMaterial);
             // TODO: Bind depth textures
             var cmd = new CommandBuffer();
@@ -556,11 +563,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 InitAndClearBuffer(camera, renderLoop);
 
-             //   RenderGBuffer(cullResults, camera, renderLoop);
+                RenderGBuffer(cullResults, camera, renderLoop);
 
-            //    RenderDeferredLighting(camera, renderLoop);
+                RenderDeferredLighting(camera, renderLoop);
 
-                RenderForward(cullResults, camera, renderLoop);
+         //       RenderForward(cullResults, camera, renderLoop);
 
                 FinalPass(renderLoop);
 
