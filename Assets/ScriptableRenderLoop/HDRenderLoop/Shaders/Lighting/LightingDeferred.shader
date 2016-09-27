@@ -29,6 +29,7 @@ Shader "Hidden/Unity/LightingDeferred"
 
 			DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);
 			Texture2D _CameraDepthTexture;
+			float4 _ScreenSize;
 
 			float4x4 _InvProjMatrix;
 
@@ -55,14 +56,13 @@ Shader "Hidden/Unity/LightingDeferred"
 
 			float4 FragDeferred(Varyings input) : SV_Target
 			{
-				// TEMP: It is cheaper to pass inv screen size than using GetDimension on GCN
-				uint width;
-				uint height;
-				_CameraDepthTexture.GetDimensions(width, height);
-				Coordinate coord = GetCoordinate(input.positionHS.xy, float2(width, height));
+				Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);
 
 				// No need to manage inverse depth, this is handled by the projection matrix
 				float depth = _CameraDepthTexture.Load(uint3(coord.unPositionSS, 0)).x;
+				//#if UNITY_REVERSED_Z
+				//depth = 1.0 - depth; // This should be in the proj matrix ?
+				//#endif
 				float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvProjMatrix);
 				float3 V = GetWorldSpaceNormalizeViewDir(positionWS);
 
@@ -74,7 +74,8 @@ Shader "Hidden/Unity/LightingDeferred"
 				float4 specularLighting;
 				ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
 
-				return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
+				//return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
+				return float4(saturate(positionWS), 1.0f);
 			}
 
 		ENDCG
