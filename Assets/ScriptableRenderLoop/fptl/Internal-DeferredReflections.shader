@@ -51,10 +51,9 @@ StructuredBuffer<uint> g_vLightList;
 StructuredBuffer<SFiniteLightData> g_vLightData;
 
 
-float GetLinearDepth(float3 vP)
+float GetLinearDepth(float zDptBufSpace)	// 0 is near 1 is far
 {
-	Vec3 var = 1.0;
-	//float4 v4Pres = mul(float4(vP,1.0), g_mInvScrProjection);
+	float3 vP = float3(0.0f,0.0f,zDptBufSpace);
 	float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
 	return v4Pres.z / v4Pres.w;
 }
@@ -156,7 +155,7 @@ half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, hal
 float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 {
 	float3 v3ScrPos = float3(pixCoord.x+0.5, pixCoord.y+0.5, FetchDepth(_CameraDepthTexture, pixCoord.xy).x);
-	float linDepth = GetLinearDepth(v3ScrPos);
+	float linDepth = GetLinearDepth(v3ScrPos.z);
 	float3 vP = GetViewPosFromLinDepth(v3ScrPos.xy, linDepth);
 	float3 worldPos = mul(g_mViewToWorld, float4(vP.xyz,1.0)).xyz;		//unity_CameraToWorld
 
