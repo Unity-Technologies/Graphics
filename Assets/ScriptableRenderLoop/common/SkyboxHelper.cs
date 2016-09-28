@@ -84,15 +84,15 @@ public class SkyboxHelper
 			return;
 		}
 
-		CommandBuffer cmd = new CommandBuffer();
-		cmd.name = "Skybox";
-
 		Material mat = RenderSettings.skybox;
 
 		if (mat == null)
 		{
 			return;
 		}
+
+		CommandBuffer cmd = new CommandBuffer();
+		cmd.name = "Skybox";
 
 		bool looksLikeSixSidedShader = true;
 		looksLikeSixSidedShader &= (mat.passCount == 6); // should have six passes
