@@ -120,13 +120,8 @@ float3 TransformTangentToWorld(float3 normalTS, float4 tangentToWorld[3])
 	// regular normal
 	float3 normalWS = normalize(tangentToWorld[2].xyz);
 #else
-	// Do mul martix
-	float3 tangent = tangentToWorld[0].xyz;
-	float3 binormal = tangentToWorld[1].xyz;
-	float3 normal = tangentToWorld[2].xyz;
-
 	// TO check: do we need to normalize ?
-	float3 normalWS = normalize(tangent * normalTS.x + binormal * normalTS.y + normal * normalTS.z);
+	float3 normalWS = normalize(mul(normalTS, float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz)));
 #endif
 
 	return normalWS;
