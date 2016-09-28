@@ -31,7 +31,7 @@ CGPROGRAM
 
 
 #include "..\common\ShaderBase.h"
-#include "LightDefinitions.cs"
+#include "LightDefinitions.cs.hlsl"
 
 
 
@@ -297,7 +297,7 @@ half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, hal
 {
 #if UNITY_GLOSS_MATCHES_MARMOSET_TOOLBAG2 && (SHADER_TARGET >= 30)
 	// TODO: remove pow, store cubemap mips differently
-	half perceptualRoughness = pow(glossIn.perceptualRoughness, 3.0/4.0);
+	half perceptualRoughness = pow(glossIn.roughness, 3.0/4.0);
 #else
 	half perceptualRoughness = glossIn.roughness;			// MM: switched to this
 #endif

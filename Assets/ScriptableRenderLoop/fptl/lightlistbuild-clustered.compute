@@ -1,7 +1,7 @@
 #pragma kernel TileLightListGen
 
 #include "..\common\ShaderBase.h"
-#include "LightDefinitions.cs"
+#include "LightDefinitions.cs.hlsl"
 
 //#define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS

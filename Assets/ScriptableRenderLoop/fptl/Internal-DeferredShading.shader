@@ -30,7 +30,7 @@ CGPROGRAM
 #include "UnityPBSLighting.cginc"
 
 #include "..\common\ShaderBase.h"
-#include "LightDefinitions.cs"
+#include "LightDefinitions.cs.hlsl"
 
 
 

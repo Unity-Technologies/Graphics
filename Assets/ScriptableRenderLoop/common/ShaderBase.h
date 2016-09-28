@@ -17,6 +17,9 @@
 #define _QALIGN(x)	 		: packoffset(c0);
 
 
-
+float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
+{
+	return 1 - depthTexture.Load(uint3(pixCoord.xy, 0)).x;
+}
 
 #endif
