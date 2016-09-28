@@ -1,0 +1,687 @@
+#pragma kernel TileLightListGen
+
+#include "..\common\ShaderBase.h"
+#include "LightDefinitions.cs"
+
+//#define EXACT_EDGE_TESTS
+#define PERFORM_SPHERICAL_INTERSECTION_TESTS
+#define CONV_HULL_TEST_ENABLED
+
+uniform int g_iNrVisibLights;
+uniform float4x4 g_mInvScrProjection;
+uniform float4x4 g_mScrProjection;
+
+uniform float g_fClustScale;
+uniform float g_fClustBase;
+uniform float g_fNearPlane;
+uniform float g_fFarPlane;
+uniform int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
+
+
+#ifdef MSAA_ENABLED
+Texture2DMS<float4> g_depth_tex : register( t0 );
+#else
+Texture2D g_depth_tex : register( t0 );
+#endif
+StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
+StructuredBuffer<SFiniteLightData> g_vLightData : register( t2 );
+StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
+
+
+#define NR_THREADS			64
+
+// output buffer
+RWBuffer<uint> g_vLayeredLightList : register( u0 );
+RWBuffer<uint> g_LayeredOffset : register( u1 );
+RWBuffer<uint> g_LayeredSingleIdxBuffer : register( u2 );
+
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+RWBuffer<float> g_fModulUserscale : register( u3 );
+#endif
+
+
+#define MAX_NR_COARSE_ENTRIES		64
+
+groupshared unsigned int coarseList[MAX_NR_COARSE_ENTRIES];
+groupshared unsigned int clusterIdxs[MAX_NR_COARSE_ENTRIES/2];
+groupshared float4 lightPlanes[4*6];
+
+groupshared uint lightOffs;
+
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+groupshared int ldsZMax;
+#endif
+
+#ifdef EXACT_EDGE_TESTS
+groupshared uint ldsIsLightInvisible;
+groupshared uint lightOffs2;
+#endif
+
+#ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
+groupshared uint lightOffsSph;
+#endif
+
+
+int SnapToClusterIdx(float z_in, float fModulUserScale)
+{
+#ifndef LEFT_HAND_COORDINATES
+	float z = -z_in;
+#else
+	float z = z_in;
+#endif
+
+	float userscale = g_fClustScale;
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+	userscale *= fModulUserScale;
+#endif
+
+	// using the inverse of the geometric series
+	const float dist = max(0, z-g_fNearPlane);
+	return (int) clamp( log2(dist*userscale*(g_fClustBase-1.0f) + 1) / log2(g_fClustBase), 0.0, (float) ((1<<g_iLog2NumClusters)-1) );
+}
+
+float ClusterIdxToZ(int k, float fModulUserScale)
+{
+	float res;
+
+	float userscale = g_fClustScale;
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+	userscale *= fModulUserScale;
+#endif
+
+	float dist = (pow(g_fClustBase,(float) k)-1.0)/(userscale*(g_fClustBase-1.0f));
+	res = dist+g_fNearPlane;
+
+#ifdef LEFT_HAND_COORDINATES
+	return res;
+#else
+	return -res;
+#endif
+}
+
+
+float GetLinearDepth(float zDptBufSpace)	// 0 is near 1 is far
+{
+	float3 vP = float3(0.0f,0.0f,zDptBufSpace);
+	float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
+	return v4Pres.z / v4Pres.w;
+}
+
+
+float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
+{
+	float fSx = g_mScrProjection[0].x;
+	float fCx = g_mScrProjection[0].z;
+	float fSy = g_mScrProjection[1].y;
+	float fCy = g_mScrProjection[1].z;
+
+#ifdef LEFT_HAND_COORDINATES
+	return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
+#else
+	return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
+#endif
+}
+
+float GetOnePixDiagWorldDistAtDepthOne()
+{
+	float fSx = g_mScrProjection[0].x;
+	float fSy = g_mScrProjection[1].y;
+
+	return length( float2(1.0/fSx,1.0/fSy) );
+}
+
+void sortLightList(int localThreadID, int n);
+
+#ifdef EXACT_EDGE_TESTS
+int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane);
+#endif
+#ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
+int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate);
+#endif
+
+
+// returns 1 for intersection and 0 for none
+
+float4 GetPlaneEq(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXZ, const int sideIndex);
+float4 FetchPlane(int l, int p);
+
+
+bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float fModulUserScale)
+{
+	unsigned int val = (clusterIdxs[l>>1]>>(16*(l&1)))&0xffff;
+	bool bIsHit = ((val>>0)&0xff)<=k && k<=((val>>8)&0xff);
+	if(bIsHit)
+	{
+#ifdef CONV_HULL_TEST_ENABLED
+		float depthAtNearZ = ClusterIdxToZ(k, fModulUserScale);
+		float depthAtFarZ = ClusterIdxToZ(k+1, fModulUserScale);
+
+		for(int p=0; p<6; p++)
+		{
+			float4 plane = lightPlanes[6*(l&3)+p];
+		
+			bool bAllInvisib = true;
+
+			for(int i=0; i<8; i++)
+			{
+				float x = (i&1)==0 ? viTilLL.x : viTilUR.x;
+				float y = (i&2)==0 ? viTilLL.y : viTilUR.y;
+				float z = (i&4)==0 ? depthAtNearZ : depthAtFarZ;
+				float3 vP = GetViewPosFromLinDepth( float2(x, y), z);
+
+				bAllInvisib = bAllInvisib && dot(plane, float4(vP,1.0))>0;
+			}
+
+			if(bAllInvisib) bIsHit = false;
+		}
+#endif
+	}
+
+	return bIsHit;
+}
+
+bool CheckIntersectionBasic(int l, int k)
+{
+	unsigned int val = (clusterIdxs[l>>1]>>(16*(l&1)))&0xffff;
+	return ((val>>0)&0xff)<=k && k<=((val>>8)&0xff);
+}
+
+
+[numthreads(NR_THREADS, 1, 1)]
+void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
+{
+	uint2 tileIDX = u3GroupID.xy;
+	uint t=threadID;
+
+	uint iWidth;
+	uint iHeight;
+	g_depth_tex.GetDimensions(iWidth, iHeight);
+	uint nrTilesX = (iWidth+15)/16;
+	uint nrTilesY = (iHeight+15)/16;
+
+	uint2 viTilLL = 16*tileIDX;
+	uint2 viTilUR = min( viTilLL+uint2(16,16), uint2(iWidth-1, iHeight-1) );
+
+	if(t==0)
+	{
+		lightOffs = 0;
+
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+		ldsZMax = 0;
+#endif
+	}
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+	GroupMemoryBarrierWithGroupSync();
+#endif
+
+	float dpt_ma=1.0;
+
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+	// establish min and max depth first
+	dpt_ma=0.0;
+
+	for(int idx=t; idx<256; idx+=NR_THREADS)
+	{
+		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
+#ifdef MSAA_ENABLED
+		for(int i=0; i<g_iNumSamplesMSAA; i++)
+		{
+		const float fDpth = FetchDepthMSAA(g_depth_tex, uPixCrd, i);
+#else
+		const float fDpth = FetchDepth(g_depth_tex, uPixCrd);
+#endif
+		if(fDpth<VIEWPORT_SCALE_Z)		// if not skydome
+		{
+			dpt_ma = max(fDpth, dpt_ma);
+		}
+#ifdef MSAA_ENABLED
+		}
+#endif
+	}
+
+	InterlockedMax(ldsZMax, asuint(dpt_ma) );
+
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+	GroupMemoryBarrierWithGroupSync();
+#endif
+	dpt_ma = asfloat(ldsZMax);
+#endif
+
+	float3 vTileLL = float3(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight, 0.0);
+	float3 vTileUR = float3((viTilLL.x+16)/(float) iWidth, (viTilLL.y+16)/(float) iHeight, dpt_ma);
+	vTileUR.xy = min(vTileUR.xy,float2(1.0,1.0)).xy;
+	
+
+	// build coarse list using AABB
+	for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
+	{
+		const float3 vMi = g_vBoundsBuffer[l];
+		const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights];
+
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+		if( all(vMa.xy>vTileLL.xy) && all(vMi.xyz<vTileUR.xyz))
+#else
+		if( all(vMa.xy>vTileLL.xy) && all(vMi.xy<vTileUR.xy))
+#endif
+		{
+			unsigned int uInc = 1;
+			unsigned int uIndex;
+			InterlockedAdd(lightOffs, uInc, uIndex);
+			if(uIndex<MAX_NR_COARSE_ENTRIES) coarseList[uIndex] = l;		// add to light list
+		}
+	}
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+	GroupMemoryBarrierWithGroupSync();
+#endif
+
+	int iNrCoarseLights = lightOffs<MAX_NR_COARSE_ENTRIES ? lightOffs : MAX_NR_COARSE_ENTRIES;
+	
+#ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
+	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
+#endif
+
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+
+#ifdef LEFT_HAND_COORDINATES
+	float fTileFarPlane = GetLinearDepth(dpt_ma);
+#else
+	float fTileFarPlane = -GetLinearDepth(dpt_ma);
+#endif
+	float fDenom = fTileFarPlane - g_fNearPlane;
+	float fModulUserScale = fDenom>0.0 ? ((g_fFarPlane-g_fNearPlane)/fDenom) : 1.0;		// readjust to new range.
+#else
+	float fTileFarPlane = g_fFarPlane;
+	float fModulUserScale = 1.0;
+#endif
+
+
+#ifdef EXACT_EDGE_TESTS
+	iNrCoarseLights = CullByExactEdgeTests(t, iNrCoarseLights, viTilLL.xy, viTilUR.xy, fTileFarPlane);
+#endif
+
+// sort lights
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+	sortLightList((int) t, iNrCoarseLights);
+#endif
+
+	//////////// cell specific code
+	for(int l=(int) t; l<((iNrCoarseLights+1)>>1); l += NR_THREADS)
+	{
+		const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights)];
+		const unsigned int clustIdxMi0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z), fModulUserScale));
+		const unsigned int clustIdxMa0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0+g_iNrVisibLights].z), fModulUserScale));
+		const unsigned int clustIdxMi1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z), fModulUserScale));
+		const unsigned int clustIdxMa1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1+g_iNrVisibLights].z), fModulUserScale));
+
+		clusterIdxs[l] = (clustIdxMa1<<24) | (clustIdxMi1<<16) | (clustIdxMa0<<8) | (clustIdxMi0<<0);
+	}
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+	GroupMemoryBarrierWithGroupSync();
+#endif
+
+	int nrClusters = (1<<g_iLog2NumClusters);
+
+
+
+	//////////////////////////////////////////////////////////
+	
+	uint start = 0;
+	int i=(int) t;
+	int iSpaceAvail = 0;
+	int iSum = 0;
+	if(i<nrClusters)
+	{
+		for(int l=0; l<iNrCoarseLights; l++)
+		{
+			iSum += (CheckIntersectionBasic(l, i) ? 1 : 0);
+		}
+
+		iSpaceAvail = min(iSum,MAX_NR_COARSE_ENTRIES);							// combined storage for both direct lights and reflection
+		InterlockedAdd(g_LayeredSingleIdxBuffer[0], iSpaceAvail, start);		// alloc list memory
+	}
+
+	int modelListCount[2]={0,0};		// direct light count and reflection lights
+	uint offs = start;
+	for(int ll=0; ll<iNrCoarseLights; ll+=4)
+	{
+		int p = i>>2;
+		int m = i&3;
+		if(i<24) lightPlanes[6*m+p] = FetchPlane(min(iNrCoarseLights-1,ll+m), p);
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+		GroupMemoryBarrierWithGroupSync();
+#endif
+
+		for(int l=ll; l<min(iNrCoarseLights,(ll+4)); l++)
+		{
+			if(iSum<iSpaceAvail && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, fModulUserScale) )
+			{
+				uint lightModel = g_vLightData[ coarseList[l] ].uLightModel;
+				++modelListCount[ lightModel==REFLECTION_LIGHT ? 1 : 0];
+				g_vLayeredLightList[offs++] = coarseList[l];			// reflection lights will be last since we sorted
+			}
+		}
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+		GroupMemoryBarrierWithGroupSync();
+#endif
+	}
+
+	uint localOffs=0;
+	uint idx = i*nrTilesX*nrTilesY + tileIDX.y*nrTilesX + tileIDX.x;
+	for(int m=0; m<NR_LIGHT_MODELS; m++)
+	{
+		int numLights = min(modelListCount[m],31);		// only allow 5 bits
+		if(i<nrClusters)
+		{
+			g_LayeredOffset[idx] = (start+localOffs) | (((uint) numLights)<<27);
+			idx += (nrClusters*nrTilesX*nrTilesY);
+			localOffs += modelListCount[m];		// use unclamped count for localOffs
+		}
+	}
+
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+	g_fModulUserscale[tileIDX.y*nrTilesX + tileIDX.x] = fModulUserScale;
+#endif
+}
+
+
+// NOTE! returns 1 when value_in==0
+unsigned int LimitPow2AndClamp(unsigned int value_in, unsigned int maxValue)
+{
+	unsigned int value = 1;
+	
+	while(value<value_in && (value<<1)<=maxValue)
+		value<<=1;
+
+	return value;
+}
+
+
+void sortLightList(int localThreadID, int length)
+{
+	// closest pow2 integer greater than or equal to length
+	const int N = (const int) LimitPow2AndClamp((unsigned int) length, MAX_NR_COARSE_ENTRIES);			// N is 1 when length is zero but will still not enter first for-loop
+
+	// bitonic sort can only handle arrays with a power of two length. Fill remaining entries with greater than possible index.
+	for(int t=length+localThreadID; t<N; t+=NR_THREADS) { coarseList[t]=MAX_NR_COARSE_ENTRIES; }		// impossible index
+	GroupMemoryBarrierWithGroupSync();
+
+	for(int k=2; k<=N; k=2*k)
+	{
+		for(int j=k>>1; j>0; j=j>>1)
+		{
+			for(int i=localThreadID; i<N; i+=NR_THREADS)
+			{
+				int ixj=i^j;
+				if((ixj)>i)
+				{
+					const unsigned int Avalue = coarseList[i];
+					const unsigned int Bvalue = coarseList[ixj];
+
+					const bool mustSwap = ((i&k)!=0^(Avalue>Bvalue)) && Avalue!=Bvalue;
+					if(mustSwap)
+					{
+						coarseList[i]=Bvalue;
+						coarseList[ixj]=Avalue;
+					}
+				}
+			}
+
+			GroupMemoryBarrierWithGroupSync();
+		}
+	}
+}
+
+
+
+float4 GetPlaneEq(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int sideIndex)
+{
+	const int iAbsSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
+	const float fS = (sideIndex & 1) != 0 ? 1 : (-1);
+
+	float3 vA = fS*(iAbsSide == 0 ? vBoxX : (iAbsSide == 1 ? (-vBoxY) : vBoxZ));
+	float3 vB = fS*(iAbsSide == 0 ? (-vBoxY) : (iAbsSide == 1 ? (-vBoxX) : (-vBoxY)));
+	float3 vC = iAbsSide == 0 ? vBoxZ : (iAbsSide == 1 ? vBoxZ : (-vBoxX));
+
+	bool bIsTopQuad = iAbsSide == 2 && (sideIndex & 1) != 0;		// in this case all 4 verts get scaled.
+	bool bIsSideQuad = (iAbsSide == 0 || iAbsSide == 1);		// if side quad only two verts get scaled (impacts q1 and q2)
+
+	if (bIsTopQuad) { vB *= vScaleXY.y; vC *= vScaleXY.x; }
+
+	float3 vA2 = vA;
+	float3 vB2 = vB;
+
+	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? vScaleXY.x : vScaleXY.y); vB2 *= (iAbsSide == 0 ? vScaleXY.y : vScaleXY.x); }
+
+	float3 p0 = vCen + (vA + vB - vC);		// vCen + vA is center of face when vScaleXY is 1.0
+	float3 vN = cross( vB2, 0.5*(vA-vA2) - vC );
+
+#ifdef LEFT_HAND_COORDINATES
+	vN = -vN;
+#endif
+
+	return float4(vN, -dot(vN,p0));
+}
+
+
+
+float4 FetchPlane(int l, int p)
+{
+	SFiniteLightBound lgtDat = g_data[coarseList[l]];
+	
+	const float3 vBoxX = lgtDat.vBoxAxisX.xyz;
+	const float3 vBoxY = lgtDat.vBoxAxisY.xyz;
+	const float3 vBoxZ = lgtDat.vBoxAxisZ.xyz;
+	const float3 vCen = lgtDat.vCen.xyz;
+	const float fRadius = lgtDat.fRadius;
+	const float2 vScaleXY = lgtDat.vScaleXY;
+
+	return GetPlaneEq(vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, p);
+}
+
+
+
+
+
+#ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
+int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
+{
+#ifdef LEFT_HAND_COORDINATES
+	float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0);
+#else
+	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0);
+#endif
+
+	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
+	float worldDistAtDepthOne = 8*onePixDiagDist;		// scale by half a tile
+	
+
+	int iNrVisib = 0;
+	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
+	{
+		SFiniteLightBound lgtDat = g_data[coarseList[l]];
+	
+		const float3 vCen = lgtDat.vCen.xyz;
+		float fRad = lgtDat.fRadius;
+
+#if 1
+		float3 maxZdir = float3(-vCen.z*vCen.x, -vCen.z*vCen.y, vCen.x*vCen.x + vCen.y*vCen.y);		// cross(vCen,cross(Zaxis,vCen))
+		float len = length(maxZdir);
+		float scalarProj = len>0.0001 ? (maxZdir.z/len) : len;	// since len>=(maxZdir.z/len) we can use len as an approximate value when len<=epsilon
+		float fOffs = scalarProj*fRad;
+#else
+		float fOffs = fRad;		// more false positives due to larger radius but works too
+#endif
+
+#ifdef LEFT_HAND_COORDINATES
+		fRad = fRad + (vCen.z+fOffs)*worldDistAtDepthOne;
+#else
+		fRad = fRad + (vCen.z-fOffs)*worldDistAtDepthOne;
+#endif
+		
+		float a = dot(V,V);
+		float CdotV = dot(vCen,V);
+		float c = dot(vCen,vCen) - fRad*fRad;
+
+		float fDescDivFour = CdotV*CdotV - a*c;
+		if(!(c<0 || (fDescDivFour>0 && CdotV>0)))		// if ray hit bounding sphere
+			coarseList[l]=0xffffffff;
+	}
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+		GroupMemoryBarrierWithGroupSync();
+#endif
+
+	// to greedy to double buffer coarseList lds on this so serializing removal of gaps.
+	if(threadID==0)
+	{
+		int offs = 0;
+		for(int l=0; l<iNrCoarseLights; l++)
+		{	if(coarseList[l]!=0xffffffff) coarseList[offs++] = coarseList[l]; }
+		lightOffsSph = offs;
+	}
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+	GroupMemoryBarrierWithGroupSync();
+#endif
+
+	return lightOffsSph;
+}
+#endif
+
+
+
+
+
+
+
+#ifdef EXACT_EDGE_TESTS
+float3 GetHullVertex(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXZ, const int p)
+{
+	const bool bIsTopVertex = (p&2)!=0;
+	float3 vScales = float3( ((p&1)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? vScaleXZ.x : 1.0), (p&2)!=0 ? 1.0f : (-1.0f), ((p&4)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? vScaleXZ.y : 1.0) );
+	return (vScales.x*vBoxX + vScales.y*vBoxY + vScales.z*vBoxZ) + vCen;
+}
+
+void GetHullEdge(out int idx_twin, out float3 vP0, out float3 vE0, const int e0, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXZ)
+{
+	int iAxis = e0>>2;
+	int iSwizzle = e0&0x3;
+	bool bIsSwizzleOneOrTwo = ((iSwizzle-1)&0x2)==0;
+
+	const int i0 = iAxis==0 ? (2*iSwizzle+0) : ( iAxis==1 ? (iSwizzle+(iSwizzle&2)) : iSwizzle);
+	const int i1 = i0 + (1<<iAxis);
+	const bool bSwap = iAxis==0 ? (!bIsSwizzleOneOrTwo) : (iAxis==1 ? false : bIsSwizzleOneOrTwo);
+	
+	idx_twin = bSwap ? i0 : i1;
+	float3 p0 = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXZ, bSwap ? i1 : i0);
+	float3 p1 = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXZ, idx_twin);
+
+	vP0 = p0;
+	vE0 = p1-p0;
+}
+
+float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane)
+{
+	float x = (i&1)==0 ? viTilLL.x : viTilUR.x;
+	float y = (i&2)==0 ? viTilLL.y : viTilUR.y;
+	float z = (i&4)==0 ? g_fNearPlane : fTileFarPlane;
+#ifndef LEFT_HAND_COORDINATES
+	z = -z;
+#endif
+	return GetViewPosFromLinDepth( float2(x, y), z);
+}
+
+void GetFrustEdge(out float3 vP0, out float3 vE0, const int e0, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane)
+{
+	int iSection = e0>>2;		// section 0 is side edges, section 1 is near edges and section 2 is far edges
+	int iSwizzle = e0&0x3;
+
+	int i=iSwizzle + (2*(iSection&0x2));	// offset by 4 at section 2
+	vP0 = GetTileVertex(uint2(viTilLL.x, viTilUR.y), uint2(viTilUR.x, viTilLL.y), i, fTileFarPlane);
+	vE0 = iSection==0 ? vP0 : (((iSwizzle&0x2)==0 ? 1.0f : (-1.0f))*((iSwizzle&0x1)==(iSwizzle>>1) ? Vec3(1,0,0) : Vec3(0,1,0)));
+}
+
+int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint2 viTilUR, float fTileFarPlane)
+{
+	if(threadID==0) lightOffs2 = 0;
+
+	const bool bOnlyNeedFrustumSideEdges = true;
+	const int nrFrustEdges = bOnlyNeedFrustumSideEdges ? 4 : 8;	// max 8 since we never need to test 4 far edges of frustum since they are identical vectors to near edges and plane is placed at vP0 on light hull.
+
+	const int totNrEdgePairs = 12*nrFrustEdges;
+	for(int l=0; l<iNrCoarseLights; l++)
+	{
+		if(threadID==0) ldsIsLightInvisible=0;
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+		GroupMemoryBarrierWithGroupSync();
+#endif
+		const int idxCoarse = coarseList[l];
+		[branch]if(g_vLightData[idxCoarse].uLightType!=SPHERE_LIGHT)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+		{
+			SFiniteLightBound lgtDat = g_data[idxCoarse];
+	
+			const float3 vBoxX = lgtDat.vBoxAxisX.xyz;
+			const float3 vBoxY = lgtDat.vBoxAxisY.xyz;
+			const float3 vBoxZ = lgtDat.vBoxAxisZ.xyz;
+			const float3 vCen = lgtDat.vCen.xyz;
+			const float2 vScaleXZ = lgtDat.vScaleXZ;
+
+			for(int i=threadID; i<totNrEdgePairs; i+=NR_THREADS)
+			{
+				int e0 = (int) (((uint)i)/((uint) nrFrustEdges)); // should become a shift right
+				int e1 = i - e0*nrFrustEdges;
+
+				int idx_twin=0;
+				float3 vP0, vE0;
+				GetHullEdge(idx_twin, vP0, vE0, e0, vBoxX, vBoxY, vBoxZ, vCen, vScaleXZ);
+				
+			
+				float3 vP1, vE1;
+				GetFrustEdge(vP1, vE1, e1, viTilLL, viTilUR, fTileFarPlane);
+				
+				// potential separation plane
+				float3 vN = cross(vE0, vE1);
+			
+				int positive=0, negative=0;
+				for(int j=0; j<8; j++)
+				{
+					float3 vPh = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXZ, j);
+					float fSignDist = idx_twin==j ? 0.0 : dot(vN, vPh-vP0);
+					if(fSignDist>0) ++positive; else if(fSignDist<0) ++negative;
+				}
+				int resh = (positive>0 && negative>0) ? 0 : (positive>0 ? 1 : (negative>0 ? (-1) : 0));
+
+				positive=0; negative=0;
+				for(int j=0; j<8; j++)
+				{
+					float3 vPf = GetTileVertex(viTilLL, viTilUR, j, fTileFarPlane);
+					float fSignDist = dot(vN, vPf-vP0);
+					if(fSignDist>0) ++positive; else if(fSignDist<0) ++negative;
+				}
+				int resf = (positive>0 && negative>0) ? 0 : (positive>0 ? 1 : (negative>0 ? (-1) : 0));
+
+				bool bFoundSepPlane = (resh*resf)<0;
+
+				if(bFoundSepPlane) InterlockedOr(ldsIsLightInvisible, 1);
+			}
+		}
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+		GroupMemoryBarrierWithGroupSync();
+#endif
+		if(threadID==0 && ldsIsLightInvisible==0)
+		{
+			coarseList[lightOffs2++] = coarseList[l];
+		}
+	}
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+		GroupMemoryBarrierWithGroupSync();
+#endif
+	return lightOffs2;
+}
+#endif
