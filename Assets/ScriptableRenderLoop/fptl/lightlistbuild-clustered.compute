@@ -2,6 +2,7 @@
 
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
+#include "ClusteredUtils.h"
 
 //#define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -19,7 +20,7 @@ uniform int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
 
 
 #ifdef MSAA_ENABLED
-Texture2DMS<float4> g_depth_tex : register( t0 );
+Texture2DMS<float> g_depth_tex : register( t0 );
 #else
 Texture2D g_depth_tex : register( t0 );
 #endif
@@ -60,44 +61,6 @@ groupshared uint lightOffs2;
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 groupshared uint lightOffsSph;
 #endif
-
-
-int SnapToClusterIdx(float z_in, float fModulUserScale)
-{
-#ifndef LEFT_HAND_COORDINATES
-	float z = -z_in;
-#else
-	float z = z_in;
-#endif
-
-	float userscale = g_fClustScale;
-#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-	userscale *= fModulUserScale;
-#endif
-
-	// using the inverse of the geometric series
-	const float dist = max(0, z-g_fNearPlane);
-	return (int) clamp( log2(dist*userscale*(g_fClustBase-1.0f) + 1) / log2(g_fClustBase), 0.0, (float) ((1<<g_iLog2NumClusters)-1) );
-}
-
-float ClusterIdxToZ(int k, float fModulUserScale)
-{
-	float res;
-
-	float userscale = g_fClustScale;
-#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-	userscale *= fModulUserScale;
-#endif
-
-	float dist = (pow(g_fClustBase,(float) k)-1.0)/(userscale*(g_fClustBase-1.0f));
-	res = dist+g_fNearPlane;
-
-#ifdef LEFT_HAND_COORDINATES
-	return res;
-#else
-	return -res;
-#endif
-}
 
 
 float GetLinearDepth(float zDptBufSpace)	// 0 is near 1 is far
@@ -195,7 +158,12 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
 	uint iWidth;
 	uint iHeight;
+#ifdef MSAA_ENABLED
+	uint iNumSamplesMSAA;
+	g_depth_tex.GetDimensions(iWidth, iHeight, iNumSamplesMSAA);
+#else
 	g_depth_tex.GetDimensions(iWidth, iHeight);
+#endif
 	uint nrTilesX = (iWidth+15)/16;
 	uint nrTilesY = (iHeight+15)/16;
 
@@ -225,7 +193,7 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	{
 		uint2 uPixCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
 #ifdef MSAA_ENABLED
-		for(int i=0; i<g_iNumSamplesMSAA; i++)
+		for(int i=0; i<iNumSamplesMSAA; i++)
 		{
 		const float fDpth = FetchDepthMSAA(g_depth_tex, uPixCrd, i);
 #else
@@ -344,7 +312,7 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 		InterlockedAdd(g_LayeredSingleIdxBuffer[0], iSpaceAvail, start);		// alloc list memory
 	}
 
-	int modelListCount[2]={0,0};		// direct light count and reflection lights
+	int modelListCount[NR_LIGHT_MODELS]={0,0};		// direct light count and reflection lights
 	uint offs = start;
 	for(int ll=0; ll<iNrCoarseLights; ll+=4)
 	{
@@ -475,7 +443,7 @@ float4 FetchPlane(int l, int p)
 	
 	const float3 vBoxX = lgtDat.vBoxAxisX.xyz;
 	const float3 vBoxY = lgtDat.vBoxAxisY.xyz;
-	const float3 vBoxZ = lgtDat.vBoxAxisZ.xyz;
+	const float3 vBoxZ = -lgtDat.vBoxAxisZ.xyz;           // flip an axis to make it right handed since Determinant(worldToView)<0
 	const float3 vCen = lgtDat.vCen.xyz;
 	const float fRadius = lgtDat.fRadius;
 	const float2 vScaleXY = lgtDat.vScaleXY;
@@ -560,14 +528,14 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 
 #ifdef EXACT_EDGE_TESTS
-float3 GetHullVertex(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXZ, const int p)
+float3 GetHullVertex(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int p)
 {
-	const bool bIsTopVertex = (p&2)!=0;
-	float3 vScales = float3( ((p&1)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? vScaleXZ.x : 1.0), (p&2)!=0 ? 1.0f : (-1.0f), ((p&4)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? vScaleXZ.y : 1.0) );
+	const bool bIsTopVertex = (p&4)!=0;
+	float3 vScales = float3( ((p&1)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? vScaleXY.x : 1.0), ((p&2)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? vScaleXY.y : 1.0), (p&4)!=0 ? 1.0f : (-1.0f) );
 	return (vScales.x*vBoxX + vScales.y*vBoxY + vScales.z*vBoxZ) + vCen;
 }
 
-void GetHullEdge(out int idx_twin, out float3 vP0, out float3 vE0, const int e0, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXZ)
+void GetHullEdge(out int idx0, out int idx_twin, out float3 vP0, out float3 vE0, const int e0, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY)
 {
 	int iAxis = e0>>2;
 	int iSwizzle = e0&0x3;
@@ -577,9 +545,10 @@ void GetHullEdge(out int idx_twin, out float3 vP0, out float3 vE0, const int e0,
 	const int i1 = i0 + (1<<iAxis);
 	const bool bSwap = iAxis==0 ? (!bIsSwizzleOneOrTwo) : (iAxis==1 ? false : bIsSwizzleOneOrTwo);
 	
+	idx0 = bSwap ? i1 : i0;
 	idx_twin = bSwap ? i0 : i1;
-	float3 p0 = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXZ, bSwap ? i1 : i0);
-	float3 p1 = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXZ, idx_twin);
+	float3 p0 = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, idx0);
+	float3 p1 = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, idx_twin);
 
 	vP0 = p0;
 	vE0 = p1-p0;
@@ -628,18 +597,18 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 	
 			const float3 vBoxX = lgtDat.vBoxAxisX.xyz;
 			const float3 vBoxY = lgtDat.vBoxAxisY.xyz;
-			const float3 vBoxZ = lgtDat.vBoxAxisZ.xyz;
+			const float3 vBoxZ = -lgtDat.vBoxAxisZ.xyz;           // flip an axis to make it right handed since Determinant(worldToView)<0
 			const float3 vCen = lgtDat.vCen.xyz;
-			const float2 vScaleXZ = lgtDat.vScaleXZ;
+			const float2 vScaleXY = lgtDat.vScaleXY;
 
 			for(int i=threadID; i<totNrEdgePairs; i+=NR_THREADS)
 			{
 				int e0 = (int) (((uint)i)/((uint) nrFrustEdges)); // should become a shift right
 				int e1 = i - e0*nrFrustEdges;
 
-				int idx_twin=0;
+				int idx_cur=0, idx_twin=0;
 				float3 vP0, vE0;
-				GetHullEdge(idx_twin, vP0, vE0, e0, vBoxX, vBoxY, vBoxZ, vCen, vScaleXZ);
+				GetHullEdge(idx_cur, idx_twin, vP0, vE0, e0, vBoxX, vBoxY, vBoxZ, vCen, vScaleXY);
 				
 			
 				float3 vP1, vE1;
@@ -649,9 +618,10 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 				float3 vN = cross(vE0, vE1);
 			
 				int positive=0, negative=0;
-				for(int j=0; j<8; j++)
+				for(int k=1; k<8; k++)		// only need to test 7 verts (technically just 6).
 				{
-					float3 vPh = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXZ, j);
+					int j = (idx_cur+k)&0x7;
+					float3 vPh = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, j);
 					float fSignDist = idx_twin==j ? 0.0 : dot(vN, vPh-vP0);
 					if(fSignDist>0) ++positive; else if(fSignDist<0) ++negative;
 				}
