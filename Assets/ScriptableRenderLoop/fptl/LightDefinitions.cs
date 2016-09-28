@@ -1,6 +1,5 @@
 //#define LEFT_HAND_COORDINATES
-
-
+[UnityEngine.ScriptableRenderLoop.GenerateHLSL]
 public struct SFiniteLightData
 {
 	 // setup constant buffer
@@ -32,9 +31,9 @@ public struct SFiniteLightData
 
     public Vec3 vLocalCubeCapturePoint;
     public float fProbeBlendDistance;
-    
 };
 
+[UnityEngine.ScriptableRenderLoop.GenerateHLSL]
 public struct SFiniteLightBound
 {
     public Vec3 vBoxAxisX;
@@ -45,6 +44,7 @@ public struct SFiniteLightBound
     public float fRadius;
 };
 
+[UnityEngine.ScriptableRenderLoop.GenerateHLSL]
 public struct DirectionalLight
 {
 	public Vec3 vCol;
@@ -60,11 +60,9 @@ public struct DirectionalLight
 	public float fPad1;
 };
 
-#if !__HLSL
+[UnityEngine.ScriptableRenderLoop.GenerateHLSL]
 public class LightDefinitions
 {
-#endif
-
     public static int MAX_NR_LIGHTS_PER_CAMERA = 1024;
     public static float VIEWPORT_SCALE_Z = 1.0f;
 
@@ -87,17 +85,4 @@ public class LightDefinitions
 	public static int NR_LIGHT_MODELS = 2;
     public static int DIRECT_LIGHT = 0;
     public static int REFLECTION_LIGHT = 1;
-
-#if !__HLSL
 }
-#endif
-
-
-#if __HLSL
-
-float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
-{
-    return 1-depthTexture.Load( uint3(pixCoord.xy, 0) ).x;
-}
-
-#endif

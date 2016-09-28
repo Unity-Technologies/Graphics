@@ -1,7 +1,7 @@
 #pragma kernel TileLightListGen
 
 #include "..\common\ShaderBase.h"
-#include "LightDefinitions.cs"
+#include "LightDefinitions.cs.hlsl"
 
 #define FINE_PRUNING_ENABLED
 
