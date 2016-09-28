@@ -159,13 +159,6 @@ Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
 float3 UnprojectToWorld(float depth, float2 screenPos, float4x4 invViewProjectionMatrix)
 {
-	// CAUTION: The camera projection we get with Unity don't include the reverse stuff and the depth need to be remap manually to -1..1
-	// We should simplify the process and have a way to do Camera.Projection matrix that return the projection martix use to project depth.
-	#if UNITY_REVERSED_Z
-	depth = 1.0 - depth;
-	#endif
-	depth = depth * 2.0 - 1.0;
-
 	float4 positionHS	= float4(screenPos.xy * 2.0 - 1.0, depth, 1.0);
 	float4 hpositionWS	= mul(invViewProjectionMatrix, positionHS);
 
