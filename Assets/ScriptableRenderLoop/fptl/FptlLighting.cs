@@ -421,7 +421,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		int GenerateSourceLightBuffers(Camera camera, CullResults inputs)
 		{
-			ReflectionProbe[] probes = Object.FindObjectsOfType<ReflectionProbe>();
+			VisibleReflectionProbe[] probes = inputs.culledReflectionProbes;
+			//ReflectionProbe[] probes = Object.FindObjectsOfType<ReflectionProbe>();
 
 			int numLights = inputs.culledLights.Length;
 			int numProbes = probes.Length;
@@ -587,7 +588,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			int numProbesOut = 0;
 			foreach (var rl in probes)
 			{
-				Texture cubemap = rl.mode == ReflectionProbeMode.Custom ? rl.customBakedTexture : rl.bakedTexture;
+				Texture cubemap = rl.texture;
 				if (cubemap != null)        // always a box for now
 				{
 					i = numProbesOut + numLights;
@@ -599,15 +600,17 @@ namespace UnityEngine.ScriptableRenderLoop
 					float blendDistance = rl.blendDistance;
 					float imp = rl.importance;
 
-                    Matrix4x4 mat = rl.transform.localToWorldMatrix;
-                    Vector3 cubeCapturePos = mat.GetColumn(3);      // cube map capture position in world space
+					Matrix4x4 mat = rl.localToWorld;
+					//Matrix4x4 mat = rl.transform.localToWorldMatrix;
+					Vector3 cubeCapturePos = mat.GetColumn(3);      // cube map capture position in world space
 
 
 					// implicit in CalculateHDRDecodeValues() --> float ints = rl.intensity;
-					bool boxProj = rl.boxProjection;
-					Vector4 decodeVals = rl.CalculateHDRDecodeValues();
+					bool boxProj = (rl.boxProjection != 0);
+					Vector4 decodeVals = rl.hdr;
+					//Vector4 decodeVals = rl.CalculateHDRDecodeValues();
 
-                    // C is reflection volume center in world space (NOT same as cube map capture point)
+					// C is reflection volume center in world space (NOT same as cube map capture point)
 					Vector3 e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
 					//Vector3 C = bnds.center;        // P + boxOffset;
                     Vector3 C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
