@@ -205,19 +205,24 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.DrawRenderers(ref settings);
 		}
 
-        void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
+        Matrix4x4 GetViewProjectionMatrix(Camera camera)
         {
             // Calculate inverse projection matrix as this is not done by Unity
+            Matrix4x4 view = camera.worldToCameraMatrix;
             Matrix4x4 proj = camera.projectionMatrix;
-            // Unity projection matrix project z in -1 .. 1, so change it to reconstruct from a z with 0..1
-            Matrix4x4 temp = new Matrix4x4();
-            temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
-            temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-            temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-            temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            Matrix4x4 projh = temp * proj;
-            Matrix4x4 invProjh = projh.inverse;
-            m_DeferredMaterial.SetMatrix("_InvProjMatrix", invProjh);
+
+            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
+            // (different Z value ranges etc.)
+            Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false);
+            Matrix4x4 gpuVP = gpuProj * view;
+
+            return camera.projectionMatrix * camera.worldToCameraMatrix;
+        }
+
+        void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
+        {
+            Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
+            m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
 
             Vector4 screenSize = new Vector4();
             screenSize.x = camera.pixelWidth;
@@ -567,7 +572,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 RenderDeferredLighting(camera, renderLoop);
 
-         //       RenderForward(cullResults, camera, renderLoop);
+                RenderForward(cullResults, camera, renderLoop);
 
                 FinalPass(renderLoop);
 

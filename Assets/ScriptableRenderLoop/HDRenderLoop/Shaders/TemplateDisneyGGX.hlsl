@@ -29,7 +29,6 @@ sampler2D _NormalMap;
 //-------------------------------------------------------------------------------------
 
 // TODO: Check if we will have different Varyings based on different pass, not sure about that...
-#if UNITY_SHADERRENDERPASS == UNITY_SHADERRENDERPASS_GBUFFER || UNITY_SHADERRENDERPASS == UNITY_SHADERRENDERPASS_FORWARD
 
 // Forward
 struct Attributes
@@ -110,8 +109,6 @@ PackedVaryings VertDefault(Attributes input)
 
 	return PackVaryings(output);
 }
-
-#endif
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Lighting data function
