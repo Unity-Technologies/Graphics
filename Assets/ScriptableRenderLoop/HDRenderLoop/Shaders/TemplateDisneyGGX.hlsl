@@ -114,6 +114,24 @@ PackedVaryings VertDefault(Attributes input)
 // Fill SurfaceData/Lighting data function
 //-------------------------------------------------------------------------------------
 
+float3 TransformTangentToWorld(float3 normalTS, float4 tangentToWorld[3])
+{
+#if 0
+	// regular normal
+	float3 normalWS = normalize(tangentToWorld[2].xyz);
+#else
+	// Do mul martix
+	float3 tangent = tangentToWorld[0].xyz;
+	float3 binormal = tangentToWorld[1].xyz;
+	float3 normal = tangentToWorld[2].xyz;
+
+	// TO check: do we need to normalize ?
+	float3 normalWS = normalize(tangent * normalTS.x + binormal * normalTS.y + normal * normalTS.z);
+#endif
+
+	return normalWS;
+}
+
 SurfaceData GetSurfaceData(Varyings input)
 {
 	SurfaceData data;
@@ -124,7 +142,10 @@ SurfaceData GetSurfaceData(Varyings input)
 	data.specularColor = _SpecColor;
 	data.smoothness = _Smoothness;
 
-	data.normal = input.tangentToWorld[2].xyz;//UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
+	// TODO: think about using BC5
+	float3 normalTS = UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
+	// data.normal = input.tangentToWorld[2].xyz;
+	data.normal = TransformTangentToWorld(normalTS, input.tangentToWorld);
 
 	// TODO: Sample lightmap/lightprobe/volume proxy
 	// This should also handle projective lightmap
