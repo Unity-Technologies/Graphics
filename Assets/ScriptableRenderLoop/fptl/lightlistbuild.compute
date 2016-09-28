@@ -37,7 +37,7 @@ groupshared uint ldsDoesLightIntersect[2];
 #endif
 groupshared int ldsNrLightsFinal;
 
-groupshared int ldsModelListCount[2];		// since NR_LIGHT_MODELS is 2
+groupshared int ldsModelListCount[NR_LIGHT_MODELS];		// since NR_LIGHT_MODELS is 2
 
 
 //float GetLinearDepth(float3 vP)
