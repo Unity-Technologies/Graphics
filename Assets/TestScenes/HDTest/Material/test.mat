@@ -6,22 +6,15 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: gray
-  m_Shader: {fileID: 4800000, guid: c846f5368b257ca49aa135748a1700e2, type: 3}
-  m_ShaderKeywords: S_RECEIVE_SHADOWS S_SPECULAR_METALLIC
-  m_LightmapFlags: 5
+  m_Name: test
+  m_Shader: {fileID: 4800000, guid: e1a84346ee54f9f4993c2f05c59805a0, type: 3}
+  m_ShaderKeywords: _EMISSION
+  m_LightmapFlags: 1
   m_CustomRenderQueue: -1
-  stringTagMap:
-    OriginalShader: Standard
+  stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
     m_TexEnvs:
-    - first:
-        name: _AlternateLightMap
-      second:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - first:
         name: _BumpMap
       second:
@@ -49,7 +42,7 @@ Material:
     - first:
         name: _DiffuseMap
       second:
-        m_Texture: {fileID: 2800000, guid: 32c4b9c8ddc1c5d49ac7d10122540447, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
@@ -95,19 +88,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _SpecGlossMap
-      second:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - first:
         name: _SpecMap
-      second:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - first:
-        name: g_tOverrideLightmap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -130,7 +111,7 @@ Material:
       second: 1
     - first:
         name: _Glossiness
-      second: 0.62
+      second: 0.5
     - first:
         name: _GlossyReflections
       second: 1
@@ -142,18 +123,6 @@ Material:
       second: 0
     - first:
         name: _OcclusionStrength
-      second: 1
-    - first:
-        name: _OcclusionStrengthDirectDiffuse
-      second: 1
-    - first:
-        name: _OcclusionStrengthDirectSpecular
-      second: 1
-    - first:
-        name: _OcclusionStrengthIndirectDiffuse
-      second: 1
-    - first:
-        name: _OcclusionStrengthIndirectSpecular
       second: 1
     - first:
         name: _Parallax
@@ -168,9 +137,6 @@ Material:
         name: _SpecularHighlights
       second: 1
     - first:
-        name: _SpecularMode
-      second: 2
-    - first:
         name: _SrcBlend
       second: 1
     - first:
@@ -179,58 +145,16 @@ Material:
     - first:
         name: _ZWrite
       second: 1
-    - first:
-        name: g_bEnableMetallic
-      second: 0
-    - first:
-        name: g_bReceiveShadows
-      second: 1
-    - first:
-        name: g_bUnlit
-      second: 0
-    - first:
-        name: g_bWorldAlignedTexture
-      second: 0
-    - first:
-        name: g_flCubeMapScalar
-      second: 1
-    - first:
-        name: g_flReflectanceBias
-      second: 0
-    - first:
-        name: g_flReflectanceMax
-      second: 1
-    - first:
-        name: g_flReflectanceMin
-      second: 0
-    - first:
-        name: g_flReflectanceScale
-      second: 1
     m_Colors:
     - first:
         name: _Color
       second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _DiffuseColor
-      second: {r: 0.71323526, g: 0.19404197, b: 0.19404197, a: 1}
+      second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _EmissionColor
       second: {r: 0, g: 0, b: 0, a: 1}
     - first:
         name: _SpecColor
-      second: {r: 1, g: 1, b: 1, a: 1}
-    - first:
-        name: g_vWorldAlignedNormalTangentU
-      second: {r: -1, g: 0, b: 0, a: 0}
-    - first:
-        name: g_vWorldAlignedNormalTangentV
-      second: {r: 0, g: 0, b: 1, a: 0}
-    - first:
-        name: g_vWorldAlignedTextureNormal
-      second: {r: 0, g: 1, b: 0, a: 0}
-    - first:
-        name: g_vWorldAlignedTexturePosition
-      second: {r: 0, g: 0, b: 0, a: 0}
-    - first:
-        name: g_vWorldAlignedTextureSize
-      second: {r: 1, g: 1, b: 1, a: 0}
+      second: {r: 0.04, g: 0.04, b: 0.04, a: 1}
