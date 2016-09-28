@@ -71,7 +71,6 @@ Shader "Hidden/Unity/LightingDeferred"
 				ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
 
 				return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
-				//return float4(positionWS.y / 10, 0, 0, 1.0);
 			}
 
 		ENDCG

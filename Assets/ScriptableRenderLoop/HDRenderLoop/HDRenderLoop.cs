@@ -207,16 +207,12 @@ namespace UnityEngine.ScriptableRenderLoop
 
         Matrix4x4 GetViewProjectionMatrix(Camera camera)
         {
-            // Calculate inverse projection matrix as this is not done by Unity
-            Matrix4x4 view = camera.worldToCameraMatrix;
-            Matrix4x4 proj = camera.projectionMatrix;
-
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-            Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false);
-            Matrix4x4 gpuVP = gpuProj * view;
+            Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            Matrix4x4 gpuVP = gpuProj * camera.worldToCameraMatrix;
 
-            return camera.projectionMatrix * camera.worldToCameraMatrix;
+            return gpuVP;
         }
 
         void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
@@ -572,7 +568,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 RenderDeferredLighting(camera, renderLoop);
 
-                RenderForward(cullResults, camera, renderLoop);
+               // RenderForward(cullResults, camera, renderLoop);
 
                 FinalPass(renderLoop);
 
