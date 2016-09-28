@@ -21,7 +21,6 @@ Shader "Hidden/Unity/LightingDeferred"
 			#pragma vertex VertDeferred
 			#pragma fragment FragDeferred
 
-			#define UNITY_SHADERRENDERPASS UNITY_SHADERRENDERPASS_DEFERRED
 			// CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_DISNEYGXX
 			#define UNITY_MATERIAL_DISNEYGXX // Need to be define before including Material.hlsl
 			#include "Lighting.hlsl" // This include Material.hlsl
@@ -31,7 +30,7 @@ Shader "Hidden/Unity/LightingDeferred"
 			Texture2D _CameraDepthTexture;
 			float4 _ScreenSize;
 
-			float4x4 _InvProjMatrix;
+			float4x4 _InvViewProjMatrix;
 
 			struct Attributes
 			{
@@ -60,10 +59,7 @@ Shader "Hidden/Unity/LightingDeferred"
 
 				// No need to manage inverse depth, this is handled by the projection matrix
 				float depth = _CameraDepthTexture.Load(uint3(coord.unPositionSS, 0)).x;
-				//#if UNITY_REVERSED_Z
-				//depth = 1.0 - depth; // This should be in the proj matrix ?
-				//#endif
-				float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvProjMatrix);
+				float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
 				float3 V = GetWorldSpaceNormalizeViewDir(positionWS);
 
 				FETCH_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
@@ -74,8 +70,8 @@ Shader "Hidden/Unity/LightingDeferred"
 				float4 specularLighting;
 				ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
 
-				//return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
-				return float4(saturate(positionWS), 1.0f);
+				return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
+				//return float4(positionWS.y / 10, 0, 0, 1.0);
 			}
 
 		ENDCG

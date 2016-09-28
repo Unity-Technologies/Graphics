@@ -51,7 +51,6 @@ Shader "Unity/DisneyGGX"
 			#pragma vertex VertDefault
 			#pragma fragment FragForward
 	
-			#define UNITY_SHADERRENDERPASS UNITY_SHADERRENDERPASS_FORWARD
 			#include "TemplateDisneyGGX.hlsl"
 			
 
@@ -88,7 +87,6 @@ Shader "Unity/DisneyGGX"
 			#pragma vertex VertDefault
 			#pragma fragment FragDeferred
 
-			#define UNITY_SHADERRENDERPASS UNITY_SHADERRENDERPASS_GBUFFER
 			#include "TemplateDisneyGGX.hlsl"
 
 			void FragDeferred(	PackedVaryings packedInput,

@@ -154,26 +154,20 @@ Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
 	return coord;
 }
 
-// screenPos is screen coordinate in [0..1]
-// depth come directly from the depth buffer without any transformation
-float4 GetClipPosition(float depth, float2 screenPos)
-{
-	float4 positionCS = float4(screenPos.xy, depth, 1.0);
-	positionCS.xyz = positionCS.xyz * 2.0f - 1.0f;
-
-#if UNITY_UV_STARTS_AT_TOP == 1
-	positionCS.y = -positionCS.y;
-#endif
-
-	return positionCS;
-}
-
-// screenPos is screen coordinate in [0..1]
-// (can be provide by VPOS and divide by screen size)
+// screenPos is screen coordinate in [0..1] (return by Coordinate.positionSS)
+// depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
+// For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
 float3 UnprojectToWorld(float depth, float2 screenPos, float4x4 invViewProjectionMatrix)
 {
-	float4 positionCS = GetClipPosition(depth, screenPos);
-	float4 hpositionWS = mul(invViewProjectionMatrix, positionCS);
+	// CAUTION: The camera projection we get with Unity don't include the reverse stuff and the depth need to be remap manually to -1..1
+	// We should simplify the process and have a way to do Camera.Projection matrix that return the projection martix use to project depth.
+	#if UNITY_REVERSED_Z
+	depth = 1.0 - depth;
+	#endif
+	depth = depth * 2.0 - 1.0;
+
+	float4 positionHS	= float4(screenPos.xy * 2.0 - 1.0, depth, 1.0);
+	float4 hpositionWS	= mul(invViewProjectionMatrix, positionHS);
 
 	return hpositionWS.xyz / hpositionWS.w;
 }
