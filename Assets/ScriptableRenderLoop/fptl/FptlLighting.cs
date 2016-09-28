@@ -52,6 +52,9 @@ namespace UnityEngine.ScriptableRenderLoop
 		static private ComputeBuffer lightList;
 		static private ComputeBuffer m_dirLightList;
 
+        static private int m_WidthOnRecord;
+        static private int m_HeightOnRecord;
+
 		Matrix4x4[] g_matWorldToShadow = new Matrix4x4[MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS];
 		Vector4[] g_vDirShadowSplitSpheres = new Vector4[MAX_DIRECTIONAL_SPLIT];
 		Vector4[] g_vShadow3x3PCFTerms = new Vector4[4];
@@ -98,8 +101,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			if (m_lightDataBuffer != null)
 				m_lightDataBuffer.Release();
 
-			if (lightList != null)
-				lightList.Release();
+            ReleaseResolutionDependentBuffers();
 
 			if (m_dirLightList != null)
 				m_dirLightList.Release();
@@ -133,8 +135,6 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_convexBoundsBuffer = new ComputeBuffer(gMaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
 			m_lightDataBuffer = new ComputeBuffer(gMaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
 			m_dirLightList = new ComputeBuffer(gMaxNumDirLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLight)));
-
-			lightList = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * 1024 * 1024, sizeof(uint));       // enough list memory for a 4k x 4k display
 
 			m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_data", m_convexBoundsBuffer);
 			//m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
@@ -182,7 +182,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_aabbBoundsBuffer.Release();
 			m_convexBoundsBuffer.Release();
 			m_lightDataBuffer.Release();
-			lightList.Release();
+			ReleaseResolutionDependentBuffers();
 			m_dirLightList.Release();
 		}
 
@@ -731,6 +731,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		void ExecuteRenderLoop(Camera camera, CullResults cullResults, RenderLoop loop)
 		{
+            int iW = camera.pixelWidth;
+            int iH = camera.pixelHeight;
+
+            ResizeIfNecessary(iW, iH);
+
 			// do anything we need to do upon a new frame.
 			NewFrame();
 
@@ -762,9 +767,6 @@ namespace UnityEngine.ScriptableRenderLoop
 			temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 			Matrix4x4 projh = temp * proj;
 			Matrix4x4 invProjh = projh.inverse;
-
-			int iW = camera.pixelWidth;
-			int iH = camera.pixelHeight;
 
 			temp.SetRow(0, new Vector4(0.5f * iW, 0.0f, 0.0f, 0.5f * iW));
 			temp.SetRow(1, new Vector4(0.0f, 0.5f * iH, 0.0f, 0.5f * iH));
@@ -821,5 +823,37 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
 			m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
 		}
+
+        void ResizeIfNecessary(int curWidth, int curHeight)
+        {
+            if(curWidth!=m_WidthOnRecord || curHeight!=m_HeightOnRecord)
+            {
+                if(m_WidthOnRecord>0 && m_HeightOnRecord>0)
+                    ReleaseResolutionDependentBuffers();
+
+                AllocResolutionDependentBuffers(curWidth, curHeight);
+
+                // update recorded window resolution
+                m_WidthOnRecord = curWidth;
+                m_HeightOnRecord = curHeight;
+            }
+        }
+
+        void ReleaseResolutionDependentBuffers()
+        {
+            if (lightList != null)
+				lightList.Release();
+        }
+
+        void AllocResolutionDependentBuffers(int width, int height)
+        {
+            int nrTilesX = (width+15)/16;
+            int nrTilesY = (height+15)/16;
+            int nrTiles = nrTilesX*nrTilesY;
+            const int capacityUShortsPerTileFPTL = 32;
+            const int nrDWordsPerTileFPTL = (capacityUShortsPerTileFPTL + 1)>>1;        // room for 31 lights and a nrLights value.
+
+            lightList = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * nrDWordsPerTileFPTL * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
+        }
 	}
 }
