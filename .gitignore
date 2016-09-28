@@ -17,7 +17,6 @@ DataSource/Resources/unity_builtin_extra
 DataSource/Mono/etc/mono/1.0/machine.config
 DataSource/Mono/etc/mono/2.0/machine.config
 DataSource/Mono/etc/mono/2.0/web.config
-*.dll
 *.mdb
 *.browser
 *.map
