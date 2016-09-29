@@ -38,7 +38,15 @@ Shader "Hidden/Unity/FinalPass"
 			{
 				float4 c = tex2D(_MainTex, input.texcoord);
 				// Gamma correction
-				return LinearToSRGB(c);
+
+				// TODO: Currenlt in the editor there a an additional pass were the result is copyed in a render target RGBA8_sRGB.
+				// So we must not correct the sRGB here else it will be done two time.
+				// To fix!
+
+				// return LinearToSRGB(c);
+				return c;
+
+				
 			}
 			ENDCG 
 

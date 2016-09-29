@@ -106,12 +106,15 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PunctualLightData light
 							out float4 diffuseLighting,
 							out float4 specularLighting)
 {
-	float3 unL = light.positionWS - positionWS;
+	// All punctual light type in the same formula, attenuation is neutral depends on light type.
+	// light.positionWS is the normalize light direction in case of directional light and invSqrAttenuationRadius is 0
+	// mean dot(unL, unL) = 1 and mean GetDistanceAttenuation() will return 1
+	// For point light and directional GetAngleAttenuation() return 1
+
+	float3 unL = light.positionWS - positionWS * light.useDistanceAttenuation;
 	float3 L = normalize(unL);
 
-	// Always done, directional have it neutral
 	float attenuation = GetDistanceAttenuation(unL, light.invSqrAttenuationRadius);
-	// Always done, point and dir have it neutral
 	attenuation *= GetAngleAttenuation(L, light.forward, light.angleScale, light.angleOffset);
 	float illuminance = saturate(dot(material.normalWS, L)) * attenuation;
 
