@@ -272,12 +272,23 @@ namespace UnityEngine.ScriptableRenderLoop
             for (int lightIndex = 0; lightIndex < Math.Min(activeLights.Length, MaxLights); lightIndex++)
             {
                 ActiveLight light = activeLights[lightIndex];
-                if (light.lightType == LightType.Spot || light.lightType == LightType.Point)
+                if (light.lightType == LightType.Spot || light.lightType == LightType.Point || light.lightType == LightType.Directional)
                 {
                     PunctualLightData l = new PunctualLightData();
 
-                    l.positionWS = light.light.transform.position;
-                    l.invSqrAttenuationRadius  = 1.0f / (light.range * light.range);
+                    if (light.lightType == LightType.Directional)
+                    {
+                        l.useDistanceAttenuation = 0.0f;
+                        // positionWS store Light direction for directional and is opposite to the forward direction
+                        l.positionWS = -light.light.transform.forward;
+                        l.invSqrAttenuationRadius = 0.0f;
+                    }
+                    else
+                    {
+                        l.useDistanceAttenuation = 1.0f;
+                        l.positionWS = light.light.transform.position;
+                        l.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
+                    }
 
                     // Correct intensity calculation (Different from Unity)
                     float lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
@@ -286,7 +297,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                     l.color = new Vec3(lightColorR, lightColorG, lightColorB);
 
-                    // Light direction is opposite to the forward direction...
+                    // Light direction is opposite to the forward direction
                     l.forward = -light.light.transform.forward;
                     // CAUTION: For IES as we inverse forward maybe this will need rotation.
                     l.up = light.light.transform.up;
@@ -313,7 +324,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		                // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
                         l.angleScale = 1.0f;
                         l.angleOffset = 2.0f;
-	                }                  
+	                }
 
                     lights.Add(l);
                     punctualLightCount++;

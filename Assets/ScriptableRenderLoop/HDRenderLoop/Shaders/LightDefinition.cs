@@ -16,7 +16,7 @@ namespace UnityEngine.ScriptableRenderLoop
         public float invSqrAttenuationRadius;
 
         public Vec3 color;
-        public float unused;
+        public float useDistanceAttenuation;
 
         public Vec3 forward;
         public float diffuseScale;
