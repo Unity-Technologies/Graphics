@@ -32,7 +32,9 @@ namespace UnityEngine.ScriptableRenderLoop
 		public Shader m_FinalPassShader;
 
 		public ComputeShader m_BuildScreenAABBShader;
-		public ComputeShader m_BuildPerTileLightListShader;
+		public ComputeShader m_BuildPerTileLightListShader;     // FPTL
+
+        public ComputeShader m_BuildPerVoxelLightListShader;    // clustered
 
 		private Material m_DeferredMaterial;
 		private Material m_DeferredReflectionMaterial;
@@ -46,11 +48,21 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		static private int kGenAABBKernel;
 		static private int kGenListPerTileKernel;
+        static private int kGenListPerVoxelKernel;
 		static private ComputeBuffer m_lightDataBuffer;
 		static private ComputeBuffer m_convexBoundsBuffer;
 		static private ComputeBuffer m_aabbBoundsBuffer;
 		static private ComputeBuffer lightList;
 		static private ComputeBuffer m_dirLightList;
+
+        // clustered light list specific buffers and data begin
+        const bool gEnableClustered = false;
+        int g_iLog2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
+        static private ComputeBuffer m_perVoxelLightLists;
+        static private ComputeBuffer m_perVoxelOffset;
+        static private ComputeBuffer m_globalLightListAtomic;
+        static private ComputeBuffer m_singleZeroUInt;      // lazy way to clear m_globalLightListAtomic once per frame
+        // clustered light list specific buffers and data end
 
         static private int m_WidthOnRecord;
         static private int m_HeightOnRecord;
@@ -105,6 +117,16 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			if (m_dirLightList != null)
 				m_dirLightList.Release();
+
+            if(gEnableClustered)
+            {
+                if(m_globalLightListAtomic!=null)
+				    m_globalLightListAtomic.Release();
+
+                if(m_singleZeroUInt!=null)
+				    m_singleZeroUInt.Release();
+            }
+
 		}
 
 		void Rebuild()
@@ -145,6 +167,17 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
 			m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_vLightData", m_lightDataBuffer);
 
+            if(gEnableClustered)
+            {
+                kGenListPerVoxelKernel = m_BuildPerVoxelLightListShader.FindKernel("TileLightListGen");
+                m_BuildPerVoxelLightListShader.SetBuffer(kGenListPerVoxelKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
+			    m_BuildPerVoxelLightListShader.SetBuffer(kGenListPerVoxelKernel, "g_vLightData", m_lightDataBuffer);
+                m_BuildPerVoxelLightListShader.SetBuffer(kGenListPerVoxelKernel, "g_data", m_convexBoundsBuffer);
+
+                m_globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
+                m_singleZeroUInt  = new ComputeBuffer(1, sizeof(uint));
+            }
+
 			m_cookieTexArray = new TextureCache2D();
 			m_cubeCookieTexArray = new TextureCacheCubemap();
 			m_cubeReflTexArray = new TextureCacheCubemap();
@@ -184,6 +217,12 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_lightDataBuffer.Release();
 			ReleaseResolutionDependentBuffers();
 			m_dirLightList.Release();
+
+            if(gEnableClustered)
+            {
+                m_globalLightListAtomic.Release();
+                m_singleZeroUInt.Release();
+            }
 		}
 
 		static void SetupGBuffer(CommandBuffer cmd)
@@ -800,6 +839,8 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.SetComputeBufferParam(m_BuildPerTileLightListShader, kGenListPerTileKernel, "g_vLightList", lightList);
 			cmd.ComputeDispatch(m_BuildPerTileLightListShader, kGenListPerTileKernel, nrTilesX, nrTilesY, 1);
 
+            if(gEnableClustered) VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
+
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
@@ -843,6 +884,20 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             if (lightList != null)
 				lightList.Release();
+
+            if(gEnableClustered)
+            {
+                if(m_perVoxelLightLists != null)
+				    m_perVoxelLightLists.Release();
+
+                if(m_perVoxelOffset != null)
+				    m_perVoxelOffset.Release();
+            }
+        }
+
+        int NumLightIndicesPerClusteredTile()
+        {
+	        return 4*(1<<g_iLog2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
         void AllocResolutionDependentBuffers(int width, int height)
@@ -854,6 +909,47 @@ namespace UnityEngine.ScriptableRenderLoop
             const int nrDWordsPerTileFPTL = (capacityUShortsPerTileFPTL + 1)>>1;        // room for 31 lights and a nrLights value.
 
             lightList = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * nrDWordsPerTileFPTL * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
+
+            if(gEnableClustered)
+            {
+                m_perVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1<<g_iLog2NumClusters) * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
+                m_perVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
+            }
+        }
+
+        void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)
+        {
+            // copy resource m_globalLightListAtomic <-- m_singleZeroUInt
+            cmd.SetComputeIntParam(m_BuildPerVoxelLightListShader, "g_iNrVisibLights", numLights);
+			SetMatrixCS(cmd, m_BuildPerVoxelLightListShader, "g_mScrProjection", projscr);
+			SetMatrixCS(cmd, m_BuildPerVoxelLightListShader, "g_mInvScrProjection", invProjscr);
+
+            cmd.SetComputeIntParam(m_BuildPerVoxelLightListShader, "g_iLog2NumClusters", g_iLog2NumClusters);
+
+            //Vector4 v2_near = invProjscr * new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+            //Vector4 v2_far = invProjscr * new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+            //float nearPlane2 = -(v2_near.z/v2_near.w);
+            //float farPlane2 = -(v2_far.z/v2_far.w);
+            float nearPlane = camera.nearClipPlane;
+            float farPlane = camera.farClipPlane;
+            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fNearPlane", nearPlane);
+            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fFarPlane", farPlane);
+
+            float C = (float) (1<<g_iLog2NumClusters);
+            const float logBase = 1.02f;     // each slice 2% bigger than the previous
+	        double geomSeries = (1.0 - Mathf.Pow(logBase, C))/(1-logBase);		// geometric series: sum_k=0^{C-1} base^k
+	        float scale = (float) (geomSeries/(farPlane-nearPlane));
+
+            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fClustScale", scale);
+            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fClustBase", logBase);
+
+			cmd.SetComputeTextureParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_depth_tex", new RenderTargetIdentifier(kCameraDepthTexture));
+			cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_vLayeredLightList", m_perVoxelLightLists);
+            cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_LayeredOffset", m_perVoxelOffset);
+            cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_LayeredSingleIdxBuffer", m_globalLightListAtomic);
+			//cmd.ComputeDispatch(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, nrTilesX, nrTilesY, 1);
+
+
         }
 	}
 }
