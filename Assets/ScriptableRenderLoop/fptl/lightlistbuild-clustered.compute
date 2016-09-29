@@ -2,7 +2,6 @@
 
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
-#include "ClusteredUtils.h"
 
 //#define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -17,6 +16,8 @@ uniform float g_fClustBase;
 uniform float g_fNearPlane;
 uniform float g_fFarPlane;
 uniform int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
+
+#include "ClusteredUtils.h"
 
 
 #ifdef MSAA_ENABLED
