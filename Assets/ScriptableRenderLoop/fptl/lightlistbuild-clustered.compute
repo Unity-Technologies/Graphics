@@ -1,7 +1,8 @@
-#pragma kernel TileLightListGen_NoDepthRT
-#pragma kernel TileLightListGen_DepthRT			ENABLE_DEPTH_TEXTURE_BACKPLANE
-#pragma kernel TileLightListGen_DepthRT_MSAA	ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED
+#pragma kernel TileLightListGen_NoDepthRT		LIGHTLISTGEN=TileLightListGen_NoDepthRT
+#pragma kernel TileLightListGen_DepthRT			LIGHTLISTGEN=TileLightListGen_DepthRT			ENABLE_DEPTH_TEXTURE_BACKPLANE
+#pragma kernel TileLightListGen_DepthRT_MSAA	LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED
 #pragma kernel ClearAtomic
+
 
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
@@ -155,7 +156,7 @@ bool CheckIntersectionBasic(int l, int k)
 
 
 [numthreads(NR_THREADS, 1, 1)]
-void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
+void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 {
 	uint2 tileIDX = u3GroupID.xy;
 	uint t=threadID;
