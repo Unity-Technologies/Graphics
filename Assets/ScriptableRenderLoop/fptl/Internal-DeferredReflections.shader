@@ -75,9 +75,49 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 #endif
 }
 
-uint FetchLightCount(const uint tileOffs)
+#ifdef USE_CLUSTERED_LIGHTLIST
+
+uniform float g_fClustScale;
+uniform float g_fClustBase;
+uniform float g_fNearPlane;
+uniform int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
+
+Buffer<uint> g_vLayeredOffsetsBuffer;
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+Buffer<float> g_fModulUserscale;
+#endif
+
+#include "ClusteredUtils.h"
+
+void GetLightCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth)
 {
-	return g_vLightList[ 16*tileOffs + 0]&0xffff;
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+	float modulScale = g_fModulUserscale[uTileIdx.y*nrTilesX + uTileIdx.x];
+#else
+	float modulScale = 1.0;
+#endif
+	int clustIdx = SnapToClusterIdx(linDepth, modulScale);
+
+	int nrClusters = (1<<g_iLog2NumClusters);
+	const int idx = ((REFLECTION_LIGHT*nrClusters + clustIdx)*nrTilesY + tileIDX.y)*nrTilesX + tileIDX.x;
+	uint dataPair = g_vLayeredOffsetsBuffer[idx];
+	uStart = dataPair&0x7ffffff;
+	uNrLights = (dataPair>>27)&31;
+}
+
+uint FetchIndex(const uint tileOffs, const uint l)
+{
+	return g_vLightList[ tileOffs+l ];
+}
+
+#else
+
+void GetLightCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth)
+{
+	const int tileOffs = (tileIDX.y+REFLECTION_LIGHT*nrTilesY)*nrTilesX+tileIDX.x;
+
+	uNrLights = g_vLightList[ 16*tileOffs + 0]&0xffff;
+	uStart = tileOffs;
 }
 
 uint FetchIndex(const uint tileOffs, const uint l)
@@ -86,7 +126,9 @@ uint FetchIndex(const uint tileOffs, const uint l)
 	return (g_vLightList[ 16*tileOffs + (l1>>1)]>>((l1&1)*16))&0xffff;
 }
 
-float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs);
+#endif
+
+float3 ExecuteReflectionProbes(uint2 pixCoord, uint start, uint numLights, float linDepth);
 float3 OverlayHeatMap(uint uNumLights, float3 c);
 
 
@@ -115,11 +157,14 @@ half4 frag (v2f i) : SV_Target
 
 	uint2 tileIDX = pixCoord / 16;
 
-	const int offs = tileIDX.y*nrTilesX+tileIDX.x + nrTilesX*nrTilesY;		// offset to where the reflection probes are
+	float zbufDpth = FetchDepth(_CameraDepthTexture, pixCoord.xy).x;
+	float linDepth = GetLinearDepth(zbufDpth);
 
-	
-	float3 c = ExecuteReflectionProbes(pixCoord, offs);
-	//c = OverlayHeatMap(FetchLightCount(offs), c);
+	uint numLights=0, start=0;
+	GetLightCountAndStart(start, numLights, tileIDX, nrTilesX, nrTilesY, linDepth);
+
+	float3 c = ExecuteReflectionProbes(pixCoord, start, numLights, linDepth);
+	//c = OverlayHeatMap(numLights, c);
 
 	return float4(c,1.0);
 }
@@ -152,11 +197,9 @@ half3 distanceFromAABB(half3 p, half3 aabbMin, half3 aabbMax)
 
 half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, half4 hdr, Unity_GlossyEnvironmentData glossIn);
 
-float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
+float3 ExecuteReflectionProbes(uint2 pixCoord, uint start, uint numLights, float linDepth)
 {
-	float3 v3ScrPos = float3(pixCoord.x+0.5, pixCoord.y+0.5, FetchDepth(_CameraDepthTexture, pixCoord.xy).x);
-	float linDepth = GetLinearDepth(v3ScrPos.z);
-	float3 vP = GetViewPosFromLinDepth(v3ScrPos.xy, linDepth);
+	float3 vP = GetViewPosFromLinDepth(float2(pixCoord.x+0.5, pixCoord.y+0.5), linDepth);
 	float3 worldPos = mul(g_mViewToWorld, float4(vP.xyz,1.0)).xyz;		//unity_CameraToWorld
 
 	float3 vWSpaceVDir = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);		//unity_CameraToWorld
@@ -179,22 +222,20 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 	
 	float3 ints = 0;
 
-	const uint uNrLights = FetchLightCount(offs);
-	
 	uint l=0;
 
 	// we need this outer loop for when we cannot assume a wavefront is 64 wide
 	// since in this case we cannot assume the lights will remain sorted by type
 	// during processing in lightlist_cs.hlsl
 #if !defined(XBONE) && !defined(PLAYSTATION4)
-	while(l<uNrLights)
+	while(l<numLights)
 #endif
 	{
-		uint uIndex = l<uNrLights ? FetchIndex(offs, l) : 0;
-		uint uLgtType = l<uNrLights ? g_vLightData[uIndex].uLightType : 0;
+		uint uIndex = l<numLights ? FetchIndex(start, l) : 0;
+		uint uLgtType = l<numLights ? g_vLightData[uIndex].uLightType : 0;
 		
 		// specialized loop for sphere lights
-		while(l<uNrLights && uLgtType==(uint) BOX_LIGHT)
+		while(l<numLights && uLgtType==(uint) BOX_LIGHT)
 		{
 			SFiniteLightData lgtDat = g_vLightData[uIndex];	
 			float3 vLp = lgtDat.vLpos.xyz;
@@ -249,8 +290,8 @@ float3 ExecuteReflectionProbes(uint2 pixCoord, const uint offs)
 			ints = lerp(ints, rgb, falloff);
 					
 			// next probe
-			++l; uIndex = l<uNrLights ? FetchIndex(offs, l) : 0;
-			uLgtType = l<uNrLights ? g_vLightData[uIndex].uLightType : 0;
+			++l; uIndex = l<numLights ? FetchIndex(start, l) : 0;
+			uLgtType = l<numLights ? g_vLightData[uIndex].uLightType : 0;
 		}
 
 #if !defined(XBONE) && !defined(PLAYSTATION4)
