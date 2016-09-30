@@ -30,3 +30,5 @@ MonoBehaviour:
     type: 3}
   m_BuildPerTileLightListShader: {fileID: 7200000, guid: f54ef7cb596a714488693ef9cdaf63fb,
     type: 3}
+  m_BuildPerVoxelLightListShader: {fileID: 7200000, guid: 4c2d6eb0553e2514bba3ea9a85d8c53c,
+    type: 3}
