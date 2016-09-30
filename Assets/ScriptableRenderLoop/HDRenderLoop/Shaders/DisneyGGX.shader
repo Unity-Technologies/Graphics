@@ -1,29 +1,59 @@
 Shader "Unity/DisneyGGX"
 {
-	// TODO: Following set of parameters represent the parameters node inside the MaterialGraph. 
-	// They are use to fill a SurfaceData. With a MaterialGraph these parameters will not be write here (?).
 	Properties
 	{
+		// Following set of parameters represent the parameters node inside the MaterialGraph.
+		// They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
+
 		// Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
-		_DiffuseColor("Diffuse", Color) = (1,1,1,1)
-		_DiffuseMap("Diffuse", 2D) = "white" {}
+		_BaseColor("BaseColor", Color) = (1,1,1,1) 
+		_BaseColorMap("BaseColorMap", 2D) = "white" {}
+		_AmbientOcclusionMap("AmbientOcclusion", 2D) = "white" {}
 
-		_SpecColor("Specular", Color) = (0.04,0.04,0.04)
-		_SpecMap("Specular", 2D) = "white" {}
-
+		_Mettalic("Mettalic", Range(0.0, 1.0)) = 0
+		_MettalicMap("MettalicMap", 2D) = "white" {}
 		_Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
-		_SmoothnessMap("Smoothness", 2D) = "white" {}
+		_SmoothnessMap("SmoothnessMap", 2D) = "white" {}
+		_SpecularOcclusionMap("SpecularOcclusion", 2D) = "white" {}
 
-		_NormalMap("Normal Map", 2D) = "bump" {}
-		_OcclusionMap("Occlusion", 2D) = "white" {}
+		_NormalMap("NormalMap", 2D) = "bump" {}
+		[Enum(TangentSpace, 0, ObjectSpace, 1)] _MaterialID("NormalMap space", Float) = 0
 
-		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5		
+		_DiffuseLightingMap("DiffuseLightingMap", 2D) = "black" {}
+		_EmissiveColor("Emissive", Color) = (0, 0, 0)
+		_EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
+		_EmissiveIntensity("EmissiveIntensity", Float) = 0
+
+		_SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
+		//_SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
+		//_Thickness("Thickness", Range(0.0, 1.0)) = 0
+		//_ThicknessMap("ThicknessMap", 2D) = "white" {}
+		//_SubSurfaceProfile("SubSurfaceProfile", Float) = 0
+		
+		//_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
+		//_CoatCoverageMap("CoatCoverageMapMap", 2D) = "white" {}
+
+		//_CoatRoughness("CoatRoughness", Range(0.0, 1.0)) = 0
+		//_CoatRoughnessMap("CoatRoughnessMap", 2D) = "white" {}
+				
+		// _DistortionVectorMap("DistortionVectorMap", 2D) = "white" {}
+		// _DistortionBlur("DistortionBlur", Range(0.0, 1.0)) = 0
+
+		// Following options are for the GUI inspector and different from the input parameters above
+		// These option below will cause different compilation flag.		
+
+		[ToggleOff] _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+		[ToggleOff] _DoubleSided("Double Sided", Float) = 1.0
+		[ToggleOff] _DoubleSidedLigthing("Double Sided Lighting", Float) = 1.0		
 
 		// Blending state
-		[HideInInspector] _Mode ("__mode", Float) = 0.0
+		[HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
+		[HideInInspector] _BlendMode ("__blendmode", Float) = 0.0
 		[HideInInspector] _SrcBlend ("__src", Float) = 1.0
 		[HideInInspector] _DstBlend ("__dst", Float) = 0.0
 		[HideInInspector] _ZWrite ("__zw", Float) = 1.0
+		// Material Id
+		[HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
 	}
 
 	CGINCLUDE	
@@ -102,4 +132,6 @@ Shader "Unity/DisneyGGX"
 			ENDCG
 		}
 	}
+
+	//CustomEditor "DisneyGGXGUI"
 }

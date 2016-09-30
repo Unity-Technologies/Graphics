@@ -11,17 +11,14 @@ struct SurfaceData
 	// TODO: define what is the best parametrization for artsits, seems that metal smoothness is the winner, but would like at add back a specular parameter.
 	// Bonus, if we store as specular color we can define a liner specular 0..1 mapping 2% to 20%
 	float3	diffuseColor;
-	float	matData0;
+	float	ambientOcclusion;
 
 	float3	specularColor; // Should be YCbCr but need to validate that it is fine first! MEan have reflection probe
-	float	SpecularOcclusion;
-	//float	matData1;
+	float	specularOcclusion;
 
 	float3	normalWS;
 	float	perceptualSmoothness;
 	float	materialId;
-
-	float	ambientOcclusion;
 
 	// TODO: create a system surfaceData for thing like that + Transparent
 	// As we collect some lighting information (Lightmap, lightprobe/proxy volume)
@@ -30,6 +27,21 @@ struct SurfaceData
 	float3	diffuseLighting;
 	float3	emissiveColor; // Linear space
 	float	emissiveIntensity;
+
+	// MaterialID SSS - When enable, we only need one channel for specColor, so one is free to store information.
+	float	subSurfaceRadius;
+//	float	thickness;
+//	int		subSurfaceProfile;
+
+	// MaterialID Clear coat
+//	float	coatCoverage;
+//	float	coatRoughness;
+
+	// Distortion
+//	float2	distortionVector;
+//	float	distortionBlur;		// Define the mipmap level to use
+
+//	float2	velocityVector;
 };
 
 struct BSDFData
@@ -38,7 +50,7 @@ struct BSDFData
 	float	matData0;
 
 	float3	fresnel0; // Should be YCbCr but need to validate that it is fine first! MEan have reflection probe
-	float	SpecularOcclusion;
+	float	specularOcclusion;
 	//float	matData1;
 
 	float3	normalWS;
@@ -60,10 +72,10 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData data)
 	BSDFData output;
 
 	output.diffuseColor = data.diffuseColor;
-	output.matData0 = data.matData0;
+	output.matData0 = data.subSurfaceRadius; // TEMP
 
 	output.fresnel0 = data.specularColor;
-	output.SpecularOcclusion = data.SpecularOcclusion;
+	output.specularOcclusion = data.specularOcclusion;
 	//output.matData1 = data.matData1;
 
 	output.normalWS = data.normalWS;
@@ -94,10 +106,10 @@ int UnpackMaterialId(float f)
 void EncodeIntoGBuffer(SurfaceData data, out float4 outGBuffer0, out float4 outGBuffer1, out float4 outGBuffer2, out float4 outGBuffer3)
 {
 	// RT0 - 8:8:8:8 sRGB
-	outGBuffer0 = float4(data.diffuseColor, data.matData0);	
+	outGBuffer0 = float4(data.diffuseColor, data.subSurfaceRadius);
 
 	// RT1 - 8:8:8:8:
-	outGBuffer1 = float4(data.specularColor, data.SpecularOcclusion /*, data.matData1 */);
+	outGBuffer1 = float4(data.specularColor, data.specularOcclusion /*, data.matData1 */);
 
 	// RT2 - 10:10:10:2
 	// Encode normal on 20bit with oct compression
@@ -118,7 +130,7 @@ BSDFData DecodeFromGBuffer(float4 inGBuffer0, float4 inGBuffer1, float4 inGBuffe
 	bsdfData.matData0 = inGBuffer0.a;
 
 	bsdfData.fresnel0 = inGBuffer1.rgb;
-	bsdfData.SpecularOcclusion = inGBuffer1.a;
+	bsdfData.specularOcclusion = inGBuffer1.a;
 	// bsdfData.matData1 = ?;
 
 	bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer2.r * 2.0 - 1.0, inGBuffer2.g * 2 - 1));
