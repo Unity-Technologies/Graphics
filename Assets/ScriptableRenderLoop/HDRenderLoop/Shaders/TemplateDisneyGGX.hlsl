@@ -19,12 +19,34 @@
 //-------------------------------------------------------------------------------------
 
 // Set of users variables
-float4 _DiffuseColor;
-float4 _SpecColor;
+float4 _BaseColor;
+sampler2D _BaseColorMap;
+sampler2D _AmbientOcclusionMap;
+
+float _Mettalic;
+sampler2D MettalicMap;
 float _Smoothness;
-sampler2D _DiffuseMap;
+sampler2D _SmoothnessMap;
+sampler2D _SpecularOcclusionMap;
+
 sampler2D _NormalMap;
-// ... Others
+sampler2D _DiffuseLightingMap;
+float4 _EmissiveColor;
+sampler2D _EmissiveColorMap;
+float _EmissiveIntensity;
+
+float _SubSurfaceRadius;
+sampler2D _SubSurfaceRadiusMap;
+// float _Thickness;
+// sampler2D _ThicknessMap;
+
+// float _CoatCoverage;
+// sampler2D _CoatCoverageMap;
+
+// float _CoatRoughness;
+// sampler2D _CoatRoughnessMap;
+
+float _Cutoff;
 
 //-------------------------------------------------------------------------------------
 // Lighting architecture
@@ -118,44 +140,75 @@ PackedVaryings VertDefault(Attributes input)
 
 float3 TransformTangentToWorld(float3 normalTS, float4 tangentToWorld[3])
 {
-#if 0
-	// regular normal
-	float3 normalWS = normalize(tangentToWorld[2].xyz);
-#else
-	// TO check: do we need to normalize ?
-	float3 normalWS = normalize(mul(normalTS, float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz)));
-#endif
-
-	return normalWS;
+	// TODO check: do we need to normalize ?
+	return normalize(mul(normalTS, float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz)));
 }
 
 SurfaceData GetSurfaceData(Varyings input)
 {
+	// to manage the mettalic/specular representation we should have a neested master node instead of doing a new lighting model
+	// this is simulated here by doing the conversion on the inputs data.
 	SurfaceData data;
 
-	data.diffuseColor = tex2D(_DiffuseMap, input.texCoord0) * _DiffuseColor;
-	data.matData0 = 0.0;
+	float3 baseColor = tex2D(_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
+	float alpha = tex2D(_BaseColorMap, input.texCoord0).a * _BaseColor.a;
 
-	data.SpecularOcclusion = 1.0;
-	data.ambientOcclusion = 1.0;
+#if defined(_ALPHATEST_ON)
+	clip(alpha - _Cutoff);
+#endif
 
-	data.specularColor = _SpecColor;
-	data.perceptualSmoothness = _Smoothness;
+	data.ambientOcclusion	= tex2D(_AmbientOcclusionMap, input.texCoord0).r;
+
+	float mettalic			= tex2D(MettalicMap, input.texCoord0).r * _Mettalic;
+	data.perceptualSmoothness = tex2D(_SmoothnessMap, input.texCoord0).r * _Smoothness;
+	data.specularOcclusion	= tex2D(_SpecularOcclusionMap, input.texCoord0).r;
+
+	data.diffuseColor		= baseColor * (1.0f - mettalic);
+	float f0_dieletric = 0.04;
+	data.specularColor		= lerp(float3(f0_dieletric, f0_dieletric, f0_dieletric), baseColor, mettalic);
 
 	// TODO: think about using BC5
+#if 1 //_USE_NORMAL_MAP
+	
+	#if 1 //_USE_NORMAL_MAP_TANGENT_SPACE
 	float3 normalTS = UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
-	// data.normal = input.tangentToWorld[2].xyz;
 	data.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+	#else // Object space (TODO: We need to apply the world rotation here!)
+	data.normalWS = tex2D(_NormalMap, input.texCoord0).rgb;
+	#endif
+
+#else
+	data.normalWS = normalize(input.tangentToWorld[2].xyz);
+#endif
 
 	data.materialId = 0;
 
 	// TODO: Sample lightmap/lightprobe/volume proxy
 	// This should also handle projective lightmap
 	// Note that data input above can be use to sample into lightmap (like normal)
-	data.diffuseLighting = float3(0.0, 0.0, 0.0);
+	data.diffuseLighting = tex2D(_DiffuseLightingMap, input.texCoord0).rgb;
 
-	data.emissiveColor = float3(0.0, 0.0, 0.0);
-	data.emissiveIntensity = 0.0;
+	data.emissiveColor = tex2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
+	data.emissiveIntensity = _EmissiveIntensity;
+
+
+	data.subSurfaceRadius = tex2D(_SubSurfaceRadiusMap, input.texCoord0).r * _SubSurfaceRadius;
+
+	// TODO
+	/*
+	float _SubSurfaceRadius;
+	sampler2D _SubSurfaceRadiusMap;
+	float _Thickness;
+	sampler2D _ThicknessMap;
+
+	float _CoatCoverage;
+	sampler2D _CoatCoverageMap;
+
+	float _CoatRoughness;
+	sampler2D _CoatRoughnessMap;
+	*/
+
+	// TODO: handle alpha for transparency!
 
 	return data;
 }
