@@ -10,7 +10,7 @@ int g_punctualLightCount;
 
 // TODO: Think about how to apply Disney diffuse preconvolve on indirect diffuse => must be done during GBuffer layout! Else emissive will be fucked...
 // That's mean we need to read DFG texture during Gbuffer...
-void ForwardLighting(	float3 V, float3 positionWS, BSDFData material,
+void ForwardLighting(	float3 V, float3 positionWS, BSDFData bsdfData,
 						out float4 diffuseLighting,
 						out float4 specularLighting)
 {
@@ -21,7 +21,7 @@ void ForwardLighting(	float3 V, float3 positionWS, BSDFData material,
 	{
 		float4 localDiffuseLighting;
 		float4 localSpecularLighting;
-		EvaluateBSDF_Punctual(V, positionWS, g_punctualLightList[i], material, localDiffuseLighting, localSpecularLighting);
+		EvaluateBSDF_Punctual(V, positionWS, g_punctualLightList[i], bsdfData, localDiffuseLighting, localSpecularLighting);
 		diffuseLighting += localDiffuseLighting;
 		specularLighting += localSpecularLighting;
 	}
@@ -31,11 +31,14 @@ void ForwardLighting(	float3 V, float3 positionWS, BSDFData material,
 	{
 	float4 localDiffuseLighting;
 	float4 localSpecularLighting;
-	EvaluateBSDF_Area(V, positionWS, areaLightData[i], material, localDiffuseLighting, localSpecularLighting);
+	EvaluateBSDF_Area(V, positionWS, areaLightData[i], bsdfData, localDiffuseLighting, localSpecularLighting);
 	diffuseLighting += localDiffuseLighting;
 	specularLighting += localSpecularLighting;
 	}
 	*/
+
+	// Add GI
+	diffuseLighting.rgb += bsdfData.diffuseLightingAndEmissive;
 }
 
 #endif // UNITY_LIGHTING_FORWARD_INCLUDED

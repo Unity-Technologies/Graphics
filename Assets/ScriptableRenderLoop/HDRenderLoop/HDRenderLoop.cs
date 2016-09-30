@@ -579,6 +579,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 RenderDeferredLighting(camera, renderLoop);
 
+       //        RenderForward(cullResults, camera, renderLoop);
 
                 FinalPass(renderLoop);
 
