@@ -15,16 +15,14 @@ float RoughnessToPerceptualRoughness(float roughness)
 	return sqrt(roughness);
 }
 
-// Smoothness is the user facing name
-// it should be perceptualSmoothness but we don't want the user to have to deal with this name
-float SmoothnessToRoughness(float smoothness)
+float PerceptualSmoothnessToRoughness(float perceptualSmoothness)
 {
-	return (1 - smoothness) * (1 - smoothness);
+	return (1 - perceptualSmoothness) * (1 - perceptualSmoothness);
 }
 
-float SmoothnessToPerceptualRoughness(float smoothness)
+float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
 {
-	return (1 - smoothness);
+	return (1 - perceptualSmoothness);
 }
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED
