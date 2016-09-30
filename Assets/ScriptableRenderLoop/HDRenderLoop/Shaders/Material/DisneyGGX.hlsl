@@ -8,36 +8,47 @@
 // Main structure that store the user data (i.e user input of master node in material graph)
 struct SurfaceData
 {
+	// TODO: define what is the best parametrization for artsits, seems that metal smoothness is the winner, but would like at add back a specular parameter.
+	// Bonus, if we store as specular color we can define a liner specular 0..1 mapping 2% to 20%
 	float3	diffuseColor;
-	float	occlusion;
+	float	matData0;
 
-	float3	specularColor;
-	float	smoothness;
+	float3	specularColor; // Should be YCbCr but need to validate that it is fine first! MEan have reflection probe
+	float	SpecularOcclusion;
+	//float	matData1;
 
-	float3	normal;		// normal in world space
+	float3	normalWS;
+	float	perceptualSmoothness;
+	float	materialId;
+
+	float	ambientOcclusion;
 
 	// TODO: create a system surfaceData for thing like that + Transparent
 	// As we collect some lighting information (Lightmap, lightprobe/proxy volume)
 	// and emissive ahead (i.e in Gbuffer pass when doing deferred), we need to
 	// to have them in the SurfaceData structure.
-	float3	baked;
+	float3	diffuseLighting;
 	float3	emissiveColor; // Linear space
-	float emissiveIntensity;
+	float	emissiveIntensity;
 };
 
 struct BSDFData
 {
 	float3	diffuseColor;
-	float	occlusion;
+	float	matData0;
 
-	float3	fresnel0;
-	float	perceptualRoughness;
+	float3	fresnel0; // Should be YCbCr but need to validate that it is fine first! MEan have reflection probe
+	float	SpecularOcclusion;
+	//float	matData1;
 
 	float3	normalWS;
-	float	roughness; 
+	float	perceptualRoughness;
+	float	materialId;
+
+	float	roughness;
 
 	// System
-	float3	bakedAndEmissive;
+	float3	diffuseLightingAndEmissive;
 };
 
 //-----------------------------------------------------------------------------
@@ -49,17 +60,32 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData data)
 	BSDFData output;
 
 	output.diffuseColor = data.diffuseColor;
-	output.occlusion = data.occlusion;
+	output.matData0 = data.matData0;
 
-	output.fresnel0 = data.specularColor;	
-	output.perceptualRoughness = SmoothnessToPerceptualRoughness(data.smoothness);
+	output.fresnel0 = data.specularColor;
+	output.SpecularOcclusion = data.SpecularOcclusion;
+	//output.matData1 = data.matData1;
 
-	output.normalWS = data.normal;
+	output.normalWS = data.normalWS;
+	output.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(data.perceptualSmoothness);
+	output.materialId = data.materialId;
+
 	output.roughness = PerceptualRoughnessToRoughness(output.perceptualRoughness);
 	
-	output.bakedAndEmissive = data.baked + data.emissiveColor * data.emissiveIntensity;
+	output.diffuseLightingAndEmissive = data.diffuseLighting * data.ambientOcclusion * data.diffuseColor + data.emissiveColor * data.emissiveIntensity;
 
 	return output;
+}
+
+// Packing function specific to this surfaceData
+float PackMaterialId(int materialId)
+{
+	return float(materialId) / 3.0;
+}
+
+int UnpackMaterialId(float f)
+{
+	return int(round(f * 3.0));
 }
 
 #define GBUFFER_COUNT 4
@@ -67,17 +93,21 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData data)
 // This will encode UnityStandardData into GBuffer
 void EncodeIntoGBuffer(SurfaceData data, out float4 outGBuffer0, out float4 outGBuffer1, out float4 outGBuffer2, out float4 outGBuffer3)
 {
-	// RT0: diffuse color (rgb), occlusion (a) - sRGB rendertarget
-	outGBuffer0 = float4(data.diffuseColor, data.occlusion);
+	// RT0 - 8:8:8:8 sRGB
+	outGBuffer0 = float4(data.diffuseColor, data.matData0);	
 
-	// RT1: spec color (rgb), perceptual roughness (a) - sRGB rendertarget
-	outGBuffer1 = float4(data.specularColor, SmoothnessToPerceptualRoughness(data.smoothness));
+	// RT1 - 8:8:8:8:
+	outGBuffer1 = float4(data.specularColor, data.SpecularOcclusion /*, data.matData1 */);
 
-	// RT2: normal (rgb), --unused, very low precision-- (a) 
-	outGBuffer2 = float4(PackNormalCartesian(data.normal), 1.0f);
+	// RT2 - 10:10:10:2
+	// Encode normal on 20bit with oct compression
+	float2 octNormal = PackNormalOctEncode(data.normalWS);
+	// We store perceptualRoughness instead of roughness because it save a sqrt ALU when decoding
+	// (as we want both perceptualRoughness and roughness for the lighting due to Disney Diffuse model)
+	outGBuffer2 = float4(octNormal * 0.5 + 0.5, PerceptualSmoothnessToPerceptualRoughness(data.perceptualSmoothness), PackMaterialId(data.materialId));
 
-	// RT3: 11, 11, 10 float
-	outGBuffer3 = float4(data.baked + data.emissiveColor * data.emissiveIntensity, 0.0f);
+	// RT3 - 11:11:10 float
+	outGBuffer3 = float4(data.diffuseLighting * data.ambientOcclusion * data.diffuseColor + data.emissiveColor * data.emissiveIntensity, 0.0f);
 }
 
 // This decode the Gbuffer in a BSDFData struct
@@ -85,15 +115,19 @@ BSDFData DecodeFromGBuffer(float4 inGBuffer0, float4 inGBuffer1, float4 inGBuffe
 {
 	BSDFData bsdfData;
 	bsdfData.diffuseColor = inGBuffer0.rgb;
-	bsdfData.occlusion = inGBuffer0.a;
+	bsdfData.matData0 = inGBuffer0.a;
 
 	bsdfData.fresnel0 = inGBuffer1.rgb;
-	bsdfData.perceptualRoughness = inGBuffer1.a;
+	bsdfData.SpecularOcclusion = inGBuffer1.a;
+	// bsdfData.matData1 = ?;
 
-	bsdfData.normalWS = UnpackNormalCartesian(inGBuffer2.rgb);
+	bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer2.r * 2.0 - 1.0, inGBuffer2.g * 2 - 1));
+	bsdfData.perceptualRoughness = inGBuffer2.b;
+	bsdfData.materialId = UnpackMaterialId(inGBuffer2.a);
+
 	bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
 
-	bsdfData.bakedAndEmissive = inGBuffer3.rgb;
+	bsdfData.diffuseLightingAndEmissive = inGBuffer3.rgb;
 
 	return bsdfData;
 }
@@ -102,7 +136,7 @@ BSDFData DecodeFromGBuffer(float4 inGBuffer0, float4 inGBuffer1, float4 inGBuffe
 // EvaluateBSDF functions for each light type
 //-----------------------------------------------------------------------------
 
-void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PunctualLightData light, BSDFData material,
+void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PunctualLightData light, BSDFData bsdfData,
 							out float4 diffuseLighting,
 							out float4 specularLighting)
 {
@@ -116,24 +150,24 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PunctualLightData light
 
 	float attenuation = GetDistanceAttenuation(unL, light.invSqrAttenuationRadius);
 	attenuation *= GetAngleAttenuation(L, light.forward, light.angleScale, light.angleOffset);
-	float illuminance = saturate(dot(material.normalWS, L)) * attenuation;
+	float illuminance = saturate(dot(bsdfData.normalWS, L)) * attenuation;
 
 	diffuseLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	specularLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	if (illuminance > 0.0f)
 	{
-		float NdotV = abs(dot(material.normalWS, V)) + 1e-5f; // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
+		float NdotV = abs(dot(bsdfData.normalWS, V)) + 1e-5f; // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
 		float3 H = normalize(V + L);
 		float LdotH = saturate(dot(L, H));
-		float NdotH = saturate(dot(material.normalWS, H));
-		float NdotL = saturate(dot(material.normalWS, L));
-		float3 F = F_Schlick(material.fresnel0, LdotH);
-		float Vis = V_SmithJointGGX(NdotL, NdotV, material.roughness);
-		float D = D_GGX(NdotH, material.roughness);
+		float NdotH = saturate(dot(bsdfData.normalWS, H));
+		float NdotL = saturate(dot(bsdfData.normalWS, L));
+		float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+		float Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness);
+		float D = D_GGX(NdotH, bsdfData.roughness);
 		specularLighting.rgb = F * Vis * D;
-		float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, material.perceptualRoughness);
-		diffuseLighting.rgb = material.diffuseColor * disneyDiffuse;
+		float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+		diffuseLighting.rgb = bsdfData.diffuseColor * disneyDiffuse;
 
 		diffuseLighting.rgb *= light.color * illuminance;
 		specularLighting.rgb *= light.color * illuminance;
