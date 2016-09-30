@@ -1,4 +1,7 @@
-#pragma kernel TileLightListGen
+#pragma kernel TileLightListGen_NoDepthRT
+#pragma kernel TileLightListGen_DepthRT			ENABLE_DEPTH_TEXTURE_BACKPLANE
+#pragma kernel TileLightListGen_DepthRT_MSAA	ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED
+#pragma kernel ClearAtomic
 
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
@@ -113,7 +116,7 @@ float4 FetchPlane(int l, int p);
 bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float fModulUserScale)
 {
 	unsigned int val = (clusterIdxs[l>>1]>>(16*(l&1)))&0xffff;
-	bool bIsHit = ((val>>0)&0xff)<=k && k<=((val>>8)&0xff);
+	bool bIsHit = ((val>>0)&0xff)<=((uint) k) && ((uint) k)<=((val>>8)&0xff);
 	if(bIsHit)
 	{
 #ifdef CONV_HULL_TEST_ENABLED
@@ -147,7 +150,7 @@ bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float fModulU
 bool CheckIntersectionBasic(int l, int k)
 {
 	unsigned int val = (clusterIdxs[l>>1]>>(16*(l&1)))&0xffff;
-	return ((val>>0)&0xff)<=k && k<=((val>>8)&0xff);
+	return ((val>>0)&0xff)<=((uint) k) && ((uint) k)<=((val>>8)&0xff);
 }
 
 
@@ -277,15 +280,17 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 #endif
 
 	//////////// cell specific code
-	for(int l=(int) t; l<((iNrCoarseLights+1)>>1); l += NR_THREADS)
 	{
-		const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights)];
-		const unsigned int clustIdxMi0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z), fModulUserScale));
-		const unsigned int clustIdxMa0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0+g_iNrVisibLights].z), fModulUserScale));
-		const unsigned int clustIdxMi1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z), fModulUserScale));
-		const unsigned int clustIdxMa1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1+g_iNrVisibLights].z), fModulUserScale));
+		for(int l=(int) t; l<((iNrCoarseLights+1)>>1); l += NR_THREADS)
+		{
+			const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights)];
+			const unsigned int clustIdxMi0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z), fModulUserScale));
+			const unsigned int clustIdxMa0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0+g_iNrVisibLights].z), fModulUserScale));
+			const unsigned int clustIdxMi1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z), fModulUserScale));
+			const unsigned int clustIdxMa1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1+g_iNrVisibLights].z), fModulUserScale));
 
-		clusterIdxs[l] = (clustIdxMa1<<24) | (clustIdxMi1<<16) | (clustIdxMa0<<8) | (clustIdxMi0<<0);
+			clusterIdxs[l] = (clustIdxMa1<<24) | (clustIdxMi1<<16) | (clustIdxMa0<<8) | (clustIdxMi0<<0);
+		}
 	}
 
 #if !defined(XBONE) && !defined(PLAYSTATION4)
@@ -340,14 +345,14 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	}
 
 	uint localOffs=0;
-	uint idx = i*nrTilesX*nrTilesY + tileIDX.y*nrTilesX + tileIDX.x;
+	offs = i*nrTilesX*nrTilesY + tileIDX.y*nrTilesX + tileIDX.x;
 	for(int m=0; m<NR_LIGHT_MODELS; m++)
 	{
 		int numLights = min(modelListCount[m],31);		// only allow 5 bits
 		if(i<nrClusters)
 		{
-			g_LayeredOffset[idx] = (start+localOffs) | (((uint) numLights)<<27);
-			idx += (nrClusters*nrTilesX*nrTilesY);
+			g_LayeredOffset[offs] = (start+localOffs) | (((uint) numLights)<<27);
+			offs += (nrClusters*nrTilesX*nrTilesY);
 			localOffs += modelListCount[m];		// use unclamped count for localOffs
 		}
 	}
@@ -656,3 +661,11 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 	return lightOffs2;
 }
 #endif
+
+
+
+[numthreads(1, 1, 1)]
+void ClearAtomic(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
+{
+	g_LayeredSingleIdxBuffer[0]=0;
+}
