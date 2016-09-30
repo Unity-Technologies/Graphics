@@ -575,11 +575,10 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 InitAndClearBuffer(camera, renderLoop);
 
-                RenderGBuffer(cullResults, camera, renderLoop);
+               RenderGBuffer(cullResults, camera, renderLoop);
 
                 RenderDeferredLighting(camera, renderLoop);
 
-               // RenderForward(cullResults, camera, renderLoop);
 
                 FinalPass(renderLoop);
 

@@ -4,6 +4,7 @@ Shader "Unity/DisneyGGX"
 	// They are use to fill a SurfaceData. With a MaterialGraph these parameters will not be write here (?).
 	Properties
 	{
+		// Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
 		_DiffuseColor("Diffuse", Color) = (1,1,1,1)
 		_DiffuseMap("Diffuse", 2D) = "white" {}
 
