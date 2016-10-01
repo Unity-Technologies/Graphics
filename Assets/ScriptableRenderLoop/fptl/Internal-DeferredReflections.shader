@@ -80,7 +80,9 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 uniform float g_fClustScale;
 uniform float g_fClustBase;
 uniform float g_fNearPlane;
-uniform int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
+//uniform int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
+uniform float g_fLog2NumClusters;
+static int g_iLog2NumClusters;
 
 Buffer<uint> g_vLayeredOffsetsBuffer;
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
@@ -92,12 +94,13 @@ Buffer<float> g_fModulUserscale;
 void GetLightCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth)
 {
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-	float modulScale = g_fModulUserscale[uTileIdx.y*nrTilesX + uTileIdx.x];
+	float modulScale = g_fModulUserscale[tileIDX.y*nrTilesX + tileIDX.x];
 #else
 	float modulScale = 1.0;
 #endif
 	int clustIdx = SnapToClusterIdx(linDepth, modulScale);
 
+	g_iLog2NumClusters = (int) (g_fLog2NumClusters+0.5);		// ridiculous
 	int nrClusters = (1<<g_iLog2NumClusters);
 	const int idx = ((REFLECTION_LIGHT*nrClusters + clustIdx)*nrTilesY + tileIDX.y)*nrTilesX + tileIDX.x;
 	uint dataPair = g_vLayeredOffsetsBuffer[idx];

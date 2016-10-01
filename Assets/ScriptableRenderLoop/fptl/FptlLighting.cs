@@ -58,9 +58,13 @@ namespace UnityEngine.ScriptableRenderLoop
 
         // clustered light list specific buffers and data begin
         const bool gEnableClustered = false;
-        int g_iLog2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
+        const bool gUseDepthBuffer = false;//true;      // only has an impact when gEnableClustered is true
+        const int g_iLog2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
+        const float m_clustLogBase = 1.02f;     // each slice 2% bigger than the previous
+        float m_clustScale;
         static private ComputeBuffer m_perVoxelLightLists;
         static private ComputeBuffer m_perVoxelOffset;
+        static private ComputeBuffer m_perTileLogBaseTweak;
         static private ComputeBuffer m_globalLightListAtomic;
         // clustered light list specific buffers and data end
 
@@ -166,7 +170,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             if(gEnableClustered)
             {
-                kGenListPerVoxelKernel = m_BuildPerVoxelLightListShader.FindKernel("TileLightListGen_NoDepthRT");
+                kGenListPerVoxelKernel = m_BuildPerVoxelLightListShader.FindKernel(gUseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
                 kClearVoxelAtomicKernel = m_BuildPerVoxelLightListShader.FindKernel("ClearAtomic");
                 m_BuildPerVoxelLightListShader.SetBuffer(kGenListPerVoxelKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
 			    m_BuildPerVoxelLightListShader.SetBuffer(kGenListPerVoxelKernel, "g_vLightData", m_lightDataBuffer);
@@ -271,14 +275,32 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		void DoTiledDeferredLighting(Camera camera, RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, ComputeBuffer lightList)
 		{
-			m_DeferredMaterial.SetBuffer("g_vLightList", lightList);
+            var cmd = new CommandBuffer();
+
+            if(gEnableClustered)
+            {
+                cmd.SetGlobalFloat("g_fClustScale", m_clustScale);
+                cmd.SetGlobalFloat("g_fClustBase", m_clustLogBase);
+                cmd.SetGlobalFloat("g_fNearPlane", camera.nearClipPlane);
+                cmd.SetGlobalFloat("g_fLog2NumClusters", (float) g_iLog2NumClusters);
+
+                m_DeferredMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
+                m_DeferredReflectionMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
+                if(gUseDepthBuffer)
+                {
+                    m_DeferredMaterial.SetBuffer("g_fModulUserscale", m_perTileLogBaseTweak);
+                    m_DeferredReflectionMaterial.SetBuffer("g_fModulUserscale", m_perTileLogBaseTweak);
+                }
+            }
+            
+			m_DeferredMaterial.SetBuffer("g_vLightList", gEnableClustered ? m_perVoxelLightLists : lightList);
 			m_DeferredReflectionMaterial.SetBuffer("g_vLightList", lightList);
 
 			m_DeferredMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
 			m_DeferredReflectionMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
 
 			m_DeferredMaterial.SetBuffer("g_dirLightData", m_dirLightList);
-			var cmd = new CommandBuffer();
+			
 			cmd.name = "DoTiledDeferredLighting";
 
 			//cmd.SetRenderTarget(new RenderTargetIdentifier(kGBufferEmission), new RenderTargetIdentifier(kGBufferZ));
@@ -535,7 +557,7 @@ namespace UnityEngine.ScriptableRenderLoop
 					//const float cotasa = l.GetCotanHalfSpotAngle();
 
 					// apply nonuniform scale to OBB of spot light
-					bool bSqueeze = sa < 0.7f * 90.0f;      // arb heuristic
+					bool bSqueeze = true;//sa < 0.7f * 90.0f;      // arb heuristic
 					float fS = bSqueeze ? ta : si;
 					boundData[i].vCen = worldToView.MultiplyPoint(lightPos + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
 
@@ -827,14 +849,14 @@ namespace UnityEngine.ScriptableRenderLoop
 			SetMatrixCS(cmd, m_BuildScreenAABBShader, "g_mInvProjection", invProjh);
 			cmd.SetComputeBufferParam(m_BuildScreenAABBShader, kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
 			cmd.ComputeDispatch(m_BuildScreenAABBShader, kGenAABBKernel, (numLights + 7) / 8, 1, 1);
-
+            
 			cmd.SetComputeIntParam(m_BuildPerTileLightListShader, "g_iNrVisibLights", numLights);
 			SetMatrixCS(cmd, m_BuildPerTileLightListShader, "g_mScrProjection", projscr);
 			SetMatrixCS(cmd, m_BuildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
 			cmd.SetComputeTextureParam(m_BuildPerTileLightListShader, kGenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(kCameraDepthTexture));
 			cmd.SetComputeBufferParam(m_BuildPerTileLightListShader, kGenListPerTileKernel, "g_vLightList", lightList);
 			cmd.ComputeDispatch(m_BuildPerTileLightListShader, kGenListPerTileKernel, nrTilesX, nrTilesY, 1);
-
+            
             if(gEnableClustered) VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
 
 			loop.ExecuteCommandBuffer(cmd);
@@ -888,6 +910,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 if(m_perVoxelOffset != null)
 				    m_perVoxelOffset.Release();
+
+                if(gUseDepthBuffer && m_perTileLogBaseTweak != null)
+                    m_perTileLogBaseTweak.Release();
             }
         }
 
@@ -908,8 +933,10 @@ namespace UnityEngine.ScriptableRenderLoop
 
             if(gEnableClustered)
             {
-                m_perVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1<<g_iLog2NumClusters) * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
-                m_perVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
+                m_perVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1<<g_iLog2NumClusters) * nrTiles, sizeof(uint));
+                m_perVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTiles, sizeof(uint));
+
+                if(gUseDepthBuffer) m_perTileLogBaseTweak = new ComputeBuffer(nrTiles, sizeof(float));
             }
         }
 
@@ -935,17 +962,18 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fFarPlane", farPlane);
 
             float C = (float) (1<<g_iLog2NumClusters);
-            const float logBase = 1.02f;     // each slice 2% bigger than the previous
-	        double geomSeries = (1.0 - Mathf.Pow(logBase, C))/(1-logBase);		// geometric series: sum_k=0^{C-1} base^k
-	        float scale = (float) (geomSeries/(farPlane-nearPlane));
+	        double geomSeries = (1.0 - Mathf.Pow(m_clustLogBase, C))/(1-m_clustLogBase);		// geometric series: sum_k=0^{C-1} base^k
+	        m_clustScale = (float) (geomSeries/(farPlane-nearPlane));
 
-            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fClustScale", scale);
-            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fClustBase", logBase);
+            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fClustScale", m_clustScale);
+            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fClustBase", m_clustLogBase);
 
 			cmd.SetComputeTextureParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_depth_tex", new RenderTargetIdentifier(kCameraDepthTexture));
 			cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_vLayeredLightList", m_perVoxelLightLists);
             cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_LayeredOffset", m_perVoxelOffset);
             cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_LayeredSingleIdxBuffer", m_globalLightListAtomic);
+
+            if(gUseDepthBuffer) cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_fModulUserscale", m_perTileLogBaseTweak);
 
             int nrTilesX = (camera.pixelWidth + 15) / 16;
 			int nrTilesY = (camera.pixelHeight + 15) / 16;
