@@ -93,6 +93,8 @@ Buffer<float> g_fModulUserscale;
 
 void GetLightCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth)
 {
+	g_iLog2NumClusters = (int) (g_fLog2NumClusters+0.5);		// ridiculous
+
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
 	float modulScale = g_fModulUserscale[tileIDX.y*nrTilesX + tileIDX.x];
 #else
@@ -100,7 +102,6 @@ void GetLightCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, i
 #endif
 	int clustIdx = SnapToClusterIdx(linDepth, modulScale);
 
-	g_iLog2NumClusters = (int) (g_fLog2NumClusters+0.5);		// ridiculous
 	int nrClusters = (1<<g_iLog2NumClusters);
 	const int idx = ((REFLECTION_LIGHT*nrClusters + clustIdx)*nrTilesY + tileIDX.y)*nrTilesX + tileIDX.x;
 	uint dataPair = g_vLayeredOffsetsBuffer[idx];
