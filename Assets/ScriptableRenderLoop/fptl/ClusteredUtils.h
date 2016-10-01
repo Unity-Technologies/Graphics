@@ -4,10 +4,10 @@
 
 int SnapToClusterIdx(float z_in, float fModulUserScale)
 {
-#ifndef LEFT_HAND_COORDINATES
-	float z = -z_in;
-#else
+#ifdef LEFT_HAND_COORDINATES
 	float z = z_in;
+#else
+	float z = -z_in;
 #endif
 
 	float userscale = g_fClustScale;

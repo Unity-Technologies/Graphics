@@ -332,7 +332,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 		for(int l=ll; l<min(iNrCoarseLights,(ll+4)); l++)
 		{
-			if(iSum<iSpaceAvail && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, fModulUserScale) )
+			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, fModulUserScale) )
 			{
 				uint lightModel = g_vLightData[ coarseList[l] ].uLightModel;
 				++modelListCount[ lightModel==REFLECTION_LIGHT ? 1 : 0];
@@ -441,7 +441,6 @@ float4 GetPlaneEq(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, co
 
 	return float4(vN, -dot(vN,p0));
 }
-
 
 
 float4 FetchPlane(int l, int p)
