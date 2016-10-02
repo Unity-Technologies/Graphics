@@ -18,14 +18,19 @@ Shader "Unity/DisneyGGX"
 
 		_NormalMap("NormalMap", 2D) = "bump" {}
 		[Enum(TangentSpace, 0, ObjectSpace, 1)] _MaterialID("NormalMap space", Float) = 0
+		
+		_HeightMap("HeightMap", 2D) = "black" {}
+		_HeightScale("Height Scale", Float) = 1
+		_HeightBias("Height Bias", Float) = 0
+		[Enum(Parallax, 0, Displacement, 1)] _MaterialID("Heightmap usage", Float) = 0			
 
 		_DiffuseLightingMap("DiffuseLightingMap", 2D) = "black" {}
-		_EmissiveColor("Emissive", Color) = (0, 0, 0)
+		_EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
 		_EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
 		_EmissiveIntensity("EmissiveIntensity", Float) = 0
 
 		_SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
-		//_SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
+		_SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
 		//_Thickness("Thickness", Range(0.0, 1.0)) = 0
 		//_ThicknessMap("ThicknessMap", 2D) = "white" {}
 		//_SubSurfaceProfile("SubSurfaceProfile", Float) = 0
@@ -52,6 +57,7 @@ Shader "Unity/DisneyGGX"
 		[HideInInspector] _SrcBlend ("__src", Float) = 1.0
 		[HideInInspector] _DstBlend ("__dst", Float) = 0.0
 		[HideInInspector] _ZWrite ("__zw", Float) = 1.0
+		[HideInInspector] _CullMode("__cullmode", Float) = 2.0 // Back by default: MEGA WARNING - if we override this, how it work with MIRROR ? (to check if the engine correctly flip stuff)
 		// Material Id
 		[HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
 	}
@@ -74,6 +80,7 @@ Shader "Unity/DisneyGGX"
 
 			Blend [_SrcBlend] [_DstBlend]
 			ZWrite [_ZWrite]
+			Cull [_CullMode]
 
 			CGPROGRAM
 			#pragma target 5.0
@@ -111,6 +118,8 @@ Shader "Unity/DisneyGGX"
 			Name "GBuffer"  // Name is not used
 			Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
+			Cull[_CullMode]
+
 			CGPROGRAM
 			#pragma target 5.0
 			#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
@@ -133,5 +142,5 @@ Shader "Unity/DisneyGGX"
 		}
 	}
 
-	//CustomEditor "DisneyGGXGUI"
+	// CustomEditor "DisneyGGXGUI"
 }

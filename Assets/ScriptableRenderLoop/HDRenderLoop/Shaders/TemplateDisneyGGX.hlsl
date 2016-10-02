@@ -30,6 +30,10 @@ sampler2D _SmoothnessMap;
 sampler2D _SpecularOcclusionMap;
 
 sampler2D _NormalMap;
+sampler2D _Heightmap;
+float _HeightScale;
+float _HeightBias;
+
 sampler2D _DiffuseLightingMap;
 float4 _EmissiveColor;
 sampler2D _EmissiveColorMap;
