@@ -9,7 +9,6 @@ using UnityEditor.Experimental.VFX;
 using UnityEditor.Experimental.Graph;
 
 using Object = UnityEngine.Object;
-using VFXBLKLibrary = UnityEditor.VFXBlockLibrary;
 
 namespace UnityEditor.Experimental
 {

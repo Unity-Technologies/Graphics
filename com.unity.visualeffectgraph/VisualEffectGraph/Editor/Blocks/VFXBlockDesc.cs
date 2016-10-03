@@ -149,50 +149,6 @@ namespace UnityEngine.Experimental.VFX
             m_CompatibleContexts = blockType.CompatibleContexts;
         }
 
-        // Constructor from legacy block
-        // TODO Remove that once blk files are no more used
-        internal VFXBlockDesc(VFXBlock block)
-        {
-            m_ID = block.m_Name + block.m_Hash;
-            m_Name = block.m_Name;
-            m_Icon = block.m_IconPath;
-            m_Category = block.m_Category.Length > 0 ? block.m_Category.Substring(0, block.m_Category.Length - 1) : block.m_Category; // remove the final '/'
-            m_Description = "";
-
-            m_FunctionName = new string((from c in (USE_SAFE_FUNCTION_NAME ? m_ID : m_Name) where char.IsLetterOrDigit(c) select c).ToArray());
-            m_Source = block.m_Source;
-            if (m_Source.StartsWith("\t"))
-                m_Source = m_Source.Substring(1);
-
-            m_Properties = new VFXProperty[block.m_Params.Length];
-            for (int i = 0; i < block.m_Params.Length; ++i)
-            {
-                VFXParam param = block.m_Params[i];
-                m_Properties[i] = new VFXProperty(VFXPropertyConverter.CreateSemantics(param.m_Type), param.m_Name);
-            }
-
-            m_Attributes = new VFXAttribute[block.m_Attribs.Length];
-            for (int i = 0; i < block.m_Attribs.Length; ++i)
-            {
-                VFXAttrib attrib = block.m_Attribs[i];
-                var attribute = new VFXAttribute();
-                attribute.m_Name = attrib.m_Param.m_Name;
-                attribute.m_Type = VFXPropertyConverter.ConvertType(attrib.m_Param.m_Type);
-                attribute.m_Writable = attrib.m_Writable;
-                m_Attributes[i] = attribute;
-            }
-
-            // Convert flag
-            m_Flags = Flag.kNone;
-            if ((block.m_Flags & (int)VFXBlock.Flag.kHasRand) != 0)
-                m_Flags |= Flag.kHasRand;
-            if ((block.m_Flags & (int)VFXBlock.Flag.kHasKill) != 0)
-                m_Flags |= Flag.kHasKill;
-
-            m_SlotHash = ComputeSlotHash();
-            m_CompatibleContexts = VFXContextDesc.Type.kAll;
-        }
-
         // SlotHash is useful to determine whether the list of properties has changed. In that case links and values in the slot cannot be deserialized and must be discarded.
         // Not that if the code of semantic types changes, the hash wont change causing possible errors when deserializing slots...
         private int ComputeSlotHash()

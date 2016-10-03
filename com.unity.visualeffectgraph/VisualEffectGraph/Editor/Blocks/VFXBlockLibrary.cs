@@ -5,8 +5,6 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-using VFXBLKLibrary = UnityEditor.VFXBlockLibrary;
-
 namespace UnityEditor.Experimental.VFX
 {
     public class VFXBlockLibrary
@@ -22,7 +20,6 @@ namespace UnityEditor.Experimental.VFX
             Clear();
             
             LoadFromAssemblies();
-            LoadFromBLK();
 
             LoadDataBlocks();
         }
@@ -56,30 +53,6 @@ namespace UnityEditor.Experimental.VFX
                 catch (Exception e)
                 {
                     Debug.LogError("Error while loading block desc from type " + blockType.FullName + ": " + e.Message);
-                }
-            }
-        }
-
-        private void LoadFromBLK()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:VFXBlockLibrary");
-            VFXBLKLibrary[] blkLibraries = new VFXBLKLibrary[guids.Length];
-            for (int i = 0; i < guids.Length; ++i)
-            {
-                blkLibraries[i] = AssetDatabase.LoadAssetAtPath<VFXBLKLibrary>(AssetDatabase.GUIDToAssetPath(guids[i]));
-                for (int j = 0; j < blkLibraries[i].GetNbBlocks(); ++j)
-                {
-                    VFXBlock block = blkLibraries[i].GetBlock(j);
-                    try
-                    {
-                        VFXBlockDesc desc = new VFXBlockDesc(block);
-                        m_Blocks.Add(desc.ID, desc);
-                        //Debug.Log("SLOTHASH FOR " + desc.ID + ": " + desc.SlotHash);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError("Error while loading block desc from legacy block " + block.m_Name + ": " + e.Message);
-                    }
                 }
             }
         }

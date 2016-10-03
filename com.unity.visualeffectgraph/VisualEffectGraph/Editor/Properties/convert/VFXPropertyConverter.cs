@@ -6,22 +6,6 @@ namespace UnityEngine.Experimental.VFX
     // TODO remove me when not needed anymore
     static class VFXPropertyConverter
     {
-        internal static VFXValueType ConvertType(VFXParam.Type type)
-        {
-            switch(type)
-            {
-                case VFXParam.Type.kTypeFloat:      return VFXValueType.kFloat;
-                case VFXParam.Type.kTypeFloat2:     return VFXValueType.kFloat2;
-                case VFXParam.Type.kTypeFloat3:     return VFXValueType.kFloat3;
-                case VFXParam.Type.kTypeFloat4:     return VFXValueType.kFloat4;
-                case VFXParam.Type.kTypeInt:        return VFXValueType.kInt;
-                case VFXParam.Type.kTypeUint:       return VFXValueType.kUint;
-                case VFXParam.Type.kTypeTexture2D:  return VFXValueType.kTexture2D;
-                case VFXParam.Type.kTypeTexture3D:  return VFXValueType.kTexture3D;
-                default:                            return VFXValueType.kNone;
-            }
-        }
-
         internal static VFXPropertyTypeSemantics CreateSemantics(VFXValueType type)
         {
             switch(type)
@@ -36,29 +20,6 @@ namespace UnityEngine.Experimental.VFX
                 case VFXValueType.kTexture3D:   return new VFXTexture3DType();
                 default:                        return null; 
             }
-        }
-
-        internal static VFXPropertyTypeSemantics CreateSemantics(VFXParam.Type type)
-        {
-            return CreateSemantics(ConvertType(type));
-        }
-
-        internal static VFXProperty CreateProperty(VFXParam param)
-        {
-            return new VFXProperty(CreateSemantics(ConvertType(param.m_Type)), param.m_Name);
-        }
-
-        internal static VFXProperty[] CreateProperties(VFXParam[] parameters)
-        {
-            if (parameters == null)
-                return null;
-
-            int nbProperties = parameters.Length;
-            var properties = new VFXProperty[nbProperties];
-            for (int i = 0; i < nbProperties; ++i)
-                properties[i] = CreateProperty(parameters[i]);
-
-            return properties;
         }
     }
 }
