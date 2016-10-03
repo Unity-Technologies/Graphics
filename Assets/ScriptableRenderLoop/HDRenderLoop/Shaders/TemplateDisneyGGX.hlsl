@@ -21,12 +21,10 @@
 // Set of users variables
 float4 _BaseColor;
 sampler2D _BaseColorMap;
-sampler2D _AmbientOcclusionMap;
 
 float _Mettalic;
-sampler2D MettalicMap;
 float _Smoothness;
-sampler2D _SmoothnessMap;
+sampler2D _MaskMap;
 sampler2D _SpecularOcclusionMap;
 
 sampler2D _NormalMap;
@@ -155,24 +153,52 @@ SurfaceData GetSurfaceData(Varyings input)
 	SurfaceData data;
 
 	float3 baseColor = tex2D(_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
+#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+	float alpha = _BaseColor.a;
+#else
 	float alpha = tex2D(_BaseColorMap, input.texCoord0).a * _BaseColor.a;
+#endif
 
 #if defined(_ALPHATEST_ON)
 	clip(alpha - _Cutoff);
 #endif
 
-	data.ambientOcclusion	= tex2D(_AmbientOcclusionMap, input.texCoord0).r;
+	// MaskMap is Mettalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
+#ifdef _MASKMAP
+	float mettalic = tex2D(_MaskMap, input.texCoord0).r;
+	data.ambientOcclusion = tex2D(_MaskMap, input.texCoord0).g;
+#else
+	float mettalic = 1.0f;
+	data.ambientOcclusion = 1.0;
+#endif
+	mettalic *= _Mettalic;
 
-	float mettalic			= tex2D(MettalicMap, input.texCoord0).r * _Mettalic;
-	data.perceptualSmoothness = tex2D(_SmoothnessMap, input.texCoord0).r * _Smoothness;
-	data.specularOcclusion	= tex2D(_SpecularOcclusionMap, input.texCoord0).r;
-
-	data.diffuseColor		= baseColor * (1.0f - mettalic);
+	data.diffuseColor = baseColor * (1.0f - mettalic);
 	float f0_dieletric = 0.04;
-	data.specularColor		= lerp(float3(f0_dieletric, f0_dieletric, f0_dieletric), baseColor, mettalic);
+	data.specularColor = lerp(float3(f0_dieletric, f0_dieletric, f0_dieletric), baseColor, mettalic);
+
+#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+	data.perceptualSmoothness = tex2D(_BaseColorMap, input.texCoord0).a;
+#elif _MASKMAP
+	data.perceptualSmoothness = tex2D(_MaskMap, input.texCoord0).a;
+#else
+	data.perceptualSmoothness = 1.0;
+#endif
+	data.perceptualSmoothness *= _Smoothness;
+
+#if _SPECULAROCCLUSIONMAP
+	// TODO: Do something. For now just take alpha channel
+	data.specularOcclusion = tex2D(_SpecularOcclusionMap, input.texCoord0).a;
+#else
+	// Horizon Occlusion for Normal Mapped Reflections: http://marmosetco.tumblr.com/post/81245981087
+	//data.specularOcclusion = saturate(1.0 + horizonFade * dot(r, input.tangentToWorld[2].xyz);
+	// smooth it
+	//data.specularOcclusion *= data.specularOcclusion;
+	data.specularOcclusion = 1.0;
+#endif
 
 	// TODO: think about using BC5
-#if 1 //_USE_NORMAL_MAP
+#if _NORMAL_MAP
 	
 	#if 1 //_USE_NORMAL_MAP_TANGENT_SPACE
 	float3 normalTS = UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
@@ -180,7 +206,6 @@ SurfaceData GetSurfaceData(Varyings input)
 	#else // Object space (TODO: We need to apply the world rotation here!)
 	data.normalWS = tex2D(_NormalMap, input.texCoord0).rgb;
 	#endif
-
 #else
 	data.normalWS = normalize(input.tangentToWorld[2].xyz);
 #endif
@@ -192,11 +217,18 @@ SurfaceData GetSurfaceData(Varyings input)
 	// Note that data input above can be use to sample into lightmap (like normal)
 	data.diffuseLighting = tex2D(_DiffuseLightingMap, input.texCoord0).rgb;
 
+	// If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
+#ifdef _EMISSIVE_COLOR
 	data.emissiveColor = tex2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
+#elif _MASKMAP // If we have a MaskMap, use emissive slot as a mask on baseColor
+	data.emissiveColor = data.baseColor * tex2D(_MaskMap, uv).b;
+#else
+	data.emissiveColor = float3(0.0f, 0.0f, 0.0f);
+#endif
+
 	data.emissiveIntensity = _EmissiveIntensity;
 
-
-	data.subSurfaceRadius = tex2D(_SubSurfaceRadiusMap, input.texCoord0).r * _SubSurfaceRadius;
+	data.subSurfaceRadius = 1.0f; // tex2D(_SubSurfaceRadiusMap, input.texCoord0).r * _SubSurfaceRadius;
 
 	// TODO
 	/*

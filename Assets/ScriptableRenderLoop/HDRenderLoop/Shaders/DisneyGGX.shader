@@ -8,12 +8,11 @@ Shader "Unity/DisneyGGX"
 		// Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
 		_BaseColor("BaseColor", Color) = (1,1,1,1) 
 		_BaseColorMap("BaseColorMap", 2D) = "white" {}
-		_AmbientOcclusionMap("AmbientOcclusion", 2D) = "white" {}
 
 		_Mettalic("Mettalic", Range(0.0, 1.0)) = 0
-		_MettalicMap("MettalicMap", 2D) = "white" {}
-		_Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
-		_SmoothnessMap("SmoothnessMap", 2D) = "white" {}
+		_Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5		
+		_MaskMap("MaskMap", 2D) = "white" {}
+
 		_SpecularOcclusionMap("SpecularOcclusion", 2D) = "white" {}
 
 		_NormalMap("NormalMap", 2D) = "bump" {}
@@ -47,9 +46,7 @@ Shader "Unity/DisneyGGX"
 		// Following options are for the GUI inspector and different from the input parameters above
 		// These option below will cause different compilation flag.		
 
-		[ToggleOff] _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-		[ToggleOff] _DoubleSided("Double Sided", Float) = 1.0
-		[ToggleOff] _DoubleSidedLigthing("Double Sided Lighting", Float) = 1.0		
+		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5	
 
 		// Blending state
 		[HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -60,6 +57,11 @@ Shader "Unity/DisneyGGX"
 		[HideInInspector] _CullMode("__cullmode", Float) = 2.0 // Back by default: MEGA WARNING - if we override this, how it work with MIRROR ? (to check if the engine correctly flip stuff)
 		// Material Id
 		[HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
+		[HideInInspector] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0
+
+		[Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
+		[Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
+		[Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 1
 	}
 
 	CGINCLUDE	
@@ -88,6 +90,14 @@ Shader "Unity/DisneyGGX"
 			
 			#pragma vertex VertDefault
 			#pragma fragment FragForward
+
+			#pragma shader_feature _NORMALMAP
+			#pragma shader_feature _MASKMAP
+			#pragma shader_feature _SPECULAROCCLUSIONMAP
+			#pragma shader_feature _ALPHATEST_ON
+			#pragma shader_feature _EMISSIVE_COLOR
+			#pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+			#pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 	
 			#include "TemplateDisneyGGX.hlsl"
 			
@@ -127,6 +137,14 @@ Shader "Unity/DisneyGGX"
 			#pragma vertex VertDefault
 			#pragma fragment FragDeferred
 
+			#pragma shader_feature _NORMALMAP
+			#pragma shader_feature _MASKMAP
+			#pragma shader_feature _SPECULAROCCLUSIONMAP
+			#pragma shader_feature _ALPHATEST_ON
+			#pragma shader_feature _EMISSIVE_COLOR
+			#pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+			#pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+
 			#include "TemplateDisneyGGX.hlsl"
 
 			void FragDeferred(	PackedVaryings packedInput,
@@ -142,5 +160,5 @@ Shader "Unity/DisneyGGX"
 		}
 	}
 
-	// CustomEditor "DisneyGGXGUI"
+	CustomEditor "DisneyGGXGUI"
 }
