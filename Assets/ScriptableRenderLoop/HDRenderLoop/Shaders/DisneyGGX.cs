@@ -38,6 +38,18 @@ internal class DisneyGGXGUI : ShaderGUI
         DoubleSidedLightingMirror,
     }
 
+    public enum NormalMapSpace
+    {
+        TangentSpace,
+        ObjectSpace,
+    }
+
+    public enum HeightmapMode
+    {
+        Parallax,
+        Displacement,
+    }
+
 	private static class Styles
 	{
         public static string OptionText = "Options";
@@ -73,8 +85,11 @@ internal class DisneyGGXGUI : ShaderGUI
         public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
 
         public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC5) - DXT5 for test");
+        public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
 
         public static GUIContent heightMapText = new GUIContent("Height Map", "Height Map");
+        public static GUIContent heightMapModeText = new GUIContent("Height Map Mode", "");
+        
 
          // public static GUIContent diffuseLightingMapText = new GUIContent("DiffuseLightingMap", "Lightmap/Lightprobe data (fill by system is not done");
 
@@ -97,9 +112,11 @@ internal class DisneyGGXGUI : ShaderGUI
     MaterialProperty maskMap = null;
 	MaterialProperty specularOcclusionMap = null;
 	MaterialProperty normalMap = null;
+    MaterialProperty normalMapSpace = null;
 	MaterialProperty heightMap = null;
 	MaterialProperty heightScale = null;
 	MaterialProperty heightBias = null;
+    MaterialProperty heightMapMode = null;
 //	MaterialProperty diffuseLightingMap = null;
 	MaterialProperty emissiveColor = null;
 	MaterialProperty emissiveColorMap = null;
@@ -107,16 +124,15 @@ internal class DisneyGGXGUI : ShaderGUI
 //	MaterialProperty subSurfaceRadius = null;
 //	MaterialProperty subSurfaceRadiusMap = null;
 
-	MaterialEditor m_MaterialEditor;
-	ColorPickerHDRConfig m_ColorPickerHDRConfig = new ColorPickerHDRConfig(0f, 99f, 1/99f, 3f);
+    
 
-	bool m_FirstTimeApply = true;
+	MaterialEditor m_MaterialEditor;
 
 	public void FindProperties (MaterialProperty[] props)
 	{
         surfaceType = FindProperty("_SurfaceType", props);
         blendMode = FindProperty("_BlendMode", props);
-        alphaCutoff = FindProperty("_Cutoff", props);
+        alphaCutoff = FindProperty("_AlphaCutoff", props);
         alphaCutoffEnable = FindProperty("_AlphaCutoffEnable", props);
         doubleSidedMode = FindProperty("_DoubleSidedMode", props);
         smoothnessMapChannel = FindProperty("_SmoothnessTextureChannel", props);
@@ -129,9 +145,11 @@ internal class DisneyGGXGUI : ShaderGUI
         maskMap = FindProperty("_MaskMap", props);
         specularOcclusionMap = FindProperty("_SpecularOcclusionMap", props);
         normalMap = FindProperty("_NormalMap", props);
+        normalMapSpace = FindProperty("_NormalMapSpace", props);
         heightMap = FindProperty("_HeightMap", props);
         heightScale = FindProperty("_HeightScale", props);
         heightBias = FindProperty("_HeightBias", props);
+        heightMapMode = FindProperty("_HeightMapMode", props);
         // diffuseLightingMap = FindProperty("_DiffuseLightingMap", props);
         emissiveColor = FindProperty("_EmissiveColor", props);
         emissiveColorMap = FindProperty("_EmissiveColorMap", props);
@@ -156,15 +174,15 @@ internal class DisneyGGXGUI : ShaderGUI
 		EditorGUI.BeginChangeCheck();
 		{
             GUILayout.Label(Styles.OptionText, EditorStyles.boldLabel);
-            SurfaceTypePopup();
+            SurfaceTypePopup();            
+            if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
+            {
+                BlendModePopup();
+            }
             m_MaterialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText.text);
             if (alphaCutoffEnable.floatValue == 1.0)
             {
                 m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText.text);
-            }
-            if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
-            {
-                BlendModePopup();
             }
             m_MaterialEditor.ShaderProperty(doubleSidedMode, Styles.doubleSidedModeText.text);
 
@@ -192,8 +210,10 @@ internal class DisneyGGXGUI : ShaderGUI
             m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
+            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);            
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap, heightScale, heightBias);
+            m_MaterialEditor.ShaderProperty(heightMapMode, Styles.heightMapModeText.text); 
             
             if (!useEmissiveMask)
             {
@@ -247,7 +267,7 @@ internal class DisneyGGXGUI : ShaderGUI
 		EditorGUI.showMixedValue = false;
 	}
 
-	public void SetupMaterialWithBlendMode(Material material, bool alphaTestEnable, SurfaceType surfaceType, BlendMode blendMode, DoubleSidedMode doubleSidedMode)
+	static public void SetupMaterialWithBlendMode(Material material, bool alphaTestEnable, SurfaceType surfaceType, BlendMode blendMode, DoubleSidedMode doubleSidedMode)
 	{
         if (alphaTestEnable)
             material.EnableKeyword("_ALPHATEST_ON");
@@ -295,20 +315,21 @@ internal class DisneyGGXGUI : ShaderGUI
             }
         }
 
-        if (doubleSidedMode == DoubleSidedMode.DoubleSided)
+        if (doubleSidedMode != DoubleSidedMode.None)
         {
             material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
         }
-        else if (doubleSidedMode == DoubleSidedMode.DoubleSided)
+
+        if (doubleSidedMode == DoubleSidedMode.DoubleSided)
         {
-            material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
             material.EnableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
+            material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
         }
         else
         {
-            material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
+            material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
             material.EnableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
-        }        
+        } 
 	}
 
 	static bool ShouldEmissionBeEnabled(Material mat, Color color)
@@ -319,15 +340,18 @@ internal class DisneyGGXGUI : ShaderGUI
             return false;
 	}
 
-	void SetMaterialKeywords(Material material)
+    static void SetMaterialKeywords(Material material)
 	{
         // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
         // (MaterialProperty value might come from renderer material property block)
         SetKeyword(material, "_NORMALMAP", material.GetTexture("_NormalMap"));
+        SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (NormalMapSpace)material.GetFloat("_NormalMapSpace") == NormalMapSpace.TangentSpace);
         SetKeyword(material, "_MASKMAP", material.GetTexture("_MaskMap"));
         SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture("_SpecularOcclusionMap"));
         SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat("_SmoothnessTextureChannel")) == SmoothnessMapChannel.AlbedoAlpha);
         SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat("_EmissiveColorMode")) == EmissiveColorMode.UseEmissiveColor);
+        SetKeyword(material, "_HEIGHTMAP", material.GetTexture("_HeightMap"));
+        SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", (HeightmapMode)material.GetFloat("_HeightMapMode") == HeightmapMode.Displacement);
 
         /*
 		// Setup lightmap emissive flags
@@ -359,14 +383,14 @@ internal class DisneyGGXGUI : ShaderGUI
         return true;
 	}
 
-	void MaterialChanged(Material material)
+    static void MaterialChanged(Material material)
 	{
-        SetupMaterialWithBlendMode(material, alphaCutoffEnable.floatValue == 1.0, (SurfaceType)surfaceType.floatValue, (BlendMode)blendMode.floatValue, (DoubleSidedMode)doubleSidedMode.floatValue);
+        SetupMaterialWithBlendMode(material, material.GetFloat("_AlphaCutoffEnable") == 1.0, (SurfaceType)material.GetFloat("_SurfaceType"), (BlendMode)material.GetFloat("_BlendMode"), (DoubleSidedMode)material.GetFloat("_DoubleSidedMode"));
 
 		SetMaterialKeywords(material);
 	}
 
-	void SetKeyword(Material m, string keyword, bool state)
+    static void SetKeyword(Material m, string keyword, bool state)
 	{
 		if (state)
 			m.EnableKeyword (keyword);
