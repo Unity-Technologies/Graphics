@@ -42,7 +42,7 @@ RWBuffer<uint> g_LayeredOffset : register( u1 );
 RWBuffer<uint> g_LayeredSingleIdxBuffer : register( u2 );
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-RWBuffer<float> g_fModulUserscale : register( u3 );
+RWBuffer<float> g_logBaseBuffer : register( u3 );
 #endif
 
 
@@ -114,15 +114,15 @@ float4 GetPlaneEq(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, co
 float4 FetchPlane(int l, int p);
 
 
-bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float fModulUserScale)
+bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float suggestedBase)
 {
 	unsigned int val = (clusterIdxs[l>>1]>>(16*(l&1)))&0xffff;
 	bool bIsHit = ((val>>0)&0xff)<=((uint) k) && ((uint) k)<=((val>>8)&0xff);
 	if(bIsHit)
 	{
 #ifdef CONV_HULL_TEST_ENABLED
-		float depthAtNearZ = ClusterIdxToZ(k, fModulUserScale);
-		float depthAtFarZ = ClusterIdxToZ(k+1, fModulUserScale);
+		float depthAtNearZ = ClusterIdxToZ(k, suggestedBase);
+		float depthAtFarZ = ClusterIdxToZ(k+1, suggestedBase);
 
 		for(int p=0; p<6; p++)
 		{
@@ -223,7 +223,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 	float3 vTileLL = float3(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight, 0.0);
-	float3 vTileUR = float3((viTilLL.x+16)/(float) iWidth, (viTilLL.y+16)/(float) iHeight, dpt_ma);
+	float3 vTileUR = float3((viTilLL.x+16)/(float) iWidth, (viTilLL.y+16)/(float) iHeight, 1.0);
 	vTileUR.xy = min(vTileUR.xy,float2(1.0,1.0)).xy;
 	
 
@@ -233,11 +233,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		const float3 vMi = g_vBoundsBuffer[l];
 		const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights];
 
-#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-		if( all(vMa.xy>vTileLL.xy) && all(vMi.xyz<vTileUR.xyz))
-#else
 		if( all(vMa.xy>vTileLL.xy) && all(vMi.xy<vTileUR.xy))
-#endif
 		{
 			unsigned int uInc = 1;
 			unsigned int uIndex;
@@ -263,11 +259,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #else
 	float fTileFarPlane = -GetLinearDepth(dpt_ma);
 #endif
-	float fDenom = fTileFarPlane - g_fNearPlane;
-	float fModulUserScale = fDenom>0.0 ? ((g_fFarPlane-g_fNearPlane)/fDenom) : 1.0;		// readjust to new range.
+	float suggestedBase = SuggestLogBase50(fTileFarPlane);
 #else
 	float fTileFarPlane = g_fFarPlane;
-	float fModulUserScale = 1.0;
+	float suggestedBase = g_fClustBase;
 #endif
 
 
@@ -285,10 +280,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		for(int l=(int) t; l<((iNrCoarseLights+1)>>1); l += NR_THREADS)
 		{
 			const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights)];
-			const unsigned int clustIdxMi0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z), fModulUserScale));
-			const unsigned int clustIdxMa0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0+g_iNrVisibLights].z), fModulUserScale));
-			const unsigned int clustIdxMi1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z), fModulUserScale));
-			const unsigned int clustIdxMa1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1+g_iNrVisibLights].z), fModulUserScale));
+			const unsigned int clustIdxMi0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0].z), suggestedBase));
+			const unsigned int clustIdxMa0 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0+g_iNrVisibLights].z), suggestedBase));
+			const unsigned int clustIdxMi1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1].z), suggestedBase));
+			const unsigned int clustIdxMa1 = (const unsigned int) min(255,SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1+g_iNrVisibLights].z), suggestedBase));
 
 			clusterIdxs[l] = (clustIdxMa1<<24) | (clustIdxMi1<<16) | (clustIdxMa0<<8) | (clustIdxMi0<<0);
 		}
@@ -332,7 +327,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 		for(int l=ll; l<min(iNrCoarseLights,(ll+4)); l++)
 		{
-			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, fModulUserScale) )
+			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase) )
 			{
 				uint lightModel = g_vLightData[ coarseList[l] ].uLightModel;
 				++modelListCount[ lightModel==REFLECTION_LIGHT ? 1 : 0];
@@ -359,7 +354,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	}
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-	g_fModulUserscale[tileIDX.y*nrTilesX + tileIDX.x] = fModulUserScale;
+	g_logBaseBuffer[tileIDX.y*nrTilesX + tileIDX.x] = suggestedBase;
 #endif
 }
 
