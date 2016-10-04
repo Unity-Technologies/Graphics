@@ -114,13 +114,14 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 uniform float g_fClustScale;
 uniform float g_fClustBase;
 uniform float g_fNearPlane;
+uniform float g_fFarPlane;
 //uniform int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
 uniform float g_fLog2NumClusters;
 static int g_iLog2NumClusters;
 
 Buffer<uint> g_vLayeredOffsetsBuffer;
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-Buffer<float> g_fModulUserscale;
+Buffer<float> g_logBaseBuffer;
 #endif
 
 #include "ClusteredUtils.h"
@@ -130,11 +131,11 @@ void GetLightCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, i
 	g_iLog2NumClusters = (int) (g_fLog2NumClusters+0.5);		// ridiculous
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-	float modulScale = g_fModulUserscale[tileIDX.y*nrTilesX + tileIDX.x];
+	float logBase = g_logBaseBuffer[tileIDX.y*nrTilesX + tileIDX.x];
 #else
-	float modulScale = 1.0;
+	float logBase = g_fClustBase;
 #endif
-	int clustIdx = SnapToClusterIdx(linDepth, modulScale);
+	int clustIdx = SnapToClusterIdx(linDepth, logBase);
 
 	int nrClusters = (1<<g_iLog2NumClusters);
 	const int idx = ((DIRECT_LIGHT*nrClusters + clustIdx)*nrTilesY + tileIDX.y)*nrTilesX + tileIDX.x;
@@ -297,7 +298,7 @@ half4 frag (v2f i) : SV_Target
 	GetLightCountAndStart(start, numLights, tileIDX, nrTilesX, nrTilesY, linDepth);
 
 	float3 c = ExecuteLightList(pixCoord, start, numLights, linDepth);
-	//c = OverlayHeatMap(numLights, c);
+	c = OverlayHeatMap(numLights, c);
 	return float4(c,1.0);
 }
 
