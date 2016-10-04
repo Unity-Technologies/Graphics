@@ -159,7 +159,7 @@ SurfaceData GetSurfaceData(Varyings input)
 	float alpha = tex2D(_BaseColorMap, input.texCoord0).a * _BaseColor.a;
 #endif
 
-#if defined(_ALPHATEST_ON)
+#ifdef _ALPHATEST_ON
 	clip(alpha - _Cutoff);
 #endif
 
@@ -179,14 +179,14 @@ SurfaceData GetSurfaceData(Varyings input)
 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 	data.perceptualSmoothness = tex2D(_BaseColorMap, input.texCoord0).a;
-#elif _MASKMAP
+#elif defined(_MASKMAP)
 	data.perceptualSmoothness = tex2D(_MaskMap, input.texCoord0).a;
 #else
 	data.perceptualSmoothness = 1.0;
 #endif
 	data.perceptualSmoothness *= _Smoothness;
 
-#if _SPECULAROCCLUSIONMAP
+#ifdef _SPECULAROCCLUSIONMAP
 	// TODO: Do something. For now just take alpha channel
 	data.specularOcclusion = tex2D(_SpecularOcclusionMap, input.texCoord0).a;
 #else
@@ -198,9 +198,8 @@ SurfaceData GetSurfaceData(Varyings input)
 #endif
 
 	// TODO: think about using BC5
-#if _NORMAL_MAP
-	
-	#if 1 //_USE_NORMAL_MAP_TANGENT_SPACE
+#ifdef _NORMALMAP
+	#ifdef _NORMALMAP_TANGENT_SPACE
 	float3 normalTS = UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
 	data.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
 	#else // Object space (TODO: We need to apply the world rotation here!)
