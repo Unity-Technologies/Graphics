@@ -14,7 +14,7 @@ Shader "Hidden/Unity/LightingDeferred"
 			ZWrite Off
 			Blend[_SrcBlend][_DstBlend]
 
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma target 5.0
 			#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
@@ -73,7 +73,7 @@ Shader "Hidden/Unity/LightingDeferred"
 				return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
 			}
 
-		ENDCG
+		ENDHLSL
 		}
 
 	}

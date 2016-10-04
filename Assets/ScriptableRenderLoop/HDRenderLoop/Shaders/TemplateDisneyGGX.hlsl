@@ -71,12 +71,20 @@ struct Varyings
 	float3 positionWS;
 	float2 texCoord0;
 	float4 tangentToWorld[3]; // [3x3:tangentToWorld | 1x3:viewDirForParallax]
+
+#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+	float cullFace;
+#endif
 };
 
 struct PackedVaryings
 {
 	float4 positionHS : SV_Position;
 	float4 interpolators[5] : TEXCOORD0;
+
+#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+	float cullFace : FACE;
+#endif
 };
 
 // Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
@@ -105,6 +113,10 @@ Varyings UnpackVaryings(PackedVaryings input)
 	output.tangentToWorld[0] = input.interpolators[1];
 	output.tangentToWorld[1] = input.interpolators[2];
 	output.tangentToWorld[2] = input.interpolators[3];
+
+#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+	output.cullFace = input.cullFace;
+#endif
 
 	return output;
 }
@@ -198,6 +210,8 @@ SurfaceData GetSurfaceData(Varyings input)
 #endif
 
 	// TODO: think about using BC5
+	float3 vertexNormalWS = input.tangentToWorld[2].xyz;
+
 #ifdef _NORMALMAP
 	#ifdef _NORMALMAP_TANGENT_SPACE
 	float3 normalTS = UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
@@ -206,8 +220,23 @@ SurfaceData GetSurfaceData(Varyings input)
 	data.normalWS = tex2D(_NormalMap, input.texCoord0).rgb;
 	#endif
 #else
-	data.normalWS = normalize(input.tangentToWorld[2].xyz);
+	data.normalWS = vertexNormalWS;
 #endif
+
+	/*
+#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+	#if defined(_DOUBLESIDED_LIGHTING_FLIP) 	
+	float oppositeNormalWS = -data.normalWS;
+	#else
+	// Mirror the normal with the plane define by vertex normal
+	float oppositeNormalWS = reflect(data.normalWS, vertexNormalWS);
+	#endif
+	// TODO : Test if GetOdddNegativeScale() is necessary here in case of normal map, as GetOdddNegativeScale is take into account in CreateTangentToWorld();
+	data.normalWS = (input.cullFace > 0.0 ? GetOdddNegativeScale() : -GetOdddNegativeScale()) >= 0.0 ? data.normalWS : oppositeNormalWS;
+
+	//data.normalWS = input.cullFace > 0.0 ? data.normalWS : data.normalWS;
+#endif
+	*/
 
 	data.materialId = 0;
 

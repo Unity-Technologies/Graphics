@@ -1,15 +1,14 @@
 // UNITY_SHADER_NO_UPGRADE
 
+#ifndef UNITY_SHADER_VARIABLES_INCLUDED
+#define UNITY_SHADER_VARIABLES_INCLUDED
+
 // CAUTION:
 // Currently the shaders compiler always include regualr Unity shaderVariables, so I get a conflict here were UNITY_SHADER_VARIABLES_INCLUDED is already define, this need to be fixed.
 // As I haven't change the variables name yet, I simply don't define anything, and I put the transform function at the end of the file outside the guard header.
 // This need to be fixed.
 
 float4x4 glstate_matrix_inv_projection;
-
-#ifndef UNITY_SHADER_VARIABLES_INCLUDED
-#define UNITY_SHADER_VARIABLES_INCLUDED
-
 #define UNITY_MATRIX_M unity_ObjectToWorld
 
 // These are updated per eye in VR
@@ -133,17 +132,15 @@ CBUFFER_START(UnityPerFrame)
 	float4x4 unity_MatrixVP;
 #endif
 	
-	fixed4 glstate_lightmodel_ambient;
-	fixed4 unity_AmbientSky;
-	fixed4 unity_AmbientEquator;
-	fixed4 unity_AmbientGround;
-	fixed4 unity_IndirectSpecColor;
+	float4 glstate_lightmodel_ambient;
+	float4 unity_AmbientSky;
+	float4 unity_AmbientEquator;
+	float4 unity_AmbientGround;
+	float4 unity_IndirectSpecColor;
 
 CBUFFER_END
 
 // ----------------------------------------------------------------------------
-
-#endif // UNITY_SHADER_VARIABLES_INCLUDED
 
 
 float4x4 GetObjectToWorldMatrix()
@@ -166,6 +163,11 @@ float4x4 GetWorldToHClipMatrix()
 float4x4 GetClipToHWorldMatrix()
 {
 	return glstate_matrix_inv_projection;
+}
+
+float GetOdddNegativeScale()
+{
+	return unity_WorldTransformParams.w;
 }
 
 
@@ -211,7 +213,7 @@ float4 TransformWorldToHClip(float3 positionWS)
 float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
 {
 	// For odd-negative scale transforms we need to flip the sign
-	float sign = tangentSign * unity_WorldTransformParams.w;
+	float sign = tangentSign * GetOdddNegativeScale();
 	float3 binormal = cross(normal, tangent) * sign;
 	
 	return float3x3(tangent, binormal, normal);
@@ -222,3 +224,5 @@ float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
 	return normalize(_WorldSpaceCameraPos.xyz - positionWS);
 }
+
+#endif // UNITY_SHADER_VARIABLES_INCLUDED

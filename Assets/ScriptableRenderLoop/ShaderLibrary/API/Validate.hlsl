@@ -1,6 +1,4 @@
-// Upgrade NOTE: replaced 'defined in' with 'defined (in)'
-
-// Wait for a fix from Trunk
+// Wait for a fix from Trunk #error not supported yet
 /*
 #define REQUIRE_DEFINED(X_) \
 	#ifndef X_  \
@@ -9,5 +7,10 @@
 
 REQUIRE_DEFINED(UNITY_UV_STARTS_AT_TOP)
 REQUIRE_DEFINED(UNITY_REVERSED_Z)
+REQUIRE_DEFINED(UNITY_NEAR_CLIP_VALUE)
+REQUIRE_DEFINED(FACE)
+
+REQUIRE_DEFINED(CBUFFER_START)
+REQUIRE_DEFINED(CBUFFER_END)
 
 */
