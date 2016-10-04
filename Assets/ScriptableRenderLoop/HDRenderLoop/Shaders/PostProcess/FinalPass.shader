@@ -11,6 +11,7 @@ Shader "Hidden/Unity/FinalPass"
 			#pragma fragment Frag
 			#pragma target 5.0
 
+			#include "../../../ShaderLibrary/Common.hlsl"
 			#include "../../../ShaderLibrary/Color.hlsl"
 			#include "../ShaderVariables.hlsl"
 
