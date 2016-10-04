@@ -178,12 +178,12 @@ float4x4 GetObjectToWorldViewMatrix()
 
 float3 TransformObjectToWorld(float3 positionOS)
 {
-	return mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0));
+	return mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0)).xyz;
 }
 
 float3 TransformObjectToView(float3 positionOS)
 {
-	return mul(GetObjectToWorldViewMatrix(), float4(positionOS, 1.0));
+	return mul(GetObjectToWorldViewMatrix(), float4(positionOS, 1.0)).xyz;
 }
 
 float3 TransformObjectToWorldDir(float3 dirOS)

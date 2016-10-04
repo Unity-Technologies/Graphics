@@ -198,6 +198,7 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
+            
 			// render opaque objects into GBuffer
 			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("GBuffer"));
 			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
@@ -248,6 +249,7 @@ namespace UnityEngine.ScriptableRenderLoop
             DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("Forward"));
             settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
             settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+            settings.inputCullingOptions.SetQueuesTransparent();
 
             renderLoop.DrawRenderers(ref settings);
         }
@@ -579,7 +581,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 RenderDeferredLighting(camera, renderLoop);
 
-       //        RenderForward(cullResults, camera, renderLoop);
+                RenderForward(cullResults, camera, renderLoop);
 
                 FinalPass(renderLoop);
 

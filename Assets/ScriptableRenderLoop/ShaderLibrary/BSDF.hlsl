@@ -9,7 +9,7 @@
 
 float F_Schlick(float f0, float f90, float u)
 {
-	float x		= 1.0f - u;
+	float x		= 1.0 - u;
 	float x5	= x * x;
 	x5			= x5 * x5 * x;
     return (f90 - f0) * x5 + f0; // sub mul mul mul sub mad
@@ -17,20 +17,20 @@ float F_Schlick(float f0, float f90, float u)
 
 float F_Schlick(float f0, float u)
 {
-    return F_Schlick(f0, 1.0f, u);
+    return F_Schlick(f0, 1.0, u);
 }
 
 float3 F_Schlick(float3 f0, float f90, float u)
 {
-	float x		= 1.0f - u;
+	float x		= 1.0 - u;
 	float x5	= x * x;
 	x5			= x5 * x5 * x;
-    return (f90 - f0) * x5 + f0; // sub mul mul mul sub mad
+	return (float3(f90, f90, f90) - f0) * x5 + f0; // sub mul mul mul sub mad
 }
 
 float3 F_Schlick(float3 f0, float u)
 {
-    return F_Schlick(f0, float3(1.0f, 1.0f, 1.0f), u);
+    return F_Schlick(f0, 1.0, u);
 }
 
 //-----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ float D_GGX(float NdotH, float roughness)
 {
 	roughness = max(roughness, UNITY_MIN_ROUGHNESS);
     float a2 = roughness * roughness;
-	float f = (NdotH * a2 - NdotH) * NdotH + 1.0f;
+	float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
     return INV_PI * a2 / (f * f);
 }
 
@@ -81,7 +81,7 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
 	half lambdaV = NdotL * (NdotV * (1 - a) + a);
 	half lambdaL = NdotV * (NdotL * (1 - a) + a);
 
-	return 0.5f / (lambdaV + lambdaL);
+	return 0.5 / (lambdaV + lambdaL);
 #endif
 }
 
@@ -100,8 +100,8 @@ float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float perceptualRough
 {
 	float fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
 	// Two schlick fresnel term
-	float lightScatter = F_Schlick(1.0f, fd90, NdotL);
-	float viewScatter = F_Schlick(1.0f, fd90, NdotV);
+	float lightScatter = F_Schlick(1.0, fd90, NdotL);
+	float viewScatter = F_Schlick(1.0, fd90, NdotV);
 
 	return INV_PI * lightScatter * viewScatter;
 }

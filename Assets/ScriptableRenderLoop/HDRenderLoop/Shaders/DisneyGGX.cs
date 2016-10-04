@@ -318,11 +318,15 @@ internal class DisneyGGXGUI : ShaderGUI
                     material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);                   
                     break;
             }
-        }        
+        }
 
-        if (doubleSidedMode != DoubleSidedMode.None)
+        if (doubleSidedMode != DoubleSidedMode.None || surfaceType == SurfaceType.Transparent)
         {
             material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
+        }
+        else
+        {
+            material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Back);
         }
 
         if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingFlip)

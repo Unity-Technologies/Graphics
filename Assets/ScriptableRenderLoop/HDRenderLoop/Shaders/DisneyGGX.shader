@@ -55,7 +55,7 @@ Shader "Unity/DisneyGGX"
 		[HideInInspector] _SrcBlend ("__src", Float) = 1.0
 		[HideInInspector] _DstBlend ("__dst", Float) = 0.0
 		[HideInInspector] _ZWrite ("__zw", Float) = 1.0
-		[HideInInspector] _CullMode("__cullmode", Float) = 2.0 // Back by default: MEGA WARNING - if we override this, how it work with MIRROR ? (to check if the engine correctly flip stuff)
+		[HideInInspector] _CullMode("__cullmode", Float) = 2.0 // Back by default: MEGA WARNING - if we override this, how it work with reflection plane ? (to check if the engine correctly flip stuff)
 		// Material Id
 		[HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
 
@@ -118,7 +118,7 @@ Shader "Unity/DisneyGGX"
 				float4 specularLighting;
 				ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
 
-				return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
+				return float4(diffuseLighting.rgb + specularLighting.rgb, surfaceData.opacity);
 			}
 
 			ENDHLSL
@@ -131,7 +131,7 @@ Shader "Unity/DisneyGGX"
 			Name "GBuffer"  // Name is not used
 			Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
-			Cull[_CullMode]
+			Cull [_CullMode]
 
 			HLSLPROGRAM
 			#pragma target 5.0
