@@ -153,6 +153,29 @@ Shader "Unity/DisneyGGX"
 
 			ENDCG
 		}
+
+		// ------------------------------------------------------------------
+		// Extracts information for lightmapping, GI (emission, albedo, ...)
+		// This pass it not used during regular rendering.
+		Pass
+		{
+			Name "META" 
+			Tags { "LightMode"="Meta" }
+
+			Cull Off
+
+			CGPROGRAM
+			#pragma vertex VertDefault
+			#pragma fragment FragMeta
+
+			#pragma shader_feature _EMISSION
+			#pragma shader_feature _METALLICGLOSSMAP
+			#pragma shader_feature _ _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+			#pragma shader_feature ___ _DETAIL_MULX2
+
+
+			ENDCG
+		}
 	}
 
 	CustomEditor "DisneyGGXGUI"

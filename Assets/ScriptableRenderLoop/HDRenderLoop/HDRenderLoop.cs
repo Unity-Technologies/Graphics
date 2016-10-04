@@ -571,11 +571,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				//UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
 
-                UpdatePunctualLights(cullResults.culledLights);
+				UpdatePunctualLights(cullResults.culledLights);
 
-                InitAndClearBuffer(camera, renderLoop);
+				InitAndClearBuffer(camera, renderLoop);
 
-               RenderGBuffer(cullResults, camera, renderLoop);
+				RenderGBuffer(cullResults, camera, renderLoop);
 
                 RenderDeferredLighting(camera, renderLoop);
 
