@@ -64,7 +64,7 @@ Shader "Unity/DisneyGGX"
 		[Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 1
 	}
 
-	CGINCLUDE	
+	HLSLINCLUDE
 
 	#pragma shader_feature _ALPHATEST_ON
 	#pragma shader_feature _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
@@ -77,7 +77,7 @@ Shader "Unity/DisneyGGX"
 	#pragma shader_feature _HEIGHTMAP
 	#pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
 
-	ENDCG
+	ENDHLSL
 
 	SubShader
 	{
@@ -95,7 +95,7 @@ Shader "Unity/DisneyGGX"
 			ZWrite [_ZWrite]
 			Cull [_CullMode]
 
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma target 5.0
 			#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 			
@@ -121,7 +121,7 @@ Shader "Unity/DisneyGGX"
 				return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
 			}
 
-			ENDCG
+			ENDHLSL
 		}
 
 		// ------------------------------------------------------------------
@@ -133,7 +133,7 @@ Shader "Unity/DisneyGGX"
 
 			Cull[_CullMode]
 
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma target 5.0
 			#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 			
@@ -151,7 +151,7 @@ Shader "Unity/DisneyGGX"
 				ENCODE_INTO_GBUFFER(surfaceData, outGBuffer);
 			}
 
-			ENDCG
+			ENDHLSL
 		}
 	}
 
