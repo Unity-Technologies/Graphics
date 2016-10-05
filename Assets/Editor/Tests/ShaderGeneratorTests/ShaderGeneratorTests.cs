@@ -89,8 +89,8 @@ public class ShaderGeneratorTests
 		return foundError;
 	}
 
-	[Test]
-	public void Fail_NestedWithNonPrimitiveType()
+	[Test(Description = "Disallow non-primitive types in nested structs")]
+    public void Fail_NestedWithNonPrimitiveType()
 	{
 		string source;
 		List<string> errors;
@@ -100,8 +100,8 @@ public class ShaderGeneratorTests
 		Assert.IsTrue(HasErrorString(errors, "contains a non-primitive field type"));
 	}
 
-	[Test]
-	public void Fail_UnsupportedPrimitiveType()
+	[Test(Description = "Check for unsupported types in primitive structs")]
+    public void Fail_UnsupportedPrimitiveType()
 	{
 		string source;
 		List<string> errors;
@@ -111,7 +111,7 @@ public class ShaderGeneratorTests
 		Assert.IsTrue(HasErrorString(errors, "contains an unsupported field type"));
 	}
 
-	[Test]
+	[Test(Description = "Disallow mixed types in nested structs")]
 	public void Fail_MixedTypesInNestedStruct()
 	{
 		string source;
@@ -122,19 +122,19 @@ public class ShaderGeneratorTests
 		Assert.IsTrue(HasErrorString(errors, "contains mixed basic types"));
 	}
 
-	[Test]
-	public void Fail_TooManyFields()
+	[Test(Description = "Disallow more than 16 bytes worth of fields in nested structs")]
+    public void Fail_TooManyFields()
 	{
 		string source;
 		List<string> errors;
 
-		bool success = CSharpToHLSL.GenerateHLSL(typeof(FailureTypes.TooManyFields), new GenerateHLSL(PackingRules.Aggressive), out source, out errors);
+		bool success = CSharpToHLSL.GenerateHLSL(typeof(FailureTypes.TooManyFields), new GenerateHLSL(PackingRules.Exact), out source, out errors);
 		Assert.IsFalse(success);
 		Assert.IsTrue(HasErrorString(errors, "more than 4 fields"));
 	}
 
-	[Test]
-	public void Fail_MergeIncompatibleTypes()
+	[Test(Description = "Disallow merging incompatible types when doing aggressive packing")]
+    public void Fail_MergeIncompatibleTypes()
 	{
 		string source;
 		List<string> errors;
@@ -144,8 +144,8 @@ public class ShaderGeneratorTests
 		Assert.IsTrue(HasErrorString(errors, "incompatible types"));
 	}
 
-	[Test]
-	public void Fail_MergeCrossBoundary()
+	[Test(Description = "Disallow placing fields across register boundaries when merging")]
+    public void Fail_MergeCrossBoundary()
 	{
 		string source;
 		List<string> errors;
