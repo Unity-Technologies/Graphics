@@ -225,20 +225,21 @@ namespace UnityEngine.ScriptableRenderLoop
             }
 		}
 
-		static void SetupGBuffer(CommandBuffer cmd)
+		static void SetupGBuffer(int width, int height, CommandBuffer cmd)
 		{
 			var format10 = RenderTextureFormat.ARGB32;
 			if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010))
 				format10 = RenderTextureFormat.ARGB2101010;
-			//@TODO: GetGraphicsCaps().buggyMRTSRGBWriteFlag
-			cmd.GetTemporaryRT(kGBufferAlbedo, -1, -1, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
-			cmd.GetTemporaryRT(kGBufferSpecRough, -1, -1, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
-			cmd.GetTemporaryRT(kGBufferNormal, -1, -1, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
-			cmd.GetTemporaryRT(kGBufferEmission, -1, -1, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear); //@TODO: HDR
-			cmd.GetTemporaryRT(kGBufferZ, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
-			cmd.GetTemporaryRT(kCameraDepthTexture, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
 
-			cmd.GetTemporaryRT(kCameraTarget, -1, -1, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
+			//@TODO: GetGraphicsCaps().buggyMRTSRGBWriteFlag
+			cmd.GetTemporaryRT(kGBufferAlbedo, width, height, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
+			cmd.GetTemporaryRT(kGBufferSpecRough, width, height, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
+			cmd.GetTemporaryRT(kGBufferNormal, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
+			cmd.GetTemporaryRT(kGBufferEmission, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear); //@TODO: HDR
+			cmd.GetTemporaryRT(kGBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
+			cmd.GetTemporaryRT(kCameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
+
+			cmd.GetTemporaryRT(kCameraTarget, width, height, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
 
 			var colorMRTs = new RenderTargetIdentifier[4] { kGBufferAlbedo, kGBufferSpecRough, kGBufferNormal, kGBufferEmission };
 			cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(kGBufferZ));
@@ -252,7 +253,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			// setup GBuffer for rendering
 			var cmd = new CommandBuffer();
 			cmd.name = "Create G-Buffer";
-			SetupGBuffer(cmd);
+			SetupGBuffer(camera.pixelWidth, camera.pixelHeight, cmd);
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
