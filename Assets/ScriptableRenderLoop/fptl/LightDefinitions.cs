@@ -1,4 +1,5 @@
-//#define LEFT_HAND_COORDINATES
+using UnityEngine;
+
 [UnityEngine.ScriptableRenderLoop.GenerateHLSL]
 public struct SFiniteLightData
 {
@@ -8,55 +9,55 @@ public struct SFiniteLightData
     public uint uLightType;
     public uint uLightModel;        // DIRECT_LIGHT=0, REFLECTION_LIGHT=1
 
-    public Vec3 vLpos;
+    public Vector3 vLpos;
     public float fLightIntensity;
     
-	public Vec3 vLaxisX;
+	public Vector3 vLaxisX;
     public float fRecipRange;
 
-	public Vec3 vLaxisY;
+	public Vector3 vLaxisY;
 	public float fSphRadiusSq;
 
-    public Vec3 vLaxisZ;      // spot +Z axis
+    public Vector3 vLaxisZ;      // spot +Z axis
     public float cotan;
 	
-	public Vec3	vCol;
+	public Vector3	vCol;
 	public int iSliceIndex;
 
-    public Vec3 vBoxInnerDist;
+    public Vector3 vBoxInnerDist;
     public float fDecodeExp;
 
-    public Vec3 vBoxInvRange;
+    public Vector3 vBoxInvRange;
 	public uint uShadowLightIndex;
 
-    public Vec3 vLocalCubeCapturePoint;
+    public Vector3 vLocalCubeCapturePoint;
     public float fProbeBlendDistance;
 };
 
 [UnityEngine.ScriptableRenderLoop.GenerateHLSL]
 public struct SFiniteLightBound
 {
-    public Vec3 vBoxAxisX;
-    public Vec3 vBoxAxisY;
-    public Vec3 vBoxAxisZ;
-    public Vec3 vCen;		// a center in camera space inside the bounding volume of the light source.
-    public Vec2 vScaleXY;
+    public Vector3 vBoxAxisX;
+    public Vector3 vBoxAxisY;
+    public Vector3 vBoxAxisZ;
+    public Vector3 vCen;		// a center in camera space inside the bounding volume of the light source.
+    public Vector2 vScaleXY;
     public float fRadius;
 };
 
 [UnityEngine.ScriptableRenderLoop.GenerateHLSL]
 public struct DirectionalLight
 {
-	public Vec3 vCol;
+	public Vector3 vCol;
 	public float fLightIntensity;
 
-	public Vec3 vLaxisX;
+	public Vector3 vLaxisX;
 	public uint uShadowLightIndex;
 
-	public Vec3 vLaxisY;
+	public Vector3 vLaxisY;
 	public float fPad0;
 
-	public Vec3 vLaxisZ;
+	public Vector3 vLaxisZ;
 	public float fPad1;
 };
 

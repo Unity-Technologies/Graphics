@@ -300,7 +300,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     float lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
                     float lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
 
-                    l.color = new Vec3(lightColorR, lightColorG, lightColorB);
+                    l.color.Set(lightColorR, lightColorG, lightColorB);
 
                     // Light direction is opposite to the forward direction
                     l.forward = -light.light.transform.forward;
