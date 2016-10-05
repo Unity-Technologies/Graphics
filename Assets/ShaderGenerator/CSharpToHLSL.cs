@@ -106,16 +106,15 @@ namespace UnityEngine.ScriptableRenderLoop
 				{ 
 					using (System.IO.StreamWriter writer = File.CreateText(fileName))
 					{
-						writer.WriteLine("//");
-						writer.WriteLine("// This file was automatically generated from " + it.Key + ".  Please don't edit by hand.");
-						writer.WriteLine("//");
-						writer.WriteLine();
+						writer.Write("//\n");
+						writer.Write("// This file was automatically generated from " + it.Key + ".  Please don't edit by hand.\n");
+						writer.Write("//\n\n");
 
 						foreach (var gen in it.Value)
 						{
 							if (gen.hasStatics)
 							{
-								writer.WriteLine(gen.EmitDefines());
+								writer.Write(gen.EmitDefines() + "\n");
 							}
 						}
 
@@ -123,7 +122,7 @@ namespace UnityEngine.ScriptableRenderLoop
 						{
 							if (gen.hasFields)
 							{
-								writer.WriteLine(gen.EmitTypeDecl());
+								writer.Write(gen.EmitTypeDecl() + "\n");
 							}
 						}
 
@@ -131,11 +130,11 @@ namespace UnityEngine.ScriptableRenderLoop
 						{
 							if (gen.hasFields)
 							{
-								writer.WriteLine(gen.EmitAccessors());
+								writer.Write(gen.EmitAccessors() + "\n");
 							}
 						}
 						
-						writer.WriteLine();
+						writer.Write("\n");
 					}
 				}
 			}
