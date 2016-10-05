@@ -480,7 +480,7 @@ float4 EvalPlanePair(float2 posXY_in, float r)
 	res.w = (-r-res.z*posXY.x) / posXY.y;
 
 	// rotate back by 90 degrees
-	res = bMustFlip ? Vec4(res.y, -res.x, res.w, -res.z) : res;
+	res = bMustFlip ? float4(res.y, -res.x, res.w, -res.z) : res;
 
 	return res;
 }
