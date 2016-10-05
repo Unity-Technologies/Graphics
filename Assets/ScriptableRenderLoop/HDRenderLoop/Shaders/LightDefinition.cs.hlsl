@@ -6,40 +6,40 @@
 // PackingRules = Exact
 struct PunctualLightData
 {
-	float3 positionWS; // x: x y: y z: z 
+	float3 positionWS;
 	float invSqrAttenuationRadius;
-	float3 color; // x: x y: y z: z 
+	float3 color;
 	float useDistanceAttenuation;
-	float3 forward; // x: x y: y z: z 
+	float3 forward;
 	float diffuseScale;
-	float3 up; // x: x y: y z: z 
+	float3 up;
 	float specularScale;
-	float3 right; // x: x y: y z: z 
+	float3 right;
 	float shadowDimmer;
 	float angleScale;
 	float angleOffset;
-	float2 unused2; // x: x y: y 
+	float2 unused2;
 };
 
 // Generated from UnityEngine.ScriptableRenderLoop.AreaLightData
 // PackingRules = Exact
 struct AreaLightData
 {
-	float3 positionWS; // x: x y: y z: z 
+	float3 positionWS;
 };
 
 // Generated from UnityEngine.ScriptableRenderLoop.EnvLightData
 // PackingRules = Exact
 struct EnvLightData
 {
-	float3 positionWS; // x: x y: y z: z 
+	float3 positionWS;
 };
 
 // Generated from UnityEngine.ScriptableRenderLoop.PlanarLightData
 // PackingRules = Exact
 struct PlanarLightData
 {
-	float3 positionWS; // x: x y: y z: z 
+	float3 positionWS;
 };
 
 //

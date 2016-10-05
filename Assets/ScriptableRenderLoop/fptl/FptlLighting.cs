@@ -377,7 +377,7 @@ namespace UnityEngine.ScriptableRenderLoop
 					l.vLaxisY = vy;
 					l.vLaxisZ = vz;
 					
-					l.vCol = new Vec3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
+					l.vCol.Set(light.finalColor.r, light.finalColor.g, light.finalColor.b);
 					l.fLightIntensity = light.light.intensity;
 
 					lights.Add(l);
@@ -503,15 +503,15 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				Vector3 lightPos = lightToWorld.GetColumn(3);
 
-				boundData[i].vBoxAxisX = new Vec3(1, 0, 0);
-				boundData[i].vBoxAxisY = new Vec3(0, 1, 0);
-				boundData[i].vBoxAxisZ = new Vec3(0, 0, 1);
-				boundData[i].vScaleXY = new Vec2(1.0f, 1.0f);
+				boundData[i].vBoxAxisX.Set(1, 0, 0);
+				boundData[i].vBoxAxisY.Set(0, 1, 0);
+				boundData[i].vBoxAxisZ.Set(0, 0, 1);
+				boundData[i].vScaleXY.Set(1.0f, 1.0f);
 				boundData[i].fRadius = range;
 
 				lightData[i].flags = 0;
 				lightData[i].fRecipRange = 1.0f / range;
-				lightData[i].vCol = new Vec3(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
+				lightData[i].vCol.Set(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
 				lightData[i].iSliceIndex = 0;
 				lightData[i].uLightModel = (uint)LightDefinitions.DIRECT_LIGHT;
 				lightData[i].uShadowLightIndex = shadowLightIndex;
@@ -582,7 +582,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					float fAltDist = Mathf.Sqrt(fAltDy * fAltDy + (bIsCircularSpot ? 1.0f : 2.0f) * fAltDx * fAltDx);
 					boundData[i].fRadius = fAltDist > (0.5f * range) ? fAltDist : (0.5f * range);       // will always pick fAltDist
-					boundData[i].vScaleXY = bSqueeze ? new Vec2(0.01f, 0.01f) : new Vec2(1.0f, 1.0f);
+					boundData[i].vScaleXY = bSqueeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
 
 					// fill up ldata
 					lightData[i].uLightType = (uint)LightDefinitions.SPOT_LIGHT;
@@ -603,10 +603,10 @@ namespace UnityEngine.ScriptableRenderLoop
 					}
 
 					boundData[i].vCen = worldToView.MultiplyPoint(lightPos);
-					boundData[i].vBoxAxisX = new Vec3(range, 0, 0);
-					boundData[i].vBoxAxisY = new Vec3(0, range, 0);
-					boundData[i].vBoxAxisZ = new Vec3(0, 0, -range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-					boundData[i].vScaleXY = new Vec2(1.0f, 1.0f);
+					boundData[i].vBoxAxisX.Set(range, 0, 0);
+					boundData[i].vBoxAxisY.Set(0, range, 0);
+					boundData[i].vBoxAxisZ.Set(0, 0, -range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+					boundData[i].vScaleXY.Set(1.0f, 1.0f);
 					boundData[i].fRadius = range;
 
                     // represents a left hand coordinate system in world space since det(worldToView)<0
@@ -705,13 +705,13 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					Vector3 delta = combinedExtent - e;
 					lightData[i].vBoxInnerDist = e;
-					lightData[i].vBoxInvRange = new Vec3(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+					lightData[i].vBoxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
 
 					boundData[i].vCen = Cw;
 					boundData[i].vBoxAxisX = combinedExtent.x * vx;
 					boundData[i].vBoxAxisY = combinedExtent.y * vy;
 					boundData[i].vBoxAxisZ = combinedExtent.z * vz;
-					boundData[i].vScaleXY = new Vec2(1.0f, 1.0f);
+					boundData[i].vScaleXY.Set(1.0f, 1.0f);
 					boundData[i].fRadius = combinedExtent.magnitude;
 
 					// fill up ldata
