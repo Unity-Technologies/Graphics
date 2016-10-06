@@ -70,7 +70,7 @@ Shader "Unity/DisneyGGX"
 	HLSLINCLUDE
 
 	#pragma shader_feature _ALPHATEST_ON
-	#pragma shader_feature _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+	#pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 	#pragma shader_feature _NORMALMAP
 	#pragma shader_feature _NORMALMAP_TANGENT_SPACE
 	#pragma shader_feature _MASKMAP
