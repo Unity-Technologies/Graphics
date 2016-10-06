@@ -9,7 +9,7 @@ Material:
   m_Name: rcgRock012Material
   m_Shader: {fileID: 4800000, guid: e1a84346ee54f9f4993c2f05c59805a0, type: 3}
   m_ShaderKeywords: _DOUBLESIDEDLIGTHING_OFF _DOUBLESIDED_OFF _EMISSION _METALLICGLOSSMAP
-    _NORMALMAP
+    _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -138,6 +138,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - first:
+        name: _AlphaCutoff
+      second: 0.5
+    - first:
         name: _AlphaCutoffEnable
       second: 0
     - first:
@@ -192,6 +195,9 @@ Material:
         name: _HeightBias
       second: 0
     - first:
+        name: _HeightMapMode
+      second: 0
+    - first:
         name: _HeightScale
       second: -1.07
     - first:
@@ -208,6 +214,9 @@ Material:
       second: 0
     - first:
         name: _Mode
+      second: 0
+    - first:
+        name: _NormalMapSpace
       second: 0
     - first:
         name: _OcclusionStrength
