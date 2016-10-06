@@ -62,30 +62,12 @@ namespace UnityEngine.ScriptableRenderLoop
 			get { return m_DebugParameters; }
 		}
 
-
-		//HDRenderLoopDebugMenu m_DebugMenu = null;
-
 		#if UNITY_EDITOR
-		[MenuItem("Renderloop/HDRenderLoop/CreateHDRenderLoop")]
+		[MenuItem("Renderloop/CreateHDRenderLoop")]
 		static void CreateHDRenderLoop()
 		{
 			var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
 			UnityEditor.AssetDatabase.CreateAsset(instance, m_HDRenderLoopPath);
-		}
-		[MenuItem("Renderloop/HDRenderLoop/DebugMenu")]
-		static void DebugMenu()
-		{
-			HDRenderLoop renderLoop = AssetDatabase.LoadAssetAtPath(m_HDRenderLoopPath, typeof(HDRenderLoop)) as HDRenderLoop;
-			if(renderLoop != null)
-			{
-				//renderLoop.ToggleDebugMenu();
-				if (renderLoop.debugParameters.materialDebugMode == HDRenderLoop.MaterialDebugMode.None)
-					renderLoop.debugParameters.materialDebugMode = HDRenderLoop.MaterialDebugMode.Normal;
-				else
-					renderLoop.debugParameters.materialDebugMode = HDRenderLoop.MaterialDebugMode.None;
-
-				EditorUtility.SetDirty(renderLoop);
-			}
 		}
 		#endif
 
@@ -763,16 +745,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			// Post effects
 		}
-
-		//void ToggleDebugMenu()
-		//{
-		//	if(m_DebugMenu == null)
-		//	{
-		//		m_DebugMenu = new HDRenderLoopDebugMenu(this);
-		//	}
-
-		//	m_DebugMenu.Toggle();
-		//}
 
 		#if UNITY_EDITOR
 		public override UnityEditor.SupportedRenderingFeatures GetSupportedRenderingFeatures()
