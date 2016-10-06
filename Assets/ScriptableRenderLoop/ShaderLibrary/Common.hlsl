@@ -165,4 +165,15 @@ float3 UnprojectToWorld(float depth, float2 screenPos, float4x4 invViewProjectio
 	return hpositionWS.xyz / hpositionWS.w;
 }
 
+// Z buffer to linear 0..1 depth
+float Linear01Depth(float depth, float4 zBufferParam)
+{
+    return 1.0 / (zBufferParam.x * depth + zBufferParam.y);
+}
+// Z buffer to linear depth
+float LinearEyeDepth(float depth, float4 zBufferParam)
+{
+    return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
+}
+
 #endif // UNITY_COMMON_INCLUDED
