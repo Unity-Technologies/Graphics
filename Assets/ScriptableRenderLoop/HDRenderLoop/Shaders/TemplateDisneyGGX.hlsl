@@ -268,8 +268,12 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
 	// If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
 #ifdef _EMISSIVE_COLOR
+	#ifdef _EMISSIVE_COLOR_MAP
 	builtinData.emissiveColor = tex2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
-#elif _MASKMAP // If we have a MaskMap, use emissive slot as a mask on baseColor
+	#else
+	builtinData.emissiveColor = _EmissiveColor;
+	#endif
+#elif defined(_MASKMAP) // If we have a MaskMap, use emissive slot as a mask on baseColor
 	builtinData.emissiveColor = baseColor * tex2D(_MaskMap, input.texCoord0).bbb;
 #else
 	builtinData.emissiveColor = float3(0.0, 0.0, 0.0);

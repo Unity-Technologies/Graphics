@@ -23,11 +23,6 @@ Shader "Unity/DisneyGGX"
 		_HeightBias("Height Bias", Float) = 0
 		[Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0			
 
-		_DiffuseLightingMap("DiffuseLightingMap", 2D) = "black" {}
-		_EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
-		_EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
-		_EmissiveIntensity("EmissiveIntensity", Float) = 0
-
 		_SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
 		_SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
 		//_Thickness("Thickness", Range(0.0, 1.0)) = 0
@@ -44,7 +39,12 @@ Shader "Unity/DisneyGGX"
 		// _DistortionBlur("DistortionBlur", Range(0.0, 1.0)) = 0
 
 		// Following options are for the GUI inspector and different from the input parameters above
-		// These option below will cause different compilation flag.		
+		// These option below will cause different compilation flag.	
+
+		_DiffuseLightingMap("DiffuseLightingMap", 2D) = "black" {}
+		_EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
+		_EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
+		_EmissiveIntensity("EmissiveIntensity", Float) = 0
 
 		[ToggleOff]		_DistortionOnly("Distortion Only", Float) = 0.0
 		[ToggleOff]		_DistortionDepthTest("Distortion Only", Float) = 0.0
@@ -58,7 +58,7 @@ Shader "Unity/DisneyGGX"
 		[HideInInspector] _SrcBlend ("__src", Float) = 1.0
 		[HideInInspector] _DstBlend ("__dst", Float) = 0.0
 		[HideInInspector] _ZWrite ("__zw", Float) = 1.0
-		[HideInInspector] _CullMode("__cullmode", Float) = 2.0 // Back by default: MEGA WARNING - if we override this, how it work with reflection plane ? (to check if the engine correctly flip stuff)
+		[HideInInspector] _CullMode("__cullmode", Float) = 2.0
 		// Material Id
 		[HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
 
@@ -69,6 +69,9 @@ Shader "Unity/DisneyGGX"
 
 	HLSLINCLUDE
 
+	#pragma target 5.0
+	#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+
 	#pragma shader_feature _ALPHATEST_ON
 	#pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 	#pragma shader_feature _NORMALMAP
@@ -77,8 +80,11 @@ Shader "Unity/DisneyGGX"
 	#pragma shader_feature _SPECULAROCCLUSIONMAP
 	#pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 	#pragma shader_feature _EMISSIVE_COLOR
+	#pragma shader_feature _EMISSIVE_COLOR_MAP
 	#pragma shader_feature _HEIGHTMAP
 	#pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
+
+	#include "TemplateDisneyGGX.hlsl"		
 
 	ENDHLSL
 
@@ -99,13 +105,9 @@ Shader "Unity/DisneyGGX"
 			Cull [_CullMode]
 
 			HLSLPROGRAM
-			#pragma target 5.0
-			#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 			
 			#pragma vertex VertDefault
-			#pragma fragment FragForward
-	
-			#include "TemplateDisneyGGX.hlsl"			
+			#pragma fragment FragForward	
 
 			#if SHADER_STAGE_FRAGMENT
 
@@ -144,14 +146,10 @@ Shader "Unity/DisneyGGX"
 
 			Cull  [_CullMode]
 
-			HLSLPROGRAM
-			#pragma target 5.0
-			#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
-			
+			HLSLPROGRAM			
+
 			#pragma vertex VertDefault
 			#pragma fragment FragDeferred
-
-			#include "TemplateDisneyGGX.hlsl"
 
 			#if SHADER_STAGE_FRAGMENT
 

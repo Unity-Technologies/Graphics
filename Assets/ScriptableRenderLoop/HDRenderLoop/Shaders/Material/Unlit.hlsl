@@ -4,7 +4,6 @@
 struct SurfaceData
 {
 	float3 color;
-	BuiltinData builtin;
 };
 
 struct BSDFData
@@ -20,6 +19,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData data)
 {
 	BSDFData output;
 	output.color = data.color;
+
+	return output;
 }
 
 //-----------------------------------------------------------------------------
