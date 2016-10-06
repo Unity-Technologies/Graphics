@@ -50,7 +50,7 @@ float D_GGX(float NdotH, float roughness)
 
 // roughnessT -> roughness in tangent direction
 // roughnessB -> roughness in bitangent direction
-float D_GGX_Aniso(float NdotH, float TdotH, float BdotH, float roughnessT, float roughnessB)
+float D_GGXAniso(float NdotH, float TdotH, float BdotH, float roughnessT, float roughnessB)
 {
 	// TODO: Do the clamp on the artists parameter
 	float f = TdotH * TdotH / (roughnessT * roughnessT) + BdotH * BdotH / (roughnessB * roughnessB) + NdotH * NdotH;
@@ -85,7 +85,14 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
 #endif
 }
 
-// TODO: V_ term for aniso GGX from farcry
+// Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
+// TODO: Check with Eric Heitz
+
+float V_SmithJointGGXAniso(float NdotL, float NdotV, float roughnessT, float roughnessB)
+{
+	// TODO
+	return 1.0;
+}
 
 //-----------------------------------------------------------------------------
 // Diffuse BRDF - diffuseColor is expected to be multiply by the caller

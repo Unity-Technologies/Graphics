@@ -59,6 +59,57 @@ float3 UnpackNormalDXT5nm (float4 packednormal)
 }
 
 //-----------------------------------------------------------------------------
+// Quaternion packing
+//-----------------------------------------------------------------------------
+
+// Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
+
+/*
+// This is GCN intrinsic
+uint FindBiggestComponent(float4 q)
+{
+	uint xyzIndex = CubeMapFaceID(q.x, q.y, q.z) * 0.5f;
+	uint wIndex = 3;
+
+	bool wBiggest = abs(q.w) > max3(abs(q.x), qbs(q.y), qbs(q.z));
+
+	return wBiggest ? wIndex : xyzIndex;
+}
+
+// Pack a quaternion into a 10:10:10:2
+float4	PackQuat(float4 quat)
+{
+	uint index = FindBiggestComponent(quat);
+
+	if (index == 0) quat = quat.yzwx;
+	if (index == 1) quat = quat.xzwy;
+	if (index == 2) quat = quat.xywz;
+
+	float4 packedQuat;
+	packedQuat.xyz = quat.xyz * sign(quat.w) * sqrt(0.5) + 0.5;
+	packedQuat.w = index / 3.0;
+
+	return packedQuat;
+}
+*/
+
+// Unpack a quaternion from a 10:10:10:2
+float4 UnpackQuat(float4 packedQuat)
+{
+	uint index = (uint)(packedQuat.w * 3.0);
+
+	float4 quat;
+	quat.xyz = packedQuat.xyz * sqrt(2.0) - (1.0 / sqrt(2.0));
+	quat.w = sqrt(1.0 - saturate(dot(quat.xyz, quat.xyz)));
+
+	if (index == 0) quat = quat.wxyz;
+	if (index == 1) quat = quat.xwyz;
+	if (index == 2) quat = quat.xywz;
+
+	return quat;
+}
+
+//-----------------------------------------------------------------------------
 // Byte packing
 //-----------------------------------------------------------------------------
 
