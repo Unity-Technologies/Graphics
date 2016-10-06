@@ -1,0 +1,32 @@
+/* this class is added to all graphElement instances*/
+.graphElement {
+	border-left:2;
+	border-top:2;
+	border-right:2;
+	border-bottom:2;
+}
+
+WWWImageBox {
+/* TODO refactor with two containers.
+Here reseting the padding-top will offset the text content as well*/
+	/*padding-top: 0;*/
+	padding-left: 0;
+	padding-right: 0;
+	padding-bottom: 0;
+}
+
+WWWImageBox > Image {
+	flex:1;
+}
+
+MiniMapBox Label {
+	position-type:absolute;
+	position-top:0;
+	position-left:0;
+	position-right:0;
+	height: 16;
+}
+
+MiniMapBox {
+	padding-top:20;
+}

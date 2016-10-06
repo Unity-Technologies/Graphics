@@ -2,13 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using UnityEditor.Experimental;
-using UnityEditor.MaterialGraph;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
-using Object = UnityEngine.Object;
+using UnityEngine.RMGUI;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -21,6 +18,7 @@ namespace UnityEditor.Graphing.Drawing
         }
     }
 
+
     public abstract class AbstractGraphEditWindow<T> : EditorWindow, ISerializationCallbackReceiver where T : class, IGraphAsset
     {
         public RenderTexture rt;
@@ -30,20 +28,30 @@ namespace UnityEditor.Graphing.Drawing
 
         [SerializeField]
         private ScriptableObject m_LastSelectedGraphSerialized;
-
-        [NonSerialized]
-        private Canvas2D m_Canvas;
-        [NonSerialized]
-        private EditorWindow m_HostWindow;
-        [NonSerialized]
-        private GraphDataSource m_DataSource;
-
+		
         private bool shouldRepaint
         {
             get
             {
                 return m_LastSelection != null && m_LastSelection.shouldRepaint;
             }
+        }
+
+        private MaterialGraphView m_Contents;
+
+        void OnEnable()
+        {
+            m_Contents = new MaterialGraphView();
+            m_Contents.name = "theView";
+            m_Contents.dataProvider = new MaterialGraphDataSource(m_LastSelection);
+            m_Contents.StretchToParentSize();
+
+            windowRoot.AddChild(m_Contents);
+        }
+
+        void OnDisable()
+        {
+            windowRoot.ClearChildren();
         }
 
         void Update()
@@ -66,98 +74,19 @@ namespace UnityEditor.Graphing.Drawing
                     graph.OnEnable();
                     graph.ValidateGraph();
                     m_LastSelection = selection;
-                    Rebuild();
+                    
+                    m_Contents.dataProvider = new MaterialGraphDataSource(m_LastSelection);
+                    
+                    m_Contents.StretchToParentSize();
+
+                    m_Contents.OnDataChanged();
                     Repaint();
                 }
             }
         }
 
-        private void InitializeCanvas()
-        {
-            if (m_Canvas == null)
-            {
-                m_DataSource = new GraphDataSource();
-                m_Canvas = new Canvas2D(this, m_HostWindow, m_DataSource);
+        /*
 
-                // draggable manipulator allows to move the canvas around. Note that individual elements can have the draggable manipulator on themselves
-                m_Canvas.AddManipulator(new Draggable(2, EventModifiers.None));
-                m_Canvas.AddManipulator(new Draggable(0, EventModifiers.Alt));
-
-                // make the canvas zoomable
-                m_Canvas.AddManipulator(new Zoomable());
-
-                // allow framing the selection when hitting "F" (frame) or "A" (all). Basically shows how to trap a key and work with the canvas selection
-                m_Canvas.AddManipulator(new Frame(Frame.FrameType.All));
-                m_Canvas.AddManipulator(new Frame(Frame.FrameType.Selection));
-
-                // The following manipulator show how to work with canvas2d overlay and background rendering
-                m_Canvas.AddManipulator(new RectangleSelect());
-                m_Canvas.AddManipulator(new ScreenSpaceGrid());
-                m_Canvas.AddManipulator(new ContextualMenu(DoContextMenu));
-
-                m_Canvas.AddManipulator(new DeleteSelected(m_DataSource.DeleteElements));
-                m_Canvas.AddManipulator(new CopySelected());
-            }
-
-            Rebuild();
-        }
-
-        private class AddNodeCreationObject : object
-        {
-            public Vector2 m_Pos;
-            public readonly Type m_Type;
-
-            public AddNodeCreationObject(Type t, Vector2 p) { m_Type = t; m_Pos = p; }
-        };
-
-        private void AddNode(object obj)
-        {
-            var posObj = obj as AddNodeCreationObject;
-            if (posObj == null)
-                return;
-
-            INode node;
-            try
-            {
-                node = Activator.CreateInstance(posObj.m_Type) as INode;
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarningFormat("Could not construct instance of: {0} - {1}", posObj.m_Type, e);
-                return;
-            }
-
-            if (node == null)
-                return;
-            var drawstate = node.drawState;
-            drawstate.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, drawstate.position.width, drawstate.position.height);
-            node.drawState = drawstate;
-            m_DataSource.Addnode(node);
-            Rebuild();
-            Repaint();
-        }
-
-        public virtual bool CanAddToNodeMenu(Type type) { return true; }
-        protected bool DoContextMenu(Event @event, Canvas2D parent, Object customData)
-        {
-            var gm = new GenericMenu();
-            foreach (Type type in Assembly.GetAssembly(typeof(AbstractMaterialNode)).GetTypes())
-            {
-                if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode))))
-                {
-                    var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
-                    if (attrs != null && attrs.Length > 0 && CanAddToNodeMenu(type))
-                    {
-                        gm.AddItem(new GUIContent(attrs[0].m_Title), false, AddNode, new AddNodeCreationObject(type, parent.MouseToCanvas(@event.mousePosition)));
-                    }
-                }
-            }
-
-            //gm.AddSeparator("");
-            // gm.AddItem(new GUIContent("Convert To/SubGraph"), true, ConvertSelectionToSubGraph);
-            gm.ShowAsContext();
-            return true;
-        }
 
         private void ConvertSelectionToSubGraph()
         {
@@ -309,9 +238,9 @@ namespace UnityEditor.Graphing.Drawing
 
             m_DataSource.graphAsset = m_LastSelection;
             m_Canvas.ReloadData();
-        }
+        }*/
 
-        void OnGUI()
+   /*     void OnGUI()
         {
             m_HostWindow = this;
             if (m_Canvas == null)
@@ -339,17 +268,18 @@ namespace UnityEditor.Graphing.Drawing
 
 
             EditorGUI.ObjectField(new Rect(position.width - 250, 210, 250, 50), rt, typeof(RenderTexture), false);
-        }
+        }*/
 
         private string m_LastPath;
-        public void Export(bool quickExport)
+
+		public void Export(bool quickExport)
         {
             var path = quickExport ? m_LastPath : EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
             m_LastPath = path; // For quick exporting
-            if (!string.IsNullOrEmpty(path))
+           /* if (!string.IsNullOrEmpty(path))
                 ExportShader(m_DataSource.graphAsset as MaterialGraphAsset, path);
             else
-                EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
+                EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");*/
         }
 
         public static Shader ExportShader(MaterialGraphAsset graphAsset, string path)
@@ -396,7 +326,7 @@ namespace UnityEditor.Graphing.Drawing
                 textureNames.Add(textureInfo.name);
                 textures.Add(texture);
             }
-            shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
+           // shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
 
             shaderImporter.SaveAndReimport();
 

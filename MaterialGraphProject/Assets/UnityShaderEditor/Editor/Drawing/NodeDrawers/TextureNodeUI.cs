@@ -60,7 +60,7 @@ namespace UnityEditor.MaterialGraph
                 return base.Render(area);
 
             EditorGUI.BeginChangeCheck();
-            localNode.defaultTexture = EditorGUI.MiniThumbnailObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), new GUIContent("Texture"), localNode.defaultTexture, typeof(Texture2D), null) as Texture2D;
+            //localNode.defaultTexture = EditorGUI.MiniThumbnailObjectField(new Rect(area.x, area.y, area.width, EditorGUIUtility.singleLineHeight), new GUIContent("Texture"), localNode.defaultTexture, typeof(Texture2D), null) as Texture2D;
             var texureChanged = EditorGUI.EndChangeCheck();
             area.y += EditorGUIUtility.singleLineHeight;
             area.height -= EditorGUIUtility.singleLineHeight;
