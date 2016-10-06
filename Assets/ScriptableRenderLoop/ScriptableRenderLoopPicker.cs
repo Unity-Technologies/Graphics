@@ -55,8 +55,36 @@ namespace UnityEngine.ScriptableRenderLoop
 			if (m_RenderLoop == null)
 				return false;
 
+#if UNITY_EDITOR
+			if (m_AssetVersion != ms_GlobalAssetVersion)
+			{
+				m_AssetVersion = ms_GlobalAssetVersion;
+				m_RenderLoop.Rebuild();
+			}
+#endif
+
 			m_RenderLoop.Render (cameras, loop);
 			return true;
 		}
-	}
+
+#if UNITY_EDITOR
+		// Temporary hack to allow compute shader reloading
+		internal class AssetReloader : UnityEditor.AssetPostprocessor
+        {
+            static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+            {
+                foreach (string str in importedAssets)
+                {
+                    if (str.EndsWith(".compute"))
+                    {
+                        ms_GlobalAssetVersion++;
+                        break;
+                    }
+                }
+            }
+        }
+        public static int ms_GlobalAssetVersion = 0;
+        public int m_AssetVersion = 0;
+#endif
+    }
 }

@@ -130,7 +130,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		}
 
-		void Rebuild()
+		public override void Rebuild()
 		{
 			ClearComputeBuffers();
 
@@ -200,6 +200,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			m_blitMaterial = new Material(m_FinalPassShader);
 			m_blitMaterial.hideFlags = HideFlags.HideAndDontSave;
+
+			lightList = null;
 		}
 
 		void OnDisable()
@@ -888,7 +890,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void ResizeIfNecessary(int curWidth, int curHeight)
         {
-            if(curWidth!=m_WidthOnRecord || curHeight!=m_HeightOnRecord)
+            if(curWidth!=m_WidthOnRecord || curHeight!=m_HeightOnRecord || lightList == null)
             {
                 if(m_WidthOnRecord>0 && m_HeightOnRecord>0)
                     ReleaseResolutionDependentBuffers();
