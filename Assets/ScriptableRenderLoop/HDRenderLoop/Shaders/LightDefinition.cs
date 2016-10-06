@@ -1,53 +1,49 @@
-// Note: This file is included both in C# code and in hlsl code, avoiding duplication
+using UnityEngine;
 
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-
-#if !__HLSL
 namespace UnityEngine.ScriptableRenderLoop
 {
-#endif
-
-	// These structures share between C# and hlsl need to be align on float4, so we pad them.
-    struct PunctualLightData
+    // These structures share between C# and hlsl need to be align on float4, so we pad them.
+    [GenerateHLSL]
+    public struct PunctualLightData
     {
-        public Vec3 positionWS;
+        public Vector3 positionWS;
         public float invSqrAttenuationRadius;
 
-        public Vec3 color;
+        public Vector3 color;
         public float useDistanceAttenuation;
 
-        public Vec3 forward;
+        public Vector3 forward;
         public float diffuseScale;
 
-        public Vec3 up;
+        public Vector3 up;
         public float specularScale;
 
-        public Vec3 right;
+        public Vector3 right;
         public float shadowDimmer;
 
         public float angleScale;
         public float angleOffset;
-        public Vec2 unused2;
+        public Vector2 unused2;
     };
 
-    struct AreaLightData
+    [GenerateHLSL]
+    public struct AreaLightData
     {
-        public Vec3 positionWS;
+        public Vector3 positionWS;
     };
 
-    struct EnvLightData
+    [GenerateHLSL]
+    public struct EnvLightData
     {
-        public Vec3 positionWS;
+        public Vector3 positionWS;
     };
 
-    struct PlanarLightData
+    [GenerateHLSL]
+    public struct PlanarLightData
     {
-        public Vec3 positionWS;
+        public Vector3 positionWS;
     };
-
-#if !__HLSL
 } // namespace UnityEngine.ScriptableRenderLoop
-#endif
-

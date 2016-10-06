@@ -298,7 +298,7 @@ half4 frag (v2f i) : SV_Target
 	GetLightCountAndStart(start, numLights, tileIDX, nrTilesX, nrTilesY, linDepth);
 
 	float3 c = ExecuteLightList(pixCoord, start, numLights, linDepth);
-	c = OverlayHeatMap(numLights, c);
+	//c = OverlayHeatMap(numLights, c);
 	return float4(c,1.0);
 }
 
