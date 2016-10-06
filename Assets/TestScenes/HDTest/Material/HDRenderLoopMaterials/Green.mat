@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Green
   m_Shader: {fileID: 4800000, guid: e1a84346ee54f9f4993c2f05c59805a0, type: 3}
-  m_ShaderKeywords: _EMISSION
+  m_ShaderKeywords: _EMISSION _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -82,6 +82,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
+        name: _MaskMap
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
         name: _MetallicGlossMap
       second:
         m_Texture: {fileID: 0}
@@ -131,6 +137,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - first:
+        name: _AlphaCutoff
+      second: 0.5
+    - first:
+        name: _AlphaCutoffEnable
+      second: 0
+    - first:
         name: _BlendMode
       second: 0
     - first:
@@ -152,8 +164,14 @@ Material:
         name: _DoubleSidedLigthing
       second: 1
     - first:
+        name: _DoubleSidedMode
+      second: 0
+    - first:
         name: _DstBlend
       second: 0
+    - first:
+        name: _EmissiveColorMode
+      second: 1
     - first:
         name: _EmissiveIntensity
       second: 0
@@ -168,6 +186,9 @@ Material:
       second: 1
     - first:
         name: _HeightBias
+      second: 0
+    - first:
+        name: _HeightMapMode
       second: 0
     - first:
         name: _HeightScale
@@ -186,6 +207,9 @@ Material:
       second: 0
     - first:
         name: _Mode
+      second: 0
+    - first:
+        name: _NormalMapSpace
       second: 0
     - first:
         name: _OcclusionStrength
