@@ -6,12 +6,13 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: test
+  m_Name: test-transparent
   m_Shader: {fileID: 4800000, guid: e1a84346ee54f9f4993c2f05c59805a0, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _EMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
+  m_CustomRenderQueue: 3000
+  stringTagMap:
+    RenderType: Transparent
   m_SavedProperties:
     serializedVersion: 2
     m_TexEnvs:
@@ -186,7 +187,7 @@ Material:
       second: 0
     - first:
         name: _CullMode
-      second: 2
+      second: 0
     - first:
         name: _Cutoff
       second: 0.5
@@ -210,7 +211,7 @@ Material:
       second: 0
     - first:
         name: _DstBlend
-      second: 0
+      second: 10
     - first:
         name: _EmissiveColorMode
       second: 1
@@ -270,7 +271,7 @@ Material:
       second: 1
     - first:
         name: _SrcBlend
-      second: 1
+      second: 5
     - first:
         name: _SubSurfaceProfile
       second: 0
@@ -279,7 +280,7 @@ Material:
       second: 0
     - first:
         name: _SurfaceType
-      second: 0
+      second: 1
     - first:
         name: _Thickness
       second: 0
@@ -288,11 +289,11 @@ Material:
       second: 0
     - first:
         name: _ZWrite
-      second: 1
+      second: 0
     m_Colors:
     - first:
         name: _BaseColor
-      second: {r: 1, g: 1, b: 1, a: 1}
+      second: {r: 1, g: 1, b: 1, a: 0.397}
     - first:
         name: _Color
       second: {r: 1, g: 1, b: 1, a: 1}

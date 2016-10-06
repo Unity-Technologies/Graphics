@@ -151,11 +151,11 @@ PackedVaryings VertDefault(Attributes input)
 	output.tangentToWorld[1].w = 0;
 	output.tangentToWorld[2].w = 0;
 
-	/*
-#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+#ifdef SHADER_STAGE_FRAGMENT
+	#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
 	output.cullFace = FRONT_FACE_TYPE(0); // To avoid a warning
+	#endif
 #endif
-	*/
 
 	return PackVaryings(output);
 }
@@ -236,7 +236,6 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 	surfaceData.normalWS = vertexNormalWS;
 #endif
 
-	/*
 #if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
 	#ifdef _DOUBLESIDED_LIGHTING_FLIP	
 	float3 oppositeNormalWS = -surfaceData.normalWS;
@@ -245,11 +244,9 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 	float3 oppositeNormalWS = reflect(surfaceData.normalWS, vertexNormalWS);
 	#endif
 	// TODO : Test if GetOdddNegativeScale() is necessary here in case of normal map, as GetOdddNegativeScale is take into account in CreateTangentToWorld();
-	//surfaceData.normalWS = IS_FRONT_VFACE(GetOdddNegativeScale() : -GetOdddNegativeScale()) >= 0.0 ? surfaceData.normalWS : oppositeNormalWS;
-
-	surfaceData.normalWS = IS_FRONT_VFACE(input.cullFace, surfaceData.normalWS, -surfaceData.normalWS);
+	// surfaceData.normalWS = IS_FRONT_VFACE((input.cullFace >= 0.0 ? GetOdddNegativeScale() : -GetOdddNegativeScale()) >= 0.0, surfaceData.normalWS, oppositeNormalWS);
+	surfaceData.normalWS = IS_FRONT_VFACE((input.cullFace >= 0.0 ? GetOdddNegativeScale() : -GetOdddNegativeScale()) >= 0.0, surfaceData.normalWS, oppositeNormalWS);
 #endif
-	*/
 
 	surfaceData.materialId = 0;
 
@@ -280,7 +277,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 #ifdef _EMISSIVE_COLOR
 	builtinData.emissiveColor = tex2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
 #elif _MASKMAP // If we have a MaskMap, use emissive slot as a mask on baseColor
-	builtinData.emissiveColor = data.baseColor * tex2D(_MaskMap, uv).bbb;
+	builtinData.emissiveColor = baseColor * tex2D(_MaskMap, input.texCoord0).bbb;
 #else
 	builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
 #endif
