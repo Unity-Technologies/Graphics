@@ -282,14 +282,15 @@ namespace UnityEngine.ScriptableRenderLoop
                 cmd.SetGlobalFloat("g_fClustScale", m_clustScale);
                 cmd.SetGlobalFloat("g_fClustBase", m_clustLogBase);
                 cmd.SetGlobalFloat("g_fNearPlane", camera.nearClipPlane);
+                cmd.SetGlobalFloat("g_fFarPlane", camera.farClipPlane);
                 cmd.SetGlobalFloat("g_fLog2NumClusters", (float) g_iLog2NumClusters);
 
                 m_DeferredMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
                 m_DeferredReflectionMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
                 if(gUseDepthBuffer)
                 {
-                    m_DeferredMaterial.SetBuffer("g_fModulUserscale", m_perTileLogBaseTweak);
-                    m_DeferredReflectionMaterial.SetBuffer("g_fModulUserscale", m_perTileLogBaseTweak);
+                    m_DeferredMaterial.SetBuffer("g_logBaseBuffer", m_perTileLogBaseTweak);
+                    m_DeferredReflectionMaterial.SetBuffer("g_logBaseBuffer", m_perTileLogBaseTweak);
                 }
             }
             
@@ -973,7 +974,7 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_LayeredOffset", m_perVoxelOffset);
             cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_LayeredSingleIdxBuffer", m_globalLightListAtomic);
 
-            if(gUseDepthBuffer) cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_fModulUserscale", m_perTileLogBaseTweak);
+            if(gUseDepthBuffer) cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_logBaseBuffer", m_perTileLogBaseTweak);
 
             int nrTilesX = (camera.pixelWidth + 15) / 16;
 			int nrTilesY = (camera.pixelHeight + 15) / 16;

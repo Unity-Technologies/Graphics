@@ -172,7 +172,7 @@ float4 UnityEncodeRGBM (float3 rgb, float maxRGBM)
 	float kOneOverRGBMMaxRange = 1.0 / maxRGBM;
 	const float kMinMultiplier = 2.0 * 1e-2;
 
-	float4 rgbm = float4(rgb * kOneOverRGBMMaxRange, 1.0f);
+	float4 rgbm = float4(rgb * kOneOverRGBMMaxRange, 1.0);
 	rgbm.a = max(max(rgbm.r, rgbm.g), max(rgbm.b, kMinMultiplier));
 	rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
 	

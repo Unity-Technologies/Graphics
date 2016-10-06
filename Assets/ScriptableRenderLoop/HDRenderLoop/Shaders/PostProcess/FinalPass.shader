@@ -6,11 +6,12 @@ Shader "Hidden/Unity/FinalPass"
 		Pass {
  			ZTest Always Cull Off ZWrite Off
 
-			CGPROGRAM
+			HLSLPROGRAM
 			#pragma vertex Vert
 			#pragma fragment Frag
 			#pragma target 5.0
 
+			#include "../../../ShaderLibrary/Common.hlsl"
 			#include "../../../ShaderLibrary/Color.hlsl"
 			#include "../ShaderVariables.hlsl"
 
@@ -48,7 +49,7 @@ Shader "Hidden/Unity/FinalPass"
 
 				
 			}
-			ENDCG 
+			ENDHLSL
 
 		}
 	}
