@@ -1,7 +1,6 @@
-using UnityEditor.Experimental;
 using UnityEngine;
 using UnityEngine.Graphing;
-
+/*
 namespace UnityEditor.Graphing.Drawing
 {
     public class NullInputProxy : CanvasElement
@@ -49,7 +48,7 @@ namespace UnityEditor.Graphing.Drawing
             //TODO: FIX
             /*var changed = m_Node.DrawSlotDefaultInput(rect, m_InputSlot);
             if (changed)
-                DrawableMaterialNode.RepaintDependentNodes(m_Node);*/
+                DrawableMaterialNode.RepaintDependentNodes(m_Node);*
         }
 
         public override void UpdateModel(UpdateType t)
@@ -64,5 +63,5 @@ namespace UnityEditor.Graphing.Drawing
 
             base.UpdateModel(t);
         }
-    }
-}
+    
+}*/
