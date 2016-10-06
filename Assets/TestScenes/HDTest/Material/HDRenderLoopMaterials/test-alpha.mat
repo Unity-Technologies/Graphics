@@ -169,7 +169,7 @@ Material:
     m_Floats:
     - first:
         name: _AlphaCutoff
-      second: 0.309
+      second: 0.166
     - first:
         name: _AlphaCutoffEnable
       second: 1

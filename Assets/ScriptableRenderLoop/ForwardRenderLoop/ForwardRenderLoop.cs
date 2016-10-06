@@ -41,7 +41,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			Rebuild ();
 		}
 
-		void Rebuild()
+		public override void Rebuild()
 		{
 			m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
 		}

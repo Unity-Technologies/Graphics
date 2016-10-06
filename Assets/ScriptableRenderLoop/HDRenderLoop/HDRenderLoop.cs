@@ -146,6 +146,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
         public const int MaxLights = 32;
 
+        public bool enableTonemap = true;
+        public float exposure = 0;
+
 		//[SerializeField]
 		//ShadowSettings m_ShadowSettings = ShadowSettings.Default;
 		//ShadowRenderPass m_ShadowPass;
@@ -186,7 +189,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			return mat;
 		}
 
-		void Rebuild()
+		public override void Rebuild()
 		{
             ClearComputeBuffers();
 
@@ -391,6 +394,26 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void FinalPass(RenderLoop renderLoop)
         {
+            // Those could be tweakable for the neutral tonemapper, but in the case of the LookDev we don't need that
+            const float BlackIn = 0.02f;
+            const float WhiteIn = 10.0f;
+            const float BlackOut = 0.0f;
+            const float WhiteOut = 10.0f;
+            const float WhiteLevel = 5.3f;
+            const float WhiteClip = 10.0f;
+            const float DialUnits = 20.0f;
+            const float HalfDialUnits = DialUnits * 0.5f;
+
+            // converting from artist dial units to easy shader-lerps (0-1)
+            Vector4 tonemapCoeff1 = new Vector4((BlackIn * DialUnits) + 1.0f, (BlackOut * HalfDialUnits) + 1.0f, (WhiteIn / DialUnits), (1.0f - (WhiteOut / DialUnits)));
+            Vector4 tonemapCoeff2 = new Vector4(0.0f, 0.0f, WhiteLevel, WhiteClip / HalfDialUnits);
+
+            m_FinalPassMaterial.SetVector("_ToneMapCoeffs1", tonemapCoeff1);
+            m_FinalPassMaterial.SetVector("_ToneMapCoeffs2", tonemapCoeff2);
+
+            m_FinalPassMaterial.SetFloat("_EnableToneMap", enableTonemap ? 1.0f : 0.0f);
+            m_FinalPassMaterial.SetFloat("_Exposure", exposure);
+
             CommandBuffer cmd = new CommandBuffer();
             cmd.name = "FinalPass";
             // Resolve our HDR texture to CameraTarget.
