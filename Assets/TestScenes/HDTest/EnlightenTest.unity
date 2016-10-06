@@ -298,7 +298,7 @@ GameObject:
   - component: {fileID: 1185747107}
   - component: {fileID: 1185747106}
   m_Layer: 0
-  m_Name: Plane
+  m_Name: TransparentPlane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -866,7 +866,7 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1457550750}
-  m_LocalRotation: {x: -0.2494351, y: -0.3202937, z: 0.3963061, w: -0.8234898}
+  m_LocalRotation: {x: -0.24943511, y: -0.32029372, z: 0.39630613, w: -0.82348984}
   m_LocalPosition: {x: 0, y: 9.18, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []

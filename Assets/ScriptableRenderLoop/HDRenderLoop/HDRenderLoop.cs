@@ -21,7 +21,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			DiffuseColor = 1,
 			Normal = 2,
 			Depth = 3,
-			AmbiantOcclusion = 4,
+			AmbientOcclusion = 4,
 			SpecularColor = 5,
 			SpecularOcclustion = 6,
 			Smoothness = 7,
@@ -44,19 +44,30 @@ namespace UnityEngine.ScriptableRenderLoop
 			MaterialId = 8,
 		}
 
-		public MaterialDebugMode m_MaterialDebugMode = MaterialDebugMode.None;
-		public MaterialDebugMode materialDebugMode
+		public class DebugParameters
 		{
-			get { return m_MaterialDebugMode; }
-			set { m_MaterialDebugMode = value; }
+			private MaterialDebugMode m_MaterialDebugMode = MaterialDebugMode.None;
+			private GBufferDebugMode m_GBufferDebugMode = GBufferDebugMode.None;
+
+			public MaterialDebugMode materialDebugMode
+			{
+				get { return m_MaterialDebugMode; }
+				set { m_MaterialDebugMode = value; }
+			}
+
+			public GBufferDebugMode gBufferDebugMode
+			{
+				get { return m_GBufferDebugMode; }
+				set { m_GBufferDebugMode = value; }
+			}
 		}
 
-		public GBufferDebugMode m_GBufferDebugMode = GBufferDebugMode.None;
-		public GBufferDebugMode gBufferDebugMode
+		private DebugParameters m_DebugParameters = new DebugParameters();
+		public DebugParameters debugParameters
 		{
-			get { return m_GBufferDebugMode; }
-			set { m_GBufferDebugMode = value; }
+			get { return m_DebugParameters; }
 		}
+
 
 		//HDRenderLoopDebugMenu m_DebugMenu = null;
 
@@ -74,10 +85,10 @@ namespace UnityEngine.ScriptableRenderLoop
 			if(renderLoop != null)
 			{
 				//renderLoop.ToggleDebugMenu();
-				if (renderLoop.materialDebugMode == HDRenderLoop.MaterialDebugMode.None)
-					renderLoop.materialDebugMode = HDRenderLoop.MaterialDebugMode.Normal;
+				if (renderLoop.debugParameters.materialDebugMode == HDRenderLoop.MaterialDebugMode.None)
+					renderLoop.debugParameters.materialDebugMode = HDRenderLoop.MaterialDebugMode.Normal;
 				else
-					renderLoop.materialDebugMode = HDRenderLoop.MaterialDebugMode.None;
+					renderLoop.debugParameters.materialDebugMode = HDRenderLoop.MaterialDebugMode.None;
 
 				EditorUtility.SetDirty(renderLoop);
 			}
@@ -292,7 +303,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			renderLoop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
-			Shader.SetGlobalInt("g_MaterialDebugMode", (int)m_MaterialDebugMode);
+			Shader.SetGlobalInt("g_MaterialDebugMode", (int)debugParameters.materialDebugMode);
 
 			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Debug"));
 			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
@@ -313,7 +324,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			Vector4 screenSize = ComputeScreenSize(camera);
 			m_GBufferDebugMaterial.SetVector("_ScreenSize", screenSize);
-			m_GBufferDebugMaterial.SetFloat("_DebugMode", (float)m_GBufferDebugMode);
+			m_GBufferDebugMaterial.SetFloat("_DebugMode", (float)debugParameters.gBufferDebugMode);
 
 			// gbufferManager.BindBuffers(m_DeferredMaterial);
 			// TODO: Bind depth textures
@@ -697,7 +708,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				//UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
 
-				if (m_MaterialDebugMode == MaterialDebugMode.None)
+				if (debugParameters.materialDebugMode == MaterialDebugMode.None)
 				{
 					UpdatePunctualLights(cullResults.culledLights);
 
@@ -709,7 +720,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					RenderForward(cullResults, camera, renderLoop);
 
-					if (m_GBufferDebugMode != GBufferDebugMode.None)
+					if (debugParameters.gBufferDebugMode != GBufferDebugMode.None)
 					{
 						RenderGBufferDebug(camera, renderLoop);
 					}
