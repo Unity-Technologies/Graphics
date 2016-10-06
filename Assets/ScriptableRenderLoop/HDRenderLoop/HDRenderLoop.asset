@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Name: HDRenderLoop
   m_EditorClassIdentifier: 
   m_MaterialDebugMode: 0
-  m_GBufferDebugMode: 2
+  m_GBufferDebugMode: 0
