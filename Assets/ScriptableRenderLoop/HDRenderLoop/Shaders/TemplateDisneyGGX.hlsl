@@ -48,7 +48,7 @@ sampler2D _SubSurfaceRadiusMap;
 // float _CoatRoughness;
 // sampler2D _CoatRoughnessMap;
 
-float _Cutoff;
+float _AlphaCutoff;
 
 //-------------------------------------------------------------------------------------
 // Lighting architecture
@@ -183,7 +183,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 #endif
 
 #ifdef _ALPHATEST_ON
-	clip(alpha - _Cutoff);
+	clip(alpha - _AlphaCutoff);
 #endif
 
 	builtinData.opacity = alpha;
