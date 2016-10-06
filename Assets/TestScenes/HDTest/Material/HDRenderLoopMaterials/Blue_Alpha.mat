@@ -6,12 +6,13 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: test
+  m_Name: Blue_Alpha
   m_Shader: {fileID: 4800000, guid: e1a84346ee54f9f4993c2f05c59805a0, type: 3}
-  m_ShaderKeywords: _EMISSION _NORMALMAP _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _EMISSION _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
+  m_CustomRenderQueue: 3000
+  stringTagMap:
+    RenderType: Transparent
   m_SavedProperties:
     serializedVersion: 2
     m_TexEnvs:
@@ -24,23 +25,11 @@ Material:
     - first:
         name: _BaseColorMap
       second:
-        m_Texture: {fileID: 2800000, guid: d734753529ca78148a43944515a64bc5, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _BumpMap
-      second:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - first:
-        name: _CoatCoverageMap
-      second:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - first:
-        name: _CoatRoughnessMap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -67,12 +56,6 @@ Material:
         name: _DiffuseLightingMap
       second:
         m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - first:
-        name: _DiffuseMap
-      second:
-        m_Texture: {fileID: 2800000, guid: d734753529ca78148a43944515a64bc5, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
@@ -120,13 +103,13 @@ Material:
     - first:
         name: _NormalMap
       second:
-        m_Texture: {fileID: 2800000, guid: 11f99173903c31f49b05339fc71c7919, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _OcclusionMap
       second:
-        m_Texture: {fileID: 2800000, guid: fe2ed6aee0b5acd42bc15ee53e939e03, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
@@ -142,12 +125,6 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _SpecMap
-      second:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - first:
         name: _SpecularOcclusionMap
       second:
         m_Texture: {fileID: 0}
@@ -155,12 +132,6 @@ Material:
         m_Offset: {x: 0, y: 0}
     - first:
         name: _SubSurfaceRadiusMap
-      second:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - first:
-        name: _ThicknessMap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -179,14 +150,8 @@ Material:
         name: _BumpScale
       second: 1
     - first:
-        name: _CoatCoverage
-      second: 0
-    - first:
-        name: _CoatRoughness
-      second: 0
-    - first:
         name: _CullMode
-      second: 2
+      second: 0
     - first:
         name: _Cutoff
       second: 0.5
@@ -201,10 +166,10 @@ Material:
       second: 1
     - first:
         name: _DoubleSidedMode
-      second: 0
+      second: 1
     - first:
         name: _DstBlend
-      second: 0
+      second: 10
     - first:
         name: _EmissiveColorMode
       second: 1
@@ -255,7 +220,7 @@ Material:
       second: 0.02
     - first:
         name: _Smoothness
-      second: 0.524
+      second: 0.5
     - first:
         name: _SmoothnessTextureChannel
       second: 0
@@ -264,41 +229,29 @@ Material:
       second: 1
     - first:
         name: _SrcBlend
-      second: 1
-    - first:
-        name: _SubSurfaceProfile
-      second: 0
+      second: 5
     - first:
         name: _SubSurfaceRadius
       second: 0
     - first:
         name: _SurfaceType
-      second: 0
-    - first:
-        name: _Thickness
-      second: 0
+      second: 1
     - first:
         name: _UVSec
       second: 0
     - first:
         name: _ZWrite
-      second: 1
+      second: 0
     m_Colors:
     - first:
         name: _BaseColor
-      second: {r: 1, g: 1, b: 1, a: 1}
+      second: {r: 0.1557093, g: 0.33766845, b: 0.5882352, a: 0.672}
     - first:
         name: _Color
-      second: {r: 1, g: 1, b: 1, a: 1}
-    - first:
-        name: _DiffuseColor
-      second: {r: 1, g: 1, b: 1, a: 1}
+      second: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
     - first:
         name: _EmissionColor
       second: {r: 0, g: 0, b: 0, a: 1}
     - first:
         name: _EmissiveColor
       second: {r: 0, g: 0, b: 0, a: 1}
-    - first:
-        name: _SpecColor
-      second: {r: 0.04, g: 0.04, b: 0.04, a: 1}

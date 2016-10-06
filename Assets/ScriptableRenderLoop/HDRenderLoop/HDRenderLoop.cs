@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ namespace UnityEngine.ScriptableRenderLoop
 	{
 		private static string m_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
+		// Debugging
 		public enum MaterialDebugMode
 		{
 			None = 0,
@@ -30,13 +31,34 @@ namespace UnityEngine.ScriptableRenderLoop
 			Bitangent = 11
 		}
 
-		public MaterialDebugMode m_MaterialDebugMode = MaterialDebugMode.None;
+		public enum GBufferDebugMode
+		{
+			None = 0,
+			DiffuseColor = 1,
+			Normal = 2,
+			Depth = 3,
+			BakedDiffuse = 4,
+			SpecularColor = 5,
+			SpecularOcclustion = 6,
+			Smoothness = 7,
+			MaterialId = 8,
+		}
 
+		public MaterialDebugMode m_MaterialDebugMode = MaterialDebugMode.None;
 		public MaterialDebugMode materialDebugMode
 		{
 			get { return m_MaterialDebugMode; }
 			set { m_MaterialDebugMode = value; }
 		}
+
+		public GBufferDebugMode m_GBufferDebugMode = GBufferDebugMode.None;
+		public GBufferDebugMode gBufferDebugMode
+		{
+			get { return m_GBufferDebugMode; }
+			set { m_GBufferDebugMode = value; }
+		}
+
+		HDRenderLoopDebugMenu m_DebugMenu = null;
 
 		#if UNITY_EDITOR
 		[MenuItem("Renderloop/HDRenderLoop/CreateHDRenderLoop")]
@@ -51,6 +73,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			HDRenderLoop renderLoop = AssetDatabase.LoadAssetAtPath(m_HDRenderLoopPath, typeof(HDRenderLoop)) as HDRenderLoop;
 			if(renderLoop != null)
 			{
+				//renderLoop.ToggleDebugMenu();
 				if (renderLoop.materialDebugMode == HDRenderLoop.MaterialDebugMode.None)
 					renderLoop.materialDebugMode = HDRenderLoop.MaterialDebugMode.Normal;
 				else
@@ -119,6 +142,9 @@ namespace UnityEngine.ScriptableRenderLoop
         Material m_DeferredMaterial;
         Material m_FinalPassMaterial;
 
+		// Debug
+		Material m_GBufferDebugMaterial;
+
         GBufferManager gbufferManager = new GBufferManager();
 
         static private int s_CameraColorBuffer;
@@ -142,6 +168,13 @@ namespace UnityEngine.ScriptableRenderLoop
                 s_punctualLightList.Release();
         }
 
+		Material CreateEngineMaterial(string shaderPath)
+		{
+			Material mat = new Material(Shader.Find(shaderPath) as Shader);
+			mat.hideFlags = HideFlags.HideAndDontSave;
+			return mat;
+		}
+
 		void Rebuild()
 		{
             ClearComputeBuffers();
@@ -157,13 +190,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
             s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
 
-            Shader deferredMaterial = Shader.Find("Hidden/Unity/LightingDeferred") as Shader;
-            m_DeferredMaterial = new Material(deferredMaterial);
-            m_DeferredMaterial.hideFlags = HideFlags.HideAndDontSave;
+			m_DeferredMaterial = CreateEngineMaterial("Hidden/Unity/LightingDeferred");
+			m_FinalPassMaterial = CreateEngineMaterial("Hidden/Unity/FinalPass");
 
-            Shader finalPassShader = Shader.Find("Hidden/Unity/FinalPass") as Shader;
-            m_FinalPassMaterial = new Material(finalPassShader);
-            m_FinalPassMaterial.hideFlags = HideFlags.HideAndDontSave;
+			// Debug
+			m_GBufferDebugMaterial = CreateEngineMaterial("Hidden/Unity/GBufferDebug");
 
             // m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
 		}
@@ -272,6 +303,24 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.Dispose();
 		}
 
+		void RenderGBufferDebug(Camera camera, RenderLoop renderLoop)
+		{
+			Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
+			m_GBufferDebugMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
+
+			Vector4 screenSize = ComputeScreenSize(camera);
+			m_GBufferDebugMaterial.SetVector("_ScreenSize", screenSize);
+			m_GBufferDebugMaterial.SetFloat("_DebugMode", (float)m_GBufferDebugMode);
+
+			// gbufferManager.BindBuffers(m_DeferredMaterial);
+			// TODO: Bind depth textures
+			var cmd = new CommandBuffer();
+			cmd.name = "GBuffer Debug";
+			cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_GBufferDebugMaterial, 0);
+			renderLoop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
+		}
+
         Matrix4x4 GetViewProjectionMatrix(Camera camera)
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
@@ -282,16 +331,22 @@ namespace UnityEngine.ScriptableRenderLoop
             return gpuVP;
         }
 
+		Vector4 ComputeScreenSize(Camera camera)
+		{
+			Vector4 screenSize = new Vector4();
+			screenSize.x = camera.pixelWidth;
+			screenSize.y = camera.pixelHeight;
+			screenSize.z = 1.0f / camera.pixelWidth;
+			screenSize.w = 1.0f / camera.pixelHeight;
+			return screenSize;
+		}
+
         void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
         {
             Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
             m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
 
-            Vector4 screenSize = new Vector4();
-            screenSize.x = camera.pixelWidth;
-            screenSize.y = camera.pixelHeight;
-            screenSize.z = 1.0f / camera.pixelWidth;
-            screenSize.w = 1.0f / camera.pixelHeight;
+			Vector4 screenSize = ComputeScreenSize(camera);
             m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
 
             // gbufferManager.BindBuffers(m_DeferredMaterial);
@@ -651,6 +706,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					RenderForward(cullResults, camera, renderLoop);
 
+					if(m_GBufferDebugMode != GBufferDebugMode.None)
+					{
+						RenderGBufferDebug(camera, renderLoop);
+					}
+
 					FinalPass(renderLoop);
 				}
 				else
@@ -663,6 +723,16 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			// Post effects
 		}
+
+		//void ToggleDebugMenu()
+		//{
+		//	if(m_DebugMenu == null)
+		//	{
+		//		m_DebugMenu = new HDRenderLoopDebugMenu(this);
+		//	}
+
+		//	m_DebugMenu.Toggle();
+		//}
 
 		#if UNITY_EDITOR
 		public override UnityEditor.SupportedRenderingFeatures GetSupportedRenderingFeatures()
