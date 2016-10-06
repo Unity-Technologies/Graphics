@@ -320,13 +320,13 @@ internal class DisneyGGXGUI : ShaderGUI
             }
         }
 
-        if (doubleSidedMode != DoubleSidedMode.None || surfaceType == SurfaceType.Transparent)
+        if (doubleSidedMode == DoubleSidedMode.None)
         {
-            material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
+            material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Back); 
         }
         else
         {
-            material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Back);
+            material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
         }
 
         if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingFlip)
@@ -352,6 +352,7 @@ internal class DisneyGGXGUI : ShaderGUI
         SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture("_SpecularOcclusionMap"));
         SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat("_SmoothnessTextureChannel")) == SmoothnessMapChannel.AlbedoAlpha);
         SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat("_EmissiveColorMode")) == EmissiveColorMode.UseEmissiveColor);
+        SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture("_EmissiveColorMap"));        
         SetKeyword(material, "_HEIGHTMAP", material.GetTexture("_HeightMap"));
         SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", (HeightmapMode)material.GetFloat("_HeightMapMode") == HeightmapMode.Displacement);
 
