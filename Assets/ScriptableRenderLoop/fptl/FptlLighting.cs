@@ -57,8 +57,8 @@ namespace UnityEngine.ScriptableRenderLoop
 		static private ComputeBuffer m_dirLightList;
 
         // clustered light list specific buffers and data begin
-        const bool gEnableClustered = false;
-        const bool gUseDepthBuffer = false;//true;      // only has an impact when gEnableClustered is true
+        public bool EnableClustered = false;
+        const bool gUseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
         const int g_iLog2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
         const float m_clustLogBase = 1.02f;     // each slice 2% bigger than the previous
         float m_clustScale;
@@ -122,7 +122,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			if (m_dirLightList != null)
 				m_dirLightList.Release();
 
-            if(gEnableClustered)
+            if(EnableClustered)
             {
                 if(m_globalLightListAtomic!=null)
 				    m_globalLightListAtomic.Release();
@@ -168,7 +168,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
 			m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_vLightData", m_lightDataBuffer);
 
-            if(gEnableClustered)
+            if(EnableClustered)
             {
                 kGenListPerVoxelKernel = m_BuildPerVoxelLightListShader.FindKernel(gUseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
                 kClearVoxelAtomicKernel = m_BuildPerVoxelLightListShader.FindKernel("ClearAtomic");
@@ -219,26 +219,27 @@ namespace UnityEngine.ScriptableRenderLoop
 			ReleaseResolutionDependentBuffers();
 			m_dirLightList.Release();
 
-            if(gEnableClustered)
+            if(EnableClustered)
             {
                 m_globalLightListAtomic.Release();
             }
 		}
 
-		static void SetupGBuffer(CommandBuffer cmd)
+		static void SetupGBuffer(int width, int height, CommandBuffer cmd)
 		{
 			var format10 = RenderTextureFormat.ARGB32;
 			if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010))
 				format10 = RenderTextureFormat.ARGB2101010;
-			//@TODO: GetGraphicsCaps().buggyMRTSRGBWriteFlag
-			cmd.GetTemporaryRT(kGBufferAlbedo, -1, -1, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
-			cmd.GetTemporaryRT(kGBufferSpecRough, -1, -1, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
-			cmd.GetTemporaryRT(kGBufferNormal, -1, -1, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
-			cmd.GetTemporaryRT(kGBufferEmission, -1, -1, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear); //@TODO: HDR
-			cmd.GetTemporaryRT(kGBufferZ, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
-			cmd.GetTemporaryRT(kCameraDepthTexture, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
 
-			cmd.GetTemporaryRT(kCameraTarget, -1, -1, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
+			//@TODO: GetGraphicsCaps().buggyMRTSRGBWriteFlag
+			cmd.GetTemporaryRT(kGBufferAlbedo, width, height, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
+			cmd.GetTemporaryRT(kGBufferSpecRough, width, height, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
+			cmd.GetTemporaryRT(kGBufferNormal, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
+			cmd.GetTemporaryRT(kGBufferEmission, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear); //@TODO: HDR
+			cmd.GetTemporaryRT(kGBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
+			cmd.GetTemporaryRT(kCameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
+
+			cmd.GetTemporaryRT(kCameraTarget, width, height, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
 
 			var colorMRTs = new RenderTargetIdentifier[4] { kGBufferAlbedo, kGBufferSpecRough, kGBufferNormal, kGBufferEmission };
 			cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(kGBufferZ));
@@ -252,7 +253,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			// setup GBuffer for rendering
 			var cmd = new CommandBuffer();
 			cmd.name = "Create G-Buffer";
-			SetupGBuffer(cmd);
+			SetupGBuffer(camera.pixelWidth, camera.pixelHeight, cmd);
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
@@ -277,7 +278,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		{
             var cmd = new CommandBuffer();
 
-            if(gEnableClustered)
+            if(EnableClustered)
             {
                 cmd.SetGlobalFloat("g_fClustScale", m_clustScale);
                 cmd.SetGlobalFloat("g_fClustBase", m_clustLogBase);
@@ -294,7 +295,8 @@ namespace UnityEngine.ScriptableRenderLoop
                 }
             }
             
-			m_DeferredMaterial.SetBuffer("g_vLightList", gEnableClustered ? m_perVoxelLightLists : lightList);
+			//m_DeferredMaterial.SetBuffer("g_vLightList", EnableClustered ? m_perVoxelLightLists : lightList);
+            m_DeferredMaterial.SetBuffer("g_vLightList", lightList);
 			m_DeferredReflectionMaterial.SetBuffer("g_vLightList", lightList);
 
 			m_DeferredMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
@@ -376,7 +378,7 @@ namespace UnityEngine.ScriptableRenderLoop
 					l.vLaxisY = vy;
 					l.vLaxisZ = vz;
 					
-					l.vCol = new Vec3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
+					l.vCol.Set(light.finalColor.r, light.finalColor.g, light.finalColor.b);
 					l.fLightIntensity = light.light.intensity;
 
 					lights.Add(l);
@@ -502,15 +504,15 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				Vector3 lightPos = lightToWorld.GetColumn(3);
 
-				boundData[i].vBoxAxisX = new Vec3(1, 0, 0);
-				boundData[i].vBoxAxisY = new Vec3(0, 1, 0);
-				boundData[i].vBoxAxisZ = new Vec3(0, 0, 1);
-				boundData[i].vScaleXY = new Vec2(1.0f, 1.0f);
+				boundData[i].vBoxAxisX.Set(1, 0, 0);
+				boundData[i].vBoxAxisY.Set(0, 1, 0);
+				boundData[i].vBoxAxisZ.Set(0, 0, 1);
+				boundData[i].vScaleXY.Set(1.0f, 1.0f);
 				boundData[i].fRadius = range;
 
 				lightData[i].flags = 0;
 				lightData[i].fRecipRange = 1.0f / range;
-				lightData[i].vCol = new Vec3(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
+				lightData[i].vCol.Set(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
 				lightData[i].iSliceIndex = 0;
 				lightData[i].uLightModel = (uint)LightDefinitions.DIRECT_LIGHT;
 				lightData[i].uShadowLightIndex = shadowLightIndex;
@@ -581,7 +583,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					float fAltDist = Mathf.Sqrt(fAltDy * fAltDy + (bIsCircularSpot ? 1.0f : 2.0f) * fAltDx * fAltDx);
 					boundData[i].fRadius = fAltDist > (0.5f * range) ? fAltDist : (0.5f * range);       // will always pick fAltDist
-					boundData[i].vScaleXY = bSqueeze ? new Vec2(0.01f, 0.01f) : new Vec2(1.0f, 1.0f);
+					boundData[i].vScaleXY = bSqueeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
 
 					// fill up ldata
 					lightData[i].uLightType = (uint)LightDefinitions.SPOT_LIGHT;
@@ -602,10 +604,10 @@ namespace UnityEngine.ScriptableRenderLoop
 					}
 
 					boundData[i].vCen = worldToView.MultiplyPoint(lightPos);
-					boundData[i].vBoxAxisX = new Vec3(range, 0, 0);
-					boundData[i].vBoxAxisY = new Vec3(0, range, 0);
-					boundData[i].vBoxAxisZ = new Vec3(0, 0, -range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-					boundData[i].vScaleXY = new Vec2(1.0f, 1.0f);
+					boundData[i].vBoxAxisX.Set(range, 0, 0);
+					boundData[i].vBoxAxisY.Set(0, range, 0);
+					boundData[i].vBoxAxisZ.Set(0, 0, -range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+					boundData[i].vScaleXY.Set(1.0f, 1.0f);
 					boundData[i].fRadius = range;
 
                     // represents a left hand coordinate system in world space since det(worldToView)<0
@@ -635,7 +637,7 @@ namespace UnityEngine.ScriptableRenderLoop
 				if (cl.lightType == LightType.Spot || cl.lightType == LightType.Point)
 					++i;
 			}
-
+            int numLightsOut = i;
 
 			// probe.m_BlendDistance
 			// Vector3f extents = 0.5*Abs(probe.m_BoxSize);
@@ -649,7 +651,7 @@ namespace UnityEngine.ScriptableRenderLoop
 				Texture cubemap = rl.texture;
 				if (cubemap != null)        // always a box for now
 				{
-					i = numProbesOut + numLights;
+					i = numProbesOut + numLightsOut;
 
 					lightData[i].flags = 0;
 
@@ -704,13 +706,13 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					Vector3 delta = combinedExtent - e;
 					lightData[i].vBoxInnerDist = e;
-					lightData[i].vBoxInvRange = new Vec3(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+					lightData[i].vBoxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
 
 					boundData[i].vCen = Cw;
 					boundData[i].vBoxAxisX = combinedExtent.x * vx;
 					boundData[i].vBoxAxisY = combinedExtent.y * vy;
 					boundData[i].vBoxAxisZ = combinedExtent.z * vz;
-					boundData[i].vScaleXY = new Vec2(1.0f, 1.0f);
+					boundData[i].vScaleXY.Set(1.0f, 1.0f);
 					boundData[i].fRadius = combinedExtent.magnitude;
 
 					// fill up ldata
@@ -726,7 +728,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_lightDataBuffer.SetData(lightData);
 
 
-			return numLights + numProbesOut;
+			return numLightsOut + numProbesOut;
 		}
 
 		/* public override void Render(Camera[] cameras, RenderLoop renderLoop)
@@ -858,7 +860,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.SetComputeBufferParam(m_BuildPerTileLightListShader, kGenListPerTileKernel, "g_vLightList", lightList);
 			cmd.ComputeDispatch(m_BuildPerTileLightListShader, kGenListPerTileKernel, nrTilesX, nrTilesY, 1);
             
-            if(gEnableClustered) VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
+            if(EnableClustered) VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
 
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
@@ -904,7 +906,7 @@ namespace UnityEngine.ScriptableRenderLoop
             if (lightList != null)
 				lightList.Release();
 
-            if(gEnableClustered)
+            if(EnableClustered)
             {
                 if(m_perVoxelLightLists != null)
 				    m_perVoxelLightLists.Release();
@@ -932,7 +934,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             lightList = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * nrDWordsPerTileFPTL * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
 
-            if(gEnableClustered)
+            if(EnableClustered)
             {
                 m_perVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1<<g_iLog2NumClusters) * nrTiles, sizeof(uint));
                 m_perVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTiles, sizeof(uint));

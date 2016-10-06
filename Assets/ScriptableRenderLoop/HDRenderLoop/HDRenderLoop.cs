@@ -33,11 +33,11 @@ namespace UnityEngine.ScriptableRenderLoop
                 sRGBWrites[index] = inSRGBWrite;
             }
 
-            public void InitGBuffers(CommandBuffer cmd)
+            public void InitGBuffers(int width, int height, CommandBuffer cmd)
             {
                 for (int index = 0; index < gbufferCount; index++)
                 {
-                    /* RTs[index] = */ cmd.GetTemporaryRT(IDs[index], -1, -1, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
+                    /* RTs[index] = */ cmd.GetTemporaryRT(IDs[index], width, height, 0, FilterMode.Point, formats[index], sRGBWrites[index]);
                 }
             }
 
@@ -149,9 +149,12 @@ namespace UnityEngine.ScriptableRenderLoop
                 // Also we manage ourself the HDR format, here allocating fp16 directly.
                 // With scriptable render loop we can allocate temporary RT in a command buffer, they will not be release with ExecuteCommandBuffer
                 // These temporary surface are release automatically at the end of the scriptable renderloop if not release explicitly
-                cmd.GetTemporaryRT(s_CameraColorBuffer, -1, -1, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Default);
-                cmd.GetTemporaryRT(s_CameraDepthBuffer, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
-                gbufferManager.InitGBuffers(cmd);
+                int w = camera.pixelWidth;
+                int h = camera.pixelHeight;
+
+                cmd.GetTemporaryRT(s_CameraColorBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Default);
+                cmd.GetTemporaryRT(s_CameraDepthBuffer, w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                gbufferManager.InitGBuffers(w, h, cmd);
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
                 cmd.ClearRenderTarget(true, false, new Color(0, 0, 0, 0));
@@ -297,7 +300,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     float lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
                     float lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
 
-                    l.color = new Vec3(lightColorR, lightColorG, lightColorB);
+                    l.color.Set(lightColorR, lightColorG, lightColorB);
 
                     // Light direction is opposite to the forward direction
                     l.forward = -light.light.transform.forward;
