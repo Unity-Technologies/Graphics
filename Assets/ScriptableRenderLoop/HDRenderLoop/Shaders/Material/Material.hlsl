@@ -6,7 +6,7 @@
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/CommonLighting.hlsl"
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Shaderconfig.cs"
-#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/LightDefinition.cs"
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/LightDefinition.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // Parametrization function helpers
