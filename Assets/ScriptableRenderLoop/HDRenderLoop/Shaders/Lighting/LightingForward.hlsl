@@ -36,9 +36,6 @@ void ForwardLighting(	float3 V, float3 positionWS, BSDFData bsdfData,
 	specularLighting += localSpecularLighting;
 	}
 	*/
-
-	// Add GI
-	diffuseLighting.rgb += bsdfData.diffuseLightingAndEmissive;
 }
 
 #endif // UNITY_LIGHTING_FORWARD_INCLUDED

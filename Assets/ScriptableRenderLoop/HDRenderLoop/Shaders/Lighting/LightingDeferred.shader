@@ -22,11 +22,13 @@ Shader "Hidden/Unity/LightingDeferred"
 			#pragma fragment FragDeferred
 
 			// CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_DISNEYGXX
-			#define UNITY_MATERIAL_DISNEYGXX // Need to be define before including Material.hlsl
+			#define UNITY_MATERIAL_DISNEYGGX // Need to be define before including Material.hlsl
 			#include "Lighting.hlsl" // This include Material.hlsl
 			#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
 
 			DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);
+			DECLARE_GBUFFER_BAKE_LIGHTING(_CameraGBufferTexture);
+
 			Texture2D _CameraDepthTexture;
 			float4 _ScreenSize;
 
@@ -69,6 +71,9 @@ Shader "Hidden/Unity/LightingDeferred"
 				float4 diffuseLighting;
 				float4 specularLighting;
 				ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
+
+				FETCH_BAKE_LIGHTING_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
+				diffuseLighting.rgb += DECODE_BAKE_LIGHTING_FROM_GBUFFER(gbuffer);
 
 				return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
 			}
