@@ -151,12 +151,6 @@ PackedVaryings VertDefault(Attributes input)
 	output.tangentToWorld[1].w = 0;
 	output.tangentToWorld[2].w = 0;
 
-#ifdef SHADER_STAGE_FRAGMENT
-	#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
-	output.cullFace = FRONT_FACE_TYPE(0); // To avoid a warning
-	#endif
-#endif
-
 	return PackVaryings(output);
 }
 
@@ -242,10 +236,9 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 	#else
 	// Mirror the normal with the plane define by vertex normal
 	float3 oppositeNormalWS = reflect(surfaceData.normalWS, vertexNormalWS);
-	#endif
+#endif
 	// TODO : Test if GetOdddNegativeScale() is necessary here in case of normal map, as GetOdddNegativeScale is take into account in CreateTangentToWorld();
-	// surfaceData.normalWS = IS_FRONT_VFACE((input.cullFace >= 0.0 ? GetOdddNegativeScale() : -GetOdddNegativeScale()) >= 0.0, surfaceData.normalWS, oppositeNormalWS);
-	surfaceData.normalWS = IS_FRONT_VFACE((input.cullFace >= 0.0 ? GetOdddNegativeScale() : -GetOdddNegativeScale()) >= 0.0, surfaceData.normalWS, oppositeNormalWS);
+	surfaceData.normalWS = IS_FRONT_VFACE(input.cullFace, GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS, -GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS);
 #endif
 
 	surfaceData.materialId = 0;
