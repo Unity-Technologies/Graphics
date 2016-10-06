@@ -8,6 +8,7 @@ Shader "Hidden/Unity/FinalPass"
 		_ToneMapCoeffs1("Parameters for neutral tonemap", Vector) = (0.0, 0.0, 0.0, 0.0)
 		_ToneMapCoeffs2("Parameters for neutral tonemap", Vector) = (0.0, 0.0, 0.0, 0.0)
 		_Exposure("Exposure", Range(-32.0, 32.0)) = 0
+		[ToggleOff] _EnableToneMap("Enable Tone Map", Float) = 0
 	}
 
 	SubShader { 
@@ -19,8 +20,8 @@ Shader "Hidden/Unity/FinalPass"
 			#pragma fragment Frag
 			#pragma target 5.0
 
-			#include "../../../ShaderLibrary/Common.hlsl"
-			#include "../../../ShaderLibrary/Color.hlsl"
+			#include "Assets/ScriptableRenderLoop/ShaderLibrary/Common.hlsl"
+			#include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
 			#include "../ShaderVariables.hlsl"
 
 			sampler2D _MainTex;
@@ -124,7 +125,7 @@ Shader "Hidden/Unity/FinalPass"
 				// So we must not correct the sRGB here else it will be done two time.
 				// To fix!
 
-				c.rgb = ApplyToneMap(c.rgb * pow(2.0, _Exposure));
+				c.rgb = ApplyToneMap(c.rgb * exp2(_Exposure));
 
 				// return LinearToSRGB(c);
 				return c;
