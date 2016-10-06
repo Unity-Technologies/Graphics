@@ -6,10 +6,6 @@
 #define public
 
 
-#define Vec2		float2
-#define Vec3		float3
-#define Vec4		float4
-#define Mat44		float4x4
 #define unistruct	cbuffer
 #define hbool		bool
 

@@ -38,13 +38,7 @@ Shader "Hidden/FinalPass"
 
 			fixed4 frag (v2f i) : SV_Target
 			{
-				float4 c = tex2D(_MainTex, i.texcoord);
-
-				#if defined(UNITY_COLORSPACE_GAMMA)
-					return c;
-				#else
-					return float4(pow(c.xyz,1/2.2), c.w);
-				#endif
+				return tex2D(_MainTex, i.texcoord);
 			}
 			ENDCG 
 

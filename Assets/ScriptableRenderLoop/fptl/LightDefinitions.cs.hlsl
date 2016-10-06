@@ -28,21 +28,21 @@ struct SFiniteLightData
 	int flags;
 	uint uLightType;
 	uint uLightModel;
-	float3 vLpos; // x: x y: y z: z 
+	float3 vLpos;
 	float fLightIntensity;
-	float3 vLaxisX; // x: x y: y z: z 
+	float3 vLaxisX;
 	float fRecipRange;
-	float3 vLaxisY; // x: x y: y z: z 
+	float3 vLaxisY;
 	float fSphRadiusSq;
-	float3 vLaxisZ; // x: x y: y z: z 
+	float3 vLaxisZ;
 	float cotan;
-	float3 vCol; // x: x y: y z: z 
+	float3 vCol;
 	int iSliceIndex;
-	float3 vBoxInnerDist; // x: x y: y z: z 
+	float3 vBoxInnerDist;
 	float fDecodeExp;
-	float3 vBoxInvRange; // x: x y: y z: z 
+	float3 vBoxInvRange;
 	uint uShadowLightIndex;
-	float3 vLocalCubeCapturePoint; // x: x y: y z: z 
+	float3 vLocalCubeCapturePoint;
 	float fProbeBlendDistance;
 };
 
@@ -50,11 +50,11 @@ struct SFiniteLightData
 // PackingRules = Exact
 struct SFiniteLightBound
 {
-	float3 vBoxAxisX; // x: x y: y z: z 
-	float3 vBoxAxisY; // x: x y: y z: z 
-	float3 vBoxAxisZ; // x: x y: y z: z 
-	float3 vCen; // x: x y: y z: z 
-	float2 vScaleXY; // x: x y: y 
+	float3 vBoxAxisX;
+	float3 vBoxAxisY;
+	float3 vBoxAxisZ;
+	float3 vCen;
+	float2 vScaleXY;
 	float fRadius;
 };
 
@@ -62,13 +62,13 @@ struct SFiniteLightBound
 // PackingRules = Exact
 struct DirectionalLight
 {
-	float3 vCol; // x: x y: y z: z 
+	float3 vCol;
 	float fLightIntensity;
-	float3 vLaxisX; // x: x y: y z: z 
+	float3 vLaxisX;
 	uint uShadowLightIndex;
-	float3 vLaxisY; // x: x y: y z: z 
+	float3 vLaxisY;
 	float fPad0;
-	float3 vLaxisZ; // x: x y: y z: z 
+	float3 vLaxisZ;
 	float fPad1;
 };
 

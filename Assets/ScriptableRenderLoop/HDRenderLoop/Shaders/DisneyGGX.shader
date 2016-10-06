@@ -46,6 +46,9 @@ Shader "Unity/DisneyGGX"
 		// Following options are for the GUI inspector and different from the input parameters above
 		// These option below will cause different compilation flag.		
 
+		[ToggleOff]		_DistortionOnly("Distortion Only", Float) = 0.0
+		[ToggleOff]		_DistortionDepthTest("Distortion Only", Float) = 0.0
+
 		[ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 		_AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -61,13 +64,13 @@ Shader "Unity/DisneyGGX"
 
 		[Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
 		[Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-		[Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 1
+		[Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
 	}
 
 	HLSLINCLUDE
 
 	#pragma shader_feature _ALPHATEST_ON
-	#pragma shader_feature _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+	#pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 	#pragma shader_feature _NORMALMAP
 	#pragma shader_feature _NORMALMAP_TANGENT_SPACE
 	#pragma shader_feature _MASKMAP
@@ -102,15 +105,19 @@ Shader "Unity/DisneyGGX"
 			#pragma vertex VertDefault
 			#pragma fragment FragForward
 	
-			#include "TemplateDisneyGGX.hlsl"
-			
+			#include "TemplateDisneyGGX.hlsl"			
+
+			#if SHADER_STAGE_FRAGMENT
 
 			float4 FragForward(PackedVaryings packedInput) : SV_Target
 			{
 				Varyings input = UnpackVaryings(packedInput);
 				float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 				float3 positionWS = input.positionWS;
-				SurfaceData surfaceData = GetSurfaceData(input);
+
+				SurfaceData surfaceData;
+				BuiltinData builtinData;
+				GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
 
 				BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
@@ -118,8 +125,12 @@ Shader "Unity/DisneyGGX"
 				float4 specularLighting;
 				ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
 
-				return float4(diffuseLighting.rgb + specularLighting.rgb, surfaceData.opacity);
+				diffuseLighting.rgb += GetBakedDiffuseLigthing(surfaceData, builtinData);
+
+				return float4(diffuseLighting.rgb + specularLighting.rgb, builtinData.opacity);
 			}
+
+			#endif
 
 			ENDHLSL
 		}
@@ -131,7 +142,7 @@ Shader "Unity/DisneyGGX"
 			Name "GBuffer"  // Name is not used
 			Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
 
-			Cull [_CullMode]
+			Cull  [_CullMode]
 
 			HLSLPROGRAM
 			#pragma target 5.0
@@ -142,14 +153,29 @@ Shader "Unity/DisneyGGX"
 
 			#include "TemplateDisneyGGX.hlsl"
 
+			#if SHADER_STAGE_FRAGMENT
+
 			void FragDeferred(	PackedVaryings packedInput,
 								OUTPUT_GBUFFER(outGBuffer)
+								#ifdef VELOCITY_IN_GBUFFER
+								, OUTPUT_GBUFFER_VELOCITY(outGBuffer)
+								#endif
+								, OUTPUT_GBUFFER_BAKE_LIGHTING(outGBuffer)
 								)
 			{
 				Varyings input = UnpackVaryings(packedInput);
-				SurfaceData surfaceData = GetSurfaceData(input);
+				SurfaceData surfaceData;
+				BuiltinData builtinData;
+				GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+
 				ENCODE_INTO_GBUFFER(surfaceData, outGBuffer);
+				#ifdef VELOCITY_IN_GBUFFER
+				ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outGBuffer);
+				#endif
+				ENCODE_BAKE_LIGHTING_INTO_GBUFFER(GetBakedDiffuseLigthing(surfaceData, builtinData), outGBuffer);
 			}
+
+			#endif
 
 			ENDHLSL
 		}
