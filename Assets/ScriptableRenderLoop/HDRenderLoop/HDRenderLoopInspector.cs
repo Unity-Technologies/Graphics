@@ -17,6 +17,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		{
 			public readonly GUIContent debugParameters = new GUIContent("Debug Parameters");
 			public readonly GUIContent materialDebugMode = new GUIContent("Material Debug Mode", "Display various properties of Materials.");
+			public readonly GUIContent transparentMaterialDebugMode = new GUIContent("Transparent Material Debug", "Display material debug for transparent objects.");
 			public readonly GUIContent gBufferDebugMode = new GUIContent("GBuffer Debug Mode", "Display various properties of contained in the GBuffer.");
 
 			public readonly GUIContent[] materialDebugStrings = {	new GUIContent("None"),
@@ -82,6 +83,7 @@ namespace UnityEngine.ScriptableRenderLoop
 				EditorGUI.BeginChangeCheck();
 				debugParameters.gBufferDebugMode = (HDRenderLoop.GBufferDebugMode)EditorGUILayout.IntPopup(styles.gBufferDebugMode, (int)debugParameters.gBufferDebugMode, styles.gBufferDebugStrings, styles.gBufferDebugValues);
 				debugParameters.materialDebugMode = (HDRenderLoop.MaterialDebugMode)EditorGUILayout.IntPopup(styles.materialDebugMode, (int)debugParameters.materialDebugMode, styles.materialDebugStrings, styles.materialDebugValues);
+				debugParameters.displayMaterialDebugForTransparent = EditorGUILayout.Toggle(styles.transparentMaterialDebugMode, debugParameters.displayMaterialDebugForTransparent);
 				if(EditorGUI.EndChangeCheck())
 				{
 					EditorUtility.SetDirty(renderLoop); // Repaint
