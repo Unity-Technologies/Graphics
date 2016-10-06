@@ -20,6 +20,9 @@ namespace UnityEngine.ScriptableRenderLoop
 			public readonly GUIContent transparentMaterialDebugMode = new GUIContent("Transparent Material Debug", "Display material debug for transparent objects.");
 			public readonly GUIContent gBufferDebugMode = new GUIContent("GBuffer Debug Mode", "Display various properties of contained in the GBuffer.");
 
+			public readonly GUIContent displayOpaqueObjects = new GUIContent("Display Opaque Objects", "Toggle opaque objects rendering on and off.");
+			public readonly GUIContent displayTransparentObjects = new GUIContent("Display Transparent Objects", "Toggle transparent objects rendering on and off.");
+
 			public readonly GUIContent[] materialDebugStrings = {	new GUIContent("None"),
 																	new GUIContent("Diffuse Color"),
 																	new GUIContent("Normal"),
@@ -81,9 +84,15 @@ namespace UnityEngine.ScriptableRenderLoop
 				EditorGUILayout.LabelField(styles.debugParameters);
 				EditorGUI.indentLevel++;
 				EditorGUI.BeginChangeCheck();
+
 				debugParameters.gBufferDebugMode = (HDRenderLoop.GBufferDebugMode)EditorGUILayout.IntPopup(styles.gBufferDebugMode, (int)debugParameters.gBufferDebugMode, styles.gBufferDebugStrings, styles.gBufferDebugValues);
 				debugParameters.materialDebugMode = (HDRenderLoop.MaterialDebugMode)EditorGUILayout.IntPopup(styles.materialDebugMode, (int)debugParameters.materialDebugMode, styles.materialDebugStrings, styles.materialDebugValues);
 				debugParameters.displayMaterialDebugForTransparent = EditorGUILayout.Toggle(styles.transparentMaterialDebugMode, debugParameters.displayMaterialDebugForTransparent);
+
+				EditorGUILayout.Space();
+				debugParameters.displayOpaqueObjects = EditorGUILayout.Toggle(styles.displayOpaqueObjects, debugParameters.displayOpaqueObjects);
+				debugParameters.displayTransparentObjects = EditorGUILayout.Toggle(styles.displayTransparentObjects, debugParameters.displayTransparentObjects);
+
 				if(EditorGUI.EndChangeCheck())
 				{
 					EditorUtility.SetDirty(renderLoop); // Repaint

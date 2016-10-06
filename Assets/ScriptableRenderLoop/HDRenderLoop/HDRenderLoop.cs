@@ -47,27 +47,13 @@ namespace UnityEngine.ScriptableRenderLoop
 		public class DebugParameters
 		{
 			// Material Debugging
-			private MaterialDebugMode m_MaterialDebugMode = MaterialDebugMode.None;
-			private GBufferDebugMode m_GBufferDebugMode = GBufferDebugMode.None;
-			private bool m_DisplayMaterialDebugForTransparent = false;
+			public MaterialDebugMode materialDebugMode = MaterialDebugMode.None;
+			public GBufferDebugMode gBufferDebugMode = GBufferDebugMode.None;
+			public bool displayMaterialDebugForTransparent = false;
 
-			public MaterialDebugMode materialDebugMode
-			{
-				get { return m_MaterialDebugMode; }
-				set { m_MaterialDebugMode = value; }
-			}
-
-			public GBufferDebugMode gBufferDebugMode
-			{
-				get { return m_GBufferDebugMode; }
-				set { m_GBufferDebugMode = value; }
-			}
-
-			public bool displayMaterialDebugForTransparent
-			{
-				get { return m_DisplayMaterialDebugForTransparent; }
-				set { m_DisplayMaterialDebugForTransparent = value; }
-			}
+			// Rendering debugging
+			public bool displayOpaqueObjects = true;
+			public bool displayTransparentObjects = true;
 		}
 
 		private DebugParameters m_DebugParameters = new DebugParameters();
@@ -752,11 +738,13 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					InitAndClearBuffer(camera, renderLoop);
 
-					RenderGBuffer(cullResults, camera, renderLoop);
+					if(debugParameters.displayOpaqueObjects)
+						RenderGBuffer(cullResults, camera, renderLoop);
 
 					RenderDeferredLighting(camera, renderLoop);
 
-					RenderForward(cullResults, camera, renderLoop);
+					if(debugParameters.displayTransparentObjects)
+						RenderForward(cullResults, camera, renderLoop);
 
 					if (debugParameters.gBufferDebugMode != GBufferDebugMode.None)
 					{
