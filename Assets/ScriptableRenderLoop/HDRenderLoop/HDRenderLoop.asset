@@ -11,3 +11,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 558064ecdbf6b6742892d699acb39aed, type: 3}
   m_Name: HDRenderLoop
   m_EditorClassIdentifier: 
+  enableTonemap: 0
+  exposure: 0
