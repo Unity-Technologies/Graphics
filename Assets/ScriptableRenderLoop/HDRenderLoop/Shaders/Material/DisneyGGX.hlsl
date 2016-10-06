@@ -43,6 +43,8 @@ struct SurfaceData
 //	float	distortionBlur;		// Define the mipmap level to use
 
 //	float2	velocityVector;
+
+	float opacity; // Not store, use for blending
 };
 
 struct BSDFData
@@ -180,8 +182,8 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PunctualLightData light
 	attenuation *= GetAngleAttenuation(L, light.forward, light.angleScale, light.angleOffset);
 	float illuminance = saturate(dot(bsdfData.normalWS, L)) * attenuation;
 
-	diffuseLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
-	specularLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+	diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
+	specularLighting = float4(0.0, 0.0, 0.0, 1.0);
 
 	if (illuminance > 0.0f)
 	{

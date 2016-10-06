@@ -71,12 +71,28 @@ struct Varyings
 	float3 positionWS;
 	float2 texCoord0;
 	float4 tangentToWorld[3]; // [3x3:tangentToWorld | 1x3:viewDirForParallax]
+
+	/*
+#ifdef SHADER_STAGE_FRAGMENT
+	#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+	FRONT_FACE_TYPE cullFace;
+	#endif
+#endif
+	*/
 };
 
 struct PackedVaryings
 {
 	float4 positionHS : SV_Position;
 	float4 interpolators[5] : TEXCOORD0;
+
+	/*
+#ifdef SHADER_STAGE_FRAGMENT
+	#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+	FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMATIC;
+	#endif
+#endif
+	*/
 };
 
 // Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
@@ -106,6 +122,12 @@ Varyings UnpackVaryings(PackedVaryings input)
 	output.tangentToWorld[1] = input.interpolators[2];
 	output.tangentToWorld[2] = input.interpolators[3];
 
+	/*
+#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+	output.cullFace = input.cullFace;
+#endif
+	*/
+
 	return output;
 }
 
@@ -132,6 +154,12 @@ PackedVaryings VertDefault(Attributes input)
 	output.tangentToWorld[0].w = 0;
 	output.tangentToWorld[1].w = 0;
 	output.tangentToWorld[2].w = 0;
+
+	/*
+#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+	output.cullFace = FRONT_FACE_TYPE(0); // To avoid a warning
+#endif
+	*/
 
 	return PackVaryings(output);
 }
@@ -163,17 +191,19 @@ SurfaceData GetSurfaceData(Varyings input)
 	clip(alpha - _Cutoff);
 #endif
 
+	data.opacity = alpha;
+
 	// MaskMap is Mettalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
 #ifdef _MASKMAP
 	float mettalic = tex2D(_MaskMap, input.texCoord0).r;
 	data.ambientOcclusion = tex2D(_MaskMap, input.texCoord0).g;
 #else
-	float mettalic = 1.0f;
+	float mettalic = 1.0;
 	data.ambientOcclusion = 1.0;
 #endif
 	mettalic *= _Mettalic;
 
-	data.diffuseColor = baseColor * (1.0f - mettalic);
+	data.diffuseColor = baseColor * (1.0 - mettalic);
 	float f0_dieletric = 0.04;
 	data.specularColor = lerp(float3(f0_dieletric, f0_dieletric, f0_dieletric), baseColor, mettalic);
 
@@ -198,6 +228,8 @@ SurfaceData GetSurfaceData(Varyings input)
 #endif
 
 	// TODO: think about using BC5
+	float3 vertexNormalWS = input.tangentToWorld[2].xyz;
+
 #ifdef _NORMALMAP
 	#ifdef _NORMALMAP_TANGENT_SPACE
 	float3 normalTS = UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
@@ -206,8 +238,23 @@ SurfaceData GetSurfaceData(Varyings input)
 	data.normalWS = tex2D(_NormalMap, input.texCoord0).rgb;
 	#endif
 #else
-	data.normalWS = normalize(input.tangentToWorld[2].xyz);
+	data.normalWS = vertexNormalWS;
 #endif
+
+	/*
+#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+	#ifdef _DOUBLESIDED_LIGHTING_FLIP	
+	float3 oppositeNormalWS = -data.normalWS;
+	#else
+	// Mirror the normal with the plane define by vertex normal
+	float3 oppositeNormalWS = reflect(data.normalWS, vertexNormalWS);
+	#endif
+	// TODO : Test if GetOdddNegativeScale() is necessary here in case of normal map, as GetOdddNegativeScale is take into account in CreateTangentToWorld();
+	//data.normalWS = IS_FRONT_VFACE(GetOdddNegativeScale() : -GetOdddNegativeScale()) >= 0.0 ? data.normalWS : oppositeNormalWS;
+
+	data.normalWS = IS_FRONT_VFACE(input.cullFace, data.normalWS, -data.normalWS);
+#endif
+	*/
 
 	data.materialId = 0;
 
@@ -222,12 +269,12 @@ SurfaceData GetSurfaceData(Varyings input)
 #elif _MASKMAP // If we have a MaskMap, use emissive slot as a mask on baseColor
 	data.emissiveColor = data.baseColor * tex2D(_MaskMap, uv).b;
 #else
-	data.emissiveColor = float3(0.0f, 0.0f, 0.0f);
+	data.emissiveColor = float3(0.0, 0.0, 0.0);
 #endif
 
 	data.emissiveIntensity = _EmissiveIntensity;
 
-	data.subSurfaceRadius = 1.0f; // tex2D(_SubSurfaceRadiusMap, input.texCoord0).r * _SubSurfaceRadius;
+	data.subSurfaceRadius = 1.0; // tex2D(_SubSurfaceRadiusMap, input.texCoord0).r * _SubSurfaceRadius;
 
 	// TODO
 	/*

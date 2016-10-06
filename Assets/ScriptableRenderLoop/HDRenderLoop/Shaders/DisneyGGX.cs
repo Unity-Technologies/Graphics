@@ -267,10 +267,15 @@ internal class DisneyGGXGUI : ShaderGUI
 		EditorGUI.showMixedValue = false;
 	}
 
-	static public void SetupMaterialWithBlendMode(Material material, bool alphaTestEnable, SurfaceType surfaceType, BlendMode blendMode, DoubleSidedMode doubleSidedMode)
+    static public void SetupMaterial(Material material)
 	{
-        if (alphaTestEnable)
-            material.EnableKeyword("_ALPHATEST_ON");
+        // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
+        // (MaterialProperty value might come from renderer material property block)
+
+        bool alphaTestEnable = material.GetFloat("_AlphaCutoffEnable") == 1.0;
+        SurfaceType surfaceType = (SurfaceType)material.GetFloat("_SurfaceType");
+        BlendMode blendMode = (BlendMode)material.GetFloat("_BlendMode");
+        DoubleSidedMode doubleSidedMode = (DoubleSidedMode)material.GetFloat("_DoubleSidedMode");
 
         if (surfaceType == SurfaceType.Opaque)
         {
@@ -315,35 +320,32 @@ internal class DisneyGGXGUI : ShaderGUI
             }
         }
 
-        if (doubleSidedMode != DoubleSidedMode.None)
+        if (doubleSidedMode != DoubleSidedMode.None || surfaceType == SurfaceType.Transparent)
         {
             material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Off);
         }
+        else
+        {
+            material.SetInt("_CullMode", (int)UnityEngine.Rendering.CullMode.Back);
+        }
 
-        if (doubleSidedMode == DoubleSidedMode.DoubleSided)
+        if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingFlip)
         {
             material.EnableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
             material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
         }
-        else
+        else if (doubleSidedMode == DoubleSidedMode.DoubleSidedLightingMirror)
         {
             material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
             material.EnableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
-        } 
-	}
+        }
+        else
+        {
+            material.DisableKeyword("_DOUBLESIDED_LIGHTING_FLIP");
+            material.DisableKeyword("_DOUBLESIDED_LIGHTING_MIRROR");
+        }
 
-	static bool ShouldEmissionBeEnabled(Material mat, Color color)
-	{
-            //var realtimeEmission = (mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
-            //return color.maxColorComponent > 0.1f / 255.0f || realtimeEmission;
-
-            return false;
-	}
-
-    static void SetMaterialKeywords(Material material)
-	{
-        // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
-        // (MaterialProperty value might come from renderer material property block)
+        SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
         SetKeyword(material, "_NORMALMAP", material.GetTexture("_NormalMap"));
         SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (NormalMapSpace)material.GetFloat("_NormalMapSpace") == NormalMapSpace.TangentSpace);
         SetKeyword(material, "_MASKMAP", material.GetTexture("_MaskMap"));
@@ -367,6 +369,14 @@ internal class DisneyGGXGUI : ShaderGUI
         */
 	}
 
+	static bool ShouldEmissionBeEnabled(Material mat, Color color)
+	{
+            //var realtimeEmission = (mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
+            //return color.maxColorComponent > 0.1f / 255.0f || realtimeEmission;
+
+            return false;
+	}
+
 	bool HasValidEmissiveKeyword (Material material)
 	{
         /*
@@ -385,9 +395,7 @@ internal class DisneyGGXGUI : ShaderGUI
 
     static void MaterialChanged(Material material)
 	{
-        SetupMaterialWithBlendMode(material, material.GetFloat("_AlphaCutoffEnable") == 1.0, (SurfaceType)material.GetFloat("_SurfaceType"), (BlendMode)material.GetFloat("_BlendMode"), (DoubleSidedMode)material.GetFloat("_DoubleSidedMode"));
-
-		SetMaterialKeywords(material);
+        SetupMaterial(material);
 	}
 
     static void SetKeyword(Material m, string keyword, bool state)

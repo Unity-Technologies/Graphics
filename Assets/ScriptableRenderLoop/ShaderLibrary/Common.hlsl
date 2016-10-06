@@ -86,8 +86,8 @@
 float FastACos(float inX) 
 { 
     float x = abs(inX); 
-    float res = -0.156583f * x + HALF_PI; 
-    res *= sqrt(1.0f - x); 
+    float res = -0.156583 * x + HALF_PI; 
+    res *= sqrt(1.0 - x); 
     return (inX >= 0) ? res : PI - res; 
 }
 
@@ -105,13 +105,13 @@ float FastASin(float x)
 // input [0, infinity] and output [0, PI/2]
 float FastATanPos(float x) 
 { 
-    float t0 = (x < 1.0f) ? x : 1.0f / x;
+    float t0 = (x < 1.0) ? x : 1.0 / x;
     float t1 = t0 * t0;
-    float poly = 0.0872929f;
-    poly = -0.301895f + poly * t1;
-    poly = 1.0f + poly * t1;
+    float poly = 0.0872929;
+    poly = -0.301895 + poly * t1;
+    poly = 1.0 + poly * t1;
     poly = poly * t0;
-    return (x < 1.0f) ? poly : HALF_PI - poly;
+    return (x < 1.0) ? poly : HALF_PI - poly;
 }
 
 // 4 VGPR, 16 FR (12 FR, 1 QR), 2 scalar
@@ -119,7 +119,7 @@ float FastATanPos(float x)
 float FastATan(float x) 
 {     
     float t0 = FastATanPos(abs(x));     
-    return (x < 0.0f) ? -t0: t0; 
+    return (x < 0.0f) ? -t0 : t0; 
 }
 
 // ----------------------------------------------------------------------------
@@ -145,7 +145,7 @@ Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
 	// TODO: How to detect automatically that we are a compute shader ?
  #if 0
 	// In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
-	coord.positionSS.xy += float2(0.5f, 0.5f);
+	coord.positionSS.xy += float2(0.5, 0.5);
 #endif
 	coord.positionSS *= invScreenSize;
 

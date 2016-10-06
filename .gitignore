@@ -25,3 +25,5 @@ DataSource/Mono/etc/mono/2.0/web.config
 *.exe
 *.aspx
 
+Assets/UnityHDRI.meta
+Assets/UnityHDRI/Gareoult/GareoultWhiteBalanced.exr
