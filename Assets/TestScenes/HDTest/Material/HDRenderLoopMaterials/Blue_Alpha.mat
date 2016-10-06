@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Blue_Alpha
   m_Shader: {fileID: 4800000, guid: e1a84346ee54f9f4993c2f05c59805a0, type: 3}
-  m_ShaderKeywords: _EMISSION _NORMALMAP_TANGENT_SPACE
+  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DOUBLESIDED_LIGHTING_FLIP _EMISSION _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_CustomRenderQueue: 3000
   stringTagMap:
@@ -159,6 +159,12 @@ Material:
         name: _DetailNormalMapScale
       second: 1
     - first:
+        name: _DistortionDepthTest
+      second: 0
+    - first:
+        name: _DistortionOnly
+      second: 0
+    - first:
         name: _DoubleSided
       second: 1
     - first:
@@ -166,7 +172,7 @@ Material:
       second: 1
     - first:
         name: _DoubleSidedMode
-      second: 1
+      second: 2
     - first:
         name: _DstBlend
       second: 10
@@ -245,7 +251,7 @@ Material:
     m_Colors:
     - first:
         name: _BaseColor
-      second: {r: 0.1557093, g: 0.33766845, b: 0.5882352, a: 0.672}
+      second: {r: 0.3118512, g: 0.49926913, b: 0.75735295, a: 0.672}
     - first:
         name: _Color
       second: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}

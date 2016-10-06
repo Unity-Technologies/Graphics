@@ -202,10 +202,14 @@ Shader "Unity/DisneyGGX"
 			#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugCommon.hlsl"
 			#include "TemplateDisneyGGX.hlsl"
 
+			#if SHADER_STAGE_FRAGMENT
+
 			float4 FragDebug( PackedVaryings packedInput ) : SV_Target
 			{
 				Varyings input = UnpackVaryings(packedInput);
-				SurfaceData surfaceData = GetSurfaceData(input);
+				SurfaceData surfaceData;
+				BuiltinData builtinData;
+				GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
 
 				float3 result = float3(1.0, 1.0, 0.0);
 				bool outputIsLinear = false;
@@ -272,6 +276,8 @@ Shader "Unity/DisneyGGX"
 
 				return float4(result, 0.0);
 			}
+
+			#endif
 
 			ENDHLSL
 		}
