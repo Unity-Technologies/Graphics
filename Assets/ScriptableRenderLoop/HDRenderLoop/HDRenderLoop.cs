@@ -58,7 +58,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			set { m_GBufferDebugMode = value; }
 		}
 
-		HDRenderLoopDebugMenu m_DebugMenu = null;
+		//HDRenderLoopDebugMenu m_DebugMenu = null;
 
 		#if UNITY_EDITOR
 		[MenuItem("Renderloop/HDRenderLoop/CreateHDRenderLoop")]
@@ -370,12 +370,12 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-            DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("Forward"));
-            settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
-            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-            settings.inputCullingOptions.SetQueuesTransparent();
+			DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("Forward"));
+			settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
+			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+			settings.inputCullingOptions.SetQueuesTransparent();
 
-            renderLoop.DrawRenderers(ref settings);
+			renderLoop.DrawRenderers(ref settings);
         }
 
         void FinalPass(RenderLoop renderLoop)
@@ -709,7 +709,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					RenderForward(cullResults, camera, renderLoop);
 
-					if(m_GBufferDebugMode != GBufferDebugMode.None)
+					if (m_GBufferDebugMode != GBufferDebugMode.None)
 					{
 						RenderGBufferDebug(camera, renderLoop);
 					}

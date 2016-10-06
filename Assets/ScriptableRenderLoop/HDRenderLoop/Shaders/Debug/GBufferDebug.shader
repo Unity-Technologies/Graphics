@@ -16,13 +16,14 @@ Shader "Hidden/Unity/GBufferDebug"
 			#pragma fragment FragDeferred
 
 			// CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_DISNEYGXX
-			#define UNITY_MATERIAL_DISNEYGXX // Need to be define before including Material.hlsl
+			#define UNITY_MATERIAL_DISNEYGGX // Need to be define before including Material.hlsl
 			#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/Lighting.hlsl" // This include Material.hlsl
 			#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
 			#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugCommon.hlsl"
 			#include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
 
 			DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);
+			DECLARE_GBUFFER_BAKE_LIGHTING(_CameraGBufferTexture);
 			Texture2D	_CameraDepthTexture;
 			float4		_ScreenSize;
 			float		_DebugMode;
@@ -68,15 +69,18 @@ Shader "Hidden/Unity/GBufferDebug"
 				else if (_DebugMode == GBufferDebugNormal)
 				{
 					result = bsdfData.normalWS * 0.5 + 0.5;
-					bool outputIsLinear = true;
+					outputIsLinear = true;
 				}
 				else if (_DebugMode == GBufferDebugDepth)
 				{
-					result = bsdfData.diffuseColor;
+					float linearDepth = frac(LinearEyeDepth(depth, _ZBufferParams) * 0.1);
+					result = linearDepth.xxx;
+					outputIsLinear = true;
 				}
 				else if (_DebugMode == GBufferDebugBakedDiffuse)
 				{
-					result = bsdfData.diffuseLightingAndEmissive;
+					FETCH_BAKE_LIGHTING_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
+					result = DECODE_BAKE_LIGHTING_FROM_GBUFFER(gbuffer);
 					outputIsLinear = true;
 				}
 				else if (_DebugMode == GBufferDebugSpecularColor)
