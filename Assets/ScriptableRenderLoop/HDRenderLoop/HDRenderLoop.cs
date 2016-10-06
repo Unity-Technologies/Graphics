@@ -46,8 +46,10 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		public class DebugParameters
 		{
+			// Material Debugging
 			private MaterialDebugMode m_MaterialDebugMode = MaterialDebugMode.None;
 			private GBufferDebugMode m_GBufferDebugMode = GBufferDebugMode.None;
+			private bool m_DisplayMaterialDebugForTransparent = false;
 
 			public MaterialDebugMode materialDebugMode
 			{
@@ -59,6 +61,12 @@ namespace UnityEngine.ScriptableRenderLoop
 			{
 				get { return m_GBufferDebugMode; }
 				set { m_GBufferDebugMode = value; }
+			}
+
+			public bool displayMaterialDebugForTransparent
+			{
+				get { return m_DisplayMaterialDebugForTransparent; }
+				set { m_DisplayMaterialDebugForTransparent = value; }
 			}
 		}
 
@@ -312,6 +320,13 @@ namespace UnityEngine.ScriptableRenderLoop
 			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
 			settings.inputCullingOptions.SetQueuesOpaque();
 			renderLoop.DrawRenderers(ref settings);
+
+			if(debugParameters.displayMaterialDebugForTransparent)
+			{
+				settings.sorting.sortOptions = SortOptions.BackToFront;
+				settings.inputCullingOptions.SetQueuesTransparent();
+				renderLoop.DrawRenderers(ref settings);
+			}
 
 			cmd = new CommandBuffer();
 			cmd.name = "FinalPass";
