@@ -3,7 +3,7 @@
 
 // No guard header!
 
-#define UNITY_MATERIAL_DISNEYGXX // Need to be define before including Material.hlsl
+#define UNITY_MATERIAL_DISNEYGGX // Need to be define before including Material.hlsl
 #include "Lighting/Lighting.hlsl" // This include Material.hlsl
 #include "ShaderVariables.hlsl"
 
@@ -72,13 +72,11 @@ struct Varyings
 	float2 texCoord0;
 	float4 tangentToWorld[3]; // [3x3:tangentToWorld | 1x3:viewDirForParallax]
 
-	/*
 #ifdef SHADER_STAGE_FRAGMENT
 	#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
 	FRONT_FACE_TYPE cullFace;
 	#endif
 #endif
-	*/
 };
 
 struct PackedVaryings
@@ -86,13 +84,11 @@ struct PackedVaryings
 	float4 positionHS : SV_Position;
 	float4 interpolators[5] : TEXCOORD0;
 
-	/*
 #ifdef SHADER_STAGE_FRAGMENT
 	#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
 	FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMATIC;
 	#endif
 #endif
-	*/
 };
 
 // Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
@@ -122,11 +118,11 @@ Varyings UnpackVaryings(PackedVaryings input)
 	output.tangentToWorld[1] = input.interpolators[2];
 	output.tangentToWorld[2] = input.interpolators[3];
 
-	/*
-#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
+#ifdef SHADER_STAGE_FRAGMENT
+	#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
 	output.cullFace = input.cullFace;
+	#endif
 #endif
-	*/
 
 	return output;
 }
@@ -164,6 +160,7 @@ PackedVaryings VertDefault(Attributes input)
 	return PackVaryings(output);
 }
 
+
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Lighting data function
 //-------------------------------------------------------------------------------------
@@ -174,12 +171,10 @@ float3 TransformTangentToWorld(float3 normalTS, float4 tangentToWorld[3])
 	return normalize(mul(normalTS, float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz)));
 }
 
-SurfaceData GetSurfaceData(Varyings input)
-{
-	// to manage the mettalic/specular representation we should have a neested master node instead of doing a new lighting model
-	// this is simulated here by doing the conversion on the inputs data.
-	SurfaceData data;
+#if SHADER_STAGE_FRAGMENT
 
+void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+{
 	float3 baseColor = tex2D(_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 	float alpha = _BaseColor.a;
@@ -191,40 +186,40 @@ SurfaceData GetSurfaceData(Varyings input)
 	clip(alpha - _Cutoff);
 #endif
 
-	data.opacity = alpha;
+	builtinData.opacity = alpha;
 
 	// MaskMap is Mettalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
 #ifdef _MASKMAP
 	float mettalic = tex2D(_MaskMap, input.texCoord0).r;
-	data.ambientOcclusion = tex2D(_MaskMap, input.texCoord0).g;
+	surfaceData.ambientOcclusion = tex2D(_MaskMap, input.texCoord0).g;
 #else
 	float mettalic = 1.0;
-	data.ambientOcclusion = 1.0;
+	surfaceData.ambientOcclusion = 1.0;
 #endif
 	mettalic *= _Mettalic;
 
-	data.diffuseColor = baseColor * (1.0 - mettalic);
+	surfaceData.diffuseColor = baseColor * (1.0 - mettalic);
 	float f0_dieletric = 0.04;
-	data.specularColor = lerp(float3(f0_dieletric, f0_dieletric, f0_dieletric), baseColor, mettalic);
+	surfaceData.specularColor = lerp(float3(f0_dieletric, f0_dieletric, f0_dieletric), baseColor, mettalic);
 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-	data.perceptualSmoothness = tex2D(_BaseColorMap, input.texCoord0).a;
+	surfaceData.perceptualSmoothness = tex2D(_BaseColorMap, input.texCoord0).a;
 #elif defined(_MASKMAP)
-	data.perceptualSmoothness = tex2D(_MaskMap, input.texCoord0).a;
+	surfaceData.perceptualSmoothness = tex2D(_MaskMap, input.texCoord0).a;
 #else
-	data.perceptualSmoothness = 1.0;
+	surfaceData.perceptualSmoothness = 1.0;
 #endif
-	data.perceptualSmoothness *= _Smoothness;
+	surfaceData.perceptualSmoothness *= _Smoothness;
 
 #ifdef _SPECULAROCCLUSIONMAP
 	// TODO: Do something. For now just take alpha channel
-	data.specularOcclusion = tex2D(_SpecularOcclusionMap, input.texCoord0).a;
+	surfaceData.specularOcclusion = tex2D(_SpecularOcclusionMap, input.texCoord0).a;
 #else
 	// Horizon Occlusion for Normal Mapped Reflections: http://marmosetco.tumblr.com/post/81245981087
-	//data.specularOcclusion = saturate(1.0 + horizonFade * dot(r, input.tangentToWorld[2].xyz);
+	//surfaceData.specularOcclusion = saturate(1.0 + horizonFade * dot(r, input.tangentToWorld[2].xyz);
 	// smooth it
-	//data.specularOcclusion *= data.specularOcclusion;
-	data.specularOcclusion = 1.0;
+	//surfaceData.specularOcclusion *= surfaceData.specularOcclusion;
+	surfaceData.specularOcclusion = 1.0;
 #endif
 
 	// TODO: think about using BC5
@@ -233,48 +228,32 @@ SurfaceData GetSurfaceData(Varyings input)
 #ifdef _NORMALMAP
 	#ifdef _NORMALMAP_TANGENT_SPACE
 	float3 normalTS = UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
-	data.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+	surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
 	#else // Object space (TODO: We need to apply the world rotation here!)
-	data.normalWS = tex2D(_NormalMap, input.texCoord0).rgb;
+	surfaceData.normalWS = tex2D(_NormalMap, input.texCoord0).rgb;
 	#endif
 #else
-	data.normalWS = vertexNormalWS;
+	surfaceData.normalWS = vertexNormalWS;
 #endif
 
 	/*
 #if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
 	#ifdef _DOUBLESIDED_LIGHTING_FLIP	
-	float3 oppositeNormalWS = -data.normalWS;
+	float3 oppositeNormalWS = -surfaceData.normalWS;
 	#else
 	// Mirror the normal with the plane define by vertex normal
-	float3 oppositeNormalWS = reflect(data.normalWS, vertexNormalWS);
+	float3 oppositeNormalWS = reflect(surfaceData.normalWS, vertexNormalWS);
 	#endif
 	// TODO : Test if GetOdddNegativeScale() is necessary here in case of normal map, as GetOdddNegativeScale is take into account in CreateTangentToWorld();
-	//data.normalWS = IS_FRONT_VFACE(GetOdddNegativeScale() : -GetOdddNegativeScale()) >= 0.0 ? data.normalWS : oppositeNormalWS;
+	//surfaceData.normalWS = IS_FRONT_VFACE(GetOdddNegativeScale() : -GetOdddNegativeScale()) >= 0.0 ? surfaceData.normalWS : oppositeNormalWS;
 
-	data.normalWS = IS_FRONT_VFACE(input.cullFace, data.normalWS, -data.normalWS);
+	surfaceData.normalWS = IS_FRONT_VFACE(input.cullFace, surfaceData.normalWS, -surfaceData.normalWS);
 #endif
 	*/
 
-	data.materialId = 0;
+	surfaceData.materialId = 0;
 
-	// TODO: Sample lightmap/lightprobe/volume proxy
-	// This should also handle projective lightmap
-	// Note that data input above can be use to sample into lightmap (like normal)
-	data.diffuseLighting = tex2D(_DiffuseLightingMap, input.texCoord0).rgb;
-
-	// If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
-#ifdef _EMISSIVE_COLOR
-	data.emissiveColor = tex2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
-#elif _MASKMAP // If we have a MaskMap, use emissive slot as a mask on baseColor
-	data.emissiveColor = data.baseColor * tex2D(_MaskMap, uv).b;
-#else
-	data.emissiveColor = float3(0.0, 0.0, 0.0);
-#endif
-
-	data.emissiveIntensity = _EmissiveIntensity;
-
-	data.subSurfaceRadius = 1.0; // tex2D(_SubSurfaceRadiusMap, input.texCoord0).r * _SubSurfaceRadius;
+	surfaceData.subSurfaceRadius = 1.0; // tex2D(_SubSurfaceRadiusMap, input.texCoord0).r * _SubSurfaceRadius;
 
 	// TODO
 	/*
@@ -290,7 +269,28 @@ SurfaceData GetSurfaceData(Varyings input)
 	sampler2D _CoatRoughnessMap;
 	*/
 
-	// TODO: handle alpha for transparency!
+	// Builtin Data
 
-	return data;
+	// TODO: Sample lightmap/lightprobe/volume proxy
+	// This should also handle projective lightmap
+	// Note that data input above can be use to sample into lightmap (like normal)
+	builtinData.bakeDiffuseLighting = tex2D(_DiffuseLightingMap, input.texCoord0).rgb;
+
+	// If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
+#ifdef _EMISSIVE_COLOR
+	builtinData.emissiveColor = tex2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
+#elif _MASKMAP // If we have a MaskMap, use emissive slot as a mask on baseColor
+	builtinData.emissiveColor = data.baseColor * tex2D(_MaskMap, uv).bbb;
+#else
+	builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
+#endif
+
+	builtinData.emissiveIntensity = _EmissiveIntensity;
+
+	builtinData.velocity = float2(0.0, 0.0);
+
+	builtinData.distortion = float2(0.0, 0.0);
+	builtinData.distortionBlur = 0.0;
 }
+
+#endif // #if SHADER_STAGE_FRAGMENT
