@@ -5,6 +5,7 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 
+
 // Main structure that store the user data (i.e user input of master node in material graph)
 struct SurfaceData
 {
@@ -62,6 +63,21 @@ struct BSDFData
 	// System
 	float3	diffuseLightingAndEmissive;
 };
+
+// List of debug modes. Keep in sync with HDRenderLoop.DebugMode
+#define DebugNone 0,
+#define DebugDiffuseColor 1
+#define DebugNormal 2
+#define DebugDepth 3
+#define DebugAO 4
+#define DebugSpecularColor 5
+#define DebugSpecularOcclusion 6
+#define DebugSmoothness 7
+#define DebugMaterialId 8
+#define DebugUV0 9
+#define DebugTangent 10
+#define DebugBitangent 11
+
 
 //-----------------------------------------------------------------------------
 // conversion function for forward and deferred

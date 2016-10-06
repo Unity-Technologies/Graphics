@@ -12,12 +12,52 @@ namespace UnityEngine.ScriptableRenderLoop
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
 	public class HDRenderLoop : ScriptableRenderLoop
 	{
+		private static string m_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
+
+		public enum MaterialDebugMode
+		{
+			None = 0,
+			DiffuseColor = 1,
+			Normal = 2,
+			Depth = 3,
+			AmbiantOcclusion = 4,
+			SpecularColor = 5,
+			SpecularOcclustion = 6,
+			Smoothness = 7,
+			MaterialId = 8,
+			UV0 = 9,
+			Tangent = 10,
+			Bitangent = 11
+		}
+
+		public MaterialDebugMode m_MaterialDebugMode = MaterialDebugMode.None;
+
+		public MaterialDebugMode materialDebugMode
+		{
+			get { return m_MaterialDebugMode; }
+			set { m_MaterialDebugMode = value; }
+		}
+
 		#if UNITY_EDITOR
-        [MenuItem("Renderloop/CreateHDRenderLoop")]
+		[MenuItem("Renderloop/HDRenderLoop/CreateHDRenderLoop")]
 		static void CreateHDRenderLoop()
 		{
 			var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
-			UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset");
+			UnityEditor.AssetDatabase.CreateAsset(instance, m_HDRenderLoopPath);
+		}
+		[MenuItem("Renderloop/HDRenderLoop/DebugMenu")]
+		static void DebugMenu()
+		{
+			HDRenderLoop renderLoop = AssetDatabase.LoadAssetAtPath(m_HDRenderLoopPath, typeof(HDRenderLoop)) as HDRenderLoop;
+			if(renderLoop != null)
+			{
+				if (renderLoop.materialDebugMode == HDRenderLoop.MaterialDebugMode.None)
+					renderLoop.materialDebugMode = HDRenderLoop.MaterialDebugMode.Normal;
+				else
+					renderLoop.materialDebugMode = HDRenderLoop.MaterialDebugMode.None;
+
+				EditorUtility.SetDirty(renderLoop);
+			}
 		}
 		#endif
 
@@ -203,6 +243,32 @@ namespace UnityEngine.ScriptableRenderLoop
 			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
 			settings.inputCullingOptions.SetQueuesOpaque();
             renderLoop.DrawRenderers(ref settings);
+		}
+
+		void RenderMaterialDebug(CullResults cull, Camera camera, RenderLoop renderLoop)
+		{
+			// setup GBuffer for rendering
+			var cmd = new CommandBuffer();
+			cmd.name = "Debug Pass";
+			cmd.GetTemporaryRT(s_CameraColorBuffer, -1, -1, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+			cmd.GetTemporaryRT(s_CameraDepthBuffer, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
+			cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+			cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
+			renderLoop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
+
+			Shader.SetGlobalInt("g_MaterialDebugMode", (int)m_MaterialDebugMode);
+
+			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Debug"));
+			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+			settings.inputCullingOptions.SetQueuesOpaque();
+			renderLoop.DrawRenderers(ref settings);
+
+			cmd = new CommandBuffer();
+			cmd.name = "FinalPass";
+			cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
+			renderLoop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
 		}
 
         Matrix4x4 GetViewProjectionMatrix(Camera camera)
@@ -571,17 +637,24 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				//UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
 
-				UpdatePunctualLights(cullResults.culledLights);
+				if (m_MaterialDebugMode == MaterialDebugMode.None)
+				{
+					UpdatePunctualLights(cullResults.culledLights);
 
-				InitAndClearBuffer(camera, renderLoop);
+					InitAndClearBuffer(camera, renderLoop);
 
-				RenderGBuffer(cullResults, camera, renderLoop);
+					RenderGBuffer(cullResults, camera, renderLoop);
 
-                RenderDeferredLighting(camera, renderLoop);
+					RenderDeferredLighting(camera, renderLoop);
 
-       //        RenderForward(cullResults, camera, renderLoop);
+					//        RenderForward(cullResults, camera, renderLoop);
 
-                FinalPass(renderLoop);
+					FinalPass(renderLoop);
+				}
+				else
+				{
+					RenderMaterialDebug(cullResults, camera, renderLoop);
+				}
 
 				renderLoop.Submit ();
 			}

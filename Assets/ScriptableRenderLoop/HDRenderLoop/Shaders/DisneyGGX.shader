@@ -153,6 +153,99 @@ Shader "Unity/DisneyGGX"
 
 			ENDCG
 		}
+
+		// ------------------------------------------------------------------
+		//  Debug pass
+		Pass
+		{
+			Name "Debug"
+			Tags { "LightMode" = "Debug" }
+
+			Cull[_CullMode]
+
+			CGPROGRAM
+			#pragma target 5.0
+			#pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
+			
+			#pragma vertex VertDefault
+			#pragma fragment FragDebug
+
+			int g_MaterialDebugMode;
+
+			#include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
+			#include "TemplateDisneyGGX.hlsl"
+
+			float4 FragDebug( PackedVaryings packedInput ) : SV_Target
+			{
+				Varyings input = UnpackVaryings(packedInput);
+				SurfaceData surfaceData = GetSurfaceData(input);
+
+				float3 result = float3(1.0, 1.0, 0.0);
+				bool outputIsLinear = false;
+
+				if(g_MaterialDebugMode == DebugDiffuseColor)
+				{
+					result =  surfaceData.diffuseColor;
+				}
+				else if (g_MaterialDebugMode == DebugNormal)
+				{
+					result =  surfaceData.normalWS * 0.5 + 0.5;
+					outputIsLinear = true;
+				}
+				else if (g_MaterialDebugMode == DebugDepth)
+				{
+					float linearDepth = frac(LinearEyeDepth(input.positionHS.z, _ZBufferParams) * 0.1);
+					result =  linearDepth.xxx;
+					outputIsLinear = true;
+				}
+				else if (g_MaterialDebugMode == DebugAO)
+				{
+					result =  surfaceData.ambientOcclusion.xxx;
+					outputIsLinear = true;
+				}
+				else if (g_MaterialDebugMode == DebugSpecularColor)
+				{
+					result =  surfaceData.specularColor;
+				}
+				else if (g_MaterialDebugMode == DebugSpecularOcclusion)
+				{
+					result =  surfaceData.specularOcclusion.xxx;
+					outputIsLinear = true;
+				}
+				else if (g_MaterialDebugMode == DebugSmoothness)
+				{
+					result =  surfaceData.perceptualSmoothness.xxx;
+					outputIsLinear = true;
+				}
+				else if (g_MaterialDebugMode == DebugMaterialId)
+				{
+					result =  surfaceData.materialId.xxx;
+				}
+				else if (g_MaterialDebugMode == DebugUV0)
+				{
+					result =  float3(input.texCoord0, 0.0);
+				}
+				else if (g_MaterialDebugMode == DebugTangent)
+				{
+					result =  input.tangentToWorld[0].xyz * 0.5 + 0.5;
+					outputIsLinear = true;
+				}
+				else if (g_MaterialDebugMode == DebugBitangent)
+				{
+					result =  input.tangentToWorld[1].xyz * 0.5 + 0.5;
+					outputIsLinear = true;
+				}
+
+				// For now, the final blit in the backbuffer performs an sRGB write
+				// So in the meantime we apply the inverse transform to linear data to compensate.
+				if(outputIsLinear)
+					result = SRGBToLinear(result);
+
+				return float4(result, 0.0);
+			}
+
+			ENDCG
+		}
 	}
 
 	CustomEditor "DisneyGGXGUI"
