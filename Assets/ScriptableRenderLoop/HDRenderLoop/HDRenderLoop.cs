@@ -102,7 +102,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 s_punctualLightList.Release();
         }
 
-		void Rebuild()
+		public override void Rebuild()
 		{
             ClearComputeBuffers();
 

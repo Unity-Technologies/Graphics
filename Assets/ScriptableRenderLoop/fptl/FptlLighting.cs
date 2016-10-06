@@ -130,7 +130,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		}
 
-		void Rebuild()
+		public override void Rebuild()
 		{
 			ClearComputeBuffers();
 
