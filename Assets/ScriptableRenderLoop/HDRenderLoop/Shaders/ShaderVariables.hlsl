@@ -214,9 +214,9 @@ float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
 {
 	// For odd-negative scale transforms we need to flip the sign
 	float sign = tangentSign * GetOdddNegativeScale();
-	float3 binormal = cross(normal, tangent) * sign;
+	float3 bitangent = cross(normal, tangent) * sign;
 	
-	return float3x3(tangent, binormal, normal);
+	return float3x3(tangent, bitangent, normal);
 }
 
 // Computes world space view direction, from object space position

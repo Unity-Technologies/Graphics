@@ -200,4 +200,29 @@ float3 unpackRGBM(float4 rgbm)
 	return RGBMRANGE * rgbm.rgb * rgbm.a;
 }
 
+// Ref: http://www.nvidia.com/object/real-time-ycocg-dxt-compression.html
+#define CHROMA_BIAS (0.5 * 256.0 / 255.0)
+float3 RGBToYCoCg(float3 rgb)
+{
+	float3 YCoCg;
+	YCoCg.x = dot(RGB, float3(0.25, 0.5, 0.25));
+	YCoCg.y = dot(RGB, float3(0.5, 0.0, -0.5)) + CHROMA_BIAS;
+	YCoCg.z = dot(RGB, float3(-0.25, 0.5, -0.25)) + CHROMA_BIAS;
+
+	return YCoCg;
+}
+
+float3 YCoCgToRGB(float3 YCoCg)
+{
+	float Y = YCoCg.x;
+	float Co = YCoCg.y - CHROMA_BIAS;
+	float Cg = YCoCg.z - CHROMA_BIAS;
+
+	float3 rgb;
+	rgb.r = Y + Co - Cg;
+	rgb.g = Y + Cg;
+	rgb.b = Y - Co - Cg;
+
+	return rgb;
+}
 #endif // UNITY_COLOR_INCLUDED
