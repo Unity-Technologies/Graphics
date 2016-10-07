@@ -503,7 +503,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 485392, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_RootOrder
-      value: 13
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 115764, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_Name
@@ -1153,6 +1153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_RenderLoop: {fileID: 11400000, guid: 2400b74f5ce370c4481e5dc417d03703, type: 2}
+  m_AssetVersion: 0
 --- !u!1001 &1828950732
 Prefab:
   m_ObjectHideFlags: 0

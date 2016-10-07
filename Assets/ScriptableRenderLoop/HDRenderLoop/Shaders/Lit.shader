@@ -84,7 +84,7 @@ Shader "Unity/Lit"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
 
-    #include "TemplateLit.hlsl"
+    #include "LitTemplate.hlsl"
 
     ENDHLSL
 
@@ -169,7 +169,7 @@ Shader "Unity/Lit"
 
                 if(g_MaterialDebugMode == MaterialDebugDiffuseColor)
                 {
-                    result =  surfaceData.diffuseColor;
+                    result =  surfaceData.baseColor;
                 }
                 else if (g_MaterialDebugMode == MaterialDebugNormal)
                 {
@@ -189,7 +189,7 @@ Shader "Unity/Lit"
                 }
                 else if (g_MaterialDebugMode == MaterialDebugSpecularColor)
                 {
-                    result =  surfaceData.specularColor;
+                    result =  surfaceData.metalic.xxx;
                 }
                 else if (g_MaterialDebugMode == MaterialDebugSpecularOcclusion)
                 {

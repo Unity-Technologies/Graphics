@@ -169,7 +169,7 @@ float3 TransformTangentToWorld(float3 normalTS, float4 tangentToWorld[3])
 
 void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    float3 baseColor = tex2D(_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
+    surfaceData.baseColor = tex2D(_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     float alpha = _BaseColor.a;
 #else
@@ -181,29 +181,6 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 #endif
 
     builtinData.opacity = alpha;
-
-    // MaskMap is Metalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
-#ifdef _MASKMAP
-    float metalic = tex2D(_MaskMap, input.texCoord0).r;
-    surfaceData.ambientOcclusion = tex2D(_MaskMap, input.texCoord0).g;
-#else
-    float metalic = 1.0;
-    surfaceData.ambientOcclusion = 1.0;
-#endif
-    metalic *= _Metalic;
-
-    surfaceData.diffuseColor = baseColor * (1.0 - metalic);
-    float f0_dieletric = 0.04;
-    surfaceData.specularColor = lerp(float3(f0_dieletric, f0_dieletric, f0_dieletric), baseColor, metalic);
-
-#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    surfaceData.perceptualSmoothness = tex2D(_BaseColorMap, input.texCoord0).a;
-#elif defined(_MASKMAP)
-    surfaceData.perceptualSmoothness = tex2D(_MaskMap, input.texCoord0).a;
-#else
-    surfaceData.perceptualSmoothness = 1.0;
-#endif
-    surfaceData.perceptualSmoothness *= _Smoothness;
 
 #ifdef _SPECULAROCCLUSIONMAP
     // TODO: Do something. For now just take alpha channel
@@ -241,23 +218,40 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     surfaceData.normalWS = IS_FRONT_VFACE(input.cullFace, GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS, -GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS);
 #endif
 
+#ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    surfaceData.perceptualSmoothness = tex2D(_BaseColorMap, input.texCoord0).a;
+#elif defined(_MASKMAP)
+    surfaceData.perceptualSmoothness = tex2D(_MaskMap, input.texCoord0).a;
+#else
+    surfaceData.perceptualSmoothness = 1.0;
+#endif
+    surfaceData.perceptualSmoothness *= _Smoothness;
+
     surfaceData.materialId = 0;
 
-    surfaceData.subSurfaceRadius = 1.0; // tex2D(_SubSurfaceRadiusMap, input.texCoord0).r * _SubSurfaceRadius;
+    // MaskMap is Metalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
+#ifdef _MASKMAP
+    surfaceData.metalic = tex2D(_MaskMap, input.texCoord0).r;
+    surfaceData.ambientOcclusion = tex2D(_MaskMap, input.texCoord0).g;
+#else
+    surfaceData.metalic = 1.0;
+    surfaceData.ambientOcclusion = 1.0;
+#endif
+    surfaceData.metalic *= _Metalic;
 
-    // TODO
-    /*
-    float _SubSurfaceRadius;
-    sampler2D _SubSurfaceRadiusMap;
-    float _Thickness;
-    sampler2D _ThicknessMap;
 
-    float _CoatCoverage;
-    sampler2D _CoatCoverageMap;
+    surfaceData.tangentWS = float3(1.0, 0.0, 0.0);
+    surfaceData.anisotropy = 0;
+    surfaceData.specular = 0.04;
 
-    float _CoatRoughness;
-    sampler2D _CoatRoughnessMap;
-    */
+    surfaceData.subSurfaceRadius = 1.0;
+    surfaceData.thickness = 0.0;
+    surfaceData.subSurfaceProfile = 0;
+
+    surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
+    surfaceData.coatPerceptualSmoothness = 1.0;
+    surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+
 
     // Builtin Data
 
@@ -274,7 +268,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     builtinData.emissiveColor = _EmissiveColor;
     #endif
 #elif defined(_MASKMAP) // If we have a MaskMap, use emissive slot as a mask on baseColor
-    builtinData.emissiveColor = baseColor * tex2D(_MaskMap, input.texCoord0).bbb;
+    builtinData.emissiveColor = surfaceData.baseColor * tex2D(_MaskMap, input.texCoord0).bbb;
 #else
     builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
 #endif

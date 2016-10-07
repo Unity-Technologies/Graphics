@@ -37,4 +37,29 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
     return attenuation;
 }
 
+//-----------------------------------------------------------------------------
+// Helper function for anisotropy
+//-----------------------------------------------------------------------------
+
+// Ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf (in addenda)
+// Convert anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction) to roughness
+void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float roughnessT, out float roughnessB)
+{    
+    float anisoAspect = sqrt(1.0 - 0.9 * anisotropy);    
+    roughnessT = roughness * anisoAspect;
+    roughnessB = roughness / anisoAspect;
+}
+
+// Ref: http://www.nvidia.com/object/real-time-ycocg-dxt-compression.html
+// Fake anisotropic by distorting the normal as suggested by:
+// Donald Revie - Implementing Fur Using Deferred Shading (GPU Pro 2)
+// anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction)
+float3 GetAnisotropicModifiedNormal(float3 normalWS, float3 tangentWS, float3 viewVector, float anisotropy)
+{
+    float3 anisoTangentWS = cross(-viewVector, tangentWS);
+    float3 anisoNormalWS = cross(anisoTangentWS, tangentWS);
+
+    return normalize(lerp(normalWS, anisoNormalWS, anisotropy));
+}
+
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

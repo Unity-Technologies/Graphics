@@ -7,8 +7,9 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Red
-  m_Shader: {fileID: 4800000, guid: e1a84346ee54f9f4993c2f05c59805a0, type: 3}
-  m_ShaderKeywords: _EMISSION _NORMALMAP_TANGENT_SPACE
+  m_Shader: {fileID: 4800000, guid: e7e3743f30ad81a4ba2d0528f52d026b, type: 3}
+  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
+    _EMISSION _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -158,6 +159,12 @@ Material:
         name: _DetailNormalMapScale
       second: 1
     - first:
+        name: _DistortionDepthTest
+      second: 0
+    - first:
+        name: _DistortionOnly
+      second: 0
+    - first:
         name: _DoubleSided
       second: 1
     - first:
@@ -198,6 +205,9 @@ Material:
       second: 0
     - first:
         name: _MaterialId
+      second: 0
+    - first:
+        name: _Metalic
       second: 0
     - first:
         name: _Metallic

@@ -5,68 +5,124 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 
+#define LIT_STANDARD 0
+#define LIT_SSS 1
+#define LIT_CLEARCOAT 2
+#define LIT_SPECULAR 3
 
 // Main structure that store the user data (i.e user input of master node in material graph)
 struct SurfaceData
 {
-    float3	diffuseColor;
-    float	ambientOcclusion;
-
-    float3	specularColor;
+    float3	baseColor;
     float	specularOcclusion;
 
     float3	normalWS;
     float	perceptualSmoothness;
     float	materialId;
 
-    // MaterialID SSS - When enable, we only need one channel for specColor, so one is free to store information.
-    float	subSurfaceRadius;
-//	float	thickness;
-//	int		subSurfaceProfile;
+    float	ambientOcclusion;
 
-    // MaterialID Clear coat
-//	float	coatCoverage;
-//	float	coatRoughness;	
+    // MaterialId dependent attribute
+
+    // standard
+    float3  tangentWS;
+    float   anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction)
+    float	metalic;
+    float	specular; // 0.02, 0.04, 0.16, 0.2
+
+    // SSS
+    float	subSurfaceRadius;
+    float	thickness;
+    int		subSurfaceProfile;
+
+    // Clearcoat
+    float3  coatNormalWS;
+    float   coatPerceptualSmoothness;
+
+    // SpecColor
+    float3  specularColor;
 };
 
 struct BSDFData
 {
     float3	diffuseColor;
-    float	matData0;
 
-    float3	fresnel0;
+    float3  fresnel0;
+    
     float	specularOcclusion;
-    //float	matData1;
 
     float3	normalWS;
     float	perceptualRoughness;
+    float	roughness;
     float	materialId;
 
-    float	roughness;
+    // MaterialId dependent attribute
+
+    // standard
+    float3  tangentWS;
+    float3  bitangentWS;
+    float	roughnessT;
+    float	roughnessB;
+
+    // fold into fresnel0
+
+    // SSS
+    float	subSurfaceRadius;
+    float	thickness;
+    int		subSurfaceProfile;
+
+    // Clearcoat
+    float3  coatNormalWS;
+    float   coatRoughness;
+
+    // SpecColor
+    // fold into fresnel0
 };
 
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFData ConvertSurfaceDataToBSDFData(SurfaceData input)
+BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 {
-    BSDFData output;
+    BSDFData bsdfData;
 
-    output.diffuseColor = input.diffuseColor;
-    output.matData0 = input.subSurfaceRadius; // TEMP
+    bsdfData.specularOcclusion = surfaceData.specularOcclusion;
+    bsdfData.normalWS = surfaceData.normalWS;
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+    bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+    bsdfData.materialId = surfaceData.materialId;
 
-    output.fresnel0 = input.specularColor;
-    output.specularOcclusion = input.specularOcclusion;
-    //output.matData1 = input.matData1;
+    if (bsdfData.materialId == LIT_STANDARD)
+    {        
+        bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
+        bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metalic);
 
-    output.normalWS = input.normalWS;
-    output.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(input.perceptualSmoothness);
-    output.materialId = input.materialId;
-
-    output.roughness = PerceptualRoughnessToRoughness(output.perceptualRoughness);
-    
-    return output;
+        bsdfData.tangentWS = surfaceData.tangentWS;
+        bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);
+        ConvertAnisotropyToRoughness(bsdfData.roughness, surfaceData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+    }
+    else if (bsdfData.materialId == LIT_SSS)
+    {
+        bsdfData.diffuseColor = surfaceData.baseColor;
+        bsdfData.fresnel0 = 0.028; // TODO take from subSurfaceProfile
+        bsdfData.subSurfaceRadius = surfaceData.subSurfaceRadius;
+        bsdfData.thickness = surfaceData.thickness;        
+    }
+    else if (bsdfData.materialId == LIT_CLEARCOAT)
+    {
+        bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
+        bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metalic);
+        bsdfData.coatNormalWS = surfaceData.coatNormalWS;
+        bsdfData.coatRoughness = PerceptualSmoothnessToRoughness(surfaceData.coatPerceptualSmoothness);
+    }
+    else if (bsdfData.materialId == LIT_SPECULAR)
+    {
+        bsdfData.diffuseColor = surfaceData.baseColor;
+        bsdfData.fresnel0 = surfaceData.specularColor;
+    }
+ 
+    return bsdfData;
 }
 
 //-----------------------------------------------------------------------------
@@ -89,7 +145,26 @@ int UnpackMaterialId(float f)
 
 float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData)
 {
-    return builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion * surfaceData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
+    float3 diffuseColor;
+
+    if (surfaceData.materialId == LIT_STANDARD)
+    {
+        diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
+     }
+    else if (surfaceData.materialId == LIT_SSS)
+    {
+        diffuseColor = surfaceData.baseColor;
+    }
+    else if (surfaceData.materialId == LIT_CLEARCOAT)
+    {
+        diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
+    }
+    else if (surfaceData.materialId == LIT_SPECULAR)
+    {
+        diffuseColor = surfaceData.baseColor;
+    }
+
+    return builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion * diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
 }
 
 //-----------------------------------------------------------------------------
@@ -105,17 +180,39 @@ void EncodeIntoGBuffer(	SurfaceData surfaceData,
                         out float4 outGBuffer2)
 {
     // RT0 - 8:8:8:8 sRGB
-    outGBuffer0 = float4(surfaceData.diffuseColor, surfaceData.subSurfaceRadius);
+    outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
-    // RT1 - 8:8:8:8:
-    outGBuffer1 = float4(surfaceData.specularColor, surfaceData.specularOcclusion /*, surfaceData.matData1 */);
-
-    // RT2 - 10:10:10:2
+    // RT1 - 10:10:10:2
     // Encode normal on 20bit with oct compression
-    float2 octNormal = PackNormalOctEncode(surfaceData.normalWS);
+    float2 octNormalWS = PackNormalOctEncode(surfaceData.normalWS);
     // We store perceptualRoughness instead of roughness because it save a sqrt ALU when decoding
     // (as we want both perceptualRoughness and roughness for the lighting due to Disney Diffuse model)
-    outGBuffer2 = float4(octNormal * 0.5 + 0.5, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), PackMaterialId(surfaceData.materialId));
+    // TODO: Store 2 bit of flag into perceptualSmoothness (one for SSR, other is free (deferred planar reflection ID ? / MatID extension ?)
+    outGBuffer1 = float4(octNormalWS * 0.5 + 0.5, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), PackMaterialId(surfaceData.materialId));
+
+    // RT2 - 8:8:8:8
+    if (surfaceData.materialId == LIT_STANDARD)
+    {
+        // Encode tangent on 16bit with oct compression
+        float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
+        // TODO: store metal and specular together, specular should be an enum (fixed value)
+        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, surfaceData.metalic);
+    }
+    else if (surfaceData.materialId == LIT_SSS)
+    {
+        outGBuffer2 = float4(surfaceData.subSurfaceRadius, surfaceData.thickness, 0.0, 0.0);
+    }
+    else if (surfaceData.materialId == LIT_CLEARCOAT)
+    {
+        // Encode coat normal on 16bit with oct compression
+        float2 octCoatNormalWS = PackNormalOctEncode(surfaceData.coatNormalWS);
+        // TODO: store metal and specular together, specular should be an enum (fixed value)
+        outGBuffer2 = float4(octCoatNormalWS * 0.5 + 0.5, PerceptualSmoothnessToRoughness(surfaceData.coatPerceptualSmoothness), surfaceData.metalic);
+    }
+    else if (surfaceData.materialId == LIT_SPECULAR)
+    {
+        outGBuffer2 = float4(surfaceData.specularColor, 0.0);
+    }
 }
 
 BSDFData DecodeFromGBuffer(	float4 inGBuffer0, 
@@ -123,18 +220,52 @@ BSDFData DecodeFromGBuffer(	float4 inGBuffer0,
                             float4 inGBuffer2)
 {
     BSDFData bsdfData;
-    bsdfData.diffuseColor = inGBuffer0.rgb;
-    bsdfData.matData0 = inGBuffer0.a;
+   
+    float3 baseColor = inGBuffer0.rgb;
+    bsdfData.specularOcclusion = inGBuffer0.a;
 
-    bsdfData.fresnel0 = inGBuffer1.rgb;
-    bsdfData.specularOcclusion = inGBuffer1.a;
-    // bsdfData.matData1 = ?;
-
-    bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer2.r * 2.0 - 1.0, inGBuffer2.g * 2 - 1));
-    bsdfData.perceptualRoughness = inGBuffer2.b;
-    bsdfData.materialId = UnpackMaterialId(inGBuffer2.a);
-
+    bsdfData.normalWS = UnpackNormalOctEncode(float2(inGBuffer1.r * 2.0 - 1.0, inGBuffer1.g * 2.0 - 1.0));
+    bsdfData.perceptualRoughness = inGBuffer1.b;    
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
+    bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);
+
+    if (bsdfData.materialId == LIT_STANDARD)
+    {
+        float metalic = inGBuffer2.a;
+        // TODO extract spec
+        float specular = 0.04;
+        float anisotropy = inGBuffer2.b;
+
+        bsdfData.diffuseColor = baseColor * (1.0 - metalic);
+        bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metalic);
+
+        bsdfData.tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+        bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
+        ConvertAnisotropyToRoughness(bsdfData.roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+    }
+    else if (bsdfData.materialId == LIT_SSS)
+    {
+        bsdfData.diffuseColor = baseColor;
+        bsdfData.fresnel0 = 0.028; // TODO take from subSurfaceProfile
+        bsdfData.subSurfaceRadius = inGBuffer2.r;
+        bsdfData.thickness = inGBuffer2.g;
+    }
+    else if (bsdfData.materialId == LIT_CLEARCOAT)
+    {
+        float metalic = inGBuffer2.a;
+        // TODO extract spec
+        float specular = 0.04;
+
+        bsdfData.diffuseColor = baseColor * (1.0 - metalic);
+        bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metalic);
+        bsdfData.coatNormalWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+        bsdfData.coatRoughness = inGBuffer2.b;
+    }
+    else if (bsdfData.materialId == LIT_SPECULAR)
+    {
+        bsdfData.diffuseColor = baseColor;
+        bsdfData.fresnel0 = inGBuffer2.rgb;
+    }
 
     return bsdfData;
 }

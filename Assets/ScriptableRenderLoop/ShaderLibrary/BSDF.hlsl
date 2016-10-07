@@ -37,7 +37,7 @@ float3 F_Schlick(float3 f0, float u)
 // Specular BRDF
 //-----------------------------------------------------------------------------
 
-// With analytical light (not image based light) we clamp the minimun roughness to avoid numerical instability.
+// With analytical light (not image based light) we clamp the minimun roughness in the NDF to avoid numerical instability.
 #define UNITY_MIN_ROUGHNESS 0.002
 
 float D_GGX(float NdotH, float roughness)
@@ -46,15 +46,6 @@ float D_GGX(float NdotH, float roughness)
     float a2 = roughness * roughness;
     float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
     return INV_PI * a2 / (f * f);
-}
-
-// roughnessT -> roughness in tangent direction
-// roughnessB -> roughness in bitangent direction
-float D_GGXAniso(float NdotH, float TdotH, float BdotH, float roughnessT, float roughnessB)
-{
-    // TODO: Do the clamp on the artists parameter
-    float f = TdotH * TdotH / (roughnessT * roughnessT) + BdotH * BdotH / (roughnessB * roughnessB) + NdotH * NdotH;
-    return INV_PI / (roughnessT * roughnessB * f * f);
 }
 
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
@@ -67,39 +58,50 @@ float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
     //	G			= 1 / (1 + lambda_v + lambda_l);
 
     // Reorder code to be more optimal
-    half a			= roughness;
-    half a2			= a * a;
+    float a = roughness;
+    float a2 = a * a;
 
-    half lambdaV	= NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
-    half lambdaL	= NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
+    float lambdaV = NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
+    float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
     // Simplify visibility term: (2.0f * NdotL * NdotV) /  ((4.0f * NdotL * NdotV) * (lambda_v + lambda_l));
     return 0.5f / (lambdaV + lambdaL);
 #else
     // Approximation of the above formulation (simplify the sqrt, not mathematically correct but close enough)
-    half a = roughness;
-    half lambdaV = NdotL * (NdotV * (1 - a) + a);
-    half lambdaL = NdotV * (NdotL * (1 - a) + a);
+    float a = roughness;
+    float lambdaV = NdotL * (NdotV * (1 - a) + a);
+    float lambdaL = NdotV * (NdotL * (1 - a) + a);
 
     return 0.5 / (lambdaV + lambdaL);
 #endif
 }
 
-// Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
-// TODO: Check with Eric Heitz
-
-float V_SmithJointGGX(float3 L, float3 V, float roughnessT, float roughnessB)
+// roughnessT -> roughness in tangent direction
+// roughnessB -> roughness in bitangent direction
+float D_GGXAniso(float TdotH, float BdotH, float NdotH, float roughnessT, float roughnessB)
 {
-    half aX = roughnessT;
-    half aX2 = aX * aX;
-    half aY = roughnessB;
-    half aY2 = aY * aY;
+    roughnessT = max(roughnessT, UNITY_MIN_ROUGHNESS);
+    roughnessB = max(roughnessB, UNITY_MIN_ROUGHNESS);
 
-    half lambdaV = L.z * sqrt(aX2 * V.x * V.x + aY2 * V.y * V.y + V.z * V.z);
-    half lambdaL = V.z * sqrt(aX2 * L.x * L.x + aY2 * L.y * L.y + L.z * L.z);
-
-    return 0.5f / (lambdaV + lambdaL);
+    float f = TdotH * TdotH / (roughnessT * roughnessT) + BdotH * BdotH / (roughnessB * roughnessB) + NdotH * NdotH;
+    return INV_PI / (roughnessT * roughnessB * f * f);
 }
+
+// Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
+float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, float BdotL, float NdotL, float roughnessT, float roughnessB)
+{
+    float aT = roughnessT;
+    float aT2 = aT * aT;
+    float aB = roughnessB;
+    float aB2 = aB * aB;
+
+    float lambdaV = NdotL * sqrt(aT2 * TdotV * TdotV + aB2 * BdotV * BdotV + NdotV * NdotV);
+    float lambdaL = NdotV * sqrt(aT2 * TdotL * TdotL + aB2 * BdotL * BdotL + NdotL * NdotL);
+
+    return 0.5 / (lambdaV + lambdaL);
+}
+
+// TODO: Optimize, lambdaV could be precomputed at the beginning of the loop and reuse for all lights.
 
 //-----------------------------------------------------------------------------
 // Diffuse BRDF - diffuseColor is expected to be multiply by the caller
