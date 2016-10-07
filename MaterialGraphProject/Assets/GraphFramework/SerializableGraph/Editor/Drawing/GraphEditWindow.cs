@@ -272,14 +272,18 @@ namespace UnityEditor.Graphing.Drawing
 
         private string m_LastPath;
 
-		public void Export(bool quickExport)
+        public void Export(bool quickExport)
         {
             var path = quickExport ? m_LastPath : EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
             m_LastPath = path; // For quick exporting
-           /* if (!string.IsNullOrEmpty(path))
-                ExportShader(m_DataSource.graphAsset as MaterialGraphAsset, path);
+
+            var ds = m_Contents.dataProvider as MaterialGraphDataSource;
+            if (ds != null && !string.IsNullOrEmpty(path))
+            {
+                ExportShader (ds.graphAsset as MaterialGraphAsset, path);
+            }
             else
-                EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");*/
+                EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
         }
 
         public static Shader ExportShader(MaterialGraphAsset graphAsset, string path)
@@ -326,7 +330,7 @@ namespace UnityEditor.Graphing.Drawing
                 textureNames.Add(textureInfo.name);
                 textures.Add(texture);
             }
-           // shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
+            shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
 
             shaderImporter.SaveAndReimport();
 

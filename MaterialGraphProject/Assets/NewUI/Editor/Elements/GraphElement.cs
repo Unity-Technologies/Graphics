@@ -17,7 +17,7 @@ namespace RMGUI.GraphView
 			foreach (VisualElement ve in children)
 			{
 				GraphElement ce = ve as GraphElement;
-				if (ce != null)
+				if (ce != null )
 				{
 					var childData = ce.dataProvider as GraphElementData;
 					if (childData != null)
@@ -27,8 +27,7 @@ namespace RMGUI.GraphView
 				}
 			}
 
-			// set absolute position from data
-			position = data.position;
+			SetPosition(data.position);
 		}
 
 		public virtual bool IsSelectable()
@@ -46,6 +45,12 @@ namespace RMGUI.GraphView
 			var center = position.center;
 			var globalCenter = new Vector3(center.x + parent.position.x, center.y + parent.position.y);
 			return parent.globalTransform.MultiplyPoint3x4(globalCenter);
+		}
+
+		public virtual void SetPosition(Rect newPos)
+		{
+			// set absolute position from data
+			position = newPos;
 		}
 	}
 }

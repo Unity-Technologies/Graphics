@@ -78,7 +78,7 @@ namespace RMGUI.GraphView
 					foreach (MethodInfo method in GetExtensionMethods(assembly, typeof(NodeAdapter)))
 					{
 						var methodParams = method.GetParameters();
-						if (methodParams.Count() == 3)
+						if (methodParams.Length == 3)
 						{
 							string pa = methodParams[1].ParameterType + methodParams[2].ParameterType.ToString();
 							s_NodeAdapterDictionary.Add(pa.GetHashCode(), method);
@@ -89,14 +89,8 @@ namespace RMGUI.GraphView
 
 			string s = a.GetType().ToString() + b.GetType();
 
-			try
-			{
-				return s_NodeAdapterDictionary[s.GetHashCode()];
-			}
-			catch (Exception)
-			{ }
-
-			return null;
+			MethodInfo methodInfo;
+			return s_NodeAdapterDictionary.TryGetValue(s.GetHashCode(), out methodInfo) ? methodInfo : null;
 		}
 
 		public MethodInfo GetTypeAdapter(Type from, Type to)
@@ -115,7 +109,7 @@ namespace RMGUI.GraphView
 							foreach (MethodInfo i in methodInfos)
 							{
 								object[] allAttrs = i.GetCustomAttributes(typeof(TypeAdapter), false);
-								if (allAttrs.Count() > 0)
+								if (allAttrs.Any())
 								{
 									s_TypeAdapters.Add(i);
 								}
@@ -129,12 +123,13 @@ namespace RMGUI.GraphView
 				}
 			}
 
+
 			foreach (MethodInfo i in s_TypeAdapters)
 			{
 				if (i.ReturnType == to)
 				{
 					ParameterInfo[] allParams = i.GetParameters();
-					if (allParams.Count() == 1)
+					if (allParams.Length == 1)
 					{
 						if (allParams[0].ParameterType == from)
 							return i;
@@ -143,5 +138,5 @@ namespace RMGUI.GraphView
 			}
 			return null;
 		}
-	};
+	}
 }

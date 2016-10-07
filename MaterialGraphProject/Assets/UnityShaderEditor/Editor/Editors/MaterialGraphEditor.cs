@@ -18,7 +18,7 @@ namespace UnityEditor.MaterialGraph
             if (m_PreviewUtility == null)
             {
                 m_PreviewUtility = new PreviewRenderUtility();
-                //EditorUtility.SetCameraAnimateMaterials(m_PreviewUtility.m_Camera, true);
+                EditorUtility.SetCameraAnimateMaterials(m_PreviewUtility.m_Camera, true);
             }
 
             if (s_Meshes[0] == null)
@@ -83,7 +83,7 @@ namespace UnityEditor.MaterialGraph
             {
                 m_PreviewUtility.m_Camera.transform.position = -Vector3.forward * 5;
                 m_PreviewUtility.m_Camera.transform.rotation = Quaternion.identity;
-                //EditorUtility.SetCameraAnimateMaterialsTime(m_PreviewUtility.m_Camera, time);
+                EditorUtility.SetCameraAnimateMaterialsTime(m_PreviewUtility.m_Camera, time);
                 var amb = new Color(.2f, .2f, .2f, 0);
                 m_PreviewUtility.m_Light[0].intensity = 1.0f;
                 m_PreviewUtility.m_Light[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
@@ -99,7 +99,7 @@ namespace UnityEditor.MaterialGraph
             }
             else
             {
-                //EditorUtility.UpdateGlobalShaderProperties(Time.realtimeSinceStartup);
+                EditorUtility.UpdateGlobalShaderProperties(Time.realtimeSinceStartup);
                 Graphics.Blit(null, mat);
             }
             return m_PreviewUtility.EndPreview();

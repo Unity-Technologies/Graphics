@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
+	[StyleSheet("Assets/Editor/Demo/Views/SimpleContentView.uss")]
 	public class SimpleContentView : GraphView
 	{
 		public SimpleContentView()

@@ -25,30 +25,30 @@ namespace RMGUI.GraphView.Demo
 				m_Anchors = new List<NodeAnchorData>();
 
 			// This is a demo version. We could have a ctor that takes in input and output types, etc.
-			var na = CreateInstance<NodeAnchorData>();
-			na.type = typeof (int);
-			na.direction = Direction.Input;
-			m_Anchors.Add(na);
+			var nodeAnchorData = CreateInstance<NodeAnchorData>();
+			nodeAnchorData.type = typeof (int);
+			nodeAnchorData.direction = Direction.Input;
+			m_Anchors.Add(nodeAnchorData);
 
-			na = CreateInstance<NodeAnchorData>();
-			na.type = typeof (float);
-			na.direction = Direction.Input;
-			m_Anchors.Add(na);
+			nodeAnchorData = CreateInstance<NodeAnchorData>();
+			nodeAnchorData.type = typeof (float);
+			nodeAnchorData.direction = Direction.Input;
+			m_Anchors.Add(nodeAnchorData);
 
-			na = CreateInstance<NodeAnchorData>();
-			na.type = typeof (Vector3);
-			na.direction = Direction.Input;
-			m_Anchors.Add(na);
+			nodeAnchorData = CreateInstance<NodeAnchorData>();
+			nodeAnchorData.type = typeof (Vector3);
+			nodeAnchorData.direction = Direction.Input;
+			m_Anchors.Add(nodeAnchorData);
 
-			na = CreateInstance<NodeAnchorData>();
-			na.type = typeof (Texture2D);
-			na.direction = Direction.Input;
-			m_Anchors.Add(na);
+			nodeAnchorData = CreateInstance<NodeAnchorData>();
+			nodeAnchorData.type = typeof (Texture2D);
+			nodeAnchorData.direction = Direction.Input;
+			m_Anchors.Add(nodeAnchorData);
 
-			na = CreateInstance<NodeAnchorData>();
-			na.type = typeof (Color);
-			na.direction = Direction.Input;
-			m_Anchors.Add(na);
+			nodeAnchorData = CreateInstance<NodeAnchorData>();
+			nodeAnchorData.type = typeof (Color);
+			nodeAnchorData.direction = Direction.Input;
+			m_Anchors.Add(nodeAnchorData);
 
 			outputAnchor = CreateInstance<NodeAnchorData>();
 			outputAnchor.type = typeof(int);
