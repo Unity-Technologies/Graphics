@@ -49,11 +49,13 @@ namespace UnityEngine.ScriptableRenderLoop
 			// Material Debugging
 			public MaterialDebugMode materialDebugMode = MaterialDebugMode.None;
 			public GBufferDebugMode gBufferDebugMode = GBufferDebugMode.None;
-			public bool displayMaterialDebugForTransparent = false;
 
 			// Rendering debugging
 			public bool displayOpaqueObjects = true;
 			public bool displayTransparentObjects = true;
+
+			public bool enableTonemap = true;
+			public float exposure = 0;
 		}
 
 		private DebugParameters m_DebugParameters = new DebugParameters();
@@ -121,9 +123,6 @@ namespace UnityEngine.ScriptableRenderLoop
         }
 
         public const int MaxLights = 32;
-
-        public bool enableTonemap = true;
-        public float exposure = 0;
 
 		//[SerializeField]
 		//ShadowSettings m_ShadowSettings = ShadowSettings.Default;
@@ -253,6 +252,29 @@ namespace UnityEngine.ScriptableRenderLoop
             // END TEMP
         }
 
+		void RenderOpaqueRenderList(CullResults cull, Camera camera, RenderLoop renderLoop, string passName)
+		{
+			if (!debugParameters.displayOpaqueObjects)
+				return;
+
+			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
+			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+			settings.inputCullingOptions.SetQueuesOpaque();
+			renderLoop.DrawRenderers(ref settings);
+		}
+
+		void RenderTransparentRenderList(CullResults cull, Camera camera, RenderLoop renderLoop, string passName)
+		{
+			if (!debugParameters.displayTransparentObjects)
+				return;
+
+			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
+			settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
+			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+			settings.inputCullingOptions.SetQueuesTransparent();
+			renderLoop.DrawRenderers(ref settings);
+		}
+
         void RenderGBuffer(CullResults cull, Camera camera, RenderLoop renderLoop)
 		{
 			// setup GBuffer for rendering
@@ -262,21 +284,17 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
-            
 			// render opaque objects into GBuffer
-			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("GBuffer"));
-			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-			settings.inputCullingOptions.SetQueuesOpaque();
-            renderLoop.DrawRenderers(ref settings);
+			RenderOpaqueRenderList(cull, camera, renderLoop, "GBuffer");
 		}
 
 		void RenderMaterialDebug(CullResults cull, Camera camera, RenderLoop renderLoop)
 		{
 			// setup GBuffer for rendering
 			var cmd = new CommandBuffer();
-			cmd.name = "Debug Pass";
-			cmd.GetTemporaryRT(s_CameraColorBuffer, -1, -1, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-			cmd.GetTemporaryRT(s_CameraDepthBuffer, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
+			cmd.name = "Material Debug Pass";
+			cmd.GetTemporaryRT(s_CameraColorBuffer, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+			cmd.GetTemporaryRT(s_CameraDepthBuffer, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
 			cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
 			cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
 			renderLoop.ExecuteCommandBuffer(cmd);
@@ -284,21 +302,12 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			Shader.SetGlobalInt("g_MaterialDebugMode", (int)debugParameters.materialDebugMode);
 
-			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Debug"));
-			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-			settings.inputCullingOptions.SetQueuesOpaque();
-			renderLoop.DrawRenderers(ref settings);
-
-			if(debugParameters.displayMaterialDebugForTransparent)
-			{
-				settings.sorting.sortOptions = SortOptions.BackToFront;
-				settings.inputCullingOptions.SetQueuesTransparent();
-				renderLoop.DrawRenderers(ref settings);
-			}
+			RenderOpaqueRenderList(cull, camera, renderLoop, "Debug");
+			RenderTransparentRenderList(cull, camera, renderLoop, "Debug");
 
 			cmd = new CommandBuffer();
-			cmd.name = "FinalPass";
-			cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
+			cmd.name = "Blit Material Debug";
+			cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
 			renderLoop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 		}
@@ -315,8 +324,8 @@ namespace UnityEngine.ScriptableRenderLoop
 			// gbufferManager.BindBuffers(m_DeferredMaterial);
 			// TODO: Bind depth textures
 			var cmd = new CommandBuffer();
-			cmd.name = "GBuffer Debug";
-			cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_GBufferDebugMaterial, 0);
+			cmd.name = "GBuffer Debug Pass";
+			cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_GBufferDebugMaterial, 0);
 			renderLoop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 		}
@@ -367,12 +376,7 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-			DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("Forward"));
-			settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
-			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-			settings.inputCullingOptions.SetQueuesTransparent();
-
-			renderLoop.DrawRenderers(ref settings);
+			RenderTransparentRenderList(cullResults, camera, renderLoop, "Forward");
         }
 
         void FinalPass(RenderLoop renderLoop)
@@ -394,8 +398,8 @@ namespace UnityEngine.ScriptableRenderLoop
             m_FinalPassMaterial.SetVector("_ToneMapCoeffs1", tonemapCoeff1);
             m_FinalPassMaterial.SetVector("_ToneMapCoeffs2", tonemapCoeff2);
 
-            m_FinalPassMaterial.SetFloat("_EnableToneMap", enableTonemap ? 1.0f : 0.0f);
-            m_FinalPassMaterial.SetFloat("_Exposure", exposure);
+            m_FinalPassMaterial.SetFloat("_EnableToneMap", debugParameters.enableTonemap ? 1.0f : 0.0f);
+			m_FinalPassMaterial.SetFloat("_Exposure", debugParameters.exposure);
 
             CommandBuffer cmd = new CommandBuffer();
             cmd.name = "FinalPass";
@@ -714,30 +718,35 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				//UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
 
-				if (debugParameters.materialDebugMode == MaterialDebugMode.None)
+
+				bool needDebugRendering = debugParameters.materialDebugMode != MaterialDebugMode.None || debugParameters.gBufferDebugMode != GBufferDebugMode.None;
+
+				if (!needDebugRendering)
 				{
 					UpdatePunctualLights(cullResults.culledLights);
 
 					InitAndClearBuffer(camera, renderLoop);
 
-					if(debugParameters.displayOpaqueObjects)
-						RenderGBuffer(cullResults, camera, renderLoop);
+					RenderGBuffer(cullResults, camera, renderLoop);
 
 					RenderDeferredLighting(camera, renderLoop);
 
-					if(debugParameters.displayTransparentObjects)
-						RenderForward(cullResults, camera, renderLoop);
-
-					if (debugParameters.gBufferDebugMode != GBufferDebugMode.None)
-					{
-						RenderGBufferDebug(camera, renderLoop);
-					}
+					RenderForward(cullResults, camera, renderLoop);
 
 					FinalPass(renderLoop);
 				}
 				else
 				{
-					RenderMaterialDebug(cullResults, camera, renderLoop);
+					if(debugParameters.materialDebugMode != MaterialDebugMode.None)
+					{
+						RenderMaterialDebug(cullResults, camera, renderLoop);
+					}
+					else if (debugParameters.gBufferDebugMode != GBufferDebugMode.None)
+					{
+						InitAndClearBuffer(camera, renderLoop);
+						RenderGBuffer(cullResults, camera, renderLoop);
+						RenderGBufferDebug(camera, renderLoop);
+					}
 				}
 
 				renderLoop.Submit ();

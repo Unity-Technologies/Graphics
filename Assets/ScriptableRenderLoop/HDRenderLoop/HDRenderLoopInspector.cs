@@ -17,11 +17,12 @@ namespace UnityEngine.ScriptableRenderLoop
 		{
 			public readonly GUIContent debugParameters = new GUIContent("Debug Parameters");
 			public readonly GUIContent materialDebugMode = new GUIContent("Material Debug Mode", "Display various properties of Materials.");
-			public readonly GUIContent transparentMaterialDebugMode = new GUIContent("Transparent Material Debug", "Display material debug for transparent objects.");
 			public readonly GUIContent gBufferDebugMode = new GUIContent("GBuffer Debug Mode", "Display various properties of contained in the GBuffer.");
 
 			public readonly GUIContent displayOpaqueObjects = new GUIContent("Display Opaque Objects", "Toggle opaque objects rendering on and off.");
 			public readonly GUIContent displayTransparentObjects = new GUIContent("Display Transparent Objects", "Toggle transparent objects rendering on and off.");
+			public readonly GUIContent enableTonemap = new GUIContent("Enable Tonemap");
+			public readonly GUIContent exposure = new GUIContent("Exposure");
 
 			public readonly GUIContent[] materialDebugStrings = {	new GUIContent("None"),
 																	new GUIContent("Diffuse Color"),
@@ -74,6 +75,8 @@ namespace UnityEngine.ScriptableRenderLoop
 		private static Styles s_Styles = null;
 		private static Styles styles { get { if (s_Styles == null) s_Styles = new Styles(); return s_Styles; } }
 
+		const float kMaxExposure = 32.0f;
+
 		public override void OnInspectorGUI()
 		{
 			HDRenderLoop renderLoop = target as HDRenderLoop;
@@ -87,7 +90,10 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				debugParameters.gBufferDebugMode = (HDRenderLoop.GBufferDebugMode)EditorGUILayout.IntPopup(styles.gBufferDebugMode, (int)debugParameters.gBufferDebugMode, styles.gBufferDebugStrings, styles.gBufferDebugValues);
 				debugParameters.materialDebugMode = (HDRenderLoop.MaterialDebugMode)EditorGUILayout.IntPopup(styles.materialDebugMode, (int)debugParameters.materialDebugMode, styles.materialDebugStrings, styles.materialDebugValues);
-				debugParameters.displayMaterialDebugForTransparent = EditorGUILayout.Toggle(styles.transparentMaterialDebugMode, debugParameters.displayMaterialDebugForTransparent);
+
+				EditorGUILayout.Space();
+				debugParameters.enableTonemap = EditorGUILayout.Toggle(styles.enableTonemap, debugParameters.enableTonemap);
+				debugParameters.exposure = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.exposure, debugParameters.exposure), kMaxExposure), -kMaxExposure);
 
 				EditorGUILayout.Space();
 				debugParameters.displayOpaqueObjects = EditorGUILayout.Toggle(styles.displayOpaqueObjects, debugParameters.displayOpaqueObjects);
