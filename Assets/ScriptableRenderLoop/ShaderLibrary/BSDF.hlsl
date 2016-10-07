@@ -9,9 +9,9 @@
 
 float F_Schlick(float f0, float f90, float u)
 {
-	float x		= 1.0 - u;
-	float x5	= x * x;
-	x5			= x5 * x5 * x;
+    float x		= 1.0 - u;
+    float x5	= x * x;
+    x5			= x5 * x5 * x;
     return (f90 - f0) * x5 + f0; // sub mul mul mul sub mad
 }
 
@@ -22,10 +22,10 @@ float F_Schlick(float f0, float u)
 
 float3 F_Schlick(float3 f0, float f90, float u)
 {
-	float x		= 1.0 - u;
-	float x5	= x * x;
-	x5			= x5 * x5 * x;
-	return (float3(f90, f90, f90) - f0) * x5 + f0; // sub mul mul mul sub mad
+    float x		= 1.0 - u;
+    float x5	= x * x;
+    x5			= x5 * x5 * x;
+    return (float3(f90, f90, f90) - f0) * x5 + f0; // sub mul mul mul sub mad
 }
 
 float3 F_Schlick(float3 f0, float u)
@@ -42,9 +42,9 @@ float3 F_Schlick(float3 f0, float u)
 
 float D_GGX(float NdotH, float roughness)
 {
-	roughness = max(roughness, UNITY_MIN_ROUGHNESS);
+    roughness = max(roughness, UNITY_MIN_ROUGHNESS);
     float a2 = roughness * roughness;
-	float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
     return INV_PI * a2 / (f * f);
 }
 
@@ -52,46 +52,53 @@ float D_GGX(float NdotH, float roughness)
 // roughnessB -> roughness in bitangent direction
 float D_GGXAniso(float NdotH, float TdotH, float BdotH, float roughnessT, float roughnessB)
 {
-	// TODO: Do the clamp on the artists parameter
-	float f = TdotH * TdotH / (roughnessT * roughnessT) + BdotH * BdotH / (roughnessB * roughnessB) + NdotH * NdotH;
-	return INV_PI / (roughnessT * roughnessB * f * f);
+    // TODO: Do the clamp on the artists parameter
+    float f = TdotH * TdotH / (roughnessT * roughnessT) + BdotH * BdotH / (roughnessB * roughnessB) + NdotH * NdotH;
+    return INV_PI / (roughnessT * roughnessB * f * f);
 }
 
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
 float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
 {
 #if 1
-	// Original formulation:
-	//	lambda_v	= (-1 + sqrt(a2 * (1 - NdotL2) / NdotL2 + 1)) * 0.5f;
-	//	lambda_l	= (-1 + sqrt(a2 * (1 - NdotV2) / NdotV2 + 1)) * 0.5f;
-	//	G			= 1 / (1 + lambda_v + lambda_l);
+    // Original formulation:
+    //	lambda_v	= (-1 + sqrt(a2 * (1 - NdotL2) / NdotL2 + 1)) * 0.5f;
+    //	lambda_l	= (-1 + sqrt(a2 * (1 - NdotV2) / NdotV2 + 1)) * 0.5f;
+    //	G			= 1 / (1 + lambda_v + lambda_l);
 
-	// Reorder code to be more optimal
-	half a			= roughness;
-	half a2			= a * a;
+    // Reorder code to be more optimal
+    half a			= roughness;
+    half a2			= a * a;
 
-	half lambdaV	= NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
-	half lambdaL	= NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
+    half lambdaV	= NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
+    half lambdaL	= NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
-	// Simplify visibility term: (2.0f * NdotL * NdotV) /  ((4.0f * NdotL * NdotV) * (lambda_v + lambda_l));
-	return 0.5f / (lambdaV + lambdaL);
+    // Simplify visibility term: (2.0f * NdotL * NdotV) /  ((4.0f * NdotL * NdotV) * (lambda_v + lambda_l));
+    return 0.5f / (lambdaV + lambdaL);
 #else
     // Approximation of the above formulation (simplify the sqrt, not mathematically correct but close enough)
-	half a = roughness;
-	half lambdaV = NdotL * (NdotV * (1 - a) + a);
-	half lambdaL = NdotV * (NdotL * (1 - a) + a);
+    half a = roughness;
+    half lambdaV = NdotL * (NdotV * (1 - a) + a);
+    half lambdaL = NdotV * (NdotL * (1 - a) + a);
 
-	return 0.5 / (lambdaV + lambdaL);
+    return 0.5 / (lambdaV + lambdaL);
 #endif
 }
 
 // Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
 // TODO: Check with Eric Heitz
 
-float V_SmithJointGGXAniso(float NdotL, float NdotV, float roughnessT, float roughnessB)
+float V_SmithJointGGX(float3 L, float3 V, float roughnessT, float roughnessB)
 {
-	// TODO
-	return 1.0;
+    half aX = roughnessT;
+    half aX2 = aX * aX;
+    half aY = roughnessB;
+    half aY2 = aY * aY;
+
+    half lambdaV = L.z * sqrt(aX2 * V.x * V.x + aY2 * V.y * V.y + V.z * V.z);
+    half lambdaL = V.z * sqrt(aX2 * L.x * L.x + aY2 * L.y * L.y + L.z * L.z);
+
+    return 0.5f / (lambdaV + lambdaL);
 }
 
 //-----------------------------------------------------------------------------
@@ -100,17 +107,17 @@ float V_SmithJointGGXAniso(float NdotL, float NdotV, float roughnessT, float rou
 
 float Lambert()
 {
-	return INV_PI;
+    return INV_PI;
 }
 
 float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float perceptualRoughness)
 {
-	float fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
-	// Two schlick fresnel term
-	float lightScatter = F_Schlick(1.0, fd90, NdotL);
-	float viewScatter = F_Schlick(1.0, fd90, NdotV);
+    float fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
+    // Two schlick fresnel term
+    float lightScatter = F_Schlick(1.0, fd90, NdotL);
+    float viewScatter = F_Schlick(1.0, fd90, NdotV);
 
-	return INV_PI * lightScatter * viewScatter;
+    return INV_PI * lightScatter * viewScatter;
 }
 
 #endif // UNITY_BSDF_INCLUDED
