@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
@@ -12,12 +12,62 @@ namespace UnityEngine.ScriptableRenderLoop
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
 	public class HDRenderLoop : ScriptableRenderLoop
 	{
+		private static string m_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
+
+		// Debugging
+		public enum MaterialDebugMode
+		{
+			None = 0,
+			DiffuseColor = 1,
+			Normal = 2,
+			Depth = 3,
+			AmbientOcclusion = 4,
+			SpecularColor = 5,
+			SpecularOcclustion = 6,
+			Smoothness = 7,
+			MaterialId = 8,
+			UV0 = 9,
+			Tangent = 10,
+			Bitangent = 11
+		}
+
+		public enum GBufferDebugMode
+		{
+			None = 0,
+			DiffuseColor = 1,
+			Normal = 2,
+			Depth = 3,
+			BakedDiffuse = 4,
+			SpecularColor = 5,
+			SpecularOcclustion = 6,
+			Smoothness = 7,
+			MaterialId = 8,
+		}
+
+		public class DebugParameters
+		{
+			// Material Debugging
+			public MaterialDebugMode materialDebugMode = MaterialDebugMode.None;
+			public GBufferDebugMode gBufferDebugMode = GBufferDebugMode.None;
+			public bool displayMaterialDebugForTransparent = false;
+
+			// Rendering debugging
+			public bool displayOpaqueObjects = true;
+			public bool displayTransparentObjects = true;
+		}
+
+		private DebugParameters m_DebugParameters = new DebugParameters();
+		public DebugParameters debugParameters
+		{
+			get { return m_DebugParameters; }
+		}
+
 		#if UNITY_EDITOR
-        [MenuItem("Renderloop/CreateHDRenderLoop")]
+		[MenuItem("Renderloop/CreateHDRenderLoop")]
 		static void CreateHDRenderLoop()
 		{
 			var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
-			UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset");
+			UnityEditor.AssetDatabase.CreateAsset(instance, m_HDRenderLoopPath);
 		}
 		#endif
 
@@ -82,6 +132,9 @@ namespace UnityEngine.ScriptableRenderLoop
         Material m_DeferredMaterial;
         Material m_FinalPassMaterial;
 
+		// Debug
+		Material m_GBufferDebugMaterial;
+
         GBufferManager gbufferManager = new GBufferManager();
 
         static private int s_CameraColorBuffer;
@@ -105,6 +158,13 @@ namespace UnityEngine.ScriptableRenderLoop
                 s_punctualLightList.Release();
         }
 
+		Material CreateEngineMaterial(string shaderPath)
+		{
+			Material mat = new Material(Shader.Find(shaderPath) as Shader);
+			mat.hideFlags = HideFlags.HideAndDontSave;
+			return mat;
+		}
+
 		public override void Rebuild()
 		{
             ClearComputeBuffers();
@@ -120,13 +180,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
             s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
 
-            Shader deferredMaterial = Shader.Find("Hidden/Unity/LightingDeferred") as Shader;
-            m_DeferredMaterial = new Material(deferredMaterial);
-            m_DeferredMaterial.hideFlags = HideFlags.HideAndDontSave;
+			m_DeferredMaterial = CreateEngineMaterial("Hidden/Unity/LightingDeferred");
+			m_FinalPassMaterial = CreateEngineMaterial("Hidden/Unity/FinalPass");
 
-            Shader finalPassShader = Shader.Find("Hidden/Unity/FinalPass") as Shader;
-            m_FinalPassMaterial = new Material(finalPassShader);
-            m_FinalPassMaterial.hideFlags = HideFlags.HideAndDontSave;
+			// Debug
+			m_GBufferDebugMaterial = CreateEngineMaterial("Hidden/Unity/GBufferDebug");
 
             // m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
 		}
@@ -212,6 +270,57 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.DrawRenderers(ref settings);
 		}
 
+		void RenderMaterialDebug(CullResults cull, Camera camera, RenderLoop renderLoop)
+		{
+			// setup GBuffer for rendering
+			var cmd = new CommandBuffer();
+			cmd.name = "Debug Pass";
+			cmd.GetTemporaryRT(s_CameraColorBuffer, -1, -1, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+			cmd.GetTemporaryRT(s_CameraDepthBuffer, -1, -1, 24, FilterMode.Point, RenderTextureFormat.Depth);
+			cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+			cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
+			renderLoop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
+
+			Shader.SetGlobalInt("g_MaterialDebugMode", (int)debugParameters.materialDebugMode);
+
+			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Debug"));
+			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+			settings.inputCullingOptions.SetQueuesOpaque();
+			renderLoop.DrawRenderers(ref settings);
+
+			if(debugParameters.displayMaterialDebugForTransparent)
+			{
+				settings.sorting.sortOptions = SortOptions.BackToFront;
+				settings.inputCullingOptions.SetQueuesTransparent();
+				renderLoop.DrawRenderers(ref settings);
+			}
+
+			cmd = new CommandBuffer();
+			cmd.name = "FinalPass";
+			cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
+			renderLoop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
+		}
+
+		void RenderGBufferDebug(Camera camera, RenderLoop renderLoop)
+		{
+			Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
+			m_GBufferDebugMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
+
+			Vector4 screenSize = ComputeScreenSize(camera);
+			m_GBufferDebugMaterial.SetVector("_ScreenSize", screenSize);
+			m_GBufferDebugMaterial.SetFloat("_DebugMode", (float)debugParameters.gBufferDebugMode);
+
+			// gbufferManager.BindBuffers(m_DeferredMaterial);
+			// TODO: Bind depth textures
+			var cmd = new CommandBuffer();
+			cmd.name = "GBuffer Debug";
+			cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_GBufferDebugMaterial, 0);
+			renderLoop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
+		}
+
         Matrix4x4 GetViewProjectionMatrix(Camera camera)
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
@@ -222,16 +331,22 @@ namespace UnityEngine.ScriptableRenderLoop
             return gpuVP;
         }
 
+		Vector4 ComputeScreenSize(Camera camera)
+		{
+			Vector4 screenSize = new Vector4();
+			screenSize.x = camera.pixelWidth;
+			screenSize.y = camera.pixelHeight;
+			screenSize.z = 1.0f / camera.pixelWidth;
+			screenSize.w = 1.0f / camera.pixelHeight;
+			return screenSize;
+		}
+
         void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
         {
             Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
             m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
 
-            Vector4 screenSize = new Vector4();
-            screenSize.x = camera.pixelWidth;
-            screenSize.y = camera.pixelHeight;
-            screenSize.z = 1.0f / camera.pixelWidth;
-            screenSize.w = 1.0f / camera.pixelHeight;
+			Vector4 screenSize = ComputeScreenSize(camera);
             m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
 
             // gbufferManager.BindBuffers(m_DeferredMaterial);
@@ -252,12 +367,12 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-            DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("Forward"));
-            settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
-            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-            settings.inputCullingOptions.SetQueuesTransparent();
+			DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("Forward"));
+			settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
+			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+			settings.inputCullingOptions.SetQueuesTransparent();
 
-            renderLoop.DrawRenderers(ref settings);
+			renderLoop.DrawRenderers(ref settings);
         }
 
         void FinalPass(RenderLoop renderLoop)
@@ -599,17 +714,31 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				//UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
 
-				UpdatePunctualLights(cullResults.culledLights);
+				if (debugParameters.materialDebugMode == MaterialDebugMode.None)
+				{
+					UpdatePunctualLights(cullResults.culledLights);
 
-				InitAndClearBuffer(camera, renderLoop);
+					InitAndClearBuffer(camera, renderLoop);
 
-				RenderGBuffer(cullResults, camera, renderLoop);
+					if(debugParameters.displayOpaqueObjects)
+						RenderGBuffer(cullResults, camera, renderLoop);
 
-                RenderDeferredLighting(camera, renderLoop);
+					RenderDeferredLighting(camera, renderLoop);
 
-                RenderForward(cullResults, camera, renderLoop);
+					if(debugParameters.displayTransparentObjects)
+						RenderForward(cullResults, camera, renderLoop);
 
-                FinalPass(renderLoop);
+					if (debugParameters.gBufferDebugMode != GBufferDebugMode.None)
+					{
+						RenderGBufferDebug(camera, renderLoop);
+					}
+
+					FinalPass(renderLoop);
+				}
+				else
+				{
+					RenderMaterialDebug(cullResults, camera, renderLoop);
+				}
 
 				renderLoop.Submit ();
 			}
