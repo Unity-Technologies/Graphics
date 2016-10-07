@@ -1,9 +1,9 @@
 // Wait for a fix from Trunk #error not supported yet
 /*
 #define REQUIRE_DEFINED(X_) \
-	#ifndef X_  \
-		#error X_ must be defined (in) the platform include \
-	#endif X_  \
+    #ifndef X_  \
+        #error X_ must be defined (in) the platform include \
+    #endif X_  \
 
 REQUIRE_DEFINED(UNITY_UV_STARTS_AT_TOP)
 REQUIRE_DEFINED(UNITY_REVERSED_Z)

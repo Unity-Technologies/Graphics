@@ -10,23 +10,23 @@
 
 struct BuiltinData
 {
-	float	opacity;
+    float	opacity;
 
-	// These are lighting data.
-	// We would prefer to split lighting and material information but for performance reasons, 
-	// those lighting information are fill 
-	// at the same time than material information.
-	float3	bakeDiffuseLighting;	// This is the result of sampling lightmap/lightprobe/proxyvolume
+    // These are lighting data.
+    // We would prefer to split lighting and material information but for performance reasons, 
+    // those lighting information are fill 
+    // at the same time than material information.
+    float3	bakeDiffuseLighting;	// This is the result of sampling lightmap/lightprobe/proxyvolume
 
-	float3	emissiveColor;
-	float	emissiveIntensity;
+    float3	emissiveColor;
+    float	emissiveIntensity;
 
-	// These is required for motion blur and temporalAA
-	float2	velocity;
+    // These is required for motion blur and temporalAA
+    float2	velocity;
 
-	// Distortion
-	float2	distortion;
-	float	distortionBlur;			// Define the color buffer mipmap level to use
+    // Distortion
+    float2	distortion;
+    float	distortionBlur;			// Define the color buffer mipmap level to use
 };
 
 #endif // UNITY_BUILTIN_DATA_INCLUDED

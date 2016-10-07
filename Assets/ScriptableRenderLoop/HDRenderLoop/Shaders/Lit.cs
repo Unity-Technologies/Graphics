@@ -4,13 +4,13 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor
 {
-internal class DisneyGGXGUI : ShaderGUI
+internal class LitGUI : ShaderGUI
 {
-	public enum SurfaceType
-	{
-		Opaque,
-		Transparent
-	}
+    public enum SurfaceType
+    {
+        Opaque,
+        Transparent
+    }
     public enum BlendMode
     {
         Lerp, 
@@ -50,8 +50,8 @@ internal class DisneyGGXGUI : ShaderGUI
         Displacement,
     }
 
-	private static class Styles
-	{
+    private static class Styles
+    {
         public static string OptionText = "Options";
         public static string SurfaceTypeText = "Surface Type";
         public static string BlendModeText = "Blend Mode";
@@ -106,30 +106,30 @@ internal class DisneyGGXGUI : ShaderGUI
     MaterialProperty emissiveColorMode = null;
 
     MaterialProperty baseColor = null;
-	MaterialProperty baseColorMap = null;
-	MaterialProperty mettalic = null;
-	MaterialProperty smoothness = null;
+    MaterialProperty baseColorMap = null;
+    MaterialProperty mettalic = null;
+    MaterialProperty smoothness = null;
     MaterialProperty maskMap = null;
-	MaterialProperty specularOcclusionMap = null;
-	MaterialProperty normalMap = null;
+    MaterialProperty specularOcclusionMap = null;
+    MaterialProperty normalMap = null;
     MaterialProperty normalMapSpace = null;
-	MaterialProperty heightMap = null;
-	MaterialProperty heightScale = null;
-	MaterialProperty heightBias = null;
+    MaterialProperty heightMap = null;
+    MaterialProperty heightScale = null;
+    MaterialProperty heightBias = null;
     MaterialProperty heightMapMode = null;
 //	MaterialProperty diffuseLightingMap = null;
-	MaterialProperty emissiveColor = null;
-	MaterialProperty emissiveColorMap = null;
-	MaterialProperty emissiveIntensity = null;
+    MaterialProperty emissiveColor = null;
+    MaterialProperty emissiveColorMap = null;
+    MaterialProperty emissiveIntensity = null;
 //	MaterialProperty subSurfaceRadius = null;
 //	MaterialProperty subSurfaceRadiusMap = null;
 
     
 
-	MaterialEditor m_MaterialEditor;
+    MaterialEditor m_MaterialEditor;
 
-	public void FindProperties (MaterialProperty[] props)
-	{
+    public void FindProperties (MaterialProperty[] props)
+    {
         surfaceType = FindProperty("_SurfaceType", props);
         blendMode = FindProperty("_BlendMode", props);
         alphaCutoff = FindProperty("_AlphaCutoff", props);
@@ -157,22 +157,22 @@ internal class DisneyGGXGUI : ShaderGUI
     }
 
     public override void OnGUI (MaterialEditor materialEditor, MaterialProperty[] props)
-	{
-		FindProperties (props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
-		m_MaterialEditor = materialEditor;
-		Material material = materialEditor.target as Material;
+    {
+        FindProperties (props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
+        m_MaterialEditor = materialEditor;
+        Material material = materialEditor.target as Material;
 
-		ShaderPropertiesGUI (material);
-	}
+        ShaderPropertiesGUI (material);
+    }
 
-	public void ShaderPropertiesGUI (Material material)
-	{
-		// Use default labelWidth
-		EditorGUIUtility.labelWidth = 0f;
+    public void ShaderPropertiesGUI (Material material)
+    {
+        // Use default labelWidth
+        EditorGUIUtility.labelWidth = 0f;
 
-		// Detect any changes to the material
-		EditorGUI.BeginChangeCheck();
-		{
+        // Detect any changes to the material
+        EditorGUI.BeginChangeCheck();
+        {
             GUILayout.Label(Styles.OptionText, EditorStyles.boldLabel);
             SurfaceTypePopup();            
             if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
@@ -220,55 +220,55 @@ internal class DisneyGGXGUI : ShaderGUI
                 m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             }
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);	
-		}
+        }
 
-		if (EditorGUI.EndChangeCheck())
-		{
-			foreach (var obj in blendMode.targets)
-				MaterialChanged((Material)obj);
-		}
-	}
+        if (EditorGUI.EndChangeCheck())
+        {
+            foreach (var obj in blendMode.targets)
+                MaterialChanged((Material)obj);
+        }
+    }
 
     // TODO: try to setup minimun value to fall back to standard shaders and reverse
-	public override void AssignNewShaderToMaterial (Material material, Shader oldShader, Shader newShader)
-	{
-		base.AssignNewShaderToMaterial(material, oldShader, newShader);
-	}
+    public override void AssignNewShaderToMaterial (Material material, Shader oldShader, Shader newShader)
+    {
+        base.AssignNewShaderToMaterial(material, oldShader, newShader);
+    }
 
-	void SurfaceTypePopup()
-	{
-		EditorGUI.showMixedValue = surfaceType.hasMixedValue;
-		var mode = (SurfaceType)surfaceType.floatValue;
+    void SurfaceTypePopup()
+    {
+        EditorGUI.showMixedValue = surfaceType.hasMixedValue;
+        var mode = (SurfaceType)surfaceType.floatValue;
 
-		EditorGUI.BeginChangeCheck();
+        EditorGUI.BeginChangeCheck();
         mode = (SurfaceType)EditorGUILayout.Popup(Styles.SurfaceTypeText, (int)mode, Styles.surfaceTypeNames);
-		if (EditorGUI.EndChangeCheck())
-		{
-			m_MaterialEditor.RegisterPropertyChangeUndo("Surface Type");
-			surfaceType.floatValue = (float)mode;
-		}
+        if (EditorGUI.EndChangeCheck())
+        {
+            m_MaterialEditor.RegisterPropertyChangeUndo("Surface Type");
+            surfaceType.floatValue = (float)mode;
+        }
 
-		EditorGUI.showMixedValue = false;
-	}
+        EditorGUI.showMixedValue = false;
+    }
 
-	void BlendModePopup()
-	{
-		EditorGUI.showMixedValue = blendMode.hasMixedValue;
-		var mode = (BlendMode)blendMode.floatValue;
+    void BlendModePopup()
+    {
+        EditorGUI.showMixedValue = blendMode.hasMixedValue;
+        var mode = (BlendMode)blendMode.floatValue;
 
-		EditorGUI.BeginChangeCheck();
-		mode = (BlendMode)EditorGUILayout.Popup(Styles.BlendModeText, (int)mode, Styles.blendModeNames);
-		if (EditorGUI.EndChangeCheck())
-		{
-			m_MaterialEditor.RegisterPropertyChangeUndo("Blend Mode");
-			blendMode.floatValue = (float)mode;
-		}
+        EditorGUI.BeginChangeCheck();
+        mode = (BlendMode)EditorGUILayout.Popup(Styles.BlendModeText, (int)mode, Styles.blendModeNames);
+        if (EditorGUI.EndChangeCheck())
+        {
+            m_MaterialEditor.RegisterPropertyChangeUndo("Blend Mode");
+            blendMode.floatValue = (float)mode;
+        }
 
-		EditorGUI.showMixedValue = false;
-	}
+        EditorGUI.showMixedValue = false;
+    }
 
     static public void SetupMaterial(Material material)
-	{
+    {
         // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
         // (MaterialProperty value might come from renderer material property block)
 
@@ -357,55 +357,55 @@ internal class DisneyGGXGUI : ShaderGUI
         SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", (HeightmapMode)material.GetFloat("_HeightMapMode") == HeightmapMode.Displacement);
 
         /*
-		// Setup lightmap emissive flags
-		MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
-		if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
-		{
-			flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-			if (!shouldEmissionBeEnabled)
-				flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+        // Setup lightmap emissive flags
+        MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
+        if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
+        {
+            flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+            if (!shouldEmissionBeEnabled)
+                flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
 
-			material.globalIlluminationFlags = flags;
-		}
+            material.globalIlluminationFlags = flags;
+        }
         */
-	}
+    }
 
-	static bool ShouldEmissionBeEnabled(Material mat, Color color)
-	{
+    static bool ShouldEmissionBeEnabled(Material mat, Color color)
+    {
             //var realtimeEmission = (mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
             //return color.maxColorComponent > 0.1f / 255.0f || realtimeEmission;
 
             return false;
-	}
+    }
 
-	bool HasValidEmissiveKeyword (Material material)
-	{
+    bool HasValidEmissiveKeyword (Material material)
+    {
         /*
-		// Material animation might be out of sync with the material keyword.
-		// So if the emission support is disabled on the material, but the property blocks have a value that requires it, then we need to show a warning.
-		// (note: (Renderer MaterialPropertyBlock applies its values to emissionColorForRendering))
-		bool hasEmissionKeyword = material.IsKeywordEnabled ("_EMISSION");
-		if (!hasEmissionKeyword && ShouldEmissionBeEnabled (material, emissionColorForRendering.colorValue))
-			return false;
-		else
-			return true;
+        // Material animation might be out of sync with the material keyword.
+        // So if the emission support is disabled on the material, but the property blocks have a value that requires it, then we need to show a warning.
+        // (note: (Renderer MaterialPropertyBlock applies its values to emissionColorForRendering))
+        bool hasEmissionKeyword = material.IsKeywordEnabled ("_EMISSION");
+        if (!hasEmissionKeyword && ShouldEmissionBeEnabled (material, emissionColorForRendering.colorValue))
+            return false;
+        else
+            return true;
         */
 
         return true;
-	}
+    }
 
     static void MaterialChanged(Material material)
-	{
+    {
         SetupMaterial(material);
-	}
+    }
 
     static void SetKeyword(Material m, string keyword, bool state)
-	{
-		if (state)
-			m.EnableKeyword (keyword);
-		else
-			m.DisableKeyword (keyword);
-	}
+    {
+        if (state)
+            m.EnableKeyword (keyword);
+        else
+            m.DisableKeyword (keyword);
+    }
 }
 
 } // namespace UnityEditor

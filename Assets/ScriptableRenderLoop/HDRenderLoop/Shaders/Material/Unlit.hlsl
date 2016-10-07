@@ -3,12 +3,12 @@
 
 struct SurfaceData
 {
-	float3 color;
+    float3 color;
 };
 
 struct BSDFData
 {
-	float3 color;
+    float3 color;
 };
 
 //-----------------------------------------------------------------------------
@@ -17,10 +17,10 @@ struct BSDFData
 
 BSDFData ConvertSurfaceDataToBSDFData(SurfaceData data)
 {
-	BSDFData output;
-	output.color = data.color;
+    BSDFData output;
+    output.color = data.color;
 
-	return output;
+    return output;
 }
 
 //-----------------------------------------------------------------------------

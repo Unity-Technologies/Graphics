@@ -116,10 +116,10 @@ float FastATan(float x)
 
 struct Coordinate
 {
-	// Normalize coordinates
-	float2	positionSS;
-	// Unormalize coordinates
-	int2	unPositionSS;
+    // Normalize coordinates
+    float2	positionSS;
+    // Unormalize coordinates
+    int2	unPositionSS;
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
@@ -128,18 +128,18 @@ struct Coordinate
 // else it is current unormalized screen coordinate like return by VPOS
 Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
 {
-	Coordinate coord;
-	coord.positionSS = inPositionSS;
-	// TODO: How to detect automatically that we are a compute shader ?
+    Coordinate coord;
+    coord.positionSS = inPositionSS;
+    // TODO: How to detect automatically that we are a compute shader ?
 #if SHADER_STAGE_COMPUTE
-	// In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
-	coord.positionSS.xy += float2(0.5, 0.5);
+    // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
+    coord.positionSS.xy += float2(0.5, 0.5);
 #endif
-	coord.positionSS *= invScreenSize;
+    coord.positionSS *= invScreenSize;
 
-	coord.unPositionSS = int2(inPositionSS);
+    coord.unPositionSS = int2(inPositionSS);
 
-	return coord;
+    return coord;
 }
 
 // screenPos is screen coordinate in [0..1] (return by Coordinate.positionSS)
@@ -147,10 +147,10 @@ Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
 float3 UnprojectToWorld(float depth, float2 screenPos, float4x4 invViewProjectionMatrix)
 {
-	float4 positionHS	= float4(screenPos.xy * 2.0 - 1.0, depth, 1.0);
-	float4 hpositionWS	= mul(invViewProjectionMatrix, positionHS);
+    float4 positionHS	= float4(screenPos.xy * 2.0 - 1.0, depth, 1.0);
+    float4 hpositionWS	= mul(invViewProjectionMatrix, positionHS);
 
-	return hpositionWS.xyz / hpositionWS.w;
+    return hpositionWS.xyz / hpositionWS.w;
 }
 
 // Z buffer to linear 0..1 depth

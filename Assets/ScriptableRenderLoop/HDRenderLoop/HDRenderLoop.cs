@@ -8,70 +8,70 @@ using UnityEditor;
 
 namespace UnityEngine.ScriptableRenderLoop
 {
-	[ExecuteInEditMode]
+    [ExecuteInEditMode]
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
-	public class HDRenderLoop : ScriptableRenderLoop
-	{
-		private static string m_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
+    public class HDRenderLoop : ScriptableRenderLoop
+    {
+        private static string m_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
-		// Debugging
-		public enum MaterialDebugMode
-		{
-			None = 0,
-			DiffuseColor = 1,
-			Normal = 2,
-			Depth = 3,
-			AmbientOcclusion = 4,
-			SpecularColor = 5,
-			SpecularOcclustion = 6,
-			Smoothness = 7,
-			MaterialId = 8,
-			UV0 = 9,
-			Tangent = 10,
-			Bitangent = 11
-		}
+        // Debugging
+        public enum MaterialDebugMode
+        {
+            None = 0,
+            DiffuseColor = 1,
+            Normal = 2,
+            Depth = 3,
+            AmbientOcclusion = 4,
+            SpecularColor = 5,
+            SpecularOcclustion = 6,
+            Smoothness = 7,
+            MaterialId = 8,
+            UV0 = 9,
+            Tangent = 10,
+            Bitangent = 11
+        }
 
-		public enum GBufferDebugMode
-		{
-			None = 0,
-			DiffuseColor = 1,
-			Normal = 2,
-			Depth = 3,
-			BakedDiffuse = 4,
-			SpecularColor = 5,
-			SpecularOcclustion = 6,
-			Smoothness = 7,
-			MaterialId = 8,
-		}
+        public enum GBufferDebugMode
+        {
+            None = 0,
+            DiffuseColor = 1,
+            Normal = 2,
+            Depth = 3,
+            BakedDiffuse = 4,
+            SpecularColor = 5,
+            SpecularOcclustion = 6,
+            Smoothness = 7,
+            MaterialId = 8,
+        }
 
-		public class DebugParameters
-		{
-			// Material Debugging
-			public MaterialDebugMode materialDebugMode = MaterialDebugMode.None;
-			public GBufferDebugMode gBufferDebugMode = GBufferDebugMode.None;
+        public class DebugParameters
+        {
+            // Material Debugging
+            public MaterialDebugMode materialDebugMode = MaterialDebugMode.None;
+            public GBufferDebugMode gBufferDebugMode = GBufferDebugMode.None;
 
-			// Rendering debugging
-			public bool displayOpaqueObjects = true;
-			public bool displayTransparentObjects = true;
+            // Rendering debugging
+            public bool displayOpaqueObjects = true;
+            public bool displayTransparentObjects = true;
 
-			public bool enableTonemap = true;
-			public float exposure = 0;
-		}
+            public bool enableTonemap = true;
+            public float exposure = 0;
+        }
 
-		private DebugParameters m_DebugParameters = new DebugParameters();
-		public DebugParameters debugParameters
-		{
-			get { return m_DebugParameters; }
-		}
+        private DebugParameters m_DebugParameters = new DebugParameters();
+        public DebugParameters debugParameters
+        {
+            get { return m_DebugParameters; }
+        }
 
-		#if UNITY_EDITOR
-		[MenuItem("Renderloop/CreateHDRenderLoop")]
-		static void CreateHDRenderLoop()
-		{
-			var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
-			UnityEditor.AssetDatabase.CreateAsset(instance, m_HDRenderLoopPath);
-		}
-		#endif
+        #if UNITY_EDITOR
+        [MenuItem("Renderloop/CreateHDRenderLoop")]
+        static void CreateHDRenderLoop()
+        {
+            var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
+            UnityEditor.AssetDatabase.CreateAsset(instance, m_HDRenderLoopPath);
+        }
+        #endif
 
         public class GBufferManager
         {
@@ -124,15 +124,15 @@ namespace UnityEngine.ScriptableRenderLoop
 
         public const int MaxLights = 32;
 
-		//[SerializeField]
-		//ShadowSettings m_ShadowSettings = ShadowSettings.Default;
-		//ShadowRenderPass m_ShadowPass;
+        //[SerializeField]
+        //ShadowSettings m_ShadowSettings = ShadowSettings.Default;
+        //ShadowRenderPass m_ShadowPass;
 
         Material m_DeferredMaterial;
         Material m_FinalPassMaterial;
 
-		// Debug
-		Material m_GBufferDebugMaterial;
+        // Debug
+        Material m_GBufferDebugMaterial;
 
         GBufferManager gbufferManager = new GBufferManager();
 
@@ -141,15 +141,15 @@ namespace UnityEngine.ScriptableRenderLoop
 
         static private ComputeBuffer s_punctualLightList;
 
-		void OnEnable()
-		{
-			Rebuild ();
-		}
+        void OnEnable()
+        {
+            Rebuild ();
+        }
 
-		void OnValidate()
-		{
-			Rebuild ();
-		}
+        void OnValidate()
+        {
+            Rebuild ();
+        }
 
         void ClearComputeBuffers()
         {
@@ -157,15 +157,15 @@ namespace UnityEngine.ScriptableRenderLoop
                 s_punctualLightList.Release();
         }
 
-		Material CreateEngineMaterial(string shaderPath)
-		{
-			Material mat = new Material(Shader.Find(shaderPath) as Shader);
-			mat.hideFlags = HideFlags.HideAndDontSave;
-			return mat;
-		}
+        Material CreateEngineMaterial(string shaderPath)
+        {
+            Material mat = new Material(Shader.Find(shaderPath) as Shader);
+            mat.hideFlags = HideFlags.HideAndDontSave;
+            return mat;
+        }
 
-		public override void Rebuild()
-		{
+        public override void Rebuild()
+        {
             ClearComputeBuffers();
 
             gbufferManager.gbufferCount = 4;
@@ -179,14 +179,14 @@ namespace UnityEngine.ScriptableRenderLoop
 
             s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
 
-			m_DeferredMaterial = CreateEngineMaterial("Hidden/Unity/LightingDeferred");
-			m_FinalPassMaterial = CreateEngineMaterial("Hidden/Unity/FinalPass");
+            m_DeferredMaterial = CreateEngineMaterial("Hidden/Unity/LightingDeferred");
+            m_FinalPassMaterial = CreateEngineMaterial("Hidden/Unity/FinalPass");
 
-			// Debug
-			m_GBufferDebugMaterial = CreateEngineMaterial("Hidden/Unity/GBufferDebug");
+            // Debug
+            m_GBufferDebugMaterial = CreateEngineMaterial("Hidden/Unity/GBufferDebug");
 
             // m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
-		}
+        }
 
         void OnDisable()
         {
@@ -252,83 +252,83 @@ namespace UnityEngine.ScriptableRenderLoop
             // END TEMP
         }
 
-		void RenderOpaqueRenderList(CullResults cull, Camera camera, RenderLoop renderLoop, string passName)
-		{
-			if (!debugParameters.displayOpaqueObjects)
-				return;
+        void RenderOpaqueRenderList(CullResults cull, Camera camera, RenderLoop renderLoop, string passName)
+        {
+            if (!debugParameters.displayOpaqueObjects)
+                return;
 
-			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
-			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-			settings.inputCullingOptions.SetQueuesOpaque();
-			renderLoop.DrawRenderers(ref settings);
-		}
+            DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
+            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+            settings.inputCullingOptions.SetQueuesOpaque();
+            renderLoop.DrawRenderers(ref settings);
+        }
 
-		void RenderTransparentRenderList(CullResults cull, Camera camera, RenderLoop renderLoop, string passName)
-		{
-			if (!debugParameters.displayTransparentObjects)
-				return;
+        void RenderTransparentRenderList(CullResults cull, Camera camera, RenderLoop renderLoop, string passName)
+        {
+            if (!debugParameters.displayTransparentObjects)
+                return;
 
-			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
-			settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
-			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-			settings.inputCullingOptions.SetQueuesTransparent();
-			renderLoop.DrawRenderers(ref settings);
-		}
+            DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
+            settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
+            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+            settings.inputCullingOptions.SetQueuesTransparent();
+            renderLoop.DrawRenderers(ref settings);
+        }
 
         void RenderGBuffer(CullResults cull, Camera camera, RenderLoop renderLoop)
-		{
-			// setup GBuffer for rendering
-			var cmd = new CommandBuffer();
-			cmd.name = "GBuffer Pass";
+        {
+            // setup GBuffer for rendering
+            var cmd = new CommandBuffer();
+            cmd.name = "GBuffer Pass";
             cmd.SetRenderTarget(gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
-			cmd.Dispose();
+            cmd.Dispose();
 
-			// render opaque objects into GBuffer
-			RenderOpaqueRenderList(cull, camera, renderLoop, "GBuffer");
-		}
+            // render opaque objects into GBuffer
+            RenderOpaqueRenderList(cull, camera, renderLoop, "GBuffer");
+        }
 
-		void RenderMaterialDebug(CullResults cull, Camera camera, RenderLoop renderLoop)
-		{
-			// setup GBuffer for rendering
-			var cmd = new CommandBuffer();
-			cmd.name = "Material Debug Pass";
-			cmd.GetTemporaryRT(s_CameraColorBuffer, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-			cmd.GetTemporaryRT(s_CameraDepthBuffer, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-			cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
-			cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
-			renderLoop.ExecuteCommandBuffer(cmd);
-			cmd.Dispose();
+        void RenderMaterialDebug(CullResults cull, Camera camera, RenderLoop renderLoop)
+        {
+            // setup GBuffer for rendering
+            var cmd = new CommandBuffer();
+            cmd.name = "Material Debug Pass";
+            cmd.GetTemporaryRT(s_CameraColorBuffer, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            cmd.GetTemporaryRT(s_CameraDepthBuffer, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
+            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
 
-			Shader.SetGlobalInt("g_MaterialDebugMode", (int)debugParameters.materialDebugMode);
+            Shader.SetGlobalInt("g_MaterialDebugMode", (int)debugParameters.materialDebugMode);
 
-			RenderOpaqueRenderList(cull, camera, renderLoop, "Debug");
-			RenderTransparentRenderList(cull, camera, renderLoop, "Debug");
+            RenderOpaqueRenderList(cull, camera, renderLoop, "Debug");
+            RenderTransparentRenderList(cull, camera, renderLoop, "Debug");
 
-			cmd = new CommandBuffer();
-			cmd.name = "Blit Material Debug";
-			cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
-			renderLoop.ExecuteCommandBuffer(cmd);
-			cmd.Dispose();
-		}
+            cmd = new CommandBuffer();
+            cmd.name = "Blit Material Debug";
+            cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
 
-		void RenderGBufferDebug(Camera camera, RenderLoop renderLoop)
-		{
-			Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
-			m_GBufferDebugMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
+        void RenderGBufferDebug(Camera camera, RenderLoop renderLoop)
+        {
+            Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
+            m_GBufferDebugMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
 
-			Vector4 screenSize = ComputeScreenSize(camera);
-			m_GBufferDebugMaterial.SetVector("_ScreenSize", screenSize);
-			m_GBufferDebugMaterial.SetFloat("_DebugMode", (float)debugParameters.gBufferDebugMode);
+            Vector4 screenSize = ComputeScreenSize(camera);
+            m_GBufferDebugMaterial.SetVector("_ScreenSize", screenSize);
+            m_GBufferDebugMaterial.SetFloat("_DebugMode", (float)debugParameters.gBufferDebugMode);
 
-			// gbufferManager.BindBuffers(m_DeferredMaterial);
-			// TODO: Bind depth textures
-			var cmd = new CommandBuffer();
-			cmd.name = "GBuffer Debug Pass";
-			cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_GBufferDebugMaterial, 0);
-			renderLoop.ExecuteCommandBuffer(cmd);
-			cmd.Dispose();
-		}
+            // gbufferManager.BindBuffers(m_DeferredMaterial);
+            // TODO: Bind depth textures
+            var cmd = new CommandBuffer();
+            cmd.name = "GBuffer Debug Pass";
+            cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_GBufferDebugMaterial, 0);
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+        }
 
         Matrix4x4 GetViewProjectionMatrix(Camera camera)
         {
@@ -340,22 +340,22 @@ namespace UnityEngine.ScriptableRenderLoop
             return gpuVP;
         }
 
-		Vector4 ComputeScreenSize(Camera camera)
-		{
-			Vector4 screenSize = new Vector4();
-			screenSize.x = camera.pixelWidth;
-			screenSize.y = camera.pixelHeight;
-			screenSize.z = 1.0f / camera.pixelWidth;
-			screenSize.w = 1.0f / camera.pixelHeight;
-			return screenSize;
-		}
+        Vector4 ComputeScreenSize(Camera camera)
+        {
+            Vector4 screenSize = new Vector4();
+            screenSize.x = camera.pixelWidth;
+            screenSize.y = camera.pixelHeight;
+            screenSize.z = 1.0f / camera.pixelWidth;
+            screenSize.w = 1.0f / camera.pixelHeight;
+            return screenSize;
+        }
 
         void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
         {
             Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
             m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
 
-			Vector4 screenSize = ComputeScreenSize(camera);
+            Vector4 screenSize = ComputeScreenSize(camera);
             m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
 
             // gbufferManager.BindBuffers(m_DeferredMaterial);
@@ -376,7 +376,7 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-			RenderTransparentRenderList(cullResults, camera, renderLoop, "Forward");
+            RenderTransparentRenderList(cullResults, camera, renderLoop, "Forward");
         }
 
         void FinalPass(RenderLoop renderLoop)
@@ -399,7 +399,7 @@ namespace UnityEngine.ScriptableRenderLoop
             m_FinalPassMaterial.SetVector("_ToneMapCoeffs2", tonemapCoeff2);
 
             m_FinalPassMaterial.SetFloat("_EnableToneMap", debugParameters.enableTonemap ? 1.0f : 0.0f);
-			m_FinalPassMaterial.SetFloat("_Exposure", debugParameters.exposure);
+            m_FinalPassMaterial.SetFloat("_Exposure", debugParameters.exposure);
 
             CommandBuffer cmd = new CommandBuffer();
             cmd.name = "FinalPass";
@@ -409,7 +409,7 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.Dispose();
         }
 
-		//---------------------------------------------------------------------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------------------------------------------------------------------------
 
         void UpdatePunctualLights(ActiveLight[] activeLights)
         {
@@ -454,8 +454,8 @@ namespace UnityEngine.ScriptableRenderLoop
                     l.specularScale = 1.0f;
                     l.shadowDimmer = 1.0f;
 
-        	        if (light.lightType == LightType.Spot)
-	                {
+                    if (light.lightType == LightType.Spot)
+                    {
                         float spotAngle = light.light.spotAngle;
                         AdditionalLightData additionalLightData = light.light.GetComponent<AdditionalLightData>();
                         float innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
@@ -463,15 +463,15 @@ namespace UnityEngine.ScriptableRenderLoop
                         float cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
 
                         float val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
-		                l.angleScale	= 1.0f / val;
-		                l.angleOffset	= -cosSpotOuterHalfAngle * l.angleScale;
-	                }
-	                else
-	                {
-		                // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
+                        l.angleScale	= 1.0f / val;
+                        l.angleOffset	= -cosSpotOuterHalfAngle * l.angleScale;
+                    }
+                    else
+                    {
+                        // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
                         l.angleScale = 1.0f;
                         l.angleOffset = 2.0f;
-	                }
+                    }
 
                     lights.Add(l);
                     punctualLightCount++;
@@ -483,159 +483,159 @@ namespace UnityEngine.ScriptableRenderLoop
             Shader.SetGlobalInt("g_punctualLightCount", punctualLightCount);
         }
 
-		void UpdateLightConstants(ActiveLight[] activeLights /*, ref ShadowOutput shadow */)
-		{
-			/*
-			int nNumLightsIncludingTooMany = 0;
+        void UpdateLightConstants(ActiveLight[] activeLights /*, ref ShadowOutput shadow */)
+        {
+            /*
+            int nNumLightsIncludingTooMany = 0;
 
-			int g_nNumLights = 0;
+            int g_nNumLights = 0;
 
-			Vector4[] g_vLightColor = new Vector4[ MAX_LIGHTS ];
-			Vector4[] g_vLightPosition_flInvRadius = new Vector4[ MAX_LIGHTS ];
-			Vector4[] g_vLightDirection = new Vector4[ MAX_LIGHTS ];
-			Vector4[] g_vLightShadowIndex_vLightParams = new Vector4[ MAX_LIGHTS ];
-			Vector4[] g_vLightFalloffParams = new Vector4[ MAX_LIGHTS ];
-			Vector4[] g_vSpotLightInnersuterConeCosines = new Vector4[ MAX_LIGHTS ];
-			Matrix4x4[] g_matWorldToShadow = new Matrix4x4[ MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS ];
-			Vector4[] g_vDirShadowSplitSpheres = new Vector4[ MAX_DIRECTIONAL_SPLIT ];
+            Vector4[] g_vLightColor = new Vector4[ MAX_LIGHTS ];
+            Vector4[] g_vLightPosition_flInvRadius = new Vector4[ MAX_LIGHTS ];
+            Vector4[] g_vLightDirection = new Vector4[ MAX_LIGHTS ];
+            Vector4[] g_vLightShadowIndex_vLightParams = new Vector4[ MAX_LIGHTS ];
+            Vector4[] g_vLightFalloffParams = new Vector4[ MAX_LIGHTS ];
+            Vector4[] g_vSpotLightInnersuterConeCosines = new Vector4[ MAX_LIGHTS ];
+            Matrix4x4[] g_matWorldToShadow = new Matrix4x4[ MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS ];
+            Vector4[] g_vDirShadowSplitSpheres = new Vector4[ MAX_DIRECTIONAL_SPLIT ];
 
-			for ( int nLight = 0; nLight < activeLights.Length; nLight++ )
-			{
+            for ( int nLight = 0; nLight < activeLights.Length; nLight++ )
+            {
 
-				nNumLightsIncludingTooMany++;
-				if ( nNumLightsIncludingTooMany > MAX_LIGHTS )
-					continue;
+                nNumLightsIncludingTooMany++;
+                if ( nNumLightsIncludingTooMany > MAX_LIGHTS )
+                    continue;
 
-				ActiveLight light = activeLights [nLight];
-				LightType lightType = light.lightType;
-				Vector3 position = light.light.transform.position;
-				Vector3 lightDir = light.light.transform.forward.normalized;
-				AdditionalLightData additionalLightData = light.light.GetComponent<AdditionalLightData> ();
+                ActiveLight light = activeLights [nLight];
+                LightType lightType = light.lightType;
+                Vector3 position = light.light.transform.position;
+                Vector3 lightDir = light.light.transform.forward.normalized;
+                AdditionalLightData additionalLightData = light.light.GetComponent<AdditionalLightData> ();
 
-				// Setup shadow data arrays
-				bool hasShadows = shadow.GetShadowSliceCountLightIndex (nLight) != 0;
+                // Setup shadow data arrays
+                bool hasShadows = shadow.GetShadowSliceCountLightIndex (nLight) != 0;
 
-				if ( lightType == LightType.Directional )
-				{
-					g_vLightColor[ g_nNumLights ] = light.finalColor;
-					g_vLightPosition_flInvRadius[ g_nNumLights ] = new Vector4(
-						position.x - ( lightDir.x * DIRECTIONAL_LIGHT_PULLBACK_DISTANCE ),
-						position.y - ( lightDir.y * DIRECTIONAL_LIGHT_PULLBACK_DISTANCE ),
-						position.z - ( lightDir.z * DIRECTIONAL_LIGHT_PULLBACK_DISTANCE ),
-						-1.0f );
-					g_vLightDirection[ g_nNumLights ] = new Vector4( lightDir.x, lightDir.y, lightDir.z );
-					g_vLightShadowIndex_vLightParams[ g_nNumLights ] = new Vector4( 0, 0, 1, 1 );
-					g_vLightFalloffParams[ g_nNumLights ] = new Vector4( 0.0f, 0.0f, float.MaxValue, (float)lightType );
-					g_vSpotLightInnerOuterConeCosines[ g_nNumLights ] = new Vector4( 0.0f, -1.0f, 1.0f );
+                if ( lightType == LightType.Directional )
+                {
+                    g_vLightColor[ g_nNumLights ] = light.finalColor;
+                    g_vLightPosition_flInvRadius[ g_nNumLights ] = new Vector4(
+                        position.x - ( lightDir.x * DIRECTIONAL_LIGHT_PULLBACK_DISTANCE ),
+                        position.y - ( lightDir.y * DIRECTIONAL_LIGHT_PULLBACK_DISTANCE ),
+                        position.z - ( lightDir.z * DIRECTIONAL_LIGHT_PULLBACK_DISTANCE ),
+                        -1.0f );
+                    g_vLightDirection[ g_nNumLights ] = new Vector4( lightDir.x, lightDir.y, lightDir.z );
+                    g_vLightShadowIndex_vLightParams[ g_nNumLights ] = new Vector4( 0, 0, 1, 1 );
+                    g_vLightFalloffParams[ g_nNumLights ] = new Vector4( 0.0f, 0.0f, float.MaxValue, (float)lightType );
+                    g_vSpotLightInnerOuterConeCosines[ g_nNumLights ] = new Vector4( 0.0f, -1.0f, 1.0f );
 
-					if (hasShadows)
-					{
-						for (int s = 0; s < MAX_DIRECTIONAL_SPLIT; ++s)
-						{
-							g_vDirShadowSplitSpheres[s] = shadow.directionalShadowSplitSphereSqr[s];
-						}
-					}
-				}
-				else if ( lightType == LightType.Point )
-				{
-					g_vLightColor[ g_nNumLights ] = light.finalColor;
+                    if (hasShadows)
+                    {
+                        for (int s = 0; s < MAX_DIRECTIONAL_SPLIT; ++s)
+                        {
+                            g_vDirShadowSplitSpheres[s] = shadow.directionalShadowSplitSphereSqr[s];
+                        }
+                    }
+                }
+                else if ( lightType == LightType.Point )
+                {
+                    g_vLightColor[ g_nNumLights ] = light.finalColor;
 
-					g_vLightPosition_flInvRadius[ g_nNumLights ] = new Vector4( position.x, position.y, position.z, 1.0f / light.range );
-					g_vLightDirection[ g_nNumLights ] = new Vector4( 0.0f, 0.0f, 0.0f );
-					g_vLightShadowIndex_vLightParams[ g_nNumLights ] = new Vector4( 0, 0, 1, 1 );
-					g_vLightFalloffParams[ g_nNumLights ] = new Vector4( 1.0f, 0.0f, light.range * light.range, (float)lightType );
-					g_vSpotLightInnerOuterConeCosines[ g_nNumLights ] = new Vector4( 0.0f, -1.0f, 1.0f );
-				}
-				else if ( lightType == LightType.Spot )
-				{
-					g_vLightColor[ g_nNumLights ] = light.finalColor;
-					g_vLightPosition_flInvRadius[ g_nNumLights ] = new Vector4( position.x, position.y, position.z, 1.0f / light.range );
-					g_vLightDirection[ g_nNumLights ] = new Vector4( lightDir.x, lightDir.y, lightDir.z );
-					g_vLightShadowIndex_vLightParams[ g_nNumLights ] = new Vector4( 0, 0, 1, 1 );
-					g_vLightFalloffParams[ g_nNumLights ] = new Vector4( 1.0f, 0.0f, light.range * light.range, (float)lightType );
+                    g_vLightPosition_flInvRadius[ g_nNumLights ] = new Vector4( position.x, position.y, position.z, 1.0f / light.range );
+                    g_vLightDirection[ g_nNumLights ] = new Vector4( 0.0f, 0.0f, 0.0f );
+                    g_vLightShadowIndex_vLightParams[ g_nNumLights ] = new Vector4( 0, 0, 1, 1 );
+                    g_vLightFalloffParams[ g_nNumLights ] = new Vector4( 1.0f, 0.0f, light.range * light.range, (float)lightType );
+                    g_vSpotLightInnerOuterConeCosines[ g_nNumLights ] = new Vector4( 0.0f, -1.0f, 1.0f );
+                }
+                else if ( lightType == LightType.Spot )
+                {
+                    g_vLightColor[ g_nNumLights ] = light.finalColor;
+                    g_vLightPosition_flInvRadius[ g_nNumLights ] = new Vector4( position.x, position.y, position.z, 1.0f / light.range );
+                    g_vLightDirection[ g_nNumLights ] = new Vector4( lightDir.x, lightDir.y, lightDir.z );
+                    g_vLightShadowIndex_vLightParams[ g_nNumLights ] = new Vector4( 0, 0, 1, 1 );
+                    g_vLightFalloffParams[ g_nNumLights ] = new Vector4( 1.0f, 0.0f, light.range * light.range, (float)lightType );
 
-					float flInnerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
-					float spotAngle = light.light.spotAngle;
-					float flPhiDot = Mathf.Clamp( Mathf.Cos( spotAngle * 0.5f * Mathf.Deg2Rad ), 0.0f, 1.0f ); // outer cone
-					float flThetaDot = Mathf.Clamp( Mathf.Cos( spotAngle * 0.5f * flInnerConePercent * Mathf.Deg2Rad ), 0.0f, 1.0f ); // inner cone
-					g_vSpotLightInnerOuterConeCosines[ g_nNumLights ] = new Vector4( flThetaDot, flPhiDot, 1.0f / Mathf.Max( 0.01f, flThetaDot - flPhiDot ) );
+                    float flInnerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
+                    float spotAngle = light.light.spotAngle;
+                    float flPhiDot = Mathf.Clamp( Mathf.Cos( spotAngle * 0.5f * Mathf.Deg2Rad ), 0.0f, 1.0f ); // outer cone
+                    float flThetaDot = Mathf.Clamp( Mathf.Cos( spotAngle * 0.5f * flInnerConePercent * Mathf.Deg2Rad ), 0.0f, 1.0f ); // inner cone
+                    g_vSpotLightInnerOuterConeCosines[ g_nNumLights ] = new Vector4( flThetaDot, flPhiDot, 1.0f / Mathf.Max( 0.01f, flThetaDot - flPhiDot ) );
 
-				}
+                }
 
-				if ( hasShadows )
-				{
-					// Enable shadows
-					g_vLightShadowIndex_vLightParams[ g_nNumLights ].x = 1; 
-					for(int s=0; s < shadow.GetShadowSliceCountLightIndex (nLight); ++s)
-					{
-						int shadowSliceIndex = shadow.GetShadowSliceIndex (nLight, s);
-						g_matWorldToShadow [g_nNumLights * MAX_SHADOWMAP_PER_LIGHTS + s] = shadow.shadowSlices[shadowSliceIndex].shadowTransform.transpose;
-					}
-				}
+                if ( hasShadows )
+                {
+                    // Enable shadows
+                    g_vLightShadowIndex_vLightParams[ g_nNumLights ].x = 1; 
+                    for(int s=0; s < shadow.GetShadowSliceCountLightIndex (nLight); ++s)
+                    {
+                        int shadowSliceIndex = shadow.GetShadowSliceIndex (nLight, s);
+                        g_matWorldToShadow [g_nNumLights * MAX_SHADOWMAP_PER_LIGHTS + s] = shadow.shadowSlices[shadowSliceIndex].shadowTransform.transpose;
+                    }
+                }
 
-				g_nNumLights++;
-			}
+                g_nNumLights++;
+            }
 
-			// Warn if too many lights found
-			if ( nNumLightsIncludingTooMany > MAX_LIGHTS )
-			{
-				if ( nNumLightsIncludingTooMany > m_nWarnedTooManyLights )
-				{
-					Debug.LogError( "ERROR! Found " + nNumLightsIncludingTooMany + " runtime lights! Valve renderer supports up to " + MAX_LIGHTS +
-						" active runtime lights at a time!\nDisabling " + ( nNumLightsIncludingTooMany - MAX_LIGHTS ) + " runtime light" +
-						( ( nNumLightsIncludingTooMany - MAX_LIGHTS ) > 1 ? "s" : "" ) + "!\n" );
-				}
-				m_nWarnedTooManyLights = nNumLightsIncludingTooMany;
-			}
-			else
-			{
-				if ( m_nWarnedTooManyLights > 0 )
-				{
-					m_nWarnedTooManyLights = 0;
-					Debug.Log( "SUCCESS! Found " + nNumLightsIncludingTooMany + " runtime lights which is within the supported number of lights, " + MAX_LIGHTS + ".\n\n" );
-				}
-			}
+            // Warn if too many lights found
+            if ( nNumLightsIncludingTooMany > MAX_LIGHTS )
+            {
+                if ( nNumLightsIncludingTooMany > m_nWarnedTooManyLights )
+                {
+                    Debug.LogError( "ERROR! Found " + nNumLightsIncludingTooMany + " runtime lights! Valve renderer supports up to " + MAX_LIGHTS +
+                        " active runtime lights at a time!\nDisabling " + ( nNumLightsIncludingTooMany - MAX_LIGHTS ) + " runtime light" +
+                        ( ( nNumLightsIncludingTooMany - MAX_LIGHTS ) > 1 ? "s" : "" ) + "!\n" );
+                }
+                m_nWarnedTooManyLights = nNumLightsIncludingTooMany;
+            }
+            else
+            {
+                if ( m_nWarnedTooManyLights > 0 )
+                {
+                    m_nWarnedTooManyLights = 0;
+                    Debug.Log( "SUCCESS! Found " + nNumLightsIncludingTooMany + " runtime lights which is within the supported number of lights, " + MAX_LIGHTS + ".\n\n" );
+                }
+            }
 
-			// Send constants to shaders
-			Shader.SetGlobalInt( "g_nNumLights", g_nNumLights );
+            // Send constants to shaders
+            Shader.SetGlobalInt( "g_nNumLights", g_nNumLights );
 
-			// New method for Unity 5.4 to set arrays of constants
-			Shader.SetGlobalVectorArray( "g_vLightPosition_flInvRadius", g_vLightPosition_flInvRadius );
-			Shader.SetGlobalVectorArray( "g_vLightColor", g_vLightColor );
-			Shader.SetGlobalVectorArray( "g_vLightDirection", g_vLightDirection );
-			Shader.SetGlobalVectorArray( "g_vLightShadowIndex_vLightParams", g_vLightShadowIndex_vLightParams );
-			Shader.SetGlobalVectorArray( "g_vLightFalloffParams", g_vLightFalloffParams );
-			Shader.SetGlobalVectorArray( "g_vSpotLightInnerOuterConeCosines", g_vSpotLightInnerOuterConeCosines );
-			Shader.SetGlobalMatrixArray( "g_matWorldToShadow", g_matWorldToShadow );
-			Shader.SetGlobalVectorArray( "g_vDirShadowSplitSpheres", g_vDirShadowSplitSpheres );
+            // New method for Unity 5.4 to set arrays of constants
+            Shader.SetGlobalVectorArray( "g_vLightPosition_flInvRadius", g_vLightPosition_flInvRadius );
+            Shader.SetGlobalVectorArray( "g_vLightColor", g_vLightColor );
+            Shader.SetGlobalVectorArray( "g_vLightDirection", g_vLightDirection );
+            Shader.SetGlobalVectorArray( "g_vLightShadowIndex_vLightParams", g_vLightShadowIndex_vLightParams );
+            Shader.SetGlobalVectorArray( "g_vLightFalloffParams", g_vLightFalloffParams );
+            Shader.SetGlobalVectorArray( "g_vSpotLightInnerOuterConeCosines", g_vSpotLightInnerOuterConeCosines );
+            Shader.SetGlobalMatrixArray( "g_matWorldToShadow", g_matWorldToShadow );
+            Shader.SetGlobalVectorArray( "g_vDirShadowSplitSpheres", g_vDirShadowSplitSpheres );
 
-			// Time
-			#if ( UNITY_EDITOR )
-			{
-				Shader.SetGlobalFloat( "g_flTime", Time.realtimeSinceStartup );
-				//Debug.Log( "Time " + Time.realtimeSinceStartup );
-			}
-			#else
-			{
-			Shader.SetGlobalFloat( "g_flTime", Time.timeSinceLevelLoad );
-			//Debug.Log( "Time " + Time.timeSinceLevelLoad );
-			}
-			#endif
+            // Time
+            #if ( UNITY_EDITOR )
+            {
+                Shader.SetGlobalFloat( "g_flTime", Time.realtimeSinceStartup );
+                //Debug.Log( "Time " + Time.realtimeSinceStartup );
+            }
+            #else
+            {
+            Shader.SetGlobalFloat( "g_flTime", Time.timeSinceLevelLoad );
+            //Debug.Log( "Time " + Time.timeSinceLevelLoad );
+            }
+            #endif
 
-			// PCF 3x3 Shadows
-			float flTexelEpsilonX = 1.0f / m_ShadowSettings.shadowAtlasWidth;
-			float flTexelEpsilonY = 1.0f / m_ShadowSettings.shadowAtlasHeight;
-			Vector4 g_vShadow3x3PCFTerms0 = new Vector4( 20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f );
-			Vector4 g_vShadow3x3PCFTerms1 = new Vector4( flTexelEpsilonX, flTexelEpsilonY, -flTexelEpsilonX, -flTexelEpsilonY );
-			Vector4 g_vShadow3x3PCFTerms2 = new Vector4( flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f );
-			Vector4 g_vShadow3x3PCFTerms3 = new Vector4( -flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f );
+            // PCF 3x3 Shadows
+            float flTexelEpsilonX = 1.0f / m_ShadowSettings.shadowAtlasWidth;
+            float flTexelEpsilonY = 1.0f / m_ShadowSettings.shadowAtlasHeight;
+            Vector4 g_vShadow3x3PCFTerms0 = new Vector4( 20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f );
+            Vector4 g_vShadow3x3PCFTerms1 = new Vector4( flTexelEpsilonX, flTexelEpsilonY, -flTexelEpsilonX, -flTexelEpsilonY );
+            Vector4 g_vShadow3x3PCFTerms2 = new Vector4( flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f );
+            Vector4 g_vShadow3x3PCFTerms3 = new Vector4( -flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f );
 
-			Shader.SetGlobalVector( "g_vShadow3x3PCFTerms0", g_vShadow3x3PCFTerms0 );
-			Shader.SetGlobalVector( "g_vShadow3x3PCFTerms1", g_vShadow3x3PCFTerms1 );
-			Shader.SetGlobalVector( "g_vShadow3x3PCFTerms2", g_vShadow3x3PCFTerms2 );
-			Shader.SetGlobalVector( "g_vShadow3x3PCFTerms3", g_vShadow3x3PCFTerms3 );
-			 */
-		}
+            Shader.SetGlobalVector( "g_vShadow3x3PCFTerms0", g_vShadow3x3PCFTerms0 );
+            Shader.SetGlobalVector( "g_vShadow3x3PCFTerms1", g_vShadow3x3PCFTerms1 );
+            Shader.SetGlobalVector( "g_vShadow3x3PCFTerms2", g_vShadow3x3PCFTerms2 );
+            Shader.SetGlobalVector( "g_vShadow3x3PCFTerms3", g_vShadow3x3PCFTerms3 );
+             */
+        }
 
         /*
         void RenderDeferredLighting(Camera camera, CullingInputs inputs, RenderLoop loop)
@@ -692,78 +692,78 @@ namespace UnityEngine.ScriptableRenderLoop
         }
          */
 
-		public override void Render(Camera[] cameras, RenderLoop renderLoop)
-		{
-			// Set Frame constant buffer
+        public override void Render(Camera[] cameras, RenderLoop renderLoop)
+        {
+            // Set Frame constant buffer
             // TODO...
 
-			foreach (var camera in cameras)
-			{                
-				// Set camera constant buffer
+            foreach (var camera in cameras)
+            {                
+                // Set camera constant buffer
                 // TODO...
 
-				CullResults cullResults;
-				CullingParameters cullingParams;
-				if (!CullResults.GetCullingParameters (camera, out cullingParams))
-					continue;
+                CullResults cullResults;
+                CullingParameters cullingParams;
+                if (!CullResults.GetCullingParameters (camera, out cullingParams))
+                    continue;
 
-				//m_ShadowPass.UpdateCullingParameters (ref cullingParams);
+                //m_ShadowPass.UpdateCullingParameters (ref cullingParams);
 
-				cullResults = CullResults.Cull (ref cullingParams, renderLoop);
-					
-				//ShadowOutput shadows;
-				//m_ShadowPass.Render (renderLoop, cullResults, out shadows);
+                cullResults = CullResults.Cull (ref cullingParams, renderLoop);
+                    
+                //ShadowOutput shadows;
+                //m_ShadowPass.Render (renderLoop, cullResults, out shadows);
 
-				renderLoop.SetupCameraProperties (camera);
+                renderLoop.SetupCameraProperties (camera);
 
-				//UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
+                //UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
 
 
-				bool needDebugRendering = debugParameters.materialDebugMode != MaterialDebugMode.None || debugParameters.gBufferDebugMode != GBufferDebugMode.None;
+                bool needDebugRendering = debugParameters.materialDebugMode != MaterialDebugMode.None || debugParameters.gBufferDebugMode != GBufferDebugMode.None;
 
-				if (!needDebugRendering)
-				{
-					UpdatePunctualLights(cullResults.culledLights);
+                if (!needDebugRendering)
+                {
+                    UpdatePunctualLights(cullResults.culledLights);
 
-					InitAndClearBuffer(camera, renderLoop);
+                    InitAndClearBuffer(camera, renderLoop);
 
-					RenderGBuffer(cullResults, camera, renderLoop);
+                    RenderGBuffer(cullResults, camera, renderLoop);
 
-					RenderDeferredLighting(camera, renderLoop);
+                    RenderDeferredLighting(camera, renderLoop);
 
-					RenderForward(cullResults, camera, renderLoop);
+                    RenderForward(cullResults, camera, renderLoop);
 
-					FinalPass(renderLoop);
-				}
-				else
-				{
-					if(debugParameters.materialDebugMode != MaterialDebugMode.None)
-					{
-						RenderMaterialDebug(cullResults, camera, renderLoop);
-					}
-					else if (debugParameters.gBufferDebugMode != GBufferDebugMode.None)
-					{
-						InitAndClearBuffer(camera, renderLoop);
-						RenderGBuffer(cullResults, camera, renderLoop);
-						RenderGBufferDebug(camera, renderLoop);
-					}
-				}
+                    FinalPass(renderLoop);
+                }
+                else
+                {
+                    if(debugParameters.materialDebugMode != MaterialDebugMode.None)
+                    {
+                        RenderMaterialDebug(cullResults, camera, renderLoop);
+                    }
+                    else if (debugParameters.gBufferDebugMode != GBufferDebugMode.None)
+                    {
+                        InitAndClearBuffer(camera, renderLoop);
+                        RenderGBuffer(cullResults, camera, renderLoop);
+                        RenderGBufferDebug(camera, renderLoop);
+                    }
+                }
 
-				renderLoop.Submit ();
-			}
+                renderLoop.Submit ();
+            }
 
-			// Post effects
-		}
+            // Post effects
+        }
 
-		#if UNITY_EDITOR
-		public override UnityEditor.SupportedRenderingFeatures GetSupportedRenderingFeatures()
-		{
-			var features = new UnityEditor.SupportedRenderingFeatures();
+        #if UNITY_EDITOR
+        public override UnityEditor.SupportedRenderingFeatures GetSupportedRenderingFeatures()
+        {
+            var features = new UnityEditor.SupportedRenderingFeatures();
 
-			features.reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation;
+            features.reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation;
 
-			return features;
-		}
-		#endif
-	}
+            return features;
+        }
+        #endif
+    }
 }
