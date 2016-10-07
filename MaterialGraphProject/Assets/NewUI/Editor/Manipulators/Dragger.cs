@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 using UnityEngine.RMGUI;
 using UnityEngine.RMGUI.StyleEnums.Values;
-using UnityEngine.VR.WSA.WebCam;
 
 namespace RMGUI.GraphView
 {
@@ -60,7 +59,7 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button == (int) activateButton)
+					if (evt.button == (int)activateButton)
 					{
 						this.TakeCapture();
 
@@ -77,12 +76,12 @@ namespace RMGUI.GraphView
 						var t = graphView.contentViewContainer.transform;
 
 						graphView.contentViewContainer.transform = t * Matrix4x4.Translate(new Vector3(diff.x, diff.y, 0));
-						return EventPropagation.Stop;
+ 						return EventPropagation.Stop;
 					}
 					break;
 
 				case EventType.MouseUp:
-					if (this.HasCapture() && evt.button == (int) activateButton)
+					if (this.HasCapture() && evt.button == (int)activateButton)
 					{
 						this.ReleaseCapture();
 						return EventPropagation.Stop;
@@ -99,8 +98,8 @@ namespace RMGUI.GraphView
 
 		public Vector2 panSpeed { get; set; }
 
-		// hold the data... maybe.
-		public GraphElementData m_data { get; set; }
+ 		// hold the data... maybe.
+ 		public GraphElementData m_data { get; set; }
 
 		public MouseButton activateButton { get; set; }
 
@@ -152,7 +151,7 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button == (int) activateButton)
+					if (evt.button == (int)activateButton)
 					{
 						this.TakeCapture();
 
@@ -176,14 +175,14 @@ namespace RMGUI.GraphView
 						if (m_data != null)
 						{
 							m_data.position = CalculatePosition(m_data.position.x + diff.x,
-								m_data.position.y + diff.y,
-								m_data.position.width, target.position.height);
+																m_data.position.y + diff.y,
+																m_data.position.width, target.position.height);
 						}
 						else
 						{
 							target.position = CalculatePosition(target.position.x + diff.x,
-								target.position.y + diff.y,
-								target.position.width, target.position.height);
+																target.position.y + diff.y,
+																target.position.width, target.position.height);
 						}
 
 						return EventPropagation.Stop;
@@ -191,7 +190,7 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseUp:
-					if (this.HasCapture() && evt.button == (int) activateButton)
+					if (this.HasCapture() && evt.button == (int)activateButton)
 					{
 						m_data = null;
 						this.ReleaseCapture();

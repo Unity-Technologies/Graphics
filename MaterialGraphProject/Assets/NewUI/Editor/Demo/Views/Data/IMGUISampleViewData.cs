@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
@@ -12,7 +12,6 @@ namespace RMGUI.GraphView.Demo
 
 		public override void OnGUIHandler()
 		{
-			EventType t = Event.current.type;
 			Color backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.7f);
 
 			Color selectedColor = new Color(1.0f, 0.7f, 0.0f, 0.7f);
@@ -54,7 +53,7 @@ namespace RMGUI.GraphView.Demo
 
 	public class IMGUISampleViewData : GraphViewDataSource
 	{
-		protected new void OnEnable()
+		protected void OnEnable()
 		{
 			var imguiSample = CreateInstance<IMGUISampleElementData>();
 			imguiSample.position = new Rect(100, 200, 230, 300);

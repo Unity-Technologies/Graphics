@@ -1,55 +1,56 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using RMGUI.GraphView;
-using RMGUI.GraphView.Demo;
-using UnityEngine;
+using UnityEditor.MaterialGraph;
 using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
-	[Serializable]
-	public class MaterialNodeAnchorData : NodeAnchorData
-	{
-		public ISlot slot { get; private set; }
 
-		public MaterialNodeAnchorData(ISlot slot)
-		{
-			this.slot = slot;
-			name = slot.displayName;
-			type = typeof(Vector4);
-			direction = slot.isInputSlot ?  Direction.Input : Direction.Output;
-		}
-	}
-
-	[Serializable]
-	public class MaterialNodeData : GraphElementData
-	{
+    [Serializable]
+    public class MaterialNodeData : GraphElementData
+    {
         public INode node { get; private set; }
 
-        protected List<NodeAnchorData> m_Anchors = new List<NodeAnchorData>();
+        protected List<GraphElementData> m_Children = new List<GraphElementData>();
 
         public IEnumerable<GraphElementData> elements
         {
-            get { return m_Anchors.OfType<GraphElementData>(); }
+            get { return m_Children; }
         }
 
-        public MaterialNodeData(INode inNode)
+        protected MaterialNodeData()
+        {}
+
+        public void Initialize(INode inNode)
         {
             node = inNode;
+            capabilities |= Capabilities.Movable;
 
             if (node == null)
                 return;
 
-	        name = inNode.name;
+            name = inNode.name;
 
             foreach (var input in node.GetSlots<ISlot>())
             {
-                m_Anchors.Add(new MaterialNodeAnchorData(input));
+                var data = CreateInstance<MaterialNodeAnchorData>();
+                data.Initialize(input);
+                m_Children.Add(data);
             }
-			
-            position = new Rect(node.drawState.position.x, node.drawState.position.y, 100, 200);
-            capabilities |= Capabilities.Movable;
+
+            var materialNode = inNode as AbstractMaterialNode;
+            if (materialNode == null || !materialNode.hasPreview)
+                return;
+            
+            var previewData = CreateInstance<NodePreviewData>();
+            previewData.Initialize(materialNode);
+            m_Children.Add(previewData);
+
+
+            //position = new Rect(node.drawState.position.x, node.drawState.position.y, 100, 200);
+            //position
         }
 
     }

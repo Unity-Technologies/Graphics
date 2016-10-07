@@ -11,11 +11,11 @@ namespace RMGUI.GraphView.Demo
 			base.OnEnable();
 			m_Anchors.Clear();
 
-			var vna = CreateInstance<NodeAnchorData>();
-			vna.orientation = Orientation.Vertical;
-			vna.direction = Direction.Input;
-			vna.type = typeof(float);
-			m_Anchors.Add(vna);
+			var nodeAnchorData = CreateInstance<NodeAnchorData>();
+			nodeAnchorData.orientation = Orientation.Vertical;
+			nodeAnchorData.direction = Direction.Input;
+			nodeAnchorData.type = typeof(float);
+			m_Anchors.Add(nodeAnchorData);
 
 			outputAnchor = CreateInstance<NodeAnchorData>();
 			outputAnchor.type = typeof (float);

@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
-using UnityEditor.Graphing;
-using UnityEditor.Graphing.Drawing;
+using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
@@ -9,9 +8,30 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph
 {
-    [CustomNodeUI(typeof(AbstractMaterialNode))]
-    public class AbstractMaterialNodeUI : ICustomNodeUi
+   /* [CustomDataView(typeof(NodePreviewData))]
+    public class NodePreview : GraphElement
     {
+        public NodePreview(NodePreviewData preview)
+        {
+            dataProvider = preview;
+        }
+
+        public override void DoRepaint(PaintContext args)
+        {
+            base.DoRepaint(args);
+            m_WwwTexture = new Texture2D(4, 4, TextureFormat.DXT1, false);
+            AddChild(new Image { image = m_WwwTexture });
+
+            Handles.DrawSolidRectangleWithOutline(parent.position, Color.red, Color.blue);
+        }
+    }*/
+
+    [Serializable]
+    public class NodePreviewData : GraphElementData
+    {
+        protected NodePreviewData()
+        { }
+
         private MaterialGraphPreviewGenerator m_PreviewGenerator;
 
         [NonSerialized]
@@ -52,48 +72,19 @@ namespace UnityEditor.MaterialGraph
             }
         }
 
-        private float m_PreviewWidth;
-        public virtual float GetNodeUiHeight(float width)
+        public void Initialize(AbstractMaterialNode node)
         {
-            if (!m_Node.drawState.expanded)
-                return 0;
+            m_Node = node;
+        }
+
+
+        public Texture Render(Vector2 dimension)
+        {
+            if (m_Node == null)
+                return null;
 
             if (m_Node.hasPreview == false)
-                return 0;
-
-            m_PreviewWidth = width - 20;
-            return m_PreviewWidth;
-        }
-
-        public INode node
-        {
-            get { return m_Node; }
-            set
-            {
-                var materialNode = value as AbstractMaterialNode;
-                if (materialNode != null)
-                    m_Node = materialNode;
-            }
-        }
-
-        public PreviewMode generatedShaderMode
-        {
-            get { return m_GeneratedShaderMode; }
-            set { m_GeneratedShaderMode = value; }
-        }
-
-        public virtual float GetNodeWidth()
-        {
-            return 200;
-        }
-
-        public virtual GUIModificationType Render(Rect area)
-        {
-            if (m_Node == null || !m_Node.drawState.expanded)
-                return GUIModificationType.None;
-
-            if (m_Node.hasPreview == false)
-                return GUIModificationType.None;
+                return null;
 
             if (m_LastShaderVersion != m_Node.version)
             {
@@ -101,11 +92,7 @@ namespace UnityEditor.MaterialGraph
                     m_LastShaderVersion = m_Node.version;
             }
 
-            var preview = RenderPreview(area);
-            GL.sRGBWrite = QualitySettings.activeColorSpace == ColorSpace.Linear;
-            GUI.DrawTexture(area, preview, ScaleMode.StretchToFill, false);
-            GL.sRGBWrite = false;
-            return GUIModificationType.None;
+            return RenderPreview(dimension);
         }
 
         protected virtual string GetPreviewShaderString()
@@ -158,11 +145,11 @@ namespace UnityEditor.MaterialGraph
         ///     RenderPreview gets called in OnPreviewGUI. Nodes can override
         ///     RenderPreview and do their own rendering to the render texture
         /// </summary>
-        public Texture RenderPreview(Rect targetSize)
+        private Texture RenderPreview(Vector2 targetSize)
         {
             previewMaterial.shader = m_PreviewShader;
             UpdateMaterialProperties(m_Node, previewMaterial);
-            return previewGenerator.DoRenderPreview(previewMaterial, m_GeneratedShaderMode, targetSize);
+            return previewGenerator.DoRenderPreview(previewMaterial, m_GeneratedShaderMode, new Rect(0, 0, targetSize.x, targetSize.y));
         }
 
         private static void SetPreviewMaterialProperty(PreviewProperty previewProperty, Material mat)

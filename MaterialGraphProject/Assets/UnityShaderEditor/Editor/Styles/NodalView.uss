@@ -1,18 +1,34 @@
 MaterialGraphNode {
+	flex-direction: column;
+}
+
+MaterialGraphNode #slots {
 	flex-direction: row;
 }
 
-MaterialGraphNode #input {
+MaterialGraphNode #slots #input {
 	flex:1;
+	flex-direction: column;
 }
 
-MaterialGraphNode #output {
+MaterialGraphNode #slots #output {
 	flex:1;
-	justify-content: flex-end;
+	flex-direction: column;
+}
+
+MaterialGraphNode #controls {
+	flex-direction: column;
+}
+
+MaterialGraphNode #preview {
+	flex-direction: column;
+	height: 200;
+	width: 200;
 }
 
 NodeAnchor {
 	height: 26;
+	width: 100;
 }
 
 /* Example of dynamic properties

@@ -33,10 +33,10 @@ namespace RMGUI.GraphView
 			contentViewContainer = new ContentiewContainer
 			{
 				name = "contentViewContainer",
-				clipChildren = false
+				clipChildren = false,
+				position = new Rect(0, 0, 0, 0)
 			};
 			// make it absolute and 0 sized so it acts as a transform to move children to and fro
-			contentViewContainer.position = new Rect(0,0,0,0);
 			AddChild(contentViewContainer);
 		}
 
@@ -85,9 +85,6 @@ namespace RMGUI.GraphView
 		// functions to ISelection extensions
 		public void AddToSelection(ISelectable e)
 		{
-			if (e is GraphView)
-				return;
-
 			GraphElement ce = e as GraphElement;
 			if (ce != null && ce.GetData<GraphElementData>() != null)
 				ce.GetData<GraphElementData>().selected = true;
@@ -97,9 +94,6 @@ namespace RMGUI.GraphView
 
 		public void RemoveFromSelection(ISelectable e)
 		{
-			if (e is GraphView)
-				return;
-
 			GraphElement ce = e as GraphElement;
 			if (ce != null && ce.GetData<GraphElementData>() != null)
 				ce.GetData<GraphElementData>().selected = false;
@@ -129,7 +123,7 @@ namespace RMGUI.GraphView
 				return;
 			}
 
-			newElem.position = elementData.position;
+			newElem.SetPosition(elementData.position);
 			newElem.classList = elementsClassList;
 			newElem.dataProvider = elementData;
 

@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
+using UnityEngine;
 using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
 	[Serializable]
-    class MaterialGraphDataSource : IDataSource
+    public class MaterialGraphDataSource : IDataSource
     {
         private List<GraphElementData> m_Elements = new List<GraphElementData>();
 
@@ -23,7 +24,8 @@ namespace UnityEditor.Graphing.Drawing
 			var drawableNodes = new List<MaterialNodeData>();
 			foreach (var node in graphAsset.graph.GetNodes<INode>())
 			{
-				var nodeData = new MaterialNodeData(node);
+				var nodeData = ScriptableObject.CreateInstance<MaterialNodeData>();
+				nodeData.Initialize(node);
 				drawableNodes.Add(nodeData);
 			}
 			
@@ -45,7 +47,7 @@ namespace UnityEditor.Graphing.Drawing
 
 						var targetAnchors = targetNode.elements.OfType<MaterialNodeAnchorData>();
 						var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
-						drawableEdges.Add(new EdgeData {Left = sourceAnchor, Right = targetAnchor});
+						drawableEdges.Add(new EdgeData {left = sourceAnchor, right = targetAnchor});
 					}
 				}
 			}

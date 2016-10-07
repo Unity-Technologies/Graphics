@@ -6,8 +6,8 @@ namespace RMGUI.GraphView
 	[Serializable]
 	internal class EdgeData : GraphElementData
 	{
-		public IConnectable Left;
-		public IConnectable Right;
+		public IConnectable left;
+		public IConnectable right;
 		public Vector2 candidatePosition;
 		public bool candidate;
 

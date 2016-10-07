@@ -43,36 +43,36 @@ namespace RMGUI.GraphView.Demo
 			resizableElementData.position = new Rect(400, 100, 100, 100);
 			resizableElementData.title = "Resizable element";
 			resizableElementData.capabilities |= Capabilities.Resizable;
-            AddElement(resizableElementData);
+			AddElement(resizableElementData);
 
 			var imguiSampleData = CreateInstance<TestIMGUIElementData>();
 			imguiSampleData.position = new Rect(100, 200, 100, 100);
 			imguiSampleData.title = "IMGUI sample";
 			imguiSampleData.capabilities |= Capabilities.Resizable;
-            AddElement(imguiSampleData);
+			AddElement(imguiSampleData);
 
 			var movableElementData = CreateInstance<SimpleElementData>();
 			movableElementData.position = new Rect(400, 400, 200, 200);
 			movableElementData.title = "Movable element";
-            AddElement(movableElementData);
+			AddElement(movableElementData);
 
 			var miniMapData = CreateInstance<MiniMapData>();
 			miniMapData.position = new Rect(0, 500, 100, 100);
-            AddElement(miniMapData);
+			AddElement(miniMapData);
 
 			var circleData = CreateInstance<CircleData>();
 			circleData.position = new Rect(200, 500, 0, 0);
 			circleData.radius = 100;
-            AddElement(circleData);
+			AddElement(circleData);
 
 			var wwwImageData = CreateInstance<WWWImageData>();
 			wwwImageData.title = "WWW Image";
 			wwwImageData.position = new Rect(300, 300, 200, 200);
-            AddElement(wwwImageData);
+			AddElement(wwwImageData);
 
 			var invisibleBorderContainerData = CreateInstance<InvisibleBorderContainerData>();
 			invisibleBorderContainerData.position = new Rect(400, 0, 100, 100);
-            AddElement(invisibleBorderContainerData);
+			AddElement(invisibleBorderContainerData);
 		}
 	}
 }

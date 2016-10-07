@@ -13,14 +13,14 @@ namespace RMGUI.GraphView.Demo
 
 		void OnEnable()
 		{
-			var zeView = new SimpleContentView
+			var view = new SimpleContentView
 			{
 				name = "theView",
 				dataProvider = CreateInstance<SimpleGraphViewData>()
 			};
-			zeView.StretchToParentSize();
+			view.StretchToParentSize();
 
-			windowRoot.AddChild(zeView);
+			windowRoot.AddChild(view);
 		}
 
 		void OnDisable()

@@ -1,18 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace RMGUI.GraphView
 {
-	public interface IDataSource
-	{
-		IEnumerable<GraphElementData> elements { get; }
-		void AddElement(GraphElementData element);
-		void RemoveElement(GraphElementData element);
-	}
-
-	[Serializable]
+    [Serializable]
 	public abstract class GraphViewDataSource : ScriptableObject, IDataSource
 	{
 		[SerializeField]
@@ -20,7 +12,7 @@ namespace RMGUI.GraphView
 
 		public IEnumerable<GraphElementData> elements
 		{
-			get { return m_Elements.OfType<GraphElementData>(); }
+			get { return m_Elements; }
 		}
 
 		public void AddElement(GraphElementData element)

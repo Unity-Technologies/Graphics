@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
@@ -15,5 +16,8 @@ namespace RMGUI.GraphView.Demo
 
 		public float maxHeight;
 		public float maxWidth;
+
+		[SerializeField]
+		public bool anchored;
 	}
 }

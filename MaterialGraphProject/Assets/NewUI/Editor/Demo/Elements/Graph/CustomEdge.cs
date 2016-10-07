@@ -15,7 +15,7 @@ namespace RMGUI.GraphView.Demo
 				return;
 			}
 
-			IConnectable leftData = edgeData.Left;
+			IConnectable leftData = edgeData.left;
 			if (leftData == null)
 				return;
 

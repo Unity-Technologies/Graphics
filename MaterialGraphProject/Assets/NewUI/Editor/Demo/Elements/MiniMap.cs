@@ -14,21 +14,65 @@ namespace RMGUI.GraphView.Demo
 		private float m_PreviousContainerWidth = -1;
 		private float m_PreviousContainerHeight = -1;
 
+		private Dragger m_Dragger;
+
 		public MiniMap()
 		{
 			zBias = 99;
-			clipChildren = true; // TODO this is the source of UNI-459
+			clipChildren = false;
 
 			m_Label = new Label(new GUIContent("Floating Minimap"));
 			AddChild(m_Label);
 
-			AddManipulator(new Dragger {activateButton = MouseButton.LeftMouse, clampToParentEdges = true});
+			m_Dragger = new Dragger {activateButton = MouseButton.LeftMouse, clampToParentEdges = true};
+
+			AddManipulator(new ContextualMenu((evt, customData) =>
+			{
+				var boxData = dataProvider as MiniMapData;
+				if (boxData != null)
+				{
+					var menu = new GenericMenu();
+					menu.AddItem(new GUIContent(boxData.anchored ? "Make floating" :  "Anchor"), false,
+						contentView =>
+						{
+							var bData = dataProvider as MiniMapData;
+							if (bData != null)
+								bData.anchored = !bData.anchored;
+						},
+								 this);
+					menu.ShowAsContext();
+				}
+				return EventPropagation.Continue;
+			}));
 		}
 
 		public override void OnDataChanged()
 		{
 			base.OnDataChanged();
+			AdjustAnchoring();
 			Resize();
+		}
+
+		private void AdjustAnchoring()
+		{
+			var miniMapData = dataProvider as MiniMapData;
+			if (miniMapData == null)
+			{
+				return;
+			}
+
+			// TODO we might want to update the movable capability...
+			if (miniMapData.anchored)
+			{
+				RemoveManipulator(m_Dragger);
+				ResetPositionProperties();
+				AddToClassList("anchored");
+			}
+			else
+			{
+				AddManipulator(m_Dragger);
+				RemoveFromClassList("anchored");
+			}
 		}
 
 		private void Resize()
@@ -54,15 +98,15 @@ namespace RMGUI.GraphView.Demo
 		public override void DoRepaint(PaintContext args)
 		{
 			var gView = this.GetFirstAncestorOfType<GraphView>();
-			var container = gView.contentViewContainer;
+			VisualContainer container = gView.contentViewContainer;
 
 			Matrix4x4 containerTransform = container.globalTransform;
 			Vector4 containerTranslation = containerTransform.GetColumn(3);
 			var containerScale = new Vector2(containerTransform.m00, containerTransform.m11);
 			Rect containerPosition = container.position;
 
-			var containerWidth = parent.position.width / containerScale.x;
-			var containerHeight = parent.position.height / containerScale.y;
+			float containerWidth = parent.position.width / containerScale.x;
+			float containerHeight = parent.position.height / containerScale.y;
 
 			if ( (containerWidth != m_PreviousContainerWidth || containerHeight != m_PreviousContainerHeight) && dataProvider != null)
 			{

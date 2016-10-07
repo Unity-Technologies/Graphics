@@ -1,0 +1,34 @@
+WWWImage {
+/* TODO refactor with two containers.
+Here reseting the padding-top will offset the text content as well*/
+	/*padding-top: 0;*/
+	padding-left: 0;
+	padding-right: 0;
+	padding-bottom: 0;
+}
+
+WWWImage > Image {
+	flex:1;
+}
+
+MiniMap Label {
+	position-type:absolute;
+	position-top:0;
+	position-left:0;
+	position-right:0;
+	height: 16;
+}
+
+MiniMap {
+	position-type:absolute;
+	padding-top:20;
+}
+
+MiniMap.anchored {
+	position-left:20;
+	position-bottom:20;
+}
+
+MiniMap.anchored Label{
+	color:#aaaa00
+}

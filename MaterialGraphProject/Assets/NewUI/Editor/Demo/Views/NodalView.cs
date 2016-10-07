@@ -6,7 +6,7 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	[StyleSheet("Assets/Editor/Demo/NodalView.uss")]
+	[StyleSheet("Assets/Editor/Demo/Views/NodalView.uss")]
 	class NodesContentView : SimpleContentView
 	{
 		System.Random rnd = new System.Random();
@@ -68,16 +68,16 @@ namespace RMGUI.GraphView.Demo
 						if (edgeData == null) continue;
 
 						// Try output anchor first
-						if ((edgeData.Left != null && edgeData.Left == (IConnectable)nodeData.outputAnchor) ||
-							(edgeData.Right != null && edgeData.Right == (IConnectable)nodeData.outputAnchor))
+						if ((edgeData.left != null && edgeData.left == (IConnectable)nodeData.outputAnchor) ||
+							(edgeData.right != null && edgeData.right == (IConnectable)nodeData.outputAnchor))
 						{
 							elementsToRemove.Add(edgeData);
 							continue;
 						}
 
 						// Check each input anchor
-						if (nodeData.anchors.Any(a => (edgeData.Left != null && edgeData.Left == (IConnectable)a) ||
-													  (edgeData.Right != null && edgeData.Right == (IConnectable)a)))
+						if (nodeData.anchors.Any(a => (edgeData.left != null && edgeData.left == (IConnectable)a) ||
+													  (edgeData.right != null && edgeData.right == (IConnectable)a)))
 						{
 							elementsToRemove.Add(edgeData);
 						}
@@ -90,18 +90,18 @@ namespace RMGUI.GraphView.Demo
 			// Notify node anchors of deconnection
 			foreach (var edgeData in elementsToRemove.OfType<EdgeData>())
 			{
-				if (edgeData.Left != null)
+				if (edgeData.left != null)
 				{
-					edgeData.Left.connected = false;
+					edgeData.left.connected = false;
 				}
 
-				if (edgeData.Right != null)
+				if (edgeData.right != null)
 				{
-					edgeData.Right.connected = false;
+					edgeData.right.connected = false;
 				}
 			}
 
-			foreach (var b  in elementsToRemove.OfType<GraphElementData>())
+			foreach (var b  in elementsToRemove)
 				nodalViewData.RemoveElement(b);
 
 			return EventPropagation.Stop;
@@ -118,14 +118,14 @@ namespace RMGUI.GraphView.Demo
 
 		void OnEnable()
 		{
-			var zeView = new NodesContentView
+			var view = new NodesContentView
 			{
 				name = "theView",
 				dataProvider = CreateInstance<NodalViewData>()
 			};
-			zeView.StretchToParentSize();
+			view.StretchToParentSize();
 
-			windowRoot.AddChild(zeView);
+			windowRoot.AddChild(view);
 		}
 
 		void OnDisable()

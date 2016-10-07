@@ -1,0 +1,43 @@
+VerticalNode #top {
+	flex: 1;
+	align-items: flex-start;
+	flex-direction: row;
+}
+
+VerticalNode #bottom {
+	flex: 1;
+	align-items: flex-start;
+	flex-direction: row;
+}
+
+VerticalNode NodeAnchor {
+	height: 50;
+	flex:1;
+}
+
+Node {
+	flex-direction: row;
+}
+
+Node #input {
+	flex:1;
+}
+
+Node #output {
+	flex:1;
+	justify-content: flex-end;
+}
+
+NodeAnchor {
+	height: 26;
+}
+
+/* Example of dynamic properties
+Read from the GridBackground decorator */
+#contentViewContainer {
+	background-color:#404749;
+	line-color:#20293F;
+	thick-line-color:#030C22;
+	spacing:50.0;
+	thick-lines:10;
+}

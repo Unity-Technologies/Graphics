@@ -1,6 +1,7 @@
 using System.Linq;
 using RMGUI.GraphView;
 using RMGUI.GraphView.Demo;
+using UnityEditor.MaterialGraph;
 using UnityEngine;
 using UnityEngine.RMGUI;
 using UnityEngine.RMGUI.StyleEnums.Values;
@@ -11,28 +12,32 @@ namespace UnityEditor.Graphing.Drawing
     [CustomDataView(typeof(MaterialNodeData))]
     public class MaterialGraphNode : GraphElement
     {
-        VisualContainer m_InputContainer;
-        VisualContainer m_OutputContainer;
+        VisualContainer m_SlotContainer;
+       // VisualContainer m_ControlsContainer;
+        VisualContainer m_PreviewContainer;
 
         public MaterialGraphNode()
         {
             content = new GUIContent("");
 
-            m_InputContainer = new VisualContainer
+            m_SlotContainer = new VisualContainer
             {
-                name = "input", // for USS&Flexbox
-                flexDirection = FlexDirection.Column,
+                name = "slots", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
-            };
-            m_OutputContainer = new VisualContainer
-            {
-                name = "output", // for USS&Flexbox
-                pickingMode = PickingMode.Ignore,
-                flexDirection = FlexDirection.Column,
             };
 
-            AddChild(m_InputContainer);
-            AddChild(m_OutputContainer);
+         /*   m_ControlsContainer = new VisualContainer
+            {
+                name = "controls", // for USS&Flexbox
+                pickingMode = PickingMode.Ignore,
+            };*/
+
+            m_PreviewContainer = new VisualContainer
+            {
+                name = "preview", // for USS&Flexbox
+                pickingMode = PickingMode.Ignore,
+            };
+
         }
 
         public override void DoRepaint(PaintContext painter)
@@ -44,26 +49,77 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        public override void OnDataChanged()
+        private void AddSlots(MaterialNodeData nodeData)
         {
-            base.OnDataChanged();
+            m_SlotContainer.ClearChildren();
 
-            m_OutputContainer.ClearChildren();
-            m_InputContainer.ClearChildren();
-
-            var nodeData = (MaterialNodeData) dataProvider;
-
-            if (nodeData == null)
+            if (!nodeData.elements.OfType<NodeAnchorData>().Any())
                 return;
+
+            var inputs = new VisualContainer
+            {
+                name = "input", // for USS&Flexbox
+                pickingMode = PickingMode.Ignore,
+            };
+            m_SlotContainer.AddChild(inputs);
+
+            // put a spacer here?
+            //m_SlotContainer.AddChild(new f);
+
+            var outputs = new VisualContainer
+            {
+                name = "input", // for USS&Flexbox
+                pickingMode = PickingMode.Ignore,
+            };
+            m_SlotContainer.AddChild(outputs);
 
             content = new GUIContent(nodeData.name);
             foreach (var anchor in nodeData.elements.OfType<NodeAnchorData>())
             {
                 if (anchor.direction == Direction.Input)
-                    m_InputContainer.AddChild(new RMGUI.GraphView.Demo.NodeAnchor(anchor));
+                    inputs.AddChild(new NodeAnchor(anchor));
                 else
-                    m_OutputContainer.AddChild(new RMGUI.GraphView.Demo.NodeAnchor(anchor));
+                    outputs.AddChild(new NodeAnchor(anchor));
             }
+
+            AddChild(m_SlotContainer);
+        }
+
+        private void AddPreview(MaterialNodeData nodeData)
+        {
+            m_PreviewContainer.ClearChildren();
+
+            if (!nodeData.elements.OfType<NodePreviewData>().Any())
+                return;
+
+            foreach (var preview in nodeData.elements.OfType<NodePreviewData>())
+            {
+                var image = preview.Render(new Vector2(200, 200));
+                m_PreviewContainer.AddChild(new Image { image = image });
+            }
+
+            AddChild(m_PreviewContainer);
+        }
+
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+            ClearChildren();
+
+           // m_ControlsContainer.ClearChildren();
+            m_PreviewContainer.ClearChildren();
+            
+            var nodeData = dataProvider as MaterialNodeData;
+
+            if (nodeData == null)
+                return;
+
+            AddSlots(nodeData);
+            AddPreview(nodeData);
+
+            positionType = PositionType.Absolute;
+            positionLeft = nodeData.node.drawState.position.x;
+            positionTop = nodeData.node.drawState.position.y;
         }
     }
 }

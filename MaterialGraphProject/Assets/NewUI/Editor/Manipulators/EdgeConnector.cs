@@ -83,8 +83,8 @@ namespace RMGUI.GraphView
 					m_EdgeDataCandidate = ScriptableObject.CreateInstance<TEdgeData>();
 
 					m_EdgeDataCandidate.position = new Rect(0, 0, 1, 1);
-					m_EdgeDataCandidate.Left = graphElement.dataProvider as IConnectable;
-					m_EdgeDataCandidate.Right = null;
+					m_EdgeDataCandidate.left = graphElement.dataProvider as IConnectable;
+					m_EdgeDataCandidate.right = null;
 					m_EdgeDataCandidate.candidate = true;
 					m_EdgeDataCandidate.candidatePosition = target.LocalToGlobal(evt.mousePosition);
 
@@ -116,7 +116,7 @@ namespace RMGUI.GraphView
 								{
 									if (anchorElement.globalBound.Contains(target.LocalToGlobal(evt.mousePosition)))
 									{
-										m_EdgeDataCandidate.Right = compatibleAnchor;
+										m_EdgeDataCandidate.right = compatibleAnchor;
 									}
 								}
 							}
@@ -128,14 +128,14 @@ namespace RMGUI.GraphView
 							// Not a candidate anymore, let's see if we're actually going to add it to parent
 							m_EdgeDataCandidate.candidate = false;
 
-							if (m_EdgeDataCandidate.Right == null)
+							if (m_EdgeDataCandidate.right == null)
 							{
 								m_GraphViewData.RemoveElement(m_EdgeDataCandidate);
 							}
 							else
 							{
-								m_EdgeDataCandidate.Left.connected = true;
-								m_EdgeDataCandidate.Right.connected = true;
+								m_EdgeDataCandidate.left.connected = true;
+								m_EdgeDataCandidate.right.connected = true;
 							}
 						}
 

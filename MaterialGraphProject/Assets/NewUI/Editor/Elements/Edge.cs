@@ -18,46 +18,46 @@ namespace RMGUI.GraphView
 		}
 
 		protected static void GetTangents(Direction direction, Orientation orientation, Vector2 start, Vector2 end, out Vector3[] points, out Vector3[] tangents)
-		{
-			if (direction == Direction.Output)
-			{
-				Vector2 t = end;
-				end = start;
-				start = t;
-			}
+        {
+            if (direction == Direction.Output)
+            {
+                Vector2 t = end;
+                end = start;
+                start = t;
+            }
 
-			bool invert = false;
-			if (end.x < start.x)
-			{
-				Vector3 t = start;
-				start = end;
-				end = t;
-				invert = true;
-			}
+            bool invert = false;
+            if (end.x < start.x)
+            {
+                Vector3 t = start;
+                start = end;
+                end = t;
+                invert = true;
+            }
 
-			points = new Vector3[] {start, end};
-			tangents = new Vector3[2];
+            points = new Vector3[] {start, end};
+            tangents = new Vector3[2];
 
-			const float minTangent = 30;
+            const float minTangent = 30;
 
-			float weight = .5f;
-			float weight2 = 1 - weight;
-			float y = 0;
+            float weight = .5f;
+            float weight2 = 1 - weight;
+            float y = 0;
 
-			float cleverness = Mathf.Clamp01(((start - end).magnitude - 10) / 50);
+            float cleverness = Mathf.Clamp01(((start - end).magnitude - 10) / 50);
 
-			if (orientation == Orientation.Horizontal)
-			{
-				tangents[0] = start + new Vector2((end.x - start.x) * weight + minTangent, y) * cleverness;
-				tangents[1] = end + new Vector2((end.x - start.x) * -weight2 - minTangent, -y) * cleverness;
-			}
-			else
-			{
-				float inverse = (invert) ? 1.0f : -1.0f;
-				tangents[0] = start + new Vector2(y, inverse * ((end.x - start.x) * weight + minTangent)) * cleverness;
-				tangents[1] = end + new Vector2(-y, inverse * ((end.x - start.x) * -weight2 - minTangent)) * cleverness;
-			}
-		}
+            if (orientation == Orientation.Horizontal)
+            {
+                tangents[0] = start + new Vector2((end.x - start.x) * weight + minTangent, y) * cleverness;
+                tangents[1] = end + new Vector2((end.x - start.x) * -weight2 - minTangent, -y) * cleverness;
+            }
+            else
+            {
+                float inverse = (invert) ? 1.0f : -1.0f;
+                tangents[0] = start + new Vector2(y, inverse * ((end.x - start.x) * weight + minTangent)) * cleverness;
+                tangents[1] = end + new Vector2(-y, inverse * ((end.x - start.x) * -weight2 - minTangent)) * cleverness;
+            }
+        }
 
 		public override bool Overlaps(Rect rect)
 		{
@@ -67,8 +67,8 @@ namespace RMGUI.GraphView
 			if (edgeData == null)
 				return false;
 
-			IConnectable leftData = edgeData.Left;
-			IConnectable rightData = edgeData.Right ?? leftData;
+			IConnectable leftData = edgeData.left;
+			IConnectable rightData = edgeData.right ?? leftData;
 			if (leftData == null || rightData == null)
 				return false;
 
@@ -107,8 +107,8 @@ namespace RMGUI.GraphView
 			if (edgeData == null)
 				return false;
 
-			IConnectable leftData = edgeData.Left;
-			IConnectable rightData = edgeData.Right ?? leftData;
+			IConnectable leftData = edgeData.left;
+			IConnectable rightData = edgeData.right ?? leftData;
 			if (leftData == null || rightData == null)
 				return false;
 
@@ -117,8 +117,8 @@ namespace RMGUI.GraphView
 			GetFromToPoints(ref from, ref to);
 
 			// exclude endpoints
-			if (Vector2.Distance(from, localPoint) <= 2 * k_EndPointRadius ||
-				Vector2.Distance(to, localPoint) <= 2 * k_EndPointRadius)
+			if (Vector2.Distance(from, localPoint) <= 2*k_EndPointRadius ||
+				Vector2.Distance(to, localPoint) <= 2*k_EndPointRadius)
 			{
 				return false;
 			}
@@ -155,8 +155,8 @@ namespace RMGUI.GraphView
 			if (edgeData == null)
 				return;
 
-			IConnectable leftData = edgeData.Left;
-			IConnectable rightData = edgeData.Right ?? leftData;
+			IConnectable leftData = edgeData.left;
+			IConnectable rightData = edgeData.right ?? leftData;
 			if (leftData == null)
 				return;
 
@@ -188,7 +188,7 @@ namespace RMGUI.GraphView
 			if (edgeData == null)
 				return;
 
-			IConnectable leftData = edgeData.Left;
+			IConnectable leftData = edgeData.left;
 			if (leftData == null)
 				return;
 
@@ -216,7 +216,7 @@ namespace RMGUI.GraphView
 			// dot on top of anchor showing it's connected
 			Handles.color = new Color(0.3f, 0.4f, 1.0f, 1.0f);
 			Handles.DrawSolidDisc(from, new Vector3(0.0f, 0.0f, -1.0f), k_EndPointRadius);
-			if (edgeData.Right == null)
+			if (edgeData.right == null)
 				Handles.color = oldColor;
 			Handles.DrawSolidDisc(to, new Vector3(0.0f, 0.0f, -1.0f), k_EndPointRadius);
 			Handles.color = oldColor;
