@@ -12,7 +12,7 @@ float GetScaleFromBase(float base)
 	return geomSeries/(g_fFarPlane-g_fNearPlane);
 }
 
-int SnapToClusterIdx(float z_in, float suggestedBase)
+int SnapToClusterIdxFlex(float z_in, float suggestedBase, bool logBasePerTile)
 {
 #ifdef LEFT_HAND_COORDINATES
 	float z = z_in;
@@ -20,26 +20,33 @@ int SnapToClusterIdx(float z_in, float suggestedBase)
 	float z = -z_in;
 #endif
 
-#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-	float userscale = GetScaleFromBase(suggestedBase);
-#else
 	float userscale = g_fClustScale;
-#endif
+	if(logBasePerTile)
+		userscale = GetScaleFromBase(suggestedBase);
 
 	// using the inverse of the geometric series
 	const float dist = max(0, z-g_fNearPlane);
 	return (int) clamp( log2(dist*userscale*(suggestedBase-1.0f) + 1) / log2(suggestedBase), 0.0, (float) ((1<<g_iLog2NumClusters)-1) );
 }
 
-float ClusterIdxToZ(int k, float suggestedBase)
+int SnapToClusterIdx(float z_in, float suggestedBase)
+{
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+	bool logBasePerTile = true;		// resolved compile time
+#else
+	bool logBasePerTile = false;
+#endif
+
+	return SnapToClusterIdxFlex(z_in, suggestedBase, logBasePerTile);
+}
+
+float ClusterIdxToZFlex(int k, float suggestedBase, bool logBasePerTile)
 {
 	float res;
 
-#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-	float userscale = GetScaleFromBase(suggestedBase);
-#else
 	float userscale = g_fClustScale;
-#endif
+	if(logBasePerTile)
+		userscale = GetScaleFromBase(suggestedBase);
 
 	float dist = (pow(suggestedBase,(float) k)-1.0)/(userscale*(suggestedBase-1.0f));
 	res = dist+g_fNearPlane;
@@ -49,6 +56,17 @@ float ClusterIdxToZ(int k, float suggestedBase)
 #else
 	return -res;
 #endif
+}
+
+float ClusterIdxToZ(int k, float suggestedBase)
+{
+#ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
+	bool logBasePerTile = true;		// resolved compile time
+#else
+	bool logBasePerTile = false;
+#endif
+
+	return ClusterIdxToZFlex(k, suggestedBase, logBasePerTile);
 }
 
 // generate a log-base value such that half of the clusters are consumed from near plane to max. opaque depth of tile.
