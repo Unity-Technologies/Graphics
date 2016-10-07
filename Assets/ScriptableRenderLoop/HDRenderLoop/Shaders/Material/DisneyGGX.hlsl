@@ -5,6 +5,7 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 
+
 // Main structure that store the user data (i.e user input of master node in material graph)
 struct SurfaceData
 {
