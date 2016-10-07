@@ -205,9 +205,9 @@ float3 unpackRGBM(float4 rgbm)
 float3 RGBToYCoCg(float3 rgb)
 {
 	float3 YCoCg;
-	YCoCg.x = dot(RGB, float3(0.25, 0.5, 0.25));
-	YCoCg.y = dot(RGB, float3(0.5, 0.0, -0.5)) + CHROMA_BIAS;
-	YCoCg.z = dot(RGB, float3(-0.25, 0.5, -0.25)) + CHROMA_BIAS;
+	YCoCg.x = dot(rgb, float3(0.25, 0.5, 0.25));
+	YCoCg.y = dot(rgb, float3(0.5, 0.0, -0.5)) + CHROMA_BIAS;
+	YCoCg.z = dot(rgb, float3(-0.25, 0.5, -0.25)) + CHROMA_BIAS;
 
 	return YCoCg;
 }

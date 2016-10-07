@@ -84,7 +84,7 @@ Shader "Unity/DisneyGGX"
 	#pragma shader_feature _HEIGHTMAP
 	#pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
 
-	#include "TemplateDisneyGGX.hlsl"		
+	#include "TemplateDisneyGGX.hlsl"
 
 	ENDHLSL
 
@@ -198,7 +198,6 @@ Shader "Unity/DisneyGGX"
 
 			#include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
 			#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugCommon.hlsl"
-			#include "TemplateDisneyGGX.hlsl"
 
 			#if SHADER_STAGE_FRAGMENT
 
