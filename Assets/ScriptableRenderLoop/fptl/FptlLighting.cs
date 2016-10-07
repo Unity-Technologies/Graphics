@@ -186,9 +186,9 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_cubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
 			m_cubeReflTexArray.AllocTextureArray(64, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
-			m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
-			m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
-			m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
+			//m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
+			//m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
+			//m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
 
 			g_matWorldToShadow = new Matrix4x4[MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS];
 			g_vDirShadowSplitSpheres = new Vector4[MAX_DIRECTIONAL_SPLIT];
@@ -267,12 +267,25 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		}
 
-        static void RenderForward(CullResults cull, Camera camera, RenderLoop loop)
+        static void RenderForward(CullResults cull, Camera camera, RenderLoop loop, bool opaquesOnly)
 		{
+            var cmd = new CommandBuffer();
+			cmd.name = opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass";
+
+            // using these two lines will require a depth pre-pass for forward opaques which we don't have currently at least
+			//cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", opaquesOnly ? 1 : 0);
+            //cmd.SetGlobalBuffer("g_vLightListGlobal", opaquesOnly ? lightList : m_perVoxelLightLists);
+
+            cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", 0);
+            cmd.SetGlobalBuffer("g_vLightListGlobal", m_perVoxelLightLists);
+			loop.ExecuteCommandBuffer(cmd);
+			cmd.Dispose();
+
 			// render opaque objects using Deferred pass
 			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"));
-            settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
+            //settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
 			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+            if(opaquesOnly) settings.inputCullingOptions.SetQueuesOpaque();
 			loop.DrawRenderers(ref settings);
 
 		}
@@ -289,12 +302,20 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		void DoTiledDeferredLighting(Camera camera, RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, ComputeBuffer lightList, int numDirLights)
 		{
+            bool bUseClusteredForDeferred = false && EnableClustered;       // doesn't work on reflections yet but will soon
             var cmd = new CommandBuffer();
 
             cmd.SetGlobalFloat("g_nNumDirLights", numDirLights);
 
 			m_DeferredMaterial.SetBuffer("g_vLightList", lightList);
 			m_DeferredReflectionMaterial.SetBuffer("g_vLightList", lightList);
+            	
+            m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+            cmd.SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? m_perVoxelLightLists : lightList);       // opaques list (unless MSAA possibly)
+            
+            // In case of bUseClusteredForDeferred disable toggle option since we're using m_perVoxelLightLists as opposed to lightList
+            if(bUseClusteredForDeferred) cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", 0);
+            
 
 			//m_DeferredMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
 			//m_DeferredReflectionMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
@@ -307,6 +328,9 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.name = "DoTiledDeferredLighting";
 
 			//cmd.SetRenderTarget(new RenderTargetIdentifier(kGBufferEmission), new RenderTargetIdentifier(kGBufferZ));
+
+            cmd.SetGlobalFloat("g_widthRT", (float) camera.pixelWidth);
+            cmd.SetGlobalFloat("g_heightRT", (float) camera.pixelHeight);
 
 			cmd.SetGlobalMatrix("g_mViewToWorld", viewToWorld);
 			cmd.SetGlobalMatrix("g_mWorldToView", viewToWorld.inverse);
@@ -864,6 +888,15 @@ namespace UnityEngine.ScriptableRenderLoop
             
             if(EnableClustered) VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
 
+            cmd.SetGlobalTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
+            cmd.SetGlobalTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
+            cmd.SetGlobalTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
+
+            //m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
+			//m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
+			//m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
+
+
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
@@ -871,7 +904,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			DoTiledDeferredLighting(camera, loop, camera.cameraToWorldMatrix, projscr, invProjscr, lightList, numDirLights);
 
-            RenderForward(cullResults, camera, loop);
+            // don't have a depth pre-pass for forward lit meshes so have to require clustered for now
+            if(EnableClustered) RenderForward(cullResults, camera, loop, false);
 
 
 			m_skyboxHelper.Draw(loop, camera);
@@ -886,9 +920,9 @@ namespace UnityEngine.ScriptableRenderLoop
 			m_cubeCookieTexArray.NewFrame();
 			m_cubeReflTexArray.NewFrame();
 
-			m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
-			m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
-			m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
+			//m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
+			//m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
+			//m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
 		}
 
         void ResizeIfNecessary(int curWidth, int curHeight)
@@ -996,8 +1030,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
             cmd.SetGlobalFloat("g_widthRT", (float) camera.pixelWidth);
             cmd.SetGlobalFloat("g_heightRT", (float) camera.pixelHeight);
-                
-            cmd.SetGlobalBuffer("g_vLightListGlobal", m_perVoxelLightLists);
+               
+            cmd.SetGlobalFloat("g_isLogBaseBufferEnabled", gUseDepthBuffer ? 1 : 0);
+            
             cmd.SetGlobalBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
             //m_DeferredMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
             //m_DeferredReflectionMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);

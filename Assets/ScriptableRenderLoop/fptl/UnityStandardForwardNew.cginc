@@ -65,7 +65,6 @@ float3 EvalMaterial(UnityLight light, UnityIndirect ind)
 	return UNITY_BRDF_PBS(gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, light, ind);
 }
 
-#define ENABLE_DEPTH_TEXTURE_BACKPLANE
 
 #include "TiledLightingTemplate.hlsl"
 
@@ -73,15 +72,10 @@ float3 EvalMaterial(UnityLight light, UnityIndirect ind)
 
 half4 fragForward(VertexOutputForwardNew i) : SV_Target 
 { 
-#ifdef LEFT_HAND_COORDINATES
-	float linZ = i.pos.w;
-#else
-	float linZ = -i.pos.w;
-#endif
-
-	float3 vP = GetViewPosFromLinDepth(i.pos.xy, linZ);
+	float linZ = GetLinearZFromSVPosW(i.pos.w);					// matching script side where camera space is right handed.
+	float3 vP = GetViewPosFromLinDepth(i.pos.xy, linZ);	
 	float3 vPw = mul(g_mViewToWorld, float4(vP,1.0)).xyz;
-	float3 Vworld = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);		//unity_CameraToWorld
+	float3 Vworld = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);		// not same as unity_CameraToWorld
 
 #ifdef _PARALLAXMAP
 	half3 tangent = i.tangentToWorldAndParallax[0].xyz;
@@ -100,13 +94,16 @@ half4 fragForward(VertexOutputForwardNew i) : SV_Target
 	//half occlusion = Occlusion(i.tex.xy);
 	//UnityGI gi = FragmentGI (gdata, occlusion, i.ambientOrLightmapUV, atten, mainLight);
 
+	uint numLightsProcessed = 0;
 	float3 res = 0;
-	res += ExecuteLightListTiled(pixCoord, vP, vPw, Vworld);
+	res += ExecuteLightListTiled(numLightsProcessed, pixCoord, vP, vPw, Vworld);
 
 	// don't really have a handle on this yet
 	//UnityLight mainLight = MainLight ();
 	//res += UNITY_BRDF_GI (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, occlusion, gi);
 	res += Emission(i.tex.xy);
+
+	//res = OverlayHeatMap(numLightsProcessed, res);
 
 	//UNITY_APPLY_FOG(i.fogCoord, res);
 	return OutputForward (float4(res,1.0), gdata.alpha);
