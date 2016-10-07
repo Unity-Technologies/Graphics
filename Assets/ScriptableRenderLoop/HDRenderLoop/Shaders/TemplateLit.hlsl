@@ -22,7 +22,7 @@
 float4 _BaseColor;
 sampler2D _BaseColorMap;
 
-float _Mettalic;
+float _Metalic;
 float _Smoothness;
 sampler2D _MaskMap;
 sampler2D _SpecularOcclusionMap;
@@ -182,19 +182,19 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
     builtinData.opacity = alpha;
 
-    // MaskMap is Mettalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
+    // MaskMap is Metalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
 #ifdef _MASKMAP
-    float mettalic = tex2D(_MaskMap, input.texCoord0).r;
+    float metalic = tex2D(_MaskMap, input.texCoord0).r;
     surfaceData.ambientOcclusion = tex2D(_MaskMap, input.texCoord0).g;
 #else
-    float mettalic = 1.0;
+    float metalic = 1.0;
     surfaceData.ambientOcclusion = 1.0;
 #endif
-    mettalic *= _Mettalic;
+    metalic *= _Metalic;
 
-    surfaceData.diffuseColor = baseColor * (1.0 - mettalic);
+    surfaceData.diffuseColor = baseColor * (1.0 - metalic);
     float f0_dieletric = 0.04;
-    surfaceData.specularColor = lerp(float3(f0_dieletric, f0_dieletric, f0_dieletric), baseColor, mettalic);
+    surfaceData.specularColor = lerp(float3(f0_dieletric, f0_dieletric, f0_dieletric), baseColor, metalic);
 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     surfaceData.perceptualSmoothness = tex2D(_BaseColorMap, input.texCoord0).a;

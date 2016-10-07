@@ -74,8 +74,8 @@ internal class LitGUI : ShaderGUI
 
         public static GUIContent baseColorText = new GUIContent("Base Color", "Albedo (RGB) and Smoothness (A)");
         public static GUIContent baseColorSmoothnessText = new GUIContent("Base Color + Smoothness", "Albedo (RGB) and Smoothness (A)");
- 
-        public static GUIContent mettalicText = new GUIContent("Mettalic", "Mettalic scale factor");
+
+        public static GUIContent metalicText = new GUIContent("Metalic", "Metalic scale factor");
         public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
         public static GUIContent maskMapESText = new GUIContent("Mask Map - M(R), AO(G), E(B), S(A)", "Mask map");
         public static GUIContent maskMapEText = new GUIContent("Mask Map - M(R), AO(G), E(B)", "Mask map");
@@ -107,7 +107,7 @@ internal class LitGUI : ShaderGUI
 
     MaterialProperty baseColor = null;
     MaterialProperty baseColorMap = null;
-    MaterialProperty mettalic = null;
+    MaterialProperty metalic = null;
     MaterialProperty smoothness = null;
     MaterialProperty maskMap = null;
     MaterialProperty specularOcclusionMap = null;
@@ -140,7 +140,7 @@ internal class LitGUI : ShaderGUI
 
         baseColor = FindProperty("_BaseColor", props);
         baseColorMap = FindProperty("_BaseColorMap", props);
-        mettalic = FindProperty("_Mettalic", props);
+        metalic = FindProperty("_Metalic", props);
         smoothness = FindProperty("_Smoothness", props);
         maskMap = FindProperty("_MaskMap", props);
         specularOcclusionMap = FindProperty("_SpecularOcclusionMap", props);
@@ -195,7 +195,7 @@ internal class LitGUI : ShaderGUI
 
             GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
             m_MaterialEditor.TexturePropertySingleLine(isAlbedoAlpha ? Styles.baseColorSmoothnessText : Styles.baseColorText, baseColorMap, baseColor);
-            m_MaterialEditor.ShaderProperty(mettalic, Styles.mettalicText);
+            m_MaterialEditor.ShaderProperty(metalic, Styles.metalicText);
             m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
 
             if (isAlbedoAlpha && useEmissiveMask)

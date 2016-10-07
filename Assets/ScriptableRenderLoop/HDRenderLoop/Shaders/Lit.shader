@@ -9,7 +9,7 @@ Shader "Unity/Lit"
         _BaseColor("BaseColor", Color) = (1,1,1,1) 
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
 
-        _Mettalic("Mettalic", Range(0.0, 1.0)) = 0
+        _Metalic("_Metalic", Range(0.0, 1.0)) = 0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5		
         _MaskMap("MaskMap", 2D) = "white" {}
 
