@@ -144,16 +144,13 @@ Shader "Unity/Lit"
             Cull[_CullMode]
 
             HLSLPROGRAM
-            #pragma target 5.0
-            #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
             
             #pragma vertex VertDefault
             #pragma fragment FragDebug
 
-            int g_MaterialDebugMode;
+			#include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
 
-            #include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugCommon.hlsl"
+            int _MaterialDebugMode;
 
             #if SHADER_STAGE_FRAGMENT
 
@@ -167,61 +164,11 @@ Shader "Unity/Lit"
                 float3 result = float3(1.0, 1.0, 0.0);
                 bool outputIsLinear = false;
 
-                if(g_MaterialDebugMode == MaterialDebugDiffuseColor)
-                {
-                    result =  surfaceData.baseColor;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugNormal)
-                {
-                    result =  surfaceData.normalWS * 0.5 + 0.5;
-                    outputIsLinear = true;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugDepth)
-                {
-                    float linearDepth = frac(LinearEyeDepth(input.positionHS.z, _ZBufferParams) * 0.1);
-                    result =  linearDepth.xxx;
-                    outputIsLinear = true;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugAO)
-                {
-                    result =  surfaceData.ambientOcclusion.xxx;
-                    outputIsLinear = true;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugSpecularColor)
-                {
-                    result =  surfaceData.metalic.xxx;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugSpecularOcclusion)
-                {
-                    result =  surfaceData.specularOcclusion.xxx;
-                    outputIsLinear = true;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugSmoothness)
-                {
-                    result =  surfaceData.perceptualSmoothness.xxx;
-                    outputIsLinear = true;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugMaterialId)
-                {
-                    result =  surfaceData.materialId.xxx;
-                    outputIsLinear = true;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugUV0)
-                {
-                    result =  float3(input.texCoord0, 0.0);
-                    outputIsLinear = true;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugTangent)
-                {
-                    result =  input.tangentToWorld[0].xyz * 0.5 + 0.5;
-                    outputIsLinear = true;
-                }
-                else if (g_MaterialDebugMode == MaterialDebugBitangent)
-                {
-                    result =  input.tangentToWorld[1].xyz * 0.5 + 0.5;
-                    outputIsLinear = true;
-                }
+				GetVaryingsDataDebug(_MaterialDebugMode, input, result, outputIsLinear);
+				GetSurfaceDataDebug(_MaterialDebugMode, surfaceData, result, outputIsLinear);
+				GetBuiltinDataDebug(_MaterialDebugMode, builtinData, result, outputIsLinear);				
 
+				// TEMP!
                 // For now, the final blit in the backbuffer performs an sRGB write
                 // So in the meantime we apply the inverse transform to linear data to compensate.
                 if(outputIsLinear)

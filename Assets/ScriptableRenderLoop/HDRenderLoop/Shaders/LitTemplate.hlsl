@@ -281,4 +281,34 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     builtinData.distortionBlur = 0.0;
 }
 
+void GetVaryingsDataDebug(uint paramId, Varyings input, inout float3 result, inout float outputIsLinear)
+{
+	if (paramId == MaterialDebugDepth)
+	{
+		float linearDepth = frac(LinearEyeDepth(input.positionHS.z, _ZBufferParams) * 0.1);
+		result = linearDepth.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugTexCoord0)
+	{
+		result = float3(input.texCoord0, 0.0);
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugVertexNormalWS)
+	{
+		result = input.tangentToWorld[2].xyz * 0.5 + 0.5;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugVertexTangentWS)
+	{
+		result = input.tangentToWorld[0].xyz * 0.5 + 0.5;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugVertexBitangentWS)
+	{
+		result = input.tangentToWorld[1].xyz * 0.5 + 0.5;
+		outputIsLinear = true;
+	}
+}
+
 #endif // #if SHADER_STAGE_FRAGMENT

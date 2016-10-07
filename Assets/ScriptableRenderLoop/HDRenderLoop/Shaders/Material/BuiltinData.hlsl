@@ -29,4 +29,39 @@ struct BuiltinData
     float	distortionBlur;			// Define the color buffer mipmap level to use
 };
 
+void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout float outputIsLinear)
+{
+	if (paramId == MaterialDebugBakeDiffuseLighting)
+	{
+		// TODO: require a remap
+		result = builtinData.bakeDiffuseLighting;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugEmissiveColor)
+	{
+		result = builtinData.emissiveColor;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugEmissiveIntensity)
+	{
+		// TODO: require a reamp
+		result = builtinData.emissiveIntensity.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugVelocity)
+	{
+		result = float3(builtinData.velocity, 0.0);
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugDistortion)
+	{
+		result = float3(builtinData.distortion, 0.0);
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugDistortionBlur)
+	{
+		result = builtinData.distortionBlur.xxx;
+		outputIsLinear = true;
+	}
+}
 #endif // UNITY_BUILTIN_DATA_INCLUDED

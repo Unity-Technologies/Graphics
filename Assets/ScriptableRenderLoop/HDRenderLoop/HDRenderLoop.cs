@@ -18,17 +18,36 @@ namespace UnityEngine.ScriptableRenderLoop
         public enum MaterialDebugMode
         {
             None = 0,
-            DiffuseColor = 1,
-            Normal = 2,
-            Depth = 3,
-            AmbientOcclusion = 4,
-            SpecularColor = 5,
-            SpecularOcclustion = 6,
-            Smoothness = 7,
-            MaterialId = 8,
-            UV0 = 9,
-            Tangent = 10,
-            Bitangent = 11
+
+            Depth = 1,
+            TexCoord0 = 2,
+            VertexNormalWS = 3,
+            VertexTangentWS = 4,
+            VertexBitangentWS = 5,
+
+            BakeDiffuseLighting = 100,
+            EmissiveColor = 101,
+            EmissiveIntensity = 102,
+            Velocity = 103,
+            Distortion = 104,
+            DistortionBlur = 105,
+
+            BaseColor = 1001,
+            SpecularOcclusion = 1002,
+            NormalWS = 1003,
+            PerceptualSmoothness = 1004,
+            MaterialId = 1005,
+            AmbientOcclusion = 1006,
+            TangentWS = 1007,
+            Anisotropy = 1008,
+            Metalic = 1009,
+            Specular = 1010,
+            SubSurfaceRadius = 1011,
+            Thickness = 1012,
+            SubSurfaceProfile = 1013,
+            CoatNormalWS = 1014,
+            CoatPerceptualSmoothness = 1015,
+            SpecularColor = 1016,
         }
 
         public enum GBufferDebugMode
@@ -168,10 +187,11 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             ClearComputeBuffers();
 
+            // See Lit.hlsl for details
             gbufferManager.gbufferCount = 4;
-            gbufferManager.SetBufferDescription(0, "_CameraGBufferTexture0", RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);     // Store diffuse color => sRGB
-            gbufferManager.SetBufferDescription(1, "_CameraGBufferTexture1", RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-            gbufferManager.SetBufferDescription(2, "_CameraGBufferTexture2", RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear); // Store normal => higher precision
+            gbufferManager.SetBufferDescription(0, "_CameraGBufferTexture0", RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+            gbufferManager.SetBufferDescription(1, "_CameraGBufferTexture1", RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+            gbufferManager.SetBufferDescription(2, "_CameraGBufferTexture2", RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
             gbufferManager.SetBufferDescription(3, "_CameraGBufferTexture3", RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
 
             s_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
@@ -300,7 +320,7 @@ namespace UnityEngine.ScriptableRenderLoop
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-            Shader.SetGlobalInt("g_MaterialDebugMode", (int)debugParameters.materialDebugMode);
+            Shader.SetGlobalInt("_MaterialDebugMode", (int)debugParameters.materialDebugMode);
 
             RenderOpaqueRenderList(cull, camera, renderLoop, "Debug");
             RenderTransparentRenderList(cull, camera, renderLoop, "Debug");

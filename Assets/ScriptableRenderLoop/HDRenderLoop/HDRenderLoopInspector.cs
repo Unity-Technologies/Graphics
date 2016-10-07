@@ -24,32 +24,9 @@ namespace UnityEngine.ScriptableRenderLoop
             public readonly GUIContent enableTonemap = new GUIContent("Enable Tonemap");
             public readonly GUIContent exposure = new GUIContent("Exposure");
 
-            public readonly GUIContent[] materialDebugStrings = {	new GUIContent("None"),
-                                                                    new GUIContent("Diffuse Color"),
-                                                                    new GUIContent("Normal"),
-                                                                    new GUIContent("Depth"),
-                                                                    new GUIContent("Ambient Occlusion"),
-                                                                    new GUIContent("Specular Color"),
-                                                                    new GUIContent("Specular Occlusion"),
-                                                                    new GUIContent("Smoothness"),
-                                                                    new GUIContent("MaterialId"),
-                                                                    new GUIContent("UV0"),
-                                                                    new GUIContent("Tangent"),
-                                                                    new GUIContent("Bitangent")
-                                                                };
-            public readonly int[] materialDebugValues = {	(int)HDRenderLoop.MaterialDebugMode.None,
-                                                            (int)HDRenderLoop.MaterialDebugMode.DiffuseColor,
-                                                            (int)HDRenderLoop.MaterialDebugMode.Normal,
-                                                            (int)HDRenderLoop.MaterialDebugMode.Depth,
-                                                            (int)HDRenderLoop.MaterialDebugMode.AmbientOcclusion,
-                                                            (int)HDRenderLoop.MaterialDebugMode.SpecularColor,
-                                                            (int)HDRenderLoop.MaterialDebugMode.SpecularOcclustion,
-                                                            (int)HDRenderLoop.MaterialDebugMode.Smoothness,
-                                                            (int)HDRenderLoop.MaterialDebugMode.MaterialId,
-                                                            (int)HDRenderLoop.MaterialDebugMode.UV0,
-                                                            (int)HDRenderLoop.MaterialDebugMode.Tangent,
-                                                            (int)HDRenderLoop.MaterialDebugMode.Bitangent
-                                                        };
+            public GUIContent[] materialDebugStrings = null;
+            public int[] materialDebugValues = null;
+
             public readonly GUIContent[] gBufferDebugStrings = {	new GUIContent("None"),
                                                                     new GUIContent("Diffuse Color"),
                                                                     new GUIContent("Normal"),
@@ -87,6 +64,22 @@ namespace UnityEngine.ScriptableRenderLoop
                 EditorGUILayout.LabelField(styles.debugParameters);
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
+
+                if (styles.materialDebugStrings == null)
+                {
+                    String[] names = Enum.GetNames(typeof(HDRenderLoop.MaterialDebugMode));
+
+                    styles.materialDebugStrings = new GUIContent[names.Length];
+                    styles.materialDebugValues = new int[names.Length];
+
+                    int index = 0;
+                    foreach (var value in Enum.GetValues(typeof(HDRenderLoop.MaterialDebugMode)))
+                    {
+                        styles.materialDebugStrings[index] = new GUIContent(names[index]);
+                        styles.materialDebugValues[index] = (int)value;
+                        index++;
+                    }
+                }         
 
                 debugParameters.gBufferDebugMode = (HDRenderLoop.GBufferDebugMode)EditorGUILayout.IntPopup(styles.gBufferDebugMode, (int)debugParameters.gBufferDebugMode, styles.gBufferDebugStrings, styles.gBufferDebugValues);
                 debugParameters.materialDebugMode = (HDRenderLoop.MaterialDebugMode)EditorGUILayout.IntPopup(styles.materialDebugMode, (int)debugParameters.materialDebugMode, styles.materialDebugStrings, styles.materialDebugValues);
