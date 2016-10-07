@@ -267,6 +267,17 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		}
 
+        static void RenderForward(CullResults cull, Camera camera, RenderLoop loop)
+		{
+			// render opaque objects using Deferred pass
+			DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"));
+            settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
+			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+			loop.DrawRenderers(ref settings);
+
+		}
+
+
 		static void CopyDepthAfterGBuffer(RenderLoop loop)
 		{
 			var cmd = new CommandBuffer();
@@ -276,35 +287,22 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.Dispose();
 		}
 
-		void DoTiledDeferredLighting(Camera camera, RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, ComputeBuffer lightList)
+		void DoTiledDeferredLighting(Camera camera, RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, ComputeBuffer lightList, int numDirLights)
 		{
             var cmd = new CommandBuffer();
 
-            if(EnableClustered)
-            {
-                cmd.SetGlobalFloat("g_fClustScale", m_clustScale);
-                cmd.SetGlobalFloat("g_fClustBase", m_clustLogBase);
-                cmd.SetGlobalFloat("g_fNearPlane", camera.nearClipPlane);
-                cmd.SetGlobalFloat("g_fFarPlane", camera.farClipPlane);
-                cmd.SetGlobalFloat("g_fLog2NumClusters", (float) g_iLog2NumClusters);
+            cmd.SetGlobalFloat("g_nNumDirLights", numDirLights);
 
-                m_DeferredMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
-                m_DeferredReflectionMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
-                if(gUseDepthBuffer)
-                {
-                    m_DeferredMaterial.SetBuffer("g_logBaseBuffer", m_perTileLogBaseTweak);
-                    m_DeferredReflectionMaterial.SetBuffer("g_logBaseBuffer", m_perTileLogBaseTweak);
-                }
-            }
-            
-			//m_DeferredMaterial.SetBuffer("g_vLightList", EnableClustered ? m_perVoxelLightLists : lightList);
-            m_DeferredMaterial.SetBuffer("g_vLightList", lightList);
+			m_DeferredMaterial.SetBuffer("g_vLightList", lightList);
 			m_DeferredReflectionMaterial.SetBuffer("g_vLightList", lightList);
 
-			m_DeferredMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
-			m_DeferredReflectionMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
+			//m_DeferredMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
+			//m_DeferredReflectionMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
+            cmd.SetGlobalBuffer("g_vLightData", m_lightDataBuffer);
 
-			m_DeferredMaterial.SetBuffer("g_dirLightData", m_dirLightList);
+			//m_DeferredMaterial.SetBuffer("g_dirLightData", m_dirLightList);
+            cmd.SetGlobalBuffer("g_dirLightData", m_dirLightList);
+
 			
 			cmd.name = "DoTiledDeferredLighting";
 
@@ -346,7 +344,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.SetComputeFloatParams(shadercs, name, data);
 		}
 
-		void UpdateDirectionalLights(Camera camera, ActiveLight[] activeLights)
+		int UpdateDirectionalLights(Camera camera, ActiveLight[] activeLights)
 		{
 			int dirLightCount = 0;
 			List<DirectionalLight> lights = new List<DirectionalLight>();
@@ -389,6 +387,8 @@ namespace UnityEngine.ScriptableRenderLoop
 			}
 			m_dirLightList.SetData(lights.ToArray());
 			m_DeferredMaterial.SetInt("g_nDirLights", dirLightCount);
+
+            return dirLightCount;
 		}
 		
 		void UpdateShadowConstants(ActiveLight[] activeLights, ref ShadowOutput shadow)
@@ -867,9 +867,12 @@ namespace UnityEngine.ScriptableRenderLoop
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
-			UpdateDirectionalLights(camera, cullResults.culledLights);
+			int numDirLights = UpdateDirectionalLights(camera, cullResults.culledLights);
 
-			DoTiledDeferredLighting(camera, loop, camera.cameraToWorldMatrix, projscr, invProjscr, lightList);
+			DoTiledDeferredLighting(camera, loop, camera.cameraToWorldMatrix, projscr, invProjscr, lightList, numDirLights);
+
+            RenderForward(cullResults, camera, loop);
+
 
 			m_skyboxHelper.Draw(loop, camera);
 
@@ -983,6 +986,27 @@ namespace UnityEngine.ScriptableRenderLoop
             int nrTilesX = (camera.pixelWidth + 15) / 16;
 			int nrTilesY = (camera.pixelHeight + 15) / 16;
 			cmd.ComputeDispatch(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, nrTilesX, nrTilesY, 1);
+
+
+            cmd.SetGlobalFloat("g_fClustScale", m_clustScale);
+            cmd.SetGlobalFloat("g_fClustBase", m_clustLogBase);
+            cmd.SetGlobalFloat("g_fNearPlane", camera.nearClipPlane);
+            cmd.SetGlobalFloat("g_fFarPlane", camera.farClipPlane);
+            cmd.SetGlobalFloat("g_fLog2NumClusters", (float) g_iLog2NumClusters);
+
+            cmd.SetGlobalFloat("g_widthRT", (float) camera.pixelWidth);
+            cmd.SetGlobalFloat("g_heightRT", (float) camera.pixelHeight);
+                
+            cmd.SetGlobalBuffer("g_vLightListGlobal", m_perVoxelLightLists);
+            cmd.SetGlobalBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
+            //m_DeferredMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
+            //m_DeferredReflectionMaterial.SetBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
+            if(gUseDepthBuffer)
+            {
+                //m_DeferredMaterial.SetBuffer("g_logBaseBuffer", m_perTileLogBaseTweak);
+                //m_DeferredReflectionMaterial.SetBuffer("g_logBaseBuffer", m_perTileLogBaseTweak);
+                cmd.SetGlobalBuffer("g_logBaseBuffer", m_perTileLogBaseTweak);
+            }
         }
 	}
 }
