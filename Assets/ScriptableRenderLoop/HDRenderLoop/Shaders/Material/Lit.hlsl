@@ -174,6 +174,7 @@ float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData)
 #define GBUFFER_MATERIAL_COUNT 3
 
 // Encode SurfaceData (BSDF parameters) into GBuffer
+// Must be in sync with RT declared in HDRenderLoop.cs ::Rebuild
 void EncodeIntoGBuffer(	SurfaceData surfaceData,
                         out float4 outGBuffer0, 
                         out float4 outGBuffer1, 
@@ -268,6 +269,95 @@ BSDFData DecodeFromGBuffer(	float4 inGBuffer0,
     }
 
     return bsdfData;
+}
+
+//-----------------------------------------------------------------------------
+// Debug method (use to display values)
+//-----------------------------------------------------------------------------
+
+void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 result, inout float outputIsLinear)
+{
+	if (paramId == MaterialDebugBaseColor)
+	{
+		result = surfaceData.baseColor;
+	}
+	else if (paramId == MaterialDebugSpecularOcclusion)
+	{
+		result = surfaceData.specularOcclusion.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugNormalWS)
+	{
+		result = surfaceData.normalWS * 0.5 + 0.5;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugPerceptualSmoothness)
+	{
+		result = surfaceData.perceptualSmoothness.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugMaterialId)
+	{
+		// TODO: it is an enum display solid color instead
+		result = surfaceData.materialId.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugAmbientOcclusion)
+	{
+		result = surfaceData.ambientOcclusion.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugTangentWS)
+	{
+		result = surfaceData.tangentWS * 0.5 + 0.5;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugAnisotropy)
+	{
+		result = surfaceData.anisotropy.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugMetalic)
+	{
+		result = surfaceData.metalic.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugSpecular)
+	{
+		// TODO: may require a reamp
+		result = surfaceData.specular.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugSubSurfaceRadius)
+	{
+		result = surfaceData.subSurfaceRadius.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugThickness)
+	{
+		result = surfaceData.thickness.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugSubSurfaceProfile)
+	{
+		// TODO:  require solid color
+		result = surfaceData.subSurfaceProfile.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugCoatNormalWS)
+	{
+		result = surfaceData.coatNormalWS * 0.5 + 0.5;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugCoatPerceptualSmoothness)
+	{
+		result = surfaceData.coatPerceptualSmoothness.xxx;
+		outputIsLinear = true;
+	}
+	else if (paramId == MaterialDebugSpecularColor)
+	{
+		result = surfaceData.specularColor;
+	}
 }
 
 //-----------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 --- !u!30 &1
 GraphicsSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 9
+  serializedVersion: 10
   m_Deferred:
     m_Mode: 0
     m_Shader: {fileID: 0}
@@ -36,18 +36,25 @@ GraphicsSettings:
   - {fileID: 10770, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 10782, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 4800000, guid: 36c23fe83f8e7a54d8fb168fa6cf2a3d, type: 3}
+  - {fileID: 16000, guid: 0000000000000000f000000000000000, type: 0}
   m_PreloadedShaders: []
   m_SpritesDefaultMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000,
     type: 0}
   m_TierSettings_Tier1:
     renderingPath: 1
     useCascadedShadowMaps: 1
+    useHDR: 0
+    hdrMode: 0
   m_TierSettings_Tier2:
     renderingPath: 1
     useCascadedShadowMaps: 1
+    useHDR: 0
+    hdrMode: 0
   m_TierSettings_Tier3:
     renderingPath: 1
     useCascadedShadowMaps: 1
+    useHDR: 0
+    hdrMode: 0
   m_DefaultRenderingPath: 1
   m_DefaultMobileRenderingPath: 1
   m_TierSettings:
@@ -57,8 +64,10 @@ GraphicsSettings:
     m_Settings:
       standardShaderQuality: 2
       renderingPath: 1
+      hdrMode: 0
       useReflectionProbeBoxProjection: 1
       useReflectionProbeBlending: 1
+      useHDR: 0
       useDetailNormalMap: 1
       useCascadedShadowMaps: 1
       useDitherMaskForAlphaBlendedShadows: 1
@@ -69,8 +78,10 @@ GraphicsSettings:
     m_Settings:
       standardShaderQuality: 2
       renderingPath: 1
+      hdrMode: 0
       useReflectionProbeBoxProjection: 1
       useReflectionProbeBlending: 1
+      useHDR: 0
       useDetailNormalMap: 1
       useCascadedShadowMaps: 1
       useDitherMaskForAlphaBlendedShadows: 1
@@ -81,8 +92,10 @@ GraphicsSettings:
     m_Settings:
       standardShaderQuality: 2
       renderingPath: 1
+      hdrMode: 0
       useReflectionProbeBoxProjection: 1
       useReflectionProbeBlending: 1
+      useHDR: 0
       useDetailNormalMap: 1
       useCascadedShadowMaps: 1
       useDitherMaskForAlphaBlendedShadows: 1

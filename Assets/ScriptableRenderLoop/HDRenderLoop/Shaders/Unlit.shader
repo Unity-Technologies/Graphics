@@ -41,7 +41,7 @@ Shader "Unity/Unlit"
 
     float4	_Color;
     sampler2D _ColorMap;
-    float4 _EmissiveColor;
+    float3 _EmissiveColor;
     sampler2D _EmissiveColorMap;
     float _EmissiveIntensity;
 
@@ -124,7 +124,7 @@ Shader "Unity/Unlit"
             void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
                 surfaceData.color = tex2D(_ColorMap, input.texCoord0).rgb * _Color.rgb;
-                float alpha = tex2D(_ColorMap, input.texCoord0).a * _Color.rgb;
+                float alpha = tex2D(_ColorMap, input.texCoord0).a * _Color.a;
 
                 #ifdef _ALPHATEST_ON
                 clip(alpha - _AlphaCutoff);

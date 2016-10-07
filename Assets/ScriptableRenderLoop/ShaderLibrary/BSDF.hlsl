@@ -43,6 +43,7 @@ float3 F_Schlick(float3 f0, float u)
 float D_GGX(float NdotH, float roughness)
 {
     roughness = max(roughness, UNITY_MIN_ROUGHNESS);
+
     float a2 = roughness * roughness;
     float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
     return INV_PI * a2 / (f * f);
