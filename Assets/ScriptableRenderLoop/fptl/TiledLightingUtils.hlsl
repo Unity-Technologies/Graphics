@@ -51,8 +51,7 @@ uniform float g_fClustBase;
 uniform float g_fNearPlane;
 uniform float g_fFarPlane;
 //uniform int	  g_iLog2NumClusters;		// numClusters = (1<<g_iLog2NumClusters)
-uniform float g_fLog2NumClusters;
-static int g_iLog2NumClusters;
+uniform int g_iLog2NumClusters;
 
 #include "ClusteredUtils.h"
 
@@ -70,7 +69,6 @@ void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, int nr
 	}
 	else
 	{
-		g_iLog2NumClusters = (int) g_fLog2NumClusters;
 		float logBase = g_fClustBase;
 		if(g_isLogBaseBufferEnabled)
 			logBase = g_logBaseBuffer[tileIDX.y*nrTilesX + tileIDX.x];

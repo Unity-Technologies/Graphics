@@ -1015,7 +1015,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 cmd.SetGlobalFloat("g_fClustBase", m_clustLogBase);
                 cmd.SetGlobalFloat("g_fNearPlane", camera.nearClipPlane);
                 cmd.SetGlobalFloat("g_fFarPlane", camera.farClipPlane);
-                cmd.SetGlobalFloat("g_fLog2NumClusters", (float) g_iLog2NumClusters);
+                cmd.SetGlobalFloat("g_iLog2NumClusters", g_iLog2NumClusters);
 
                    
                 cmd.SetGlobalFloat("g_isLogBaseBufferEnabled", gUseDepthBuffer ? 1 : 0);
