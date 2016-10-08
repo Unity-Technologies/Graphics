@@ -7,9 +7,6 @@
 #include "UnityStandardUtils.cginc"
 #include "UnityPBSLighting.cginc"
 
-#include "..\common\ShaderBase.h"
-#include "LightDefinitions.cs.hlsl"
-
 
 uniform uint g_nNumDirLights;
 
@@ -45,7 +42,6 @@ sampler2D _LightTextureB0;
 UNITY_DECLARE_TEX2DARRAY(_spotCookieTextures);
 UNITY_DECLARE_TEXCUBEARRAY(_pointCookieTextures);
 		
-StructuredBuffer<SFiniteLightData> g_vLightData;
 StructuredBuffer<DirectionalLight> g_dirLightData;
 
 

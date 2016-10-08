@@ -26,12 +26,7 @@ CGPROGRAM
 
 #pragma multi_compile USE_FPTL_LIGHTLIST	USE_CLUSTERED_LIGHTLIST
 
-#include "UnityCG.cginc"
-#include "UnityStandardBRDF.cginc"
-#include "UnityStandardUtils.cginc"
-#include "UnityPBSLighting.cginc"
-
-#include "..\common\ShaderBase.h"
+#include "UnityLightingCommon.cginc"
 
 float3 EvalMaterial(UnityLight light, UnityIndirect ind);
 

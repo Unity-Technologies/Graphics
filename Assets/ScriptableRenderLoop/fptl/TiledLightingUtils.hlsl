@@ -2,7 +2,12 @@
 #define __TILEDLIGHTINGUTILS_H__
 
 
+#include "..\common\ShaderBase.h"
+#include "LightDefinitions.cs.hlsl"
+
+
 uniform float4x4 g_mViewToWorld;
+uniform float4x4 g_mWorldToView;		// used for reflection only
 uniform float4x4 g_mScrProjection;
 uniform float4x4 g_mInvScrProjection;
 
@@ -10,6 +15,7 @@ uniform float4x4 g_mInvScrProjection;
 uniform uint g_widthRT;
 uniform uint g_heightRT;
 
+StructuredBuffer<SFiniteLightData> g_vLightData;
 StructuredBuffer<uint> g_vLightListGlobal;
 
 void GetCountAndStartOpaque(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth, uint model)

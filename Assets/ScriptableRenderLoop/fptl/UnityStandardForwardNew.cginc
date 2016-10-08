@@ -65,9 +65,16 @@ float3 EvalMaterial(UnityLight light, UnityIndirect ind)
 	return UNITY_BRDF_PBS(gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, light, ind);
 }
 
+float3 EvalIndirectSpecular(UnityLight light, UnityIndirect ind)
+{
+	float occlusion = 1.0;		// have none for now
+	return occlusion * UNITY_BRDF_PBS(gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, light, ind);
+}
+
+
 
 #include "TiledLightingTemplate.hlsl"
-
+#include "TiledReflectionTemplate.hlsl"
 
 
 half4 fragForward(VertexOutputForwardNew i) : SV_Target 
@@ -94,9 +101,10 @@ half4 fragForward(VertexOutputForwardNew i) : SV_Target
 	//half occlusion = Occlusion(i.tex.xy);
 	//UnityGI gi = FragmentGI (gdata, occlusion, i.ambientOrLightmapUV, atten, mainLight);
 
-	uint numLightsProcessed = 0;
+	uint numLightsProcessed = 0, numReflectionsProcessed = 0;
 	float3 res = 0;
 	res += ExecuteLightListTiled(numLightsProcessed, pixCoord, vP, vPw, Vworld);
+	res += ExecuteReflectionListTiled(numReflectionsProcessed, pixCoord, vP, gdata.normalWorld, Vworld, gdata.smoothness);
 
 	// don't really have a handle on this yet
 	//UnityLight mainLight = MainLight ();
