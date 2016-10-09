@@ -14,60 +14,27 @@ namespace UnityEngine.ScriptableRenderLoop
     {
         private static string m_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
-        // Debugging
-        public enum MaterialDebugMode
+        // Must be in sync with DebugViewMaterial.hlsl
+        public enum DebugViewVaryingMode
         {
-            None = 0,
-
             Depth = 1,
             TexCoord0 = 2,
             VertexNormalWS = 3,
             VertexTangentWS = 4,
             VertexBitangentWS = 5,
-
-            BakeDiffuseLighting = 100,
-            EmissiveColor = 101,
-            EmissiveIntensity = 102,
-            Velocity = 103,
-            Distortion = 104,
-            DistortionBlur = 105,
-
-            BaseColor = 1001,
-            SpecularOcclusion = 1002,
-            NormalWS = 1003,
-            PerceptualSmoothness = 1004,
-            MaterialId = 1005,
-            AmbientOcclusion = 1006,
-            TangentWS = 1007,
-            Anisotropy = 1008,
-            Metalic = 1009,
-            Specular = 1010,
-            SubSurfaceRadius = 1011,
-            Thickness = 1012,
-            SubSurfaceProfile = 1013,
-            CoatNormalWS = 1014,
-            CoatPerceptualSmoothness = 1015,
-            SpecularColor = 1016,
         }
 
-        public enum GBufferDebugMode
+        // Must be in sync with DebugViewMaterial.hlsl
+        public enum DebugViewGbufferMode
         {
-            None = 0,
-            DiffuseColor = 1,
-            Normal = 2,
-            Depth = 3,
-            BakedDiffuse = 4,
-            SpecularColor = 5,
-            SpecularOcclustion = 6,
-            Smoothness = 7,
-            MaterialId = 8,
+            Depth = 6,
+            BakeDiffuseLighting = 7,
         }
 
         public class DebugParameters
         {
             // Material Debugging
-            public MaterialDebugMode materialDebugMode = MaterialDebugMode.None;
-            public GBufferDebugMode gBufferDebugMode = GBufferDebugMode.None;
+            public int debugViewMaterial = 0;
 
             // Rendering debugging
             public bool displayOpaqueObjects = true;
@@ -151,7 +118,7 @@ namespace UnityEngine.ScriptableRenderLoop
         Material m_FinalPassMaterial;
 
         // Debug
-        Material m_GBufferDebugMaterial;
+        Material m_DebugViewMaterialGBuffer;
 
         GBufferManager gbufferManager = new GBufferManager();
 
@@ -203,7 +170,7 @@ namespace UnityEngine.ScriptableRenderLoop
             m_FinalPassMaterial = CreateEngineMaterial("Hidden/Unity/FinalPass");
 
             // Debug
-            m_GBufferDebugMaterial = CreateEngineMaterial("Hidden/Unity/GBufferDebug");
+            m_DebugViewMaterialGBuffer = CreateEngineMaterial("Hidden/Unity/DebugViewMaterialGBuffer");
 
             // m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
         }
@@ -308,46 +275,51 @@ namespace UnityEngine.ScriptableRenderLoop
             RenderOpaqueRenderList(cull, camera, renderLoop, "GBuffer");
         }
 
-        void RenderMaterialDebug(CullResults cull, Camera camera, RenderLoop renderLoop)
+        void RenderDebugViewMaterial(CullResults cull, Camera camera, RenderLoop renderLoop)
         {
-            // setup GBuffer for rendering
-            var cmd = new CommandBuffer();
-            cmd.name = "Material Debug Pass";
-            cmd.GetTemporaryRT(s_CameraColorBuffer, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-            cmd.GetTemporaryRT(s_CameraDepthBuffer, camera.pixelWidth, camera.pixelHeight, 24, FilterMode.Point, RenderTextureFormat.Depth);
-            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
-            cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
-            renderLoop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            // Render Opaque forward
+            {
+                var cmd = new CommandBuffer();
+                cmd.name = "DebugView Material Mode Pass";
+                cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+                cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
 
-            Shader.SetGlobalInt("_MaterialDebugMode", (int)debugParameters.materialDebugMode);
+                Shader.SetGlobalInt("_DebugViewMaterial", (int)debugParameters.debugViewMaterial);
 
-            RenderOpaqueRenderList(cull, camera, renderLoop, "Debug");
-            RenderTransparentRenderList(cull, camera, renderLoop, "Debug");
+                RenderOpaqueRenderList(cull, camera, renderLoop, "DebugView");
+            }
 
-            cmd = new CommandBuffer();
-            cmd.name = "Blit Material Debug";
-            cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
-            renderLoop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
-        }
+            // Render GBUffer opaque
+            {
+                Vector4 screenSize = ComputeScreenSize(camera);
+                m_DebugViewMaterialGBuffer.SetVector("_ScreenSize", screenSize);
+                m_DebugViewMaterialGBuffer.SetFloat("_DebugViewMaterial", (float)debugParameters.debugViewMaterial);
 
-        void RenderGBufferDebug(Camera camera, RenderLoop renderLoop)
-        {
-            Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
-            m_GBufferDebugMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
+                // gbufferManager.BindBuffers(m_DeferredMaterial);
+                // TODO: Bind depth textures
+                var cmd = new CommandBuffer();
+                cmd.name = "GBuffer Debug Pass";
+                cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DebugViewMaterialGBuffer, 0);
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
 
-            Vector4 screenSize = ComputeScreenSize(camera);
-            m_GBufferDebugMaterial.SetVector("_ScreenSize", screenSize);
-            m_GBufferDebugMaterial.SetFloat("_DebugMode", (float)debugParameters.gBufferDebugMode);
+            }          
 
-            // gbufferManager.BindBuffers(m_DeferredMaterial);
-            // TODO: Bind depth textures
-            var cmd = new CommandBuffer();
-            cmd.name = "GBuffer Debug Pass";
-            cmd.Blit(null, BuiltinRenderTextureType.CameraTarget, m_GBufferDebugMaterial, 0);
-            renderLoop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            // Render forward transparent
+            {
+                RenderTransparentRenderList(cull, camera, renderLoop, "DebugView");
+            }
+
+            // Last blit
+            {
+                var cmd = new CommandBuffer();
+                cmd.name = "Blit DebugView Material Debug";
+                cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
         }
 
         Matrix4x4 GetViewProjectionMatrix(Camera camera)
@@ -389,7 +361,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop)
         {
-            // setup GBuffer for rendering
             var cmd = new CommandBuffer();
             cmd.name = "Forward Pass";
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
@@ -736,37 +707,25 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 renderLoop.SetupCameraProperties (camera);
 
-                //UpdateLightConstants(cullResults.culledLights /*, ref shadows */);
+                //UpdateLightConstants(cullResults.culledLights /*, ref shadows */);                
 
+                UpdatePunctualLights(cullResults.culledLights);
 
-                bool needDebugRendering = debugParameters.materialDebugMode != MaterialDebugMode.None || debugParameters.gBufferDebugMode != GBufferDebugMode.None;
+                InitAndClearBuffer(camera, renderLoop);
 
-                if (!needDebugRendering)
+                RenderGBuffer(cullResults, camera, renderLoop);
+
+                if (debugParameters.debugViewMaterial != 0)
                 {
-                    UpdatePunctualLights(cullResults.culledLights);
-
-                    InitAndClearBuffer(camera, renderLoop);
-
-                    RenderGBuffer(cullResults, camera, renderLoop);
-
+                    RenderDebugViewMaterial(cullResults, camera, renderLoop);
+                }
+                else
+                {
                     RenderDeferredLighting(camera, renderLoop);
 
                     RenderForward(cullResults, camera, renderLoop);
 
                     FinalPass(renderLoop);
-                }
-                else
-                {
-                    if(debugParameters.materialDebugMode != MaterialDebugMode.None)
-                    {
-                        RenderMaterialDebug(cullResults, camera, renderLoop);
-                    }
-                    else if (debugParameters.gBufferDebugMode != GBufferDebugMode.None)
-                    {
-                        InitAndClearBuffer(camera, renderLoop);
-                        RenderGBuffer(cullResults, camera, renderLoop);
-                        RenderGBufferDebug(camera, renderLoop);
-                    }
                 }
 
                 renderLoop.Submit ();
