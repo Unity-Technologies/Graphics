@@ -18,19 +18,34 @@ namespace UnityEngine.ScriptableRenderLoop
 	public class GenerateHLSL : System.Attribute
 	{
 		public PackingRules packingRules;
-		public GenerateHLSL(PackingRules rules = PackingRules.Exact)
+        public bool simple;
+        public int debugCounterStart;
+        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool simple = false, int debugCounterStart = 1)
 		{
 			packingRules = rules;
-		}
+            this.simple = simple;
+            this.debugCounterStart = debugCounterStart;
+        }
 	}
 
-	internal class ShaderTypeGenerator
+    [AttributeUsage(AttributeTargets.Field)]
+    public class SurfaceDataAttributes : System.Attribute
+    {
+        public string displayName;
+        public SurfaceDataAttributes(string displayName = "")
+        {
+            this.displayName = displayName;
+        }
+    }
+
+    internal class ShaderTypeGenerator
 	{
 		public ShaderTypeGenerator(Type type, GenerateHLSL attr)
 		{
 			this.type = type;
 			this.attr = attr;
-		}
+            debugCounter = 0;
+        }
 
 		enum PrimitiveType
 		{
@@ -447,6 +462,12 @@ namespace UnityEngine.ScriptableRenderLoop
 					continue;
 				}
 
+                if (attr.simple)
+                {
+                    string subNamespace = type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1);
+                    statics["DEBUGVIEW_" + subNamespace.ToUpper() + "_" + type.Name.ToUpper() + "_" + field.Name.ToUpper()] = Convert.ToString(attr.debugCounterStart + debugCounter++);
+                }
+
 				if (field.FieldType.IsPrimitive)
 				{
 					if (field.FieldType == typeof(float))
@@ -471,8 +492,8 @@ namespace UnityEngine.ScriptableRenderLoop
 					else if (field.FieldType == typeof(Vector4))
 						EmitPrimitiveType(PrimitiveType.Float, 4, field.Name, "", shaderFields);
 					else if (field.FieldType == typeof(Matrix4x4))
-						EmitMatrixType(PrimitiveType.Float, 4, 4, field.Name, "", shaderFields);
-					else if (!ExtractComplex(field, shaderFields))
+                        EmitMatrixType(PrimitiveType.Float, 4, 4, field.Name, "", shaderFields);
+                    else if (!ExtractComplex(field, shaderFields))
 					{
 						// Error reporting done in ExtractComplex()
 						return false;
@@ -505,8 +526,14 @@ namespace UnityEngine.ScriptableRenderLoop
 			get { return statics.Count > 0; }
 		}
 
+        public bool IsSimple()
+        {
+            return attr.simple;
+        }
+
 		public Type type;
 		public GenerateHLSL attr;
+        public int debugCounter;
 		public List<string> errors = null;
 
 		Dictionary<string, string> statics;

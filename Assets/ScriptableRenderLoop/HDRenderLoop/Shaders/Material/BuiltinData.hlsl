@@ -8,60 +8,34 @@
 // Note: These parameters can be store in GBuffer if the writer wants
 //-----------------------------------------------------------------------------
 
-struct BuiltinData
+#include "BuiltinData.cs.hlsl"
+
+void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout bool needLinearToSRGB)
 {
-    float	opacity;
-
-    // These are lighting data.
-    // We would prefer to split lighting and material information but for performance reasons, 
-    // those lighting information are fill 
-    // at the same time than material information.
-    float3	bakeDiffuseLighting;	// This is the result of sampling lightmap/lightprobe/proxyvolume
-
-    float3	emissiveColor;
-    float	emissiveIntensity;
-
-    // These is required for motion blur and temporalAA
-    float2	velocity;
-
-    // Distortion
-    float2	distortion;
-    float	distortionBlur;			// Define the color buffer mipmap level to use
-};
-
-void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout float outputIsLinear)
-{
-	if (paramId == MaterialDebugBakeDiffuseLighting)
-	{
-		// TODO: require a remap
-		result = builtinData.bakeDiffuseLighting;
-		outputIsLinear = true;
-	}
-	else if (paramId == MaterialDebugEmissiveColor)
-	{
-		result = builtinData.emissiveColor;
-		outputIsLinear = true;
-	}
-	else if (paramId == MaterialDebugEmissiveIntensity)
-	{
-		// TODO: require a reamp
-		result = builtinData.emissiveIntensity.xxx;
-		outputIsLinear = true;
-	}
-	else if (paramId == MaterialDebugVelocity)
-	{
-		result = float3(builtinData.velocity, 0.0);
-		outputIsLinear = true;
-	}
-	else if (paramId == MaterialDebugDistortion)
-	{
-		result = float3(builtinData.distortion, 0.0);
-		outputIsLinear = true;
-	}
-	else if (paramId == MaterialDebugDistortionBlur)
-	{
-		result = builtinData.distortionBlur.xxx;
-		outputIsLinear = true;
-	}
+    switch (paramId)
+    {
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_OPACITY:
+        result = builtinData.opacity.xxx;
+        break;
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKEDIFFUSELIGHTING:
+        // TODO: require a remap
+        result = builtinData.bakeDiffuseLighting;
+        break;
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVECOLOR:
+        result = builtinData.emissiveColor; needLinearToSRGB = true;
+        break;
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVEINTENSITY:
+        result = builtinData.emissiveIntensity.xxx;
+        break;
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY:
+        result = float3(builtinData.velocity, 0.0);
+        break;
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
+        result = float3(builtinData.distortion, 0.0);
+        break;
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTIONBLUR:
+        result = builtinData.distortionBlur.xxx;
+        break;
+    }
 }
 #endif // UNITY_BUILTIN_DATA_INCLUDED
