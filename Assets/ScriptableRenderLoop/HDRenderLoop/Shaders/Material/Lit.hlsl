@@ -5,12 +5,6 @@
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
 
-// TODO: THis is suppose to be genenerated from enum on C# side, but haven't written the code yet!
-#define LIT_STANDARD 0
-#define LIT_SSS 1
-#define LIT_CLEARCOAT 2
-#define LIT_SPECULAR 3
-
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 
@@ -28,7 +22,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     bsdfData.materialId = surfaceData.materialId;
 
-    if (bsdfData.materialId == LIT_STANDARD)
+    if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {        
         bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
         bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metalic);
@@ -37,21 +31,21 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);
         ConvertAnisotropyToRoughness(bsdfData.roughness, surfaceData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
     }
-    else if (bsdfData.materialId == LIT_SSS)
+    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subSurfaceProfile
         bsdfData.subSurfaceRadius = surfaceData.subSurfaceRadius;
         bsdfData.thickness = surfaceData.thickness;        
     }
-    else if (bsdfData.materialId == LIT_CLEARCOAT)
+    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
         bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
         bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metalic);
         bsdfData.coatNormalWS = surfaceData.coatNormalWS;
         bsdfData.coatRoughness = PerceptualSmoothnessToRoughness(surfaceData.coatPerceptualSmoothness);
     }
-    else if (bsdfData.materialId == LIT_SPECULAR)
+    else if (bsdfData.materialId == MATERIALID_LIT_SPECULAR)
     {
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = surfaceData.specularColor;
@@ -82,19 +76,19 @@ float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData)
 {
     float3 diffuseColor;
 
-    if (surfaceData.materialId == LIT_STANDARD)
+    if (surfaceData.materialId == MATERIALID_LIT_STANDARD)
     {
         diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
      }
-    else if (surfaceData.materialId == LIT_SSS)
+    else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
         diffuseColor = surfaceData.baseColor;
     }
-    else if (surfaceData.materialId == LIT_CLEARCOAT)
+    else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
         diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
     }
-    else if (surfaceData.materialId == LIT_SPECULAR)
+    else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
     {
         diffuseColor = surfaceData.baseColor;
     }
@@ -127,25 +121,25 @@ void EncodeIntoGBuffer(	SurfaceData surfaceData,
     outGBuffer1 = float4(octNormalWS * 0.5 + 0.5, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness), PackMaterialId(surfaceData.materialId));
 
     // RT2 - 8:8:8:8
-    if (surfaceData.materialId == LIT_STANDARD)
+    if (surfaceData.materialId == MATERIALID_LIT_STANDARD)
     {
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
         // TODO: store metal and specular together, specular should be an enum (fixed value)
         outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, surfaceData.metalic);
     }
-    else if (surfaceData.materialId == LIT_SSS)
+    else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
         outGBuffer2 = float4(surfaceData.subSurfaceRadius, surfaceData.thickness, 0.0, 0.0);
     }
-    else if (surfaceData.materialId == LIT_CLEARCOAT)
+    else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
         // Encode coat normal on 16bit with oct compression
         float2 octCoatNormalWS = PackNormalOctEncode(surfaceData.coatNormalWS);
         // TODO: store metal and specular together, specular should be an enum (fixed value)
         outGBuffer2 = float4(octCoatNormalWS * 0.5 + 0.5, PerceptualSmoothnessToRoughness(surfaceData.coatPerceptualSmoothness), surfaceData.metalic);
     }
-    else if (surfaceData.materialId == LIT_SPECULAR)
+    else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
     {
         outGBuffer2 = float4(surfaceData.specularColor, 0.0);
     }
@@ -165,7 +159,7 @@ BSDFData DecodeFromGBuffer(	float4 inGBuffer0,
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     bsdfData.materialId = UnpackMaterialId(inGBuffer1.a);
 
-    if (bsdfData.materialId == LIT_STANDARD)
+    if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
         float metalic = inGBuffer2.a;
         // TODO extract spec
@@ -179,14 +173,14 @@ BSDFData DecodeFromGBuffer(	float4 inGBuffer0,
         bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
         ConvertAnisotropyToRoughness(bsdfData.roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
     }
-    else if (bsdfData.materialId == LIT_SSS)
+    else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
         bsdfData.diffuseColor = baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subSurfaceProfile
         bsdfData.subSurfaceRadius = inGBuffer2.r;
         bsdfData.thickness = inGBuffer2.g;
     }
-    else if (bsdfData.materialId == LIT_CLEARCOAT)
+    else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
         float metalic = inGBuffer2.a;
         // TODO extract spec
@@ -197,7 +191,7 @@ BSDFData DecodeFromGBuffer(	float4 inGBuffer0,
         bsdfData.coatNormalWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
         bsdfData.coatRoughness = inGBuffer2.b;
     }
-    else if (bsdfData.materialId == LIT_SPECULAR)
+    else if (bsdfData.materialId == MATERIALID_LIT_SPECULAR)
     {
         bsdfData.diffuseColor = baseColor;
         bsdfData.fresnel0 = inGBuffer2.rgb;
@@ -214,25 +208,25 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
 {
     switch (paramId)
     {
-        case DEBUGVIEW_LIT_SURFACEDATA_BASECOLOR:                   
+        case DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR:                   
             result = surfaceData.baseColor; needLinearToSRGB = true; 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAROCCLUSION:           
+        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION:           
             result = surfaceData.specularOcclusion.xxx;  
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_NORMALWS:                    
+        case DEBUGVIEW_LIT_SURFACEDATA_NORMAL_WS:                    
             result = surfaceData.normalWS * 0.5 + 0.5; 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_PERCEPTUALSMOOTHNESS:        
+        case DEBUGVIEW_LIT_SURFACEDATA_PERCEPTUAL_SMOOTHNESS:        
             result = surfaceData.perceptualSmoothness.xxx; 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_MATERIALID:                  
+        case DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_ID:                  
             result = GetIndexColor(surfaceData.materialId); 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_AMBIENTOCCLUSION:            
+        case DEBUGVIEW_LIT_SURFACEDATA_AMBIENT_OCCLUSION:            
             result = surfaceData.ambientOcclusion.xxx; 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_TANGENTWS:                   
+        case DEBUGVIEW_LIT_SURFACEDATA_TANGENT_WS:                   
             result = surfaceData.tangentWS * 0.5 + 0.5; 
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY:                  
@@ -245,22 +239,22 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
         case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR:                    
             result = surfaceData.specular.xxx; 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACERADIUS:            
+        case DEBUGVIEW_LIT_SURFACEDATA_SUB_SURFACE_RADIUS:            
             result = surfaceData.subSurfaceRadius.xxx; 
             break;
         case DEBUGVIEW_LIT_SURFACEDATA_THICKNESS:                   
             result = surfaceData.thickness.xxx; 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SUBSURFACEPROFILE:           
+        case DEBUGVIEW_LIT_SURFACEDATA_SUB_SURFACE_PROFILE:           
             result = GetIndexColor(surfaceData.subSurfaceProfile); 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COATNORMALWS:                
+        case DEBUGVIEW_LIT_SURFACEDATA_COAT_NORMAL_WS:                
             result = surfaceData.coatNormalWS * 0.5 + 0.5; 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_COATPERCEPTUALSMOOTHNESS:    
+        case DEBUGVIEW_LIT_SURFACEDATA_COAT_PERCEPTUAL_SMOOTHNESS:    
             result = surfaceData.coatPerceptualSmoothness.xxx; 
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_SPECULARCOLOR:               
+        case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR:               
             result = surfaceData.specularColor; needLinearToSRGB = true; 
             break;
     }
@@ -270,52 +264,52 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 {
     switch (paramId)
     {
-        case DEBUGVIEW_LIT_BSDFDATA_DIFFUSECOLOR:
+        case DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR:
             result = bsdfData.diffuseColor; needLinearToSRGB = true;
             break;
         case DEBUGVIEW_LIT_BSDFDATA_FRESNEL0:
             result = bsdfData.fresnel0; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_SPECULAROCCLUSION:   
+        case DEBUGVIEW_LIT_BSDFDATA_SPECULAR_OCCLUSION:   
             result = bsdfData.specularOcclusion.xxx; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_NORMALWS:            
+        case DEBUGVIEW_LIT_BSDFDATA_NORMAL_WS:            
             result = bsdfData.normalWS * 0.5 + 0.5; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_PERCEPTUALROUGHNESS: 
+        case DEBUGVIEW_LIT_BSDFDATA_PERCEPTUAL_ROUGHNESS: 
             result = bsdfData.perceptualRoughness.xxx; 
             break;
         case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS:           
             result = bsdfData.roughness.xxx; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_MATERIALID:          
+        case DEBUGVIEW_LIT_BSDFDATA_MATERIAL_ID:          
             result = GetIndexColor(bsdfData.materialId); 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_TANGENTWS:           
+        case DEBUGVIEW_LIT_BSDFDATA_TANGENT_WS:           
             result = bsdfData.tangentWS * 0.5 + 0.5; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_BITANGENTWS:         
+        case DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS:         
             result = bsdfData.bitangentWS * 0.5 + 0.5; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESST:          
+        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T:          
             result = bsdfData.roughnessT.xxx; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESSB:          
+        case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B:          
             result = bsdfData.roughnessB.xxx; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACERADIUS:    
+        case DEBUGVIEW_LIT_BSDFDATA_SUB_SURFACE_RADIUS:    
             result = bsdfData.subSurfaceRadius.xxx; 
             break;
         case DEBUGVIEW_LIT_BSDFDATA_THICKNESS:           
             result = bsdfData.thickness.xxx; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_SUBSURFACEPROFILE:   
+        case DEBUGVIEW_LIT_BSDFDATA_SUB_SURFACE_PROFILE:   
             result = GetIndexColor(bsdfData.subSurfaceProfile); 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_COATNORMALWS:        
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS:        
             result = bsdfData.coatNormalWS * 0.5 + 0.5; 
             break;
-        case DEBUGVIEW_LIT_BSDFDATA_COATROUGHNESS:       
+        case DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS:       
             result = bsdfData.coatRoughness.xxx; 
             break;
     }
