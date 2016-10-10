@@ -126,9 +126,9 @@ internal class LitGUI : ShaderGUI
 
     
 
-    MaterialEditor m_MaterialEditor;
+    protected MaterialEditor m_MaterialEditor;
 
-    public void FindProperties (MaterialProperty[] props)
+    public void FindOptionProperties (MaterialProperty[] props)
     {
         surfaceType = FindProperty("_SurfaceType", props);
         blendMode = FindProperty("_BlendMode", props);
@@ -137,7 +137,12 @@ internal class LitGUI : ShaderGUI
         doubleSidedMode = FindProperty("_DoubleSidedMode", props);
         smoothnessMapChannel = FindProperty("_SmoothnessTextureChannel", props);
         emissiveColorMode = FindProperty("_EmissiveColorMode", props);
+        normalMapSpace = FindProperty("_NormalMapSpace", props);
+        heightMapMode = FindProperty("_HeightMapMode", props);
+    }
 
+    public void FindInputProperties(MaterialProperty[] props)
+    {
         baseColor = FindProperty("_BaseColor", props);
         baseColorMap = FindProperty("_BaseColorMap", props);
         metalic = FindProperty("_Metalic", props);
@@ -145,24 +150,88 @@ internal class LitGUI : ShaderGUI
         maskMap = FindProperty("_MaskMap", props);
         specularOcclusionMap = FindProperty("_SpecularOcclusionMap", props);
         normalMap = FindProperty("_NormalMap", props);
-        normalMapSpace = FindProperty("_NormalMapSpace", props);
         heightMap = FindProperty("_HeightMap", props);
         heightScale = FindProperty("_HeightScale", props);
         heightBias = FindProperty("_HeightBias", props);
-        heightMapMode = FindProperty("_HeightMapMode", props);
         // diffuseLightingMap = FindProperty("_DiffuseLightingMap", props);
         emissiveColor = FindProperty("_EmissiveColor", props);
         emissiveColorMap = FindProperty("_EmissiveColorMap", props);
         emissiveIntensity = FindProperty("_EmissiveIntensity", props);
     }
-
+    
     public override void OnGUI (MaterialEditor materialEditor, MaterialProperty[] props)
     {
-        FindProperties (props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
+        FindOptionProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
+        FindInputProperties(props);
+
         m_MaterialEditor = materialEditor;
         Material material = materialEditor.target as Material;
-
         ShaderPropertiesGUI (material);
+    }
+
+    protected void ShaderOptionsGUI()
+    {
+        EditorGUI.indentLevel++;
+        GUILayout.Label(Styles.OptionText, EditorStyles.boldLabel);
+        SurfaceTypePopup();
+        if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
+        {
+            BlendModePopup();
+        }
+        m_MaterialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText.text);
+        if (alphaCutoffEnable.floatValue == 1.0)
+        {
+            m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText.text);
+        }
+        m_MaterialEditor.ShaderProperty(doubleSidedMode, Styles.doubleSidedModeText.text);
+
+        EditorGUI.indentLevel--;
+    }
+
+    protected void ShaderInputOptionsGUI()
+    {
+        EditorGUI.indentLevel++;
+        GUILayout.Label(Styles.InputsOptionsText, EditorStyles.boldLabel);
+        m_MaterialEditor.ShaderProperty(smoothnessMapChannel, Styles.smoothnessMapChannelText.text);
+        m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText.text);
+        m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);
+        m_MaterialEditor.ShaderProperty(heightMapMode, Styles.heightMapModeText.text);
+        EditorGUI.indentLevel--;
+    }
+
+
+    protected void ShaderInputGUI()
+    {
+        EditorGUI.indentLevel++;
+        bool isAlbedoAlpha = (SmoothnessMapChannel)smoothnessMapChannel.floatValue == SmoothnessMapChannel.AlbedoAlpha;
+        bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
+
+        GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
+        m_MaterialEditor.TexturePropertySingleLine(isAlbedoAlpha ? Styles.baseColorSmoothnessText : Styles.baseColorText, baseColorMap, baseColor);
+        m_MaterialEditor.ShaderProperty(metalic, Styles.metalicText);
+        m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
+
+        if (isAlbedoAlpha && useEmissiveMask)
+            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapESText, maskMap);
+        else if (useEmissiveMask)
+            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapEText, maskMap);
+        else if (isAlbedoAlpha)
+            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap);
+        else
+            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
+
+        m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap);
+
+        m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
+
+        m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap, heightScale, heightBias);
+
+        if (!useEmissiveMask)
+        {
+            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
+        }
+        m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+        EditorGUI.indentLevel--;
     }
 
     public void ShaderPropertiesGUI (Material material)
@@ -173,58 +242,18 @@ internal class LitGUI : ShaderGUI
         // Detect any changes to the material
         EditorGUI.BeginChangeCheck();
         {
-            GUILayout.Label(Styles.OptionText, EditorStyles.boldLabel);
-            SurfaceTypePopup();            
-            if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
-            {
-                BlendModePopup();
-            }
-            m_MaterialEditor.ShaderProperty(alphaCutoffEnable, Styles.alphaCutoffEnableText.text);
-            if (alphaCutoffEnable.floatValue == 1.0)
-            {
-                m_MaterialEditor.ShaderProperty(alphaCutoff, Styles.alphaCutoffText.text);
-            }
-            m_MaterialEditor.ShaderProperty(doubleSidedMode, Styles.doubleSidedModeText.text);
+            ShaderOptionsGUI();
+            EditorGUILayout.Space();
 
-            GUILayout.Label(Styles.InputsOptionsText, EditorStyles.boldLabel);
-            m_MaterialEditor.ShaderProperty(smoothnessMapChannel, Styles.smoothnessMapChannelText.text);
-            m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText.text);
+            ShaderInputOptionsGUI();
 
-            bool isAlbedoAlpha = (SmoothnessMapChannel)smoothnessMapChannel.floatValue == SmoothnessMapChannel.AlbedoAlpha;
-            bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
-
-            GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
-            m_MaterialEditor.TexturePropertySingleLine(isAlbedoAlpha ? Styles.baseColorSmoothnessText : Styles.baseColorText, baseColorMap, baseColor);
-            m_MaterialEditor.ShaderProperty(metalic, Styles.metalicText);
-            m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
-
-            if (isAlbedoAlpha && useEmissiveMask)
-                m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapESText, maskMap);
-            else if (useEmissiveMask)
-                m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapEText, maskMap);
-            else if (isAlbedoAlpha)
-                m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap);
-            else
-                m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
-
-            m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap);
-
-            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
-            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);            
-
-            m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap, heightScale, heightBias);
-            m_MaterialEditor.ShaderProperty(heightMapMode, Styles.heightMapModeText.text); 
-            
-            if (!useEmissiveMask)
-            {
-                m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-            }
-            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);	
+            EditorGUILayout.Space();
+            ShaderInputGUI();
         }
 
         if (EditorGUI.EndChangeCheck())
         {
-            foreach (var obj in blendMode.targets)
+            foreach (var obj in m_MaterialEditor.targets)
                 MaterialChanged((Material)obj);
         }
     }
@@ -267,7 +296,7 @@ internal class LitGUI : ShaderGUI
         EditorGUI.showMixedValue = false;
     }
 
-    static public void SetupMaterial(Material material)
+    protected void SetupMaterial(Material material)
     {
         // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
         // (MaterialProperty value might come from renderer material property block)
@@ -394,7 +423,7 @@ internal class LitGUI : ShaderGUI
         return true;
     }
 
-    static void MaterialChanged(Material material)
+    protected void MaterialChanged(Material material)
     {
         SetupMaterial(material);
     }
