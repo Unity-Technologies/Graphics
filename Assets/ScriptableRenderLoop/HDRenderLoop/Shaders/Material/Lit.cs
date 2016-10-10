@@ -7,6 +7,15 @@ namespace UnityEngine.ScriptableRenderLoop
 {
     namespace Lit
     {
+        [GenerateHLSL(PackingRules.Exact)]
+        public enum MaterialId
+        {
+            LitStandard = 0,
+            LitSSS = 1,
+            LitClearCoat = 2,
+            LitSpecular = 3
+        };
+
         //-----------------------------------------------------------------------------
         // SurfaceData
         //-----------------------------------------------------------------------------
@@ -15,14 +24,6 @@ namespace UnityEngine.ScriptableRenderLoop
         [GenerateHLSL(PackingRules.Exact, true, 1000)]
         public struct SurfaceData
         {
-            public enum MaterialId
-            {
-                LIT_STANDARD = 0,
-                LIT_SSS = 1,
-                LIT_CLEARCOAT = 2,
-                LIT_SPECULAR = 3
-            };
-
             [SurfaceDataAttributes("Base Color")]
             public Vector3 baseColor;
             [SurfaceDataAttributes("Specular Occlusion")]

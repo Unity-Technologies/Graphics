@@ -17,14 +17,14 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
     case DEBUGVIEW_BUILTIN_BUILTINDATA_OPACITY:
         result = builtinData.opacity.xxx;
         break;
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKEDIFFUSELIGHTING:
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING:
         // TODO: require a remap
         result = builtinData.bakeDiffuseLighting;
         break;
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVECOLOR:
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR:
         result = builtinData.emissiveColor; needLinearToSRGB = true;
         break;
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVEINTENSITY:
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_INTENSITY:
         result = builtinData.emissiveIntensity.xxx;
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY:
@@ -33,7 +33,7 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
         result = float3(builtinData.distortion, 0.0);
         break;
-    case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTIONBLUR:
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR:
         result = builtinData.distortionBlur.xxx;
         break;
     }
