@@ -14,38 +14,38 @@ namespace UnityEngine.ScriptableRenderLoop
 		Aggressive
 	};
 
-	[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class | AttributeTargets.Enum)]
 	public class GenerateHLSL : System.Attribute
 	{
 		public PackingRules packingRules;
-        public bool simple;
-        public int debugCounterStart;
-        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool simple = false, int debugCounterStart = 1)
+		public bool simple;
+		public int debugCounterStart;
+		public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool simple = false, int debugCounterStart = 1)
 		{
 			packingRules = rules;
-            this.simple = simple;
-            this.debugCounterStart = debugCounterStart;
-        }
+			this.simple = simple;
+			this.debugCounterStart = debugCounterStart;
+		}
 	}
 
-    [AttributeUsage(AttributeTargets.Field)]
-    public class SurfaceDataAttributes : System.Attribute
-    {
-        public string displayName;
-        public SurfaceDataAttributes(string displayName = "")
-        {
-            this.displayName = displayName;
-        }
-    }
+	[AttributeUsage(AttributeTargets.Field)]
+	public class SurfaceDataAttributes : System.Attribute
+	{
+		public string displayName;
+		public SurfaceDataAttributes(string displayName = "")
+		{
+			this.displayName = displayName;
+		}
+	}
 
-    internal class ShaderTypeGenerator
+	internal class ShaderTypeGenerator
 	{
 		public ShaderTypeGenerator(Type type, GenerateHLSL attr)
 		{
 			this.type = type;
 			this.attr = attr;
-            debugCounter = 0;
-        }
+			debugCounter = 0;
+		}
 
 		enum PrimitiveType
 		{
@@ -352,7 +352,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 					// merge accessors
 					Accessor acc = current.accessor;
-					
+
 					acc.name = current.name;
 					e.Current.accessor = acc;
 					e.Current.swizzleOffset += offset;
@@ -451,6 +451,28 @@ namespace UnityEngine.ScriptableRenderLoop
 			FieldInfo[] fields = type.GetFields();
 			shaderFields = new List<ShaderFieldInfo>();
 
+			if (type.IsEnum)
+			{
+				foreach (var field in fields)
+				{
+					if (!field.IsSpecialName)
+					{
+						string name = field.Name;
+						for (int i = 1; i < name.Length; i++)
+						{
+							if (char.IsLower(name[i-1]) && char.IsUpper(name[i]))
+							{
+								// case switch, insert underscore
+								name = name.Insert(i, "_");
+							}
+						}
+						statics[(type.Name + "_" + name).ToUpper()] = field.GetRawConstantValue().ToString();
+					}
+				}
+				errors = null;
+				return true;
+			}
+
 			foreach (var field in fields)
 			{
 				if (field.IsStatic)
@@ -462,11 +484,11 @@ namespace UnityEngine.ScriptableRenderLoop
 					continue;
 				}
 
-                if (attr.simple)
-                {
-                    string subNamespace = type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1);
-                    statics["DEBUGVIEW_" + subNamespace.ToUpper() + "_" + type.Name.ToUpper() + "_" + field.Name.ToUpper()] = Convert.ToString(attr.debugCounterStart + debugCounter++);
-                }
+				if (attr.simple)
+				{
+					string subNamespace = type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1);
+					statics["DEBUGVIEW_" + subNamespace.ToUpper() + "_" + type.Name.ToUpper() + "_" + field.Name.ToUpper()] = Convert.ToString(attr.debugCounterStart + debugCounter++);
+				}
 
 				if (field.FieldType.IsPrimitive)
 				{
@@ -492,8 +514,8 @@ namespace UnityEngine.ScriptableRenderLoop
 					else if (field.FieldType == typeof(Vector4))
 						EmitPrimitiveType(PrimitiveType.Float, 4, field.Name, "", shaderFields);
 					else if (field.FieldType == typeof(Matrix4x4))
-                        EmitMatrixType(PrimitiveType.Float, 4, 4, field.Name, "", shaderFields);
-                    else if (!ExtractComplex(field, shaderFields))
+						EmitMatrixType(PrimitiveType.Float, 4, 4, field.Name, "", shaderFields);
+					else if (!ExtractComplex(field, shaderFields))
 					{
 						// Error reporting done in ExtractComplex()
 						return false;
@@ -526,14 +548,14 @@ namespace UnityEngine.ScriptableRenderLoop
 			get { return statics.Count > 0; }
 		}
 
-        public bool IsSimple()
-        {
-            return attr.simple;
-        }
+		public bool IsSimple()
+		{
+			return attr.simple;
+		}
 
 		public Type type;
 		public GenerateHLSL attr;
-        public int debugCounter;
+		public int debugCounter;
 		public List<string> errors = null;
 
 		Dictionary<string, string> statics;
