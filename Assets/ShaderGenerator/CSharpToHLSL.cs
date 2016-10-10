@@ -46,7 +46,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			foreach (var assembly in assemblyList)
 			{
 				Type[] types = assembly.GetExportedTypes();
-				
+
 				foreach (var type in types)
 				{
 					object[] attributes = type.GetCustomAttributes(true);
@@ -103,7 +103,7 @@ namespace UnityEngine.ScriptableRenderLoop
 				}
 
 				if (!skipFile)
-				{ 
+				{
 					using (System.IO.StreamWriter writer = File.CreateText(fileName))
 					{
 						writer.Write("//\n");
@@ -133,7 +133,7 @@ namespace UnityEngine.ScriptableRenderLoop
 								writer.Write(gen.EmitAccessors() + "\n");
 							}
 						}
-						
+
 						writer.Write("\n");
 					}
 				}
@@ -214,7 +214,7 @@ namespace UnityEngine.ScriptableRenderLoop
 				}
 				return name;
 			}
-			
+
 			public Stack<string> currentNamespaces;
 			public Stack<string> currentClasses;
 			public List<ShaderTypeGenerator> generators;
@@ -236,12 +236,12 @@ namespace UnityEngine.ScriptableRenderLoop
 			public override object VisitTypeDeclaration(TypeDeclaration typeDeclaration, object data)
 			{
 				// Structured types only
-				if (typeDeclaration.Type == ClassType.Class || typeDeclaration.Type == ClassType.Struct)
+				if (typeDeclaration.Type == ClassType.Class || typeDeclaration.Type == ClassType.Struct || typeDeclaration.Type == ClassType.Enum)
 				{
 					VisitorData visitorData = (VisitorData)data;
 
 					string name = visitorData.GetTypePrefix() + typeDeclaration.Name;
-					
+
 					ShaderTypeGenerator gen;
 					if (visitorData.m_typeName.TryGetValue(name, out gen))
 					{
