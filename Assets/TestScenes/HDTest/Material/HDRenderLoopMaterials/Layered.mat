@@ -6,25 +6,36 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Blue_Alpha
-  m_Shader: {fileID: 4800000, guid: e7e3743f30ad81a4ba2d0528f52d026b, type: 3}
+  m_Name: Layered
+  m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
-    _EMISSION _NORMALMAP_TANGENT_SPACE
+    _EMISSION
   m_LightmapFlags: 1
-  m_CustomRenderQueue: 3000
-  stringTagMap:
-    RenderType: Transparent
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
     m_TexEnvs:
     - first:
-        name: _AmbientOcclusionMap
+        name: _BaseColorMap0
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _BaseColorMap
+        name: _BaseColorMap1
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _BaseColorMap2
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _BaseColorMap3
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -54,25 +65,55 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _DiffuseLightingMap
-      second:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - first:
         name: _EmissionMap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _EmissiveColorMap
+        name: _EmissiveColorMap0
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _HeightMap
+        name: _EmissiveColorMap1
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _EmissiveColorMap2
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _EmissiveColorMap3
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _HeightMap0
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _HeightMap1
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _HeightMap2
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _HeightMap3
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -84,7 +125,25 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _MaskMap
+        name: _MaskMap0
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _MaskMap1
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _MaskMap2
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _MaskMap3
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -96,13 +155,25 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _MettalicMap
+        name: _NormalMap0
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _NormalMap
+        name: _NormalMap1
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _NormalMap2
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _NormalMap3
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -120,19 +191,25 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _SmoothnessMap
+        name: _SpecularOcclusionMap0
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _SpecularOcclusionMap
+        name: _SpecularOcclusionMap1
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
-        name: _SubSurfaceRadiusMap
+        name: _SpecularOcclusionMap2
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _SpecularOcclusionMap3
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -140,7 +217,7 @@ Material:
     m_Floats:
     - first:
         name: _AlphaCutoff
-      second: 0.187
+      second: 0.5
     - first:
         name: _AlphaCutoffEnable
       second: 0
@@ -152,7 +229,7 @@ Material:
       second: 1
     - first:
         name: _CullMode
-      second: 0
+      second: 2
     - first:
         name: _Cutoff
       second: 0.5
@@ -166,22 +243,25 @@ Material:
         name: _DistortionOnly
       second: 0
     - first:
-        name: _DoubleSided
-      second: 1
-    - first:
-        name: _DoubleSidedLigthing
-      second: 1
-    - first:
         name: _DoubleSidedMode
-      second: 1
+      second: 0
     - first:
         name: _DstBlend
-      second: 10
+      second: 0
     - first:
         name: _EmissiveColorMode
       second: 1
     - first:
-        name: _EmissiveIntensity
+        name: _EmissiveIntensity0
+      second: 0
+    - first:
+        name: _EmissiveIntensity1
+      second: 0
+    - first:
+        name: _EmissiveIntensity2
+      second: 0
+    - first:
+        name: _EmissiveIntensity3
       second: 0
     - first:
         name: _GlossMapScale
@@ -193,28 +273,49 @@ Material:
         name: _GlossyReflections
       second: 1
     - first:
-        name: _HeightBias
+        name: _HeightBias0
+      second: 0
+    - first:
+        name: _HeightBias1
+      second: 0
+    - first:
+        name: _HeightBias2
+      second: 0
+    - first:
+        name: _HeightBias3
       second: 0
     - first:
         name: _HeightMapMode
       second: 0
     - first:
-        name: _HeightScale
+        name: _HeightScale0
       second: 1
     - first:
-        name: _MaterialID
-      second: 0
+        name: _HeightScale1
+      second: 1
+    - first:
+        name: _HeightScale2
+      second: 1
+    - first:
+        name: _HeightScale3
+      second: 1
     - first:
         name: _MaterialId
       second: 0
     - first:
-        name: _Metalic
+        name: _Metalic0
+      second: 0
+    - first:
+        name: _Metalic1
+      second: 0
+    - first:
+        name: _Metalic2
+      second: 0
+    - first:
+        name: _Metalic3
       second: 0
     - first:
         name: _Metallic
-      second: 0
-    - first:
-        name: _Mettalic
       second: 0
     - first:
         name: _Mode
@@ -229,7 +330,16 @@ Material:
         name: _Parallax
       second: 0.02
     - first:
-        name: _Smoothness
+        name: _Smoothness0
+      second: 0.5
+    - first:
+        name: _Smoothness1
+      second: 0.5
+    - first:
+        name: _Smoothness2
+      second: 0.5
+    - first:
+        name: _Smoothness3
       second: 0.5
     - first:
         name: _SmoothnessTextureChannel
@@ -239,29 +349,44 @@ Material:
       second: 1
     - first:
         name: _SrcBlend
-      second: 5
-    - first:
-        name: _SubSurfaceRadius
-      second: 0
+      second: 1
     - first:
         name: _SurfaceType
-      second: 1
+      second: 0
     - first:
         name: _UVSec
       second: 0
     - first:
         name: _ZWrite
-      second: 0
+      second: 1
     m_Colors:
     - first:
-        name: _BaseColor
-      second: {r: 0.3118512, g: 0.49926913, b: 0.75735295, a: 0.672}
+        name: _BaseColor0
+      second: {r: 1, g: 0, b: 0, a: 1}
+    - first:
+        name: _BaseColor1
+      second: {r: 0, g: 1, b: 0, a: 1}
+    - first:
+        name: _BaseColor2
+      second: {r: 0, g: 0, b: 1, a: 1}
+    - first:
+        name: _BaseColor3
+      second: {r: 1, g: 1, b: 0, a: 1}
     - first:
         name: _Color
-      second: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
+      second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _EmissionColor
       second: {r: 0, g: 0, b: 0, a: 1}
     - first:
-        name: _EmissiveColor
+        name: _EmissiveColor0
+      second: {r: 0, g: 0, b: 0, a: 1}
+    - first:
+        name: _EmissiveColor1
+      second: {r: 0, g: 0, b: 0, a: 1}
+    - first:
+        name: _EmissiveColor2
+      second: {r: 0, g: 0, b: 0, a: 1}
+    - first:
+        name: _EmissiveColor3
       second: {r: 0, g: 0, b: 0, a: 1}
