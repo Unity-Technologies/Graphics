@@ -75,6 +75,8 @@ Shader "Unity/LayeredLit"
         _EmissiveIntensity2("EmissiveIntensity2", Float) = 0
         _EmissiveIntensity3("EmissiveIntensity3", Float) = 0
 
+        _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
+
         [ToggleOff]		_DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff]		_DistortionDepthTest("Distortion Only", Float) = 0.0
 
@@ -113,6 +115,7 @@ Shader "Unity/LayeredLit"
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
+    #pragma shader_feature _LAYERMASKMAP
 
     #include "LayeredLitTemplate.hlsl"
 

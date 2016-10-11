@@ -59,6 +59,7 @@ PROP_DECL(float4, _EmissiveColor);
 PROP_DECL(float, _EmissiveIntensity);
 
 float _AlphaCutoff;
+sampler2D _LayerMaskMap;
 
 //-------------------------------------------------------------------------------------
 // Lighting architecture
@@ -190,6 +191,7 @@ float3 BlendLayeredColor(float3 rgb0, float3 rgb1, float3 rgb2, float3 rgb3, flo
 
 float3 BlendLayeredNormal(float3 normal0, float3 normal1, float3 normal2, float3 normal3, float weight[4])
 {
+    // TODO : real normal map blending function
     return normal0 * weight[0] + normal1 * weight[1] + normal2 * weight[2] + normal3 * weight[3];
 }
 
@@ -222,7 +224,13 @@ void ComputeMaskWeights(float4 inputMasks, out float outWeights[MAX_LAYER])
 
 void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    float4 maskValues = input.vertexColor;
+    float4 maskValues = float4(1.0, 1.0, 1.0, 1.0);// input.vertexColor;
+
+#ifdef _LAYERMASKMAP
+    float4 maskMap = tex2D(_LayerMaskMap, input.texCoord0);
+    maskValues *= maskMap;
+#endif
+
     float weights[MAX_LAYER];
     ComputeMaskWeights(maskValues, weights);
 
@@ -248,7 +256,6 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
     builtinData.opacity = alpha;
 
-
     PROP_DECL(float, specularOcclusion);
 #ifdef _SPECULAROCCLUSIONMAP
     // TODO: Do something. For now just take alpha channel
@@ -268,12 +275,12 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-    float3 normalTS0 = UnpackNormalDXT5nm(tex2D(_NormalMap0, input.texCoord0));
-    float3 normalTS1 = UnpackNormalDXT5nm(tex2D(_NormalMap1, input.texCoord0));
-    float3 normalTS2 = UnpackNormalDXT5nm(tex2D(_NormalMap2, input.texCoord0));
-    float3 normalTS3 = UnpackNormalDXT5nm(tex2D(_NormalMap3, input.texCoord0));
+    float3 normalTS0 = UnpackNormalAG(tex2D(_NormalMap0, input.texCoord0));
+    float3 normalTS1 = UnpackNormalAG(tex2D(_NormalMap1, input.texCoord0));
+    float3 normalTS2 = UnpackNormalAG(tex2D(_NormalMap2, input.texCoord0));
+    float3 normalTS3 = UnpackNormalAG(tex2D(_NormalMap3, input.texCoord0));
 
-    float3 normalTS = BlendLayeredNormal(normal0, normal1, normal2, normal3, weights);
+    float3 normalTS = BlendLayeredNormal(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     #else // Object space (TODO: We need to apply the world rotation here!)
@@ -297,9 +304,9 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
     PROP_DECL(float, perceptualSmoothness);
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    PROP_SAMPLE(perceptualSmoothness, _BaseColorMap0, input.texCoord0, a);
+    PROP_SAMPLE(perceptualSmoothness, _BaseColorMap, input.texCoord0, a);
 #elif defined(_MASKMAP)
-    PROP_SAMPLE(perceptualSmoothness, _MaskMap0, input.texCoord0, a);
+    PROP_SAMPLE(perceptualSmoothness, _MaskMap, input.texCoord0, a);
 #else
     PROP_ASSIGN_VALUE(perceptualSmoothness, 1.0);
 #endif
@@ -314,8 +321,8 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     PROP_DECL(float, metalic);
     PROP_DECL(float, ambientOcclusion);
 #ifdef _MASKMAP
-    PROP_SAMPLE(metalic, _MaskMap0, input.texCoord0, a);
-    PROP_SAMPLE(ambientOcclusion, _MaskMap0, input.texCoord0, g);
+    PROP_SAMPLE(metalic, _MaskMap, input.texCoord0, a);
+    PROP_SAMPLE(ambientOcclusion, _MaskMap, input.texCoord0, g);
 #else
     PROP_ASSIGN_VALUE(metalic, 1.0);
     PROP_ASSIGN_VALUE(ambientOcclusion, 1.0);

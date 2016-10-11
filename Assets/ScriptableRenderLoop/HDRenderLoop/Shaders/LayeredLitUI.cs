@@ -17,6 +17,7 @@ internal class LayeredLitGUI : LitGUI
         };
         public readonly GUIContent syncButton = new GUIContent("Sync", "Re-synchronize this layer's properties with the referenced Material");
         public readonly GUIContent layers = new GUIContent("Layers");
+        public readonly GUIContent layerMapMask = new GUIContent("LayerMask", "Layer mask (multiplied by vertex color)");
     }
 
     static Styles s_Styles = null;
@@ -29,8 +30,11 @@ internal class LayeredLitGUI : LitGUI
         public string[] GUIDArray;
     }
 
-    private int kSyncButtonWidth = 58;   
+    private int kSyncButtonWidth = 58;
+    private string kLayerMaskMap = "_LayerMaskMap";
+
     private Material[] m_MaterialLayers = new Material[4];
+    MaterialProperty layerMaskMap = null;
 
     void SynchronizeLayerProperties(int layerIndex)
     {
@@ -47,7 +51,8 @@ internal class LayeredLitGUI : LitGUI
                 string layerPropertyName = propertyName + layerIndex;
                 if(material.HasProperty(layerPropertyName))
                 {
-                    switch(ShaderUtil.GetPropertyType(layerShader, i))
+                    ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
+                    switch (type)
                     {
                         case ShaderUtil.ShaderPropertyType.Color:
                             {
@@ -55,6 +60,7 @@ internal class LayeredLitGUI : LitGUI
                                 break;
                             }
                         case ShaderUtil.ShaderPropertyType.Float:
+                        case ShaderUtil.ShaderPropertyType.Range:
                             {
                                 material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
                                 break;
@@ -272,6 +278,9 @@ internal class LayeredLitGUI : LitGUI
 
         EditorGUI.indentLevel++;
         GUILayout.Label(styles.layers, EditorStyles.boldLabel);
+
+        m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMask, layerMaskMap);
+
         for (int i = 0; i < m_MaterialLayers.Length; i++)
         {
             EditorGUILayout.BeginHorizontal();
@@ -312,11 +321,14 @@ internal class LayeredLitGUI : LitGUI
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap + i));
             SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap + i));
         }
+
+        SetKeyword(material, "_LAYERMASKMAP", material.GetTexture(kLayerMaskMap));
     }
 
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
     {
         FindOptionProperties(props);
+        layerMaskMap = FindProperty(kLayerMaskMap, props);
 
         m_MaterialEditor = materialEditor;
 
