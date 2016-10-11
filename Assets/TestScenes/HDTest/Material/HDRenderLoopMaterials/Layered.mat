@@ -9,10 +9,11 @@ Material:
   m_Name: Layered
   m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
-    _EMISSION
+    _EMISSION _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
+  m_CustomRenderQueue: 3000
+  stringTagMap:
+    RenderType: Transparent
   m_SavedProperties:
     serializedVersion: 2
     m_TexEnvs:
@@ -247,7 +248,7 @@ Material:
       second: 0
     - first:
         name: _DstBlend
-      second: 0
+      second: 10
     - first:
         name: _EmissiveColorMode
       second: 1
@@ -349,23 +350,23 @@ Material:
       second: 1
     - first:
         name: _SrcBlend
-      second: 1
+      second: 5
     - first:
         name: _SurfaceType
-      second: 0
+      second: 1
     - first:
         name: _UVSec
       second: 0
     - first:
         name: _ZWrite
-      second: 1
+      second: 0
     m_Colors:
     - first:
         name: _BaseColor0
       second: {r: 0, g: 1, b: 0, a: 1}
     - first:
         name: _BaseColor1
-      second: {r: 0.31185117, g: 0.49926907, b: 0.75735295, a: 0.672}
+      second: {r: 0, g: 1, b: 0, a: 1}
     - first:
         name: _BaseColor2
       second: {r: 1, g: 0, b: 0, a: 1}

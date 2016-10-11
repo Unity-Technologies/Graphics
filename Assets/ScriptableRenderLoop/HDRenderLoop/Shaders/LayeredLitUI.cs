@@ -105,9 +105,170 @@ internal class LayeredLitGUI : LitGUI
         materialImporter.userData = JsonUtility.ToJson(layersGUID);
     }
 
+    bool CheckInputOptionConsistency(string optionName, string[] shortNames, ref string outValueNames)
+    {
+        bool result = true;
+        outValueNames = "";
+        for(int i = 0 ; i < m_MaterialLayers.Length ; ++i)
+        {
+            Material layer = m_MaterialLayers[i];
+            if (layer != null)
+            {
+                int currentValue = (int)layer.GetFloat(optionName); // All options are in fact enums
+                Debug.Assert(currentValue < shortNames.Length);
+                outValueNames += shortNames[currentValue] + "    ";
+
+                for(int j = i + 1 ; j < m_MaterialLayers.Length ; ++j)
+                {
+                    Material otherLayer = m_MaterialLayers[j];
+                    if(otherLayer != null)
+                    {
+                        if(currentValue != (int)otherLayer.GetFloat(optionName))
+                        {
+
+                            result = false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                outValueNames += "X    ";
+            }
+        }
+
+        return result;
+    }
+
+    bool CheckInputMapConsistency(string mapName, ref string outValueNames)
+    {
+        bool result = true;
+        outValueNames = "";
+        for (int i = 0; i < m_MaterialLayers.Length; ++i)
+        {
+            Material layer = m_MaterialLayers[i];
+            if (layer != null)
+            {
+                bool currentValue = layer.GetTexture(mapName) != null;
+                outValueNames += (currentValue ? "Y" : "N") + "    ";
+
+                for (int j = i + 1; j < m_MaterialLayers.Length; ++j)
+                {
+                    Material otherLayer = m_MaterialLayers[j];
+                    if (otherLayer != null)
+                    {
+                        bool otherValue = otherLayer.GetTexture(mapName) != null;
+                        if (currentValue != otherValue)
+                        {
+                            result = false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                outValueNames += "N    ";
+            }
+        }
+
+        return result;
+    }
+
+    void CheckLayerConsistency()
+    {
+        string optionValueNames = "";
+        // We need to check consistency between all layers.
+        // Each input options and each input maps might can result in different #defines in the shader so all of them need to be consistent
+        // otherwise the result will be undetermined
+
+        // Input options consistency
+        string[] smoothnessSourceShortNames = { "Mask", "Albedo" };
+        string[] emissiveModeShortNames = { "Color", "Mask" };
+        string[] normalMapShortNames = { "Tan", "Obj" };
+        string[] heightMapShortNames = { "Parallax", "Disp" };
+
+        string warningInputOptions = "";
+        if (!CheckInputOptionConsistency(kSmoothnessTextureChannelProp, smoothnessSourceShortNames, ref optionValueNames))
+        {
+            warningInputOptions += "Smoothness Source:    " + optionValueNames + "\n";
+        }
+        if (!CheckInputOptionConsistency(kEmissiveColorMode, emissiveModeShortNames, ref optionValueNames))
+        {
+            warningInputOptions += "Emissive Mode:    " + optionValueNames + "\n";
+        }
+        if (!CheckInputOptionConsistency(kNormalMapSpace, normalMapShortNames, ref optionValueNames))
+        {
+            warningInputOptions += "Normal Map Space:    " + optionValueNames + "\n";
+        }
+        if (!CheckInputOptionConsistency(kHeightMapMode, heightMapShortNames, ref optionValueNames))
+        {
+            warningInputOptions += "Height Map Mode:    " + optionValueNames + "\n";
+        }
+
+        if (warningInputOptions != string.Empty)
+        {
+            warningInputOptions = "Input Option Consistency Error:\n" + warningInputOptions;
+        }
+
+        // Check input maps consistency
+        string warningInputMaps = "";
+
+        if (!CheckInputMapConsistency(kNormalMap, ref optionValueNames))
+        {
+            warningInputMaps += "Normal Map:    " + optionValueNames + "\n";
+        }
+        if (!CheckInputMapConsistency(kMaskMap, ref optionValueNames))
+        {
+            warningInputMaps += "Mask Map:    " + optionValueNames + "\n";
+        }
+        if (!CheckInputMapConsistency(kspecularOcclusionMap, ref optionValueNames))
+        {
+            warningInputMaps += "Specular Occlusion Map:    " + optionValueNames + "\n";
+        }
+        if (!CheckInputMapConsistency(kEmissiveColorMap, ref optionValueNames))
+        {
+            warningInputMaps += "Emissive Color Map:    " + optionValueNames + "\n";
+        }
+        if (!CheckInputMapConsistency(kHeightMap, ref optionValueNames))
+        {
+            warningInputMaps += "Height Map:    " + optionValueNames + "\n";
+        }
+
+        if (warningInputMaps != string.Empty)
+        {
+            warningInputMaps = "Input Maps Consistency Error:\n" + warningInputMaps;
+            if (warningInputOptions != string.Empty)
+                warningInputMaps = "\n" + warningInputMaps;
+        }
+
+        string warning = warningInputOptions + warningInputMaps;
+        if (warning != string.Empty)
+        {
+            EditorGUILayout.HelpBox(warning, MessageType.Error);
+        }
+    }
+
+    void SynchronizeInputOptions()
+    {
+        Material material = m_MaterialEditor.target as Material;
+
+        // We synchronize input options with the firsts non null Layer (all layers should have consistent options)
+        Material firstLayer = null;
+        int i = 0;
+        while (i < m_MaterialLayers.Length && !(firstLayer = m_MaterialLayers[i])) ++i;
+
+        if(firstLayer != null)
+        {
+            material.SetFloat(kSmoothnessTextureChannelProp, firstLayer.GetFloat(kSmoothnessTextureChannelProp));
+            material.SetFloat(kEmissiveColorMode, firstLayer.GetFloat(kEmissiveColorMode));
+            material.SetFloat(kNormalMapSpace, firstLayer.GetFloat(kNormalMapSpace));
+            material.SetFloat(kHeightMapMode, firstLayer.GetFloat(kHeightMapMode));
+        }
+    }
+
     bool LayersGUI(AssetImporter materialImporter)
     {
-        bool saveMaterialLayers = false;
+        bool layerChanged = false;
 
         EditorGUI.indentLevel++;
         GUILayout.Label(styles.layers, EditorStyles.boldLabel);
@@ -121,25 +282,36 @@ internal class LayeredLitGUI : LitGUI
                 {
                     Undo.RecordObject(materialImporter, "Change layer material");
                     SynchronizeLayerProperties(i);
-                    saveMaterialLayers = true;
+                    layerChanged = true;
                 }
 
                 if (GUILayout.Button(styles.syncButton, GUILayout.Width(kSyncButtonWidth)))
                 {
                     SynchronizeLayerProperties(i);
+                    layerChanged = true;
                 }
             }
             EditorGUILayout.EndHorizontal();
         }
 
-        if (saveMaterialLayers)
-        {
-            SaveMaterialLayers(materialImporter);
-        }
-
         EditorGUI.indentLevel--;
 
-        return saveMaterialLayers;
+        return layerChanged;
+    }
+    protected override void SetupKeywordsForInputMaps(Material material)
+    {
+        // Find first non null layer
+        int i = 0;
+        while (i < m_MaterialLayers.Length && (m_MaterialLayers[i] == null)) ++i;
+
+        if(i < m_MaterialLayers.Length)
+        {
+            SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap + i));
+            SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap + i));
+            SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kspecularOcclusionMap + i));
+            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap + i));
+            SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap + i));
+        }
     }
 
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -150,30 +322,39 @@ internal class LayeredLitGUI : LitGUI
 
         m_MaterialEditor.serializedObject.Update();
 
-        Material material = materialEditor.target as Material;
+        Material material = m_MaterialEditor.target as Material;
         AssetImporter materialImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(material.GetInstanceID()));
 
         InitializeMaterialLayers(materialImporter);
 
+        bool optionsChanged = false;
         EditorGUI.BeginChangeCheck();
         {
             ShaderOptionsGUI();
             EditorGUILayout.Space();
-
-            ShaderInputOptionsGUI();
-            EditorGUILayout.Space();
         }
         if (EditorGUI.EndChangeCheck())
         {
-            foreach (var obj in m_MaterialEditor.targets)
-                MaterialChanged((Material)obj);
+            optionsChanged = true;
         }
 
-        bool saveMaterialLayers = LayersGUI(materialImporter);
+        bool layerChanged = LayersGUI(materialImporter);
+
+        CheckLayerConsistency();
+
+        if (layerChanged || optionsChanged)
+        {
+            SynchronizeInputOptions();
+
+            foreach (var obj in m_MaterialEditor.targets)
+                SetupMaterial((Material)obj);
+            
+            SaveMaterialLayers(materialImporter);
+        }
 
         m_MaterialEditor.serializedObject.ApplyModifiedProperties();
 
-        if (saveMaterialLayers)
+        if (layerChanged)
         {
             materialImporter.SaveAndReimport();
         }
