@@ -124,21 +124,35 @@ internal class LitGUI : ShaderGUI
 //	MaterialProperty subSurfaceRadius = null;
 //	MaterialProperty subSurfaceRadiusMap = null;
 
-    
-
     protected MaterialEditor m_MaterialEditor;
+
+    protected const string kSurfaceType = "_SurfaceType";
+    protected const string kBlendMode = "_BlendMode";
+    protected const string kAlphaCutoff = "_AlphaCutoff";
+    protected const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
+    protected const string kDoubleSidedMode = "_DoubleSidedMode";
+    protected const string kSmoothnessTextureChannelProp = "_SmoothnessTextureChannel";
+    protected const string kEmissiveColorMode = "_EmissiveColorMode";
+    protected const string kNormalMapSpace = "_NormalMapSpace";
+    protected const string kHeightMapMode = "_HeightMapMode";
+
+    protected const string kNormalMap = "_NormalMap";
+    protected const string kMaskMap = "_MaskMap";
+    protected const string kspecularOcclusionMap = "_SpecularOcclusionMap";
+    protected const string kEmissiveColorMap = "_EmissiveColorMap";
+    protected const string kHeightMap = "_HeightMap";
 
     public void FindOptionProperties (MaterialProperty[] props)
     {
-        surfaceType = FindProperty("_SurfaceType", props);
-        blendMode = FindProperty("_BlendMode", props);
-        alphaCutoff = FindProperty("_AlphaCutoff", props);
-        alphaCutoffEnable = FindProperty("_AlphaCutoffEnable", props);
-        doubleSidedMode = FindProperty("_DoubleSidedMode", props);
-        smoothnessMapChannel = FindProperty("_SmoothnessTextureChannel", props);
-        emissiveColorMode = FindProperty("_EmissiveColorMode", props);
-        normalMapSpace = FindProperty("_NormalMapSpace", props);
-        heightMapMode = FindProperty("_HeightMapMode", props);
+        surfaceType = FindProperty(kSurfaceType, props);
+        blendMode = FindProperty(kBlendMode, props);
+        alphaCutoff = FindProperty(kAlphaCutoff, props);
+        alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props);
+        doubleSidedMode = FindProperty(kDoubleSidedMode, props);
+        smoothnessMapChannel = FindProperty(kSmoothnessTextureChannelProp, props);
+        emissiveColorMode = FindProperty(kEmissiveColorMode, props);
+        normalMapSpace = FindProperty(kNormalMapSpace, props);
+        heightMapMode = FindProperty(kHeightMapMode, props);
     }
 
     public void FindInputProperties(MaterialProperty[] props)
@@ -147,15 +161,15 @@ internal class LitGUI : ShaderGUI
         baseColorMap = FindProperty("_BaseColorMap", props);
         metalic = FindProperty("_Metalic", props);
         smoothness = FindProperty("_Smoothness", props);
-        maskMap = FindProperty("_MaskMap", props);
-        specularOcclusionMap = FindProperty("_SpecularOcclusionMap", props);
-        normalMap = FindProperty("_NormalMap", props);
-        heightMap = FindProperty("_HeightMap", props);
+        maskMap = FindProperty(kMaskMap, props);
+        specularOcclusionMap = FindProperty(kspecularOcclusionMap, props);
+        normalMap = FindProperty(kNormalMap, props);
+        heightMap = FindProperty(kHeightMap, props);
         heightScale = FindProperty("_HeightScale", props);
         heightBias = FindProperty("_HeightBias", props);
         // diffuseLightingMap = FindProperty("_DiffuseLightingMap", props);
         emissiveColor = FindProperty("_EmissiveColor", props);
-        emissiveColorMap = FindProperty("_EmissiveColorMap", props);
+        emissiveColorMap = FindProperty(kEmissiveColorMap, props);
         emissiveIntensity = FindProperty("_EmissiveIntensity", props);
     }
     
@@ -254,7 +268,7 @@ internal class LitGUI : ShaderGUI
         if (EditorGUI.EndChangeCheck())
         {
             foreach (var obj in m_MaterialEditor.targets)
-                MaterialChanged((Material)obj);
+                SetupMaterial((Material)obj);
         }
     }
 
@@ -296,15 +310,25 @@ internal class LitGUI : ShaderGUI
         EditorGUI.showMixedValue = false;
     }
 
+    protected virtual void SetupKeywordsForInputMaps(Material material)
+    {
+        SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
+        SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
+        SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kspecularOcclusionMap));
+        SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+        SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
+    }
+
+
     protected void SetupMaterial(Material material)
     {
         // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
         // (MaterialProperty value might come from renderer material property block)
 
-        bool alphaTestEnable = material.GetFloat("_AlphaCutoffEnable") == 1.0;
-        SurfaceType surfaceType = (SurfaceType)material.GetFloat("_SurfaceType");
-        BlendMode blendMode = (BlendMode)material.GetFloat("_BlendMode");
-        DoubleSidedMode doubleSidedMode = (DoubleSidedMode)material.GetFloat("_DoubleSidedMode");
+        bool alphaTestEnable = material.GetFloat(kAlphaCutoffEnabled) == 1.0;
+        SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
+        BlendMode blendMode = (BlendMode)material.GetFloat(kBlendMode);
+        DoubleSidedMode doubleSidedMode = (DoubleSidedMode)material.GetFloat(kDoubleSidedMode);
 
         if (surfaceType == SurfaceType.Opaque)
         {
@@ -375,15 +399,12 @@ internal class LitGUI : ShaderGUI
         }
 
         SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
-        SetKeyword(material, "_NORMALMAP", material.GetTexture("_NormalMap"));
-        SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (NormalMapSpace)material.GetFloat("_NormalMapSpace") == NormalMapSpace.TangentSpace);
-        SetKeyword(material, "_MASKMAP", material.GetTexture("_MaskMap"));
-        SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture("_SpecularOcclusionMap"));
-        SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat("_SmoothnessTextureChannel")) == SmoothnessMapChannel.AlbedoAlpha);
-        SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat("_EmissiveColorMode")) == EmissiveColorMode.UseEmissiveColor);
-        SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture("_EmissiveColorMap"));        
-        SetKeyword(material, "_HEIGHTMAP", material.GetTexture("_HeightMap"));
-        SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", (HeightmapMode)material.GetFloat("_HeightMapMode") == HeightmapMode.Displacement);
+        SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", (NormalMapSpace)material.GetFloat(kNormalMapSpace) == NormalMapSpace.TangentSpace);
+        SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannelProp)) == SmoothnessMapChannel.AlbedoAlpha);
+        SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
+        SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", (HeightmapMode)material.GetFloat(kHeightMapMode) == HeightmapMode.Displacement);
+
+        SetupKeywordsForInputMaps(material);
 
         /*
         // Setup lightmap emissive flags
@@ -423,12 +444,7 @@ internal class LitGUI : ShaderGUI
         return true;
     }
 
-    protected void MaterialChanged(Material material)
-    {
-        SetupMaterial(material);
-    }
-
-    static void SetKeyword(Material m, string keyword, bool state)
+    protected void SetKeyword(Material m, string keyword, bool state)
     {
         if (state)
             m.EnableKeyword (keyword);

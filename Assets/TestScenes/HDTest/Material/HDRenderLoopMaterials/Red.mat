@@ -229,7 +229,7 @@ Material:
       second: 0.02
     - first:
         name: _Smoothness
-      second: 0.5
+      second: 0.486
     - first:
         name: _SmoothnessTextureChannel
       second: 0
@@ -254,7 +254,7 @@ Material:
     m_Colors:
     - first:
         name: _BaseColor
-      second: {r: 1, g: 0, b: 0, a: 1}
+      second: {r: 1, g: 0, b: 0, a: 0.447}
     - first:
         name: _Color
       second: {r: 1, g: 1, b: 1, a: 1}
