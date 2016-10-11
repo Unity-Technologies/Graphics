@@ -56,7 +56,6 @@ namespace UnityEngine.MaterialGraph
             base.AddNode(node);
         }
 
-        
         /*
         public Material GetMaterial()
         {

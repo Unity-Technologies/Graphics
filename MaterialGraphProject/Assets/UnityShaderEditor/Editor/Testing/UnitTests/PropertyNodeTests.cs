@@ -294,7 +294,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
 
-
         [Test]
         public void TestVector3NodeTypeIsCorrect()
         {

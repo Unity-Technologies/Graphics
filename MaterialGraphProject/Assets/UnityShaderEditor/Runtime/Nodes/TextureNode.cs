@@ -36,7 +36,7 @@ namespace UnityEngine.MaterialGraph
         {
             public Texture2D texture;
         }
-        
+
         public override bool hasPreview { get { return true; } }
 
 #if UNITY_EDITOR
@@ -59,7 +59,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 #else
-        public Texture2D defaultTexture {get;set;}
+        public Texture2D defaultTexture {get; set; }
 #endif
 
         public TextureType textureType

@@ -15,7 +15,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Debug.logger.logHandler = new ConsoleLogHandler();
         }
 
-
         private const string kPropertyName = "ThePropertyName";
         private const string kPropertyDescription = "ThePropertyDescription";
 
@@ -53,7 +52,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(kPropertyName, infos[0].name);
             Assert.AreEqual(0, infos[0].textureId);
             Assert.AreEqual(TexturePropertyChunk.ModifiableState.Modifiable, infos[0].modifiable);
-
         }
     }
 }

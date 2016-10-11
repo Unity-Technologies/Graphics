@@ -28,7 +28,7 @@ namespace UnityEditor.Graphing.Drawing
 
         [SerializeField]
         private ScriptableObject m_LastSelectedGraphSerialized;
-		
+
         private bool shouldRepaint
         {
             get
@@ -74,9 +74,9 @@ namespace UnityEditor.Graphing.Drawing
                     graph.OnEnable();
                     graph.ValidateGraph();
                     m_LastSelection = selection;
-                    
+
                     m_Contents.dataSource = new MaterialGraphDataSource(m_LastSelection);
-                    
+
                     m_Contents.StretchToParentSize();
                     Repaint();
                 }
@@ -238,35 +238,35 @@ namespace UnityEditor.Graphing.Drawing
             m_Canvas.ReloadData();
         }*/
 
-   /*     void OnGUI()
-        {
-            m_HostWindow = this;
-            if (m_Canvas == null)
-            {
-                InitializeCanvas();
-            }
+        /*     void OnGUI()
+             {
+                 m_HostWindow = this;
+                 if (m_Canvas == null)
+                 {
+                     InitializeCanvas();
+                 }
 
-            if (m_LastSelection == null || m_LastSelection.graph == null)
-            {
-                GUILayout.Label("No Graph selected");
-                return;
-            }
+                 if (m_LastSelection == null || m_LastSelection.graph == null)
+                 {
+                     GUILayout.Label("No Graph selected");
+                     return;
+                 }
 
-            m_Canvas.OnGUI(this, new Rect(0, 0, position.width - 250, position.height));
+                 m_Canvas.OnGUI(this, new Rect(0, 0, position.width - 250, position.height));
 
-            if (GUI.Button(new Rect(position.width - 250, 0, 250, 50), "Convert to Sub-Graph"))
-                ConvertSelectionToSubGraph();
+                 if (GUI.Button(new Rect(position.width - 250, 0, 250, 50), "Convert to Sub-Graph"))
+                     ConvertSelectionToSubGraph();
 
-            if (GUI.Button(new Rect(position.width - 250, 70, 250, 50), "Export"))
-                Export(false);
-
-
-            if (GUI.Button(new Rect(position.width - 250, 140, 250, 50), "Export - quick"))
-                Export(true);
+                 if (GUI.Button(new Rect(position.width - 250, 70, 250, 50), "Export"))
+                     Export(false);
 
 
-            EditorGUI.ObjectField(new Rect(position.width - 250, 210, 250, 50), rt, typeof(RenderTexture), false);
-        }*/
+                 if (GUI.Button(new Rect(position.width - 250, 140, 250, 50), "Export - quick"))
+                     Export(true);
+
+
+                 EditorGUI.ObjectField(new Rect(position.width - 250, 210, 250, 50), rt, typeof(RenderTexture), false);
+             }*/
 
         private string m_LastPath;
 
@@ -278,7 +278,7 @@ namespace UnityEditor.Graphing.Drawing
             var ds = m_Contents.dataSource as MaterialGraphDataSource;
             if (ds != null && !string.IsNullOrEmpty(path))
             {
-                ExportShader (ds.graphAsset as MaterialGraphAsset, path);
+                ExportShader(ds.graphAsset as MaterialGraphAsset, path);
             }
             else
                 EditorUtility.DisplayDialog("Export Shader Error", "Cannot export shader", "Ok");
