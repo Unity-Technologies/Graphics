@@ -6,7 +6,6 @@ using UnityEngine.RMGUI.StyleEnums.Values;
 
 namespace RMGUI.GraphView.Demo
 {
-	[CustomDataView(typeof(NodeAnchorData))]
 	internal class NodeAnchor : GraphElement
 	{
 		public const float k_NodeSize = 15.0f;

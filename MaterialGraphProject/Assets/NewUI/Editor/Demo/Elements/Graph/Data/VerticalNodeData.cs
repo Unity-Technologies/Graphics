@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
+	[CustomDataView(typeof(VerticalNode))]
 	class VerticalNodeData : NodeData
 	{
 		// this class is useless, make a simple creation function

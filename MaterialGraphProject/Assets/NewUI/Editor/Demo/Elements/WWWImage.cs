@@ -1,9 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	[CustomDataView(typeof(WWWImageData))]
 	public class WWWImage : SimpleElement
 	{
 		private Texture2D m_WwwTexture;

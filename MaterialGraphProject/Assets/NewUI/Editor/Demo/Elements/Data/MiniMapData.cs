@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
+	[CustomDataView(typeof(MiniMap))]
 	public class MiniMapData : GraphElementData
 	{
 		protected new void OnEnable()

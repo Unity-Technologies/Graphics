@@ -4,7 +4,6 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	[CustomDataView(typeof(InvisibleBorderContainerData))]
 	public class InvisibleBorderContainer : GraphElement
 	{
 		private readonly Color m_OutlineColor = new Color(0.0f, 0.0f, 0.0f, 0.5f);

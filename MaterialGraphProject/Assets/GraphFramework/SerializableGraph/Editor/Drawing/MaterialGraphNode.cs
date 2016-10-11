@@ -17,8 +17,6 @@ namespace UnityEditor.Graphing.Drawing
     }
 
     [GUISkinStyle("window")]
-    [CustomDataView(typeof(MaterialNodeData))]
-    [CustomDataView(typeof(ColorNodeData))]
     public class MaterialGraphNode : GraphElement
     {
         VisualContainer m_SlotContainer;

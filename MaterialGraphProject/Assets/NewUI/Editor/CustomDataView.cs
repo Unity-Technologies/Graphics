@@ -20,7 +20,7 @@ namespace RMGUI.GraphView
 		// map of [datType, viewType]
 		private static Dictionary<Type, Type> s_TypeMap;
 
-		public static DataContainer<GraphElementData> Create(GraphElementData data)
+		public static GraphElement Create(GraphElementData data)
 		{
 			if (s_TypeMap == null)
 			{
@@ -35,7 +35,7 @@ namespace RMGUI.GraphView
 						var attributes = type.GetCustomAttributes(typeof(CustomDataView), false);
 						foreach (CustomDataView att in attributes)
 						{
-							s_TypeMap[att.dataType] = type;
+							s_TypeMap[type] = att.dataType;
 						}
 					}
 				}
@@ -44,7 +44,7 @@ namespace RMGUI.GraphView
 			Type viewType;
 			if (s_TypeMap.TryGetValue(data.GetType(), out viewType))
 			{
-				var dataContainer = (DataContainer<GraphElementData>)Activator.CreateInstance(viewType);
+				var dataContainer = (GraphElement)Activator.CreateInstance(viewType);
 				dataContainer.dataProvider = data;
 				return dataContainer;
 			}

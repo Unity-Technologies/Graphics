@@ -1,8 +1,9 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
+	[CustomDataView(typeof(IMGUIElement))]
 	public class IMGUISampleElementData : IMGUIData
 	{
 		private int m_ControlInteger;
