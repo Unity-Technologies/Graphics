@@ -218,7 +218,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [Test]
         public void AdaptNodeOutput2To4PreviewWorks()
         {
-
             var node = new TestNode();
             var expected = string.Format("half4({0}.x, {0}.y, 0.0, 0.0)", node.GetVariableNameForSlot(TestNode.V2Out));
             var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V2Out, ConcreteSlotValueType.Vector4);

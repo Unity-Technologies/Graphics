@@ -61,7 +61,7 @@ namespace UnityEngine.MaterialGraph
                     var line = lines[index];
                     for (var i = 0; i < shaderChunk.chunkIndentLevel + baseIndentLevel; i++)
                         sb.Append("\t");
-                    
+
                     sb.AppendLine(line);
                 }
             }

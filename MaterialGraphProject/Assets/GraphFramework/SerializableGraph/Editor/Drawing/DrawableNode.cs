@@ -173,38 +173,38 @@ namespace UnityEditor.Graphing.Drawing
             }
         }*/
 
-        /* public virtual GUIModificationType NodeUI(Rect drawArea)
-         {
-             return GUIModificationType.None;
-         }
+/* public virtual GUIModificationType NodeUI(Rect drawArea)
+ {
+     return GUIModificationType.None;
+ }
 
-         public virtual bool OnGUI()
-         {
-             GUILayout.Label("MaterialSlot Defaults", EditorStyles.boldLabel);
-             var modified = false;
-             foreach (var slot in inputSlots)
-             {
-                 if (!owner.GetEdges(GetSlotReference(slot.name)).Any())
-                     modified |= DoSlotUI(this, slot);
-             }
+ public virtual bool OnGUI()
+ {
+     GUILayout.Label("MaterialSlot Defaults", EditorStyles.boldLabel);
+     var modified = false;
+     foreach (var slot in inputSlots)
+     {
+         if (!owner.GetEdges(GetSlotReference(slot.name)).Any())
+             modified |= DoSlotUI(this, slot);
+     }
 
-             return modified;
-         }
+     return modified;
+ }
 
-         public static bool DoSlotUI(SerializableNode node, ISlot slot)
-         {
-             GUILayout.BeginHorizontal( /*EditorStyles.inspectorBig*);
-             GUILayout.BeginVertical();
-             GUILayout.BeginHorizontal();
-             GUILayout.Label("MaterialSlot " + slot.name, EditorStyles.largeLabel);
-             GUILayout.FlexibleSpace();
-             GUILayout.EndHorizontal();
-             GUILayout.EndVertical();
-             GUILayout.EndHorizontal();
+ public static bool DoSlotUI(SerializableNode node, ISlot slot)
+ {
+     GUILayout.BeginHorizontal( /*EditorStyles.inspectorBig*);
+     GUILayout.BeginVertical();
+     GUILayout.BeginHorizontal();
+     GUILayout.Label("MaterialSlot " + slot.name, EditorStyles.largeLabel);
+     GUILayout.FlexibleSpace();
+     GUILayout.EndHorizontal();
+     GUILayout.EndVertical();
+     GUILayout.EndHorizontal();
 
-             //TODO: fix this
-             return false;
-             //return slot.OnGUI();
-         }*
-    }
+     //TODO: fix this
+     return false;
+     //return slot.OnGUI();
+ }*
+}
 }*/

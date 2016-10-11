@@ -9,7 +9,6 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
-
     [Serializable]
     public class ColorNodeData : MaterialNodeData
     {

@@ -31,7 +31,7 @@ namespace UnityEditor.MaterialGraph
     public abstract class NodeControlData : GraphElementData
     {
         protected NodeControlData()
-        { }
+        {}
 
         public abstract void OnGUIHandler();
     }
@@ -40,7 +40,7 @@ namespace UnityEditor.MaterialGraph
     public class NodePreviewData : GraphElementData
     {
         protected NodePreviewData()
-        { }
+        {}
 
         private MaterialGraphPreviewGenerator m_PreviewGenerator;
 
@@ -109,8 +109,7 @@ namespace UnityEditor.MaterialGraph
             // TODO: this is a workaround right now.
             if (m_Node is PixelShaderNode)
             {
-
-                var localNode = (PixelShaderNode) m_Node;
+                var localNode = (PixelShaderNode)m_Node;
                 if (localNode == null)
                     return string.Empty;
 

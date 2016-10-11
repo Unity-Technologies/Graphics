@@ -55,7 +55,7 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private int serializedVersion = 0;
         const int kCurrentSerializedVersion = 1;
-        
+
         private void DoUpgrade()
         {
             var helper = new SubGraphHelper();
@@ -71,10 +71,10 @@ namespace UnityEngine.MaterialGraph
             m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
             serializedVersion = kCurrentSerializedVersion;
             m_SubGraphAssetGuid = string.Empty;
-            mark dirty damn 
+            mark dirty damn
         }*/
 #else
-        public MaterialSubGraphAsset subGraphAsset {get; set;}
+        public MaterialSubGraphAsset subGraphAsset {get; set; }
 #endif
 
         private SubGraph subGraph

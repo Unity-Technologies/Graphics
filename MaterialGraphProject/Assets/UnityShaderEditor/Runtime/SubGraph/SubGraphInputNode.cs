@@ -46,11 +46,11 @@ namespace UnityEngine.MaterialGraph
             {
                 properties.Add(
                     new PreviewProperty
-                    {
-                        m_Name = GetVariableNameForSlot(slot.id),
-                        m_PropType = PropertyType.Vector4,
-                        m_Vector4 = slot.defaultValue
-                    }
+                {
+                    m_Name = GetVariableNameForSlot(slot.id),
+                    m_PropType = PropertyType.Vector4,
+                    m_Vector4 = slot.defaultValue
+                }
                     );
             }
         }

@@ -46,7 +46,6 @@ namespace UnityEditor.Graphing.Drawing
                 name = "preview", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
-
         }
 
         public override void DoRepaint(PaintContext painter)
@@ -70,7 +69,7 @@ namespace UnityEditor.Graphing.Drawing
                 name = "input", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
-            m_SlotContainer.AddChild(inputs); 
+            m_SlotContainer.AddChild(inputs);
 
             // put a spacer here?
             //m_SlotContainer.AddChild(new f);
@@ -93,7 +92,7 @@ namespace UnityEditor.Graphing.Drawing
 
             AddChild(m_SlotContainer);
         }
-        
+
         private void AddControls(MaterialNodeData nodeData)
         {
             m_ControlsContainer.ClearChildren();
@@ -143,7 +142,7 @@ namespace UnityEditor.Graphing.Drawing
 
             m_ControlsContainer.ClearChildren();
             m_PreviewContainer.ClearChildren();
-            
+
             var nodeData = dataProvider as MaterialNodeData;
 
             if (nodeData == null)

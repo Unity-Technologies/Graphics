@@ -21,7 +21,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             get { return m_ModeToDrawFor; } }
     }
-	/*
+    /*
     public class GraphDataSource : ICanvasDataSource
     {
         readonly List<DrawableNode> m_DrawableNodes = new List<DrawableNode>();
@@ -205,7 +205,7 @@ namespace UnityEditor.Graphing.Drawing
             EditorUtility.SetDirty(graphAsset.GetScriptableObject());
         }
 
-        /*      
+        /*
             }
 
             public class FloatingPreview : CanvasElement

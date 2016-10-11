@@ -10,8 +10,8 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.Graphing.Drawing
 {
-	[StyleSheet("Assets/UnityShaderEditor/Editor/Styles/NodalView.uss")]
-	//[StyleSheet("Assets/UnityShaderEditor/Editor/Styles/MatGraph.uss")]
+    [StyleSheet("Assets/UnityShaderEditor/Editor/Styles/NodalView.uss")]
+    //[StyleSheet("Assets/UnityShaderEditor/Editor/Styles/MatGraph.uss")]
     public class MaterialGraphView : GraphView
     {
         public MaterialGraphView()
@@ -86,8 +86,8 @@ namespace UnityEditor.Graphing.Drawing
             drawstate.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, drawstate.position.width, drawstate.position.height);
             node.drawState = drawstate;
             /*m_DataSource.Addnode(node);
-			Rebuild();
-			Repaint();*/
+            Rebuild();
+            Repaint();*/
         }
     }
 }
