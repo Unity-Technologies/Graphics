@@ -428,14 +428,14 @@ namespace UnityEngine.ScriptableRenderLoop
 
         //---------------------------------------------------------------------------------------------------------------------------------------------------
 
-        void UpdatePunctualLights(ActiveLight[] activeLights)
+        void UpdatePunctualLights(VisibleLight[] visibleLights)
         {
             int punctualLightCount = 0;
             List<PunctualLightData> lights = new List<PunctualLightData>();
 
-            for (int lightIndex = 0; lightIndex < Math.Min(activeLights.Length, MaxLights); lightIndex++)
+            for (int lightIndex = 0; lightIndex < Math.Min(visibleLights.Length, MaxLights); lightIndex++)
             {
-                ActiveLight light = activeLights[lightIndex];
+                VisibleLight light = visibleLights[lightIndex];
                 if (light.lightType == LightType.Spot || light.lightType == LightType.Point || light.lightType == LightType.Directional)
                 {
                     PunctualLightData l = new PunctualLightData();
@@ -563,10 +563,10 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 renderLoop.SetupCameraProperties (camera);
 
-                //UpdateLightConstants(cullResults.culledLights /*, ref shadows */);                
+                //UpdateLightConstants(cullResults.visibleLights /*, ref shadows */);                
 
-                UpdatePunctualLights(cullResults.culledLights);
-                UpdateReflectionProbes(cullResults.culledReflectionProbes);
+                UpdatePunctualLights (cullResults.visibleLights);
+                UpdateReflectionProbes(cullResults.visibleReflectionProbes);
 
                 InitAndClearBuffer(camera, renderLoop);
 

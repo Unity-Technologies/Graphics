@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
@@ -10,14 +10,14 @@ public class CullResultsTest
 {
 	void InspectCullResults(Camera camera, CullResults cullResults, RenderLoop renderLoop)
 	{
-		VisibleReflectionProbe[] probes = cullResults.culledReflectionProbes;
+		VisibleReflectionProbe[] probes = cullResults.visibleReflectionProbes;
 
 		Assert.AreEqual(1, probes.Length, "Incorrect reflection probe count");
 
 		VisibleReflectionProbe probeA = probes[0];
 		Assert.NotNull(probeA.texture, "probe texture");
 
-        ActiveLight[] lights = cullResults.culledLights;
+        VisibleLight[] lights = cullResults.visibleLights;
         Assert.AreEqual(3, lights.Length, "Incorrect light count");
 
         LightType[] expectedTypes = new LightType[] { LightType.Directional, LightType.Spot, LightType.Point };
