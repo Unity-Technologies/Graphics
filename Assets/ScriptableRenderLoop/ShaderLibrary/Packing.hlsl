@@ -50,11 +50,23 @@ float3 UnpackNormalOctEncode(float2 f)
     return normalize(n);
 }
 
-float3 UnpackNormalDXT5nm (float4 packednormal)
+float3 UnpackNormalAG(float4 packedNormal)
 {
     float3 normal;
-    normal.xy = packednormal.wy * 2.0 - 1.0;
-    normal.z = sqrt(1 - saturate(dot(normal.xy, normal.xy)));
+    normal.xy = packedNormal.wy * 2.0 - 1.0;
+    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    return normal;
+}
+
+// Unpack normal as DXT5nm (1, y, 0, x) or BC5 (x, y, 0, 1)
+float3 UnpackNormalmapRGorAG(float4 packedNormal)
+{
+    // This do the trick
+    packedNormal.x *= packedNormal.w;
+
+    float3 normal;
+    normal.xy = packedNormal.xy * 2.0 - 1.0;
+    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
     return normal;
 }
 

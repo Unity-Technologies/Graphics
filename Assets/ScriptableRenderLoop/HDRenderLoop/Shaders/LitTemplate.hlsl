@@ -199,7 +199,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-    float3 normalTS = UnpackNormalDXT5nm(UNITY_SAMPLE_TEX2D(_NormalMap, input.texCoord0));
+    float3 normalTS = UnpackNormalAG(UNITY_SAMPLE_TEX2D(_NormalMap, input.texCoord0));
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     #else // Object space (TODO: We need to apply the world rotation here!)
     surfaceData.normalWS = UNITY_SAMPLE_TEX2D(_NormalMap, input.texCoord0).rgb;
