@@ -32,7 +32,7 @@ namespace RMGUI.GraphView.Demo
 
 		public void CreateOperator()
 		{
-			NodalViewData nodalViewData = dataProvider as NodalViewData;
+			NodalViewData nodalViewData = dataSource as NodalViewData;
 			if (nodalViewData != null)
 			{
 				var x = rnd.Next(0, 600);
@@ -46,7 +46,7 @@ namespace RMGUI.GraphView.Demo
 		private EventPropagation DeleteSelection()
 		{
 			// and DeleteSelection would call that method.
-			var nodalViewData = dataProvider as NodalViewData;
+			var nodalViewData = dataSource as NodalViewData;
 			if (nodalViewData == null)
 				return EventPropagation.Stop;
 
@@ -121,7 +121,7 @@ namespace RMGUI.GraphView.Demo
 			var view = new NodesContentView
 			{
 				name = "theView",
-				dataProvider = CreateInstance<NodalViewData>()
+				dataSource = CreateInstance<NodalViewData>()
 			};
 			view.StretchToParentSize();
 

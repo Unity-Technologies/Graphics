@@ -10,7 +10,6 @@ namespace RMGUI.GraphView
 		private List<IConnectable> m_CompatibleAnchors = new List<IConnectable>();
 		private TEdgeData m_EdgeDataCandidate;
 
-		private IDataSource m_GraphViewData;
 		private GraphView m_GraphView;
 
 		public MouseButton activateButton { get; set; }
@@ -22,6 +21,7 @@ namespace RMGUI.GraphView
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
 		{
+		    var dataSource = m_GraphView.dataSource;
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
@@ -43,9 +43,8 @@ namespace RMGUI.GraphView
 					{
 						break;
 					}
-
-					m_GraphViewData =  m_GraphView.dataProvider;
-					if (m_GraphViewData == null)
+                    
+					if (m_GraphView.dataSource == null)
 					{
 						break;
 					}
@@ -88,7 +87,7 @@ namespace RMGUI.GraphView
 					m_EdgeDataCandidate.candidate = true;
 					m_EdgeDataCandidate.candidatePosition = target.LocalToGlobal(evt.mousePosition);
 
-					m_GraphViewData.AddElement(m_EdgeDataCandidate);
+					dataSource.AddElement(m_EdgeDataCandidate);
 
 					return EventPropagation.Stop;
 
@@ -123,14 +122,14 @@ namespace RMGUI.GraphView
 						}
 						m_CompatibleAnchors.Clear();
 
-						if (m_EdgeDataCandidate != null && m_GraphViewData != null)
+						if (m_EdgeDataCandidate != null && dataSource != null)
 						{
 							// Not a candidate anymore, let's see if we're actually going to add it to parent
 							m_EdgeDataCandidate.candidate = false;
 
 							if (m_EdgeDataCandidate.right == null)
 							{
-								m_GraphViewData.RemoveElement(m_EdgeDataCandidate);
+                                dataSource.RemoveElement(m_EdgeDataCandidate);
 							}
 							else
 							{
@@ -140,7 +139,6 @@ namespace RMGUI.GraphView
 						}
 
 						m_EdgeDataCandidate = null;
-						m_GraphViewData = null;
 
 						return EventPropagation.Stop;
 					}

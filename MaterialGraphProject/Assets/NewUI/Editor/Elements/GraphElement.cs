@@ -3,7 +3,7 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	public class GraphElement : DataContainer, ISelectable
+	public class GraphElement : DataContainer<GraphElementData>, ISelectable
 	{
 		public override void OnDataChanged()
 		{
@@ -19,7 +19,7 @@ namespace RMGUI.GraphView
 				GraphElement ce = ve as GraphElement;
 				if (ce != null )
 				{
-					var childData = ce.dataProvider as GraphElementData;
+					var childData = ce.dataProvider;
 					if (childData != null)
 					{
 						childData.selected = data.selected;
@@ -32,7 +32,7 @@ namespace RMGUI.GraphView
 
 		public virtual bool IsSelectable()
 		{
-			var data = GetData<GraphElementData>();
+		    var data = GetData<GraphElementData>();
 			if (data != null)
 			{
 				return (data.capabilities & Capabilities.Selectable) == Capabilities.Selectable;

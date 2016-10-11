@@ -1,13 +1,14 @@
+using System;
+using UnityEngine;
 using UnityEngine.RMGUI;
-using Object = UnityEngine.Object;
 
 namespace RMGUI.GraphView
 {
-	public class DataContainer : VisualContainer
-	{
-		IDataSource m_DataProvider;
+	public class DataContainer <T> : VisualContainer where T : GraphElementData
+    {
+		T m_DataProvider;
 
-		public IDataSource dataProvider
+		public T dataProvider
 		{
 			get { return m_DataProvider; }
 			set
@@ -21,23 +22,35 @@ namespace RMGUI.GraphView
 			}
 		}
 
-		public T GetData<T>() where T : GraphElementData
+		public TK GetData<TK>() where TK : T
 		{
-			return dataProvider as T;
+			return dataProvider as TK;
 		}
 
 		void AddWatch()
 		{
-			if (m_DataProvider != null && panel != null && m_DataProvider is Object)
+			if (m_DataProvider != null && panel != null)
 				// TODO: consider a disposable handle?
-				DataWatchService.AddDataSpy(this, (Object) m_DataProvider, OnDataChanged);
+				DataWatchService.AddDataSpy(this, m_DataProvider, OnDataChanged);
 		}
 
 		void RemoveWatch()
 		{
-			if (m_DataProvider != null && panel != null && m_DataProvider is Object)
-				DataWatchService.RemoveDataSpy((Object) m_DataProvider, OnDataChanged);
-		}
+		    try
+		    {
+		        if (m_DataProvider != null && panel != null)
+		            DataWatchService.RemoveDataSpy(m_DataProvider, OnDataChanged);
+		    }
+		    catch (Exception e)
+		    {
+		        if (m_DataProvider != null)
+		        {
+		            Debug.LogWarningFormat("No datawatch is registered to: {0} it is type {1}", m_DataProvider.name, m_DataProvider.GetType());
+		        }
+                Debug.LogException(e, m_DataProvider); 
+
+            }
+        }
 
 		public DataContainer()
 		{

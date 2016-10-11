@@ -7,9 +7,27 @@ using UnityEngine.RMGUI.StyleSheets;
 namespace RMGUI.GraphView
 {
 	[StyleSheet("Assets/Editor/Views/GraphView.uss")]
-	public abstract class GraphView : DataContainer, ISelection
+	public abstract class GraphView : VisualContainer, ISelection
 	{
-		class ContentiewContainer:VisualContainer
+	    private IGraphElementDataSource m_DataSource;
+
+        public IGraphElementDataSource dataSource
+        {
+            get { return m_DataSource; }
+            set
+            {
+                if (m_DataSource == value)
+                    return;
+
+                RemoveWatch();
+                m_DataSource = value;
+                OnDataChanged();
+                AddWatch();
+            }
+        }
+
+
+        class ContentiewContainer : VisualContainer
 		{
 			public override bool Overlaps(Rect r)
 			{
@@ -39,19 +57,19 @@ namespace RMGUI.GraphView
 			// make it absolute and 0 sized so it acts as a transform to move children to and fro
 			AddChild(contentViewContainer);
 		}
-
-		public override void OnDataChanged()
+        
+		private void OnDataChanged()
 		{
-			if (dataProvider == null)
+			if (m_DataSource == null)
 				return;
 
 			// process removals
 			var current = contentViewContainer.children.OfType<GraphElement>().ToList();
-			current.AddRange(children.OfType<GraphElement>().ToList());
+			current.AddRange(children.OfType<GraphElement>());
 			foreach (var c in current)
 			{
 				// been removed?
-				if (!dataProvider.elements.Contains(c.GetData<GraphElementData>()))
+				if (!m_DataSource.elements.Contains(c.GetData<GraphElementData>()))
 				{
 					c.parent.RemoveChild(c);
 				}
@@ -60,7 +78,7 @@ namespace RMGUI.GraphView
 			// process additions
 			var elements = contentViewContainer.children.OfType<GraphElement>().ToList();
 			elements.AddRange(children.OfType<GraphElement>().ToList());
-			foreach (var elementData in dataProvider.elements)
+			foreach (var elementData in m_DataSource.elements)
 			{
 				// been added?
 				bool found = false;
@@ -82,7 +100,7 @@ namespace RMGUI.GraphView
 		// ISelection implementation
 		public List<ISelectable> selection { get; protected set; }
 
-		// functions to ISelection extensions
+	    // functions to ISelection extensions
 		public void AddToSelection(ISelectable e)
 		{
 			GraphElement ce = e as GraphElement;
@@ -141,5 +159,18 @@ namespace RMGUI.GraphView
 			else
 				AddChild(newElem);
 		}
-	}
+
+        void AddWatch()
+        {
+            if (m_DataSource != null && panel != null && m_DataSource is Object)
+                // TODO: consider a disposable handle?
+                DataWatchService.AddDataSpy(this, (Object)m_DataSource, OnDataChanged);
+        }
+
+        void RemoveWatch()
+        {
+            if (m_DataSource != null && panel != null && m_DataSource is Object)
+                DataWatchService.RemoveDataSpy((Object)m_DataSource, OnDataChanged);
+        }
+    }
 }

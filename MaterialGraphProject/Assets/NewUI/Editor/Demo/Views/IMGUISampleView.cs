@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
@@ -16,7 +16,7 @@ namespace RMGUI.GraphView.Demo
 			var view = new SimpleContentView
 			{
 				name = "theView",
-				dataProvider = CreateInstance<IMGUISampleViewData>()
+				dataSource = CreateInstance<IMGUISampleViewData>()
 			};
 			view.StretchToParentSize();
 			windowRoot.AddChild(view);
