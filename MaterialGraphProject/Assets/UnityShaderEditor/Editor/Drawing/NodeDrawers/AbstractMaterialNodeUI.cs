@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using RMGUI.GraphView;
 using UnityEngine;
@@ -8,23 +9,32 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph
 {
-   /* [CustomDataView(typeof(NodePreviewData))]
-    public class NodePreview : GraphElement
+    /* [CustomDataView(typeof(NodePreviewData))]
+     public class NodePreview : GraphElement
+     {
+         public NodePreview(NodePreviewData preview)
+         {
+             dataProvider = preview;
+         }
+
+         public override void DoRepaint(PaintContext args)
+         {
+             base.DoRepaint(args);
+             m_WwwTexture = new Texture2D(4, 4, TextureFormat.DXT1, false);
+             AddChild(new Image { image = m_WwwTexture });
+
+             Handles.DrawSolidRectangleWithOutline(parent.position, Color.red, Color.blue);
+         }
+     }*/
+
+    [Serializable]
+    public abstract class NodeControlData : GraphElementData
     {
-        public NodePreview(NodePreviewData preview)
-        {
-            dataProvider = preview;
-        }
+        protected NodeControlData()
+        { }
 
-        public override void DoRepaint(PaintContext args)
-        {
-            base.DoRepaint(args);
-            m_WwwTexture = new Texture2D(4, 4, TextureFormat.DXT1, false);
-            AddChild(new Image { image = m_WwwTexture });
-
-            Handles.DrawSolidRectangleWithOutline(parent.position, Color.red, Color.blue);
-        }
-    }*/
+        public abstract void OnGUIHandler();
+    }
 
     [Serializable]
     public class NodePreviewData : GraphElementData
@@ -77,7 +87,6 @@ namespace UnityEditor.MaterialGraph
             m_Node = node;
         }
 
-
         public Texture Render(Vector2 dimension)
         {
             if (m_Node == null)
@@ -97,6 +106,23 @@ namespace UnityEditor.MaterialGraph
 
         protected virtual string GetPreviewShaderString()
         {
+            // TODO: this is a workaround right now.
+            if (m_Node is PixelShaderNode)
+            {
+
+                var localNode = (PixelShaderNode) m_Node;
+                if (localNode == null)
+                    return string.Empty;
+
+                var shaderName = "Hidden/PreviewShader/" + localNode.GetVariableNameForNode();
+                List<PropertyGenerator.TextureInfo> defaultTextures;
+                //TODO: Need to get the real options somehow
+                var resultShader = ShaderGenerator.GenerateSurfaceShader(localNode, new MaterialOptions(), shaderName, true, out defaultTextures);
+                m_GeneratedShaderMode = PreviewMode.Preview3D;
+                return resultShader;
+            }
+
+
             return ShaderGenerator.GeneratePreviewShader(m_Node, out m_GeneratedShaderMode);
         }
 

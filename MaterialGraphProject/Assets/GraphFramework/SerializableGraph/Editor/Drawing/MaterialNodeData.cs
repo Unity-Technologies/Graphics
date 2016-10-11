@@ -1,12 +1,31 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using RMGUI.GraphView;
 using UnityEditor.MaterialGraph;
+using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
+
+    [Serializable]
+    public class ColorNodeData : MaterialNodeData
+    {
+        class ColorNodeContolData : NodeControlData
+        {
+            public override void OnGUIHandler()
+            {
+                EditorGUILayout.ColorField("test", Color.blue);
+            }
+        }
+
+        protected override IEnumerable<NodeControlData> GetControlData()
+        {
+            return new List<NodeControlData> {new ColorNodeContolData()};
+        }
+    }
 
     [Serializable]
     public class MaterialNodeData : GraphElementData
@@ -40,18 +59,29 @@ namespace UnityEditor.Graphing.Drawing
                 m_Children.Add(data);
             }
 
-            var materialNode = inNode as AbstractMaterialNode;
-            if (materialNode == null || !materialNode.hasPreview)
-                return;
-            
-            var previewData = CreateInstance<NodePreviewData>();
-            previewData.Initialize(materialNode);
-            m_Children.Add(previewData);
+            AddPreview(inNode);
+
+            m_Children.AddRange(GetControlData().OfType<GraphElementData>());
 
 
             //position = new Rect(node.drawState.position.x, node.drawState.position.y, 100, 200);
             //position
         }
 
+        private void AddPreview(INode inNode)
+        {
+            var materialNode = inNode as AbstractMaterialNode;
+            if (materialNode == null || !materialNode.hasPreview)
+                return;
+
+            var previewData = CreateInstance<NodePreviewData>();
+            previewData.Initialize(materialNode);
+            m_Children.Add(previewData);
+        }
+
+        protected virtual IEnumerable<NodeControlData> GetControlData()
+        {
+            return new NodeControlData[0];
+        }
     }
 }

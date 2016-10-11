@@ -16,7 +16,7 @@ namespace RMGUI.GraphView.Demo
 			var view = new SimpleContentView
 			{
 				name = "theView",
-				dataProvider = CreateInstance<SimpleGraphViewData>()
+				dataSource = CreateInstance<SimpleGraphViewData>()
 			};
 			view.StretchToParentSize();
 

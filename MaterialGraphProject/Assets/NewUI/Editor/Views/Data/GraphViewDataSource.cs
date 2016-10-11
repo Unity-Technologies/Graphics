@@ -5,7 +5,7 @@ using UnityEngine;
 namespace RMGUI.GraphView
 {
     [Serializable]
-	public abstract class GraphViewDataSource : ScriptableObject, IDataSource
+	public abstract class GraphViewDataSource : ScriptableObject, IGraphElementDataSource
 	{
 		[SerializeField]
 		private List<GraphElementData> m_Elements = new List<GraphElementData>();

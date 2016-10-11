@@ -4,11 +4,12 @@ using System.Linq;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
 	[Serializable]
-    public class MaterialGraphDataSource : IDataSource
+    public class MaterialGraphDataSource : IGraphElementDataSource
     {
         private List<GraphElementData> m_Elements = new List<GraphElementData>();
 
@@ -24,7 +25,13 @@ namespace UnityEditor.Graphing.Drawing
 			var drawableNodes = new List<MaterialNodeData>();
 			foreach (var node in graphAsset.graph.GetNodes<INode>())
 			{
-				var nodeData = ScriptableObject.CreateInstance<MaterialNodeData>();
+			    MaterialNodeData nodeData;
+
+			    if (node is ColorNode)
+			        nodeData = ScriptableObject.CreateInstance<ColorNodeData>();
+			    else
+			        nodeData = ScriptableObject.CreateInstance<MaterialNodeData>();
+                
 				nodeData.Initialize(node);
 				drawableNodes.Add(nodeData);
 			}
@@ -51,7 +58,7 @@ namespace UnityEditor.Graphing.Drawing
 					}
 				}
 			}
-
+            
 			m_Elements.AddRange(drawableNodes.OfType<GraphElementData>());
 			m_Elements.AddRange(drawableEdges.OfType<GraphElementData>());
 		}

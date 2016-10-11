@@ -43,7 +43,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             m_Contents = new MaterialGraphView();
             m_Contents.name = "theView";
-            m_Contents.dataProvider = new MaterialGraphDataSource(m_LastSelection);
+            m_Contents.dataSource = new MaterialGraphDataSource(m_LastSelection);
             m_Contents.StretchToParentSize();
 
             windowRoot.AddChild(m_Contents);
@@ -75,11 +75,9 @@ namespace UnityEditor.Graphing.Drawing
                     graph.ValidateGraph();
                     m_LastSelection = selection;
                     
-                    m_Contents.dataProvider = new MaterialGraphDataSource(m_LastSelection);
+                    m_Contents.dataSource = new MaterialGraphDataSource(m_LastSelection);
                     
                     m_Contents.StretchToParentSize();
-
-                    m_Contents.OnDataChanged();
                     Repaint();
                 }
             }
@@ -277,7 +275,7 @@ namespace UnityEditor.Graphing.Drawing
             var path = quickExport ? m_LastPath : EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
             m_LastPath = path; // For quick exporting
 
-            var ds = m_Contents.dataProvider as MaterialGraphDataSource;
+            var ds = m_Contents.dataSource as MaterialGraphDataSource;
             if (ds != null && !string.IsNullOrEmpty(path))
             {
                 ExportShader (ds.graphAsset as MaterialGraphAsset, path);

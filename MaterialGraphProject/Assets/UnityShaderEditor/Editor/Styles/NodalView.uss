@@ -18,17 +18,26 @@ MaterialGraphNode #slots #output {
 
 MaterialGraphNode #controls {
 	flex-direction: column;
+	height: 26;
+}
+
+MaterialGraphNode #controls #element{
+	flex-direction: column;
+	flex:1;
 }
 
 MaterialGraphNode #preview {
 	flex-direction: column;
+}
+
+MaterialGraphNode #preview #image {
 	height: 200;
 	width: 200;
+	align-self: center;
 }
 
 NodeAnchor {
 	height: 26;
-	width: 100;
 }
 
 /* Example of dynamic properties

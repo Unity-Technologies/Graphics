@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace RMGUI.GraphView
 {
-    public interface IDataSource
+    public interface IGraphElementDataSource
     {
         IEnumerable<GraphElementData> elements { get; }
         void AddElement(GraphElementData element);

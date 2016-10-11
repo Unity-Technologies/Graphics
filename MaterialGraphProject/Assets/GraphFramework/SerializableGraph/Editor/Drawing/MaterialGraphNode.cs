@@ -4,16 +4,25 @@ using RMGUI.GraphView.Demo;
 using UnityEditor.MaterialGraph;
 using UnityEngine;
 using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleEnums.Values;
 
 namespace UnityEditor.Graphing.Drawing
 {
+    class PreviewImage : Image
+    {
+        public override void DoRepaint(PaintContext args)
+        {
+            Handles.DrawSolidRectangleWithOutline(position, Color.blue, Color.blue);
+            base.DoRepaint(args);
+        }
+    }
+
     [GUISkinStyle("window")]
     [CustomDataView(typeof(MaterialNodeData))]
+    [CustomDataView(typeof(ColorNodeData))]
     public class MaterialGraphNode : GraphElement
     {
         VisualContainer m_SlotContainer;
-       // VisualContainer m_ControlsContainer;
+        VisualContainer m_ControlsContainer;
         VisualContainer m_PreviewContainer;
 
         public MaterialGraphNode()
@@ -26,11 +35,11 @@ namespace UnityEditor.Graphing.Drawing
                 pickingMode = PickingMode.Ignore,
             };
 
-         /*   m_ControlsContainer = new VisualContainer
+            m_ControlsContainer = new VisualContainer
             {
                 name = "controls", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
-            };*/
+            };
 
             m_PreviewContainer = new VisualContainer
             {
@@ -61,14 +70,14 @@ namespace UnityEditor.Graphing.Drawing
                 name = "input", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
-            m_SlotContainer.AddChild(inputs);
+            m_SlotContainer.AddChild(inputs); 
 
             // put a spacer here?
             //m_SlotContainer.AddChild(new f);
 
             var outputs = new VisualContainer
             {
-                name = "input", // for USS&Flexbox
+                name = "output", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
             m_SlotContainer.AddChild(outputs);
@@ -84,6 +93,27 @@ namespace UnityEditor.Graphing.Drawing
 
             AddChild(m_SlotContainer);
         }
+        
+        private void AddControls(MaterialNodeData nodeData)
+        {
+            m_ControlsContainer.ClearChildren();
+
+            if (!nodeData.elements.OfType<NodeControlData>().Any())
+                return;
+
+            foreach (var controlData in nodeData.elements.OfType<NodeControlData>())
+            {
+                var imContainer = new IMGUIContainer()
+                {
+                    name = "element",
+                    OnGUIHandler = controlData.OnGUIHandler,
+                    pickingMode = PickingMode.Position
+                };
+                m_ControlsContainer.AddChild(imContainer);
+            }
+
+            AddChild(m_ControlsContainer);
+        }
 
         private void AddPreview(MaterialNodeData nodeData)
         {
@@ -95,7 +125,12 @@ namespace UnityEditor.Graphing.Drawing
             foreach (var preview in nodeData.elements.OfType<NodePreviewData>())
             {
                 var image = preview.Render(new Vector2(200, 200));
-                m_PreviewContainer.AddChild(new Image { image = image });
+                var thePreview = new PreviewImage
+                {
+                    image = image,
+                    name = "image"
+                };
+                m_PreviewContainer.AddChild(thePreview);
             }
 
             AddChild(m_PreviewContainer);
@@ -106,7 +141,7 @@ namespace UnityEditor.Graphing.Drawing
             base.OnDataChanged();
             ClearChildren();
 
-           // m_ControlsContainer.ClearChildren();
+            m_ControlsContainer.ClearChildren();
             m_PreviewContainer.ClearChildren();
             
             var nodeData = dataProvider as MaterialNodeData;
@@ -115,11 +150,12 @@ namespace UnityEditor.Graphing.Drawing
                 return;
 
             AddSlots(nodeData);
+            AddControls(nodeData);
             AddPreview(nodeData);
 
-            positionType = PositionType.Absolute;
+            /*positionType = PositionType.Absolute;
             positionLeft = nodeData.node.drawState.position.x;
-            positionTop = nodeData.node.drawState.position.y;
+            positionTop = nodeData.node.drawState.position.y;*/
         }
     }
 }

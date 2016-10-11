@@ -5,7 +5,7 @@ using UnityEngine;
 namespace RMGUI.GraphView
 {
 	[Serializable]
-	public abstract class GraphElementData : ScriptableObject, IDataSource
+	public abstract class GraphElementData : ScriptableObject
 	{
 		[SerializeField]
 		private bool m_Selected;
@@ -44,12 +44,6 @@ namespace RMGUI.GraphView
 		{
 			get { return new GraphElementData[0]; }
 		}
-
-		public virtual void AddElement(GraphElementData element)
-		{}
-
-		public virtual void RemoveElement(GraphElementData element)
-		{}
 
 		public Capabilities capabilities
 		{
