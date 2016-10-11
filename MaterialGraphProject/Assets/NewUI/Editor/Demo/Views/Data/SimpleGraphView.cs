@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
+	[CustomDataView(typeof(IMGUIElement))]
 	[Serializable]
 	public class TestIMGUIElementData : IMGUIData
 	{

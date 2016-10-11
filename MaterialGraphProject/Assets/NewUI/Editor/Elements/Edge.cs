@@ -5,7 +5,6 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	[CustomDataView(typeof(EdgeData))]
 	class Edge : GraphElement
 	{
 		const float k_EndPointRadius = 4.0f;

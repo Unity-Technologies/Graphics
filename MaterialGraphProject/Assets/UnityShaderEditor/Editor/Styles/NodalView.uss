@@ -33,7 +33,6 @@ MaterialGraphNode #preview {
 MaterialGraphNode #preview #image {
 	height: 200;
 	width: 200;
-	align-self: center;
 }
 
 NodeAnchor {

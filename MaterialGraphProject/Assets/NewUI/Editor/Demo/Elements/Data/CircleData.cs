@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
+	[CustomDataView(typeof(Circle))]
 	public class CircleData : GraphElementData
 	{
 		[SerializeField]

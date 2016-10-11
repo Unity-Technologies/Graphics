@@ -4,7 +4,6 @@ using UnityEngine.RMGUI;
 namespace RMGUI.GraphView.Demo
 {
 	[GUISkinStyle("box")]
-	[CustomDataView(typeof(VerticalNodeData))]
 	class VerticalNode : GraphElement
 	{
 		readonly VisualContainer m_ContainerTop;

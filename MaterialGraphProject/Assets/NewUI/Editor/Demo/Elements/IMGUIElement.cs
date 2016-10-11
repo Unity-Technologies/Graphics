@@ -1,12 +1,8 @@
-﻿using UnityEngine.RMGUI;
+using UnityEngine.RMGUI;
 using UnityEngine.RMGUI.StyleEnums.Values;
 
 namespace RMGUI.GraphView.Demo
 {
-	// TODO: shanti really there should be one data type on a delegate. ... seriously
-	[CustomDataView(typeof(IMGUIData))]
-	[CustomDataView(typeof(TestIMGUIElementData))]
-	[CustomDataView(typeof(IMGUISampleElementData))]
 	public class IMGUIElement : SimpleElement
 	{
 		public IMGUIElement()

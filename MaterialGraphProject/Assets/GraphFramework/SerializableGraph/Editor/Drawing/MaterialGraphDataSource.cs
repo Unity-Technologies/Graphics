@@ -54,7 +54,10 @@ namespace UnityEditor.Graphing.Drawing
 
                         var targetAnchors = targetNode.elements.OfType<MaterialNodeAnchorData>();
                         var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
-                        drawableEdges.Add(new EdgeData {left = sourceAnchor, right = targetAnchor});
+	                    var edgeData = ScriptableObject.CreateInstance<EdgeData>();
+	                    edgeData.left = sourceAnchor;
+	                    edgeData.right = targetAnchor;
+                        drawableEdges.Add(edgeData);
                     }
                 }
             }

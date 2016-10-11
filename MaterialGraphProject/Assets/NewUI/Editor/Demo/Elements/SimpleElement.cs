@@ -4,7 +4,6 @@ using UnityEngine.RMGUI;
 namespace RMGUI.GraphView.Demo
 {
 	[GUISkinStyle("window")]
-	[CustomDataView(typeof(SimpleElementData))]
 	public class SimpleElement : GraphElement
 	{
 		public SimpleElement()

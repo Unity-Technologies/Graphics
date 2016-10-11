@@ -4,7 +4,6 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	[CustomDataView(typeof(CustomEdgeData))]
 	class CustomEdge : Edge
 	{
 		protected override void DrawEdge(PaintContext args)

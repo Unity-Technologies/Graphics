@@ -4,7 +4,6 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	[CustomDataView(typeof(CircleData))]
 	public class Circle : GraphElement
 	{
 		public override void DoRepaint(PaintContext args)

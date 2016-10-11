@@ -1,8 +1,7 @@
-﻿using UnityEngine.RMGUI;
+using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	[CustomDataView(typeof(NodeData))]
 	class Node : SimpleElement
 	{
 		VisualContainer m_InputContainer;

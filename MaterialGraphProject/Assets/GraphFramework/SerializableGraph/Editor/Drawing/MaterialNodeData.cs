@@ -10,7 +10,8 @@ using UnityEngine.MaterialGraph;
 namespace UnityEditor.Graphing.Drawing
 {
     [Serializable]
-    public class ColorNodeData : MaterialNodeData
+	[CustomDataView(typeof(MaterialGraphNode))]
+	public class ColorNodeData : MaterialNodeData
     {
         class ColorNodeContolData : NodeControlData
         {
@@ -22,18 +23,19 @@ namespace UnityEditor.Graphing.Drawing
 
         protected override IEnumerable<NodeControlData> GetControlData()
         {
-            return new List<NodeControlData> {new ColorNodeContolData()};
+            return new List<NodeControlData> { CreateInstance<ColorNodeContolData>() };
         }
     }
 
     [Serializable]
-    public class MaterialNodeData : GraphElementData
+	[CustomDataView(typeof(MaterialGraphNode))]
+	public class MaterialNodeData : GraphElementData
     {
         public INode node { get; private set; }
 
         protected List<GraphElementData> m_Children = new List<GraphElementData>();
 
-        public IEnumerable<GraphElementData> elements
+        public override IEnumerable<GraphElementData> elements
         {
             get { return m_Children; }
         }

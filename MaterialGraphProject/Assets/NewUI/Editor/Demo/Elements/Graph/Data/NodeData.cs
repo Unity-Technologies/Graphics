@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
+	[CustomDataView(typeof(Node))]
 	class NodeData : SimpleElementData
 	{
 		[SerializeField]

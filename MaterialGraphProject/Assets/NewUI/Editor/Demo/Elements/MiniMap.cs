@@ -6,7 +6,6 @@ using UnityEngine.RMGUI;
 namespace RMGUI.GraphView.Demo
 {
 	[GUISkinStyle("box")]
-	[CustomDataView(typeof(MiniMapData))]
 	public class MiniMap : GraphElement
 	{
 		private Label m_Label;
