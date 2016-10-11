@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using System;
 using System.Collections;
@@ -341,15 +341,15 @@ namespace UnityEngine.ScriptableRenderLoop
 			cmd.SetComputeFloatParams(shadercs, name, data);
 		}
 
-		int UpdateDirectionalLights(Camera camera, ActiveLight[] activeLights)
+		int UpdateDirectionalLights(Camera camera, VisibleLight[] visibleLights)
 		{
 			int dirLightCount = 0;
 			List<DirectionalLight> lights = new List<DirectionalLight>();
 			Matrix4x4 worldToView = camera.worldToCameraMatrix;
 
-			for (int nLight = 0; nLight < activeLights.Length; nLight++)
+			for (int nLight = 0; nLight < visibleLights.Length; nLight++)
 			{
-				ActiveLight light = activeLights[nLight];
+				VisibleLight light = visibleLights[nLight];
 				if (light.lightType == LightType.Directional)
 				{
 					Debug.Assert(dirLightCount < gMaxNumDirLights, "Too many directional lights.");
@@ -387,7 +387,7 @@ namespace UnityEngine.ScriptableRenderLoop
             return dirLightCount;
 		}
 		
-		void UpdateShadowConstants(ActiveLight[] activeLights, ref ShadowOutput shadow)
+		void UpdateShadowConstants(VisibleLight[] visibleLights, ref ShadowOutput shadow)
 		{
 			int nNumLightsIncludingTooMany = 0;
 
@@ -396,13 +396,13 @@ namespace UnityEngine.ScriptableRenderLoop
 			Vector4[] g_vLightShadowIndex_vLightParams = new Vector4[MAX_LIGHTS];
 			Vector4[] g_vLightFalloffParams = new Vector4[MAX_LIGHTS];
 
-			for (int nLight = 0; nLight < activeLights.Length; nLight++)
+			for (int nLight = 0; nLight < visibleLights.Length; nLight++)
 			{
 				nNumLightsIncludingTooMany++;
 				if (nNumLightsIncludingTooMany > MAX_LIGHTS)
 					continue;
 
-				ActiveLight light = activeLights[nLight];
+				VisibleLight light = visibleLights[nLight];
 				LightType lightType = light.lightType;
 				Vector3 position = light.light.transform.position;
 				Vector3 lightDir = light.light.transform.forward.normalized;
@@ -479,10 +479,10 @@ namespace UnityEngine.ScriptableRenderLoop
 
 		int GenerateSourceLightBuffers(Camera camera, CullResults inputs)
 		{
-			VisibleReflectionProbe[] probes = inputs.culledReflectionProbes;
+			VisibleReflectionProbe[] probes = inputs.visibleReflectionProbes;
 			//ReflectionProbe[] probes = Object.FindObjectsOfType<ReflectionProbe>();
 
-			int numLights = inputs.culledLights.Length;
+			int numLights = inputs.visibleLights.Length;
 			int numProbes = probes.Length;
 			int numVolumes = numLights + numProbes;
 
@@ -493,7 +493,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 			int i = 0;
 			uint shadowLightIndex = 0;
-			foreach (var cl in inputs.culledLights)
+			foreach (var cl in inputs.visibleLights)
 			{
 				float range = cl.range;
 
@@ -747,7 +747,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				renderLoop.SetupCameraProperties(camera);
 
-				UpdateLightConstants(cullResults.culledLights, ref shadows);
+				UpdateLightConstants(cullResults.visibleLights, ref shadows);
 
 				DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("ForwardBase"));
 				settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
@@ -806,7 +806,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			//m_DeferredReflectionMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
 			loop.SetupCameraProperties(camera);
 
-			UpdateShadowConstants(cullResults.culledLights, ref shadows);
+			UpdateShadowConstants(cullResults.visibleLights, ref shadows);
 
 			RenderGBuffer(cullResults, camera, loop);
 
@@ -864,7 +864,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			loop.ExecuteCommandBuffer(cmd);
 			cmd.Dispose();
 
-			int numDirLights = UpdateDirectionalLights(camera, cullResults.culledLights);
+			int numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
 
             // Push all global params
             PushGlobalParams(camera, loop, camera.cameraToWorldMatrix, projscr, invProjscr, numDirLights);

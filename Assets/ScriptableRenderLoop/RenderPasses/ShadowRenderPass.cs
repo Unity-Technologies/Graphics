@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
@@ -109,7 +109,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			public int lightIndex;
 		}
 
-		int CalculateNumShadowSplits(int index, ActiveLight[] lights)
+		int CalculateNumShadowSplits(int index, VisibleLight[] lights)
 		{
 			LightType lightType = lights [index].lightType;
 			if (lightType == LightType.Spot)
@@ -121,7 +121,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			return 6;
 		}
 
-		static public void ClearPackedShadows(ActiveLight[] lights, out ShadowOutput packedShadows)
+		static public void ClearPackedShadows(VisibleLight[] lights, out ShadowOutput packedShadows)
 		{
 			packedShadows.directionalShadowSplitSphereSqr = null;
 			packedShadows.shadowSlices = null;
@@ -129,7 +129,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		}
 
 		//---------------------------------------------------------------------------------------------------------------------------------------------------
-		bool AutoPackLightsIntoShadowTexture(List<InputShadowLightData> shadowLights, ActiveLight[] lights, out ShadowOutput packedShadows)
+		bool AutoPackLightsIntoShadowTexture(List<InputShadowLightData> shadowLights, VisibleLight[] lights, out ShadowOutput packedShadows)
 		{
 			Dictionary<int, InputShadowLightData> activeShadowLights = new Dictionary<int, InputShadowLightData>();
 			List<int> shadowIndices = new List<int>();
@@ -244,7 +244,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		static List<InputShadowLightData> GetInputShadowLightData(CullResults cullResults)
 		{
 			var shadowCasters = new List<InputShadowLightData> ();
-			ActiveLight[] lights = cullResults.culledLights;
+			VisibleLight[] lights = cullResults.visibleLights;
 			int directionalLightCount = 0;
 			for (int i = 0; i < lights.Length; i++)
 			{
@@ -281,11 +281,11 @@ namespace UnityEngine.ScriptableRenderLoop
 		{
 			if (!m_Settings.enabled)
 			{
-				ClearPackedShadows(cullResults.culledLights, out packedShadows);
+				ClearPackedShadows(cullResults.visibleLights, out packedShadows);
 			}
 
 			// Pack all shadow quads into the texture
-			if ( !AutoPackLightsIntoShadowTexture(GetInputShadowLightData(cullResults), cullResults.culledLights, out packedShadows) )
+			if ( !AutoPackLightsIntoShadowTexture(GetInputShadowLightData(cullResults), cullResults.visibleLights, out packedShadows) )
 			{
 				// No shadowing lights found, so skip all rendering
 				return;
@@ -309,7 +309,7 @@ namespace UnityEngine.ScriptableRenderLoop
 			loop.ExecuteCommandBuffer (setRenderTargetCommandBuffer);
 			setRenderTargetCommandBuffer.Dispose ();
 
-			ActiveLight[] activeLights = cullResults.culledLights;
+			VisibleLight[] visibleLights = cullResults.visibleLights;
 			var shadowSlices = packedShadows.shadowSlices;
 
 			// Render each light's shadow buffer into a subrect of the shared depth texture
@@ -333,9 +333,9 @@ namespace UnityEngine.ScriptableRenderLoop
 				Matrix4x4 proj;
 				Matrix4x4 view;
 
-				LightType lightType = activeLights[lightIndex].lightType;
-				Vector3 lightDirection = activeLights[lightIndex].light.transform.forward;
-				var shadowNearClip = activeLights[lightIndex].light.shadowNearPlane;
+				LightType lightType = visibleLights[lightIndex].lightType;
+				Vector3 lightDirection = visibleLights[lightIndex].light.transform.forward;
+				var shadowNearClip = visibleLights[lightIndex].light.shadowNearPlane;
 
 				int shadowSliceIndex = packedShadows.GetShadowSliceIndex (lightIndex, 0);
 					
