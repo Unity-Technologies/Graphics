@@ -72,7 +72,7 @@ internal class LitGUI : ShaderGUI
 
         public static string InputsMapText = "";
 
-        public static GUIContent baseColorText = new GUIContent("Base Color", "Albedo (RGB) and Smoothness (A)");
+        public static GUIContent baseColorText = new GUIContent("Base Color + Opacity", "Albedo (RGB) and Opacity (A)");
         public static GUIContent baseColorSmoothnessText = new GUIContent("Base Color + Smoothness", "Albedo (RGB) and Smoothness (A)");
 
         public static GUIContent metalicText = new GUIContent("Metalic", "Metalic scale factor");
@@ -217,22 +217,22 @@ internal class LitGUI : ShaderGUI
     protected void ShaderInputGUI()
     {
         EditorGUI.indentLevel++;
-        bool isAlbedoAlpha = (SmoothnessMapChannel)smoothnessMapChannel.floatValue == SmoothnessMapChannel.AlbedoAlpha;
+        bool smoothnessInAlbedoAlpha = (SmoothnessMapChannel)smoothnessMapChannel.floatValue == SmoothnessMapChannel.AlbedoAlpha;
         bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
 
         GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
-        m_MaterialEditor.TexturePropertySingleLine(isAlbedoAlpha ? Styles.baseColorSmoothnessText : Styles.baseColorText, baseColorMap, baseColor);
+        m_MaterialEditor.TexturePropertySingleLine(smoothnessInAlbedoAlpha ? Styles.baseColorSmoothnessText : Styles.baseColorText, baseColorMap, baseColor);
         m_MaterialEditor.ShaderProperty(metalic, Styles.metalicText);
         m_MaterialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
 
-        if (isAlbedoAlpha && useEmissiveMask)
-            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapESText, maskMap);
-        else if (useEmissiveMask)
+        if (smoothnessInAlbedoAlpha && useEmissiveMask)
             m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapEText, maskMap);
-        else if (isAlbedoAlpha)
-            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap);
-        else
+        else if (smoothnessInAlbedoAlpha && !useEmissiveMask)
             m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
+        else if (!smoothnessInAlbedoAlpha && useEmissiveMask)
+            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapESText, maskMap);
+        else if (!smoothnessInAlbedoAlpha && !useEmissiveMask)
+            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSText, maskMap);
 
         m_MaterialEditor.TexturePropertySingleLine(Styles.specularOcclusionMapText, specularOcclusionMap);
 
