@@ -2,6 +2,9 @@
 #define UNITY_COMMON_INCLUDED
 
 // Convention:
+
+// Unity is Y up - left handed
+
 // space at the end of the variable name
 // WS: world space
 // VS: view space
@@ -32,7 +35,7 @@
 
 // constant floating number written as 1.0  (not 1, not 1.0f, not 1.0h)
 
-// uniform have g_ as prefix (still lowercaseThenCamelCase)
+// uniform have _ as prefix (still lowercaseThenCamelCase) // TODO: define upper or lower case as a start
 
 // Structure definition that are share between C# and hlsl.
 // These structures need to be align on float4 to respectect various packing rules from sahder language.

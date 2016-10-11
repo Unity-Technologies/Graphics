@@ -347,12 +347,12 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PunctualLightData light
         float NdotL = saturate(dot(bsdfData.normalWS, L));
         float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
         float Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness);
-        float D = D_GGX(NdotH, bsdfData.roughness);
+        float D = D_GGXDividePI(NdotH, bsdfData.roughness);
         specularLighting.rgb = F * Vis * D;
         #ifdef DIFFUSE_LAMBERT_BRDF
-        float diffuseTerm = Lambert();
+        float diffuseTerm = LambertDividePI();
         #else
-        float diffuseTerm = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+        float diffuseTerm = DisneyDiffuseDividePI(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
         #endif
         diffuseLighting.rgb = bsdfData.diffuseColor * diffuseTerm;
 

@@ -40,9 +40,9 @@ Shader "Unity/Unlit"
     #include "ShaderVariables.hlsl"
 
     float4	_Color;
-    sampler2D _ColorMap;
+    UNITY_DECLARE_TEX2D(_ColorMap);
     float3 _EmissiveColor;
-    sampler2D _EmissiveColorMap;
+    UNITY_DECLARE_TEX2D(_EmissiveColorMap);
     float _EmissiveIntensity;
 
     ENDHLSL
@@ -123,8 +123,8 @@ Shader "Unity/Unlit"
 
             void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
             {
-                surfaceData.color = tex2D(_ColorMap, input.texCoord0).rgb * _Color.rgb;
-                float alpha = tex2D(_ColorMap, input.texCoord0).a * _Color.a;
+                surfaceData.color = UNITY_SAMPLE_TEX2D(_ColorMap, input.texCoord0).rgb * _Color.rgb;
+                float alpha = UNITY_SAMPLE_TEX2D(_ColorMap, input.texCoord0).a * _Color.a;
 
                 #ifdef _ALPHATEST_ON
                 clip(alpha - _AlphaCutoff);
@@ -136,7 +136,7 @@ Shader "Unity/Unlit"
                 builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
                 #ifdef _EMISSIVE_COLOR_MAP
-                builtinData.emissiveColor = tex2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
+                builtinData.emissiveColor = UNITY_SAMPLE_TEX2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
                 #else
                 builtinData.emissiveColor = _EmissiveColor;
                 #endif			

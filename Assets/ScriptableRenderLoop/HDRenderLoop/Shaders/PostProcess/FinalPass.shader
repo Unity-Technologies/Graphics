@@ -24,7 +24,7 @@ Shader "Hidden/Unity/FinalPass"
             #include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
             #include "../ShaderVariables.hlsl"
 
-            sampler2D _MainTex;
+            UNITY_DECLARE_TEX2D(_MainTex);
             float4		_ToneMapCoeffs1;
             float4		_ToneMapCoeffs2;
 
@@ -118,7 +118,7 @@ Shader "Hidden/Unity/FinalPass"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float4 c = tex2D(_MainTex, input.texcoord);
+                float4 c = UNITY_SAMPLE_TEX2D(_MainTex, input.texcoord);
                 // Gamma correction
 
                 // TODO: Currenlt in the editor there a an additional pass were the result is copyed in a render target RGBA8_sRGB.

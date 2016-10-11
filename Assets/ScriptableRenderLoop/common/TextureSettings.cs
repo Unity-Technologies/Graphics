@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +17,7 @@ public struct TextureSettings
 			TextureSettings settings;
 			settings.spotCookieSize = 128;
 			settings.pointCookieSize = 512;
-			settings.reflectionCubemapSize = 64;
+			settings.reflectionCubemapSize = 128;
 			return settings;
 		}
 	}

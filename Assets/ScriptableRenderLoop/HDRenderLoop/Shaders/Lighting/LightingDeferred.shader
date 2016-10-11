@@ -29,7 +29,7 @@ Shader "Hidden/Unity/LightingDeferred"
             DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);
             DECLARE_GBUFFER_BAKE_LIGHTING(_CameraGBufferTexture);
 
-            Texture2D _CameraDepthTexture;
+            UNITY_DECLARE_TEX2D(_CameraDepthTexture);
             float4 _ScreenSize;
 
             float4x4 _InvViewProjMatrix;
