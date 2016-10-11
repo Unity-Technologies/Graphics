@@ -36,7 +36,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = 0.028; // TODO take from subSurfaceProfile
         bsdfData.subSurfaceRadius = surfaceData.subSurfaceRadius;
-        bsdfData.thickness = surfaceData.thickness;        
+        bsdfData.thickness = surfaceData.thickness;
+        bsdfData.subSurfaceProfile = surfaceData.subSurfaceProfile;
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -130,7 +131,7 @@ void EncodeIntoGBuffer(	SurfaceData surfaceData,
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
-        outGBuffer2 = float4(surfaceData.subSurfaceRadius, surfaceData.thickness, 0.0, 0.0);
+        outGBuffer2 = float4(surfaceData.subSurfaceRadius, surfaceData.thickness, 0.0, surfaceData.subSurfaceProfile / 8.0f); // Number of profile not define yet
     }
     else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
@@ -179,6 +180,7 @@ BSDFData DecodeFromGBuffer(	float4 inGBuffer0,
         bsdfData.fresnel0 = 0.028; // TODO take from subSurfaceProfile
         bsdfData.subSurfaceRadius = inGBuffer2.r;
         bsdfData.thickness = inGBuffer2.g;
+        bsdfData.subSurfaceProfile = inGBuffer2.a * 8.0f;
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
