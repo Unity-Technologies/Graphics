@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
@@ -47,7 +47,7 @@ namespace UnityEngine.ScriptableRenderLoop
 		}
 
 		//---------------------------------------------------------------------------------------------------------------------------------------------------
-		void UpdateLightConstants(ActiveLight[] activeLights, ref ShadowOutput shadow)
+		void UpdateLightConstants(VisibleLight[] visibleLights, ref ShadowOutput shadow)
 		{
 			int nNumLightsIncludingTooMany = 0;
 
@@ -62,14 +62,14 @@ namespace UnityEngine.ScriptableRenderLoop
 			Matrix4x4[] g_matWorldToShadow = new Matrix4x4[ MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS ];
 			Vector4[] g_vDirShadowSplitSpheres = new Vector4[ MAX_DIRECTIONAL_SPLIT ];
 
-			for ( int nLight = 0; nLight < activeLights.Length; nLight++ )
+			for ( int nLight = 0; nLight < visibleLights.Length; nLight++ )
 			{
 
 				nNumLightsIncludingTooMany++;
 				if ( nNumLightsIncludingTooMany > MAX_LIGHTS )
 					continue;
 
-				ActiveLight light = activeLights [nLight];
+				VisibleLight light = visibleLights[nLight];
 				LightType lightType = light.lightType;
 				Vector3 position = light.light.transform.position;
 				Vector3 lightDir = light.light.transform.forward.normalized;
@@ -217,7 +217,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
 				renderLoop.SetupCameraProperties (camera);
 
-				UpdateLightConstants(cullResults.culledLights, ref shadows);
+				UpdateLightConstants(cullResults.visibleLights, ref shadows);
 
 				DrawRendererSettings settings = new DrawRendererSettings (cullResults, camera, new ShaderPassName("ForwardBase"));
 				settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
