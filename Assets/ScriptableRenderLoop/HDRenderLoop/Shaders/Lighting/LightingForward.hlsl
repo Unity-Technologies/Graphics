@@ -5,8 +5,12 @@
 // Simple forward loop architecture
 //-----------------------------------------------------------------------------
 
-StructuredBuffer<PunctualLightData> g_punctualLightList;
-int g_punctualLightCount;
+StructuredBuffer<PunctualLightData> _PunctualLightList;
+int _PunctualLightCount;
+
+UNITY_DECLARE_TEXCUBEARRAY(_reflCubeTextures);
+StructuredBuffer<PunctualLightData> _EnvLightList;
+int _EnvLightCount;
 
 // TODO: Think about how to apply Disney diffuse preconvolve on indirect diffuse => must be done during GBuffer layout! Else emissive will be fucked...
 // That's mean we need to read DFG texture during Gbuffer...
@@ -17,11 +21,11 @@ void ForwardLighting(	float3 V, float3 positionWS, BSDFData bsdfData,
     diffuseLighting = float4(0.0, 0.0, 0.0, 0.0);
     specularLighting = float4(0.0, 0.0, 0.0, 0.0);
 
-    for (int i = 0; i < g_punctualLightCount; ++i)
+    for (int i = 0; i < _PunctualLightCount; ++i)
     {
         float4 localDiffuseLighting;
         float4 localSpecularLighting;
-        EvaluateBSDF_Punctual(V, positionWS, g_punctualLightList[i], bsdfData, localDiffuseLighting, localSpecularLighting);
+        EvaluateBSDF_Punctual(V, positionWS, _PunctualLightList[i], bsdfData, localDiffuseLighting, localSpecularLighting);
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;
     }
@@ -34,6 +38,17 @@ void ForwardLighting(	float3 V, float3 positionWS, BSDFData bsdfData,
     EvaluateBSDF_Area(V, positionWS, areaLightData[i], bsdfData, localDiffuseLighting, localSpecularLighting);
     diffuseLighting += localDiffuseLighting;
     specularLighting += localSpecularLighting;
+    }
+    */
+
+    /*
+    for (int i = 0; i < _EnvLightCount; ++i)
+    {
+        float4 localDiffuseLighting;
+        float4 localSpecularLighting;
+        EvaluateBSDF_Env(V, positionWS, _EnvLightList[i], bsdfData, UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), localDiffuseLighting, localSpecularLighting);
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
     }
     */
 }

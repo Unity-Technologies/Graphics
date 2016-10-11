@@ -62,4 +62,28 @@ float3 GetAnisotropicModifiedNormal(float3 normalWS, float3 tangentWS, float3 vi
     return normalize(lerp(normalWS, anisoNormalWS, anisotropy));
 }
 
+//-----------------------------------------------------------------------------
+// Helper function for perceptual roughness
+//-----------------------------------------------------------------------------
+
+float PerceptualRoughnessToRoughness(float perceptualRoughness)
+{
+    return perceptualRoughness * perceptualRoughness;
+}
+
+float RoughnessToPerceptualRoughness(float roughness)
+{
+    return sqrt(roughness);
+}
+
+float PerceptualSmoothnessToRoughness(float perceptualSmoothness)
+{
+    return (1 - perceptualSmoothness) * (1 - perceptualSmoothness);
+}
+
+float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
+{
+    return (1 - perceptualSmoothness);
+}
+
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

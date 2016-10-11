@@ -21,33 +21,33 @@
 
 // Set of users variables
 float4 _BaseColor;
-sampler2D _BaseColorMap;
+UNITY_DECLARE_TEX2D(_BaseColorMap);
 
 float _Metalic;
 float _Smoothness;
-sampler2D _MaskMap;
-sampler2D _SpecularOcclusionMap;
+UNITY_DECLARE_TEX2D(_MaskMap);
+UNITY_DECLARE_TEX2D(_SpecularOcclusionMap);
 
-sampler2D _NormalMap;
-sampler2D _Heightmap;
+UNITY_DECLARE_TEX2D(_NormalMap);
+UNITY_DECLARE_TEX2D(_Heightmap);
 float _HeightScale;
 float _HeightBias;
 
-sampler2D _DiffuseLightingMap;
+UNITY_DECLARE_TEX2D(_DiffuseLightingMap);
 float4 _EmissiveColor;
-sampler2D _EmissiveColorMap;
+UNITY_DECLARE_TEX2D(_EmissiveColorMap);
 float _EmissiveIntensity;
 
 float _SubSurfaceRadius;
-sampler2D _SubSurfaceRadiusMap;
+UNITY_DECLARE_TEX2D(_SubSurfaceRadiusMap);
 // float _Thickness;
-// sampler2D _ThicknessMap;
+// UNITY_DECLARE_TEX2D(_ThicknessMap);
 
 // float _CoatCoverage;
-// sampler2D _CoatCoverageMap;
+// UNITY_DECLARE_TEX2D(_CoatCoverageMap);
 
 // float _CoatRoughness;
-// sampler2D _CoatRoughnessMap;
+// UNITY_DECLARE_TEX2D(_CoatRoughnessMap);
 
 float _AlphaCutoff;
 
@@ -170,11 +170,11 @@ float3 TransformTangentToWorld(float3 normalTS, float4 tangentToWorld[3])
 
 void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    surfaceData.baseColor = tex2D(_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
+    surfaceData.baseColor = UNITY_SAMPLE_TEX2D(_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     float alpha = _BaseColor.a;
 #else
-    float alpha = tex2D(_BaseColorMap, input.texCoord0).a * _BaseColor.a;
+    float alpha = UNITY_SAMPLE_TEX2D(_BaseColorMap, input.texCoord0).a * _BaseColor.a;
 #endif
 
 #ifdef _ALPHATEST_ON
@@ -185,7 +185,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
 #ifdef _SPECULAROCCLUSIONMAP
     // TODO: Do something. For now just take alpha channel
-    surfaceData.specularOcclusion = tex2D(_SpecularOcclusionMap, input.texCoord0).a;
+    surfaceData.specularOcclusion = UNITY_SAMPLE_TEX2D(_SpecularOcclusionMap, input.texCoord0).a;
 #else
     // Horizon Occlusion for Normal Mapped Reflections: http://marmosetco.tumblr.com/post/81245981087
     //surfaceData.specularOcclusion = saturate(1.0 + horizonFade * dot(r, input.tangentToWorld[2].xyz);
@@ -199,10 +199,10 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-    float3 normalTS = UnpackNormalDXT5nm(tex2D(_NormalMap, input.texCoord0));
+    float3 normalTS = UnpackNormalDXT5nm(UNITY_SAMPLE_TEX2D(_NormalMap, input.texCoord0));
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     #else // Object space (TODO: We need to apply the world rotation here!)
-    surfaceData.normalWS = tex2D(_NormalMap, input.texCoord0).rgb;
+    surfaceData.normalWS = UNITY_SAMPLE_TEX2D(_NormalMap, input.texCoord0).rgb;
     #endif
 #else
     surfaceData.normalWS = vertexNormalWS;
@@ -220,9 +220,9 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 #endif
 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    surfaceData.perceptualSmoothness = tex2D(_BaseColorMap, input.texCoord0).a;
+    surfaceData.perceptualSmoothness = UNITY_SAMPLE_TEX2D(_BaseColorMap, input.texCoord0).a;
 #elif defined(_MASKMAP)
-    surfaceData.perceptualSmoothness = tex2D(_MaskMap, input.texCoord0).a;
+    surfaceData.perceptualSmoothness = UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).a;
 #else
     surfaceData.perceptualSmoothness = 1.0;
 #endif
@@ -232,8 +232,8 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
     // MaskMap is Metalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
 #ifdef _MASKMAP
-    surfaceData.metalic = tex2D(_MaskMap, input.texCoord0).r;
-    surfaceData.ambientOcclusion = tex2D(_MaskMap, input.texCoord0).g;
+    surfaceData.metalic = UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).r;
+    surfaceData.ambientOcclusion = UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).g;
 #else
     surfaceData.metalic = 1.0;
     surfaceData.ambientOcclusion = 1.0;
@@ -259,17 +259,17 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     // TODO: Sample lightmap/lightprobe/volume proxy
     // This should also handle projective lightmap
     // Note that data input above can be use to sample into lightmap (like normal)
-    builtinData.bakeDiffuseLighting = tex2D(_DiffuseLightingMap, input.texCoord0).rgb;
+    builtinData.bakeDiffuseLighting = UNITY_SAMPLE_TEX2D(_DiffuseLightingMap, input.texCoord0).rgb;
 
     // If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
 #ifdef _EMISSIVE_COLOR
     #ifdef _EMISSIVE_COLOR_MAP
-    builtinData.emissiveColor = tex2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
+    builtinData.emissiveColor = UNITY_SAMPLE_TEX2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
     #else
     builtinData.emissiveColor = _EmissiveColor;
     #endif
 #elif defined(_MASKMAP) // If we have a MaskMap, use emissive slot as a mask on baseColor
-    builtinData.emissiveColor = surfaceData.baseColor * tex2D(_MaskMap, input.texCoord0).bbb;
+    builtinData.emissiveColor = surfaceData.baseColor * UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).bbb;
 #else
     builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
 #endif

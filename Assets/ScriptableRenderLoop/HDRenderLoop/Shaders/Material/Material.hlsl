@@ -4,34 +4,15 @@
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/Packing.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/BSDF.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/CommonLighting.hlsl"
+#include "Assets/ScriptableRenderLoop/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/Debug.hlsl"
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/LightDefinition.cs.hlsl"
 
 //-----------------------------------------------------------------------------
-// Parametrization function helpers
+// common Encode/Decode functions
 //-----------------------------------------------------------------------------
-
-float PerceptualRoughnessToRoughness(float perceptualRoughness)
-{
-    return perceptualRoughness * perceptualRoughness;
-}
-
-float RoughnessToPerceptualRoughness(float roughness)
-{
-    return sqrt(roughness);
-}
-
-float PerceptualSmoothnessToRoughness(float perceptualSmoothness)
-{
-    return (1 - perceptualSmoothness) * (1 - perceptualSmoothness);
-}
-
-float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
-{
-    return (1 - perceptualSmoothness);
-}
 
 // Encode/Decode velocity in a buffer (either forward of deferred)
 // Design note: We assume that VelocityVector fit into a single buffer (i.e not spread on several buffer)

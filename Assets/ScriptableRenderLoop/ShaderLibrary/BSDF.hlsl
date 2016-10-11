@@ -3,6 +3,10 @@
 
 #include "Common.hlsl"
 
+// Note: All NDF and diffuse term have a version with and without divide by PI.
+// Version with divide by PI are use for direct lighting.
+// Version without divide by PI are use for image based lighting where often the PI cancel during importance sampling
+
 //-----------------------------------------------------------------------------
 // Fresnel term
 //-----------------------------------------------------------------------------
@@ -46,8 +50,14 @@ float D_GGX(float NdotH, float roughness)
 
     float a2 = roughness * roughness;
     float f = (NdotH * a2 - NdotH) * NdotH + 1.0;
-    return INV_PI * a2 / (f * f);
+    return a2 / (f * f);
 }
+
+float D_GGXDividePI(float NdotH, float roughness)
+{
+    return INV_PI * D_GGX(NdotH, roughness);
+}
+
 
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
 float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
@@ -85,7 +95,12 @@ float D_GGXAniso(float TdotH, float BdotH, float NdotH, float roughnessT, float 
     roughnessB = max(roughnessB, UNITY_MIN_ROUGHNESS);
 
     float f = TdotH * TdotH / (roughnessT * roughnessT) + BdotH * BdotH / (roughnessB * roughnessB) + NdotH * NdotH;
-    return INV_PI / (roughnessT * roughnessB * f * f);
+    return 1.0 / (roughnessT * roughnessB * f * f);
+}
+
+float D_GGXAnisoDividePI(float TdotH, float BdotH, float NdotH, float roughnessT, float roughnessB)
+{
+    return INV_PI * D_GGXAniso(TdotH, BdotH, NdotH, roughnessT, roughnessB);
 }
 
 // Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
@@ -110,6 +125,11 @@ float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, f
 
 float Lambert()
 {
+    return 1.0;
+}
+
+float LambertDividePI()
+{
     return INV_PI;
 }
 
@@ -120,7 +140,13 @@ float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float perceptualRough
     float lightScatter = F_Schlick(1.0, fd90, NdotL);
     float viewScatter = F_Schlick(1.0, fd90, NdotV);
 
-    return INV_PI * lightScatter * viewScatter;
+    return lightScatter * viewScatter;
 }
+
+float DisneyDiffuseDividePI(float NdotV, float NdotL, float LdotH, float perceptualRoughness)
+{
+    return INV_PI * DisneyDiffuse(NdotV, NdotL, LdotH, perceptualRoughness);
+}
+
 
 #endif // UNITY_BSDF_INCLUDED

@@ -22,13 +22,14 @@ namespace UnityEngine.ScriptableRenderLoop
             VertexNormalWS = 3,
             VertexTangentWS = 4,
             VertexBitangentWS = 5,
+            VertexColor = 6,
         }
 
         // Must be in sync with DebugViewMaterial.hlsl
         public enum DebugViewGbufferMode
         {
-            Depth = 6,
-            BakeDiffuseLighting = 7,
+            Depth = 7,
+            BakeDiffuseLighting = 8,
         }
 
         public class DebugParameters
@@ -109,10 +110,14 @@ namespace UnityEngine.ScriptableRenderLoop
         }
 
         public const int MaxLights = 32;
+        public const int MaxProbes = 32;
 
         //[SerializeField]
         //ShadowSettings m_ShadowSettings = ShadowSettings.Default;
         //ShadowRenderPass m_ShadowPass;
+
+        [SerializeField]
+        TextureSettings m_TextureSettings = TextureSettings.Default;
 
         Material m_DeferredMaterial;
         Material m_FinalPassMaterial;
@@ -126,6 +131,9 @@ namespace UnityEngine.ScriptableRenderLoop
         static private int s_CameraDepthBuffer;
 
         static private ComputeBuffer s_punctualLightList;
+        static private ComputeBuffer s_envLightList;
+
+        private TextureCacheCubemap m_cubeReflTexArray;
 
         void OnEnable()
         {
@@ -141,6 +149,9 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             if (s_punctualLightList != null)
                 s_punctualLightList.Release();
+
+            if (s_envLightList != null)
+                s_envLightList.Release();
         }
 
         Material CreateEngineMaterial(string shaderPath)
@@ -165,6 +176,7 @@ namespace UnityEngine.ScriptableRenderLoop
             s_CameraDepthBuffer = Shader.PropertyToID("_CameraDepthTexture");
 
             s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
+            s_envLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
 
             m_DeferredMaterial = CreateEngineMaterial("Hidden/Unity/LightingDeferred");
             m_FinalPassMaterial = CreateEngineMaterial("Hidden/Unity/FinalPass");
@@ -173,14 +185,20 @@ namespace UnityEngine.ScriptableRenderLoop
             m_DebugViewMaterialGBuffer = CreateEngineMaterial("Hidden/Unity/DebugViewMaterialGBuffer");
 
             // m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
+
+            m_cubeReflTexArray = new TextureCacheCubemap();
+            m_cubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
         }
 
         void OnDisable()
         {
             s_punctualLightList.Release();
+            s_envLightList.Release();
 
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
             if (m_FinalPassMaterial) DestroyImmediate(m_FinalPassMaterial);
+
+            m_cubeReflTexArray.Release();
         }
 
         void InitAndClearBuffer(Camera camera, RenderLoop renderLoop)
@@ -350,6 +368,8 @@ namespace UnityEngine.ScriptableRenderLoop
             Vector4 screenSize = ComputeScreenSize(camera);
             m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
 
+            m_DeferredMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
+
             // gbufferManager.BindBuffers(m_DeferredMaterial);
             // TODO: Bind depth textures
             var cmd = new CommandBuffer();
@@ -398,6 +418,12 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
+        }
+
+        void NewFrame()
+        {
+            // update texture caches
+            m_cubeReflTexArray.NewFrame();
         }
 
         //---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -470,221 +496,51 @@ namespace UnityEngine.ScriptableRenderLoop
             }
             s_punctualLightList.SetData(lights.ToArray());
 
-            Shader.SetGlobalBuffer("g_punctualLightList", s_punctualLightList);
-            Shader.SetGlobalInt("g_punctualLightCount", punctualLightCount);
+            Shader.SetGlobalBuffer("_PunctualLightList", s_punctualLightList);
+            Shader.SetGlobalInt("_PunctualLightCount", punctualLightCount);
         }
 
-        void UpdateLightConstants(ActiveLight[] activeLights /*, ref ShadowOutput shadow */)
+        void UpdateReflectionProbes(VisibleReflectionProbe[] activeReflectionProbes)
         {
-            /*
-            int nNumLightsIncludingTooMany = 0;
+            int envLightCount = 0;
+            List<EnvLightData> lights = new List<EnvLightData>();
 
-            int g_nNumLights = 0;
-
-            Vector4[] g_vLightColor = new Vector4[ MAX_LIGHTS ];
-            Vector4[] g_vLightPosition_flInvRadius = new Vector4[ MAX_LIGHTS ];
-            Vector4[] g_vLightDirection = new Vector4[ MAX_LIGHTS ];
-            Vector4[] g_vLightShadowIndex_vLightParams = new Vector4[ MAX_LIGHTS ];
-            Vector4[] g_vLightFalloffParams = new Vector4[ MAX_LIGHTS ];
-            Vector4[] g_vSpotLightInnersuterConeCosines = new Vector4[ MAX_LIGHTS ];
-            Matrix4x4[] g_matWorldToShadow = new Matrix4x4[ MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS ];
-            Vector4[] g_vDirShadowSplitSpheres = new Vector4[ MAX_DIRECTIONAL_SPLIT ];
-
-            for ( int nLight = 0; nLight < activeLights.Length; nLight++ )
+            for (int lightIndex = 0; lightIndex < Math.Min(activeReflectionProbes.Length, MaxProbes); lightIndex++)
             {
+                VisibleReflectionProbe probe = activeReflectionProbes[lightIndex];
+                EnvLightData l = new EnvLightData();
 
-                nNumLightsIncludingTooMany++;
-                if ( nNumLightsIncludingTooMany > MAX_LIGHTS )
-                    continue;
+                /*
+                Vector3 boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
+                float blendDistance = rl.blendDistance;
 
-                ActiveLight light = activeLights [nLight];
-                LightType lightType = light.lightType;
-                Vector3 position = light.light.transform.position;
-                Vector3 lightDir = light.light.transform.forward.normalized;
-                AdditionalLightData additionalLightData = light.light.GetComponent<AdditionalLightData> ();
+                Matrix4x4 mat = rl.localToWorld;
+                //Matrix4x4 mat = rl.transform.localToWorldMatrix;
+                Vector3 cubeCapturePos = mat.GetColumn(3);      // cube map capture position in world space
+                Vector3 combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
 
-                // Setup shadow data arrays
-                bool hasShadows = shadow.GetShadowSliceCountLightIndex (nLight) != 0;
+                lightData[i].uLightType = (uint)LightDefinitions.BOX_LIGHT;
 
-                if ( lightType == LightType.Directional )
-                {
-                    g_vLightColor[ g_nNumLights ] = light.finalColor;
-                    g_vLightPosition_flInvRadius[ g_nNumLights ] = new Vector4(
-                        position.x - ( lightDir.x * DIRECTIONAL_LIGHT_PULLBACK_DISTANCE ),
-                        position.y - ( lightDir.y * DIRECTIONAL_LIGHT_PULLBACK_DISTANCE ),
-                        position.z - ( lightDir.z * DIRECTIONAL_LIGHT_PULLBACK_DISTANCE ),
-                        -1.0f );
-                    g_vLightDirection[ g_nNumLights ] = new Vector4( lightDir.x, lightDir.y, lightDir.z );
-                    g_vLightShadowIndex_vLightParams[ g_nNumLights ] = new Vector4( 0, 0, 1, 1 );
-                    g_vLightFalloffParams[ g_nNumLights ] = new Vector4( 0.0f, 0.0f, float.MaxValue, (float)lightType );
-                    g_vSpotLightInnerOuterConeCosines[ g_nNumLights ] = new Vector4( 0.0f, -1.0f, 1.0f );
+                m_cubeReflTexArray.FetchSlice(cubemap);
 
-                    if (hasShadows)
-                    {
-                        for (int s = 0; s < MAX_DIRECTIONAL_SPLIT; ++s)
-                        {
-                            g_vDirShadowSplitSpheres[s] = shadow.directionalShadowSplitSphereSqr[s];
-                        }
-                    }
-                }
-                else if ( lightType == LightType.Point )
-                {
-                    g_vLightColor[ g_nNumLights ] = light.finalColor;
+                if (boxProj) lightData[i].flags |= LightDefinitions.IS_BOX_PROJECTED;
+                */
 
-                    g_vLightPosition_flInvRadius[ g_nNumLights ] = new Vector4( position.x, position.y, position.z, 1.0f / light.range );
-                    g_vLightDirection[ g_nNumLights ] = new Vector4( 0.0f, 0.0f, 0.0f );
-                    g_vLightShadowIndex_vLightParams[ g_nNumLights ] = new Vector4( 0, 0, 1, 1 );
-                    g_vLightFalloffParams[ g_nNumLights ] = new Vector4( 1.0f, 0.0f, light.range * light.range, (float)lightType );
-                    g_vSpotLightInnerOuterConeCosines[ g_nNumLights ] = new Vector4( 0.0f, -1.0f, 1.0f );
-                }
-                else if ( lightType == LightType.Spot )
-                {
-                    g_vLightColor[ g_nNumLights ] = light.finalColor;
-                    g_vLightPosition_flInvRadius[ g_nNumLights ] = new Vector4( position.x, position.y, position.z, 1.0f / light.range );
-                    g_vLightDirection[ g_nNumLights ] = new Vector4( lightDir.x, lightDir.y, lightDir.z );
-                    g_vLightShadowIndex_vLightParams[ g_nNumLights ] = new Vector4( 0, 0, 1, 1 );
-                    g_vLightFalloffParams[ g_nNumLights ] = new Vector4( 1.0f, 0.0f, light.range * light.range, (float)lightType );
-
-                    float flInnerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
-                    float spotAngle = light.light.spotAngle;
-                    float flPhiDot = Mathf.Clamp( Mathf.Cos( spotAngle * 0.5f * Mathf.Deg2Rad ), 0.0f, 1.0f ); // outer cone
-                    float flThetaDot = Mathf.Clamp( Mathf.Cos( spotAngle * 0.5f * flInnerConePercent * Mathf.Deg2Rad ), 0.0f, 1.0f ); // inner cone
-                    g_vSpotLightInnerOuterConeCosines[ g_nNumLights ] = new Vector4( flThetaDot, flPhiDot, 1.0f / Mathf.Max( 0.01f, flThetaDot - flPhiDot ) );
-
-                }
-
-                if ( hasShadows )
-                {
-                    // Enable shadows
-                    g_vLightShadowIndex_vLightParams[ g_nNumLights ].x = 1; 
-                    for(int s=0; s < shadow.GetShadowSliceCountLightIndex (nLight); ++s)
-                    {
-                        int shadowSliceIndex = shadow.GetShadowSliceIndex (nLight, s);
-                        g_matWorldToShadow [g_nNumLights * MAX_SHADOWMAP_PER_LIGHTS + s] = shadow.shadowSlices[shadowSliceIndex].shadowTransform.transpose;
-                    }
-                }
-
-                g_nNumLights++;
+                lights.Add(l);
+                envLightCount++;
             }
 
-            // Warn if too many lights found
-            if ( nNumLightsIncludingTooMany > MAX_LIGHTS )
-            {
-                if ( nNumLightsIncludingTooMany > m_nWarnedTooManyLights )
-                {
-                    Debug.LogError( "ERROR! Found " + nNumLightsIncludingTooMany + " runtime lights! Valve renderer supports up to " + MAX_LIGHTS +
-                        " active runtime lights at a time!\nDisabling " + ( nNumLightsIncludingTooMany - MAX_LIGHTS ) + " runtime light" +
-                        ( ( nNumLightsIncludingTooMany - MAX_LIGHTS ) > 1 ? "s" : "" ) + "!\n" );
-                }
-                m_nWarnedTooManyLights = nNumLightsIncludingTooMany;
-            }
-            else
-            {
-                if ( m_nWarnedTooManyLights > 0 )
-                {
-                    m_nWarnedTooManyLights = 0;
-                    Debug.Log( "SUCCESS! Found " + nNumLightsIncludingTooMany + " runtime lights which is within the supported number of lights, " + MAX_LIGHTS + ".\n\n" );
-                }
-            }
+            s_envLightList.SetData(lights.ToArray());
 
-            // Send constants to shaders
-            Shader.SetGlobalInt( "g_nNumLights", g_nNumLights );
-
-            // New method for Unity 5.4 to set arrays of constants
-            Shader.SetGlobalVectorArray( "g_vLightPosition_flInvRadius", g_vLightPosition_flInvRadius );
-            Shader.SetGlobalVectorArray( "g_vLightColor", g_vLightColor );
-            Shader.SetGlobalVectorArray( "g_vLightDirection", g_vLightDirection );
-            Shader.SetGlobalVectorArray( "g_vLightShadowIndex_vLightParams", g_vLightShadowIndex_vLightParams );
-            Shader.SetGlobalVectorArray( "g_vLightFalloffParams", g_vLightFalloffParams );
-            Shader.SetGlobalVectorArray( "g_vSpotLightInnerOuterConeCosines", g_vSpotLightInnerOuterConeCosines );
-            Shader.SetGlobalMatrixArray( "g_matWorldToShadow", g_matWorldToShadow );
-            Shader.SetGlobalVectorArray( "g_vDirShadowSplitSpheres", g_vDirShadowSplitSpheres );
-
-            // Time
-            #if ( UNITY_EDITOR )
-            {
-                Shader.SetGlobalFloat( "g_flTime", Time.realtimeSinceStartup );
-                //Debug.Log( "Time " + Time.realtimeSinceStartup );
-            }
-            #else
-            {
-            Shader.SetGlobalFloat( "g_flTime", Time.timeSinceLevelLoad );
-            //Debug.Log( "Time " + Time.timeSinceLevelLoad );
-            }
-            #endif
-
-            // PCF 3x3 Shadows
-            float flTexelEpsilonX = 1.0f / m_ShadowSettings.shadowAtlasWidth;
-            float flTexelEpsilonY = 1.0f / m_ShadowSettings.shadowAtlasHeight;
-            Vector4 g_vShadow3x3PCFTerms0 = new Vector4( 20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f );
-            Vector4 g_vShadow3x3PCFTerms1 = new Vector4( flTexelEpsilonX, flTexelEpsilonY, -flTexelEpsilonX, -flTexelEpsilonY );
-            Vector4 g_vShadow3x3PCFTerms2 = new Vector4( flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f );
-            Vector4 g_vShadow3x3PCFTerms3 = new Vector4( -flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f );
-
-            Shader.SetGlobalVector( "g_vShadow3x3PCFTerms0", g_vShadow3x3PCFTerms0 );
-            Shader.SetGlobalVector( "g_vShadow3x3PCFTerms1", g_vShadow3x3PCFTerms1 );
-            Shader.SetGlobalVector( "g_vShadow3x3PCFTerms2", g_vShadow3x3PCFTerms2 );
-            Shader.SetGlobalVector( "g_vShadow3x3PCFTerms3", g_vShadow3x3PCFTerms3 );
-             */
+            Shader.SetGlobalBuffer("_EnvLightList", s_envLightList);
+            Shader.SetGlobalInt("_EnvLightCount", envLightCount);
         }
-
-        /*
-        void RenderDeferredLighting(Camera camera, CullingInputs inputs, RenderLoop loop)
-        {
-            var props = new MaterialPropertyBlock();
-
-            var cmd = new CommandBuffer();
-            cmd.SetRenderTarget(new RenderTargetIdentifier(kGBufferEmission), new RenderTargetIdentifier(kGBufferZ));
-            foreach (var cl in inputs.culledLights)
-            {
-                bool renderAsQuad = (cl.flags & VisibleLightFlags.IntersectsNearPlane) != 0 || (cl.flags & VisibleLightFlags.IntersectsFarPlane) != 0 || (cl.lightType == LightType.Directional);
-
-                Vector3 lightPos = cl.localToWorld.GetColumn(3);
-                float range = cl.range;
-                cmd.DisableShaderKeyword("POINT");
-                cmd.DisableShaderKeyword("POINT_COOKIE");
-                cmd.DisableShaderKeyword("SPOT");
-                cmd.DisableShaderKeyword("DIRECTIONAL");
-                cmd.DisableShaderKeyword("DIRECTIONAL_COOKIE");
-                //cmd.EnableShaderKeyword ("UNITY_HDR_ON");
-                switch (cl.lightType)
-                {
-                    case LightType.Point:
-                        cmd.EnableShaderKeyword("POINT");
-                        break;
-                    case LightType.Spot:
-                        cmd.EnableShaderKeyword("SPOT");
-                        break;
-                    case LightType.Directional:
-                        cmd.EnableShaderKeyword("DIRECTIONAL");
-                        break;
-                }
-                props.SetFloat("_LightAsQuad", renderAsQuad ? 1 : 0);
-                props.SetVector("_LightPos", new Vector4(lightPos.x, lightPos.y, lightPos.z, 1.0f / (range * range)));
-                props.SetVector("_LightColor", cl.finalColor);
-                Debug.Log("Light color : " + cl.finalColor.ToString());
-                props.SetMatrix("_WorldToLight", cl.worldToLocal);
-
-                ///@TODO: cleanup, remove this from Internal-PrePassLighting shader
-                //DeferredPrivate::s_LightMaterial->SetTexture (ShaderLab::Property ("_LightTextureB0"), builtintex::GetAttenuationTexture ());
-
-                if (renderAsQuad)
-                {
-                    cmd.DrawMesh(m_QuadMesh, Matrix4x4.identity, m_DeferredMaterial, 0, 0, props);
-                }
-                else
-                {
-                    var matrix = Matrix4x4.TRS(lightPos, Quaternion.identity, new Vector3(range, range, range));
-                    cmd.DrawMesh(m_PointLightMesh, matrix, m_DeferredMaterial, 0, 0, props);
-                }
-            }
-            loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
-        }
-         */
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {
+            // Do anything we need to do upon a new frame.
+            NewFrame();
+
             // Set Frame constant buffer
             // TODO...
 
@@ -710,6 +566,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 //UpdateLightConstants(cullResults.culledLights /*, ref shadows */);                
 
                 UpdatePunctualLights(cullResults.culledLights);
+                UpdateReflectionProbes(cullResults.culledReflectionProbes);
 
                 InitAndClearBuffer(camera, renderLoop);
 
