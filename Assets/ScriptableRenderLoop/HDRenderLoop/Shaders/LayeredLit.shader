@@ -94,6 +94,8 @@ Shader "Unity/LayeredLit"
         // Material Id
         [HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
 
+        [HideInInspector] _LayerCount("__layerCount", Float) = 2.0
+
         [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
@@ -116,6 +118,7 @@ Shader "Unity/LayeredLit"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
     #pragma shader_feature _LAYERMASKMAP
+    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #include "LayeredLitTemplate.hlsl"
 

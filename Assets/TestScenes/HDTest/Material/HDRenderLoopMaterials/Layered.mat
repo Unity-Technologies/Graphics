@@ -9,30 +9,30 @@ Material:
   m_Name: Layered
   m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
-    _EMISSION _NORMALMAP_TANGENT_SPACE
+    _EMISSION _LAYEREDLIT_4_LAYER _LAYEREDLIT_4_LAYERS _LAYERMASKMAP _MASKMAP _NORMALMAP
+    _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
-  m_CustomRenderQueue: 3000
-  stringTagMap:
-    RenderType: Transparent
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
     m_TexEnvs:
     - first:
         name: _BaseColorMap0
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: ded78b6c0a9afd94a8d528c2ec647f8f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _BaseColorMap1
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 9099cfe546c2a2c4bb7cc1f114c1985d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _BaseColorMap2
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 68b970ec01d028a40a3e68e6e684e8e3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
@@ -120,6 +120,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
+        name: _LayerMaskMap
+      second:
+        m_Texture: {fileID: 2800000, guid: 6b43fa9736beb354dba359b5d2ec3699, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
         name: _MainTex
       second:
         m_Texture: {fileID: 0}
@@ -128,25 +134,25 @@ Material:
     - first:
         name: _MaskMap0
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: eddc784b66d317641bd2c3b078a694b1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _MaskMap1
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 5b9c7f6055407ce41989dbb50fb6df10, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _MaskMap2
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: d24c0ec78314b3c47bb17c0f918bff7d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _MaskMap3
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: eddc784b66d317641bd2c3b078a694b1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
@@ -158,25 +164,25 @@ Material:
     - first:
         name: _NormalMap0
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: d896c388b98bb614ebe6bb48e0f56dcf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _NormalMap1
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 9f0707fef3f15394ab3aa08fd9b5def3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _NormalMap2
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: d6b5108542e0e7547b9afe26c79f9460, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
         name: _NormalMap3
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: d896c388b98bb614ebe6bb48e0f56dcf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
@@ -218,7 +224,7 @@ Material:
     m_Floats:
     - first:
         name: _AlphaCutoff
-      second: 0.5
+      second: 0.122
     - first:
         name: _AlphaCutoffEnable
       second: 0
@@ -248,7 +254,7 @@ Material:
       second: 0
     - first:
         name: _DstBlend
-      second: 10
+      second: 0
     - first:
         name: _EmissiveColorMode
       second: 1
@@ -301,6 +307,9 @@ Material:
         name: _HeightScale3
       second: 1
     - first:
+        name: _LayerCount
+      second: 4
+    - first:
         name: _MaterialId
       second: 0
     - first:
@@ -332,16 +341,16 @@ Material:
       second: 0.02
     - first:
         name: _Smoothness0
-      second: 0.5
+      second: 1
     - first:
         name: _Smoothness1
-      second: 0.5
+      second: 1
     - first:
         name: _Smoothness2
-      second: 0.5
+      second: 1
     - first:
         name: _Smoothness3
-      second: 0.5
+      second: 0.486
     - first:
         name: _SmoothnessTextureChannel
       second: 0
@@ -350,26 +359,26 @@ Material:
       second: 1
     - first:
         name: _SrcBlend
-      second: 5
+      second: 1
     - first:
         name: _SurfaceType
-      second: 1
+      second: 0
     - first:
         name: _UVSec
       second: 0
     - first:
         name: _ZWrite
-      second: 0
+      second: 1
     m_Colors:
     - first:
         name: _BaseColor0
-      second: {r: 0, g: 1, b: 0, a: 1}
+      second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _BaseColor1
-      second: {r: 0, g: 1, b: 0, a: 1}
+      second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _BaseColor2
-      second: {r: 1, g: 0, b: 0, a: 1}
+      second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _BaseColor3
       second: {r: 1, g: 0, b: 0, a: 1}

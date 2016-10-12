@@ -15,9 +15,10 @@ internal class LayeredLitGUI : LitGUI
                 new GUIContent("Material Layer 2"),
                 new GUIContent("Material Layer 3"),
         };
-        public readonly GUIContent syncButton = new GUIContent("Sync", "Re-synchronize this layer's properties with the referenced Material");
+        public readonly GUIContent syncButton = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
         public readonly GUIContent layers = new GUIContent("Layers");
-        public readonly GUIContent layerMapMask = new GUIContent("LayerMask", "Layer mask (multiplied by vertex color)");
+        public readonly GUIContent layerMapMask = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color)");
+        public readonly GUIContent layerCount = new GUIContent("Layer Count", "Number of layers.");
     }
 
     static Styles s_Styles = null;
@@ -30,11 +31,29 @@ internal class LayeredLitGUI : LitGUI
         public string[] GUIDArray;
     }
 
-    private int kSyncButtonWidth = 58;
+    private const int kMaxLayerCount = 4;
+    private const int kSyncButtonWidth = 58;
     private string kLayerMaskMap = "_LayerMaskMap";
+    private string kLayerCount = "_LayerCount";
 
-    private Material[] m_MaterialLayers = new Material[4];
-    MaterialProperty layerMaskMap = null;
+    private Material[] m_MaterialLayers = new Material[kMaxLayerCount];
+
+    MaterialProperty layerCountProperty = null;
+    MaterialProperty layerMaskMapProperty = null;
+
+    int layerCount
+    {
+        set { layerCountProperty.floatValue = (float)value; }
+        get { return (int)layerCountProperty.floatValue; }
+    }
+
+    void SynchronizeAllLayersProperties()
+    {
+        for(int i = 0 ; i < layerCount; ++i)
+        {
+            SynchronizeLayerProperties(i);
+        }
+    }
 
     void SynchronizeLayerProperties(int layerIndex)
     {
@@ -115,7 +134,7 @@ internal class LayeredLitGUI : LitGUI
     {
         bool result = true;
         outValueNames = "";
-        for(int i = 0 ; i < m_MaterialLayers.Length ; ++i)
+        for(int i = 0 ; i < layerCount ; ++i)
         {
             Material layer = m_MaterialLayers[i];
             if (layer != null)
@@ -124,7 +143,7 @@ internal class LayeredLitGUI : LitGUI
                 Debug.Assert(currentValue < shortNames.Length);
                 outValueNames += shortNames[currentValue] + "    ";
 
-                for(int j = i + 1 ; j < m_MaterialLayers.Length ; ++j)
+                for (int j = i + 1; j < layerCount; ++j)
                 {
                     Material otherLayer = m_MaterialLayers[j];
                     if(otherLayer != null)
@@ -150,7 +169,7 @@ internal class LayeredLitGUI : LitGUI
     {
         bool result = true;
         outValueNames = "";
-        for (int i = 0; i < m_MaterialLayers.Length; ++i)
+        for (int i = 0; i < layerCount; ++i)
         {
             Material layer = m_MaterialLayers[i];
             if (layer != null)
@@ -158,7 +177,7 @@ internal class LayeredLitGUI : LitGUI
                 bool currentValue = layer.GetTexture(mapName) != null;
                 outValueNames += (currentValue ? "Y" : "N") + "    ";
 
-                for (int j = i + 1; j < m_MaterialLayers.Length; ++j)
+                for (int j = i + 1; j < layerCount; ++j)
                 {
                     Material otherLayer = m_MaterialLayers[j];
                     if (otherLayer != null)
@@ -261,7 +280,7 @@ internal class LayeredLitGUI : LitGUI
         // We synchronize input options with the firsts non null Layer (all layers should have consistent options)
         Material firstLayer = null;
         int i = 0;
-        while (i < m_MaterialLayers.Length && !(firstLayer = m_MaterialLayers[i])) ++i;
+        while (i < layerCount && !(firstLayer = m_MaterialLayers[i])) ++i;
 
         if(firstLayer != null)
         {
@@ -274,34 +293,48 @@ internal class LayeredLitGUI : LitGUI
 
     bool LayersGUI(AssetImporter materialImporter)
     {
+        Material material = m_MaterialEditor.target as Material;
+
         bool layerChanged = false;
 
         EditorGUI.indentLevel++;
         GUILayout.Label(styles.layers, EditorStyles.boldLabel);
 
-        m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMask, layerMaskMap);
-
-        for (int i = 0; i < m_MaterialLayers.Length; i++)
+        EditorGUI.BeginChangeCheck();
+        int newLayerCount = EditorGUILayout.IntSlider(styles.layerCount, (int)layerCountProperty.floatValue, 2, 4 );
+        if (EditorGUI.EndChangeCheck())
         {
-            EditorGUILayout.BeginHorizontal();
-            {
-                EditorGUI.BeginChangeCheck();
-                m_MaterialLayers[i] = EditorGUILayout.ObjectField(styles.materialLayerLabels[i], m_MaterialLayers[i], typeof(Material), true) as Material;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Undo.RecordObject(materialImporter, "Change layer material");
-                    SynchronizeLayerProperties(i);
-                    layerChanged = true;
-                }
-
-                if (GUILayout.Button(styles.syncButton, GUILayout.Width(kSyncButtonWidth)))
-                {
-                    SynchronizeLayerProperties(i);
-                    layerChanged = true;
-                }
-            }
-            EditorGUILayout.EndHorizontal();
+            Undo.RecordObject(material, "Change layer count");
+            layerCountProperty.floatValue = (float)newLayerCount;
+            SynchronizeAllLayersProperties();
+            layerChanged = true;
         }
+
+        m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMask, layerMaskMapProperty);
+
+        for (int i = 0; i < layerCount; i++)
+        {
+            EditorGUI.BeginChangeCheck();
+            m_MaterialLayers[i] = EditorGUILayout.ObjectField(styles.materialLayerLabels[i], m_MaterialLayers[i], typeof(Material), true) as Material;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(materialImporter, "Change layer material");
+                SynchronizeLayerProperties(i);
+                layerChanged = true;
+            }
+        }
+
+        EditorGUILayout.Space();
+        GUILayout.BeginHorizontal();
+        {
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(styles.syncButton))
+            {
+                SynchronizeAllLayersProperties();
+                layerChanged = true;
+            }
+        }
+        GUILayout.EndHorizontal();
 
         EditorGUI.indentLevel--;
 
@@ -311,9 +344,9 @@ internal class LayeredLitGUI : LitGUI
     {
         // Find first non null layer
         int i = 0;
-        while (i < m_MaterialLayers.Length && (m_MaterialLayers[i] == null)) ++i;
+        while (i < layerCount && (m_MaterialLayers[i] == null)) ++i;
 
-        if(i < m_MaterialLayers.Length)
+        if (i < layerCount)
         {
             SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap + i));
             SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap + i));
@@ -325,10 +358,30 @@ internal class LayeredLitGUI : LitGUI
         SetKeyword(material, "_LAYERMASKMAP", material.GetTexture(kLayerMaskMap));
     }
 
+    void SetupMaterialForLayers(Material material)
+    {
+        if(layerCount == 4)
+        {
+            SetKeyword(material, "_LAYEREDLIT_4_LAYERS", true);
+            SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
+        }
+        else if (layerCount == 3)
+        {
+            SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
+            SetKeyword(material, "_LAYEREDLIT_3_LAYERS", true);
+        }
+        else
+        {
+            SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
+            SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
+        }
+    }
+
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
     {
         FindOptionProperties(props);
-        layerMaskMap = FindProperty(kLayerMaskMap, props);
+        layerMaskMapProperty = FindProperty(kLayerMaskMap, props);
+        layerCountProperty = FindProperty(kLayerCount, props);
 
         m_MaterialEditor = materialEditor;
 
@@ -359,7 +412,10 @@ internal class LayeredLitGUI : LitGUI
             SynchronizeInputOptions();
 
             foreach (var obj in m_MaterialEditor.targets)
+            {
                 SetupMaterial((Material)obj);
+                SetupMaterialForLayers((Material)obj);
+            }
             
             SaveMaterialLayers(materialImporter);
         }

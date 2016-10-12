@@ -9,7 +9,7 @@ Material:
   m_Name: Red
   m_Shader: {fileID: 4800000, guid: e7e3743f30ad81a4ba2d0528f52d026b, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
-    _EMISSION _NORMALMAP_TANGENT_SPACE
+    _EMISSION _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -85,7 +85,7 @@ Material:
     - first:
         name: _MaskMap
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: eddc784b66d317641bd2c3b078a694b1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
@@ -103,7 +103,7 @@ Material:
     - first:
         name: _NormalMap
       second:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: d896c388b98bb614ebe6bb48e0f56dcf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
@@ -254,7 +254,7 @@ Material:
     m_Colors:
     - first:
         name: _BaseColor
-      second: {r: 1, g: 0, b: 0, a: 0.447}
+      second: {r: 1, g: 0, b: 0, a: 1}
     - first:
         name: _Color
       second: {r: 1, g: 1, b: 1, a: 1}
