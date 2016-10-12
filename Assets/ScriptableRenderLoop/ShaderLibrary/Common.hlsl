@@ -35,7 +35,7 @@
 
 // constant floating number written as 1.0  (not 1, not 1.0f, not 1.0h)
 
-// uniform have _ as prefix (still lowercaseThenCamelCase) // TODO: define upper or lower case as a start
+// uniform have _ as prefix + uppercase _LowercaseThenCamelCase
 
 // Structure definition that are share between C# and hlsl.
 // These structures need to be align on float4 to respectect various packing rules from sahder language.
