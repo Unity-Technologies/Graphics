@@ -166,6 +166,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
             m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_vLightData", m_lightDataBuffer);
+            m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_data", m_convexBoundsBuffer);
 
             if (EnableClustered)
             {
