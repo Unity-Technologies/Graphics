@@ -32,13 +32,9 @@ float3 ExecuteReflectionList(uint start, uint numReflProbes, float3 vP, float3 v
     float3 ints = 0;
 
     uint l=0;
-
-    // we need this outer loop for when we cannot assume a wavefront is 64 wide
-    // since in this case we cannot assume the lights will remain sorted by type
-    // during processing in lightlist_cs.hlsl
-#if !defined(XBONE) && !defined(PLAYSTATION4)
-    while(l<numReflProbes)
-#endif
+	// don't need the outer loop since the probes are sorted by volume type (currently one type in fact)
+    //while(l<numReflProbes)
+	if(numReflProbes>0)
     {
         uint uIndex = l<numReflProbes ? FetchIndex(start, l) : 0;
         uint uLgtType = l<numReflProbes ? g_vLightData[uIndex].uLightType : 0;
@@ -104,9 +100,7 @@ float3 ExecuteReflectionList(uint start, uint numReflProbes, float3 vP, float3 v
             uLgtType = l<numReflProbes ? g_vLightData[uIndex].uLightType : 0;
         }
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
-        if(uLgtType!=BOX_LIGHT) ++l;
-#endif
+        //if(uLgtType!=BOX_LIGHT) ++l;
     }
 
     return ints;
