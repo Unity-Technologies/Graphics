@@ -40,6 +40,16 @@
 #define PROP_BLEND_COLOR(name, mask) name = BlendLayeredColor(name##0, name##1, name##2, name##3, mask);
 #define PROP_BLEND_SCALAR(name, mask) name = BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
+#define _MAX_LAYER 4
+
+#if defined(_LAYEREDLIT_4_LAYERS)
+#   define _LAYER_COUNT 4
+#elif defined(_LAYEREDLIT_3_LAYERS)
+#   define _LAYER_COUNT 3
+#else
+#   define _LAYER_COUNT 2
+#endif
+
 //-------------------------------------------------------------------------------------
 // variable declaration
 //-------------------------------------------------------------------------------------
@@ -186,25 +196,53 @@ float3 TransformTangentToWorld(float3 normalTS, float4 tangentToWorld[3])
 
 float3 BlendLayeredColor(float3 rgb0, float3 rgb1, float3 rgb2, float3 rgb3, float weight[4])
 {
-    return rgb0 * weight[0] + rgb1 * weight[1] + rgb2 * weight[2] + rgb3 * weight[3];
+    float3 result = float3(0.0, 0.0, 0.0);
+
+    result = rgb0 * weight[0] + rgb1 * weight[1];
+#if _LAYER_COUNT >= 3
+    result += (rgb2 * weight[2]);
+#endif
+#if _LAYER_COUNT >= 4
+    result += rgb3 * weight[3];
+#endif
+
+    return result;
 }
 
 float3 BlendLayeredNormal(float3 normal0, float3 normal1, float3 normal2, float3 normal3, float weight[4])
 {
+    float3 result = float3(0.0, 0.0, 0.0);
+
     // TODO : real normal map blending function
-    return normal0 * weight[0] + normal1 * weight[1] + normal2 * weight[2] + normal3 * weight[3];
+    result = normal0 * weight[0] + normal1 * weight[1];
+#if _LAYER_COUNT >= 3
+    result += normal2 * weight[2];
+#endif
+#if _LAYER_COUNT >= 4
+    result += normal3 * weight[3];
+#endif
+
+    return result;
 }
 
 float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4])
 {
-    return x0 * weight[0] + x1 * weight[1] + x2 * weight[2] + x3 * weight[3];
+    float result = 0.0;
+
+    result = x0 * weight[0] + x1 * weight[1];
+#if _LAYER_COUNT >= 3
+    result += x2 * weight[2];
+#endif
+#if _LAYER_COUNT >= 4
+    result += x3 * weight[3];
+#endif
+
+    return result;
 }
 
-#define MAX_LAYER 4
-
-void ComputeMaskWeights(float4 inputMasks, out float outWeights[MAX_LAYER])
+void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
 {
-    float masks[MAX_LAYER];
+    float masks[_MAX_LAYER];
     masks[0] = inputMasks.r;
     masks[1] = inputMasks.g;
     masks[2] = inputMasks.b;
@@ -214,7 +252,7 @@ void ComputeMaskWeights(float4 inputMasks, out float outWeights[MAX_LAYER])
     float left = 1.0f;
 
     // ATTRIBUTE_UNROLL
-    for (int i = MAX_LAYER - 1; i > 0; --i)
+    for (int i = _LAYER_COUNT - 1; i > 0; --i)
     {
         outWeights[i] = masks[i] * left;
         left -= outWeights[i];
@@ -231,7 +269,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     maskValues *= maskMap;
 #endif
 
-    float weights[MAX_LAYER];
+    float weights[_MAX_LAYER];
     ComputeMaskWeights(maskValues, weights);
 
     PROP_DECL(float3, baseColor);
