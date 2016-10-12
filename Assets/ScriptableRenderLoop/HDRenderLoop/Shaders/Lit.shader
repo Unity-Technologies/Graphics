@@ -6,48 +6,48 @@ Shader "Unity/Lit"
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
-        _BaseColor("BaseColor", Color) = (1,1,1,1) 
+        _BaseColor("BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
 
         _Metalic("_Metalic", Range(0.0, 1.0)) = 0
-        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5		
+        _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
         _MaskMap("MaskMap", 2D) = "white" {}
 
         _SpecularOcclusionMap("SpecularOcclusion", 2D) = "white" {}
 
         _NormalMap("NormalMap", 2D) = "bump" {}
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
-        
+
         _HeightMap("HeightMap", 2D) = "black" {}
         _HeightScale("Height Scale", Float) = 1
         _HeightBias("Height Bias", Float) = 0
-        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0			
+        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
 
         _SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
         _SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
         //_Thickness("Thickness", Range(0.0, 1.0)) = 0
         //_ThicknessMap("ThicknessMap", 2D) = "white" {}
         //_SubSurfaceProfile("SubSurfaceProfile", Float) = 0
-        
+
         //_CoatCoverage("CoatCoverage", Range(0.0, 1.0)) = 0
         //_CoatCoverageMap("CoatCoverageMapMap", 2D) = "white" {}
 
         //_CoatRoughness("CoatRoughness", Range(0.0, 1.0)) = 0
         //_CoatRoughnessMap("CoatRoughnessMap", 2D) = "white" {}
-                
+
         // _DistortionVectorMap("DistortionVectorMap", 2D) = "white" {}
         // _DistortionBlur("DistortionBlur", Range(0.0, 1.0)) = 0
 
         // Following options are for the GUI inspector and different from the input parameters above
-        // These option below will cause different compilation flag.	
+        // These option below will cause different compilation flag.
 
         _DiffuseLightingMap("DiffuseLightingMap", 2D) = "black" {}
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
-        [ToggleOff]		_DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff]		_DistortionDepthTest("Distortion Only", Float) = 0.0
+        [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
+        [ToggleOff]     _DistortionDepthTest("Distortion Only", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -102,14 +102,14 @@ Shader "Unity/Lit"
 
             Cull  [_CullMode]
 
-            HLSLPROGRAM			
+            HLSLPROGRAM
 
             #pragma vertex VertDefault
             #pragma fragment FragDeferred
 
             #if SHADER_STAGE_FRAGMENT
 
-            void FragDeferred(	PackedVaryings packedInput,
+            void FragDeferred(  PackedVaryings packedInput,
                                 OUTPUT_GBUFFER(outGBuffer)
                                 #ifdef VELOCITY_IN_GBUFFER
                                 , OUTPUT_GBUFFER_VELOCITY(outGBuffer)
@@ -144,11 +144,11 @@ Shader "Unity/Lit"
             Cull[_CullMode]
 
             HLSLPROGRAM
-            
+
             #pragma vertex VertDefault
             #pragma fragment FragDebug
 
-			#include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
+            #include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
 
             int _DebugViewMaterial;
 
@@ -166,12 +166,12 @@ Shader "Unity/Lit"
                 float3 result = float3(1.0, 1.0, 0.0);
                 bool needLinearToSRGB = false;
 
-				GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
+                GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);
                 GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
                 GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
                 GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB); // TODO: This required to initialize all field from BSDFData...
 
-				// TEMP!
+                // TEMP!
                 // For now, the final blit in the backbuffer performs an sRGB write
                 // So in the meantime we apply the inverse transform to linear data to compensate.
                 if (!needLinearToSRGB)
@@ -197,9 +197,9 @@ Shader "Unity/Lit"
             Cull [_CullMode]
 
             HLSLPROGRAM
-            
+
             #pragma vertex VertDefault
-            #pragma fragment FragForward	
+            #pragma fragment FragForward
 
             #if SHADER_STAGE_FRAGMENT
 

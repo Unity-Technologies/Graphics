@@ -114,6 +114,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 packed = false;
                 accessor = new Accessor(type, name, rows, cols);
             }
+
             public ShaderFieldInfo(PrimitiveType type, string name, int rows, int cols, string comment)
             {
                 this.type = type;

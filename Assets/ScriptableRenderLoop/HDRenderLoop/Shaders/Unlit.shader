@@ -2,15 +2,15 @@ Shader "Unity/Unlit"
 {
     Properties
     {
-        _Color("Color", Color) = (1,1,1,1) 
+        _Color("Color", Color) = (1,1,1,1)
         _ColorMap("ColorMap", 2D) = "white" {}
 
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
-        [ToggleOff]		_DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff]		_DistortionDepthTest("Distortion Only", Float) = 0.0
+        [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
+        [ToggleOff]     _DistortionDepthTest("Distortion Only", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -39,7 +39,7 @@ Shader "Unity/Unlit"
     #include "Material/Material.hlsl"
     #include "ShaderVariables.hlsl"
 
-    float4	_Color;
+    float4  _Color;
     UNITY_DECLARE_TEX2D(_ColorMap);
     float3 _EmissiveColor;
     UNITY_DECLARE_TEX2D(_EmissiveColorMap);
@@ -64,15 +64,15 @@ Shader "Unity/Unlit"
             Cull [_CullMode]
 
             HLSLPROGRAM
-        
+
             #pragma vertex VertDefault
             #pragma fragment FragForward
 
             // Forward
             struct Attributes
             {
-                float3 positionOS	: POSITION;
-                float2 uv0			: TEXCOORD0;
+                float3 positionOS   : POSITION;
+                float2 uv0          : TEXCOORD0;
             };
 
             struct Varyings
@@ -139,7 +139,7 @@ Shader "Unity/Unlit"
                 builtinData.emissiveColor = UNITY_SAMPLE_TEX2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
                 #else
                 builtinData.emissiveColor = _EmissiveColor;
-                #endif			
+                #endif
 
                 builtinData.emissiveIntensity = _EmissiveIntensity;
 

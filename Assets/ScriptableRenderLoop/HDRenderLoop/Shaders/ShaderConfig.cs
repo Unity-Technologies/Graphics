@@ -4,4 +4,3 @@
 
 // #define DIFFUSE_LAMBERT_BRDF
 // #define VELOCITY_IN_GBUFFER
-

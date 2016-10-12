@@ -1,4 +1,4 @@
-#ifndef UNITY_LIGHTING_INCLUDED 
+#ifndef UNITY_LIGHTING_INCLUDED
 #define UNITY_LIGHTING_INCLUDED
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
