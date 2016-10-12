@@ -17,11 +17,16 @@
 
 
 #define PROP_DECL(type, name) type name, name##0, name##1, name##2, name##3;
-#define PROP_SAMPLE(name, samplerName, texcoord, swizzle)\
-    name##0 = tex2D(samplerName##0, texcoord).##swizzle; \
-    name##1 = tex2D(samplerName##1, texcoord).##swizzle; \
-    name##2 = tex2D(samplerName##2, texcoord).##swizzle; \
-    name##3 = tex2D(samplerName##3, texcoord).##swizzle;
+#define PROP_DECL_TEX2D(name)\
+    UNITY_DECLARE_TEX2D(name##0);\
+    UNITY_DECLARE_TEX2D_NOSAMPLER(name##1);\
+    UNITY_DECLARE_TEX2D_NOSAMPLER(name##2);\
+    UNITY_DECLARE_TEX2D_NOSAMPLER(name##3);
+#define PROP_SAMPLE(name, textureName, texcoord, swizzle)\
+    name##0 = UNITY_SAMPLE_TEX2D_SAMPLER(textureName##0, textureName##0, texcoord).##swizzle; \
+    name##1 = UNITY_SAMPLE_TEX2D_SAMPLER(textureName##1, textureName##0, texcoord).##swizzle; \
+    name##2 = UNITY_SAMPLE_TEX2D_SAMPLER(textureName##2, textureName##0, texcoord).##swizzle; \
+    name##3 = UNITY_SAMPLE_TEX2D_SAMPLER(textureName##3, textureName##0, texcoord).##swizzle;
 #define PROP_MUL(name, multiplier, swizzle)\
     name##0 *= multiplier##0.##swizzle; \
     name##1 *= multiplier##1.##swizzle; \
@@ -56,20 +61,20 @@
 
 // Set of users variables
 PROP_DECL(float4, _BaseColor);
-PROP_DECL(sampler2D, _BaseColorMap);
+PROP_DECL_TEX2D(_BaseColorMap);
 PROP_DECL(float, _Metalic);
 PROP_DECL(float, _Smoothness);
-PROP_DECL(sampler2D, _MaskMap);
-PROP_DECL(sampler2D, _SpecularOcclusionMap);
-PROP_DECL(sampler2D, _NormalMap);
-PROP_DECL(sampler2D, _Heightmap);
+PROP_DECL_TEX2D(_MaskMap);
+PROP_DECL_TEX2D(_SpecularOcclusionMap);
+PROP_DECL_TEX2D(_NormalMap);
+PROP_DECL_TEX2D(_Heightmap);
 PROP_DECL(float, _HeightScale);
 PROP_DECL(float, _HeightBias);
 PROP_DECL(float4, _EmissiveColor);
 PROP_DECL(float, _EmissiveIntensity);
 
 float _AlphaCutoff;
-sampler2D _LayerMaskMap;
+UNITY_DECLARE_TEX2D(_LayerMaskMap);
 
 //-------------------------------------------------------------------------------------
 // Lighting architecture
@@ -265,7 +270,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     float4 maskValues = float4(1.0, 1.0, 1.0, 1.0);// input.vertexColor;
 
 #ifdef _LAYERMASKMAP
-    float4 maskMap = tex2D(_LayerMaskMap, input.texCoord0);
+    float4 maskMap = UNITY_SAMPLE_TEX2D(_LayerMaskMap, input.texCoord0);
     maskValues *= maskMap;
 #endif
 
@@ -273,7 +278,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     ComputeMaskWeights(maskValues, weights);
 
     PROP_DECL(float3, baseColor);
-    PROP_SAMPLE(baseColor, _BaseColorMap, input.texCoord0, rgb);
+    PROP_SAMPLE(baseColor, _BaseColorMap, input.texCoord0, rgb); 
     PROP_MUL(baseColor, _BaseColor, rgb);
     PROP_BLEND_COLOR(baseColor, weights);
 
@@ -313,16 +318,16 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-    float3 normalTS0 = UnpackNormalAG(tex2D(_NormalMap0, input.texCoord0));
-    float3 normalTS1 = UnpackNormalAG(tex2D(_NormalMap1, input.texCoord0));
-    float3 normalTS2 = UnpackNormalAG(tex2D(_NormalMap2, input.texCoord0));
-    float3 normalTS3 = UnpackNormalAG(tex2D(_NormalMap3, input.texCoord0));
+    float3 normalTS0 = UnpackNormalAG(UNITY_SAMPLE_TEX2D_SAMPLER(_NormalMap0, _NormalMap0, input.texCoord0));
+    float3 normalTS1 = UnpackNormalAG(UNITY_SAMPLE_TEX2D_SAMPLER(_NormalMap1, _NormalMap0, input.texCoord0));
+    float3 normalTS2 = UnpackNormalAG(UNITY_SAMPLE_TEX2D_SAMPLER(_NormalMap2, _NormalMap0, input.texCoord0));
+    float3 normalTS3 = UnpackNormalAG(UNITY_SAMPLE_TEX2D_SAMPLER(_NormalMap3, _NormalMap0, input.texCoord0));
 
     float3 normalTS = BlendLayeredNormal(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     #else // Object space (TODO: We need to apply the world rotation here!)
-    surfaceData.normalWS = tex2D(_NormalMap, input.texCoord0).rgb;
+    surfaceData.normalWS = UNITY_SAMPLE_TEX2D(_NormalMap, input.texCoord0).rgb;
     #endif
 #else
     surfaceData.normalWS = vertexNormalWS;
