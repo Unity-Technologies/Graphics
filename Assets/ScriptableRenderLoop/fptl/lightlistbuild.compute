@@ -536,7 +536,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 		{
 			unsigned int uIndex;
 			InterlockedAdd(lightOffsSph, 1, uIndex);
-			coarseList[uIndex]=prunedList[l];		// use copy of original coarseList which is in prunedList
+			coarseList[uIndex]=prunedList[l];		// read from the original copy of coarseList which is backed up in prunedList
 		}
 	}
 

@@ -675,8 +675,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 }
             }
             int numLightsOut = offsets[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1] + numEntries[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1];
-            Debug.Assert(numEntries[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1]==numEntries2nd[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1], "Direct light count mismatch on second pass!");
-
+            
             // probe.m_BlendDistance
             // Vector3f extents = 0.5*Abs(probe.m_BoxSize);
             // C center of rendered refl box <-- GetComponent (Transform).GetPosition() + m_BoxOffset;
@@ -765,7 +764,11 @@ namespace UnityEngine.ScriptableRenderLoop
                 }
             }
             int numProbesOut = offsets[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1] + numEntries[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1];
-            Debug.Assert(numEntries[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1]==numEntries2nd[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1], "Reflection probe count mismatch on second pass!");
+            for(int m=0; m<nrModels; m++)
+            {
+                for(int v=0; v<nrVolTypes; v++)
+                    Debug.Assert(numEntries[m,v]==numEntries2nd[m, v], "count mismatch on second pass!");
+            }
 
             m_convexBoundsBuffer.SetData(boundData);
             m_lightDataBuffer.SetData(lightData);
