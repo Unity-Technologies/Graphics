@@ -23,7 +23,7 @@ float4 SampleTextureCatmullRom(Texture2D<float4> tex, SamplerState linearSampler
     float2 w2 = (1.0f / 6.0) * (-9.0 * f3 + 12.0 * f2 + 3.0 * f);
     float2 w3 = (1.0f / 6.0) * (3.0 * f3 - 3.0 * f2);
 
-    // Otim by Vlad, to test 
+    // Otim by Vlad, to test
     // float2 w0 = (1.0 / 2.0) * f * (-1.0 + f * (2.0 - f));
     // float2 w1 = (1.0 / 6.0) * f2 * (-15.0 + 9.0 * f)) + 1.0;
     // float2 w2 = (1.0 / 6.0) * f * (3.0 + f * (12.0 - f * 9.0));

@@ -1,4 +1,4 @@
-#ifndef UNITY_LIGHTING_FORWARD_INCLUDED 
+#ifndef UNITY_LIGHTING_FORWARD_INCLUDED
 #define UNITY_LIGHTING_FORWARD_INCLUDED
 
 //-----------------------------------------------------------------------------
@@ -14,7 +14,7 @@ int _EnvLightCount;
 
 // TODO: Think about how to apply Disney diffuse preconvolve on indirect diffuse => must be done during GBuffer layout! Else emissive will be fucked...
 // That's mean we need to read DFG texture during Gbuffer...
-void ForwardLighting(	float3 V, float3 positionWS, BSDFData bsdfData,
+void ForwardLighting(   float3 V, float3 positionWS, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {

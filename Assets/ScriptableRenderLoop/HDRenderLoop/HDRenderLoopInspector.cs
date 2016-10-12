@@ -82,10 +82,10 @@ namespace UnityEngine.ScriptableRenderLoop
             }
         }
 
-    public override void OnInspectorGUI()
+        public override void OnInspectorGUI()
         {
             HDRenderLoop renderLoop = target as HDRenderLoop;
-            if(renderLoop)
+            if (renderLoop)
             {
                 HDRenderLoop.DebugParameters debugParameters = renderLoop.debugParameters;
 
@@ -97,13 +97,13 @@ namespace UnityEngine.ScriptableRenderLoop
                 {
                     String[] varyingNames = Enum.GetNames(typeof(HDRenderLoop.DebugViewVaryingMode));
                     String[] GBufferNames = Enum.GetNames(typeof(HDRenderLoop.DebugViewGbufferMode));
-                    
+
                     // +1 for the zero case
-                    int num = 1 + varyingNames.Length 
-                                + GBufferNames.Length
-                                + typeof(Builtin.BuiltinData).GetFields().Length 
-                                + typeof(Lit.SurfaceData).GetFields().Length 
-                                + typeof(Lit.BSDFData).GetFields().Length;
+                    int num = 1 + varyingNames.Length
+                        + GBufferNames.Length
+                        + typeof(Builtin.BuiltinData).GetFields().Length
+                        + typeof(Lit.SurfaceData).GetFields().Length
+                        + typeof(Lit.BSDFData).GetFields().Length;
 
                     styles.debugViewMaterialStrings = new GUIContent[num];
                     styles.debugViewMaterialValues = new int[num];
@@ -124,7 +124,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     FillWithProperties(typeof(Lit.BSDFData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, true, ref index);
 
                     styles.isDebugViewMaterialInit = true;
-                }         
+                }
 
                 debugParameters.debugViewMaterial = EditorGUILayout.IntPopup(styles.debugViewMaterial, (int)debugParameters.debugViewMaterial, styles.debugViewMaterialStrings, styles.debugViewMaterialValues);
 
@@ -136,7 +136,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 debugParameters.displayOpaqueObjects = EditorGUILayout.Toggle(styles.displayOpaqueObjects, debugParameters.displayOpaqueObjects);
                 debugParameters.displayTransparentObjects = EditorGUILayout.Toggle(styles.displayTransparentObjects, debugParameters.displayTransparentObjects);
 
-                if(EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck())
                 {
                     EditorUtility.SetDirty(renderLoop); // Repaint
                 }

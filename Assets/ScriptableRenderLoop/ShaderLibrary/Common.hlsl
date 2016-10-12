@@ -62,24 +62,24 @@
 // Common math definition and fastmath function
 // ----------------------------------------------------------------------------
 
-#define PI			3.14159265359f
-#define TWO_PI		6.28318530718f
-#define FOUR_PI		12.56637061436f
-#define INV_PI		0.31830988618f
-#define INV_TWO_PI	0.15915494309f							
-#define INV_FOUR_PI	0.07957747155f
-#define HALF_PI		1.57079632679f
-#define INV_HALF_PI	0.636619772367f
+#define PI          3.14159265359f
+#define TWO_PI      6.28318530718f
+#define FOUR_PI     12.56637061436f
+#define INV_PI      0.31830988618f
+#define INV_TWO_PI  0.15915494309f
+#define INV_FOUR_PI 0.07957747155f
+#define HALF_PI     1.57079632679f
+#define INV_HALF_PI 0.636619772367f
 
 #define MERGE_NAME(X, Y) X##Y
 
 // Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
-float FastACos(float inX) 
-{ 
-    float x = abs(inX); 
-    float res = -0.156583 * x + HALF_PI; 
-    res *= sqrt(1.0 - x); 
-    return (inX >= 0) ? res : PI - res; 
+float FastACos(float inX)
+{
+    float x = abs(inX);
+    float res = -0.156583 * x + HALF_PI;
+    res *= sqrt(1.0 - x);
+    return (inX >= 0) ? res : PI - res;
 }
 
 // Same cost as Acos + 1 FR
@@ -94,8 +94,8 @@ float FastASin(float x)
 // Eberly's odd polynomial degree 5 - respect bounds
 // 4 VGPR, 14 FR (10 FR, 1 QR), 2 scalar
 // input [0, infinity] and output [0, PI/2]
-float FastATanPos(float x) 
-{ 
+float FastATanPos(float x)
+{
     float t0 = (x < 1.0) ? x : 1.0 / x;
     float t1 = t0 * t0;
     float poly = 0.0872929;
@@ -107,10 +107,10 @@ float FastATanPos(float x)
 
 // 4 VGPR, 16 FR (12 FR, 1 QR), 2 scalar
 // input [-infinity, infinity] and output [-PI/2, PI/2]
-float FastATan(float x) 
-{     
-    float t0 = FastATanPos(abs(x));     
-    return (x < 0.0f) ? -t0 : t0; 
+float FastATan(float x)
+{
+    float t0 = FastATanPos(abs(x));
+    return (x < 0.0f) ? -t0 : t0;
 }
 
 // ----------------------------------------------------------------------------
@@ -120,9 +120,9 @@ float FastATan(float x)
 struct Coordinate
 {
     // Normalize coordinates
-    float2	positionSS;
+    float2  positionSS;
     // Unormalize coordinates
-    int2	unPositionSS;
+    int2    unPositionSS;
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
@@ -150,8 +150,8 @@ Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
 float3 UnprojectToWorld(float depth, float2 screenPos, float4x4 invViewProjectionMatrix)
 {
-    float4 positionHS	= float4(screenPos.xy * 2.0 - 1.0, depth, 1.0);
-    float4 hpositionWS	= mul(invViewProjectionMatrix, positionHS);
+    float4 positionHS   = float4(screenPos.xy * 2.0 - 1.0, depth, 1.0);
+    float4 hpositionWS  = mul(invViewProjectionMatrix, positionHS);
 
     return hpositionWS.xyz / hpositionWS.w;
 }

@@ -60,10 +60,10 @@ float _AlphaCutoff;
 // Forward
 struct Attributes
 {
-    float3 positionOS	: POSITION;
-    float3 normalOS		: NORMAL;
-    float2 uv0			: TEXCOORD0;
-    float4 tangentOS	: TANGENT;
+    float3 positionOS   : POSITION;
+    float3 normalOS     : NORMAL;
+    float2 uv0          : TEXCOORD0;
+    float4 tangentOS    : TANGENT;
 };
 
 struct Varyings
@@ -209,7 +209,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 #endif
 
 #if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
-    #ifdef _DOUBLESIDED_LIGHTING_FLIP	
+    #ifdef _DOUBLESIDED_LIGHTING_FLIP
     float3 oppositeNormalWS = -surfaceData.normalWS;
     #else
     // Mirror the normal with the plane define by vertex normal

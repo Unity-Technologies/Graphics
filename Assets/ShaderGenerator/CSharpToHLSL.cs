@@ -76,7 +76,7 @@ namespace UnityEngine.ScriptableRenderLoop
             }
 
 
-            // Now that we have extracted all the typenames that we care about, parse all .cs files in all asset 
+            // Now that we have extracted all the typenames that we care about, parse all .cs files in all asset
             // paths and figure out in which files those types are actually declared.
             m_sourceGenerators = new Dictionary<string, List<ShaderTypeGenerator>>();
 
@@ -98,7 +98,7 @@ namespace UnityEngine.ScriptableRenderLoop
                         // Error reporting will be done by the generator.  Skip this file.
                         gen.PrintErrors();
                         skipFile = true;
-                        break; ;
+                        break;
                     }
                 }
 
@@ -149,10 +149,10 @@ namespace UnityEngine.ScriptableRenderLoop
                 // @TODO any standard preprocessor symbols we need?
 
                 /*var uniqueSymbols = new HashSet<string>(definedSymbols.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
-				foreach (var symbol in uniqueSymbols)
-				{
-					parser.Lexer.ConditionalCompilationSymbols.Add(symbol, string.Empty);
-				}*/
+                foreach (var symbol in uniqueSymbols)
+                {
+                    parser.Lexer.ConditionalCompilationSymbols.Add(symbol, string.Empty);
+                }*/
                 parser.Lexer.EvaluateConditionalCompilation = true;
 
                 parser.Parse();
@@ -165,7 +165,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
                     if (data.generators.Count > 0)
                         m_sourceGenerators[fileName] = data.generators;
-
                 }
                 catch
                 {
@@ -275,7 +274,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             // Skip assemblies from GAC (@TODO:  any reason we'd want to include them?)
             var keysToRemove = assemblies.Values.Where(
-                o => o.GlobalAssemblyCache == true).ToList();
+                    o => o.GlobalAssemblyCache == true).ToList();
 
             foreach (var k in keysToRemove)
             {
@@ -322,4 +321,4 @@ namespace UnityEngine.ScriptableRenderLoop
 
         static Dictionary<string, Assembly> assemblies;
     }
-};
+}

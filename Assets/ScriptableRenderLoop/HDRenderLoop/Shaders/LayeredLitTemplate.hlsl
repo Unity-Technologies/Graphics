@@ -85,10 +85,10 @@ UNITY_DECLARE_TEX2D(_LayerMaskMap);
 // Forward
 struct Attributes
 {
-    float3 positionOS	: POSITION;
-    float3 normalOS		: NORMAL;
-    float2 uv0			: TEXCOORD0;
-    float4 tangentOS	: TANGENT;
+    float3 positionOS   : POSITION;
+    float3 normalOS     : NORMAL;
+    float2 uv0          : TEXCOORD0;
+    float4 tangentOS    : TANGENT;
     float4 color        : TANGENT;
 };
 
@@ -278,7 +278,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     ComputeMaskWeights(maskValues, weights);
 
     PROP_DECL(float3, baseColor);
-    PROP_SAMPLE(baseColor, _BaseColorMap, input.texCoord0, rgb); 
+    PROP_SAMPLE(baseColor, _BaseColorMap, input.texCoord0, rgb);
     PROP_MUL(baseColor, _BaseColor, rgb);
     PROP_BLEND_COLOR(baseColor, weights);
 
@@ -334,7 +334,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 #endif
 
 #if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
-    #ifdef _DOUBLESIDED_LIGHTING_FLIP	
+    #ifdef _DOUBLESIDED_LIGHTING_FLIP
     float3 oppositeNormalWS = -surfaceData.normalWS;
     #else
     // Mirror the normal with the plane define by vertex normal
@@ -371,7 +371,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     PROP_ASSIGN_VALUE(ambientOcclusion, 1.0);
 #endif
     PROP_MUL(metalic, _Metalic, r);
-    
+
     PROP_BLEND_SCALAR(metalic, weights);
     PROP_BLEND_SCALAR(ambientOcclusion, weights);
 

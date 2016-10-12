@@ -13,10 +13,10 @@
 // Macros to declare textures and samplers, possibly separately. For platforms
 // that have separate samplers & textures (like DX11), and we'd want to conserve
 // the samplers.
-//	- UNITY_DECLARE_TEX*_NOSAMPLER declares a texture, without a sampler.
-//	- UNITY_SAMPLE_TEX*_SAMPLER samples a texture, using sampler from another texture.
-//		That another texture must also be actually used in the current shader, otherwise
-//		the correct sampler will not be set.
+//  - UNITY_DECLARE_TEX*_NOSAMPLER declares a texture, without a sampler.
+//  - UNITY_SAMPLE_TEX*_SAMPLER samples a texture, using sampler from another texture.
+//      That another texture must also be actually used in the current shader, otherwise
+//      the correct sampler will not be set.
 
 // 2D textures
 #define UNITY_DECLARE_TEX2D(tex) Texture2D tex; SamplerState sampler##tex

@@ -33,10 +33,10 @@ float3 UnpackNormalMaxComponent(float3 n)
 // return float between [-1, 1]
 float2 PackNormalOctEncode(float3 n)
 {
-    float l1norm	= abs(n.x) + abs(n.y) + abs(n.z);
-    float2 res0		= n.xy * (1.0 / l1norm);
+    float l1norm    = abs(n.x) + abs(n.y) + abs(n.z);
+    float2 res0     = n.xy * (1.0 / l1norm);
 
-    float2 val		= 1.0 - abs(res0.yx);
+    float2 val      = 1.0 - abs(res0.yx);
     return (n.zz < float2(0.0, 0.0) ? (res0 >= 0.0 ? val : -val) : res0);
 }
 
@@ -89,7 +89,7 @@ uint FindBiggestComponent(float4 q)
 }
 
 // Pack a quaternion into a 10:10:10:2
-float4	PackQuat(float4 quat)
+float4  PackQuat(float4 quat)
 {
     uint index = FindBiggestComponent(quat);
 

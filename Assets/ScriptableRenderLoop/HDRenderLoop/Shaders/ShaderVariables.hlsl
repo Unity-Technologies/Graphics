@@ -37,23 +37,23 @@ CBUFFER_START(UnityPerCamera)
     float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
     float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
     float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
-    
+
 #ifndef UNITY_SINGLE_PASS_STEREO
     float3 _WorldSpaceCameraPos;
 #endif
-    
+
     // x = 1 or -1 (-1 if projection is flipped)
     // y = near plane
     // z = far plane
     // w = 1/far plane
     float4 _ProjectionParams;
-    
+
     // x = width
     // y = height
     // z = 1 + 1.0/width
     // w = 1 + 1.0/height
     float4 _ScreenParams;
-    
+
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
     // x = 1-far/near
     // y = far/near
@@ -90,7 +90,7 @@ CBUFFER_START(UnityPerDraw)
 #ifndef UNITY_SINGLE_PASS_STEREO
     float4x4 glstate_matrix_mvp;
 #endif
-    
+
     // Use center position for stereo rendering
     float4x4 glstate_matrix_modelview0;
     float4x4 glstate_matrix_invtrans_modelview0;
@@ -105,7 +105,7 @@ CBUFFER_END
 CBUFFER_START(UnityPerEye)
     float3 _WorldSpaceCameraPos;
     float4x4 glstate_matrix_projection;
-    
+
     float4x4 unity_MatrixV;
     float4x4 unity_MatrixVP;
 
@@ -131,7 +131,7 @@ CBUFFER_START(UnityPerFrame)
     float4x4 unity_MatrixV;
     float4x4 unity_MatrixVP;
 #endif
-    
+
     float4 glstate_lightmodel_ambient;
     float4 unity_AmbientSky;
     float4 unity_AmbientEquator;
@@ -215,7 +215,7 @@ float3x3 CreateTangentToWorld(float3 normal, float3 tangent, float tangentSign)
     // For odd-negative scale transforms we need to flip the sign
     float sign = tangentSign * GetOdddNegativeScale();
     float3 bitangent = cross(normal, tangent) * sign;
-    
+
     return float3x3(tangent, bitangent, normal);
 }
 

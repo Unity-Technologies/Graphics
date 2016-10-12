@@ -54,44 +54,42 @@
 // PackingRules = Exact
 struct SurfaceData
 {
-	float3 baseColor;
-	float specularOcclusion;
-	float3 normalWS;
-	float perceptualSmoothness;
-	int materialId;
-	float ambientOcclusion;
-	float3 tangentWS;
-	float anisotropy;
-	float metalic;
-	float specular;
-	float subSurfaceRadius;
-	float thickness;
-	int subSurfaceProfile;
-	float3 coatNormalWS;
-	float coatPerceptualSmoothness;
-	float3 specularColor;
+    float3 baseColor;
+    float specularOcclusion;
+    float3 normalWS;
+    float perceptualSmoothness;
+    int materialId;
+    float ambientOcclusion;
+    float3 tangentWS;
+    float anisotropy;
+    float metalic;
+    float specular;
+    float subSurfaceRadius;
+    float thickness;
+    int subSurfaceProfile;
+    float3 coatNormalWS;
+    float coatPerceptualSmoothness;
+    float3 specularColor;
 };
 
 // Generated from UnityEngine.ScriptableRenderLoop.Lit.BSDFData
 // PackingRules = Exact
 struct BSDFData
 {
-	float3 diffuseColor;
-	float3 fresnel0;
-	float specularOcclusion;
-	float3 normalWS;
-	float perceptualRoughness;
-	float roughness;
-	float materialId;
-	float3 tangentWS;
-	float3 bitangentWS;
-	float roughnessT;
-	float roughnessB;
-	float subSurfaceRadius;
-	float thickness;
-	int subSurfaceProfile;
-	float3 coatNormalWS;
-	float coatRoughness;
+    float3 diffuseColor;
+    float3 fresnel0;
+    float specularOcclusion;
+    float3 normalWS;
+    float perceptualRoughness;
+    float roughness;
+    float materialId;
+    float3 tangentWS;
+    float3 bitangentWS;
+    float roughnessT;
+    float roughnessB;
+    float subSurfaceRadius;
+    float thickness;
+    int subSurfaceProfile;
+    float3 coatNormalWS;
+    float coatRoughness;
 };
-
-
