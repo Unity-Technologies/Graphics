@@ -15,7 +15,7 @@ internal class LayeredLitGUI : LitGUI
                 new GUIContent("Material Layer 2"),
                 new GUIContent("Material Layer 3"),
         };
-        public readonly GUIContent syncButton = new GUIContent("Sync", "Re-synchronize this layer's properties with the referenced Material");
+        public readonly GUIContent syncButton = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
         public readonly GUIContent layers = new GUIContent("Layers");
         public readonly GUIContent layerMapMask = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color)");
         public readonly GUIContent layerCount = new GUIContent("Layer Count", "Number of layers.");
@@ -45,6 +45,14 @@ internal class LayeredLitGUI : LitGUI
     {
         set { layerCountProperty.floatValue = (float)value; }
         get { return (int)layerCountProperty.floatValue; }
+    }
+
+    void SynchronizeAllLayersProperties()
+    {
+        for(int i = 0 ; i < layerCount; ++i)
+        {
+            SynchronizeLayerProperties(i);
+        }
     }
 
     void SynchronizeLayerProperties(int layerIndex)
@@ -298,6 +306,7 @@ internal class LayeredLitGUI : LitGUI
         {
             Undo.RecordObject(material, "Change layer count");
             layerCountProperty.floatValue = (float)newLayerCount;
+            SynchronizeAllLayersProperties();
             layerChanged = true;
         }
 
@@ -305,25 +314,27 @@ internal class LayeredLitGUI : LitGUI
 
         for (int i = 0; i < layerCount; i++)
         {
-            EditorGUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
+            m_MaterialLayers[i] = EditorGUILayout.ObjectField(styles.materialLayerLabels[i], m_MaterialLayers[i], typeof(Material), true) as Material;
+            if (EditorGUI.EndChangeCheck())
             {
-                EditorGUI.BeginChangeCheck();
-                m_MaterialLayers[i] = EditorGUILayout.ObjectField(styles.materialLayerLabels[i], m_MaterialLayers[i], typeof(Material), true) as Material;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Undo.RecordObject(materialImporter, "Change layer material");
-                    SynchronizeLayerProperties(i);
-                    layerChanged = true;
-                }
-
-                if (GUILayout.Button(styles.syncButton, GUILayout.Width(kSyncButtonWidth)))
-                {
-                    SynchronizeLayerProperties(i);
-                    layerChanged = true;
-                }
+                Undo.RecordObject(materialImporter, "Change layer material");
+                SynchronizeLayerProperties(i);
+                layerChanged = true;
             }
-            EditorGUILayout.EndHorizontal();
         }
+
+        EditorGUILayout.Space();
+        GUILayout.BeginHorizontal();
+        {
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(styles.syncButton))
+            {
+                SynchronizeAllLayersProperties();
+                layerChanged = true;
+            }
+        }
+        GUILayout.EndHorizontal();
 
         EditorGUI.indentLevel--;
 
