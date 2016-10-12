@@ -478,6 +478,35 @@ namespace UnityEngine.ScriptableRenderLoop
             VisibleReflectionProbe[] probes = inputs.visibleReflectionProbes;
             //ReflectionProbe[] probes = Object.FindObjectsOfType<ReflectionProbe>();
 
+            int nrModels = (int)LightDefinitions.NR_LIGHT_MODELS;
+            int nrVolTypes = (int)LightDefinitions.MAX_TYPES;
+            int[,] numEntries = new int[nrModels,nrVolTypes];
+            int[,] offsets = new int[nrModels,nrVolTypes];
+            int[,] numEntries2nd = new int[nrModels,nrVolTypes];
+
+            // first pass. Figure out how much we have of each and establish offsets
+            foreach (var cl in inputs.visibleLights)
+            {
+                int volType = cl.lightType==LightType.Spot ? LightDefinitions.SPOT_LIGHT : (cl.lightType==LightType.Point ? LightDefinitions.SPHERE_LIGHT : -1);
+                if(volType>=0) ++numEntries[LightDefinitions.DIRECT_LIGHT,volType];
+            }
+
+            foreach (var rl in probes)
+            {
+                int volType = LightDefinitions.BOX_LIGHT;       // always a box for now
+                if(rl.texture!=null) ++numEntries[LightDefinitions.REFLECTION_LIGHT,volType];
+            }
+
+            // add decals here too similar to the above
+
+            // establish offsets
+            for(int m=0; m<nrModels; m++)
+            {
+                offsets[m,0] = m==0 ? 0 : (numEntries[m-1,nrVolTypes-1] + offsets[m-1,nrVolTypes-1]);
+                for(int v=1; v<nrVolTypes; v++) offsets[m,v] = numEntries[m,v-1]+offsets[m,v-1];
+            }
+
+
             int numLights = inputs.visibleLights.Length;
             int numProbes = probes.Length;
             int numVolumes = numLights + numProbes;
@@ -487,7 +516,6 @@ namespace UnityEngine.ScriptableRenderLoop
             SFiniteLightBound[] boundData = new SFiniteLightBound[numVolumes];
             Matrix4x4 worldToView = camera.worldToCameraMatrix;
 
-            int i = 0;
             uint shadowLightIndex = 0;
             foreach (var cl in inputs.visibleLights)
             {
@@ -498,29 +526,34 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 Vector3 lightPos = lightToWorld.GetColumn(3);
 
-                boundData[i].vBoxAxisX.Set(1, 0, 0);
-                boundData[i].vBoxAxisY.Set(0, 1, 0);
-                boundData[i].vBoxAxisZ.Set(0, 0, 1);
-                boundData[i].vScaleXY.Set(1.0f, 1.0f);
-                boundData[i].fRadius = range;
+                SFiniteLightBound bndData = new SFiniteLightBound();
+                SFiniteLightData lgtData = new SFiniteLightData();
 
-                lightData[i].flags = 0;
-                lightData[i].fRecipRange = 1.0f / range;
-                lightData[i].vCol.Set(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
-                lightData[i].iSliceIndex = 0;
-                lightData[i].uLightModel = (uint)LightDefinitions.DIRECT_LIGHT;
-                lightData[i].uShadowLightIndex = shadowLightIndex;
+                bndData.vBoxAxisX.Set(1, 0, 0);
+                bndData.vBoxAxisY.Set(0, 1, 0);
+                bndData.vBoxAxisZ.Set(0, 0, 1);
+                bndData.vScaleXY.Set(1.0f, 1.0f);
+                bndData.fRadius = range;
+
+                lgtData.flags = 0;
+                lgtData.fRecipRange = 1.0f / range;
+                lgtData.vCol.Set(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
+                lgtData.iSliceIndex = 0;
+                lgtData.uLightModel = (uint)LightDefinitions.DIRECT_LIGHT;
+                lgtData.uShadowLightIndex = shadowLightIndex;
                 shadowLightIndex++;
 
                 bool bHasCookie = cl.light.cookie != null;
                 bool bHasShadow = cl.light.shadows != LightShadows.None;
+
+                int idxOut = 0;
 
                 if (cl.lightType == LightType.Spot)
                 {
                     bool bIsCircularSpot = !bHasCookie;
                     if (!bIsCircularSpot)    // square spots always have cookie
                     {
-                        lightData[i].iSliceIndex = m_cookieTexArray.FetchSlice(cl.light.cookie);
+                        lgtData.iSliceIndex = m_cookieTexArray.FetchSlice(cl.light.cookie);
                     }
 
                     Vector3 lightDir = lightToWorld.GetColumn(2);   // Z axis in world space
@@ -556,16 +589,16 @@ namespace UnityEngine.ScriptableRenderLoop
                     // apply nonuniform scale to OBB of spot light
                     bool bSqueeze = true;//sa < 0.7f * 90.0f;      // arb heuristic
                     float fS = bSqueeze ? ta : si;
-                    boundData[i].vCen = worldToView.MultiplyPoint(lightPos + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
+                    bndData.vCen = worldToView.MultiplyPoint(lightPos + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
 
-                    lightData[i].vLaxisX = vx;
-                    lightData[i].vLaxisY = vy;
-                    lightData[i].vLaxisZ = vz;
+                    lgtData.vLaxisX = vx;
+                    lgtData.vLaxisY = vy;
+                    lgtData.vLaxisZ = vz;
 
                     // scale axis to match box or base of pyramid
-                    boundData[i].vBoxAxisX = (fS * range) * vx;
-                    boundData[i].vBoxAxisY = (fS * range) * vy;
-                    boundData[i].vBoxAxisZ = (0.5f * range) * vz;
+                    bndData.vBoxAxisX = (fS * range) * vx;
+                    bndData.vBoxAxisY = (fS * range) * vy;
+                    bndData.vBoxAxisZ = (0.5f * range) * vz;
 
                     // generate bounding sphere radius
                     float fAltDx = si;
@@ -576,33 +609,36 @@ namespace UnityEngine.ScriptableRenderLoop
                     fAltDx *= range; fAltDy *= range;
 
                     float fAltDist = Mathf.Sqrt(fAltDy * fAltDy + (bIsCircularSpot ? 1.0f : 2.0f) * fAltDx * fAltDx);
-                    boundData[i].fRadius = fAltDist > (0.5f * range) ? fAltDist : (0.5f * range);       // will always pick fAltDist
-                    boundData[i].vScaleXY = bSqueeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
+                    bndData.fRadius = fAltDist > (0.5f * range) ? fAltDist : (0.5f * range);       // will always pick fAltDist
+                    bndData.vScaleXY = bSqueeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
 
                     // fill up ldata
-                    lightData[i].uLightType = (uint)LightDefinitions.SPOT_LIGHT;
-                    lightData[i].vLpos = worldToView.MultiplyPoint(lightPos);
-                    lightData[i].fSphRadiusSq = range * range;
-                    lightData[i].fPenumbra = cs;
-                    lightData[i].cotan = cota;
-                    lightData[i].flags |= (bIsCircularSpot ? LightDefinitions.IS_CIRCULAR_SPOT_SHAPE : 0);
+                    lgtData.uLightType = (uint)LightDefinitions.SPOT_LIGHT;
+                    lgtData.vLpos = worldToView.MultiplyPoint(lightPos);
+                    lgtData.fSphRadiusSq = range * range;
+                    lgtData.fPenumbra = cs;
+                    lgtData.cotan = cota;
+                    lgtData.flags |= (bIsCircularSpot ? LightDefinitions.IS_CIRCULAR_SPOT_SHAPE : 0);
 
-                    lightData[i].flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
-                    lightData[i].flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
+                    lgtData.flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
+                    lgtData.flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
+
+                    int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPOT_LIGHT;
+                    idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
                 }
                 else if (cl.lightType == LightType.Point)
                 {
                     if (bHasCookie)
                     {
-                        lightData[i].iSliceIndex = m_cubeCookieTexArray.FetchSlice(cl.light.cookie);
+                        lgtData.iSliceIndex = m_cubeCookieTexArray.FetchSlice(cl.light.cookie);
                     }
 
-                    boundData[i].vCen = worldToView.MultiplyPoint(lightPos);
-                    boundData[i].vBoxAxisX.Set(range, 0, 0);
-                    boundData[i].vBoxAxisY.Set(0, range, 0);
-                    boundData[i].vBoxAxisZ.Set(0, 0, -range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-                    boundData[i].vScaleXY.Set(1.0f, 1.0f);
-                    boundData[i].fRadius = range;
+                    bndData.vCen = worldToView.MultiplyPoint(lightPos);
+                    bndData.vBoxAxisX.Set(range, 0, 0);
+                    bndData.vBoxAxisY.Set(0, range, 0);
+                    bndData.vBoxAxisZ.Set(0, 0, -range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+                    bndData.vScaleXY.Set(1.0f, 1.0f);
+                    bndData.fRadius = range;
 
                     // represents a left hand coordinate system in world space since det(worldToView)<0
                     Matrix4x4 lightToView = worldToView * lightToWorld;
@@ -611,16 +647,19 @@ namespace UnityEngine.ScriptableRenderLoop
                     Vector3 vz = lightToView.GetColumn(2);
 
                     // fill up ldata
-                    lightData[i].uLightType = (uint)LightDefinitions.SPHERE_LIGHT;
-                    lightData[i].vLpos = boundData[i].vCen;
-                    lightData[i].fSphRadiusSq = range * range;
+                    lgtData.uLightType = (uint)LightDefinitions.SPHERE_LIGHT;
+                    lgtData.vLpos = bndData.vCen;
+                    lgtData.fSphRadiusSq = range * range;
 
-                    lightData[i].vLaxisX = vx;
-                    lightData[i].vLaxisY = vy;
-                    lightData[i].vLaxisZ = vz;
+                    lgtData.vLaxisX = vx;
+                    lgtData.vLaxisY = vy;
+                    lgtData.vLaxisZ = vz;
 
-                    lightData[i].flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
-                    lightData[i].flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
+                    lgtData.flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
+                    lgtData.flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
+
+                    int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPHERE_LIGHT;
+                    idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
                 }
                 else
                 {
@@ -629,25 +668,29 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 // next light
                 if (cl.lightType == LightType.Spot || cl.lightType == LightType.Point)
-                    ++i;
+                {
+                    boundData[idxOut] = bndData;
+                    lightData[idxOut] = lgtData;
+                }
             }
-            int numLightsOut = i;
+            int numLightsOut = offsets[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1] + numEntries[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1];
+            Debug.Assert(numEntries[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1]==numEntries2nd[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1], "Direct light count mismatch on second pass!");
 
             // probe.m_BlendDistance
             // Vector3f extents = 0.5*Abs(probe.m_BoxSize);
             // C center of rendered refl box <-- GetComponent (Transform).GetPosition() + m_BoxOffset;
             // cube map capture point: GetComponent (Transform).GetPosition()
             // shader parameter min and max are C+/-(extents+blendDistance)
-
-            int numProbesOut = 0;
             foreach (var rl in probes)
             {
                 Texture cubemap = rl.texture;
                 if (cubemap != null)        // always a box for now
                 {
-                    i = numProbesOut + numLightsOut;
+                    SFiniteLightBound bndData = new SFiniteLightBound();
+                    SFiniteLightData lgtData = new SFiniteLightData();
 
-                    lightData[i].flags = 0;
+                    int idxOut = 0;
+                    lgtData.flags = 0;
 
                     Bounds bnds = rl.bounds;
                     Vector3 boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
@@ -684,39 +727,44 @@ namespace UnityEngine.ScriptableRenderLoop
 
                     Vector3 Cw = worldToView.MultiplyPoint(C);
 
-                    if (boxProj) lightData[i].flags |= LightDefinitions.IS_BOX_PROJECTED;
+                    if (boxProj) lgtData.flags |= LightDefinitions.IS_BOX_PROJECTED;
 
-                    lightData[i].vLpos = Cw;
-                    lightData[i].vLaxisX = vx;
-                    lightData[i].vLaxisY = vy;
-                    lightData[i].vLaxisZ = vz;
-                    lightData[i].vLocalCubeCapturePoint = -boxOffset;
-                    lightData[i].fProbeBlendDistance = blendDistance;
+                    lgtData.vLpos = Cw;
+                    lgtData.vLaxisX = vx;
+                    lgtData.vLaxisY = vy;
+                    lgtData.vLaxisZ = vz;
+                    lgtData.vLocalCubeCapturePoint = -boxOffset;
+                    lgtData.fProbeBlendDistance = blendDistance;
 
-                    lightData[i].fLightIntensity = decodeVals.x;
-                    lightData[i].fDecodeExp = decodeVals.y;
+                    lgtData.fLightIntensity = decodeVals.x;
+                    lgtData.fDecodeExp = decodeVals.y;
 
-                    lightData[i].iSliceIndex = m_cubeReflTexArray.FetchSlice(cubemap);
+                    lgtData.iSliceIndex = m_cubeReflTexArray.FetchSlice(cubemap);
 
                     Vector3 delta = combinedExtent - e;
-                    lightData[i].vBoxInnerDist = e;
-                    lightData[i].vBoxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+                    lgtData.vBoxInnerDist = e;
+                    lgtData.vBoxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
 
-                    boundData[i].vCen = Cw;
-                    boundData[i].vBoxAxisX = combinedExtent.x * vx;
-                    boundData[i].vBoxAxisY = combinedExtent.y * vy;
-                    boundData[i].vBoxAxisZ = combinedExtent.z * vz;
-                    boundData[i].vScaleXY.Set(1.0f, 1.0f);
-                    boundData[i].fRadius = combinedExtent.magnitude;
+                    bndData.vCen = Cw;
+                    bndData.vBoxAxisX = combinedExtent.x * vx;
+                    bndData.vBoxAxisY = combinedExtent.y * vy;
+                    bndData.vBoxAxisZ = combinedExtent.z * vz;
+                    bndData.vScaleXY.Set(1.0f, 1.0f);
+                    bndData.fRadius = combinedExtent.magnitude;
 
                     // fill up ldata
-                    lightData[i].uLightType = (uint)LightDefinitions.BOX_LIGHT;
-                    lightData[i].uLightModel = (uint)LightDefinitions.REFLECTION_LIGHT;
+                    lgtData.uLightType = (uint)LightDefinitions.BOX_LIGHT;
+                    lgtData.uLightModel = (uint)LightDefinitions.REFLECTION_LIGHT;
 
-                    ++numProbesOut;
+
+                    int i = LightDefinitions.REFLECTION_LIGHT, j = LightDefinitions.BOX_LIGHT;
+                    idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
+                    boundData[idxOut] = bndData;
+                    lightData[idxOut] = lgtData;
                 }
             }
-
+            int numProbesOut = offsets[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1] + numEntries[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1];
+            Debug.Assert(numEntries[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1]==numEntries2nd[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1], "Reflection probe count mismatch on second pass!");
 
             m_convexBoundsBuffer.SetData(boundData);
             m_lightDataBuffer.SetData(lightData);
@@ -724,37 +772,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
             return numLightsOut + numProbesOut;
         }
-
-        /* public override void Render(Camera[] cameras, RenderLoop renderLoop)
-        {
-            foreach (var camera in cameras)
-            {
-                CullResults cullResults;
-                CullingParameters cullingParams;
-                if (!CullResults.GetCullingParameters(camera, out cullingParams))
-                    continue;
-
-                m_ShadowPass.UpdateCullingParameters(ref cullingParams);
-
-                cullResults = CullResults.Cull(ref cullingParams, renderLoop);
-
-                ShadowOutput shadows;
-                m_ShadowPass.Render(renderLoop, cullResults, out shadows);
-
-                renderLoop.SetupCameraProperties(camera);
-
-                UpdateLightConstants(cullResults.visibleLights, ref shadows);
-
-                DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("ForwardBase"));
-                settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
-                settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-
-                renderLoop.DrawRenderers(ref settings);
-                renderLoop.Submit();
-            }
-
-            // Post effects
-        }*/
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {

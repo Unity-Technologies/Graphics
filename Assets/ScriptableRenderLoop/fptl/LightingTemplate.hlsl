@@ -152,8 +152,6 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
 
     float3 ints = 0;
 
-    uint l=0;
-
     for (int i = 0; i < g_nNumDirLights; i++)
     {
         DirectionalLight lightData = g_dirLightData[i];
@@ -173,12 +171,10 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
         ints += EvalMaterial(light, ind);
     }
 
-    // we need this outer loop for when we cannot assume a wavefront is 64 wide
-    // since in this case we cannot assume the lights will remain sorted by type
-    // during processing in lightlist_cs.hlsl
-#if !defined(XBONE) && !defined(PLAYSTATION4)
-    while(l<numLights)
-#endif
+    uint l=0;
+	// don't need the outer loop since the lights are sorted by volume type
+    //while(l<numLights)
+	if(numLights>0)
     {
         uint uIndex = l<numLights ? FetchIndex(start, l) : 0;
         uint uLgtType = l<numLights ? g_vLightData[uIndex].uLightType : 0;
@@ -268,10 +264,7 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
             uLgtType = l<numLights ? g_vLightData[uIndex].uLightType : 0;
         }
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
-        //if(uLgtType>=MAX_TYPES) ++l;
-        if(uLgtType!=SPOT_LIGHT && uLgtType!=SPHERE_LIGHT) ++l;
-#endif
+        //if(uLgtType!=SPOT_LIGHT && uLgtType!=SPHERE_LIGHT) ++l;
     }
 
     return ints;

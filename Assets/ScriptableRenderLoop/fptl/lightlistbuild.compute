@@ -175,11 +175,9 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
 		uint uLightsFlags[2] = {0,0};
 		int l=0;
-		// we need this outer loop for when we cannot assume a wavefront is 64 wide
-		// since in this case we cannot assume the lights will remain sorted by type
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+		// need this outer loop even on xb1 and ps4 since direct lights and
+		// reflection lights are kept in separate regions.
 		while(l<iNrCoarseLights)
-#endif
 		{
 			// fetch light
 			int idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
@@ -270,10 +268,8 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].uLightType : 0;
 			}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
 			// in case we have some corrupt data make sure we terminate
 			if(uLgtType>=MAX_TYPES) ++l;
-#endif
 		}
 
 		InterlockedOr(ldsDoesLightIntersect[0], uLightsFlags[0]);
