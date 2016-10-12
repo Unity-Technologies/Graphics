@@ -1242,14 +1242,14 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
             builder.WriteLine("struct ps_input");
             builder.EnterScope();
-            builder.WriteLine("linear noperspective centroid float4 pos : SV_POSITION;");
+            builder.WriteLine("/*linear noperspective centroid*/ float4 pos : SV_POSITION;");
 
             bool hasColor = data.HasAttribute(CommonAttrib.Color);
             bool hasAlpha = data.HasAttribute(CommonAttrib.Alpha);
             bool needsVertexColor = hasColor || hasAlpha;
 
             if (needsVertexColor)
-                builder.WriteLine("nointerpolation float4 col : SV_Target0;");
+                builder.WriteLine("nointerpolation float4 col : COLOR0;");
 
             outputGenerator.WriteAdditionalVertexOutput(builder, data);
 

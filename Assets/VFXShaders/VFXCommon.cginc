@@ -31,6 +31,15 @@ struct VFXSampler3D
 	SamplerState s;
 };
 
+// indices to access to system data
+#define VFX_DATA_UPDATE_ARG_GROUP_X 	0
+#define VFX_DATA_RENDER_ARG_NB_INDEX 	4
+#define VFX_DATA_RENDER_ARG_NB_INSTANCE	5
+#define VFX_DATA_NB_CURRENT 			8
+#define VFX_DATA_NB_INIT				9
+#define VFX_DATA_NB_UPDATE 				10
+#define VFX_DATA_NB_FREE				11
+
 #ifdef VFX_WORLD_SPACE // World Space
 float3 VFXCameraPos() 					{ return _WorldSpaceCameraPos.xyz; }
 float3 VFXCameraLook()					{ return -unity_WorldToCamera[2].xyz; }

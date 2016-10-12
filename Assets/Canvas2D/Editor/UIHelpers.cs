@@ -10,12 +10,12 @@ namespace UnityEditor.Experimental
         {
             if (s_ApplyWireMaterialMi == null)
             {
-                s_ApplyWireMaterialMi = typeof(HandleUtility).GetMethod("ApplyWireMaterial", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                //s_ApplyWireMaterialMi = typeof(HandleUtility).GetMethod("ApplyWireMaterial", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
             }
 
             if (s_ApplyWireMaterialMi != null)
             {
-                s_ApplyWireMaterialMi.Invoke(null, null);
+               // s_ApplyWireMaterialMi.Invoke(null, null);
             }
         }
     }
