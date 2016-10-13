@@ -72,9 +72,9 @@ float4 LinearToGamma22(float4 c)
 // sRGB
 float3 SRGBToLinear(float3 c)
 {
-    float3 linearRGBLo	= c / 12.92;
-    float3 linearRGBHi	= pow((c + 0.055) / 1.055, float3(2.4, 2.4, 2.4));
-    float3 linearRGB	= (c <= 0.04045) ? linearRGBLo : linearRGBHi;
+    float3 linearRGBLo  = c / 12.92;
+    float3 linearRGBHi  = pow((c + 0.055) / 1.055, float3(2.4, 2.4, 2.4));
+    float3 linearRGB    = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
     return linearRGB;
 }
 
@@ -125,7 +125,7 @@ float4 FastLinearToSRGB(float4 c)
 // Convert rgb to luminance
 // with rgb in linear space with sRGB primaries and D65 white point
 float Luminance(float3 linearRgb)
-{   
+{
     return dot(linearRgb, float3(0.2126729f, 0.7151522f, 0.0721750f));
 }
 
@@ -175,17 +175,17 @@ float4 UnityEncodeRGBM (float3 rgb, float maxRGBM)
     float4 rgbm = float4(rgb * kOneOverRGBMMaxRange, 1.0);
     rgbm.a = max(max(rgbm.r, rgbm.g), max(rgbm.b, kMinMultiplier));
     rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
-    
+
     // Division-by-zero warning from d3d9, so make compiler happy.
     rgbm.a = max(rgbm.a, kMinMultiplier);
-    
+
     rgbm.rgb /= rgbm.a;
     return rgbm;
 }
 
 // Alternative...
 #define RGBMRANGE (8.0)
-float4 packRGBM(float3 color) 
+float4 packRGBM(float3 color)
 {
     float4 rgbm;
     color *= (1.0 / RGBMRANGE);
@@ -195,7 +195,7 @@ float4 packRGBM(float3 color)
     return rgbm;
 }
 
-float3 unpackRGBM(float4 rgbm) 
+float3 unpackRGBM(float4 rgbm)
 {
     return RGBMRANGE * rgbm.rgb * rgbm.a;
 }

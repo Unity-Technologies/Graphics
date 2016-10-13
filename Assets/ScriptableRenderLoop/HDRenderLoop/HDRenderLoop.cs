@@ -58,6 +58,7 @@ namespace UnityEngine.ScriptableRenderLoop
             var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
             UnityEditor.AssetDatabase.CreateAsset(instance, m_HDRenderLoopPath);
         }
+
         #endif
 
         public class GBufferManager
@@ -101,7 +102,7 @@ namespace UnityEngine.ScriptableRenderLoop
             }
             */
 
-        
+
             public int gbufferCount { get; set; }
             int[] IDs = new int[MaxGbuffer];
             RenderTargetIdentifier[] RTIDs = new RenderTargetIdentifier[MaxGbuffer];
@@ -137,12 +138,12 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void OnEnable()
         {
-            Rebuild ();
+            Rebuild();
         }
 
         void OnValidate()
         {
-            Rebuild ();
+            Rebuild();
         }
 
         void ClearComputeBuffers()
@@ -203,7 +204,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void InitAndClearBuffer(Camera camera, RenderLoop renderLoop)
         {
-            // We clear only the depth buffer, no need to clear the various color buffer as we overwrite them.          
+            // We clear only the depth buffer, no need to clear the various color buffer as we overwrite them.
             // Clear depth/stencil and init buffers
             {
                 var cmd = new CommandBuffer();
@@ -322,8 +323,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DebugViewMaterialGBuffer, 0);
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
-
-            }          
+            }
 
             // Render forward transparent
             {
@@ -373,7 +373,7 @@ namespace UnityEngine.ScriptableRenderLoop
             // gbufferManager.BindBuffers(m_DeferredMaterial);
             // TODO: Bind depth textures
             var cmd = new CommandBuffer();
-            cmd.name = "Deferred Lighting Pass";            
+            cmd.name = "Deferred Ligthing Pass";
             cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DeferredMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -466,7 +466,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     // CAUTION: For IES as we inverse forward maybe this will need rotation.
                     l.up = light.light.transform.up;
                     l.right = light.light.transform.right;
-                    
+
                     l.diffuseScale = 1.0f;
                     l.specularScale = 1.0f;
                     l.shadowDimmer = 1.0f;
@@ -480,8 +480,8 @@ namespace UnityEngine.ScriptableRenderLoop
                         float cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
 
                         float val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
-                        l.angleScale	= 1.0f / val;
-                        l.angleOffset	= -cosSpotOuterHalfAngle * l.angleScale;
+                        l.angleScale    = 1.0f / val;
+                        l.angleOffset   = -cosSpotOuterHalfAngle * l.angleScale;
                     }
                     else
                     {
@@ -545,27 +545,27 @@ namespace UnityEngine.ScriptableRenderLoop
             // TODO...
 
             foreach (var camera in cameras)
-            {                
+            {
                 // Set camera constant buffer
                 // TODO...
 
                 CullResults cullResults;
                 CullingParameters cullingParams;
-                if (!CullResults.GetCullingParameters (camera, out cullingParams))
+                if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     continue;
 
                 //m_ShadowPass.UpdateCullingParameters (ref cullingParams);
 
-                cullResults = CullResults.Cull (ref cullingParams, renderLoop);
-                    
+                cullResults = CullResults.Cull(ref cullingParams, renderLoop);
+
                 //ShadowOutput shadows;
                 //m_ShadowPass.Render (renderLoop, cullResults, out shadows);
 
-                renderLoop.SetupCameraProperties (camera);
+                renderLoop.SetupCameraProperties(camera);
 
-                //UpdateLightConstants(cullResults.visibleLights /*, ref shadows */);                
+                //UpdateLightConstants(cullResults.visibleLights /*, ref shadows */);
 
-                UpdatePunctualLights (cullResults.visibleLights);
+                UpdatePunctualLights(cullResults.visibleLights);
                 UpdateReflectionProbes(cullResults.visibleReflectionProbes);
 
                 InitAndClearBuffer(camera, renderLoop);
@@ -585,7 +585,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     FinalPass(renderLoop);
                 }
 
-                renderLoop.Submit ();
+                renderLoop.Submit();
             }
 
             // Post effects
@@ -600,6 +600,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             return features;
         }
+
         #endif
     }
 }

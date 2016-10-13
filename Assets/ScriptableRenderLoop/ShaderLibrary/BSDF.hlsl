@@ -13,9 +13,9 @@
 
 float F_Schlick(float f0, float f90, float u)
 {
-    float x		= 1.0 - u;
-    float x5	= x * x;
-    x5			= x5 * x5 * x;
+    float x     = 1.0 - u;
+    float x5    = x * x;
+    x5          = x5 * x5 * x;
     return (f90 - f0) * x5 + f0; // sub mul mul mul sub mad
 }
 
@@ -26,9 +26,9 @@ float F_Schlick(float f0, float u)
 
 float3 F_Schlick(float3 f0, float f90, float u)
 {
-    float x		= 1.0 - u;
-    float x5	= x * x;
-    x5			= x5 * x5 * x;
+    float x     = 1.0 - u;
+    float x5    = x * x;
+    x5          = x5 * x5 * x;
     return (float3(f90, f90, f90) - f0) * x5 + f0; // sub mul mul mul sub mad
 }
 
@@ -62,9 +62,9 @@ float D_GGXDividePI(float NdotH, float roughness)
 float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
 {
     // Original formulation:
-    //	lambda_v	= (-1 + sqrt(a2 * (1 - NdotL2) / NdotL2 + 1)) * 0.5f;
-    //	lambda_l	= (-1 + sqrt(a2 * (1 - NdotV2) / NdotV2 + 1)) * 0.5f;
-    //	G			= 1 / (1 + lambda_v + lambda_l);
+    //  lambda_v    = (-1 + sqrt(a2 * (1 - NdotL2) / NdotL2 + 1)) * 0.5f;
+    //  lambda_l    = (-1 + sqrt(a2 * (1 - NdotV2) / NdotV2 + 1)) * 0.5f;
+    //  G           = 1 / (1 + lambda_v + lambda_l);
 
     float a = roughness; 
     float a2 = a * a;

@@ -6,7 +6,7 @@ Shader "Unity/LayeredLit"
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
-        _BaseColor0("BaseColor0", Color) = (1,1,1,1) 
+        _BaseColor0("BaseColor0", Color) = (1,1,1,1)
         _BaseColor1("BaseColor1", Color) = (1, 1, 1, 1)
         _BaseColor2("BaseColor2", Color) = (1, 1, 1, 1)
         _BaseColor3("BaseColor3", Color) = (1, 1, 1, 1)
@@ -42,7 +42,7 @@ Shader "Unity/LayeredLit"
         _NormalMap3("NormalMap3", 2D) = "bump" {}
 
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
-        
+
         _HeightMap0("HeightMap0", 2D) = "black" {}
         _HeightMap1("HeightMap1", 2D) = "black" {}
         _HeightMap2("HeightMap2", 2D) = "black" {}
@@ -58,7 +58,7 @@ Shader "Unity/LayeredLit"
         _HeightBias2("Height Bias2", Float) = 0
         _HeightBias3("Height Bias3", Float) = 0
 
-        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0			
+        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
 
         _EmissiveColor0("EmissiveColor0", Color) = (0, 0, 0)
         _EmissiveColor1("EmissiveColor1", Color) = (0, 0, 0)
@@ -77,8 +77,8 @@ Shader "Unity/LayeredLit"
 
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
 
-        [ToggleOff]		_DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff]		_DistortionDepthTest("Distortion Only", Float) = 0.0
+        [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
+        [ToggleOff]     _DistortionDepthTest("Distortion Only", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
@@ -138,14 +138,14 @@ Shader "Unity/LayeredLit"
 
             Cull  [_CullMode]
 
-            HLSLPROGRAM			
+            HLSLPROGRAM
 
             #pragma vertex VertDefault
             #pragma fragment FragDeferred
 
             #if SHADER_STAGE_FRAGMENT
 
-            void FragDeferred(	PackedVaryings packedInput,
+            void FragDeferred(  PackedVaryings packedInput,
                                 OUTPUT_GBUFFER(outGBuffer)
                                 #ifdef VELOCITY_IN_GBUFFER
                                 , OUTPUT_GBUFFER_VELOCITY(outGBuffer)
@@ -242,7 +242,7 @@ Shader "Unity/LayeredLit"
             HLSLPROGRAM
 
             #pragma vertex VertDefault
-            #pragma fragment FragForward	
+            #pragma fragment FragForward
 
             #if SHADER_STAGE_FRAGMENT
 
