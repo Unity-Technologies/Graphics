@@ -14,7 +14,7 @@ namespace RMGUI.GraphView.Demo
 		public override void DoRepaint(PaintContext painter)
 		{
 			base.DoRepaint(painter);
-			if (GetData<GraphElementData>() != null && GetData<GraphElementData>().selected)
+			if (GetData<SimpleElementData>() != null && GetData<SimpleElementData>().selected)
 			{
 				painter.DrawRectangleOutline(transform, position, Color.yellow);
 			}
@@ -23,7 +23,7 @@ namespace RMGUI.GraphView.Demo
 		public override void OnDataChanged()
 		{
 			base.OnDataChanged();
-			var elementData = (SimpleElementData)dataProvider;
+			var elementData = GetData<SimpleElementData>();
 			content.text = elementData.title;
 		}
 	}

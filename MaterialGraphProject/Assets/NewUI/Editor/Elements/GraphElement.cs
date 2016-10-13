@@ -3,23 +3,49 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	public class GraphElement : DataContainer<GraphElementData>, ISelectable
+	public abstract class GraphElement : DataWatchContainer, ISelectable
 	{
+		GraphElementData m_DataProvider;
+
+		public T GetData<T>() where T : GraphElementData
+		{
+			return dataProvider as T;
+		}
+
+		public GraphElementData dataProvider
+		{
+			get { return m_DataProvider; }
+			set
+			{
+				if (m_DataProvider == value)
+					return;
+				RemoveWatch();
+				m_DataProvider = value;
+				OnDataChanged();
+				AddWatch();
+			}
+		}
+
+		protected override object toWatch
+		{
+			get { return dataProvider; }
+		}
+
 		public override void OnDataChanged()
 		{
-			var data = GetData<GraphElementData>();
+			var data = dataProvider;
 			if (data == null)
 			{
 				return;
 			}
 
 			// propagate selection but why?
-			foreach (VisualElement ve in children)
+			foreach (VisualElement visualElement in children)
 			{
-				GraphElement ce = ve as GraphElement;
-				if (ce != null )
+				var graphElement = visualElement as GraphElement;
+				if (graphElement != null)
 				{
-					var childData = ce.dataProvider;
+					GraphElementData childData = graphElement.dataProvider;
 					if (childData != null)
 					{
 						childData.selected = data.selected;
@@ -32,7 +58,7 @@ namespace RMGUI.GraphView
 
 		public virtual bool IsSelectable()
 		{
-		    var data = GetData<GraphElementData>();
+			GraphElementData data = dataProvider;
 			if (data != null)
 			{
 				return (data.capabilities & Capabilities.Selectable) == Capabilities.Selectable;

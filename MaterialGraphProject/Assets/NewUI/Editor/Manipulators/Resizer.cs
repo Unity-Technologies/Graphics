@@ -42,11 +42,11 @@ namespace RMGUI.GraphView
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
 		{
-			GraphElement ce = target as GraphElement;
+			var ce = target as GraphElement;
 			if (ce==null)
 				return EventPropagation.Continue;
 
-			var data = ce.GetData<GraphElementData>();
+			var data = ce.dataProvider;
 			if (data==null)
 				return EventPropagation.Continue;
 
@@ -90,7 +90,7 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseDrag:
-				if (this.HasCapture() && target.positionType == PositionType.Absolute)
+					if (this.HasCapture() && target.positionType == PositionType.Absolute)
 					{
 						var diff = evt.mousePosition - m_Start;
 						var newSize = new Vector2(m_StartPos.width + diff.x, m_StartPos.height + diff.y);

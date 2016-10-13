@@ -15,7 +15,7 @@ namespace RMGUI.GraphView
 
 		[SerializeField]
 		private Capabilities m_Capabilities;
-		
+
 		public Rect position
 		{
 			get { return m_Position; }

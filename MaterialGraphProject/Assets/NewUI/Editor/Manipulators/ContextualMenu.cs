@@ -7,11 +7,12 @@ namespace RMGUI.GraphView
 
 	public class ContextualMenu : Manipulator
 	{
-		private ContextualMenuDelegate m_Callback;
-		private Object m_CustomData;
+		private readonly ContextualMenuDelegate m_Callback;
+		private readonly Object m_CustomData;
 
 		public ContextualMenu(ContextualMenuDelegate callback)
 		{
+			phaseInterest = EventPhase.Capture;
 			m_Callback = callback;
 			m_CustomData = null;
 		}

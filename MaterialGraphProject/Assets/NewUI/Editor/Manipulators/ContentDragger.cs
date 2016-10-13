@@ -1,23 +1,22 @@
+﻿using System;
 using UnityEngine;
 using UnityEngine.RMGUI;
 using UnityEngine.RMGUI.StyleEnums.Values;
 
 namespace RMGUI.GraphView
 {
-	public class Dragger : Manipulator
+	// drags the contentContainer of a graphview around
+	// add to the GraphView
+	public class ContentDragger : Manipulator
 	{
 		private Vector2 m_Start;
-
 		public Vector2 panSpeed { get; set; }
-
- 		// hold the data... maybe.
- 		public GraphElementData m_data { get; set; }
 
 		public MouseButton activateButton { get; set; }
 
 		public bool clampToParentEdges { get; set; }
 
-		public Dragger()
+		public ContentDragger()
 		{
 			activateButton = MouseButton.MiddleMouse;
 			panSpeed = new Vector2(1, 1);
@@ -50,67 +49,45 @@ namespace RMGUI.GraphView
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
 		{
-			GraphElement ce = finalTarget as GraphElement;
-			if (ce != null)
+			var graphView = target as GraphView;
+			if (graphView == null)
 			{
-				var data = ce.dataProvider;
-				if (data != null && ((data.capabilities & Capabilities.Movable) != Capabilities.Movable))
-				{
-					return EventPropagation.Continue;
-				}
+				throw new InvalidOperationException("Manipulator can only be added to a GraphView");
 			}
 
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button == (int)activateButton)
+					if (evt.button == (int) activateButton)
 					{
 						this.TakeCapture();
 
-						var graphElement = target as GraphElement;
-						if (graphElement != null)
-						{
-							m_data = graphElement.dataProvider;
-						}
-
-						m_Start = evt.mousePosition;
+						m_Start = graphView.ChangeCoordinatesTo(graphView.contentViewContainer, evt.mousePosition);
 
 						return EventPropagation.Stop;
 					}
 					break;
 
 				case EventType.MouseDrag:
-					if (this.HasCapture() && target.positionType == PositionType.Absolute)
+					if (this.HasCapture() && graphView.contentViewContainer.positionType == PositionType.Absolute)
 					{
-						var diff = evt.mousePosition - m_Start;
+						var diff = graphView.ChangeCoordinatesTo(graphView.contentViewContainer, evt.mousePosition) - m_Start;
+						var t = graphView.contentViewContainer.transform;
 
-						if (m_data != null)
-						{
-							m_data.position = CalculatePosition(m_data.position.x + diff.x,
-																m_data.position.y + diff.y,
-																m_data.position.width, target.position.height);
-						}
-						else
-						{
-							target.position = CalculatePosition(target.position.x + diff.x,
-																target.position.y + diff.y,
-																target.position.width, target.position.height);
-						}
-
+						graphView.contentViewContainer.transform = t*Matrix4x4.Translate(new Vector3(diff.x, diff.y, 0));
 						return EventPropagation.Stop;
 					}
 					break;
 
 				case EventType.MouseUp:
-					if (this.HasCapture() && evt.button == (int)activateButton)
+					if (this.HasCapture() && evt.button == (int) activateButton)
 					{
-						m_data = null;
 						this.ReleaseCapture();
 						return EventPropagation.Stop;
 					}
 					break;
 			}
-			return this.HasCapture() ? EventPropagation.Stop : EventPropagation.Continue;
+			return EventPropagation.Continue;
 		}
 	}
 }

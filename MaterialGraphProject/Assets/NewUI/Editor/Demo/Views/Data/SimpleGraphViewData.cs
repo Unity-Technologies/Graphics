@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
-	[CustomDataView(typeof(IMGUIElement))]
 	[Serializable]
 	public class TestIMGUIElementData : IMGUIData
 	{
@@ -28,12 +27,16 @@ namespace RMGUI.GraphView.Demo
 
 			m_Texture = EditorGUI.ObjectField(new Rect(0, currentY, 80, 100), m_Texture, typeof(Texture2D), false) as Texture2D;
 		}
+
+		protected TestIMGUIElementData() {}
 	}
 
 	public class SimpleGraphViewData : GraphViewDataSource
 	{
-		protected void OnEnable()
+		protected new void OnEnable()
 		{
+			base.OnEnable();
+
 			var simpleElementData = CreateInstance<SimpleElementData>();
 			simpleElementData.position = new Rect(0, 0, 200, 200);
 			simpleElementData.title = "Static element";
@@ -75,5 +78,7 @@ namespace RMGUI.GraphView.Demo
 			invisibleBorderContainerData.position = new Rect(400, 0, 100, 100);
 			AddElement(invisibleBorderContainerData);
 		}
+
+		protected SimpleGraphViewData() {}
 	}
 }

@@ -38,8 +38,8 @@ namespace RMGUI.GraphView
 								return EventPropagation.Continue;
 						}
 
-						var data = ce.GetData<GraphElementData>();
-						if (data != null && ((ce.GetData<GraphElementData>().capabilities & Capabilities.Movable) != Capabilities.Movable))
+						var data = ce.dataProvider;
+						if (data != null && ((ce.dataProvider.capabilities & Capabilities.Movable) != Capabilities.Movable))
 							return EventPropagation.Continue;
 
 						this.TakeCapture();
@@ -53,11 +53,11 @@ namespace RMGUI.GraphView
 						foreach (ISelectable s in graphView.selection)
 						{
 							GraphElement ce = s as GraphElement;
-							if (ce == null || ce.GetData<GraphElementData>() == null)
+							if (ce == null || ce.dataProvider == null)
 								continue;
 
-							var data = ce.GetData<GraphElementData>();
-							if ((ce.GetData<GraphElementData>().capabilities & Capabilities.Movable) != Capabilities.Movable)
+							var data = ce.dataProvider;
+							if ((ce.dataProvider.capabilities & Capabilities.Movable) != Capabilities.Movable)
 								continue;
 
 							var g = ce.globalTransform;

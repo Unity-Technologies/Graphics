@@ -4,7 +4,6 @@ using UnityEngine;
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
-	[CustomDataView(typeof(Circle))]
 	public class CircleData : GraphElementData
 	{
 		[SerializeField]
@@ -24,5 +23,7 @@ namespace RMGUI.GraphView.Demo
 				position = newPos;
 			}
 		}
+
+		protected CircleData() {}
 	}
 }

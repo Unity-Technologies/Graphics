@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using RMGUI.GraphView;
 using UnityEditor.MaterialGraph;
 using UnityEngine;
@@ -9,26 +8,25 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    [Serializable]
-	[CustomDataView(typeof(MaterialGraphNode))]
-	public class ColorNodeData : MaterialNodeData
+    class ColorNodeContolData : NodeControlData
     {
-        class ColorNodeContolData : NodeControlData
+        public override void OnGUIHandler()
         {
-            public override void OnGUIHandler()
-            {
-                EditorGUILayout.ColorField("test", Color.blue);
-            }
-        }
-
-        protected override IEnumerable<NodeControlData> GetControlData()
-        {
-            return new List<NodeControlData> { CreateInstance<ColorNodeContolData>() };
+            EditorGUILayout.ColorField("test", Color.blue);
         }
     }
 
     [Serializable]
-	[CustomDataView(typeof(MaterialGraphNode))]
+	public class ColorNodeData : MaterialNodeData
+    {
+        protected override IEnumerable<GraphElementData> GetControlData()
+        {
+            var instance = CreateInstance<ColorNodeContolData>();
+            return new List<GraphElementData> { instance };
+        }
+    }
+
+    [Serializable]
 	public class MaterialNodeData : GraphElementData
     {
         public INode node { get; private set; }
@@ -62,7 +60,8 @@ namespace UnityEditor.Graphing.Drawing
 
             AddPreview(inNode);
 
-            m_Children.AddRange(GetControlData().OfType<GraphElementData>());
+            var controlData = GetControlData();
+            m_Children.AddRange(controlData);
 
 
             //position = new Rect(node.drawState.position.x, node.drawState.position.y, 100, 200);
@@ -80,7 +79,7 @@ namespace UnityEditor.Graphing.Drawing
             m_Children.Add(previewData);
         }
 
-        protected virtual IEnumerable<NodeControlData> GetControlData()
+        protected virtual IEnumerable<GraphElementData> GetControlData()
         {
             return new NodeControlData[0];
         }

@@ -4,8 +4,10 @@ namespace RMGUI.GraphView.Demo
 {
 	class NodalViewData : GraphViewDataSource
 	{
-		protected void OnEnable()
+		protected new void OnEnable()
 		{
+			base.OnEnable();
+
 			var containerData = CreateInstance<InvisibleBorderContainerData>();
 			containerData.position = new Rect(630.0f, 0.0f, 200.0f, 200.0f);
 			AddElement(containerData);
@@ -68,6 +70,8 @@ namespace RMGUI.GraphView.Demo
 			nodeData.title = title;
 			AddElement(nodeData);
 		}
+
+		protected NodalViewData() {}
 	}
 
 	internal static class MyNodeAdapters

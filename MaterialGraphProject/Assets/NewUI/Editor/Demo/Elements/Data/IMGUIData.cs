@@ -3,16 +3,18 @@ using System;
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
-	[CustomDataView(typeof(IMGUIElement))]
 	public class IMGUIData : SimpleElementData
 	{
-		public IMGUIData()
+		protected new void OnEnable()
 		{
+			base.OnEnable();
 			title = "BaseIMGUI";
 		}
 
 		public virtual void OnGUIHandler()
 		{
 		}
+
+		protected IMGUIData() { }
 	}
 }

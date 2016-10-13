@@ -5,11 +5,12 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	internal class EdgeConnector<TEdgeData> : Manipulator where TEdgeData : EdgeData, new()
+	internal class EdgeConnector<TEdgeData> : Manipulator where TEdgeData : EdgeData
 	{
-		private List<IConnectable> m_CompatibleAnchors = new List<IConnectable>();
+		private readonly List<IConnectable> m_CompatibleAnchors = new List<IConnectable>();
 		private TEdgeData m_EdgeDataCandidate;
 
+		private IGraphElementDataSource m_DataSource;
 		private GraphView m_GraphView;
 
 		public MouseButton activateButton { get; set; }
@@ -21,7 +22,6 @@ namespace RMGUI.GraphView
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
 		{
-		    var dataSource = m_GraphView.dataSource;
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
@@ -32,9 +32,9 @@ namespace RMGUI.GraphView
 
 					IConnectable cnx = null;
 					var graphElement = finalTarget as GraphElement;
-					if (graphElement != null && graphElement.GetData<GraphElementData>() != null)
+					if (graphElement != null && graphElement.dataProvider != null)
 					{
-						var data = graphElement.GetData<GraphElementData>();
+						GraphElementData data = graphElement.dataProvider;
 						cnx = (IConnectable)data;
 						m_GraphView = graphElement.GetFirstAncestorOfType<GraphView>();
 					}
@@ -43,8 +43,9 @@ namespace RMGUI.GraphView
 					{
 						break;
 					}
-                    
-					if (m_GraphView.dataSource == null)
+
+					m_DataSource = m_GraphView.dataSource;
+					if (m_DataSource == null)
 					{
 						break;
 					}
@@ -53,13 +54,13 @@ namespace RMGUI.GraphView
 
 					m_CompatibleAnchors.Clear();
 
-					NodeAdapter nodeAdapter = new NodeAdapter();
+					var nodeAdapter = new NodeAdapter();
 
 					// get all available connectors
 					IEnumerable<IConnectable> visibleAnchors = m_GraphView.allChildren.OfType<GraphElement>()
-																					  .Select( e => e.dataProvider)
+																					  .Select(e => e.dataProvider)
 																					  .OfType<IConnectable>()
-																					  .Where(a => a.IsConnectable() );
+																					  .Where(a => a.IsConnectable());
 
 					foreach (var toCnx in visibleAnchors)
 					{
@@ -87,7 +88,7 @@ namespace RMGUI.GraphView
 					m_EdgeDataCandidate.candidate = true;
 					m_EdgeDataCandidate.candidatePosition = target.LocalToGlobal(evt.mousePosition);
 
-					dataSource.AddElement(m_EdgeDataCandidate);
+					m_DataSource.AddElement(m_EdgeDataCandidate);
 
 					return EventPropagation.Stop;
 
@@ -100,7 +101,7 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseUp:
-					if (this.HasCapture() && evt.button == (int) activateButton)
+					if (this.HasCapture() && evt.button == (int)activateButton)
 					{
 						this.ReleaseCapture();
 
@@ -122,14 +123,14 @@ namespace RMGUI.GraphView
 						}
 						m_CompatibleAnchors.Clear();
 
-						if (m_EdgeDataCandidate != null && dataSource != null)
+						if (m_EdgeDataCandidate != null && m_DataSource != null)
 						{
 							// Not a candidate anymore, let's see if we're actually going to add it to parent
 							m_EdgeDataCandidate.candidate = false;
 
 							if (m_EdgeDataCandidate.right == null)
 							{
-                                dataSource.RemoveElement(m_EdgeDataCandidate);
+								m_DataSource.RemoveElement(m_EdgeDataCandidate);
 							}
 							else
 							{
@@ -139,6 +140,7 @@ namespace RMGUI.GraphView
 						}
 
 						m_EdgeDataCandidate = null;
+						m_DataSource = null;
 
 						return EventPropagation.Stop;
 					}

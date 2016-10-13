@@ -6,8 +6,8 @@ namespace RMGUI.GraphView
 	{
 		List<ISelectable> selection { get; }
 
-		void AddToSelection(ISelectable e);
-		void RemoveFromSelection(ISelectable e);
+		void AddToSelection(ISelectable selectable);
+		void RemoveFromSelection(ISelectable selectable);
 		void ClearSelection();
 	}
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.RMGUI;
 
@@ -17,7 +17,7 @@ namespace RMGUI.GraphView
 
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
 		{
-			ISelectable selectable = finalTarget.GetFirstOfType<ISelectable>();
+			var selectable = finalTarget.GetFirstOfType<ISelectable>();
 			if ( selectable==null || !selectable.IsSelectable())
 			{
 				return EventPropagation.Continue;
@@ -44,7 +44,7 @@ namespace RMGUI.GraphView
 							break;
 						}
 
-						VisualElement ve = selectable as VisualElement;
+						var ve = selectable as VisualElement;
 						if (ve != null && ve.parent == graphView.contentViewContainer)
 						{
 							if (!evt.control)

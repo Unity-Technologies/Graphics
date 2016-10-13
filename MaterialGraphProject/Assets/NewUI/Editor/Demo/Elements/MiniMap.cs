@@ -8,12 +8,11 @@ namespace RMGUI.GraphView.Demo
 	[GUISkinStyle("box")]
 	public class MiniMap : GraphElement
 	{
-		private Label m_Label;
-
 		private float m_PreviousContainerWidth = -1;
 		private float m_PreviousContainerHeight = -1;
 
-		private Dragger m_Dragger;
+		private readonly Label m_Label;
+		private readonly Dragger m_Dragger;
 
 		public MiniMap()
 		{
@@ -92,6 +91,21 @@ namespace RMGUI.GraphView.Demo
 				width = miniMapData.maxWidth;
 				height = parent.position.height * width / parent.position.width;
  			}
+
+			// Relocate if partially visible on bottom or right side (left/top not checked, only bottom/right affected by a size change)
+			if (positionLeft + width > parent.position.x + parent.position.width)
+			{
+				var newPosition = miniMapData.position;
+				newPosition.x -= positionLeft + width - (parent.position.x + parent.position.width);
+				miniMapData.position = newPosition;
+			}
+
+			if (positionTop + height > parent.position.y + parent.position.height)
+			{
+				var newPosition = miniMapData.position;
+				newPosition.y -= positionTop + height - (parent.position.y + parent.position.height);
+				miniMapData.position = newPosition;
+			}
 		}
 
 		public override void DoRepaint(PaintContext args)
@@ -124,17 +138,17 @@ namespace RMGUI.GraphView.Demo
 			foreach (var child in container.children)
 			{
 				// For some reason, I can't seem to be able to use Linq (IEnumerable.OfType() nor IEnumerable.Where appear to be working here. ??)
-				GraphElement elem = child as GraphElement;
+				var elem = child as GraphElement;
 
 				// TODO: Should Edges be displayed at all?
 				// TODO: Maybe edges need their own capabilities flag.
-				if (elem == null || (elem.GetData<GraphElementData>().capabilities & Capabilities.Floating) != 0 || (elem.dataProvider is EdgeData))
+				if (elem == null || (elem.dataProvider.capabilities & Capabilities.Floating) != 0 || (elem.dataProvider is EdgeData))
 				{
 					continue;
 				}
 
-				int titleBarOffset = (int)paddingTop;
-				var rect = child.position;
+				var titleBarOffset = (int)paddingTop;
+				Rect rect = child.position;
 
 				rect.x /= containerWidth;
 				rect.width /= containerWidth;
@@ -142,9 +156,9 @@ namespace RMGUI.GraphView.Demo
 				rect.height /= containerHeight;
 
 				rect.x *= position.width;
-				rect.y *= (position.height-titleBarOffset);
+				rect.y *= position.height-titleBarOffset;
 				rect.width *= position.width;
-				rect.height *= (position.height-titleBarOffset);
+				rect.height *= position.height-titleBarOffset;
 
 				rect.y += titleBarOffset;
 
@@ -159,11 +173,11 @@ namespace RMGUI.GraphView.Demo
 
 				if (rect.x < position.xMin)
 				{
-					if (rect.x < (position.xMin - rect.width))
+					if (rect.x < position.xMin - rect.width)
 					{
 						continue;
 					}
-					rect.width -= (position.xMin - rect.x);
+					rect.width -= position.xMin - rect.x;
 					rect.x = position.xMin;
 				}
 
@@ -173,17 +187,17 @@ namespace RMGUI.GraphView.Demo
 					{
 						continue;
 					}
-					rect.width -= (rect.x + rect.width) - position.xMax;
+					rect.width -= rect.x + rect.width - position.xMax;
 				}
 
-				if (rect.y < (position.yMin+titleBarOffset))
+				if (rect.y < position.yMin+titleBarOffset)
 				{
-					if (rect.y < ((position.yMin+titleBarOffset) - rect.height))
+					if (rect.y < position.yMin+titleBarOffset - rect.height)
 					{
 						continue;
 					}
-					rect.height -= ((position.yMin+titleBarOffset) - rect.y);
-					rect.y = (position.yMin+titleBarOffset);
+					rect.height -= position.yMin+titleBarOffset - rect.y;
+					rect.y = position.yMin+titleBarOffset;
 				}
 
 				if (rect.y + rect.height >= position.yMax)
@@ -192,7 +206,7 @@ namespace RMGUI.GraphView.Demo
 					{
 						continue;
 					}
-					rect.height -= (rect.y + rect.height) - position.yMax;
+					rect.height -= rect.y + rect.height - position.yMax;
 				}
 
 				Handles.DrawSolidRectangleWithOutline(rect, Color.grey, Color.grey);

@@ -29,7 +29,7 @@ namespace RMGUI.GraphView
 
 			float dx = p2.x - p1.x;
 
-			if (Mathf.Abs(dx) > 0.0000001f)
+			if (Mathf.Abs(dx) > float.Epsilon)
 			{
 				float a = (p2.y - p1.y) / dx;
 				float b = p1.y - a * p1.x;

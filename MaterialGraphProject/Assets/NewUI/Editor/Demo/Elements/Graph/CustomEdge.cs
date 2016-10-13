@@ -8,7 +8,7 @@ namespace RMGUI.GraphView.Demo
 	{
 		protected override void DrawEdge(PaintContext args)
 		{
-			var edgeData = GetData<CustomEdgeData>();
+			var edgeData = GetData<EdgeData>();
 			if (edgeData == null)
 			{
 				return;
@@ -31,7 +31,7 @@ namespace RMGUI.GraphView.Demo
 				Orientation orientation = leftData.orientation;
 				GetTangents(leftData.direction, orientation, from, to, out points, out tangents);
 
-				Color edgeColor = (GetData<GraphElementData>() != null && GetData<GraphElementData>().selected) ? Color.yellow : Color.white;
+				Color edgeColor = (GetData<EdgeData>() != null && GetData<EdgeData>().selected) ? Color.yellow : Color.white;
 				Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], edgeColor, null, 5f);
 			}
 		}

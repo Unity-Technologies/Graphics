@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-
-
 	public class RectangleSelector : Manipulator, IDecorator
 	{
 		private Vector2 m_Start = Vector2.zero;
@@ -82,7 +80,7 @@ namespace RMGUI.GraphView
 							if (child == null)
 								continue;
 
-							ISelectable selectable = child as ISelectable;
+							var selectable = child as ISelectable;
 
 							var selectableTransform = child.transform.inverse;
 							var localSelRect = new Rect(selectableTransform.MultiplyPoint3x4(selectionRect.position), selectableTransform.MultiplyPoint3x4(selectionRect.size));
@@ -133,12 +131,14 @@ namespace RMGUI.GraphView
 			screenStart += t.position.position;
 			screenEnd += t.position.position;
 
-			Rect r = new Rect();
-			r.min = new Vector2(Math.Min(screenStart.x, screenEnd.x), Math.Min(screenStart.y, screenEnd.y));
-			r.max = new Vector2(Math.Max(screenStart.x, screenEnd.x), Math.Max(screenStart.y, screenEnd.y));
+			var r = new Rect
+			{
+				min = new Vector2(Math.Min(screenStart.x, screenEnd.x), Math.Min(screenStart.y, screenEnd.y)),
+				max = new Vector2(Math.Max(screenStart.x, screenEnd.x), Math.Max(screenStart.y, screenEnd.y))
+			};
 
-			Color lineColor = new Color(1.0f, 0.6f, 0.0f, 1.0f);
-			float segmentSize = 5f;
+			var lineColor = new Color(1.0f, 0.6f, 0.0f, 1.0f);
+			var segmentSize = 5f;
 
 			Vector3[] points =
 			{

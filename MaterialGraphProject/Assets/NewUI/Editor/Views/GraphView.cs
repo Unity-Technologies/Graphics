@@ -7,27 +7,26 @@ using UnityEngine.RMGUI.StyleSheets;
 namespace RMGUI.GraphView
 {
 	[StyleSheet("Assets/Editor/Views/GraphView.uss")]
-	public abstract class GraphView : VisualContainer, ISelection
+	public abstract class GraphView : DataWatchContainer, ISelection
 	{
-	    private IGraphElementDataSource m_DataSource;
+		private IGraphElementDataSource m_DataSource;
 
-        public IGraphElementDataSource dataSource
-        {
-            get { return m_DataSource; }
-            set
-            {
-                if (m_DataSource == value)
-                    return;
+		public IGraphElementDataSource dataSource
+		{
+			get { return m_DataSource; }
+			set
+			{
+ 				if (m_DataSource == value)
+					return;
 
-                RemoveWatch();
-                m_DataSource = value;
-                OnDataChanged();
-                AddWatch();
-            }
-        }
+				RemoveWatch();
+				m_DataSource = value;
+				OnDataChanged();
+				AddWatch();
+			}
+		}
 
-
-        class ContentiewContainer : VisualContainer
+		class ContentiewContainer : VisualContainer
 		{
 			public override bool Overlaps(Rect r)
 			{
@@ -35,14 +34,16 @@ namespace RMGUI.GraphView
 			}
 		}
 
-		public VisualContainer contentViewContainer{ get; private set; }
+		protected GraphViewDataMapper dataMapper { get; set; }
 
-		readonly ClassList elementsClassList = new ClassList("graphElement");
+		public VisualContainer contentViewContainer{ get; private set; }
 
 		public VisualContainer viewport
 		{
 			get { return this; }
 		}
+
+		readonly ClassList m_ElementsClassList = new ClassList("graphElement");
 
 		protected GraphView()
 		{
@@ -56,9 +57,12 @@ namespace RMGUI.GraphView
 			};
 			// make it absolute and 0 sized so it acts as a transform to move children to and fro
 			AddChild(contentViewContainer);
+
+			dataMapper = new GraphViewDataMapper();
+			dataMapper[typeof(EdgeData)] = typeof(Edge);
 		}
-        
-		private void OnDataChanged()
+
+		public override void OnDataChanged()
 		{
 			if (m_DataSource == null)
 				return;
@@ -69,7 +73,7 @@ namespace RMGUI.GraphView
 			foreach (var c in current)
 			{
 				// been removed?
-				if (!m_DataSource.elements.Contains(c.GetData<GraphElementData>()))
+				if (!m_DataSource.elements.Contains(c.dataProvider))
 				{
 					c.parent.RemoveChild(c);
 				}
@@ -81,7 +85,7 @@ namespace RMGUI.GraphView
 			foreach (var elementData in m_DataSource.elements)
 			{
 				// been added?
-				bool found = false;
+				var found = false;
 
 				// TODO what the heck is a "dc" anyway?
 				foreach (var dc in elements)
@@ -97,34 +101,39 @@ namespace RMGUI.GraphView
 			}
 		}
 
+		protected override object toWatch
+		{
+			get { return dataSource; }
+		}
+
 		// ISelection implementation
 		public List<ISelectable> selection { get; protected set; }
 
-	    // functions to ISelection extensions
-		public void AddToSelection(ISelectable e)
+		// functions to ISelection extensions
+		public void AddToSelection(ISelectable selectable)
 		{
-			GraphElement ce = e as GraphElement;
-			if (ce != null && ce.GetData<GraphElementData>() != null)
-				ce.GetData<GraphElementData>().selected = true;
-			selection.Add(e);
+			var graphElement = selectable as GraphElement;
+			if (graphElement != null && graphElement.dataProvider != null)
+				graphElement.dataProvider.selected = true;
+			selection.Add(selectable);
 			contentViewContainer.Touch(ChangeType.Repaint);
 		}
 
-		public void RemoveFromSelection(ISelectable e)
+		public void RemoveFromSelection(ISelectable selectable)
 		{
-			GraphElement ce = e as GraphElement;
-			if (ce != null && ce.GetData<GraphElementData>() != null)
-				ce.GetData<GraphElementData>().selected = false;
-			selection.Remove(e);
+			var graphElement = selectable as GraphElement;
+			if (graphElement != null && graphElement.dataProvider != null)
+				graphElement.dataProvider.selected = false;
+			selection.Remove(selectable);
 			contentViewContainer.Touch(ChangeType.Repaint);
 		}
 
 		public void ClearSelection()
 		{
-			foreach (GraphElement e in selection.OfType<GraphElement>())
+			foreach (var graphElement in selection.OfType<GraphElement>())
 			{
-				if (e.GetData<GraphElementData>() != null)
-					e.GetData<GraphElementData>().selected = false;
+				if (graphElement.dataProvider != null)
+					graphElement.dataProvider.selected = false;
 			}
 
 			selection.Clear();
@@ -134,7 +143,7 @@ namespace RMGUI.GraphView
 		private void InstanciateElement(GraphElementData elementData)
 		{
 			// call factory
-			var newElem = CustomDataView.Create(elementData) as GraphElement;
+			GraphElement newElem = dataMapper.Create(elementData);
 
 			if (newElem == null)
 			{
@@ -142,7 +151,7 @@ namespace RMGUI.GraphView
 			}
 
 			newElem.SetPosition(elementData.position);
-			newElem.classList = elementsClassList;
+			newElem.classList = m_ElementsClassList;
 			newElem.dataProvider = elementData;
 
 			if ((elementData.capabilities & Capabilities.Resizable) != 0)
@@ -159,18 +168,5 @@ namespace RMGUI.GraphView
 			else
 				AddChild(newElem);
 		}
-
-        void AddWatch()
-        {
-            if (m_DataSource != null && panel != null && m_DataSource is Object)
-                // TODO: consider a disposable handle?
-                DataWatchService.AddDataSpy(this, (Object)m_DataSource, OnDataChanged);
-        }
-
-        void RemoveWatch()
-        {
-            if (m_DataSource != null && panel != null && m_DataSource is Object)
-                DataWatchService.RemoveDataSpy((Object)m_DataSource, OnDataChanged);
-        }
-    }
+	}
 }

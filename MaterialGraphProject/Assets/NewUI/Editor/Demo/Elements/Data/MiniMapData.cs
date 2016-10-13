@@ -4,9 +4,14 @@ using UnityEngine;
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
-	[CustomDataView(typeof(MiniMap))]
 	public class MiniMapData : GraphElementData
 	{
+		public float maxHeight;
+		public float maxWidth;
+
+		[SerializeField]
+		public bool anchored;
+
 		protected new void OnEnable()
 		{
 			base.OnEnable();
@@ -15,10 +20,6 @@ namespace RMGUI.GraphView.Demo
 			maxHeight = 200;
 		}
 
-		public float maxHeight;
-		public float maxWidth;
-
-		[SerializeField]
-		public bool anchored;
+		protected MiniMapData() {}
 	}
 }

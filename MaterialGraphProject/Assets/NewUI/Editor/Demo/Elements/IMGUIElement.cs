@@ -21,9 +21,7 @@ namespace RMGUI.GraphView.Demo
 
 		public virtual void OnGUIHandler()
 		{
-			// Hum... probably not ideal to have to cast and check all the time. Need to find something better.
-
-			var imguiData = dataProvider as IMGUIData;
+			var imguiData = GetData<IMGUIData>();
 			if (imguiData != null)
 			{
 				imguiData.OnGUIHandler();
