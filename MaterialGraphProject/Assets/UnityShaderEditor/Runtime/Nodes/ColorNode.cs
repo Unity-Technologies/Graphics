@@ -36,7 +36,17 @@ namespace UnityEngine.MaterialGraph
         public Color color
         {
             get { return m_Color; }
-            set { m_Color = value; }
+            set
+            {
+                if (m_Color == value)
+                    return;
+
+                m_Color = value;
+                if (onModified != null)
+                {
+                    onModified(this);
+                }
+            }
         }
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)

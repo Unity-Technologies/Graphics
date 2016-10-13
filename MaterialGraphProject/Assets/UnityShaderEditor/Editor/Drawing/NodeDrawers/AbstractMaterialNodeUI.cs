@@ -30,8 +30,15 @@ namespace UnityEditor.MaterialGraph
     [Serializable]
     public abstract class NodeControlData : GraphElementData
     {
+        public INode node { get; private set; }
+
         protected NodeControlData()
         {}
+
+        public void Initialize(INode inNode)
+        {
+            node = inNode;
+        }
 
         public abstract void OnGUIHandler();
     }

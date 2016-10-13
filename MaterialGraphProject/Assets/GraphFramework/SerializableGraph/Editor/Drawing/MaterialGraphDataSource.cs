@@ -15,6 +15,19 @@ namespace UnityEditor.Graphing.Drawing
 
         public IGraphAsset graphAsset { get; private set; }
 
+        void OnNodeChanged(INode inNode)
+        {
+            var dependentNodes = new List<INode>();
+            NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
+            foreach (var node in dependentNodes)
+            {
+                var theElements = m_Elements.OfType<MaterialNodeData>().ToList();
+                var found = theElements.Where(x => x.node.guid == node.guid).ToList();
+                foreach (var drawableNode in found)
+                    drawableNode.MarkDirtyHack();
+            }
+        }
+
         public MaterialGraphDataSource(IGraphAsset graphAsset)
         {
             this.graphAsset = graphAsset;
@@ -31,6 +44,8 @@ namespace UnityEditor.Graphing.Drawing
                     nodeData = ScriptableObject.CreateInstance<ColorNodeData>();
                 else
                     nodeData = ScriptableObject.CreateInstance<MaterialNodeData>();
+
+                node.onModified += OnNodeChanged;
 
                 nodeData.Initialize(node);
                 drawableNodes.Add(nodeData);
