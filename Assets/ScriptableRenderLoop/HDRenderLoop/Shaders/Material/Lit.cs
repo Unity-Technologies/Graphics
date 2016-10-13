@@ -96,6 +96,7 @@ namespace UnityEngine.ScriptableRenderLoop
             public Vector3 bitangentWS;
             public float roughnessT;
             public float roughnessB;
+            public float anisotropy;
 
             // fold into fresnel0
 

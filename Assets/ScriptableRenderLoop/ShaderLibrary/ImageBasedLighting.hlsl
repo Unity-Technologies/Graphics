@@ -457,4 +457,13 @@ float4 IntegrateLD( UNITY_ARGS_TEXCUBE(tex),
     return float4(acc * (1.0 / accWeight), 1.0);
 }
 
+// Ref: See "Moving Frostbite to PBR" Listing 22
+float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
+{
+    float a = 1.0 - roughness;
+    float lerpFactor = a * (sqrt(a) + roughness);
+    // The result is not normalized as we fetch in a cubemap
+    return lerp(N, R, lerpFactor);
+}
+
 #endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED

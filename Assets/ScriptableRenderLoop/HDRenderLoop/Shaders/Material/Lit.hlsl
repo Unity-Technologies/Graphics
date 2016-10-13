@@ -63,8 +63,9 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metalic);
 
         bsdfData.tangentWS = surfaceData.tangentWS;
-        bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);
+        bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);        
         ConvertAnisotropyToRoughness(bsdfData.roughness, surfaceData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+        bsdfData.anisotropy = surfaceData.anisotropy;
 
         bsdfData.materialId = surfaceData.anisotropy > 0 ? MATERIALID_LIT_ANISO : bsdfData.materialId;
     }
@@ -168,6 +169,7 @@ BSDFData DecodeFromGBuffer( float4 inGBuffer0,
         bsdfData.tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
         bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
         ConvertAnisotropyToRoughness(bsdfData.roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+        bsdfData.anisotropy = anisotropy;
 
         bsdfData.materialId = anisotropy > 0 ? MATERIALID_LIT_ANISO : bsdfData.materialId;
     }
@@ -296,6 +298,9 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         case DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B:
             result = bsdfData.roughnessB.xxx;
             break;
+        case DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY:
+            result = bsdfData.anisotropy.xxx;
+            break;
         case DEBUGVIEW_LIT_BSDFDATA_SUB_SURFACE_RADIUS:
             result = bsdfData.subSurfaceRadius.xxx;
             break;
@@ -322,16 +327,18 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 struct PreLightData
 {
     float NdotV;
+    float3 R;
+    float ggxLambdaV;
 
     // Aniso
     float TdotV;
     float BdotV;
-
-    float ggxLambdaV;
+    
     float anisoGGXLambdaV;
+    float3 anisoNormalWS;
+    float3 anisoR; // TODO: check if this is needed, I don't think we use R anymore for other thing than imagebased lighting
 
-    // image based lighting
-    float3 R;
+    // image based lighting    
     float3 specularDFG;
     float diffuseDFG;
 
@@ -350,6 +357,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     preLightData.NdotV = GetNdotV(bsdfData.normalWS, V);
 #endif
 
+    preLightData.R = reflect(-V, bsdfData.normalWS);
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
 
     // Check if we precompute anisotropy too (should not be necessary as if the variables are not used they will be optimize out, but may avoid
@@ -357,13 +365,18 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     {
         preLightData.TdotV = dot(bsdfData.tangentWS, bsdfData.normalWS);
         preLightData.BdotV = dot(bsdfData.bitangentWS, bsdfData.normalWS);
-
         preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+        preLightData.anisoNormalWS = GetAnisotropicModifiedNormal(bsdfData.normalWS, bsdfData.tangentWS, V, bsdfData.anisotropy);
+
+        // We need to take into account the modified normal for faking anisotropic here.
+        float anisoNdotV = GetNdotV(preLightData.anisoNormalWS, V); // TODO: is it necessary here to use the GetNDotV function
+        preLightData.anisoR = reflect(-V, preLightData.anisoNormalWS); // TODO: check if this is needed, I don't think we use R anymore for other thing than imagebased lighting
+        GetPreIntegratedDFG(anisoNdotV, bsdfData.roughness, bsdfData.fresnel0, preLightData.specularDFG, preLightData.diffuseDFG);
     }
-
-    preLightData.R = reflect(-V, bsdfData.normalWS);
-
-    GetPreIntegratedDFG(preLightData.NdotV, bsdfData.roughness, bsdfData.fresnel0, preLightData.specularDFG, preLightData.diffuseDFG);
+    else
+    {
+        GetPreIntegratedDFG(preLightData.NdotV, bsdfData.roughness, bsdfData.fresnel0, preLightData.specularDFG, preLightData.diffuseDFG);
+    }
 
     // #if SHADERPASS == SHADERPASS_GBUFFER
     // preLightData.ambientOcclusion = _AmbientOcclusion.Load(uint3(coord.unPositionSS, 0)).x;
@@ -459,6 +472,31 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
     }
 }
 
+// TODO: We need to change this hard limit!
+#define UNITY_SPECCUBE_LOD_STEPS (6)
+
+float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
+{
+    // TODO: Clean a bit this code
+    // CAUTION: remap from Morten may work only with offline convolution, see impact with runtime convolution!
+
+    // For now disabled
+#if 0
+    float m = PerceptualRoughnessToRoughness(perceptualRoughness); // m is the real roughness parameter
+    const float fEps = 1.192092896e-07F;        // smallest such that 1.0+FLT_EPSILON != 1.0  (+1e-4h is NOT good here. is visibly very wrong)
+    float n = (2.0 / max(fEps, m*m)) - 2.0;		// remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
+
+    n /= 4;									    // remap from n_dot_h formulatino to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
+
+    perceptualRoughness = pow(2 / (n + 2), 0.25);		// remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
+#else
+    // MM: came up with a surprisingly close approximation to what the #if 0'ed out code above does.
+    perceptualRoughness = perceptualRoughness*(1.7 - 0.7*perceptualRoughness);
+#endif
+
+    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
+}
+
 // _preIntegratedFG and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
                         UNITY_ARGS_ENV(_ReflCubeTextures),
@@ -466,11 +504,19 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
                         out float4 specularLighting)
 {
     /*
+    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    {
+        // Use fake aniso normal
+        // We can overwrite locally the normal without problem
+        bsdfData.normalWS = bsdfData.anisoNormalWS;
+        prelightData.R = prelightData.anisoR;
+    }
+
     // Perform box collision to parallax correct the cubemap
     // invTransform go from worldspace to local box space without scaling
-    float3 positionLS = mul(float4(positionWS, 1.0), light.invTransform).xyz;
-    float3 dirLS = mul(prelightData.R, (float3x3)light.invTransform);
-    float2 intersections = boxRayIntersect(positionLS, dirLS, -light.extend, light.extend);
+    float3 positionLS = mul(float4(positionWS, 1.0), lightData.invTransform).xyz;
+    float3 dirLS = mul(prelightData.R, (float3x3)lightData.invTransform);
+    float2 intersections = BoxRayIntersect(positionLS, dirLS, -lightData.extend, lightData.extend);
  
     diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
     specularLighting = float4(0.0, 0.0, 0.0, 1.0);
@@ -481,15 +527,16 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
         // local offset
         R = R - light.localOffset;
 
-        float mipmapLevel = roughnessToMipmapLevel(bsdfData.roughness);
-        half4 rgbm = UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex, float4(glossIn.reflUVW.xyz, sliceIndex), mip);
-        float3 preLD = texCube(_CubemapLD, float4(R, textureIndex), mipmapLevel);
+        float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+        R = GetSpecularDominantDir(bsdfData.normalWS, R, bsdfData.roughness);
+
+        float4 preLD = UNITY_SAMPLE_ENV_LOD(tex, float4(R, lightData.sliceIndex), mip);
         specularLighting.rgb = preLD.rgb * prelightData.specularDFG;
-
         
-
+        // Apply specular occlusion on it
         specularLighting.rgb *= bsdfData.specularOcclusion;
-    }*/
+    }
+    */
 
     diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
     specularLighting = float4(0.0, 0.0, 0.0, 1.0);

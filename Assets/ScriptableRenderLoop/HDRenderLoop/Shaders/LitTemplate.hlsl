@@ -241,7 +241,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     surfaceData.metalic *= _Metalic;
 
 
-    surfaceData.tangentWS = float3(1.0, 0.0, 0.0);
+    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
     surfaceData.anisotropy = 0;
     surfaceData.specular = 0.04;
 

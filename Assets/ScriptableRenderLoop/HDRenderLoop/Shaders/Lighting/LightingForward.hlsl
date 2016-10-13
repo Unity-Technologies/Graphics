@@ -41,11 +41,11 @@ void ForwardLighting(	float3 V, float3 positionWS, PreLightData prelightData, BS
     }
     */
 
-    for (int i = 0; i < _EnvLightCount; ++i)
+    for (int j = 0; j < _EnvLightCount; ++j)
     {
         float4 localDiffuseLighting;
         float4 localSpecularLighting;
-        EvaluateBSDF_Env(V, positionWS, prelightData, _EnvLightList[i], bsdfData, UNITY_PASS_ENV(_ReflCubeTextures), localDiffuseLighting, localSpecularLighting);
+        EvaluateBSDF_Env(V, positionWS, prelightData, _EnvLightList[j], bsdfData, UNITY_PASS_ENV(_ReflCubeTextures), localDiffuseLighting, localSpecularLighting);
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;
     }
