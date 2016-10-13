@@ -65,6 +65,8 @@ namespace UnityEngine.Graphing
 
         public virtual void ValidateNode()
         {}
+        
+        public OnNodeModified onModified { get; set; }
 
         public IEnumerable<T> GetInputSlots<T>() where T : ISlot
         {

@@ -3,8 +3,11 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Graphing
 {
+    public delegate void OnNodeModified(INode node);
+
     public interface INode
     {
+        OnNodeModified onModified { get; set; }
         IGraph owner { get; set; }
         Guid guid { get; }
         Guid RewriteGuid();

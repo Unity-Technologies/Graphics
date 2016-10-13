@@ -12,7 +12,10 @@ namespace UnityEditor.Graphing.Drawing
     {
         public override void OnGUIHandler()
         {
-            EditorGUILayout.ColorField("test", Color.blue);
+            var cNode = node as UnityEngine.MaterialGraph.ColorNode;
+            if (cNode == null)
+                return;
+            cNode.color =  EditorGUILayout.ColorField("Color", cNode.color);
         }
     }
 
@@ -22,6 +25,7 @@ namespace UnityEditor.Graphing.Drawing
         protected override IEnumerable<GraphElementData> GetControlData()
         {
             var instance = CreateInstance<ColorNodeContolData>();
+            instance.Initialize(node);
             return new List<GraphElementData> { instance };
         }
     }
@@ -40,6 +44,16 @@ namespace UnityEditor.Graphing.Drawing
 
         protected MaterialNodeData()
         {}
+
+
+        //TODO: Kill this and the function below after talking with shanti
+        [SerializeField]
+        private int m_SerializationRandom;
+
+        public void MarkDirtyHack()
+        {
+            m_SerializationRandom++;
+        }
 
         public void Initialize(INode inNode)
         {
