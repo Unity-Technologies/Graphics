@@ -497,7 +497,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 		float c = dot(vCen,vCen) - fRad*fRad;
 
 		float fDescDivFour = CdotV*CdotV - a*c;
-		if(!(c<0 || (fDescDivFour>0 && CdotV>0)))		// if ray hit bounding sphere
+		if(!(c<0 || (fDescDivFour>0 && CdotV>0)))		// if ray misses bounding sphere
 			coarseList[l]=0xffffffff;
 	}
 

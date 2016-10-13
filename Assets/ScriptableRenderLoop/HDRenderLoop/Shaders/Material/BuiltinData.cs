@@ -20,8 +20,8 @@ namespace UnityEngine.ScriptableRenderLoop
             public float opacity;
 
             // These are lighting data.
-            // We would prefer to split lighting and material information but for performance reasons, 
-            // those lighting information are fill 
+            // We would prefer to split lighting and material information but for performance reasons,
+            // those lighting information are fill
             // at the same time than material information.
             [SurfaceDataAttributes("Bake Diffuse Lighting")]
             public Vector3 bakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume

@@ -12,5 +12,3 @@
 // These define are sepcific to GBuffer
 #define DEBUGVIEW_GBUFFER_DEPTH 7
 #define DEBUGVIEW_GBUFFER_BAKEDIFFUSELIGHTING 8
-
-

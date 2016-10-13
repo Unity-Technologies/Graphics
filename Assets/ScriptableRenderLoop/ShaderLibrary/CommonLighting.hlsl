@@ -21,7 +21,7 @@ float GetDistanceAttenuation(float3 unL, float invSqrAttenuationRadius)
 {
     float sqrDist = dot(unL, unL);
     float attenuation = 1.0f / (max(PUNCTUAL_LIGHT_THRESHOLD * PUNCTUAL_LIGHT_THRESHOLD, sqrDist));
-    // Non physically based hack to limit light influence to attenuationRadius. 
+    // Non physically based hack to limit light influence to attenuationRadius.
     attenuation *= SmoothDistanceAttenuation(sqrDist, invSqrAttenuationRadius);
 
     return attenuation;
@@ -44,8 +44,8 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
 // Ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf (in addenda)
 // Convert anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction) to roughness
 void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float roughnessT, out float roughnessB)
-{    
-    float anisoAspect = sqrt(1.0 - 0.9 * anisotropy);    
+{
+    float anisoAspect = sqrt(1.0 - 0.9 * anisotropy);
     roughnessT = roughness * anisoAspect;
     roughnessB = roughness / anisoAspect;
 }

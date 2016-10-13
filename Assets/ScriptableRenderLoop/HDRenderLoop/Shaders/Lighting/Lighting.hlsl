@@ -1,4 +1,4 @@
-#ifndef UNITY_LIGHTING_INCLUDED 
+#ifndef UNITY_LIGHTING_INCLUDED
 #define UNITY_LIGHTING_INCLUDED
 
 // We need to define the macro used for env map evaluation based on the different architecture.

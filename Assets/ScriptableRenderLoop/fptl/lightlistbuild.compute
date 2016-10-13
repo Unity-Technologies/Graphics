@@ -4,6 +4,7 @@
 #include "LightDefinitions.cs.hlsl"
 
 #define FINE_PRUNING_ENABLED
+#define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
 
 uniform int g_iNrVisibLights;
@@ -14,6 +15,7 @@ uniform float4x4 g_mScrProjection;
 Texture2D g_depth_tex : register( t0 );
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<SFiniteLightData> g_vLightData : register( t2 );
+StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 
 #define NR_THREADS			64
@@ -38,6 +40,10 @@ groupshared uint ldsDoesLightIntersect[2];
 groupshared int ldsNrLightsFinal;
 
 groupshared int ldsModelListCount[NR_LIGHT_MODELS];		// since NR_LIGHT_MODELS is 2
+
+#ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
+groupshared uint lightOffsSph;
+#endif
 
 
 //float GetLinearDepth(float3 vP)
@@ -68,7 +74,19 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 #endif
 }
 
+float GetOnePixDiagWorldDistAtDepthOne()
+{
+	float fSx = g_mScrProjection[0].x;
+	float fSy = g_mScrProjection[1].y;
+
+	return length( float2(1.0/fSx,1.0/fSy) );
+}
+
 void sortLightList(int localThreadID, int n);
+
+#ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
+int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate);
+#endif
 
 
 [numthreads(NR_THREADS, 1, 1)]
@@ -155,6 +173,9 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
 	int iNrCoarseLights = lightOffs<MAX_NR_COARSE_ENTRIES ? lightOffs : MAX_NR_COARSE_ENTRIES;
 
+#ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
+	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
+#endif
 
 #ifndef FINE_PRUNING_ENABLED	
 	{
@@ -175,11 +196,9 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 
 		uint uLightsFlags[2] = {0,0};
 		int l=0;
-		// we need this outer loop for when we cannot assume a wavefront is 64 wide
-		// since in this case we cannot assume the lights will remain sorted by type
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+		// need this outer loop even on xb1 and ps4 since direct lights and
+		// reflection lights are kept in separate regions.
 		while(l<iNrCoarseLights)
-#endif
 		{
 			// fetch light
 			int idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
@@ -270,10 +289,8 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].uLightType : 0;
 			}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
 			// in case we have some corrupt data make sure we terminate
 			if(uLgtType>=MAX_TYPES) ++l;
-#endif
 		}
 
 		InterlockedOr(ldsDoesLightIntersect[0], uLightsFlags[0]);
@@ -461,4 +478,72 @@ void sortLightList(int localThreadID, int length)
 	}
 }
 
+#endif
+
+
+#ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
+int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
+{
+	lightOffsSph = 0;
+
+	// make a copy of coarseList in prunedList.
+	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
+		prunedList[l]=coarseList[l];
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+	GroupMemoryBarrierWithGroupSync();
+#endif
+
+#ifdef LEFT_HAND_COORDINATES
+	float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0);
+#else
+	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0);
+#endif
+
+	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
+	float worldDistAtDepthOne = 8*onePixDiagDist;		// scale by half a tile
+	
+
+	int iNrVisib = 0;
+	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
+	{
+		SFiniteLightBound lgtDat = g_data[coarseList[l]];
+	
+		const float3 vCen = lgtDat.vCen.xyz;
+		float fRad = lgtDat.fRadius;
+
+#if 1
+		float3 maxZdir = float3(-vCen.z*vCen.x, -vCen.z*vCen.y, vCen.x*vCen.x + vCen.y*vCen.y);		// cross(vCen,cross(Zaxis,vCen))
+		float len = length(maxZdir);
+		float scalarProj = len>0.0001 ? (maxZdir.z/len) : len;	// since len>=(maxZdir.z/len) we can use len as an approximate value when len<=epsilon
+		float fOffs = scalarProj*fRad;
+#else
+		float fOffs = fRad;		// more false positives due to larger radius but works too
+#endif
+
+#ifdef LEFT_HAND_COORDINATES
+		fRad = fRad + (vCen.z+fOffs)*worldDistAtDepthOne;
+#else
+		fRad = fRad + (vCen.z-fOffs)*worldDistAtDepthOne;
+#endif
+		
+		float a = dot(V,V);
+		float CdotV = dot(vCen,V);
+		float c = dot(vCen,vCen) - fRad*fRad;
+
+		float fDescDivFour = CdotV*CdotV - a*c;
+		if(c<0 || (fDescDivFour>0 && CdotV>0))		// if ray hit bounding sphere
+		{
+			unsigned int uIndex;
+			InterlockedAdd(lightOffsSph, 1, uIndex);
+			coarseList[uIndex]=prunedList[l];		// read from the original copy of coarseList which is backed up in prunedList
+		}
+	}
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+	GroupMemoryBarrierWithGroupSync();
+#endif
+
+	return lightOffsSph;
+}
 #endif

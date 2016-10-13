@@ -1,9 +1,9 @@
 // Final compositing pass, just does gamma correction for now.
-Shader "Hidden/Unity/FinalPass" 
+Shader "Hidden/Unity/FinalPass"
 {
-    Properties 
-    {	
-        _MainTex ("Texture", any) = "" {} 
+    Properties
+    {
+        _MainTex ("Texture", any) = "" {}
 
         _ToneMapCoeffs1("Parameters for neutral tonemap", Vector) = (0.0, 0.0, 0.0, 0.0)
         _ToneMapCoeffs2("Parameters for neutral tonemap", Vector) = (0.0, 0.0, 0.0, 0.0)
@@ -11,7 +11,7 @@ Shader "Hidden/Unity/FinalPass"
         [ToggleOff] _EnableToneMap("Enable Tone Map", Float) = 0
     }
 
-    SubShader { 
+    SubShader {
         Pass {
             ZTest Always Cull Off ZWrite Off
 
@@ -25,15 +25,15 @@ Shader "Hidden/Unity/FinalPass"
             #include "../ShaderVariables.hlsl"
 
             UNITY_DECLARE_TEX2D(_MainTex);
-            float4		_ToneMapCoeffs1;
-            float4		_ToneMapCoeffs2;
+            float4      _ToneMapCoeffs1;
+            float4      _ToneMapCoeffs2;
 
-            #define InBlack			_ToneMapCoeffs1.x
-            #define OutBlack		_ToneMapCoeffs1.y
-            #define InWhite			_ToneMapCoeffs1.z
-            #define OutWhite		_ToneMapCoeffs1.w
-            #define WhiteLevel		_ToneMapCoeffs2.z
-            #define	WhiteClip		_ToneMapCoeffs2.w
+            #define InBlack         _ToneMapCoeffs1.x
+            #define OutBlack        _ToneMapCoeffs1.y
+            #define InWhite         _ToneMapCoeffs1.z
+            #define OutWhite        _ToneMapCoeffs1.w
+            #define WhiteLevel      _ToneMapCoeffs2.z
+            #define WhiteClip       _ToneMapCoeffs2.w
 
             float _Exposure;
             float _EnableToneMap;
@@ -130,11 +130,11 @@ Shader "Hidden/Unity/FinalPass"
                 // return LinearToSRGB(c);
                 return c;
 
-                
+
             }
             ENDHLSL
 
         }
     }
-    Fallback Off 
+    Fallback Off
 }

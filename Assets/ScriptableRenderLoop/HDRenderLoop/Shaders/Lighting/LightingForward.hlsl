@@ -1,4 +1,4 @@
-#ifndef UNITY_LIGHTING_FORWARD_INCLUDED 
+#ifndef UNITY_LIGHTING_FORWARD_INCLUDED
 #define UNITY_LIGHTING_FORWARD_INCLUDED
 
 //-----------------------------------------------------------------------------

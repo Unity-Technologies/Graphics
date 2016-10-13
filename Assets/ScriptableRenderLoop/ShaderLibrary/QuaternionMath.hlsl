@@ -18,7 +18,7 @@ float4 TangentSpaceToQuat(float3 tagent, float3 bitangent, float3 normal)
 
 void QuatToTangentSpace(float4 quaterion, out float3 tangent, out float3 bitangent, out float3 normal)
 {
-    tangent =	float3(1.0, 0.0, 0.0)
+    tangent =   float3(1.0, 0.0, 0.0)
                 + float3(-2.0, 2.0, 2.0) * quat.y * quat.yxw
                 + float3(-2.0, -2.0, 2.0) * quat.z * quaternion.zwx;
 
@@ -26,7 +26,7 @@ void QuatToTangentSpace(float4 quaterion, out float3 tangent, out float3 bitange
                 + float3(2.0, -2.0, 2.0) * quat.z * quat.wzy
                 + float3(2.0, -2.0, -2.0) * quat.x * quaternion.yxw;
 
-    normal =	float3(0.0, 0.0, 1.0)
+    normal =    float3(0.0, 0.0, 1.0)
                 + float3(2.0, 2.0, -2.0) * quat.x * quat.zwx
                 + float3(-2.0, 2.0, -2.0) * quat.y * quaternion.wzy;
 }

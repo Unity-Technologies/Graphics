@@ -66,19 +66,19 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 
 #if GBUFFER_MATERIAL_COUNT == 3
 
-#define OUTPUT_GBUFFER(NAME)							\
-        out float4 MERGE_NAME(NAME, 0) : SV_Target0,	\
-        out float4 MERGE_NAME(NAME, 1) : SV_Target1,	\
+#define OUTPUT_GBUFFER(NAME)                            \
+        out float4 MERGE_NAME(NAME, 0) : SV_Target0,    \
+        out float4 MERGE_NAME(NAME, 1) : SV_Target1,    \
         out float4 MERGE_NAME(NAME, 2) : SV_Target2
 
-#define DECLARE_GBUFFER_TEXTURE(NAME)	\
-        Texture2D MERGE_NAME(NAME, 0);	\
-        Texture2D MERGE_NAME(NAME, 1);	\
+#define DECLARE_GBUFFER_TEXTURE(NAME)   \
+        Texture2D MERGE_NAME(NAME, 0);  \
+        Texture2D MERGE_NAME(NAME, 1);  \
         Texture2D MERGE_NAME(NAME, 2);
 
-#define FETCH_GBUFFER(NAME, TEX, UV)										\
-        float4 MERGE_NAME(NAME, 0) = MERGE_NAME(TEX, 0).Load(uint3(UV, 0));	\
-        float4 MERGE_NAME(NAME, 1) = MERGE_NAME(TEX, 1).Load(uint3(UV, 0));	\
+#define FETCH_GBUFFER(NAME, TEX, UV)                                        \
+        float4 MERGE_NAME(NAME, 0) = MERGE_NAME(TEX, 0).Load(uint3(UV, 0)); \
+        float4 MERGE_NAME(NAME, 1) = MERGE_NAME(TEX, 1).Load(uint3(UV, 0)); \
         float4 MERGE_NAME(NAME, 2) = MERGE_NAME(TEX, 2).Load(uint3(UV, 0));
 
 #define ENCODE_INTO_GBUFFER(SURFACE_DATA, NAME) EncodeIntoGBuffer(SURFACE_DATA, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
@@ -96,22 +96,22 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 
 #elif GBUFFER_MATERIAL_COUNT == 4
 
-#define OUTPUT_GBUFFER(NAME)							\
-        out float4 MERGE_NAME(NAME, 0) : SV_Target0,	\
-        out float4 MERGE_NAME(NAME, 1) : SV_Target1,	\
-        out float4 MERGE_NAME(NAME, 2) : SV_Target2,	\
+#define OUTPUT_GBUFFER(NAME)                            \
+        out float4 MERGE_NAME(NAME, 0) : SV_Target0,    \
+        out float4 MERGE_NAME(NAME, 1) : SV_Target1,    \
+        out float4 MERGE_NAME(NAME, 2) : SV_Target2,    \
         out float4 MERGE_NAME(NAME, 3) : SV_Target3
 
-#define DECLARE_GBUFFER_TEXTURE(NAME)	\
-        Texture2D MERGE_NAME(NAME, 0);	\
-        Texture2D MERGE_NAME(NAME, 1);	\
-        Texture2D MERGE_NAME(NAME, 2);	\
+#define DECLARE_GBUFFER_TEXTURE(NAME)   \
+        Texture2D MERGE_NAME(NAME, 0);  \
+        Texture2D MERGE_NAME(NAME, 1);  \
+        Texture2D MERGE_NAME(NAME, 2);  \
         Texture2D MERGE_NAME(NAME, 3);
 
-#define FETCH_GBUFFER(NAME, TEX, UV)										\
-        float4 MERGE_NAME(NAME, 0) = MERGE_NAME(TEX, 0).Load(uint3(UV, 0));	\
-        float4 MERGE_NAME(NAME, 1) = MERGE_NAME(TEX, 1).Load(uint3(UV, 0));	\
-        float4 MERGE_NAME(NAME, 2) = MERGE_NAME(TEX, 2).Load(uint3(UV, 0));	\
+#define FETCH_GBUFFER(NAME, TEX, UV)                                        \
+        float4 MERGE_NAME(NAME, 0) = MERGE_NAME(TEX, 0).Load(uint3(UV, 0)); \
+        float4 MERGE_NAME(NAME, 1) = MERGE_NAME(TEX, 1).Load(uint3(UV, 0)); \
+        float4 MERGE_NAME(NAME, 2) = MERGE_NAME(TEX, 2).Load(uint3(UV, 0)); \
         float4 MERGE_NAME(NAME, 3) = MERGE_NAME(TEX, 3).Load(uint3(UV, 0));
 
 #define ENCODE_INTO_GBUFFER(SURFACE_DATA, NAME) EncodeIntoGBuffer(SURFACE_DATA, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3))
@@ -129,25 +129,25 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 
 #elif GBUFFER_MATERIAL_COUNT == 5
 
-#define OUTPUT_GBUFFER(NAME)							\
-        out float4 MERGE_NAME(NAME, 0) : SV_Target0,	\
-        out float4 MERGE_NAME(NAME, 1) : SV_Target1,	\
-        out float4 MERGE_NAME(NAME, 2) : SV_Target2,	\
-        out float4 MERGE_NAME(NAME, 3) : SV_Target3,	\
+#define OUTPUT_GBUFFER(NAME)                            \
+        out float4 MERGE_NAME(NAME, 0) : SV_Target0,    \
+        out float4 MERGE_NAME(NAME, 1) : SV_Target1,    \
+        out float4 MERGE_NAME(NAME, 2) : SV_Target2,    \
+        out float4 MERGE_NAME(NAME, 3) : SV_Target3,    \
         out float4 MERGE_NAME(NAME, 4) : SV_Target4
 
-#define DECLARE_GBUFFER_TEXTURE(NAME)	\
-        Texture2D MERGE_NAME(NAME, 0);	\
-        Texture2D MERGE_NAME(NAME, 1);	\
-        Texture2D MERGE_NAME(NAME, 2);	\
-        Texture2D MERGE_NAME(NAME, 3);	\
+#define DECLARE_GBUFFER_TEXTURE(NAME)   \
+        Texture2D MERGE_NAME(NAME, 0);  \
+        Texture2D MERGE_NAME(NAME, 1);  \
+        Texture2D MERGE_NAME(NAME, 2);  \
+        Texture2D MERGE_NAME(NAME, 3);  \
         Texture2D MERGE_NAME(NAME, 4);
 
-#define FETCH_GBUFFER(NAME, TEX, UV)										\
-        float4 MERGE_NAME(NAME, 0) = MERGE_NAME(TEX, 0).Load(uint3(UV, 0));	\
-        float4 MERGE_NAME(NAME, 1) = MERGE_NAME(TEX, 1).Load(uint3(UV, 0));	\
-        float4 MERGE_NAME(NAME, 2) = MERGE_NAME(TEX, 2).Load(uint3(UV, 0));	\
-        float4 MERGE_NAME(NAME, 3) = MERGE_NAME(TEX, 3).Load(uint3(UV, 0));	\
+#define FETCH_GBUFFER(NAME, TEX, UV)                                        \
+        float4 MERGE_NAME(NAME, 0) = MERGE_NAME(TEX, 0).Load(uint3(UV, 0)); \
+        float4 MERGE_NAME(NAME, 1) = MERGE_NAME(TEX, 1).Load(uint3(UV, 0)); \
+        float4 MERGE_NAME(NAME, 2) = MERGE_NAME(TEX, 2).Load(uint3(UV, 0)); \
+        float4 MERGE_NAME(NAME, 3) = MERGE_NAME(TEX, 3).Load(uint3(UV, 0)); \
         float4 MERGE_NAME(NAME, 4) = MERGE_NAME(TEX, 4).Load(uint3(UV, 0));
 
 #define ENCODE_INTO_GBUFFER(SURFACE_DATA, NAME) EncodeIntoGBuffer(SURFACE_DATA, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4))
