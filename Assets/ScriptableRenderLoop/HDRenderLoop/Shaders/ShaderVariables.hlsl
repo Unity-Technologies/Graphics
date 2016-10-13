@@ -142,6 +142,9 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
+// TODO: move this to constant buffer by Pass
+float4		_ScreenSize;
+
 
 float4x4 GetObjectToWorldMatrix()
 {

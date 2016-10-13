@@ -368,12 +368,12 @@ namespace UnityEngine.ScriptableRenderLoop
             Vector4 screenSize = ComputeScreenSize(camera);
             m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
 
-            m_DeferredMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
+            m_DeferredMaterial.SetTexture("_ReflCubeTextures", m_cubeReflTexArray.GetTexCache());
 
             // gbufferManager.BindBuffers(m_DeferredMaterial);
             // TODO: Bind depth textures
             var cmd = new CommandBuffer();
-            cmd.name = "Deferred Ligthing Pass";            
+            cmd.name = "Deferred Lighting Pass";            
             cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DeferredMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();

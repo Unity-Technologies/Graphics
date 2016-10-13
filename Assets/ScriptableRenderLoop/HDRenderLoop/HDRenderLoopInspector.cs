@@ -82,7 +82,7 @@ namespace UnityEngine.ScriptableRenderLoop
             }
         }
 
-    public override void OnInspectorGUI()
+        public override void OnInspectorGUI()
         {
             HDRenderLoop renderLoop = target as HDRenderLoop;
             if(renderLoop)
@@ -124,7 +124,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     FillWithProperties(typeof(Lit.BSDFData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, true, ref index);
 
                     styles.isDebugViewMaterialInit = true;
-                }         
+                }
 
                 debugParameters.debugViewMaterial = EditorGUILayout.IntPopup(styles.debugViewMaterial, (int)debugParameters.debugViewMaterial, styles.debugViewMaterialStrings, styles.debugViewMaterialValues);
 

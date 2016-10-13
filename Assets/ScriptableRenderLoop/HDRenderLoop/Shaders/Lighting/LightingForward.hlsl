@@ -8,13 +8,13 @@
 StructuredBuffer<PunctualLightData> _PunctualLightList;
 int _PunctualLightCount;
 
-UNITY_DECLARE_TEXCUBEARRAY(_reflCubeTextures);
-StructuredBuffer<PunctualLightData> _EnvLightList;
+UNITY_DECLARE_ENV(_ReflCubeTextures);
+StructuredBuffer<EnvLightData> _EnvLightList;
 int _EnvLightCount;
 
 // TODO: Think about how to apply Disney diffuse preconvolve on indirect diffuse => must be done during GBuffer layout! Else emissive will be fucked...
 // That's mean we need to read DFG texture during Gbuffer...
-void ForwardLighting(	float3 V, float3 positionWS, BSDFData bsdfData,
+void ForwardLighting(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
@@ -25,7 +25,7 @@ void ForwardLighting(	float3 V, float3 positionWS, BSDFData bsdfData,
     {
         float4 localDiffuseLighting;
         float4 localSpecularLighting;
-        EvaluateBSDF_Punctual(V, positionWS, _PunctualLightList[i], bsdfData, localDiffuseLighting, localSpecularLighting);
+        EvaluateBSDF_Punctual(V, positionWS, prelightData, _PunctualLightList[i], bsdfData, localDiffuseLighting, localSpecularLighting);
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;
     }
@@ -41,16 +41,14 @@ void ForwardLighting(	float3 V, float3 positionWS, BSDFData bsdfData,
     }
     */
 
-    /*
     for (int i = 0; i < _EnvLightCount; ++i)
     {
         float4 localDiffuseLighting;
         float4 localSpecularLighting;
-        EvaluateBSDF_Env(V, positionWS, _EnvLightList[i], bsdfData, UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), localDiffuseLighting, localSpecularLighting);
+        EvaluateBSDF_Env(V, positionWS, prelightData, _EnvLightList[i], bsdfData, UNITY_PASS_ENV(_ReflCubeTextures), localDiffuseLighting, localSpecularLighting);
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;
     }
-    */
 }
 
 #endif // UNITY_LIGHTING_FORWARD_INCLUDED

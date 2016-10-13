@@ -58,33 +58,69 @@ float D_GGXDividePI(float NdotH, float roughness)
     return INV_PI * D_GGX(NdotH, roughness);
 }
 
-
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
 float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
 {
-#if 1
     // Original formulation:
     //	lambda_v	= (-1 + sqrt(a2 * (1 - NdotL2) / NdotL2 + 1)) * 0.5f;
     //	lambda_l	= (-1 + sqrt(a2 * (1 - NdotV2) / NdotV2 + 1)) * 0.5f;
     //	G			= 1 / (1 + lambda_v + lambda_l);
 
-    // Reorder code to be more optimal
-    float a = roughness;
+    float a = roughness; 
     float a2 = a * a;
-
+    // Reorder code to be more optimal
     float lambdaV = NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
     float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 
     // Simplify visibility term: (2.0f * NdotL * NdotV) /  ((4.0f * NdotL * NdotV) * (lambda_v + lambda_l));
-    return 0.5f / (lambdaV + lambdaL);
-#else
-    // Approximation of the above formulation (simplify the sqrt, not mathematically correct but close enough)
+    return 0.5 / (lambdaV + lambdaL);
+}
+
+// Precompute part of lambdaV
+float GetSmithJointGGXLambdaV(float NdotV, float roughness)
+{
     float a = roughness;
+    float a2 = a * a;
+    return sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
+}
+
+float V_SmithJointGGX(float NdotL, float NdotV, float roughness, float lambdaV)
+{
+    float a = roughness;
+    float a2 = a * a;
+    // Reorder code to be more optimal
+    lambdaV *= NdotL;
+    float lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
+
+    // Simplify visibility term: (2.0f * NdotL * NdotV) /  ((4.0f * NdotL * NdotV) * (lambda_v + lambda_l));
+    return 0.5 / (lambdaV + lambdaL);
+}
+
+float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness)
+{
+    float a = roughness;
+    // Approximation of the above formulation (simplify the sqrt, not mathematically correct but close enough)
     float lambdaV = NdotL * (NdotV * (1 - a) + a);
     float lambdaL = NdotV * (NdotL * (1 - a) + a);
 
     return 0.5 / (lambdaV + lambdaL);
-#endif
+}
+
+// Precompute part of LambdaV
+float GetSmithJointGGXApproxLambdaV(float NdotV, float roughness)
+{
+    float a = roughness;
+    return (NdotV * (1 - a) + a);
+}
+
+float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness, float lambdaV)
+{
+    float a = roughness;
+    // Approximation of the above formulation (simplify the sqrt, not mathematically correct but close enough)
+    lambdaV *= NdotL;
+    float lambdaL = NdotV * (NdotL * (1 - a) + a);
+
+    return 0.5 / (lambdaV + lambdaL);
 }
 
 // roughnessT -> roughness in tangent direction
@@ -117,7 +153,28 @@ float V_SmithJointGGXAniso(float TdotV, float BdotV, float NdotV, float TdotL, f
     return 0.5 / (lambdaV + lambdaL);
 }
 
-// TODO: Optimize, lambdaV could be precomputed at the beginning of the loop and reuse for all lights.
+float GetSmithJointGGXAnisoLambdaV(float TdotV, float BdotV, float NdotV, float roughnessT, float roughnessB)
+{
+    float aT = roughnessT;
+    float aT2 = aT * aT;
+    float aB = roughnessB;
+    float aB2 = aB * aB;
+
+    return sqrt(aT2 * TdotV * TdotV + aB2 * BdotV * BdotV + NdotV * NdotV);
+}
+
+float V_SmithJointGGXAnisoLambdaV(float TdotV, float BdotV, float NdotV, float TdotL, float BdotL, float NdotL, float roughnessT, float roughnessB, float lambdaV)
+{
+    float aT = roughnessT;
+    float aT2 = aT * aT;
+    float aB = roughnessB;
+    float aB2 = aB * aB;
+
+    lambdaV *= NdotL;
+    float lambdaL = NdotV * sqrt(aT2 * TdotL * TdotL + aB2 * BdotL * BdotL + NdotL * NdotL);
+
+    return 0.5 / (lambdaV + lambdaL);
+}
 
 //-----------------------------------------------------------------------------
 // Diffuse BRDF - diffuseColor is expected to be multiply by the caller

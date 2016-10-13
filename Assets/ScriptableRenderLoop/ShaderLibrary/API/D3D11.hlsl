@@ -22,6 +22,7 @@
 #define UNITY_DECLARE_TEX2D(tex) Texture2D tex; SamplerState sampler##tex
 #define UNITY_DECLARE_TEX2D_NOSAMPLER(tex) Texture2D tex
 #define UNITY_SAMPLE_TEX2D(tex,coord) tex.Sample (sampler##tex,coord)
+#define UNITY_SAMPLE_TEX2D_LOD(tex,coord,lod) tex.SampleLevel (sampler##tex,coord, lod)
 #define UNITY_SAMPLE_TEX2D_SAMPLER(tex,samplertex,coord) tex.Sample (sampler##samplertex,coord)
 
 // Cubemaps
@@ -58,3 +59,12 @@
 #define UNITY_SAMPLE_TEXCUBEARRAY(tex,coord) tex.Sample (sampler##tex,coord)
 #define UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex,coord,lod) tex.SampleLevel (sampler##tex,coord, lod)
 #define UNITY_SAMPLE_TEXCUBEARRAY_SAMPLER(tex,samplertex,coord) tex.Sample (sampler##samplertex,coord)
+
+
+
+
+#define TEXTURE2D(textureName) Texture2D textureName;
+#define SAMPLER2D(samplerName) SamplerState samplerName;
+#define TEXTURE2D_ARGS(textureName, samplerName) Texture2D textureName, SamplerState samplerName
+#define TEXTURE2D_PASS(textureName, samplerName) textureName, samplerName
+#define SAMPLE_TEXTURE2D(textureName, samplerName, coord) textureName.Sample(samplerName, coord)

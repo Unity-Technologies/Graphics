@@ -25,7 +25,7 @@ Shader "Hidden/Unity/DebugViewMaterialGBuffer"
             DECLARE_GBUFFER_BAKE_LIGHTING(_CameraGBufferTexture);
 
             UNITY_DECLARE_TEX2D(_CameraDepthTexture);
-            float4		_ScreenSize;
+            
             int         _DebugViewMaterial;
 
             struct Attributes

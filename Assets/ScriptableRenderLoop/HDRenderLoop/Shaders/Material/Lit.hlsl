@@ -8,6 +8,41 @@
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 
+// TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotrpy and anisotropy case.
+// Maybe we should always calculate anisotropy in case of standard ? Don't think the compile can optimize correctly.
+
+//-----------------------------------------------------------------------------
+// Helper functions/variable specific to this materia
+//-----------------------------------------------------------------------------
+
+float PackMaterialId(int materialId)
+{
+    return float(materialId) / 3.0;
+}
+
+int UnpackMaterialId(float f)
+{
+    return int(round(f * 3.0));
+}
+
+UNITY_DECLARE_TEX2D(_PreIntegratedDFG);
+
+// For image based lighting, a part of the BSDF is pre-integrated.
+// This is done both for specular and diffuse (in case of DisneyDiffuse)
+void GetPreIntegratedDFG(float NdotV, float roughness, float3 fresnel0, out float3 specularDFG, out float diffuseDFG)
+{
+    // Pre-integrate GGX DFG
+    //  _PreIntegratedDFG.r = Gv * (1 - Fc)  with Fc = (1 - H.L)^5
+    //  _PreIntegratedDFG.g = Gv * Fc
+    // Pre integrate DisneyDiffuse DFG:
+    // _PreIntegratedDFG.z = DisneyDiffuse
+    float3 preDFG = UNITY_SAMPLE_TEX2D_LOD(_PreIntegratedDFG, float2(NdotV, roughness), 0).xyz;
+
+    // f0 * Gv * (1 - Fc) + Gv * Fc
+    specularDFG = fresnel0 * preDFG.r + preDFG.g;
+    diffuseDFG = preDFG.b;
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -30,6 +65,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.tangentWS = surfaceData.tangentWS;
         bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);
         ConvertAnisotropyToRoughness(bsdfData.roughness, surfaceData.anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+
+        bsdfData.materialId = surfaceData.anisotropy > 0 ? MATERIALID_LIT_ANISO : bsdfData.materialId;
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
@@ -51,50 +88,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         bsdfData.diffuseColor = surfaceData.baseColor;
         bsdfData.fresnel0 = surfaceData.specularColor;
     }
- 
+
     return bsdfData;
-}
-
-//-----------------------------------------------------------------------------
-// Packing helper functions specific to this surfaceData
-//-----------------------------------------------------------------------------
-
-float PackMaterialId(int materialId)
-{
-    return float(materialId) / 3.0;
-}
-
-int UnpackMaterialId(float f)
-{
-    return int(round(f * 3.0));
-}
-
-//-----------------------------------------------------------------------------
-// bake lighting function
-//-----------------------------------------------------------------------------
-
-float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData)
-{
-    float3 diffuseColor;
-
-    if (surfaceData.materialId == MATERIALID_LIT_STANDARD)
-    {
-        diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
-     }
-    else if (surfaceData.materialId == MATERIALID_LIT_SSS)
-    {
-        diffuseColor = surfaceData.baseColor;
-    }
-    else if (surfaceData.materialId == MATERIALID_LIT_CLEAR_COAT)
-    {
-        diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
-    }
-    else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
-    {
-        diffuseColor = surfaceData.baseColor;
-    }
-
-    return builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion * diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
 }
 
 //-----------------------------------------------------------------------------
@@ -173,6 +168,8 @@ BSDFData DecodeFromGBuffer(	float4 inGBuffer0,
         bsdfData.tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
         bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
         ConvertAnisotropyToRoughness(bsdfData.roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
+
+        bsdfData.materialId = anisotropy > 0 ? MATERIALID_LIT_ANISO : bsdfData.materialId;
     }
     else if (bsdfData.materialId == MATERIALID_LIT_SSS)
     {
@@ -318,10 +315,81 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 }
 
 //-----------------------------------------------------------------------------
+// PreLightData
+//-----------------------------------------------------------------------------
+
+// Precomputed lighting data to send to the various lighting functions
+struct PreLightData
+{
+    float NdotV;
+
+    // Aniso
+    float TdotV;
+    float BdotV;
+
+    float ggxLambdaV;
+    float anisoGGXLambdaV;
+
+    // image based lighting
+    float3 R;
+    float3 specularDFG;
+    float diffuseDFG;
+
+    // TODO: if we want we can store ambient occlusion here from SSAO pass for example that can be use for IBL specular occlusion
+    // float ambientOcclusion; // Feed from an ambient occlusion buffer
+};
+
+PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDFData bsdfData)
+{
+    PreLightData preLightData = (PreLightData)0;
+
+    // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
+#if 0
+    preLightData.NdotV = GetShiftedNdotV(bsdfData.normalWS, V);
+#else
+    preLightData.NdotV = GetNdotV(bsdfData.normalWS, V);
+#endif
+
+    preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
+
+    // Check if we precompute anisotropy too (should not be necessary as if the variables are not used they will be optimize out, but may avoid
+    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    {
+        preLightData.TdotV = dot(bsdfData.tangentWS, bsdfData.normalWS);
+        preLightData.BdotV = dot(bsdfData.bitangentWS, bsdfData.normalWS);
+
+        preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+    }
+
+    preLightData.R = reflect(-V, bsdfData.normalWS);
+
+    GetPreIntegratedDFG(preLightData.NdotV, bsdfData.roughness, bsdfData.fresnel0, preLightData.specularDFG, preLightData.diffuseDFG);
+
+    // #if SHADERPASS == SHADERPASS_GBUFFER
+    // preLightData.ambientOcclusion = _AmbientOcclusion.Load(uint3(coord.unPositionSS, 0)).x;
+    // #endif
+
+    return preLightData;
+}
+
+//-----------------------------------------------------------------------------
+// bake lighting function
+//-----------------------------------------------------------------------------
+
+// GetBakedDiffuseLigthing function compute the bake lighting + emissive color to be store in emissive buffer (Deferred case)
+// In forward it must be add to the final contribution.
+// This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
+float3 GetBakedDiffuseLigthing(PreLightData prelightData, SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
+{
+    // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
+    return builtinData.bakeDiffuseLighting * prelightData.diffuseDFG * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
+}
+
+//-----------------------------------------------------------------------------
 // EvaluateBSDF functions for each light type
 //-----------------------------------------------------------------------------
 
-void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PunctualLightData lightData, BSDFData bsdfData,
+void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightData, PunctualLightData lightData, BSDFData bsdfData,
                             out float4 diffuseLighting,
                             out float4 specularLighting)
 {
@@ -342,25 +410,89 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PunctualLightData light
 
     if (illuminance > 0.0f)
     {
-        float NdotV = abs(dot(bsdfData.normalWS, V)) + 1e-5f; // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
         float3 H = normalize(V + L);
         float LdotH = saturate(dot(L, H));
         float NdotH = saturate(dot(bsdfData.normalWS, H));
         float NdotL = saturate(dot(bsdfData.normalWS, L));
         float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-        float Vis = V_SmithJointGGX(NdotL, NdotV, bsdfData.roughness);
-        float D = D_GGXDividePI(NdotH, bsdfData.roughness);
+
+        float Vis;
+        float D;
+        // TODO: this way of handling aniso may not be efficient, or maybe with material classification, need to check perf here
+        // Maybe always using aniso maybe a win ?
+        if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+        {
+            float TdotL = saturate(dot(bsdfData.tangentWS, L));
+            float BdotL = saturate(dot(bsdfData.bitangentWS, L));
+
+            #ifdef USE_BSDF_PRE_LAMBDAV
+            Vis = V_SmithJointGGXAnisoLambdaV(  prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
+                                                bsdfData.roughnessT, bsdfData.roughnessB, prelightData.anisoGGXlambdaV);
+            #else
+            Vis = V_SmithJointGGXAniso( prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
+                                        bsdfData.roughnessT, bsdfData.roughnessB);
+            #endif
+
+            float TdotH = saturate(dot(bsdfData.tangentWS, H));
+            float BdotH = saturate(dot(bsdfData.bitangentWS, H));
+            D = D_GGXAnisoDividePI(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
+        }
+        else
+        {
+            #ifdef USE_BSDF_PRE_LAMBDAV
+            Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness, prelightData.ggxLambdaV);
+            #else
+            Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness);
+            #endif
+            D = D_GGXDividePI(NdotH, bsdfData.roughness);
+        }
         specularLighting.rgb = F * Vis * D;
         #ifdef DIFFUSE_LAMBERT_BRDF
         float diffuseTerm = LambertDividePI();
         #else
-        float diffuseTerm = DisneyDiffuseDividePI(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+        float diffuseTerm = DisneyDiffuseDividePI(prelightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
         #endif
         diffuseLighting.rgb = bsdfData.diffuseColor * diffuseTerm;
 
         diffuseLighting.rgb *= lightData.color * illuminance;
         specularLighting.rgb *= lightData.color * illuminance;
     }
+}
+
+// _preIntegratedFG and _CubemapLD are unique for each BRDF
+void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
+                        UNITY_ARGS_ENV(_ReflCubeTextures),
+                        out float4 diffuseLighting,
+                        out float4 specularLighting)
+{
+    /*
+    // Perform box collision to parallax correct the cubemap
+    // invTransform go from worldspace to local box space without scaling
+    float3 positionLS = mul(float4(positionWS, 1.0), light.invTransform).xyz;
+    float3 dirLS = mul(prelightData.R, (float3x3)light.invTransform);
+    float2 intersections = boxRayIntersect(positionLS, dirLS, -light.extend, light.extend);
+ 
+    diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
+    specularLighting = float4(0.0, 0.0, 0.0, 1.0);
+
+    if (intersections.y > intersections.x)
+    {
+        float3 R = positionLS + intersections.y * dirLS;
+        // local offset
+        R = R - light.localOffset;
+
+        float mipmapLevel = roughnessToMipmapLevel(bsdfData.roughness);
+        half4 rgbm = UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex, float4(glossIn.reflUVW.xyz, sliceIndex), mip);
+        float3 preLD = texCube(_CubemapLD, float4(R, textureIndex), mipmapLevel);
+        specularLighting.rgb = preLD.rgb * prelightData.specularDFG;
+
+        
+
+        specularLighting.rgb *= bsdfData.specularOcclusion;
+    }*/
+
+    diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
+    specularLighting = float4(0.0, 0.0, 0.0, 1.0);
 }
 
 #endif // UNITY_MATERIAL_LIT_INCLUDED
