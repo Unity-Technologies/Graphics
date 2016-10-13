@@ -1,4 +1,4 @@
-﻿namespace RMGUI.GraphView
+namespace RMGUI.GraphView
 {
 	// TODO We could move that higher in RMGUI.
 	public enum MouseButton

@@ -5,7 +5,6 @@ using UnityEngine;
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
-	[CustomDataView(typeof(Node))]
 	class NodeData : SimpleElementData
 	{
 		[SerializeField]
@@ -55,5 +54,7 @@ namespace RMGUI.GraphView.Demo
 			outputAnchor.type = typeof(int);
 			outputAnchor.direction = Direction.Output; // get rid of direction use styles
 		}
+
+		protected NodeData() {}
 	}
 }

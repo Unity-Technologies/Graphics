@@ -34,7 +34,7 @@ namespace RMGUI.GraphView.Demo
 		public override void DoRepaint(PaintContext args)
 		{
 			Color color = m_OutlineColor;
-			if (GetData<GraphElementData>() != null && GetData<GraphElementData>().selected)
+			if (GetData<InvisibleBorderContainerData>() != null && GetData<InvisibleBorderContainerData>().selected)
 				color = Color.blue;
 			Handles.DrawSolidRectangleWithOutline(position, color, color);
 

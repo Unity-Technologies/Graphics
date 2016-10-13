@@ -4,7 +4,6 @@ using UnityEngine;
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
-	[CustomDataView(typeof(NodeAnchor))]
 	public class NodeAnchorData : GraphElementData, IConnectable
 	{
 		protected object m_Source;
@@ -62,5 +61,7 @@ namespace RMGUI.GraphView.Demo
 			base.OnEnable();
 			m_Type = typeof(object);
 		}
+
+		protected NodeAnchorData() {}
 	}
 }

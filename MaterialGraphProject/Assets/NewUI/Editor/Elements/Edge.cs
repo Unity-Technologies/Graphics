@@ -5,7 +5,7 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	class Edge : GraphElement
+	public class Edge : GraphElement
 	{
 		const float k_EndPointRadius = 4.0f;
 		const float k_InterceptWidth = 3.0f;
@@ -89,8 +89,8 @@ namespace RMGUI.GraphView
 					break;
 				}
 
-				Vector2 segmentA = new Vector2(allPoints[a].x, allPoints[a].y);
-				Vector2 segmentB = new Vector2(allPoints[a + 1].x, allPoints[a + 1].y);
+				var segmentA = new Vector2(allPoints[a].x, allPoints[a].y);
+				var segmentB = new Vector2(allPoints[a + 1].x, allPoints[a + 1].y);
 
 				if (RectUtils.IntersectsSegment(rect, segmentA, segmentB))
 					return true;
@@ -195,7 +195,7 @@ namespace RMGUI.GraphView
 			Vector2 to = Vector2.zero;
 			GetFromToPoints(ref from, ref to);
 
-			Color edgeColor = (GetData<GraphElementData>() != null && GetData<GraphElementData>().selected) ? Color.yellow : Color.white;
+			Color edgeColor = (GetData<EdgeData>() != null && GetData<EdgeData>().selected) ? Color.yellow : Color.white;
 
 			Orientation orientation = leftData.orientation;
 

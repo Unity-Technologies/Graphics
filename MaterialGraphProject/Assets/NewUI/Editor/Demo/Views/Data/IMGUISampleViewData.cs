@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
-	[CustomDataView(typeof(IMGUIElement))]
 	public class IMGUISampleElementData : IMGUIData
 	{
 		private int m_ControlInteger;
@@ -50,17 +49,22 @@ namespace RMGUI.GraphView.Demo
 
 			GUI.Label(new Rect(0, y + 90.0f, 120, 30), "No-layout ends here");
 		}
+
+		protected IMGUISampleElementData() {}
 	}
 
 	public class IMGUISampleViewData : GraphViewDataSource
 	{
-		protected void OnEnable()
+		protected new void OnEnable()
 		{
+			base.OnEnable();
 			var imguiSample = CreateInstance<IMGUISampleElementData>();
 			imguiSample.position = new Rect(100, 200, 230, 300);
 			imguiSample.title = "IMGUIControls: modal";
 			imguiSample.capabilities |= Capabilities.Resizable;
 			AddElement(imguiSample);
 		}
+
+		protected IMGUISampleViewData() {}
 	}
 }

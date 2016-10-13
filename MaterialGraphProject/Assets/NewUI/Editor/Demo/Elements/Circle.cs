@@ -13,7 +13,7 @@ namespace RMGUI.GraphView.Demo
 								  new Vector3(0.0f, 0.0f, -1.0f),
 								  position.width / 2.0f);
 
-			if (GetData<GraphElementData>() != null && GetData<GraphElementData>().selected)
+			if (GetData<CircleData>() != null && GetData<CircleData>().selected)
 			{
 				Color oldColor = Handles.color;
 				Handles.color = Color.yellow;

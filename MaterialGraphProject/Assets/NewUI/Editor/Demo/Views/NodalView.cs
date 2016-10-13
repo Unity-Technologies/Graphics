@@ -9,7 +9,7 @@ namespace RMGUI.GraphView.Demo
 	[StyleSheet("Assets/Editor/Demo/Views/NodalView.uss")]
 	class NodesContentView : SimpleContentView
 	{
-		System.Random rnd = new System.Random();
+		private readonly System.Random rnd = new System.Random();
 
 		public NodesContentView()
 		{
@@ -19,7 +19,7 @@ namespace RMGUI.GraphView.Demo
 			contentViewContainer.AddManipulator(new ShortcutHandler(dictionary));
 
 			// Contextual menu to create new nodes
-			contentViewContainer.AddManipulator(new ContextualMenu((evt, customData) =>
+			AddManipulator(new ContextualMenu((evt, customData) =>
 			{
 				var menu = new GenericMenu();
 				menu.AddItem(new GUIContent("Create Operator"), false,
@@ -28,6 +28,11 @@ namespace RMGUI.GraphView.Demo
 				menu.ShowAsContext();
 				return EventPropagation.Continue;
 			}));
+
+			dataMapper[typeof(CustomEdgeData)] = typeof(CustomEdge);
+			dataMapper[typeof(NodeAnchorData)] = typeof(NodeAnchor);
+			dataMapper[typeof(NodeData)] = typeof(Node);
+			dataMapper[typeof(VerticalNodeData)] = typeof(VerticalNode);
 		}
 
 		public void CreateOperator()
@@ -64,7 +69,7 @@ namespace RMGUI.GraphView.Demo
 						var edge = element as Edge;
 						if (edge == null) continue;
 
-						var edgeData = edge.dataProvider as EdgeData;
+						var edgeData = edge.GetData<EdgeData>();
 						if (edgeData == null) continue;
 
 						// Try output anchor first
@@ -84,7 +89,7 @@ namespace RMGUI.GraphView.Demo
 					}
 				}
 
-				elementsToRemove.Add(selectedElement.GetData<GraphElementData>());
+				elementsToRemove.Add(selectedElement.dataProvider);
 			}
 
 			// Notify node anchors of deconnection

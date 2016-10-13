@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.RMGUI;
 using UnityEngine.RMGUI.StyleSheets;
@@ -14,75 +15,47 @@ namespace RMGUI.GraphView.Demo
 		// Most likely will be a built-in style property soon
 		const string BackgroundColorProperty = "background-color";
 
-		public float spacing
+		float spacing
 		{
 			get
 			{
 				return m_Container.GetStyleFloat(SpacingProperty, 50.0f);
 			}
-			set
-			{
-				m_Container.SetStyleFloat(SpacingProperty, value);
-			}
 		}
 
-		public int thickLines
+		int thickLines
 		{
 			get
 			{
 				return m_Container.GetStyleInt(ThickLinesProperty, 10);
 			}
-			set
-			{
-				m_Container.SetStyleInt(ThickLinesProperty, value);
-			}
 		}
 
-		public Color lineColor
+		Color lineColor
 		{
 			get
 			{
 				return m_Container.GetStyleColor(LineColorProperty, new Color(0f, 0f, 0f, 0.18f));
 			}
-			set
-			{
-				m_Container.SetStyleColor(LineColorProperty, value);
-			}
 		}
 
-		public Color thickLineColor
+		Color thickLineColor
 		{
 			get
 			{
 				return m_Container.GetStyleColor(ThickLineColorProperty, new Color(0f, 0f, 0f, 0.38f));
 			}
-			set
-			{
-				m_Container.SetStyleColor(ThickLineColorProperty, value);
-			}
 		}
 
-		public Color backgroundColor
+		Color backgroundColor
 		{
 			get
 			{
 				return m_Container.GetStyleColor(BackgroundColorProperty, new Color(0.17f, 0.17f, 0.17f, 1.0f));
 			}
-			set
-			{
-				m_Container.SetStyleColor(BackgroundColorProperty, value);
-			}
 		}
 
-		private readonly VisualContainer m_Container;
-
-		public GridBackground()
-		{ }
-
-		public GridBackground(VisualContainer container)
-		{
-			m_Container = container;
-		}
+		private VisualContainer m_Container;
 
 		private Vector3 Clip(Rect clipRect, Vector3 _in)
 		{
@@ -101,14 +74,19 @@ namespace RMGUI.GraphView.Demo
 
 		public void PrePaint(VisualElement target, PaintContext pc)
 		{
-			Rect clientRect = target.position;
+			var graphView = target as GraphView;
+			if (graphView == null)
+			{
+				throw new InvalidOperationException("GridBackground decorator can only be added to a GraphView");
+			}
+			m_Container = graphView.contentViewContainer;
+			Rect clientRect = graphView.position;
 
-			VisualElement e = m_Container ?? target;
-			var targetScale = new Vector3(e.transform.GetColumn(0).magnitude,
-										  e.transform.GetColumn(1).magnitude,
-										  e.transform.GetColumn(2).magnitude);
-			var targetTranslation = e.transform.GetColumn(3);
-			var targetPosition = e.position;
+			var containerScale = new Vector3(m_Container.transform.GetColumn(0).magnitude,
+			                                 m_Container.transform.GetColumn(1).magnitude,
+			                                 m_Container.transform.GetColumn(2).magnitude);
+			var containerTranslation = m_Container.transform.GetColumn(3);
+			var containerPosition = m_Container.position;
 
 			// background
 			UIHelpers.ApplyWireMaterial();
@@ -125,15 +103,15 @@ namespace RMGUI.GraphView.Demo
 			Vector3 from = new Vector3(clientRect.x, clientRect.y, 0.0f);
 			Vector3 to = new Vector3(clientRect.x, clientRect.height, 0.0f);
 
-			var tx = Matrix4x4.TRS(targetTranslation, Quaternion.identity, Vector3.one);
+			var tx = Matrix4x4.TRS(containerTranslation, Quaternion.identity, Vector3.one);
 
 			from = tx.MultiplyPoint(from);
 			to = tx.MultiplyPoint(to);
 
-			from.x += (targetPosition.x * targetScale.x);
-			from.y += (targetPosition.y * targetScale.y);
-			to.x += (targetPosition.x * targetScale.x);
-			to.y += (targetPosition.y * targetScale.y);
+			from.x += (containerPosition.x * containerScale.x);
+			from.y += (containerPosition.y * containerScale.y);
+			to.x += (containerPosition.x * containerScale.x);
+			to.y += (containerPosition.y * containerScale.y);
 
 			Handles.DrawWireDisc(from, new Vector3(0.0f, 0.0f, -1.0f), 6f);
 
@@ -141,7 +119,7 @@ namespace RMGUI.GraphView.Demo
 			float thickGridLineY = from.y;
 
 			// Update from/to to start at beginning of clientRect
-			from.x = (from.x % (spacing * (targetScale.x)) - (spacing * (targetScale.x)));
+			from.x = (from.x % (spacing * (containerScale.x)) - (spacing * (containerScale.x)));
 			to.x = from.x;
 
 			from.y = clientRect.y;
@@ -149,8 +127,8 @@ namespace RMGUI.GraphView.Demo
 
 			while (from.x < clientRect.width)
 			{
-				from.x += spacing * targetScale.x;
-				to.x += spacing * targetScale.x;
+				from.x += spacing * containerScale.x;
+				to.x += spacing * containerScale.x;
 
 				GL.Begin(GL.LINES);
 					GL.Color(lineColor);
@@ -160,7 +138,7 @@ namespace RMGUI.GraphView.Demo
 			}
 
 			float thickLineSpacing = (spacing * thickLines);
-			from.x = to.x = (thickGridLineX % (thickLineSpacing * (targetScale.x)) - (thickLineSpacing * (targetScale.x)));
+			from.x = to.x = (thickGridLineX % (thickLineSpacing * (containerScale.x)) - (thickLineSpacing * (containerScale.x)));
 
 			while (from.x < clientRect.width + thickLineSpacing)
 			{
@@ -170,30 +148,30 @@ namespace RMGUI.GraphView.Demo
 					GL.Vertex(Clip(clientRect, to));
 				GL.End();
 
-				from.x += (spacing * targetScale.x * thickLines);
-				to.x += (spacing * targetScale.x * thickLines);
+				from.x += (spacing * containerScale.x * thickLines);
+				to.x += (spacing * containerScale.x * thickLines);
 			}
 
 			// horizontal lines
 			from = new Vector3(clientRect.x, clientRect.y, 0.0f);
 			to = new Vector3(clientRect.x + clientRect.width, clientRect.y, 0.0f);
 
-			from.x += (targetPosition.x * targetScale.x);
-			from.y += (targetPosition.y * targetScale.y);
-			to.x += (targetPosition.x * targetScale.x);
-			to.y += (targetPosition.y * targetScale.y);
+			from.x += (containerPosition.x * containerScale.x);
+			from.y += (containerPosition.y * containerScale.y);
+			to.x += (containerPosition.x * containerScale.x);
+			to.y += (containerPosition.y * containerScale.y);
 
 			from = tx.MultiplyPoint(from);
 			to = tx.MultiplyPoint(to);
 
-			from.y = to.y = (from.y % (spacing * (targetScale.y)) - (spacing * (targetScale.y)));
+			from.y = to.y = (from.y % (spacing * (containerScale.y)) - (spacing * (containerScale.y)));
 			from.x = clientRect.x;
 			to.x = clientRect.width;
 
 			while (from.y < clientRect.height)
 			{
-				from.y += spacing * targetScale.y;
-				to.y += spacing * targetScale.y;
+				from.y += spacing * containerScale.y;
+				to.y += spacing * containerScale.y;
 
 				GL.Begin(GL.LINES);
 					GL.Color(lineColor);
@@ -203,7 +181,7 @@ namespace RMGUI.GraphView.Demo
 			}
 
 			thickLineSpacing = spacing * thickLines;
-			from.y = to.y = (thickGridLineY % (thickLineSpacing * (targetScale.y)) - (thickLineSpacing * (targetScale.y)));
+			from.y = to.y = (thickGridLineY % (thickLineSpacing * (containerScale.y)) - (thickLineSpacing * (containerScale.y)));
 
 			while (from.y < clientRect.height + thickLineSpacing)
 			{
@@ -213,8 +191,8 @@ namespace RMGUI.GraphView.Demo
 					GL.Vertex(Clip(clientRect, to));
 				GL.End();
 
-				from.y += spacing * targetScale.y * thickLines;
-				to.y += spacing * targetScale.y * thickLines;
+				from.y += spacing * containerScale.y * thickLines;
+				to.y += spacing * containerScale.y * thickLines;
 			}
 		}
 

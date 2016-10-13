@@ -22,7 +22,10 @@ namespace UnityEditor.Graphing.Drawing
             AddManipulator(new SelectionDragger());
             AddManipulator(new ClickSelector());
             AddManipulator(new ContextualMenu(DoContextMenu));
-            AddDecorator(new GridBackground(contentViewContainer));
+            AddDecorator(new GridBackground());
+
+            dataMapper[typeof(MaterialNodeData)] = typeof(MaterialGraphNode);
+            dataMapper[typeof(NodeAnchorData)] = typeof(NodeAnchor);
         }
 
         public virtual bool CanAddToNodeMenu(Type type)

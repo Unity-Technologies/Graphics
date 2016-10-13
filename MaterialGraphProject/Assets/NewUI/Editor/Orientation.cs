@@ -1,4 +1,4 @@
-﻿namespace RMGUI.GraphView
+namespace RMGUI.GraphView
 {
 	public enum Orientation
 	{

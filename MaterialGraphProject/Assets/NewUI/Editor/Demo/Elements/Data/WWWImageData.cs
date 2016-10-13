@@ -3,12 +3,14 @@ using System;
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
-	[CustomDataView(typeof(WWWImage))]
 	public class WWWImageData : SimpleElementData
 	{
-		public WWWImageData()
+		protected new void OnEnable()
 		{
+			base.OnEnable();
 			title = "WWWImage";
 		}
+
+		protected WWWImageData() {}
 	}
 }

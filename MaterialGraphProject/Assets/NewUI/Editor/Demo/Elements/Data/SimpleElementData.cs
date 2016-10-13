@@ -3,7 +3,6 @@ using System;
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
-	[CustomDataView(typeof(SimpleElement))]
 	public class SimpleElementData : GraphElementData
 	{
 		public string title;
@@ -13,5 +12,7 @@ namespace RMGUI.GraphView.Demo
 			base.OnEnable();
 			title = "simpleElement";
 		}
+
+		protected SimpleElementData() {}
 	}
 }

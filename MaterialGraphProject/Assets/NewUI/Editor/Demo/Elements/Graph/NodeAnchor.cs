@@ -10,8 +10,8 @@ namespace RMGUI.GraphView.Demo
 	{
 		public const float k_NodeSize = 15.0f;
 
-		private EdgeConnector<EdgeData> m_RegularConnector = new EdgeConnector<EdgeData>();
-		private EdgeConnector<CustomEdgeData> m_CustomConnector = new EdgeConnector<CustomEdgeData>();
+		private readonly EdgeConnector<EdgeData> m_RegularConnector = new EdgeConnector<EdgeData>();
+		private readonly EdgeConnector<CustomEdgeData> m_CustomConnector = new EdgeConnector<CustomEdgeData>();
 
 		private IManipulator m_CurrentConnector;
 
@@ -25,7 +25,7 @@ namespace RMGUI.GraphView.Demo
 
 		private void UpdateConnector()
 		{
-			var nodeAnchorData = dataProvider as NodeAnchorData;
+			var nodeAnchorData = GetData<NodeAnchorData>();
 			if (nodeAnchorData == null)
 				return;
 
@@ -76,8 +76,7 @@ namespace RMGUI.GraphView.Demo
 
 		protected virtual void DrawConnector()
 		{
-			// TODO This cast here is not ideal
-			var nodeAnchorData = dataProvider as NodeAnchorData;
+			var nodeAnchorData = GetData<NodeAnchorData>();
 			if (nodeAnchorData == null)
 				return;
 
@@ -110,7 +109,7 @@ namespace RMGUI.GraphView.Demo
 			UpdateConnector();
 			ClearChildren();
 
-			var nodeAnchorData = dataProvider as NodeAnchorData;
+			var nodeAnchorData = GetData<NodeAnchorData>();
 			if (nodeAnchorData == null)
 				return;
 
@@ -124,7 +123,8 @@ namespace RMGUI.GraphView.Demo
 			// TODO: I figure this placement could be more generic with a better use of CSS placement
 			if (nodeAnchorData.orientation == Orientation.Horizontal)
 			{
-				label = new Label(new GUIContent(nodeAnchorData.name))
+				string anchorName = string.IsNullOrEmpty(nodeAnchorData.name) ? type.Name : nodeAnchorData.name;
+				label = new Label(new GUIContent(anchorName))
 				{
 					positionType = PositionType.Absolute,
 					positionTop = 0,
@@ -163,7 +163,7 @@ namespace RMGUI.GraphView.Demo
 				}
 			}
 
-			GetData<GraphElementData>().capabilities &= ~Capabilities.Selectable;
+			GetData<NodeAnchorData>().capabilities &= ~Capabilities.Selectable;
 
 			label.pickingMode = PickingMode.Ignore;
 			AddChild(label);
@@ -171,7 +171,7 @@ namespace RMGUI.GraphView.Demo
 
 		public Rect GetSelectionRect()
 		{
-			var nodeAnchorData = dataProvider as NodeAnchorData;
+			var nodeAnchorData = GetData<NodeAnchorData>();
 			if (nodeAnchorData == null)
 				return new Rect();
 

@@ -3,7 +3,6 @@ using System;
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
-	[CustomDataView(typeof(VerticalNode))]
 	class VerticalNodeData : NodeData
 	{
 		// this class is useless, make a simple creation function
@@ -24,5 +23,7 @@ namespace RMGUI.GraphView.Demo
 			outputAnchor.direction = Direction.Output;
 			outputAnchor.type = typeof(float);
 		}
+
+		protected VerticalNodeData() {}
 	}
 }

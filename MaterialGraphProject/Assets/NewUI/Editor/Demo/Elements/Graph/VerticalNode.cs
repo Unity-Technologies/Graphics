@@ -30,7 +30,7 @@ namespace RMGUI.GraphView.Demo
 		public override void DoRepaint(PaintContext painter)
 		{
 			base.DoRepaint(painter);
-			if (GetData<GraphElementData>() != null && GetData<GraphElementData>().selected)
+			if (GetData<VerticalNodeData>() != null && GetData<VerticalNodeData>().selected)
 			{
 				painter.DrawRectangleOutline(transform, position, Color.yellow);
 			}
@@ -41,7 +41,7 @@ namespace RMGUI.GraphView.Demo
 			base.OnDataChanged();
 			m_ContainerTop.ClearChildren();
 			m_ContainerBottom.ClearChildren();
-			var nodeData = dataProvider as VerticalNodeData;
+			var nodeData = GetData<VerticalNodeData>();
 
 			if (nodeData != null)
 			{

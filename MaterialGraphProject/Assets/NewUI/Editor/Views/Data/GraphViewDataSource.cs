@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RMGUI.GraphView
 {
-    [Serializable]
+	[Serializable]
 	public abstract class GraphViewDataSource : ScriptableObject, IGraphElementDataSource
 	{
 		[SerializeField]
@@ -23,6 +23,10 @@ namespace RMGUI.GraphView
 		public void RemoveElement(GraphElementData element)
 		{
 			m_Elements.RemoveAll(x => x == element);
+		}
+
+		protected void OnEnable()
+		{
 		}
 	}
 }

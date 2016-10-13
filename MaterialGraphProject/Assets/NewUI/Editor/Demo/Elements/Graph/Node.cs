@@ -4,8 +4,8 @@ namespace RMGUI.GraphView.Demo
 {
 	class Node : SimpleElement
 	{
-		VisualContainer m_InputContainer;
-		VisualContainer m_OutputContainer;
+		readonly VisualContainer m_InputContainer;
+		readonly VisualContainer m_OutputContainer;
 
 		public override void OnDataChanged()
 		{
@@ -14,7 +14,7 @@ namespace RMGUI.GraphView.Demo
 			m_OutputContainer.ClearChildren();
 			m_InputContainer.ClearChildren();
 
-			var nodeData = dataProvider as NodeData;
+			var nodeData = GetData<NodeData>();
 
 			if (nodeData != null)
 			{
