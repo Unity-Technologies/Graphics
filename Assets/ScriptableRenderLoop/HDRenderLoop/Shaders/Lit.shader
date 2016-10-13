@@ -118,15 +118,22 @@ Shader "Unity/Lit"
                                 )
             {
                 Varyings input = UnpackVaryings(packedInput);
+                float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+                float3 positionWS = input.positionWS;
+
                 SurfaceData surfaceData;
                 BuiltinData builtinData;
                 GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+
+                BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+                Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);
+                PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
 
                 ENCODE_INTO_GBUFFER(surfaceData, outGBuffer);
                 #ifdef VELOCITY_IN_GBUFFER
                 ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outGBuffer);
                 #endif
-                ENCODE_BAKE_LIGHTING_INTO_GBUFFER(GetBakedDiffuseLigthing(surfaceData, builtinData), outGBuffer);
+                ENCODE_BAKE_LIGHTING_INTO_GBUFFER(GetBakedDiffuseLigthing(preLightData, surfaceData, builtinData, bsdfData), outGBuffer);
             }
 
             #endif
@@ -214,12 +221,14 @@ Shader "Unity/Lit"
                 GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
 
                 BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+                Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);
+                PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
 
                 float4 diffuseLighting;
                 float4 specularLighting;
-                ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
+                ForwardLighting(V, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
-                diffuseLighting.rgb += GetBakedDiffuseLigthing(surfaceData, builtinData);
+                diffuseLighting.rgb += GetBakedDiffuseLigthing(preLightData, surfaceData, builtinData, bsdfData);
 
                 return float4(diffuseLighting.rgb + specularLighting.rgb, builtinData.opacity);
             }

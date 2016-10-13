@@ -9,6 +9,7 @@
 #define MATERIALID_LIT_SSS (1)
 #define MATERIALID_LIT_CLEAR_COAT (2)
 #define MATERIALID_LIT_SPECULAR (3)
+#define MATERIALID_LIT_ANISO (4)
 
 //
 // UnityEngine.ScriptableRenderLoop.Lit.SurfaceData:  static fields

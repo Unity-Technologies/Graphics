@@ -13,7 +13,8 @@ namespace UnityEngine.ScriptableRenderLoop
             LitStandard = 0,
             LitSSS = 1,
             LitClearCoat = 2,
-            LitSpecular = 3
+            LitSpecular = 3,
+            LitAniso = 4 // Should be the last as it is not setup by the users but generated based on anisotropy property
         };
 
         //-----------------------------------------------------------------------------

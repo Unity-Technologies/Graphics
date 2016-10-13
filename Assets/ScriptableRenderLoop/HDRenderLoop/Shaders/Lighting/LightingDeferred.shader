@@ -30,7 +30,6 @@ Shader "Hidden/Unity/LightingDeferred"
             DECLARE_GBUFFER_BAKE_LIGHTING(_CameraGBufferTexture);
 
             UNITY_DECLARE_TEX2D(_CameraDepthTexture);
-            float4 _ScreenSize;
 
             float4x4 _InvViewProjMatrix;
 
@@ -67,10 +66,12 @@ Shader "Hidden/Unity/LightingDeferred"
                 FETCH_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
                 BSDFData bsdfData = DECODE_FROM_GBUFFER(gbuffer);
 
+                PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
+
                 // NOTE: Currently calling the forward loop, same code... :)
                 float4 diffuseLighting;
                 float4 specularLighting;
-                ForwardLighting(V, positionWS, bsdfData, diffuseLighting, specularLighting);
+                ForwardLighting(V, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
 
                 FETCH_BAKE_LIGHTING_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
                 diffuseLighting.rgb += DECODE_BAKE_LIGHTING_FROM_GBUFFER(gbuffer);

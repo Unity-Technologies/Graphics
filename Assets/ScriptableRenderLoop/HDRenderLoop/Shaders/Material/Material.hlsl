@@ -1,14 +1,15 @@
 #ifndef UNITY_MATERIAL_INCLUDED
 #define UNITY_MATERIAL_INCLUDED
 
+#include "Assets/ScriptableRenderLoop/ShaderLibrary/Common.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/Packing.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/BSDF.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/CommonLighting.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/Debug.hlsl"
 
-#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
-#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/LightDefinition.cs.hlsl"
+#include "../ShaderConfig.cs"
+#include "../LightDefinition.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions
