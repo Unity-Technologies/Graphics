@@ -43,6 +43,7 @@ Texture2D _CameraDepthTexture;
 Texture2D _CameraGBufferTexture0;
 Texture2D _CameraGBufferTexture1;
 Texture2D _CameraGBufferTexture2;
+Texture2D _CameraGBufferTexture3;
 
 
 struct v2f {
@@ -64,6 +65,7 @@ struct StandardData
     float3 diffuseColor;
     float3 normalWorld;
     float smoothness;
+	float3 emission;
 };
 
 struct LocalDataBRDF
@@ -77,7 +79,7 @@ struct LocalDataBRDF
 
 static LocalDataBRDF g_localParams;
 
-StandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, float4 gbuffer2)
+StandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, float4 gbuffer2, float4 gbuffer3)
 {
     StandardData data;
 
@@ -85,6 +87,7 @@ StandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, floa
     data.smoothness = gbuffer1.a;
     data.diffuseColor = gbuffer0.xyz; data.specularColor = gbuffer1.xyz;
     float ao = gbuffer0.a;
+	data.emission = gbuffer3.xyz;
 
     return data;
 }
@@ -111,15 +114,16 @@ half4 frag (v2f i) : SV_Target
     float4 gbuffer0 = _CameraGBufferTexture0.Load( uint3(pixCoord.xy, 0) );
     float4 gbuffer1 = _CameraGBufferTexture1.Load( uint3(pixCoord.xy, 0) );
     float4 gbuffer2 = _CameraGBufferTexture2.Load( uint3(pixCoord.xy, 0) );
+	float4 gbuffer3 = _CameraGBufferTexture3.Load( uint3(pixCoord.xy, 0) );
 
-    StandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+    StandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2, gbuffer3);
 
     g_localParams.gbuf = data;
     g_localParams.oneMinusReflectivity = 1.0 - SpecularStrength(data.specularColor.rgb);
     g_localParams.Vworld = Vworld;
 
     uint numLightsProcessed = 0;
-    float3 c = ExecuteLightListTiled(numLightsProcessed, pixCoord, vP, vPw, Vworld);
+    float3 c = /*data.emission +*/ ExecuteLightListTiled(numLightsProcessed, pixCoord, vP, vPw, Vworld);
 
     //c = OverlayHeatMap(numLightsProcessed, c);
     return float4(c,1.0);

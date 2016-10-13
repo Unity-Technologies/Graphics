@@ -1,3 +1,6 @@
+// The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
+// https://github.com/wolfgangfengel/GPU-Pro-7
+
 #pragma kernel ScreenBoundsAABB
 
 #include "..\common\ShaderBase.h"

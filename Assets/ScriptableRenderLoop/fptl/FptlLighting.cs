@@ -317,8 +317,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
             //cmd.Blit (kGBufferNormal, (RenderTexture)null); // debug: display normals
 
-            cmd.Blit(kGBufferEmission, kCameraTarget, m_DeferredMaterial, 0);
-            cmd.Blit(kGBufferEmission, kCameraTarget, m_DeferredReflectionMaterial, 0);
+            cmd.Blit(0, kCameraTarget, m_DeferredMaterial, 0);
+            cmd.Blit(0, kCameraTarget, m_DeferredReflectionMaterial, 0);
 
             // Set the intermediate target for compositing (skybox, etc)
             cmd.SetRenderTarget(new RenderTargetIdentifier(kCameraTarget), new RenderTargetIdentifier(kCameraDepthTexture));
