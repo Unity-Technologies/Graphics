@@ -839,9 +839,8 @@ namespace UnityEditor.Experimental
             if (data.hasKill)
             {
                 builder.WriteLine("RWStructuredBuffer<int> flags;");
-                builder.WriteLine("ConsumeStructuredBuffer<uint> deadListIn;");
-                builder.WriteLine("AppendStructuredBuffer<uint> deadListOut;");
-                builder.WriteLine("Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB");
+                builder.WriteLine("RWStructuredBuffer<uint> deadList;");
+                builder.WriteLine("RWStructuredBuffer<uint> systemData;");
                 builder.WriteLine();
             }
 
@@ -904,13 +903,19 @@ namespace UnityEditor.Experimental
             if (hasInit)
             {
                 builder.WriteKernelHeader("CSVFXInit");
-                if (data.hasKill)
-                    builder.WriteLine("if (id.x < min(nbSpawned,deadListCount[0]))");
-                else
-                    builder.WriteLine("if (id.x < nbSpawned)");
+                builder.WriteLine("if (id.x < nbSpawned)");
                 builder.EnterScope();
                 if (data.hasKill)
-                    builder.WriteLine("uint index = deadListIn.Consume();");
+                {
+                    builder.WriteLine("uint index;");
+                    builder.WriteLine("int freeIndex;");
+                    builder.WriteLine("InterlockedAdd(systemData[VFX_DATA_NB_FREE],-1,freeIndex);");
+                    builder.WriteLine("if (freeIndex < 0 || (index = deadList[freeIndex]) > systemData[VFX_DATA_NB_CURRENT])");
+                    builder.EnterScope();
+                    builder.WriteLine("InterlockedAdd(systemData[VFX_DATA_NB_INIT],1,index);");
+                    builder.WriteLine("if (index >= nbMax) return; // We dont want to overflow");
+                    builder.ExitScope();
+                }
                 else
                     builder.WriteLine("uint index = id.x + spawnIndex;");
                 builder.WriteLine();
@@ -1089,12 +1094,18 @@ namespace UnityEditor.Experimental
                     builder.WriteLine("if (kill)");
                     builder.EnterScope();
                     builder.WriteLine("flags[index] = 0;");
-                    builder.WriteLine("deadListOut.Append(index);");
-                    //builder.WriteLine("return;");
+
+                    builder.WriteLine("if (index < systemData[VFX_DATA_NB_CURRENT])");
+                    builder.EnterScope();
+                    builder.WriteLine("int freeIndex;");
+                    builder.WriteLine("InterlockedAdd(systemData[VFX_DATA_NB_FREE],1,freeIndex);");
+                    builder.WriteLine("deadList[freeIndex] = index;");
+                    builder.ExitScope();
                     builder.ExitScope();
 
                     builder.WriteLine("else");
                     builder.EnterScope();
+                    builder.WriteLine("InterlockedMax(systemData[VFX_DATA_NB_UPDATE],index);");
                 }
 
                 foreach (var attribBuffer in data.attributeBuffers)

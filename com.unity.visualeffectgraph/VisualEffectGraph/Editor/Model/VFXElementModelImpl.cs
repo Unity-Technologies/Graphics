@@ -885,6 +885,7 @@ namespace UnityEditor.Experimental
                     m_ID,
                     MaxNb,
                     rtData.SimulationShader,
+                    rtData.hasKill ? VFXEditor.SyncShader : null,
                     rtData.OutputShader,
                     rtData.buffersDesc,
                     rtData.outputType,
