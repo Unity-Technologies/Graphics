@@ -45,52 +45,56 @@
 #define DEBUGVIEW_LIT_BSDFDATA_BITANGENT_WS (1038)
 #define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_T (1039)
 #define DEBUGVIEW_LIT_BSDFDATA_ROUGHNESS_B (1040)
-#define DEBUGVIEW_LIT_BSDFDATA_SUB_SURFACE_RADIUS (1041)
-#define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1042)
-#define DEBUGVIEW_LIT_BSDFDATA_SUB_SURFACE_PROFILE (1043)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1044)
-#define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1045)
+#define DEBUGVIEW_LIT_BSDFDATA_ANISOTROPY (1041)
+#define DEBUGVIEW_LIT_BSDFDATA_SUB_SURFACE_RADIUS (1042)
+#define DEBUGVIEW_LIT_BSDFDATA_THICKNESS (1043)
+#define DEBUGVIEW_LIT_BSDFDATA_SUB_SURFACE_PROFILE (1044)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1045)
+#define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1046)
 
 // Generated from UnityEngine.ScriptableRenderLoop.Lit.SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
-    float3 baseColor;
-    float specularOcclusion;
-    float3 normalWS;
-    float perceptualSmoothness;
-    int materialId;
-    float ambientOcclusion;
-    float3 tangentWS;
-    float anisotropy;
-    float metalic;
-    float specular;
-    float subSurfaceRadius;
-    float thickness;
-    int subSurfaceProfile;
-    float3 coatNormalWS;
-    float coatPerceptualSmoothness;
-    float3 specularColor;
+	float3 baseColor;
+	float specularOcclusion;
+	float3 normalWS;
+	float perceptualSmoothness;
+	int materialId;
+	float ambientOcclusion;
+	float3 tangentWS;
+	float anisotropy;
+	float metalic;
+	float specular;
+	float subSurfaceRadius;
+	float thickness;
+	int subSurfaceProfile;
+	float3 coatNormalWS;
+	float coatPerceptualSmoothness;
+	float3 specularColor;
 };
 
 // Generated from UnityEngine.ScriptableRenderLoop.Lit.BSDFData
 // PackingRules = Exact
 struct BSDFData
 {
-    float3 diffuseColor;
-    float3 fresnel0;
-    float specularOcclusion;
-    float3 normalWS;
-    float perceptualRoughness;
-    float roughness;
-    float materialId;
-    float3 tangentWS;
-    float3 bitangentWS;
-    float roughnessT;
-    float roughnessB;
-    float subSurfaceRadius;
-    float thickness;
-    int subSurfaceProfile;
-    float3 coatNormalWS;
-    float coatRoughness;
+	float3 diffuseColor;
+	float3 fresnel0;
+	float specularOcclusion;
+	float3 normalWS;
+	float perceptualRoughness;
+	float roughness;
+	float materialId;
+	float3 tangentWS;
+	float3 bitangentWS;
+	float roughnessT;
+	float roughnessB;
+	float anisotropy;
+	float subSurfaceRadius;
+	float thickness;
+	int subSurfaceProfile;
+	float3 coatNormalWS;
+	float coatRoughness;
 };
+
+

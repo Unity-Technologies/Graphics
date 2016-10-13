@@ -17,11 +17,13 @@
 // PackingRules = Exact
 struct BuiltinData
 {
-    float opacity;
-    float3 bakeDiffuseLighting;
-    float3 emissiveColor;
-    float emissiveIntensity;
-    float2 velocity;
-    float2 distortion;
-    float distortionBlur;
+	float opacity;
+	float3 bakeDiffuseLighting;
+	float3 emissiveColor;
+	float emissiveIntensity;
+	float2 velocity;
+	float2 distortion;
+	float distortionBlur;
 };
+
+
