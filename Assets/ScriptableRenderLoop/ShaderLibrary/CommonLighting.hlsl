@@ -54,12 +54,12 @@ void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float r
 // Fake anisotropic by distorting the normal as suggested by:
 // Donald Revie - Implementing Fur Using Deferred Shading (GPU Pro 2)
 // anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction)
-float3 GetAnisotropicModifiedNormal(float3 normalWS, float3 tangentWS, float3 viewVector, float anisotropy)
+float3 GetAnisotropicModifiedNormal(float3 N, float3 T, float3 V, float anisotropy)
 {
-    float3 anisoTangentWS = cross(-viewVector, tangentWS);
-    float3 anisoNormalWS = cross(anisoTangentWS, tangentWS);
+    float3 anisoT = cross(-V, T);
+    float3 anisoN = cross(anisoT, T);
 
-    return normalize(lerp(normalWS, anisoNormalWS, anisotropy));
+    return normalize(lerp(N, anisoN, anisotropy));
 }
 
 //-----------------------------------------------------------------------------
