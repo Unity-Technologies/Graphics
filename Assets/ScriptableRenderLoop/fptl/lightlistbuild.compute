@@ -8,6 +8,7 @@
 
 
 uniform int g_iNrVisibLights;
+uniform uint2 g_viDimensions;
 uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
 
@@ -98,9 +99,8 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	if(t<MAX_NR_COARSE_ENTRIES)
 		prunedList[t]=0;
 	
-	uint iWidth;
-	uint iHeight;
-	g_depth_tex.GetDimensions(iWidth, iHeight);
+	uint iWidth = g_viDimensions.x;
+	uint iHeight = g_viDimensions.y;
 	uint nrTilesX = (iWidth+15)/16;
 	uint nrTilesY = (iHeight+15)/16;
 
@@ -123,24 +123,32 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	// establish min and max depth first
 	float dpt_mi=asfloat(uFltMax), dpt_ma=0.0;
 
-	for(int idx=t; idx<256; idx+=NR_THREADS)
-	{
-		uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
-		const float fDpth = FetchDepth(g_depth_tex, uCrd);
-		if(fDpth<VIEWPORT_SCALE_Z)		// if not skydome
-		{
-			dpt_mi = min(fDpth, dpt_mi);
-			dpt_ma = max(fDpth, dpt_ma);
-		}
-	}
 
-	InterlockedMax(ldsZMax, asuint(dpt_ma) );
-	InterlockedMin(ldsZMin, asuint(dpt_mi) );
+	float4 vLinDepths;
+	{
+		// Fetch depths and calculate min/max
+		[unroll]
+		for(int i = 0; i < 4; i++)
+		{
+			int idx = i * NR_THREADS + t;
+			uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
+			const float fDepth = FetchDepth(g_depth_tex, uCrd);
+			vLinDepths[i] = GetLinearDepth(fDepth);
+			if(fDepth<VIEWPORT_SCALE_Z)		// if not skydome
+			{
+				dpt_mi = min(fDepth, dpt_mi);
+				dpt_ma = max(fDepth, dpt_ma);
+			}
+		}
+
+		InterlockedMax(ldsZMax, asuint(dpt_ma));
+		InterlockedMin(ldsZMin, asuint(dpt_mi));
 
 
 #if !defined(XBONE) && !defined(PLAYSTATION4)
-	GroupMemoryBarrierWithGroupSync();
+		GroupMemoryBarrierWithGroupSync();
 #endif
+	}
 
 
 	float3 vTileLL = float3(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight, asfloat(ldsZMin));
@@ -185,15 +193,6 @@ void TileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	}
 #else
 	{
-		float4 vLinDepths;
-		[unroll]for(int i=0; i<4; i++)
-		{
-			int idx = t + i*NR_THREADS;
-			uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
-			float3 v3ScrPos = float3(uCrd.x+0.5, uCrd.y+0.5, FetchDepth(g_depth_tex, uCrd));
-			vLinDepths[i] = GetLinearDepth(v3ScrPos.z);
-		}
-
 		uint uLightsFlags[2] = {0,0};
 		int l=0;
 		// need this outer loop even on xb1 and ps4 since direct lights and

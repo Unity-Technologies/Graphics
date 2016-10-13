@@ -868,6 +868,7 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.SetComputeBufferParam(m_BuildScreenAABBShader, kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
             cmd.ComputeDispatch(m_BuildScreenAABBShader, kGenAABBKernel, (numLights + 7) / 8, 1, 1);
 
+            cmd.SetComputeIntParams(m_BuildPerTileLightListShader, "g_viDimensions", new int[2] { iW, iH });
             cmd.SetComputeIntParam(m_BuildPerTileLightListShader, "g_iNrVisibLights", numLights);
             SetMatrixCS(cmd, m_BuildPerTileLightListShader, "g_mScrProjection", projscr);
             SetMatrixCS(cmd, m_BuildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
