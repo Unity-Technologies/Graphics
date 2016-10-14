@@ -97,7 +97,7 @@ float DistancePointBox(float3 pos, float3 boxMin, float3 boxMax)
 
 // TODO: check that this code is effectively equivalent to code above (it should)
 // Box is AABB
-float3 DistancePointBox(float3 pos, float3 boxMin, float3 boxMax)
+float DistancePointBox(float3 pos, float3 boxMin, float3 boxMax)
 {
     return length(max(max(pos - boxMax, boxMin - pos), float3(0.0, 0.0, 0.0)));
 }
