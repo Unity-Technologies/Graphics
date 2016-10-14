@@ -1,4 +1,5 @@
 MaterialGraphProject/.vs
+MaterialGraphProject/.vscode
 MaterialGraphProject/Library
 MaterialGraphProject/MaterialGraphProject.CSharp.csproj
 *.csproj

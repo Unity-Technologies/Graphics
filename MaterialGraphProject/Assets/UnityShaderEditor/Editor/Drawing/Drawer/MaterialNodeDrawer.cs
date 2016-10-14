@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine.RMGUI;
+using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -17,6 +18,14 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public MaterialNodeDrawer()
         {
+            CreateContainers();
+
+            onEnter += SchedulePolling;
+            onLeave += UnschedulePolling;
+        }
+
+        private void CreateContainers()
+        {
             m_PreviewContainer = new VisualContainer
             {
                 name = "preview", // for USS&Flexbox
@@ -24,9 +33,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             };
 
             m_currentPreviewData = new List<NodePreviewDrawData>();
-
-            onEnter += SchedulePolling;
-            onLeave += UnschedulePolling;
         }
 
         private void SchedulePolling()
@@ -70,36 +76,21 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             var previews = nodeData.elements.OfType<NodePreviewDrawData>().ToList();
-            var isSamePreviews = m_currentPreviewData.Count == previews.Count;
 
-            if (isSamePreviews)
-            {
-                for (int i = 0; i < previews.Count; i++)
-                {
-                    if (!ReferenceEquals(previews[i], m_currentPreviewData[i]))
-                    {
-                        isSamePreviews = false;
-                        break;
-                    }
-                }
-            }
-
-            if (isSamePreviews)
+            if (previews.ItemsReferenceEquals(m_currentPreviewData))
             {
                 for (int i = 0; i < previews.Count; i++)
                 {
                     var preview = previews[i];
-                    var thePreview = m_PreviewContainer.GetChildAtIndex(i) as Image;
-                    // TODO: Consider null exception
                     // TODO: Need to share the texture
                     // right now it's allocating all the time.
-                    thePreview.image = preview.Render(new Vector2(200, 200));
+                    preview.Render(new Vector2(200, 200));
                 }
             }
             else
             {
                 m_PreviewContainer.ClearChildren();
-                m_currentPreviewData.Clear();
+                m_currentPreviewData = previews;
 
                 foreach (var preview in previews)
                 {
@@ -110,7 +101,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                         name = "image"
                     };
                     m_PreviewContainer.AddChild(thePreview);
-                    m_currentPreviewData.Add(preview);
                 }
             }
 
@@ -123,7 +113,10 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var nodeData = dataProvider as MaterialNodeDrawData;
             if (nodeData == null)
+            {
+                CreateContainers();
                 return;
+            }
 
             AddPreview(nodeData);
         }
