@@ -181,8 +181,6 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     clip(alpha - _AlphaCutoff);
 #endif
 
-    builtinData.opacity = alpha;
-
 #ifdef _SPECULAROCCLUSIONMAP
     // TODO: Do something. For now just take alpha channel
     surfaceData.specularOcclusion = UNITY_SAMPLE_TEX2D(_SpecularOcclusionMap, input.texCoord0).a;
@@ -255,6 +253,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
 
     // Builtin Data
+    builtinData.opacity = alpha;
 
     // TODO: Sample lightmap/lightprobe/volume proxy
     // This should also handle projective lightmap

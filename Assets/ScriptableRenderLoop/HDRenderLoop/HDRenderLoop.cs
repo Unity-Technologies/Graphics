@@ -511,6 +511,23 @@ namespace UnityEngine.ScriptableRenderLoop
                 EnvLightData l = new EnvLightData();
 
                 /*
+                bool boxProj = EnvShapeType.None;
+                    (rl.boxProjection != 0);
+
+                l.positionWS = 
+                if (rl.boxProjection)
+                l.positionWS = probe.localToWorld;
+                l.shapeType;
+
+                l.worldToLocal;
+
+                l.innerDistance;
+                l.sliceIndex;
+
+                l.capturePointWS;
+                l.blendDistance;
+                */
+                /*
                 Vector3 boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
                 float blendDistance = rl.blendDistance;
 
