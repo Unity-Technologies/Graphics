@@ -262,6 +262,7 @@ namespace UnityEngine.ScriptableRenderLoop
             // render opaque objects using Deferred pass
             DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"));
             settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+            settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps; //@TODO: need to get light probes + LPPV too?
             settings.inputCullingOptions.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
         }
@@ -282,8 +283,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
             // render opaque objects using Deferred pass
             DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"));
-			//settings.rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes;
-			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+            //settings.rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes;
+            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
             if (opaquesOnly) settings.inputCullingOptions.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
         }
@@ -575,7 +576,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     const float radToDeg = (float)(180.0 / pi);
 
 
-                    //float sa = cl.GetSpotAngle();		// total field of view from left to right side
+                    //float sa = cl.GetSpotAngle();     // total field of view from left to right side
                     float sa = radToDeg * (2 * Mathf.Acos(1.0f / cl.invCosHalfSpotAngle));       // spot angle doesn't exist in the structure so reversing it for now.
 
 
@@ -811,8 +812,15 @@ namespace UnityEngine.ScriptableRenderLoop
 
             ResizeIfNecessary(iW, iH);
 
+            //@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not
+            if (camera.allowHDR)
+                Shader.EnableKeyword ("UNITY_HDR_ON");
+            else
+                Shader.DisableKeyword ("UNITY_HDR_ON");
+
+
             // do anything we need to do upon a new frame.
-            NewFrame();
+            NewFrame ();
 
             ShadowOutput shadows;
             m_ShadowPass.Render(loop, cullResults, out shadows);

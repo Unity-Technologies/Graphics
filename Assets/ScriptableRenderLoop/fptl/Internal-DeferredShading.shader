@@ -25,6 +25,8 @@ CGPROGRAM
 #pragma fragment frag
 
 #pragma multi_compile USE_FPTL_LIGHTLIST    USE_CLUSTERED_LIGHTLIST
+//@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not
+#pragma multi_compile ___ UNITY_HDR_ON
 
 #include "UnityLightingCommon.cginc"
 
@@ -88,6 +90,10 @@ StandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, floa
     data.diffuseColor = gbuffer0.xyz; data.specularColor = gbuffer1.xyz;
     float ao = gbuffer0.a;
 	data.emission = gbuffer3.xyz;
+	#ifndef UNITY_HDR_ON //@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not
+	data.emission.rgb = -log2(data.emission.rgb);
+	#endif
+
 
     return data;
 }
@@ -123,7 +129,7 @@ half4 frag (v2f i) : SV_Target
     g_localParams.Vworld = Vworld;
 
     uint numLightsProcessed = 0;
-    float3 c = /*data.emission +*/ ExecuteLightListTiled(numLightsProcessed, pixCoord, vP, vPw, Vworld);
+    float3 c = data.emission + ExecuteLightListTiled(numLightsProcessed, pixCoord, vP, vPw, Vworld);
 
     //c = OverlayHeatMap(numLightsProcessed, c);
     return float4(c,1.0);
