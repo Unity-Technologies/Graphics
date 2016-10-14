@@ -8,7 +8,7 @@
 StructuredBuffer<PunctualLightData> _PunctualLightList;
 int _PunctualLightCount;
 
-UNITY_DECLARE_ENV(_ReflCubeTextures);
+UNITY_DECLARE_ENV(_EnvTextures);
 StructuredBuffer<EnvLightData> _EnvLightList;
 int _EnvLightCount;
 
@@ -45,7 +45,7 @@ void ForwardLighting(	float3 V, float3 positionWS, PreLightData prelightData, BS
     {
         float4 localDiffuseLighting;
         float4 localSpecularLighting;
-        EvaluateBSDF_Env(V, positionWS, prelightData, _EnvLightList[j], bsdfData, UNITY_PASS_ENV(_ReflCubeTextures), localDiffuseLighting, localSpecularLighting);
+        EvaluateBSDF_Env(V, positionWS, prelightData, _EnvLightList[j], bsdfData, UNITY_PASS_ENV(_EnvTextures), localDiffuseLighting, localSpecularLighting);
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;
     }

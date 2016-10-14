@@ -50,9 +50,8 @@ void ConvertAnisotropyToRoughness(float roughness, float anisotropy, out float r
     roughnessB = roughness / anisoAspect;
 }
 
-// Ref: http://www.nvidia.com/object/real-time-ycocg-dxt-compression.html
 // Fake anisotropic by distorting the normal as suggested by:
-// Donald Revie - Implementing Fur Using Deferred Shading (GPU Pro 2)
+// Ref: Donald Revie - Implementing Fur Using Deferred Shading (GPU Pro 2)
 // anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction)
 float3 GetAnisotropicModifiedNormal(float3 N, float3 T, float3 V, float anisotropy)
 {

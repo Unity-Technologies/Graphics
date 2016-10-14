@@ -36,9 +36,38 @@ namespace UnityEngine.ScriptableRenderLoop
     };
 
     [GenerateHLSL]
+    public enum EnvShapeType
+    {
+        None, 
+        Box, 
+        Sphere
+    };
+
+    [GenerateHLSL]
     public struct EnvLightData
     {
         public Vector3 positionWS;
+        public EnvShapeType shapeType;
+
+        public Matrix4x4 worldToLocal; // No scale        
+
+        public Vector3 innerDistance;
+        public int sliceIndex;
+
+        public Vector3 capturePointWS;
+        public float blendDistance;
+
+        /*
+        volumeWorldToLocal
+        shapeType - ENV_BOX_PROJECTED
+        innerDistance -   vBoxInnerDist
+        blendDistance - fProbeBlendDistance
+        capturePointWS - vLocalCubeCapturePoint  // Caution, not the same space local vs world
+        sliceIndex
+        light.positionWS
+        sphereRadius (i.e innerDistance.x)
+        */
+
     };
 
     [GenerateHLSL]

@@ -56,6 +56,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     bsdfData.materialId = surfaceData.materialId;
+    bsdfData.diffuseColor = surfaceData.baseColor;
 
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
@@ -327,7 +328,6 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 struct PreLightData
 {
     float NdotV;
-    float3 R;
     float ggxLambdaV;
 
     // Aniso
@@ -335,11 +335,13 @@ struct PreLightData
     float BdotV;
     
     float anisoGGXLambdaV;
-    float3 anisoNormalWS;
-    float3 anisoR; // TODO: check if this is needed, I don't think we use R anymore for other thing than imagebased lighting
 
-    // image based lighting    
-    float3 specularDFG;
+    // image based lighting
+    // These variables aim to be use with EvaluateBSDF_Env 
+    float3 iblNormalWS; // Normal to be use with image based lighting
+    float3 iblR;        // Reflction vector, same as above.
+
+    float3 specularDFG; // Store preconvole BRDF for both specular and diffuse
     float diffuseDFG;
 
     // TODO: if we want we can store ambient occlusion here from SSAO pass for example that can be use for IBL specular occlusion
@@ -348,35 +350,37 @@ struct PreLightData
 
 PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDFData bsdfData)
 {
-    PreLightData preLightData = (PreLightData)0;
+    PreLightData preLightData;
 
     // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
 #if 0
-    preLightData.NdotV = GetShiftedNdotV(bsdfData.normalWS, V);
+    preLightData.NdotV = GetShiftedNdotV(bsdfData.normalWS, V); // Note: May not work with speedtree...
 #else
     preLightData.NdotV = GetNdotV(bsdfData.normalWS, V);
 #endif
 
-    preLightData.R = reflect(-V, bsdfData.normalWS);
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
 
-    // Check if we precompute anisotropy too (should not be necessary as if the variables are not used they will be optimize out, but may avoid
+    float iblNdotV = preLightData.NdotV;
+    float3 iblNormalWS = bsdfData.normalWS;
+
+    // Check if we precompute anisotropy too
     if (bsdfData.materialId == MATERIALID_LIT_ANISO)
     {
-        preLightData.TdotV = dot(bsdfData.tangentWS, bsdfData.normalWS);
-        preLightData.BdotV = dot(bsdfData.bitangentWS, bsdfData.normalWS);
+        preLightData.TdotV = dot(bsdfData.tangentWS, V);
+        preLightData.BdotV = dot(bsdfData.bitangentWS, V);
         preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
-        preLightData.anisoNormalWS = GetAnisotropicModifiedNormal(bsdfData.normalWS, bsdfData.tangentWS, V, bsdfData.anisotropy);
+        iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.normalWS, bsdfData.tangentWS, V, bsdfData.anisotropy);
+        
+        // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NDotV) and use iblNormalWS
+        // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
+        // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
+        // iblNdotV = GetNdotV(iblNormalWS, V);
+    }
 
-        // We need to take into account the modified normal for faking anisotropic here.
-        float anisoNdotV = GetNdotV(preLightData.anisoNormalWS, V); // TODO: is it necessary here to use the GetNDotV function
-        preLightData.anisoR = reflect(-V, preLightData.anisoNormalWS); // TODO: check if this is needed, I don't think we use R anymore for other thing than imagebased lighting
-        GetPreIntegratedDFG(anisoNdotV, bsdfData.roughness, bsdfData.fresnel0, preLightData.specularDFG, preLightData.diffuseDFG);
-    }
-    else
-    {
-        GetPreIntegratedDFG(preLightData.NdotV, bsdfData.roughness, bsdfData.fresnel0, preLightData.specularDFG, preLightData.diffuseDFG);
-    }
+    // We need to take into account the modified normal for faking anisotropic here.
+    preLightData.iblR = reflect(-V, iblNormalWS);
+    GetPreIntegratedDFG(iblNdotV, bsdfData.roughness, bsdfData.fresnel0, preLightData.specularDFG, preLightData.diffuseDFG);
 
     // #if SHADERPASS == SHADERPASS_GBUFFER
     // preLightData.ambientOcclusion = _AmbientOcclusion.Load(uint3(coord.unPositionSS, 0)).x;
@@ -499,47 +503,63 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 
 // _preIntegratedFG and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
-                        UNITY_ARGS_ENV(_ReflCubeTextures),
+                        UNITY_ARGS_ENV(_EnvTextures),
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
-    /*
-    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
-    {
-        // Use fake aniso normal
-        // We can overwrite locally the normal without problem
-        bsdfData.normalWS = bsdfData.anisoNormalWS;
-        prelightData.R = prelightData.anisoR;
-    }
+    // TODO: test the strech from Tomasz
+    // float shrinkedRoughness = AnisotropicStrechAtGrazingAngle(bsdfData.roughness, bsdfData.perceptualRoughness, NdotV);
+    
+    // Note: As explain in GetPreLightData we use normalWS and not iblNormalWS here (in case of anisotropy)
+    float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, prelightData.iblR, bsdfData.roughness);
 
-    // Perform box collision to parallax correct the cubemap
-    // invTransform go from worldspace to local box space without scaling
-    float3 positionLS = mul(float4(positionWS, 1.0), lightData.invTransform).xyz;
-    float3 dirLS = mul(prelightData.R, (float3x3)lightData.invTransform);
-    float2 intersections = BoxRayIntersect(positionLS, dirLS, -lightData.extend, lightData.extend);
+    float3 R = rayWS;
+    float weight = 1.0;
+
+    if (lightData.shapeType == ENVSHAPETYPE_BOX)
+    {
+        // worldToLocal assume no scaling
+        float3 positionLS = mul(lightData.worldToLocal, float4(positionWS, 1.0)).xyz;
+        float3 rayLS = mul((float3x3)lightData.worldToLocal, rayWS);
+        float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
+        float dist = BoxRayIntersectSimple(positionLS, rayLS, -boxOuterDistance, boxOuterDistance);
  
-    diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
-    specularLighting = float4(0.0, 0.0, 0.0, 1.0);
+        // No need to normalize for fetching cubemap
+        R = (positionWS + dist * rayWS) - lightData.capturePointWS; // TODO: check that
 
-    if (intersections.y > intersections.x)
-    {
-        float3 R = positionLS + intersections.y * dirLS;
-        // local offset
-        R = R - light.localOffset;
+        // TODO: add distance based roughness
 
-        float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
-        R = GetSpecularDominantDir(bsdfData.normalWS, R, bsdfData.roughness);
+        // Calculate falloff value, so reflections on the edges of the Volume would gradually blend to previous reflection.
+        // Also this ensures that pixels not located in the reflection Volume AABB won't
+        // accidentally pick up reflections from this Volume.
+        float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
+        weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
 
-        float4 preLD = UNITY_SAMPLE_ENV_LOD(tex, float4(R, lightData.sliceIndex), mip);
-        specularLighting.rgb = preLD.rgb * prelightData.specularDFG;
-        
-        // Apply specular occlusion on it
-        specularLighting.rgb *= bsdfData.specularOcclusion;
+        // Smooth weighting
+        weight = smoothstep01(weight);
     }
-    */
+    else if (lightData.shapeType == ENVSHAPETYPE_SPHERE)
+    {
+        float sphereRadius = lightData.innerDistance.x;
+        float2 intersections;
+        SphereRayIntersect(intersections, positionWS - lightData.positionWS, R, sphereRadius);
+        // TODO: check if we can have simplified formula like for box
+        // No need to normalize for fetching cubemap
+        R = (positionWS + intersections.y * rayWS) - lightData.capturePointWS;
+
+        float distFade = length(positionWS - lightData.positionWS);
+        weight = saturate(((sphereRadius + lightData.blendDistance) - distFade) / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+    }
+
+    float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+    float4 preLD = UNITY_SAMPLE_ENV_LOD(_EnvTextures, float4(R, lightData.sliceIndex), mip);
+    specularLighting.rgb = preLD.rgb * prelightData.specularDFG;
+
+    // Apply specular occlusion on it
+    specularLighting.rgb *= bsdfData.specularOcclusion;
+    specularLighting.a = weight;
 
     diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
-    specularLighting = float4(0.0, 0.0, 0.0, 1.0);
 }
 
 #endif // UNITY_MATERIAL_LIT_INCLUDED

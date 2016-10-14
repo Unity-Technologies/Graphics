@@ -113,6 +113,12 @@ float FastATan(float x)
     return (x < 0.0) ? -t0 : t0;
 }
 
+// Same smoothstep except it assume 0, 1 interval for x
+float smoothstep01(float x)
+{
+    return x * x * (3.0 - (2.0 * x));
+}
+
 // ----------------------------------------------------------------------------
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------

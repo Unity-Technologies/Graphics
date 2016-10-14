@@ -368,7 +368,7 @@ namespace UnityEngine.ScriptableRenderLoop
             Vector4 screenSize = ComputeScreenSize(camera);
             m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
 
-            m_DeferredMaterial.SetTexture("_ReflCubeTextures", m_cubeReflTexArray.GetTexCache());
+            m_DeferredMaterial.SetTexture("_EnvTextures", m_cubeReflTexArray.GetTexCache());
 
             // gbufferManager.BindBuffers(m_DeferredMaterial);
             // TODO: Bind depth textures
