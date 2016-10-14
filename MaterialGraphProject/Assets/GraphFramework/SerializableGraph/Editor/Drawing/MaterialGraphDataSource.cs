@@ -9,8 +9,9 @@ using UnityEngine.MaterialGraph;
 namespace UnityEditor.Graphing.Drawing
 {
     [Serializable]
-    public class MaterialGraphDataSource : IGraphElementDataSource
+    public class MaterialGraphDataSource : ScriptableObject, IGraphElementDataSource
     {
+        [SerializeField]
         private List<GraphElementData> m_Elements = new List<GraphElementData>();
 
         public IGraphAsset graphAsset { get; private set; }
@@ -28,12 +29,9 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        public MaterialGraphDataSource(IGraphAsset graphAsset)
+        private void UpdateData()
         {
-            this.graphAsset = graphAsset;
-
-            if (graphAsset == null)
-                return;
+            m_Elements.Clear();
 
             var drawableNodes = new List<MaterialNodeData>();
             foreach (var node in graphAsset.graph.GetNodes<INode>())
@@ -69,9 +67,9 @@ namespace UnityEditor.Graphing.Drawing
 
                         var targetAnchors = targetNode.elements.OfType<MaterialNodeAnchorData>();
                         var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
-	                    var edgeData = ScriptableObject.CreateInstance<EdgeData>();
-	                    edgeData.left = sourceAnchor;
-	                    edgeData.right = targetAnchor;
+                        var edgeData = ScriptableObject.CreateInstance<EdgeData>();
+                        edgeData.left = sourceAnchor;
+                        edgeData.right = targetAnchor;
                         drawableEdges.Add(edgeData);
                     }
                 }
@@ -79,6 +77,23 @@ namespace UnityEditor.Graphing.Drawing
 
             m_Elements.AddRange(drawableNodes.OfType<GraphElementData>());
             m_Elements.AddRange(drawableEdges.OfType<GraphElementData>());
+        }
+
+        public MaterialGraphDataSource(IGraphAsset graphAsset)
+        {
+            this.graphAsset = graphAsset;
+
+            if (graphAsset == null)
+                return;
+
+            UpdateData();
+        }
+
+
+        public void AddNode(INode node)
+        {
+            graphAsset.graph.AddNode(node);
+            UpdateData();
         }
 
         public IEnumerable<GraphElementData> elements

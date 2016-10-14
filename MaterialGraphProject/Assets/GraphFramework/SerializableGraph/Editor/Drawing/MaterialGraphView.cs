@@ -88,9 +88,9 @@ namespace UnityEditor.Graphing.Drawing
             var drawstate = node.drawState;
             drawstate.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, 0 , 0);
             node.drawState = drawstate;
-            /*m_DataSource.Addnode(node);
-            Rebuild();
-            Repaint();*/
+
+            var graphDataSource = dataSource as MaterialGraphDataSource;
+            graphDataSource.AddNode(node);
         }
     }
 }
