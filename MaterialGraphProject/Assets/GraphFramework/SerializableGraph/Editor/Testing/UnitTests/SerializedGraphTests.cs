@@ -58,7 +58,7 @@ namespace UnityEditor.Graphing.UnitTests
             node.name = "Test Node";
 
             var drawState = node.drawState;
-            var newPos = new Rect(10, 10, 10, 10);
+            var newPos = new Rect(10, 10, 0, 0);
             drawState.position = newPos;
             drawState.expanded = false;
             node.drawState = drawState;

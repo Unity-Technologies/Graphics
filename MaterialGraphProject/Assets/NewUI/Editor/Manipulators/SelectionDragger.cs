@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.RMGUI;
 
@@ -82,7 +83,14 @@ namespace RMGUI.GraphView
 				case EventType.MouseUp:
 					if (this.HasCapture() && evt.button == (int)activateButton)
 					{
-						this.ReleaseCapture();
+					    foreach (var s in graphView.selection.OfType<GraphElement>())
+					    {
+					        if (s.dataProvider == null)
+					            continue;
+
+					        s.dataProvider.CommitChanges();
+					    }
+					    this.ReleaseCapture();
 						return EventPropagation.Stop;
 					}
 					break;

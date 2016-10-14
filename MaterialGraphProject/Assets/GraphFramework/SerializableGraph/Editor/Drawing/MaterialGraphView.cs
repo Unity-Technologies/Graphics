@@ -86,7 +86,7 @@ namespace UnityEditor.Graphing.Drawing
             if (node == null)
                 return;
             var drawstate = node.drawState;
-            drawstate.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, drawstate.position.width, drawstate.position.height);
+            drawstate.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, 0 , 0);
             node.drawState = drawstate;
             /*m_DataSource.Addnode(node);
             Rebuild();
