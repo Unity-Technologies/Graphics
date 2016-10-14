@@ -10,7 +10,7 @@
 #define UNITY_DECLARE_ENV(tex) UNITY_DECLARE_TEXCUBEARRAY(tex)
 #define UNITY_ARGS_ENV(tex) UNITY_ARGS_TEXCUBEARRAY(tex)
 #define UNITY_PASS_ENV(tex) UNITY_PASS_TEXCUBEARRAY(tex)
-#define UNITY_SAMPLE_ENV_LOD(tex,coord,lod) UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex,coord,lod)
+#define UNITY_SAMPLE_ENV_LOD(tex, coord, lightData, lod) UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex, float4(coord, lightData.sliceIndex), lod)
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
 
