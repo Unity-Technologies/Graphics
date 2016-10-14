@@ -56,18 +56,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
         public Vector3 capturePointWS;
         public float blendDistance;
-
-        /*
-        volumeWorldToLocal
-        shapeType - ENV_BOX_PROJECTED
-        innerDistance -   vBoxInnerDist
-        blendDistance - fProbeBlendDistance
-        capturePointWS - vLocalCubeCapturePoint  // Caution, not the same space local vs world
-        sliceIndex
-        light.positionWS
-        sphereRadius (i.e innerDistance.x)
-        */
-
     };
 
     [GenerateHLSL]

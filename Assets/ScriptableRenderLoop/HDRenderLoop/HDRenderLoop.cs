@@ -366,9 +366,7 @@ namespace UnityEngine.ScriptableRenderLoop
             m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
 
             Vector4 screenSize = ComputeScreenSize(camera);
-            m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
-
-            m_DeferredMaterial.SetTexture("_EnvTextures", m_cubeReflTexArray.GetTexCache());
+            m_DeferredMaterial.SetVector("_ScreenSize", screenSize);            
 
             // gbufferManager.BindBuffers(m_DeferredMaterial);
             // TODO: Bind depth textures
@@ -430,7 +428,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void UpdatePunctualLights(VisibleLight[] visibleLights)
         {
-            int punctualLightCount = 0;
             List<PunctualLightData> lights = new List<PunctualLightData>();
 
             for (int lightIndex = 0; lightIndex < Math.Min(visibleLights.Length, MaxLights); lightIndex++)
@@ -491,66 +488,52 @@ namespace UnityEngine.ScriptableRenderLoop
                     }
 
                     lights.Add(l);
-                    punctualLightCount++;
                 }
             }
             s_punctualLightList.SetData(lights.ToArray());
 
             Shader.SetGlobalBuffer("_PunctualLightList", s_punctualLightList);
-            Shader.SetGlobalInt("_PunctualLightCount", punctualLightCount);
+            Shader.SetGlobalInt("_PunctualLightCount", lights.Count);
+            Shader.SetGlobalTexture("_EnvTextures", m_cubeReflTexArray.GetTexCache());
         }
 
         void UpdateReflectionProbes(VisibleReflectionProbe[] activeReflectionProbes)
         {
-            int envLightCount = 0;
             List<EnvLightData> lights = new List<EnvLightData>();
 
             for (int lightIndex = 0; lightIndex < Math.Min(activeReflectionProbes.Length, MaxProbes); lightIndex++)
             {
                 VisibleReflectionProbe probe = activeReflectionProbes[lightIndex];
+
+                if (probe.texture == null)
+                    continue;
+
                 EnvLightData l = new EnvLightData();
 
-                /*
-                bool boxProj = EnvShapeType.None;
-                    (rl.boxProjection != 0);
+                l.positionWS = probe.localToWorld.GetColumn(3);
+                l.shapeType = EnvShapeType.None;
+                if (probe.boxProjection != 0)
+                {
+                    l.shapeType = EnvShapeType.Box;
+                }
 
-                l.positionWS = 
-                if (rl.boxProjection)
-                l.positionWS = probe.localToWorld;
-                l.shapeType;
+                // Caution should only be rigid transform, no scale
+                l.worldToLocal = probe.localToWorld.transpose;
+                l.innerDistance = probe.bounds.extents;
 
-                l.worldToLocal;
+                l.sliceIndex = m_cubeReflTexArray.FetchSlice(probe.texture);
 
-                l.innerDistance;
-                l.sliceIndex;
-
-                l.capturePointWS;
-                l.blendDistance;
-                */
-                /*
-                Vector3 boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
-                float blendDistance = rl.blendDistance;
-
-                Matrix4x4 mat = rl.localToWorld;
-                //Matrix4x4 mat = rl.transform.localToWorldMatrix;
-                Vector3 cubeCapturePos = mat.GetColumn(3);      // cube map capture position in world space
-                Vector3 combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
-
-                lightData[i].uLightType = (uint)LightDefinitions.BOX_LIGHT;
-
-                m_cubeReflTexArray.FetchSlice(cubemap);
-
-                if (boxProj) lightData[i].flags |= LightDefinitions.IS_BOX_PROJECTED;
-                */
+                // center is local capture point. By multiply by localToWorld we get world position
+                l.capturePointWS = probe.localToWorld.MultiplyPoint(probe.center);
+                l.blendDistance = probe.blendDistance;
 
                 lights.Add(l);
-                envLightCount++;
             }
 
             s_envLightList.SetData(lights.ToArray());
 
             Shader.SetGlobalBuffer("_EnvLightList", s_envLightList);
-            Shader.SetGlobalInt("_EnvLightCount", envLightCount);
+            Shader.SetGlobalInt("_EnvLightCount", lights.Count);
         }
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)

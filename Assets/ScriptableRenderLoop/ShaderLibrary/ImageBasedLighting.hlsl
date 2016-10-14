@@ -457,6 +457,31 @@ float4 IntegrateLD( UNITY_ARGS_TEXCUBE(tex),
     return float4(acc * (1.0 / accWeight), 1.0);
 }
 
+// TODO: We need to change this hard limit!
+#define UNITY_SPECCUBE_LOD_STEPS (6)
+
+float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
+{
+    // TODO: Clean a bit this code
+    // CAUTION: remap from Morten may work only with offline convolution, see impact with runtime convolution!
+
+    // For now disabled
+#if 0
+    float m = PerceptualRoughnessToRoughness(perceptualRoughness); // m is the real roughness parameter
+    const float fEps = 1.192092896e-07F;        // smallest such that 1.0+FLT_EPSILON != 1.0  (+1e-4h is NOT good here. is visibly very wrong)
+    float n = (2.0 / max(fEps, m*m)) - 2.0;		// remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
+
+    n /= 4.0;									    // remap from n_dot_h formulatino to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
+
+    perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);		// remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
+#else
+    // MM: came up with a surprisingly close approximation to what the #if 0'ed out code above does.
+    perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
+#endif
+
+    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
+}
+
 // Ref: See "Moving Frostbite to PBR" Listing 22
 // This formulation is for GGX only (with smith joint visibility or regular)
 float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
@@ -467,7 +492,9 @@ float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
     return lerp(N, R, lerpFactor);
 }
 
-//-------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// Anisotropic image based lighting
+//-----------------------------------------------------------------------------
 // To simulate the streching of highlight at grazing angle for IBL we shrink the roughness
 // which allow to fake an anisotropic specular lobe.
 // Ref: http://www.frostbite.com/2015/08/stochastic-screen-space-reflections/ - slide 84

@@ -476,37 +476,18 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
     }
 }
 
-// TODO: We need to change this hard limit!
-#define UNITY_SPECCUBE_LOD_STEPS (6)
-
-float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
-{
-    // TODO: Clean a bit this code
-    // CAUTION: remap from Morten may work only with offline convolution, see impact with runtime convolution!
-
-    // For now disabled
-#if 0
-    float m = PerceptualRoughnessToRoughness(perceptualRoughness); // m is the real roughness parameter
-    const float fEps = 1.192092896e-07F;        // smallest such that 1.0+FLT_EPSILON != 1.0  (+1e-4h is NOT good here. is visibly very wrong)
-    float n = (2.0 / max(fEps, m*m)) - 2.0;		// remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
-
-    n /= 4;									    // remap from n_dot_h formulatino to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-
-    perceptualRoughness = pow(2 / (n + 2), 0.25);		// remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
-#else
-    // MM: came up with a surprisingly close approximation to what the #if 0'ed out code above does.
-    perceptualRoughness = perceptualRoughness*(1.7 - 0.7*perceptualRoughness);
-#endif
-
-    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
-}
-
 // _preIntegratedFG and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
                         UNITY_ARGS_ENV(_EnvTextures),
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
+    // TODO: factor this code in common, so other material authoring don't require to rewrite everything, 
+    // also think about how such a loop can handle 2 cubemap at the same time as old unity. Macro can allow to do that
+    // but we need to have UNITY_SAMPLE_ENV_LOD replace by a true function instead that is define by the lighting arcitecture.
+    // Also not sure how to deal with 2 intersection....
+    // Box and sphere are related to light property (but we have also distance based roughness etc...)
+
     // TODO: test the strech from Tomasz
     // float shrinkedRoughness = AnisotropicStrechAtGrazingAngle(bsdfData.roughness, bsdfData.perceptualRoughness, NdotV);
     
@@ -549,17 +530,20 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
 
         float distFade = length(positionWS - lightData.positionWS);
         weight = saturate(((sphereRadius + lightData.blendDistance) - distFade) / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+        
+        // Smooth weighting
+        weight = smoothstep01(weight);
     }
 
     float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
-    float4 preLD = UNITY_SAMPLE_ENV_LOD(_EnvTextures, float4(R, lightData.sliceIndex), mip);
+    float4 preLD = UNITY_SAMPLE_ENV_LOD(_EnvTextures, R, lightData, mip);
     specularLighting.rgb = preLD.rgb * prelightData.specularDFG;
 
     // Apply specular occlusion on it
     specularLighting.rgb *= bsdfData.specularOcclusion;
     specularLighting.a = weight;
 
-    diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
+    diffuseLighting = float4(0.0, 0.0, 0.0, 0.0);
 }
 
 #endif // UNITY_MATERIAL_LIT_INCLUDED
