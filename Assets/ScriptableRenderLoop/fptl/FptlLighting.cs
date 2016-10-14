@@ -232,16 +232,21 @@ namespace UnityEngine.ScriptableRenderLoop
             var format10 = RenderTextureFormat.ARGB32;
             if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010))
                 format10 = RenderTextureFormat.ARGB2101010;
+            var formatHDR = RenderTextureFormat.DefaultHDR;
+
+            //@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not,
+            // so we make it think we always render in HDR
+            cmd.EnableShaderKeyword ("UNITY_HDR_ON");
 
             //@TODO: GetGraphicsCaps().buggyMRTSRGBWriteFlag
-            cmd.GetTemporaryRT(kGBufferAlbedo, width, height, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
-            cmd.GetTemporaryRT(kGBufferSpecRough, width, height, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
+            cmd.GetTemporaryRT(kGBufferAlbedo, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+            cmd.GetTemporaryRT(kGBufferSpecRough, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
             cmd.GetTemporaryRT(kGBufferNormal, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
-            cmd.GetTemporaryRT(kGBufferEmission, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear); //@TODO: HDR
+            cmd.GetTemporaryRT(kGBufferEmission, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Linear);
             cmd.GetTemporaryRT(kGBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
             cmd.GetTemporaryRT(kCameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
 
-            cmd.GetTemporaryRT(kCameraTarget, width, height, 0, FilterMode.Point, RenderTextureFormat.DefaultHDR, RenderTextureReadWrite.Default);
+            cmd.GetTemporaryRT(kCameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default);
 
             var colorMRTs = new RenderTargetIdentifier[4] { kGBufferAlbedo, kGBufferSpecRough, kGBufferNormal, kGBufferEmission };
             cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(kGBufferZ));
@@ -812,13 +817,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
             ResizeIfNecessary(iW, iH);
 
-            //@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not
-            if (camera.allowHDR)
-                Shader.EnableKeyword ("UNITY_HDR_ON");
-            else
-                Shader.DisableKeyword ("UNITY_HDR_ON");
-
-
             // do anything we need to do upon a new frame.
             NewFrame ();
 
@@ -831,7 +829,7 @@ namespace UnityEngine.ScriptableRenderLoop
             //m_DeferredReflectionMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
             loop.SetupCameraProperties(camera);
 
-            UpdateShadowConstants(cullResults.visibleLights, ref shadows);
+            UpdateShadowConstants (cullResults.visibleLights, ref shadows);
 
             RenderGBuffer(cullResults, camera, loop);
 
