@@ -7,6 +7,7 @@
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/CommonLighting.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/Debug.hlsl"
+#include "Assets/ScriptableRenderLoop/ShaderLibrary/GeometricTools.hlsl"
 
 #include "../ShaderConfig.cs"
 #include "../LightDefinition.cs.hlsl"

@@ -458,12 +458,22 @@ float4 IntegrateLD( UNITY_ARGS_TEXCUBE(tex),
 }
 
 // Ref: See "Moving Frostbite to PBR" Listing 22
+// This formulation is for GGX only (with smith joint visibility or regular)
 float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
 {
     float a = 1.0 - roughness;
     float lerpFactor = a * (sqrt(a) + roughness);
     // The result is not normalized as we fetch in a cubemap
     return lerp(N, R, lerpFactor);
+}
+
+//-------------------------------------------------------------------------------------
+// To simulate the streching of highlight at grazing angle for IBL we shrink the roughness
+// which allow to fake an anisotropic specular lobe.
+// Ref: http://www.frostbite.com/2015/08/stochastic-screen-space-reflections/ - slide 84
+float AnisotropicStrechAtGrazingAngle(float roughness, float perceptualRoughness, float NdotV)
+{
+    return roughness * lerp(saturate(NdotV * 2.0), 1.0, perceptualRoughness);
 }
 
 #endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED

@@ -2,6 +2,13 @@
 // This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/LightDefinition.cs.  Please don't edit by hand.
 //
 
+//
+// UnityEngine.ScriptableRenderLoop.EnvShapeType:  static fields
+//
+#define ENVSHAPETYPE_NONE (0)
+#define ENVSHAPETYPE_BOX (1)
+#define ENVSHAPETYPE_SPHERE (2)
+
 // Generated from UnityEngine.ScriptableRenderLoop.PunctualLightData
 // PackingRules = Exact
 struct PunctualLightData
@@ -33,6 +40,12 @@ struct AreaLightData
 struct EnvLightData
 {
 	float3 positionWS;
+	int shapeType;
+	float4x4 worldToLocal;
+	float3 innerDistance;
+	int sliceIndex;
+	float3 capturePointWS;
+	float blendDistance;
 };
 
 // Generated from UnityEngine.ScriptableRenderLoop.PlanarLightData
@@ -112,6 +125,30 @@ float3 GetPositionWS(AreaLightData value)
 float3 GetPositionWS(EnvLightData value)
 {
 	return value.positionWS;
+}
+int GetShapeType(EnvLightData value)
+{
+	return value.shapeType;
+}
+float4x4 GetWorldToLocal(EnvLightData value)
+{
+	return value.worldToLocal;
+}
+float3 GetInnerDistance(EnvLightData value)
+{
+	return value.innerDistance;
+}
+int GetSliceIndex(EnvLightData value)
+{
+	return value.sliceIndex;
+}
+float3 GetCapturePointWS(EnvLightData value)
+{
+	return value.capturePointWS;
+}
+float GetBlendDistance(EnvLightData value)
+{
+	return value.blendDistance;
 }
 
 //
