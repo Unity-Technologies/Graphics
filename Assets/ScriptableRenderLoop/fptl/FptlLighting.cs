@@ -282,8 +282,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
             // render opaque objects using Deferred pass
             DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"));
-            //settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
-            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+			//settings.rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes;
+			settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
             if (opaquesOnly) settings.inputCullingOptions.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
         }
