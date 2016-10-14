@@ -25,8 +25,6 @@ CGPROGRAM
 #pragma fragment frag
 
 #pragma multi_compile USE_FPTL_LIGHTLIST    USE_CLUSTERED_LIGHTLIST
-//@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not
-#pragma multi_compile ___ UNITY_HDR_ON
 
 #include "UnityLightingCommon.cginc"
 
@@ -90,10 +88,6 @@ StandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, floa
     data.diffuseColor = gbuffer0.xyz; data.specularColor = gbuffer1.xyz;
     float ao = gbuffer0.a;
 	data.emission = gbuffer3.xyz;
-	#ifndef UNITY_HDR_ON //@TODO: cleanup, right now only because we want to use unmodified Standard shader that encodes emission differently based on HDR or not
-	data.emission.rgb = -log2(data.emission.rgb);
-	#endif
-
 
     return data;
 }
