@@ -23,8 +23,8 @@ namespace UnityEditor.Graphing.Drawing
             {
                 var theElements = m_Elements.OfType<MaterialNodeData>().ToList();
                 var found = theElements.Where(x => x.node.guid == node.guid).ToList();
-                foreach (var drawableNode in found)
-                    drawableNode.MarkDirtyHack();
+                foreach (var drawableNodeData in found)
+                    drawableNodeData.MarkDirtyHack();
             }
         }
 

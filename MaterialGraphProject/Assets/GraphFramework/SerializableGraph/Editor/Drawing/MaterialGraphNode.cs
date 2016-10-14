@@ -1,3 +1,6 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
 using RMGUI.GraphView.Demo;
@@ -7,21 +10,13 @@ using UnityEngine.RMGUI;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    class PreviewImage : Image
-    {
-        public override void DoRepaint(PaintContext args)
-        {
-            Handles.DrawSolidRectangleWithOutline(position, Color.blue, Color.blue);
-            base.DoRepaint(args);
-        }
-    }
-
     [GUISkinStyle("window")]
     public class MaterialGraphNode : GraphElement
     {
         VisualContainer m_SlotContainer;
         VisualContainer m_ControlsContainer;
         VisualContainer m_PreviewContainer;
+        private List<NodePreviewData> m_currentPreviewData;
 
         public MaterialGraphNode()
         {
@@ -44,6 +39,8 @@ namespace UnityEditor.Graphing.Drawing
                 name = "preview", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
+
+            m_currentPreviewData = new List<NodePreviewData>();
         }
 
         public override void DoRepaint(PaintContext painter)
@@ -114,22 +111,56 @@ namespace UnityEditor.Graphing.Drawing
 
         private void AddPreview(MaterialNodeData nodeData)
         {
-            m_PreviewContainer.ClearChildren();
+            
 
             if (!nodeData.elements.OfType<NodePreviewData>().Any())
                 return;
+            
+            var previews = nodeData.elements.OfType<NodePreviewData>().ToList();
+            var isSamePreviews = m_currentPreviewData.Count == previews.Count;
 
-            foreach (var preview in nodeData.elements.OfType<NodePreviewData>())
+            if (isSamePreviews)
             {
-                var image = preview.Render(new Vector2(200, 200));
-                var thePreview = new PreviewImage
+                for (int i = 0; i < previews.Count; i++)
                 {
-                    image = image,
-                    name = "image"
-                };
-                m_PreviewContainer.AddChild(thePreview);
+                    if (!ReferenceEquals(previews[i], m_currentPreviewData[i]))
+                    {
+                        isSamePreviews = false;
+                        break;
+                    }
+                }
             }
 
+            if (isSamePreviews)
+            {
+                for (int i = 0; i < previews.Count; i++)
+                {
+                    var preview = previews[i];
+                    var thePreview = m_PreviewContainer.GetChildAtIndex(i) as Image;
+                    // TODO: Consider null exception
+                    // TODO: Need to share the texture
+                    // right now it's allocating all the time. 
+                    thePreview.image = preview.Render(new Vector2(200, 200));
+                }
+            }
+            else
+            {
+                m_PreviewContainer.ClearChildren();
+                m_currentPreviewData.Clear();
+
+                foreach (var preview in previews)
+                {
+                    var image = preview.Render(new Vector2(200, 200));
+                    var thePreview = new Image
+                    {
+                        image = image,
+                        name = "image"
+                    };
+                    m_PreviewContainer.AddChild(thePreview);
+                    m_currentPreviewData.Add(preview);
+                }
+            }
+            
             AddChild(m_PreviewContainer);
         }
 
@@ -139,7 +170,7 @@ namespace UnityEditor.Graphing.Drawing
             ClearChildren();
 
             m_ControlsContainer.ClearChildren();
-            m_PreviewContainer.ClearChildren();
+            // m_PreviewContainer.ClearChildren();
 
             var nodeData = dataProvider as MaterialNodeData;
 

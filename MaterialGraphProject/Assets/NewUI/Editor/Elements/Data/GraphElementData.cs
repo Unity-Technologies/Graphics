@@ -50,5 +50,8 @@ namespace RMGUI.GraphView
 			get { return m_Capabilities; }
 			set { m_Capabilities = value; }
 		}
+
+	    public virtual void CommitChanges()
+	    {}
 	}
 }

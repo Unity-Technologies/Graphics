@@ -46,6 +46,15 @@ namespace UnityEditor.Graphing.Drawing
         {}
 
 
+        public override void CommitChanges()
+        {
+            base.CommitChanges();
+            var drawData = node.drawState;
+            drawData.position = position;
+            node.drawState = drawData;
+        }
+
+
         //TODO: Kill this and the function below after talking with shanti
         [SerializeField]
         private int m_SerializationRandom;
@@ -78,7 +87,7 @@ namespace UnityEditor.Graphing.Drawing
             m_Children.AddRange(controlData);
 
 
-            //position = new Rect(node.drawState.position.x, node.drawState.position.y, 100, 200);
+            position = new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0);
             //position
         }
 
