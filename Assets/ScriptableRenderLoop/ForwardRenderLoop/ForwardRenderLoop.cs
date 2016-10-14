@@ -219,7 +219,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 UpdateLightConstants(cullResults.visibleLights, ref shadows);
 
                 DrawRendererSettings settings = new DrawRendererSettings(cullResults, camera, new ShaderPassName("ForwardBase"));
-                settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
+                settings.rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes;
                 settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
 
                 renderLoop.DrawRenderers(ref settings);

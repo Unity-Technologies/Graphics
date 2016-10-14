@@ -275,7 +275,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 return;
 
             DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
-            settings.rendererConfiguration = RendererConfiguration.ConfigureOneLightProbePerRenderer | RendererConfiguration.ConfigureReflectionProbesProbePerRenderer;
+            settings.rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes;
             settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
             settings.inputCullingOptions.SetQueuesTransparent();
             renderLoop.DrawRenderers(ref settings);
