@@ -96,6 +96,14 @@ namespace UnityEditor.Graphing.Drawing
             UpdateData();
         }
 
+        public void RemoveNodes(IEnumerable<MaterialNodeData> nodes) 
+        {
+            var toDelete = nodes.Select(x => x.node).ToList();
+            graphAsset.graph.RemoveElements(toDelete, new List<IEdge> (){});
+			graphAsset.graph.ValidateGraph();
+			UpdateData ();
+        }
+
         public IEnumerable<GraphElementData> elements
         {
             get { return m_Elements; }
