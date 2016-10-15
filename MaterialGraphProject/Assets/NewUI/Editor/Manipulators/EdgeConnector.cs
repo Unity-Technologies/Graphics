@@ -128,12 +128,11 @@ namespace RMGUI.GraphView
 							// Not a candidate anymore, let's see if we're actually going to add it to parent
 							m_EdgeDataCandidate.candidate = false;
 
-							if (m_EdgeDataCandidate.right == null)
+							m_DataSource.RemoveElement(m_EdgeDataCandidate);
+							
+							if (m_EdgeDataCandidate.right != null)
 							{
-								m_DataSource.RemoveElement(m_EdgeDataCandidate);
-							}
-							else
-							{
+								m_DataSource.AddElement(m_EdgeDataCandidate);
 								m_EdgeDataCandidate.left.connected = true;
 								m_EdgeDataCandidate.right.connected = true;
 							}

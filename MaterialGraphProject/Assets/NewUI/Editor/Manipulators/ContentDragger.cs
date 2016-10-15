@@ -12,13 +12,10 @@ namespace RMGUI.GraphView
 		private Vector2 m_Start;
 		public Vector2 panSpeed { get; set; }
 
-		public MouseButton activateButton { get; set; }
-
 		public bool clampToParentEdges { get; set; }
 
 		public ContentDragger()
 		{
-			activateButton = MouseButton.MiddleMouse;
 			panSpeed = new Vector2(1, 1);
 			clampToParentEdges = false;
 		}
@@ -58,7 +55,8 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button == (int) activateButton)
+					if (evt.button == (int) MouseButton.MiddleMouse 
+					|| evt.button == (int) MouseButton.LeftMouse && evt.modifiers == EventModifiers.Alt)
 					{
 						this.TakeCapture();
 
@@ -80,7 +78,9 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseUp:
-					if (this.HasCapture() && evt.button == (int) activateButton)
+				if (this.HasCapture() 
+					&& (evt.button == (int) MouseButton.MiddleMouse
+						|| evt.button == (int) MouseButton.MiddleMouse))
 					{
 						this.ReleaseCapture();
 						return EventPropagation.Stop;
