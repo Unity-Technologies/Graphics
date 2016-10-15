@@ -100,6 +100,12 @@ namespace RMGUI.GraphView.Demo
 			return true;
 		}
 
+		internal static bool Adapt(this NodeAdapter value, PortSource<Vector4> a, PortSource<Vector4> b)
+		{
+			// run adapt code for vec4 to vec4 connections
+			return true;
+		}
+
 		internal static bool Adapt(this NodeAdapter value, PortSource<Color> a, PortSource<Color> b)
 		{
 			// run adapt code for Color to Color connections

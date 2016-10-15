@@ -49,7 +49,7 @@ namespace UnityEditor.Graphing.Drawing
                 drawableNodes.Add(nodeData);
             }
 
-            var drawableEdges = new List<EdgeData>();
+            var drawableEdges = new List<MaterialEdgeData>();
             foreach (var addedNode in drawableNodes)
             {
                 var baseNode = addedNode.node;
@@ -67,7 +67,8 @@ namespace UnityEditor.Graphing.Drawing
 
                         var targetAnchors = targetNode.elements.OfType<MaterialNodeAnchorData>();
                         var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
-                        var edgeData = ScriptableObject.CreateInstance<EdgeData>();
+						var edgeData = ScriptableObject.CreateInstance<MaterialEdgeData>();
+						edgeData.Initialize (edge);
                         edgeData.left = sourceAnchor;
                         edgeData.right = targetAnchor;
                         drawableEdges.Add(edgeData);
@@ -96,10 +97,9 @@ namespace UnityEditor.Graphing.Drawing
             UpdateData();
         }
 
-        public void RemoveNodes(IEnumerable<MaterialNodeData> nodes) 
+		public void RemoveElements(IEnumerable<MaterialNodeData> nodes, IEnumerable<MaterialEdgeData> edges) 
         {
-            var toDelete = nodes.Select(x => x.node).ToList();
-            graphAsset.graph.RemoveElements(toDelete, new List<IEdge> (){});
+			graphAsset.graph.RemoveElements(nodes.Select(x => x.node), edges.Select(x => x.edge));
 			graphAsset.graph.ValidateGraph();
 			UpdateData ();
         }
@@ -111,6 +111,17 @@ namespace UnityEditor.Graphing.Drawing
 
         public void AddElement(GraphElementData element)
         {
+			var edge = element as EdgeData;
+			if (edge.candidate == false) 
+			{
+				var left = edge.left as MaterialNodeAnchorData;
+				var right = edge.right as MaterialNodeAnchorData;
+				if (left && right)
+					graphAsset.graph.Connect (left.slot.slotReference, right.slot.slotReference);
+				UpdateData ();
+				return;
+			}
+				
             m_Elements.Add(element);
         }
 

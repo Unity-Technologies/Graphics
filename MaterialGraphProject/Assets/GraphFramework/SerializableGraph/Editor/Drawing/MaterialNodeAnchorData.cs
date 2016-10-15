@@ -6,6 +6,21 @@ using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
+	[Serializable]
+	public class MaterialEdgeData : EdgeData
+	{
+		protected MaterialEdgeData()
+		{}
+
+		public UnityEngine.Graphing.IEdge edge { get; private set; }
+
+		public void Initialize(UnityEngine.Graphing.IEdge inEdge)
+		{
+			edge = inEdge;
+		}
+	}
+
+
     [Serializable]
     public class MaterialNodeAnchorData : NodeAnchorData
     {

@@ -23,7 +23,6 @@ namespace UnityEditor.Graphing.Drawing
             dictionary[Event.KeyboardEvent("delete")] = DeleteSelection;
             contentViewContainer.AddManipulator(new ShortcutHandler(dictionary));
 
-
             AddManipulator(new ContentZoomer());
             AddManipulator(new ContentDragger());
             AddManipulator(new RectangleSelector());
@@ -34,6 +33,7 @@ namespace UnityEditor.Graphing.Drawing
 
             dataMapper[typeof(MaterialNodeData)] = typeof(MaterialGraphNode);
             dataMapper[typeof(NodeAnchorData)] = typeof(NodeAnchor);
+			dataMapper[typeof(EdgeData)] = typeof(RMGUI.GraphView.Edge);
         }
 
         private EventPropagation DeleteSelection()
@@ -42,16 +42,10 @@ namespace UnityEditor.Graphing.Drawing
             if (nodalViewData == null)
                 return EventPropagation.Stop;
 
-            // TODO We will want to move this up to GraphView
-            var elementsToRemove = new List<MaterialNodeData>();
-            foreach (var selectedElement in selection.OfType<MaterialGraphNode>())
-            {
-                var nodeData = selectedElement.dataProvider as MaterialNodeData;
-                if (nodeData != null)
-                    elementsToRemove.Add(nodeData);
-            }
-
-            nodalViewData.RemoveNodes(elementsToRemove);
+			nodalViewData.RemoveElements(
+				selection.OfType<MaterialGraphNode>().Select(x => x.dataProvider as MaterialNodeData),
+				selection.OfType<RMGUI.GraphView.Edge>().Select(x => x.dataProvider as MaterialEdgeData)
+					);
 
 			return EventPropagation.Stop;
         }
