@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using RMGUI.GraphView;
 using RMGUI.GraphView.Demo;
@@ -6,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine.RMGUI;
+using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.Graphing.Drawing
@@ -16,6 +18,12 @@ namespace UnityEditor.Graphing.Drawing
     {
         public MaterialGraphView()
         {
+            // Shortcut handler to delete elements
+            var dictionary = new Dictionary<Event, ShortcutDelegate>();
+            dictionary[Event.KeyboardEvent("delete")] = DeleteSelection;
+            contentViewContainer.AddManipulator(new ShortcutHandler(dictionary));
+
+
             AddManipulator(new ContentZoomer());
             AddManipulator(new ContentDragger());
             AddManipulator(new RectangleSelector());
@@ -26,6 +34,26 @@ namespace UnityEditor.Graphing.Drawing
 
             dataMapper[typeof(MaterialNodeData)] = typeof(MaterialGraphNode);
             dataMapper[typeof(NodeAnchorData)] = typeof(NodeAnchor);
+        }
+
+        private EventPropagation DeleteSelection()
+        {
+            var nodalViewData = dataSource as MaterialGraphDataSource;
+            if (nodalViewData == null)
+                return EventPropagation.Stop;
+
+            // TODO We will want to move this up to GraphView
+            var elementsToRemove = new List<MaterialNodeData>();
+            foreach (var selectedElement in selection.OfType<MaterialGraphNode>())
+            {
+                var nodeData = selectedElement.dataProvider as MaterialNodeData;
+                if (nodeData != null)
+                    elementsToRemove.Add(nodeData);
+            }
+
+            nodalViewData.RemoveNodes(elementsToRemove);
+
+			return EventPropagation.Stop;
         }
 
         public virtual bool CanAddToNodeMenu(Type type)
