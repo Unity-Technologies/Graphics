@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Rendering;
+using System;
 
 //-----------------------------------------------------------------------------
 // structure definition
@@ -123,15 +125,17 @@ namespace UnityEngine.ScriptableRenderLoop
             Count = 3
         };
 
-        struct GBufferDescription
+        public class RenderLoop : Object
         {
             #if (VELOCITY_IN_GBUFFER)
-            public const int s_gbufferCount = (int)GBufferMaterial.Count + 2; // +1 for emissive buffer
+            public const int s_GBufferCount = (int)GBufferMaterial.Count + 2; // +1 for emissive buffer
             #else
-            public const int s_gbufferCount = (int)GBufferMaterial.Count + 1;
+            public const int s_GBufferCount = (int)GBufferMaterial.Count + 1;
             #endif
 
-            public static RenderTextureFormat[] RTFormat =
+            public int GetGBufferCount() { return s_GBufferCount; }
+
+            public RenderTextureFormat[] RTFormat =
             {
                 RenderTextureFormat.ARGB32,
                 RenderTextureFormat.ARGB2101010,
@@ -142,7 +146,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 RenderTextureFormat.RGB111110Float
             };
 
-            public static RenderTextureReadWrite[] RTReadWrite = 
+            public RenderTextureReadWrite[] RTReadWrite = 
             {
                 RenderTextureReadWrite.sRGB,
                 RenderTextureReadWrite.Linear,
@@ -152,6 +156,42 @@ namespace UnityEngine.ScriptableRenderLoop
                 #endif
                 RenderTextureReadWrite.Linear
             };
+      
+            public Material m_InitPreDFG;
+            public bool isInit;
+            private RenderTexture s_PreIntegratedDFG;
+
+            Material CreateEngineMaterial(string shaderPath)
+            {
+                Material mat = new Material(Shader.Find(shaderPath) as Shader);
+                mat.hideFlags = HideFlags.HideAndDontSave;
+                return mat;
+            }
+
+            public void Rebuild()
+            {
+                m_InitPreDFG = CreateEngineMaterial("Hidden/Unity/LightingDeferred");
+                s_PreIntegratedDFG = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
+                isInit = false;
+            }
+
+            public void OnDisable()
+            {
+                if (m_InitPreDFG) DestroyImmediate(m_InitPreDFG);
+                // TODO: how to delete RenderTexture ?
+                isInit = false;
+            }
+
+            public void RenderInit(UnityEngine.Rendering.RenderLoop renderLoop)
+            {
+                var cmd = new CommandBuffer();
+                cmd.name = "Init PreDFG";
+                cmd.Blit(null, new RenderTargetIdentifier(s_PreIntegratedDFG), m_InitPreDFG, 0);
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+
+                isInit = true;
+            }
         }
     }
 }

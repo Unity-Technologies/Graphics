@@ -23,7 +23,7 @@ Shader "Hidden/Unity/LightingDeferred"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_DISNEYGXX
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "Lighting.hlsl" // This include Material.hlsl
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/Lighting.hlsl" // This include Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
 
             DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);

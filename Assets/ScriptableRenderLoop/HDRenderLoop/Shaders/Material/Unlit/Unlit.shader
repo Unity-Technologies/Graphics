@@ -36,8 +36,8 @@ Shader "Unity/Unlit"
 
     #include "Assets/ScriptableRenderLoop/ShaderLibrary/Common.hlsl"
     #define UNITY_MATERIAL_UNLIT
-    #include "Material/Material.hlsl"
-    #include "ShaderVariables.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
 
     float4  _Color;
     UNITY_DECLARE_TEX2D(_ColorMap);
