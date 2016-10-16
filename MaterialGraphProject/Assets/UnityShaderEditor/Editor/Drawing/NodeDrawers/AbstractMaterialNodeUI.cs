@@ -40,7 +40,13 @@ namespace UnityEditor.MaterialGraph
             node = inNode;
         }
 
-        public abstract void OnGUIHandler();
+        public virtual void OnGUIHandler()
+		{
+			if (node == null)
+				return;
+			
+			GUIUtility.GetControlID (node.guid.GetHashCode(), FocusType.Passive);
+		}
     }
 
     [Serializable]

@@ -12,9 +12,12 @@ namespace UnityEditor.Graphing.Drawing
     {
         public override void OnGUIHandler()
         {
+			base.OnGUIHandler ();
+
             var cNode = node as UnityEngine.MaterialGraph.ColorNode;
             if (cNode == null)
                 return;
+
             cNode.color =  EditorGUILayout.ColorField("Color", cNode.color);
         }
     }
