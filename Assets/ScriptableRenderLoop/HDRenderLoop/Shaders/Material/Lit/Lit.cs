@@ -157,9 +157,9 @@ namespace UnityEngine.ScriptableRenderLoop
                 RenderTextureReadWrite.Linear
             };
       
-            public Material m_InitPreDFG;
+            public Material m_InitPreFGD;
             public bool isInit;
-            private RenderTexture s_PreIntegratedDFG;
+            private RenderTexture s_PreIntegratedFGD;
 
             Material CreateEngineMaterial(string shaderPath)
             {
@@ -170,14 +170,14 @@ namespace UnityEngine.ScriptableRenderLoop
 
             public void Rebuild()
             {
-                m_InitPreDFG = CreateEngineMaterial("Hidden/Unity/LightingDeferred");
-                s_PreIntegratedDFG = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
+                m_InitPreFGD = CreateEngineMaterial("Hidden/Unity/PreIntegratedFGD");
+                s_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
                 isInit = false;
             }
 
             public void OnDisable()
             {
-                if (m_InitPreDFG) DestroyImmediate(m_InitPreDFG);
+                if (m_InitPreFGD) DestroyImmediate(m_InitPreFGD);
                 // TODO: how to delete RenderTexture ?
                 isInit = false;
             }
@@ -185,12 +185,17 @@ namespace UnityEngine.ScriptableRenderLoop
             public void RenderInit(UnityEngine.Rendering.RenderLoop renderLoop)
             {
                 var cmd = new CommandBuffer();
-                cmd.name = "Init PreDFG";
-                cmd.Blit(null, new RenderTargetIdentifier(s_PreIntegratedDFG), m_InitPreDFG, 0);
+                cmd.name = "Init PreFGD";
+                cmd.Blit(null, new RenderTargetIdentifier(s_PreIntegratedFGD), m_InitPreFGD, 0);
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
 
                 isInit = true;
+            }
+
+            public void Bind()
+            {
+                Shader.SetGlobalTexture("_PreIntegratedFGD", s_PreIntegratedFGD);
             }
         }
     }

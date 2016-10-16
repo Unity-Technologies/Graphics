@@ -25,22 +25,29 @@ int UnpackMaterialId(float f)
     return int(round(f * 3.0));
 }
 
-UNITY_DECLARE_TEX2D(_PreIntegratedDFG);
+// TODO: How can I declare a sampler for this one that is bilinear filtering
+UNITY_DECLARE_TEX2D(_PreIntegratedFGD);
 
 // For image based lighting, a part of the BSDF is pre-integrated.
 // This is done both for specular and diffuse (in case of DisneyDiffuse)
-void GetPreIntegratedDFG(float NdotV, float roughness, float3 fresnel0, out float3 specularDFG, out float diffuseDFG)
+void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 specularFGD, out float diffuseFGD)
 {
-    // Pre-integrate GGX DFG
-    //  _PreIntegratedDFG.r = Gv * (1 - Fc)  with Fc = (1 - H.L)^5
-    //  _PreIntegratedDFG.g = Gv * Fc
-    // Pre integrate DisneyDiffuse DFG:
-    // _PreIntegratedDFG.z = DisneyDiffuse
-    float3 preDFG = UNITY_SAMPLE_TEX2D_LOD(_PreIntegratedDFG, float2(NdotV, roughness), 0).xyz;
+    // Pre-integrate GGX FGD
+    //  _PreIntegratedFGD.x = Gv * (1 - Fc)  with Fc = (1 - H.L)^5
+    //  _PreIntegratedFGD.y = Gv * Fc
+    // Pre integrate DisneyDiffuse FGD:
+    // _PreIntegratedFGD.z = DisneyDiffuse
+
+    // TEMP: CAUTION: use 1.0 - perceptualRoughness instead of perceptualRoughness because rendering is inversed due to dumb "openGL convention"...
+    float3 preFGD = UNITY_SAMPLE_TEX2D_LOD(_PreIntegratedFGD, float2(NdotV, 1.0 - perceptualRoughness), 0).xyz;
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
-    specularDFG = fresnel0 * preDFG.r + preDFG.g;
-    diffuseDFG = preDFG.b;
+    specularFGD = fresnel0 * preFGD.x + preFGD.y;
+#if DIFFUSE_LAMBERT_BRDF
+    diffuseFGD = 1.0;
+#else
+    diffuseFGD = preFGD.z;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -339,8 +346,8 @@ struct PreLightData
     float3 iblNormalWS; // Normal to be use with image based lighting
     float3 iblR;        // Reflction vector, same as above.
 
-    float3 specularDFG; // Store preconvole BRDF for both specular and diffuse
-    float diffuseDFG;
+    float3 specularFGD; // Store preconvole BRDF for both specular and diffuse
+    float diffuseFGD;
 
     // TODO: if we want we can store ambient occlusion here from SSAO pass for example that can be use for IBL specular occlusion
     // float ambientOcclusion; // Feed from an ambient occlusion buffer
@@ -378,7 +385,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 
     // We need to take into account the modified normal for faking anisotropic here.
     preLightData.iblR = reflect(-V, iblNormalWS);
-    GetPreIntegratedDFG(iblNdotV, bsdfData.roughness, bsdfData.fresnel0, preLightData.specularDFG, preLightData.diffuseDFG);
+    GetPreIntegratedFGD(iblNdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
 
     // #if SHADERPASS == SHADERPASS_GBUFFER
     // preLightData.ambientOcclusion = _AmbientOcclusion.Load(uint3(coord.unPositionSS, 0)).x;
@@ -397,7 +404,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 float3 GetBakedDiffuseLigthing(PreLightData prelightData, SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
-    return builtinData.bakeDiffuseLighting * prelightData.diffuseDFG * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
+    return builtinData.bakeDiffuseLighting * prelightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
 }
 
 //-----------------------------------------------------------------------------
@@ -474,7 +481,7 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
     }
 }
 
-// _preIntegratedFG and _CubemapLD are unique for each BRDF
+// _preIntegratedFGD and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
                         UNITY_ARGS_ENV(_EnvTextures),
                         out float4 diffuseLighting,
@@ -535,7 +542,7 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
 
     float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
     float4 preLD = UNITY_SAMPLE_ENV_LOD(_EnvTextures, R, lightData, mip);
-    specularLighting.rgb = preLD.rgb * prelightData.specularDFG;
+    specularLighting.rgb = preLD.rgb * prelightData.specularFGD;
 
     // Apply specular occlusion on it
     specularLighting.rgb *= bsdfData.specularOcclusion;

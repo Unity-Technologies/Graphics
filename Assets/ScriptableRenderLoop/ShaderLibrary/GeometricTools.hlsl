@@ -1,8 +1,6 @@
 #ifndef UNITY_GEOMETRICTOOLS_INCLUDED
 #define UNITY_GEOMETRICTOOLS_INCLUDED
 
-#include "Common.hlsl"
-
 //-----------------------------------------------------------------------------
 // Intersection functions
 //-----------------------------------------------------------------------------

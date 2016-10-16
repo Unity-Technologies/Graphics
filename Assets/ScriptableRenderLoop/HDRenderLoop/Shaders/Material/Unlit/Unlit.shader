@@ -34,7 +34,6 @@ Shader "Unity/Unlit"
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _EMISSIVE_COLOR_MAP
 
-    #include "Assets/ScriptableRenderLoop/ShaderLibrary/Common.hlsl"
     #define UNITY_MATERIAL_UNLIT
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"

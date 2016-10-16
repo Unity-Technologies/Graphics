@@ -22,7 +22,7 @@ Shader "Hidden/Unity/FinalPass"
 
             #include "Assets/ScriptableRenderLoop/ShaderLibrary/Common.hlsl"
             #include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
-            #include "../ShaderVariables.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
 
             UNITY_DECLARE_TEX2D(_MainTex);
             float4      _ToneMapCoeffs1;
@@ -38,12 +38,14 @@ Shader "Hidden/Unity/FinalPass"
             float _Exposure;
             float _EnableToneMap;
 
-            struct Attributes {
+            struct Attributes 
+            {
                 float3 vertex : POSITION;
                 float2 texcoord : TEXCOORD0;
             };
 
-            struct Varyings {
+            struct Varyings 
+            {
                 float4 vertex : SV_POSITION;
                 float2 texcoord : TEXCOORD0;
             };
