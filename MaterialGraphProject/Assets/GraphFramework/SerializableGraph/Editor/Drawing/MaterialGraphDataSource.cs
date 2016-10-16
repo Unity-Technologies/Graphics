@@ -14,6 +14,8 @@ namespace UnityEditor.Graphing.Drawing
         [SerializeField]
         private List<GraphElementData> m_Elements = new List<GraphElementData>();
 
+		private readonly Dictionary<Type, Type> m_DataMapper = new Dictionary<Type, Type>();
+
         public IGraphAsset graphAsset { get; private set; }
 
         void OnNodeChanged(INode inNode)
@@ -27,7 +29,7 @@ namespace UnityEditor.Graphing.Drawing
                 foreach (var drawableNodeData in found)
                     drawableNodeData.MarkDirtyHack();
             }
-        }
+        } 
 
         private void UpdateData()
         {
@@ -36,13 +38,20 @@ namespace UnityEditor.Graphing.Drawing
             var drawableNodes = new List<MaterialNodeData>();
             foreach (var node in graphAsset.graph.GetNodes<INode>())
             {
-                MaterialNodeData nodeData;
+                var type = node.GetType ();
 
-                if (node is ColorNode)
-                    nodeData = ScriptableObject.CreateInstance<ColorNodeData>();
-                else
-                    nodeData = ScriptableObject.CreateInstance<MaterialNodeData>();
+				Type found = null;
+				while (type != null) 
+				{
+					if (m_DataMapper.TryGetValue (type, out found))
+						break;
+					type = type.BaseType;
+				}
+				if (found == null)
+					found = typeof(MaterialNodeData);
 
+				var nodeData = (MaterialNodeData)ScriptableObject.CreateInstance(found);
+                
                 node.onModified += OnNodeChanged;
 
                 nodeData.Initialize(node);
@@ -80,16 +89,22 @@ namespace UnityEditor.Graphing.Drawing
             m_Elements.AddRange(drawableEdges.OfType<GraphElementData>());
         }
 
-        public MaterialGraphDataSource(IGraphAsset graphAsset)
-        {
-            this.graphAsset = graphAsset;
+		public void Initialize(IGraphAsset graphAsset)
+		{
+			m_DataMapper.Clear ();
+			m_DataMapper [typeof(AbstractMaterialNode)] = typeof(MaterialNodeData);
+			m_DataMapper [typeof(ColorNode)] = typeof(ColorNodeData);
 
-            if (graphAsset == null)
-                return;
+			this.graphAsset = graphAsset;
 
-            UpdateData();
-        }
+			if (graphAsset == null)
+				return;
 
+			UpdateData();
+		}
+
+        protected MaterialGraphDataSource()
+        { }
 
         public void AddNode(INode node)
         {
