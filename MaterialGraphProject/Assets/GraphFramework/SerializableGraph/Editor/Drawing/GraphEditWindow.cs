@@ -43,7 +43,9 @@ namespace UnityEditor.Graphing.Drawing
         {
             m_Contents = new MaterialGraphView();
             m_Contents.name = "theView";
-            m_Contents.dataSource = new MaterialGraphDataSource(m_LastSelection);
+			var source = CreateInstance<MaterialGraphDataSource>();
+			source.Initialize (m_LastSelection);
+			m_Contents.dataSource = source;
             m_Contents.StretchToParentSize();
 
             windowRoot.AddChild(m_Contents);
@@ -75,7 +77,9 @@ namespace UnityEditor.Graphing.Drawing
                     graph.ValidateGraph();
                     m_LastSelection = selection;
 
-                    m_Contents.dataSource = new MaterialGraphDataSource(m_LastSelection);
+					var source = CreateInstance<MaterialGraphDataSource>();
+					source.Initialize (m_LastSelection);
+					m_Contents.dataSource = source;
 
                     m_Contents.StretchToParentSize();
                     Repaint();
