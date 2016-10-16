@@ -39,6 +39,12 @@ namespace UnityEngine.ScriptableRenderLoop
             object[] attributes = type.GetCustomAttributes(true);
             // Get attribute to get the start number of the value for the enum
             GenerateHLSL attr = attributes[0] as GenerateHLSL;
+
+            if (!attr.needParamDefines)
+            {
+                return ;
+            }
+
             FieldInfo[] fields = type.GetFields();
 
             string subNamespace = type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1);
@@ -60,7 +66,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 name = (isBSDFData ? "Engine/" : "") + subNamespace + "/" + name;
 
                 debugViewMaterialStrings[index] = new GUIContent(name);
-                debugViewMaterialValues[index] = attr.debugCounterStart + (int)localIndex;
+                debugViewMaterialValues[index] = attr.paramDefinesStart + (int)localIndex;
                 index++;
                 localIndex++;
             }

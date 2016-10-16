@@ -98,8 +98,6 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 // conversion function for deferred
 //-----------------------------------------------------------------------------
 
-#define GBUFFER_MATERIAL_COUNT 3
-
 // Encode SurfaceData (BSDF parameters) into GBuffer
 // Must be in sync with RT declared in HDRenderLoop.cs ::Rebuild
 void EncodeIntoGBuffer( SurfaceData surfaceData,

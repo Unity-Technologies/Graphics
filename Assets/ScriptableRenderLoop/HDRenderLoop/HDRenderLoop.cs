@@ -166,12 +166,12 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             ClearComputeBuffers();
 
-            // See Lit.hlsl for details
-            gbufferManager.gbufferCount = 4;
-            gbufferManager.SetBufferDescription(0, "_CameraGBufferTexture0", RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
-            gbufferManager.SetBufferDescription(1, "_CameraGBufferTexture1", RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
-            gbufferManager.SetBufferDescription(2, "_CameraGBufferTexture2", RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-            gbufferManager.SetBufferDescription(3, "_CameraGBufferTexture3", RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Linear);
+            // Init lit gbuffer          
+            gbufferManager.gbufferCount = Lit.GBufferDescription.s_gbufferCount;
+            for (int gbufferIndex = 0; gbufferIndex < gbufferManager.gbufferCount; ++gbufferIndex)
+            {
+                gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, Lit.GBufferDescription.RTFormat[gbufferIndex], Lit.GBufferDescription.RTReadWrite[gbufferIndex]);
+            }
 
             s_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
             s_CameraDepthBuffer = Shader.PropertyToID("_CameraDepthTexture");

@@ -13,7 +13,7 @@ namespace UnityEngine.ScriptableRenderLoop
         // and are independent from the BSDF parametrization.
         // Note: These parameters can be store in GBuffer if the writer wants
         //-----------------------------------------------------------------------------
-        [GenerateHLSL(PackingRules.Exact, true, 100)]
+        [GenerateHLSL(PackingRules.Exact, false, true, 100)]
         public struct BuiltinData
         {
             [SurfaceDataAttributes("Opacity")]
