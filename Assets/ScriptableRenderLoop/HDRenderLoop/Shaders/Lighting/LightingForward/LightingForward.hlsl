@@ -12,8 +12,6 @@ UNITY_DECLARE_ENV(_EnvTextures);
 StructuredBuffer<EnvLightData> _EnvLightList;
 int _EnvLightCount;
 
-// TODO: Think about how to apply Disney diffuse preconvolve on indirect diffuse => must be done during GBuffer layout! Else emissive will be fucked...
-// That's mean we need to read DFG texture during Gbuffer...
 void ForwardLighting(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)

@@ -1,8 +1,6 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
-#include "Common.hlsl"
-
 //-----------------------------------------------------------------------------
 // Gamma space - Assume positive values
 //-----------------------------------------------------------------------------

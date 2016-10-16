@@ -47,6 +47,8 @@
 
 // When declaring "out" argument of function, they are always last
 
+// headers from ShaderLibrary do not include "common.hlsl", this should be included in the .shader using it (or Material.hlsl)
+
 
 // Include language header
 #if defined(SHADER_API_D3D11)

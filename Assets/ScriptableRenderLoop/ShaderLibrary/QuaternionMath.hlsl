@@ -1,8 +1,6 @@
 #ifndef UNITY_QUATERNIONMATH_INCLUDED
 #define UNITY_QUATERNIONMATH_INCLUDED
 
-#include "Common.hlsl"
-
 // Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
 
 float4 TangentSpaceToQuat(float3 tagent, float3 bitangent, float3 normal)

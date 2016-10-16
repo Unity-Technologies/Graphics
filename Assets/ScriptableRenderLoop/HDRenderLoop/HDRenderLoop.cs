@@ -369,6 +369,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
         {
+            // Bind material data
+            m_litRenderLoop.Bind();
+
             Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
             m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
 
@@ -386,6 +389,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop)
         {
+            // Bind material data
+            m_litRenderLoop.Bind();
+
             var cmd = new CommandBuffer();
             cmd.name = "Forward Pass";
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
