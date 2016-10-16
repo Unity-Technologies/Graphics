@@ -14,6 +14,6 @@
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
 
-#include "LightingForward.hlsl"
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightingForward/LightingForward.hlsl"
 
 #endif // UNITY_LIGHTING_INCLUDED

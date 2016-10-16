@@ -14,12 +14,12 @@ Shader "Hidden/Unity/DebugViewMaterialGBuffer"
             #pragma vertex VertDeferred
             #pragma fragment FragDeferred
 
+            #include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/Lighting.hlsl" // This include Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"
-            #include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"            
 
             DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);
             DECLARE_GBUFFER_BAKE_LIGHTING(_CameraGBufferTexture);

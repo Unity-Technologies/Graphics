@@ -9,8 +9,8 @@
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/Debug.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/GeometricTools.hlsl"
 
-#include "../ShaderConfig.cs"
-#include "../LightDefinition.cs.hlsl"
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightDefinition.cs.hlsl"
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions
@@ -46,7 +46,7 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 // BuiltinData
 //-----------------------------------------------------------------------------
 
-#include "BuiltinData.hlsl"
+#include "Builtin/BuiltinData.hlsl"
 
 //-----------------------------------------------------------------------------
 // SurfaceData
@@ -54,9 +54,9 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 
 // Here we include all the different lighting model supported by the renderloop based on define done in .shader
 #ifdef UNITY_MATERIAL_LIT
-#include "Lit.hlsl"
+#include "Lit/Lit.hlsl"
 #elif defined(UNITY_MATERIAL_UNLIT)
-#include "Unlit.hlsl"
+#include "Unlit/Unlit.hlsl"
 #endif
 
 //-----------------------------------------------------------------------------

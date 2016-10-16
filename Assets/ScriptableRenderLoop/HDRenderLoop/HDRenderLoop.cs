@@ -123,6 +123,9 @@ namespace UnityEngine.ScriptableRenderLoop
         Material m_DeferredMaterial;
         Material m_FinalPassMaterial;
 
+        // TODO: Find a way to automatically create/iterate through these kind of class
+        Lit.RenderLoop m_litRenderLoop = new Lit.RenderLoop();
+
         // Debug
         Material m_DebugViewMaterialGBuffer;
 
@@ -166,13 +169,6 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             ClearComputeBuffers();
 
-            // Init lit gbuffer          
-            gbufferManager.gbufferCount = Lit.GBufferDescription.s_gbufferCount;
-            for (int gbufferIndex = 0; gbufferIndex < gbufferManager.gbufferCount; ++gbufferIndex)
-            {
-                gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, Lit.GBufferDescription.RTFormat[gbufferIndex], Lit.GBufferDescription.RTReadWrite[gbufferIndex]);
-            }
-
             s_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
             s_CameraDepthBuffer = Shader.PropertyToID("_CameraDepthTexture");
 
@@ -189,10 +185,21 @@ namespace UnityEngine.ScriptableRenderLoop
 
             m_cubeReflTexArray = new TextureCacheCubemap();
             m_cubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
+
+            // Init Lit material buffer - GBuffer and init
+            gbufferManager.gbufferCount = m_litRenderLoop.GetGBufferCount();
+            for (int gbufferIndex = 0; gbufferIndex < gbufferManager.gbufferCount; ++gbufferIndex)
+            {
+                gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_litRenderLoop.RTFormat[gbufferIndex], m_litRenderLoop.RTReadWrite[gbufferIndex]);
+            }
+
+            m_litRenderLoop.Rebuild();
         }
 
         void OnDisable()
         {
+            m_litRenderLoop.OnDisable();
+
             s_punctualLightList.Release();
             s_envLightList.Release();
 
@@ -538,6 +545,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {
+            if (!m_litRenderLoop.isInit)
+            {
+                m_litRenderLoop.RenderInit(renderLoop);
+            }
+
             // Do anything we need to do upon a new frame.
             NewFrame();
 
