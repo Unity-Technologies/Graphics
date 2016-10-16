@@ -18,13 +18,15 @@ namespace UnityEngine.ScriptableRenderLoop
     public class GenerateHLSL : System.Attribute
     {
         public PackingRules packingRules;
-        public bool simple;
-        public int debugCounterStart;
-        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool simple = false, int debugCounterStart = 1)
+        public bool needAccessors; // Whether or not to generate the accessors
+        public bool needParamDefines; // Wheter or not to generate define for each parameters of the struc
+        public int paramDefinesStart; // Start of the generated define
+        public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needParamDefines = false, int paramDefinesStart = 1)
         {
             packingRules = rules;
-            this.simple = simple;
-            this.debugCounterStart = debugCounterStart;
+            this.needAccessors = needAccessors;
+            this.needParamDefines = needParamDefines;
+            this.paramDefinesStart = paramDefinesStart;
         }
     }
 
@@ -494,11 +496,11 @@ namespace UnityEngine.ScriptableRenderLoop
                     continue;
                 }
 
-                if (attr.simple)
+                if (attr.needParamDefines)
                 {
                     string subNamespace = type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1);
                     string name = InsertUnderscore(field.Name);
-                    statics[("DEBUGVIEW_" + subNamespace + "_" + type.Name + "_" + name).ToUpper()] = Convert.ToString(attr.debugCounterStart + debugCounter++);
+                    statics[("DEBUGVIEW_" + subNamespace + "_" + type.Name + "_" + name).ToUpper()] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
                 }
 
                 if (field.FieldType.IsPrimitive)
@@ -559,9 +561,9 @@ namespace UnityEngine.ScriptableRenderLoop
             get { return statics.Count > 0; }
         }
 
-        public bool IsSimple()
+        public bool needAccessors()
         {
-            return attr.simple;
+            return attr.needAccessors;
         }
 
         public Type type;

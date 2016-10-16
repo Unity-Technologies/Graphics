@@ -22,7 +22,7 @@ namespace UnityEngine.ScriptableRenderLoop
         //-----------------------------------------------------------------------------
 
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, true, 1000)]
+        [GenerateHLSL(PackingRules.Exact, false, true, 1000)]
         public struct SurfaceData
         {
             [SurfaceDataAttributes("Base Color")]
@@ -75,7 +75,7 @@ namespace UnityEngine.ScriptableRenderLoop
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, true, 1030)]
+        [GenerateHLSL(PackingRules.Exact, false, true, 1030)]
         public struct BSDFData
         {
             public Vector3 diffuseColor;
@@ -112,5 +112,46 @@ namespace UnityEngine.ScriptableRenderLoop
             // SpecColor
             // fold into fresnel0
         };
+
+        //-----------------------------------------------------------------------------
+        // GBuffer management
+        //-----------------------------------------------------------------------------
+
+        [GenerateHLSL(PackingRules.Exact)]
+        public enum GBufferMaterial
+        {
+            Count = 3
+        };
+
+        struct GBufferDescription
+        {
+            #if (VELOCITY_IN_GBUFFER)
+            public const int s_gbufferCount = (int)GBufferMaterial.Count + 2; // +1 for emissive buffer
+            #else
+            public const int s_gbufferCount = (int)GBufferMaterial.Count + 1;
+            #endif
+
+            public static RenderTextureFormat[] RTFormat =
+            {
+                RenderTextureFormat.ARGB32,
+                RenderTextureFormat.ARGB2101010,
+                RenderTextureFormat.ARGB32,
+                #if (VELOCITY_IN_GBUFFER)
+                RenderTextureFormat.RGHalf,
+                #endif
+                RenderTextureFormat.RGB111110Float
+            };
+
+            public static RenderTextureReadWrite[] RTReadWrite = 
+            {
+                RenderTextureReadWrite.sRGB,
+                RenderTextureReadWrite.Linear,
+                RenderTextureReadWrite.Linear,
+                #if (VELOCITY_IN_GBUFFER)
+                RenderTextureReadWrite.Linear,
+                #endif
+                RenderTextureReadWrite.Linear
+            };
+        }
     }
 }

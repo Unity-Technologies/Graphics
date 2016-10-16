@@ -128,7 +128,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                         foreach (var gen in it.Value)
                         {
-                            if (gen.hasFields && !gen.IsSimple())
+                            if (gen.hasFields && gen.needAccessors())
                             {
                                 writer.Write(gen.EmitAccessors() + "\n");
                             }

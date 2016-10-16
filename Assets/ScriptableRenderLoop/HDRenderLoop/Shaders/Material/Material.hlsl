@@ -63,9 +63,9 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 // Define for GBuffer
 //-----------------------------------------------------------------------------
 
-#ifdef GBUFFER_MATERIAL_COUNT
+#ifdef GBUFFERMATERIAL_COUNT
 
-#if GBUFFER_MATERIAL_COUNT == 3
+#if GBUFFERMATERIAL_COUNT == 3
 
 #define OUTPUT_GBUFFER(NAME)                            \
         out float4 MERGE_NAME(NAME, 0) : SV_Target0,    \
@@ -95,7 +95,7 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 #define GBUFFER_BAKE_LIGHTING_TARGET(TARGET) MERGE_NAME(TARGET, 3)
 #endif
 
-#elif GBUFFER_MATERIAL_COUNT == 4
+#elif GBUFFERMATERIAL_COUNT == 4
 
 #define OUTPUT_GBUFFER(NAME)                            \
         out float4 MERGE_NAME(NAME, 0) : SV_Target0,    \
@@ -128,7 +128,7 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 #define GBUFFER_BAKE_LIGHTING_TARGET(TARGET) MERGE_NAME(TARGET, 4)
 #endif
 
-#elif GBUFFER_MATERIAL_COUNT == 5
+#elif GBUFFERMATERIAL_COUNT == 5
 
 #define OUTPUT_GBUFFER(NAME)                            \
         out float4 MERGE_NAME(NAME, 0) : SV_Target0,    \
@@ -164,7 +164,7 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 #define GBUFFER_BAKE_LIGHTING_TARGET(TARGET) MERGE_NAME(TARGET, 5)
 #endif
 
-#endif // #if GBUFFER_MATERIAL_COUNT == 3
+#endif // #if GBUFFERMATERIAL_COUNT == 3
 
 // Generic whatever the number of GBuffer
 #ifdef VELOCITY_IN_GBUFFER
@@ -179,7 +179,7 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 #define FETCH_BAKE_LIGHTING_GBUFFER(NAME, TEX, UV) float4 GBUFFER_BAKE_LIGHTING_NAME(NAME) = GBUFFER_BAKE_LIGHTING_NAME(TEX).Load(uint3(UV, 0));
 #define DECODE_BAKE_LIGHTING_FROM_GBUFFER(NAME) DecodeBakedDiffuseLigthingFromGBuffer(GBUFFER_BAKE_LIGHTING_NAME(NAME))
 
-#endif // #ifdef GBUFFER_MATERIAL_COUNT
+#endif // #ifdef GBUFFERMATERIAL_COUNT
 
 // Decode velocity need to be accessible in both forward and deferred
 #ifdef VELOCITY_IN_GBUFFER

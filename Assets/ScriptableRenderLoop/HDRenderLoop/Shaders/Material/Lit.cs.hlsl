@@ -52,6 +52,11 @@
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_NORMAL_WS (1045)
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1046)
 
+//
+// UnityEngine.ScriptableRenderLoop.Lit.GBufferMaterial:  static fields
+//
+#define GBUFFERMATERIAL_COUNT (3)
+
 // Generated from UnityEngine.ScriptableRenderLoop.Lit.SurfaceData
 // PackingRules = Exact
 struct SurfaceData
