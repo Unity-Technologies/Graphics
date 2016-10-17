@@ -872,7 +872,7 @@ namespace UnityEngine.ScriptableRenderLoop
             SetMatrixCS(cmd, m_BuildScreenAABBShader, "g_mProjection", projh);
             SetMatrixCS(cmd, m_BuildScreenAABBShader, "g_mInvProjection", invProjh);
             cmd.SetComputeBufferParam(m_BuildScreenAABBShader, kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
-            cmd.ComputeDispatch(m_BuildScreenAABBShader, kGenAABBKernel, (numLights + 7) / 8, 1, 1);
+            cmd.DispatchCompute(m_BuildScreenAABBShader, kGenAABBKernel, (numLights + 7) / 8, 1, 1);
 
             cmd.SetComputeIntParams(m_BuildPerTileLightListShader, "g_viDimensions", new int[2] { iW, iH });
             cmd.SetComputeIntParam(m_BuildPerTileLightListShader, "g_iNrVisibLights", numLights);
@@ -880,7 +880,7 @@ namespace UnityEngine.ScriptableRenderLoop
             SetMatrixCS(cmd, m_BuildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
             cmd.SetComputeTextureParam(m_BuildPerTileLightListShader, kGenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(kCameraDepthTexture));
             cmd.SetComputeBufferParam(m_BuildPerTileLightListShader, kGenListPerTileKernel, "g_vLightList", lightList);
-            cmd.ComputeDispatch(m_BuildPerTileLightListShader, kGenListPerTileKernel, nrTilesX, nrTilesY, 1);
+            cmd.DispatchCompute(m_BuildPerTileLightListShader, kGenListPerTileKernel, nrTilesX, nrTilesY, 1);
 
             if (EnableClustered) VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
 
@@ -978,7 +978,7 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             // clear atomic offset index
             cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kClearVoxelAtomicKernel, "g_LayeredSingleIdxBuffer", m_globalLightListAtomic);
-            cmd.ComputeDispatch(m_BuildPerVoxelLightListShader, kClearVoxelAtomicKernel, 1, 1, 1);
+            cmd.DispatchCompute(m_BuildPerVoxelLightListShader, kClearVoxelAtomicKernel, 1, 1, 1);
 
             cmd.SetComputeIntParam(m_BuildPerVoxelLightListShader, "g_iNrVisibLights", numLights);
             SetMatrixCS(cmd, m_BuildPerVoxelLightListShader, "g_mScrProjection", projscr);
@@ -1011,7 +1011,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             int nrTilesX = (camera.pixelWidth + 15) / 16;
             int nrTilesY = (camera.pixelHeight + 15) / 16;
-            cmd.ComputeDispatch(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, nrTilesX, nrTilesY, 1);
+            cmd.DispatchCompute(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, nrTilesX, nrTilesY, 1);
         }
 
         void PushGlobalParams(Camera camera, RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
