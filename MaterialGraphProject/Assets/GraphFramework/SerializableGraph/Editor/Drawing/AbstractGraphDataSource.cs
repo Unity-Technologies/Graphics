@@ -50,7 +50,7 @@ namespace UnityEditor.Graphing.Drawing
                 if (found == null)
                     found = typeof(MaterialNodeDrawData);
 
-                var nodeData = (MaterialNodeDrawData) CreateInstance(found);
+                var nodeData = (MaterialNodeDrawData)CreateInstance(found);
 
                 node.onModified += OnNodeChanged;
 

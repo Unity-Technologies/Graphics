@@ -6,7 +6,7 @@ using UnityEngine.MaterialGraph;
 namespace UnityEditor.MaterialGraph.Drawing
 {
     [Serializable]
-	public class MaterialNodeDrawData : NodeDrawData
+    public class MaterialNodeDrawData : NodeDrawData
     {
         public bool requiresTime
         {

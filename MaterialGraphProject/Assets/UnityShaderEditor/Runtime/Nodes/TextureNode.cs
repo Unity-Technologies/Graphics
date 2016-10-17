@@ -77,7 +77,7 @@ namespace UnityEngine.MaterialGraph
             {
                 if (m_TextureType == value)
                     return;
-                
+
 
                 m_TextureType = value;
                 if (onModified != null)

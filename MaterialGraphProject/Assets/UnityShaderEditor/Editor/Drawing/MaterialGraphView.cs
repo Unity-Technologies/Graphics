@@ -22,7 +22,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             dataMapper[typeof(NodeAnchorData)] = typeof(NodeAnchor);
             dataMapper[typeof(EdgeData)] = typeof(RMGUI.GraphView.Edge);
         }
-        
+
         public virtual bool CanAddToNodeMenu(Type type)
         {
             return true;
