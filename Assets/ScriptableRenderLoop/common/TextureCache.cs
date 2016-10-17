@@ -7,7 +7,7 @@ public class TextureCache2D : TextureCache
 
     public override void TransferToSlice(int sliceIndex, Texture texture)
     {
-        bool mismatch = (cache.width != texture.width) || (cache.height != texture.height);
+        var mismatch = (cache.width != texture.width) || (cache.height != texture.height);
 
         if (texture is Texture2D)
         {
@@ -31,12 +31,14 @@ public class TextureCache2D : TextureCache
 
     public bool AllocTextureArray(int numTextures, int width, int height, TextureFormat format, bool isMipMapped)
     {
-        bool res = AllocTextureArray(numTextures);
-        m_numMipLevels = GetNumMips(width, height);
+        var res = AllocTextureArray(numTextures);
+        m_NumMipLevels = GetNumMips(width, height);
 
-        cache = new Texture2DArray(width, height, numTextures, format, isMipMapped);
-        cache.hideFlags = HideFlags.HideAndDontSave;
-        cache.wrapMode = TextureWrapMode.Clamp;
+        cache = new Texture2DArray(width, height, numTextures, format, isMipMapped)
+        {
+            hideFlags = HideFlags.HideAndDontSave,
+            wrapMode = TextureWrapMode.Clamp
+        };
 
         return res;
     }
@@ -49,108 +51,109 @@ public class TextureCache2D : TextureCache
 
 public class TextureCacheCubemap : TextureCache
 {
-    private CubemapArray cache;
+    private CubemapArray m_Cache;
 
     public override void TransferToSlice(int sliceIndex, Texture texture)
     {
-        bool mismatch = (cache.width != texture.width) || (cache.height != texture.height);
+        var mismatch = (m_Cache.width != texture.width) || (m_Cache.height != texture.height);
 
         if (texture is Cubemap)
         {
-            mismatch |= (cache.format != (texture as Cubemap).format);
+            mismatch |= (m_Cache.format != (texture as Cubemap).format);
         }
 
         if (mismatch)
         {
             Debug.LogErrorFormat(texture, "Texture size or format of \"{0}\" doesn't match renderloop settings (should be {1}x{2} {3})",
-                texture.name, cache.width, cache.height, cache.format);
+                texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
             return;
         }
 
-        for (int f = 0; f < 6; f++)
-            Graphics.CopyTexture(texture, f, cache, 6 * sliceIndex + f);
+        for (var f = 0; f < 6; f++)
+            Graphics.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
     }
 
     public override Texture GetTexCache()
     {
-        return cache;
+        return m_Cache;
     }
 
     public bool AllocTextureArray(int numCubeMaps, int width, TextureFormat format, bool isMipMapped)
     {
-        bool res = AllocTextureArray(6 * numCubeMaps);
-        m_numMipLevels = GetNumMips(width, width);
+        var res = AllocTextureArray(6 * numCubeMaps);
+        m_NumMipLevels = GetNumMips(width, width);
 
-        cache = new CubemapArray(width, numCubeMaps, format, isMipMapped);
-        cache.hideFlags = HideFlags.HideAndDontSave;
-        cache.wrapMode = TextureWrapMode.Clamp;
+        m_Cache = new CubemapArray(width, numCubeMaps, format, isMipMapped)
+        {
+            hideFlags = HideFlags.HideAndDontSave,
+            wrapMode = TextureWrapMode.Clamp
+        };
 
         return res;
     }
 
     public void Release()
     {
-        Texture.DestroyImmediate(cache);      // do I need this?
+        Texture.DestroyImmediate(m_Cache);      // do I need this?
     }
 }
 
 
-abstract public class TextureCache : Object
+public abstract class TextureCache : Object
 {
-    protected int m_numMipLevels;
+    protected int m_NumMipLevels;
 
-    public static int ms_GlobalTextureCacheVersion = 0;
-    public int m_TextureCacheVersion = 0;
+    static int s_GlobalTextureCacheVersion = 0;
+    int m_TextureCacheVersion = 0;
 
 #if UNITY_EDITOR
     internal class AssetReloader : UnityEditor.AssetPostprocessor
     {
         void OnPostprocessTexture(Texture texture)
         {
-            ms_GlobalTextureCacheVersion++;
+            s_GlobalTextureCacheVersion++;
         }
     }
-    private AssetReloader m_assetReloader;
 #endif
 
     private struct SSliceEntry
     {
-        public uint TexID;
-        public uint CountLRU;
+        public uint texId;
+        public uint countLRU;
     };
 
-    private int m_numTextures;
+    private int m_NumTextures;
     private int[] m_SortedIdxArray;
     private SSliceEntry[] m_SliceArray;
 
-    Dictionary<uint, int> m_locatorInSliceArray;
+    Dictionary<uint, int> m_LocatorInSliceArray;
 
     private static uint g_MaxFrameCount = unchecked((uint)(-1));
     private static uint g_InvalidTexID = (uint)0;
 
     public int FetchSlice(Texture texture)
     {
-        uint TexID = (uint)texture.GetInstanceID();
+        var texId = (uint)texture.GetInstanceID();
 
         //assert(TexID!=g_InvalidTexID);
-        if (TexID == g_InvalidTexID) return 0;
+        if (texId == g_InvalidTexID) return 0;
 
-        bool bSwapSlice = false;
-        bool bFoundAvailOrExistingSlice = false;
-        int sliceIndex = -1;
+        var bSwapSlice = false;
+        var bFoundAvailOrExistingSlice = false;
+        var sliceIndex = -1;
 
         // search for existing copy
-        if (m_locatorInSliceArray.ContainsKey(TexID))
+        if (m_LocatorInSliceArray.ContainsKey(texId))
         {
-            if (m_TextureCacheVersion != ms_GlobalTextureCacheVersion)
+            if (m_TextureCacheVersion != s_GlobalTextureCacheVersion)
             {
-                m_locatorInSliceArray.Remove(TexID);
+                m_LocatorInSliceArray.Remove(texId);
                 m_TextureCacheVersion++;
-                Debug.Assert(m_TextureCacheVersion <= ms_GlobalTextureCacheVersion);
+                Debug.Assert(m_TextureCacheVersion <= s_GlobalTextureCacheVersion);
             }
             else
             {
-                sliceIndex = m_locatorInSliceArray[TexID];
+                sliceIndex = m_LocatorInSliceArray[texId];
                 bFoundAvailOrExistingSlice = true;
             }
             //assert(m_SliceArray[sliceIndex].TexID==TexID);
@@ -161,25 +164,25 @@ abstract public class TextureCache : Object
         {
             // look for first non zero entry. Will by the least recently used entry
             // since the array was pre-sorted (in linear time) in NewFrame()
-            bool bFound = false;
+            var bFound = false;
             int j = 0, idx = 0;
-            while ((!bFound) && j < m_numTextures)
+            while ((!bFound) && j < m_NumTextures)
             {
                 idx = m_SortedIdxArray[j];
-                if (m_SliceArray[idx].CountLRU == 0) ++j;       // if entry already snagged by a new texture in this frame then ++j
+                if (m_SliceArray[idx].countLRU == 0) ++j;       // if entry already snagged by a new texture in this frame then ++j
                 else bFound = true;
             }
 
             if (bFound)
             {
                 // if we are replacing an existing entry delete it from m_locatorInSliceArray.
-                if (m_SliceArray[idx].TexID != g_InvalidTexID)
+                if (m_SliceArray[idx].texId != g_InvalidTexID)
                 {
-                    m_locatorInSliceArray.Remove(m_SliceArray[idx].TexID);
+                    m_LocatorInSliceArray.Remove(m_SliceArray[idx].texId);
                 }
 
-                m_locatorInSliceArray.Add(TexID, idx);
-                m_SliceArray[idx].TexID = TexID;
+                m_LocatorInSliceArray.Add(texId, idx);
+                m_SliceArray[idx].texId = texId;
 
                 sliceIndex = idx;
                 bFoundAvailOrExistingSlice = true;
@@ -192,7 +195,7 @@ abstract public class TextureCache : Object
         //assert(bFoundAvailOrExistingSlice);
         if (bFoundAvailOrExistingSlice)
         {
-            m_SliceArray[sliceIndex].CountLRU = 0;      // mark slice as in use this frame
+            m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame
 
             if (bSwapSlice) // if this was a miss
             {
@@ -206,17 +209,17 @@ abstract public class TextureCache : Object
 
     public void NewFrame()
     {
-        int numNonZeros = 0;
-        int[] tmpBuffer = new int[m_numTextures];
-        for (int i = 0; i < m_numTextures; i++)
+        var numNonZeros = 0;
+        var tmpBuffer = new int[m_NumTextures];
+        for (var i = 0; i < m_NumTextures; i++)
         {
             tmpBuffer[i] = m_SortedIdxArray[i];     // copy buffer
-            if (m_SliceArray[m_SortedIdxArray[i]].CountLRU != 0) ++numNonZeros;
+            if (m_SliceArray[m_SortedIdxArray[i]].countLRU != 0) ++numNonZeros;
         }
         int nonZerosBase = 0, zerosBase = 0;
-        for (int i = 0; i < m_numTextures; i++)
+        for (var i = 0; i < m_NumTextures; i++)
         {
-            if (m_SliceArray[tmpBuffer[i]].CountLRU == 0)
+            if (m_SliceArray[tmpBuffer[i]].countLRU == 0)
             {
                 m_SortedIdxArray[zerosBase + numNonZeros] = tmpBuffer[i];
                 ++zerosBase;
@@ -228,19 +231,19 @@ abstract public class TextureCache : Object
             }
         }
 
-        for (int i = 0; i < m_numTextures; i++)
+        for (var i = 0; i < m_NumTextures; i++)
         {
-            if (m_SliceArray[i].CountLRU < g_MaxFrameCount) ++m_SliceArray[i].CountLRU;     // next frame
+            if (m_SliceArray[i].countLRU < g_MaxFrameCount) ++m_SliceArray[i].countLRU;     // next frame
         }
 
         //for(int q=1; q<m_numTextures; q++)
         //    assert(m_SliceArray[m_SortedIdxArray[q-1]].CountLRU>=m_SliceArray[m_SortedIdxArray[q]].CountLRU);
     }
 
-    public TextureCache()
+    protected TextureCache()
     {
-        m_numTextures = 0;
-        m_numMipLevels = 0;
+        m_NumTextures = 0;
+        m_NumMipLevels = 0;
     }
 
     public virtual void TransferToSlice(int sliceIndex, Texture texture)
@@ -258,13 +261,13 @@ abstract public class TextureCache : Object
         {
             m_SliceArray = new SSliceEntry[numTextures];
             m_SortedIdxArray = new int[numTextures];
-            m_locatorInSliceArray = new Dictionary<uint, int>();
+            m_LocatorInSliceArray = new Dictionary<uint, int>();
 
-            m_numTextures = numTextures;
-            for (int i = 0; i < m_numTextures; i++)
+            m_NumTextures = numTextures;
+            for (var i = 0; i < m_NumTextures; i++)
             {
-                m_SliceArray[i].CountLRU = g_MaxFrameCount;         // never used before
-                m_SliceArray[i].TexID = g_InvalidTexID;
+                m_SliceArray[i].countLRU = g_MaxFrameCount;         // never used before
+                m_SliceArray[i].texId = g_InvalidTexID;
                 m_SortedIdxArray[i] = i;
             }
         }
@@ -276,39 +279,42 @@ abstract public class TextureCache : Object
     // should not really be used in general. Assuming lights are culled properly entries will automatically be replaced efficiently.
     public void RemoveEntryFromSlice(Texture texture)
     {
-        uint TexID = (uint)texture.GetInstanceID();
+        var texId = (uint)texture.GetInstanceID();
 
         //assert(TexID!=g_InvalidTexID);
-        if (TexID == g_InvalidTexID) return;
+        if (texId == g_InvalidTexID) return;
 
         // search for existing copy
-        if (m_locatorInSliceArray.ContainsKey(TexID))
+        if (!m_LocatorInSliceArray.ContainsKey(texId))
+            return;
+
+        var sliceIndex = m_LocatorInSliceArray[texId];
+
+        //assert(m_SliceArray[sliceIndex].TexID==TexID);
+
+        // locate entry sorted by uCountLRU in m_pSortedIdxArray
+        var foundIdxSortLRU = false;
+        var i = 0;
+        while ((!foundIdxSortLRU) && i < m_NumTextures)
         {
-            int sliceIndex = m_locatorInSliceArray[TexID];
-
-            //assert(m_SliceArray[sliceIndex].TexID==TexID);
-
-            // locate entry sorted by uCountLRU in m_pSortedIdxArray
-            bool bFoundIdxSortLRU = false;
-            int i = 0;
-            while ((!bFoundIdxSortLRU) && i < m_numTextures)
-            {
-                if (m_SortedIdxArray[i] == sliceIndex) bFoundIdxSortLRU = true;
-                else ++i;
-            }
-
-            if (bFoundIdxSortLRU)
-            {
-                // relocate sliceIndex to front of m_pSortedIdxArray since uCountLRU will be set to maximum.
-                for (int j = 0; j < i; j++) { m_SortedIdxArray[j + 1] = m_SortedIdxArray[j]; }
-                m_SortedIdxArray[0] = sliceIndex;
-
-                // delete from m_locatorInSliceArray and m_pSliceArray.
-                m_locatorInSliceArray.Remove(TexID);
-                m_SliceArray[sliceIndex].CountLRU = g_MaxFrameCount;            // never used before
-                m_SliceArray[sliceIndex].TexID = g_InvalidTexID;
-            }
+            if (m_SortedIdxArray[i] == sliceIndex) foundIdxSortLRU = true;
+            else ++i;
         }
+
+        if (!foundIdxSortLRU)
+            return;
+
+        // relocate sliceIndex to front of m_pSortedIdxArray since uCountLRU will be set to maximum.
+        for (var j = 0; j < i; j++)
+        {
+            m_SortedIdxArray[j + 1] = m_SortedIdxArray[j];
+        }
+        m_SortedIdxArray[0] = sliceIndex;
+
+        // delete from m_locatorInSliceArray and m_pSliceArray.
+        m_LocatorInSliceArray.Remove(texId);
+        m_SliceArray[sliceIndex].countLRU = g_MaxFrameCount;            // never used before
+        m_SliceArray[sliceIndex].texId = g_InvalidTexID;
     }
 
     protected int GetNumMips(int width, int height)
@@ -318,8 +324,8 @@ abstract public class TextureCache : Object
 
     protected int GetNumMips(int dim)
     {
-        uint uDim = (uint)dim;
-        int iNumMips = 0;
+        var uDim = (uint)dim;
+        var iNumMips = 0;
         while (uDim > 0)
         { ++iNumMips; uDim >>= 1; }
         return iNumMips;

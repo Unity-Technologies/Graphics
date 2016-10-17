@@ -37,8 +37,8 @@ groupshared unsigned int clipFlags[48];
 unsigned int GetClip(const float4 P);
 int ClipAgainstPlane(const int iSrcIndex, const int iNrSrcVerts, const int subLigt, const int p);
 void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, out float2 vMax, float4x4 InvProjection, float3 pos_view_space, float r);
-void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int sideIndex);
-void GetPlane(out float3 p0, out float3 vN, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int sideIndex);
+void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex);
+void GetPlane(out float3 p0, out float3 vN, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex);
 
 
 [numthreads(NR_THREADS, 1, 1)]
@@ -56,18 +56,18 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	
 	SFiniteLightBound lgtDat = g_data[lgtIndex];
 	
-	const float3 vBoxX = lgtDat.vBoxAxisX.xyz;
-	const float3 vBoxY = lgtDat.vBoxAxisY.xyz;
-	const float3 vBoxZ = -lgtDat.vBoxAxisZ.xyz;           // flip an axis to make it right handed since Determinant(worldToView)<0
-	const float3 vCen = lgtDat.vCen.xyz;
-	const float fRadius = lgtDat.fRadius;
-	const float2 vScaleXY = lgtDat.vScaleXY;
+	const float3 boxX = lgtDat.boxAxisX.xyz;
+	const float3 boxY = lgtDat.boxAxisY.xyz;
+	const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip an axis to make it right handed since Determinant(worldToView)<0
+	const float3 center = lgtDat.center.xyz;
+	const float radius = lgtDat.radius;
+	const float2 scaleXY = lgtDat.scaleXY;
 
 	{
 		if(sideIndex<6 && lgtIndex<(int) g_iNrVisibLights)		// mask 2 out of 8 threads
 		{
 			float3 q0, q1, q2, q3;
-			GetQuad(q0, q1, q2, q3, vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, sideIndex);
+			GetQuad(q0, q1, q2, q3, boxX, boxY, boxZ, center, scaleXY, sideIndex);
 
 
 			const float4 vP0 = mul(g_mProjection, float4(q0, 1));
@@ -169,7 +169,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				for(f=0; f<6; f++)
 				{
 					float3 q0, q1, q2, q3;
-					GetQuad(q0, q1, q2, q3, vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, f);
+					GetQuad(q0, q1, q2, q3, boxX, boxY, boxZ, center, scaleXY, f);
 			
 					// 4 vertices to a quad of the convex hull in post projection space
 					const float4 vP0 = mul(g_mProjection, float4(q0, 1));
@@ -238,7 +238,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 				for(f=0; f<6; f++)
 				{
 					float3 vP0, vN;
-					GetPlane(vP0, vN, vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, f);
+					GetPlane(vP0, vN, boxX, boxY, boxZ, center, scaleXY, f);
 
 					for(i=0; i<8; i++)
 					{
@@ -276,37 +276,37 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 			}
 			else
 			{
-				//if((vCen.z+fRadius)<0.0)
-				if( length(vCen)>fRadius)
+				//if((center.z+radius)<0.0)
+				if( length(center)>radius)
 				{
 					float2 vMi, vMa;
 					bool2 bMi, bMa;
-					CalcBound(bMi, bMa, vMi, vMa, g_mInvProjection, vCen, fRadius);
+					CalcBound(bMi, bMa, vMi, vMa, g_mInvProjection, center, radius);
 		
 					vMin.xy = bMi ? max(vMin.xy, vMi) : vMin.xy;
 					vMax.xy = bMa ? min(vMax.xy, vMa) : vMax.xy;
 				}
 
 #ifdef LEFT_HAND_COORDINATES
-				if((vCen.z-fRadius)>0.0)
+				if((center.z-radius)>0.0)
 				{
-					float4 vPosF = mul(g_mProjection, float4(0,0,vCen.z-fRadius,1));
+					float4 vPosF = mul(g_mProjection, float4(0,0,center.z-radius,1));
 					vMin.z = max(vMin.z, vPosF.z/vPosF.w);
 				}
-				if((vCen.z+fRadius)>0.0)
+				if((center.z+radius)>0.0)
 				{
-					float4 vPosB = mul(g_mProjection, float4(0,0,vCen.z+fRadius,1));
+					float4 vPosB = mul(g_mProjection, float4(0,0,center.z+radius,1));
 					vMax.z = min(vMax.z, vPosB.z/vPosB.w);
 				}
 #else
-				if((vCen.z+fRadius)<0.0)
+				if((center.z+radius)<0.0)
 				{
-					float4 vPosF = mul(g_mProjection, float4(0,0,vCen.z+fRadius,1));
+					float4 vPosF = mul(g_mProjection, float4(0,0,center.z+radius,1));
 					vMin.z = max(vMin.z, vPosF.z/vPosF.w);
 				}
-				if((vCen.z-fRadius)<0.0)
+				if((center.z-radius)<0.0)
 				{
-					float4 vPosB = mul(g_mProjection, float4(0,0,vCen.z-fRadius,1));
+					float4 vPosB = mul(g_mProjection, float4(0,0,center.z-radius,1));
 					vMax.z = min(vMax.z, vPosB.z/vPosB.w);
 				}
 #endif
@@ -405,52 +405,52 @@ float4 GenNewVert(const float4 vVisib, const float4 vInvisib, const int p)
 	return vNew;
 }
 
-void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int sideIndex)
+void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
 {
 	const int iAbsSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
 	const float fS = (sideIndex & 1) != 0 ? 1 : (-1);
 
-	float3 vA = fS*(iAbsSide == 0 ? vBoxX : (iAbsSide == 1 ? (-vBoxY) : vBoxZ));
-	float3 vB = fS*(iAbsSide == 0 ? (-vBoxY) : (iAbsSide == 1 ? (-vBoxX) : (-vBoxY)));
-	float3 vC = iAbsSide == 0 ? vBoxZ : (iAbsSide == 1 ? vBoxZ : (-vBoxX));
+	float3 vA = fS*(iAbsSide == 0 ? boxX : (iAbsSide == 1 ? (-boxY) : boxZ));
+	float3 vB = fS*(iAbsSide == 0 ? (-boxY) : (iAbsSide == 1 ? (-boxX) : (-boxY)));
+	float3 vC = iAbsSide == 0 ? boxZ : (iAbsSide == 1 ? boxZ : (-boxX));
 
 	bool bIsTopQuad = iAbsSide == 2 && (sideIndex & 1) != 0;		// in this case all 4 verts get scaled.
 	bool bIsSideQuad = (iAbsSide == 0 || iAbsSide == 1);		// if side quad only two verts get scaled (impacts q1 and q2)
 
-	if (bIsTopQuad) { vB *= vScaleXY.y; vC *= vScaleXY.x; }
+	if (bIsTopQuad) { vB *= scaleXY.y; vC *= scaleXY.x; }
 
 	float3 vA2 = vA;
 	float3 vB2 = vB;
 
-	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? vScaleXY.x : vScaleXY.y); vB2 *= (iAbsSide == 0 ? vScaleXY.y : vScaleXY.x); }
+	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? scaleXY.x : scaleXY.y); vB2 *= (iAbsSide == 0 ? scaleXY.y : scaleXY.x); }
 
 	// delivered counterclockwise in right hand space and clockwise in left hand space
-	p0 = vCen + (vA + vB - vC);		// vCen + vA is center of face when vScaleXY is 1.0
-	p1 = vCen + (vA - vB - vC);
-	p2 = vCen + (vA2 - vB2 + vC);
-	p3 = vCen + (vA2 + vB2 + vC);
+	p0 = center + (vA + vB - vC);		// center + vA is center of face when scaleXY is 1.0
+	p1 = center + (vA - vB - vC);
+	p2 = center + (vA2 - vB2 + vC);
+	p3 = center + (vA2 + vB2 + vC);
 }
 
-void GetPlane(out float3 p0, out float3 vN, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int sideIndex)
+void GetPlane(out float3 p0, out float3 vN, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
 {
 	const int iAbsSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
 	const float fS = (sideIndex & 1) != 0 ? 1 : (-1);
 
-	float3 vA = fS*(iAbsSide == 0 ? vBoxX : (iAbsSide == 1 ? (-vBoxY) : vBoxZ));
-	float3 vB = fS*(iAbsSide == 0 ? (-vBoxY) : (iAbsSide == 1 ? (-vBoxX) : (-vBoxY)));
-	float3 vC = iAbsSide == 0 ? vBoxZ : (iAbsSide == 1 ? vBoxZ : (-vBoxX));
+	float3 vA = fS*(iAbsSide == 0 ? boxX : (iAbsSide == 1 ? (-boxY) : boxZ));
+	float3 vB = fS*(iAbsSide == 0 ? (-boxY) : (iAbsSide == 1 ? (-boxX) : (-boxY)));
+	float3 vC = iAbsSide == 0 ? boxZ : (iAbsSide == 1 ? boxZ : (-boxX));
 
 	bool bIsTopQuad = iAbsSide == 2 && (sideIndex & 1) != 0;		// in this case all 4 verts get scaled.
 	bool bIsSideQuad = (iAbsSide == 0 || iAbsSide == 1);		// if side quad only two verts get scaled (impacts q1 and q2)
 
-	if (bIsTopQuad) { vB *= vScaleXY.y; vC *= vScaleXY.x; }
+	if (bIsTopQuad) { vB *= scaleXY.y; vC *= scaleXY.x; }
 
 	float3 vA2 = vA;
 	float3 vB2 = vB;
 
-	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? vScaleXY.x : vScaleXY.y); vB2 *= (iAbsSide == 0 ? vScaleXY.y : vScaleXY.x); }
+	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? scaleXY.x : scaleXY.y); vB2 *= (iAbsSide == 0 ? scaleXY.y : scaleXY.x); }
 
-	p0 = vCen + (vA + vB - vC);		// vCen + vA is center of face when vScaleXY is 1.0
+	p0 = center + (vA + vB - vC);		// center + vA is center of face when scaleXY is 1.0
 	float3 vNout = cross( vB2, 0.5*(vA-vA2) - vC );
 
 #ifdef LEFT_HAND_COORDINATES

@@ -10,7 +10,7 @@ public struct TextureSettings
     public uint pointCookieSize;
     public uint reflectionCubemapSize;
 
-    static public TextureSettings Default
+    public static TextureSettings Default
     {
         get
         {

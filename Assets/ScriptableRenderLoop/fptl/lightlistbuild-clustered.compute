@@ -110,7 +110,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 // returns 1 for intersection and 0 for none
 
-float4 GetPlaneEq(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXZ, const int sideIndex);
+float4 GetPlaneEq(const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 vScaleXZ, const int sideIndex);
 float4 FetchPlane(int l, int p);
 
 
@@ -329,7 +329,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		{
 			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase) )
 			{
-				uint lightModel = g_vLightData[ coarseList[l] ].uLightModel;
+				uint lightModel = g_vLightData[ coarseList[l] ].lightModel;
 				++modelListCount[ lightModel==REFLECTION_LIGHT ? 1 : 0];
 				g_vLayeredLightList[offs++] = coarseList[l];			// reflection lights will be last since we sorted
 			}
@@ -408,26 +408,26 @@ void sortLightList(int localThreadID, int length)
 
 
 
-float4 GetPlaneEq(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int sideIndex)
+float4 GetPlaneEq(const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
 {
-	const int iAbsSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
+	const int absSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
 	const float fS = (sideIndex & 1) != 0 ? 1 : (-1);
 
-	float3 vA = fS*(iAbsSide == 0 ? vBoxX : (iAbsSide == 1 ? (-vBoxY) : vBoxZ));
-	float3 vB = fS*(iAbsSide == 0 ? (-vBoxY) : (iAbsSide == 1 ? (-vBoxX) : (-vBoxY)));
-	float3 vC = iAbsSide == 0 ? vBoxZ : (iAbsSide == 1 ? vBoxZ : (-vBoxX));
+	float3 vA = fS*(absSide == 0 ? boxX : (absSide == 1 ? (-boxY) : boxZ));
+	float3 vB = fS*(absSide == 0 ? (-boxY) : (absSide == 1 ? (-boxX) : (-boxY)));
+	float3 vC = absSide == 0 ? boxZ : (absSide == 1 ? boxZ : (-boxX));
 
-	bool bIsTopQuad = iAbsSide == 2 && (sideIndex & 1) != 0;		// in this case all 4 verts get scaled.
-	bool bIsSideQuad = (iAbsSide == 0 || iAbsSide == 1);		// if side quad only two verts get scaled (impacts q1 and q2)
+	bool bIsTopQuad = absSide == 2 && (sideIndex & 1) != 0;		// in this case all 4 verts get scaled.
+	bool bIsSideQuad = (absSide == 0 || absSide == 1);		// if side quad only two verts get scaled (impacts q1 and q2)
 
-	if (bIsTopQuad) { vB *= vScaleXY.y; vC *= vScaleXY.x; }
+	if (bIsTopQuad) { vB *= scaleXY.y; vC *= scaleXY.x; }
 
 	float3 vA2 = vA;
 	float3 vB2 = vB;
 
-	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? vScaleXY.x : vScaleXY.y); vB2 *= (iAbsSide == 0 ? vScaleXY.y : vScaleXY.x); }
+	if (bIsSideQuad) { vA2 *= (absSide == 0 ? scaleXY.x : scaleXY.y); vB2 *= (absSide == 0 ? scaleXY.y : scaleXY.x); }
 
-	float3 p0 = vCen + (vA + vB - vC);		// vCen + vA is center of face when vScaleXY is 1.0
+	float3 p0 = center + (vA + vB - vC);		// center + vA is center of face when scaleXY is 1.0
 	float3 vN = cross( vB2, 0.5*(vA-vA2) - vC );
 
 #ifdef LEFT_HAND_COORDINATES
@@ -442,14 +442,14 @@ float4 FetchPlane(int l, int p)
 {
 	SFiniteLightBound lgtDat = g_data[coarseList[l]];
 	
-	const float3 vBoxX = lgtDat.vBoxAxisX.xyz;
-	const float3 vBoxY = lgtDat.vBoxAxisY.xyz;
-	const float3 vBoxZ = -lgtDat.vBoxAxisZ.xyz;           // flip an axis to make it right handed since Determinant(worldToView)<0
-	const float3 vCen = lgtDat.vCen.xyz;
-	const float fRadius = lgtDat.fRadius;
-	const float2 vScaleXY = lgtDat.vScaleXY;
+	const float3 boxX = lgtDat.boxAxisX.xyz;
+	const float3 boxY = lgtDat.boxAxisY.xyz;
+	const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip an axis to make it right handed since Determinant(worldToView)<0
+	const float3 center = lgtDat.center.xyz;
+	const float radius = lgtDat.radius;
+	const float2 scaleXY = lgtDat.scaleXY;
 
-	return GetPlaneEq(vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, p);
+	return GetPlaneEq(boxX, boxY, boxZ, center, scaleXY, p);
 }
 
 
@@ -474,11 +474,11 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	{
 		SFiniteLightBound lgtDat = g_data[coarseList[l]];
 	
-		const float3 vCen = lgtDat.vCen.xyz;
-		float fRad = lgtDat.fRadius;
+		const float3 center = lgtDat.center.xyz;
+		float fRad = lgtDat.radius;
 
 #if 1
-		float3 maxZdir = float3(-vCen.z*vCen.x, -vCen.z*vCen.y, vCen.x*vCen.x + vCen.y*vCen.y);		// cross(vCen,cross(Zaxis,vCen))
+		float3 maxZdir = float3(-center.z*center.x, -center.z*center.y, center.x*center.x + center.y*center.y);		// cross(center,cross(Zaxis,center))
 		float len = length(maxZdir);
 		float scalarProj = len>0.0001 ? (maxZdir.z/len) : len;	// since len>=(maxZdir.z/len) we can use len as an approximate value when len<=epsilon
 		float fOffs = scalarProj*fRad;
@@ -487,14 +487,14 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #endif
 
 #ifdef LEFT_HAND_COORDINATES
-		fRad = fRad + (vCen.z+fOffs)*worldDistAtDepthOne;
+		fRad = fRad + (center.z+fOffs)*worldDistAtDepthOne;
 #else
-		fRad = fRad + (vCen.z-fOffs)*worldDistAtDepthOne;
+		fRad = fRad + (center.z-fOffs)*worldDistAtDepthOne;
 #endif
 		
 		float a = dot(V,V);
-		float CdotV = dot(vCen,V);
-		float c = dot(vCen,vCen) - fRad*fRad;
+		float CdotV = dot(center,V);
+		float c = dot(center,center) - fRad*fRad;
 
 		float fDescDivFour = CdotV*CdotV - a*c;
 		if(!(c<0 || (fDescDivFour>0 && CdotV>0)))		// if ray misses bounding sphere
@@ -529,14 +529,14 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 
 #ifdef EXACT_EDGE_TESTS
-float3 GetHullVertex(const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY, const int p)
+float3 GetHullVertex(const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int p)
 {
 	const bool bIsTopVertex = (p&4)!=0;
-	float3 vScales = float3( ((p&1)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? vScaleXY.x : 1.0), ((p&2)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? vScaleXY.y : 1.0), (p&4)!=0 ? 1.0f : (-1.0f) );
-	return (vScales.x*vBoxX + vScales.y*vBoxY + vScales.z*vBoxZ) + vCen;
+	float3 vScales = float3( ((p&1)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? scaleXY.x : 1.0), ((p&2)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? scaleXY.y : 1.0), (p&4)!=0 ? 1.0f : (-1.0f) );
+	return (vScales.x*boxX + vScales.y*boxY + vScales.z*boxZ) + center;
 }
 
-void GetHullEdge(out int idx0, out int idx_twin, out float3 vP0, out float3 vE0, const int e0, const float3 vBoxX, const float3 vBoxY, const float3 vBoxZ, const float3 vCen, const float2 vScaleXY)
+void GetHullEdge(out int idx0, out int idx_twin, out float3 vP0, out float3 vE0, const int e0, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY)
 {
 	int iAxis = e0>>2;
 	int iSwizzle = e0&0x3;
@@ -548,8 +548,8 @@ void GetHullEdge(out int idx0, out int idx_twin, out float3 vP0, out float3 vE0,
 	
 	idx0 = bSwap ? i1 : i0;
 	idx_twin = bSwap ? i0 : i1;
-	float3 p0 = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, idx0);
-	float3 p1 = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, idx_twin);
+	float3 p0 = GetHullVertex(boxX, boxY, boxZ, center, scaleXY, idx0);
+	float3 p1 = GetHullVertex(boxX, boxY, boxZ, center, scaleXY, idx_twin);
 
 	vP0 = p0;
 	vE0 = p1-p0;
@@ -592,15 +592,15 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 		GroupMemoryBarrierWithGroupSync();
 #endif
 		const int idxCoarse = coarseList[l];
-		[branch]if(g_vLightData[idxCoarse].uLightType!=SPHERE_LIGHT)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+		[branch]if(g_vLightData[idxCoarse].lightType!=SPHERE_LIGHT)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 	
-			const float3 vBoxX = lgtDat.vBoxAxisX.xyz;
-			const float3 vBoxY = lgtDat.vBoxAxisY.xyz;
-			const float3 vBoxZ = -lgtDat.vBoxAxisZ.xyz;           // flip an axis to make it right handed since Determinant(worldToView)<0
-			const float3 vCen = lgtDat.vCen.xyz;
-			const float2 vScaleXY = lgtDat.vScaleXY;
+			const float3 boxX = lgtDat.boxAxisX.xyz;
+			const float3 boxY = lgtDat.boxAxisY.xyz;
+			const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip an axis to make it right handed since Determinant(worldToView)<0
+			const float3 center = lgtDat.center.xyz;
+			const float2 scaleXY = lgtDat.scaleXY;
 
 			for(int i=threadID; i<totNrEdgePairs; i+=NR_THREADS)
 			{
@@ -609,7 +609,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 
 				int idx_cur=0, idx_twin=0;
 				float3 vP0, vE0;
-				GetHullEdge(idx_cur, idx_twin, vP0, vE0, e0, vBoxX, vBoxY, vBoxZ, vCen, vScaleXY);
+				GetHullEdge(idx_cur, idx_twin, vP0, vE0, e0, boxX, boxY, boxZ, center, scaleXY);
 				
 			
 				float3 vP1, vE1;
@@ -622,7 +622,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 				for(int k=1; k<8; k++)		// only need to test 7 verts (technically just 6).
 				{
 					int j = (idx_cur+k)&0x7;
-					float3 vPh = GetHullVertex(vBoxX, vBoxY, vBoxZ, vCen, vScaleXY, j);
+					float3 vPh = GetHullVertex(boxX, boxY, boxZ, center, scaleXY, j);
 					float fSignDist = idx_twin==j ? 0.0 : dot(vN, vPh-vP0);
 					if(fSignDist>0) ++positive; else if(fSignDist<0) ++negative;
 				}
