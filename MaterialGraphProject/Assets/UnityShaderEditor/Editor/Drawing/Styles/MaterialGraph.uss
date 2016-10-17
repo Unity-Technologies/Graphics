@@ -25,6 +25,10 @@ MaterialNodeDrawer #controls #element{
 	flex-direction: column;
 }
 
+MaterialNodeDrawer {
+	height: 26;
+}
+
 MaterialNodeDrawer #preview {
 	flex-direction: column;
 }
@@ -37,13 +41,3 @@ MaterialNodeDrawer #preview #image {
 NodeAnchor {
 	height: 26;
 }
-
-/* Example of dynamic properties
-Read from the GridBackground decorator 
-#contentViewContainer {
-	background-color:#404749;
-	line-color:#20293F;
-	thick-line-color:#030C22;
-	spacing:50.0;
-	thick-lines:10;
-}*/

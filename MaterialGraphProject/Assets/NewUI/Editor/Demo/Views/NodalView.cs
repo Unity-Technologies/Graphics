@@ -6,7 +6,7 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	[StyleSheet("Assets/Editor/Demo/Views/NodalView.uss")]
+	[StyleSheet("Assets/NewUI/Editor/Demo/Views/NodalView.uss")]
 	class NodesContentView : SimpleContentView
 	{
 		private readonly System.Random rnd = new System.Random();

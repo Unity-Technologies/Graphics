@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    [StyleSheet("Assets/UnityShaderEditor/Editor/Styles/NodalView.uss")]
+    [StyleSheet("Assets/UnityShaderEditor/Editor/Drawing/Styles/MaterialGraph.uss")]
     public class MaterialGraphView : SerializableGraphView
     {
         public MaterialGraphView()

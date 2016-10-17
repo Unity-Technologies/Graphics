@@ -1,0 +1,43 @@
+NodeDrawer {
+	flex-direction: column;
+}
+
+NodeDrawer #slots {
+	flex-direction: row;
+}
+
+NodeDrawer #slots #input {
+	flex:1;
+	flex-direction: column;
+}
+
+NodeDrawer #slots #output {
+	flex:1;
+	flex-direction: column;
+}
+
+NodeDrawer #controls {
+	flex-direction: column;
+	padding-bottom: 2;
+}
+
+NodeDrawer #controls #element{
+	flex-direction: column;
+}
+
+NodeDrawer {
+	height: 26;
+}
+
+NodeDrawer #preview {
+	flex-direction: column;
+}
+
+NodeDrawer #preview #image {
+	height: 200;
+	width: 200;
+}
+
+NodeAnchor {
+	height: 26;
+}

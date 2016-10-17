@@ -2,13 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
 using RMGUI.GraphView.Demo;
-using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
 using UnityEngine.RMGUI;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    [StyleSheet("Assets/UnityShaderEditor/Editor/Styles/NodalView.uss")]
+    [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/SerializableGraph.uss")]
     public class SerializableGraphView : GraphView
     {
         public SerializableGraphView()
@@ -35,7 +34,7 @@ namespace UnityEditor.Graphing.Drawing
                 return EventPropagation.Stop;
 
             nodalViewData.RemoveElements(
-                selection.OfType<MaterialNodeDrawer>().Select(x => x.dataProvider as MaterialNodeDrawData),
+                selection.OfType<NodeDrawer>().Select(x => x.dataProvider as NodeDrawData),
                 selection.OfType<RMGUI.GraphView.Edge>().Select(x => x.dataProvider as EdgeDrawData)
                 );
 

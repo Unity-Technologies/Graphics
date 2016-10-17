@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine;
+using UnityEngine.Graphing;
+using UnityEngine.MaterialGraph;
 using UnityEngine.RMGUI;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -11,6 +13,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         VisualContainer m_PreviewContainer;
         private List<NodePreviewDrawData> m_currentPreviewData;
+        bool m_IsScheduled;
 
         public MaterialNodeDrawer()
         {
@@ -21,6 +24,44 @@ namespace UnityEditor.MaterialGraph.Drawing
             };
 
             m_currentPreviewData = new List<NodePreviewDrawData>();
+            
+            onEnter += SchedulePolling;
+            onLeave += UnschedulePolling;
+        }
+
+        private void SchedulePolling()
+        {
+            if (panel != null)
+            {
+                if (!m_IsScheduled)
+                {
+                    this.Schedule(InvalidateUIIfNeedsTime).StartingIn(0).Every(30);
+                    m_IsScheduled = true;
+                }
+            }
+            else
+            {
+                m_IsScheduled = false;
+            }
+        }
+
+        private void UnschedulePolling()
+        {
+            if (m_IsScheduled && panel != null)
+            {
+                this.Unschedule(InvalidateUIIfNeedsTime);
+            }
+            m_IsScheduled = false;
+        }
+
+        private void InvalidateUIIfNeedsTime(TimerState timerState)
+        {
+            var childrenNodes = ListPool<INode>.Get();
+            var data = GetData<MaterialNodeDrawData>();
+            NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes, data.node);
+            if (childrenNodes.OfType<IRequiresTime>().Any())
+                data.MarkDirtyHack();
+            ListPool<INode>.Release(childrenNodes);
         }
 
         private void AddPreview(MaterialNodeDrawData nodeData)
@@ -85,10 +126,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             AddPreview(nodeData);
-
-            /*positionType = PositionType.Absolute;
-            positionLeft = nodeData.node.drawState.position.x;
-            positionTop = nodeData.node.drawState.position.y;*/
         }
     }
 }
