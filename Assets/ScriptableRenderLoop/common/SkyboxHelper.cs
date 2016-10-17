@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine;
@@ -9,22 +8,22 @@ public class SkyboxHelper
     {
     }
 
-    const int NumFullSubdivisions = 3; // 3 subdivs == 2048 triangles
-    const int NumHorizonSubdivisions = 2;
+    const int k_NumFullSubdivisions = 3; // 3 subdivs == 2048 triangles
+    const int k_NumHorizonSubdivisions = 2;
 
     public void CreateMesh()
     {
-        Vector3[] vertData = new Vector3[8 * 3];
+        var vertData = new Vector3[8 * 3];
         for (int i = 0; i < 8 * 3; i++)
         {
-            vertData[i] = octaVerts[i];
+            vertData[i] = m_OctaVerts[i];
         }
 
         // Regular subdivisions
-        for (int i = 0; i < NumFullSubdivisions; i++)
+        for (int i = 0; i < k_NumFullSubdivisions; i++)
         {
-            Vector3[] srcData = vertData.Clone() as Vector3[];
-            List<Vector3> verts = new List<Vector3>();
+            var srcData = vertData.Clone() as Vector3[];
+            var verts = new List<Vector3>();
 
             for (int k = 0; k < srcData.Length; k += 3)
             {
@@ -34,16 +33,16 @@ public class SkyboxHelper
         }
 
         // Horizon subdivisions
-        float horizonLimit = 1.0f;
-        for (int i = 0; i < NumHorizonSubdivisions; i++)
+        var horizonLimit = 1.0f;
+        for (int i = 0; i < k_NumHorizonSubdivisions; i++)
         {
-            Vector3[] srcData = vertData.Clone() as Vector3[];
-            List<Vector3> verts = new List<Vector3>();
+            var srcData = vertData.Clone() as Vector3[];
+            var verts = new List<Vector3>();
 
             horizonLimit *= 0.5f; // First iteration limit to y < +-0.5, next one 0.25 etc.
             for (int k = 0; k < srcData.Length; k += 3)
             {
-                float maxAbsY = Mathf.Max(Mathf.Abs(srcData[k].y), Mathf.Abs(srcData[k + 1].y), Mathf.Abs(srcData[k + 2].y));
+                var maxAbsY = Mathf.Max(Mathf.Abs(srcData[k].y), Mathf.Abs(srcData[k + 1].y), Mathf.Abs(srcData[k + 2].y));
                 if (maxAbsY > horizonLimit)
                 {
                     // Pass through existing triangle
@@ -60,21 +59,23 @@ public class SkyboxHelper
         }
 
         // Write out the mesh
-        int vertexCount = vertData.Length;
+        var vertexCount = vertData.Length;
         var triangles = new int[vertexCount];
         for (int i = 0; i < vertexCount; i++)
         {
             triangles[i] = i;
         }
 
-        _mesh = new Mesh();
-        _mesh.vertices = vertData;
-        _mesh.triangles = triangles;
+        m_Mesh = new Mesh
+        {
+            vertices = vertData,
+            triangles = triangles
+        };
     }
 
     public UnityEngine.Mesh mesh
     {
-        get { return _mesh; }
+        get { return m_Mesh; }
     }
 
     public void Draw(RenderLoop loop, Camera camera)
@@ -84,17 +85,16 @@ public class SkyboxHelper
             return;
         }
 
-        Material mat = RenderSettings.skybox;
+        var mat = RenderSettings.skybox;
 
         if (mat == null)
         {
             return;
         }
 
-        CommandBuffer cmd = new CommandBuffer();
-        cmd.name = "Skybox";
+        var cmd = new CommandBuffer { name = "Skybox" };
 
-        bool looksLikeSixSidedShader = true;
+        var looksLikeSixSidedShader = true;
         looksLikeSixSidedShader &= (mat.passCount == 6); // should have six passes
         //looksLikeSixSidedShader &= !mat.GetShader()->GetShaderLabShader()->HasLightingPasses();
 
@@ -109,11 +109,11 @@ public class SkyboxHelper
                 CreateMesh();
             }
 
-            float dist = camera.farClipPlane * 10.0f;
+            var dist = camera.farClipPlane * 10.0f;
 
-            Matrix4x4 world = Matrix4x4.TRS(camera.transform.position, Quaternion.identity, new Vector3(dist, dist, dist));
+            var world = Matrix4x4.TRS(camera.transform.position, Quaternion.identity, new Vector3(dist, dist, dist));
 
-            Matrix4x4 skyboxProj = SkyboxHelper.GetProjectionMatrix(camera);
+            var skyboxProj = SkyboxHelper.GetProjectionMatrix(camera);
             cmd.SetProjectionAndViewMatrices(skyboxProj, camera.worldToCameraMatrix);
             cmd.DrawMesh(mesh, world, mat);
 
@@ -124,11 +124,11 @@ public class SkyboxHelper
         cmd.Dispose();
     }
 
-    static public Matrix4x4 GetProjectionMatrix(Camera camera)
+    public static Matrix4x4 GetProjectionMatrix(Camera camera)
     {
-        Matrix4x4 skyboxProj = Matrix4x4.Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, camera.farClipPlane);
+        var skyboxProj = Matrix4x4.Perspective(camera.fieldOfView, camera.aspect, camera.nearClipPlane, camera.farClipPlane);
 
-        float nearPlane = camera.nearClipPlane * 0.01f;
+        var nearPlane = camera.nearClipPlane * 0.01f;
         skyboxProj = AdjustDepthRange(skyboxProj, camera.nearClipPlane, nearPlane, camera.farClipPlane);
         return MakeProjectionInfinite(skyboxProj, nearPlane);
     }
@@ -137,7 +137,7 @@ public class SkyboxHelper
     {
         const float epsilon = 1e-6f;
 
-        Matrix4x4 r = m;
+        var r = m;
         r[2, 2] = -1.0f + epsilon;
         r[2, 3] = (-2.0f + epsilon) * nearPlane;
         r[3, 2] = -1.0f;
@@ -146,24 +146,24 @@ public class SkyboxHelper
 
     static Matrix4x4 AdjustDepthRange(Matrix4x4 mat, float origNear, float newNear, float newFar)
     {
-        float x = mat[0, 0];
-        float y = mat[1, 1];
-        float w = mat[0, 2];
-        float z = mat[1, 2];
+        var x = mat[0, 0];
+        var y = mat[1, 1];
+        var w = mat[0, 2];
+        var z = mat[1, 2];
 
-        float r = ((2.0f * origNear) / x) * ((w + 1) * 0.5f);
-        float t = ((2.0f * origNear) / y) * ((z + 1) * 0.5f);
-        float l = ((2.0f * origNear) / x) * (((w + 1) * 0.5f) - 1);
-        float b = ((2.0f * origNear) / y) * (((z + 1) * 0.5f) - 1);
+        var r = ((2.0f * origNear) / x) * ((w + 1) * 0.5f);
+        var t = ((2.0f * origNear) / y) * ((z + 1) * 0.5f);
+        var l = ((2.0f * origNear) / x) * (((w + 1) * 0.5f) - 1);
+        var b = ((2.0f * origNear) / y) * (((z + 1) * 0.5f) - 1);
 
-        float ratio = (newNear / origNear);
+        var ratio = (newNear / origNear);
 
         r *= ratio;
         t *= ratio;
         l *= ratio;
         b *= ratio;
 
-        Matrix4x4 ret = new Matrix4x4();
+        var ret = new Matrix4x4();
 
         ret[0, 0] = (2.0f * newNear) / (r - l); ret[0, 1] = 0; ret[0, 2] = (r + l) / (r - l); ret[0, 3] = 0;
         ret[1, 0] = 0; ret[1, 1] = (2.0f * newNear) / (t - b); ret[1, 2] = (t + b) / (t - b); ret[1, 3] = 0;
@@ -174,7 +174,7 @@ public class SkyboxHelper
     }
 
     // Octahedron vertices
-    Vector3[] octaVerts =
+    readonly Vector3[] m_OctaVerts =
     {
         new Vector3(0.0f, 1.0f, 0.0f),      new Vector3(0.0f, 0.0f, -1.0f),     new Vector3(1.0f, 0.0f, 0.0f),
         new Vector3(0.0f, 1.0f, 0.0f),      new Vector3(1.0f, 0.0f, 0.0f),      new Vector3(0.0f, 0.0f, 1.0f),
@@ -191,11 +191,11 @@ public class SkyboxHelper
         return Vector3.Normalize(v1 + v2);
     }
 
-    void Subdivide(List<Vector3> dest, Vector3 v1, Vector3 v2, Vector3 v3)
+    void Subdivide(ICollection<Vector3> dest, Vector3 v1, Vector3 v2, Vector3 v3)
     {
-        Vector3 v12 = SubDivVert(v1, v2);
-        Vector3 v23 = SubDivVert(v2, v3);
-        Vector3 v13 = SubDivVert(v1, v3);
+        var v12 = SubDivVert(v1, v2);
+        var v23 = SubDivVert(v2, v3);
+        var v13 = SubDivVert(v1, v3);
 
         dest.Add(v1);
         dest.Add(v12);
@@ -211,13 +211,13 @@ public class SkyboxHelper
         dest.Add(v23);
     }
 
-    void SubdivideYOnly(List<Vector3> dest, Vector3 v1, Vector3 v2, Vector3 v3)
+    void SubdivideYOnly(ICollection<Vector3> dest, Vector3 v1, Vector3 v2, Vector3 v3)
     {
         // Find out which vertex is furthest out from the others on the y axis
 
-        float d12 = Mathf.Abs(v2.y - v1.y);
-        float d23 = Mathf.Abs(v2.y - v3.y);
-        float d31 = Mathf.Abs(v3.y - v1.y);
+        var d12 = Mathf.Abs(v2.y - v1.y);
+        var d23 = Mathf.Abs(v2.y - v3.y);
+        var d31 = Mathf.Abs(v3.y - v1.y);
 
         Vector3 top, va, vb;
 
@@ -240,8 +240,8 @@ public class SkyboxHelper
             vb = v1;
         }
 
-        Vector3 v12 = SubDivVert(top, va);
-        Vector3 v13 = SubDivVert(top, vb);
+        var v12 = SubDivVert(top, va);
+        var v13 = SubDivVert(top, vb);
 
         dest.Add(top);
         dest.Add(v12);
@@ -268,5 +268,5 @@ public class SkyboxHelper
         }
     }
 
-    Mesh _mesh;
+    Mesh m_Mesh;
 }

@@ -1,4 +1,3 @@
-using System;
 using ICSharpCode.NRefactory;
 using ICSharpCode.NRefactory.Visitors;
 using ICSharpCode.NRefactory.Ast;
@@ -38,24 +37,24 @@ namespace UnityEngine.ScriptableRenderLoop
 
         public static void GenerateAll()
         {
-            m_typeName = new Dictionary<string, ShaderTypeGenerator>();
+            s_TypeName = new Dictionary<string, ShaderTypeGenerator>();
 
             // Iterate over assemblyList, discover all applicable types with fully qualified names
             var assemblyList = AssemblyEnumerator.EnumerateReferencedAssemblies(Assembly.GetCallingAssembly());
 
             foreach (var assembly in assemblyList)
             {
-                Type[] types = assembly.GetExportedTypes();
+                var types = assembly.GetExportedTypes();
 
                 foreach (var type in types)
                 {
-                    object[] attributes = type.GetCustomAttributes(true);
+                    var attributes = type.GetCustomAttributes(true);
 
                     foreach (var attr in attributes)
                     {
                         if (attr is GenerateHLSL)
                         {
-                            Type parent = type.DeclaringType;
+                            var parent = type.DeclaringType;
                             if (parent != null)
                             {
                                 Debug.LogError("The GenerateHLSL attribute not supported on nested classes (" + type.FullName + "), skipping.");
@@ -63,12 +62,12 @@ namespace UnityEngine.ScriptableRenderLoop
                             else
                             {
                                 ShaderTypeGenerator gen;
-                                if (m_typeName.TryGetValue(type.FullName, out gen))
+                                if (s_TypeName.TryGetValue(type.FullName, out gen))
                                 {
                                     Debug.LogError("Duplicate typename with the GenerateHLSL attribute detected: " + type.FullName +
                                         " declared in both " + gen.type.Assembly.FullName + " and " + type.Assembly.FullName + ".  Skipping the second instance.");
                                 }
-                                m_typeName[type.FullName] = new ShaderTypeGenerator(type, attr as GenerateHLSL);
+                                s_TypeName[type.FullName] = new ShaderTypeGenerator(type, attr as GenerateHLSL);
                             }
                         }
                     }
@@ -78,7 +77,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             // Now that we have extracted all the typenames that we care about, parse all .cs files in all asset
             // paths and figure out in which files those types are actually declared.
-            m_sourceGenerators = new Dictionary<string, List<ShaderTypeGenerator>>();
+            s_SourceGenerators = new Dictionary<string, List<ShaderTypeGenerator>>();
 
             var assetPaths = AssetDatabase.GetAllAssetPaths().Where(s => s.EndsWith(".cs")).ToList();
             foreach (var assetPath in assetPaths)
@@ -87,7 +86,7 @@ namespace UnityEngine.ScriptableRenderLoop
             }
 
             // Finally, write out the generated code
-            foreach (var it in m_sourceGenerators)
+            foreach (var it in s_SourceGenerators)
             {
                 string fileName = it.Key + ".hlsl";
                 bool skipFile = false;
@@ -102,45 +101,45 @@ namespace UnityEngine.ScriptableRenderLoop
                     }
                 }
 
-                if (!skipFile)
+                if (skipFile)
+                    continue;
+
+                using (var writer = File.CreateText(fileName))
                 {
-                    using (System.IO.StreamWriter writer = File.CreateText(fileName))
+                    writer.Write("//\n");
+                    writer.Write("// This file was automatically generated from " + it.Key + ".  Please don't edit by hand.\n");
+                    writer.Write("//\n\n");
+
+                    foreach (var gen in it.Value)
                     {
-                        writer.Write("//\n");
-                        writer.Write("// This file was automatically generated from " + it.Key + ".  Please don't edit by hand.\n");
-                        writer.Write("//\n\n");
-
-                        foreach (var gen in it.Value)
+                        if (gen.hasStatics)
                         {
-                            if (gen.hasStatics)
-                            {
-                                writer.Write(gen.EmitDefines() + "\n");
-                            }
+                            writer.Write(gen.EmitDefines() + "\n");
                         }
-
-                        foreach (var gen in it.Value)
-                        {
-                            if (gen.hasFields)
-                            {
-                                writer.Write(gen.EmitTypeDecl() + "\n");
-                            }
-                        }
-
-                        foreach (var gen in it.Value)
-                        {
-                            if (gen.hasFields && gen.needAccessors())
-                            {
-                                writer.Write(gen.EmitAccessors() + "\n");
-                            }
-                        }
-
-                        writer.Write("\n");
                     }
+
+                    foreach (var gen in it.Value)
+                    {
+                        if (gen.hasFields)
+                        {
+                            writer.Write(gen.EmitTypeDecl() + "\n");
+                        }
+                    }
+
+                    foreach (var gen in it.Value)
+                    {
+                        if (gen.hasFields && gen.needAccessors)
+                        {
+                            writer.Write(gen.EmitAccessors() + "\n");
+                        }
+                    }
+
+                    writer.Write("\n");
                 }
             }
         }
 
-        static Dictionary<string, ShaderTypeGenerator> m_typeName;
+        static Dictionary<string, ShaderTypeGenerator> s_TypeName;
 
         static void LoadTypes(string fileName)
         {
@@ -159,12 +158,11 @@ namespace UnityEngine.ScriptableRenderLoop
                 try
                 {
                     var visitor = new NamespaceVisitor();
-                    VisitorData data = new VisitorData();
-                    data.m_typeName = m_typeName;
+                    var data = new VisitorData { typeName = s_TypeName };
                     parser.CompilationUnit.AcceptVisitor(visitor, data);
 
                     if (data.generators.Count > 0)
-                        m_sourceGenerators[fileName] = data.generators;
+                        s_SourceGenerators[fileName] = data.generators;
                 }
                 catch
                 {
@@ -174,7 +172,7 @@ namespace UnityEngine.ScriptableRenderLoop
             }
         }
 
-        static Dictionary<string, List<ShaderTypeGenerator>> m_sourceGenerators;
+        static Dictionary<string, List<ShaderTypeGenerator>> s_SourceGenerators;
 
         class VisitorData
         {
@@ -187,15 +185,12 @@ namespace UnityEngine.ScriptableRenderLoop
 
             public string GetTypePrefix()
             {
-                string fullNamespace = string.Empty;
+                var fullNamespace = string.Empty;
 
-                string separator = "";
-                foreach (string ns in currentClasses)
-                {
-                    fullNamespace = ns + "+" + fullNamespace;
-                }
+                var separator = "";
 
-                foreach (string ns in currentNamespaces)
+                fullNamespace = currentClasses.Aggregate(fullNamespace, (current, ns) => ns + "+" + current);
+                foreach (var ns in currentNamespaces)
                 {
                     if (fullNamespace == string.Empty)
                     {
@@ -206,7 +201,7 @@ namespace UnityEngine.ScriptableRenderLoop
                         fullNamespace = ns + "." + fullNamespace;
                 }
 
-                string name = "";
+                var name = "";
                 if (fullNamespace != string.Empty)
                 {
                     name = fullNamespace + separator + name;
@@ -214,17 +209,17 @@ namespace UnityEngine.ScriptableRenderLoop
                 return name;
             }
 
-            public Stack<string> currentNamespaces;
-            public Stack<string> currentClasses;
-            public List<ShaderTypeGenerator> generators;
-            public Dictionary<string, ShaderTypeGenerator> m_typeName;
+            public readonly Stack<string> currentNamespaces;
+            public readonly Stack<string> currentClasses;
+            public readonly List<ShaderTypeGenerator> generators;
+            public Dictionary<string, ShaderTypeGenerator> typeName;
         }
 
         class NamespaceVisitor : AbstractAstVisitor
         {
             public override object VisitNamespaceDeclaration(ICSharpCode.NRefactory.Ast.NamespaceDeclaration namespaceDeclaration, object data)
             {
-                VisitorData visitorData = (VisitorData)data;
+                var visitorData = (VisitorData)data;
                 visitorData.currentNamespaces.Push(namespaceDeclaration.Name);
                 namespaceDeclaration.AcceptChildren(this, visitorData);
                 visitorData.currentNamespaces.Pop();
@@ -237,12 +232,12 @@ namespace UnityEngine.ScriptableRenderLoop
                 // Structured types only
                 if (typeDeclaration.Type == ClassType.Class || typeDeclaration.Type == ClassType.Struct || typeDeclaration.Type == ClassType.Enum)
                 {
-                    VisitorData visitorData = (VisitorData)data;
+                    var visitorData = (VisitorData)data;
 
-                    string name = visitorData.GetTypePrefix() + typeDeclaration.Name;
+                    var name = visitorData.GetTypePrefix() + typeDeclaration.Name;
 
                     ShaderTypeGenerator gen;
-                    if (visitorData.m_typeName.TryGetValue(name, out gen))
+                    if (visitorData.typeName.TryGetValue(name, out gen))
                     {
                         visitorData.generators.Add(gen);
                     }
@@ -262,26 +257,26 @@ namespace UnityEngine.ScriptableRenderLoop
     {
         public static List<Assembly> EnumerateReferencedAssemblies(Assembly assembly)
         {
-            Dictionary<string, Assembly> assemblies = assembly.GetReferencedAssembliesRecursive();
-            assemblies[GetName(assembly.FullName)] = assembly;
-            return assemblies.Values.ToList();
+            Dictionary<string, Assembly> referenced = assembly.GetReferencedAssembliesRecursive();
+            referenced[GetName(assembly.FullName)] = assembly;
+            return referenced.Values.ToList();
         }
 
         public static Dictionary<string, Assembly> GetReferencedAssembliesRecursive(this Assembly assembly)
         {
-            assemblies = new Dictionary<string, Assembly>();
+            s_Assemblies = new Dictionary<string, Assembly>();
             InternalGetDependentAssembliesRecursive(assembly);
 
             // Skip assemblies from GAC (@TODO:  any reason we'd want to include them?)
-            var keysToRemove = assemblies.Values.Where(
+            var keysToRemove = s_Assemblies.Values.Where(
                     o => o.GlobalAssemblyCache == true).ToList();
 
             foreach (var k in keysToRemove)
             {
-                assemblies.Remove(GetName(k.FullName));
+                s_Assemblies.Remove(GetName(k.FullName));
             }
 
-            return assemblies;
+            return s_Assemblies;
         }
 
         private static void InternalGetDependentAssembliesRecursive(Assembly assembly)
@@ -292,24 +287,24 @@ namespace UnityEngine.ScriptableRenderLoop
 
             foreach (var r in referencedAssemblies)
             {
-                if (String.IsNullOrEmpty(assembly.FullName))
+                if (string.IsNullOrEmpty(assembly.FullName))
                 {
                     continue;
                 }
 
-                if (assemblies.ContainsKey(GetName(r.FullName)) == false)
+                if (s_Assemblies.ContainsKey(GetName(r.FullName)))
+                    continue;
+
+                try
                 {
-                    try
-                    {
-                        // Ensure that the assembly is loaded
-                        var a = Assembly.Load(r.FullName);
-                        assemblies[GetName(a.FullName)] = a;
-                        InternalGetDependentAssembliesRecursive(a);
-                    }
-                    catch
-                    {
-                        // Missing dll, ignore.
-                    }
+                    // Ensure that the assembly is loaded
+                    var a = Assembly.Load(r.FullName);
+                    s_Assemblies[GetName(a.FullName)] = a;
+                    InternalGetDependentAssembliesRecursive(a);
+                }
+                catch
+                {
+                    // Missing dll, ignore.
                 }
             }
         }
@@ -319,6 +314,6 @@ namespace UnityEngine.ScriptableRenderLoop
             return name.Split(',')[0];
         }
 
-        static Dictionary<string, Assembly> assemblies;
+        static Dictionary<string, Assembly> s_Assemblies;
     }
 }

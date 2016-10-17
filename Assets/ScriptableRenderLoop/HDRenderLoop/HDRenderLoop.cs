@@ -1,5 +1,3 @@
-using UnityEngine;
-using System.Collections;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System;
@@ -12,7 +10,7 @@ namespace UnityEngine.ScriptableRenderLoop
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
     public class HDRenderLoop : ScriptableRenderLoop
     {
-        private static string m_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
+        private const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
         // Must be in sync with DebugViewMaterial.hlsl
         public enum DebugViewVaryingMode
@@ -58,7 +56,7 @@ namespace UnityEngine.ScriptableRenderLoop
         static void CreateHDRenderLoop()
         {
             var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
-            UnityEditor.AssetDatabase.CreateAsset(instance, m_HDRenderLoopPath);
+            UnityEditor.AssetDatabase.CreateAsset(instance, k_HDRenderLoopPath);
         }
 
         #endif
@@ -67,9 +65,9 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             public const int MaxGbuffer = 8;
 
-            public void SetBufferDescription(int index, string stringID, RenderTextureFormat inFormat, RenderTextureReadWrite inSRGBWrite)
+            public void SetBufferDescription(int index, string stringId, RenderTextureFormat inFormat, RenderTextureReadWrite inSRGBWrite)
             {
-                IDs[index] = Shader.PropertyToID(stringID);
+                IDs[index] = Shader.PropertyToID(stringId);
                 RTIDs[index] = new RenderTargetIdentifier(IDs[index]);
                 formats[index] = inFormat;
                 sRGBWrites[index] = inSRGBWrite;
@@ -126,7 +124,7 @@ namespace UnityEngine.ScriptableRenderLoop
         Material m_FinalPassMaterial;
 
         // TODO: Find a way to automatically create/iterate through these kind of class
-        Lit.RenderLoop m_litRenderLoop;
+        Lit.RenderLoop m_LitRenderLoop;
 
         // Debug
         Material m_DebugViewMaterialGBuffer;
@@ -162,8 +160,10 @@ namespace UnityEngine.ScriptableRenderLoop
 
         Material CreateEngineMaterial(string shaderPath)
         {
-            Material mat = new Material(Shader.Find(shaderPath) as Shader);
-            mat.hideFlags = HideFlags.HideAndDontSave;
+            var mat = new Material(Shader.Find(shaderPath) as Shader)
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
             return mat;
         }
 
@@ -189,20 +189,20 @@ namespace UnityEngine.ScriptableRenderLoop
             m_cubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
             // Init Lit material buffer - GBuffer and init
-            m_litRenderLoop = new Lit.RenderLoop(); // Our object can be garbacge collected, so need to be allocate here
+            m_LitRenderLoop = new Lit.RenderLoop(); // Our object can be garbacge collected, so need to be allocate here
 
-            m_gbufferManager.gbufferCount = m_litRenderLoop.GetGBufferCount();
+            m_gbufferManager.gbufferCount = m_LitRenderLoop.GetGBufferCount();
             for (int gbufferIndex = 0; gbufferIndex < m_gbufferManager.gbufferCount; ++gbufferIndex)
             {
-                m_gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_litRenderLoop.RTFormat[gbufferIndex], m_litRenderLoop.RTReadWrite[gbufferIndex]);
+                m_gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_LitRenderLoop.RTFormat[gbufferIndex], m_LitRenderLoop.RTReadWrite[gbufferIndex]);
             }
 
-            m_litRenderLoop.Rebuild();
+            m_LitRenderLoop.Rebuild();
         }
 
         void OnDisable()
         {
-            m_litRenderLoop.OnDisable();
+            m_LitRenderLoop.OnDisable();
 
             s_punctualLightList.Release();
             s_envLightList.Release();
@@ -285,9 +285,11 @@ namespace UnityEngine.ScriptableRenderLoop
             if (!debugParameters.displayTransparentObjects)
                 return;
 
-            DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
-            settings.rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes;
-            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName))
+            {
+                rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes,
+                sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
+            };
             settings.inputCullingOptions.SetQueuesTransparent();
             renderLoop.DrawRenderers(ref settings);
         }
@@ -300,8 +302,7 @@ namespace UnityEngine.ScriptableRenderLoop
             }
 
             // setup GBuffer for rendering
-            var cmd = new CommandBuffer();
-            cmd.name = "GBuffer Pass";
+            var cmd = new CommandBuffer { name = "GBuffer Pass" };
             cmd.SetRenderTarget(m_gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -314,8 +315,7 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             // Render Opaque forward
             {
-                var cmd = new CommandBuffer();
-                cmd.name = "DebugView Material Mode Pass";
+                var cmd = new CommandBuffer { name = "DebugView Material Mode Pass" };
                 cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
                 cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
                 renderLoop.ExecuteCommandBuffer(cmd);
@@ -334,8 +334,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 // m_gbufferManager.BindBuffers(m_DeferredMaterial);
                 // TODO: Bind depth textures
-                var cmd = new CommandBuffer();
-                cmd.name = "GBuffer Debug Pass";
+                var cmd = new CommandBuffer { name = "GBuffer Debug Pass" };
                 cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DebugViewMaterialGBuffer, 0);
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
@@ -348,8 +347,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             // Last blit
             {
-                var cmd = new CommandBuffer();
-                cmd.name = "Blit DebugView Material Debug";
+                var cmd = new CommandBuffer { name = "Blit DebugView Material Debug" };
                 cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
@@ -360,20 +358,15 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
-            Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
-            Matrix4x4 gpuVP = gpuProj * camera.worldToCameraMatrix;
+            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            var gpuVP = gpuProj * camera.worldToCameraMatrix;
 
             return gpuVP;
         }
 
         Vector4 ComputeScreenSize(Camera camera)
         {
-            Vector4 screenSize = new Vector4();
-            screenSize.x = camera.pixelWidth;
-            screenSize.y = camera.pixelHeight;
-            screenSize.z = 1.0f / camera.pixelWidth;
-            screenSize.w = 1.0f / camera.pixelHeight;
-            return screenSize;
+            return new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
         }
 
         void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
@@ -384,18 +377,17 @@ namespace UnityEngine.ScriptableRenderLoop
             }
 
             // Bind material data
-            m_litRenderLoop.Bind();
+            m_LitRenderLoop.Bind();
 
-            Matrix4x4 invViewProj = GetViewProjectionMatrix(camera).inverse;
+            var invViewProj = GetViewProjectionMatrix(camera).inverse;
             m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
 
-            Vector4 screenSize = ComputeScreenSize(camera);
+            var screenSize = ComputeScreenSize(camera);
             m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
 
             // m_gbufferManager.BindBuffers(m_DeferredMaterial);
             // TODO: Bind depth textures
-            var cmd = new CommandBuffer();
-            cmd.name = "Deferred Ligthing Pass";
+            var cmd = new CommandBuffer { name = "Deferred Ligthing Pass" };
             cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DeferredMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -404,10 +396,9 @@ namespace UnityEngine.ScriptableRenderLoop
         void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop)
         {
             // Bind material data
-            m_litRenderLoop.Bind();
+            m_LitRenderLoop.Bind();
 
-            var cmd = new CommandBuffer();
-            cmd.name = "Forward Pass";
+            var cmd = new CommandBuffer { name = "Forward Pass" };
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -423,18 +414,18 @@ namespace UnityEngine.ScriptableRenderLoop
         void FinalPass(RenderLoop renderLoop)
         {
             // Those could be tweakable for the neutral tonemapper, but in the case of the LookDev we don't need that
-            const float BlackIn = 0.02f;
-            const float WhiteIn = 10.0f;
-            const float BlackOut = 0.0f;
-            const float WhiteOut = 10.0f;
-            const float WhiteLevel = 5.3f;
-            const float WhiteClip = 10.0f;
-            const float DialUnits = 20.0f;
-            const float HalfDialUnits = DialUnits * 0.5f;
+            const float blackIn = 0.02f;
+            const float whiteIn = 10.0f;
+            const float blackOut = 0.0f;
+            const float whiteOut = 10.0f;
+            const float whiteLevel = 5.3f;
+            const float whiteClip = 10.0f;
+            const float dialUnits = 20.0f;
+            const float halfDialUnits = dialUnits * 0.5f;
 
             // converting from artist dial units to easy shader-lerps (0-1)
-            Vector4 tonemapCoeff1 = new Vector4((BlackIn * DialUnits) + 1.0f, (BlackOut * HalfDialUnits) + 1.0f, (WhiteIn / DialUnits), (1.0f - (WhiteOut / DialUnits)));
-            Vector4 tonemapCoeff2 = new Vector4(0.0f, 0.0f, WhiteLevel, WhiteClip / HalfDialUnits);
+            var tonemapCoeff1 = new Vector4((blackIn * dialUnits) + 1.0f, (blackOut * halfDialUnits) + 1.0f, (whiteIn / dialUnits), (1.0f - (whiteOut / dialUnits)));
+            var tonemapCoeff2 = new Vector4(0.0f, 0.0f, whiteLevel, whiteClip / halfDialUnits);
 
             m_FinalPassMaterial.SetVector("_ToneMapCoeffs1", tonemapCoeff1);
             m_FinalPassMaterial.SetVector("_ToneMapCoeffs2", tonemapCoeff2);
@@ -442,8 +433,8 @@ namespace UnityEngine.ScriptableRenderLoop
             m_FinalPassMaterial.SetFloat("_EnableToneMap", debugParameters.enableTonemap ? 1.0f : 0.0f);
             m_FinalPassMaterial.SetFloat("_Exposure", debugParameters.exposure);
 
-            CommandBuffer cmd = new CommandBuffer();
-            cmd.name = "FinalPass";
+            var cmd = new CommandBuffer { name = "FinalPass" };
+
             // Resolve our HDR texture to CameraTarget.
             cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
@@ -460,67 +451,67 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void UpdatePunctualLights(VisibleLight[] visibleLights)
         {
-            List<PunctualLightData> lights = new List<PunctualLightData>();
+            var lights = new List<PunctualLightData>();
 
             for (int lightIndex = 0; lightIndex < Math.Min(visibleLights.Length, MaxLights); lightIndex++)
             {
-                VisibleLight light = visibleLights[lightIndex];
-                if (light.lightType == LightType.Spot || light.lightType == LightType.Point || light.lightType == LightType.Directional)
+                var light = visibleLights[lightIndex];
+                if (light.lightType != LightType.Spot && light.lightType != LightType.Point && light.lightType != LightType.Directional)
+                    continue;
+
+                var l = new PunctualLightData();
+
+                if (light.lightType == LightType.Directional)
                 {
-                    PunctualLightData l = new PunctualLightData();
-
-                    if (light.lightType == LightType.Directional)
-                    {
-                        l.useDistanceAttenuation = 0.0f;
-                        // positionWS store Light direction for directional and is opposite to the forward direction
-                        l.positionWS = -light.light.transform.forward;
-                        l.invSqrAttenuationRadius = 0.0f;
-                    }
-                    else
-                    {
-                        l.useDistanceAttenuation = 1.0f;
-                        l.positionWS = light.light.transform.position;
-                        l.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
-                    }
-
-                    // Correct intensity calculation (Different from Unity)
-                    float lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
-                    float lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
-                    float lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
-
-                    l.color.Set(lightColorR, lightColorG, lightColorB);
-
-                    // Light direction is opposite to the forward direction
-                    l.forward = -light.light.transform.forward;
-                    // CAUTION: For IES as we inverse forward maybe this will need rotation.
-                    l.up = light.light.transform.up;
-                    l.right = light.light.transform.right;
-
-                    l.diffuseScale = 1.0f;
-                    l.specularScale = 1.0f;
-                    l.shadowDimmer = 1.0f;
-
-                    if (light.lightType == LightType.Spot)
-                    {
-                        float spotAngle = light.light.spotAngle;
-                        AdditionalLightData additionalLightData = light.light.GetComponent<AdditionalLightData>();
-                        float innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
-                        float cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
-                        float cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
-
-                        float val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
-                        l.angleScale    = 1.0f / val;
-                        l.angleOffset   = -cosSpotOuterHalfAngle * l.angleScale;
-                    }
-                    else
-                    {
-                        // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
-                        l.angleScale = 1.0f;
-                        l.angleOffset = 2.0f;
-                    }
-
-                    lights.Add(l);
+                    l.useDistanceAttenuation = 0.0f;
+                    // positionWS store Light direction for directional and is opposite to the forward direction
+                    l.positionWS = -light.light.transform.forward;
+                    l.invSqrAttenuationRadius = 0.0f;
                 }
+                else
+                {
+                    l.useDistanceAttenuation = 1.0f;
+                    l.positionWS = light.light.transform.position;
+                    l.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
+                }
+
+                // Correct intensity calculation (Different from Unity)
+                var lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
+                var lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
+                var lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
+
+                l.color.Set(lightColorR, lightColorG, lightColorB);
+
+                // Light direction is opposite to the forward direction
+                l.forward = -light.light.transform.forward;
+                // CAUTION: For IES as we inverse forward maybe this will need rotation.
+                l.up = light.light.transform.up;
+                l.right = light.light.transform.right;
+
+                l.diffuseScale = 1.0f;
+                l.specularScale = 1.0f;
+                l.shadowDimmer = 1.0f;
+
+                if (light.lightType == LightType.Spot)
+                {
+                    var spotAngle = light.light.spotAngle;
+                    var additionalLightData = light.light.GetComponent<AdditionalLightData>();
+                    var innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
+                    var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
+                    var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
+
+                    var val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
+                    l.angleScale    = 1.0f / val;
+                    l.angleOffset   = -cosSpotOuterHalfAngle * l.angleScale;
+                }
+                else
+                {
+                    // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
+                    l.angleScale = 1.0f;
+                    l.angleOffset = 2.0f;
+                }
+
+                lights.Add(l);
             }
             s_punctualLightList.SetData(lights.ToArray());
 
@@ -530,19 +521,21 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void UpdateReflectionProbes(VisibleReflectionProbe[] activeReflectionProbes)
         {
-            List<EnvLightData> lights = new List<EnvLightData>();
+            var lights = new List<EnvLightData>();
 
             for (int lightIndex = 0; lightIndex < Math.Min(activeReflectionProbes.Length, MaxProbes); lightIndex++)
             {
-                VisibleReflectionProbe probe = activeReflectionProbes[lightIndex];
+                var probe = activeReflectionProbes[lightIndex];
 
                 if (probe.texture == null)
                     continue;
 
-                EnvLightData l = new EnvLightData();
+                var l = new EnvLightData
+                {
+                    positionWS = probe.localToWorld.GetColumn(3),
+                    shapeType = EnvShapeType.None
+                };
 
-                l.positionWS = probe.localToWorld.GetColumn(3);
-                l.shapeType = EnvShapeType.None;
                 if (probe.boxProjection != 0)
                 {
                     l.shapeType = EnvShapeType.Box;
@@ -570,9 +563,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {
-            if (!m_litRenderLoop.isInit)
+            if (!m_LitRenderLoop.isInit)
             {
-                m_litRenderLoop.RenderInit(renderLoop);
+                m_LitRenderLoop.RenderInit(renderLoop);
             }
 
             // Do anything we need to do upon a new frame.
@@ -586,14 +579,13 @@ namespace UnityEngine.ScriptableRenderLoop
                 // Set camera constant buffer
                 // TODO...
 
-                CullResults cullResults;
                 CullingParameters cullingParams;
                 if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     continue;
 
                 //m_ShadowPass.UpdateCullingParameters (ref cullingParams);
 
-                cullResults = CullResults.Cull(ref cullingParams, renderLoop);
+                var cullResults = CullResults.Cull(ref cullingParams, renderLoop);
 
                 //ShadowOutput shadows;
                 //m_ShadowPass.Render (renderLoop, cullResults, out shadows);
@@ -631,9 +623,10 @@ namespace UnityEngine.ScriptableRenderLoop
         #if UNITY_EDITOR
         public override UnityEditor.SupportedRenderingFeatures GetSupportedRenderingFeatures()
         {
-            var features = new UnityEditor.SupportedRenderingFeatures();
-
-            features.reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation;
+            var features = new UnityEditor.SupportedRenderingFeatures
+            {
+                reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation
+            };
 
             return features;
         }

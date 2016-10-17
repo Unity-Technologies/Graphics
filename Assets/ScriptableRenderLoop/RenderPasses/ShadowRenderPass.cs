@@ -1,5 +1,3 @@
-using UnityEngine;
-using System.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 using System.Collections.Generic;
@@ -80,15 +78,15 @@ namespace UnityEngine.ScriptableRenderLoop
         ShadowSettings              m_Settings;
 
         [NonSerialized]
-        bool                        m_bFailedToPackLastTime;
+        bool                        m_FailedToPackLastTime;
         int                         m_ShadowTexName;
-        const int                   kDepthBuffer = 24;
+        const int                   k_DepthBuffer = 24;
 
 
         public ShadowRenderPass(ShadowSettings settings)
         {
             m_Settings = settings;
-            m_bFailedToPackLastTime = false;
+            m_FailedToPackLastTime = false;
             m_ShadowTexName = Shader.PropertyToID("g_tShadowBuffer");
         }
 
@@ -104,23 +102,27 @@ namespace UnityEngine.ScriptableRenderLoop
                 this.lightIndex = lightIndex;
             }
 
-            public int splitIndex;
-            public int lightIndex;
+            public readonly int splitIndex;
+            public readonly int lightIndex;
         }
 
         int CalculateNumShadowSplits(int index, VisibleLight[] lights)
         {
-            LightType lightType = lights[index].lightType;
-            if (lightType == LightType.Spot)
-                return 1;
+            var lightType = lights[index].lightType;
+            switch (lightType)
+            {
+                case LightType.Spot:
+                    return 1;
 
-            if (lightType == LightType.Directional)
-                return m_Settings.directionalLightCascadeCount;
+                case LightType.Directional:
+                    return m_Settings.directionalLightCascadeCount;
 
-            return 6;
+                default:
+                    return 6;
+            }
         }
 
-        static public void ClearPackedShadows(VisibleLight[] lights, out ShadowOutput packedShadows)
+        public static void ClearPackedShadows(VisibleLight[] lights, out ShadowOutput packedShadows)
         {
             packedShadows.directionalShadowSplitSphereSqr = null;
             packedShadows.shadowSlices = null;
@@ -130,8 +132,8 @@ namespace UnityEngine.ScriptableRenderLoop
         //---------------------------------------------------------------------------------------------------------------------------------------------------
         bool AutoPackLightsIntoShadowTexture(List<InputShadowLightData> shadowLights, VisibleLight[] lights, out ShadowOutput packedShadows)
         {
-            Dictionary<int, InputShadowLightData> activeShadowLights = new Dictionary<int, InputShadowLightData>();
-            List<int> shadowIndices = new List<int>();
+            var activeShadowLights = new Dictionary<int, InputShadowLightData>();
+            var shadowIndices = new List<int>();
 
             //@TODO: Disallow multiple directional lights
 
@@ -152,7 +154,7 @@ namespace UnityEngine.ScriptableRenderLoop
             shadowIndices.Sort(
                 delegate(int l1, int l2)
                 {
-                    int nCompare = 0;
+                    var nCompare = 0;
                     // Sort shadow-casting lights by shadow resolution
                     nCompare = activeShadowLights[l1].shadowResolution.CompareTo(activeShadowLights[l2].shadowResolution); // Sort by shadow size
 
@@ -167,11 +169,11 @@ namespace UnityEngine.ScriptableRenderLoop
                 );
 
             // Start filling lights into texture
-            List<AtlasEntry> requestedPages = new List<AtlasEntry>();
+            var requestedPages = new List<AtlasEntry>();
             packedShadows.shadowLights = new ShadowLight[lights.Length];
             for (int i = 0; i != shadowIndices.Count; i++)
             {
-                int numShadowSplits = CalculateNumShadowSplits(shadowIndices[i], lights);
+                var numShadowSplits = CalculateNumShadowSplits(shadowIndices[i], lights);
 
                 packedShadows.shadowLights[shadowIndices[i]].shadowSliceCount = numShadowSplits;
                 packedShadows.shadowLights[shadowIndices[i]].shadowSliceIndex = requestedPages.Count;
@@ -180,16 +182,16 @@ namespace UnityEngine.ScriptableRenderLoop
                     requestedPages.Add(new AtlasEntry(requestedPages.Count, shadowIndices[i]));
             }
 
-            int nCurrentX = 0;
-            int nCurrentY = -1;
-            int nNextY = 0;
+            var nCurrentX = 0;
+            var nCurrentY = -1;
+            var nNextY = 0;
 
             packedShadows.shadowSlices = new ShadowSliceData[requestedPages.Count];
             packedShadows.directionalShadowSplitSphereSqr = new Vector4[4];
 
-            foreach (AtlasEntry entry in requestedPages)
+            foreach (var entry in requestedPages)
             {
-                int shadowResolution = activeShadowLights[entry.lightIndex].shadowResolution;
+                var shadowResolution = activeShadowLights[entry.lightIndex].shadowResolution;
 
                 // Check if first texture is too wide
                 if (nCurrentY == -1)
@@ -197,7 +199,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     if ((shadowResolution > m_Settings.shadowAtlasWidth) || (shadowResolution > m_Settings.shadowAtlasHeight))
                     {
                         Debug.LogError("ERROR! Shadow packer ran out of space in the " + m_Settings.shadowAtlasWidth + "x" + m_Settings.shadowAtlasHeight + " texture!\n\n");
-                        m_bFailedToPackLastTime = true;
+                        m_FailedToPackLastTime = true;
                         ClearPackedShadows(lights, out packedShadows);
                         return false;
                     }
@@ -215,7 +217,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 if ((nCurrentY + shadowResolution) > m_Settings.shadowAtlasHeight)
                 {
                     Debug.LogError("ERROR! Shadow packer ran out of space in the " + m_Settings.shadowAtlasWidth + "x" + m_Settings.shadowAtlasHeight + " texture!\n\n");
-                    m_bFailedToPackLastTime = true;
+                    m_FailedToPackLastTime = true;
                     ClearPackedShadows(lights, out packedShadows);
                     return false;
                 }
@@ -231,9 +233,9 @@ namespace UnityEngine.ScriptableRenderLoop
                 //Debug.Log( "Sheet packer: " + vl.m_cachedLight.name + " ( " + vl.m_shadowX + ", " + vl.m_shadowY + " ) " + vl.m_shadowResolution + "\n\n" );
             }
 
-            if (m_bFailedToPackLastTime)
+            if (m_FailedToPackLastTime)
             {
-                m_bFailedToPackLastTime = false;
+                m_FailedToPackLastTime = false;
                 Debug.Log("SUCCESS! Shadow packer can now fit all lights into the " + m_Settings.shadowAtlasWidth + "x" + m_Settings.shadowAtlasHeight + " texture!\n\n");
             }
 
@@ -243,29 +245,30 @@ namespace UnityEngine.ScriptableRenderLoop
         static List<InputShadowLightData> GetInputShadowLightData(CullResults cullResults)
         {
             var shadowCasters = new List<InputShadowLightData>();
-            VisibleLight[] lights = cullResults.visibleLights;
+            var lights = cullResults.visibleLights;
             int directionalLightCount = 0;
+
             for (int i = 0; i < lights.Length; i++)
             {
                 //@TODO: ignore baked. move this logic to c++...
-                if (lights[i].light.shadows != LightShadows.None)
+                if (lights[i].light.shadows == LightShadows.None)
+                    continue;
+
+                // Only a single directional shadow casting light is supported
+                if (lights[i].lightType == LightType.Directional)
                 {
-                    // Only a single directional shadow casting light is supported
-                    if (lights[i].lightType == LightType.Directional)
-                    {
-                        directionalLightCount++;
-                        if (directionalLightCount != 1)
-                            continue;
-                    }
-
-                    AdditionalLightData additionalLight = lights[i].light.GetComponent<AdditionalLightData>();
-
-                    InputShadowLightData light;
-                    light.lightIndex = i;
-                    light.shadowResolution = AdditionalLightData.GetShadowResolution(additionalLight);
-
-                    shadowCasters.Add(light);
+                    directionalLightCount++;
+                    if (directionalLightCount != 1)
+                        continue;
                 }
+
+                AdditionalLightData additionalLight = lights[i].light.GetComponent<AdditionalLightData>();
+
+                InputShadowLightData light;
+                light.lightIndex = i;
+                light.shadowResolution = AdditionalLightData.GetShadowResolution(additionalLight);
+
+                shadowCasters.Add(light);
             }
             return shadowCasters;
         }
@@ -300,7 +303,7 @@ namespace UnityEngine.ScriptableRenderLoop
             var setRenderTargetCommandBuffer = new CommandBuffer();
 
             setRenderTargetCommandBuffer.name = "Render packed shadows";
-            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowTexName, m_Settings.shadowAtlasWidth, m_Settings.shadowAtlasHeight, kDepthBuffer, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Linear);
+            setRenderTargetCommandBuffer.GetTemporaryRT(m_ShadowTexName, m_Settings.shadowAtlasWidth, m_Settings.shadowAtlasHeight, k_DepthBuffer, FilterMode.Bilinear, RenderTextureFormat.Shadowmap, RenderTextureReadWrite.Linear);
             setRenderTargetCommandBuffer.SetRenderTarget(new RenderTargetIdentifier(m_ShadowTexName));
 
             setRenderTargetCommandBuffer.ClearRenderTarget(true, true, Color.green);
@@ -331,15 +334,15 @@ namespace UnityEngine.ScriptableRenderLoop
                 Matrix4x4 proj;
                 Matrix4x4 view;
 
-                LightType lightType = visibleLights[lightIndex].lightType;
-                Vector3 lightDirection = visibleLights[lightIndex].light.transform.forward;
+                var lightType = visibleLights[lightIndex].lightType;
+                var lightDirection = visibleLights[lightIndex].light.transform.forward;
                 var shadowNearClip = visibleLights[lightIndex].light.shadowNearPlane;
 
                 int shadowSliceIndex = packedShadows.GetShadowSliceIndex(lightIndex, 0);
 
                 if (lightType == LightType.Spot)
                 {
-                    DrawShadowsSettings settings = new DrawShadowsSettings(cullResults, lightIndex);
+                    var settings = new DrawShadowsSettings(cullResults, lightIndex);
                     bool needRendering = cullResults.ComputeSpotShadowsMatricesAndCullingPrimitives(lightIndex, out view, out proj, out settings.splitData);
                     SetupShadowSplitMatrices(ref packedShadows.shadowSlices[shadowSliceIndex], proj, view);
                     if (needRendering)
@@ -370,7 +373,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 {
                     for (int s = 0; s < shadowSliceCount; ++s, shadowSliceIndex++)
                     {
-                        DrawShadowsSettings settings = new DrawShadowsSettings(cullResults, lightIndex);
+                        var settings = new DrawShadowsSettings(cullResults, lightIndex);
                         bool needRendering = cullResults.ComputePointShadowsMatricesAndCullingPrimitives(lightIndex, (CubemapFace)s, 2.0f, out view, out proj, out settings.splitData);
 
                         SetupShadowSplitMatrices(ref shadowSlices[shadowSliceIndex], proj, view);
@@ -384,7 +387,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
         private void SetupShadowSplitMatrices(ref ShadowSliceData lightData, Matrix4x4 proj, Matrix4x4 view)
         {
-            Matrix4x4 matScaleBias = Matrix4x4.identity;
+            var matScaleBias = Matrix4x4.identity;
             matScaleBias.m00 = 0.5f;
             matScaleBias.m11 = 0.5f;
             matScaleBias.m22 = 0.5f;
@@ -392,7 +395,7 @@ namespace UnityEngine.ScriptableRenderLoop
             matScaleBias.m13 = 0.5f;
             matScaleBias.m23 = 0.5f;
 
-            Matrix4x4 matTile = Matrix4x4.identity;
+            var matTile = Matrix4x4.identity;
             matTile.m00 = (float)lightData.shadowResolution / (float)m_Settings.shadowAtlasWidth;
             matTile.m11 = (float)lightData.shadowResolution / (float)m_Settings.shadowAtlasHeight;
             matTile.m03 = (float)lightData.atlasX / (float)m_Settings.shadowAtlasWidth;
@@ -403,8 +406,7 @@ namespace UnityEngine.ScriptableRenderLoop
         //---------------------------------------------------------------------------------------------------------------------------------------------------
         private void RenderShadowSplit(ref ShadowSliceData slice, Vector3 lightDirection, Matrix4x4 proj, Matrix4x4 view, ref RenderLoop loop, DrawShadowsSettings settings)
         {
-            var commandBuffer = new CommandBuffer();
-            commandBuffer.name = "ShadowSetup";
+            var commandBuffer = new CommandBuffer { name = "ShadowSetup" };
 
             // Set viewport / matrices etc
             commandBuffer.SetViewport(new Rect(slice.atlasX, slice.atlasY, slice.shadowResolution, slice.shadowResolution));

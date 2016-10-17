@@ -37,18 +37,18 @@ float3 ExecuteReflectionList(uint start, uint numReflProbes, float3 vP, float3 v
 	if(numReflProbes>0)
     {
         uint uIndex = l<numReflProbes ? FetchIndex(start, l) : 0;
-        uint uLgtType = l<numReflProbes ? g_vLightData[uIndex].uLightType : 0;
+        uint uLgtType = l<numReflProbes ? g_vLightData[uIndex].lightType : 0;
 
         // specialized loop for sphere lights
         while(l<numReflProbes && uLgtType==(uint) BOX_LIGHT)
         {
             SFiniteLightData lgtDat = g_vLightData[uIndex];
-            float3 vLp = lgtDat.vLpos.xyz;
+            float3 vLp = lgtDat.lightPos.xyz;
             float3 vecToSurfPos  = vP - vLp;        // vector from reflection volume to surface position in camera space
-            float3 posInReflVolumeSpace = float3( dot(vecToSurfPos, lgtDat.vLaxisX), dot(vecToSurfPos, lgtDat.vLaxisY), dot(vecToSurfPos, lgtDat.vLaxisZ) );
+            float3 posInReflVolumeSpace = float3( dot(vecToSurfPos, lgtDat.lightAxisX), dot(vecToSurfPos, lgtDat.lightAxisY), dot(vecToSurfPos, lgtDat.lightAxisZ) );
 
 
-            float blendDistance = lgtDat.fProbeBlendDistance;//unity_SpecCube1_ProbePosition.w; // will be set to blend distance for this probe
+            float blendDistance = lgtDat.probeBlendDistance;//unity_SpecCube1_ProbePosition.w; // will be set to blend distance for this probe
 
             float3 sampleDir;
             if((lgtDat.flags&IS_BOX_PROJECTED)!=0)
@@ -59,14 +59,14 @@ float3 ExecuteReflectionList(uint start, uint numReflProbes, float3 vP, float3 v
                 //float4 boxMax = unity_SpecCube0_BoxMax + float4(blendDistance,blendDistance,blendDistance,0);
                 //sampleDir = BoxProjectedCubemapDirection (worldNormalRefl, worldPos, unity_SpecCube0_ProbePosition, boxMin, boxMax);
 
-                float4 vBoxOuterDistance = float4( lgtDat.vBoxInnerDist + float3(blendDistance, blendDistance, blendDistance), 0.0 );
+                float4 boxOuterDistance = float4( lgtDat.boxInnerDist + float3(blendDistance, blendDistance, blendDistance), 0.0 );
 #if 0
                 // if rotation is NOT supported
-                sampleDir = BoxProjectedCubemapDirection(worldNormalRefl, posInReflVolumeSpace, float4(lgtDat.vLocalCubeCapturePoint, 1.0), -vBoxOuterDistance, vBoxOuterDistance);
+                sampleDir = BoxProjectedCubemapDirection(worldNormalRefl, posInReflVolumeSpace, float4(lgtDat.localCubeCapturePoint, 1.0), -boxOuterDistance, boxOuterDistance);
 #else
-                float3 volumeSpaceRefl = float3( dot(vspaceRefl, lgtDat.vLaxisX), dot(vspaceRefl, lgtDat.vLaxisY), dot(vspaceRefl, lgtDat.vLaxisZ) );
-                float3 vPR = BoxProjectedCubemapDirection(volumeSpaceRefl, posInReflVolumeSpace, float4(lgtDat.vLocalCubeCapturePoint, 1.0), -vBoxOuterDistance, vBoxOuterDistance);    // Volume space corrected reflection vector
-                sampleDir = mul( (float3x3) g_mViewToWorld, vPR.x*lgtDat.vLaxisX + vPR.y*lgtDat.vLaxisY + vPR.z*lgtDat.vLaxisZ );
+                float3 volumeSpaceRefl = float3( dot(vspaceRefl, lgtDat.lightAxisX), dot(vspaceRefl, lgtDat.lightAxisY), dot(vspaceRefl, lgtDat.lightAxisZ) );
+                float3 vPR = BoxProjectedCubemapDirection(volumeSpaceRefl, posInReflVolumeSpace, float4(lgtDat.localCubeCapturePoint, 1.0), -boxOuterDistance, boxOuterDistance);    // Volume space corrected reflection vector
+                sampleDir = mul( (float3x3) g_mViewToWorld, vPR.x*lgtDat.lightAxisX + vPR.y*lgtDat.lightAxisY + vPR.z*lgtDat.lightAxisZ );
 #endif
             }
             else
@@ -76,7 +76,7 @@ float3 ExecuteReflectionList(uint start, uint numReflProbes, float3 vP, float3 v
             g.roughness = percRoughness;
             g.reflUVW       = sampleDir;
 
-            half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), lgtDat.iSliceIndex, float4(lgtDat.fLightIntensity, lgtDat.fDecodeExp, 0.0, 0.0), g);
+            half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), lgtDat.sliceIndex, float4(lgtDat.lightIntensity, lgtDat.decodeExp, 0.0, 0.0), g);
 
 
             UnityIndirect ind;
@@ -90,14 +90,14 @@ float3 ExecuteReflectionList(uint start, uint numReflProbes, float3 vP, float3 v
             // Also this ensures that pixels not located in the reflection Volume AABB won't
             // accidentally pick up reflections from this Volume.
             //half3 distance = distanceFromAABB(worldPos, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
-            half3 distance = distanceFromAABB(posInReflVolumeSpace, -lgtDat.vBoxInnerDist, lgtDat.vBoxInnerDist);
+            half3 distance = distanceFromAABB(posInReflVolumeSpace, -lgtDat.boxInnerDist, lgtDat.boxInnerDist);
             half falloff = saturate(1.0 - length(distance)/blendDistance);
 
             ints = lerp(ints, rgb, falloff);
 
             // next probe
             ++l; uIndex = l<numReflProbes ? FetchIndex(start, l) : 0;
-            uLgtType = l<numReflProbes ? g_vLightData[uIndex].uLightType : 0;
+            uLgtType = l<numReflProbes ? g_vLightData[uIndex].lightType : 0;
         }
 
         //if(uLgtType!=BOX_LIGHT) ++l;

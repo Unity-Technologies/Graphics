@@ -1,7 +1,5 @@
-using UnityEngine;
 using UnityEngine.Rendering;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEngine.ScriptableRenderLoop
@@ -27,74 +25,74 @@ namespace UnityEngine.ScriptableRenderLoop
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
-        public Shader m_DeferredShader;
-        public Shader m_DeferredReflectionShader;
-        public Shader m_FinalPassShader;
+        public Shader deferredShader;
+        public Shader deferredReflectionShader;
+        public Shader finalPassShader;
 
-        public ComputeShader m_BuildScreenAABBShader;
-        public ComputeShader m_BuildPerTileLightListShader;     // FPTL
+        public ComputeShader buildScreenAABBShader;
+        public ComputeShader buildPerTileLightListShader;     // FPTL
 
-        public ComputeShader m_BuildPerVoxelLightListShader;    // clustered
+        public ComputeShader buildPerVoxelLightListShader;    // clustered
 
         private Material m_DeferredMaterial;
         private Material m_DeferredReflectionMaterial;
-        static private int kGBufferAlbedo;
-        static private int kGBufferSpecRough;
-        static private int kGBufferNormal;
-        static private int kGBufferEmission;
-        static private int kGBufferZ;
-        static private int kCameraTarget;
-        static private int kCameraDepthTexture;
+        private static int s_GBufferAlbedo;
+        private static int s_GBufferSpecRough;
+        private static int s_GBufferNormal;
+        private static int s_GBufferEmission;
+        private static int s_GBufferZ;
+        private static int s_CameraTarget;
+        private static int s_CameraDepthTexture;
 
-        static private int kGenAABBKernel;
-        static private int kGenListPerTileKernel;
-        static private int kGenListPerVoxelKernel;
-        static private int kClearVoxelAtomicKernel;
-        static private ComputeBuffer m_lightDataBuffer;
-        static private ComputeBuffer m_convexBoundsBuffer;
-        static private ComputeBuffer m_aabbBoundsBuffer;
-        static private ComputeBuffer lightList;
-        static private ComputeBuffer m_dirLightList;
+        private static int s_GenAABBKernel;
+        private static int s_GenListPerTileKernel;
+        private static int s_GenListPerVoxelKernel;
+        private static int s_ClearVoxelAtomicKernel;
+        private static ComputeBuffer s_LightDataBuffer;
+        private static ComputeBuffer s_ConvexBoundsBuffer;
+        private static ComputeBuffer s_AABBBoundsBuffer;
+        private static ComputeBuffer s_LightList;
+        private static ComputeBuffer s_DirLightList;
 
         // clustered light list specific buffers and data begin
-        public bool EnableClustered = false;
-        const bool gUseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
-        const int g_iLog2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
-        const float m_clustLogBase = 1.02f;     // each slice 2% bigger than the previous
-        float m_clustScale;
-        static private ComputeBuffer m_perVoxelLightLists;
-        static private ComputeBuffer m_perVoxelOffset;
-        static private ComputeBuffer m_perTileLogBaseTweak;
-        static private ComputeBuffer m_globalLightListAtomic;
+        public bool enableClustered = false;
+        const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
+        const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
+        const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
+        float m_ClustScale;
+        private static ComputeBuffer s_PerVoxelLightLists;
+        private static ComputeBuffer s_PerVoxelOffset;
+        private static ComputeBuffer s_PerTileLogBaseTweak;
+        private static ComputeBuffer s_GlobalLightListAtomic;
         // clustered light list specific buffers and data end
 
-        static private int m_WidthOnRecord;
-        static private int m_HeightOnRecord;
+        private static int s_WidthOnRecord;
+        private static int s_HeightOnRecord;
 
-        Matrix4x4[] g_matWorldToShadow = new Matrix4x4[MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS];
-        Vector4[] g_vDirShadowSplitSpheres = new Vector4[MAX_DIRECTIONAL_SPLIT];
-        Vector4[] g_vShadow3x3PCFTerms = new Vector4[4];
+        Matrix4x4[] m_MatWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
+        Vector4[] m_DirShadowSplitSpheres = new Vector4[k_MaxDirectionalSplit];
+        Vector4[] m_Shadow3X3PCFTerms = new Vector4[4];
 
-        public const int gMaxNumLights = 1024;
-        public const int gMaxNumDirLights = 2;
-        public const float gFltMax = 3.402823466e+38F;
+        public const int MaxNumLights = 1024;
+        public const int MaxNumDirLights = 2;
+        public const float FltMax = 3.402823466e+38F;
 
-        const int MAX_LIGHTS = 10;
-        const int MAX_SHADOWMAP_PER_LIGHTS = 6;
-        const int MAX_DIRECTIONAL_SPLIT = 4;
+        const int k_MaxLights = 10;
+        const int k_MaxShadowmapPerLights = 6;
+        const int k_MaxDirectionalSplit = 4;
         // Directional lights become spotlights at a far distance. This is the distance we pull back to set the spotlight origin.
-        const float DIRECTIONAL_LIGHT_PULLBACK_DISTANCE = 10000.0f;
+        const float k_DirectionalLightPullbackDistance = 10000.0f;
 
         [NonSerialized]
-        private int m_nWarnedTooManyLights = 0;
+        private int m_WarnedTooManyLights = 0;
 
-        private TextureCache2D m_cookieTexArray;
-        private TextureCacheCubemap m_cubeCookieTexArray;
-        private TextureCacheCubemap m_cubeReflTexArray;
+        private TextureCache2D m_CookieTexArray;
+        private TextureCacheCubemap m_CubeCookieTexArray;
+        private TextureCacheCubemap m_CubeReflTexArray;
 
-        private SkyboxHelper m_skyboxHelper;
+        private SkyboxHelper m_SkyboxHelper;
 
-        private Material m_blitMaterial;
+        private Material m_BlitMaterial;
 
         void OnEnable()
         {
@@ -108,24 +106,24 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void ClearComputeBuffers()
         {
-            if (m_aabbBoundsBuffer != null)
-                m_aabbBoundsBuffer.Release();
+            if (s_AABBBoundsBuffer != null)
+                s_AABBBoundsBuffer.Release();
 
-            if (m_convexBoundsBuffer != null)
-                m_convexBoundsBuffer.Release();
+            if (s_ConvexBoundsBuffer != null)
+                s_ConvexBoundsBuffer.Release();
 
-            if (m_lightDataBuffer != null)
-                m_lightDataBuffer.Release();
+            if (s_LightDataBuffer != null)
+                s_LightDataBuffer.Release();
 
             ReleaseResolutionDependentBuffers();
 
-            if (m_dirLightList != null)
-                m_dirLightList.Release();
+            if (s_DirLightList != null)
+                s_DirLightList.Release();
 
-            if (EnableClustered)
+            if (enableClustered)
             {
-                if (m_globalLightListAtomic != null)
-                    m_globalLightListAtomic.Release();
+                if (s_GlobalLightListAtomic != null)
+                    s_GlobalLightListAtomic.Release();
             }
         }
 
@@ -133,75 +131,69 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             ClearComputeBuffers();
 
-            kGBufferAlbedo = Shader.PropertyToID("_CameraGBufferTexture0");
-            kGBufferSpecRough = Shader.PropertyToID("_CameraGBufferTexture1");
-            kGBufferNormal = Shader.PropertyToID("_CameraGBufferTexture2");
-            kGBufferEmission = Shader.PropertyToID("_CameraGBufferTexture3");
-            kGBufferZ = Shader.PropertyToID("_CameraGBufferZ"); // used while rendering into G-buffer+
-            kCameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture"); // copy of that for later sampling in shaders
-            kCameraTarget = Shader.PropertyToID("_CameraTarget");
-
-            //   RenderLoop.renderLoopDelegate += ExecuteRenderLoop;
-            //var deferredShader = GraphicsSettings.GetCustomShader (BuiltinShaderType.DeferredShading);
-            var deferredShader = m_DeferredShader;
-            var deferredReflectionShader = m_DeferredReflectionShader;
+            s_GBufferAlbedo = Shader.PropertyToID("_CameraGBufferTexture0");
+            s_GBufferSpecRough = Shader.PropertyToID("_CameraGBufferTexture1");
+            s_GBufferNormal = Shader.PropertyToID("_CameraGBufferTexture2");
+            s_GBufferEmission = Shader.PropertyToID("_CameraGBufferTexture3");
+            s_GBufferZ = Shader.PropertyToID("_CameraGBufferZ"); // used while rendering into G-buffer+
+            s_CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture"); // copy of that for later sampling in shaders
+            s_CameraTarget = Shader.PropertyToID("_CameraTarget");
 
             m_DeferredMaterial = new Material(deferredShader);
             m_DeferredReflectionMaterial = new Material(deferredReflectionShader);
             m_DeferredMaterial.hideFlags = HideFlags.HideAndDontSave;
             m_DeferredReflectionMaterial.hideFlags = HideFlags.HideAndDontSave;
 
-            kGenAABBKernel = m_BuildScreenAABBShader.FindKernel("ScreenBoundsAABB");
-            kGenListPerTileKernel = m_BuildPerTileLightListShader.FindKernel("TileLightListGen");
-            m_aabbBoundsBuffer = new ComputeBuffer(2 * gMaxNumLights, 3 * sizeof(float));
-            m_convexBoundsBuffer = new ComputeBuffer(gMaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
-            m_lightDataBuffer = new ComputeBuffer(gMaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
-            m_dirLightList = new ComputeBuffer(gMaxNumDirLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLight)));
+            s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
+            s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel("TileLightListGen");
+            s_AABBBoundsBuffer = new ComputeBuffer(2 * MaxNumLights, 3 * sizeof(float));
+            s_ConvexBoundsBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
+            s_LightDataBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
+            s_DirLightList = new ComputeBuffer(MaxNumDirLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLight)));
 
-            m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_data", m_convexBoundsBuffer);
+            buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
             //m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
-            m_DeferredMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
-            m_DeferredMaterial.SetBuffer("g_dirLightData", m_dirLightList);
-            m_DeferredReflectionMaterial.SetBuffer("g_vLightData", m_lightDataBuffer);
+            m_DeferredMaterial.SetBuffer("g_vLightData", s_LightDataBuffer);
+            m_DeferredMaterial.SetBuffer("g_dirLightData", s_DirLightList);
+            m_DeferredReflectionMaterial.SetBuffer("g_vLightData", s_LightDataBuffer);
 
-            m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
-            m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_vLightData", m_lightDataBuffer);
-            m_BuildPerTileLightListShader.SetBuffer(kGenListPerTileKernel, "g_data", m_convexBoundsBuffer);
+            buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+            buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vLightData", s_LightDataBuffer);
+            buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_data", s_ConvexBoundsBuffer);
 
-            if (EnableClustered)
+            if (enableClustered)
             {
-                kGenListPerVoxelKernel = m_BuildPerVoxelLightListShader.FindKernel(gUseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
-                kClearVoxelAtomicKernel = m_BuildPerVoxelLightListShader.FindKernel("ClearAtomic");
-                m_BuildPerVoxelLightListShader.SetBuffer(kGenListPerVoxelKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
-                m_BuildPerVoxelLightListShader.SetBuffer(kGenListPerVoxelKernel, "g_vLightData", m_lightDataBuffer);
-                m_BuildPerVoxelLightListShader.SetBuffer(kGenListPerVoxelKernel, "g_data", m_convexBoundsBuffer);
+                s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(k_UseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
+                s_ClearVoxelAtomicKernel = buildPerVoxelLightListShader.FindKernel("ClearAtomic");
+                buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+                buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_vLightData", s_LightDataBuffer);
+                buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_data", s_ConvexBoundsBuffer);
 
-                m_globalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
+                s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
             }
 
-            m_cookieTexArray = new TextureCache2D();
-            m_cubeCookieTexArray = new TextureCacheCubemap();
-            m_cubeReflTexArray = new TextureCacheCubemap();
-            m_cookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
-            m_cubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-            m_cubeReflTexArray.AllocTextureArray(64, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
+            m_CookieTexArray = new TextureCache2D();
+            m_CubeCookieTexArray = new TextureCacheCubemap();
+            m_CubeReflTexArray = new TextureCacheCubemap();
+            m_CookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
+            m_CubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
+            m_CubeReflTexArray.AllocTextureArray(64, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
             //m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
             //m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
             //m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
 
-            g_matWorldToShadow = new Matrix4x4[MAX_LIGHTS * MAX_SHADOWMAP_PER_LIGHTS];
-            g_vDirShadowSplitSpheres = new Vector4[MAX_DIRECTIONAL_SPLIT];
-            g_vShadow3x3PCFTerms = new Vector4[4];
+            m_MatWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
+            m_DirShadowSplitSpheres = new Vector4[k_MaxDirectionalSplit];
+            m_Shadow3X3PCFTerms = new Vector4[4];
             m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
 
-            m_skyboxHelper = new SkyboxHelper();
-            m_skyboxHelper.CreateMesh();
+            m_SkyboxHelper = new SkyboxHelper();
+            m_SkyboxHelper.CreateMesh();
 
-            m_blitMaterial = new Material(m_FinalPassShader);
-            m_blitMaterial.hideFlags = HideFlags.HideAndDontSave;
+            m_BlitMaterial = new Material(finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
 
-            lightList = null;
+            s_LightList = null;
         }
 
         void OnDisable()
@@ -209,21 +201,21 @@ namespace UnityEngine.ScriptableRenderLoop
             // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
             if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
-            if (m_blitMaterial) DestroyImmediate(m_blitMaterial);
+            if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
 
-            m_cookieTexArray.Release();
-            m_cubeCookieTexArray.Release();
-            m_cubeReflTexArray.Release();
+            m_CookieTexArray.Release();
+            m_CubeCookieTexArray.Release();
+            m_CubeReflTexArray.Release();
 
-            m_aabbBoundsBuffer.Release();
-            m_convexBoundsBuffer.Release();
-            m_lightDataBuffer.Release();
+            s_AABBBoundsBuffer.Release();
+            s_ConvexBoundsBuffer.Release();
+            s_LightDataBuffer.Release();
             ReleaseResolutionDependentBuffers();
-            m_dirLightList.Release();
+            s_DirLightList.Release();
 
-            if (EnableClustered)
+            if (enableClustered)
             {
-                m_globalLightListAtomic.Release();
+                s_GlobalLightListAtomic.Release();
             }
         }
 
@@ -239,17 +231,17 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.EnableShaderKeyword ("UNITY_HDR_ON");
 
             //@TODO: GetGraphicsCaps().buggyMRTSRGBWriteFlag
-            cmd.GetTemporaryRT(kGBufferAlbedo, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
-            cmd.GetTemporaryRT(kGBufferSpecRough, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
-            cmd.GetTemporaryRT(kGBufferNormal, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
-            cmd.GetTemporaryRT(kGBufferEmission, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Linear);
-            cmd.GetTemporaryRT(kGBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
-            cmd.GetTemporaryRT(kCameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
+            cmd.GetTemporaryRT(s_GBufferAlbedo, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+            cmd.GetTemporaryRT(s_GBufferSpecRough, width, height, 0, FilterMode.Point, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
+            cmd.GetTemporaryRT(s_GBufferNormal, width, height, 0, FilterMode.Point, format10, RenderTextureReadWrite.Linear);
+            cmd.GetTemporaryRT(s_GBufferEmission, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Linear);
+            cmd.GetTemporaryRT(s_GBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
+            cmd.GetTemporaryRT(s_CameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
 
-            cmd.GetTemporaryRT(kCameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default);
+            cmd.GetTemporaryRT(s_CameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default);
 
-            var colorMRTs = new RenderTargetIdentifier[4] { kGBufferAlbedo, kGBufferSpecRough, kGBufferNormal, kGBufferEmission };
-            cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(kGBufferZ));
+            var colorMRTs = new RenderTargetIdentifier[4] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission };
+            cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(s_GBufferZ));
             cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
 
             //@TODO: render VR occlusion mesh
@@ -258,63 +250,69 @@ namespace UnityEngine.ScriptableRenderLoop
         static void RenderGBuffer(CullResults cull, Camera camera, RenderLoop loop)
         {
             // setup GBuffer for rendering
-            var cmd = new CommandBuffer();
-            cmd.name = "Create G-Buffer";
+            var cmd = new CommandBuffer { name = "Create G-Buffer" };
             SetupGBuffer(camera.pixelWidth, camera.pixelHeight, cmd);
             loop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
             // render opaque objects using Deferred pass
-            DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"));
-            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-            settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps; //@TODO: need to get light probes + LPPV too?
+            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"))
+            {
+                sorting = {sortOptions = SortOptions.SortByMaterialThenMesh},
+                rendererConfiguration = RendererConfiguration.PerObjectLightmaps
+            };
+
+            //@TODO: need to get light probes + LPPV too?
             settings.inputCullingOptions.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
         }
 
         static void RenderForward(CullResults cull, Camera camera, RenderLoop loop, bool opaquesOnly)
         {
-            var cmd = new CommandBuffer();
-            cmd.name = opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass";
+            var cmd = new CommandBuffer { name = opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass" };
 
             // using these two lines will require a depth pre-pass for forward opaques which we don't have currently at least
             //cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", opaquesOnly ? 1 : 0);
             //cmd.SetGlobalBuffer("g_vLightListGlobal", opaquesOnly ? lightList : m_perVoxelLightLists);
 
             cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", 0);
-            cmd.SetGlobalBuffer("g_vLightListGlobal", m_perVoxelLightLists);
+            cmd.SetGlobalBuffer("g_vLightListGlobal", s_PerVoxelLightLists);
             loop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
             // render opaque objects using Deferred pass
-            DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"));
+            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"))
+            {
+                sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
+            };
             //settings.rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes;
-            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
             if (opaquesOnly) settings.inputCullingOptions.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
         }
 
         static void CopyDepthAfterGBuffer(RenderLoop loop)
         {
-            var cmd = new CommandBuffer();
-            cmd.name = "Copy depth";
-            cmd.CopyTexture(new RenderTargetIdentifier(kGBufferZ), new RenderTargetIdentifier(kCameraDepthTexture));
+            var cmd = new CommandBuffer { name = "Copy depth" };
+            cmd.CopyTexture(new RenderTargetIdentifier(s_GBufferZ), new RenderTargetIdentifier(s_CameraDepthTexture));
             loop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
         void DoTiledDeferredLighting(Camera camera, RenderLoop loop)
         {
-            bool bUseClusteredForDeferred = false && EnableClustered;       // doesn't work on reflections yet but will soon
+            var bUseClusteredForDeferred = false && enableClustered;       // doesn't work on reflections yet but will soon
             var cmd = new CommandBuffer();
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
             m_DeferredReflectionMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-            cmd.SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? m_perVoxelLightLists : lightList);       // opaques list (unless MSAA possibly)
+            cmd.SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
             // In case of bUseClusteredForDeferred disable toggle option since we're using m_perVoxelLightLists as opposed to lightList
-            if (bUseClusteredForDeferred) cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", 0);
+            if (bUseClusteredForDeferred)
+            {
+                cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", 0);
+            }
 
             cmd.name = "DoTiledDeferredLighting";
 
@@ -323,19 +321,19 @@ namespace UnityEngine.ScriptableRenderLoop
 
             //cmd.Blit (kGBufferNormal, (RenderTexture)null); // debug: display normals
 
-            cmd.Blit(0, kCameraTarget, m_DeferredMaterial, 0);
-            cmd.Blit(0, kCameraTarget, m_DeferredReflectionMaterial, 0);
+            cmd.Blit(0, s_CameraTarget, m_DeferredMaterial, 0);
+            cmd.Blit(0, s_CameraTarget, m_DeferredReflectionMaterial, 0);
 
             // Set the intermediate target for compositing (skybox, etc)
-            cmd.SetRenderTarget(new RenderTargetIdentifier(kCameraTarget), new RenderTargetIdentifier(kCameraDepthTexture));
+            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraTarget), new RenderTargetIdentifier(s_CameraDepthTexture));
 
             loop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
-        void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)
+        static void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)
         {
-            float[] data = new float[16];
+            var data = new float[16];
 
             for (int c = 0; c < 4; c++)
                 for (int r = 0; r < 4; r++)
@@ -344,223 +342,223 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.SetComputeFloatParams(shadercs, name, data);
         }
 
-        int UpdateDirectionalLights(Camera camera, VisibleLight[] visibleLights)
+        static int UpdateDirectionalLights(Camera camera, IList<VisibleLight> visibleLights)
         {
-            int dirLightCount = 0;
-            List<DirectionalLight> lights = new List<DirectionalLight>();
-            Matrix4x4 worldToView = camera.worldToCameraMatrix;
+            var dirLightCount = 0;
+            var lights = new List<DirectionalLight>();
+            var worldToView = camera.worldToCameraMatrix;
 
-            for (int nLight = 0; nLight < visibleLights.Length; nLight++)
+            for (int nLight = 0; nLight < visibleLights.Count; nLight++)
             {
-                VisibleLight light = visibleLights[nLight];
+                var light = visibleLights[nLight];
                 if (light.lightType == LightType.Directional)
                 {
-                    Debug.Assert(dirLightCount < gMaxNumDirLights, "Too many directional lights.");
+                    Debug.Assert(dirLightCount < MaxNumDirLights, "Too many directional lights.");
 
-                    DirectionalLight l = new DirectionalLight();
+                    var l = new DirectionalLight();
 
-                    Matrix4x4 lightToWorld = light.localToWorld;
+                    var lightToWorld = light.localToWorld;
 
                     Vector3 lightDir = lightToWorld.GetColumn(2);   // Z axis in world space
 
                     // represents a left hand coordinate system in world space
                     Vector3 vx = lightToWorld.GetColumn(0);     // X axis in world space
                     Vector3 vy = lightToWorld.GetColumn(1);     // Y axis in world space
-                    Vector3 vz = lightDir;                      // Z axis in world space
+                    var vz = lightDir;                      // Z axis in world space
 
                     vx = worldToView.MultiplyVector(vx);
                     vy = worldToView.MultiplyVector(vy);
                     vz = worldToView.MultiplyVector(vz);
 
-                    l.uShadowLightIndex = (light.light.shadows != LightShadows.None) ? (uint)nLight : 0xffffffff;
+                    l.shadowLightIndex = (light.light.shadows != LightShadows.None) ? (uint)nLight : 0xffffffff;
 
-                    l.vLaxisX = vx;
-                    l.vLaxisY = vy;
-                    l.vLaxisZ = vz;
+                    l.lightAxisX = vx;
+                    l.lightAxisY = vy;
+                    l.lightAxisZ = vz;
 
-                    l.vCol.Set(light.finalColor.r, light.finalColor.g, light.finalColor.b);
-                    l.fLightIntensity = light.light.intensity;
+                    l.color.Set(light.finalColor.r, light.finalColor.g, light.finalColor.b);
+                    l.intensity = light.light.intensity;
 
                     lights.Add(l);
                     dirLightCount++;
                 }
             }
-            m_dirLightList.SetData(lights.ToArray());
+            s_DirLightList.SetData(lights.ToArray());
 
             return dirLightCount;
         }
 
-        void UpdateShadowConstants(VisibleLight[] visibleLights, ref ShadowOutput shadow)
+        void UpdateShadowConstants(IList<VisibleLight> visibleLights, ref ShadowOutput shadow)
         {
-            int nNumLightsIncludingTooMany = 0;
+            var nNumLightsIncludingTooMany = 0;
 
-            int g_nNumLights = 0;
+            var numLights = 0;
 
-            Vector4[] g_vLightShadowIndex_vLightParams = new Vector4[MAX_LIGHTS];
-            Vector4[] g_vLightFalloffParams = new Vector4[MAX_LIGHTS];
+            var lightShadowIndex_LightParams = new Vector4[k_MaxLights];
+            var lightFalloffParams = new Vector4[k_MaxLights];
 
-            for (int nLight = 0; nLight < visibleLights.Length; nLight++)
+            for (int nLight = 0; nLight < visibleLights.Count; nLight++)
             {
                 nNumLightsIncludingTooMany++;
-                if (nNumLightsIncludingTooMany > MAX_LIGHTS)
+                if (nNumLightsIncludingTooMany > k_MaxLights)
                     continue;
 
-                VisibleLight light = visibleLights[nLight];
-                LightType lightType = light.lightType;
-                Vector3 position = light.light.transform.position;
-                Vector3 lightDir = light.light.transform.forward.normalized;
+                var light = visibleLights[nLight];
+                var lightType = light.lightType;
+                var position = light.light.transform.position;
+                var lightDir = light.light.transform.forward.normalized;
 
                 // Setup shadow data arrays
-                bool hasShadows = shadow.GetShadowSliceCountLightIndex(nLight) != 0;
+                var hasShadows = shadow.GetShadowSliceCountLightIndex(nLight) != 0;
 
                 if (lightType == LightType.Directional)
                 {
-                    g_vLightShadowIndex_vLightParams[g_nNumLights] = new Vector4(0, 0, 1, 1);
-                    g_vLightFalloffParams[g_nNumLights] = new Vector4(0.0f, 0.0f, float.MaxValue, (float)lightType);
+                    lightShadowIndex_LightParams[numLights] = new Vector4(0, 0, 1, 1);
+                    lightFalloffParams[numLights] = new Vector4(0.0f, 0.0f, float.MaxValue, (float)lightType);
 
                     if (hasShadows)
                     {
-                        for (int s = 0; s < MAX_DIRECTIONAL_SPLIT; ++s)
+                        for (int s = 0; s < k_MaxDirectionalSplit; ++s)
                         {
-                            g_vDirShadowSplitSpheres[s] = shadow.directionalShadowSplitSphereSqr[s];
+                            m_DirShadowSplitSpheres[s] = shadow.directionalShadowSplitSphereSqr[s];
                         }
                     }
                 }
                 else if (lightType == LightType.Point)
                 {
-                    g_vLightShadowIndex_vLightParams[g_nNumLights] = new Vector4(0, 0, 1, 1);
-                    g_vLightFalloffParams[g_nNumLights] = new Vector4(1.0f, 0.0f, light.range * light.range, (float)lightType);
+                    lightShadowIndex_LightParams[numLights] = new Vector4(0, 0, 1, 1);
+                    lightFalloffParams[numLights] = new Vector4(1.0f, 0.0f, light.range * light.range, (float)lightType);
                 }
                 else if (lightType == LightType.Spot)
                 {
-                    g_vLightShadowIndex_vLightParams[g_nNumLights] = new Vector4(0, 0, 1, 1);
-                    g_vLightFalloffParams[g_nNumLights] = new Vector4(1.0f, 0.0f, light.range * light.range, (float)lightType);
+                    lightShadowIndex_LightParams[numLights] = new Vector4(0, 0, 1, 1);
+                    lightFalloffParams[numLights] = new Vector4(1.0f, 0.0f, light.range * light.range, (float)lightType);
                 }
 
                 if (hasShadows)
                 {
                     // Enable shadows
-                    g_vLightShadowIndex_vLightParams[g_nNumLights].x = 1;
+                    lightShadowIndex_LightParams[numLights].x = 1;
                     for (int s = 0; s < shadow.GetShadowSliceCountLightIndex(nLight); ++s)
                     {
-                        int shadowSliceIndex = shadow.GetShadowSliceIndex(nLight, s);
-                        g_matWorldToShadow[g_nNumLights * MAX_SHADOWMAP_PER_LIGHTS + s] = shadow.shadowSlices[shadowSliceIndex].shadowTransform.transpose;
+                        var shadowSliceIndex = shadow.GetShadowSliceIndex(nLight, s);
+                        m_MatWorldToShadow[numLights * k_MaxShadowmapPerLights + s] = shadow.shadowSlices[shadowSliceIndex].shadowTransform.transpose;
                     }
                 }
 
-                g_nNumLights++;
+                numLights++;
             }
 
             // Warn if too many lights found
-            if (nNumLightsIncludingTooMany > MAX_LIGHTS)
+            if (nNumLightsIncludingTooMany > k_MaxLights)
             {
-                if (nNumLightsIncludingTooMany > m_nWarnedTooManyLights)
+                if (nNumLightsIncludingTooMany > m_WarnedTooManyLights)
                 {
-                    Debug.LogError("ERROR! Found " + nNumLightsIncludingTooMany + " runtime lights! Valve renderer supports up to " + MAX_LIGHTS +
-                        " active runtime lights at a time!\nDisabling " + (nNumLightsIncludingTooMany - MAX_LIGHTS) + " runtime light" +
-                        ((nNumLightsIncludingTooMany - MAX_LIGHTS) > 1 ? "s" : "") + "!\n");
+                    Debug.LogError("ERROR! Found " + nNumLightsIncludingTooMany + " runtime lights! Valve renderer supports up to " + k_MaxLights +
+                        " active runtime lights at a time!\nDisabling " + (nNumLightsIncludingTooMany - k_MaxLights) + " runtime light" +
+                        ((nNumLightsIncludingTooMany - k_MaxLights) > 1 ? "s" : "") + "!\n");
                 }
-                m_nWarnedTooManyLights = nNumLightsIncludingTooMany;
+                m_WarnedTooManyLights = nNumLightsIncludingTooMany;
             }
             else
             {
-                if (m_nWarnedTooManyLights > 0)
+                if (m_WarnedTooManyLights > 0)
                 {
-                    m_nWarnedTooManyLights = 0;
-                    Debug.Log("SUCCESS! Found " + nNumLightsIncludingTooMany + " runtime lights which is within the supported number of lights, " + MAX_LIGHTS + ".\n\n");
+                    m_WarnedTooManyLights = 0;
+                    Debug.Log("SUCCESS! Found " + nNumLightsIncludingTooMany + " runtime lights which is within the supported number of lights, " + k_MaxLights + ".\n\n");
                 }
             }
 
             // PCF 3x3 Shadows
-            float flTexelEpsilonX = 1.0f / m_ShadowSettings.shadowAtlasWidth;
-            float flTexelEpsilonY = 1.0f / m_ShadowSettings.shadowAtlasHeight;
-            g_vShadow3x3PCFTerms[0] = new Vector4(20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f);
-            g_vShadow3x3PCFTerms[1] = new Vector4(flTexelEpsilonX, flTexelEpsilonY, -flTexelEpsilonX, -flTexelEpsilonY);
-            g_vShadow3x3PCFTerms[2] = new Vector4(flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f);
-            g_vShadow3x3PCFTerms[3] = new Vector4(-flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f);
+            var flTexelEpsilonX = 1.0f / m_ShadowSettings.shadowAtlasWidth;
+            var flTexelEpsilonY = 1.0f / m_ShadowSettings.shadowAtlasHeight;
+            m_Shadow3X3PCFTerms[0] = new Vector4(20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f);
+            m_Shadow3X3PCFTerms[1] = new Vector4(flTexelEpsilonX, flTexelEpsilonY, -flTexelEpsilonX, -flTexelEpsilonY);
+            m_Shadow3X3PCFTerms[2] = new Vector4(flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f);
+            m_Shadow3X3PCFTerms[3] = new Vector4(-flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f);
         }
 
         int GenerateSourceLightBuffers(Camera camera, CullResults inputs)
         {
-            VisibleReflectionProbe[] probes = inputs.visibleReflectionProbes;
+            var probes = inputs.visibleReflectionProbes;
             //ReflectionProbe[] probes = Object.FindObjectsOfType<ReflectionProbe>();
 
-            int nrModels = (int)LightDefinitions.NR_LIGHT_MODELS;
-            int nrVolTypes = (int)LightDefinitions.MAX_TYPES;
-            int[,] numEntries = new int[nrModels,nrVolTypes];
-            int[,] offsets = new int[nrModels,nrVolTypes];
-            int[,] numEntries2nd = new int[nrModels,nrVolTypes];
+            var numModels = (int)LightDefinitions.NR_LIGHT_MODELS;
+            var numVolTypes = (int)LightDefinitions.MAX_TYPES;
+            var numEntries = new int[numModels,numVolTypes];
+            var offsets = new int[numModels,numVolTypes];
+            var numEntries2nd = new int[numModels,numVolTypes];
 
             // first pass. Figure out how much we have of each and establish offsets
             foreach (var cl in inputs.visibleLights)
             {
-                int volType = cl.lightType==LightType.Spot ? LightDefinitions.SPOT_LIGHT : (cl.lightType==LightType.Point ? LightDefinitions.SPHERE_LIGHT : -1);
+                var volType = cl.lightType==LightType.Spot ? LightDefinitions.SPOT_LIGHT : (cl.lightType==LightType.Point ? LightDefinitions.SPHERE_LIGHT : -1);
                 if(volType>=0) ++numEntries[LightDefinitions.DIRECT_LIGHT,volType];
             }
 
             foreach (var rl in probes)
             {
-                int volType = LightDefinitions.BOX_LIGHT;       // always a box for now
+                var volType = LightDefinitions.BOX_LIGHT;       // always a box for now
                 if(rl.texture!=null) ++numEntries[LightDefinitions.REFLECTION_LIGHT,volType];
             }
 
             // add decals here too similar to the above
 
             // establish offsets
-            for(int m=0; m<nrModels; m++)
+            for(var m=0; m<numModels; m++)
             {
-                offsets[m,0] = m==0 ? 0 : (numEntries[m-1,nrVolTypes-1] + offsets[m-1,nrVolTypes-1]);
-                for(int v=1; v<nrVolTypes; v++) offsets[m,v] = numEntries[m,v-1]+offsets[m,v-1];
+                offsets[m,0] = m==0 ? 0 : (numEntries[m-1,numVolTypes-1] + offsets[m-1,numVolTypes-1]);
+                for(var v=1; v<numVolTypes; v++) offsets[m,v] = numEntries[m,v-1]+offsets[m,v-1];
             }
 
 
-            int numLights = inputs.visibleLights.Length;
-            int numProbes = probes.Length;
-            int numVolumes = numLights + numProbes;
+            var numLights = inputs.visibleLights.Length;
+            var numProbes = probes.Length;
+            var numVolumes = numLights + numProbes;
 
 
-            SFiniteLightData[] lightData = new SFiniteLightData[numVolumes];
-            SFiniteLightBound[] boundData = new SFiniteLightBound[numVolumes];
-            Matrix4x4 worldToView = camera.worldToCameraMatrix;
+            var lightData = new SFiniteLightData[numVolumes];
+            var boundData = new SFiniteLightBound[numVolumes];
+            var worldToView = camera.worldToCameraMatrix;
 
             uint shadowLightIndex = 0;
             foreach (var cl in inputs.visibleLights)
             {
-                float range = cl.range;
+                var range = cl.range;
 
-                Matrix4x4 lightToWorld = cl.localToWorld;
+                var lightToWorld = cl.localToWorld;
                 //Matrix4x4 worldToLight = l.worldToLocal;
 
                 Vector3 lightPos = lightToWorld.GetColumn(3);
 
-                SFiniteLightBound bndData = new SFiniteLightBound();
-                SFiniteLightData lgtData = new SFiniteLightData();
+                var bound = new SFiniteLightBound();
+                var light = new SFiniteLightData();
 
-                bndData.vBoxAxisX.Set(1, 0, 0);
-                bndData.vBoxAxisY.Set(0, 1, 0);
-                bndData.vBoxAxisZ.Set(0, 0, 1);
-                bndData.vScaleXY.Set(1.0f, 1.0f);
-                bndData.fRadius = range;
+                bound.boxAxisX.Set(1, 0, 0);
+                bound.boxAxisY.Set(0, 1, 0);
+                bound.boxAxisZ.Set(0, 0, 1);
+                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.radius = range;
 
-                lgtData.flags = 0;
-                lgtData.fRecipRange = 1.0f / range;
-                lgtData.vCol.Set(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
-                lgtData.iSliceIndex = 0;
-                lgtData.uLightModel = (uint)LightDefinitions.DIRECT_LIGHT;
-                lgtData.uShadowLightIndex = shadowLightIndex;
+                light.flags = 0;
+                light.recipRange = 1.0f / range;
+                light.color.Set(cl.finalColor.r, cl.finalColor.g, cl.finalColor.b);
+                light.sliceIndex = 0;
+                light.lightModel = (uint)LightDefinitions.DIRECT_LIGHT;
+                light.shadowLightIndex = shadowLightIndex;
                 shadowLightIndex++;
 
-                bool bHasCookie = cl.light.cookie != null;
-                bool bHasShadow = cl.light.shadows != LightShadows.None;
+                var bHasCookie = cl.light.cookie != null;
+                var bHasShadow = cl.light.shadows != LightShadows.None;
 
-                int idxOut = 0;
+                var idxOut = 0;
 
                 if (cl.lightType == LightType.Spot)
                 {
-                    bool bIsCircularSpot = !bHasCookie;
-                    if (!bIsCircularSpot)    // square spots always have cookie
+                    var isCircularSpot = !bHasCookie;
+                    if (!isCircularSpot)    // square spots always have cookie
                     {
-                        lgtData.iSliceIndex = m_cookieTexArray.FetchSlice(cl.light.cookie);
+                        light.sliceIndex = m_CookieTexArray.FetchSlice(cl.light.cookie);
                     }
 
                     Vector3 lightDir = lightToWorld.GetColumn(2);   // Z axis in world space
@@ -568,7 +566,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     // represents a left hand coordinate system in world space
                     Vector3 vx = lightToWorld.GetColumn(0);     // X axis in world space
                     Vector3 vy = lightToWorld.GetColumn(1);     // Y axis in world space
-                    Vector3 vz = lightDir;                      // Z axis in world space
+                    var vz = lightDir;                      // Z axis in world space
 
                     // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
                     vx = worldToView.MultiplyVector(vx);
@@ -582,53 +580,53 @@ namespace UnityEngine.ScriptableRenderLoop
 
 
                     //float sa = cl.GetSpotAngle();     // total field of view from left to right side
-                    float sa = radToDeg * (2 * Mathf.Acos(1.0f / cl.invCosHalfSpotAngle));       // spot angle doesn't exist in the structure so reversing it for now.
+                    var sa = radToDeg * (2 * Mathf.Acos(1.0f / cl.invCosHalfSpotAngle));       // spot angle doesn't exist in the structure so reversing it for now.
 
 
-                    float cs = Mathf.Cos(0.5f * sa * degToRad);
-                    float si = Mathf.Sin(0.5f * sa * degToRad);
-                    float ta = cs > 0.0f ? (si / cs) : gFltMax;
+                    var cs = Mathf.Cos(0.5f * sa * degToRad);
+                    var si = Mathf.Sin(0.5f * sa * degToRad);
+                    var ta = cs > 0.0f ? (si / cs) : FltMax;
 
-                    float cota = si > 0.0f ? (cs / si) : gFltMax;
+                    var cota = si > 0.0f ? (cs / si) : FltMax;
 
                     //const float cotasa = l.GetCotanHalfSpotAngle();
 
                     // apply nonuniform scale to OBB of spot light
-                    bool bSqueeze = true;//sa < 0.7f * 90.0f;      // arb heuristic
-                    float fS = bSqueeze ? ta : si;
-                    bndData.vCen = worldToView.MultiplyPoint(lightPos + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
+                    var squeeze = true;//sa < 0.7f * 90.0f;      // arb heuristic
+                    var fS = squeeze ? ta : si;
+                    bound.center = worldToView.MultiplyPoint(lightPos + ((0.5f * range) * lightDir));    // use mid point of the spot as the center of the bounding volume for building screen-space AABB for tiled lighting.
 
-                    lgtData.vLaxisX = vx;
-                    lgtData.vLaxisY = vy;
-                    lgtData.vLaxisZ = vz;
+                    light.lightAxisX = vx;
+                    light.lightAxisY = vy;
+                    light.lightAxisZ = vz;
 
                     // scale axis to match box or base of pyramid
-                    bndData.vBoxAxisX = (fS * range) * vx;
-                    bndData.vBoxAxisY = (fS * range) * vy;
-                    bndData.vBoxAxisZ = (0.5f * range) * vz;
+                    bound.boxAxisX = (fS * range) * vx;
+                    bound.boxAxisY = (fS * range) * vy;
+                    bound.boxAxisZ = (0.5f * range) * vz;
 
                     // generate bounding sphere radius
-                    float fAltDx = si;
-                    float fAltDy = cs;
+                    var fAltDx = si;
+                    var fAltDy = cs;
                     fAltDy = fAltDy - 0.5f;
                     //if(fAltDy<0) fAltDy=-fAltDy;
 
                     fAltDx *= range; fAltDy *= range;
 
-                    float fAltDist = Mathf.Sqrt(fAltDy * fAltDy + (bIsCircularSpot ? 1.0f : 2.0f) * fAltDx * fAltDx);
-                    bndData.fRadius = fAltDist > (0.5f * range) ? fAltDist : (0.5f * range);       // will always pick fAltDist
-                    bndData.vScaleXY = bSqueeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
+                    var altDist = Mathf.Sqrt(fAltDy * fAltDy + (isCircularSpot ? 1.0f : 2.0f) * fAltDx * fAltDx);
+                    bound.radius = altDist > (0.5f * range) ? altDist : (0.5f * range);       // will always pick fAltDist
+                    bound.scaleXY = squeeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
 
                     // fill up ldata
-                    lgtData.uLightType = (uint)LightDefinitions.SPOT_LIGHT;
-                    lgtData.vLpos = worldToView.MultiplyPoint(lightPos);
-                    lgtData.fSphRadiusSq = range * range;
-                    lgtData.fPenumbra = cs;
-                    lgtData.cotan = cota;
-                    lgtData.flags |= (bIsCircularSpot ? LightDefinitions.IS_CIRCULAR_SPOT_SHAPE : 0);
+                    light.lightType = (uint)LightDefinitions.SPOT_LIGHT;
+                    light.lightPos = worldToView.MultiplyPoint(lightPos);
+                    light.radiusSq = range * range;
+                    light.penumbra = cs;
+                    light.cotan = cota;
+                    light.flags |= (isCircularSpot ? LightDefinitions.IS_CIRCULAR_SPOT_SHAPE : 0);
 
-                    lgtData.flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
-                    lgtData.flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
+                    light.flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
+                    light.flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
 
                     int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPOT_LIGHT;
                     idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
@@ -637,33 +635,33 @@ namespace UnityEngine.ScriptableRenderLoop
                 {
                     if (bHasCookie)
                     {
-                        lgtData.iSliceIndex = m_cubeCookieTexArray.FetchSlice(cl.light.cookie);
+                        light.sliceIndex = m_CubeCookieTexArray.FetchSlice(cl.light.cookie);
                     }
 
-                    bndData.vCen = worldToView.MultiplyPoint(lightPos);
-                    bndData.vBoxAxisX.Set(range, 0, 0);
-                    bndData.vBoxAxisY.Set(0, range, 0);
-                    bndData.vBoxAxisZ.Set(0, 0, -range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-                    bndData.vScaleXY.Set(1.0f, 1.0f);
-                    bndData.fRadius = range;
+                    bound.center = worldToView.MultiplyPoint(lightPos);
+                    bound.boxAxisX.Set(range, 0, 0);
+                    bound.boxAxisY.Set(0, range, 0);
+                    bound.boxAxisZ.Set(0, 0, -range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+                    bound.scaleXY.Set(1.0f, 1.0f);
+                    bound.radius = range;
 
                     // represents a left hand coordinate system in world space since det(worldToView)<0
-                    Matrix4x4 lightToView = worldToView * lightToWorld;
+                    var lightToView = worldToView * lightToWorld;
                     Vector3 vx = lightToView.GetColumn(0);
                     Vector3 vy = lightToView.GetColumn(1);
                     Vector3 vz = lightToView.GetColumn(2);
 
                     // fill up ldata
-                    lgtData.uLightType = (uint)LightDefinitions.SPHERE_LIGHT;
-                    lgtData.vLpos = bndData.vCen;
-                    lgtData.fSphRadiusSq = range * range;
+                    light.lightType = (uint)LightDefinitions.SPHERE_LIGHT;
+                    light.lightPos = bound.center;
+                    light.radiusSq = range * range;
 
-                    lgtData.vLaxisX = vx;
-                    lgtData.vLaxisY = vy;
-                    lgtData.vLaxisZ = vz;
+                    light.lightAxisX = vx;
+                    light.lightAxisY = vy;
+                    light.lightAxisZ = vz;
 
-                    lgtData.flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
-                    lgtData.flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
+                    light.flags |= (bHasCookie ? LightDefinitions.HAS_COOKIE_TEXTURE : 0);
+                    light.flags |= (bHasShadow ? LightDefinitions.HAS_SHADOW : 0);
 
                     int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPHERE_LIGHT;
                     idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
@@ -676,11 +674,11 @@ namespace UnityEngine.ScriptableRenderLoop
                 // next light
                 if (cl.lightType == LightType.Spot || cl.lightType == LightType.Point)
                 {
-                    boundData[idxOut] = bndData;
-                    lightData[idxOut] = lgtData;
+                    boundData[idxOut] = bound;
+                    lightData[idxOut] = light;
                 }
             }
-            int numLightsOut = offsets[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1] + numEntries[LightDefinitions.DIRECT_LIGHT, nrVolTypes-1];
+            var numLightsOut = offsets[LightDefinitions.DIRECT_LIGHT, numVolTypes-1] + numEntries[LightDefinitions.DIRECT_LIGHT, numVolTypes-1];
             
             // probe.m_BlendDistance
             // Vector3f extents = 0.5*Abs(probe.m_BoxSize);
@@ -689,95 +687,98 @@ namespace UnityEngine.ScriptableRenderLoop
             // shader parameter min and max are C+/-(extents+blendDistance)
             foreach (var rl in probes)
             {
-                Texture cubemap = rl.texture;
-                if (cubemap != null)        // always a box for now
-                {
-                    SFiniteLightBound bndData = new SFiniteLightBound();
-                    SFiniteLightData lgtData = new SFiniteLightData();
+                var cubemap = rl.texture;
 
-                    int idxOut = 0;
-                    lgtData.flags = 0;
+                // always a box for now
+                if (cubemap == null)
+                    continue;
 
-                    Bounds bnds = rl.bounds;
-                    Vector3 boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
-                    float blendDistance = rl.blendDistance;
-                    float imp = rl.importance;
+                var bndData = new SFiniteLightBound();
+                var lgtData = new SFiniteLightData();
 
-                    Matrix4x4 mat = rl.localToWorld;
-                    //Matrix4x4 mat = rl.transform.localToWorldMatrix;
-                    Vector3 cubeCapturePos = mat.GetColumn(3);      // cube map capture position in world space
+                var idxOut = 0;
+                lgtData.flags = 0;
 
+                var bnds = rl.bounds;
+                var boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
+                var blendDistance = rl.blendDistance;
+                float imp = rl.importance;
 
-                    // implicit in CalculateHDRDecodeValues() --> float ints = rl.intensity;
-                    bool boxProj = (rl.boxProjection != 0);
-                    Vector4 decodeVals = rl.hdr;
-                    //Vector4 decodeVals = rl.CalculateHDRDecodeValues();
-
-                    // C is reflection volume center in world space (NOT same as cube map capture point)
-                    Vector3 e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
-                    //Vector3 C = bnds.center;        // P + boxOffset;
-                    Vector3 C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
-
-                    //Vector3 posForShaderParam = bnds.center - boxOffset;    // gives same as rl.GetComponent<Transform>().position;
-                    Vector3 posForShaderParam = cubeCapturePos;        // same as commented out line above when rot is identity
-                    Vector3 combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
-
-                    Vector3 vx = mat.GetColumn(0);
-                    Vector3 vy = mat.GetColumn(1);
-                    Vector3 vz = mat.GetColumn(2);
-
-                    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
-                    vx = worldToView.MultiplyVector(vx);
-                    vy = worldToView.MultiplyVector(vy);
-                    vz = worldToView.MultiplyVector(vz);
-
-                    Vector3 Cw = worldToView.MultiplyPoint(C);
-
-                    if (boxProj) lgtData.flags |= LightDefinitions.IS_BOX_PROJECTED;
-
-                    lgtData.vLpos = Cw;
-                    lgtData.vLaxisX = vx;
-                    lgtData.vLaxisY = vy;
-                    lgtData.vLaxisZ = vz;
-                    lgtData.vLocalCubeCapturePoint = -boxOffset;
-                    lgtData.fProbeBlendDistance = blendDistance;
-
-                    lgtData.fLightIntensity = decodeVals.x;
-                    lgtData.fDecodeExp = decodeVals.y;
-
-                    lgtData.iSliceIndex = m_cubeReflTexArray.FetchSlice(cubemap);
-
-                    Vector3 delta = combinedExtent - e;
-                    lgtData.vBoxInnerDist = e;
-                    lgtData.vBoxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
-
-                    bndData.vCen = Cw;
-                    bndData.vBoxAxisX = combinedExtent.x * vx;
-                    bndData.vBoxAxisY = combinedExtent.y * vy;
-                    bndData.vBoxAxisZ = combinedExtent.z * vz;
-                    bndData.vScaleXY.Set(1.0f, 1.0f);
-                    bndData.fRadius = combinedExtent.magnitude;
-
-                    // fill up ldata
-                    lgtData.uLightType = (uint)LightDefinitions.BOX_LIGHT;
-                    lgtData.uLightModel = (uint)LightDefinitions.REFLECTION_LIGHT;
+                var mat = rl.localToWorld;
+                //Matrix4x4 mat = rl.transform.localToWorldMatrix;
+                Vector3 cubeCapturePos = mat.GetColumn(3);      // cube map capture position in world space
 
 
-                    int i = LightDefinitions.REFLECTION_LIGHT, j = LightDefinitions.BOX_LIGHT;
-                    idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
-                    boundData[idxOut] = bndData;
-                    lightData[idxOut] = lgtData;
-                }
+                // implicit in CalculateHDRDecodeValues() --> float ints = rl.intensity;
+                var boxProj = (rl.boxProjection != 0);
+                var decodeVals = rl.hdr;
+                //Vector4 decodeVals = rl.CalculateHDRDecodeValues();
+
+                // C is reflection volume center in world space (NOT same as cube map capture point)
+                var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
+                //Vector3 C = bnds.center;        // P + boxOffset;
+                var C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
+
+                //Vector3 posForShaderParam = bnds.center - boxOffset;    // gives same as rl.GetComponent<Transform>().position;
+                var posForShaderParam = cubeCapturePos;        // same as commented out line above when rot is identity
+                var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
+
+                Vector3 vx = mat.GetColumn(0);
+                Vector3 vy = mat.GetColumn(1);
+                Vector3 vz = mat.GetColumn(2);
+
+                // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+                vx = worldToView.MultiplyVector(vx);
+                vy = worldToView.MultiplyVector(vy);
+                vz = worldToView.MultiplyVector(vz);
+
+                var Cw = worldToView.MultiplyPoint(C);
+
+                if (boxProj) lgtData.flags |= LightDefinitions.IS_BOX_PROJECTED;
+
+                lgtData.lightPos = Cw;
+                lgtData.lightAxisX = vx;
+                lgtData.lightAxisY = vy;
+                lgtData.lightAxisZ = vz;
+                lgtData.localCubeCapturePoint = -boxOffset;
+                lgtData.probeBlendDistance = blendDistance;
+
+                lgtData.lightIntensity = decodeVals.x;
+                lgtData.decodeExp = decodeVals.y;
+
+                lgtData.sliceIndex = m_CubeReflTexArray.FetchSlice(cubemap);
+
+                var delta = combinedExtent - e;
+                lgtData.boxInnerDist = e;
+                lgtData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+
+                bndData.center = Cw;
+                bndData.boxAxisX = combinedExtent.x * vx;
+                bndData.boxAxisY = combinedExtent.y * vy;
+                bndData.boxAxisZ = combinedExtent.z * vz;
+                bndData.scaleXY.Set(1.0f, 1.0f);
+                bndData.radius = combinedExtent.magnitude;
+
+                // fill up ldata
+                lgtData.lightType = (uint)LightDefinitions.BOX_LIGHT;
+                lgtData.lightModel = (uint)LightDefinitions.REFLECTION_LIGHT;
+
+
+                int i = LightDefinitions.REFLECTION_LIGHT, j = LightDefinitions.BOX_LIGHT;
+                idxOut = numEntries2nd[i,j] + offsets[i,j]; ++numEntries2nd[i,j];
+                boundData[idxOut] = bndData;
+                lightData[idxOut] = lgtData;
             }
-            int numProbesOut = offsets[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1] + numEntries[LightDefinitions.REFLECTION_LIGHT, nrVolTypes-1];
-            for(int m=0; m<nrModels; m++)
+
+            var numProbesOut = offsets[LightDefinitions.REFLECTION_LIGHT, numVolTypes-1] + numEntries[LightDefinitions.REFLECTION_LIGHT, numVolTypes-1];
+            for(var m=0; m<numModels; m++)
             {
-                for(int v=0; v<nrVolTypes; v++)
+                for(var v=0; v<numVolTypes; v++)
                     Debug.Assert(numEntries[m,v]==numEntries2nd[m, v], "count mismatch on second pass!");
             }
 
-            m_convexBoundsBuffer.SetData(boundData);
-            m_lightDataBuffer.SetData(lightData);
+            s_ConvexBoundsBuffer.SetData(boundData);
+            s_LightDataBuffer.SetData(lightData);
 
 
             return numLightsOut + numProbesOut;
@@ -787,14 +788,13 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             foreach (var camera in cameras)
             {
-                CullResults cullResults;
                 CullingParameters cullingParams;
                 if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     continue;
 
                 m_ShadowPass.UpdateCullingParameters(ref cullingParams);
 
-                cullResults = CullResults.Cull(ref cullingParams, renderLoop);
+                var cullResults = CullResults.Cull(ref cullingParams, renderLoop);
                 ExecuteRenderLoop(camera, cullResults, renderLoop);
             }
 
@@ -803,19 +803,18 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void FinalPass(RenderLoop loop)
         {
-            CommandBuffer cmd = new CommandBuffer();
-            cmd.name = "FinalPass";
-            cmd.Blit(kCameraTarget, BuiltinRenderTextureType.CameraTarget, m_blitMaterial, 0);
+            var cmd = new CommandBuffer { name = "FinalPass" };
+            cmd.Blit(s_CameraTarget, BuiltinRenderTextureType.CameraTarget, m_BlitMaterial, 0);
             loop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
         void ExecuteRenderLoop(Camera camera, CullResults cullResults, RenderLoop loop)
         {
-            int iW = camera.pixelWidth;
-            int iH = camera.pixelHeight;
+            var w = camera.pixelWidth;
+            var h = camera.pixelHeight;
 
-            ResizeIfNecessary(iW, iH);
+            ResizeIfNecessary(w, h);
 
             // do anything we need to do upon a new frame.
             NewFrame ();
@@ -840,55 +839,56 @@ namespace UnityEngine.ScriptableRenderLoop
             //RenderLighting(camera, inputs, loop);
 
             //
-            Matrix4x4 proj = camera.projectionMatrix;
-            Matrix4x4 temp = new Matrix4x4();
+            var proj = camera.projectionMatrix;
+            var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
             temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
             temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
             temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            Matrix4x4 projh = temp * proj;
-            Matrix4x4 invProjh = projh.inverse;
+            var projh = temp * proj;
+            var invProjh = projh.inverse;
 
-            temp.SetRow(0, new Vector4(0.5f * iW, 0.0f, 0.0f, 0.5f * iW));
-            temp.SetRow(1, new Vector4(0.0f, 0.5f * iH, 0.0f, 0.5f * iH));
+            temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
+            temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
             temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
             temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            Matrix4x4 projscr = temp * proj;
-            Matrix4x4 invProjscr = projscr.inverse;
+            var projscr = temp * proj;
+            var invProjscr = projscr.inverse;
 
 
-            int numLights = GenerateSourceLightBuffers(camera, cullResults);
+            var numLights = GenerateSourceLightBuffers(camera, cullResults);
 
 
-            int nrTilesX = (iW + 15) / 16;
-            int nrTilesY = (iH + 15) / 16;
+            var numTilesX = (w + 15) / 16;
+            var numTilesY = (h + 15) / 16;
             //ComputeBuffer lightList = new ComputeBuffer(nrTilesX * nrTilesY * (32 / 2), sizeof(uint));
 
 
-            var cmd = new CommandBuffer();
+            var cmd = new CommandBuffer() { name = "Build light list" };
+            
+            cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", numLights);
+            SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
+            SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
+            cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+            cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (numLights + 7) / 8, 1, 1);
 
-            cmd.name = "Build light list";
-            cmd.SetComputeIntParam(m_BuildScreenAABBShader, "g_iNrVisibLights", numLights);
-            SetMatrixCS(cmd, m_BuildScreenAABBShader, "g_mProjection", projh);
-            SetMatrixCS(cmd, m_BuildScreenAABBShader, "g_mInvProjection", invProjh);
-            cmd.SetComputeBufferParam(m_BuildScreenAABBShader, kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
-            cmd.DispatchCompute(m_BuildScreenAABBShader, kGenAABBKernel, (numLights + 7) / 8, 1, 1);
+            cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
+            cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
+            SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
+            SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
+            cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(s_CameraDepthTexture));
+            cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
+            cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
 
-            cmd.SetComputeIntParams(m_BuildPerTileLightListShader, "g_viDimensions", new int[2] { iW, iH });
-            cmd.SetComputeIntParam(m_BuildPerTileLightListShader, "g_iNrVisibLights", numLights);
-            SetMatrixCS(cmd, m_BuildPerTileLightListShader, "g_mScrProjection", projscr);
-            SetMatrixCS(cmd, m_BuildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
-            cmd.SetComputeTextureParam(m_BuildPerTileLightListShader, kGenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(kCameraDepthTexture));
-            cmd.SetComputeBufferParam(m_BuildPerTileLightListShader, kGenListPerTileKernel, "g_vLightList", lightList);
-            cmd.DispatchCompute(m_BuildPerTileLightListShader, kGenListPerTileKernel, nrTilesX, nrTilesY, 1);
-
-            if (EnableClustered) VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
-
+            if (enableClustered)
+            {
+                VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
+            }
 
             loop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-            int numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
+            var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
 
             // Push all global params
             PushGlobalParams(camera, loop, camera.cameraToWorldMatrix, projscr, invProjscr, numDirLights);
@@ -897,10 +897,10 @@ namespace UnityEngine.ScriptableRenderLoop
             DoTiledDeferredLighting(camera, loop);
 
             // don't have a depth pre-pass for forward lit meshes so have to require clustered for now
-            if (EnableClustered) RenderForward(cullResults, camera, loop, false);
+            if (enableClustered) RenderForward(cullResults, camera, loop, false);
 
 
-            m_skyboxHelper.Draw(loop, camera);
+            m_SkyboxHelper.Draw(loop, camera);
 
             FinalPass(loop);
         }
@@ -908,9 +908,9 @@ namespace UnityEngine.ScriptableRenderLoop
         void NewFrame()
         {
             // update texture caches
-            m_cookieTexArray.NewFrame();
-            m_cubeCookieTexArray.NewFrame();
-            m_cubeReflTexArray.NewFrame();
+            m_CookieTexArray.NewFrame();
+            m_CubeCookieTexArray.NewFrame();
+            m_CubeReflTexArray.NewFrame();
 
             //m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
             //m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
@@ -919,105 +919,110 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void ResizeIfNecessary(int curWidth, int curHeight)
         {
-            if (curWidth != m_WidthOnRecord || curHeight != m_HeightOnRecord || lightList == null)
+            if (curWidth != s_WidthOnRecord || curHeight != s_HeightOnRecord || s_LightList == null)
             {
-                if (m_WidthOnRecord > 0 && m_HeightOnRecord > 0)
+                if (s_WidthOnRecord > 0 && s_HeightOnRecord > 0)
                     ReleaseResolutionDependentBuffers();
 
                 AllocResolutionDependentBuffers(curWidth, curHeight);
 
                 // update recorded window resolution
-                m_WidthOnRecord = curWidth;
-                m_HeightOnRecord = curHeight;
+                s_WidthOnRecord = curWidth;
+                s_HeightOnRecord = curHeight;
             }
         }
 
         void ReleaseResolutionDependentBuffers()
         {
-            if (lightList != null)
-                lightList.Release();
+            if (s_LightList != null)
+                s_LightList.Release();
 
-            if (EnableClustered)
+            if (enableClustered)
             {
-                if (m_perVoxelLightLists != null)
-                    m_perVoxelLightLists.Release();
+                if (s_PerVoxelLightLists != null)
+                    s_PerVoxelLightLists.Release();
 
-                if (m_perVoxelOffset != null)
-                    m_perVoxelOffset.Release();
+                if (s_PerVoxelOffset != null)
+                    s_PerVoxelOffset.Release();
 
-                if (gUseDepthBuffer && m_perTileLogBaseTweak != null)
-                    m_perTileLogBaseTweak.Release();
+                if (k_UseDepthBuffer && s_PerTileLogBaseTweak != null)
+                    s_PerTileLogBaseTweak.Release();
             }
         }
 
         int NumLightIndicesPerClusteredTile()
         {
-            return 4 * (1 << g_iLog2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
+            return 4 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
         void AllocResolutionDependentBuffers(int width, int height)
         {
-            int nrTilesX = (width + 15) / 16;
-            int nrTilesY = (height + 15) / 16;
-            int nrTiles = nrTilesX * nrTilesY;
-            const int capacityUShortsPerTileFPTL = 32;
-            const int nrDWordsPerTileFPTL = (capacityUShortsPerTileFPTL + 1) >> 1;        // room for 31 lights and a nrLights value.
+            var nrTilesX = (width + 15) / 16;
+            var nrTilesY = (height + 15) / 16;
+            var nrTiles = nrTilesX * nrTilesY;
+            const int capacityUShortsPerTile = 32;
+            const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1;        // room for 31 lights and a nrLights value.
 
-            lightList = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * nrDWordsPerTileFPTL * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
+            s_LightList = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * dwordsPerTile * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
 
-            if (EnableClustered)
+            if (enableClustered)
             {
-                m_perVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1 << g_iLog2NumClusters) * nrTiles, sizeof(uint));
-                m_perVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTiles, sizeof(uint));
+                s_PerVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1 << k_Log2NumClusters) * nrTiles, sizeof(uint));
+                s_PerVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTiles, sizeof(uint));
 
-                if (gUseDepthBuffer) m_perTileLogBaseTweak = new ComputeBuffer(nrTiles, sizeof(float));
+                if (k_UseDepthBuffer)
+                {
+                    s_PerTileLogBaseTweak = new ComputeBuffer(nrTiles, sizeof(float));
+                }
             }
         }
 
         void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)
         {
             // clear atomic offset index
-            cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kClearVoxelAtomicKernel, "g_LayeredSingleIdxBuffer", m_globalLightListAtomic);
-            cmd.DispatchCompute(m_BuildPerVoxelLightListShader, kClearVoxelAtomicKernel, 1, 1, 1);
+            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, "g_LayeredSingleIdxBuffer", s_GlobalLightListAtomic);
+            cmd.DispatchCompute(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
-            cmd.SetComputeIntParam(m_BuildPerVoxelLightListShader, "g_iNrVisibLights", numLights);
-            SetMatrixCS(cmd, m_BuildPerVoxelLightListShader, "g_mScrProjection", projscr);
-            SetMatrixCS(cmd, m_BuildPerVoxelLightListShader, "g_mInvScrProjection", invProjscr);
+            cmd.SetComputeIntParam(buildPerVoxelLightListShader, "g_iNrVisibLights", numLights);
+            SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mScrProjection", projscr);
+            SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mInvScrProjection", invProjscr);
 
-            cmd.SetComputeIntParam(m_BuildPerVoxelLightListShader, "g_iLog2NumClusters", g_iLog2NumClusters);
+            cmd.SetComputeIntParam(buildPerVoxelLightListShader, "g_iLog2NumClusters", k_Log2NumClusters);
 
             //Vector4 v2_near = invProjscr * new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
             //Vector4 v2_far = invProjscr * new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
             //float nearPlane2 = -(v2_near.z/v2_near.w);
             //float farPlane2 = -(v2_far.z/v2_far.w);
-            float nearPlane = camera.nearClipPlane;
-            float farPlane = camera.farClipPlane;
-            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fNearPlane", nearPlane);
-            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fFarPlane", farPlane);
+            var nearPlane = camera.nearClipPlane;
+            var farPlane = camera.farClipPlane;
+            cmd.SetComputeFloatParam(buildPerVoxelLightListShader, "g_fNearPlane", nearPlane);
+            cmd.SetComputeFloatParam(buildPerVoxelLightListShader, "g_fFarPlane", farPlane);
 
-            float C = (float)(1 << g_iLog2NumClusters);
-            double geomSeries = (1.0 - Mathf.Pow(m_clustLogBase, C)) / (1 - m_clustLogBase);        // geometric series: sum_k=0^{C-1} base^k
-            m_clustScale = (float)(geomSeries / (farPlane - nearPlane));
+            const float C = (float)(1 << k_Log2NumClusters);
+            var geomSeries = (1.0 - Mathf.Pow(k_ClustLogBase, C)) / (1 - k_ClustLogBase);        // geometric series: sum_k=0^{C-1} base^k
+            m_ClustScale = (float)(geomSeries / (farPlane - nearPlane));
 
-            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fClustScale", m_clustScale);
-            cmd.SetComputeFloatParam(m_BuildPerVoxelLightListShader, "g_fClustBase", m_clustLogBase);
+            cmd.SetComputeFloatParam(buildPerVoxelLightListShader, "g_fClustScale", m_ClustScale);
+            cmd.SetComputeFloatParam(buildPerVoxelLightListShader, "g_fClustBase", k_ClustLogBase);
 
-            cmd.SetComputeTextureParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_depth_tex", new RenderTargetIdentifier(kCameraDepthTexture));
-            cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_vLayeredLightList", m_perVoxelLightLists);
-            cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_LayeredOffset", m_perVoxelOffset);
-            cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_LayeredSingleIdxBuffer", m_globalLightListAtomic);
+            cmd.SetComputeTextureParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_depth_tex", new RenderTargetIdentifier(s_CameraDepthTexture));
+            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_vLayeredLightList", s_PerVoxelLightLists);
+            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_LayeredOffset", s_PerVoxelOffset);
+            cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_LayeredSingleIdxBuffer", s_GlobalLightListAtomic);
 
-            if (gUseDepthBuffer) cmd.SetComputeBufferParam(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, "g_logBaseBuffer", m_perTileLogBaseTweak);
+            if (k_UseDepthBuffer)
+            {
+                cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_logBaseBuffer", s_PerTileLogBaseTweak);
+            }
 
-            int nrTilesX = (camera.pixelWidth + 15) / 16;
-            int nrTilesY = (camera.pixelHeight + 15) / 16;
-            cmd.DispatchCompute(m_BuildPerVoxelLightListShader, kGenListPerVoxelKernel, nrTilesX, nrTilesY, 1);
+            var numTilesX = (camera.pixelWidth + 15) / 16;
+            var numTilesY = (camera.pixelHeight + 15) / 16;
+            cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
         }
 
         void PushGlobalParams(Camera camera, RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
         {
-            var cmd = new CommandBuffer();
-            cmd.name = "Push Global Parameters";
+            var cmd = new CommandBuffer { name = "Push Global Parameters" };
 
             cmd.SetGlobalFloat("g_widthRT", (float)camera.pixelWidth);
             cmd.SetGlobalFloat("g_heightRT", (float)camera.pixelHeight);
@@ -1027,37 +1032,40 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.SetGlobalMatrix("g_mScrProjection", scrProj);
             cmd.SetGlobalMatrix("g_mInvScrProjection", incScrProj);
 
-            cmd.SetGlobalBuffer("g_vLightData", m_lightDataBuffer);
+            cmd.SetGlobalBuffer("g_vLightData", s_LightDataBuffer);
 
-            cmd.SetGlobalTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
-            cmd.SetGlobalTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
-            cmd.SetGlobalTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
+            cmd.SetGlobalTexture("_spotCookieTextures", m_CookieTexArray.GetTexCache());
+            cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
+            cmd.SetGlobalTexture("_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
 
-            if (EnableClustered)
+            if (enableClustered)
             {
-                cmd.SetGlobalFloat("g_fClustScale", m_clustScale);
-                cmd.SetGlobalFloat("g_fClustBase", m_clustLogBase);
+                cmd.SetGlobalFloat("g_fClustScale", m_ClustScale);
+                cmd.SetGlobalFloat("g_fClustBase", k_ClustLogBase);
                 cmd.SetGlobalFloat("g_fNearPlane", camera.nearClipPlane);
                 cmd.SetGlobalFloat("g_fFarPlane", camera.farClipPlane);
-                cmd.SetGlobalFloat("g_iLog2NumClusters", g_iLog2NumClusters);
+                cmd.SetGlobalFloat("g_iLog2NumClusters", k_Log2NumClusters);
 
 
-                cmd.SetGlobalFloat("g_isLogBaseBufferEnabled", gUseDepthBuffer ? 1 : 0);
+                cmd.SetGlobalFloat("g_isLogBaseBufferEnabled", k_UseDepthBuffer ? 1 : 0);
 
-                cmd.SetGlobalBuffer("g_vLayeredOffsetsBuffer", m_perVoxelOffset);
-                if (gUseDepthBuffer) cmd.SetGlobalBuffer("g_logBaseBuffer", m_perTileLogBaseTweak);
+                cmd.SetGlobalBuffer("g_vLayeredOffsetsBuffer", s_PerVoxelOffset);
+                if (k_UseDepthBuffer)
+                {
+                    cmd.SetGlobalBuffer("g_logBaseBuffer", s_PerTileLogBaseTweak);
+                }
             }
 
             cmd.SetGlobalFloat("g_nNumDirLights", numDirLights);
-            cmd.SetGlobalBuffer("g_dirLightData", m_dirLightList);
+            cmd.SetGlobalBuffer("g_dirLightData", s_DirLightList);
 
             // Shadow constants
-            cmd.SetGlobalMatrixArray("g_matWorldToShadow", g_matWorldToShadow);
-            cmd.SetGlobalVectorArray("g_vDirShadowSplitSpheres", g_vDirShadowSplitSpheres);
-            cmd.SetGlobalVector("g_vShadow3x3PCFTerms0", g_vShadow3x3PCFTerms[0]);
-            cmd.SetGlobalVector("g_vShadow3x3PCFTerms1", g_vShadow3x3PCFTerms[1]);
-            cmd.SetGlobalVector("g_vShadow3x3PCFTerms2", g_vShadow3x3PCFTerms[2]);
-            cmd.SetGlobalVector("g_vShadow3x3PCFTerms3", g_vShadow3x3PCFTerms[3]);
+            cmd.SetGlobalMatrixArray("g_matWorldToShadow", m_MatWorldToShadow);
+            cmd.SetGlobalVectorArray("g_vDirShadowSplitSpheres", m_DirShadowSplitSpheres);
+            cmd.SetGlobalVector("g_vShadow3x3PCFTerms0", m_Shadow3X3PCFTerms[0]);
+            cmd.SetGlobalVector("g_vShadow3x3PCFTerms1", m_Shadow3X3PCFTerms[1]);
+            cmd.SetGlobalVector("g_vShadow3x3PCFTerms2", m_Shadow3X3PCFTerms[2]);
+            cmd.SetGlobalVector("g_vShadow3x3PCFTerms3", m_Shadow3X3PCFTerms[3]);
 
             loop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();

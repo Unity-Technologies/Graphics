@@ -1,8 +1,4 @@
-using UnityEngine;
-using System.Collections;
 using UnityEngine.Rendering;
-using System.Collections.Generic;
-using System;
 
 namespace UnityEngine.ScriptableRenderLoop
 {
@@ -56,9 +52,9 @@ namespace UnityEngine.ScriptableRenderLoop
                 return false;
 
 #if UNITY_EDITOR
-            if (m_AssetVersion != ms_GlobalAssetVersion)
+            if (m_AssetVersion != s_GlobalAssetVersion)
             {
-                m_AssetVersion = ms_GlobalAssetVersion;
+                m_AssetVersion = s_GlobalAssetVersion;
                 m_RenderLoop.Rebuild();
             }
 #endif
@@ -73,18 +69,18 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
             {
-                foreach (string str in importedAssets)
+                foreach (var str in importedAssets)
                 {
                     if (str.EndsWith(".compute"))
                     {
-                        ms_GlobalAssetVersion++;
+                        s_GlobalAssetVersion++;
                         break;
                     }
                 }
             }
         }
-        public static int ms_GlobalAssetVersion = 0;
-        public int m_AssetVersion = 0;
+        static int s_GlobalAssetVersion = 0;
+        int m_AssetVersion = 0;
 #endif
     }
 }
