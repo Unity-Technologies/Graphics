@@ -47,6 +47,8 @@ namespace UnityEditor.MaterialGraph
 			
 			GUIUtility.GetControlID (node.guid.GetHashCode(), FocusType.Passive);
 		}
+
+        public abstract float GetHeight();
     }
 
     [Serializable]

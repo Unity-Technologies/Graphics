@@ -8,17 +8,53 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
+    class TextureNodeContolData : NodeControlData
+    {
+        private string[] m_TextureTypeNames;
+        private string[] textureTypeNames
+        {
+            get
+            {
+                if (m_TextureTypeNames == null)
+                    m_TextureTypeNames = Enum.GetNames(typeof(TextureType));
+                return m_TextureTypeNames;
+            }
+        }
+
+        public override void OnGUIHandler()
+        {
+            base.OnGUIHandler();
+
+            var tNode = node as UnityEngine.MaterialGraph.TextureNode;
+            if (tNode == null)
+                return;
+
+            tNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), tNode.exposedState);
+            tNode.defaultTexture = EditorGUILayout.MiniThumbnailObjectField(new GUIContent("Texture"), tNode.defaultTexture, typeof(Texture2D), null) as Texture2D;
+            tNode.textureType = (TextureType)EditorGUILayout.Popup((int)tNode.textureType, textureTypeNames, EditorStyles.popup);
+        }
+
+        public override float GetHeight()
+        {
+            return 3 * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
+        }
+    }
     class ColorNodeContolData : NodeControlData
     {
         public override void OnGUIHandler()
         {
-			base.OnGUIHandler ();
+            base.OnGUIHandler();
 
             var cNode = node as UnityEngine.MaterialGraph.ColorNode;
             if (cNode == null)
                 return;
 
-            cNode.color =  EditorGUILayout.ColorField("Color", cNode.color);
+            cNode.color = EditorGUILayout.ColorField("Color", cNode.color);
+        }
+
+        public override float GetHeight()
+        {
+            return EditorGUIUtility.singleLineHeight + 2 * EditorGUIUtility.standardVerticalSpacing;
         }
     }
 
@@ -28,6 +64,17 @@ namespace UnityEditor.Graphing.Drawing
         protected override IEnumerable<GraphElementData> GetControlData()
         {
             var instance = CreateInstance<ColorNodeContolData>();
+            instance.Initialize(node);
+            return new List<GraphElementData> { instance };
+        }
+    }
+
+    [Serializable]
+	public class TextureNodeData : MaterialNodeData
+    {
+        protected override IEnumerable<GraphElementData> GetControlData()
+        {
+            var instance = CreateInstance<TextureNodeContolData>();
             instance.Initialize(node);
             return new List<GraphElementData> { instance };
         }

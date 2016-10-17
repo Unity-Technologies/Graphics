@@ -50,7 +50,7 @@ namespace UnityEditor.Graphing.Drawing
 				if (found == null)
 					found = typeof(MaterialNodeData);
 
-				var nodeData = (MaterialNodeData)ScriptableObject.CreateInstance(found);
+				var nodeData = (MaterialNodeData)CreateInstance(found);
                 
                 node.onModified += OnNodeChanged;
 
@@ -94,6 +94,7 @@ namespace UnityEditor.Graphing.Drawing
 			m_DataMapper.Clear ();
 			m_DataMapper [typeof(AbstractMaterialNode)] = typeof(MaterialNodeData);
 			m_DataMapper [typeof(ColorNode)] = typeof(ColorNodeData);
+			m_DataMapper [typeof(TextureNode)] = typeof(TextureNodeData);
 
 			this.graphAsset = graphAsset;
 

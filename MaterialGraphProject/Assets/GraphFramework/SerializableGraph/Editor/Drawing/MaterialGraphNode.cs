@@ -97,11 +97,12 @@ namespace UnityEditor.Graphing.Drawing
 
             foreach (var controlData in nodeData.elements.OfType<NodeControlData>())
             {
-                var imContainer = new IMGUIContainer()
+                var imContainer = new IMGUIContainer
                 {
                     name = "element",
                     OnGUIHandler = controlData.OnGUIHandler,
-                    pickingMode = PickingMode.Position
+                    pickingMode = PickingMode.Position,
+                    height = controlData.GetHeight(),
                 };
                 m_ControlsContainer.AddChild(imContainer);
             }
