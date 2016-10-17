@@ -9,11 +9,11 @@ using NUnit.Framework;
 public class RenderLoopTestFixture : MonoBehaviour
 {
     public delegate void TestDelegate(Camera camera, CullResults cullResults, RenderLoop renderLoop);
-    private static TestDelegate callback;
+    private static TestDelegate s_Callback;
 
     public static void Render(RenderLoopWrapper wrapper, Camera[] cameras, RenderLoop renderLoop)
     {
-        foreach (Camera camera in cameras)
+        foreach (var camera in cameras)
         {
             CullingParameters cullingParams;
             bool gotCullingParams = CullResults.GetCullingParameters(camera, out cullingParams);
@@ -21,7 +21,7 @@ public class RenderLoopTestFixture : MonoBehaviour
 
             CullResults cullResults = CullResults.Cull(ref cullingParams, renderLoop);
 
-            callback(camera, cullResults, renderLoop);
+            s_Callback(camera, cullResults, renderLoop);
         }
 
         renderLoop.Submit();
@@ -34,7 +34,7 @@ public class RenderLoopTestFixture : MonoBehaviour
 
         var instance = camObject.AddComponent<RenderLoopWrapper>();
         instance.callback = Render;
-        callback = renderCallback;
+        s_Callback = renderCallback;
         instance.enabled = true;
 
         Transform t = camObject.transform;

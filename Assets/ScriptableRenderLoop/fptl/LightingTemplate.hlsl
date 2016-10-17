@@ -158,15 +158,15 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
         float atten = 1;
 
         [branch]
-        if (lightData.uShadowLightIndex != 0xffffffff)
+        if (lightData.shadowLightIndex != 0xffffffff)
         {
-            float shadowScalar = SampleShadow(DIRECTIONAL_LIGHT, vPw, 0, lightData.uShadowLightIndex);
+            float shadowScalar = SampleShadow(DIRECTIONAL_LIGHT, vPw, 0, lightData.shadowLightIndex);
             atten *= shadowScalar;
         }
 
         UnityLight light;
-        light.color.xyz = lightData.vCol.xyz * atten;
-        light.dir.xyz = mul((float3x3) g_mViewToWorld, -lightData.vLaxisZ).xyz;
+        light.color.xyz = lightData.color.xyz * atten;
+        light.dir.xyz = mul((float3x3) g_mViewToWorld, -lightData.lightAxisZ).xyz;
 
         ints += EvalMaterial(light, ind);
     }
@@ -177,24 +177,24 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
 	if(numLights>0)
     {
         uint uIndex = l<numLights ? FetchIndex(start, l) : 0;
-        uint uLgtType = l<numLights ? g_vLightData[uIndex].uLightType : 0;
+        uint uLgtType = l<numLights ? g_vLightData[uIndex].lightType : 0;
 
         // specialized loop for spot lights
         while(l<numLights && uLgtType==SPOT_LIGHT)
         {
             SFiniteLightData lgtDat = g_vLightData[uIndex];
-            float3 vLp = lgtDat.vLpos.xyz;
+            float3 vLp = lgtDat.lightPos.xyz;
 
             float3 toLight  = vLp - vP;
             float dist = length(toLight);
             float3 vL = toLight / dist;
 
-            float attLookUp = dist*lgtDat.fRecipRange; attLookUp *= attLookUp;
+            float attLookUp = dist*lgtDat.recipRange; attLookUp *= attLookUp;
             float atten = tex2Dlod(_LightTextureB0, float4(attLookUp.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
 
             // spot attenuation
-            const float fProjVec = -dot(vL, lgtDat.vLaxisZ.xyz);        // spotDir = lgtDat.vLaxisZ.xyz
-            float2 cookCoord = (-lgtDat.cotan)*float2( dot(vL, lgtDat.vLaxisX.xyz), dot(vL, lgtDat.vLaxisY.xyz) ) / fProjVec;
+            const float fProjVec = -dot(vL, lgtDat.lightAxisZ.xyz);        // spotDir = lgtDat.lightAxisZ.xyz
+            float2 cookCoord = (-lgtDat.cotan)*float2( dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz) ) / fProjVec;
 
             const bool bHasCookie = (lgtDat.flags&IS_CIRCULAR_SPOT_SHAPE)==0;       // all square spots have cookies
             float d0 = 0.65;
@@ -202,39 +202,39 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
             [branch]if(bHasCookie)
             {
                 cookCoord = cookCoord*0.5 + 0.5;
-                angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, lgtDat.iSliceIndex), 0.0);
+                angularAtt = UNITY_SAMPLE_TEX2DARRAY_LOD(_spotCookieTextures, float3(cookCoord, lgtDat.sliceIndex), 0.0);
             }
             atten *= angularAtt.w*(fProjVec>0.0);                           // finally apply this to the dist att.
 
             const bool bHasShadow = (lgtDat.flags&HAS_SHADOW)!=0;
             [branch]if(bHasShadow)
             {
-                float shadowScalar = SampleShadow(SPOT_LIGHT, vPw, 0, lgtDat.uShadowLightIndex);
+                float shadowScalar = SampleShadow(SPOT_LIGHT, vPw, 0, lgtDat.shadowLightIndex);
                 atten *= shadowScalar;
             }
 
             UnityLight light;
-            light.color.xyz = lgtDat.vCol.xyz*atten*angularAtt.xyz;
+            light.color.xyz = lgtDat.color.xyz*atten*angularAtt.xyz;
             light.dir.xyz = mul((float3x3) g_mViewToWorld, vL).xyz;     //unity_CameraToWorld
 
             ints += EvalMaterial(light, ind);
 
             ++l; uIndex = l<numLights ? FetchIndex(start, l) : 0;
-            uLgtType = l<numLights ? g_vLightData[uIndex].uLightType : 0;
+            uLgtType = l<numLights ? g_vLightData[uIndex].lightType : 0;
         }
 
         // specialized loop for sphere lights
         while(l<numLights && uLgtType==SPHERE_LIGHT)
         {
             SFiniteLightData lgtDat = g_vLightData[uIndex];
-            float3 vLp = lgtDat.vLpos.xyz;
+            float3 vLp = lgtDat.lightPos.xyz;
 
             float3 toLight  = vLp - vP;
             float dist = length(toLight);
             float3 vL = toLight / dist;
             float3 vLw = mul((float3x3) g_mViewToWorld, vL).xyz;        //unity_CameraToWorld
 
-            float attLookUp = dist*lgtDat.fRecipRange; attLookUp *= attLookUp;
+            float attLookUp = dist*lgtDat.recipRange; attLookUp *= attLookUp;
             float atten = tex2Dlod(_LightTextureB0, float4(attLookUp.rr, 0.0, 0.0)).UNITY_ATTEN_CHANNEL;
 
             float4 cookieColor = float4(1,1,1,1);
@@ -242,26 +242,26 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
             const bool bHasCookie = (lgtDat.flags&HAS_COOKIE_TEXTURE)!=0;
             [branch]if(bHasCookie)
             {
-                float3 cookieCoord = -float3(dot(vL, lgtDat.vLaxisX.xyz), dot(vL, lgtDat.vLaxisY.xyz), dot(vL, lgtDat.vLaxisZ.xyz));    // negate to make vL a fromLight vector
-                cookieColor = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(cookieCoord, lgtDat.iSliceIndex), 0.0);
+                float3 cookieCoord = -float3(dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz), dot(vL, lgtDat.lightAxisZ.xyz));    // negate to make vL a fromLight vector
+                cookieColor = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(cookieCoord, lgtDat.sliceIndex), 0.0);
                 atten *= cookieColor.w;
             }
 
             const bool bHasShadow = (lgtDat.flags&HAS_SHADOW)!=0;
             [branch]if(bHasShadow)
             {
-                float shadowScalar = SampleShadow(SPHERE_LIGHT, vPw, vLw, lgtDat.uShadowLightIndex);
+                float shadowScalar = SampleShadow(SPHERE_LIGHT, vPw, vLw, lgtDat.shadowLightIndex);
                 atten *= shadowScalar;
             }
 
             UnityLight light;
-            light.color.xyz = lgtDat.vCol.xyz*atten*cookieColor.xyz;
+            light.color.xyz = lgtDat.color.xyz*atten*cookieColor.xyz;
             light.dir.xyz = vLw;
 
             ints += EvalMaterial(light, ind);
 
             ++l; uIndex = l<numLights ? FetchIndex(start, l) : 0;
-            uLgtType = l<numLights ? g_vLightData[uIndex].uLightType : 0;
+            uLgtType = l<numLights ? g_vLightData[uIndex].lightType : 0;
         }
 
         //if(uLgtType!=SPOT_LIGHT && uLgtType!=SPHERE_LIGHT) ++l;

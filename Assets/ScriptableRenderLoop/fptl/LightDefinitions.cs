@@ -4,61 +4,61 @@ using UnityEngine;
 public struct SFiniteLightData
 {
     // setup constant buffer
-    public float fPenumbra;
+    public float penumbra;
     public int  flags;
-    public uint uLightType;
-    public uint uLightModel;        // DIRECT_LIGHT=0, REFLECTION_LIGHT=1
+    public uint lightType;
+    public uint lightModel;        // DIRECT_LIGHT=0, REFLECTION_LIGHT=1
 
-    public Vector3 vLpos;
-    public float fLightIntensity;
+    public Vector3 lightPos;
+    public float lightIntensity;
 
-    public Vector3 vLaxisX;
-    public float fRecipRange;
+    public Vector3 lightAxisX;
+    public float recipRange;
 
-    public Vector3 vLaxisY;
-    public float fSphRadiusSq;
+    public Vector3 lightAxisY;
+    public float radiusSq;
 
-    public Vector3 vLaxisZ;      // spot +Z axis
+    public Vector3 lightAxisZ;      // spot +Z axis
     public float cotan;
 
-    public Vector3  vCol;
-    public int iSliceIndex;
+    public Vector3 color;
+    public int sliceIndex;
 
-    public Vector3 vBoxInnerDist;
-    public float fDecodeExp;
+    public Vector3 boxInnerDist;
+    public float decodeExp;
 
-    public Vector3 vBoxInvRange;
-    public uint uShadowLightIndex;
+    public Vector3 boxInvRange;
+    public uint shadowLightIndex;
 
-    public Vector3 vLocalCubeCapturePoint;
-    public float fProbeBlendDistance;
+    public Vector3 localCubeCapturePoint;
+    public float probeBlendDistance;
 };
 
 [UnityEngine.ScriptableRenderLoop.GenerateHLSL]
 public struct SFiniteLightBound
 {
-    public Vector3 vBoxAxisX;
-    public Vector3 vBoxAxisY;
-    public Vector3 vBoxAxisZ;
-    public Vector3 vCen;        // a center in camera space inside the bounding volume of the light source.
-    public Vector2 vScaleXY;
-    public float fRadius;
+    public Vector3 boxAxisX;
+    public Vector3 boxAxisY;
+    public Vector3 boxAxisZ;
+    public Vector3 center;        // a center in camera space inside the bounding volume of the light source.
+    public Vector2 scaleXY;
+    public float radius;
 };
 
 [UnityEngine.ScriptableRenderLoop.GenerateHLSL]
 public struct DirectionalLight
 {
-    public Vector3 vCol;
-    public float fLightIntensity;
+    public Vector3 color;
+    public float intensity;
 
-    public Vector3 vLaxisX;
-    public uint uShadowLightIndex;
+    public Vector3 lightAxisX;
+    public uint shadowLightIndex;
 
-    public Vector3 vLaxisY;
-    public float fPad0;
+    public Vector3 lightAxisY;
+    public float pad0;
 
-    public Vector3 vLaxisZ;
-    public float fPad1;
+    public Vector3 lightAxisZ;
+    public float pad1;
 };
 
 [UnityEngine.ScriptableRenderLoop.GenerateHLSL]

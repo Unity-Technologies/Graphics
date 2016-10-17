@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 [System.Serializable]
 public struct TextureSettings
 {
@@ -10,7 +5,7 @@ public struct TextureSettings
     public uint pointCookieSize;
     public uint reflectionCubemapSize;
 
-    static public TextureSettings Default
+    public static TextureSettings Default
     {
         get
         {

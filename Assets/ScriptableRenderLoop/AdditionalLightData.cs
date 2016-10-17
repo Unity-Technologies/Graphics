@@ -1,5 +1,3 @@
-using System;
-
 namespace UnityEngine.ScriptableRenderLoop
 {
     //@TODO: We should continously move these values
@@ -7,9 +5,9 @@ namespace UnityEngine.ScriptableRenderLoop
     [RequireComponent(typeof(Light))]
     public class AdditionalLightData : MonoBehaviour
     {
-        public const int defaultShadowResolution = 512;
+        public const int DefaultShadowResolution = 512;
 
-        public int shadowResolution = defaultShadowResolution;
+        public int shadowResolution = DefaultShadowResolution;
 
         [RangeAttribute(0.0F, 100.0F)]
         public float innerSpotPercent = 0.0F;
@@ -27,7 +25,7 @@ namespace UnityEngine.ScriptableRenderLoop
             if (lightData != null)
                 return lightData.shadowResolution;
             else
-                return defaultShadowResolution;
+                return DefaultShadowResolution;
         }
     }
 }
