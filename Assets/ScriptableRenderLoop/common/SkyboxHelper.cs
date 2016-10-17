@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine;
@@ -15,18 +14,18 @@ public class SkyboxHelper
     public void CreateMesh()
     {
         var vertData = new Vector3[8 * 3];
-        for (var i = 0; i < 8 * 3; i++)
+        for (int i = 0; i < 8 * 3; i++)
         {
             vertData[i] = m_OctaVerts[i];
         }
 
         // Regular subdivisions
-        for (var i = 0; i < k_NumFullSubdivisions; i++)
+        for (int i = 0; i < k_NumFullSubdivisions; i++)
         {
             var srcData = vertData.Clone() as Vector3[];
             var verts = new List<Vector3>();
 
-            for (var k = 0; k < srcData.Length; k += 3)
+            for (int k = 0; k < srcData.Length; k += 3)
             {
                 Subdivide(verts, srcData[k], srcData[k + 1], srcData[k + 2]);
             }
@@ -35,13 +34,13 @@ public class SkyboxHelper
 
         // Horizon subdivisions
         var horizonLimit = 1.0f;
-        for (var i = 0; i < k_NumHorizonSubdivisions; i++)
+        for (int i = 0; i < k_NumHorizonSubdivisions; i++)
         {
             var srcData = vertData.Clone() as Vector3[];
             var verts = new List<Vector3>();
 
             horizonLimit *= 0.5f; // First iteration limit to y < +-0.5, next one 0.25 etc.
-            for (var k = 0; k < srcData.Length; k += 3)
+            for (int k = 0; k < srcData.Length; k += 3)
             {
                 var maxAbsY = Mathf.Max(Mathf.Abs(srcData[k].y), Mathf.Abs(srcData[k + 1].y), Mathf.Abs(srcData[k + 2].y));
                 if (maxAbsY > horizonLimit)
@@ -62,7 +61,7 @@ public class SkyboxHelper
         // Write out the mesh
         var vertexCount = vertData.Length;
         var triangles = new int[vertexCount];
-        for (var i = 0; i < vertexCount; i++)
+        for (int i = 0; i < vertexCount; i++)
         {
             triangles[i] = i;
         }

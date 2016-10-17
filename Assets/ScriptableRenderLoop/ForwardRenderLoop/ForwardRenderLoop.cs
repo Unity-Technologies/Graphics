@@ -1,8 +1,5 @@
-using UnityEngine;
 using UnityEngine.Rendering;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace UnityEngine.ScriptableRenderLoop
 {
@@ -62,7 +59,7 @@ namespace UnityEngine.ScriptableRenderLoop
             var matWorldToShadow = new Matrix4x4[k_MaxLights * k_MaxShadowmapPerLights];
             var dirShadowSplitSpheres = new Vector4[k_MaxDirectionalSplit];
 
-            for (var nLight = 0; nLight < visibleLights.Length; nLight++)
+            for (int nLight = 0; nLight < visibleLights.Length; nLight++)
             {
                 numLightsIncludingTooMany++;
                 if (numLightsIncludingTooMany > k_MaxLights)
@@ -92,7 +89,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                     if (hasShadows)
                     {
-                        for (var s = 0; s < k_MaxDirectionalSplit; ++s)
+                        for (int s = 0; s < k_MaxDirectionalSplit; ++s)
                         {
                             dirShadowSplitSpheres[s] = shadow.directionalShadowSplitSphereSqr[s];
                         }
@@ -127,7 +124,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 {
                     // Enable shadows
                     lightShadowIndex_lightParams[numLights].x = 1;
-                    for (var s = 0; s < shadow.GetShadowSliceCountLightIndex(nLight); ++s)
+                    for (int s = 0; s < shadow.GetShadowSliceCountLightIndex(nLight); ++s)
                     {
                         var shadowSliceIndex = shadow.GetShadowSliceIndex(nLight, s);
                         matWorldToShadow[numLights * k_MaxShadowmapPerLights + s] = shadow.shadowSlices[shadowSliceIndex].shadowTransform.transpose;

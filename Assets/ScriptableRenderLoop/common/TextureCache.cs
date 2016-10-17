@@ -69,7 +69,7 @@ public class TextureCacheCubemap : TextureCache
             return;
         }
 
-        for (var f = 0; f < 6; f++)
+        for (int f = 0; f < 6; f++)
             Graphics.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
     }
 
@@ -211,13 +211,13 @@ public abstract class TextureCache : Object
     {
         var numNonZeros = 0;
         var tmpBuffer = new int[m_NumTextures];
-        for (var i = 0; i < m_NumTextures; i++)
+        for (int i = 0; i < m_NumTextures; i++)
         {
             tmpBuffer[i] = m_SortedIdxArray[i];     // copy buffer
             if (m_SliceArray[m_SortedIdxArray[i]].countLRU != 0) ++numNonZeros;
         }
         int nonZerosBase = 0, zerosBase = 0;
-        for (var i = 0; i < m_NumTextures; i++)
+        for (int i = 0; i < m_NumTextures; i++)
         {
             if (m_SliceArray[tmpBuffer[i]].countLRU == 0)
             {
@@ -231,7 +231,7 @@ public abstract class TextureCache : Object
             }
         }
 
-        for (var i = 0; i < m_NumTextures; i++)
+        for (int i = 0; i < m_NumTextures; i++)
         {
             if (m_SliceArray[i].countLRU < g_MaxFrameCount) ++m_SliceArray[i].countLRU;     // next frame
         }
@@ -264,7 +264,7 @@ public abstract class TextureCache : Object
             m_LocatorInSliceArray = new Dictionary<uint, int>();
 
             m_NumTextures = numTextures;
-            for (var i = 0; i < m_NumTextures; i++)
+            for (int i = 0; i < m_NumTextures; i++)
             {
                 m_SliceArray[i].countLRU = g_MaxFrameCount;         // never used before
                 m_SliceArray[i].texId = g_InvalidTexID;
@@ -305,7 +305,7 @@ public abstract class TextureCache : Object
             return;
 
         // relocate sliceIndex to front of m_pSortedIdxArray since uCountLRU will be set to maximum.
-        for (var j = 0; j < i; j++)
+        for (int j = 0; j < i; j++)
         {
             m_SortedIdxArray[j + 1] = m_SortedIdxArray[j];
         }
