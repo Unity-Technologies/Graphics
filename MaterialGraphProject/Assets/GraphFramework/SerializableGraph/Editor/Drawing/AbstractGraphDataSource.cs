@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
-using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
 using UnityEngine.Graphing;
 
@@ -24,7 +23,7 @@ namespace UnityEditor.Graphing.Drawing
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
             {
-                var theElements = m_Elements.OfType<MaterialNodeDrawData>().ToList();
+                var theElements = m_Elements.OfType<NodeDrawData>().ToList();
                 var found = theElements.Where(x => x.node.guid == node.guid).ToList();
                 foreach (var drawableNodeData in found)
                     drawableNodeData.MarkDirtyHack();
@@ -35,7 +34,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             m_Elements.Clear();
 
-            var drawableNodes = new List<MaterialNodeDrawData>();
+            var drawableNodes = new List<NodeDrawData>();
             foreach (var node in graphAsset.graph.GetNodes<INode>())
             {
                 var type = node.GetType();
@@ -48,9 +47,9 @@ namespace UnityEditor.Graphing.Drawing
                     type = type.BaseType;
                 }
                 if (found == null)
-                    found = typeof(MaterialNodeDrawData);
+                    found = typeof(NodeDrawData);
 
-                var nodeData = (MaterialNodeDrawData)CreateInstance(found);
+                var nodeData = (NodeDrawData)CreateInstance(found);
 
                 node.onModified += OnNodeChanged;
 
@@ -118,7 +117,7 @@ namespace UnityEditor.Graphing.Drawing
             UpdateData();
         }
 
-        public void RemoveElements(IEnumerable<MaterialNodeDrawData> nodes, IEnumerable<EdgeDrawData> edges)
+        public void RemoveElements(IEnumerable<NodeDrawData> nodes, IEnumerable<EdgeDrawData> edges)
         {
             graphAsset.graph.RemoveElements(nodes.Select(x => x.node), edges.Select(x => x.edge));
             graphAsset.graph.ValidateGraph();

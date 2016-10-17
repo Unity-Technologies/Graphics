@@ -1,7 +1,6 @@
 using System.Linq;
 using RMGUI.GraphView;
 using RMGUI.GraphView.Demo;
-using UnityEditor.MaterialGraph.Drawing;
 using UnityEngine;
 using UnityEngine.RMGUI;
 
@@ -28,6 +27,8 @@ namespace UnityEditor.Graphing.Drawing
                 name = "controls", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
+
+            AddToClassList("NodeDrawer");
         }
 
         public override void DoRepaint(PaintContext painter)
@@ -39,7 +40,7 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        private void AddSlots(MaterialNodeDrawData nodeData)
+        private void AddSlots(NodeDrawData nodeData)
         {
             m_SlotContainer.ClearChildren();
 
@@ -75,7 +76,7 @@ namespace UnityEditor.Graphing.Drawing
             AddChild(m_SlotContainer);
         }
 
-        private void AddControls(MaterialNodeDrawData nodeData)
+        private void AddControls(NodeDrawData nodeData)
         {
             m_ControlsContainer.ClearChildren();
 
@@ -104,7 +105,7 @@ namespace UnityEditor.Graphing.Drawing
 
             m_ControlsContainer.ClearChildren();
 
-            var nodeData = dataProvider as MaterialNodeDrawData;
+            var nodeData = dataProvider as NodeDrawData;
 
             if (nodeData == null)
                 return;
