@@ -35,7 +35,7 @@ namespace UnityEditor.Graphing.Drawing
             drawData.position = position;
             node.drawState = drawData;
         }
-        
+
         protected virtual IEnumerable<GraphElementData> GetControlData()
         {
             return new ControlDrawData[0];
@@ -60,7 +60,7 @@ namespace UnityEditor.Graphing.Drawing
 
             var controlData = GetControlData();
             m_Children.AddRange(controlData);
-            
+
             position = new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0);
             //position
         }

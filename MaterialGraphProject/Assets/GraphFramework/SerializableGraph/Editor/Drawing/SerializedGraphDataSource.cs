@@ -5,7 +5,7 @@ namespace UnityEditor.Graphing.Drawing
     public class SerializedGraphDataSource : AbstractGraphDataSource
     {
         protected SerializedGraphDataSource()
-        { }
+        {}
 
         protected override void AddTypeMappings()
         {

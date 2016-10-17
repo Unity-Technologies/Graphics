@@ -275,7 +275,6 @@ namespace UnityEditor.Graphing.Drawing
              }*/
 
 
-
         /*public void RenderOptions(MaterialGraph graph)
         {
             EditorGUILayout.BeginHorizontal();

@@ -19,17 +19,15 @@ namespace UnityEditor.MaterialGraph.Drawing
                 name = "preview", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
-            
+
             m_currentPreviewData = new List<NodePreviewDrawData>();
         }
 
         private void AddPreview(MaterialNodeDrawData nodeData)
         {
-            
-
             if (!nodeData.elements.OfType<NodePreviewDrawData>().Any())
                 return;
-            
+
             var previews = nodeData.elements.OfType<NodePreviewDrawData>().ToList();
             var isSamePreviews = m_currentPreviewData.Count == previews.Count;
 
@@ -53,7 +51,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                     var thePreview = m_PreviewContainer.GetChildAtIndex(i) as Image;
                     // TODO: Consider null exception
                     // TODO: Need to share the texture
-                    // right now it's allocating all the time. 
+                    // right now it's allocating all the time.
                     thePreview.image = preview.Render(new Vector2(200, 200));
                 }
             }
@@ -74,9 +72,10 @@ namespace UnityEditor.MaterialGraph.Drawing
                     m_currentPreviewData.Add(preview);
                 }
             }
-            
+
             AddChild(m_PreviewContainer);
         }
+
         public override void OnDataChanged()
         {
             base.OnDataChanged();

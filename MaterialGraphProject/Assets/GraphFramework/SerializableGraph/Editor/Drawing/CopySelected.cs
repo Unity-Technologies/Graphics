@@ -1,4 +1,3 @@
-
 /*
 namespace UnityEditor.Graphing.Drawing
 {
