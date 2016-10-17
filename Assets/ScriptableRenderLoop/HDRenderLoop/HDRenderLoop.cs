@@ -124,12 +124,12 @@ namespace UnityEngine.ScriptableRenderLoop
         Material m_FinalPassMaterial;
 
         // TODO: Find a way to automatically create/iterate through these kind of class
-        Lit.RenderLoop m_litRenderLoop = new Lit.RenderLoop();
+        Lit.RenderLoop m_litRenderLoop;
 
         // Debug
         Material m_DebugViewMaterialGBuffer;
 
-        GBufferManager gbufferManager = new GBufferManager();
+        GBufferManager m_gbufferManager = new GBufferManager();
 
         static private int s_CameraColorBuffer;
         static private int s_CameraDepthBuffer;
@@ -187,10 +187,12 @@ namespace UnityEngine.ScriptableRenderLoop
             m_cubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
             // Init Lit material buffer - GBuffer and init
-            gbufferManager.gbufferCount = m_litRenderLoop.GetGBufferCount();
-            for (int gbufferIndex = 0; gbufferIndex < gbufferManager.gbufferCount; ++gbufferIndex)
+            m_litRenderLoop = new Lit.RenderLoop(); // Our object can be garbacge collected, so need to be allocate here
+
+            m_gbufferManager.gbufferCount = m_litRenderLoop.GetGBufferCount();
+            for (int gbufferIndex = 0; gbufferIndex < m_gbufferManager.gbufferCount; ++gbufferIndex)
             {
-                gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_litRenderLoop.RTFormat[gbufferIndex], m_litRenderLoop.RTReadWrite[gbufferIndex]);
+                m_gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_litRenderLoop.RTFormat[gbufferIndex], m_litRenderLoop.RTReadWrite[gbufferIndex]);
             }
 
             m_litRenderLoop.Rebuild();
@@ -227,7 +229,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 cmd.GetTemporaryRT(s_CameraColorBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Default);
                 cmd.GetTemporaryRT(s_CameraDepthBuffer, w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
-                gbufferManager.InitGBuffers(w, h, cmd);
+                m_gbufferManager.InitGBuffers(w, h, cmd);
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
                 cmd.ClearRenderTarget(true, false, new Color(0, 0, 0, 0));
@@ -254,7 +256,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 var cmd = new CommandBuffer();
                 cmd.name = "Clear GBuffer";
                 // Write into the Camera Depth buffer
-                cmd.SetRenderTarget(gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
+                cmd.SetRenderTarget(m_gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
                 // Clear everything
                 // TODO: Clear is not required for color as we rewrite everything, will save performance.
                 cmd.ClearRenderTarget(false, true, new Color(0, 0, 0, 0));
@@ -293,7 +295,7 @@ namespace UnityEngine.ScriptableRenderLoop
             // setup GBuffer for rendering
             var cmd = new CommandBuffer();
             cmd.name = "GBuffer Pass";
-            cmd.SetRenderTarget(gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.SetRenderTarget(m_gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
@@ -323,7 +325,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 m_DebugViewMaterialGBuffer.SetVector("_ScreenSize", screenSize);
                 m_DebugViewMaterialGBuffer.SetFloat("_DebugViewMaterial", (float)debugParameters.debugViewMaterial);
 
-                // gbufferManager.BindBuffers(m_DeferredMaterial);
+                // m_gbufferManager.BindBuffers(m_DeferredMaterial);
                 // TODO: Bind depth textures
                 var cmd = new CommandBuffer();
                 cmd.name = "GBuffer Debug Pass";
@@ -376,9 +378,9 @@ namespace UnityEngine.ScriptableRenderLoop
             m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
 
             Vector4 screenSize = ComputeScreenSize(camera);
-            m_DeferredMaterial.SetVector("_ScreenSize", screenSize);            
+            m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
 
-            // gbufferManager.BindBuffers(m_DeferredMaterial);
+            // m_gbufferManager.BindBuffers(m_DeferredMaterial);
             // TODO: Bind depth textures
             var cmd = new CommandBuffer();
             cmd.name = "Deferred Ligthing Pass";
@@ -507,7 +509,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
             Shader.SetGlobalBuffer("_PunctualLightList", s_punctualLightList);
             Shader.SetGlobalInt("_PunctualLightCount", lights.Count);
-            Shader.SetGlobalTexture("_EnvTextures", m_cubeReflTexArray.GetTexCache());
         }
 
         void UpdateReflectionProbes(VisibleReflectionProbe[] activeReflectionProbes)
@@ -547,6 +548,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             Shader.SetGlobalBuffer("_EnvLightList", s_envLightList);
             Shader.SetGlobalInt("_EnvLightCount", lights.Count);
+            Shader.SetGlobalTexture("_EnvTextures", m_cubeReflTexArray.GetTexCache());
         }
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)

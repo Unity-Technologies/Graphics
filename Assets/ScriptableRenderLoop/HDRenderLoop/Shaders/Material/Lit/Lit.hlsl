@@ -26,6 +26,7 @@ int UnpackMaterialId(float f)
 }
 
 // TODO: How can I declare a sampler for this one that is bilinear filtering
+// TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 UNITY_DECLARE_TEX2D(_PreIntegratedFGD);
 
 // For image based lighting, a part of the BSDF is pre-integrated.
@@ -37,9 +38,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     //  _PreIntegratedFGD.y = Gv * Fc
     // Pre integrate DisneyDiffuse FGD:
     // _PreIntegratedFGD.z = DisneyDiffuse
-
-    // TEMP: CAUTION: use 1.0 - perceptualRoughness instead of perceptualRoughness because rendering is inversed due to dumb "openGL convention"...
-    float3 preFGD = UNITY_SAMPLE_TEX2D_LOD(_PreIntegratedFGD, float2(NdotV, 1.0 - perceptualRoughness), 0).xyz;
+    float3 preFGD = UNITY_SAMPLE_TEX2D_LOD(_PreIntegratedFGD, float2(NdotV, perceptualRoughness), 0).xyz;
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
@@ -408,7 +407,7 @@ float3 GetBakedDiffuseLigthing(PreLightData prelightData, SurfaceData surfaceDat
 }
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDF functions for each light type
+// EvaluateBSDF_Punctual
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightData, PunctualLightData lightData, BSDFData bsdfData,
@@ -481,12 +480,158 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
     }
 }
 
+//-----------------------------------------------------------------------------
+// Reference code for image based lighting
+// ----------------------------------------------------------------------------
+
+// Ref: Moving Frostbite to PBR (Appendix A)
+float3 IntegrateLambertIBLRef(  EnvLightData lightData, BSDFData bsdfData,
+                                UNITY_ARGS_ENV(_EnvTextures),
+                                uint sampleCount = 2048)
+{
+    float3 N        = bsdfData.normalWS;
+    float3 acc      = float3(0.0, 0.0, 0.0);
+    // Add some jittering on Hammersley2d
+    float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
+
+    float3 tangentX, tangentY;
+    GetLocalFrame(N, tangentX, tangentY);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float2 u    = Hammersley2d(i, sampleCount);
+        u           = frac(u + randNum + 0.5);
+
+        float3 L;
+        float NdotL;
+        float weightOverPdf;
+        ImportanceSampleLambert(u, N, tangentX, tangentY, L, NdotL, weightOverPdf);
+
+        if (NdotL > 0.0)
+        {
+            float4 val = UNITY_SAMPLE_ENV_LOD(_EnvTextures, L, lightData, 0);
+
+            // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
+            acc += bsdfData.diffuseColor * Lambert() * weightOverPdf * val.rgb;
+        }
+    }
+
+    return acc / sampleCount;
+}
+
+float3 IntegrateDisneyDiffuseIBLRef(float3 V, EnvLightData lightData, BSDFData bsdfData,
+                                    UNITY_ARGS_ENV(_EnvTextures),
+                                    uint sampleCount = 2048)
+{
+    float3 N = bsdfData.normalWS;
+    float NdotV = dot(N, V);
+    float3 acc  = float3(0.0, 0.0, 0.0);
+    // Add some jittering on Hammersley2d
+    float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
+
+    float3 tangentX, tangentY;
+    GetLocalFrame(N, tangentX, tangentY);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float2 u    = Hammersley2d(i, sampleCount);
+        u           = frac(u + randNum + 0.5);
+
+        float3 L;
+        float NdotL;
+        float weightOverPdf;
+        // for Disney we still use a Cosine importance sampling, true Disney importance sampling imply a look up table
+        ImportanceSampleLambert(u, N, tangentX, tangentY, L, NdotL, weightOverPdf);
+
+        if (NdotL > 0.0)
+        {            
+            float3 H = normalize(L + V);
+            float LdotH = dot(L, H);
+            // Note: we call DisneyDiffuse that require to multiply by Albedo / PI. Divide by PI is already taken into account
+            // in weightOverPdf of ImportanceSampleLambert call.
+            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+
+            // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
+            float4 val = UNITY_SAMPLE_ENV_LOD(_EnvTextures, L, lightData, 0);
+            acc += bsdfData.diffuseColor * disneyDiffuse * weightOverPdf * val.rgb;
+        }
+    }
+
+    return acc / sampleCount;
+}
+
+// Ref: Moving Frostbite to PBR (Appendix A)
+float3 IntegrateSpecularGGXIBLRef(  float3 V, EnvLightData lightData, BSDFData bsdfData,
+                                    UNITY_ARGS_ENV(_EnvTextures),
+                                    uint sampleCount = 2048)
+{
+    float3 N        = bsdfData.normalWS;
+    float NdotV     = saturate(dot(N, V));
+    float3 acc      = float3(0.0, 0.0, 0.0);
+
+    // Add some jittering on Hammersley2d
+    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
+
+    float3 tangentX, tangentY;
+    GetLocalFrame(N, tangentX, tangentY);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float2 u    = Hammersley2d(i, sampleCount);
+        u           = frac(u + randNum + 0.5);
+
+        float VdotH;
+        float NdotL;
+        float3 L;
+        float weightOverPdf;
+
+        // GGX BRDF
+        ImportanceSampleGGX(u, V, N, tangentX, tangentY, bsdfData.roughness, NdotV,
+                            L, VdotH, NdotL, weightOverPdf);
+
+        if (NdotL > 0.0)
+        {
+            // Fresnel component is apply here as describe in ImportanceSampleGGX function
+            float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH) * weightOverPdf;
+
+            float4 val = UNITY_SAMPLE_ENV_LOD(_EnvTextures, L, lightData, 0);
+
+            acc += FweightOverPdf * val.rgb;
+        }
+    }
+
+    return acc / sampleCount;
+}
+
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_Env
+// ----------------------------------------------------------------------------
+
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
                         UNITY_ARGS_ENV(_EnvTextures),
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
+// Reference Lambert diffuse / GGX Specular
+//#define LIT_DISPLAY_REFERENCE
+
+#ifdef LIT_DISPLAY_REFERENCE
+
+    specularLighting.rgb = IntegrateSpecularGGXIBLRef(V, lightData, bsdfData, UNITY_PASS_ENV(_EnvTextures));
+    specularLighting.a = 1.0;
+
+/*
+    #ifdef DIFFUSE_LAMBERT_BRDF
+    diffuseLighting.rgb = IntegrateLambertIBLRef(lightData, bsdfData, UNITY_PASS_ENV(_EnvTextures));
+    #else
+    diffuseLighting.rgb = IntegrateDisneyDiffuseIBLRef(V, lightData, bsdfData, UNITY_PASS_ENV(_EnvTextures));
+    #endif
+    diffuseLighting.a = 1.0;
+*/
+    diffuseLighting = float4(0.0, 0.0, 0.0, 0.0);
+
+#else
     // TODO: factor this code in common, so other material authoring don't require to rewrite everything, 
     // also think about how such a loop can handle 2 cubemap at the same time as old unity. Macro can allow to do that
     // but we need to have UNITY_SAMPLE_ENV_LOD replace by a true function instead that is define by the lighting arcitecture.
@@ -497,11 +642,14 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     // float shrinkedRoughness = AnisotropicStrechAtGrazingAngle(bsdfData.roughness, bsdfData.perceptualRoughness, NdotV);
     
     // Note: As explain in GetPreLightData we use normalWS and not iblNormalWS here (in case of anisotropy)
-    float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, prelightData.iblR, bsdfData.roughness);
+    //float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, prelightData.iblR, bsdfData.roughness);
+
+    float3 rayWS = prelightData.iblR;
 
     float3 R = rayWS;
     float weight = 1.0;
 
+    /*
     if (lightData.shapeType == ENVSHAPETYPE_BOX)
     {
         // worldToLocal assume no scaling
@@ -539,6 +687,7 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
         // Smooth weighting
         weight = smoothstep01(weight);
     }
+    */
 
     float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
     float4 preLD = UNITY_SAMPLE_ENV_LOD(_EnvTextures, R, lightData, mip);
@@ -549,6 +698,8 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     specularLighting.a = weight;
 
     diffuseLighting = float4(0.0, 0.0, 0.0, 0.0);
+
+#endif    
 }
 
 #endif // UNITY_MATERIAL_LIT_INCLUDED
