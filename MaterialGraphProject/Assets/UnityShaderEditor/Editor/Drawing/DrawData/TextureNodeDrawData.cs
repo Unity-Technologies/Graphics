@@ -7,7 +7,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class ContolDrawData : ControlDrawData
+    class TextureContolDrawData : ControlDrawData
     {
         private string[] m_TextureTypeNames;
         private string[] textureTypeNames
@@ -44,7 +44,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         protected override IEnumerable<GraphElementData> GetControlData()
         {
-            var instance = CreateInstance<ContolDrawData>();
+			var instance = CreateInstance<TextureContolDrawData>();
             instance.Initialize(node);
             return new List<GraphElementData> { instance };
         }
