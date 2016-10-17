@@ -56,8 +56,32 @@ VertexOutputForwardNew vertForward(VertexInput v)
     return o;
 }
 
+#include "LightingUtils.hlsl"
 
 static FragmentCommonData gdata;
+
+
+half4 fragNoLight(VertexOutputForwardNew i) : SV_Target
+{
+    float linZ = GetLinearZFromSVPosW(i.pos.w);                 // matching script side where camera space is right handed.
+    float3 vP = GetViewPosFromLinDepth(i.pos.xy, linZ);
+    float3 vPw = mul(g_mViewToWorld, float4(vP,1.0)).xyz;
+    float3 Vworld = normalize(mul((float3x3) g_mViewToWorld, -vP).xyz);     // not same as unity_CameraToWorld
+
+#ifdef _PARALLAXMAP
+    half3 tangent = i.tangentToWorldAndParallax[0].xyz;
+    half3 bitangent = i.tangentToWorldAndParallax[1].xyz;
+    half3 normal = i.tangentToWorldAndParallax[2].xyz;
+    float3 vDirForParallax = float3( dot(tangent, Vworld), dot(bitangent, Vworld), dot(normal, Vworld));
+#else
+    float3 vDirForParallax = Vworld;
+#endif
+    gdata = FragmentSetup(i.tex, -Vworld, vDirForParallax, i.tangentToWorldAndParallax, vPw);       // eyeVec = -Vworld
+
+    return OutputForward (float4(0.0,0.0,0.0,1.0), gdata.alpha);		// figure out some alpha test stuff
+}
+
+
 
 
 float3 EvalMaterial(UnityLight light, UnityIndirect ind)
@@ -117,4 +141,4 @@ half4 fragForward(VertexOutputForwardNew i) : SV_Target
     return OutputForward (float4(res,1.0), gdata.alpha);
 }
 
-#endif // UNITY_STANDARD_SHADOW_INCLUDED
+#endif
