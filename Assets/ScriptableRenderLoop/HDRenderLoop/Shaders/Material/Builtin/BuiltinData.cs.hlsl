@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/BuiltinData.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Builtin/BuiltinData.cs.  Please don't edit by hand.
 //
 
 //

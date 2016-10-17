@@ -1,7 +1,5 @@
-using UnityEngine;
 using UnityEngine.Rendering;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityEngine.ScriptableRenderLoop
@@ -337,8 +335,8 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             var data = new float[16];
 
-            for (var c = 0; c < 4; c++)
-                for (var r = 0; r < 4; r++)
+            for (int c = 0; c < 4; c++)
+                for (int r = 0; r < 4; r++)
                     data[4 * c + r] = mat[r, c];
 
             cmd.SetComputeFloatParams(shadercs, name, data);
@@ -350,7 +348,7 @@ namespace UnityEngine.ScriptableRenderLoop
             var lights = new List<DirectionalLight>();
             var worldToView = camera.worldToCameraMatrix;
 
-            for (var nLight = 0; nLight < visibleLights.Count; nLight++)
+            for (int nLight = 0; nLight < visibleLights.Count; nLight++)
             {
                 var light = visibleLights[nLight];
                 if (light.lightType == LightType.Directional)
@@ -399,7 +397,7 @@ namespace UnityEngine.ScriptableRenderLoop
             var lightShadowIndex_LightParams = new Vector4[k_MaxLights];
             var lightFalloffParams = new Vector4[k_MaxLights];
 
-            for (var nLight = 0; nLight < visibleLights.Count; nLight++)
+            for (int nLight = 0; nLight < visibleLights.Count; nLight++)
             {
                 nNumLightsIncludingTooMany++;
                 if (nNumLightsIncludingTooMany > k_MaxLights)
@@ -420,7 +418,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                     if (hasShadows)
                     {
-                        for (var s = 0; s < k_MaxDirectionalSplit; ++s)
+                        for (int s = 0; s < k_MaxDirectionalSplit; ++s)
                         {
                             m_DirShadowSplitSpheres[s] = shadow.directionalShadowSplitSphereSqr[s];
                         }
@@ -441,7 +439,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 {
                     // Enable shadows
                     lightShadowIndex_LightParams[numLights].x = 1;
-                    for (var s = 0; s < shadow.GetShadowSliceCountLightIndex(nLight); ++s)
+                    for (int s = 0; s < shadow.GetShadowSliceCountLightIndex(nLight); ++s)
                     {
                         var shadowSliceIndex = shadow.GetShadowSliceIndex(nLight, s);
                         m_MatWorldToShadow[numLights * k_MaxShadowmapPerLights + s] = shadow.shadowSlices[shadowSliceIndex].shadowTransform.transpose;

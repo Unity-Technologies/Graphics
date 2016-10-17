@@ -1,10 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEngine;
-using ICSharpCode.NRefactory;
-using ICSharpCode.NRefactory.Visitors;
 
 namespace UnityEngine.ScriptableRenderLoop
 {
@@ -163,10 +159,10 @@ namespace UnityEngine.ScriptableRenderLoop
                 return info;
             }
 
-            public PrimitiveType type;
+            public readonly PrimitiveType type;
             public string name;
-            public string originalName;
-            public string comment;
+            public readonly string originalName;
+            public readonly string comment;
             public int rows;
             public int cols;
             public int swizzleOffset;
@@ -206,15 +202,15 @@ namespace UnityEngine.ScriptableRenderLoop
 
         bool ExtractComplex(FieldInfo field, List<ShaderFieldInfo> shaderFields)
         {
-            List<FieldInfo> floatFields = new List<FieldInfo>();
-            List<FieldInfo> intFields = new List<FieldInfo>();
-            List<FieldInfo> uintFields = new List<FieldInfo>();
-            string[] descs = new string[4] { "x: ", "y: ", "z: ", "w: " };
+            var floatFields = new List<FieldInfo>();
+            var intFields = new List<FieldInfo>();
+            var uintFields = new List<FieldInfo>();
+            var descs = new string[4] { "x: ", "y: ", "z: ", "w: " };
             int numFields = 0;
 
             string fieldName = "'" + field.FieldType.Name + " " + field.Name + "'";
 
-            foreach (FieldInfo subField in field.FieldType.GetFields())
+            foreach (var subField in field.FieldType.GetFields())
             {
                 if (subField.IsStatic)
                     continue;
@@ -327,51 +323,52 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             List<ShaderFieldInfo> mergedFields = new List<ShaderFieldInfo>();
 
-            List<ShaderFieldInfo>.Enumerator e = shaderFields.GetEnumerator();
-
-            if (!e.MoveNext())
+            using (var e = shaderFields.GetEnumerator())
             {
-                // Empty shader struct definition.
-                return shaderFields;
-            }
-
-            ShaderFieldInfo current = e.Current.Clone() as ShaderFieldInfo;
-
-            while (e.MoveNext())
-            {
-                while (true)
+                if (!e.MoveNext())
                 {
-                    int offset = current.elementCount;
-                    MergeResult result = PackFields(e.Current, ref current);
-
-                    if (result == MergeResult.Failed)
-                    {
-                        return null;
-                    }
-                    else if (result == MergeResult.Full)
-                    {
-                        break;
-                    }
-
-                    // merge accessors
-                    Accessor acc = current.accessor;
-
-                    acc.name = current.name;
-                    e.Current.accessor = acc;
-                    e.Current.swizzleOffset += offset;
-
-                    current.packed = e.Current.packed = true;
-
-                    if (!e.MoveNext())
-                    {
-                        mergedFields.Add(current);
-                        return mergedFields;
-                    }
+                    // Empty shader struct definition.
+                    return shaderFields;
                 }
-                mergedFields.Add(current);
-                current = e.Current.Clone() as ShaderFieldInfo;
-            }
 
+                ShaderFieldInfo current = e.Current.Clone() as ShaderFieldInfo;
+
+                while (e.MoveNext())
+                {
+                    while (true)
+                    {
+                        int offset = current.elementCount;
+                        var result = PackFields(e.Current, ref current);
+
+                        if (result == MergeResult.Failed)
+                        {
+                            return null;
+                        }
+                        else if (result == MergeResult.Full)
+                        {
+                            break;
+                        }
+
+                        // merge accessors
+                        var acc = current.accessor;
+
+                        acc.name = current.name;
+                        e.Current.accessor = acc;
+                        e.Current.swizzleOffset += offset;
+
+                        current.packed = e.Current.packed = true;
+
+                        if (!e.MoveNext())
+                        {
+                            mergedFields.Add(current);
+                            return mergedFields;
+                        }
+                    }
+                    mergedFields.Add(current);
+                    current = e.Current.Clone() as ShaderFieldInfo;
+                }
+
+            }
             return mergedFields;
         }
 
@@ -383,7 +380,7 @@ namespace UnityEngine.ScriptableRenderLoop
             shaderText += "// PackingRules = " + attr.packingRules.ToString() + "\n";
             shaderText += "struct " + type.Name + "\n";
             shaderText += "{\n";
-            foreach (ShaderFieldInfo shaderFieldInfo in packedFields)
+            foreach (var shaderFieldInfo in m_PackedFields)
             {
                 shaderText += "\t" + shaderFieldInfo.ToString() + "\n";
             }
@@ -399,7 +396,7 @@ namespace UnityEngine.ScriptableRenderLoop
             shaderText += "//\n";
             shaderText += "// Accessors for " + type.FullName + "\n";
             shaderText += "//\n";
-            foreach (var shaderField in shaderFields)
+            foreach (var shaderField in m_ShaderFields)
             {
                 Accessor acc = shaderField.accessor;
                 string accessorName = shaderField.originalName;
@@ -434,7 +431,7 @@ namespace UnityEngine.ScriptableRenderLoop
             shaderText += "//\n";
             shaderText += "// " + type.FullName + ":  static fields\n";
             shaderText += "//\n";
-            foreach (var def in statics)
+            foreach (var def in m_Statics)
             {
                 shaderText += "#define " + def.Key + " (" + def.Value + ")\n";
             }
@@ -465,10 +462,10 @@ namespace UnityEngine.ScriptableRenderLoop
 
         public bool Generate()
         {
-            statics = new Dictionary<string, string>();
+            m_Statics = new Dictionary<string, string>();
 
             FieldInfo[] fields = type.GetFields();
-            shaderFields = new List<ShaderFieldInfo>();
+            m_ShaderFields = new List<ShaderFieldInfo>();
 
             if (type.IsEnum)
             {
@@ -478,7 +475,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     {
                         string name = field.Name;
                         name = InsertUnderscore(name);
-                        statics[(type.Name + "_" + name).ToUpper()] = field.GetRawConstantValue().ToString();
+                        m_Statics[(type.Name + "_" + name).ToUpper()] = field.GetRawConstantValue().ToString();
                     }
                 }
                 errors = null;
@@ -491,7 +488,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 {
                     if (field.FieldType.IsPrimitive)
                     {
-                        statics[field.Name] = field.GetValue(null).ToString();
+                        m_Statics[field.Name] = field.GetValue(null).ToString();
                     }
                     continue;
                 }
@@ -500,17 +497,17 @@ namespace UnityEngine.ScriptableRenderLoop
                 {
                     string subNamespace = type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1);
                     string name = InsertUnderscore(field.Name);
-                    statics[("DEBUGVIEW_" + subNamespace + "_" + type.Name + "_" + name).ToUpper()] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
+                    m_Statics[("DEBUGVIEW_" + subNamespace + "_" + type.Name + "_" + name).ToUpper()] = Convert.ToString(attr.paramDefinesStart + debugCounter++);
                 }
 
                 if (field.FieldType.IsPrimitive)
                 {
                     if (field.FieldType == typeof(float))
-                        EmitPrimitiveType(PrimitiveType.Float, 1, field.Name, "", shaderFields);
+                        EmitPrimitiveType(PrimitiveType.Float, 1, field.Name, "", m_ShaderFields);
                     else if (field.FieldType == typeof(int))
-                        EmitPrimitiveType(PrimitiveType.Int, 1, field.Name, "", shaderFields);
+                        EmitPrimitiveType(PrimitiveType.Int, 1, field.Name, "", m_ShaderFields);
                     else if (field.FieldType == typeof(uint))
-                        EmitPrimitiveType(PrimitiveType.UInt, 1, field.Name, "", shaderFields);
+                        EmitPrimitiveType(PrimitiveType.UInt, 1, field.Name, "", m_ShaderFields);
                     else
                     {
                         Error("unsupported field type '" + field.FieldType + "'");
@@ -521,14 +518,14 @@ namespace UnityEngine.ScriptableRenderLoop
                 {
                     // handle special types, otherwise try parsing the struct
                     if (field.FieldType == typeof(Vector2))
-                        EmitPrimitiveType(PrimitiveType.Float, 2, field.Name, "", shaderFields);
+                        EmitPrimitiveType(PrimitiveType.Float, 2, field.Name, "", m_ShaderFields);
                     else if (field.FieldType == typeof(Vector3))
-                        EmitPrimitiveType(PrimitiveType.Float, 3, field.Name, "", shaderFields);
+                        EmitPrimitiveType(PrimitiveType.Float, 3, field.Name, "", m_ShaderFields);
                     else if (field.FieldType == typeof(Vector4))
-                        EmitPrimitiveType(PrimitiveType.Float, 4, field.Name, "", shaderFields);
+                        EmitPrimitiveType(PrimitiveType.Float, 4, field.Name, "", m_ShaderFields);
                     else if (field.FieldType == typeof(Matrix4x4))
-                        EmitMatrixType(PrimitiveType.Float, 4, 4, field.Name, "", shaderFields);
-                    else if (!ExtractComplex(field, shaderFields))
+                        EmitMatrixType(PrimitiveType.Float, 4, 4, field.Name, "", m_ShaderFields);
+                    else if (!ExtractComplex(field, m_ShaderFields))
                     {
                         // Error reporting done in ExtractComplex()
                         return false;
@@ -536,12 +533,12 @@ namespace UnityEngine.ScriptableRenderLoop
                 }
             }
 
-            packedFields = shaderFields;
+            m_PackedFields = m_ShaderFields;
             if (attr.packingRules == PackingRules.Aggressive)
             {
-                packedFields = Pack(shaderFields);
+                m_PackedFields = Pack(m_ShaderFields);
 
-                if (packedFields == null)
+                if (m_PackedFields == null)
                 {
                     return false;
                 }
@@ -553,17 +550,17 @@ namespace UnityEngine.ScriptableRenderLoop
 
         public bool hasFields
         {
-            get { return shaderFields.Count > 0; }
+            get { return m_ShaderFields.Count > 0; }
         }
 
         public bool hasStatics
         {
-            get { return statics.Count > 0; }
+            get { return m_Statics.Count > 0; }
         }
 
-        public bool needAccessors()
+        public bool needAccessors
         {
-            return attr.needAccessors;
+            get { return attr.needAccessors; }
         }
 
         public Type type;
@@ -571,8 +568,8 @@ namespace UnityEngine.ScriptableRenderLoop
         public int debugCounter;
         public List<string> errors = null;
 
-        Dictionary<string, string> statics;
-        List<ShaderFieldInfo> shaderFields;
-        List<ShaderFieldInfo> packedFields;
+        Dictionary<string, string> m_Statics;
+        List<ShaderFieldInfo> m_ShaderFields;
+        List<ShaderFieldInfo> m_PackedFields;
     }
 }
