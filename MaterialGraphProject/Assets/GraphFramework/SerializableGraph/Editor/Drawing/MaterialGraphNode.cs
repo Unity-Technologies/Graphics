@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
@@ -39,7 +37,7 @@ namespace UnityEditor.Graphing.Drawing
                 name = "preview", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
-
+            
             m_currentPreviewData = new List<NodePreviewData>();
         }
 

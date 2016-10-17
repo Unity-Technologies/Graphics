@@ -72,6 +72,45 @@ namespace UnityEditor.MaterialGraph
             return DoRenderPreview(mat, mode, size, Time.realtimeSinceStartup);
         }
 
+        static Mesh s_Quad;
+        public static Mesh quad
+        {
+            get
+            {
+                if (s_Quad != null)
+                    return s_Quad;
+
+                var vertices = new[]
+                {
+                    new Vector3(-1f, -1f, 0f),
+                    new Vector3(1f,  1f, 0f),
+                    new Vector3(1f, -1f, 0f),
+                    new Vector3(-1f,  1f, 0f)
+                };
+
+                var uvs = new[]
+                {
+                    new Vector2(0f, 0f),
+                    new Vector2(1f, 1f),
+                    new Vector2(1f, 0f),
+                    new Vector2(0f, 1f)
+                };
+
+                var indices = new[] { 0, 1, 2, 1, 0, 3 };
+
+                s_Quad = new Mesh
+                {
+                    vertices = vertices,
+                    uv = uvs,
+                    triangles = indices
+                };
+                s_Quad.RecalculateNormals();
+                s_Quad.RecalculateBounds();
+
+                return s_Quad;
+            }
+        }
+
         public Texture DoRenderPreview(Material mat, PreviewMode mode, Rect size, float time)
         {
             if (mat == null || mat.shader == null)
@@ -99,8 +138,16 @@ namespace UnityEditor.MaterialGraph
             }
             else
             {
-                EditorUtility.UpdateGlobalShaderProperties(Time.realtimeSinceStartup);
-                Graphics.Blit(null, mat);
+                m_PreviewUtility.m_Camera.projectionMatrix = Matrix4x4.identity;
+                EditorUtility.SetCameraAnimateMaterialsTime(m_PreviewUtility.m_Camera, time);
+                InternalEditorUtility.SetCustomLighting(m_PreviewUtility.m_Light, Color.black);
+                m_PreviewUtility.DrawMesh(quad, Matrix4x4.identity, mat, 0);
+
+                var oldFog = RenderSettings.fog;
+                Unsupported.SetRenderSettingsUseFogNoDirty(false);
+                m_PreviewUtility.m_Camera.Render();
+                Unsupported.SetRenderSettingsUseFogNoDirty(oldFog);
+                InternalEditorUtility.RemoveCustomLighting();
             }
             return m_PreviewUtility.EndPreview();
         }
