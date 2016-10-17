@@ -1,35 +1,35 @@
-MaterialGraphNode {
+MaterialNodeDrawer {
 	flex-direction: column;
 }
 
-MaterialGraphNode #slots {
+MaterialNodeDrawer #slots {
 	flex-direction: row;
 }
 
-MaterialGraphNode #slots #input {
+MaterialNodeDrawer #slots #input {
 	flex:1;
 	flex-direction: column;
 }
 
-MaterialGraphNode #slots #output {
+MaterialNodeDrawer #slots #output {
 	flex:1;
 	flex-direction: column;
 }
 
-MaterialGraphNode #controls {
+MaterialNodeDrawer #controls {
 	flex-direction: column;
 	padding-bottom: 2;
 }
 
-MaterialGraphNode #controls #element{
+MaterialNodeDrawer #controls #element{
 	flex-direction: column;
 }
 
-MaterialGraphNode #preview {
+MaterialNodeDrawer #preview {
 	flex-direction: column;
 }
 
-MaterialGraphNode #preview #image {
+MaterialNodeDrawer #preview #image {
 	height: 200;
 	width: 200;
 }
