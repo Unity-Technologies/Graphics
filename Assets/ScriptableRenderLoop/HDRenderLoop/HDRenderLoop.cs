@@ -41,6 +41,8 @@ namespace UnityEngine.ScriptableRenderLoop
             public bool displayOpaqueObjects = true;
             public bool displayTransparentObjects = true;
 
+            public bool useForwardRenderingOnly = false;
+
             public bool enableTonemap = true;
             public float exposure = 0;
         }
@@ -292,6 +294,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void RenderGBuffer(CullResults cull, Camera camera, RenderLoop renderLoop)
         {
+            if (debugParameters.useForwardRenderingOnly)
+            {
+                return ;
+            }
+
             // setup GBuffer for rendering
             var cmd = new CommandBuffer();
             cmd.name = "GBuffer Pass";
@@ -371,6 +378,11 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
         {
+            if (debugParameters.useForwardRenderingOnly)
+            {
+                return;
+            }
+
             // Bind material data
             m_litRenderLoop.Bind();
 
@@ -399,6 +411,11 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
+
+            if (debugParameters.useForwardRenderingOnly)
+            {
+                RenderOpaqueRenderList(cullResults, camera, renderLoop, "Forward");
+            }
 
             RenderTransparentRenderList(cullResults, camera, renderLoop, "Forward");
         }

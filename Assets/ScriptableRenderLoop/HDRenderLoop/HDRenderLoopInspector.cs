@@ -24,6 +24,8 @@ namespace UnityEngine.ScriptableRenderLoop
             public readonly GUIContent enableTonemap = new GUIContent("Enable Tonemap");
             public readonly GUIContent exposure = new GUIContent("Exposure");
 
+            public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
+
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
             public int[] debugViewMaterialValues = null;
@@ -141,6 +143,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 EditorGUILayout.Space();
                 debugParameters.displayOpaqueObjects = EditorGUILayout.Toggle(styles.displayOpaqueObjects, debugParameters.displayOpaqueObjects);
                 debugParameters.displayTransparentObjects = EditorGUILayout.Toggle(styles.displayTransparentObjects, debugParameters.displayTransparentObjects);
+                debugParameters.useForwardRenderingOnly = EditorGUILayout.Toggle(styles.useForwardRenderingOnly, debugParameters.useForwardRenderingOnly);
 
                 if (EditorGUI.EndChangeCheck())
                 {
