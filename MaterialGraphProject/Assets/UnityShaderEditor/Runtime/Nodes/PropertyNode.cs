@@ -28,7 +28,17 @@ namespace UnityEngine.MaterialGraph
 
                 return m_Exposed;
             }
-            set { m_Exposed = value; }
+            set
+            {
+                if (m_Exposed == value)
+                    return;
+
+                m_Exposed = value;
+                if (onModified != null)
+                {
+                    onModified(this);
+                }
+            }
         }
 
         public string description

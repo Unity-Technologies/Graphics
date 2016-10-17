@@ -18,12 +18,11 @@ MaterialGraphNode #slots #output {
 
 MaterialGraphNode #controls {
 	flex-direction: column;
-	height: 26;
+	padding-bottom: 2;
 }
 
 MaterialGraphNode #controls #element{
 	flex-direction: column;
-	flex:1;
 }
 
 MaterialGraphNode #preview {

@@ -53,9 +53,17 @@ namespace UnityEngine.MaterialGraph
             }
             set
             {
+                if (defaultTexture == value)
+                    return;
+
                 var tex = new TextureHelper();
                 tex.texture = value;
                 m_SerializedTexture = EditorJsonUtility.ToJson(tex, true);
+
+                if (onModified != null)
+                {
+                    onModified(this);
+                }
             }
         }
 #else
@@ -65,7 +73,18 @@ namespace UnityEngine.MaterialGraph
         public TextureType textureType
         {
             get { return m_TextureType; }
-            set { m_TextureType = value; }
+            set
+            {
+                if (m_TextureType == value)
+                    return;
+                
+
+                m_TextureType = value;
+                if (onModified != null)
+                {
+                    onModified(this);
+                }
+            }
         }
 
         public TextureNode()
