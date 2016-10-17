@@ -3,89 +3,60 @@
 
 #include "CommonLighting.hlsl"
 #include "BSDF.hlsl"
+#include "Sampling.hlsl"
 
 //-----------------------------------------------------------------------------
-// Sample generator
+// Util image based lighting
 //-----------------------------------------------------------------------------
 
-// Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
-uint ReverseBits32(uint bits)
+// TODO: We need to change this hard limit!
+#define UNITY_SPECCUBE_LOD_STEPS (6)
+
+float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
 {
-#if 0 // Shader model 5
-    return reversebits(bits);
+    // TODO: Clean a bit this code
+    // CAUTION: remap from Morten may work only with offline convolution, see impact with runtime convolution!
+
+    // For now disabled
+#if 0
+    float m = PerceptualRoughnessToRoughness(perceptualRoughness); // m is the real roughness parameter
+    const float fEps = 1.192092896e-07F;        // smallest such that 1.0+FLT_EPSILON != 1.0  (+1e-4h is NOT good here. is visibly very wrong)
+    float n = (2.0 / max(fEps, m*m)) - 2.0;		// remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
+
+    n /= 4.0;									    // remap from n_dot_h formulatino to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
+
+    perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);		// remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
 #else
-    bits = ( bits << 16) | ( bits >> 16);
-    bits = ((bits & 0x00ff00ff) << 8) | ((bits & 0xff00ff00) >> 8);
-    bits = ((bits & 0x0f0f0f0f) << 4) | ((bits & 0xf0f0f0f0) >> 4);
-    bits = ((bits & 0x33333333) << 2) | ((bits & 0xcccccccc) >> 2);
-    bits = ((bits & 0x55555555) << 1) | ((bits & 0xaaaaaaaa) >> 1);
-    return bits;
+    // MM: came up with a surprisingly close approximation to what the #if 0'ed out code above does.
+    perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
 #endif
+
+    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
-float RadicalInverse_VdC(uint bits)
+// Ref: See "Moving Frostbite to PBR" Listing 22
+// This formulation is for GGX only (with smith joint visibility or regular)
+float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
 {
-    return float(ReverseBits32(bits)) * 2.3283064365386963e-10; // 0x100000000
-}
-
-float2 Hammersley2d(uint i, uint maxSampleCount)
-{
-    return float2(float(i) / float(maxSampleCount), RadicalInverse_VdC(i));
-}
-
-float Hash(uint s)
-{
-    s = s ^ 2747636419u;
-    s = s * 2654435769u;
-    s = s ^ (s >> 16);
-    s = s * 2654435769u;
-    s = s ^ (s >> 16);
-    s = s * 2654435769u;
-    return float(s) / 4294967295.0;
-}
-
-float2 InitRandom(float2 input)
-{
-    float2 r;
-    r.x = Hash(uint(input.x * 4294967295.0));
-    r.y = Hash(uint(input.y * 4294967295.0));
-
-    return r;
+    float a = 1.0 - roughness;
+    float lerpFactor = a * (sqrt(a) + roughness);
+    // The result is not normalized as we fetch in a cubemap
+    return lerp(N, R, lerpFactor);
 }
 
 //-----------------------------------------------------------------------------
-// Util
+// Anisotropic image based lighting
 //-----------------------------------------------------------------------------
-
-// generate an orthonormalBasis from 3d unit vector.
-void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
+// To simulate the streching of highlight at grazing angle for IBL we shrink the roughness
+// which allow to fake an anisotropic specular lobe.
+// Ref: http://www.frostbite.com/2015/08/stochastic-screen-space-reflections/ - slide 84
+float AnisotropicStrechAtGrazingAngle(float roughness, float perceptualRoughness, float NdotV)
 {
-    float3 upVector     = abs(N.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
-    tangentX            = normalize(cross(upVector, N));
-    tangentY            = cross(N, tangentX);
+    return roughness * lerp(saturate(NdotV * 2.0), 1.0, perceptualRoughness);
 }
-
-// TODO: test
-/*
-// http://orbit.dtu.dk/files/57573287/onb_frisvad_jgt2012.pdf
-void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
-{
-    if (N.z < -0.999) // Handle the singularity
-    {
-        tangentX = float3(0.0, -1.0, 0.0);
-        tangentY = float3(-1.0, 0.0, 0.0);
-        return ;
-    }
-
-    float a     = 1.0 / (1.0 + N.z);
-    float b     = -N.x * N.y * a;
-    tangentX    = float3(1.0f - N.x * N.x * a , b, -N.x);
-    tangentY    = float3(b, 1.0f - N.y * N.y * a, -N.y);
-}
-*/
 
 // ----------------------------------------------------------------------------
-// Sampling
+// Importance sampling BSDF functions
 // ----------------------------------------------------------------------------
 
 void ImportanceSampleCosDir(float2 u,
@@ -321,52 +292,6 @@ float4 IntegrateLD( UNITY_ARGS_TEXCUBE(tex),
     }
 
     return float4(acc * (1.0 / accWeight), 1.0);
-}
-
-// TODO: We need to change this hard limit!
-#define UNITY_SPECCUBE_LOD_STEPS (6)
-
-float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
-{
-    // TODO: Clean a bit this code
-    // CAUTION: remap from Morten may work only with offline convolution, see impact with runtime convolution!
-
-    // For now disabled
-#if 0
-    float m = PerceptualRoughnessToRoughness(perceptualRoughness); // m is the real roughness parameter
-    const float fEps = 1.192092896e-07F;        // smallest such that 1.0+FLT_EPSILON != 1.0  (+1e-4h is NOT good here. is visibly very wrong)
-    float n = (2.0 / max(fEps, m*m)) - 2.0;		// remap to spec power. See eq. 21 in --> https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
-
-    n /= 4.0;									    // remap from n_dot_h formulatino to n_dot_r. See section "Pre-convolved Cube Maps vs Path Tracers" --> https://s3.amazonaws.com/docs.knaldtech.com/knald/1.0.0/lys_power_drops.html
-
-    perceptualRoughness = pow(2.0 / (n + 2.0), 0.25);		// remap back to square root of real roughness (0.25 include both the sqrt root of the conversion and sqrt for going from roughness to perceptualRoughness)
-#else
-    // MM: came up with a surprisingly close approximation to what the #if 0'ed out code above does.
-    perceptualRoughness = perceptualRoughness * (1.7 - 0.7 * perceptualRoughness);
-#endif
-
-    return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
-}
-
-// Ref: See "Moving Frostbite to PBR" Listing 22
-// This formulation is for GGX only (with smith joint visibility or regular)
-float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)
-{
-    float a = 1.0 - roughness;
-    float lerpFactor = a * (sqrt(a) + roughness);
-    // The result is not normalized as we fetch in a cubemap
-    return lerp(N, R, lerpFactor);
-}
-
-//-----------------------------------------------------------------------------
-// Anisotropic image based lighting
-//-----------------------------------------------------------------------------
-// To simulate the streching of highlight at grazing angle for IBL we shrink the roughness
-// which allow to fake an anisotropic specular lobe.
-// Ref: http://www.frostbite.com/2015/08/stochastic-screen-space-reflections/ - slide 84
-float AnisotropicStrechAtGrazingAngle(float roughness, float perceptualRoughness, float NdotV)
-{
-    return roughness * lerp(saturate(NdotV * 2.0), 1.0, perceptualRoughness);
 }
 
 #endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED

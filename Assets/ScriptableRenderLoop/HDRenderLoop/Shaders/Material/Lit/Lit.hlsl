@@ -1,4 +1,6 @@
 #ifndef UNITY_MATERIAL_LIT_INCLUDED
+// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
+#pragma exclude_renderers gles
 #define UNITY_MATERIAL_LIT_INCLUDED
 
 //-----------------------------------------------------------------------------
@@ -28,6 +30,8 @@ int UnpackMaterialId(float f)
 // TODO: How can I declare a sampler for this one that is bilinear filtering
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 UNITY_DECLARE_TEX2D(_PreIntegratedFGD);
+UNITY_DECLARE_TEX2D(_LtcGGXMatrix);
+UNITY_DECLARE_TEX2D(_LtcGGXMagnitude);
 
 // For image based lighting, a part of the BSDF is pre-integrated.
 // This is done both for specular and diffuse (in case of DisneyDiffuse)
@@ -350,6 +354,10 @@ struct PreLightData
 
     // TODO: if we want we can store ambient occlusion here from SSAO pass for example that can be use for IBL specular occlusion
     // float ambientOcclusion; // Feed from an ambient occlusion buffer
+
+    // area light
+    float3x3 minV;
+    float ltcGGXMagnitude;
 };
 
 PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDFData bsdfData)
@@ -389,6 +397,21 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     // #if SHADERPASS == SHADERPASS_GBUFFER
     // preLightData.ambientOcclusion = _AmbientOcclusion.Load(uint3(coord.unPositionSS, 0)).x;
     // #endif
+
+    // Area light specific
+    // UVs for sampling the LUTs
+    // TODO: Test with fastAcos
+    float theta = acos(dot(bsdfData.normalWS, V));
+    // Scale and bias for the current precomputed table
+    float2 uv = 0.0078125 + 0.984375 * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
+
+    // Get the inverse LTC matrix for GGX
+    // Note we load the matrix transpose (avoid to have to transpose it in shader)
+    preLightData.minV = 0.0;
+    preLightData.minV._m22 = 1.0;
+    preLightData.minV._m00_m02_m11_m20 = UNITY_SAMPLE_TEX2D_LOD(_LtcGGXMatrix, uv);
+
+    preLightData.ltcGGXMagnitude = UNITY_SAMPLE_TEX2D_LOD(_LtcGGXMagnitude, uv).w;
 
     return preLightData;
 }
@@ -481,7 +504,116 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
 }
 
 //-----------------------------------------------------------------------------
-// Reference code for image based lighting
+// EvaluateBSDF_Area - Reference
+//-----------------------------------------------------------------------------
+
+// We calculate area reference light with the area integral rather than the solid angle one.
+void evaluateAreaLightReference(float3 V, float3 positionWS, AreaLightData lightData, BSDFData bsdfData,
+                                out float4 diffuseLighting,
+                                out float4 specularLighting,
+                                uint sampleCount = 512)
+{
+    // Add some jittering on Hammersley2d
+    float2 randNum = InitRandom(V.xy * 0.5 + 0.5);
+
+    // Accumulate this light locally, then add on at the end (avoids any accidental multiplies of in/out accumulated variables)
+    float3 accBottom = float3(0.0, 0.0, 0.0);
+    float3 accTop = float3(0.0, 0.0, 0.0);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float3 P = float3(0.0, 0.0, 0.0);	// Sample light point. Random point on the light shape in local space.
+        float3 Ns = float3(0.0, 0.0, 0.0);	// Unit surface normal at P
+        float lightPdf = 0.0;	            // Pdf of the light sample
+
+        float2 u = Hammersley2d(i, sampleCount);
+        u = frac(u + randNum + 0.5);
+
+        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(light.positionWS, 1.0));
+
+        if (areaLightType == AREASHAPETYPE_SPHERE)
+            sampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+        else if (areaLightType == AREASHAPETYPE_HEMISPHERE)
+            sampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+        else if (areaLightType == AREASHAPETYPE_CYLINDER)
+            sampleCylinder(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+        else if (areaLightType == AREASHAPETYPE_RECTANGLE)
+            sampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+        else if (areaLightType == AREASHAPETYPE_DISK)
+            sampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+        else if (areaLightType == AREASHAPETYPE_LINE)
+            // sampleLine(u, localToWorld, areaLight.lightRadius0, lightPdf, P, Ns);
+            ; // TODO
+
+        // Get distance
+        float3 unL = P - worldPos;
+        float sqrDist = dot(unL, unL);
+        float3 L = normalize(unL);
+
+        float illuminance = saturate(dot(Ns, -L)) * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
+
+        float3 localDiffuse = float3(0.0, 0.0, 0.0);
+        float3 localSpecular = float3(0.0, 0.0, 0.0);
+
+        if (illuminance > 0.0)
+        {
+            // TODO
+           //  BSDF(V, L, data  localDiffuse, localSpecular);
+
+            localDiffuse *= illuminance;
+            localSpecular *= illuminance;
+        }
+
+        accBottom += localDiffuse;
+        accTop += localSpecular;
+    }
+
+    // Generate the final values to accumulate
+    float3 localBottom = (accBottom / float(sampleCount)) * light.color * light.diffuseScale;
+    float3 localTop = (accTop / float(sampleCount)) * light.color * light.specularScale;
+
+    // Accumulate this light into in/out accumulation variables
+    outBottom += localBottom;
+    outTop += localTop;
+}
+
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_Area
+//-----------------------------------------------------------------------------
+
+void EvaluateBSDF_Area(	float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
+                        out float4 diffuseLighting,
+                        out float4 specularLighting)
+{
+    // Can be precomputed - light.LightVerts is a tab of 4 vertices representing the light quad
+    // TODO: can be simplify as a rect, with extend
+    float4x3 L = lightData.lightVerts - float4x3(positionWS, positionWS, positionWS, positionWS);
+
+    // TODO: Can we get early out based on diffuse computation ? (if all point are clip)
+    diffuseLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    specularLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // TODO: Fresnel is missing here but should be present
+    specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, prelightData.minV, L) prelightData.ltcGGXMagnitude;
+
+//#ifdef DIFFUSE_LAMBERT_BRDF
+    // Lambert diffuse term (here it should be Disney)
+    float3x3 identity = 0;
+    identity._m00_m11_m22 = 1.0;
+    diffuseLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, identity, L) * bsdfData.diffuseColor;
+//#else
+    // TODO: Disney
+//#endif
+   
+    // Divide all by 2 PI as it is Lambert integration for diffuse
+    diffuseLighting.rgb *= lightData.color / (2 * PI);
+    specularLighting.rgb *= lightData.color / (2 * PI);
+
+    // TODO: current area light code doesn't take into account artist attenuation radius!
+}
+
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_Env - Reference
 // ----------------------------------------------------------------------------
 
 // Ref: Moving Frostbite to PBR (Appendix A)
@@ -653,6 +785,7 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     if (lightData.shapeType == ENVSHAPETYPE_BOX)
     {
         // worldToLocal assume no scaling
+        float4x4 worldToLocal = transpose(float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(light.positionWS, 1.0)));
         float3 positionLS = mul(lightData.worldToLocal, float4(positionWS, 1.0)).xyz;
         float3 rayLS = mul((float3x3)lightData.worldToLocal, rayWS);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
