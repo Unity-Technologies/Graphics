@@ -15,7 +15,7 @@ namespace UnityEditor.Graphing.Drawing
             // Shortcut handler to delete elements
             var dictionary = new Dictionary<Event, ShortcutDelegate>();
             dictionary[Event.KeyboardEvent("delete")] = DeleteSelection;
-            contentViewContainer.AddManipulator(new ShortcutHandler(dictionary));
+            AddManipulator(new ShortcutHandler(dictionary));
 
             AddManipulator(new ContentZoomer());
             AddManipulator(new ContentDragger());

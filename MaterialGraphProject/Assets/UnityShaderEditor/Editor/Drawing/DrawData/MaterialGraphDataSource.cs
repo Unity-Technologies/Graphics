@@ -12,7 +12,8 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             AddTypeMapping(typeof(AbstractMaterialNode), typeof(MaterialNodeDrawData));
             AddTypeMapping(typeof(ColorNode), typeof(ColorNodeDrawData));
-            AddTypeMapping(typeof(TextureNode), typeof(TextureNodeDrawData));
+			AddTypeMapping(typeof(TextureNode), typeof(TextureNodeDrawData));
+			AddTypeMapping(typeof(Vector1Node), typeof(Vector1NodeDrawData));
         }
     }
 }

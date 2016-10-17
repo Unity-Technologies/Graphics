@@ -16,7 +16,7 @@ namespace RMGUI.GraphView.Demo
 			// Shortcut handler to delete elements
 			var dictionary = new Dictionary<Event, ShortcutDelegate>();
 			dictionary[Event.KeyboardEvent("delete")] = DeleteSelection;
-			contentViewContainer.AddManipulator(new ShortcutHandler(dictionary));
+			AddManipulator(new ShortcutHandler(dictionary));
 
 			// Contextual menu to create new nodes
 			AddManipulator(new ContextualMenu((evt, customData) =>
