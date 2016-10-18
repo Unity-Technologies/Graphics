@@ -275,7 +275,9 @@ namespace UnityEngine.ScriptableRenderLoop
 
             bool useFptl = opaquesOnly && UsingFptl();     // requires depth pre-pass for forward opaques!
 
-            cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", useFptl ? 1 : 0);
+            bool haveTiledSolution = opaquesOnly || enableClustered;
+            cmd.EnableShaderKeyword(haveTiledSolution ? "TILED_FORWARD" : "REGULAR_FORWARD" );
+            cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
             cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
 
             loop.ExecuteCommandBuffer(cmd);
@@ -296,7 +298,6 @@ namespace UnityEngine.ScriptableRenderLoop
         static void DepthOnlyForForwardOpaques(CullResults cull, Camera camera, RenderLoop loop)
         {
             var cmd = new CommandBuffer { name = "Forward Opaques - Depth Only" };
-            //cmd.SetRenderTarget(null, new RenderTargetIdentifier(s_GBufferZ));
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_GBufferZ));
             loop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
