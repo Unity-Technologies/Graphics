@@ -13,12 +13,12 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             base.OnGUIHandler();
 
-			var tNode = node as UnityEngine.MaterialGraph.Vector1Node;
+            var tNode = node as UnityEngine.MaterialGraph.Vector1Node;
             if (tNode == null)
                 return;
 
             tNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), tNode.exposedState);
-			tNode.value = EditorGUILayout.FloatField ("Value:", tNode.value);
+            tNode.value = EditorGUILayout.FloatField("Value:", tNode.value);
         }
 
         public override float GetHeight()
@@ -32,7 +32,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         protected override IEnumerable<GraphElementData> GetControlData()
         {
-			var instance = CreateInstance<Vector1ContolDrawData>();
+            var instance = CreateInstance<Vector1ContolDrawData>();
             instance.Initialize(node);
             return new List<GraphElementData> { instance };
         }
