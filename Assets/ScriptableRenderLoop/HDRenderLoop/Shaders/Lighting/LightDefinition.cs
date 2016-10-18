@@ -30,9 +30,38 @@ namespace UnityEngine.ScriptableRenderLoop
     };
 
     [GenerateHLSL]
+    public enum AreaShapeType
+    {
+        Rectangle,
+        Line,
+        // Currently not supported in real time (just use for reference)
+        Sphere,
+        Disk,
+        Hemisphere,
+        Cylinder
+    };
+
+    [GenerateHLSL]
     public struct AreaLightData
     {
         public Vector3 positionWS;
+        public float invSqrAttenuationRadius;
+
+        public Vector3 color;
+        public AreaShapeType shapeType;
+
+        public Vector3 forward;
+        public float diffuseScale;
+
+        public Vector3 up;
+        public float specularScale;
+
+        public Vector3 right;
+        public float shadowDimmer;
+
+        public Vector2 size;
+        public float twoSided;
+        public float unused;
     };
 
     [GenerateHLSL]
@@ -49,13 +78,20 @@ namespace UnityEngine.ScriptableRenderLoop
         public Vector3 positionWS;
         public EnvShapeType shapeType;
 
-        public Matrix4x4 worldToLocal; // No scale        
-
-        public Vector3 innerDistance;
+        public Vector3 forward;
         public int sliceIndex;
 
-        public Vector3 capturePointWS;
+        public Vector3 up;
         public float blendDistance;
+
+        public Vector3 right;
+        public float unused0;
+
+        public Vector3 innerDistance;
+        public float unused1;
+
+        public Vector3 capturePointWS;
+        public float unused2;
     };
 
     [GenerateHLSL]

@@ -8,6 +8,9 @@
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 
+// Reference Lambert diffuse / GGX Specular for IBL and area lights
+//#define LIT_DISPLAY_REFERENCE
+
 // TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotrpy and anisotropy case.
 // Maybe we should always calculate anisotropy in case of standard ? Don't think the compile can optimize correctly.
 
@@ -28,6 +31,8 @@ int UnpackMaterialId(float f)
 // TODO: How can I declare a sampler for this one that is bilinear filtering
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 UNITY_DECLARE_TEX2D(_PreIntegratedFGD);
+UNITY_DECLARE_TEX2D(_LtcGGXMatrix);
+UNITY_DECLARE_TEX2D(_LtcGGXMagnitude);
 
 // For image based lighting, a part of the BSDF is pre-integrated.
 // This is done both for specular and diffuse (in case of DisneyDiffuse)
@@ -350,6 +355,10 @@ struct PreLightData
 
     // TODO: if we want we can store ambient occlusion here from SSAO pass for example that can be use for IBL specular occlusion
     // float ambientOcclusion; // Feed from an ambient occlusion buffer
+
+    // area light
+    float3x3 minV;
+    float ltcGGXMagnitude;
 };
 
 PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDFData bsdfData)
@@ -390,6 +399,21 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     // preLightData.ambientOcclusion = _AmbientOcclusion.Load(uint3(coord.unPositionSS, 0)).x;
     // #endif
 
+    // Area light specific
+    // UVs for sampling the LUTs
+    // TODO: Test with fastAcos
+    float theta = acos(dot(bsdfData.normalWS, V));
+    // Scale and bias for the current precomputed table
+    float2 uv = 0.0078125 + 0.984375 * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
+
+    // Get the inverse LTC matrix for GGX
+    // Note we load the matrix transpose (avoid to have to transpose it in shader)
+    preLightData.minV = 0.0;
+    preLightData.minV._m22 = 1.0;
+    preLightData.minV._m00_m02_m11_m20 = UNITY_SAMPLE_TEX2D_LOD(_LtcGGXMatrix, uv, 0);
+
+    preLightData.ltcGGXMagnitude = UNITY_SAMPLE_TEX2D_LOD(_LtcGGXMagnitude, uv, 0).w;
+
     return preLightData;
 }
 
@@ -404,6 +428,59 @@ float3 GetBakedDiffuseLigthing(PreLightData prelightData, SurfaceData surfaceDat
 {
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
     return builtinData.bakeDiffuseLighting * prelightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
+}
+
+//-----------------------------------------------------------------------------
+// BSDF share between area light (reference) and punctual light
+//-----------------------------------------------------------------------------
+
+void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BSDFData bsdfData,
+            out float3 diffuseLighting,
+            out float3 specularLighting)
+{
+    float3 H = normalize(V + L);
+    float LdotH = saturate(dot(L, H));
+    float NdotH = saturate(dot(bsdfData.normalWS, H));
+    float NdotL = saturate(dot(bsdfData.normalWS, L));
+    float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+
+    float Vis;
+    float D;
+    // TODO: this way of handling aniso may not be efficient, or maybe with material classification, need to check perf here
+    // Maybe always using aniso maybe a win ?
+    if (bsdfData.materialId == MATERIALID_LIT_ANISO)
+    {
+        float TdotL = saturate(dot(bsdfData.tangentWS, L));
+        float BdotL = saturate(dot(bsdfData.bitangentWS, L));
+
+        #ifdef USE_BSDF_PRE_LAMBDAV
+        Vis = V_SmithJointGGXAnisoLambdaV(  prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
+                                            bsdfData.roughnessT, bsdfData.roughnessB, prelightData.anisoGGXlambdaV);
+        #else
+        Vis = V_SmithJointGGXAniso( prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
+                                    bsdfData.roughnessT, bsdfData.roughnessB);
+        #endif
+
+        float TdotH = saturate(dot(bsdfData.tangentWS, H));
+        float BdotH = saturate(dot(bsdfData.bitangentWS, H));
+        D = D_GGXAnisoDividePI(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
+    }
+    else
+    {
+        #ifdef USE_BSDF_PRE_LAMBDAV
+        Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness, prelightData.ggxLambdaV);
+        #else
+        Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness);
+        #endif
+        D = D_GGXDividePI(NdotH, bsdfData.roughness);
+    }
+    specularLighting.rgb = F * Vis * D;
+    #ifdef DIFFUSE_LAMBERT_BRDF
+    float diffuseTerm = LambertDividePI();
+    #else
+    float diffuseTerm = DisneyDiffuseDividePI(prelightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+    #endif
+    diffuseLighting.rgb = bsdfData.diffuseColor * diffuseTerm;
 }
 
 //-----------------------------------------------------------------------------
@@ -423,7 +500,8 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
     float3 L = normalize(unL);
 
     float attenuation = GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius);
-    attenuation *= GetAngleAttenuation(L, lightData.forward, lightData.angleScale, lightData.angleOffset);
+    // Reminder: lights are ortiented backward (-Z)
+    attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
     float illuminance = saturate(dot(bsdfData.normalWS, L)) * attenuation;
 
     diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
@@ -431,57 +509,127 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
 
     if (illuminance > 0.0f)
     {
-        float3 H = normalize(V + L);
-        float LdotH = saturate(dot(L, H));
-        float NdotH = saturate(dot(bsdfData.normalWS, H));
-        float NdotL = saturate(dot(bsdfData.normalWS, L));
-        float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-
-        float Vis;
-        float D;
-        // TODO: this way of handling aniso may not be efficient, or maybe with material classification, need to check perf here
-        // Maybe always using aniso maybe a win ?
-        if (bsdfData.materialId == MATERIALID_LIT_ANISO)
-        {
-            float TdotL = saturate(dot(bsdfData.tangentWS, L));
-            float BdotL = saturate(dot(bsdfData.bitangentWS, L));
-
-            #ifdef USE_BSDF_PRE_LAMBDAV
-            Vis = V_SmithJointGGXAnisoLambdaV(  prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
-                                                bsdfData.roughnessT, bsdfData.roughnessB, prelightData.anisoGGXlambdaV);
-            #else
-            Vis = V_SmithJointGGXAniso( prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
-                                        bsdfData.roughnessT, bsdfData.roughnessB);
-            #endif
-
-            float TdotH = saturate(dot(bsdfData.tangentWS, H));
-            float BdotH = saturate(dot(bsdfData.bitangentWS, H));
-            D = D_GGXAnisoDividePI(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
-        }
-        else
-        {
-            #ifdef USE_BSDF_PRE_LAMBDAV
-            Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness, prelightData.ggxLambdaV);
-            #else
-            Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness);
-            #endif
-            D = D_GGXDividePI(NdotH, bsdfData.roughness);
-        }
-        specularLighting.rgb = F * Vis * D;
-        #ifdef DIFFUSE_LAMBERT_BRDF
-        float diffuseTerm = LambertDividePI();
-        #else
-        float diffuseTerm = DisneyDiffuseDividePI(prelightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
-        #endif
-        diffuseLighting.rgb = bsdfData.diffuseColor * diffuseTerm;
-
-        diffuseLighting.rgb *= lightData.color * illuminance;
-        specularLighting.rgb *= lightData.color * illuminance;
+        BSDF(V, L, positionWS, prelightData, bsdfData, diffuseLighting.rgb, specularLighting.rgb);
+        diffuseLighting.rgb *= lightData.color * illuminance * lightData.diffuseScale;
+        specularLighting.rgb *= lightData.color * illuminance * lightData.specularScale;
     }
 }
 
 //-----------------------------------------------------------------------------
-// Reference code for image based lighting
+// EvaluateBSDF_Area - Reference
+//-----------------------------------------------------------------------------
+
+void IntegrateGGXAreaRef(float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
+                                out float4 diffuseLighting,
+                                out float4 specularLighting,
+                                uint sampleCount = 512)
+{
+    // Add some jittering on Hammersley2d
+    float2 randNum = InitRandom(V.xy * 0.5 + 0.5);
+
+    diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
+    specularLighting = float4(0.0, 0.0, 0.0, 1.0);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float3 P = float3(0.0, 0.0, 0.0);	// Sample light point. Random point on the light shape in local space.
+        float3 Ns = float3(0.0, 0.0, 0.0);	// Unit surface normal at P
+        float lightPdf = 0.0;	            // Pdf of the light sample
+
+        float2 u = Hammersley2d(i, sampleCount);
+        u = frac(u + randNum + 0.5);
+
+        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
+
+        if (lightData.shapeType == AREASHAPETYPE_SPHERE)
+            SampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+        else if (lightData.shapeType == AREASHAPETYPE_HEMISPHERE)
+            SampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+        else if (lightData.shapeType == AREASHAPETYPE_CYLINDER)
+            SampleCylinder(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+        else if (lightData.shapeType == AREASHAPETYPE_RECTANGLE)
+            SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+        else if (lightData.shapeType == AREASHAPETYPE_DISK)
+            SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+        else if (lightData.shapeType == AREASHAPETYPE_LINE)
+            // SampleLine(u, localToWorld, areaLight.lightRadius0, lightPdf, P, Ns);
+            ; // TODO
+
+        // Get distance
+        float3 unL = P - positionWS;
+        float sqrDist = dot(unL, unL);
+        float3 L = normalize(unL);
+
+        // We calculate area reference light with the area integral rather than the solid angle one.
+        float illuminance = saturate(dot(Ns, -L)) * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
+
+        float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
+        float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
+
+        if (illuminance > 0.0)
+        {
+            BSDF(V, L, positionWS, prelightData, bsdfData, localDiffuseLighting, localSpecularLighting);
+            localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
+            localSpecularLighting *= lightData.color * illuminance * lightData.specularScale;
+        }
+
+        diffuseLighting.rgb += localDiffuseLighting;
+        specularLighting.rgb += localSpecularLighting;
+    }
+
+    diffuseLighting.rgb /= float(sampleCount);
+    specularLighting.rgb /= float(sampleCount);
+}
+
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_Area
+//-----------------------------------------------------------------------------
+
+void EvaluateBSDF_Area(	float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
+                        out float4 diffuseLighting,
+                        out float4 specularLighting)
+{
+#ifdef LIT_DISPLAY_REFERENCE
+    IntegrateGGXAreaRef(V, positionWS, prelightData, lightData, bsdfData, diffuseLighting, specularLighting);
+#else
+
+    // TODO: This could be precomputed
+    float halfWidth = lightData.size.x * 0.5;
+    float halfHeight = lightData.size.y * 0.5;
+    float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * halfHeight;
+    float3 p1 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+    float3 p2 = lightData.positionWS + lightData.right * halfWidth + lightData.up * -halfHeight;
+    float3 p3 = lightData.positionWS + lightData.right * halfWidth + lightData.up * halfHeight;
+
+    float4x3 matL = float4x3(p0, p1, p2, p3);
+    float4x3 L = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
+
+    // TODO: Can we get early out based on diffuse computation ? (if all point are clip)
+    diffuseLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    specularLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // TODO: Fresnel is missing here but should be present
+    specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, prelightData.minV, L, lightData.twoSided) * prelightData.ltcGGXMagnitude;
+
+//#ifdef DIFFUSE_LAMBERT_BRDF
+    // Lambert diffuse term (here it should be Disney)
+    float3x3 identity = 0;
+    identity._m00_m11_m22 = 1.0;
+    diffuseLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, identity, L, lightData.twoSided) * bsdfData.diffuseColor;
+//#else
+    // TODO: Disney
+//#endif
+   
+    // Divide all by 2 PI as it is Lambert integration for diffuse
+    diffuseLighting.rgb *= lightData.color * INV_TWO_PI * lightData.diffuseScale;
+    specularLighting.rgb *= lightData.color * INV_TWO_PI * lightData.specularScale;
+
+    // TODO: current area light code doesn't take into account artist attenuation radius!
+#endif
+}
+
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_Env - Reference
 // ----------------------------------------------------------------------------
 
 // Ref: Moving Frostbite to PBR (Appendix A)
@@ -613,9 +761,6 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
-// Reference Lambert diffuse / GGX Specular
-//#define LIT_DISPLAY_REFERENCE
-
 #ifdef LIT_DISPLAY_REFERENCE
 
     specularLighting.rgb = IntegrateSpecularGGXIBLRef(V, lightData, bsdfData, UNITY_PASS_ENV(_EnvTextures));
@@ -653,6 +798,7 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     if (lightData.shapeType == ENVSHAPETYPE_BOX)
     {
         // worldToLocal assume no scaling
+        float4x4 worldToLocal = transpose(float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(light.positionWS, 1.0)));
         float3 positionLS = mul(lightData.worldToLocal, float4(positionWS, 1.0)).xyz;
         float3 rayLS = mul((float3x3)lightData.worldToLocal, rayWS);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);

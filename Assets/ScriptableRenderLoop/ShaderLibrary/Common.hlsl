@@ -64,14 +64,16 @@
 // Common math definition and fastmath function
 // ----------------------------------------------------------------------------
 
-#define PI          3.14159265359f
-#define TWO_PI      6.28318530718f
-#define FOUR_PI     12.56637061436f
-#define INV_PI      0.31830988618f
-#define INV_TWO_PI  0.15915494309f
-#define INV_FOUR_PI 0.07957747155f
-#define HALF_PI     1.57079632679f
-#define INV_HALF_PI 0.636619772367f
+#define PI          3.14159265359
+#define TWO_PI      6.28318530718
+#define FOUR_PI     12.56637061436
+#define INV_PI      0.31830988618
+#define INV_TWO_PI  0.15915494309
+#define INV_FOUR_PI 0.07957747155
+#define HALF_PI     1.57079632679
+#define INV_HALF_PI 0.636619772367
+
+#define FLT_EPSILON     1.192092896e-07f // smallest such that 1.0 + FLT_EPSILON != 1.0
 
 #define MERGE_NAME(X, Y) X##Y
 

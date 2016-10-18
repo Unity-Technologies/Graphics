@@ -482,9 +482,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 l.color.Set(lightColorR, lightColorG, lightColorB);
 
-                // Light direction is opposite to the forward direction
-                l.forward = -light.light.transform.forward;
-                // CAUTION: For IES as we inverse forward maybe this will need rotation.
+                l.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
                 l.up = light.light.transform.up;
                 l.right = light.light.transform.right;
 
@@ -530,19 +528,20 @@ namespace UnityEngine.ScriptableRenderLoop
                 if (probe.texture == null)
                     continue;
 
-                var l = new EnvLightData
-                {
-                    positionWS = probe.localToWorld.GetColumn(3),
-                    shapeType = EnvShapeType.None
-                };
+                var l = new EnvLightData();
+                
+                l.positionWS = probe.localToWorld.GetColumn(3);
+                l.shapeType = EnvShapeType.None;
 
                 if (probe.boxProjection != 0)
                 {
                     l.shapeType = EnvShapeType.Box;
                 }
 
-                // Caution should only be rigid transform, no scale
-                l.worldToLocal = probe.localToWorld.transpose;
+                l.right = probe.localToWorld.GetColumn(0);
+                l.up = probe.localToWorld.GetColumn(1);
+                l.forward = probe.localToWorld.GetColumn(2);
+
                 l.innerDistance = probe.bounds.extents;
 
                 l.sliceIndex = m_cubeReflTexArray.FetchSlice(probe.texture);

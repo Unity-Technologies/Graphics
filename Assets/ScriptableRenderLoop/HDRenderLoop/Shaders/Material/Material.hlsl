@@ -5,6 +5,8 @@
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/Packing.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/BSDF.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/CommonLighting.hlsl"
+#include "Assets/ScriptableRenderLoop/ShaderLibrary/Sampling.hlsl"
+#include "Assets/ScriptableRenderLoop/ShaderLibrary/AreaLighting.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/Debug.hlsl"
 #include "Assets/ScriptableRenderLoop/ShaderLibrary/GeometricTools.hlsl"
