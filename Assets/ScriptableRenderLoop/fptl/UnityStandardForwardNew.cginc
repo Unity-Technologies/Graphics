@@ -96,9 +96,17 @@ float3 EvalIndirectSpecular(UnityLight light, UnityIndirect ind)
 }
 
 
+#ifdef REGULAR_FORWARD
+
+#include "RegularForwardLightingTemplate.hlsl"
+#include "RegularForwardReflectionTemplate.hlsl"
+
+#else
 
 #include "TiledLightingTemplate.hlsl"
 #include "TiledReflectionTemplate.hlsl"
+
+#endif
 
 
 half4 fragForward(VertexOutputForwardNew i) : SV_Target
@@ -127,8 +135,8 @@ half4 fragForward(VertexOutputForwardNew i) : SV_Target
 
     uint numLightsProcessed = 0, numReflectionsProcessed = 0;
     float3 res = 0;
-    res += ExecuteLightListTiled(numLightsProcessed, pixCoord, vP, vPw, Vworld);
-    res += ExecuteReflectionListTiled(numReflectionsProcessed, pixCoord, vP, gdata.normalWorld, Vworld, gdata.smoothness);
+    res += ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
+    res += ExecuteReflectionList(numReflectionsProcessed, pixCoord, vP, gdata.normalWorld, Vworld, gdata.smoothness);
 
     // don't really have a handle on this yet
     //UnityLight mainLight = MainLight ();

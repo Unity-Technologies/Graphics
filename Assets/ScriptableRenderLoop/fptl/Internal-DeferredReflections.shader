@@ -126,7 +126,7 @@ half4 frag (v2f i) : SV_Target
     g_localParams.Vworld = Vworld;
 
     uint numReflectionsProcessed = 0;
-    float3 c = ExecuteReflectionListTiled(numReflectionsProcessed, pixCoord, vP, data.normalWorld, Vworld, data.smoothness);
+    float3 c = ExecuteReflectionList(numReflectionsProcessed, pixCoord, vP, data.normalWorld, Vworld, data.smoothness);
 
     //c = OverlayHeatMap(numLightsProcessed, c);
     return float4(c,1.0);
