@@ -3,6 +3,16 @@
 //
 
 //
+// UnityEngine.ScriptableRenderLoop.AreaShapeType:  static fields
+//
+#define AREASHAPETYPE_RECTANGLE (0)
+#define AREASHAPETYPE_LINE (1)
+#define AREASHAPETYPE_SPHERE (2)
+#define AREASHAPETYPE_DISK (3)
+#define AREASHAPETYPE_HEMISPHERE (4)
+#define AREASHAPETYPE_CYLINDER (5)
+
+//
 // UnityEngine.ScriptableRenderLoop.EnvShapeType:  static fields
 //
 #define ENVSHAPETYPE_NONE (0)
@@ -33,6 +43,18 @@ struct PunctualLightData
 struct AreaLightData
 {
 	float3 positionWS;
+	float invSqrAttenuationRadius;
+	float3 color;
+	int shapeType;
+	float3 forward;
+	float diffuseScale;
+	float3 up;
+	float specularScale;
+	float3 right;
+	float shadowDimmer;
+	float2 size;
+	float twoSided;
+	float unused;
 };
 
 // Generated from UnityEngine.ScriptableRenderLoop.EnvLightData
@@ -41,11 +63,16 @@ struct EnvLightData
 {
 	float3 positionWS;
 	int shapeType;
-	float4x4 worldToLocal;
-	float3 innerDistance;
+	float3 forward;
 	int sliceIndex;
-	float3 capturePointWS;
+	float3 up;
 	float blendDistance;
+	float3 right;
+	float unused0;
+	float3 innerDistance;
+	float unused1;
+	float3 capturePointWS;
+	float unused2;
 };
 
 // Generated from UnityEngine.ScriptableRenderLoop.PlanarLightData
@@ -118,6 +145,54 @@ float3 GetPositionWS(AreaLightData value)
 {
 	return value.positionWS;
 }
+float GetInvSqrAttenuationRadius(AreaLightData value)
+{
+	return value.invSqrAttenuationRadius;
+}
+float3 GetColor(AreaLightData value)
+{
+	return value.color;
+}
+int GetShapeType(AreaLightData value)
+{
+	return value.shapeType;
+}
+float3 GetForward(AreaLightData value)
+{
+	return value.forward;
+}
+float GetDiffuseScale(AreaLightData value)
+{
+	return value.diffuseScale;
+}
+float3 GetUp(AreaLightData value)
+{
+	return value.up;
+}
+float GetSpecularScale(AreaLightData value)
+{
+	return value.specularScale;
+}
+float3 GetRight(AreaLightData value)
+{
+	return value.right;
+}
+float GetShadowDimmer(AreaLightData value)
+{
+	return value.shadowDimmer;
+}
+float2 GetSize(AreaLightData value)
+{
+	return value.size;
+}
+float GetTwoSided(AreaLightData value)
+{
+	return value.twoSided;
+}
+float GetUnused(AreaLightData value)
+{
+	return value.unused;
+}
 
 //
 // Accessors for UnityEngine.ScriptableRenderLoop.EnvLightData
@@ -130,25 +205,45 @@ int GetShapeType(EnvLightData value)
 {
 	return value.shapeType;
 }
-float4x4 GetWorldToLocal(EnvLightData value)
+float3 GetForward(EnvLightData value)
 {
-	return value.worldToLocal;
-}
-float3 GetInnerDistance(EnvLightData value)
-{
-	return value.innerDistance;
+	return value.forward;
 }
 int GetSliceIndex(EnvLightData value)
 {
 	return value.sliceIndex;
 }
-float3 GetCapturePointWS(EnvLightData value)
+float3 GetUp(EnvLightData value)
 {
-	return value.capturePointWS;
+	return value.up;
 }
 float GetBlendDistance(EnvLightData value)
 {
 	return value.blendDistance;
+}
+float3 GetRight(EnvLightData value)
+{
+	return value.right;
+}
+float GetUnused0(EnvLightData value)
+{
+	return value.unused0;
+}
+float3 GetInnerDistance(EnvLightData value)
+{
+	return value.innerDistance;
+}
+float GetUnused1(EnvLightData value)
+{
+	return value.unused1;
+}
+float3 GetCapturePointWS(EnvLightData value)
+{
+	return value.capturePointWS;
+}
+float GetUnused2(EnvLightData value)
+{
+	return value.unused2;
 }
 
 //

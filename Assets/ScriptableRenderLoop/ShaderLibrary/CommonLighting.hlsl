@@ -1,6 +1,9 @@
 #ifndef UNITY_COMMON_LIGHTING_INCLUDED
 #define UNITY_COMMON_LIGHTING_INCLUDED
 
+// Ligthing convention
+// Light direction is oriented backward (-Z). i.e in shader code, light direction is - lightData.forward
+
 //-----------------------------------------------------------------------------
 // Attenuation functions
 //-----------------------------------------------------------------------------
