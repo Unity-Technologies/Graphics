@@ -57,6 +57,7 @@ namespace UnityEngine.ScriptableRenderLoop
         // clustered light list specific buffers and data begin
         public bool enableClustered = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
+        const bool disableFptlWhenClustered = false;    // still useful on opaques
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
         float m_ClustScale;
@@ -264,19 +265,21 @@ namespace UnityEngine.ScriptableRenderLoop
 
             //@TODO: need to get light probes + LPPV too?
             settings.inputCullingOptions.SetQueuesOpaque();
+            settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
             loop.DrawRenderers(ref settings);
         }
 
-        static void RenderForward(CullResults cull, Camera camera, RenderLoop loop, bool opaquesOnly)
+        void RenderForward(CullResults cull, Camera camera, RenderLoop loop, bool opaquesOnly)
         {
             var cmd = new CommandBuffer { name = opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass" };
 
-            // using these two lines will require a depth pre-pass for forward opaques which we don't have currently at least
-            //cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", opaquesOnly ? 1 : 0);
-            //cmd.SetGlobalBuffer("g_vLightListGlobal", opaquesOnly ? lightList : m_perVoxelLightLists);
+            bool useFptl = opaquesOnly && UsingFptl();     // requires depth pre-pass for forward opaques!
 
-            cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", 0);
-            cmd.SetGlobalBuffer("g_vLightListGlobal", s_PerVoxelLightLists);
+            bool haveTiledSolution = opaquesOnly || enableClustered;
+            cmd.EnableShaderKeyword(haveTiledSolution ? "TILED_FORWARD" : "REGULAR_FORWARD" );
+            cmd.SetGlobalFloat("g_isOpaquesOnlyEnabled", useFptl ? 1 : 0);      // leaving this as a dynamic toggle for now for forward opaques to keep shader variants down.
+            cmd.SetGlobalBuffer("g_vLightListGlobal", useFptl ? s_LightList : s_PerVoxelLightLists);
+
             loop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
@@ -285,9 +288,35 @@ namespace UnityEngine.ScriptableRenderLoop
             {
                 sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
             };
-            //settings.rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes;
+            settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
             if (opaquesOnly) settings.inputCullingOptions.SetQueuesOpaque();
+            else settings.inputCullingOptions.SetQueuesTransparent();
+
             loop.DrawRenderers(ref settings);
+        }
+
+        static void DepthOnlyForForwardOpaques(CullResults cull, Camera camera, RenderLoop loop)
+        {
+            var cmd = new CommandBuffer { name = "Forward Opaques - Depth Only" };
+            cmd.SetRenderTarget(new RenderTargetIdentifier(s_GBufferZ));
+            loop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+
+            // render opaque objects using Deferred pass
+            var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("DepthOnly"))
+            {
+                sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
+            };
+            settings.inputCullingOptions.SetQueuesOpaque();
+            loop.DrawRenderers(ref settings);
+        }
+        
+        bool UsingFptl()
+        {
+            bool isEnabledMSAA = false;
+            Debug.Assert((!isEnabledMSAA) || enableClustered);
+            bool disableFptl = (disableFptlWhenClustered && enableClustered) || isEnabledMSAA;
+            return !disableFptl;
         }
 
         static void CopyDepthAfterGBuffer(RenderLoop loop)
@@ -300,7 +329,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
         void DoTiledDeferredLighting(Camera camera, RenderLoop loop)
         {
-            var bUseClusteredForDeferred = false && enableClustered;       // doesn't work on reflections yet but will soon
+            var bUseClusteredForDeferred = !UsingFptl();       // doesn't work on reflections yet but will soon
             var cmd = new CommandBuffer();
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
@@ -832,6 +861,8 @@ namespace UnityEngine.ScriptableRenderLoop
 
             RenderGBuffer(cullResults, camera, loop);
 
+            DepthOnlyForForwardOpaques(cullResults, camera, loop);
+
             //@TODO: render forward-only objects into depth buffer
             CopyDepthAfterGBuffer(loop);
             //@TODO: render reflection probes
@@ -866,19 +897,23 @@ namespace UnityEngine.ScriptableRenderLoop
 
             var cmd = new CommandBuffer() { name = "Build light list" };
             
+            // generate screen-space AABBs (used for both fptl and clustered).
             cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", numLights);
             SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
             SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
             cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
             cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (numLights + 7) / 8, 1, 1);
 
-            cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
-            cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
-            SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
-            SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
-            cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(s_CameraDepthTexture));
-            cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
-            cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
+            if( UsingFptl() )
+            {
+                cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
+                cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
+                SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
+                SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
+                cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(s_CameraDepthTexture));
+                cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
+                cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
+            }
 
             if (enableClustered)
             {
@@ -896,11 +931,11 @@ namespace UnityEngine.ScriptableRenderLoop
             // do deferred lighting
             DoTiledDeferredLighting(camera, loop);
 
-            // don't have a depth pre-pass for forward lit meshes so have to require clustered for now
-            if (enableClustered) RenderForward(cullResults, camera, loop, false);
-
+            RenderForward(cullResults, camera, loop, true);    // opaques only (requires a depth pre-pass)
 
             m_SkyboxHelper.Draw(loop, camera);
+
+            if(enableClustered) RenderForward(cullResults, camera, loop, false);    // transparencies atm. requires clustered until we get traditional forward
 
             FinalPass(loop);
         }
@@ -952,7 +987,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
         int NumLightIndicesPerClusteredTile()
         {
-            return 4 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
+            return 8 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
         void AllocResolutionDependentBuffers(int width, int height)

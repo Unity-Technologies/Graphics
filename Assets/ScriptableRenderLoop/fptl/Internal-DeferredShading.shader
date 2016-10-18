@@ -123,7 +123,7 @@ half4 frag (v2f i) : SV_Target
     g_localParams.Vworld = Vworld;
 
     uint numLightsProcessed = 0;
-    float3 c = data.emission + ExecuteLightListTiled(numLightsProcessed, pixCoord, vP, vPw, Vworld);
+    float3 c = data.emission + ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
 
     //c = OverlayHeatMap(numLightsProcessed, c);
     return float4(c,1.0);
