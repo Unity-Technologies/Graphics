@@ -86,7 +86,7 @@ namespace UnityEditor.Graphing.Drawing
                     break;
                 type = type.BaseType;
             }
-            return type ?? typeof(NodeDrawData);
+            return found ?? typeof(NodeDrawData);
         }
 
         protected abstract void AddTypeMappings();
