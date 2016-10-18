@@ -44,7 +44,7 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         protected override IEnumerable<GraphElementData> GetControlData()
         {
-			var instance = CreateInstance<TextureContolDrawData>();
+            var instance = CreateInstance<TextureContolDrawData>();
             instance.Initialize(node);
             return new List<GraphElementData> { instance };
         }

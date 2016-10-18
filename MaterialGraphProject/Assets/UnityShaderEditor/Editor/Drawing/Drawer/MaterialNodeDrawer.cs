@@ -24,7 +24,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             };
 
             m_currentPreviewData = new List<NodePreviewDrawData>();
-            
+
             onEnter += SchedulePolling;
             onLeave += UnschedulePolling;
         }
