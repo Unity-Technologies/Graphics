@@ -86,7 +86,9 @@ public class TextureCacheCubemap : TextureCache
         m_Cache = new CubemapArray(width, numCubeMaps, format, isMipMapped)
         {
             hideFlags = HideFlags.HideAndDontSave,
-            wrapMode = TextureWrapMode.Clamp
+            wrapMode = TextureWrapMode.Clamp,
+            filterMode = FilterMode.Trilinear,
+            anisoLevel = 0 // It is important to set 0 here, else unity force anisotropy filtering
         };
 
         return res;

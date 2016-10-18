@@ -29,8 +29,7 @@ float2 BoxRayIntersect(float3 start, float3 dir, float3 boxMin, float3 boxMax)
     return intersections;
 }
 
-// TODO: Describe difference with above
-// AND compare with intersections.y
+// This simplified version assume that we care about the result only when we are inside the box
 // Assume dir is normalize
 float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax)
 {
@@ -45,15 +44,16 @@ float BoxRayIntersectSimple(float3 start, float3 dir, float3 boxMin, float3 boxM
     return min(min(rbminmax.x, rbminmax.y), rbminmax.z);
 }
 
-// Sphere is at the origin
-bool SphereRayIntersect(out float2 intersections, float3 start, float3 dir, float radius)
+// Assume Sphere is at the origin (i.e start = position - spherePosition)
+float2 SphereRayIntersect(float3 start, float3 dir, float radius, out bool intersect)
 {
     float a = dot(dir, dir);
     float b = dot(dir, start) * 2.0;
     float c = dot(start, start) - radius * radius;
     float discriminant = b * b - 4.0 * a * c;
 
-    bool intersect = false;
+    float2 intersections = float2(0.0, 0.0);
+    intersect = false;
     if (discriminant < 0.0 || a == 0.0)
     {
         intersections.x = 0.0;
@@ -67,7 +67,19 @@ bool SphereRayIntersect(out float2 intersections, float3 start, float3 dir, floa
         intersect = true;
     }
 
-    return intersect;
+    return intersections;
+}
+
+// This simplified version assume that we care about the result only when we are inside the sphere
+// Assume Sphere is at the origin (i.e start = position - spherePosition) and dir is normalized
+// Ref: http://http.developer.nvidia.com/GPUGems/gpugems_ch19.html
+float SphereRayIntersectSimple(float3 start, float3 dir, float radius)
+{
+    float b = dot(dir, start) * 2.0;
+    float c = dot(start, start) - radius * radius;
+    float discriminant = b * b - 4.0 * c;
+
+    return abs(sqrt(discriminant) - b) * 0.5;
 }
 
 float3 RayPlaneIntersect(in float3 rayOrigin, in float3 rayDirection, in float3 planeOrigin, in float3 planeNormal)
@@ -80,24 +92,10 @@ float3 RayPlaneIntersect(in float3 rayOrigin, in float3 rayDirection, in float3 
 // Distance functions
 //-----------------------------------------------------------------------------
 
-/*
-// Ref: real time detection collision page 131
-float DistancePointBox(float3 pos, float3 boxMin, float3 boxMax)
-{
-    // Clamp to find closest point then calc distance
-    float3 distanceToMin = pos < boxMin ? (boxMin - pos) * (boxMin - pos) : 0.0;
-    float3 distancesToMax = pos > boxMax ? (pos - boxMax) * (pos - boxMax) : 0.0;
-
-    float distanceSquare = dot(distanceToMin, float3(1.0, 1.0, 1.0)) + dot(distancesToMax, float3(1.0, 1.0, 1.0));
-    return sqrt(distanceSquare);
-}
-*/
-
-// TODO: check that this code is effectively equivalent to code above (it should)
 // Box is AABB
-float DistancePointBox(float3 pos, float3 boxMin, float3 boxMax)
+float DistancePointBox(float3 position, float3 boxMin, float3 boxMax)
 {
-    return length(max(max(pos - boxMax, boxMin - pos), float3(0.0, 0.0, 0.0)));
+    return length(max(max(position - boxMax, boxMin - position), float3(0.0, 0.0, 0.0)));
 }
 
 #endif // UNITY_GEOMETRICTOOLS_INCLUDED

@@ -787,25 +787,24 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     // float shrinkedRoughness = AnisotropicStrechAtGrazingAngle(bsdfData.roughness, bsdfData.perceptualRoughness, NdotV);
     
     // Note: As explain in GetPreLightData we use normalWS and not iblNormalWS here (in case of anisotropy)
-    //float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, prelightData.iblR, bsdfData.roughness);
-
-    float3 rayWS = prelightData.iblR;
+    float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, prelightData.iblR, bsdfData.roughness);
 
     float3 R = rayWS;
     float weight = 1.0;
 
-    /*
     if (lightData.shapeType == ENVSHAPETYPE_BOX)
     {
         // worldToLocal assume no scaling
-        float4x4 worldToLocal = transpose(float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(light.positionWS, 1.0)));
-        float3 positionLS = mul(lightData.worldToLocal, float4(positionWS, 1.0)).xyz;
-        float3 rayLS = mul((float3x3)lightData.worldToLocal, rayWS);
+        float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward));
+        float3 positionLS = positionWS - lightData.positionWS;
+        positionLS = mul(positionLS, worldToLocal).xyz;
+
+        float3 rayLS = mul(rayWS, worldToLocal);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
         float dist = BoxRayIntersectSimple(positionLS, rayLS, -boxOuterDistance, boxOuterDistance);
  
         // No need to normalize for fetching cubemap
-        R = (positionWS + dist * rayWS) - lightData.capturePointWS; // TODO: check that
+        R = (positionWS + dist * rayWS) - lightData.capturePointWS;
 
         // TODO: add distance based roughness
 
@@ -817,15 +816,14 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
 
         // Smooth weighting
         weight = smoothstep01(weight);
-    }
+    } 
     else if (lightData.shapeType == ENVSHAPETYPE_SPHERE)
     {
         float sphereRadius = lightData.innerDistance.x;
-        float2 intersections;
-        SphereRayIntersect(intersections, positionWS - lightData.positionWS, R, sphereRadius);
-        // TODO: check if we can have simplified formula like for box
+        float intersection = SphereRayIntersectSimple(positionWS - lightData.positionWS, R, sphereRadius + lightData.blendDistance);
+
         // No need to normalize for fetching cubemap
-        R = (positionWS + intersections.y * rayWS) - lightData.capturePointWS;
+        R = (positionWS + intersection * rayWS) - lightData.capturePointWS;
 
         float distFade = length(positionWS - lightData.positionWS);
         weight = saturate(((sphereRadius + lightData.blendDistance) - distFade) / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
@@ -833,8 +831,13 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
         // Smooth weighting
         weight = smoothstep01(weight);
     }
-    */
 
+    // TODO: we must always perform a weight calculation as due to tiled rendering we need to smooth out cubemap at boundaries.
+    // So goal is to split into two category and have an option to say if we parallax correct or not.
+
+    // TODO: compare current Morten version: offline cubemap with a particular remap + the bias in perceptualRoughnessToMipmapLevel
+    // to classic remap like unreal/Frobiste. The function GetSpecularDominantDir can result in a better matching in this case
+    // We let GetSpecularDominantDir currently as it still an improvement but not as good as it could be
     float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
     float4 preLD = UNITY_SAMPLE_ENV_LOD(_EnvTextures, R, lightData, mip);
     specularLighting.rgb = preLD.rgb * prelightData.specularFGD;
