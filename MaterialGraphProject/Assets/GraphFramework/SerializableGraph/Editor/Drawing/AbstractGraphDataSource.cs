@@ -37,19 +37,8 @@ namespace UnityEditor.Graphing.Drawing
             var drawableNodes = new List<NodeDrawData>();
             foreach (var node in graphAsset.graph.GetNodes<INode>())
             {
-                var type = node.GetType();
-
-                Type found = null;
-                while (type != null)
-                {
-                    if (m_DataMapper.TryGetValue(type, out found))
-                        break;
-                    type = type.BaseType;
-                }
-                if (found == null)
-                    found = typeof(NodeDrawData);
-
-                var nodeData = (NodeDrawData)CreateInstance(found);
+                var type = MapType(node.GetType());
+                var nodeData = (NodeDrawData)CreateInstance(type);
 
                 node.onModified += OnNodeChanged;
 
@@ -88,6 +77,18 @@ namespace UnityEditor.Graphing.Drawing
             m_Elements.AddRange(drawableEdges.OfType<GraphElementData>());
         }
 
+        private Type MapType(Type type)
+        {
+            Type found = null;
+            while (type != null)
+            {
+                if (m_DataMapper.TryGetValue(type, out found))
+                    break;
+                type = type.BaseType;
+            }
+            return type ?? typeof(NodeDrawData);
+        }
+
         protected abstract void AddTypeMappings();
 
         public void AddTypeMapping(Type node, Type drawData)
@@ -109,7 +110,7 @@ namespace UnityEditor.Graphing.Drawing
         }
 
         protected AbstractGraphDataSource()
-        {}
+        { }
 
         public void AddNode(INode node)
         {
