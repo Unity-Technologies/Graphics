@@ -20,8 +20,8 @@ Shader "Hidden/Unity/FinalPass"
             #pragma fragment Frag
             #pragma target 5.0
 
-            #include "Assets/ScriptableRenderLoop/ShaderLibrary/Common.hlsl"
-            #include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
+            #include "Common.hlsl"
+            #include "Color.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
 
             UNITY_DECLARE_TEX2D(_MainTex);
