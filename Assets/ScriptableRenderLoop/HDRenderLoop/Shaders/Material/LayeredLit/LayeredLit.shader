@@ -191,7 +191,7 @@ Shader "Unity/LayeredLit"
             #pragma vertex VertDefault
             #pragma fragment FragDebug
 
-            #include "Assets/ScriptableRenderLoop/ShaderLibrary/Color.hlsl"
+            #include "Color.hlsl"
 
             int _DebugViewMaterial;
 

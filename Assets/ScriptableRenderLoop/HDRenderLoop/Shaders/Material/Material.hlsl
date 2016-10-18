@@ -1,15 +1,15 @@
 #ifndef UNITY_MATERIAL_INCLUDED
 #define UNITY_MATERIAL_INCLUDED
 
-#include "Assets/ScriptableRenderLoop/ShaderLibrary/Common.hlsl"
-#include "Assets/ScriptableRenderLoop/ShaderLibrary/Packing.hlsl"
-#include "Assets/ScriptableRenderLoop/ShaderLibrary/BSDF.hlsl"
-#include "Assets/ScriptableRenderLoop/ShaderLibrary/CommonLighting.hlsl"
-#include "Assets/ScriptableRenderLoop/ShaderLibrary/Sampling.hlsl"
-#include "Assets/ScriptableRenderLoop/ShaderLibrary/AreaLighting.hlsl"
-#include "Assets/ScriptableRenderLoop/ShaderLibrary/ImageBasedLighting.hlsl"
-#include "Assets/ScriptableRenderLoop/ShaderLibrary/Debug.hlsl"
-#include "Assets/ScriptableRenderLoop/ShaderLibrary/GeometricTools.hlsl"
+#include "Common.hlsl"
+#include "Packing.hlsl"
+#include "BSDF.hlsl"
+#include "CommonLighting.hlsl"
+#include "Sampling.hlsl"
+#include "AreaLighting.hlsl"
+#include "ImageBasedLighting.hlsl"
+#include "Debug.hlsl"
+#include "GeometricTools.hlsl"
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightDefinition.cs.hlsl"

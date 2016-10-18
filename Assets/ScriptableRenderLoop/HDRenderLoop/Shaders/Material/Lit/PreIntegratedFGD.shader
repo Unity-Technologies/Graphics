@@ -10,8 +10,8 @@ Shader "Hidden/Unity/PreIntegratedFGD"
             #pragma target 5.0
             #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
-            #include "Assets/ScriptableRenderLoop/ShaderLibrary/Common.hlsl"
-            #include "Assets/ScriptableRenderLoop/ShaderLibrary/ImageBasedLighting.hlsl"
+            #include "Common.hlsl"
+            #include "ImageBasedLighting.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
 
 
