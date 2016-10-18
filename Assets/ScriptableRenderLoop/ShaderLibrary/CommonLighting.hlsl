@@ -1,6 +1,9 @@
 #ifndef UNITY_COMMON_LIGHTING_INCLUDED
 #define UNITY_COMMON_LIGHTING_INCLUDED
 
+// Ligthing convention
+// Light direction is oriented backward (-Z). i.e in shader code, light direction is - lightData.forward
+
 //-----------------------------------------------------------------------------
 // Attenuation functions
 //-----------------------------------------------------------------------------
@@ -82,5 +85,37 @@ float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
 {
     return (1 - perceptualSmoothness);
 }
+
+
+//-----------------------------------------------------------------------------
+// Get local frame
+//-----------------------------------------------------------------------------
+
+// generate an orthonormalBasis from 3d unit vector.
+void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
+{
+    float3 upVector     = abs(N.z) < 0.999 ? float3(0.0, 0.0, 1.0) : float3(1.0, 0.0, 0.0);
+    tangentX            = normalize(cross(upVector, N));
+    tangentY            = cross(N, tangentX);
+}
+
+// TODO: test
+/*
+// http://orbit.dtu.dk/files/57573287/onb_frisvad_jgt2012.pdf
+void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
+{
+    if (N.z < -0.999) // Handle the singularity
+    {
+        tangentX = float3(0.0, -1.0, 0.0);
+        tangentY = float3(-1.0, 0.0, 0.0);
+        return ;
+    }
+
+    float a     = 1.0 / (1.0 + N.z);
+    float b     = -N.x * N.y * a;
+    tangentX    = float3(1.0f - N.x * N.x * a , b, -N.x);
+    tangentY    = float3(b, 1.0f - N.y * N.y * a, -N.y);
+}
+*/
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED
