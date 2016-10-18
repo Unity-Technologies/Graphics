@@ -135,8 +135,7 @@ half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, hal
     half mip = perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
     half4 rgbm = UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex, float4(glossIn.reflUVW.xyz, sliceIndex), mip);
 
-    //return rgbm.xyz;
-    return DecodeHDR_NoLinearSupportInSM2 (rgbm, hdr);
+    return DecodeHDR(rgbm, hdr);
 }
 
 
