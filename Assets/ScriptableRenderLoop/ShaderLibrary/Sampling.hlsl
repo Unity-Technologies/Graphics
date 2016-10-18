@@ -52,16 +52,17 @@ float2 InitRandom(float2 input)
 
 //-----------------------------------------------------------------------------
 // Sampling function
+// Reference : http://www.cs.virginia.edu/~jdl/bib/globillum/mis/shirley96.pdf + PBRT
+// Caution: Our light point backward (-Z), these sampling function follow this convention
 //-----------------------------------------------------------------------------
 
-// Reference : Monte Carlo techniques for direct lighting calculations http://www.cs.virginia.edu/~jdl/bib/globillum/mis/shirley96.pdf + PBRT
 float3 UniformSampleSphere(float u1, float u2)
 {
     float phi = TWO_PI * u2;
     float cosTheta = 1.0 - 2.0 * u1;
     float sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
 
-    return float3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta); // our light point backward (-Z)
+    return float3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta); // Light point backward (-Z)
 }
 
 float3 UniformSampleHemisphere(float u1, float u2)
@@ -70,7 +71,7 @@ float3 UniformSampleHemisphere(float u1, float u2)
     float cosTheta = u1;
     float sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
 
-    return float3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta); // our light point backward (-Z)
+    return float3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta); // Light point backward (-Z)
 }
 
 float3 UniformSampleDisk(float u1, float u2)
@@ -78,7 +79,7 @@ float3 UniformSampleDisk(float u1, float u2)
     float r = sqrt(u1);
     float phi = TWO_PI * u2;
 
-    return float3(r * cos(phi), r * sin(phi), 0); // generate in the XY plane as light point backward (-Z)
+    return float3(r * cos(phi), r * sin(phi), 0); // Generate in XY plane as light point backward (-Z)
 }
 
 void SampleSphere(  float2 u,
@@ -91,11 +92,12 @@ void SampleSphere(  float2 u,
     float u1 = u.x;
     float u2 = u.y;
 
-    // Random point at light surface
-    Ns = uniformSampleSphere(u1, u2);
-    // Transform point on unit sphere to world space 
+    Ns = UniformSampleSphere(u1, u2);
+
+    // Transform from unit sphere to world space 
     P = radius * Ns + localToWorld[3].xyz;
-    // pdf is just the inverse of the area
+
+    // pdf is inverse of area
     lightPdf = 1.0 / (FOUR_PI * radius * radius);
 }
 
@@ -109,13 +111,15 @@ void SampleHemisphere(  float2 u,
     float u1 = u.x;
     float u2 = u.y;
 
-    // Random point at light surface
-    Ns = -uniformSampleHemisphere(u1, u2); // We want the y down hemisphere
+    // Random point at hemisphere surface
+    Ns = -UniformSampleHemisphere(u1, u2); // We want the y down hemisphere
     P = radius * Ns;
+
     // Transform to world space
     P = mul(float4(P, 1.0), localToWorld).xyz;
-    Ns = mul(Ns, convertFloat3x3(localToWorld));
-    // pdf is just the inverse of the area
+    Ns = mul(Ns, (float3x3)(localToWorld));
+
+    // pdf is inverse of area
     lightPdf = 1.0 / (TWO_PI * radius * radius);
 }
 
@@ -131,54 +135,22 @@ void SampleCylinder(float2 u,
     float u1 = u.x;
     float u2 = u.y;
 
-    // Random point at light surface
+    // Random point at cylinder surface
     float t = (u1 - 0.5) * width;
     float theta = 2.0 * PI * u2;
     float cosTheta = cos(theta);
     float sinTheta = sin(theta);
-    P = float3(t, radius * cosTheta, radius * sinTheta);  // Cylinder are align on the left axis in Frosbite	
+
+    // Cylinder are align on the right axis
+    P = float3(t, radius * cosTheta, radius * sinTheta);
     Ns = normalize(float3(0.0, cosTheta, sinTheta));
+
     // Transform to world space
     P = mul(float4(P, 1.0), localToWorld).xyz;
-    Ns = mul(Ns, convertFloat3x3(localToWorld));
-    // pdf is just the inverse of the area
+    Ns = mul(Ns, (float3x3)(localToWorld));
+
+    // pdf is inverse of area
     lightPdf = 1.0 / (TWO_PI * radius * width);
-}
-
-void SampleCapsule( float2 u,
-                    float4x4 localToWorld,
-                    float radius,
-                    float width,
-                    int passIt,
-                    out float lightPdf,
-                    out float3 P,
-                    out float3 Ns)
-{
-    // Capsules are sampled in two times:
-    //  - Pass 0: Cylinder
-    //  - Pass 1: Hemisphere caps
-    if (passIt == 0)
-    {
-        sampleCylinder(u, localToWorld, radius, width, lightPdf, P, Ns);
-    }
-    else
-    {
-        float u1 = u.x;
-        float u2 = u.y;
-
-        // Random point at light surface
-        Ns = uniformSampleSphere(u1, u2);
-        P = radius * Ns;
-
-        // Split the sphere into two hemisphere and shift each hemisphere on one side of the cylinder
-        P.x += (Ns.x > 0.0 ? 1.0 : -1.0) * 0.5 * width;
-
-        // Transform to world space
-        P = mul(float4(P, 1.0), localToWorld).xyz;
-        Ns = mul(Ns, convertFloat3x3(localToWorld));
-        // pdf is just the inverse of the area
-        lightPdf = 1.0 / (FOUR_PI * radius * radius);
-    }
 }
 
 void SampleRectangle(   float2 u,
@@ -189,14 +161,15 @@ void SampleRectangle(   float2 u,
                         out float3	P,
                         out float3	Ns)
 {
-    // Random point at light surface
+    // Random point at rectangle surface
     P = float3((u.x - 0.5) * width, (u.y - 0.5) * height, 0);
-    Ns = float3(0, 0, -1); // By default our rectangle light point backward
+    Ns = float3(0, 0, -1); // Light point backward (-Z)
 
     // Transform to world space
     P = mul(float4(P, 1.0), localToWorld).xyz;
-    Ns = mul(Ns, convertFloat3x3(localToWorld));
-    // pdf is just the inverse of the area
+    Ns = mul(Ns, (float3x3)(localToWorld));
+
+    // pdf is inverse of area
     lightPdf = 1.0 / (width * height);
 }
 
@@ -207,15 +180,15 @@ void SampleDisk(float2 u,
                 out float3 P,
                 out float3 Ns)
 {
-    // Random point at light surface
-    P = uniformSampleDisk(u.x, u.y) * radius;
-    Ns = float3(0.0, 0.0, -1.0);
+    // Random point at disk surface
+    P = UniformSampleDisk(u.x, u.y) * radius;
+    Ns = float3(0.0, 0.0, -1.0); // Light point backward (-Z)
 
     // Transform to world space
     P = mul(float4(P, 1.0), localToWorld).xyz;
-    Ns = mul(Ns, convertFloat3x3(localToWorld));
+    Ns = mul(Ns, (float3x3)(localToWorld));
 
-    // pdf is just the inverse of the area
+    // pdf is inverse of area
     lightPdf = 1.0 / (PI * radius * radius);
 }
 

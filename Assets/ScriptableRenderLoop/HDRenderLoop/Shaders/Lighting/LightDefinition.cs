@@ -38,7 +38,7 @@ namespace UnityEngine.ScriptableRenderLoop
         Sphere,
         Disk,
         Hemisphere,
-        Cylindre
+        Cylinder
     };
 
     [GenerateHLSL]
@@ -58,8 +58,6 @@ namespace UnityEngine.ScriptableRenderLoop
 
         public Vector3 right;
         public float shadowDimmer;
-
-        Matrix4x4 lightVerts;
 
         public Vector2 size;
         public float twoSided;

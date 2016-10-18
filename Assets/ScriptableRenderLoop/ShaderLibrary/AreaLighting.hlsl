@@ -1,16 +1,15 @@
 #ifndef UNITY_AREA_LIGHTING_INCLUDED
-// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
-#pragma exclude_renderers gles
 #define UNITY_AREA_LIGHTING_INCLUDED
 
 float IntegrateEdge(float3 v1, float3 v2)
 {
-    float3 cosTheta = dot(v1, v2);
+    float cosTheta = dot(v1, v2);
+    // TODO: Explain the 0.9999 <= precision is important!
     cosTheta = clamp(cosTheta, -0.9999, 0.9999);
 
     // TODO: Experiment with fastAcos
-    float3 theta = acos(cosTheta);
-    float3 res = cross(v1, v2).z * theta / sin(theta);
+    float theta = acos(cosTheta);
+    float res = cross(v1, v2).z * theta / sin(theta);
 
     return res;
 }
@@ -155,7 +154,7 @@ float PolygonRadiance(float4x3 L, bool twoSided)
     return twoSided > 0.0 ? abs(sum) : max(0.0, sum);
 }
 
-float LTCEvaluate(float3 V, float3 N, float3x3 minV, float4x3 L)
+float LTCEvaluate(float3 V, float3 N, float3x3 minV, float4x3 L, bool twoSided)
 {
     // Construct local orthonormal basis around N, aligned with N
     float3x3 basis;
@@ -168,7 +167,7 @@ float LTCEvaluate(float3 V, float3 N, float3x3 minV, float4x3 L)
     L = mul(L, minV);
 
     // Polygon radiance in transformed configuration - specular
-    return PolygonRadiance(L);
+    return PolygonRadiance(L, twoSided);
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
