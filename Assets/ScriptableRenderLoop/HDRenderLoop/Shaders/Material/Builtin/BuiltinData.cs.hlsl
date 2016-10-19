@@ -13,6 +13,12 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION (105)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (106)
 
+//
+// UnityEngine.ScriptableRenderLoop.Builtin.LighTransportData:  static fields
+//
+#define DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_DIFFUSE_COLOR (120)
+#define DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_EMISSIVE_COLOR (121)
+
 // Generated from UnityEngine.ScriptableRenderLoop.Builtin.BuiltinData
 // PackingRules = Exact
 struct BuiltinData
@@ -24,6 +30,14 @@ struct BuiltinData
 	float2 velocity;
 	float2 distortion;
 	float distortionBlur;
+};
+
+// Generated from UnityEngine.ScriptableRenderLoop.Builtin.LighTransportData
+// PackingRules = Exact
+struct LighTransportData
+{
+	float3 diffuseColor;
+	float3 emissiveColor;
 };
 
 
