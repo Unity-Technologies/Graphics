@@ -7,9 +7,10 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: rcgRock012Material
-  m_Shader: {fileID: 4800000, guid: e1a84346ee54f9f4993c2f05c59805a0, type: 3}
-  m_ShaderKeywords: _DOUBLESIDEDLIGTHING_OFF _DOUBLESIDED_OFF _EMISSION _METALLICGLOSSMAP
-    _NORMALMAP _NORMALMAP_TANGENT_SPACE
+  m_Shader: {fileID: 4800000, guid: ef966ed93e262964781047eaf96991db, type: 3}
+  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
+    _DOUBLESIDEDLIGTHING_OFF _DOUBLESIDED_OFF _EMISSION _METALLICGLOSSMAP _NORMALMAP
+    _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -162,6 +163,12 @@ Material:
         name: _DetailNormalMapScale
       second: 1
     - first:
+        name: _DistortionDepthTest
+      second: 0
+    - first:
+        name: _DistortionOnly
+      second: 0
+    - first:
         name: _DoubleSided
       second: 0
     - first:
@@ -205,6 +212,9 @@ Material:
       second: 0
     - first:
         name: _MaterialId
+      second: 0
+    - first:
+        name: _Metalic
       second: 0
     - first:
         name: _Metallic

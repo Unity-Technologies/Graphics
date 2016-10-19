@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Ground_01_2x2
-  m_Shader: {fileID: 4800000, guid: e7e3743f30ad81a4ba2d0528f52d026b, type: 3}
+  m_Shader: {fileID: 4800000, guid: ef966ed93e262964781047eaf96991db, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
     _EMISSION _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1

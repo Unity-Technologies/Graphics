@@ -342,7 +342,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
             // Render forward transparent
             {
-                RenderTransparentRenderList(cull, camera, renderLoop, "DebugView");
+                RenderTransparentRenderList(cull, camera, renderLoop, "DebugViewMaterial");
             }
 
             // Last blit

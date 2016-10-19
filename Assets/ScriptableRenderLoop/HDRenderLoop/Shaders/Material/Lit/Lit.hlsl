@@ -829,6 +829,7 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     }
 
     // 2. Apply the influence volume (Box volume is used for culling whatever the influence shape)
+    // TODO: In the future we could have an influence volume inside the projection volume (so with a different transform, in this case we will need another transform)
     if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
     {
         float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
