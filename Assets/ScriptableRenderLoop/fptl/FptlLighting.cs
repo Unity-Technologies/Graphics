@@ -1073,6 +1073,12 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
             cmd.SetGlobalTexture("_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
 
+            var topCube = ReflectionProbe.GetDefaultCubemapIbl();
+            var defdecode = ReflectionProbe.CalculateHDRDecodeValuesForDefaultTexture();
+            cmd.SetGlobalTexture("_reflRootCubeTexture", topCube);
+            cmd.SetGlobalFloat("_reflRootHdrDecodeMult", defdecode.x);
+            cmd.SetGlobalFloat("_reflRootHdrDecodeExp", defdecode.y);
+
             if (enableClustered)
             {
                 cmd.SetGlobalFloat("g_fClustScale", m_ClustScale);
