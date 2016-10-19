@@ -323,7 +323,7 @@ namespace UnityEngine.ScriptableRenderLoop
 
                 Shader.SetGlobalInt("_DebugViewMaterial", (int)debugParameters.debugViewMaterial);
 
-                RenderOpaqueRenderList(cull, camera, renderLoop, "DebugView");
+                RenderOpaqueRenderList(cull, camera, renderLoop, "DebugViewMaterial");
             }
 
             // Render GBUffer opaque
@@ -410,6 +410,20 @@ namespace UnityEngine.ScriptableRenderLoop
 
             RenderTransparentRenderList(cullResults, camera, renderLoop, "Forward");
         }
+
+        void RenderForwardUnlit(CullResults cullResults, Camera camera, RenderLoop renderLoop)
+        {
+            // Bind material data
+            m_LitRenderLoop.Bind();
+
+            var cmd = new CommandBuffer { name = "Forward Unlit Pass" };
+            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+
+            RenderOpaqueRenderList(cullResults, camera, renderLoop, "ForwardUnlit");
+            RenderTransparentRenderList(cullResults, camera, renderLoop, "ForwardUnlit");
+        }        
 
         void FinalPass(RenderLoop renderLoop)
         {
@@ -620,6 +634,7 @@ namespace UnityEngine.ScriptableRenderLoop
                     RenderDeferredLighting(camera, renderLoop);
 
                     RenderForward(cullResults, camera, renderLoop);
+                    RenderForwardUnlit(cullResults, camera, renderLoop);
 
                     FinalPass(renderLoop);
                 }
