@@ -65,7 +65,7 @@ namespace UnityEngine.ScriptableRenderLoop
     };
 
     [GenerateHLSL]
-    public enum ProjectionShapeType
+    public enum EnvShapeType
     {
         None, 
         Box, 
@@ -73,20 +73,13 @@ namespace UnityEngine.ScriptableRenderLoop
     };
 
     [GenerateHLSL]
-    public enum InfluenceShapeType
-    {
-        Box,
-        Sphere
-    };
-
-    [GenerateHLSL]
     public struct EnvLightData
     {
         public Vector3 positionWS;
-        public ProjectionShapeType projectionShapeType;
+        public EnvShapeType envShapeType;
 
         public Vector3 forward;
-        public InfluenceShapeType influenceShapeType;
+        public float unused2;
 
         public Vector3 up;
         public float blendDistance;     // blend transition outside the volume

@@ -533,17 +533,13 @@ namespace UnityEngine.ScriptableRenderLoop
                 // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
                 l.positionWS = probe.localToWorld.GetColumn(3);
 
-                l.projectionShapeType = ProjectionShapeType.None;
+                l.envShapeType = EnvShapeType.None;
 
                 // TODO: Support sphere in the interface
                 if (probe.boxProjection != 0)
                 {
-                    l.projectionShapeType = ProjectionShapeType.Box;
+                    l.envShapeType = EnvShapeType.Box;
                 }
-
-                // TODO add influence volume in interface, for now it is coupled with projection volume
-                // Note that even when there is no projection volume, there is an influence volume.
-                l.influenceShapeType = InfluenceShapeType.Box;
 
                 // remove scale from the matrix (Scale in this matrix is use to scale the widget)
                 l.right = probe.localToWorld.GetColumn(0);

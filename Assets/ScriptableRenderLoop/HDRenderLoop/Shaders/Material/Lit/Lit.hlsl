@@ -803,12 +803,12 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     // the center of the bounding box is thus in locals space: positionLS - offsetLS
     // We use this formulation as it is the one of legacy unity that was using only AABB box.
 
-    if (lightData.projectionShapeType == PROJECTIONSHAPETYPE_BOX)
-    {
-        float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
-        float3 positionLS = positionWS - lightData.positionWS;
-        positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
+    float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
+    float3 positionLS = positionWS - lightData.positionWS;
+    positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
 
+    if (lightData.envShapeType == ENVSHAPETYPE_BOX)
+    {
         float3 rayLS = mul(rayWS, worldToLocal);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
         float dist = BoxRayIntersectSimple(positionLS, rayLS, -boxOuterDistance, boxOuterDistance);
@@ -819,12 +819,8 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
         
         // TODO: add distance based roughness
     } 
-    else if (lightData.projectionShapeType == PROJECTIONSHAPETYPE_SPHERE)
+    else if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
     {
-        float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
-        float3 positionLS = positionWS - lightData.positionWS;
-        positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
-
         float3 rayLS = mul(rayWS, worldToLocal);
         float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
         float dist = SphereRayIntersectSimple(positionLS, rayLS, sphereOuterDistance);
@@ -833,25 +829,15 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     }
 
     // 2. Apply the influence volume (Box volume is used for culling whatever the influence shape)
-    // TODO: Optimize this code! We can remove offset in case of influence volume!
-
-    if (lightData.influenceShapeType == INFLUENCESHAPETYPE_BOX)
+    if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
     {
-        float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
-        float3 positionLS = positionWS - lightData.positionWS;
-        positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
-
-        // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
-        float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
+        float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
         weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
     }
-    else // INFLUENCESHAPETYPE_SPHERE
+    else // ENVSHAPETYPE_BOX or ENVSHAPETYPE_NONE 
     {
-        float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); //  worldToLocal assume no scaling
-        float3 positionLS = positionWS - lightData.positionWS;
-        positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
-
-        float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
+        // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
+        float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
         weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
     }
 
