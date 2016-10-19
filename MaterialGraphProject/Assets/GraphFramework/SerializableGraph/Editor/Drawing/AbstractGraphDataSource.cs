@@ -32,22 +32,67 @@ namespace UnityEditor.Graphing.Drawing
 
         private void UpdateData()
         {
-            m_Elements.Clear();
+            var deletedElements = new List<GraphElementData>();
 
-            var drawableNodes = new List<NodeDrawData>();
+            // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
+            foreach (var nodeData in m_Elements.OfType<NodeDrawData>())
+            {
+                if (!graphAsset.graph.GetNodes<INode>().Contains(nodeData.node))
+                {
+                    // Mark node for deletion
+                    deletedElements.Add(nodeData);
+                }
+            }
+
+            // Find all edges currently being drawn which are no longer in the graph (i.e. deleted)
+            foreach (var edgeData in m_Elements.OfType<EdgeDrawData>())
+            {
+                if (!graphAsset.graph.edges.Contains(edgeData.edge))
+                {
+                    // Mark edge for deletion
+                    deletedElements.Add(edgeData);
+
+                    // Make sure to disconnect the node, otherwise new connections won't be allowed for the used slots
+                    edgeData.left.connected = false;
+                    edgeData.right.connected = false;
+
+                    var toNodeGuid = edgeData.edge.inputSlot.nodeGuid;
+                    var toNode = m_Elements.OfType<NodeDrawData>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
+                    if (toNode != null)
+                    {
+                        // Make the input node (i.e. right side of the connection) re-render
+                        toNode.MarkDirtyHack();
+                    }
+                }
+            }
+
+            // Remove all nodes and edges marked for deletion
+            foreach (var deletedElement in deletedElements)
+            {
+                m_Elements.Remove(deletedElement);
+            }
+
+            var addedNodes = new List<NodeDrawData>();
+
+            // Find all new nodes and mark for addition
             foreach (var node in graphAsset.graph.GetNodes<INode>())
             {
+                // Check whether node already exists
+                if (m_Elements.OfType<NodeDrawData>().Any(e => e.node == node))
+                    continue;
+
                 var type = MapType(node.GetType());
                 var nodeData = (NodeDrawData)CreateInstance(type);
 
                 node.onModified += OnNodeChanged;
 
                 nodeData.Initialize(node);
-                drawableNodes.Add(nodeData);
+                addedNodes.Add(nodeData);
             }
 
+            // Create edge data for nodes marked for addition
             var drawableEdges = new List<EdgeDrawData>();
-            foreach (var addedNode in drawableNodes)
+            foreach (var addedNode in addedNodes)
             {
                 var baseNode = addedNode.node;
                 foreach (var slot in baseNode.GetOutputSlots<ISlot>())
@@ -60,10 +105,10 @@ namespace UnityEditor.Graphing.Drawing
                     {
                         var toNode = baseNode.owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                         var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
-                        var targetNode = drawableNodes.FirstOrDefault(x => x.node == toNode);
-
+                        var targetNode = addedNodes.FirstOrDefault(x => x.node == toNode);
                         var targetAnchors = targetNode.elements.OfType<AnchorDrawData>();
                         var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
+
                         var edgeData = ScriptableObject.CreateInstance<EdgeDrawData>();
                         edgeData.Initialize(edge);
                         edgeData.left = sourceAnchor;
@@ -73,7 +118,36 @@ namespace UnityEditor.Graphing.Drawing
                 }
             }
 
-            m_Elements.AddRange(drawableNodes.OfType<GraphElementData>());
+            // Add nodes marked for addition
+            m_Elements.AddRange(addedNodes.OfType<GraphElementData>());
+
+            // Find edges in the graph that are not being drawn and create edge data for them
+            foreach (var edge in graphAsset.graph.edges)
+            {
+                if (!m_Elements.OfType<EdgeDrawData>().Any(ed => ed.edge == edge))
+                {
+                    var fromNode = graphAsset.graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var fromSlot = fromNode.FindOutputSlot<ISlot>(edge.outputSlot.slotId);
+                    var sourceNode = m_Elements.OfType<NodeDrawData>().FirstOrDefault(x => x.node == fromNode);
+                    var sourceAnchors = sourceNode.elements.OfType<AnchorDrawData>();
+                    var sourceAnchor = sourceAnchors.FirstOrDefault(x => x.slot == fromSlot);
+
+                    var toNode = graphAsset.graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                    var toSlot = toNode.FindInputSlot<ISlot>(edge.inputSlot.slotId);
+                    var targetNode = m_Elements.OfType<NodeDrawData>().FirstOrDefault(x => x.node == toNode);
+                    var targetAnchors = targetNode.elements.OfType<AnchorDrawData>();
+                    var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
+
+                    targetNode.MarkDirtyHack();
+
+                    var edgeData = ScriptableObject.CreateInstance<EdgeDrawData>();
+                    edgeData.Initialize(edge);
+                    edgeData.left = sourceAnchor;
+                    edgeData.right = targetAnchor;
+                    drawableEdges.Add(edgeData);
+                }
+            }
+            
             m_Elements.AddRange(drawableEdges.OfType<GraphElementData>());
         }
 
@@ -149,6 +223,7 @@ namespace UnityEditor.Graphing.Drawing
         public void RemoveElement(GraphElementData element)
         {
             m_Elements.RemoveAll(x => x == element);
+            UpdateData();
         }
     }
 }
