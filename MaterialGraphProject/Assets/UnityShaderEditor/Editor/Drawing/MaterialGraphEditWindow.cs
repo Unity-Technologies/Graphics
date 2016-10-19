@@ -1,9 +1,5 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using RMGUI.GraphView;
 using UnityEditor.Graphing.Drawing;
-using UnityEngine;
 using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing

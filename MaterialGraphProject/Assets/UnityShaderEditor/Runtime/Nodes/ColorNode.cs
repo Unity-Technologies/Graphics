@@ -44,7 +44,7 @@ namespace UnityEngine.MaterialGraph
                 m_Color = value;
                 if (onModified != null)
                 {
-                    onModified(this);
+                    onModified(this, NodeModificationScope.ShaderRegeneration);
                 }
             }
         }

@@ -17,8 +17,9 @@ namespace UnityEditor.Graphing.Drawing
 
         public IGraphAsset graphAsset { get; private set; }
 
-        void OnNodeChanged(INode inNode)
+        void OnNodeChanged(INode inNode, NodeModificationScope scope)
         {
+            Debug.Log("OnNodeChanged");
             var dependentNodes = new List<INode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing.Drawing;
-using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine.RMGUI;

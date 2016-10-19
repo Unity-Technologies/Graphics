@@ -3,7 +3,13 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Graphing
 {
-    public delegate void OnNodeModified(INode node);
+    public enum NodeModificationScope
+    {
+        Redraw,
+        ShaderRegeneration
+    }
+
+    public delegate void OnNodeModified(INode node, NodeModificationScope scope);
 
     public interface INode
     {

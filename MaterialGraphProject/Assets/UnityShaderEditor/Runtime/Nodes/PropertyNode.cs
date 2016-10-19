@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -36,7 +37,7 @@ namespace UnityEngine.MaterialGraph
                 m_Exposed = value;
                 if (onModified != null)
                 {
-                    onModified(this);
+                    onModified(this, NodeModificationScope.ShaderRegeneration);
                 }
             }
         }
