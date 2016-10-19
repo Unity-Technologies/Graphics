@@ -77,27 +77,16 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             var previews = nodeData.elements.OfType<NodePreviewDrawData>().ToList();
 
-            if (previews.ItemsReferenceEquals(m_currentPreviewData))
-            {
-                for (int i = 0; i < previews.Count; i++)
-                {
-                    var preview = previews[i];
-                    // TODO: Need to share the texture
-                    // right now it's allocating all the time.
-                    preview.Render(new Vector2(200, 200));
-                }
-            }
-            else
+            if (!previews.ItemsReferenceEquals(m_currentPreviewData))
             {
                 m_PreviewContainer.ClearChildren();
                 m_currentPreviewData = previews;
 
                 foreach (var preview in previews)
                 {
-                    var image = preview.Render(new Vector2(200, 200));
-                    var thePreview = new Image
+                    var thePreview = new NodePreviewDrawer
                     {
-                        image = image,
+                        data = preview,
                         name = "image"
                     };
                     m_PreviewContainer.AddChild(thePreview);
