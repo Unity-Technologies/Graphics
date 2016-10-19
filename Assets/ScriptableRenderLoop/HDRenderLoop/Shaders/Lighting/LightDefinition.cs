@@ -90,7 +90,7 @@ namespace UnityEngine.ScriptableRenderLoop
         public Vector3 innerDistance;
         public float unused1;
 
-        public Vector3 capturePointWS;
+        public Vector3 offsetLS;
         public float unused2;
     };
 

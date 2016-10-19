@@ -792,25 +792,30 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     float3 R = rayWS;
     float weight = 1.0;
 
+    // In Unity the cubemaps are capture with the localToWorld transform of the component. 
+    // This mean that location and oritention matter. So after intersection of proxy volume we need to convert back to world.
     if (lightData.shapeType == ENVSHAPETYPE_BOX)
     {
+        // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
+        // the center of the bounding box is thus in locals space: positionLS - offsetLS
+        // We use this formulation as it is the one of legacy unity that was using only AABB box.
+
         // worldToLocal assume no scaling
         float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward));
         float3 positionLS = positionWS - lightData.positionWS;
-        positionLS = mul(positionLS, worldToLocal).xyz;
+        positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
 
         float3 rayLS = mul(rayWS, worldToLocal);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
         float dist = BoxRayIntersectSimple(positionLS, rayLS, -boxOuterDistance, boxOuterDistance);
- 
-        // No need to normalize for fetching cubemap
-        R = (positionWS + dist * rayWS) - lightData.capturePointWS;
 
+        // No need to normalize for fetching cubemap
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
+        R = (positionWS + dist * rayWS) - lightData.positionWS;
+        
         // TODO: add distance based roughness
 
-        // Calculate falloff value, so reflections on the edges of the Volume would gradually blend to previous reflection.
-        // Also this ensures that pixels not located in the reflection Volume AABB won't
-        // accidentally pick up reflections from this Volume.
+        // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
         float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
         weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
 
@@ -819,11 +824,17 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     } 
     else if (lightData.shapeType == ENVSHAPETYPE_SPHERE)
     {
-        float sphereRadius = lightData.innerDistance.x;
-        float intersection = SphereRayIntersectSimple(positionWS - lightData.positionWS, R, sphereRadius + lightData.blendDistance);
+        // For now there is no specific interface for sphere proxy and it can have offset and arbitrary orientation. So we need to transform 
+        // to local space position and direction like for OBB.
+        float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward));
+        float3 positionLS = positionWS - lightData.positionWS;
+        positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
 
-        // No need to normalize for fetching cubemap
-        R = (positionWS + intersection * rayWS) - lightData.capturePointWS;
+        float3 rayLS = mul(rayWS, worldToLocal);
+        float sphereRadius = lightData.innerDistance.x;
+        float dist = SphereRayIntersectSimple(positionLS, rayLS, sphereRadius + lightData.blendDistance);
+
+        R = (positionWS + dist * rayWS) - lightData.positionWS;
 
         float distFade = length(positionWS - lightData.positionWS);
         weight = saturate(((sphereRadius + lightData.blendDistance) - distFade) / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
