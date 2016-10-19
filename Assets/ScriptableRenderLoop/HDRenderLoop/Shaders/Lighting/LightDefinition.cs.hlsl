@@ -71,7 +71,7 @@ struct EnvLightData
 	float unused0;
 	float3 innerDistance;
 	float unused1;
-	float3 capturePointWS;
+	float3 offsetLS;
 	float unused2;
 };
 
@@ -237,9 +237,9 @@ float GetUnused1(EnvLightData value)
 {
 	return value.unused1;
 }
-float3 GetCapturePointWS(EnvLightData value)
+float3 GetOffsetLS(EnvLightData value)
 {
-	return value.capturePointWS;
+	return value.offsetLS;
 }
 float GetUnused2(EnvLightData value)
 {

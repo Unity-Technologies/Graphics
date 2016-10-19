@@ -529,7 +529,8 @@ namespace UnityEngine.ScriptableRenderLoop
                     continue;
 
                 var l = new EnvLightData();
-                
+
+                // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
                 l.positionWS = probe.localToWorld.GetColumn(3);
                 l.shapeType = EnvShapeType.None;
 
@@ -538,18 +539,20 @@ namespace UnityEngine.ScriptableRenderLoop
                     l.shapeType = EnvShapeType.Box;
                 }
 
+                // remove scale from the matrix (Scale in this matrix is use to scale the widget)
                 l.right = probe.localToWorld.GetColumn(0);
+                l.right.Normalize();
                 l.up = probe.localToWorld.GetColumn(1);
+                l.up.Normalize();
                 l.forward = probe.localToWorld.GetColumn(2);
+                l.forward.Normalize();
 
                 l.innerDistance = probe.bounds.extents;
 
                 l.sliceIndex = m_cubeReflTexArray.FetchSlice(probe.texture);
 
-                // center is local capture point. By multiply by localToWorld we get world position
-                l.capturePointWS = probe.localToWorld.MultiplyPoint(probe.center);
+                l.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
                 l.blendDistance = probe.blendDistance;
-
                 lights.Add(l);
             }
 
