@@ -13,11 +13,17 @@
 #define AREASHAPETYPE_CYLINDER (5)
 
 //
-// UnityEngine.ScriptableRenderLoop.EnvShapeType:  static fields
+// UnityEngine.ScriptableRenderLoop.ProjectionShapeType:  static fields
 //
-#define ENVSHAPETYPE_NONE (0)
-#define ENVSHAPETYPE_BOX (1)
-#define ENVSHAPETYPE_SPHERE (2)
+#define PROJECTIONSHAPETYPE_NONE (0)
+#define PROJECTIONSHAPETYPE_BOX (1)
+#define PROJECTIONSHAPETYPE_SPHERE (2)
+
+//
+// UnityEngine.ScriptableRenderLoop.InfluenceShapeType:  static fields
+//
+#define INFLUENCESHAPETYPE_BOX (0)
+#define INFLUENCESHAPETYPE_SPHERE (1)
 
 // Generated from UnityEngine.ScriptableRenderLoop.PunctualLightData
 // PackingRules = Exact
@@ -62,17 +68,17 @@ struct AreaLightData
 struct EnvLightData
 {
 	float3 positionWS;
-	int shapeType;
+	int projectionShapeType;
 	float3 forward;
-	int sliceIndex;
+	int influenceShapeType;
 	float3 up;
 	float blendDistance;
 	float3 right;
-	float unused0;
+	int sliceIndex;
 	float3 innerDistance;
-	float unused1;
+	float unused0;
 	float3 offsetLS;
-	float unused2;
+	float unused1;
 };
 
 // Generated from UnityEngine.ScriptableRenderLoop.PlanarLightData
@@ -201,17 +207,17 @@ float3 GetPositionWS(EnvLightData value)
 {
 	return value.positionWS;
 }
-int GetShapeType(EnvLightData value)
+int GetProjectionShapeType(EnvLightData value)
 {
-	return value.shapeType;
+	return value.projectionShapeType;
 }
 float3 GetForward(EnvLightData value)
 {
 	return value.forward;
 }
-int GetSliceIndex(EnvLightData value)
+int GetInfluenceShapeType(EnvLightData value)
 {
-	return value.sliceIndex;
+	return value.influenceShapeType;
 }
 float3 GetUp(EnvLightData value)
 {
@@ -225,25 +231,25 @@ float3 GetRight(EnvLightData value)
 {
 	return value.right;
 }
-float GetUnused0(EnvLightData value)
+int GetSliceIndex(EnvLightData value)
 {
-	return value.unused0;
+	return value.sliceIndex;
 }
 float3 GetInnerDistance(EnvLightData value)
 {
 	return value.innerDistance;
 }
-float GetUnused1(EnvLightData value)
+float GetUnused0(EnvLightData value)
 {
-	return value.unused1;
+	return value.unused0;
 }
 float3 GetOffsetLS(EnvLightData value)
 {
 	return value.offsetLS;
 }
-float GetUnused2(EnvLightData value)
+float GetUnused1(EnvLightData value)
 {
-	return value.unused2;
+	return value.unused1;
 }
 
 //
