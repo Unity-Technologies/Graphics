@@ -7,18 +7,18 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    class Vector1ControlDrawData : ControlDrawData
+    class Vector3ControlDrawData : ControlDrawData
     {
         public override void OnGUIHandler()
         {
             base.OnGUIHandler();
 
-            var tNode = node as UnityEngine.MaterialGraph.Vector1Node;
+            var tNode = node as UnityEngine.MaterialGraph.Vector3Node;
             if (tNode == null)
                 return;
 
             tNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), tNode.exposedState);
-            tNode.value = EditorGUILayout.FloatField("Value:", tNode.value);
+            tNode.value = EditorGUILayout.Vector3Field("", tNode.value);
         }
 
         public override float GetHeight()
@@ -28,11 +28,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class Vector1NodeDrawData : MaterialNodeDrawData
+    public class Vector3NodeDrawData : MaterialNodeDrawData
     {
         protected override IEnumerable<GraphElementData> GetControlData()
         {
-            var instance = CreateInstance<Vector1ControlDrawData>();
+            var instance = CreateInstance<Vector3ControlDrawData>();
             instance.Initialize(node);
             return new List<GraphElementData> { instance };
         }
