@@ -140,6 +140,11 @@ CBUFFER_START(UnityPerFrame)
 
 CBUFFER_END
 
+CBUFFER_START(UnityLightmaps)
+float4 unity_LightmapST;
+float4 unity_DynamicLightmapST;
+CBUFFER_END
+
 // ----------------------------------------------------------------------------
 
 // TODO: move this to constant buffer by Pass

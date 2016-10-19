@@ -132,6 +132,77 @@ Shader "Unity/Lit"
         }
 
         // ------------------------------------------------------------------
+        // Extracts information for lightmapping, GI (emission, albedo, ...)
+        // This pass it not used during regular rendering.
+        Pass
+        {
+            Name "META"
+            Tags{ "LightMode" = "Meta" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+
+            CBUFFER_START(UnityMetaPass)
+            // x = use uv1 as raster position
+            // y = use uv2 as raster position
+            bool4 unity_MetaVertexControl;
+
+            // x = return albedo
+            // y = return normal
+            bool4 unity_MetaFragmentControl;
+
+            CBUFFER_END
+
+            // This was not in constant buffer in original unity, so keep outiside. But should be in as ShaderRenderPass frequency
+            float unity_OneOverOutputBoost;
+            float unity_MaxOutputValue;
+
+            struct Varyings
+            {
+                float4 positionHS;
+                float2 texCoord1;
+                float2 texCoord2;
+            };
+
+            struct PackedVaryings
+            {
+                float4 positionHS : SV_Position;
+                float4 interpolators[1] : TEXCOORD0;
+            };
+
+            // Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
+            PackedVaryings PackVaryings(Varyings input)
+            {
+                PackedVaryings output;
+                output.positionHS = input.positionHS;
+                output.interpolators[0].xy = input.texCoord1;
+                output.interpolators[0].zw = input.texCoord2;
+
+                return output;
+            }
+
+            Varyings UnpackVaryings(PackedVaryings input)
+            {
+                Varyings output;
+                output.positionHS = input.positionHS;
+                output.texCoord0 = input.interpolators[0].xy;
+                output.texCoord1 = input.interpolators[0].zw;
+
+                return output;
+            }
+
+
+            #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
+
+            ENDHLSL
+        }
+
+        // ------------------------------------------------------------------
         //  forward pass
         Pass
         {

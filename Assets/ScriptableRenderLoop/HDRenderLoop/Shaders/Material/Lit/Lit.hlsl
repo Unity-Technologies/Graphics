@@ -431,6 +431,24 @@ float3 GetBakedDiffuseLigthing(PreLightData prelightData, SurfaceData surfaceDat
 }
 
 //-----------------------------------------------------------------------------
+// light transport functions
+//-----------------------------------------------------------------------------
+
+LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
+{
+    LighTransportData lightTransportData;
+
+    // diffuseColor for lightmapping should basically be diffuse color.
+    // But rough metals (black diffuse) still scatter quite a lot of light around, so
+    // we want to take some of that into account too.
+
+    lightTransportData.diffuseColor = bsdfData.diffuseColor + bsdfData.fresnel0 * bsdfData.roughness * 0.5 * surfaceData.metalic;
+    lightTransportData.emissiveColor = builtinData.emissiveColor * builtinData.emissiveIntensity;
+
+    return lightTransportData;
+}
+
+//-----------------------------------------------------------------------------
 // BSDF share between area light (reference) and punctual light
 //-----------------------------------------------------------------------------
 
