@@ -66,7 +66,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var data = GetData<MaterialNodeDrawData>();
             NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes, data.node);
             if (childrenNodes.OfType<IRequiresTime>().Any())
-                data.MarkDirtyHack();
+                this.Touch(ChangeType.Repaint);
             ListPool<INode>.Release(childrenNodes);
         }
 
