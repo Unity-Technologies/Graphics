@@ -117,7 +117,9 @@ namespace UnityEngine.ScriptableRenderLoop
                           + gbufferNames.Length
                           + typeof(Builtin.BuiltinData).GetFields().Length
                           + typeof(Lit.SurfaceData).GetFields().Length
-                          + typeof(Lit.BSDFData).GetFields().Length;
+                          + typeof(Lit.BSDFData).GetFields().Length
+                          + typeof(Unlit.SurfaceData).GetFields().Length
+                          + typeof(Unlit.BSDFData).GetFields().Length;
 
                 styles.debugViewMaterialStrings = new GUIContent[num];
                 styles.debugViewMaterialValues = new int[num];
@@ -132,10 +134,12 @@ namespace UnityEngine.ScriptableRenderLoop
                 FillWithPropertiesEnum(typeof(HDRenderLoop.DebugViewVaryingMode), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, ref index);
                 FillWithProperties(typeof(Builtin.BuiltinData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, ref index);
                 FillWithProperties(typeof(Lit.SurfaceData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, ref index);
+                FillWithProperties(typeof(Unlit.SurfaceData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, ref index);
 
                 // Engine
                 FillWithPropertiesEnum(typeof(HDRenderLoop.DebugViewGbufferMode), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, true, ref index);
                 FillWithProperties(typeof(Lit.BSDFData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, true, ref index);
+                FillWithProperties(typeof(Unlit.BSDFData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, true, ref index);
 
                 styles.isDebugViewMaterialInit = true;
             }
