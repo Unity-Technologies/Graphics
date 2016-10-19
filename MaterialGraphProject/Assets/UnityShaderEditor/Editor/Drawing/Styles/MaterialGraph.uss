@@ -4,6 +4,7 @@ MaterialNodeDrawer {
 
 MaterialNodeDrawer #slots {
 	flex-direction: row;
+	width: 200;
 }
 
 MaterialNodeDrawer #slots #input {
@@ -19,6 +20,7 @@ MaterialNodeDrawer #slots #output {
 MaterialNodeDrawer #controls {
 	flex-direction: column;
 	padding-bottom: 2;
+	width: 200;
 }
 
 MaterialNodeDrawer #controls #element{
