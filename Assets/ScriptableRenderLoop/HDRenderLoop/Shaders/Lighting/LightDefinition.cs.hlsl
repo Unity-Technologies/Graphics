@@ -13,17 +13,11 @@
 #define AREASHAPETYPE_CYLINDER (5)
 
 //
-// UnityEngine.ScriptableRenderLoop.ProjectionShapeType:  static fields
+// UnityEngine.ScriptableRenderLoop.EnvShapeType:  static fields
 //
-#define PROJECTIONSHAPETYPE_NONE (0)
-#define PROJECTIONSHAPETYPE_BOX (1)
-#define PROJECTIONSHAPETYPE_SPHERE (2)
-
-//
-// UnityEngine.ScriptableRenderLoop.InfluenceShapeType:  static fields
-//
-#define INFLUENCESHAPETYPE_BOX (0)
-#define INFLUENCESHAPETYPE_SPHERE (1)
+#define ENVSHAPETYPE_NONE (0)
+#define ENVSHAPETYPE_BOX (1)
+#define ENVSHAPETYPE_SPHERE (2)
 
 // Generated from UnityEngine.ScriptableRenderLoop.PunctualLightData
 // PackingRules = Exact
@@ -68,9 +62,9 @@ struct AreaLightData
 struct EnvLightData
 {
 	float3 positionWS;
-	int projectionShapeType;
+	int envShapeType;
 	float3 forward;
-	int influenceShapeType;
+	float unused2;
 	float3 up;
 	float blendDistance;
 	float3 right;
@@ -207,17 +201,17 @@ float3 GetPositionWS(EnvLightData value)
 {
 	return value.positionWS;
 }
-int GetProjectionShapeType(EnvLightData value)
+int GetEnvShapeType(EnvLightData value)
 {
-	return value.projectionShapeType;
+	return value.envShapeType;
 }
 float3 GetForward(EnvLightData value)
 {
 	return value.forward;
 }
-int GetInfluenceShapeType(EnvLightData value)
+float GetUnused2(EnvLightData value)
 {
-	return value.influenceShapeType;
+	return value.unused2;
 }
 float3 GetUp(EnvLightData value)
 {
