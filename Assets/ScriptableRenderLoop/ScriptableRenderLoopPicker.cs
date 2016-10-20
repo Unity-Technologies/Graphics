@@ -1,6 +1,6 @@
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     //@TODO: This should be moved into GraphicsSettings
     [ExecuteInEditMode]

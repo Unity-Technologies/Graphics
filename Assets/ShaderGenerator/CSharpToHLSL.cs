@@ -7,7 +7,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     public class CSharpToHLSL
     {

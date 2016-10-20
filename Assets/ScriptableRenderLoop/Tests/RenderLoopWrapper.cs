@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.ScriptableRenderLoop;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.ScriptableRenderLoop;
+using UnityEngine.Experimental.Rendering;
 
 [ExecuteInEditMode]
 public class RenderLoopWrapper : MonoBehaviour

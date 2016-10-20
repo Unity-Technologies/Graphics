@@ -3,7 +3,7 @@ using UnityEngine;
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL]
@@ -99,4 +99,4 @@ namespace UnityEngine.ScriptableRenderLoop
     {
         public Vector3 positionWS;
     };
-} // namespace UnityEngine.ScriptableRenderLoop
+} // namespace UnityEngine.Experimental.ScriptableRenderLoop

@@ -3,7 +3,7 @@ using UnityEditor;
 
 //using EditorGUIUtility=UnityEditor.EditorGUIUtility;
 
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [CustomEditor(typeof(HDRenderLoop))]
     public class HDRenderLoopInspector : Editor

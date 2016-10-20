@@ -1,8 +1,9 @@
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
     public class FptlLighting : ScriptableRenderLoop

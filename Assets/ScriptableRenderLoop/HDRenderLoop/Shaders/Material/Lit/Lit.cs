@@ -5,7 +5,7 @@ using System;
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     namespace Lit
     {
@@ -246,7 +246,7 @@ namespace UnityEngine.ScriptableRenderLoop
                 isInit = false;
             }
 
-            public void RenderInit(UnityEngine.Rendering.RenderLoop renderLoop)
+            public void RenderInit(UnityEngine.Experimental.Rendering.RenderLoop renderLoop)
             {
                 var cmd = new CommandBuffer();
                 cmd.name = "Init PreFGD";

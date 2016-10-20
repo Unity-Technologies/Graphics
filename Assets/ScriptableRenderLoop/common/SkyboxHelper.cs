@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine;
 
 public class SkyboxHelper
