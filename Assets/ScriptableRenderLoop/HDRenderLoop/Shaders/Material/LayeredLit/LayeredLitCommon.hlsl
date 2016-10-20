@@ -97,7 +97,7 @@ struct Varyings
     float4 positionHS;
     float3 positionWS;
     float2 texCoord0;
-    float4 tangentToWorld[3]; // [3x3:tangentToWorld | 1x3:viewDirForParallax]
+    float3 tangentToWorld[3];
     float4 vertexColor;
 
 #ifdef SHADER_STAGE_FRAGMENT
@@ -126,9 +126,9 @@ PackedVaryings PackVaryings(Varyings input)
     output.positionHS = input.positionHS;
     output.interpolators[0].xyz = input.positionWS.xyz;
     output.interpolators[0].w = input.texCoord0.x;
-    output.interpolators[1] = input.tangentToWorld[0];
-    output.interpolators[2] = input.tangentToWorld[1];
-    output.interpolators[3] = input.tangentToWorld[2];
+    output.interpolators[1].xyz = input.tangentToWorld[0];
+    output.interpolators[2].xyz = input.tangentToWorld[1];
+    output.interpolators[3].xyz = input.tangentToWorld[2];
     output.interpolators[4].x = input.texCoord0.y;
     output.interpolators[4].yzw = float3(0.0, 0.0, 0.0);
     output.interpolators[5] = input.vertexColor;
@@ -143,9 +143,9 @@ Varyings UnpackVaryings(PackedVaryings input)
     output.positionWS.xyz = input.interpolators[0].xyz;
     output.texCoord0.x = input.interpolators[0].w;
     output.texCoord0.y = input.interpolators[4].x;
-    output.tangentToWorld[0] = input.interpolators[1];
-    output.tangentToWorld[1] = input.interpolators[2];
-    output.tangentToWorld[2] = input.interpolators[3];
+    output.tangentToWorld[0] = input.interpolators[1].xyz;
+    output.tangentToWorld[1] = input.interpolators[2].xyz;
+    output.tangentToWorld[2] = input.interpolators[3].xyz;
     output.vertexColor = input.interpolators[5];
 
 #ifdef SHADER_STAGE_FRAGMENT
@@ -177,10 +177,6 @@ PackedVaryings VertDefault(Attributes input)
     output.tangentToWorld[1].xyz = tangentToWorld[1];
     output.tangentToWorld[2].xyz = tangentToWorld[2];
 
-    output.tangentToWorld[0].w = 0;
-    output.tangentToWorld[1].w = 0;
-    output.tangentToWorld[2].w = 0;
-
     output.vertexColor = input.color;
 
     return PackVaryings(output);
@@ -190,12 +186,6 @@ PackedVaryings VertDefault(Attributes input)
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Lighting data function
 //-------------------------------------------------------------------------------------
-
-float3 TransformTangentToWorld(float3 normalTS, float4 tangentToWorld[3])
-{
-    // TODO check: do we need to normalize ?
-    return normalize(mul(normalTS, float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz)));
-}
 
 #if SHADER_STAGE_FRAGMENT
 
@@ -265,7 +255,7 @@ void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
     outWeights[0] = left;
 }
 
-void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(float3 V, Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     float4 maskValues = float4(1.0, 1.0, 1.0, 1.0);// input.vertexColor;
 

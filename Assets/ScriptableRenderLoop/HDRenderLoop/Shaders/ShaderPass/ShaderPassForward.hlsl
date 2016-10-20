@@ -1,3 +1,7 @@
+#if SHADERPASS != SHADERPASS_FORWARD
+#error SHADERPASS_is_not_correctly_define
+#endif
+
 #if SHADER_STAGE_FRAGMENT
 
 float4 Frag(PackedVaryings packedInput) : SV_Target
@@ -8,7 +12,7 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
 
 	SurfaceData surfaceData;
 	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+	GetSurfaceAndBuiltinData(V, input, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 	Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);

@@ -233,4 +233,17 @@ float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
     return normalize(_WorldSpaceCameraPos.xyz - positionWS);
 }
 
+float3 TransformTangentToWorld(float3 dirTS, float3 tangentToWorld[3])
+{
+    // TODO check: do we need to normalize ?
+    return normalize(mul(dirTS, float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz)));
+}
+
+// Assume TBN is orthonormal.
+float3 TransformWorldToTangent(float3 dirWS, float3 tangentToWorld[3])
+{
+    // TODO check: do we need to normalize ?
+    return normalize(mul(float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz), dirWS));
+}
+
 #endif // UNITY_SHADER_VARIABLES_INCLUDED

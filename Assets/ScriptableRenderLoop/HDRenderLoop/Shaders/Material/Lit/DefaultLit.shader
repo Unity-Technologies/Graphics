@@ -72,6 +72,10 @@ Shader "Unity/Lit"
     #pragma target 5.0
     #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
+    //-------------------------------------------------------------------------------------
+    // Variant
+    //-------------------------------------------------------------------------------------
+
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
     #pragma shader_feature _NORMALMAP
@@ -84,7 +88,50 @@ Shader "Unity/Lit"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
 
-    #include "LitCommon.hlsl"
+    #pragma multi_compile _ LIGHTMAP_ON
+    #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+
+    //-------------------------------------------------------------------------------------
+    // Include
+    //-------------------------------------------------------------------------------------
+    #include "common.hlsl"
+    #include "../../ShaderPass/ShaderPass.cs.hlsl"
+
+    //-------------------------------------------------------------------------------------
+    // variable declaration
+    //-------------------------------------------------------------------------------------
+
+    // Set of users variables
+    float4 _BaseColor;
+    UNITY_DECLARE_TEX2D(_BaseColorMap);
+
+    float _Metalic;
+    float _Smoothness;
+    UNITY_DECLARE_TEX2D(_MaskMap);
+    UNITY_DECLARE_TEX2D(_SpecularOcclusionMap);
+
+    UNITY_DECLARE_TEX2D(_NormalMap);
+    UNITY_DECLARE_TEX2D(_Heightmap);
+    float _HeightScale;
+    float _HeightBias;
+
+    UNITY_DECLARE_TEX2D(_DiffuseLightingMap);
+    float4 _EmissiveColor;
+    UNITY_DECLARE_TEX2D(_EmissiveColorMap);
+    float _EmissiveIntensity;
+
+    float _SubSurfaceRadius;
+    UNITY_DECLARE_TEX2D(_SubSurfaceRadiusMap);
+    // float _Thickness;
+    // UNITY_DECLARE_TEX2D(_ThicknessMap);
+
+    // float _CoatCoverage;
+    // UNITY_DECLARE_TEX2D(_CoatCoverageMap);
+
+    // float _CoatRoughness;
+    // UNITY_DECLARE_TEX2D(_CoatRoughnessMap);
+
+    float _AlphaCutoff;
 
     ENDHLSL
 
@@ -107,6 +154,9 @@ Shader "Unity/Lit"
             #pragma vertex VertDefault
             #pragma fragment Frag
 
+            #define SHADERPASS SHADERPASS_GBUFFER
+            #include "LitCommon.hlsl"
+
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -125,6 +175,9 @@ Shader "Unity/Lit"
 
             #pragma vertex VertDefault
             #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
+            #include "LitCommon.hlsl"
             
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -143,9 +196,11 @@ Shader "Unity/Lit"
 
             HLSLPROGRAM
 
-            #pragma vertex Vert
+            #pragma vertex VertLT
             #pragma fragment Frag
 
+            #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #include "LitCommon.hlsl"
 
             CBUFFER_START(UnityMetaPass)
             // x = use uv1 as raster position
@@ -162,33 +217,33 @@ Shader "Unity/Lit"
             float unity_OneOverOutputBoost;
             float unity_MaxOutputValue;
 
-            struct Varyings
+            struct VaryingsLT
             {
                 float4 positionHS;
+                float2 texCoord0;
                 float2 texCoord1;
-                float2 texCoord2;
             };
 
-            struct PackedVaryings
+            struct PackedVaryingsLT
             {
                 float4 positionHS : SV_Position;
                 float4 interpolators[1] : TEXCOORD0;
             };
 
             // Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
-            PackedVaryings PackVaryings(Varyings input)
+            PackedVaryingsLT PackVaryings(VaryingsLT input)
             {
-                PackedVaryings output;
+                PackedVaryingsLT output;
                 output.positionHS = input.positionHS;
-                output.interpolators[0].xy = input.texCoord1;
-                output.interpolators[0].zw = input.texCoord2;
+                output.interpolators[0].xy = input.texCoord0;
+                output.interpolators[0].zw = input.texCoord1;
 
                 return output;
             }
 
-            Varyings UnpackVaryings(PackedVaryings input)
+            VaryingsLT UnpackVaryings(PackedVaryingsLT input)
             {
-                Varyings output;
+                VaryingsLT output;
                 output.positionHS = input.positionHS;
                 output.texCoord0 = input.interpolators[0].xy;
                 output.texCoord1 = input.interpolators[0].zw;
@@ -196,7 +251,36 @@ Shader "Unity/Lit"
                 return output;
             }
 
+            PackedVaryingsLT VertLT(Attributes input)
+            {
+                VaryingsLT output;
 
+                // Output UV coordinate in vertex shader
+                if (unity_MetaVertexControl.x)
+                {
+                    input.positionOS.xy = input.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
+                    // OpenGL right now needs to actually use incoming vertex position,
+                    // so use it in a very dummy way
+                    //v.positionOS.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
+                }
+                if (unity_MetaVertexControl.y)
+                {
+                    input.positionOS.xy = input.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+                    // OpenGL right now needs to actually use incoming vertex position,
+                    // so use it in a very dummy way
+                    //v.positionOS.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
+                }
+
+                float3 positionWS = TransformObjectToWorld(input.positionOS);
+                output.positionHS = TransformWorldToHClip(positionWS);
+                output.texCoord0 = input.uv0;
+                output.texCoord1 = input.uv1;
+                return PackVaryings(output);
+            }
+
+            #define GetSurfaceAndBuiltinData GetSurfaceAndBuiltinDataLT
+            #define Varyings VaryingsLT
+            #define PackedVaryings PackedVaryingsLT
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -217,6 +301,9 @@ Shader "Unity/Lit"
 
             #pragma vertex VertDefault
             #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_FORWARD
+            #include "LitCommon.hlsl"
 
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
