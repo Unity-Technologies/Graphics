@@ -4,7 +4,7 @@
 
 #include "Color.hlsl"
 
-#if SHADER_STAGE_FRAGMENT
+#ifdef SHADER_STAGE_FRAGMENT
 
 // TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
 // Ask Jesper if this can be change for HDRenderLoop

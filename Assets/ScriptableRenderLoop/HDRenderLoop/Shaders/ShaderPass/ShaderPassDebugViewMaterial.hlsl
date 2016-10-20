@@ -2,7 +2,7 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#if SHADER_STAGE_FRAGMENT
+#ifdef SHADER_STAGE_FRAGMENT
 
 #include "Color.hlsl"
 int _DebugViewMaterial;

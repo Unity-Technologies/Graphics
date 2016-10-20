@@ -147,7 +147,7 @@ Shader "Unity/LayeredLit"
             #pragma vertex VertDefault
             #pragma fragment Frag
 
-            #if SHADER_STAGE_FRAGMENT
+            #ifdef SHADER_STAGE_FRAGMENT
 
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "LayeredLitCommon.hlsl"
