@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor;
-using UnityEngine.Rendering;
-using UnityEngine.ScriptableRenderLoop;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.ScriptableRenderLoop;
 using NUnit.Framework;
 
 [TestFixture]

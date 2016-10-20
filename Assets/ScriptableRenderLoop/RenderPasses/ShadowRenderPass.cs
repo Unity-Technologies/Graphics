@@ -1,9 +1,10 @@
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using System.Collections.Generic;
 using System;
 
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [System.Serializable]
     public struct ShadowSettings

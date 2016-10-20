@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     public enum PackingRules
     {

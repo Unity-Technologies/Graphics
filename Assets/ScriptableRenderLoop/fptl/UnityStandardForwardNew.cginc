@@ -59,7 +59,7 @@ VertexOutputForwardNew vertForward(VertexInput v)
 #include "LightingUtils.hlsl"
 
 static FragmentCommonData gdata;
-
+static float occlusion;
 
 half4 fragNoLight(VertexOutputForwardNew i) : SV_Target
 {
@@ -91,7 +91,6 @@ float3 EvalMaterial(UnityLight light, UnityIndirect ind)
 
 float3 EvalIndirectSpecular(UnityLight light, UnityIndirect ind)
 {
-    float occlusion = 1.0;      // have none for now
     return occlusion * UNITY_BRDF_PBS(gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, light, ind);
 }
 
@@ -129,20 +128,23 @@ half4 fragForward(VertexOutputForwardNew i) : SV_Target
 
     uint2 pixCoord = ((uint2) i.pos.xy);
 
-    //float atten = 0.0;
-    //half occlusion = Occlusion(i.tex.xy);
-    //UnityGI gi = FragmentGI (gdata, occlusion, i.ambientOrLightmapUV, atten, mainLight);
-
+    float atten = 1.0;
+	occlusion = Occlusion(i.tex.xy);
+    UnityGI gi = FragmentGI (gdata, occlusion, i.ambientOrLightmapUV, atten, DummyLight(), false);
+	
     uint numLightsProcessed = 0, numReflectionsProcessed = 0;
     float3 res = 0;
+
+	// direct light contributions
     res += ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
+
+	// specular GI
     res += ExecuteReflectionList(numReflectionsProcessed, pixCoord, vP, gdata.normalWorld, Vworld, gdata.smoothness);
 
-    // don't really have a handle on this yet
-    //UnityLight mainLight = MainLight ();
-    //res += UNITY_BRDF_GI (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, occlusion, gi);
-    res += Emission(i.tex.xy);
-
+    // diffuse GI
+	res += UNITY_BRDF_PBS (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, gi.light, gi.indirect).xyz;
+    res += UNITY_BRDF_GI (gdata.diffColor, gdata.specColor, gdata.oneMinusReflectivity, gdata.smoothness, gdata.normalWorld, -gdata.eyeVec, occlusion, gi);
+	
     //res = OverlayHeatMap(numLightsProcessed, res);
 
     //UNITY_APPLY_FOG(i.fogCoord, res);
