@@ -2,8 +2,6 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-#ifdef SHADER_STAGE_FRAGMENT
-
 void Frag(  PackedVaryings packedInput,
 			OUTPUT_GBUFFER(outGBuffer)
 			#ifdef VELOCITY_IN_GBUFFER
@@ -12,7 +10,7 @@ void Frag(  PackedVaryings packedInput,
 			, OUTPUT_GBUFFER_BAKE_LIGHTING(outGBuffer)
 			)
 {
-	Varyings input = UnpackVaryings(packedInput);
+    FragInput input = UnpackVaryings(packedInput);
 	float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 	float3 positionWS = input.positionWS;
 
@@ -30,5 +28,3 @@ void Frag(  PackedVaryings packedInput,
 	#endif
 	ENCODE_BAKE_LIGHTING_INTO_GBUFFER(GetBakedDiffuseLigthing(preLightData, surfaceData, builtinData, bsdfData), outGBuffer);
 }
-
-#endif

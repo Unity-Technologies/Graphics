@@ -7,8 +7,9 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: unlitTest
-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
-  m_ShaderKeywords: _EMISSION
+  m_Shader: {fileID: 4800000, guid: c4edd00ff2db5b24391a4fcb1762e459, type: 3}
+  m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
+    _EMISSION
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -17,6 +18,12 @@ Material:
     m_TexEnvs:
     - first:
         name: _BumpMap
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _ColorMap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -41,6 +48,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     - first:
         name: _EmissionMap
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _EmissiveColorMap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -71,8 +84,20 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - first:
+        name: _AlphaCutoff
+      second: 0.5
+    - first:
+        name: _AlphaCutoffEnable
+      second: 0
+    - first:
+        name: _BlendMode
+      second: 0
+    - first:
         name: _BumpScale
       second: 1
+    - first:
+        name: _CullMode
+      second: 2
     - first:
         name: _Cutoff
       second: 0.5
@@ -80,7 +105,19 @@ Material:
         name: _DetailNormalMapScale
       second: 1
     - first:
+        name: _DistortionDepthTest
+      second: 0
+    - first:
+        name: _DistortionOnly
+      second: 0
+    - first:
+        name: _DoubleSidedMode
+      second: 0
+    - first:
         name: _DstBlend
+      second: 0
+    - first:
+        name: _EmissiveIntensity
       second: 0
     - first:
         name: _GlossMapScale
@@ -113,6 +150,9 @@ Material:
         name: _SrcBlend
       second: 1
     - first:
+        name: _SurfaceType
+      second: 0
+    - first:
         name: _UVSec
       second: 0
     - first:
@@ -124,4 +164,7 @@ Material:
       second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _EmissionColor
+      second: {r: 0, g: 0, b: 0, a: 1}
+    - first:
+        name: _EmissiveColor
       second: {r: 0, g: 0, b: 0, a: 1}

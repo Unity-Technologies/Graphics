@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Layered
-  m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
+  m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
     _EMISSION _LAYEREDLIT_4_LAYER _LAYEREDLIT_4_LAYERS _LAYERMASKMAP _MASKMAP _NORMALMAP
     _NORMALMAP_TANGENT_SPACE
@@ -17,6 +17,12 @@ Material:
   m_SavedProperties:
     serializedVersion: 2
     m_TexEnvs:
+    - first:
+        name: _BaseColorMap
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - first:
         name: _BaseColorMap0
       second:
@@ -66,7 +72,19 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
+        name: _DiffuseLightingMap
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
         name: _EmissionMap
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _EmissiveColorMap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -91,6 +109,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     - first:
         name: _EmissiveColorMap3
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _HeightMap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -132,6 +156,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
+        name: _MaskMap
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
         name: _MaskMap0
       second:
         m_Texture: {fileID: 2800000, guid: eddc784b66d317641bd2c3b078a694b1, type: 3}
@@ -157,6 +187,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     - first:
         name: _MetallicGlossMap
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _NormalMap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -198,6 +234,12 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
+        name: _SpecularOcclusionMap
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
         name: _SpecularOcclusionMap0
       second:
         m_Texture: {fileID: 0}
@@ -217,6 +259,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     - first:
         name: _SpecularOcclusionMap3
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _SubSurfaceRadiusMap
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -259,6 +307,9 @@ Material:
         name: _EmissiveColorMode
       second: 1
     - first:
+        name: _EmissiveIntensity
+      second: 0
+    - first:
         name: _EmissiveIntensity0
       second: 0
     - first:
@@ -280,6 +331,9 @@ Material:
         name: _GlossyReflections
       second: 1
     - first:
+        name: _HeightBias
+      second: 0
+    - first:
         name: _HeightBias0
       second: 0
     - first:
@@ -294,6 +348,9 @@ Material:
     - first:
         name: _HeightMapMode
       second: 0
+    - first:
+        name: _HeightScale
+      second: 1
     - first:
         name: _HeightScale0
       second: 1
@@ -311,6 +368,9 @@ Material:
       second: 4
     - first:
         name: _MaterialId
+      second: 0
+    - first:
+        name: _Metalic
       second: 0
     - first:
         name: _Metalic0
@@ -340,6 +400,9 @@ Material:
         name: _Parallax
       second: 0.02
     - first:
+        name: _Smoothness
+      second: 0.5
+    - first:
         name: _Smoothness0
       second: 1
     - first:
@@ -361,6 +424,9 @@ Material:
         name: _SrcBlend
       second: 1
     - first:
+        name: _SubSurfaceRadius
+      second: 0
+    - first:
         name: _SurfaceType
       second: 0
     - first:
@@ -370,6 +436,9 @@ Material:
         name: _ZWrite
       second: 1
     m_Colors:
+    - first:
+        name: _BaseColor
+      second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _BaseColor0
       second: {r: 1, g: 1, b: 1, a: 1}
@@ -387,6 +456,9 @@ Material:
       second: {r: 1, g: 1, b: 1, a: 1}
     - first:
         name: _EmissionColor
+      second: {r: 0, g: 0, b: 0, a: 1}
+    - first:
+        name: _EmissiveColor
       second: {r: 0, g: 0, b: 0, a: 1}
     - first:
         name: _EmissiveColor0

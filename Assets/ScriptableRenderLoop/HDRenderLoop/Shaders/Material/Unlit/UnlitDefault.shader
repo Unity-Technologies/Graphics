@@ -31,10 +31,39 @@ Shader "Unity/Unlit"
     #pragma target 5.0
     #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
+    //-------------------------------------------------------------------------------------
+    // Variant
+    //-------------------------------------------------------------------------------------
+
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _EMISSIVE_COLOR_MAP
 
-    #include "UnlitCommon.hlsl"
+    //-------------------------------------------------------------------------------------
+    // Define
+    //-------------------------------------------------------------------------------------
+
+    #define UNITY_MATERIAL_UNLIT // Need to be define before including Material.hlsl
+
+    //-------------------------------------------------------------------------------------
+    // Include
+    //-------------------------------------------------------------------------------------
+
+    #include "common.hlsl"
+    #include "../../ShaderPass/ShaderPass.cs.hlsl"
+    #include "../../ShaderVariables.hlsl"
+    #include "../../Debug/DebugViewMaterial.hlsl"
+
+    //-------------------------------------------------------------------------------------
+    // variable declaration
+    //-------------------------------------------------------------------------------------
+
+    float4  _Color;
+    UNITY_DECLARE_TEX2D(_ColorMap);
+    float3 _EmissiveColor;
+    UNITY_DECLARE_TEX2D(_EmissiveColorMap);
+    float _EmissiveIntensity;
+
+    float _AlphaCutoff;
 
     ENDHLSL
 
@@ -56,6 +85,26 @@ Shader "Unity/Unlit"
 
             #pragma vertex VertDefault
             #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
+            #include "../../Material/Material.hlsl"
+            #include "UnlitData.hlsl"
+            #include "UnlitShare.hlsl"
+
+            void GetVaryingsDataDebug(uint paramId, FragInput input, inout float3 result, inout bool needLinearToSRGB)
+            {
+                switch (paramId)
+                {
+                case DEBUGVIEW_VARYING_DEPTH:
+                    // TODO: provide a customize parameter (like a slider)
+                    float linearDepth = frac(LinearEyeDepth(input.positionHS.z, _ZBufferParams) * 0.1);
+                    result = linearDepth.xxx;
+                    break;
+                case DEBUGVIEW_VARYING_TEXCOORD0:
+                    result = float3(input.texCoord0 * 0.5 + 0.5, 0.0);
+                    break;
+                }
+            }
             
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -77,6 +126,11 @@ Shader "Unity/Unlit"
 
             #pragma vertex VertDefault
             #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_FORWARD_UNLIT
+            #include "../../Material/Material.hlsl"
+            #include "UnlitData.hlsl"
+            #include "UnlitShare.hlsl"
             
             #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
 
