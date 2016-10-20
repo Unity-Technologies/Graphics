@@ -14,7 +14,7 @@ struct Attributes
     float3 normalOS     : NORMAL;
     float2 uv0          : TEXCOORD0;
     float2 uv1		    : TEXCOORD1;
-#if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
+#if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
     float2 uv2		    : TEXCOORD2;
 #endif    
     float4 tangentOS    : TANGENT;  // Always present as we require it also in case of anisotropic lighting
@@ -32,12 +32,6 @@ struct Varyings
     float2 texCoord2;
 #endif
     float3 tangentToWorld[3];
-
-#if defined(SHADER_STAGE_FRAGMENT) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
-#if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
-    FRONT_FACE_TYPE cullFace;
-#endif
-#endif
 };
 
 struct PackedVaryings
@@ -49,7 +43,7 @@ struct PackedVaryings
     float4 interpolators[4] : TEXCOORD0;
 #endif
 
-#if defined(SHADER_STAGE_FRAGMENT) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
+#if SHADER_STAGE_FRAGMENT
     #if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
     FRONT_FACE_TYPE cullFace : FRONT_FACE_SEMATIC;
     #endif
@@ -78,9 +72,11 @@ PackedVaryings PackVaryings(Varyings input)
     return output;
 }
 
-Varyings UnpackVaryings(PackedVaryings input)
+FragInput UnpackVaryings(PackedVaryings input)
 {
-    Varyings output;
+    FragInput output;
+    ZERO_INITIALIZE(FragInput, output);
+
     output.positionHS = input.positionHS;
     output.positionWS.xyz = input.interpolators[0].xyz;
     output.tangentToWorld[0] = input.interpolators[1].xyz;
@@ -94,9 +90,9 @@ Varyings UnpackVaryings(PackedVaryings input)
     output.texCoord2 = input.interpolators[4].xy;
 #endif
 
-#if defined(SHADER_STAGE_FRAGMENT) && (SHADERPASS != SHADERPASS_LIGHT_TRANSPORT)
+#if SHADER_STAGE_FRAGMENT
     #if defined(_DOUBLESIDED_LIGHTING_FLIP) || defined(_DOUBLESIDED_LIGHTING_MIRROR)
-    output.cullFace = input.cullFace;
+    output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);
     #endif
 #endif
 

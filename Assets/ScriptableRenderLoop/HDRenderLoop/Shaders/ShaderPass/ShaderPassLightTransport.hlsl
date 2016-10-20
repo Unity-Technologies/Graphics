@@ -4,15 +4,13 @@
 
 #include "Color.hlsl"
 
-#ifdef SHADER_STAGE_FRAGMENT
-
 // TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
 // Ask Jesper if this can be change for HDRenderLoop
 #define EMISSIVE_RGBM_SCALE 97.0
 
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
-    Varyings input = UnpackVaryings(packedInput);
+    FragInput input = UnpackVaryings(packedInput);
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
@@ -30,7 +28,8 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
     if (unity_MetaFragmentControl.x)
     {
         // Apply diffuseColor Boost from LightmapSettings.
-        res.rgb = clamp(pow(lightTransportData.diffuseColor, saturate(unity_OneOverOutputBoost)), 0, unity_MaxOutputValue);
+        // put abs here to silent a warning, no cost, no impact as color is assume to be positive.
+        res.rgb = clamp(pow(abs(lightTransportData.diffuseColor), saturate(unity_OneOverOutputBoost)), 0, unity_MaxOutputValue);
     }
     
     if (unity_MetaFragmentControl.y)
@@ -42,5 +41,3 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
 
     return res;
 }
-
-#endif

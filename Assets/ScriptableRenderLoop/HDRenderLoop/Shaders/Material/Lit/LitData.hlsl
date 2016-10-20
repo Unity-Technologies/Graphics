@@ -1,14 +1,30 @@
 // No guard header!
 
 //-------------------------------------------------------------------------------------
-// Fill SurfaceData/Lighting data function
+// FragInput
+// This structure gather all possible varying/interpolator for this shader.
 //-------------------------------------------------------------------------------------
 
-#ifdef SHADER_STAGE_FRAGMENT
-
-void GetLitParallaxHeightmap(inout Varyings input, inout SurfaceData surfaceData)
+struct FragInput
 {
-#if defined(_HEIGHTMAP) && !defined(_HEIGHTMAP_AS_DISPLACEMENT)
+    float4 positionHS;
+    float3 positionWS;
+    float2 texCoord0;
+    float2 texCoord1;
+    float2 texCoord2;
+    float3 tangentToWorld[3];
+    bool isFrontFace;
+};
+
+//-------------------------------------------------------------------------------------
+// Fill SurfaceData/Builtin data function
+//-------------------------------------------------------------------------------------
+
+void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
+{    
+#ifdef _HEIGHTMAP
+    // TODO: in case of shader graph, a node like parallax must be nullify if use to generate code for Meta pass
+    #ifndef _HEIGHTMAP_AS_DISPLACEMENT
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS); // This should be remove by the compiler as we usually cal it before.
     float height = UNITY_SAMPLE_TEX2D(_HeightMap, input.texCoord0).r * _HeightScale + _HeightBias;
     // Transform view vector in tangent space
@@ -16,11 +32,9 @@ void GetLitParallaxHeightmap(inout Varyings input, inout SurfaceData surfaceData
     float2 offset = ParallaxOffset(viewDirTS, height);
     input.texCoord0 += offset;
     input.texCoord1 += offset;
+    #endif
 #endif
-}
 
-void GetLitBaseColorAlpha(Varyings input, inout SurfaceData surfaceData, inout BuiltinData builtinData)
-{
     surfaceData.baseColor = UNITY_SAMPLE_TEX2D(_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     float alpha = _BaseColor.a;
@@ -32,11 +46,6 @@ void GetLitBaseColorAlpha(Varyings input, inout SurfaceData surfaceData, inout B
     clip(alpha - _AlphaCutoff);
 #endif
 
-    builtinData.opacity = alpha;
-}
-
-void GetLitSpecularOcclusion(Varyings input, inout SurfaceData surfaceData)
-{
 #ifdef _SPECULAROCCLUSIONMAP
     // TODO: Do something. For now just take alpha channel
     surfaceData.specularOcclusion = UNITY_SAMPLE_TEX2D(_SpecularOcclusionMap, input.texCoord0).a;
@@ -47,10 +56,7 @@ void GetLitSpecularOcclusion(Varyings input, inout SurfaceData surfaceData)
     //surfaceData.specularOcclusion *= surfaceData.specularOcclusion;
     surfaceData.specularOcclusion = 1.0;
 #endif
-}
 
-void GetLitNormal(Varyings input, inout SurfaceData surfaceData)
-{
     // TODO: think about using BC5
     float3 vertexNormalWS = input.tangentToWorld[2].xyz;
 
@@ -73,13 +79,11 @@ void GetLitNormal(Varyings input, inout SurfaceData surfaceData)
     float3 oppositeNormalWS = reflect(surfaceData.normalWS, vertexNormalWS);
 #endif
     // TODO : Test if GetOdddNegativeScale() is necessary here in case of normal map, as GetOdddNegativeScale is take into account in CreateTangentToWorld();
-    surfaceData.normalWS = IS_FRONT_VFACE(input.cullFace, GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS, -GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS);
+    surfaceData.normalWS =  input.isFrontFace ? 
+                                (GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS) :
+                                (-GetOdddNegativeScale() >= 0.0 ? surfaceData.normalWS : oppositeNormalWS);
 #endif
-}
 
-// Mask is Metalic, Ambient Occlusion, Smoothness
-void GetLitMask(Varyings input, inout SurfaceData surfaceData)
-{
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     surfaceData.perceptualSmoothness = UNITY_SAMPLE_TEX2D(_BaseColorMap, input.texCoord0).a;
 #elif defined(_MASKMAP)
@@ -88,6 +92,8 @@ void GetLitMask(Varyings input, inout SurfaceData surfaceData)
     surfaceData.perceptualSmoothness = 1.0;
 #endif
     surfaceData.perceptualSmoothness *= _Smoothness;
+
+    surfaceData.materialId = 0;
 
     // MaskMap is Metalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
 #ifdef _MASKMAP
@@ -98,32 +104,23 @@ void GetLitMask(Varyings input, inout SurfaceData surfaceData)
     surfaceData.ambientOcclusion = 1.0;
 #endif
     surfaceData.metalic *= _Metalic;
-}
 
-void GetLitAnisotropic(Varyings input, inout SurfaceData surfaceData)
-{
+
     surfaceData.tangentWS = input.tangentToWorld[0].xyz; // TODO: do with tangent same as with normal, sample into texture etc...
     surfaceData.anisotropy = 0;
-}
+    surfaceData.specular = 0.04;
 
-void GetLitSubSurface(Varyings input, inout SurfaceData surfaceData)
-{
     surfaceData.subSurfaceRadius = 1.0;
     surfaceData.thickness = 0.0;
     surfaceData.subSurfaceProfile = 0;
-}
 
-void GetLitClearCoat(Varyings input, inout SurfaceData surfaceData)
-{
     surfaceData.coatNormalWS = float3(1.0, 0.0, 0.0);
     surfaceData.coatPerceptualSmoothness = 1.0;
-}
+    surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
-void GetLitBuiltinData(Varyings input, SurfaceData surfaceData, inout BuiltinData builtinData)
-{
+
     // Builtin Data
-
-    // Alpha is setup earlier
+    builtinData.opacity = alpha;
 
     // TODO: Sample lightmap/lightprobe/volume proxy
     // This should also handle projective lightmap
@@ -132,11 +129,11 @@ void GetLitBuiltinData(Varyings input, SurfaceData surfaceData, inout BuiltinDat
 
     // If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
 #ifdef _EMISSIVE_COLOR
-#ifdef _EMISSIVE_COLOR_MAP
+    #ifdef _EMISSIVE_COLOR_MAP
     builtinData.emissiveColor = UNITY_SAMPLE_TEX2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
-#else
+    #else
     builtinData.emissiveColor = _EmissiveColor;
-#endif
+    #endif
 #elif defined(_MASKMAP) // If we have a MaskMap, use emissive slot as a mask on baseColor
     builtinData.emissiveColor = surfaceData.baseColor * UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).bbb;
 #else
@@ -150,5 +147,3 @@ void GetLitBuiltinData(Varyings input, SurfaceData surfaceData, inout BuiltinDat
     builtinData.distortion = float2(0.0, 0.0);
     builtinData.distortionBlur = 0.0;
 }
-
-#endif // #ifdef SHADER_STAGE_FRAGMENT

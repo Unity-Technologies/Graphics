@@ -166,28 +166,8 @@ Shader "Unity/Lit"
 
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
-            #include "LitVaryings.hlsl"
-            #include "LitParams.hlsl"
-
-            #ifdef SHADER_STAGE_FRAGMENT
-
-            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
-            {
-                GetLitParallaxHeightmap(input, surfaceData);
-                GetLitBaseColorAlpha(input, surfaceData, builtinData);
-                GetLitSpecularOcclusion(input, surfaceData);
-                GetLitNormal(input, surfaceData);
-                GetLitMask(input, surfaceData);
-                surfaceData.materialId = 0;
-                GetLitAnisotropic(input, surfaceData);
-                surfaceData.specular = 0.04;
-                GetLitSubSurface(input, surfaceData);
-                GetLitClearCoat(input, surfaceData);
-                surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-                GetLitBuiltinData(input, surfaceData, builtinData);
-            }
-
-            #endif
+            #include "LitData.hlsl"
+            #include "LitShare.hlsl"            
 
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -210,30 +190,10 @@ Shader "Unity/Lit"
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
-            #include "LitVaryings.hlsl"
-            #include "LitParams.hlsl"
+            #include "LitData.hlsl"
+            #include "LitShare.hlsl"
 
-            #ifdef SHADER_STAGE_FRAGMENT
-
-            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
-            {
-                GetLitParallaxHeightmap(input, surfaceData);
-                GetLitBaseColorAlpha(input, surfaceData, builtinData);
-                GetLitSpecularOcclusion(input, surfaceData);
-                GetLitNormal(input, surfaceData);
-                GetLitMask(input, surfaceData);
-                surfaceData.materialId = 0;
-                GetLitAnisotropic(input, surfaceData);
-                surfaceData.specular = 0.04;
-                GetLitSubSurface(input, surfaceData);
-                GetLitClearCoat(input, surfaceData);
-                surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-                GetLitBuiltinData(input, surfaceData, builtinData);
-            }
-
-            #endif
-
-            void GetVaryingsDataDebug(uint paramId, Varyings input, inout float3 result, inout bool needLinearToSRGB)
+            void GetVaryingsDataDebug(uint paramId, FragInput input, inout float3 result, inout bool needLinearToSRGB)
             {
                 switch (paramId)
                 {
@@ -289,7 +249,7 @@ Shader "Unity/Lit"
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"
-            #include "LitParams.hlsl"
+            #include "LitData.hlsl"
 
             CBUFFER_START(UnityMetaPass)
             // x = use uv1 as raster position
@@ -340,9 +300,11 @@ Shader "Unity/Lit"
                 return output;
             }
 
-            Varyings UnpackVaryings(PackedVaryings input)
+            FragInput UnpackVaryings(PackedVaryings input)
             {
-                Varyings output;
+                FragInput output;
+                ZERO_INITIALIZE(FragInput, output);
+
                 output.positionHS = input.positionHS;
                 output.texCoord0 = input.interpolators[0].xy;
                 output.texCoord1 = input.interpolators[0].zw;
@@ -378,20 +340,6 @@ Shader "Unity/Lit"
                 return PackVaryings(output);
             }
 
-            #ifdef SHADER_STAGE_FRAGMENT
-
-            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
-            {
-                GetLitBaseColorAlpha(input, surfaceData, builtinData);
-                GetLitMask(input, surfaceData);
-                surfaceData.materialId = 0;
-                surfaceData.specular = 0.04;
-                surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-                GetLitBuiltinData(input, surfaceData, builtinData);
-            }
-
-            #endif
-
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -414,8 +362,8 @@ Shader "Unity/Lit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
-            #include "../../Material/Material.hlsl"
-            #include "LitParams.hlsl"
+            #include "../../Material/Material.hlsl"            
+            #include "LitData.hlsl"
 
             struct Attributes
             {
@@ -466,9 +414,11 @@ Shader "Unity/Lit"
                 return output;
             }
 
-            Varyings UnpackVaryings(PackedVaryingsLT input)
+            FragInput UnpackVaryings(PackedVaryings input)
             {
-                Varyings output;
+                FragInput output;
+                ZERO_INITIALIZE(FragInput, output);
+
                 output.positionHS = input.positionHS;
                 #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
                 output.positionWS.xyz = input.interpolators[0].xyz;
@@ -480,15 +430,16 @@ Shader "Unity/Lit"
                 #else
                 output.texCoord0.xy = input.interpolators[0].xy;
                 #endif
+
+                return output;
             }
 
             PackedVaryings Vert(Attributes input)
             {
                 Varyings output;
 
-                positionWS = TransformObjectToWorld(input.positionOS);
-                // TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
-                output.positionHS = TransformWorldToHClip(output.positionWS);                
+                float3 positionWS = TransformObjectToWorld(input.positionOS);
+                output.positionHS = TransformWorldToHClip(positionWS);                
 
                 output.texCoord0 = input.uv0;
 
@@ -506,17 +457,6 @@ Shader "Unity/Lit"
 
                 return PackVaryings(output);
             }
-
-            #ifdef SHADER_STAGE_FRAGMENT
-
-            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
-            {
-                GetLitParallaxHeightmap(input, surfaceData);
-                // Perform alpha testing
-                GetLitBaseColorAlpha(input, surfaceData, builtinData);
-            }
-
-            #endif
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -541,28 +481,8 @@ Shader "Unity/Lit"
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "../../Lighting/Lighting.hlsl"
-            #include "LitVaryings.hlsl"
-            #include "LitParams.hlsl"
-
-            #ifdef SHADER_STAGE_FRAGMENT
-
-            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
-            {
-                GetLitParallaxHeightmap(input, surfaceData);
-                GetLitBaseColorAlpha(input, surfaceData, builtinData);
-                GetLitSpecularOcclusion(input, surfaceData);
-                GetLitNormal(input, surfaceData);
-                GetLitMask(input, surfaceData);
-                surfaceData.materialId = 0;
-                GetLitAnisotropic(input, surfaceData);
-                surfaceData.specular = 0.04;
-                GetLitSubSurface(input, surfaceData);
-                GetLitClearCoat(input, surfaceData);
-                surfaceData.specularColor = float3(0.0, 0.0, 0.0);
-                GetLitBuiltinData(input, surfaceData, builtinData);
-            }
-
-            #endif
+            #include "LitData.hlsl"
+            #include "LitShare.hlsl"
 
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
