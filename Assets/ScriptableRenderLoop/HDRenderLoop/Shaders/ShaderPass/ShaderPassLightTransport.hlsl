@@ -13,11 +13,10 @@
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
     Varyings input = UnpackVaryings(packedInput);
-    float3 V = float3(0.0, 0.0, 1.0); // Neutral direction as rendering into texture space has no camera information
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    GetSurfaceAndBuiltinData(V, input, surfaceData, builtinData);
+    GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
     LighTransportData lightTransportData = GetLightTransportData(surfaceData, builtinData, bsdfData);

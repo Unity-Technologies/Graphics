@@ -12,7 +12,7 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
 
 	SurfaceData surfaceData;
 	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(V, input, surfaceData, builtinData);
+	GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 	Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);

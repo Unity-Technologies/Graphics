@@ -18,7 +18,7 @@ void Frag(  PackedVaryings packedInput,
 
 	SurfaceData surfaceData;
 	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(V, input, surfaceData, builtinData);
+	GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 	Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);

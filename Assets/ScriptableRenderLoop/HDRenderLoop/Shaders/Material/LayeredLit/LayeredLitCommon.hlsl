@@ -255,7 +255,7 @@ void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
     outWeights[0] = left;
 }
 
-void GetSurfaceAndBuiltinData(float3 V, Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     float4 maskValues = float4(1.0, 1.0, 1.0, 1.0);// input.vertexColor;
 
