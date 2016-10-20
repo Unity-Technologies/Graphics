@@ -94,7 +94,7 @@ PackedVaryings VertDefault(Attributes input)
 // Fill SurfaceData/Lighting data function
 //-------------------------------------------------------------------------------------
 
-#if SHADER_STAGE_FRAGMENT
+#ifdef SHADER_STAGE_FRAGMENT
 
 void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -140,4 +140,4 @@ void GetVaryingsDataDebug(uint paramId, Varyings input, inout float3 result, ino
     }
 }
 
-#endif // #if SHADER_STAGE_FRAGMENT
+#endif // #ifdef SHADER_STAGE_FRAGMENT

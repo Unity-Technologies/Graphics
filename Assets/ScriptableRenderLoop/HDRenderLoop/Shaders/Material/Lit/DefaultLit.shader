@@ -90,12 +90,22 @@ Shader "Unity/Lit"
 
     #pragma multi_compile _ LIGHTMAP_ON
     #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+    #pragma multi_compile _ DYNAMICLIGHTMAP_ON
+
+    //-------------------------------------------------------------------------------------
+    // Define
+    //-------------------------------------------------------------------------------------
+
+    #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
 
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
+
     #include "common.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
+    #include "../../ShaderVariables.hlsl"
+    #include "../../Debug/DebugViewMaterial.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -155,7 +165,29 @@ Shader "Unity/Lit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "LitCommon.hlsl"
+            #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "LitVaryings.hlsl"
+            #include "LitParams.hlsl"
+
+            #ifdef SHADER_STAGE_FRAGMENT
+
+            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+            {
+                GetLitParallaxHeightmap(input, surfaceData);
+                GetLitBaseColorAlpha(input, surfaceData, builtinData);
+                GetLitSpecularOcclusion(input, surfaceData);
+                GetLitNormal(input, surfaceData);
+                GetLitMask(input, surfaceData);
+                surfaceData.materialId = 0;
+                GetLitAnisotropic(input, surfaceData);
+                surfaceData.specular = 0.04;
+                GetLitSubSurface(input, surfaceData);
+                GetLitClearCoat(input, surfaceData);
+                surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+                GetLitBuiltinData(input, surfaceData, builtinData);
+            }
+
+            #endif
 
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -177,7 +209,29 @@ Shader "Unity/Lit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
-            #include "LitCommon.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "LitVaryings.hlsl"
+            #include "LitParams.hlsl"
+
+            #ifdef SHADER_STAGE_FRAGMENT
+
+            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+            {
+                GetLitParallaxHeightmap(input, surfaceData);
+                GetLitBaseColorAlpha(input, surfaceData, builtinData);
+                GetLitSpecularOcclusion(input, surfaceData);
+                GetLitNormal(input, surfaceData);
+                GetLitMask(input, surfaceData);
+                surfaceData.materialId = 0;
+                GetLitAnisotropic(input, surfaceData);
+                surfaceData.specular = 0.04;
+                GetLitSubSurface(input, surfaceData);
+                GetLitClearCoat(input, surfaceData);
+                surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+                GetLitBuiltinData(input, surfaceData, builtinData);
+            }
+
+            #endif
 
             void GetVaryingsDataDebug(uint paramId, Varyings input, inout float3 result, inout bool needLinearToSRGB)
             {
@@ -226,11 +280,16 @@ Shader "Unity/Lit"
 
             HLSLPROGRAM
 
-            #pragma vertex VertLT
+            // Lightmap memo
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
+            // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
+
+            #pragma vertex Vert
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
-            #include "LitCommon.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "LitParams.hlsl"
 
             CBUFFER_START(UnityMetaPass)
             // x = use uv1 as raster position
@@ -247,23 +306,33 @@ Shader "Unity/Lit"
             float unity_OneOverOutputBoost;
             float unity_MaxOutputValue;
 
-            struct VaryingsLT
+            struct Attributes
+            {
+                float3 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                float2 uv0 : TEXCOORD0;
+                float2 uv1 : TEXCOORD1;
+                float2 uv2 : TEXCOORD2;
+                float4 tangentOS : TANGENT;
+            };
+
+            struct Varyings
             {
                 float4 positionHS;
                 float2 texCoord0;
                 float2 texCoord1;
             };
 
-            struct PackedVaryingsLT
+            struct PackedVaryings
             {
                 float4 positionHS : SV_Position;
                 float4 interpolators[1] : TEXCOORD0;
             };
 
             // Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
-            PackedVaryingsLT PackVaryings(VaryingsLT input)
+            PackedVaryings PackVaryings(Varyings input)
             {
-                PackedVaryingsLT output;
+                PackedVaryings output;
                 output.positionHS = input.positionHS;
                 output.interpolators[0].xy = input.texCoord0;
                 output.interpolators[0].zw = input.texCoord1;
@@ -271,9 +340,9 @@ Shader "Unity/Lit"
                 return output;
             }
 
-            VaryingsLT UnpackVaryings(PackedVaryingsLT input)
+            Varyings UnpackVaryings(PackedVaryings input)
             {
-                VaryingsLT output;
+                Varyings output;
                 output.positionHS = input.positionHS;
                 output.texCoord0 = input.interpolators[0].xy;
                 output.texCoord1 = input.interpolators[0].zw;
@@ -281,9 +350,9 @@ Shader "Unity/Lit"
                 return output;
             }
 
-            PackedVaryingsLT VertLT(Attributes input)
+            PackedVaryings Vert(Attributes input)
             {
-                VaryingsLT output;
+                Varyings output;
 
                 // Output UV coordinate in vertex shader
                 if (unity_MetaVertexControl.x)
@@ -305,13 +374,151 @@ Shader "Unity/Lit"
                 output.positionHS = TransformWorldToHClip(positionWS);
                 output.texCoord0 = input.uv0;
                 output.texCoord1 = input.uv1;
+
                 return PackVaryings(output);
             }
 
-            #define GetSurfaceAndBuiltinData GetSurfaceAndBuiltinDataLT
-            #define Varyings VaryingsLT
-            #define PackedVaryings PackedVaryingsLT
+            #ifdef SHADER_STAGE_FRAGMENT
+
+            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+            {
+                GetLitBaseColorAlpha(input, surfaceData, builtinData);
+                GetLitMask(input, surfaceData);
+                surfaceData.materialId = 0;
+                surfaceData.specular = 0.04;
+                surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+                GetLitBuiltinData(input, surfaceData, builtinData);
+            }
+
+            #endif
+
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
+
+            ENDHLSL
+        }
+
+        // ------------------------------------------------------------------
+        //  Depth only
+        Pass
+        {
+            Name "DepthOnly" // Name is not used
+            Tags { "LightMode" = "DepthOnly" } // This will be only for transparent object based on the RenderQueue index
+
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #include "../../Material/Material.hlsl"
+            #include "LitParams.hlsl"
+
+            struct Attributes
+            {
+                float3 positionOS : POSITION;
+                float2 uv0 : TEXCOORD0;
+                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                float4 tangentOS : TANGENT;
+                #endif
+            };
+
+            struct Varyings
+            {
+                float4 positionHS;
+                float2 texCoord0;
+                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                float3 positionWS;                
+                float3 tangentToWorld[3];
+                #endif
+            };
+
+            struct PackedVaryings
+            {
+                float4 positionHS : SV_Position;
+                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                float4 interpolators[4] : TEXCOORD0;
+                #else
+                float4 interpolators[1] : TEXCOORD0;
+                #endif
+            };
+
+            // Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
+            PackedVaryings PackVaryings(Varyings input)
+            {
+                PackedVaryings output;
+                output.positionHS = input.positionHS;
+                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                output.interpolators[0].xyz = input.positionWS.xyz;
+                output.interpolators[1].xyz = input.tangentToWorld[0];
+                output.interpolators[2].xyz = input.tangentToWorld[1];
+                output.interpolators[3].xyz = input.tangentToWorld[2];
+
+                output.interpolators[0].w = input.texCoord0.x;
+                output.interpolators[1].w = input.texCoord0.y;                
+                #else
+                output.interpolators[0] = float4(input.texCoord0, 0.0, 0.0);
+                #endif
+
+                return output;
+            }
+
+            Varyings UnpackVaryings(PackedVaryingsLT input)
+            {
+                Varyings output;
+                output.positionHS = input.positionHS;
+                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                output.positionWS.xyz = input.interpolators[0].xyz;
+                output.tangentToWorld[0] = input.interpolators[1].xyz;
+                output.tangentToWorld[1] = input.interpolators[2].xyz;
+                output.tangentToWorld[2] = input.interpolators[3].xyz;
+
+                output.texCoord0.xy = float2(input.interpolators[0].w, input.interpolators[1].w);
+                #else
+                output.texCoord0.xy = input.interpolators[0].xy;
+                #endif
+            }
+
+            PackedVaryings Vert(Attributes input)
+            {
+                Varyings output;
+
+                positionWS = TransformObjectToWorld(input.positionOS);
+                // TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
+                output.positionHS = TransformWorldToHClip(output.positionWS);                
+
+                output.texCoord0 = input.uv0;
+
+                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                output.positionWS = positionWS;
+
+                float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+                float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+
+                float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
+                output.tangentToWorld[0] = tangentToWorld[0];
+                output.tangentToWorld[1] = tangentToWorld[1];
+                output.tangentToWorld[2] = tangentToWorld[2];
+                #endif
+
+                return PackVaryings(output);
+            }
+
+            #ifdef SHADER_STAGE_FRAGMENT
+
+            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+            {
+                GetLitParallaxHeightmap(input, surfaceData);
+                // Perform alpha testing
+                GetLitBaseColorAlpha(input, surfaceData, builtinData);
+            }
+
+            #endif
+
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
         }
@@ -333,7 +540,29 @@ Shader "Unity/Lit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_FORWARD
-            #include "LitCommon.hlsl"
+            #include "../../Lighting/Lighting.hlsl"
+            #include "LitVaryings.hlsl"
+            #include "LitParams.hlsl"
+
+            #ifdef SHADER_STAGE_FRAGMENT
+
+            void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+            {
+                GetLitParallaxHeightmap(input, surfaceData);
+                GetLitBaseColorAlpha(input, surfaceData, builtinData);
+                GetLitSpecularOcclusion(input, surfaceData);
+                GetLitNormal(input, surfaceData);
+                GetLitMask(input, surfaceData);
+                surfaceData.materialId = 0;
+                GetLitAnisotropic(input, surfaceData);
+                surfaceData.specular = 0.04;
+                GetLitSubSurface(input, surfaceData);
+                GetLitClearCoat(input, surfaceData);
+                surfaceData.specularColor = float3(0.0, 0.0, 0.0);
+                GetLitBuiltinData(input, surfaceData, builtinData);
+            }
+
+            #endif
 
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
