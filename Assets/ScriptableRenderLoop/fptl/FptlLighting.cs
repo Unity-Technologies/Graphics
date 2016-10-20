@@ -1,8 +1,9 @@
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
     public class FptlLighting : ScriptableRenderLoop
@@ -1072,6 +1073,12 @@ namespace UnityEngine.ScriptableRenderLoop
             cmd.SetGlobalTexture("_spotCookieTextures", m_CookieTexArray.GetTexCache());
             cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
             cmd.SetGlobalTexture("_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
+
+            var topCube = ReflectionProbe.GetDefaultCubemapIBL();
+            var defdecode = ReflectionProbe.CalculateHDRDecodeValuesForDefaultTexture();
+            cmd.SetGlobalTexture("_reflRootCubeTexture", topCube);
+            cmd.SetGlobalFloat("_reflRootHdrDecodeMult", defdecode.x);
+            cmd.SetGlobalFloat("_reflRootHdrDecodeExp", defdecode.y);
 
             if (enableClustered)
             {

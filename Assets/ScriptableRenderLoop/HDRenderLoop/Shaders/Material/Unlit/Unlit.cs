@@ -1,11 +1,11 @@
 using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using System;
 
 //-----------------------------------------------------------------------------
 // structure definition
 //-----------------------------------------------------------------------------
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     namespace Unlit
     {
