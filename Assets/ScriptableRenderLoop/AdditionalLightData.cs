@@ -1,4 +1,4 @@
-namespace UnityEngine.ScriptableRenderLoop
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     //@TODO: We should continously move these values
     // into the engine when we can see them being generally useful

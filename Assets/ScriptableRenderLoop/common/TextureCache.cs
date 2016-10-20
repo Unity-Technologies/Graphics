@@ -3,30 +3,30 @@ using System.Collections.Generic;
 
 public class TextureCache2D : TextureCache
 {
-    private Texture2DArray cache;
+    private Texture2DArray m_Cache;
 
     public override void TransferToSlice(int sliceIndex, Texture texture)
     {
-        var mismatch = (cache.width != texture.width) || (cache.height != texture.height);
+        var mismatch = (m_Cache.width != texture.width) || (m_Cache.height != texture.height);
 
         if (texture is Texture2D)
         {
-            mismatch |= (cache.format != (texture as Texture2D).format);
+            mismatch |= (m_Cache.format != (texture as Texture2D).format);
         }
 
         if (mismatch)
         {
             Debug.LogErrorFormat(texture, "Texture size or format of \"{0}\" doesn't match renderloop settings (should be {1}x{2} {3})",
-                texture.name, cache.width, cache.height, cache.format);
+                texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
             return;
         }
 
-        Graphics.CopyTexture(texture, 0, cache, sliceIndex);
+        Graphics.CopyTexture(texture, 0, m_Cache, sliceIndex);
     }
 
     public override Texture GetTexCache()
     {
-        return cache;
+        return m_Cache;
     }
 
     public bool AllocTextureArray(int numTextures, int width, int height, TextureFormat format, bool isMipMapped)
@@ -34,7 +34,7 @@ public class TextureCache2D : TextureCache
         var res = AllocTextureArray(numTextures);
         m_NumMipLevels = GetNumMips(width, height);
 
-        cache = new Texture2DArray(width, height, numTextures, format, isMipMapped)
+        m_Cache = new Texture2DArray(width, height, numTextures, format, isMipMapped)
         {
             hideFlags = HideFlags.HideAndDontSave,
             wrapMode = TextureWrapMode.Clamp
@@ -45,7 +45,7 @@ public class TextureCache2D : TextureCache
 
     public void Release()
     {
-        Texture.DestroyImmediate(cache);      // do I need this?
+        Texture.DestroyImmediate(m_Cache);      // do I need this?
     }
 }
 
