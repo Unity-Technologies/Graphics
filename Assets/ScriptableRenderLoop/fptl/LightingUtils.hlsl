@@ -45,9 +45,15 @@ float GetLinearZFromSVPosW(float posW)
 
 float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
 {
-    float3 vP = float3(0.0f,0.0f,zDptBufSpace);
-    float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
-    return v4Pres.z / v4Pres.w;
+	// todo (simplify): m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
+	float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
+    float m32 = g_mInvScrProjection[3].z, m33 = g_mInvScrProjection[3].w;
+
+	return (m22*zDptBufSpace+m23) / (m32*zDptBufSpace+m33);
+
+    //float3 vP = float3(0.0f,0.0f,zDptBufSpace);
+    //float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
+    //return v4Pres.z / v4Pres.w;
 }
 
 
