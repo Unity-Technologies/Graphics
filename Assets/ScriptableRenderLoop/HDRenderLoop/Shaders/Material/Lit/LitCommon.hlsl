@@ -17,14 +17,13 @@
 // Attribute/Varying
 //-------------------------------------------------------------------------------------
 
-// Forward
 struct Attributes
 {
     float3 positionOS   : POSITION;
     float3 normalOS     : NORMAL;
     float2 uv0          : TEXCOORD0;
     float2 uv1		    : TEXCOORD1;
-#if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+#if (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
     float2 uv2		    : TEXCOORD2;
 #endif    
     float4 tangentOS    : TANGENT;  // Always present as we require it also in case of anisotropic lighting
@@ -38,7 +37,7 @@ struct Varyings
     float3 positionWS;
     float2 texCoord0;
     float2 texCoord1;
-#if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+#if (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
     float2 texCoord2;
 #endif
     float3 tangentToWorld[3];
@@ -50,42 +49,10 @@ struct Varyings
 #endif
 };
 
-void GetVaryingsDataDebug(uint paramId, Varyings input, inout float3 result, inout bool needLinearToSRGB)
-{
-    switch (paramId)
-    {
-    case DEBUGVIEW_VARYING_DEPTH:
-        // TODO: provide a customize parameter (like a slider)
-        float linearDepth = frac(LinearEyeDepth(input.positionHS.z, _ZBufferParams) * 0.1);
-        result = linearDepth.xxx;
-        break;
-    case DEBUGVIEW_VARYING_TEXCOORD0:
-        result = float3(input.texCoord0 * 0.5 + 0.5, 0.0);
-        break;
-    case DEBUGVIEW_VARYING_TEXCOORD1:
-        result = float3(input.texCoord1 * 0.5 + 0.5, 0.0);
-        break;
-#if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
-    case DEBUGVIEW_VARYING_TEXCOORD2:
-        result = float3(input.texCoord2 * 0.5 + 0.5, 0.0);
-        break;
-#endif
-    case DEBUGVIEW_VARYING_VERTEXTANGENTWS:
-        result = input.tangentToWorld[0].xyz * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_VARYING_VERTEXBITANGENTWS:
-        result = input.tangentToWorld[1].xyz * 0.5 + 0.5;
-        break;
-    case DEBUGVIEW_VARYING_VERTEXNORMALWS:
-        result = input.tangentToWorld[2].xyz * 0.5 + 0.5;
-        break;
-    }
-}
-
 struct PackedVaryings
 {
     float4 positionHS : SV_Position;
-#if SHADERPASS == SHADERPASS_LIGHT_TANSPORT
+#if (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
     float4 interpolators[5] : TEXCOORD0;
 #else
     float4 interpolators[4] : TEXCOORD0;
@@ -113,7 +80,7 @@ PackedVaryings PackVaryings(Varyings input)
     output.interpolators[2].w = input.texCoord1.x;
     output.interpolators[3].w = input.texCoord1.y;
 
-#if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+#if (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
     output.interpolators[4] = float4(input.texCoord2.xy, 0.0, 0.0);
 #endif
 
@@ -132,7 +99,7 @@ Varyings UnpackVaryings(PackedVaryings input)
     output.texCoord0.xy = float2(input.interpolators[0].w, input.interpolators[1].w);
     output.texCoord1.xy = float2(input.interpolators[2].w, input.interpolators[3].w);
 
-#if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+#if (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
     output.texCoord2 = input.interpolators[4].xy;
 #endif
 
@@ -159,7 +126,7 @@ PackedVaryings VertDefault(Attributes input)
     output.texCoord0 = input.uv0;
     output.texCoord1 = input.uv1;
 
-#if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
+#if (SHADERPASS == SHADERPASS_LIGHT_TRANSPORT) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
     output.texCoord2 = input.uv2;
 #endif
 
@@ -179,12 +146,13 @@ PackedVaryings VertDefault(Attributes input)
 
 #if SHADER_STAGE_FRAGMENT
 
-void GetSurfaceAndBuiltinData(float3 V, Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef _HEIGHTMAP
     #ifdef _HEIGHTMAP_AS_DISPLACEMENT
     // TODO
     #else
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS); // This should be remove by the compiler as we usually cal it before.
     float height = UNITY_SAMPLE_TEX2D(_HeightMap, input.texCoord0).r * _HeightScale + _HeightBias;
     // Transform view vector in tangent space
     TransformWorldToTangent(V, input.tangentToWorld);

@@ -96,7 +96,7 @@ PackedVaryings VertDefault(Attributes input)
 
 #if SHADER_STAGE_FRAGMENT
 
-void GetSurfaceAndBuiltinData(float3 V, Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     surfaceData.color = UNITY_SAMPLE_TEX2D(_ColorMap, input.texCoord0).rgb * _Color.rgb;
     float alpha = UNITY_SAMPLE_TEX2D(_ColorMap, input.texCoord0).a * _Color.a;
