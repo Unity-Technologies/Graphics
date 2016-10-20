@@ -1,3 +1,7 @@
+#if SHADERPASS != SHADERPASS_DEBUG_VIEW_MATERIAL
+#error SHADERPASS_is_not_correctly_define
+#endif
+
 #if SHADER_STAGE_FRAGMENT
 
 #include "Color.hlsl"
@@ -6,9 +10,10 @@ int _DebugViewMaterial;
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
 	Varyings input = UnpackVaryings(packedInput);
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 	SurfaceData surfaceData;
 	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+	GetSurfaceAndBuiltinData(V, input, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 

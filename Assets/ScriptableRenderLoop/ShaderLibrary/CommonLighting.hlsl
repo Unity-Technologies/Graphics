@@ -118,4 +118,15 @@ void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
 }
 */
 
+// ----------------------------------------------------------------------------
+// Parallax mapping
+// ----------------------------------------------------------------------------
+
+float2 ParallaxOffset(float3 viewDirTS, float height)
+{
+    // Parallax mapping with offset limiting to reduce weird artifcat (i.e do not divide by z), also save performance
+    return viewDirTS.xy * height;
+}
+
+
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

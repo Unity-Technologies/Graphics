@@ -1,32 +1,8 @@
+#if SHADERPASS != SHADERPASS_LIGHT_TRANSPORT
+#error SHADERPASS_is_not_correctly_define
+#endif
 
-float4 UnityMetaVertexPosition(float4 vertex, float2 uv1, float2 uv2, float4 lightmapST, float4 dynlightmapST)
-{
-    if (unity_MetaVertexControl.x)
-    {
-        vertex.xy = uv1 * lightmapST.xy + lightmapST.zw;
-        // OpenGL right now needs to actually use incoming vertex position,
-        // so use it in a very dummy way
-        vertex.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
-    }
-    if (unity_MetaVertexControl.y)
-    {
-        vertex.xy = uv2 * dynlightmapST.xy + dynlightmapST.zw;
-        // OpenGL right now needs to actually use incoming vertex position,
-        // so use it in a very dummy way
-        vertex.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
-    }
-    return UnityObjectToClipPos(vertex);
-}
-
-v2f_meta vert_meta(Attributes v)
-{
-    Varyings output;
-    // Output UV coordinate in vertex shader
-    output.positionHS = UnityMetaVertexPosition(v.positionOS, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
-    output.texCoord0 = v.uv0;
-    output.texCoord1 = v.uv1;
-    return PackVaryings(output);
-}
+#include "Color.hlsl"
 
 #if SHADER_STAGE_FRAGMENT
 
@@ -37,12 +13,11 @@ v2f_meta vert_meta(Attributes v)
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
     Varyings input = UnpackVaryings(packedInput);
-    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
-    float3 positionWS = input.positionWS;
+    float3 V = float3(0.0, 0.0, 1.0); // Neutral direction as rendering into texture space has no camera information
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+    GetSurfaceAndBuiltinData(V, input, surfaceData, builtinData);
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
     LighTransportData lightTransportData = GetLightTransportData(surfaceData, builtinData, bsdfData);

@@ -1,3 +1,7 @@
+#if SHADERPASS != SHADERPASS_GBUFFER
+#error SHADERPASS_is_not_correctly_define
+#endif
+
 #if SHADER_STAGE_FRAGMENT
 
 void Frag(  PackedVaryings packedInput,
@@ -14,7 +18,7 @@ void Frag(  PackedVaryings packedInput,
 
 	SurfaceData surfaceData;
 	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+	GetSurfaceAndBuiltinData(V, input, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 	Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);

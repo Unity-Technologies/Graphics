@@ -17,17 +17,19 @@ namespace UnityEngine.ScriptableRenderLoop
         {
             Depth = 1,
             TexCoord0 = 2,
-            VertexNormalWS = 3,
-            VertexTangentWS = 4,
-            VertexBitangentWS = 5,
-            VertexColor = 6,
+            TexCoord1 = 3,
+            TexCoord2 = 4,
+            VertexTangentWS = 5,
+            VertexBitangentWS = 6,
+            VertexNormalWS = 7,
+            VertexColor = 8,
         }
 
         // Must be in sync with DebugViewMaterial.hlsl
         public enum DebugViewGbufferMode
         {
-            Depth = 7,
-            BakeDiffuseLighting = 8,
+            Depth = 9,
+            BakeDiffuseLighting = 10,
         }
 
         public class DebugParameters
