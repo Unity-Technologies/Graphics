@@ -3,7 +3,7 @@
 //
 
 //
-// UnityEngine.ScriptableRenderLoop.AreaShapeType:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.AreaShapeType:  static fields
 //
 #define AREASHAPETYPE_RECTANGLE (0)
 #define AREASHAPETYPE_LINE (1)
@@ -13,13 +13,13 @@
 #define AREASHAPETYPE_CYLINDER (5)
 
 //
-// UnityEngine.ScriptableRenderLoop.EnvShapeType:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.EnvShapeType:  static fields
 //
 #define ENVSHAPETYPE_NONE (0)
 #define ENVSHAPETYPE_BOX (1)
 #define ENVSHAPETYPE_SPHERE (2)
 
-// Generated from UnityEngine.ScriptableRenderLoop.PunctualLightData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.PunctualLightData
 // PackingRules = Exact
 struct PunctualLightData
 {
@@ -38,7 +38,7 @@ struct PunctualLightData
 	float2 unused2;
 };
 
-// Generated from UnityEngine.ScriptableRenderLoop.AreaLightData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.AreaLightData
 // PackingRules = Exact
 struct AreaLightData
 {
@@ -57,7 +57,7 @@ struct AreaLightData
 	float unused;
 };
 
-// Generated from UnityEngine.ScriptableRenderLoop.EnvLightData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.EnvLightData
 // PackingRules = Exact
 struct EnvLightData
 {
@@ -75,7 +75,7 @@ struct EnvLightData
 	float unused1;
 };
 
-// Generated from UnityEngine.ScriptableRenderLoop.PlanarLightData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.PlanarLightData
 // PackingRules = Exact
 struct PlanarLightData
 {
@@ -83,7 +83,7 @@ struct PlanarLightData
 };
 
 //
-// Accessors for UnityEngine.ScriptableRenderLoop.PunctualLightData
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.PunctualLightData
 //
 float3 GetPositionWS(PunctualLightData value)
 {
@@ -139,7 +139,7 @@ float2 GetUnused2(PunctualLightData value)
 }
 
 //
-// Accessors for UnityEngine.ScriptableRenderLoop.AreaLightData
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.AreaLightData
 //
 float3 GetPositionWS(AreaLightData value)
 {
@@ -195,7 +195,7 @@ float GetUnused(AreaLightData value)
 }
 
 //
-// Accessors for UnityEngine.ScriptableRenderLoop.EnvLightData
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.EnvLightData
 //
 float3 GetPositionWS(EnvLightData value)
 {
@@ -247,7 +247,7 @@ float GetUnused1(EnvLightData value)
 }
 
 //
-// Accessors for UnityEngine.ScriptableRenderLoop.PlanarLightData
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.PlanarLightData
 //
 float3 GetPositionWS(PlanarLightData value)
 {

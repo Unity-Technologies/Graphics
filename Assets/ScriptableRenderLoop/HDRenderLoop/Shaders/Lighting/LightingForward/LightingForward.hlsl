@@ -8,7 +8,8 @@
 StructuredBuffer<PunctualLightData> _PunctualLightList;
 int _PunctualLightCount;
 
-UNITY_DECLARE_ENV(_EnvTextures);
+UNITY_DECLARE_TEXCUBEARRAY(_EnvTextures);
+
 StructuredBuffer<EnvLightData> _EnvLightList;
 int _EnvLightCount;
 
@@ -46,7 +47,7 @@ void ForwardLighting(	float3 V, float3 positionWS, PreLightData prelightData, BS
     {
         float4 localDiffuseLighting;
         float4 localSpecularLighting;
-        EvaluateBSDF_Env(V, positionWS, prelightData, _EnvLightList[j], bsdfData, UNITY_PASS_ENV(_EnvTextures), localDiffuseLighting, localSpecularLighting);
+        EvaluateBSDF_Env(V, positionWS, prelightData, _EnvLightList[j], bsdfData, UNITY_PASS_TEXCUBEARRAY(_EnvTextures), localDiffuseLighting, localSpecularLighting);
         iblDiffuseLighting.rgb = lerp(iblDiffuseLighting.rgb, localDiffuseLighting.rgb, localDiffuseLighting.a); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting.rgb = lerp(iblSpecularLighting.rgb, localSpecularLighting.rgb, localSpecularLighting.a);
     }

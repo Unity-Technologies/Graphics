@@ -1,4 +1,6 @@
-#if SHADER_STAGE_FRAGMENT
+#if SHADERPASS != SHADERPASS_GBUFFER
+#error SHADERPASS_is_not_correctly_define
+#endif
 
 void Frag(  PackedVaryings packedInput,
 			OUTPUT_GBUFFER(outGBuffer)
@@ -8,7 +10,7 @@ void Frag(  PackedVaryings packedInput,
 			, OUTPUT_GBUFFER_BAKE_LIGHTING(outGBuffer)
 			)
 {
-	Varyings input = UnpackVaryings(packedInput);
+    FragInput input = UnpackVaryings(packedInput);
 	float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 	float3 positionWS = input.positionWS;
 
@@ -26,5 +28,3 @@ void Frag(  PackedVaryings packedInput,
 	#endif
 	ENCODE_BAKE_LIGHTING_INTO_GBUFFER(GetBakedDiffuseLigthing(preLightData, surfaceData, builtinData, bsdfData), outGBuffer);
 }
-
-#endif

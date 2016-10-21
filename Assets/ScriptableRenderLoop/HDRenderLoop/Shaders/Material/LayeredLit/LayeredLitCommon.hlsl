@@ -62,7 +62,7 @@
 // Set of users variables
 PROP_DECL(float4, _BaseColor);
 PROP_DECL_TEX2D(_BaseColorMap);
-PROP_DECL(float, _Metalic);
+PROP_DECL(float, _Metallic);
 PROP_DECL(float, _Smoothness);
 PROP_DECL_TEX2D(_MaskMap);
 PROP_DECL_TEX2D(_SpecularOcclusionMap);
@@ -97,7 +97,7 @@ struct Varyings
     float4 positionHS;
     float3 positionWS;
     float2 texCoord0;
-    float4 tangentToWorld[3]; // [3x3:tangentToWorld | 1x3:viewDirForParallax]
+    float3 tangentToWorld[3];
     float4 vertexColor;
 
 #ifdef SHADER_STAGE_FRAGMENT
@@ -126,9 +126,9 @@ PackedVaryings PackVaryings(Varyings input)
     output.positionHS = input.positionHS;
     output.interpolators[0].xyz = input.positionWS.xyz;
     output.interpolators[0].w = input.texCoord0.x;
-    output.interpolators[1] = input.tangentToWorld[0];
-    output.interpolators[2] = input.tangentToWorld[1];
-    output.interpolators[3] = input.tangentToWorld[2];
+    output.interpolators[1].xyz = input.tangentToWorld[0];
+    output.interpolators[2].xyz = input.tangentToWorld[1];
+    output.interpolators[3].xyz = input.tangentToWorld[2];
     output.interpolators[4].x = input.texCoord0.y;
     output.interpolators[4].yzw = float3(0.0, 0.0, 0.0);
     output.interpolators[5] = input.vertexColor;
@@ -143,9 +143,9 @@ Varyings UnpackVaryings(PackedVaryings input)
     output.positionWS.xyz = input.interpolators[0].xyz;
     output.texCoord0.x = input.interpolators[0].w;
     output.texCoord0.y = input.interpolators[4].x;
-    output.tangentToWorld[0] = input.interpolators[1];
-    output.tangentToWorld[1] = input.interpolators[2];
-    output.tangentToWorld[2] = input.interpolators[3];
+    output.tangentToWorld[0] = input.interpolators[1].xyz;
+    output.tangentToWorld[1] = input.interpolators[2].xyz;
+    output.tangentToWorld[2] = input.interpolators[3].xyz;
     output.vertexColor = input.interpolators[5];
 
 #ifdef SHADER_STAGE_FRAGMENT
@@ -177,10 +177,6 @@ PackedVaryings VertDefault(Attributes input)
     output.tangentToWorld[1].xyz = tangentToWorld[1];
     output.tangentToWorld[2].xyz = tangentToWorld[2];
 
-    output.tangentToWorld[0].w = 0;
-    output.tangentToWorld[1].w = 0;
-    output.tangentToWorld[2].w = 0;
-
     output.vertexColor = input.color;
 
     return PackVaryings(output);
@@ -190,12 +186,6 @@ PackedVaryings VertDefault(Attributes input)
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Lighting data function
 //-------------------------------------------------------------------------------------
-
-float3 TransformTangentToWorld(float3 normalTS, float4 tangentToWorld[3])
-{
-    // TODO check: do we need to normalize ?
-    return normalize(mul(normalTS, float3x3(tangentToWorld[0].xyz, tangentToWorld[1].xyz, tangentToWorld[2].xyz)));
-}
 
 #if SHADER_STAGE_FRAGMENT
 
@@ -360,22 +350,22 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
     surfaceData.materialId = 0;
 
-    // MaskMap is Metalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
-    PROP_DECL(float, metalic);
+    // MaskMap is Metallic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
+    PROP_DECL(float, metallic);
     PROP_DECL(float, ambientOcclusion);
 #ifdef _MASKMAP
-    PROP_SAMPLE(metalic, _MaskMap, input.texCoord0, a);
+    PROP_SAMPLE(metallic, _MaskMap, input.texCoord0, a);
     PROP_SAMPLE(ambientOcclusion, _MaskMap, input.texCoord0, g);
 #else
-    PROP_ASSIGN_VALUE(metalic, 1.0);
+    PROP_ASSIGN_VALUE(metallic, 1.0);
     PROP_ASSIGN_VALUE(ambientOcclusion, 1.0);
 #endif
-    PROP_MUL(metalic, _Metalic, r);
+    PROP_MUL(metallic, _Metallic, r);
 
-    PROP_BLEND_SCALAR(metalic, weights);
+    PROP_BLEND_SCALAR(metallic, weights);
     PROP_BLEND_SCALAR(ambientOcclusion, weights);
 
-    surfaceData.metalic = metalic;
+    surfaceData.metallic = metallic;
     surfaceData.ambientOcclusion = ambientOcclusion;
 
     surfaceData.tangentWS = float3(1.0, 0.0, 0.0);

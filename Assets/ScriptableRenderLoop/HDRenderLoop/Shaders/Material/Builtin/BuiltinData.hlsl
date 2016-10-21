@@ -38,4 +38,19 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         break;
     }
 }
+
+void GetLighTransportDataDebug(uint paramId, LighTransportData lightTransportData, inout float3 result, inout bool needLinearToSRGB)
+{
+    switch (paramId)
+    {
+    case DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_DIFFUSE_COLOR:
+        result = lightTransportData.diffuseColor; needLinearToSRGB = true;
+        break;
+    case DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_EMISSIVE_COLOR:
+        // TODO: Need a tonemap ?
+        result = lightTransportData.emissiveColor;
+        break;
+    }    
+}
+
 #endif // UNITY_BUILTIN_DATA_INCLUDED

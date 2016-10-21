@@ -3,7 +3,7 @@
 //
 
 //
-// UnityEngine.ScriptableRenderLoop.Lit.MaterialId:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.Lit.MaterialId:  static fields
 //
 #define MATERIALID_LIT_STANDARD (0)
 #define MATERIALID_LIT_SSS (1)
@@ -12,7 +12,7 @@
 #define MATERIALID_LIT_ANISO (4)
 
 //
-// UnityEngine.ScriptableRenderLoop.Lit.SurfaceData:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.Lit.SurfaceData:  static fields
 //
 #define DEBUGVIEW_LIT_SURFACEDATA_BASE_COLOR (1000)
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_OCCLUSION (1001)
@@ -22,7 +22,7 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_AMBIENT_OCCLUSION (1005)
 #define DEBUGVIEW_LIT_SURFACEDATA_TANGENT_WS (1006)
 #define DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY (1007)
-#define DEBUGVIEW_LIT_SURFACEDATA_METALIC (1008)
+#define DEBUGVIEW_LIT_SURFACEDATA_METALLIC (1008)
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR (1009)
 #define DEBUGVIEW_LIT_SURFACEDATA_SUB_SURFACE_RADIUS (1010)
 #define DEBUGVIEW_LIT_SURFACEDATA_THICKNESS (1011)
@@ -32,7 +32,7 @@
 #define DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR (1015)
 
 //
-// UnityEngine.ScriptableRenderLoop.Lit.BSDFData:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.Lit.BSDFData:  static fields
 //
 #define DEBUGVIEW_LIT_BSDFDATA_DIFFUSE_COLOR (1030)
 #define DEBUGVIEW_LIT_BSDFDATA_FRESNEL0 (1031)
@@ -53,11 +53,11 @@
 #define DEBUGVIEW_LIT_BSDFDATA_COAT_ROUGHNESS (1046)
 
 //
-// UnityEngine.ScriptableRenderLoop.Lit.GBufferMaterial:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.Lit.GBufferMaterial:  static fields
 //
 #define GBUFFERMATERIAL_COUNT (3)
 
-// Generated from UnityEngine.ScriptableRenderLoop.Lit.SurfaceData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.Lit.SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
@@ -69,7 +69,7 @@ struct SurfaceData
 	float ambientOcclusion;
 	float3 tangentWS;
 	float anisotropy;
-	float metalic;
+	float metallic;
 	float specular;
 	float subSurfaceRadius;
 	float thickness;
@@ -79,7 +79,7 @@ struct SurfaceData
 	float3 specularColor;
 };
 
-// Generated from UnityEngine.ScriptableRenderLoop.Lit.BSDFData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.Lit.BSDFData
 // PackingRules = Exact
 struct BSDFData
 {

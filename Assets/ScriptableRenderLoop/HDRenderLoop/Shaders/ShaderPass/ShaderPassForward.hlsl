@@ -1,8 +1,10 @@
-#if SHADER_STAGE_FRAGMENT
+#if SHADERPASS != SHADERPASS_FORWARD
+#error SHADERPASS_is_not_correctly_define
+#endif
 
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
-	Varyings input = UnpackVaryings(packedInput);
+    FragInput input = UnpackVaryings(packedInput);
 	float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 	float3 positionWS = input.positionWS;
 
@@ -23,4 +25,3 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
 	return float4(diffuseLighting.rgb + specularLighting.rgb, builtinData.opacity);
 }
 
-#endif
