@@ -163,9 +163,8 @@ float3 UnpackLogLuv(float4 vLogLuv)
     return max(vRGB, float3(0.0, 0.0, 0.0));
 }
 
-// TODO: check what is really use by the lightmap... should be hardcoded
-// This function must handle various crappy case of lightmap ?
-float4 UnityEncodeRGBM (float3 rgb, float maxRGBM)
+// TODO: This function is used with the LightTransport pass to encode lightmap or emissive
+float4 PackRGBM(float3 rgb, float maxRGBM)
 {
     float kOneOverRGBMMaxRange = 1.0 / maxRGBM;
     const float kMinMultiplier = 2.0 * 1e-2;
@@ -183,7 +182,7 @@ float4 UnityEncodeRGBM (float3 rgb, float maxRGBM)
 
 // Alternative...
 #define RGBMRANGE (8.0)
-float4 packRGBM(float3 color)
+float4 PackRGBM(float3 color)
 {
     float4 rgbm;
     color *= (1.0 / RGBMRANGE);
@@ -193,7 +192,7 @@ float4 packRGBM(float3 color)
     return rgbm;
 }
 
-float3 unpackRGBM(float4 rgbm)
+float3 UnpackRGBM(float4 rgbm)
 {
     return RGBMRANGE * rgbm.rgb * rgbm.a;
 }

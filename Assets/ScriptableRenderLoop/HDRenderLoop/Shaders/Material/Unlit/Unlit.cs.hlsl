@@ -3,23 +3,23 @@
 //
 
 //
-// UnityEngine.ScriptableRenderLoop.Unlit.SurfaceData:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.Unlit.SurfaceData:  static fields
 //
 #define DEBUGVIEW_UNLIT_SURFACEDATA_COLOR (1100)
 
 //
-// UnityEngine.ScriptableRenderLoop.Unlit.BSDFData:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.Unlit.BSDFData:  static fields
 //
 #define DEBUGVIEW_UNLIT_BSDFDATA_COLOR (1130)
 
-// Generated from UnityEngine.ScriptableRenderLoop.Unlit.SurfaceData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.Unlit.SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
 	float3 color;
 };
 
-// Generated from UnityEngine.ScriptableRenderLoop.Unlit.BSDFData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.Unlit.BSDFData
 // PackingRules = Exact
 struct BSDFData
 {
