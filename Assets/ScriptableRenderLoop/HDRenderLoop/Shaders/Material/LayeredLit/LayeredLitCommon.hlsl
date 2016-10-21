@@ -62,7 +62,7 @@
 // Set of users variables
 PROP_DECL(float4, _BaseColor);
 PROP_DECL_TEX2D(_BaseColorMap);
-PROP_DECL(float, _Metalic);
+PROP_DECL(float, _Metallic);
 PROP_DECL(float, _Smoothness);
 PROP_DECL_TEX2D(_MaskMap);
 PROP_DECL_TEX2D(_SpecularOcclusionMap);
@@ -350,22 +350,22 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
     surfaceData.materialId = 0;
 
-    // MaskMap is Metalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
-    PROP_DECL(float, metalic);
+    // MaskMap is Metallic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
+    PROP_DECL(float, metallic);
     PROP_DECL(float, ambientOcclusion);
 #ifdef _MASKMAP
-    PROP_SAMPLE(metalic, _MaskMap, input.texCoord0, a);
+    PROP_SAMPLE(metallic, _MaskMap, input.texCoord0, a);
     PROP_SAMPLE(ambientOcclusion, _MaskMap, input.texCoord0, g);
 #else
-    PROP_ASSIGN_VALUE(metalic, 1.0);
+    PROP_ASSIGN_VALUE(metallic, 1.0);
     PROP_ASSIGN_VALUE(ambientOcclusion, 1.0);
 #endif
-    PROP_MUL(metalic, _Metalic, r);
+    PROP_MUL(metallic, _Metallic, r);
 
-    PROP_BLEND_SCALAR(metalic, weights);
+    PROP_BLEND_SCALAR(metallic, weights);
     PROP_BLEND_SCALAR(ambientOcclusion, weights);
 
-    surfaceData.metalic = metalic;
+    surfaceData.metallic = metallic;
     surfaceData.ambientOcclusion = ambientOcclusion;
 
     surfaceData.tangentWS = float3(1.0, 0.0, 0.0);

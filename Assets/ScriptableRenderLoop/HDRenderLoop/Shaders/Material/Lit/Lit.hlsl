@@ -72,8 +72,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
-        bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
-        bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metalic);
+        bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metallic);
+        bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metallic);
 
         bsdfData.tangentWS = surfaceData.tangentWS;
         bsdfData.bitangentWS = cross(surfaceData.normalWS, surfaceData.tangentWS);        
@@ -92,8 +92,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
-        bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metalic);
-        bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metalic);
+        bsdfData.diffuseColor = surfaceData.baseColor * (1.0 - surfaceData.metallic);
+        bsdfData.fresnel0 = lerp(float3(surfaceData.specular, surfaceData.specular, surfaceData.specular), surfaceData.baseColor, surfaceData.metallic);
         bsdfData.coatNormalWS = surfaceData.coatNormalWS;
         bsdfData.coatRoughness = PerceptualSmoothnessToRoughness(surfaceData.coatPerceptualSmoothness);
     }
@@ -134,7 +134,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         // Encode tangent on 16bit with oct compression
         float2 octTangentWS = PackNormalOctEncode(surfaceData.tangentWS);
         // TODO: store metal and specular together, specular should be an enum (fixed value)
-        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, surfaceData.metalic);
+        outGBuffer2 = float4(octTangentWS * 0.5 + 0.5, surfaceData.anisotropy, surfaceData.metallic);
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SSS)
     {
@@ -145,7 +145,7 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
         // Encode coat normal on 16bit with oct compression
         float2 octCoatNormalWS = PackNormalOctEncode(surfaceData.coatNormalWS);
         // TODO: store metal and specular together, specular should be an enum (fixed value)
-        outGBuffer2 = float4(octCoatNormalWS * 0.5 + 0.5, PerceptualSmoothnessToRoughness(surfaceData.coatPerceptualSmoothness), surfaceData.metalic);
+        outGBuffer2 = float4(octCoatNormalWS * 0.5 + 0.5, PerceptualSmoothnessToRoughness(surfaceData.coatPerceptualSmoothness), surfaceData.metallic);
     }
     else if (surfaceData.materialId == MATERIALID_LIT_SPECULAR)
     {
@@ -170,13 +170,13 @@ BSDFData DecodeFromGBuffer( float4 inGBuffer0,
 
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
-        float metalic = inGBuffer2.a;
+        float metallic = inGBuffer2.a;
         // TODO extract spec
         float specular = 0.04;
         float anisotropy = inGBuffer2.b;
 
-        bsdfData.diffuseColor = baseColor * (1.0 - metalic);
-        bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metalic);
+        bsdfData.diffuseColor = baseColor * (1.0 - metallic);
+        bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metallic);
 
         bsdfData.tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
         bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
@@ -195,12 +195,12 @@ BSDFData DecodeFromGBuffer( float4 inGBuffer0,
     }
     else if (bsdfData.materialId == MATERIALID_LIT_CLEAR_COAT)
     {
-        float metalic = inGBuffer2.a;
+        float metallic = inGBuffer2.a;
         // TODO extract spec
         float specular = 0.04;
 
-        bsdfData.diffuseColor = baseColor * (1.0 - metalic);
-        bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metalic);
+        bsdfData.diffuseColor = baseColor * (1.0 - metallic);
+        bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metallic);
         bsdfData.coatNormalWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
         bsdfData.coatRoughness = inGBuffer2.b;
     }
@@ -245,8 +245,8 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
         case DEBUGVIEW_LIT_SURFACEDATA_ANISOTROPY:
             result = surfaceData.anisotropy.xxx;
             break;
-        case DEBUGVIEW_LIT_SURFACEDATA_METALIC:
-            result = surfaceData.metalic.xxx;
+        case DEBUGVIEW_LIT_SURFACEDATA_METALLIC:
+            result = surfaceData.metallic.xxx;
             break;
         // TODO: Remap here!
         case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR:
@@ -444,7 +444,7 @@ LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bui
     // But rough metals (black diffuse) still scatter quite a lot of light around, so
     // we want to take some of that into account too.
 
-    lightTransportData.diffuseColor = bsdfData.diffuseColor + bsdfData.fresnel0 * bsdfData.roughness * 0.5 * surfaceData.metalic;
+    lightTransportData.diffuseColor = bsdfData.diffuseColor + bsdfData.fresnel0 * bsdfData.roughness * 0.5 * surfaceData.metallic;
     lightTransportData.emissiveColor = builtinData.emissiveColor * builtinData.emissiveIntensity;
 
     return lightTransportData;

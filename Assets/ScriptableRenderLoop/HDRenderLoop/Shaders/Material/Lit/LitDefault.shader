@@ -9,7 +9,7 @@ Shader "Unity/Lit"
         _BaseColor("BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
 
-        _Metalic("_Metalic", Range(0.0, 1.0)) = 0
+        _Metallic("_Metallic", Range(0.0, 1.0)) = 0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
         _MaskMap("MaskMap", 2D) = "white" {}
 
@@ -115,7 +115,7 @@ Shader "Unity/Lit"
     float4 _BaseColor;
     UNITY_DECLARE_TEX2D(_BaseColorMap);
 
-    float _Metalic;
+    float _Metallic;
     float _Smoothness;
     UNITY_DECLARE_TEX2D(_MaskMap);
     UNITY_DECLARE_TEX2D(_SpecularOcclusionMap);

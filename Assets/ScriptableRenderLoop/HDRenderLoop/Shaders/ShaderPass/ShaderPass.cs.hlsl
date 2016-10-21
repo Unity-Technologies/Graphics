@@ -3,7 +3,7 @@
 //
 
 //
-// UnityEngine.ScriptableRenderLoop.ShaderPass:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.ShaderPass:  static fields
 //
 #define SHADERPASS_GBUFFER (0)
 #define SHADERPASS_FORWARD (1)
