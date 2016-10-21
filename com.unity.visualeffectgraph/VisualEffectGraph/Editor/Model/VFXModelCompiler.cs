@@ -382,6 +382,75 @@ namespace UnityEditor.Experimental
                 for (int i = 0; i < buffer.Count; ++i)
                     attribToBuffer.Add(buffer[i], buffer);
 
+            //--------------------------------------------------------------------------
+            // OUTPUT BUFFER GENERATION
+            bool useOutputBuffer = updateHasKill; // TODO By default use this as soon as we have kill behavior
+            var outputAttribs = new List<VFXAttribute>();
+            if (updateHasKill)
+            {
+                // Buckets by size
+                var attribsPerSize = new Queue<VFXAttribute>[4];
+                for (int i = 0; i < 4; ++i) // Assuming sizes cannot be more than 4 bytes
+                    attribsPerSize[i] = new Queue<VFXAttribute>();
+
+                // Gather output attributes and add to correct size bucket
+                foreach (var attrib in attribToBuffer)
+                    if (attrib.Value.Used(VFXContextDesc.Type.kTypeOutput))
+                    {
+                        VFXValue.TypeToSize(attrib.Key.m_Type);
+                        attribsPerSize[VFXValue.TypeToSize(attrib.Key.m_Type) - 1].Enqueue(attrib.Key);
+                    }
+
+                // First add 4 dwords types
+                while (attribsPerSize[3].Count > 0) 
+                    outputAttribs.Add(attribsPerSize[3].Dequeue());
+                // Then 3 paired with 1
+                while (attribsPerSize[2].Count > 0)
+                {
+                    outputAttribs.Add(attribsPerSize[2].Dequeue());
+                    if (attribsPerSize[0].Count > 0)
+                        outputAttribs.Add(attribsPerSize[0].Dequeue());
+                }
+                // 2 paired with 2 or two 1s
+                while (attribsPerSize[1].Count > 0)
+                {
+                    outputAttribs.Add(attribsPerSize[1].Dequeue());
+                    if (attribsPerSize[1].Count > 0)
+                        outputAttribs.Add(attribsPerSize[1].Dequeue());
+                    else
+                    {
+                        if (attribsPerSize[0].Count > 0)
+                            outputAttribs.Add(attribsPerSize[0].Dequeue());
+                        if (attribsPerSize[0].Count > 0)
+                            outputAttribs.Add(attribsPerSize[0].Dequeue());
+                    }
+                }
+                // Finally add the 1s
+                while (attribsPerSize[0].Count > 0)
+                    outputAttribs.Add(attribsPerSize[0].Dequeue());
+
+                // Debug log
+                int offset = 0;
+                Debug.Log("OUTPUT BUFFER:");
+                foreach (var attrib in outputAttribs)
+                {
+                    int size = VFXValue.TypeToSize(attrib.m_Type);
+                    int alignment = size == 3 ? 4 : size;
+                    int padding = (alignment - (offset % alignment)) % alignment;
+                    if (padding != 0)
+                        Debug.Log("_PADDING - " + padding);
+                    Debug.Log(attrib.m_Name+" - "+attrib.m_Type);
+                    offset += size + padding;
+                }
+                // Pad the end to have size multiple of 4 dwords
+                if ((offset & 3) != 0)
+                {
+                    int padding = 4 - (offset & 3);
+                    Debug.Log("_PADDING - " + padding);
+                }
+            }
+            //--------------------------------------------------------------------------
+
             VFXEditor.Log("Nb Attributes : " + attribs.Count);
             VFXEditor.Log("Nb Attribute buffers: " + buffers.Count);
             for (int i = 0; i < buffers.Count; ++i)

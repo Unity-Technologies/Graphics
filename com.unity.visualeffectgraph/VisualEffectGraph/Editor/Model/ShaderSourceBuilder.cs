@@ -68,24 +68,40 @@ namespace UnityEditor.Experimental
             return m_Builder.ToString();
         }
 
-        // Shader helper methods
-        public void WriteAttributeBuffer(AttributeBuffer attributeBuffer)
+        private int WritePadding(int alignment,int offset,int index)
         {
-            Write("struct Attribute");
-            WriteLine(attributeBuffer.Index);
+            int padding = (alignment - (offset % alignment)) % alignment;
+            if (padding != 0)
+                WriteLineFormat("uint{0} _PADDING_{1};", padding == 1 ? "" : padding.ToString(), index);
+            return padding;
+        }
+
+        // Shader helper methods
+        public void WriteAttributeBuffer(AttributeBuffer attributeBuffer,bool outputData = false)
+        {
+            if (outputData)
+                WriteLine("struct OutputData");
+            else
+                WriteLineFormat("struct Attribute{0}",attributeBuffer.Index);
 
             EnterScope();
 
+            int paddingIndex = 0;
+            int offset = 0;
+
             for (int i = 0; i < attributeBuffer.Count; ++i)
             {
+                int size = VFXValue.TypeToSize(attributeBuffer[i].m_Type);
+                int padding = WritePadding(size == 3 ? 4 : size, offset, paddingIndex++);
+
                 WriteType(attributeBuffer[i].m_Type);
-                Write(" ");
-                Write(attributeBuffer[i].m_Name);
-                WriteLine(";");
+                WriteLineFormat(" {0};", attributeBuffer[i].m_Name);
+
+                offset += size + padding;
             }
 
-            if (attributeBuffer.GetSizeInBytes() == 12)
-                WriteLine("float _PADDING_;");
+            int alignment = Math.Min(offset,4);
+            WritePadding(alignment == 3 ? 4 : alignment, offset, paddingIndex);
 
             ExitScopeStruct();
             WriteLine();
