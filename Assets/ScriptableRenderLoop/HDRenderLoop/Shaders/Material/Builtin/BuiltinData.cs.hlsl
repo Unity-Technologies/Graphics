@@ -3,7 +3,7 @@
 //
 
 //
-// UnityEngine.ScriptableRenderLoop.Builtin.BuiltinData:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.Builtin.BuiltinData:  static fields
 //
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_OPACITY (100)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING (101)
@@ -14,12 +14,12 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (106)
 
 //
-// UnityEngine.ScriptableRenderLoop.Builtin.LighTransportData:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.Builtin.LighTransportData:  static fields
 //
 #define DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_DIFFUSE_COLOR (120)
 #define DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_EMISSIVE_COLOR (121)
 
-// Generated from UnityEngine.ScriptableRenderLoop.Builtin.BuiltinData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.Builtin.BuiltinData
 // PackingRules = Exact
 struct BuiltinData
 {
@@ -32,7 +32,7 @@ struct BuiltinData
 	float distortionBlur;
 };
 
-// Generated from UnityEngine.ScriptableRenderLoop.Builtin.LighTransportData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.Builtin.LighTransportData
 // PackingRules = Exact
 struct LighTransportData
 {

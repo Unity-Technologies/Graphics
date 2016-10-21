@@ -95,15 +95,15 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
     surfaceData.materialId = 0;
 
-    // MaskMap is Metalic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
+    // MaskMap is Metallic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
 #ifdef _MASKMAP
-    surfaceData.metalic = UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).r;
+    surfaceData.metallic = UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).r;
     surfaceData.ambientOcclusion = UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).g;
 #else
-    surfaceData.metalic = 1.0;
+    surfaceData.metallic = 1.0;
     surfaceData.ambientOcclusion = 1.0;
 #endif
-    surfaceData.metalic *= _Metalic;
+    surfaceData.metallic *= _Metallic;
 
 
     surfaceData.tangentWS = input.tangentToWorld[0].xyz; // TODO: do with tangent same as with normal, sample into texture etc...

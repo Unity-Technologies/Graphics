@@ -16,10 +16,10 @@ Shader "Unity/LayeredLit"
         _BaseColorMap2("BaseColorMap2", 2D) = "white" {}
         _BaseColorMap3("BaseColorMap3", 2D) = "white" {}
 
-        _Metalic0("Metalic0", Range(0.0, 1.0)) = 0
-        _Metalic1("Metalic1", Range(0.0, 1.0)) = 0
-        _Metalic2("Metalic2", Range(0.0, 1.0)) = 0
-        _Metalic3("Metalic3", Range(0.0, 1.0)) = 0
+        _Metallic0("Metallic0", Range(0.0, 1.0)) = 0
+        _Metallic1("Metallic1", Range(0.0, 1.0)) = 0
+        _Metallic2("Metallic2", Range(0.0, 1.0)) = 0
+        _Metallic3("Metallic3", Range(0.0, 1.0)) = 0
 
         _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 0.5
         _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 0.5
