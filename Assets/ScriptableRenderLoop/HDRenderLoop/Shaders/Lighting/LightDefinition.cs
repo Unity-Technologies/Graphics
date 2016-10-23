@@ -26,7 +26,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public float angleScale;
         public float angleOffset;
-        public Vector2 unused2;
+        public int flags;
+        public int IESIndex;
     };
 
     [GenerateHLSL]
@@ -94,9 +95,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float unused1;
     };
 
-    [GenerateHLSL]
-    public struct PlanarLightData
+    struct PunctualShadowData
     {
-        public Vector3 positionWS;
+	    // World to ShadowMap matrix
+        // Include scale and bias for shadow atlas if any
+	    public Vector4 shadowMatrix1;
+	    public Vector4 shadowMatrix2;
+	    public Vector4 shadowMatrix3;
+	    public Vector4 shadowMatrix4;
+	
+	    float4	shadowMapAtlasParam[6];	// shadow map size and offset of atlas per face
+
+	    float	shadowMapIndex[6];		//the shadow map index per face
+	    float	shadowType;				// Disabled, spot, point
+	    float	quality;				// shadow filtering quality
+	
+	    float	shadowAngleScale;
+	    float	shadowAngleOffset;
+	    float2	unused;
     };
 } // namespace UnityEngine.Experimental.ScriptableRenderLoop

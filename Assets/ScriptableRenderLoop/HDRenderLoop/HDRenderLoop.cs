@@ -116,9 +116,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public const int MaxLights = 32;
         public const int MaxProbes = 32;
 
-        //[SerializeField]
-        //ShadowSettings m_ShadowSettings = ShadowSettings.Default;
-        //ShadowRenderPass m_ShadowPass;
+        [SerializeField]
+        ShadowSettings m_ShadowSettings = ShadowSettings.Default;
+        ShadowRenderPass m_ShadowPass;
 
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Debug
             m_DebugViewMaterialGBuffer = CreateEngineMaterial("Hidden/Unity/DebugViewMaterialGBuffer");
 
-            // m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
+            m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
 
             m_cubeReflTexArray = new TextureCacheCubemap();
             m_cubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
@@ -466,7 +466,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         //---------------------------------------------------------------------------------------------------------------------------------------------------
 
-        void UpdatePunctualLights(VisibleLight[] visibleLights)
+        void UpdatePunctualLights(VisibleLight[] visibleLights, ref ShadowOutput shadow)
         {
             var lights = new List<PunctualLightData>();
 
@@ -610,19 +610,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     continue;
 
-                //m_ShadowPass.UpdateCullingParameters (ref cullingParams);
+                m_ShadowPass.UpdateCullingParameters (ref cullingParams);
 
                 var cullResults = CullResults.Cull(ref cullingParams, renderLoop);
 
-                //ShadowOutput shadows;
-                //m_ShadowPass.Render (renderLoop, cullResults, out shadows);
-
                 renderLoop.SetupCameraProperties(camera);
-
-                //UpdateLightConstants(cullResults.visibleLights /*, ref shadows */);
-
-                UpdatePunctualLights(cullResults.visibleLights);
-                UpdateReflectionProbes(cullResults.visibleReflectionProbes);
 
                 InitAndClearBuffer(camera, renderLoop);
 
@@ -634,6 +626,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
                 else
                 {
+                    ShadowOutput shadows;
+                    m_ShadowPass.Render(renderLoop, cullResults, out shadows);
+                    UpdatePunctualLights(cullResults.visibleLights, ref shadows);
+                    UpdateReflectionProbes(cullResults.visibleReflectionProbes);
+
                     RenderDeferredLighting(camera, renderLoop);
 
                     RenderForward(cullResults, camera, renderLoop);

@@ -72,3 +72,7 @@
 #define TEXTURE2D_ARGS(textureName, samplerName) Texture2D textureName, SamplerState samplerName
 #define TEXTURE2D_PASS(textureName, samplerName) textureName, samplerName
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord) textureName.Sample(samplerName, coord)
+
+#define UNITY_DECLARE_SHADOWMAP(tex) Texture2D tex; SamplerComparisonState sampler##tex
+#define UNITY_SAMPLE_SHADOW(tex,coord) tex.SampleCmpLevelZero (sampler##tex,(coord).xy,(coord).z)
+#define UNITY_SAMPLE_SHADOW_PROJ(tex,coord) tex.SampleCmpLevelZero (sampler##tex,(coord).xy/(coord).w,(coord).z/(coord).w)

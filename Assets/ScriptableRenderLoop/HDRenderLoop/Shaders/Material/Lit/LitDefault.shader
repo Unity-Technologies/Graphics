@@ -350,7 +350,7 @@ Shader "Unity/Lit"
         Pass
         {
             Name "DepthOnly" // Name is not used
-            Tags { "LightMode" = "DepthOnly" } // This will be only for transparent object based on the RenderQueue index
+            Tags { "LightMode" = "ShadowCaster" } // This will be only for transparent object based on the RenderQueue index
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]

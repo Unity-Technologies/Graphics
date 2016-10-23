@@ -13,6 +13,18 @@ UNITY_DECLARE_TEXCUBEARRAY(_EnvTextures);
 StructuredBuffer<EnvLightData> _EnvLightList;
 int _EnvLightCount;
 
+// Note: Here we have a max number of shadow (32?) (should be a static array but unity doesn't support loading array of struct)
+StructuredBuffer<PunctualShadowData> _PunctualShadowList;
+UNITY_DECLARE_SHADOWMAP(_ShadowMapAtlas); // Shadowmap Atlas
+
+float SampleShadow(int shadowIndex)
+{
+	PunctualShadowData shadowData = _PunctualShadowList[shadowIndex];
+	getShadowTextureSpaceCoordinate(shadowData.marix);
+	shadowData
+	return UNITY_SAMPLE_SHADOW(_ShadowMapAtlas, ...);
+}
+
 void ForwardLighting(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)

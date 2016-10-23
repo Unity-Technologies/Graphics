@@ -527,6 +527,31 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
     diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
     specularLighting = float4(0.0, 0.0, 0.0, 1.0);
 
+	// TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
+
+	const bool hasCookie = (lightData.flags & LIGHTFLAGS_HAS_COOKIE) == 0;
+	[branch] if (hasCookie && illuminance > 0.0f)
+	{
+	    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+		illuminance *= SampleCookie(lightData.cookieIndex, lightToWorld, L);
+	}
+
+	const bool hasIES = (lightData.flags & LIGHTFLAGS_HAS_IES) == 0;
+	[branch] if (hasIES && illuminance > 0.0f)
+	{
+	    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+		illuminance *= SampleIES(lightData.iesIndex, lightToWorld, L);
+	}
+
+	const bool hasShadow = (lightData.flags & LIGHTFLAGS_HAS_SHADOW) == 0;
+	[branch] if (lightData.hasShadow && illuminance > 0.0f)
+	{
+		float4x4 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+		float shadowAttenuation = SampleShadow(lightData.shadowIndex, lightToWorld, L, positionWS);
+		shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
+		illuminance *= shadowAttenuation;
+	}
+
     if (illuminance > 0.0f)
     {
         BSDF(V, L, positionWS, prelightData, bsdfData, diffuseLighting.rgb, specularLighting.rgb);
