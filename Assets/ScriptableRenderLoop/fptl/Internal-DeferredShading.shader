@@ -25,6 +25,7 @@ CGPROGRAM
 #pragma fragment frag
 
 #pragma multi_compile USE_FPTL_LIGHTLIST    USE_CLUSTERED_LIGHTLIST
+#pragma multi_compile __ ENABLE_DEBUG
 
 #include "UnityLightingCommon.cginc"
 
@@ -125,7 +126,9 @@ half4 frag (v2f i) : SV_Target
     uint numLightsProcessed = 0;
     float3 c = data.emission + ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
 
-    //c = OverlayHeatMap(pixCoord & 15, numLightsProcessed, c);
+#if ENABLE_DEBUG
+    c = OverlayHeatMap(pixCoord & 15, numLightsProcessed, c);
+#endif
     return float4(c,1.0);
 }
 
