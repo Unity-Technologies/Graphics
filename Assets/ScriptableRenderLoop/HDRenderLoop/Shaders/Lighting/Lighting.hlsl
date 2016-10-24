@@ -1,12 +1,21 @@
 #ifndef UNITY_LIGHTING_INCLUDED
 #define UNITY_LIGHTING_INCLUDED
 
-// We need to define the macro used for env map evaluation based on the different architecture.
-// Like for material we have one define by architecture.
-// TODO: who setup the define for a given architecture ?
+// The lighting architecture is in charge to define the light loop
+// It is also in charge to define the sampling function for shadowmap, ies, cookie and reflection 
+// as only the lighting architecture is aware of the usage of texture atlas, array and format (latlong, 2D, cube)
+
+#ifdef SINGLE_PASS 
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/SinglePass/SinglePass.hlsl"
+//#elif ...
+#endif
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
 
-#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightingForward/LightingForward.hlsl"
+#ifdef SINGLE_PASS 
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/SinglePass/SinglePassLoop.hlsl"
+//#elif ...
+#endif
+
 
 #endif // UNITY_LIGHTING_INCLUDED
