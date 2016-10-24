@@ -37,8 +37,8 @@ groupshared unsigned int clipFlags[48];
 unsigned int GetClip(const float4 P);
 int ClipAgainstPlane(const int iSrcIndex, const int iNrSrcVerts, const int subLigt, const int p);
 void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, out float2 vMax, float4x4 InvProjection, float3 pos_view_space, float r);
-void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex);
-void GetPlane(out float3 p0, out float3 vN, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex);
+
+#include "LightingConvexHullUtils.hlsl"
 
 
 [numthreads(NR_THREADS, 1, 1)]
@@ -404,62 +404,6 @@ float4 GenNewVert(const float4 vVisib, const float4 vInvisib, const int p)
 
 	return vNew;
 }
-
-void GetQuad(out float3 p0, out float3 p1, out float3 p2, out float3 p3, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
-{
-	const int iAbsSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
-	const float fS = (sideIndex & 1) != 0 ? 1 : (-1);
-
-	float3 vA = fS*(iAbsSide == 0 ? boxX : (iAbsSide == 1 ? (-boxY) : boxZ));
-	float3 vB = fS*(iAbsSide == 0 ? (-boxY) : (iAbsSide == 1 ? (-boxX) : (-boxY)));
-	float3 vC = iAbsSide == 0 ? boxZ : (iAbsSide == 1 ? boxZ : (-boxX));
-
-	bool bIsTopQuad = iAbsSide == 2 && (sideIndex & 1) != 0;		// in this case all 4 verts get scaled.
-	bool bIsSideQuad = (iAbsSide == 0 || iAbsSide == 1);		// if side quad only two verts get scaled (impacts q1 and q2)
-
-	if (bIsTopQuad) { vB *= scaleXY.y; vC *= scaleXY.x; }
-
-	float3 vA2 = vA;
-	float3 vB2 = vB;
-
-	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? scaleXY.x : scaleXY.y); vB2 *= (iAbsSide == 0 ? scaleXY.y : scaleXY.x); }
-
-	// delivered counterclockwise in right hand space and clockwise in left hand space
-	p0 = center + (vA + vB - vC);		// center + vA is center of face when scaleXY is 1.0
-	p1 = center + (vA - vB - vC);
-	p2 = center + (vA2 - vB2 + vC);
-	p3 = center + (vA2 + vB2 + vC);
-}
-
-void GetPlane(out float3 p0, out float3 vN, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
-{
-	const int iAbsSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
-	const float fS = (sideIndex & 1) != 0 ? 1 : (-1);
-
-	float3 vA = fS*(iAbsSide == 0 ? boxX : (iAbsSide == 1 ? (-boxY) : boxZ));
-	float3 vB = fS*(iAbsSide == 0 ? (-boxY) : (iAbsSide == 1 ? (-boxX) : (-boxY)));
-	float3 vC = iAbsSide == 0 ? boxZ : (iAbsSide == 1 ? boxZ : (-boxX));
-
-	bool bIsTopQuad = iAbsSide == 2 && (sideIndex & 1) != 0;		// in this case all 4 verts get scaled.
-	bool bIsSideQuad = (iAbsSide == 0 || iAbsSide == 1);		// if side quad only two verts get scaled (impacts q1 and q2)
-
-	if (bIsTopQuad) { vB *= scaleXY.y; vC *= scaleXY.x; }
-
-	float3 vA2 = vA;
-	float3 vB2 = vB;
-
-	if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? scaleXY.x : scaleXY.y); vB2 *= (iAbsSide == 0 ? scaleXY.y : scaleXY.x); }
-
-	p0 = center + (vA + vB - vC);		// center + vA is center of face when scaleXY is 1.0
-	float3 vNout = cross( vB2, 0.5*(vA-vA2) - vC );
-
-#ifdef LEFT_HAND_COORDINATES
-	vNout = -vNout;
-#endif
-
-	vN = vNout;
-}
-
 
 
 float4 TransformPlaneToPostSpace(float4x4 InvProjection, float4 plane)

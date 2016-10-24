@@ -66,6 +66,7 @@ public struct DirectionalLight
 public class LightDefinitions
 {
     public static int MAX_NR_LIGHTS_PER_CAMERA = 1024;
+    public static int MAX_NR_BIGTILE_LIGHTS_PLUSONE = 512;      // may be overkill but the footprint is 2 bits per pixel using uint16.
     public static float VIEWPORT_SCALE_Z = 1.0f;
 
     // flags
