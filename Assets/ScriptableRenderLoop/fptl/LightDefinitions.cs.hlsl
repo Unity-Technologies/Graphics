@@ -1,5 +1,5 @@
-#ifndef LORTIHOVEDET
-#define LORTIHOVEDET
+#ifndef SOMETHINGSOMETHING
+#define SOMETHINGSOMETHING
 
 //
 // This file was automatically generated from Assets/ScriptableRenderLoop/fptl/LightDefinitions.cs.  Please don't edit by hand.
