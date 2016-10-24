@@ -19,7 +19,6 @@ namespace UnityEditor.Graphing.Drawing
 
         void OnNodeChanged(INode inNode, NodeModificationScope scope)
         {
-            Debug.Log("OnNodeChanged");
             var dependentNodes = new List<INode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
             foreach (var node in dependentNodes)
@@ -33,38 +32,32 @@ namespace UnityEditor.Graphing.Drawing
 
         private void UpdateData()
         {
-            var deletedElements = new List<GraphElementData>();
-
             // Find all nodes currently being drawn which are no longer in the graph (i.e. deleted)
-            foreach (var nodeData in m_Elements.OfType<NodeDrawData>())
-            {
-                if (!graphAsset.graph.GetNodes<INode>().Contains(nodeData.node))
-                {
-                    // Mark node for deletion
-                    deletedElements.Add(nodeData);
-                }
-            }
+            var deletedElements = m_Elements
+                .OfType<NodeDrawData>()
+                .Where(nd => !graphAsset.graph.GetNodes<INode>().Contains(nd.node))
+                .Cast<GraphElementData>()
+                .ToList();
+
+            var deletedEdges = m_Elements.OfType<EdgeDrawData>()
+                .Where(ed => !graphAsset.graph.edges.Contains(ed.edge));
 
             // Find all edges currently being drawn which are no longer in the graph (i.e. deleted)
-            foreach (var edgeData in m_Elements.OfType<EdgeDrawData>())
+            foreach (var edgeData in deletedEdges)
             {
-                if (!graphAsset.graph.edges.Contains(edgeData.edge))
+                // Make sure to disconnect the node, otherwise new connections won't be allowed for the used slots
+                edgeData.left.connected = false;
+                edgeData.right.connected = false;
+
+                var toNodeGuid = edgeData.edge.inputSlot.nodeGuid;
+                var toNode = m_Elements.OfType<NodeDrawData>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
+                if (toNode != null)
                 {
-                    // Mark edge for deletion
-                    deletedElements.Add(edgeData);
-
-                    // Make sure to disconnect the node, otherwise new connections won't be allowed for the used slots
-                    edgeData.left.connected = false;
-                    edgeData.right.connected = false;
-
-                    var toNodeGuid = edgeData.edge.inputSlot.nodeGuid;
-                    var toNode = m_Elements.OfType<NodeDrawData>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
-                    if (toNode != null)
-                    {
-                        // Make the input node (i.e. right side of the connection) re-render
-                        toNode.MarkDirtyHack();
-                    }
+                    // Make the input node (i.e. right side of the connection) re-render
+                    toNode.MarkDirtyHack();
                 }
+
+                deletedElements.Add(edgeData);
             }
 
             // Remove all nodes and edges marked for deletion
@@ -148,7 +141,7 @@ namespace UnityEditor.Graphing.Drawing
                     drawableEdges.Add(edgeData);
                 }
             }
-            
+
             m_Elements.AddRange(drawableEdges.OfType<GraphElementData>());
         }
 
