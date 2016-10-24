@@ -19,12 +19,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     {
         // World to ShadowMap matrix
         // Include scale and bias for shadow atlas if any
-        public Vector4 worldToShadow0;
-        public Vector4 worldToShadow1;
-        public Vector4 worldToShadow2;
-        public Vector4 worldToShadow3;
+        public Matrix4x4 worldToShadow;
 
         public ShadowType shadowType;
-        public Vector3 unused;
+        public float bias;
+        public Vector2 unused;
     };
 } // namespace UnityEngine.Experimental.ScriptableRenderLoop

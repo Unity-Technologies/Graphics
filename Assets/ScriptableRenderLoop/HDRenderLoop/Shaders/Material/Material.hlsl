@@ -15,6 +15,42 @@
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightDefinition.cs.hlsl"
 
 //-----------------------------------------------------------------------------
+// Lighting part that required to be define to compile without lighting.hlsl
+//-----------------------------------------------------------------------------
+
+// In case lighting.hlsl is not include before including material.hlsl, define some neutral function, so it doesn't complain
+#ifndef LIGHTING
+
+struct LightLoopContext
+{
+    int unused;
+};
+
+float3 GetShadowTextureCoordinate(LightLoopContext lightLoopContext, int index, float3 positionWS, float3 L)
+{
+    return float3(0.0, 0.0, 0.0);
+}
+
+float SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 texCoord)
+{
+    return 0.0;
+}
+
+float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalTexCoord, float lod)
+{
+    return float4(0.0, 0.0, 0.0, 0.0);
+}
+
+float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
+{
+    return float4(0.0, 0.0, 0.0, 0.0);
+}
+
+#endif
+
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/Shadow.hlsl"
+
+//-----------------------------------------------------------------------------
 // common Encode/Decode functions
 //-----------------------------------------------------------------------------
 
@@ -53,31 +89,6 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 //-----------------------------------------------------------------------------
 // Material definition
 //-----------------------------------------------------------------------------
-
-// In case lighting.hlsl is not include before including material.hlsl, define some neutral function, so it doesn't complain
-#ifndef LIGHTING
-
-struct LightLoopContext
-{
-    int unused;
-};
-
-float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
-{
-    return float4(0.0, 0.0, 0.0, 0.0);
-}
-
-float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalTexCoord, float lod)
-{
-    return float4(0.0, 0.0, 0.0, 0.0);
-}
-
-float4x4 GetShadowTransform(LightLoopContext lightLoopContext, int index, float3 L)
-{
-    return float4x4(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-}
-
-#endif
 
 // Here we include all the different lighting model supported by the renderloop based on define done in .shader
 #ifdef UNITY_MATERIAL_LIT

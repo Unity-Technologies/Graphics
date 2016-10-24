@@ -11,6 +11,8 @@
 // OS: object space
 // HS: Homogenous clip space
 // CS: clips space
+// TS: tangent space
+// TXS: texture space
 // Example: NormalWS
 
 // normalized / unormalized vector

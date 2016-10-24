@@ -553,15 +553,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
                     {
-                        var shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
-                        Matrix4x4 worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose;
-
                         PunctualShadowData s = new PunctualShadowData();
 
-                        s.worldToShadow0 = worldToShadow.GetRow(0);
-                        s.worldToShadow1 = worldToShadow.GetRow(1);
-                        s.worldToShadow2 = worldToShadow.GetRow(2);
-                        s.worldToShadow3 = worldToShadow.GetRow(3);
+                        int shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
+                        s.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose to go from ShadowToWorld to WorldToShadow
 
                         if (light.lightType == LightType.Spot)
                         {
