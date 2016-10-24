@@ -80,6 +80,8 @@
 #define SAMPLER2D(samplerName) SamplerState samplerName;
 #define SAMPLERCUBE(samplerName) SamplerState samplerName;
 #define SAMPLER3D(samplerName) SamplerState samplerName;
+#define SAMPLER2D_SHADOW(samplerName) SamplerComparisonState samplerName
+#define SAMPLERCUBE_SHADOW(samplerName) SamplerComparisonState samplerName
 
 #define TEXTURE2D_ARGS(textureName, samplerName) Texture2D textureName, SamplerState samplerName
 #define TEXTURE2D_ARRAY_ARGS(textureName, samplerName) Texture2DArray textureName, SamplerState samplerName
@@ -100,9 +102,13 @@
 #define TEXTURECUBE_SHADOW_PASS(textureName, samplerName) textureName, samplerName
 
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) textureName.Sample(samplerName, coord2)
+#define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod) textureName.SampleLevel(samplerName, coord2, lod)
 #define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) textureName.Sample(samplerName, float3((coord2).xy, index))
+#define SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, index, lod) textureName.SampleLevel(samplerName, float3((coord2).xy, index), lod)
 #define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3) textureName.Sample(samplerName, coord3)
+#define SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3) textureName.SampleLevel(samplerName, coord3, lod)
 #define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3) textureName.Sample(samplerName, float4((coord3).xyz, index))
+#define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, lod) textureName.SampleLevel(samplerName, float4((coord3).xyz, index), lod)
 #define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) textureName.SampleCmpLevelZero(samplerName, (coord3).xy, (coord3).z)
 #define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) textureName.SampleCmpLevelZero(samplerName, float3((coord3).xy, index), (coord3).z)
 #define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) textureName.SampleCmpLevelZero(samplerName, (coord3).xyz, (coord3).w)

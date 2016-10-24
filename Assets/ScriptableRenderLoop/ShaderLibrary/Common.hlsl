@@ -210,6 +210,7 @@ float GetShiftedNdotV(float3 N, float3 V)
 #define CUBEMAPFACE_POSITIVE_Z 4
 #define CUBEMAPFACE_NEGATIVE_Z 5
 
+void GetCubeFaceID(float3 dir, out int faceIndex)
 {
     // TODO: Use faceID intrinsic on console
     float3 adir = abs(dir);
