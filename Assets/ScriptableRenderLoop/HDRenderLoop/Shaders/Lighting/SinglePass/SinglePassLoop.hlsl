@@ -1,33 +1,24 @@
-#ifndef UNITY_LIGHTING_FORWARD_INCLUDED
-#define UNITY_LIGHTING_FORWARD_INCLUDED
-
-//-----------------------------------------------------------------------------
-// Simple forward loop architecture
-//-----------------------------------------------------------------------------
+// Users can use SHADERPASS_FORWARD here to dinstinguish behavior between deferred and forward.
 
 StructuredBuffer<PunctualLightData> _PunctualLightList;
 int _PunctualLightCount;
 
-UNITY_DECLARE_TEXCUBEARRAY(_EnvTextures);
-
 StructuredBuffer<EnvLightData> _EnvLightList;
 int _EnvLightCount;
 
-// Note: Here we have a max number of shadow (32?) (should be a static array but unity doesn't support loading array of struct)
+// Use texture array for reflection
+UNITY_DECLARE_TEXCUBEARRAY(_EnvTextures);
+
+/*
+// Use texture atlas for shadow map
 StructuredBuffer<PunctualShadowData> _PunctualShadowList;
-UNITY_DECLARE_SHADOWMAP(_ShadowMapAtlas); // Shadowmap Atlas
+UNITY_DECLARE_SHADOWMAP(_ShadowMapAtlas);
+*/
 
-float SampleShadow(int shadowIndex)
-{
-	PunctualShadowData shadowData = _PunctualShadowList[shadowIndex];
-	getShadowTextureSpaceCoordinate(shadowData.marix);
-	shadowData
-	return UNITY_SAMPLE_SHADOW(_ShadowMapAtlas, ...);
-}
-
-void ForwardLighting(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData bsdfData,
-                        out float4 diffuseLighting,
-                        out float4 specularLighting)
+// bakeDiffuseLighting is part of the prototype so a user is able to implement a "base pass" with GI and multipass direct light (aka old unity rendering path)
+void LightingLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData bsdfData, float3 bakeDiffuseLighting,
+                    out float4 diffuseLighting,
+                    out float4 specularLighting)
 {
     diffuseLighting = float4(0.0, 0.0, 0.0, 0.0);
     specularLighting = float4(0.0, 0.0, 0.0, 0.0);
@@ -65,7 +56,7 @@ void ForwardLighting(	float3 V, float3 positionWS, PreLightData prelightData, BS
     }
 
     diffuseLighting += iblDiffuseLighting;
+    diffuseLighting.rgb += bakeDiffuseLighting;
+
     specularLighting += iblSpecularLighting;
 }
-
-#endif // UNITY_LIGHTING_FORWARD_INCLUDED
