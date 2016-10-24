@@ -56,7 +56,7 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 
 // In case lighting.hlsl is not include before including material.hlsl, define some neutral function, so it doesn't complain
 #ifndef LIGHTING
-float4 SampleEnv(int envIndex, float3 dirWS, float lod)
+float4 SampleEnv(int lightLoopContext, int envIndex, float3 dirWS, float lod)
 {
     return float4(0.0, 0.0, 0.0, 0.0);
 }

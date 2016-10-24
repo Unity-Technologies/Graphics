@@ -677,7 +677,8 @@ void EvaluateBSDF_Area(	float3 V, float3 positionWS, PreLightData prelightData, 
 // ----------------------------------------------------------------------------
 
 // Ref: Moving Frostbite to PBR (Appendix A)
-float3 IntegrateLambertIBLRef(  EnvLightData lightData, BSDFData bsdfData,
+float3 IntegrateLambertIBLRef(  int lightLoopContext, 
+                                EnvLightData lightData, BSDFData bsdfData,
                                 uint sampleCount = 2048)
 {
     float3 N        = bsdfData.normalWS;
@@ -700,7 +701,7 @@ float3 IntegrateLambertIBLRef(  EnvLightData lightData, BSDFData bsdfData,
 
         if (NdotL > 0.0)
         {
-            float4 val = SampleEnv(lightData.envIndex, L, 0);
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
 
             // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
             acc += bsdfData.diffuseColor * Lambert() * weightOverPdf * val.rgb;
@@ -710,7 +711,8 @@ float3 IntegrateLambertIBLRef(  EnvLightData lightData, BSDFData bsdfData,
     return acc / sampleCount;
 }
 
-float3 IntegrateDisneyDiffuseIBLRef(float3 V, EnvLightData lightData, BSDFData bsdfData,
+float3 IntegrateDisneyDiffuseIBLRef(int lightLoopContext,
+                                    float3 V, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 2048)
 {
     float3 N = bsdfData.normalWS;
@@ -742,7 +744,7 @@ float3 IntegrateDisneyDiffuseIBLRef(float3 V, EnvLightData lightData, BSDFData b
             float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
 
             // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
-            float4 val = SampleEnv(lightData.envIndex, L, 0);
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
             acc += bsdfData.diffuseColor * disneyDiffuse * weightOverPdf * val.rgb;
         }
     }
@@ -751,7 +753,8 @@ float3 IntegrateDisneyDiffuseIBLRef(float3 V, EnvLightData lightData, BSDFData b
 }
 
 // Ref: Moving Frostbite to PBR (Appendix A)
-float3 IntegrateSpecularGGXIBLRef(  float3 V, EnvLightData lightData, BSDFData bsdfData,
+float3 IntegrateSpecularGGXIBLRef(  int lightLoopContext,
+                                    float3 V, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 2048)
 {
     float3 N        = bsdfData.normalWS;
@@ -783,7 +786,7 @@ float3 IntegrateSpecularGGXIBLRef(  float3 V, EnvLightData lightData, BSDFData b
             // Fresnel component is apply here as describe in ImportanceSampleGGX function
             float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH) * weightOverPdf;
 
-            float4 val = SampleEnv(lightData.envIndex, L, 0);
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
 
             acc += FweightOverPdf * val.rgb;
         }
@@ -797,7 +800,8 @@ float3 IntegrateSpecularGGXIBLRef(  float3 V, EnvLightData lightData, BSDFData b
 // ----------------------------------------------------------------------------
 
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
-void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
+void EvaluateBSDF_Env(  int lightLoopContext,
+                        float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
@@ -892,7 +896,7 @@ void EvaluateBSDF_Env(  float3 V, float3 positionWS, PreLightData prelightData, 
     // to classic remap like unreal/Frobiste. The function GetSpecularDominantDir can result in a better matching in this case
     // We let GetSpecularDominantDir currently as it still an improvement but not as good as it could be
     float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
-    float4 preLD = SampleEnv(lightData.envIndex, R, mip);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, mip);
     specularLighting.rgb = preLD.rgb * prelightData.specularFGD;
 
     // Apply specular occlusion on it
