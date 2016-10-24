@@ -114,6 +114,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 
         public const int MaxLights = 32;
+        public const int MaxShadows = 16; // Max shadow allowed on screen simultaneously - a point light is 6 shadows
         public const int MaxProbes = 32;
 
         [SerializeField]
@@ -139,6 +140,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         static private ComputeBuffer s_punctualLightList;
         static private ComputeBuffer s_envLightList;
+        static private ComputeBuffer s_punctualShadowList;
 
         private TextureCacheCubemap m_cubeReflTexArray;
 
@@ -156,6 +158,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             if (s_punctualLightList != null)
                 s_punctualLightList.Release();
+
+            if (s_punctualShadowList != null)
+                s_punctualShadowList.Release();
 
             if (s_envLightList != null)
                 s_envLightList.Release();
@@ -179,6 +184,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
             s_envLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+            s_punctualShadowList = new ComputeBuffer(MaxShadows, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
 
             m_DeferredMaterial = CreateEngineMaterial("Hidden/Unity/Deferred");
             m_FinalPassMaterial = CreateEngineMaterial("Hidden/Unity/FinalPass");
@@ -209,6 +215,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             s_punctualLightList.Release();
             s_envLightList.Release();
+            s_punctualShadowList.Release();
 
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
             if (m_FinalPassMaterial) DestroyImmediate(m_FinalPassMaterial);
@@ -466,15 +473,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         //---------------------------------------------------------------------------------------------------------------------------------------------------
 
-        void UpdatePunctualLights(VisibleLight[] visibleLights, ref ShadowOutput shadow)
+        void UpdatePunctualLights(VisibleLight[] visibleLights, ref ShadowOutput shadowOutput)
         {
             var lights = new List<PunctualLightData>();
+            var shadows = new List<PunctualShadowData>();
 
             for (int lightIndex = 0; lightIndex < Math.Min(visibleLights.Length, MaxLights); lightIndex++)
             {
                 var light = visibleLights[lightIndex];
                 if (light.lightType != LightType.Spot && light.lightType != LightType.Point && light.lightType != LightType.Directional)
                     continue;
+
+                var additionalLightData = light.light.GetComponent<AdditionalLightData>();
 
                 var l = new PunctualLightData();
 
@@ -503,14 +513,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 l.up = light.light.transform.up;
                 l.right = light.light.transform.right;
 
-                l.diffuseScale = 1.0f;
-                l.specularScale = 1.0f;
-                l.shadowDimmer = 1.0f;
-
                 if (light.lightType == LightType.Spot)
                 {
                     var spotAngle = light.light.spotAngle;
-                    var additionalLightData = light.light.GetComponent<AdditionalLightData>();
+                    
                     var innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
                     var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
@@ -526,12 +532,62 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     l.angleOffset = 2.0f;
                 }
 
+                l.diffuseScale = AdditionalLightData.GetAffectDiffuse(additionalLightData) ? 1.0f : 0.0f;
+                l.specularScale = AdditionalLightData.GetAffectSpecular(additionalLightData) ? 1.0f : 0.0f;
+                l.shadowDimmer = AdditionalLightData.GetShadowDimmer(additionalLightData);
+
+                l.flags = 0;
+                l.IESIndex = 0;
+                l.cookieIndex = 0;
+                l.shadowIndex = 0;
+
+                // Setup shadow data arrays
+                bool hasShadows = shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
+                bool hasNotReachMaxLimit = shadows.Count + (light.lightType == LightType.Point ? 6 : 1) <= MaxShadows;
+
+                if (hasShadows && hasNotReachMaxLimit) // Note  < MaxShadows should be check at shadowOutput creation
+                {
+                    // When we have a point light, we assumed that there is 6 consecutive PunctualShadowData
+                    l.shadowIndex = shadows.Count;
+                    l.flags |= LightFlags.HasShadow;
+
+                    for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
+                    {
+                        var shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
+                        Matrix4x4 worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose;
+
+                        PunctualShadowData s = new PunctualShadowData();
+
+                        s.worldToShadow0 = worldToShadow.GetRow(0);
+                        s.worldToShadow1 = worldToShadow.GetRow(1);
+                        s.worldToShadow2 = worldToShadow.GetRow(2);
+                        s.worldToShadow3 = worldToShadow.GetRow(3);
+
+                        if (light.lightType == LightType.Spot)
+                        {
+                            s.shadowType = ShadowType.Spot;
+                        }
+                        else if (light.lightType == LightType.Point)
+                        {
+                            s.shadowType = ShadowType.Point;
+                        }
+                        else
+                        {
+                            s.shadowType = ShadowType.Directional;
+                        }
+
+                        shadows.Add(s);                        
+                    }
+                }
+
                 lights.Add(l);
             }
             s_punctualLightList.SetData(lights.ToArray());
+            s_punctualShadowList.SetData(shadows.ToArray());
 
             Shader.SetGlobalBuffer("_PunctualLightList", s_punctualLightList);
             Shader.SetGlobalInt("_PunctualLightCount", lights.Count);
+            Shader.SetGlobalBuffer("_PunctualShadowList", s_punctualShadowList);            
         }
 
         void UpdateReflectionProbes(VisibleReflectionProbe[] activeReflectionProbes)

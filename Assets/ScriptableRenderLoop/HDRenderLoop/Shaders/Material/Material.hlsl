@@ -56,10 +56,27 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 
 // In case lighting.hlsl is not include before including material.hlsl, define some neutral function, so it doesn't complain
 #ifndef LIGHTING
-float4 SampleEnv(int lightLoopContext, int envIndex, float3 dirWS, float lod)
+
+struct LightLoopContext
+{
+    int unused;
+};
+
+float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
 {
     return float4(0.0, 0.0, 0.0, 0.0);
 }
+
+float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalTexCoord, float lod)
+{
+    return float4(0.0, 0.0, 0.0, 0.0);
+}
+
+float4x4 GetShadowTransform(LightLoopContext lightLoopContext, int index, float3 L)
+{
+    return float4x4(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+}
+
 #endif
 
 // Here we include all the different lighting model supported by the renderloop based on define done in .shader

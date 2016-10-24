@@ -504,7 +504,8 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BS
 // EvaluateBSDF_Punctual
 //-----------------------------------------------------------------------------
 
-void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightData, PunctualLightData lightData, BSDFData bsdfData,
+void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
+                            float3 V, float3 positionWS, PreLightData prelightData, PunctualLightData lightData, BSDFData bsdfData,
                             out float4 diffuseLighting,
                             out float4 specularLighting)
 {
@@ -527,29 +528,31 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
 	// TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
     /*
-	const bool hasCookie = (lightData.flags & LIGHTFLAGS_HAS_COOKIE) == 0;
+	const bool hasCookie = (lightData.flags & LIGHTFLAGS_HAS_COOKIE)!= 0;
 	[branch] if (hasCookie && illuminance > 0.0f)
 	{
 	    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
 		illuminance *= SampleCookie(lightData.cookieIndex, lightToWorld, L);
 	}
+    */
 
-	const bool hasIES = (lightData.flags & LIGHTFLAGS_HAS_IES) == 0;
+	const bool hasIES = (lightData.flags & LIGHTFLAGS_HAS_IES) != 0;
 	[branch] if (hasIES && illuminance > 0.0f)
 	{
 	    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-		illuminance *= SampleIES(lightData.iesIndex, lightToWorld, L);
+        float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
+        illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
 	}
 
-	const bool hasShadow = (lightData.flags & LIGHTFLAGS_HAS_SHADOW) == 0;
-	[branch] if (lightData.hasShadow && illuminance > 0.0f)
+	const bool hasShadow = (lightData.flags & LIGHTFLAGS_HAS_SHADOW) != 0;
+	[branch] if (hasShadow && illuminance > 0.0f)
 	{
-		float4x4 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-		float shadowAttenuation = SampleShadow(lightData.shadowIndex, lightToWorld, L, positionWS);
+        float4x4 shadowTransform = GetShadowTransform(lightLoopContext, lightData.shadowIndex, L);
+        float4 positionHS = mul(float4(positionWS, 1), shadowTransform);
+        float shadowAttenuation = 1; // GetShadowAttenuation(shadowTransform, positionHS.xyz / positionHS.w);
 		shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
 		illuminance *= shadowAttenuation;
 	}
-    */
 
     if (illuminance > 0.0f)
     {
@@ -563,10 +566,10 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
 // EvaluateBSDF_Area - Reference
 //-----------------------------------------------------------------------------
 
-void IntegrateGGXAreaRef(float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
-                                out float4 diffuseLighting,
-                                out float4 specularLighting,
-                                uint sampleCount = 512)
+void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
+                            out float4 diffuseLighting,
+                            out float4 specularLighting,
+                            uint sampleCount = 512)
 {
     // Add some jittering on Hammersley2d
     float2 randNum = InitRandom(V.xy * 0.5 + 0.5);
@@ -629,7 +632,8 @@ void IntegrateGGXAreaRef(float3 V, float3 positionWS, PreLightData prelightData,
 // EvaluateBSDF_Area
 //-----------------------------------------------------------------------------
 
-void EvaluateBSDF_Area(	float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
+void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
+                        float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
@@ -677,7 +681,7 @@ void EvaluateBSDF_Area(	float3 V, float3 positionWS, PreLightData prelightData, 
 // ----------------------------------------------------------------------------
 
 // Ref: Moving Frostbite to PBR (Appendix A)
-float3 IntegrateLambertIBLRef(  int lightLoopContext, 
+float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
                                 EnvLightData lightData, BSDFData bsdfData,
                                 uint sampleCount = 2048)
 {
@@ -711,7 +715,7 @@ float3 IntegrateLambertIBLRef(  int lightLoopContext,
     return acc / sampleCount;
 }
 
-float3 IntegrateDisneyDiffuseIBLRef(int lightLoopContext,
+float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     float3 V, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 2048)
 {
@@ -753,7 +757,7 @@ float3 IntegrateDisneyDiffuseIBLRef(int lightLoopContext,
 }
 
 // Ref: Moving Frostbite to PBR (Appendix A)
-float3 IntegrateSpecularGGXIBLRef(  int lightLoopContext,
+float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
                                     float3 V, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 2048)
 {
@@ -800,7 +804,7 @@ float3 IntegrateSpecularGGXIBLRef(  int lightLoopContext,
 // ----------------------------------------------------------------------------
 
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
-void EvaluateBSDF_Env(  int lightLoopContext,
+void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                         float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)

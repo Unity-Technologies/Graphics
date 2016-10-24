@@ -43,9 +43,9 @@ struct PunctualLightData
 	float diffuseScale;
 	float specularScale;
 	float shadowDimmer;
-	int ShadowIndex;
+	int shadowIndex;
 	int IESIndex;
-	int CookieIndex;
+	int cookieIndex;
 	float2 unused;
 };
 
@@ -143,7 +143,7 @@ float GetShadowDimmer(PunctualLightData value)
 }
 int GetShadowIndex(PunctualLightData value)
 {
-	return value.ShadowIndex;
+	return value.shadowIndex;
 }
 int GetIESIndex(PunctualLightData value)
 {
@@ -151,7 +151,7 @@ int GetIESIndex(PunctualLightData value)
 }
 int GetCookieIndex(PunctualLightData value)
 {
-	return value.CookieIndex;
+	return value.cookieIndex;
 }
 float2 GetUnused(PunctualLightData value)
 {

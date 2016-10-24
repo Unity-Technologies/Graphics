@@ -7,6 +7,8 @@
 
 #define LIGHTING // This define is used to know that we have include lighting when compiling material, else it will generate "default" function that are neutral to use Material.hlsl alone.
 
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/ShadowDefinition.cs.hlsl"
+
 #ifdef SINGLE_PASS 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/SinglePass/SinglePass.hlsl"
 //#elif ...

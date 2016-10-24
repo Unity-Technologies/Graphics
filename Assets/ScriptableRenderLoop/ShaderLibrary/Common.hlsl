@@ -199,5 +199,34 @@ float GetShiftedNdotV(float3 N, float3 V)
     return saturate(dot(N, V)); // TODO: this saturate should not be necessary here
 }
 
+// ----------------------------------------------------------------------------
+// Util cubemap
+// ----------------------------------------------------------------------------
+
+#define CUBEMAPFACE_POSITIVE_X 0
+#define CUBEMAPFACE_NEGATIVE_X 1
+#define CUBEMAPFACE_POSITIVE_Y 2
+#define CUBEMAPFACE_NEGATIVE_Y 3
+#define CUBEMAPFACE_POSITIVE_Z 4
+#define CUBEMAPFACE_NEGATIVE_Z 5
+
+{
+    // TODO: Use faceID intrinsic on console
+    float3 adir = abs(dir);
+
+    // +Z -Z
+    faceIndex = dir.z > 0.0f ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
+
+    // +X -X
+    if (adir.x > adir.y && adir.x > adir.z)
+    {
+        faceIndex = dir.x > 0.0 ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
+    }
+    // +Y -Y
+    else if (adir.y > adir.x && adir.y > adir.z)
+    {
+        faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
+    }
+}
 
 #endif // UNITY_COMMON_INCLUDED
