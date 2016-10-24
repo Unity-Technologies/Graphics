@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // clustered light list specific buffers and data begin
         public bool enableClustered = false;
         public bool disableFptlWhenClustered = false;    // still useful on opaques
-        public bool enableBigTilePrepass = false;
+        public bool enableBigTilePrepass = true;
         public bool enableDrawLightBoundsDebug = false;
         public bool enableDrawTileDebug = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
