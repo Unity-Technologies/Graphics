@@ -1,11 +1,16 @@
-#pragma kernel TileLightListGen_NoDepthRT		LIGHTLISTGEN=TileLightListGen_NoDepthRT
-#pragma kernel TileLightListGen_DepthRT			LIGHTLISTGEN=TileLightListGen_DepthRT			ENABLE_DEPTH_TEXTURE_BACKPLANE
-#pragma kernel TileLightListGen_DepthRT_MSAA	LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED
+#pragma kernel TileLightListGen_NoDepthRT					LIGHTLISTGEN=TileLightListGen_NoDepthRT
+#pragma kernel TileLightListGen_DepthRT						LIGHTLISTGEN=TileLightListGen_DepthRT			ENABLE_DEPTH_TEXTURE_BACKPLANE
+#pragma kernel TileLightListGen_DepthRT_MSAA				LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED
+#pragma kernel TileLightListGen_NoDepthRT_SrcBigTile		LIGHTLISTGEN=TileLightListGen_NoDepthRT_SrcBigTile																	USE_TWO_PASS_TILED_LIGHTING
+#pragma kernel TileLightListGen_DepthRT_SrcBigTile			LIGHTLISTGEN=TileLightListGen_DepthRT_SrcBigTile			ENABLE_DEPTH_TEXTURE_BACKPLANE							USE_TWO_PASS_TILED_LIGHTING
+#pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile		LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile		ENABLE_DEPTH_TEXTURE_BACKPLANE		MSAA_ENABLED		USE_TWO_PASS_TILED_LIGHTING
 #pragma kernel ClearAtomic
 
 
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
+
+#include "LightingConvexHullUtils.hlsl"
 
 //#define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -32,6 +37,10 @@ Texture2D g_depth_tex : register( t0 );
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<SFiniteLightData> g_vLightData : register( t2 );
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
+
+#ifdef USE_TWO_PASS_TILED_LIGHTING
+StructuredBuffer<uint> g_vBigTileLightList : register( t4 );
+#endif
 
 
 #define NR_THREADS			64
@@ -110,7 +119,6 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 // returns 1 for intersection and 0 for none
 
-float4 GetPlaneEq(const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 vScaleXZ, const int sideIndex);
 float4 FetchPlane(int l, int p);
 
 
@@ -173,7 +181,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	uint nrTilesY = (iHeight+15)/16;
 
 	uint2 viTilLL = 16*tileIDX;
-	uint2 viTilUR = min( viTilLL+uint2(16,16), uint2(iWidth-1, iHeight-1) );
+	uint2 viTilUR = min( viTilLL+uint2(16,16), uint2(iWidth, iHeight) );		// not width and height minus 1 since viTilUR represents the end of the tile corner.
 
 	if(t==0)
 	{
@@ -223,8 +231,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 	float3 vTileLL = float3(viTilLL.x/(float) iWidth, viTilLL.y/(float) iHeight, 0.0);
-	float3 vTileUR = float3((viTilLL.x+16)/(float) iWidth, (viTilLL.y+16)/(float) iHeight, 1.0);
-	vTileUR.xy = min(vTileUR.xy,float2(1.0,1.0)).xy;
+	float3 vTileUR = float3(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight, 1.0);
 	
 
 	// build coarse list using AABB
@@ -408,35 +415,6 @@ void sortLightList(int localThreadID, int length)
 
 
 
-float4 GetPlaneEq(const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int sideIndex)
-{
-	const int absSide = (sideIndex == 0 || sideIndex == 1) ? 0 : ((sideIndex == 2 || sideIndex == 3) ? 1 : 2);
-	const float fS = (sideIndex & 1) != 0 ? 1 : (-1);
-
-	float3 vA = fS*(absSide == 0 ? boxX : (absSide == 1 ? (-boxY) : boxZ));
-	float3 vB = fS*(absSide == 0 ? (-boxY) : (absSide == 1 ? (-boxX) : (-boxY)));
-	float3 vC = absSide == 0 ? boxZ : (absSide == 1 ? boxZ : (-boxX));
-
-	bool bIsTopQuad = absSide == 2 && (sideIndex & 1) != 0;		// in this case all 4 verts get scaled.
-	bool bIsSideQuad = (absSide == 0 || absSide == 1);		// if side quad only two verts get scaled (impacts q1 and q2)
-
-	if (bIsTopQuad) { vB *= scaleXY.y; vC *= scaleXY.x; }
-
-	float3 vA2 = vA;
-	float3 vB2 = vB;
-
-	if (bIsSideQuad) { vA2 *= (absSide == 0 ? scaleXY.x : scaleXY.y); vB2 *= (absSide == 0 ? scaleXY.y : scaleXY.x); }
-
-	float3 p0 = center + (vA + vB - vC);		// center + vA is center of face when scaleXY is 1.0
-	float3 vN = cross( vB2, 0.5*(vA-vA2) - vC );
-
-#ifdef LEFT_HAND_COORDINATES
-	vN = -vN;
-#endif
-
-	return float4(vN, -dot(vN,p0));
-}
-
 
 float4 FetchPlane(int l, int p)
 {
@@ -489,7 +467,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #ifdef LEFT_HAND_COORDINATES
 		fRad = fRad + (center.z+fOffs)*worldDistAtDepthOne;
 #else
-		fRad = fRad + (center.z-fOffs)*worldDistAtDepthOne;
+		fRad = fRad - (center.z-fOffs)*worldDistAtDepthOne;
 #endif
 		
 		float a = dot(V,V);
@@ -529,31 +507,6 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
 
 #ifdef EXACT_EDGE_TESTS
-float3 GetHullVertex(const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY, const int p)
-{
-	const bool bIsTopVertex = (p&4)!=0;
-	float3 vScales = float3( ((p&1)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? scaleXY.x : 1.0), ((p&2)!=0 ? 1.0f : (-1.0f))*(bIsTopVertex ? scaleXY.y : 1.0), (p&4)!=0 ? 1.0f : (-1.0f) );
-	return (vScales.x*boxX + vScales.y*boxY + vScales.z*boxZ) + center;
-}
-
-void GetHullEdge(out int idx0, out int idx_twin, out float3 vP0, out float3 vE0, const int e0, const float3 boxX, const float3 boxY, const float3 boxZ, const float3 center, const float2 scaleXY)
-{
-	int iAxis = e0>>2;
-	int iSwizzle = e0&0x3;
-	bool bIsSwizzleOneOrTwo = ((iSwizzle-1)&0x2)==0;
-
-	const int i0 = iAxis==0 ? (2*iSwizzle+0) : ( iAxis==1 ? (iSwizzle+(iSwizzle&2)) : iSwizzle);
-	const int i1 = i0 + (1<<iAxis);
-	const bool bSwap = iAxis==0 ? (!bIsSwizzleOneOrTwo) : (iAxis==1 ? false : bIsSwizzleOneOrTwo);
-	
-	idx0 = bSwap ? i1 : i0;
-	idx_twin = bSwap ? i0 : i1;
-	float3 p0 = GetHullVertex(boxX, boxY, boxZ, center, scaleXY, idx0);
-	float3 p1 = GetHullVertex(boxX, boxY, boxZ, center, scaleXY, idx_twin);
-
-	vP0 = p0;
-	vE0 = p1-p0;
-}
 
 float3 GetTileVertex(uint2 viTilLL, uint2 viTilUR, int i, float fTileFarPlane)
 {
