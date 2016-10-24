@@ -574,7 +574,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 float blendDistance = Mathf.Min(maxBlendDist, probe.blendDistance);
                 l.innerDistance = probe.bounds.extents - new Vector3(blendDistance, blendDistance, blendDistance);
 
-                l.sliceIndex = m_cubeReflTexArray.FetchSlice(probe.texture);
+                l.envIndex = m_cubeReflTexArray.FetchSlice(probe.texture);
 
                 l.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
                 l.blendDistance = blendDistance;

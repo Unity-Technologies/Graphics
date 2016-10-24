@@ -6,9 +6,6 @@ int _PunctualLightCount;
 StructuredBuffer<EnvLightData> _EnvLightList;
 int _EnvLightCount;
 
-// Use texture array for reflection
-UNITY_DECLARE_TEXCUBEARRAY(_EnvTextures);
-
 /*
 // Use texture atlas for shadow map
 StructuredBuffer<PunctualShadowData> _PunctualShadowList;
@@ -50,7 +47,7 @@ void LightingLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFD
     {
         float4 localDiffuseLighting;
         float4 localSpecularLighting;
-        EvaluateBSDF_Env(V, positionWS, prelightData, _EnvLightList[j], bsdfData, UNITY_PASS_TEXCUBEARRAY(_EnvTextures), localDiffuseLighting, localSpecularLighting);
+        EvaluateBSDF_Env(V, positionWS, prelightData, _EnvLightList[j], bsdfData, localDiffuseLighting, localSpecularLighting);
         iblDiffuseLighting.rgb = lerp(iblDiffuseLighting.rgb, localDiffuseLighting.rgb, localDiffuseLighting.a); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting.rgb = lerp(iblSpecularLighting.rgb, localSpecularLighting.rgb, localSpecularLighting.a);
     }
