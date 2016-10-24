@@ -36,10 +36,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float diffuseScale;
         public float specularScale;
         public float shadowDimmer;
-        public int ShadowIndex;
+        public int shadowIndex;
 
         public int IESIndex;
-        public int CookieIndex;
+        public int cookieIndex;
         public Vector2 unused;
     };
 

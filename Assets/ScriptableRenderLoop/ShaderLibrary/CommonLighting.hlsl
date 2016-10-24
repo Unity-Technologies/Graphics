@@ -39,6 +39,25 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
 }
 
 //-----------------------------------------------------------------------------
+// IES Helper
+//-----------------------------------------------------------------------------
+
+float2 GetIESTextureCoordinate(float3x3 lightToWord, float3 L)
+{
+    // IES need to be sample in light space
+    float3 dir = mul(lightToWord, -L); // Using matrix on left side do a transpose
+
+    // convert to spherical coordinate
+    float2 sphericalCoord; // .x is theta, .y is phi
+    // Texture is encoded with cos(phi), scale from -1..1 to 0..1
+    sphericalCoord.y = (dir.z * 0.5) + 0.5;
+    float theta = atan2(dir.y, dir.x);
+    sphericalCoord.x = theta * INV_TWO_PI;
+
+    return sphericalCoord;
+}
+
+//-----------------------------------------------------------------------------
 // Helper function for anisotropy
 //-----------------------------------------------------------------------------
 

@@ -64,15 +64,46 @@
 #define UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex,coord,lod) tex.SampleLevel (sampler##tex,coord, lod)
 #define UNITY_SAMPLE_TEXCUBEARRAY_SAMPLER(tex,samplertex,coord) tex.Sample (sampler##samplertex,coord)
 
-
-
-
-#define TEXTURE2D(textureName) Texture2D textureName;
-#define SAMPLER2D(samplerName) SamplerState samplerName;
-#define TEXTURE2D_ARGS(textureName, samplerName) Texture2D textureName, SamplerState samplerName
-#define TEXTURE2D_PASS(textureName, samplerName) textureName, samplerName
-#define SAMPLE_TEXTURE2D(textureName, samplerName, coord) textureName.Sample(samplerName, coord)
-
+// Shadow
 #define UNITY_DECLARE_SHADOWMAP(tex) Texture2D tex; SamplerComparisonState sampler##tex
 #define UNITY_SAMPLE_SHADOW(tex,coord) tex.SampleCmpLevelZero (sampler##tex,(coord).xy,(coord).z)
 #define UNITY_SAMPLE_SHADOW_PROJ(tex,coord) tex.SampleCmpLevelZero (sampler##tex,(coord).xy/(coord).w,(coord).z/(coord).w)
+
+
+// Alternative
+#define TEXTURE2D(textureName) Texture2D textureName;
+#define TEXTURE2D_ARRAY(textureName) Texture2DArray textureName;
+#define TEXTURECUBE(textureName) TextureCube textureName;
+#define TEXTURECUBE_ARRAY(textureName) TextureCubeArray textureName;
+#define TEXTURE3D(textureName) Texture3D textureName;
+
+#define SAMPLER2D(samplerName) SamplerState samplerName;
+#define SAMPLERCUBE(samplerName) SamplerState samplerName;
+#define SAMPLER3D(samplerName) SamplerState samplerName;
+
+#define TEXTURE2D_ARGS(textureName, samplerName) Texture2D textureName, SamplerState samplerName
+#define TEXTURE2D_ARRAY_ARGS(textureName, samplerName) Texture2DArray textureName, SamplerState samplerName
+#define TEXTURECUBE_ARGS(textureName, samplerName) TextureCube textureName, SamplerState samplerName
+#define TEXTURECUBE_ARRAY_ARGS(textureName, samplerName) TextureCubeArray textureName, SamplerState samplerName
+#define TEXTURE3D_ARGS(textureName, samplerName) Texture3D textureName, SamplerState samplerName
+#define TEXTURE2D_SHADOW_ARGS(textureName, samplerName) Texture2D textureName, SamplerComparisonState samplerName
+#define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName) Texture2DArray textureName, SamplerComparisonState samplerName
+#define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName) TextureCube textureName, SamplerComparisonState samplerName
+
+#define TEXTURE2D_PASS(textureName, samplerName) textureName, samplerName
+#define TEXTURE2D_ARRAY_PASS(textureName, samplerName) textureName, samplerName
+#define TEXTURECUBE_PASS(textureName, samplerName) textureName, samplerName
+#define TEXTURECUBE_ARRAY_PASS(textureName, samplerName) textureName, samplerName
+#define TEXTURE3D_PASS(textureName, samplerName) textureName, samplerName
+#define TEXTURE2D_SHADOW_PASS(textureName, samplerName) textureName, samplerName
+#define TEXTURE2D_ARRAY_SHADOW_PASS(textureName, samplerName) textureName, samplerName
+#define TEXTURECUBE_SHADOW_PASS(textureName, samplerName) textureName, samplerName
+
+#define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) textureName.Sample(samplerName, coord2)
+#define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) textureName.Sample(samplerName, float3((coord2).xy, index))
+#define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3) textureName.Sample(samplerName, coord3)
+#define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3) textureName.Sample(samplerName, float4((coord3).xyz, index))
+#define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) textureName.SampleCmpLevelZero(samplerName, (coord3).xy, (coord3).z)
+#define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) textureName.SampleCmpLevelZero(samplerName, float3((coord3).xy, index), (coord3).z)
+#define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) textureName.SampleCmpLevelZero(samplerName, (coord3).xyz, (coord3).w)
+

@@ -12,12 +12,42 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         [RangeAttribute(0.0F, 100.0F)]
         public float innerSpotPercent = 0.0F;
 
+        [RangeAttribute(0.0F, 1.0F)]
+        public float shadowDimmer = 1.0F;
+
+        public bool affectDiffuse = true;
+        public bool affectSpecular = true;
+
         public static float GetInnerSpotPercent01(AdditionalLightData lightData)
         {
             if (lightData != null)
                 return Mathf.Clamp(lightData.innerSpotPercent, 0.0f, 100.0f) / 100.0f;
             else
                 return 0.0F;
+        }
+
+        public static bool GetAffectDiffuse(AdditionalLightData lightData)
+        {
+            if (lightData != null)
+                return lightData.affectDiffuse;
+            else
+                return true;
+        }
+
+        public static bool GetAffectSpecular(AdditionalLightData lightData)
+        {
+            if (lightData != null)
+                return lightData.affectSpecular;
+            else
+                return true;
+        }
+
+        public static float GetShadowDimmer(AdditionalLightData lightData)
+        {
+            if (lightData != null)
+                return Mathf.Clamp(lightData.shadowDimmer, 0F, 1F);
+            else
+                return 1.0F;
         }
 
         public static int GetShadowResolution(AdditionalLightData lightData)

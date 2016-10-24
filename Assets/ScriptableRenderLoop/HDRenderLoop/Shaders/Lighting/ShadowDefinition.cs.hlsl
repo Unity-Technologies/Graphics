@@ -6,16 +6,17 @@
 // UnityEngine.Experimental.ScriptableRenderLoop.ShadowType:  static fields
 //
 #define SHADOWTYPE_SPOT (0)
-#define SHADOWTYPE_POINT (1)
+#define SHADOWTYPE_DIRECTIONAL (1)
+#define SHADOWTYPE_POINT (2)
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
 // PackingRules = Exact
 struct PunctualShadowData
 {
-	float4 shadowMatrix1;
-	float4 shadowMatrix2;
-	float4 shadowMatrix3;
-	float4 shadowMatrix4;
+	float4 worldToShadow0;
+	float4 worldToShadow1;
+	float4 worldToShadow2;
+	float4 worldToShadow3;
 	int shadowType;
 	float3 unused;
 };
@@ -23,21 +24,21 @@ struct PunctualShadowData
 //
 // Accessors for UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
 //
-float4 GetShadowMatrix1(PunctualShadowData value)
+float4 GetWorldToShadow0(PunctualShadowData value)
 {
-	return value.shadowMatrix1;
+	return value.worldToShadow0;
 }
-float4 GetShadowMatrix2(PunctualShadowData value)
+float4 GetWorldToShadow1(PunctualShadowData value)
 {
-	return value.shadowMatrix2;
+	return value.worldToShadow1;
 }
-float4 GetShadowMatrix3(PunctualShadowData value)
+float4 GetWorldToShadow2(PunctualShadowData value)
 {
-	return value.shadowMatrix3;
+	return value.worldToShadow2;
 }
-float4 GetShadowMatrix4(PunctualShadowData value)
+float4 GetWorldToShadow3(PunctualShadowData value)
 {
-	return value.shadowMatrix4;
+	return value.worldToShadow3;
 }
 int GetShadowType(PunctualShadowData value)
 {
