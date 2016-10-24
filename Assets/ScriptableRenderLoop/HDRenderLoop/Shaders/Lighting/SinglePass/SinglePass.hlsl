@@ -30,7 +30,7 @@ SAMPLER2D_SHADOW(samplerg_tShadowBuffer);
 // Use texture atlas for shadow map
 StructuredBuffer<PunctualShadowData> _PunctualShadowList;
 
-float4x4 GetShadowTransform(LightLoopContext lightLoopContext, int index, float3 L)
+float3 GetShadowTextureCoordinate(LightLoopContext lightLoopContext, int index, float3 positionWS, float3 L)
 {
     int faceIndex;
     if (_PunctualShadowList[index].shadowType == SHADOWTYPE_POINT)
@@ -38,11 +38,14 @@ float4x4 GetShadowTransform(LightLoopContext lightLoopContext, int index, float3
         GetCubeFaceID(L, faceIndex);
     }
 
-    int fetchIndex = index + faceIndex;
-    return float4x4(_PunctualShadowList[fetchIndex].worldToShadow0, _PunctualShadowList[fetchIndex].worldToShadow1, _PunctualShadowList[fetchIndex].worldToShadow2, _PunctualShadowList[fetchIndex].worldToShadow3);
+    // Note: scale and bias of shadow atlas are included in ShadowTransform
+    float4x4 shadowTransform = _PunctualShadowList[index + faceIndex].worldToShadow;
+    
+    float4 positionTXS = mul(float4(positionWS, 1.0), shadowTransform);
+    return positionTXS.xyz / positionTXS.w;
 }
 
-float4 SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 texCoord)
+float SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 texCoord)
 {
    // if (lightLoopContext.sampleShadow == SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS)
     {
@@ -58,7 +61,7 @@ float4 SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 
 }
 
 /*
-float4 SampleShadow(LightLoopContext lightLoopContext, int index, float2 texCoord)
+float SampleShadow(LightLoopContext lightLoopContext, int index, float2 texCoord)
 {
     if (lightLoopContext.sampleShadow == SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS)
     {

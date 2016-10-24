@@ -13,10 +13,7 @@
 // PackingRules = Exact
 struct PunctualShadowData
 {
-	float4 worldToShadow0;
-	float4 worldToShadow1;
-	float4 worldToShadow2;
-	float4 worldToShadow3;
+	float4x4 worldToShadow;
 	int shadowType;
 	float3 unused;
 };
@@ -24,21 +21,9 @@ struct PunctualShadowData
 //
 // Accessors for UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
 //
-float4 GetWorldToShadow0(PunctualShadowData value)
+float4x4 GetWorldToShadow(PunctualShadowData value)
 {
-	return value.worldToShadow0;
-}
-float4 GetWorldToShadow1(PunctualShadowData value)
-{
-	return value.worldToShadow1;
-}
-float4 GetWorldToShadow2(PunctualShadowData value)
-{
-	return value.worldToShadow2;
-}
-float4 GetWorldToShadow3(PunctualShadowData value)
-{
-	return value.worldToShadow3;
+	return value.worldToShadow;
 }
 int GetShadowType(PunctualShadowData value)
 {

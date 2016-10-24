@@ -358,6 +358,9 @@ struct PreLightData
     // area light
     float3x3 minV;
     float ltcGGXMagnitude;
+
+    // Shadow (sampling rotation disc)
+    float2 unPositionSS;
 };
 
 PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDFData bsdfData)
@@ -413,6 +416,9 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 
     preLightData.ltcGGXMagnitude = UNITY_SAMPLE_TEX2D_LOD(_LtcGGXMagnitude, uv, 0).w;
 
+    // Shadow
+    preLightData.unPositionSS = coord.unPositionSS;
+
     return preLightData;
 }
 
@@ -423,10 +429,10 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 // GetBakedDiffuseLigthing function compute the bake lighting + emissive color to be store in emissive buffer (Deferred case)
 // In forward it must be add to the final contribution.
 // This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
-float3 GetBakedDiffuseLigthing(PreLightData prelightData, SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
+float3 GetBakedDiffuseLigthing(PreLightData preLightData, SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
-    return builtinData.bakeDiffuseLighting * prelightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
+    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
 }
 
 //-----------------------------------------------------------------------------
@@ -451,7 +457,7 @@ LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bui
 // BSDF share between area light (reference) and punctual light
 //-----------------------------------------------------------------------------
 
-void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BSDFData bsdfData,
+void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
@@ -471,10 +477,10 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BS
         float BdotL = saturate(dot(bsdfData.bitangentWS, L));
 
         #ifdef USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGXAnisoLambdaV(  prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
-                                            bsdfData.roughnessT, bsdfData.roughnessB, prelightData.anisoGGXlambdaV);
+        Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
+                                            bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXlambdaV);
         #else
-        Vis = V_SmithJointGGXAniso( prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
+        Vis = V_SmithJointGGXAniso( preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
                                     bsdfData.roughnessT, bsdfData.roughnessB);
         #endif
 
@@ -485,9 +491,9 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BS
     else
     {
         #ifdef USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness, prelightData.ggxLambdaV);
+        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
         #else
-        Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness);
+        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness);
         #endif
         D = D_GGXDividePI(NdotH, bsdfData.roughness);
     }
@@ -495,7 +501,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BS
     #ifdef DIFFUSE_LAMBERT_BRDF
     float diffuseTerm = LambertDividePI();
     #else
-    float diffuseTerm = DisneyDiffuseDividePI(prelightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+    float diffuseTerm = DisneyDiffuseDividePI(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
     #endif
     diffuseLighting.rgb = bsdfData.diffuseColor * diffuseTerm;
 }
@@ -505,7 +511,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BS
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
-                            float3 V, float3 positionWS, PreLightData prelightData, PunctualLightData lightData, BSDFData bsdfData,
+                            float3 V, float3 positionWS, PreLightData preLightData, PunctualLightData lightData, BSDFData bsdfData,
                             out float4 diffuseLighting,
                             out float4 specularLighting)
 {
@@ -547,16 +553,23 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 	const bool hasShadow = (lightData.flags & LIGHTFLAGS_HAS_SHADOW) != 0;
 	[branch] if (hasShadow && illuminance > 0.0f)
 	{
-        float4x4 shadowTransform = GetShadowTransform(lightLoopContext, lightData.shadowIndex, L);
-        float4 positionHS = mul(float4(positionWS, 1), shadowTransform);
-        float shadowAttenuation = 1; // GetShadowAttenuation(shadowTransform, positionHS.xyz / positionHS.w);
+        // Apply offset
+        float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
+
+        float3 shadowCoord = GetShadowTextureCoordinate(lightLoopContext, lightData.shadowIndex, positionWS + offset,  L);
+        // Caution: formula doesn't work as we are texture atlas...
+        // if (max3(abs(NDC.x), abs(NDC.y), 1.0f - texCoordXYZ.z) <= 1.0f) return 1.0;
+        float3 shadowPosDX = ddx_fine(shadowCoord);
+        float3 shadowPosDY = ddy_fine(shadowCoord);
+
+        float shadowAttenuation = GetShadowAttenuation(lightLoopContext, lightData.shadowIndex, shadowCoord, shadowPosDX, shadowPosDY, preLightData.unPositionSS);
 		shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
 		illuminance *= shadowAttenuation;
 	}
 
-    if (illuminance > 0.0f)
+    [branch] if (illuminance > 0.0f)
     {
-        BSDF(V, L, positionWS, prelightData, bsdfData, diffuseLighting.rgb, specularLighting.rgb);
+        BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting.rgb, specularLighting.rgb);
         diffuseLighting.rgb *= lightData.color * illuminance * lightData.diffuseScale;
         specularLighting.rgb *= lightData.color * illuminance * lightData.specularScale;
     }
@@ -566,7 +579,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 // EvaluateBSDF_Area - Reference
 //-----------------------------------------------------------------------------
 
-void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
+void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
                             out float4 diffuseLighting,
                             out float4 specularLighting,
                             uint sampleCount = 512)
@@ -615,7 +628,7 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData prelightDa
 
         if (illuminance > 0.0)
         {
-            BSDF(V, L, positionWS, prelightData, bsdfData, localDiffuseLighting, localSpecularLighting);
+            BSDF(V, L, positionWS, preLightData, bsdfData, localDiffuseLighting, localSpecularLighting);
             localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
             localSpecularLighting *= lightData.color * illuminance * lightData.specularScale;
         }
@@ -633,12 +646,12 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData prelightDa
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
-                        float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
+                        float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE
-    IntegrateGGXAreaRef(V, positionWS, prelightData, lightData, bsdfData, diffuseLighting, specularLighting);
+    IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
 #else
 
     // TODO: This could be precomputed
@@ -657,7 +670,7 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
     specularLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
     // TODO: Fresnel is missing here but should be present
-    specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, prelightData.minV, L, lightData.twoSided) * prelightData.ltcGGXMagnitude;
+    specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, preLightData.minV, L, lightData.twoSided) * preLightData.ltcGGXMagnitude;
 
 //#ifdef DIFFUSE_LAMBERT_BRDF
     // Lambert diffuse term (here it should be Disney)
@@ -805,7 +818,7 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
 
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
-                        float3 V, float3 positionWS, PreLightData prelightData, EnvLightData lightData, BSDFData bsdfData,
+                        float3 V, float3 positionWS, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
@@ -835,7 +848,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // float shrinkedRoughness = AnisotropicStrechAtGrazingAngle(bsdfData.roughness, bsdfData.perceptualRoughness, NdotV);
     
     // Note: As explain in GetPreLightData we use normalWS and not iblNormalWS here (in case of anisotropy)
-    float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, prelightData.iblR, bsdfData.roughness);
+    float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, preLightData.iblR, bsdfData.roughness);
 
     float3 R = rayWS;
     float weight = 1.0;
@@ -901,7 +914,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // We let GetSpecularDominantDir currently as it still an improvement but not as good as it could be
     float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, mip);
-    specularLighting.rgb = preLD.rgb * prelightData.specularFGD;
+    specularLighting.rgb = preLD.rgb * preLightData.specularFGD;
 
     // Apply specular occlusion on it
     specularLighting.rgb *= bsdfData.specularOcclusion;
