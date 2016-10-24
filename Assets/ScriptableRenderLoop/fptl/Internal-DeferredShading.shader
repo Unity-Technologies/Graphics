@@ -125,7 +125,7 @@ half4 frag (v2f i) : SV_Target
     uint numLightsProcessed = 0;
     float3 c = data.emission + ExecuteLightList(numLightsProcessed, pixCoord, vP, vPw, Vworld);
 
-    //c = OverlayHeatMap(numLightsProcessed, c);
+    //c = OverlayHeatMap(pixCoord & 15, numLightsProcessed, c);
     return float4(c,1.0);
 }
 
