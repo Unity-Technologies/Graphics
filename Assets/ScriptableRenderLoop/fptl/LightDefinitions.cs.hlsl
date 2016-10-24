@@ -1,3 +1,6 @@
+#ifndef LORTIHOVEDET
+#define LORTIHOVEDET
+
 //
 // This file was automatically generated from Assets/ScriptableRenderLoop/fptl/LightDefinitions.cs.  Please don't edit by hand.
 //
@@ -6,6 +9,7 @@
 // LightDefinitions:  static fields
 //
 #define MAX_NR_LIGHTS_PER_CAMERA (1024)
+#define MAX_NR_BIGTILE_LIGHTS_PLUSONE (512)
 #define VIEWPORT_SCALE_Z (1)
 #define IS_CIRCULAR_SPOT_SHAPE (1)
 #define HAS_COOKIE_TEXTURE (2)
@@ -221,3 +225,4 @@ float GetPad1(DirectionalLight value)
 }
 
 
+#endif
