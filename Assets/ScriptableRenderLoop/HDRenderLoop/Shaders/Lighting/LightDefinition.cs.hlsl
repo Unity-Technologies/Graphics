@@ -75,15 +75,15 @@ struct EnvLightData
 	float3 positionWS;
 	int envShapeType;
 	float3 forward;
-	float unused2;
+	float envIndex;
 	float3 up;
 	float blendDistance;
 	float3 right;
-	int sliceIndex;
+	int unused0;
 	float3 innerDistance;
-	float unused0;
-	float3 offsetLS;
 	float unused1;
+	float3 offsetLS;
+	float unused2;
 };
 
 //
@@ -229,9 +229,9 @@ float3 GetForward(EnvLightData value)
 {
 	return value.forward;
 }
-float GetUnused2(EnvLightData value)
+float GetEnvIndex(EnvLightData value)
 {
-	return value.unused2;
+	return value.envIndex;
 }
 float3 GetUp(EnvLightData value)
 {
@@ -245,25 +245,25 @@ float3 GetRight(EnvLightData value)
 {
 	return value.right;
 }
-int GetSliceIndex(EnvLightData value)
+int GetUnused0(EnvLightData value)
 {
-	return value.sliceIndex;
+	return value.unused0;
 }
 float3 GetInnerDistance(EnvLightData value)
 {
 	return value.innerDistance;
 }
-float GetUnused0(EnvLightData value)
+float GetUnused1(EnvLightData value)
 {
-	return value.unused0;
+	return value.unused1;
 }
 float3 GetOffsetLS(EnvLightData value)
 {
 	return value.offsetLS;
 }
-float GetUnused1(EnvLightData value)
+float GetUnused2(EnvLightData value)
 {
-	return value.unused1;
+	return value.unused2;
 }
 
 

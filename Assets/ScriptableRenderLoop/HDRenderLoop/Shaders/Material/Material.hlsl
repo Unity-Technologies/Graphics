@@ -51,8 +51,16 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 #include "Builtin/BuiltinData.hlsl"
 
 //-----------------------------------------------------------------------------
-// SurfaceData
+// Material definition
 //-----------------------------------------------------------------------------
+
+// In case lighting.hlsl is not include before including material.hlsl, define some neutral function, so it doesn't complain
+#ifndef LIGHTING
+float4 SampleEnv(int lightLoopContext, int envIndex, float3 dirWS, float lod)
+{
+    return float4(0.0, 0.0, 0.0, 0.0);
+}
+#endif
 
 // Here we include all the different lighting model supported by the renderloop based on define done in .shader
 #ifdef UNITY_MATERIAL_LIT
