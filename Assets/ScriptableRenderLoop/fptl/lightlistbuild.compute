@@ -451,7 +451,7 @@ void sortLightList(int localThreadID, int length)
 	const int N = (const int) LimitPow2AndClamp((unsigned int) length, MAX_NR_COARSE_ENTRIES);			// N is 1 when length is zero but will still not enter first for-loop
 
 	// bitonic sort can only handle arrays with a power of two length. Fill remaining entries with greater than possible index.
-	for(int t=length+localThreadID; t<N; t+=NR_THREADS) { prunedList[t]=MAX_NR_COARSE_ENTRIES; }		// impossible index
+	for(int t=length+localThreadID; t<N; t+=NR_THREADS) { prunedList[t]=0xffffffff; }		// impossible index
 	GroupMemoryBarrierWithGroupSync();
 
 	for(int k=2; k<=N; k=2*k)

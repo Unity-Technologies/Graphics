@@ -21,6 +21,7 @@ Shader "Hidden/Unity/Deferred"
             #pragma vertex VertDeferred
             #pragma fragment FragDeferred
 
+            #include "Common.hlsl"
             // Chose supported lighting architecture in case of deferred rendering
             #pragma multi_compile SINGLE_PASS
 

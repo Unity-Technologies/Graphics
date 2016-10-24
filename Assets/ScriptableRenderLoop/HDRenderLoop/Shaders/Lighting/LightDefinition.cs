@@ -93,19 +93,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public EnvShapeType envShapeType;
 
         public Vector3 forward;
-        public float unused2;
+        public float envIndex;
 
         public Vector3 up;
         public float blendDistance;     // blend transition outside the volume
 
         public Vector3 right;
-        public int sliceIndex;
+        public int unused0;
 
         public Vector3 innerDistance;   // equivalent to volume scale
-        public float unused0;
+        public float unused1;
 
         public Vector3 offsetLS;
-        public float unused1;
+        public float unused2;
     };
 
 } // namespace UnityEngine.Experimental.ScriptableRenderLoop
