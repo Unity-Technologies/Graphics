@@ -58,10 +58,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         // clustered light list specific buffers and data begin
         public bool enableClustered = false;
+        public bool disableFptlWhenClustered = false;    // still useful on opaques
         public bool enableDrawLightBoundsDebug = false;
         public bool enableDrawTileDebug = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
-        const bool disableFptlWhenClustered = false;    // still useful on opaques
+        
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
         float m_ClustScale;
