@@ -29,6 +29,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Shader deferredShader;
         public Shader deferredReflectionShader;
         public Shader finalPassShader;
+        public Shader debugLightBoundsShader;
 
         public ComputeShader buildScreenAABBShader;
         public ComputeShader buildPerTileLightListShader;     // FPTL
@@ -57,6 +58,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         // clustered light list specific buffers and data begin
         public bool enableClustered = false;
+        public bool enableDrawLightBoundsDebug = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
         const bool disableFptlWhenClustered = false;    // still useful on opaques
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
@@ -95,6 +97,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         private SkyboxHelper m_SkyboxHelper;
 
         private Material m_BlitMaterial;
+        private Material m_DebugLightBoundsMaterial;
 
         void OnEnable()
         {
@@ -194,6 +197,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_SkyboxHelper.CreateMesh();
 
             m_BlitMaterial = new Material(finalPassShader) { hideFlags = HideFlags.HideAndDontSave };
+            m_DebugLightBoundsMaterial = new Material(debugLightBoundsShader) { hideFlags = HideFlags.HideAndDontSave };
 
             s_LightList = null;
         }
@@ -204,6 +208,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
             if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
             if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
+            if (m_DebugLightBoundsMaterial) DestroyImmediate(m_DebugLightBoundsMaterial);
 
             m_CookieTexArray.Release();
             m_CubeCookieTexArray.Release();
@@ -938,7 +943,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             if(enableClustered) RenderForward(cullResults, camera, loop, false);    // transparencies atm. requires clustered until we get traditional forward
 
+
+            if (enableDrawLightBoundsDebug) DrawLightBoundsDebug(loop, cullResults.visibleLights.Length);
+
             FinalPass(loop);
+        }
+
+        void DrawLightBoundsDebug(RenderLoop loop, int numLights)
+        {
+            var cmd = new CommandBuffer { name = "DrawLightBoundsDebug" };
+            m_DebugLightBoundsMaterial.SetBuffer("g_data", s_ConvexBoundsBuffer);
+            cmd.DrawProcedural(Matrix4x4.identity, m_DebugLightBoundsMaterial, -1, MeshTopology.Triangles, 12 * 3 * numLights);    //TODO: could this be pass 0?
+            loop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
         }
 
         void NewFrame()
