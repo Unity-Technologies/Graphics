@@ -1,6 +1,3 @@
-#ifndef UNITY_MATERIAL_LIT_INCLUDED
-#define UNITY_MATERIAL_LIT_INCLUDED
-
 //-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
@@ -529,6 +526,7 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
 
 	// TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
+    /*
 	const bool hasCookie = (lightData.flags & LIGHTFLAGS_HAS_COOKIE) == 0;
 	[branch] if (hasCookie && illuminance > 0.0f)
 	{
@@ -551,6 +549,7 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
 		shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
 		illuminance *= shadowAttenuation;
 	}
+    */
 
     if (illuminance > 0.0f)
     {
@@ -691,5 +690,3 @@ void EvaluateBSDF_Area(	float3 V, float3 positionWS, PreLightData prelightData, 
 #include "LitEnvTemplate.hlsl"
 #undef UNITY_ARGS_ENV
 #undef UNITY_SAMPLE_ENV_LOD
-
-#endif // UNITY_MATERIAL_LIT_INCLUDED

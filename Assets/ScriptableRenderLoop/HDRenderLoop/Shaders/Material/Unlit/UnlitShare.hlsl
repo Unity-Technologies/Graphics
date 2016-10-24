@@ -1,5 +1,3 @@
-// No guard header!
-
 #ifndef SHADERPASS
 #error Undefine_SHADERPASS
 #endif

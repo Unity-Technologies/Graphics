@@ -180,7 +180,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
             s_envLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
 
-            m_DeferredMaterial = CreateEngineMaterial("Hidden/Unity/LightingDeferred");
+            m_DeferredMaterial = CreateEngineMaterial("Hidden/Unity/Deferred");
             m_FinalPassMaterial = CreateEngineMaterial("Hidden/Unity/FinalPass");
 
             // Debug
