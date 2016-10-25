@@ -8,6 +8,9 @@
 #include "..\common\ShaderBase.h"
 #include "LightDefinitions.cs.hlsl"
 
+#include "LightingConvexHullUtils.hlsl"
+
+
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
@@ -517,7 +520,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #endif
 
 	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
-	float worldDistAtDepthOne = 8*onePixDiagDist;		// scale by half a tile
+	float halfTileSizeAtZDistOne = 8*onePixDiagDist;		// scale by half a tile
 	
 
 	int iNrVisib = 0;
@@ -525,30 +528,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	{
 		SFiniteLightBound lightData = g_data[coarseList[l]];
 	
-		const float3 center = lightData.center.xyz;
-		float fRad = lightData.radius;
-
-#if 1
-		float3 maxZdir = float3(-center.z*center.x, -center.z*center.y, center.x*center.x + center.y*center.y);		// cross(center,cross(Zaxis,center))
-		float len = length(maxZdir);
-		float scalarProj = len>0.0001 ? (maxZdir.z/len) : len;	// since len>=(maxZdir.z/len) we can use len as an approximate value when len<=epsilon
-		float fOffs = scalarProj*fRad;
-#else
-		float fOffs = fRad;		// more false positives due to larger radius but works too
-#endif
-
-#ifdef LEFT_HAND_COORDINATES
-		fRad = fRad + (center.z+fOffs)*worldDistAtDepthOne;
-#else
-		fRad = fRad - (center.z-fOffs)*worldDistAtDepthOne;
-#endif
-		
-		float a = dot(V,V);
-		float CdotV = dot(center,V);
-		float c = dot(center,center) - fRad*fRad;
-
-		float fDescDivFour = CdotV*CdotV - a*c;
-		if(c<0 || (fDescDivFour>0 && CdotV>0))		// if ray hit bounding sphere
+		if( DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius) )
 		{
 			unsigned int uIndex;
 			InterlockedAdd(lightOffsSph, 1, uIndex);
