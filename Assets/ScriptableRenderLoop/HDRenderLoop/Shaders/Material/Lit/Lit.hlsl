@@ -1,6 +1,3 @@
-#ifndef UNITY_MATERIAL_LIT_INCLUDED
-#define UNITY_MATERIAL_LIT_INCLUDED
-
 //-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
@@ -361,6 +358,9 @@ struct PreLightData
     // area light
     float3x3 minV;
     float ltcGGXMagnitude;
+
+    // Shadow (sampling rotation disc)
+    float2 unPositionSS;
 };
 
 PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDFData bsdfData)
@@ -416,6 +416,9 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 
     preLightData.ltcGGXMagnitude = UNITY_SAMPLE_TEX2D_LOD(_LtcGGXMagnitude, uv, 0).w;
 
+    // Shadow
+    preLightData.unPositionSS = coord.unPositionSS;
+
     return preLightData;
 }
 
@@ -426,10 +429,10 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 // GetBakedDiffuseLigthing function compute the bake lighting + emissive color to be store in emissive buffer (Deferred case)
 // In forward it must be add to the final contribution.
 // This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
-float3 GetBakedDiffuseLigthing(PreLightData prelightData, SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
+float3 GetBakedDiffuseLigthing(PreLightData preLightData, SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
 {
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
-    return builtinData.bakeDiffuseLighting * prelightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
+    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
 }
 
 //-----------------------------------------------------------------------------
@@ -454,7 +457,7 @@ LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bui
 // BSDF share between area light (reference) and punctual light
 //-----------------------------------------------------------------------------
 
-void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BSDFData bsdfData,
+void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
@@ -474,10 +477,10 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BS
         float BdotL = saturate(dot(bsdfData.bitangentWS, L));
 
         #ifdef USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGXAnisoLambdaV(  prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
-                                            bsdfData.roughnessT, bsdfData.roughnessB, prelightData.anisoGGXlambdaV);
+        Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
+                                            bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXlambdaV);
         #else
-        Vis = V_SmithJointGGXAniso( prelightData.TdotV, prelightData.BdotV, prelightData.NdotV, TdotL, BdotL, NdotL,
+        Vis = V_SmithJointGGXAniso( preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
                                     bsdfData.roughnessT, bsdfData.roughnessB);
         #endif
 
@@ -488,9 +491,9 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BS
     else
     {
         #ifdef USE_BSDF_PRE_LAMBDAV
-        Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness, prelightData.ggxLambdaV);
+        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
         #else
-        Vis = V_SmithJointGGX(NdotL, prelightData.NdotV, bsdfData.roughness);
+        Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness);
         #endif
         D = D_GGXDividePI(NdotH, bsdfData.roughness);
     }
@@ -498,7 +501,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BS
     #ifdef DIFFUSE_LAMBERT_BRDF
     float diffuseTerm = LambertDividePI();
     #else
-    float diffuseTerm = DisneyDiffuseDividePI(prelightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+    float diffuseTerm = DisneyDiffuseDividePI(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
     #endif
     diffuseLighting.rgb = bsdfData.diffuseColor * diffuseTerm;
 }
@@ -507,7 +510,8 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData prelightData, BS
 // EvaluateBSDF_Punctual
 //-----------------------------------------------------------------------------
 
-void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightData, PunctualLightData lightData, BSDFData bsdfData,
+void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
+                            float3 V, float3 positionWS, PreLightData preLightData, PunctualLightData lightData, BSDFData bsdfData,
                             out float4 diffuseLighting,
                             out float4 specularLighting)
 {
@@ -527,9 +531,45 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
     diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
     specularLighting = float4(0.0, 0.0, 0.0, 1.0);
 
-    if (illuminance > 0.0f)
+	// TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
+
+    /*
+	const bool hasCookie = (lightData.flags & LIGHTFLAGS_HAS_COOKIE)!= 0;
+	[branch] if (hasCookie && illuminance > 0.0f)
+	{
+	    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+		illuminance *= SampleCookie(lightData.cookieIndex, lightToWorld, L);
+	}
+    */
+
+	const bool hasIES = (lightData.flags & LIGHTFLAGS_HAS_IES) != 0;
+	[branch] if (hasIES && illuminance > 0.0f)
+	{
+	    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+        float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
+        illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
+	}
+
+	const bool hasShadow = (lightData.flags & LIGHTFLAGS_HAS_SHADOW) != 0;
+	[branch] if (hasShadow && illuminance > 0.0f)
+	{
+        // Apply offset
+        float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
+
+        float3 shadowCoord = GetShadowTextureCoordinate(lightLoopContext, lightData.shadowIndex, positionWS + offset,  L);
+        // Caution: formula doesn't work as we are texture atlas...
+        // if (max3(abs(NDC.x), abs(NDC.y), 1.0f - texCoordXYZ.z) <= 1.0f) return 1.0;
+        float3 shadowPosDX = ddx_fine(shadowCoord);
+        float3 shadowPosDY = ddy_fine(shadowCoord);
+
+        float shadowAttenuation = GetShadowAttenuation(lightLoopContext, lightData.shadowIndex, shadowCoord, shadowPosDX, shadowPosDY, preLightData.unPositionSS);
+		shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
+		illuminance *= shadowAttenuation;
+	}
+
+    [branch] if (illuminance > 0.0f)
     {
-        BSDF(V, L, positionWS, prelightData, bsdfData, diffuseLighting.rgb, specularLighting.rgb);
+        BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting.rgb, specularLighting.rgb);
         diffuseLighting.rgb *= lightData.color * illuminance * lightData.diffuseScale;
         specularLighting.rgb *= lightData.color * illuminance * lightData.specularScale;
     }
@@ -539,10 +579,10 @@ void EvaluateBSDF_Punctual(	float3 V, float3 positionWS, PreLightData prelightDa
 // EvaluateBSDF_Area - Reference
 //-----------------------------------------------------------------------------
 
-void IntegrateGGXAreaRef(float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
-                                out float4 diffuseLighting,
-                                out float4 specularLighting,
-                                uint sampleCount = 512)
+void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
+                            out float4 diffuseLighting,
+                            out float4 specularLighting,
+                            uint sampleCount = 512)
 {
     // Add some jittering on Hammersley2d
     float2 randNum = InitRandom(V.xy * 0.5 + 0.5);
@@ -588,7 +628,7 @@ void IntegrateGGXAreaRef(float3 V, float3 positionWS, PreLightData prelightData,
 
         if (illuminance > 0.0)
         {
-            BSDF(V, L, positionWS, prelightData, bsdfData, localDiffuseLighting, localSpecularLighting);
+            BSDF(V, L, positionWS, preLightData, bsdfData, localDiffuseLighting, localSpecularLighting);
             localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
             localSpecularLighting *= lightData.color * illuminance * lightData.specularScale;
         }
@@ -605,12 +645,13 @@ void IntegrateGGXAreaRef(float3 V, float3 positionWS, PreLightData prelightData,
 // EvaluateBSDF_Area
 //-----------------------------------------------------------------------------
 
-void EvaluateBSDF_Area(	float3 V, float3 positionWS, PreLightData prelightData, AreaLightData lightData, BSDFData bsdfData,
+void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
+                        float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
                         out float4 diffuseLighting,
                         out float4 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE
-    IntegrateGGXAreaRef(V, positionWS, prelightData, lightData, bsdfData, diffuseLighting, specularLighting);
+    IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
 #else
 
     // TODO: This could be precomputed
@@ -629,7 +670,7 @@ void EvaluateBSDF_Area(	float3 V, float3 positionWS, PreLightData prelightData, 
     specularLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
     // TODO: Fresnel is missing here but should be present
-    specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, prelightData.minV, L, lightData.twoSided) * prelightData.ltcGGXMagnitude;
+    specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, preLightData.minV, L, lightData.twoSided) * preLightData.ltcGGXMagnitude;
 
 //#ifdef DIFFUSE_LAMBERT_BRDF
     // Lambert diffuse term (here it should be Disney)
@@ -649,22 +690,239 @@ void EvaluateBSDF_Area(	float3 V, float3 positionWS, PreLightData prelightData, 
 }
 
 //-----------------------------------------------------------------------------
+// EvaluateBSDF_Env - Reference
+// ----------------------------------------------------------------------------
+
+// Ref: Moving Frostbite to PBR (Appendix A)
+float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
+                                EnvLightData lightData, BSDFData bsdfData,
+                                uint sampleCount = 2048)
+{
+    float3 N        = bsdfData.normalWS;
+    float3 acc      = float3(0.0, 0.0, 0.0);
+    // Add some jittering on Hammersley2d
+    float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
+
+    float3 tangentX, tangentY;
+    GetLocalFrame(N, tangentX, tangentY);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float2 u    = Hammersley2d(i, sampleCount);
+        u           = frac(u + randNum + 0.5);
+
+        float3 L;
+        float NdotL;
+        float weightOverPdf;
+        ImportanceSampleLambert(u, N, tangentX, tangentY, L, NdotL, weightOverPdf);
+
+        if (NdotL > 0.0)
+        {
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
+
+            // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
+            acc += bsdfData.diffuseColor * Lambert() * weightOverPdf * val.rgb;
+        }
+    }
+
+    return acc / sampleCount;
+}
+
+float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
+                                    float3 V, EnvLightData lightData, BSDFData bsdfData,
+                                    uint sampleCount = 2048)
+{
+    float3 N = bsdfData.normalWS;
+    float NdotV = dot(N, V);
+    float3 acc  = float3(0.0, 0.0, 0.0);
+    // Add some jittering on Hammersley2d
+    float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
+
+    float3 tangentX, tangentY;
+    GetLocalFrame(N, tangentX, tangentY);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float2 u    = Hammersley2d(i, sampleCount);
+        u           = frac(u + randNum + 0.5);
+
+        float3 L;
+        float NdotL;
+        float weightOverPdf;
+        // for Disney we still use a Cosine importance sampling, true Disney importance sampling imply a look up table
+        ImportanceSampleLambert(u, N, tangentX, tangentY, L, NdotL, weightOverPdf);
+
+        if (NdotL > 0.0)
+        {            
+            float3 H = normalize(L + V);
+            float LdotH = dot(L, H);
+            // Note: we call DisneyDiffuse that require to multiply by Albedo / PI. Divide by PI is already taken into account
+            // in weightOverPdf of ImportanceSampleLambert call.
+            float disneyDiffuse = DisneyDiffuse(NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+
+            // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
+            acc += bsdfData.diffuseColor * disneyDiffuse * weightOverPdf * val.rgb;
+        }
+    }
+
+    return acc / sampleCount;
+}
+
+// Ref: Moving Frostbite to PBR (Appendix A)
+float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
+                                    float3 V, EnvLightData lightData, BSDFData bsdfData,
+                                    uint sampleCount = 2048)
+{
+    float3 N        = bsdfData.normalWS;
+    float NdotV     = saturate(dot(N, V));
+    float3 acc      = float3(0.0, 0.0, 0.0);
+
+    // Add some jittering on Hammersley2d
+    float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
+
+    float3 tangentX, tangentY;
+    GetLocalFrame(N, tangentX, tangentY);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float2 u    = Hammersley2d(i, sampleCount);
+        u           = frac(u + randNum + 0.5);
+
+        float VdotH;
+        float NdotL;
+        float3 L;
+        float weightOverPdf;
+
+        // GGX BRDF
+        ImportanceSampleGGX(u, V, N, tangentX, tangentY, bsdfData.roughness, NdotV,
+                            L, VdotH, NdotL, weightOverPdf);
+
+        if (NdotL > 0.0)
+        {
+            // Fresnel component is apply here as describe in ImportanceSampleGGX function
+            float3 FweightOverPdf = F_Schlick(bsdfData.fresnel0, VdotH) * weightOverPdf;
+
+            float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
+
+            acc += FweightOverPdf * val.rgb;
+        }
+    }
+
+    return acc / sampleCount;
+}
+
+//-----------------------------------------------------------------------------
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------
 
-// We must implement EvaluateBSDF_Env for various environment map case. For now just cube array and cube (but could add latlong later).
-// As a loop can call several version inside the same lighting architecture (think about sky and reflection probes, one isolated uncompressed, the others compressed BC6H in a textures array)
-// we need to implemnt various version here. To factor code we play with macro to generate the various varient.
-#define UNITY_ARGS_ENV(tex) UNITY_ARGS_TEXCUBEARRAY(tex)
-#define UNITY_SAMPLE_ENV_LOD(tex, coord, lightData, lod) UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex, float4(coord, lightData.sliceIndex), lod)
-#include "LitEnvTemplate.hlsl"
-#undef UNITY_ARGS_ENV
-#undef UNITY_SAMPLE_ENV_LOD
+// _preIntegratedFGD and _CubemapLD are unique for each BRDF
+void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
+                        float3 V, float3 positionWS, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                        out float4 diffuseLighting,
+                        out float4 specularLighting)
+{
+#ifdef LIT_DISPLAY_REFERENCE
 
-#define UNITY_ARGS_ENV(tex) UNITY_ARGS_TEXCUBE(tex)
-#define UNITY_SAMPLE_ENV_LOD(tex, coord, lightData, lod) UNITY_SAMPLE_TEXCUBE_LOD(tex, float3(coord), lod)
-#include "LitEnvTemplate.hlsl"
-#undef UNITY_ARGS_ENV
-#undef UNITY_SAMPLE_ENV_LOD
+    specularLighting.rgb = IntegrateSpecularGGXIBLRef(V, lightData, bsdfData);
+    specularLighting.a = 1.0;
 
-#endif // UNITY_MATERIAL_LIT_INCLUDED
+/*
+    #ifdef DIFFUSE_LAMBERT_BRDF
+    diffuseLighting.rgb = IntegrateLambertIBLRef(lightData, bsdfData);
+    #else
+    diffuseLighting.rgb = IntegrateDisneyDiffuseIBLRef(V, lightData, bsdfData);
+    #endif
+    diffuseLighting.a = 1.0;
+*/
+    diffuseLighting = float4(0.0, 0.0, 0.0, 0.0);
+
+#else
+    // TODO: factor this code in common, so other material authoring don't require to rewrite everything, 
+    // also think about how such a loop can handle 2 cubemap at the same time as old unity. Macro can allow to do that
+    // but we need to have UNITY_SAMPLE_ENV_LOD replace by a true function instead that is define by the lighting arcitecture.
+    // Also not sure how to deal with 2 intersection....
+    // Box and sphere are related to light property (but we have also distance based roughness etc...)
+
+    // TODO: test the strech from Tomasz
+    // float shrinkedRoughness = AnisotropicStrechAtGrazingAngle(bsdfData.roughness, bsdfData.perceptualRoughness, NdotV);
+    
+    // Note: As explain in GetPreLightData we use normalWS and not iblNormalWS here (in case of anisotropy)
+    float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, preLightData.iblR, bsdfData.roughness);
+
+    float3 R = rayWS;
+    float weight = 1.0;
+
+    // In this code we redefine a bit the behavior of the reflcetion proble. We separate the projection volume (the proxy of the scene) form the influence volume (what pixel on the screen is affected)
+
+    // 1. First determine the projection volume
+    
+    // In Unity the cubemaps are capture with the localToWorld transform of the component. 
+    // This mean that location and oritention matter. So after intersection of proxy volume we need to convert back to world.
+    
+    // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
+    // the center of the bounding box is thus in locals space: positionLS - offsetLS
+    // We use this formulation as it is the one of legacy unity that was using only AABB box.
+
+    float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
+    float3 positionLS = positionWS - lightData.positionWS;
+    positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
+
+    if (lightData.envShapeType == ENVSHAPETYPE_BOX)
+    {
+        float3 rayLS = mul(rayWS, worldToLocal);
+        float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
+        float dist = BoxRayIntersectSimple(positionLS, rayLS, -boxOuterDistance, boxOuterDistance);
+
+        // No need to normalize for fetching cubemap
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
+        R = (positionWS + dist * rayWS) - lightData.positionWS;
+        
+        // TODO: add distance based roughness
+    } 
+    else if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
+    {
+        float3 rayLS = mul(rayWS, worldToLocal);
+        float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
+        float dist = SphereRayIntersectSimple(positionLS, rayLS, sphereOuterDistance);
+
+        R = (positionWS + dist * rayWS) - lightData.positionWS;
+    }
+
+    // 2. Apply the influence volume (Box volume is used for culling whatever the influence shape)
+    // TODO: In the future we could have an influence volume inside the projection volume (so with a different transform, in this case we will need another transform)
+    if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
+    {
+        float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
+        weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+    }
+    else // ENVSHAPETYPE_BOX or ENVSHAPETYPE_NONE 
+    {
+        // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
+        float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
+        weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+    }
+
+    // Smooth weighting
+    weight = smoothstep01(weight);
+
+    // TODO: we must always perform a weight calculation as due to tiled rendering we need to smooth out cubemap at boundaries.
+    // So goal is to split into two category and have an option to say if we parallax correct or not.
+
+    // TODO: compare current Morten version: offline cubemap with a particular remap + the bias in perceptualRoughnessToMipmapLevel
+    // to classic remap like unreal/Frobiste. The function GetSpecularDominantDir can result in a better matching in this case
+    // We let GetSpecularDominantDir currently as it still an improvement but not as good as it could be
+    float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, mip);
+    specularLighting.rgb = preLD.rgb * preLightData.specularFGD;
+
+    // Apply specular occlusion on it
+    specularLighting.rgb *= bsdfData.specularOcclusion;
+    specularLighting.a = weight;
+
+    diffuseLighting = float4(0.0, 0.0, 0.0, 0.0);
+
+#endif    
+}
+
+

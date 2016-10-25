@@ -1,6 +1,3 @@
-#ifndef UNITY_UNLIT_INCLUDED
-#define UNITY_UNLIT_INCLUDED
-
 //-----------------------------------------------------------------------------
 // SurfaceData and BSDFData
 //-----------------------------------------------------------------------------
@@ -47,5 +44,3 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         break;
     }
 }
-
-#endif // UNITY_UNLIT_INCLUDED

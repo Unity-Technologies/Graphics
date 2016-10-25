@@ -165,7 +165,7 @@ Shader "Unity/Lit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "../../Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "../../Material/Material.hlsl"
             #include "LitData.hlsl"
             #include "LitShare.hlsl"            
 
@@ -350,7 +350,7 @@ Shader "Unity/Lit"
         Pass
         {
             Name "DepthOnly" // Name is not used
-            Tags { "LightMode" = "DepthOnly" } // This will be only for transparent object based on the RenderQueue index
+            Tags { "LightMode" = "ShadowCaster" } // This will be only for transparent object based on the RenderQueue index
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
@@ -480,6 +480,9 @@ Shader "Unity/Lit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_FORWARD
+            // TEMP until pragma work in include
+            // #include "../../Lighting/Forward.hlsl"
+            #pragma multi_compile SINGLE_PASS
             #include "../../Lighting/Lighting.hlsl"
             #include "LitData.hlsl"
             #include "LitShare.hlsl"

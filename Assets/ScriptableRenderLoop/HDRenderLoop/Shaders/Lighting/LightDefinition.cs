@@ -5,6 +5,15 @@ using UnityEngine;
 //-----------------------------------------------------------------------------
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
+    [GenerateHLSL]
+    // Power of two value as they are flag
+    public enum LightFlags
+    {
+        HasShadow = (1 << 0),
+        HasCookie = (1 << 1),
+        HasIES = (1 << 2)
+    }
+
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL]
     public struct PunctualLightData
@@ -16,17 +25,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float useDistanceAttenuation;
 
         public Vector3 forward;
-        public float diffuseScale;
+        public float angleScale;
 
         public Vector3 up;
-        public float specularScale;
+        public float angleOffset;
 
         public Vector3 right;
-        public float shadowDimmer;
+        public LightFlags flags;        
 
-        public float angleScale;
-        public float angleOffset;
-        public Vector2 unused2;
+        public float diffuseScale;
+        public float specularScale;
+        public float shadowDimmer;
+        public int shadowIndex;
+
+        public int IESIndex;
+        public int cookieIndex;
+        public Vector2 unused;
     };
 
     [GenerateHLSL]
@@ -79,24 +93,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public EnvShapeType envShapeType;
 
         public Vector3 forward;
-        public float unused2;
+        public float envIndex;
 
         public Vector3 up;
         public float blendDistance;     // blend transition outside the volume
 
         public Vector3 right;
-        public int sliceIndex;
+        public int unused0;
 
         public Vector3 innerDistance;   // equivalent to volume scale
-        public float unused0;
+        public float unused1;
 
         public Vector3 offsetLS;
-        public float unused1;
+        public float unused2;
     };
 
-    [GenerateHLSL]
-    public struct PlanarLightData
-    {
-        public Vector3 positionWS;
-    };
 } // namespace UnityEngine.Experimental.ScriptableRenderLoop
