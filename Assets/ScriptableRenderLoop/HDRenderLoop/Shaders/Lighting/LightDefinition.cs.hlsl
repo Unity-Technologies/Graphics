@@ -2,6 +2,8 @@
 // This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightDefinition.cs.  Please don't edit by hand.
 //
 
+#ifndef LIGHTDEFINITION_CS_HLSL
+#define LIGHTDEFINITION_CS_HLSL
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.LightFlags:  static fields
 //
@@ -267,3 +269,4 @@ float GetUnused2(EnvLightData value)
 }
 
 
+#endif

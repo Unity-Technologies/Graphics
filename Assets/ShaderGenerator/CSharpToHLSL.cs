@@ -106,9 +106,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 using (var writer = File.CreateText(fileName))
                 {
+                    var guard = Path.GetFileName(fileName).Replace(".", "_").ToUpper();
+                    if (!char.IsLetter(guard[0]))
+                        guard = "_" + guard;
+
                     writer.Write("//\n");
                     writer.Write("// This file was automatically generated from " + it.Key + ".  Please don't edit by hand.\n");
                     writer.Write("//\n\n");
+                    writer.Write("#ifndef " + guard + "\n");
+                    writer.Write("#define " + guard + "\n");
 
                     foreach (var gen in it.Value)
                     {
@@ -134,7 +140,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         }
                     }
 
-                    writer.Write("\n");
+                    writer.Write("\n#endif\n");
                 }
             }
         }
