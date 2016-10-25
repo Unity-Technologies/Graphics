@@ -446,8 +446,6 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
 	float halfTileSizeAtZDistOne = 8*onePixDiagDist;		// scale by half a tile
 	
-
-	int iNrVisib = 0;
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
 		SFiniteLightBound lgtDat = g_data[coarseList[l]];
