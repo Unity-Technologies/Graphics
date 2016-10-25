@@ -2,6 +2,8 @@
 // This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderPass/ShaderPass.cs.  Please don't edit by hand.
 //
 
+#ifndef SHADERPASS_CS_HLSL
+#define SHADERPASS_CS_HLSL
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.ShaderPass:  static fields
 //
@@ -15,3 +17,4 @@
 #define SHADERPASS_DEBUG_VIEW_MATERIAL (7)
 
 
+#endif

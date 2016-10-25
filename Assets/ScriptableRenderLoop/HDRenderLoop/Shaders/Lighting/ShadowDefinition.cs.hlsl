@@ -2,6 +2,8 @@
 // This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/ShadowDefinition.cs.  Please don't edit by hand.
 //
 
+#ifndef SHADOWDEFINITION_CS_HLSL
+#define SHADOWDEFINITION_CS_HLSL
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.ShadowType:  static fields
 //
@@ -15,7 +17,8 @@ struct PunctualShadowData
 {
 	float4x4 worldToShadow;
 	int shadowType;
-	float3 unused;
+	float bias;
+	float2 unused;
 };
 
 //
@@ -29,9 +32,14 @@ int GetShadowType(PunctualShadowData value)
 {
 	return value.shadowType;
 }
-float3 GetUnused(PunctualShadowData value)
+float GetBias(PunctualShadowData value)
+{
+	return value.bias;
+}
+float2 GetUnused(PunctualShadowData value)
 {
 	return value.unused;
 }
 
 
+#endif
