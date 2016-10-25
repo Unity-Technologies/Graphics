@@ -44,6 +44,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
+
 #if DIFFUSE_LAMBERT_BRDF
     diffuseFGD = 1.0;
 #else
@@ -454,6 +455,13 @@ LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bui
 }
 
 //-----------------------------------------------------------------------------
+// LightLoop related function (Only include if required)
+// HAS_LIGHTLOOP is define in Lighting.hlsl
+//-----------------------------------------------------------------------------
+
+#ifdef HAS_LIGHTLOOP
+
+//-----------------------------------------------------------------------------
 // BSDF share between area light (reference) and punctual light
 //-----------------------------------------------------------------------------
 
@@ -553,16 +561,16 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 	const bool hasShadow = (lightData.flags & LIGHTFLAGS_HAS_SHADOW) != 0;
 	[branch] if (hasShadow && illuminance > 0.0f)
 	{
+        PunctualShadowData shadowData = GetPunctualShadowData(lightLoopContext, lightData.shadowIndex, L);
+
         // Apply offset
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
+        float3 shadowCoord = GetShadowTextureCoordinate(lightLoopContext, shadowData, positionWS + offset);
 
-        float3 shadowCoord = GetShadowTextureCoordinate(lightLoopContext, lightData.shadowIndex, positionWS + offset,  L);
-        // Caution: formula doesn't work as we are texture atlas...
-        // if (max3(abs(NDC.x), abs(NDC.y), 1.0f - texCoordXYZ.z) <= 1.0f) return 1.0;
         float3 shadowPosDX = ddx_fine(shadowCoord);
         float3 shadowPosDY = ddy_fine(shadowCoord);
 
-        float shadowAttenuation = GetShadowAttenuation(lightLoopContext, lightData.shadowIndex, shadowCoord, shadowPosDX, shadowPosDY, preLightData.unPositionSS);
+        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, lightData.shadowIndex, shadowData, shadowCoord, shadowPosDX, shadowPosDY, preLightData.unPositionSS);
 		shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
 		illuminance *= shadowAttenuation;
 	}
@@ -924,5 +932,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
 #endif    
 }
+
+#endif // #ifdef HAS_LIGHTLOOP
 
 

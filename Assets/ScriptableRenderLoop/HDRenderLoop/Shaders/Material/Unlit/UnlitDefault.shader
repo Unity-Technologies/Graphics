@@ -1,4 +1,4 @@
-Shader "Unity/Unlit"
+Shader "HDRenderLoop/Unlit"
 {
     Properties
     {
@@ -49,9 +49,10 @@ Shader "Unity/Unlit"
     //-------------------------------------------------------------------------------------
 
     #include "common.hlsl"
-    #include "../../ShaderPass/ShaderPass.cs.hlsl"
-    #include "../../ShaderVariables.hlsl"
-    #include "../../Debug/DebugViewMaterial.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderPass/ShaderPass.cs.hlsl"    
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration

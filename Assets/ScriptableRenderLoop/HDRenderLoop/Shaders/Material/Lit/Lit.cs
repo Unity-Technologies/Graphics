@@ -2,9 +2,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using System;
 
-//-----------------------------------------------------------------------------
-// structure definition
-//-----------------------------------------------------------------------------
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     namespace Lit
@@ -230,7 +227,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public void Rebuild()
             {
-                m_InitPreFGD = CreateEngineMaterial("Hidden/Unity/PreIntegratedFGD");
+                m_InitPreFGD = CreateEngineMaterial("Hidden/HDRenderLoop/PreIntegratedFGD");
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
 
                 m_LtcGGXMatrix = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMatrixData);

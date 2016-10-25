@@ -1,24 +1,35 @@
 #ifndef UNITY_LIGHTING_INCLUDED
 #define UNITY_LIGHTING_INCLUDED
 
-// The lighting architecture is in charge to define the light loop
-// It is also in charge to define the sampling function for shadowmap, ies, cookie and reflection 
-// as only the lighting architecture is aware of the usage of texture atlas, array and format (latlong, 2D, cube)
+#include "CommonLighting.hlsl"
+#include "CommonShadow.hlsl"
+#include "Sampling.hlsl"
+#include "AreaLighting.hlsl"
+#include "ImageBasedLighting.hlsl"
 
-#define LIGHTING // This define is used to know that we have include lighting when compiling material, else it will generate "default" function that are neutral to use Material.hlsl alone.
+// The light loop (or lighting architecture) is in charge to:
+// - Define light list
+// - Define the light loop
+// - Setup the constant/data
+// - Do the reflection hierarchy
+// - Provide sampling function for shadowmap, ies, cookie and reflection (depends on the specific use with the light loops like index array or atlas or single and texture format (cubemap/latlong))
 
-#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/ShadowDefinition.cs.hlsl"
+#define HAS_LIGHTLOOP // Allow to not define LightLoop related function in Material.hlsl
 
-#ifdef SINGLE_PASS 
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightDefinition.cs.hlsl"
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Shadow/ShadowDefinition.cs.hlsl"
+
+#ifdef LIGHTLOOP_SINGLE_PASS 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/SinglePass/SinglePass.hlsl"
-//#elif ...
 #endif
 
+// Shadow use samling function define in header above and must be include before Material.hlsl
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Shadow/Shadow.hlsl"
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
 
-#ifdef SINGLE_PASS 
+// LightLoop use evaluation BSDF function for light type define in Material.hlsl
+#ifdef LIGHTLOOP_SINGLE_PASS 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/SinglePass/SinglePassLoop.hlsl"
-//#elif ...
 #endif
 
 

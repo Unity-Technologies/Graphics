@@ -1,54 +1,11 @@
 #ifndef UNITY_MATERIAL_INCLUDED
 #define UNITY_MATERIAL_INCLUDED
 
-#include "Common.hlsl"
 #include "Packing.hlsl"
 #include "BSDF.hlsl"
-#include "CommonLighting.hlsl"
-#include "Sampling.hlsl"
-#include "AreaLighting.hlsl"
-#include "ImageBasedLighting.hlsl"
 #include "Debug.hlsl"
 #include "GeometricTools.hlsl"
-
-#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
-#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightDefinition.cs.hlsl"
-
-//-----------------------------------------------------------------------------
-// Lighting part that required to be define to compile without lighting.hlsl
-//-----------------------------------------------------------------------------
-
-// In case lighting.hlsl is not include before including material.hlsl, define some neutral function, so it doesn't complain
-#ifndef LIGHTING
-
-struct LightLoopContext
-{
-    int unused;
-};
-
-float3 GetShadowTextureCoordinate(LightLoopContext lightLoopContext, int index, float3 positionWS, float3 L)
-{
-    return float3(0.0, 0.0, 0.0);
-}
-
-float SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 texCoord)
-{
-    return 0.0;
-}
-
-float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalTexCoord, float lod)
-{
-    return float4(0.0, 0.0, 0.0, 0.0);
-}
-
-float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod)
-{
-    return float4(0.0, 0.0, 0.0, 0.0);
-}
-
-#endif
-
-#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/Shadow.hlsl"
+#include "CommonMaterial.hlsl"
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions
@@ -98,7 +55,7 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 #endif
 
 //-----------------------------------------------------------------------------
-// Define for GBuffer
+// Define for GBuffer management
 //-----------------------------------------------------------------------------
 
 #ifdef GBUFFERMATERIAL_COUNT

@@ -2,16 +2,13 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using System;
 
-//-----------------------------------------------------------------------------
-// structure definition
-//-----------------------------------------------------------------------------
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
-    public class SinglePass
+    public class LightLoopSinglePass
     {
         string GetKeyword()
         {
-            return "SINGLE_PASS";
+            return "LIGHTLOOP_SINGLE_PASS";
         }        
     };
 }

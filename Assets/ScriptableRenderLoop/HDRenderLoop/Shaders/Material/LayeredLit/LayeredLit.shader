@@ -1,4 +1,4 @@
-Shader "Unity/LayeredLit"
+Shader "HDRenderLoop/LayeredLit"
 {
     Properties
     {
