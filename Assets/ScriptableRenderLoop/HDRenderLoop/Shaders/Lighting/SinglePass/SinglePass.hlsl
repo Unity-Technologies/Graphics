@@ -3,6 +3,42 @@
 // It use  maxed list of lights of the scene - use just as proof of concept - do not used in regular game
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Constant and structure declaration
+// ----------------------------------------------------------------------------
+
+StructuredBuffer<PunctualLightData> _PunctualLightList;
+StructuredBuffer<EnvLightData> _EnvLightList;
+StructuredBuffer<PunctualShadowData> _PunctualShadowList;
+
+//TEXTURE2D_ARRAY(_ShadowArray);
+//SAMPLER2D_SHADOW(sampler_ShadowArray);
+//SAMPLER2D(sampler_ManualShadowArray); // TODO: settings sampler individually is not supported in shader yet...
+
+// Use texture atlas for shadow map
+//TEXTURE2D(_ShadowAtlas);
+//SAMPLER2D_SHADOW(sampler_ShadowAtlas);
+//SAMPLER2D(sampler_ManualShadowAtlas); // TODO: settings sampler individually is not supported in shader yet...
+TEXTURE2D(g_tShadowBuffer) // TODO: No choice, the name is hardcoded in ShadowrenderPass.cs for now. Need to change this!
+SAMPLER2D_SHADOW(samplerg_tShadowBuffer);
+
+// Use texture array for IES
+TEXTURE2D_ARRAY(_IESArray);
+SAMPLER2D(sampler_IESArray);
+
+// Use texture array for reflection
+TEXTURECUBE_ARRAY(_EnvTextures);
+SAMPLERCUBE(sampler_EnvTextures);
+
+TEXTURECUBE(_SkyTexture);
+SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
+
+CBUFFER_START(UnityPerLightLoop)
+    int _PunctualLightCount;
+    int _EnvLightCount;
+    EnvLightData _EnvLightSky;
+CBUFFER_END
+
 struct LightLoopContext
 {
     int sampleShadow;
@@ -10,47 +46,36 @@ struct LightLoopContext
 };
 
 //-----------------------------------------------------------------------------
-// Shadow
+// Shadow sampling function
 // ----------------------------------------------------------------------------
 
 #define SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS 0
 #define SINGLE_PASS_CONTEXT_SAMPLE_SHADOWARRAY 1
 
-//TEXTURE2D_ARRAY(_ShadowArray);
-//SAMPLER2D_SHADOW(sampler_ShadowArray);
-//SAMPLER2D(sampler_ManualShadowArray); // TODO: settings sampler individually is not supported in shader yet...
-
-//TEXTURE2D(_ShadowAtlas);
-//SAMPLER2D_SHADOW(sampler_ShadowAtlas);
-//SAMPLER2D(sampler_ManualShadowAtlas); // TODO: settings sampler individually is not supported in shader yet...
-
-TEXTURE2D(g_tShadowBuffer) // TODO: No choice, the name is hardcoded in ShadowrenderPass.cs for now. Need to change this!
-SAMPLER2D_SHADOW(samplerg_tShadowBuffer);
-
-// Use texture atlas for shadow map
-StructuredBuffer<PunctualShadowData> _PunctualShadowList;
-
-float3 GetShadowTextureCoordinate(LightLoopContext lightLoopContext, int index, float3 positionWS, float3 L)
+PunctualShadowData GetPunctualShadowData(LightLoopContext lightLoopContext, int index, float3 L)
 {
     int faceIndex;
     if (_PunctualShadowList[index].shadowType == SHADOWTYPE_POINT)
-    {        
+    {
         GetCubeFaceID(L, faceIndex);
     }
 
-    // Note: scale and bias of shadow atlas are included in ShadowTransform
-    float4x4 shadowTransform = _PunctualShadowList[index + faceIndex].worldToShadow;
-    
-    float4 positionTXS = mul(float4(positionWS, 1.0), shadowTransform);
+    return _PunctualShadowList[index + faceIndex];
+}
+
+float3 GetShadowTextureCoordinate(LightLoopContext lightLoopContext, PunctualShadowData shadowData, float3 positionWS)
+{
+    // Note: scale and bias of shadow atlas are included in ShadowTransform but could be apply here.
+    float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
     return positionTXS.xyz / positionTXS.w;
 }
 
-float SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 texCoord)
+float4 SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 texCoord)
 {
    // if (lightLoopContext.sampleShadow == SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS)
     {
         // Index could be use to get scale bias for uv but this is already merged into the shadow matrix
-        return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, texCoord);
+        return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, texCoord).xxxx;
     }
     /*
     else // SINGLE_PASS_CONTEXT_SAMPLE_SHADOWARRAY
@@ -61,7 +86,7 @@ float SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 t
 }
 
 /*
-float SampleShadow(LightLoopContext lightLoopContext, int index, float2 texCoord)
+float4 SampleShadow(LightLoopContext lightLoopContext, int index, float2 texCoord)
 {
     if (lightLoopContext.sampleShadow == SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS)
     {
@@ -76,13 +101,10 @@ float SampleShadow(LightLoopContext lightLoopContext, int index, float2 texCoord
 */
 
 //-----------------------------------------------------------------------------
-// IES
+// IES sampling function
 // ----------------------------------------------------------------------------
 
 #define SINGLE_PASS_CONTEXT_SAMPLE_IESARRAY 0
-
-TEXTURE2D_ARRAY(_IESArray);
-SAMPLER2D(sampler_IESArray);
 
 // sphericalTexCoord is theta and phi spherical coordinate
 float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalTexCoord, float lod)
@@ -91,15 +113,8 @@ float4 SampleIES(LightLoopContext lightLoopContext, int index, float2 sphericalT
 }
 
 //-----------------------------------------------------------------------------
-// Reflection proble / Sky
+// Reflection proble / Sky sampling function
 // ----------------------------------------------------------------------------
-
-// Use texture array for reflection
-TEXTURECUBE_ARRAY(_EnvTextures);
-SAMPLERCUBE(sampler_EnvTextures);
-
-TEXTURECUBE(_SkyTexture);
-SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
 
 #define SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES 0
 #define SINGLE_PASS_CONTEXT_SAMPLE_SKY 1

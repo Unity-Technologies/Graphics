@@ -186,11 +186,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             s_envLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
             s_punctualShadowList = new ComputeBuffer(MaxShadows, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
 
-            m_DeferredMaterial = CreateEngineMaterial("Hidden/Unity/Deferred");
-            m_FinalPassMaterial = CreateEngineMaterial("Hidden/Unity/FinalPass");
+            m_DeferredMaterial = CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+            m_FinalPassMaterial = CreateEngineMaterial("Hidden/HDRenderLoop/FinalPass");
 
             // Debug
-            m_DebugViewMaterialGBuffer = CreateEngineMaterial("Hidden/Unity/DebugViewMaterialGBuffer");
+            m_DebugViewMaterialGBuffer = CreateEngineMaterial("Hidden/HDRenderLoop/DebugViewMaterialGBuffer");
 
             m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
 

@@ -1,10 +1,11 @@
 using UnityEngine;
 
-//-----------------------------------------------------------------------------
-// structure definition
-//-----------------------------------------------------------------------------
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
+    //-----------------------------------------------------------------------------
+    // structure definition
+    //-----------------------------------------------------------------------------
+
     [GenerateHLSL]
     // Power of two value as they are flag
     public enum LightFlags

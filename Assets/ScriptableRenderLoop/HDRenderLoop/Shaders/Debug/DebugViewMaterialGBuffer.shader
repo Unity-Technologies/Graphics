@@ -1,4 +1,4 @@
-Shader "Hidden/Unity/DebugViewMaterialGBuffer"
+Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
 {
     SubShader
     {
@@ -14,7 +14,10 @@ Shader "Hidden/Unity/DebugViewMaterialGBuffer"
             #pragma vertex VertDeferred
             #pragma fragment FragDeferred
 
+            #include "Common.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
             #include "Color.hlsl"
+
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"

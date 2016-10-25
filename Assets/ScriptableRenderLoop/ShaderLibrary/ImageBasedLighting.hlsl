@@ -2,6 +2,7 @@
 #define UNITY_IMAGE_BASED_LIGHTING_INCLUDED
 
 #include "CommonLighting.hlsl"
+#include "CommonMaterial.hlsl"
 #include "BSDF.hlsl"
 #include "Sampling.hlsl"
 

@@ -1,10 +1,11 @@
 using UnityEngine;
 
-//-----------------------------------------------------------------------------
-// structure definition
-//-----------------------------------------------------------------------------
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
+    //-----------------------------------------------------------------------------
+    // structure definition
+    //-----------------------------------------------------------------------------
+
     [GenerateHLSL]
     public enum ShadowType
     {
@@ -13,6 +14,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         Point  
     };
 
+    // TODO: we may have to add various parameters here for shadow
     // A point light is 6x PunctualShadowData
     [GenerateHLSL]
     public struct PunctualShadowData
@@ -22,7 +24,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Matrix4x4 worldToShadow;
 
         public ShadowType shadowType;
-        public float bias;
-        public Vector2 unused;
+        public Vector3 unused;
     };
+
 } // namespace UnityEngine.Experimental.ScriptableRenderLoop

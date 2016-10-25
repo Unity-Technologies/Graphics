@@ -1,4 +1,4 @@
-Shader "Unity/Lit"
+Shader "HDRenderLoop/Lit"
 {
     Properties
     {
@@ -101,11 +101,12 @@ Shader "Unity/Lit"
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
-
+    
     #include "common.hlsl"
-    #include "../../ShaderPass/ShaderPass.cs.hlsl"
-    #include "../../ShaderVariables.hlsl"
-    #include "../../Debug/DebugViewMaterial.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderPass/ShaderPass.cs.hlsl"    
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -152,6 +153,7 @@ Shader "Unity/Lit"
 
         // ------------------------------------------------------------------
         //  Deferred pass
+        // ------------------------------------------------------------------
         Pass
         {
             Name "GBuffer"  // Name is not used
@@ -176,6 +178,7 @@ Shader "Unity/Lit"
 
         // ------------------------------------------------------------------
         //  Debug pass
+        // ------------------------------------------------------------------
         Pass
         {
             Name "Debug"
@@ -231,6 +234,7 @@ Shader "Unity/Lit"
         // ------------------------------------------------------------------
         // Extracts information for lightmapping, GI (emission, albedo, ...)
         // This pass it not used during regular rendering.
+        // ------------------------------------------------------------------
         Pass
         {
             Name "META"
@@ -347,6 +351,7 @@ Shader "Unity/Lit"
 
         // ------------------------------------------------------------------
         //  Depth only
+        // ------------------------------------------------------------------
         Pass
         {
             Name "DepthOnly" // Name is not used
@@ -465,6 +470,7 @@ Shader "Unity/Lit"
 
         // ------------------------------------------------------------------
         //  forward pass
+        // ------------------------------------------------------------------
         Pass
         {
             Name "Forward" // Name is not used
@@ -482,7 +488,9 @@ Shader "Unity/Lit"
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
             // #include "../../Lighting/Forward.hlsl"
-            #pragma multi_compile SINGLE_PASS
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS
+            #pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
+
             #include "../../Lighting/Lighting.hlsl"
             #include "LitData.hlsl"
             #include "LitShare.hlsl"

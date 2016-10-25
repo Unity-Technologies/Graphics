@@ -1,4 +1,4 @@
-Shader "Hidden/Unity/PreIntegratedFGD" 
+Shader "Hidden/HDRenderLoop/PreIntegratedFGD" 
 {
    SubShader {
         Pass {

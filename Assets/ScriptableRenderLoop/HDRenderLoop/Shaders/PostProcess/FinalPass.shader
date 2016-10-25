@@ -1,5 +1,5 @@
 // Final compositing pass, just does gamma correction for now.
-Shader "Hidden/Unity/FinalPass"
+Shader "Hidden/HDRenderLoop/FinalPass"
 {
     Properties
     {

@@ -13,4 +13,5 @@
 // If only one keyword is present it mean that only one type of forward lighting architecture is supported.
 
 // Must match name in GetKeyword() method of forward lighting architecture .cs file
-// #pragma multi_compile SINGLE_PASS  -> can't use a pragma from include... (for now)
+// #pragma multi_compile LIGHTLOOP_SINGLE_PASS  -> can't use a pragma from include... (for now)
+// #pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF  -> can't use a pragma from include... (for now)
