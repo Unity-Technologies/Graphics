@@ -97,6 +97,35 @@ float4 GetPlaneEq(const float3 boxX, const float3 boxY, const float3 boxZ, const
 	return float4(vN, -dot(vN,p0));
 }
 
+bool DoesSphereOverlapTile(float3 dir, float halfTileSizeAtZDistOne, float3 sphCen, float sphRadiusIn)
+{
+	float3 V = dir;		// ray direction down center of tile (does not need to be normalized).
+
+#if 1
+	float3 maxZdir = float3(-sphCen.z*sphCen.x, -sphCen.z*sphCen.y, sphCen.x*sphCen.x + sphCen.y*sphCen.y);		// cross(sphCen,cross(Zaxis,sphCen))
+	float len = length(maxZdir);
+	float scalarProj = len>0.0001 ? (maxZdir.z/len) : len;	// since len>=(maxZdir.z/len) we can use len as an approximate value when len<=epsilon
+	float offs = scalarProj*sphRadiusIn;
+#else
+	float offs = sphRadiusIn;		// more false positives due to larger radius but works too
+#endif
+
+	// enlarge sphere so it overlaps the center of the tile assuming it overlaps the tile to begin with.
+#ifdef LEFT_HAND_COORDINATES
+	float sphRadius = sphRadiusIn + (sphCen.z+offs)*halfTileSizeAtZDistOne;
+#else
+	float sphRadius = sphRadiusIn - (sphCen.z-offs)*halfTileSizeAtZDistOne;
+#endif
+		
+	float a = dot(V,V);
+	float CdotV = dot(sphCen,V);
+	float c = dot(sphCen,sphCen) - sphRadius*sphRadius;
+
+	float fDescDivFour = CdotV*CdotV - a*c;
+
+	return c<0 || (fDescDivFour>0 && CdotV>0);		// if ray hits bounding sphere
+}
+
 
 
 #endif
