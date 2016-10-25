@@ -28,6 +28,8 @@ namespace UnityEditor.Graphing.Drawing
                 foreach (var drawableNodeData in found)
                     drawableNodeData.MarkDirtyHack();
             }
+
+            EditorUtility.SetDirty(graphAsset.GetScriptableObject());
         }
 
         private void UpdateData()
@@ -183,6 +185,7 @@ namespace UnityEditor.Graphing.Drawing
         public void AddNode(INode node)
         {
             graphAsset.graph.AddNode(node);
+            EditorUtility.SetDirty(graphAsset.GetScriptableObject());
             UpdateData();
         }
 
@@ -190,6 +193,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             graphAsset.graph.RemoveElements(nodes.Select(x => x.node), edges.Select(x => x.edge));
             graphAsset.graph.ValidateGraph();
+            EditorUtility.SetDirty(graphAsset.GetScriptableObject());
             UpdateData();
         }
 
@@ -201,12 +205,15 @@ namespace UnityEditor.Graphing.Drawing
         public void AddElement(GraphElementData element)
         {
             var edge = element as EdgeData;
-            if (edge.candidate == false)
+            if (edge != null && edge.candidate == false)
             {
                 var left = edge.left as AnchorDrawData;
                 var right = edge.right as AnchorDrawData;
                 if (left && right)
+                {
                     graphAsset.graph.Connect(left.slot.slotReference, right.slot.slotReference);
+                    EditorUtility.SetDirty(graphAsset.GetScriptableObject());
+                }
                 UpdateData();
                 return;
             }
