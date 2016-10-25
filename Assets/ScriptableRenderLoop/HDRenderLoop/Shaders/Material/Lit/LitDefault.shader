@@ -370,11 +370,16 @@ Shader "HDRenderLoop/Lit"
             #include "../../Material/Material.hlsl"            
             #include "LitData.hlsl"
 
+            #define NEED_TANGENT_TO_WORLD (defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT))
+            #define NEED_TEXCOORD0 defined(_ALPHATEST_ON) || NEED_TANGENT_TO_WORLD
+
             struct Attributes
             {
                 float3 positionOS : POSITION;
+                #if NEED_TEXCOORD0
                 float2 uv0 : TEXCOORD0;
-                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                #endif
+                #if NEED_TANGENT_TO_WORLD
                 float4 tangentOS : TANGENT;
                 #endif
             };
@@ -382,8 +387,10 @@ Shader "HDRenderLoop/Lit"
             struct Varyings
             {
                 float4 positionHS;
+                #if NEED_TEXCOORD0
                 float2 texCoord0;
-                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                #endif
+                #if NEED_TANGENT_TO_WORLD
                 float3 positionWS;                
                 float3 tangentToWorld[3];
                 #endif
@@ -392,9 +399,9 @@ Shader "HDRenderLoop/Lit"
             struct PackedVaryings
             {
                 float4 positionHS : SV_Position;
-                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                #if NEED_TANGENT_TO_WORLD
                 float4 interpolators[4] : TEXCOORD0;
-                #else
+                #elif NEED_TEXCOORD0
                 float4 interpolators[1] : TEXCOORD0;
                 #endif
             };
@@ -404,7 +411,7 @@ Shader "HDRenderLoop/Lit"
             {
                 PackedVaryings output;
                 output.positionHS = input.positionHS;
-                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                #if NEED_TANGENT_TO_WORLD
                 output.interpolators[0].xyz = input.positionWS.xyz;
                 output.interpolators[1].xyz = input.tangentToWorld[0];
                 output.interpolators[2].xyz = input.tangentToWorld[1];
@@ -412,7 +419,7 @@ Shader "HDRenderLoop/Lit"
 
                 output.interpolators[0].w = input.texCoord0.x;
                 output.interpolators[1].w = input.texCoord0.y;                
-                #else
+                #elif NEED_TEXCOORD0
                 output.interpolators[0] = float4(input.texCoord0, 0.0, 0.0);
                 #endif
 
@@ -425,14 +432,14 @@ Shader "HDRenderLoop/Lit"
                 ZERO_INITIALIZE(FragInput, output);
 
                 output.positionHS = input.positionHS;
-                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                #if NEED_TANGENT_TO_WORLD
                 output.positionWS.xyz = input.interpolators[0].xyz;
                 output.tangentToWorld[0] = input.interpolators[1].xyz;
                 output.tangentToWorld[1] = input.interpolators[2].xyz;
                 output.tangentToWorld[2] = input.interpolators[3].xyz;
 
                 output.texCoord0.xy = float2(input.interpolators[0].w, input.interpolators[1].w);
-                #else
+                #elif NEED_TEXCOORD0
                 output.texCoord0.xy = input.interpolators[0].xy;
                 #endif
 
@@ -446,9 +453,11 @@ Shader "HDRenderLoop/Lit"
                 float3 positionWS = TransformObjectToWorld(input.positionOS);
                 output.positionHS = TransformWorldToHClip(positionWS);                
 
+                #if NEED_TEXCOORD0
                 output.texCoord0 = input.uv0;
+                #endif
 
-                #if defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT)
+                #if NEED_TANGENT_TO_WORLD
                 output.positionWS = positionWS;
 
                 float3 normalWS = TransformObjectToWorldNormal(input.normalOS);

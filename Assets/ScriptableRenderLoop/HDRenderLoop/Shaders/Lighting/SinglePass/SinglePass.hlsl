@@ -54,7 +54,7 @@ struct LightLoopContext
 
 PunctualShadowData GetPunctualShadowData(LightLoopContext lightLoopContext, int index, float3 L)
 {
-    int faceIndex;
+    int faceIndex = 0;
     if (_PunctualShadowList[index].shadowType == SHADOWTYPE_POINT)
     {
         GetCubeFaceID(L, faceIndex);
@@ -74,8 +74,10 @@ float4 SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 
 {
    // if (lightLoopContext.sampleShadow == SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS)
     {
+        float objDepth = saturate(257.0 / 256.0 - texCoord.z);
+
         // Index could be use to get scale bias for uv but this is already merged into the shadow matrix
-        return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, texCoord).xxxx;
+        return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(texCoord.xy, objDepth)).xxxx;
     }
     /*
     else // SINGLE_PASS_CONTEXT_SAMPLE_SHADOWARRAY

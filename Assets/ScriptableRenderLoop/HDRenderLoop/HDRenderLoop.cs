@@ -679,6 +679,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     ShadowOutput shadows;
                     m_ShadowPass.Render(renderLoop, cullResults, out shadows);
+
+                    renderLoop.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
+
                     UpdatePunctualLights(cullResults.visibleLights, ref shadows);
                     UpdateReflectionProbes(cullResults.visibleReflectionProbes);
 
