@@ -1,5 +1,3 @@
-// No guard header!
-
 //-------------------------------------------------------------------------------------
 // FragInput
 // This structure gather all possible varying/interpolator for this shader.

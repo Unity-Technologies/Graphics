@@ -1,4 +1,4 @@
-Shader "Hidden/Unity/LightingDeferred"
+Shader "Hidden/Unity/Deferred"
 {
     Properties
     {
@@ -21,7 +21,12 @@ Shader "Hidden/Unity/LightingDeferred"
             #pragma vertex VertDeferred
             #pragma fragment FragDeferred
 
+            #include "Common.hlsl"
+            // Chose supported lighting architecture in case of deferred rendering
+            #pragma multi_compile SINGLE_PASS
+
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_DISNEYGXX
+            // TODO: Currently a users that add a new deferred material must also add it manually here... Need to think about it. Maybe add a multicompile inside a file in Material directory to include here ?
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/Lighting.hlsl" // This include Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
@@ -68,13 +73,11 @@ Shader "Hidden/Unity/LightingDeferred"
 
                 PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
 
-                // NOTE: Currently calling the forward loop, same code... :)
                 float4 diffuseLighting;
                 float4 specularLighting;
-                ForwardLighting(V, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
-
                 FETCH_BAKE_LIGHTING_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
-                diffuseLighting.rgb += DECODE_BAKE_LIGHTING_FROM_GBUFFER(gbuffer);
+                float3 bakeDiffuseLighting = DECODE_BAKE_LIGHTING_FROM_GBUFFER(gbuffer);
+                LightingLoop(V, positionWS, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
                 return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
             }

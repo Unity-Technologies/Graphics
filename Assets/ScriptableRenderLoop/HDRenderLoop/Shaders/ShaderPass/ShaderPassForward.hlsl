@@ -18,9 +18,8 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
 
 	float4 diffuseLighting;
 	float4 specularLighting;
-	ForwardLighting(V, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
-
-	diffuseLighting.rgb += GetBakedDiffuseLigthing(preLightData, surfaceData, builtinData, bsdfData);
+    float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(preLightData, surfaceData, builtinData, bsdfData);
+    LightingLoop(V, positionWS, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
 	return float4(diffuseLighting.rgb + specularLighting.rgb, builtinData.opacity);
 }
