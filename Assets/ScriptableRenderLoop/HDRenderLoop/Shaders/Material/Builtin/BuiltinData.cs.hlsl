@@ -2,6 +2,8 @@
 // This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Builtin/BuiltinData.cs.  Please don't edit by hand.
 //
 
+#ifndef BUILTINDATA_CS_HLSL
+#define BUILTINDATA_CS_HLSL
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.Builtin.BuiltinData:  static fields
 //
@@ -41,3 +43,4 @@ struct LighTransportData
 };
 
 
+#endif

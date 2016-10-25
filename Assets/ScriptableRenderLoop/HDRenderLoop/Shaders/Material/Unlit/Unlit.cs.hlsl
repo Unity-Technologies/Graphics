@@ -2,6 +2,8 @@
 // This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Unlit/Unlit.cs.  Please don't edit by hand.
 //
 
+#ifndef UNLIT_CS_HLSL
+#define UNLIT_CS_HLSL
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.Unlit.SurfaceData:  static fields
 //
@@ -27,3 +29,4 @@ struct BSDFData
 };
 
 
+#endif
