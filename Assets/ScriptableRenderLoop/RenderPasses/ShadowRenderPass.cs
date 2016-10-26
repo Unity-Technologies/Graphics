@@ -413,7 +413,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             commandBuffer.SetViewport(new Rect(slice.atlasX, slice.atlasY, slice.shadowResolution, slice.shadowResolution));
             //commandBuffer.ClearRenderTarget (true, true, Color.green);
             commandBuffer.SetGlobalVector("g_vLightDirWs", new Vector4(lightDirection.x, lightDirection.y, lightDirection.z));
-            commandBuffer.SetProjectionAndViewMatrices(proj, view);
+            commandBuffer.SetViewProjectionMatrices(view, proj);
             //	commandBuffer.SetGlobalDepthBias (1.0F, 1.0F);
             loop.ExecuteCommandBuffer(commandBuffer);
             commandBuffer.Dispose();
