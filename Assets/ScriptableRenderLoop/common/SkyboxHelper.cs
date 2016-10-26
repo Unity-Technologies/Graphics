@@ -115,10 +115,10 @@ public class SkyboxHelper
             var world = Matrix4x4.TRS(camera.transform.position, Quaternion.identity, new Vector3(dist, dist, dist));
 
             var skyboxProj = SkyboxHelper.GetProjectionMatrix(camera);
-            cmd.SetProjectionAndViewMatrices(skyboxProj, camera.worldToCameraMatrix);
+            cmd.SetViewProjectionMatrices (camera.worldToCameraMatrix, skyboxProj);
             cmd.DrawMesh(mesh, world, mat);
 
-            cmd.SetProjectionAndViewMatrices(camera.projectionMatrix, camera.worldToCameraMatrix);
+            cmd.SetViewProjectionMatrices (camera.worldToCameraMatrix, camera.projectionMatrix);
         }
 
         loop.ExecuteCommandBuffer(cmd);
