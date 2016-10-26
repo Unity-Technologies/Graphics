@@ -366,15 +366,19 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 }
 
 
-// NOTE! returns 1 when value_in==0
 unsigned int LimitPow2AndClamp(unsigned int value_in, unsigned int maxValue)
 {
+#if 0
 	unsigned int value = 1;
 	
 	while(value<value_in && (value<<1)<=maxValue)
 		value<<=1;
 
-	return value;
+	return value_in==0 ? 0 : value;
+#else
+	uint valpw2 = value_in==0 ? 0 : (1<<firstbithigh(value_in));		// firstbithigh(0) returns -1
+	return max(valpw2, valpw2<<(valpw2!=value_in ? 1 : 0));	// max() just in case of overflow
+#endif
 }
 
 
