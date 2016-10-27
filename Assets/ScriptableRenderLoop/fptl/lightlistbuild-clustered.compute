@@ -279,7 +279,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	iNrCoarseLights = CullByExactEdgeTests(t, iNrCoarseLights, viTilLL.xy, viTilUR.xy, fTileFarPlane);
 #endif
 
-// sort lights
+	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
 #if !defined(XBONE) && !defined(PLAYSTATION4)
 	SORTLIST(coarseList, iNrCoarseLights, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 #endif
