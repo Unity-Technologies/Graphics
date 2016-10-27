@@ -4,6 +4,7 @@
 #include "LightDefinitions.cs.hlsl"
 
 #include "LightingConvexHullUtils.hlsl"
+#include "SortingComputeUtils.hlsl"
 
 #define EXACT_EDGE_TESTS
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
@@ -64,8 +65,6 @@ float GetOnePixDiagWorldDistAtDepthOne()
 	return length( float2(1.0/fSx,1.0/fSy) );
 }
 
-
-void sortLightList(int localThreadID, int n);
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate);
@@ -133,8 +132,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 
 
 	// sort lights
-	sortLightList((int) t, iNrCoarseLights);	// sorting on GCN as well for now since we need the culled lights weeded out.
-
+	SORTLIST(lightsListLDS, iNrCoarseLights, MAX_NR_BIGTILE_LIGHTS_PLUSONE, t, NR_THREADS);
 
 	lightOffs = 0;
 	GroupMemoryBarrierWithGroupSync();
@@ -148,54 +146,6 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 		g_vLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*offs + i] = t==0 ? iNrCoarseLights : lightsListLDS[i-1];
 }
 
-
-
-// NOTE! returns 1 when value_in==0
-unsigned int LimitPow2AndClamp(unsigned int value_in, unsigned int maxValue)
-{
-	unsigned int value = 1;
-	
-	while(value<value_in && (value<<1)<=maxValue)
-		value<<=1;
-
-	return value;
-}
-
-
-void sortLightList(int localThreadID, int length)
-{
-	// closest pow2 integer greater than or equal to length
-	const int N = (const int) LimitPow2AndClamp((unsigned int) length, MAX_NR_BIGTILE_LIGHTS_PLUSONE);			// N is 1 when length is zero but will still not enter first for-loop
-
-	// bitonic sort can only handle arrays with a power of two length. Fill remaining entries with greater than possible index.
-	for(int t=length+localThreadID; t<N; t+=NR_THREADS) { lightsListLDS[t]=0xffffffff; }		// impossible index
-	GroupMemoryBarrierWithGroupSync();
-
-	for(int k=2; k<=N; k=2*k)
-	{
-		for(int j=k>>1; j>0; j=j>>1)
-		{
-			for(int i=localThreadID; i<N; i+=NR_THREADS)
-			{
-				int ixj=i^j;
-				if((ixj)>i)
-				{
-					const unsigned int Avalue = lightsListLDS[i];
-					const unsigned int Bvalue = lightsListLDS[ixj];
-
-					const bool mustSwap = ((i&k)!=0^(Avalue>Bvalue)) && Avalue!=Bvalue;
-					if(mustSwap)
-					{
-						lightsListLDS[i]=Bvalue;
-						lightsListLDS[ixj]=Avalue;
-					}
-				}
-			}
-
-			GroupMemoryBarrierWithGroupSync();
-		}
-	}
-}
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate)
