@@ -14,8 +14,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
         private AbsoluteNode m_Abs;
         private MetallicMasterNode m_PixelNode;
 
-        //TODO: Do not check in
-        /*
         [TestFixtureSetUp]
         public void RunBeforeAnyTests()
         {
@@ -26,29 +24,21 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void TestSetUp()
         {
             m_Graph = new PixelGraph();
+            m_PixelNode = new MetallicMasterNode();
             m_InputOne = new Vector1Node();
             m_Abs = new AbsoluteNode();
 
+            m_Graph.AddNode(m_PixelNode);
             m_Graph.AddNode(m_InputOne);
             m_Graph.AddNode(m_PixelNode);
             m_Graph.AddNode(m_Abs);
 
             m_InputOne.value = 0.2f;
 
-            m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_PixelNode.GetSlotReference(BaseLightFunction.NormalSlotId));
-
+            m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_PixelNode.GetSlotReference(AbstractSurfaceMasterNode.NormalSlotId));
 
             m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_Abs.GetSlotReference(Function1Input.InputSlotId));
-            m_Graph.Connect(m_Abs.GetSlotReference(Function1Input.OutputSlotId), m_PixelNode.GetSlotReference(PBRMetalicLightFunction.AlbedoSlotId));
-        }
-        [Test]
-        public void TestNodeGeneratesLightFuntionProperly()
-        {
-            var generator = new ShaderGenerator();
-            m_PixelNode.GenerateLightFunction(generator);
-
-            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
-            Assert.AreEqual(PBRMetalicLightFunction.LightFunctionName, generator.GetPragmaString());
+            m_Graph.Connect(m_Abs.GetSlotReference(Function1Input.OutputSlotId), m_PixelNode.GetSlotReference(AbstractSurfaceMasterNode.AlbedoSlotId));
         }
 
         [Test]
@@ -58,7 +48,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_PixelNode.GenerateSurfaceOutput(generator);
 
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
-            Assert.AreEqual(PBRMetalicLightFunction.SurfaceOutputStructureName, generator.GetPragmaString());
+            Assert.AreEqual(MetallicMasterNode.SurfaceOutputStructureName, generator.GetPragmaString());
         }
 
         [Test]
@@ -79,13 +69,5 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(expected, generator.GetShaderString(0));
             Assert.AreEqual(string.Empty, generator.GetPragmaString());
         }
-
-        [Test]
-        public void TestPixelShaderNodeReturnsBuiltinPBRLights()
-        {
-            var lightingFuncs = PixelShaderNode.GetLightFunctions();
-            Assert.AreEqual(1, lightingFuncs.OfType<PBRMetalicLightFunction>().Count());
-            Assert.AreEqual(1, lightingFuncs.OfType<PBRSpecularLightFunction>().Count());
-        }*/
     }
 }
