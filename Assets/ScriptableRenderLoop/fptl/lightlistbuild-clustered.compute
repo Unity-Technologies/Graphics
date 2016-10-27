@@ -320,7 +320,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		}
 
 		iSpaceAvail = min(iSum,MAX_NR_COARSE_ENTRIES);							// combined storage for both direct lights and reflection
-		InterlockedAdd(g_LayeredSingleIdxBuffer[0], iSpaceAvail, start);		// alloc list memory
+		InterlockedAdd(g_LayeredSingleIdxBuffer[0], (uint) iSpaceAvail, start);		// alloc list memory
 	}
 
 	int modelListCount[NR_LIGHT_MODELS]={0,0};		// direct light count and reflection lights
