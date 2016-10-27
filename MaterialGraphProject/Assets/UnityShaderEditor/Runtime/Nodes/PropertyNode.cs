@@ -37,7 +37,7 @@ namespace UnityEngine.MaterialGraph
                 m_Exposed = value;
                 if (onModified != null)
                 {
-                    onModified(this, NodeModificationScope.ShaderRegeneration);
+                    onModified(this, ModificationScope.Graph);
                 }
             }
         }

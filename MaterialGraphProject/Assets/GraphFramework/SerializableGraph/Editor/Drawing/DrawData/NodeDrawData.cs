@@ -19,14 +19,8 @@ namespace UnityEditor.Graphing.Drawing
             get { return m_Children; }
         }
 
-        //TODO: Kill this and the function below after talking with shanti
-        [SerializeField]
-        private int m_SerializationRandom;
-
-        public void MarkDirtyHack()
-        {
-            m_SerializationRandom++;
-        }
+        public virtual void OnModified(ModificationScope scope)
+        {}
 
         public override void CommitChanges()
         {

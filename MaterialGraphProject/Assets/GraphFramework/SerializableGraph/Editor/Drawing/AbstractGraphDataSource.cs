@@ -17,7 +17,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public IGraphAsset graphAsset { get; private set; }
 
-        void OnNodeChanged(INode inNode, NodeModificationScope scope)
+        void OnNodeChanged(INode inNode, ModificationScope scope)
         {
             var dependentNodes = new List<INode>();
             NodeUtils.CollectNodesNodeFeedsInto(dependentNodes, inNode);
@@ -26,7 +26,7 @@ namespace UnityEditor.Graphing.Drawing
                 var theElements = m_Elements.OfType<NodeDrawData>().ToList();
                 var found = theElements.Where(x => x.node.guid == node.guid).ToList();
                 foreach (var drawableNodeData in found)
-                    drawableNodeData.MarkDirtyHack();
+                    drawableNodeData.OnModified(scope);
             }
 
             EditorUtility.SetDirty(graphAsset.GetScriptableObject());
@@ -56,7 +56,7 @@ namespace UnityEditor.Graphing.Drawing
                 if (toNode != null)
                 {
                     // Make the input node (i.e. right side of the connection) re-render
-                    toNode.MarkDirtyHack();
+                    OnNodeChanged(toNode.node, ModificationScope.Graph);
                 }
 
                 deletedElements.Add(edgeData);
@@ -134,7 +134,7 @@ namespace UnityEditor.Graphing.Drawing
                     var targetAnchors = targetNode.elements.OfType<AnchorDrawData>();
                     var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
 
-                    targetNode.MarkDirtyHack();
+                    OnNodeChanged(targetNode.node, ModificationScope.Graph);
 
                     var edgeData = ScriptableObject.CreateInstance<EdgeDrawData>();
                     edgeData.Initialize(edge);

@@ -5,6 +5,7 @@ using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine.RMGUI;
 using UnityEditor.Graphing.Util;
+using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -36,11 +37,12 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void SchedulePolling()
         {
+            Debug.LogFormat("SchedulePolling");
             if (panel != null)
             {
                 if (!m_IsScheduled)
                 {
-                    this.Schedule(InvalidateUIIfNeedsTime).StartingIn(0).Every(30);
+                    this.Schedule(InvalidateUIIfNeedsTime).StartingIn(0).Every(16);
                     m_IsScheduled = true;
                 }
             }
@@ -52,6 +54,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void UnschedulePolling()
         {
+            Debug.LogFormat("UnschedulePolling");
             if (m_IsScheduled && panel != null)
             {
                 this.Unschedule(InvalidateUIIfNeedsTime);
@@ -61,11 +64,13 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private void InvalidateUIIfNeedsTime(TimerState timerState)
         {
-            var childrenNodes = ListPool<INode>.Get();
             var data = GetData<MaterialNodeDrawData>();
+            var childrenNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(childrenNodes, data.node);
             if (childrenNodes.OfType<IRequiresTime>().Any())
-                this.Touch(ChangeType.Repaint);
+            {
+                data.OnModified(ModificationScope.Node);
+            }
             ListPool<INode>.Release(childrenNodes);
         }
 
