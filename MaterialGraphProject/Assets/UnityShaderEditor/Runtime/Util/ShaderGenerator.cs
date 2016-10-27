@@ -262,24 +262,24 @@ namespace UnityEngine.MaterialGraph
         }
 
         private static void GenerateSurfaceShaderInternal(
-            PixelShaderNode pixelNode,
-            ShaderGenerator shaderBody,
+            AbstractMasterNode masterNode, 
+            ShaderGenerator shaderBody, 
             ShaderGenerator inputStruct,
             ShaderGenerator lightFunction,
             ShaderGenerator surfaceOutput,
-            ShaderGenerator nodeFunction,
-            PropertyGenerator shaderProperties,
-            ShaderGenerator propertyUsages,
-            ShaderGenerator vertexShader,
+            ShaderGenerator nodeFunction, 
+            PropertyGenerator shaderProperties, 
+            ShaderGenerator propertyUsages, 
+            ShaderGenerator vertexShader, 
             bool isPreview)
         {
-            pixelNode.GenerateLightFunction(lightFunction);
-            pixelNode.GenerateSurfaceOutput(surfaceOutput);
+            masterNode.GenerateSurfaceOutput(surfaceOutput);
+            masterNode.GenerateLightFunction(lightFunction);
 
             var genMode = isPreview ? GenerationMode.Preview3D : GenerationMode.SurfaceShader;
 
             var activeNodes = new List<INode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, pixelNode);
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, masterNode);
             var activeMaterialNodes = activeNodes.OfType<AbstractMaterialNode>();
 
             foreach (var node in activeMaterialNodes)
@@ -295,10 +295,10 @@ namespace UnityEngine.MaterialGraph
                 }
             }
 
-            pixelNode.GenerateNodeCode(shaderBody, genMode);
+            masterNode.GenerateNodeCode(shaderBody, genMode);
         }
 
-        public static string GenerateSurfaceShader(PixelShaderNode node, MaterialOptions options, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTextures)
+        public static string GenerateSurfaceShader(AbstractMasterNode node, MaterialOptions options, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
             var templateLocation = GetTemplatePath("shader.template");
 

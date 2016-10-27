@@ -71,27 +71,27 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var graph = new PixelGraph();
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            var psn = new PixelShaderNode();
+            var psn = new MetallicMasterNode();
             graph.AddNode(psn);
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
-            Assert.IsInstanceOf(typeof(PixelShaderNode), graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
-            Assert.IsNotNull(graph.pixelMasterNode);
-            Assert.AreEqual(1, graph.activeNodes.Count());
+            Assert.IsInstanceOf(typeof(MetallicMasterNode), graph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
+            Assert.IsNotNull(graph.masterNode);
+            Assert.AreEqual(1, graph.GetNodes<INode>().Count());
         }
 
         [Test]
-        public void TestCanOnlyAddOnePixelShaderNode()
+        public void TestCanAddOnePixelShaderNode()
         {
             var graph = new PixelGraph();
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            var psn = new PixelShaderNode();
+            var psn = new MetallicMasterNode();
             graph.AddNode(psn);
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            var psn2 = new PixelShaderNode();
+            var psn2 = new MetallicMasterNode();
             graph.AddNode(psn2);
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());

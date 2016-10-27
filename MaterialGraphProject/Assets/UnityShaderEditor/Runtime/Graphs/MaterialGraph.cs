@@ -46,7 +46,7 @@ namespace UnityEngine.MaterialGraph
 
         public void PostCreate()
         {
-            m_PixelGraph.AddNode(new PixelShaderNode());
+            //m_PixelGraph.AddNode(new PixelShaderNode());
         }
     }
 }

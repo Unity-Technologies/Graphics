@@ -113,9 +113,9 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected virtual string GetPreviewShaderString()
         {
             // TODO: this is a workaround right now.
-            if (m_Node is PixelShaderNode)
+            if (m_Node is AbstractMasterNode)
             {
-                var localNode = (PixelShaderNode)m_Node;
+                var localNode = (AbstractMasterNode)m_Node;
                 if (localNode == null)
                     return string.Empty;
 
