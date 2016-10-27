@@ -35,10 +35,6 @@ namespace UnityEngine.MaterialGraph
                     return;
 
                 m_Exposed = value;
-                if (onModified != null)
-                {
-                    onModified(this, ModificationScope.Graph);
-                }
             }
         }
 
