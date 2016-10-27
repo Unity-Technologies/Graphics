@@ -23,11 +23,35 @@ namespace UnityEngine.MaterialGraph
 
         public override void GenerateNodeCode(ShaderGenerator shaderBody, GenerationMode generationMode)
         {
+            var firstPassSlotId = NormalSlotId;
+            // do the normal slot first so that it can be used later in the shader :)
+            var firstPassSlot = FindInputSlot<MaterialSlot>(firstPassSlotId);
             var nodes = ListPool<INode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, firstPassSlotId, NodeUtils.IncludeSelf.Exclude);
+
+            for (int index = 0; index < nodes.Count; index++)
+            {
+                var node = nodes[index];
+                if (node is IGeneratesBodyCode)
+                    (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
+            }
+
+            foreach (var edge in owner.GetEdges(firstPassSlot.slotReference))
+            {
+                var outputRef = edge.outputSlot;
+                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+                if (fromNode == null)
+                    continue;
+
+                shaderBody.AddShaderChunk("o." + firstPassSlot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
+            }
+
+            // track the last index of nodes... they have already been processed :)
+            int pass2StartIndex = nodes.Count;
 
             //Get the rest of the nodes for all the other slots
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, null, NodeUtils.IncludeSelf.Exclude);
-            for (var i = 0; i < nodes.Count; i++)
+            for (var i = pass2StartIndex; i < nodes.Count; i++)
             {
                 var node = nodes[i];
                 if (node is IGeneratesBodyCode)
