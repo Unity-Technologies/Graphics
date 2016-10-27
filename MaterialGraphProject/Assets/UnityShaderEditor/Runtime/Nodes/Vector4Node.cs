@@ -31,7 +31,16 @@ namespace UnityEngine.MaterialGraph
         public Vector4 value
         {
             get { return m_Value; }
-            set { m_Value = value; }
+            set
+            {
+                if (m_Value == value)
+                    return;
+
+                m_Value = value;
+
+                if (onModified != null)
+                    onModified(this, ModificationScope.Node);
+            }
         }
 
         public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
