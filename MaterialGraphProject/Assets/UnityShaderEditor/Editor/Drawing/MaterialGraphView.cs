@@ -120,7 +120,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return null;
 
             List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString = ShaderGenerator.GenerateSurfaceShader(materialGraph.pixelMasterNode, new MaterialOptions(), materialGraph.name, false, out configuredTextures);
+            var shaderString = ShaderGenerator.GenerateSurfaceShader(materialGraph.masterNode, new MaterialOptions(), materialGraph.name, false, out configuredTextures);
             File.WriteAllText(path, shaderString);
             AssetDatabase.Refresh(); // Investigate if this is optimal
 

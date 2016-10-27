@@ -93,7 +93,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
 
             // Generate the shader
             List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString = ShaderGenerator.GenerateSurfaceShader(materialGraph.pixelMasterNode, graphAsset.options, materialGraph.name, false, out configuredTextures);
+            var shaderString = ShaderGenerator.GenerateSurfaceShader(materialGraph.masterNode, graphAsset.options, materialGraph.name, false, out configuredTextures);
             m_Shader = ShaderUtil.CreateShaderAsset(shaderString);
             m_Shader.hideFlags = HideFlags.HideAndDontSave;
             Assert.IsNotNull(m_Shader, "Shader Generation Failed");

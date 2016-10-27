@@ -54,12 +54,12 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             m_Graph.AddNode(m_InputOne);
             m_Graph.AddNode(m_TestNode);
-            m_Graph.AddNode(new PixelShaderNode());
+            m_Graph.AddNode(new MetallicMasterNode());
 
             m_InputOne.value = 0.2f;
 
             m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_TestNode.GetSlotReference(Function1Input.InputSlotId));
-            m_Graph.Connect(m_TestNode.GetSlotReference(Function1Input.OutputSlotId), m_Graph.pixelMasterNode.GetSlotReference(BaseLightFunction.NormalSlotId));
+            m_Graph.Connect(m_TestNode.GetSlotReference(Function1Input.OutputSlotId), m_Graph.masterNode.GetSlotReference(MetallicMasterNode.NormalSlotId));
         }
 
         [Test]
