@@ -62,7 +62,7 @@ namespace UnityEngine.MaterialGraph
 
                 if (onModified != null)
                 {
-                    onModified(this, NodeModificationScope.ShaderRegeneration);
+                    onModified(this, ModificationScope.Graph);
                 }
             }
         }
@@ -82,7 +82,7 @@ namespace UnityEngine.MaterialGraph
                 m_TextureType = value;
                 if (onModified != null)
                 {
-                    onModified(this, NodeModificationScope.ShaderRegeneration);
+                    onModified(this, ModificationScope.Graph);
                 }
             }
         }

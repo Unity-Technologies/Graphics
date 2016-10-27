@@ -28,6 +28,28 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         private AbstractMaterialNode m_Node;
 
+        [NonSerialized]
+        private ModificationScope m_modificationScope;
+
+        // Null means no modification is currently in progress.
+        public ModificationScope modificationScope
+        {
+            get
+            {
+                return m_modificationScope;
+            }
+            set
+            {
+                // External changes can only set the modification scope higher, to prevent missing out on a previously set shader regeneration.
+                if (m_modificationScope == ModificationScope.Graph || (m_modificationScope == ModificationScope.Node && value == ModificationScope.Nothing))
+                    return;
+                m_modificationScope = value;
+            }
+        }
+
+        [NonSerialized]
+        private Texture m_texture;
+
         private PreviewMode m_GeneratedShaderMode = PreviewMode.Preview2D;
 
         public Material previewMaterial
@@ -58,6 +80,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public void Initialize(AbstractMaterialNode node)
         {
             m_Node = node;
+            m_modificationScope = ModificationScope.Graph;
         }
 
         public Texture Render(Vector2 dimension)
@@ -68,13 +91,23 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (m_Node.hasPreview == false)
                 return null;
 
-            if (m_LastShaderVersion != m_Node.version)
+            if (m_modificationScope != ModificationScope.Nothing)
             {
-                if (UpdatePreviewShader())
-                    m_LastShaderVersion = m_Node.version;
+                bool status = false;
+                if (m_modificationScope == ModificationScope.Graph)
+                {
+                    // TODO: Handle shader regeneration error
+                    status = UpdatePreviewShader();
+                }
+                m_texture = RenderPreview(dimension);
+                m_modificationScope = ModificationScope.Nothing;
+            }
+            else if (m_texture == null)
+            {
+                m_texture = RenderPreview(dimension);
             }
 
-            return RenderPreview(dimension);
+            return m_texture;
         }
 
         protected virtual string GetPreviewShaderString()
