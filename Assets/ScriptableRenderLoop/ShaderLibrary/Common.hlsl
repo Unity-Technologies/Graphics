@@ -141,10 +141,10 @@ struct Coordinate
 // This allow to easily share code.
 // If a compute shader call this function inPositionSS is an integer usually calculate like: uint2 inPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
 // else it is current unormalized screen coordinate like return by VPOS
-Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
+Coordinate GetCoordinate(float2 positionSS, float2 invScreenSize)
 {
     Coordinate coord;
-    coord.positionSS = inPositionSS;
+    coord.positionSS = positionSS;
     // TODO: How to detect automatically that we are a compute shader ?
 #if SHADER_STAGE_COMPUTE
     // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
@@ -152,7 +152,7 @@ Coordinate GetCoordinate(float2 inPositionSS, float2 invScreenSize)
 #endif
     coord.positionSS *= invScreenSize;
 
-    coord.unPositionSS = int2(inPositionSS);
+    coord.unPositionSS = int2(positionSS);
 
     return coord;
 }

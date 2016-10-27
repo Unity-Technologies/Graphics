@@ -66,15 +66,18 @@ PunctualShadowData GetPunctualShadowData(LightLoopContext lightLoopContext, int 
 float3 GetShadowTextureCoordinate(LightLoopContext lightLoopContext, PunctualShadowData shadowData, float3 positionWS)
 {
     // Note: scale and bias of shadow atlas are included in ShadowTransform but could be apply here.
-    float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
-    return positionTXS.xyz / positionTXS.w;
+    float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);	
+    positionTXS.xyz /= positionTXS.w;
+//	positionTXS.z -=  shadowData.bias; // Apply a linear bias
+
+	return positionTXS;
 }
 
 float4 SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 texCoord)
 {
    // if (lightLoopContext.sampleShadow == SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS)
     {
-        float objDepth = saturate(257.0 / 256.0 - texCoord.z);
+        float objDepth = saturate(1.0 - texCoord.z);
 
         // Index could be use to get scale bias for uv but this is already merged into the shadow matrix
         return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(texCoord.xy, objDepth)).xxxx;

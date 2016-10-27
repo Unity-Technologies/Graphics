@@ -6,15 +6,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     // structure definition
     //-----------------------------------------------------------------------------
 
-    [GenerateHLSL]
-    // Power of two value as they are flag
-    public enum LightFlags
-    {
-        HasShadow = (1 << 0),
-        HasCookie = (1 << 1),
-        HasIES = (1 << 2)
-    }
-
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL]
     public struct PunctualLightData
@@ -32,16 +23,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float angleOffset;
 
         public Vector3 right;
-        public LightFlags flags;        
-
         public float diffuseScale;
+
         public float specularScale;
         public float shadowDimmer;
+        // index are -1 if not used
         public int shadowIndex;
-
         public int IESIndex;
+
         public int cookieIndex;
-        public Vector2 unused;
+        public Vector3 unused;
     };
 
     [GenerateHLSL]

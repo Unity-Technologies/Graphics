@@ -536,10 +536,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 l.specularScale = AdditionalLightData.GetAffectSpecular(additionalLightData) ? 1.0f : 0.0f;
                 l.shadowDimmer = AdditionalLightData.GetShadowDimmer(additionalLightData);
 
-                l.flags = 0;
-                l.IESIndex = 0;
-                l.cookieIndex = 0;
-                l.shadowIndex = 0;
+                l.IESIndex = -1;
+                l.cookieIndex = -1;
+                l.shadowIndex = -1;
 
                 // Setup shadow data arrays
                 bool hasShadows = shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
@@ -549,14 +548,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     // When we have a point light, we assumed that there is 6 consecutive PunctualShadowData
                     l.shadowIndex = shadows.Count;
-                    l.flags |= LightFlags.HasShadow;
 
                     for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
                     {
                         PunctualShadowData s = new PunctualShadowData();
 
                         int shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
-                        s.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose to go from ShadowToWorld to WorldToShadow
+                        s.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose for hlsl reading ?
 
                         if (light.lightType == LightType.Spot)
                         {
@@ -570,6 +568,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         {
                             s.shadowType = ShadowType.Directional;
                         }
+
+                        s.bias = light.light.shadowBias;
 
                         shadows.Add(s);                        
                     }

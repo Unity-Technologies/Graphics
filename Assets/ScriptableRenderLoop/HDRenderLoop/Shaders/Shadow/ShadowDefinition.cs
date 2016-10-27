@@ -24,7 +24,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Matrix4x4 worldToShadow;
 
         public ShadowType shadowType;
-        public Vector3 unused;
+        public float bias;
+        public Vector2 unused;
     };
 
 } // namespace UnityEngine.Experimental.ScriptableRenderLoop
