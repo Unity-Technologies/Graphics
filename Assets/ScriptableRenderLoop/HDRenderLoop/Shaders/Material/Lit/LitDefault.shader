@@ -354,12 +354,12 @@ Shader "HDRenderLoop/Lit"
         // ------------------------------------------------------------------
         Pass
         {
-            Name "DepthOnly" // Name is not used
-            Tags { "LightMode" = "ShadowCaster" } // This will be only for transparent object based on the RenderQueue index
+			Name "ShadowCaster"
+			Tags{ "LightMode" = "ShadowCaster" }
 
-            Blend [_SrcBlend] [_DstBlend]
-            ZWrite [_ZWrite]
-            Cull [_CullMode]
+			Cull[_CullMode]
+
+			ZWrite On ZTest LEqual
 
             HLSLPROGRAM
 
@@ -432,6 +432,7 @@ Shader "HDRenderLoop/Lit"
                 ZERO_INITIALIZE(FragInput, output);
 
                 output.positionHS = input.positionHS;
+
                 #if NEED_TANGENT_TO_WORLD
                 output.positionWS.xyz = input.interpolators[0].xyz;
                 output.tangentToWorld[0] = input.interpolators[1].xyz;

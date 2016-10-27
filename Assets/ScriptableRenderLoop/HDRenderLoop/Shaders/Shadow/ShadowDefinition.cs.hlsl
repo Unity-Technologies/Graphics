@@ -17,7 +17,8 @@ struct PunctualShadowData
 {
 	float4x4 worldToShadow;
 	int shadowType;
-	float3 unused;
+	float bias;
+	float2 unused;
 };
 
 //
@@ -31,7 +32,11 @@ int GetShadowType(PunctualShadowData value)
 {
 	return value.shadowType;
 }
-float3 GetUnused(PunctualShadowData value)
+float GetBias(PunctualShadowData value)
+{
+	return value.bias;
+}
+float2 GetUnused(PunctualShadowData value)
 {
 	return value.unused;
 }

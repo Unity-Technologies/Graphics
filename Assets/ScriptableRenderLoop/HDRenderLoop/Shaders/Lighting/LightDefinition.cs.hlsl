@@ -5,13 +5,6 @@
 #ifndef LIGHTDEFINITION_CS_HLSL
 #define LIGHTDEFINITION_CS_HLSL
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.LightFlags:  static fields
-//
-#define LIGHTFLAGS_HAS_SHADOW (1)
-#define LIGHTFLAGS_HAS_COOKIE (2)
-#define LIGHTFLAGS_HAS_IES (4)
-
-//
 // UnityEngine.Experimental.ScriptableRenderLoop.AreaShapeType:  static fields
 //
 #define AREASHAPETYPE_RECTANGLE (0)
@@ -41,14 +34,13 @@ struct PunctualLightData
 	float3 up;
 	float angleOffset;
 	float3 right;
-	int flags;
 	float diffuseScale;
 	float specularScale;
 	float shadowDimmer;
 	int shadowIndex;
 	int IESIndex;
 	int cookieIndex;
-	float2 unused;
+	float3 unused;
 };
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.AreaLightData
@@ -127,10 +119,6 @@ float3 GetRight(PunctualLightData value)
 {
 	return value.right;
 }
-int GetFlags(PunctualLightData value)
-{
-	return value.flags;
-}
 float GetDiffuseScale(PunctualLightData value)
 {
 	return value.diffuseScale;
@@ -155,7 +143,7 @@ int GetCookieIndex(PunctualLightData value)
 {
 	return value.cookieIndex;
 }
-float2 GetUnused(PunctualLightData value)
+float3 GetUnused(PunctualLightData value)
 {
 	return value.unused;
 }
