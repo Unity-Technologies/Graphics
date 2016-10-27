@@ -124,11 +124,13 @@ float3 OverlayHeatMap(uint2 pixCoord, uint numLights, float3 c)
     int2 coord = pixCoord - int2(1, 1);
 
     float3 color = lerp(c, pow(col.xyz, 2.2), 0.3*col.w);
-    if (SampleDebugFontNumber(coord, numLights))		// Shadow
-        color = 0.0f;
-    if (SampleDebugFontNumber(coord + 1, numLights))	// Text
-        color = 1.0f;
-
+    if(numLights > 0)
+    {
+        if (SampleDebugFontNumber(coord, numLights))		// Shadow
+            color = 0.0f;
+        if (SampleDebugFontNumber(coord + 1, numLights))	// Text
+            color = 1.0f;
+    }
     return color;
 }
 
