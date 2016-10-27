@@ -81,7 +81,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         }
 
         [Test]
-        public void TestCanAddOnePixelShaderNode()
+        public void TestCanAddMultipleMasterNode()
         {
             var graph = new PixelGraph();
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
@@ -91,10 +91,10 @@ namespace UnityEditor.MaterialGraph.UnitTests
             Assert.AreEqual(0, graph.edges.Count());
             Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
 
-            var psn2 = new MetallicMasterNode();
+            var psn2 = new SpecularMasterNode();
             graph.AddNode(psn2);
             Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
+            Assert.AreEqual(2, graph.GetNodes<AbstractMaterialNode>().Count());
         }
     }
 }
