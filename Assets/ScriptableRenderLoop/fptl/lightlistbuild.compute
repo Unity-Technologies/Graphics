@@ -205,7 +205,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
-	int iNrCoarseLights = lightOffs<MAX_NR_COARSE_ENTRIES ? lightOffs : MAX_NR_COARSE_ENTRIES;
+	int iNrCoarseLights = min(lightOffs,MAX_NR_COARSE_ENTRIES);
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
@@ -213,9 +213,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 #ifndef FINE_PRUNING_ENABLED	
 	{
-		int iNrLightsOut = iNrCoarseLights<MAX_NR_PRUNED_ENTRIES ? iNrCoarseLights : MAX_NR_PRUNED_ENTRIES;
-		if((int)t<iNrLightsOut) prunedList[t] = coarseList[t];
-		if(t==0) ldsNrLightsFinal=iNrLightsOut;
+		if((int)t<iNrCoarseLights) prunedList[t] = coarseList[t];
+		if(t==0) ldsNrLightsFinal=iNrCoarseLights;
 	}
 #else
 	{
@@ -233,7 +232,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 	
-	int nrLightsCombinedList = ldsNrLightsFinal<MAX_NR_COARSE_ENTRIES ? ldsNrLightsFinal : MAX_NR_COARSE_ENTRIES;
+	int nrLightsCombinedList = min(ldsNrLightsFinal,MAX_NR_COARSE_ENTRIES);
 	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS) 
 	{
 		InterlockedAdd(ldsModelListCount[ g_vLightData[ prunedList[i] ].lightModel ], 1);
