@@ -66,8 +66,6 @@ float GetOnePixDiagWorldDistAtDepthOne()
 }
 
 
-void sortLightList(int localThreadID, int n);
-
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate);
 #endif
