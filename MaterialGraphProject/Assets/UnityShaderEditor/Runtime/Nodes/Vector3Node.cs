@@ -17,11 +17,6 @@ namespace UnityEngine.MaterialGraph
             UpdateNodeAfterDeserialization();
         }
 
-        public override bool hasPreview
-        {
-            get { return true; }
-        }
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector3, Vector4.zero));
