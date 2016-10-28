@@ -1,6 +1,22 @@
 #ifndef __SHADERBASE_H__
 #define __SHADERBASE_H__
 
+#ifdef SHADER_API_PSSL
+
+#ifndef Texture2DMS
+	#define Texture2DMS		MS_Texture2D
+#endif
+
+#ifndef SampleCmpLevelZero
+	#define SampleCmpLevelZero				SampleCmpLOD0
+#endif
+
+#ifndef firstbithigh
+	#define firstbithigh		FirstSetBit_Hi_MSB
+#endif
+
+#endif
+
 
 #define __HLSL      1
 #define public
