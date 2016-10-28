@@ -43,7 +43,7 @@ StructuredBuffer<SFiniteLightData> g_vLightData : register( t2 );
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 #ifdef USE_TWO_PASS_TILED_LIGHTING
-StructuredBuffer<uint> g_vBigTileLightList : register( t4 );
+Buffer<uint> g_vBigTileLightList : register( t4 );
 #endif
 
 
