@@ -98,7 +98,7 @@ Shader "HDRenderLoop/Unlit"
                 {
                 case DEBUGVIEW_VARYING_DEPTH:
                     // TODO: provide a customize parameter (like a slider)
-                    float linearDepth = frac(LinearEyeDepth(input.positionHS.z, _ZBufferParams) * 0.1);
+                    float linearDepth = frac(LinearEyeDepth(input.positionCS.z, _ZBufferParams) * 0.1);
                     result = linearDepth.xxx;
                     break;
                 case DEBUGVIEW_VARYING_TEXCOORD0:

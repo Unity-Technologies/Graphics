@@ -37,7 +37,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
 
             struct Varyings
             {
-                float4 positionHS : SV_POSITION;
+                float4 positionCS : SV_POSITION;
             };
 
             Varyings VertDeferred(Attributes input)
@@ -45,14 +45,15 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
                 // TODO: implement SV_vertexID full screen quad
                 Varyings output;
                 float3 positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionHS = TransformWorldToHClip(positionWS);
+                output.positionCS = TransformWorldToHClip(positionWS);
 
                 return output;
             }
 
             float4 FragDeferred(Varyings input) : SV_Target
             {
-                Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);
+				float4 unPositionSS = input.positionCS; // as input we have the vpos
+				Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
 
                 float depth = _CameraDepthTexture.Load(uint3(coord.unPositionSS, 0)).x;
 

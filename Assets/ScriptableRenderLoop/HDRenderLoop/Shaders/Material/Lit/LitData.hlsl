@@ -5,7 +5,7 @@
 
 struct FragInput
 {
-    float4 positionHS;
+    float4 unPositionSS; // This is the position return by VPOS, only xy is use
     float3 positionWS;
     float2 texCoord0;
     float2 texCoord1;

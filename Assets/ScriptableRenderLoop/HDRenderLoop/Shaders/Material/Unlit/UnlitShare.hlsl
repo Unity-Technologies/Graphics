@@ -14,20 +14,20 @@ struct Attributes
 
 struct Varyings
 {
-    float4 positionHS;
+    float4 positionCS;
     float2 texCoord0;
 };
 
 struct PackedVaryings
 {
-    float4 positionHS : SV_Position;
+    float4 positionCS : SV_Position;
     float4 interpolators[1] : TEXCOORD0;
 };
 
 PackedVaryings PackVaryings(Varyings input)
 {
     PackedVaryings output;
-    output.positionHS = input.positionHS;
+    output.positionCS = input.positionCS;
     output.interpolators[0] = float4(input.texCoord0.xy, 0.0, 0.0);
 
     return output;
@@ -38,7 +38,7 @@ FragInput UnpackVaryings(PackedVaryings input)
     FragInput output;
     ZERO_INITIALIZE(FragInput, output);
 
-    output.positionHS = input.positionHS;
+    output.positionCS = input.positionCS;
     output.texCoord0.xy = input.interpolators[0].xy;
 
     return output;
@@ -53,7 +53,7 @@ PackedVaryings VertDefault(Attributes input)
     Varyings output;
 
     float3 positionWS = TransformObjectToWorld(input.positionOS);
-    output.positionHS = TransformWorldToHClip(positionWS);
+    output.positionCS = TransformWorldToHClip(positionWS);
 
     output.texCoord0 = input.uv0;
 
