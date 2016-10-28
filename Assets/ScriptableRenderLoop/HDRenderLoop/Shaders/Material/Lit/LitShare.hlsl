@@ -75,6 +75,7 @@ FragInput UnpackVaryings(PackedVaryings input)
     FragInput output;
     ZERO_INITIALIZE(FragInput, output);
 
+    output.unPositionSS = input.positionCS;
     output.positionWS.xyz = input.interpolators[0].xyz;
     output.tangentToWorld[0] = input.interpolators[1].xyz;
     output.tangentToWorld[1] = input.interpolators[2].xyz;

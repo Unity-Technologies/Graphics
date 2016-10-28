@@ -23,7 +23,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
 
             // Chose supported lighting architecture in case of deferred rendering
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS
-            #pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF 
+            //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF 
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -56,7 +56,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
 
             struct Varyings
             {
-                float4 positionHS : SV_POSITION;
+                float4 positionCS : SV_POSITION;
             };
 
             Varyings VertDeferred(Attributes input)
@@ -65,14 +65,15 @@ Shader "Hidden/HDRenderLoop/Deferred"
                 // Lights are draw as one fullscreen quad
                 Varyings output;
                 float3 positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionHS = TransformWorldToHClip(positionWS);
+                output.positionCS = TransformWorldToHClip(positionWS);
 
                 return output;
             }
 
             float4 FragDeferred(Varyings input) : SV_Target
             {
-                Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);
+				float4 unPositionSS = input.positionCS; // as input we have the vpos
+                Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
 
                 // No need to manage inverse depth, this is handled by the projection matrix
                 float depth = _CameraDepthTexture.Load(uint3(coord.unPositionSS, 0)).x;

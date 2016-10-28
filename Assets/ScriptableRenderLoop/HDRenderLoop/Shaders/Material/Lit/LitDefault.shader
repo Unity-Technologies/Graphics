@@ -200,11 +200,6 @@ Shader "HDRenderLoop/Lit"
             {
                 switch (paramId)
                 {
-                case DEBUGVIEW_VARYING_DEPTH:
-                    // TODO: provide a customize parameter (like a slider)
-                    float linearDepth = frac(LinearEyeDepth(input.positionHS.z, _ZBufferParams) * 0.1);
-                    result = linearDepth.xxx;
-                    break;
                 case DEBUGVIEW_VARYING_TEXCOORD0:
                     result = float3(input.texCoord0 * 0.5 + 0.5, 0.0);
                     break;
@@ -282,14 +277,14 @@ Shader "HDRenderLoop/Lit"
 
             struct Varyings
             {
-                float4 positionHS;
+                float4 positionCS;
                 float2 texCoord0;
                 float2 texCoord1;
             };
 
             struct PackedVaryings
             {
-                float4 positionHS : SV_Position;
+                float4 positionCS : SV_Position;
                 float4 interpolators[1] : TEXCOORD0;
             };
 
@@ -297,7 +292,7 @@ Shader "HDRenderLoop/Lit"
             PackedVaryings PackVaryings(Varyings input)
             {
                 PackedVaryings output;
-                output.positionHS = input.positionHS;
+                output.positionCS = input.positionCS;
                 output.interpolators[0].xy = input.texCoord0;
                 output.interpolators[0].zw = input.texCoord1;
 
@@ -309,7 +304,7 @@ Shader "HDRenderLoop/Lit"
                 FragInput output;
                 ZERO_INITIALIZE(FragInput, output);
 
-                output.positionHS = input.positionHS;
+                output.unPositionSS = input.positionCS;
                 output.texCoord0 = input.interpolators[0].xy;
                 output.texCoord1 = input.interpolators[0].zw;
 
@@ -337,7 +332,7 @@ Shader "HDRenderLoop/Lit"
                 }
 
                 float3 positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionHS = TransformWorldToHClip(positionWS);
+                output.positionCS = TransformWorldToHClip(positionWS);
                 output.texCoord0 = input.uv0;
                 output.texCoord1 = input.uv1;
 
@@ -386,7 +381,7 @@ Shader "HDRenderLoop/Lit"
 
             struct Varyings
             {
-                float4 positionHS;
+                float4 positionCS;
                 #if NEED_TEXCOORD0
                 float2 texCoord0;
                 #endif
@@ -398,7 +393,7 @@ Shader "HDRenderLoop/Lit"
 
             struct PackedVaryings
             {
-                float4 positionHS : SV_Position;
+                float4 positionCS : SV_Position;
                 #if NEED_TANGENT_TO_WORLD
                 float4 interpolators[4] : TEXCOORD0;
                 #elif NEED_TEXCOORD0
@@ -410,7 +405,7 @@ Shader "HDRenderLoop/Lit"
             PackedVaryings PackVaryings(Varyings input)
             {
                 PackedVaryings output;
-                output.positionHS = input.positionHS;
+                output.positionCS = input.positionCS;
                 #if NEED_TANGENT_TO_WORLD
                 output.interpolators[0].xyz = input.positionWS.xyz;
                 output.interpolators[1].xyz = input.tangentToWorld[0];
@@ -431,7 +426,7 @@ Shader "HDRenderLoop/Lit"
                 FragInput output;
                 ZERO_INITIALIZE(FragInput, output);
 
-                output.positionHS = input.positionHS;
+                output.unPositionSS = input.positionCS;
 
                 #if NEED_TANGENT_TO_WORLD
                 output.positionWS.xyz = input.interpolators[0].xyz;
@@ -452,7 +447,7 @@ Shader "HDRenderLoop/Lit"
                 Varyings output;
 
                 float3 positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionHS = TransformWorldToHClip(positionWS);                
+                output.positionCS = TransformWorldToHClip(positionWS);
 
                 #if NEED_TEXCOORD0
                 output.texCoord0 = input.uv0;
@@ -499,7 +494,7 @@ Shader "HDRenderLoop/Lit"
             // TEMP until pragma work in include
             // #include "../../Lighting/Forward.hlsl"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS
-            #pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
+            //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
 
             #include "../../Lighting/Lighting.hlsl"
             #include "LitData.hlsl"
