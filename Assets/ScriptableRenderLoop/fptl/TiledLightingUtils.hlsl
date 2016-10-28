@@ -6,7 +6,7 @@
 
 
 StructuredBuffer<SFiniteLightData> g_vLightData;
-StructuredBuffer<uint> g_vLightListGlobal;
+Buffer<uint> g_vLightListGlobal;
 
 void GetCountAndStartOpaque(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth, uint model)
 {
