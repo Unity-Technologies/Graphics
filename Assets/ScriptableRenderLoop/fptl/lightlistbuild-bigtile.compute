@@ -90,7 +90,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 
 	if(t==0) lightOffs = 0;
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -116,7 +116,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 		}
 	}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -167,7 +167,7 @@ void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 scree
 			lightsListLDS[l]=0xffffffff;
 	}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
 }
@@ -260,7 +260,7 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 			}
 		}
 	}
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
 }

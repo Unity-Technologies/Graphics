@@ -12,7 +12,7 @@
 
 #include "LightingConvexHullUtils.hlsl"
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "SortingComputeUtils.hlsl"
 #endif
 
@@ -194,7 +194,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 	}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -226,7 +226,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	InterlockedMax(ldsZMax, asuint(dpt_ma) );
 
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 	dpt_ma = asfloat(ldsZMax);
@@ -251,7 +251,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		}
 	}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -280,7 +280,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	SORTLIST(coarseList, iNrCoarseLights, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 #endif
 
@@ -298,7 +298,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		}
 	}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -330,7 +330,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		int p = i>>2;
 		int m = i&3;
 		if(i<24) lightPlanes[6*m+p] = FetchPlane(min(iNrCoarseLights-1,ll+m), p);
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -344,7 +344,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 			}
 		}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
 	}
@@ -406,7 +406,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 			coarseList[l]=0xffffffff;
 	}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -419,7 +419,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 		lightOffsSph = offs;
 	}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -468,7 +468,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 	{
 		if(threadID==0) ldsIsLightInvisible=0;
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
 		const int idxCoarse = coarseList[l];
@@ -522,7 +522,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 				if(bFoundSepPlane) InterlockedOr(ldsIsLightInvisible, 1);
 			}
 		}
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
 		if(threadID==0 && ldsIsLightInvisible==0)
@@ -530,7 +530,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 			coarseList[lightOffs2++] = coarseList[l];
 		}
 	}
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
 	return lightOffs2;
