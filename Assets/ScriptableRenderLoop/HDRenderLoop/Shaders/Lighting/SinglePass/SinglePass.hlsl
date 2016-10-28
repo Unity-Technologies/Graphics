@@ -69,7 +69,8 @@ float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, float3 pos
 	float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
 	positionTXS.xyz /= positionTXS.w;
 	//	positionTXS.z -=  shadowData.bias; // Apply a linear bias
-	
+	positionTXS.z -= 0.001;
+
 #if UNITY_REVERSED_Z
 	positionTXS.z = 1.0 - positionTXS.z;
 #endif
