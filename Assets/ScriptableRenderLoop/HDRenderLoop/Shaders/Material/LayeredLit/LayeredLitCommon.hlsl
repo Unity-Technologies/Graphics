@@ -94,7 +94,7 @@ struct Attributes
 
 struct Varyings
 {
-    float4 positionHS;
+    float4 positionCS;
     float3 positionWS;
     float2 texCoord0;
     float3 tangentToWorld[3];
@@ -109,7 +109,7 @@ struct Varyings
 
 struct PackedVaryings
 {
-    float4 positionHS : SV_Position;
+    float4 positionCS : SV_Position;
     float4 interpolators[6] : TEXCOORD0;
 
 #ifdef SHADER_STAGE_FRAGMENT
@@ -123,7 +123,7 @@ struct PackedVaryings
 PackedVaryings PackVaryings(Varyings input)
 {
     PackedVaryings output;
-    output.positionHS = input.positionHS;
+    output.positionCS = input.positionCS;
     output.interpolators[0].xyz = input.positionWS.xyz;
     output.interpolators[0].w = input.texCoord0.x;
     output.interpolators[1].xyz = input.tangentToWorld[0];
@@ -139,7 +139,7 @@ PackedVaryings PackVaryings(Varyings input)
 Varyings UnpackVaryings(PackedVaryings input)
 {
     Varyings output;
-    output.positionHS = input.positionHS;
+    output.positionCS = input.positionCS;
     output.positionWS.xyz = input.interpolators[0].xyz;
     output.texCoord0.x = input.interpolators[0].w;
     output.texCoord0.y = input.interpolators[4].x;
@@ -164,7 +164,7 @@ PackedVaryings VertDefault(Attributes input)
 
     output.positionWS = TransformObjectToWorld(input.positionOS);
     // TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
-    output.positionHS = TransformWorldToHClip(output.positionWS);
+    output.positionCS = TransformWorldToHClip(output.positionWS);
 
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 
@@ -421,7 +421,7 @@ void GetVaryingsDataDebug(uint paramId, Varyings input, inout float3 result, ino
     {
     case DEBUGVIEW_VARYING_DEPTH:
         // TODO: provide a customize parameter (like a slider)
-        float linearDepth = frac(LinearEyeDepth(input.positionHS.z, _ZBufferParams) * 0.1);
+        float linearDepth = frac(LinearEyeDepth(input.positionCS.z, _ZBufferParams) * 0.1);
         result = linearDepth.xxx;
         break;
     case DEBUGVIEW_VARYING_TEXCOORD0:

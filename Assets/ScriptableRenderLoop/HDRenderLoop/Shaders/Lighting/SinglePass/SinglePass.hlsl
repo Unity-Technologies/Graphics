@@ -3,6 +3,8 @@
 // It use  maxed list of lights of the scene - use just as proof of concept - do not used in regular game
 //-----------------------------------------------------------------------------
 
+#include "SinglePass.cs.hlsl"
+
 //-----------------------------------------------------------------------------
 // Constant and structure declaration
 // ----------------------------------------------------------------------------
@@ -37,6 +39,7 @@ CBUFFER_START(UnityPerLightLoop)
     int _PunctualLightCount;
     int _EnvLightCount;
     EnvLightData _EnvLightSky;
+	float4 _ShadowMapSize;
 CBUFFER_END
 
 struct LightLoopContext
@@ -52,58 +55,30 @@ struct LightLoopContext
 #define SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS 0
 #define SINGLE_PASS_CONTEXT_SAMPLE_SHADOWARRAY 1
 
-PunctualShadowData GetPunctualShadowData(LightLoopContext lightLoopContext, int index, float3 L)
+float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
-    int faceIndex = 0;
-    if (_PunctualShadowList[index].shadowType == SHADOWTYPE_POINT)
-    {
-        GetCubeFaceID(L, faceIndex);
-    }
+	int faceIndex = 0;
+	if (_PunctualShadowList[index].shadowType == SHADOWTYPE_POINT)
+	{
+		GetCubeFaceID(L, faceIndex);
+	}
 
-    return _PunctualShadowList[index + faceIndex];
+	PunctualShadowData shadowData = _PunctualShadowList[index + faceIndex];
+
+	// Note: scale and bias of shadow atlas are included in ShadowTransform but could be apply here.
+	float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
+	positionTXS.xyz /= positionTXS.w;
+	//	positionTXS.z -=  shadowData.bias; // Apply a linear bias
+	
+#if UNITY_REVERSED_Z
+	positionTXS.z = 1.0 - positionTXS.z;
+#endif
+
+	// float3 shadowPosDX = ddx_fine(positionTXS);
+	// float3 shadowPosDY = ddy_fine(positionTXS);
+
+	return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, positionTXS);
 }
-
-float3 GetShadowTextureCoordinate(LightLoopContext lightLoopContext, PunctualShadowData shadowData, float3 positionWS)
-{
-    // Note: scale and bias of shadow atlas are included in ShadowTransform but could be apply here.
-    float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);	
-    positionTXS.xyz /= positionTXS.w;
-//	positionTXS.z -=  shadowData.bias; // Apply a linear bias
-
-	return positionTXS;
-}
-
-float4 SampleShadowCompare(LightLoopContext lightLoopContext, int index, float3 texCoord)
-{
-   // if (lightLoopContext.sampleShadow == SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS)
-    {
-        float objDepth = saturate(1.0 - texCoord.z);
-
-        // Index could be use to get scale bias for uv but this is already merged into the shadow matrix
-        return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(texCoord.xy, objDepth)).xxxx;
-    }
-    /*
-    else // SINGLE_PASS_CONTEXT_SAMPLE_SHADOWARRAY
-    {
-        return SAMPLE_TEXTURE2D_ARRAY_SHADOW(_ShadowArray, sampler_ShadowArray, texCoord, index);
-    }
-    */
-}
-
-/*
-float4 SampleShadow(LightLoopContext lightLoopContext, int index, float2 texCoord)
-{
-    if (lightLoopContext.sampleShadow == SINGLE_PASS_CONTEXT_SAMPLE_SHADOWATLAS)
-    {
-        // Index could be use to get scale bias for uv but this is already merged into the shadow matrix
-        return SAMPLE_TEXTURE2D(_ShadowAtlas, sampler_ManualShadowArray, texCoord);
-    }
-    else // SINGLE_PASS_CONTEXT_SAMPLE_SHADOWARRAY
-    {
-        return SAMPLE_TEXTURE2D_ARRAY(_ShadowArray, sampler_ManualShadowAtlas, texCoord, index);
-    }
-}
-*/
 
 //-----------------------------------------------------------------------------
 // IES sampling function

@@ -19,7 +19,7 @@ void Frag(  PackedVaryings packedInput,
 	GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
-	Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);
+	Coordinate coord = GetCoordinate(input.unPositionSS, _ScreenSize.zw);
 	PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
 
 	ENCODE_INTO_GBUFFER(surfaceData, outGBuffer);

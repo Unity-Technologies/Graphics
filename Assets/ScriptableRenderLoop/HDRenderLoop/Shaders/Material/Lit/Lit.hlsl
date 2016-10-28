@@ -558,16 +558,8 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
 	[branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
 	{
-        PunctualShadowData shadowData = GetPunctualShadowData(lightLoopContext, lightData.shadowIndex, L);
-
-        // Apply offset
-        float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
-        float3 shadowCoord = GetShadowTextureCoordinate(lightLoopContext, shadowData, positionWS + offset);
-
-        float3 shadowPosDX = ddx_fine(shadowCoord);
-        float3 shadowPosDY = ddy_fine(shadowCoord);
-
-        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, lightData.shadowIndex, shadowData, shadowCoord, shadowPosDX, shadowPosDY, preLightData.unPositionSS);
+		float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
+        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, positionWS + offset, lightData.shadowIndex, L, preLightData.unPositionSS);
 		shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
 
 		illuminance *= shadowAttenuation;

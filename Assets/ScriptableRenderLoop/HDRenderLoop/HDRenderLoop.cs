@@ -16,21 +16,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // Must be in sync with DebugViewMaterial.hlsl
         public enum DebugViewVaryingMode
         {
-            Depth = 1,
-            TexCoord0 = 2,
-            TexCoord1 = 3,
-            TexCoord2 = 4,
-            VertexTangentWS = 5,
-            VertexBitangentWS = 6,
-            VertexNormalWS = 7,
-            VertexColor = 8,
+            TexCoord0 = 1,
+            TexCoord1 = 2,
+            TexCoord2 = 3,
+            VertexTangentWS = 4,
+            VertexBitangentWS = 5,
+            VertexNormalWS = 6,
+            VertexColor = 7,
         }
 
         // Must be in sync with DebugViewMaterial.hlsl
         public enum DebugViewGbufferMode
         {
-            Depth = 9,
-            BakeDiffuseLighting = 10,
+            Depth = 10,
+            BakeDiffuseLighting = 11,
         }
 
         public class DebugParameters

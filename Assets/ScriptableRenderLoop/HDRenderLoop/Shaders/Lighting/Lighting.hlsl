@@ -17,7 +17,6 @@
 #define HAS_LIGHTLOOP // Allow to not define LightLoop related function in Material.hlsl
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightDefinition.cs.hlsl"
-#include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Shadow/ShadowDefinition.cs.hlsl"
 
 #ifdef LIGHTLOOP_SINGLE_PASS 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/SinglePass/SinglePass.hlsl"

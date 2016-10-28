@@ -13,7 +13,7 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
 	GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
-	Coordinate coord = GetCoordinate(input.positionHS.xy, _ScreenSize.zw);
+	Coordinate coord = GetCoordinate(input.unPositionSS.xy, _ScreenSize.zw);
 	PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
 
 	float4 diffuseLighting;

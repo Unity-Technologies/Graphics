@@ -22,7 +22,7 @@ struct Attributes
 
 struct Varyings
 {
-    float4 positionHS;
+    float4 positionCS;
     float3 positionWS;
     float2 texCoord0;
     float2 texCoord1;
@@ -34,7 +34,7 @@ struct Varyings
 
 struct PackedVaryings
 {
-    float4 positionHS : SV_Position;
+    float4 positionCS : SV_Position;
 #if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
     float4 interpolators[5] : TEXCOORD0;
 #else
@@ -52,7 +52,7 @@ struct PackedVaryings
 PackedVaryings PackVaryings(Varyings input)
 {
     PackedVaryings output;
-    output.positionHS = input.positionHS;
+    output.positionCS = input.positionCS;
     output.interpolators[0].xyz = input.positionWS.xyz;
     output.interpolators[1].xyz = input.tangentToWorld[0];
     output.interpolators[2].xyz = input.tangentToWorld[1];
@@ -75,7 +75,6 @@ FragInput UnpackVaryings(PackedVaryings input)
     FragInput output;
     ZERO_INITIALIZE(FragInput, output);
 
-    output.positionHS = input.positionHS;
     output.positionWS.xyz = input.interpolators[0].xyz;
     output.tangentToWorld[0] = input.interpolators[1].xyz;
     output.tangentToWorld[1] = input.interpolators[2].xyz;
@@ -108,7 +107,7 @@ PackedVaryings VertDefault(Attributes input)
 
     output.positionWS = TransformObjectToWorld(input.positionOS);
     // TODO deal with camera center rendering and instancing (This is the reason why we always perform tow steps transform to clip space + instancing matrix)
-    output.positionHS = TransformWorldToHClip(output.positionWS);
+    output.positionCS = TransformWorldToHClip(output.positionWS);
 
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 
