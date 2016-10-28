@@ -138,17 +138,19 @@ struct Coordinate
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
 // This allow to easily share code.
+// If a compute shader call this function unPositionSS is an integer usually calculate like: uint2 unPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
 // else it is current unormalized screen coordinate like return by VPOS
 Coordinate GetCoordinate(float2 unPositionSS, float2 invScreenSize)
 {
     Coordinate coord;
-    // TODO: How to detect automatically that we are a compute shader ?
+    coord.positionSS = unPositionSS;
 #if SHADER_STAGE_COMPUTE
     // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
     coord.positionSS.xy += float2(0.5, 0.5);
 #endif
     coord.positionSS *= invScreenSize;
 
+    coord.unPositionSS = int2(unPositionSS);
 
     return coord;
 }
@@ -158,6 +160,8 @@ Coordinate GetCoordinate(float2 unPositionSS, float2 invScreenSize)
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
 float3 UnprojectToWorld(float depth, float2 screenPos, float4x4 invViewProjectionMatrix)
 {
+    float4 positionCS   = float4(screenPos.xy * 2.0 - 1.0, depth, 1.0);
+    float4 hpositionWS  = mul(invViewProjectionMatrix, positionCS);
 
     return hpositionWS.xyz / hpositionWS.w;
 }
