@@ -83,7 +83,7 @@ struct LocalDataBRDF
 
 static LocalDataBRDF g_localParams;
 
-StandardData UnityStandardDataFromGbuffer(float4 gbuffer0, float4 gbuffer1, float4 gbuffer2)
+StandardData UnityStandardDataFromGbufferAux(float4 gbuffer0, float4 gbuffer1, float4 gbuffer2)
 {
     StandardData data;
 
@@ -119,7 +119,7 @@ half4 frag (v2f i) : SV_Target
     float4 gbuffer1 = _CameraGBufferTexture1.Load( uint3(pixCoord.xy, 0) );
     float4 gbuffer2 = _CameraGBufferTexture2.Load( uint3(pixCoord.xy, 0) );
 
-    StandardData data = UnityStandardDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
+    StandardData data = UnityStandardDataFromGbufferAux(gbuffer0, gbuffer1, gbuffer2);
 
     g_localParams.gbuf = data;
     g_localParams.oneMinusReflectivity = 1.0 - SpecularStrength(data.specularColor.rgb);
