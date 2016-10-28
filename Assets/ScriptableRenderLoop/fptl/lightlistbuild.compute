@@ -10,7 +10,7 @@
 
 #include "LightingConvexHullUtils.hlsl"
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "SortingComputeUtils.hlsl"
 #endif
 
@@ -129,7 +129,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		lightOffs = 0;
 	}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -161,7 +161,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		InterlockedMin(ldsZMin, asuint(dpt_mi));
 
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 		GroupMemoryBarrierWithGroupSync();
 #endif
 	}
@@ -200,7 +200,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	if(t<2) ldsDoesLightIntersect[t] = 0;
 #endif
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -226,7 +226,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	//
 	if(t<NR_LIGHT_MODELS) ldsModelListCount[t]=0;
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -239,7 +239,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 
 	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	SORTLIST(prunedList, nrLightsCombinedList, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 	//MERGESORTLIST(prunedList, coarseList, nrLightsCombinedList, t, NR_THREADS);
 #endif
@@ -279,7 +279,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 		prunedList[l]=coarseList[l];
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -304,7 +304,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 		}
 	}
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
@@ -425,7 +425,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 	InterlockedOr(ldsDoesLightIntersect[1], uLightsFlags[1]);
 	if(t==0) ldsNrLightsFinal = 0;
 
-#if !defined(XBONE) && !defined(PLAYSTATION4)
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
