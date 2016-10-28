@@ -31,7 +31,7 @@ float3 UnpackNormalMaxComponent(float3 n)
 // return float between [-1, 1]
 float2 PackNormalOctEncode(float3 n)
 {
-    float l1norm    = abs(n.x) + abs(n.y) + abs(n.z);
+    float l1norm    = dot(abs(n), 1.0);
     float2 res0     = n.xy * (1.0 / l1norm);
 
     float2 val      = 1.0 - abs(res0.yx);

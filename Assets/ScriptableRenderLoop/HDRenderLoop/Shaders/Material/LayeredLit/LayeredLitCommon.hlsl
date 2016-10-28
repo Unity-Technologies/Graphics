@@ -419,11 +419,6 @@ void GetVaryingsDataDebug(uint paramId, Varyings input, inout float3 result, ino
 {
     switch (paramId)
     {
-    case DEBUGVIEW_VARYING_DEPTH:
-        // TODO: provide a customize parameter (like a slider)
-        float linearDepth = frac(LinearEyeDepth(input.positionCS.z, _ZBufferParams) * 0.1);
-        result = linearDepth.xxx;
-        break;
     case DEBUGVIEW_VARYING_TEXCOORD0:
         // TODO: require a remap
         result = float3(input.texCoord0, 0.0);
