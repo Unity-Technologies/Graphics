@@ -88,9 +88,9 @@ Shader "HDRenderLoop/Lit"
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
 
-    #pragma multi_compile _ LIGHTMAP_ON
-    #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-    #pragma multi_compile _ DYNAMICLIGHTMAP_ON
+	#pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+	#pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+	#pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
 
     //-------------------------------------------------------------------------------------
     // Define
