@@ -102,6 +102,10 @@ float GetOnePixDiagWorldDistAtDepthOne()
 int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screenCoordinate);
 #endif
 
+#ifdef FINE_PRUNING_ENABLED
+void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths);
+#endif
+
 
 [numthreads(NR_THREADS, 1, 1)]
 void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
@@ -201,7 +205,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
-	int iNrCoarseLights = lightOffs<MAX_NR_COARSE_ENTRIES ? lightOffs : MAX_NR_COARSE_ENTRIES;
+	int iNrCoarseLights = min(lightOffs,MAX_NR_COARSE_ENTRIES);
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
@@ -209,126 +213,14 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 #ifndef FINE_PRUNING_ENABLED	
 	{
-		int iNrLightsOut = iNrCoarseLights<MAX_NR_PRUNED_ENTRIES ? iNrCoarseLights : MAX_NR_PRUNED_ENTRIES;
-		if((int)t<iNrLightsOut) prunedList[t] = coarseList[t];
-		if(t==0) ldsNrLightsFinal=iNrLightsOut;
+		if((int)t<iNrCoarseLights) prunedList[t] = coarseList[t];
+		if(t==0) ldsNrLightsFinal=iNrCoarseLights;
 	}
 #else
 	{
-		uint uLightsFlags[2] = {0,0};
-		int l=0;
-		// need this outer loop even on xb1 and ps4 since direct lights and
-		// reflection lights are kept in separate regions.
-		while(l<iNrCoarseLights)
-		{
-			// fetch light
-			int idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-			uint uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
-
-			// spot
-			while(l<iNrCoarseLights && uLgtType==SPOT_LIGHT)
-			{
-				SFiniteLightData lightData = g_vLightData[idxCoarse];
-				const bool bIsSpotDisc = (lightData.flags&IS_CIRCULAR_SPOT_SHAPE)!=0;
-				
-				// serially check 4 pixels
-				uint uVal = 0;
-				for(int i=0; i<4; i++)
-				{
-					int idx = t + i*NR_THREADS;
-	
-					uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
-					float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
-	
-					// check pixel
-					float3 fromLight = vVPos-lightData.lightPos.xyz;
-					float distSq = dot(fromLight,fromLight);
-					const float fSclProj = dot(fromLight, lightData.lightAxisZ.xyz);		// spotDir = lightData.lightAxisZ.xyz
-
-					float2 V = abs( float2( dot(fromLight, lightData.lightAxisX.xyz), dot(fromLight, lightData.lightAxisY.xyz) ) );
-
-					float fDist2D = bIsSpotDisc ? length(V) : max(V.x,V.y);
-					if( all( float2(lightData.radiusSq, fSclProj) > float2(distSq, fDist2D*lightData.cotan) ) ) uVal = 1;
-				}
-
-				uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
-				++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-				uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
-			}
-
-			// sphere
-			while(l<iNrCoarseLights && uLgtType==SPHERE_LIGHT)
-			{
-				SFiniteLightData lightData = g_vLightData[idxCoarse];
-
-				// serially check 4 pixels
-				uint uVal = 0;
-				for(int i=0; i<4; i++)
-				{
-					int idx = t + i*NR_THREADS;
-	
-					uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
-					float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
-	
-					// check pixel
-					float3 vLp = lightData.lightPos.xyz;
-					float3 toLight = vLp - vVPos; 
-					float distSq = dot(toLight,toLight);
-			
-					if(lightData.radiusSq>distSq) uVal = 1;
-				}
-
-				uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
-				++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-				uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
-			}
-
-			// Box
-			while(l<iNrCoarseLights && uLgtType==BOX_LIGHT)
-			{
-				SFiniteLightData lightData = g_vLightData[idxCoarse];
-
-				// serially check 4 pixels
-				uint uVal = 0;
-				for(int i=0; i<4; i++)
-				{
-					int idx = t + i*NR_THREADS;
-	
-					uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
-					float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
-
-					// check pixel
-					float3 toLight  = lightData.lightPos.xyz - vVPos;
-
-					float3 dist = float3( dot(toLight, lightData.lightAxisX), dot(toLight, lightData.lightAxisY), dot(toLight, lightData.lightAxisZ) );
-					dist = (abs(dist) - lightData.boxInnerDist) * lightData.boxInvRange;		// not as efficient as it could be
-					if( max(max(dist.x, dist.y), dist.z)<1 ) uVal = 1;						// but allows us to not write out OuterDists
-				}
-
-				uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
-				++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-				uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
-			}
-
-			// in case we have some corrupt data make sure we terminate
-			if(uLgtType>=MAX_TYPES) ++l;
-		}
-
-		InterlockedOr(ldsDoesLightIntersect[0], uLightsFlags[0]);
-		InterlockedOr(ldsDoesLightIntersect[1], uLightsFlags[1]);
-		if(t==0) ldsNrLightsFinal = 0;
-
-#if !defined(XBONE) && !defined(PLAYSTATION4)
-		GroupMemoryBarrierWithGroupSync();
-#endif
-
-		if(t<(uint) iNrCoarseLights && (ldsDoesLightIntersect[t<32 ? 0 : 1]&(1<<(t&31)))!=0 )
-		{
-			unsigned int uInc = 1;
-			unsigned int uIndex;
-			InterlockedAdd(ldsNrLightsFinal, uInc, uIndex);
-			if(uIndex<MAX_NR_COARSE_ENTRIES) prunedList[uIndex] = coarseList[t];		// we allow up to 64 pruned lights while stored in LDS.
-		}
+		// initializes ldsNrLightsFinal with the number of accepted lights.
+		// all accepted entries delivered in prunedList[].
+		FinePruneLights(t, iNrCoarseLights, viTilLL, vLinDepths);
 	}
 #endif
 
@@ -340,14 +232,14 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 	
-	int nrLightsCombinedList = ldsNrLightsFinal<MAX_NR_COARSE_ENTRIES ? ldsNrLightsFinal : MAX_NR_COARSE_ENTRIES;
+	int nrLightsCombinedList = min(ldsNrLightsFinal,MAX_NR_COARSE_ENTRIES);
 	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS) 
 	{
 		InterlockedAdd(ldsModelListCount[ g_vLightData[ prunedList[i] ].lightModel ], 1);
 	}
 
 
-	// sort lights
+	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
 #if !defined(XBONE) && !defined(PLAYSTATION4)
 	SORTLIST(prunedList, nrLightsCombinedList, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 	//MERGESORTLIST(prunedList, coarseList, nrLightsCombinedList, t, NR_THREADS);
@@ -418,5 +310,132 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #endif
 
 	return lightOffsSph;
+}
+#endif
+
+
+#ifdef FINE_PRUNING_ENABLED
+// initializes ldsNrLightsFinal with the number of accepted lights.
+// all accepted entries delivered in prunedList[].
+void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 vLinDepths)
+{
+	uint t = threadID;
+	uint iWidth = g_viDimensions.x;
+	uint iHeight = g_viDimensions.y;
+
+	uint uLightsFlags[2] = {0,0};
+	int l=0;
+	// need this outer loop even on xb1 and ps4 since direct lights and
+	// reflection lights are kept in separate regions.
+	while(l<iNrCoarseLights)
+	{
+		// fetch light
+		int idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
+		uint uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
+
+		// spot
+		while(l<iNrCoarseLights && uLgtType==SPOT_LIGHT)
+		{
+			SFiniteLightData lightData = g_vLightData[idxCoarse];
+			const bool bIsSpotDisc = (lightData.flags&IS_CIRCULAR_SPOT_SHAPE)!=0;
+				
+			// serially check 4 pixels
+			uint uVal = 0;
+			for(int i=0; i<4; i++)
+			{
+				int idx = t + i*NR_THREADS;
+	
+				uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
+				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
+	
+				// check pixel
+				float3 fromLight = vVPos-lightData.lightPos.xyz;
+				float distSq = dot(fromLight,fromLight);
+				const float fSclProj = dot(fromLight, lightData.lightAxisZ.xyz);		// spotDir = lightData.lightAxisZ.xyz
+
+				float2 V = abs( float2( dot(fromLight, lightData.lightAxisX.xyz), dot(fromLight, lightData.lightAxisY.xyz) ) );
+
+				float fDist2D = bIsSpotDisc ? length(V) : max(V.x,V.y);
+				if( all( float2(lightData.radiusSq, fSclProj) > float2(distSq, fDist2D*lightData.cotan) ) ) uVal = 1;
+			}
+
+			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
+			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
+			uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
+		}
+
+		// sphere
+		while(l<iNrCoarseLights && uLgtType==SPHERE_LIGHT)
+		{
+			SFiniteLightData lightData = g_vLightData[idxCoarse];
+
+			// serially check 4 pixels
+			uint uVal = 0;
+			for(int i=0; i<4; i++)
+			{
+				int idx = t + i*NR_THREADS;
+	
+				uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
+				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
+	
+				// check pixel
+				float3 vLp = lightData.lightPos.xyz;
+				float3 toLight = vLp - vVPos; 
+				float distSq = dot(toLight,toLight);
+			
+				if(lightData.radiusSq>distSq) uVal = 1;
+			}
+
+			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
+			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
+			uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
+		}
+
+		// Box
+		while(l<iNrCoarseLights && uLgtType==BOX_LIGHT)
+		{
+			SFiniteLightData lightData = g_vLightData[idxCoarse];
+
+			// serially check 4 pixels
+			uint uVal = 0;
+			for(int i=0; i<4; i++)
+			{
+				int idx = t + i*NR_THREADS;
+	
+				uint2 uPixLoc = min(uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1));
+				float3 vVPos = GetViewPosFromLinDepth(uPixLoc + float2(0.5,0.5), vLinDepths[i]);
+
+				// check pixel
+				float3 toLight  = lightData.lightPos.xyz - vVPos;
+
+				float3 dist = float3( dot(toLight, lightData.lightAxisX), dot(toLight, lightData.lightAxisY), dot(toLight, lightData.lightAxisZ) );
+				dist = (abs(dist) - lightData.boxInnerDist) * lightData.boxInvRange;		// not as efficient as it could be
+				if( max(max(dist.x, dist.y), dist.z)<1 ) uVal = 1;						// but allows us to not write out OuterDists
+			}
+
+			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
+			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
+			uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
+		}
+
+		// in case we have some corrupt data make sure we terminate
+		if(uLgtType>=MAX_TYPES) ++l;
+	}
+
+	InterlockedOr(ldsDoesLightIntersect[0], uLightsFlags[0]);
+	InterlockedOr(ldsDoesLightIntersect[1], uLightsFlags[1]);
+	if(t==0) ldsNrLightsFinal = 0;
+
+#if !defined(XBONE) && !defined(PLAYSTATION4)
+	GroupMemoryBarrierWithGroupSync();
+#endif
+
+	if(t<(uint) iNrCoarseLights && (ldsDoesLightIntersect[t<32 ? 0 : 1]&(1<<(t&31)))!=0 )
+	{
+		unsigned int uInc = 1;
+		unsigned int uIndex;
+		InterlockedAdd(ldsNrLightsFinal, uInc, uIndex);
+		if(uIndex<MAX_NR_COARSE_ENTRIES) prunedList[uIndex] = coarseList[t];		// we allow up to 64 pruned lights while stored in LDS.
+	}
 }
 #endif

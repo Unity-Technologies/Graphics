@@ -120,7 +120,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
-	int iNrCoarseLights = lightOffs<MAX_NR_BIGTILE_LIGHTS ? lightOffs : MAX_NR_BIGTILE_LIGHTS;
+	int iNrCoarseLights = min(lightOffs,MAX_NR_BIGTILE_LIGHTS);
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 	SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(64/2,64/2), uint2(iWidth-1, iHeight-1))) );

@@ -255,7 +255,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
-	int iNrCoarseLights = lightOffs<MAX_NR_COARSE_ENTRIES ? lightOffs : MAX_NR_COARSE_ENTRIES;
+	int iNrCoarseLights = min(lightOffs,MAX_NR_COARSE_ENTRIES);
 	
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 	iNrCoarseLights = SphericalIntersectionTests( t, iNrCoarseLights, float2(min(viTilLL.xy+uint2(16/2,16/2), uint2(iWidth-1, iHeight-1))) );
@@ -279,7 +279,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	iNrCoarseLights = CullByExactEdgeTests(t, iNrCoarseLights, viTilLL.xy, viTilUR.xy, fTileFarPlane);
 #endif
 
-// sort lights
+	// sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
 #if !defined(XBONE) && !defined(PLAYSTATION4)
 	SORTLIST(coarseList, iNrCoarseLights, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 #endif
@@ -320,7 +320,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		}
 
 		iSpaceAvail = min(iSum,MAX_NR_COARSE_ENTRIES);							// combined storage for both direct lights and reflection
-		InterlockedAdd(g_LayeredSingleIdxBuffer[0], iSpaceAvail, start);		// alloc list memory
+		InterlockedAdd(g_LayeredSingleIdxBuffer[0], (uint) iSpaceAvail, start);		// alloc list memory
 	}
 
 	int modelListCount[NR_LIGHT_MODELS]={0,0};		// direct light count and reflection lights
