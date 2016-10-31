@@ -36,13 +36,29 @@ namespace UnityEditor.Graphing.Drawing
 
         private void AddContainers()
         {
+            AddSlotsContainer();
+
+            m_currentAnchors = new List<NodeAnchorData>();
+
+            // Add controls container
+            m_ControlsContainer = new VisualContainer
+            {
+                name = "controls", // for USS&Flexbox
+                pickingMode = PickingMode.Ignore,
+            };
+            AddChild(m_ControlsContainer);
+
+            m_currentControlDrawData = new List<ControlDrawData>();
+        }
+
+        private void AddSlotsContainer()
+        {
             // Add slots (with input & output sub-containers) container
             m_SlotContainer = new VisualContainer
             {
                 name = "slots", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
-            AddChild(m_SlotContainer);
 
             var inputs = new VisualContainer
             {
@@ -58,17 +74,7 @@ namespace UnityEditor.Graphing.Drawing
             };
             m_SlotContainer.AddChild(outputs);
 
-            m_currentAnchors = new List<NodeAnchorData>();
-
-            // Add controls container
-            m_ControlsContainer = new VisualContainer
-            {
-                name = "controls", // for USS&Flexbox
-                pickingMode = PickingMode.Ignore,
-            };
-            AddChild(m_ControlsContainer);
-
-            m_currentControlDrawData = new List<ControlDrawData>();
+            AddChild(m_SlotContainer);
         }
 
         private void AddSlots(NodeDrawData nodeData)
