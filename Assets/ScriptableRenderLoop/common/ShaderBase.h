@@ -12,7 +12,7 @@
 #endif
 
 #ifndef firstbithigh
-	#define firstbithigh		FirstSetBit_Hi_MSB
+	#define firstbithigh		FirstSetBit_Hi
 #endif
 
 #endif
