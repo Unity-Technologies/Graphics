@@ -17,24 +17,23 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (tNode == null)
                 return;
 
-            tNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), tNode.exposedState);
             tNode.value = EditorGUILayout.FloatField("Value:", tNode.value);
         }
 
         public override float GetHeight()
         {
-            return 2 * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
+            return (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + EditorGUIUtility.standardVerticalSpacing;
         }
     }
 
     [Serializable]
-    public class Vector1NodeDrawData : MaterialNodeDrawData
+    public class Vector1NodeDrawData : PropertyNodeDrawData
     {
         protected override IEnumerable<GraphElementData> GetControlData()
         {
             var instance = CreateInstance<Vector1ControlDrawData>();
             instance.Initialize(node);
-            return new List<GraphElementData> { instance };
+            return new List<GraphElementData>(base.GetControlData()) { instance };
         }
     }
 }
