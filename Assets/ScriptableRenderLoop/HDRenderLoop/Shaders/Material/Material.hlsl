@@ -6,6 +6,7 @@
 #include "Debug.hlsl"
 #include "GeometricTools.hlsl"
 #include "CommonMaterial.hlsl"
+#include "EntityLighting.hlsl"
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions

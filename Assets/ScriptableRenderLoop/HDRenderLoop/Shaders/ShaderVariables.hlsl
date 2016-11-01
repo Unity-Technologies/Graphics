@@ -140,6 +140,18 @@ CBUFFER_START(UnityPerFrame)
 
 CBUFFER_END
 
+
+CBUFFER_START(UnityLighting)
+	// SH lighting environment
+	float4 unity_SHAr;
+	float4 unity_SHAg;
+	float4 unity_SHAb;
+	float4 unity_SHBr;
+	float4 unity_SHBg;
+	float4 unity_SHBb;
+	float4 unity_SHC;
+CBUFFER_END
+
 // Main lightmap
 UNITY_DECLARE_TEX2D_HALF(unity_Lightmap);
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
@@ -153,6 +165,21 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(unity_DynamicNormal);
 CBUFFER_START(UnityLightmaps)
 float4 unity_LightmapST;
 float4 unity_DynamicLightmapST;
+CBUFFER_END
+
+// TODO: Change code here so probe volume use only one transform instead of all this parameters!
+TEXTURE3D(unity_ProbeVolumeSH);
+SAMPLER3D(samplerunity_ProbeVolumeSH)
+
+CBUFFER_START(UnityProbeVolume)
+	// x = Disabled(0)/Enabled(1)
+	// y = Computation are done in global space(0) or local space(1)
+	// z = Texel size on U texture coordinate
+	float4 unity_ProbeVolumeParams;
+
+	float4x4 unity_ProbeVolumeWorldToObject;
+	float3 unity_ProbeVolumeSizeInv;
+	float3 unity_ProbeVolumeMin;		
 CBUFFER_END
 
 // ----------------------------------------------------------------------------
