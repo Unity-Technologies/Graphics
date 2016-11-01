@@ -29,6 +29,12 @@
 #define UNITY_SAMPLE_TEX2D_LOD(tex,coord,lod) tex.SampleLevel (sampler##tex,coord, lod)
 #define UNITY_SAMPLE_TEX2D_SAMPLER(tex,samplertex,coord) tex.Sample (sampler##samplertex,coord)
 
+#define UNITY_DECLARE_TEX2D_HALF(tex) Texture2D tex; SamplerState sampler##tex
+#define UNITY_DECLARE_TEX2D_FLOAT(tex) Texture2D tex; SamplerState sampler##tex
+#define UNITY_DECLARE_TEX2D_NOSAMPLER_HALF(tex) Texture2D tex
+#define UNITY_DECLARE_TEX2D_NOSAMPLER_FLOAT(tex) Texture2D tex
+
+
 // Cubemaps
 #define UNITY_DECLARE_TEXCUBE(tex) TextureCube tex; SamplerState sampler##tex
 #define UNITY_ARGS_TEXCUBE(tex) TextureCube tex, SamplerState sampler##tex
@@ -109,7 +115,12 @@
 #define SAMPLE_TEXTURECUBE_LOD(textureName, samplerName, coord3) textureName.SampleLevel(samplerName, coord3, lod)
 #define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3) textureName.Sample(samplerName, float4((coord3).xyz, index))
 #define SAMPLE_TEXTURECUBE_ARRAY_LOD(textureName, samplerName, coord3, lod) textureName.SampleLevel(samplerName, float4((coord3).xyz, index), lod)
+#define SAMPLE_TEXTURE3D(textureName, samplerName, coord3) textureName.Sample(samplerName, coord3)
 #define SAMPLE_TEXTURE2D_SHADOW(textureName, samplerName, coord3) textureName.SampleCmpLevelZero(samplerName, (coord3).xy, (coord3).z)
 #define SAMPLE_TEXTURE2D_ARRAY_SHADOW(textureName, samplerName, coord3, index) textureName.SampleCmpLevelZero(samplerName, float3((coord3).xy, index), (coord3).z)
 #define SAMPLE_TEXTURECUBE_SHADOW(textureName, samplerName, coord4) textureName.SampleCmpLevelZero(samplerName, (coord3).xyz, (coord3).w)
 
+#define TEXTURE2D_HALF TEXTURE2D
+#define TEXTURE2D_FLOAT TEXTURE2D
+#define SAMPLER2D_HALF SAMPLER2D
+#define SAMPLER2D_FLOAT SAMPLER2D
