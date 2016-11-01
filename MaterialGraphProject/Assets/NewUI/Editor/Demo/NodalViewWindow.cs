@@ -3,23 +3,22 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	public class SimpleGraphView : EditorWindow
+	class NodalViewWindow : EditorWindow
 	{
-		[MenuItem("Window/GraphView Demo/SimpleGraphView")]
+		[MenuItem("Window/GraphView Demo/Nodal UI")]
 		public static void ShowWindow()
 		{
-			GetWindow<SimpleGraphView>();
+			GetWindow<NodalViewWindow>();
 		}
 
 		void OnEnable()
 		{
-			var view = new SimpleContentView
+			var view = new NodesContentView
 			{
 				name = "theView",
-				dataSource = CreateInstance<SimpleGraphViewData>()
+				dataSource = CreateInstance<NodesContentViewData>()
 			};
 			view.StretchToParentSize();
-
 			windowRoot.AddChild(view);
 		}
 

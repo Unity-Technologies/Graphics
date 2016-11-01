@@ -1,6 +1,5 @@
 using System.Reflection;
 using UnityEditor;
-using System.Linq;
 
 namespace RMGUI.GraphView
 {
@@ -12,8 +11,7 @@ namespace RMGUI.GraphView
 		{
 			if (s_ApplyWireMaterialMi == null)
 			{
-				var methods = typeof(HandleUtility).GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-				s_ApplyWireMaterialMi = methods.First(o => o.Name == "ApplyWireMaterial" && o.GetGenericArguments().Count() == 0);
+				s_ApplyWireMaterialMi = typeof(HandleUtility).GetMethod("ApplyWireMaterial", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 			}
 
 			if (s_ApplyWireMaterialMi != null)

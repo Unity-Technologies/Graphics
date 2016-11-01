@@ -2,7 +2,8 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleEnums.Values;
+using UnityEngine.RMGUI.StyleSheets;
+using UnityEngine.RMGUI.StyleEnums;
 
 namespace RMGUI.GraphView.Demo
 {
@@ -15,10 +16,25 @@ namespace RMGUI.GraphView.Demo
 
 		private IManipulator m_CurrentConnector;
 
+		VisualElement m_ConnectorBox;
+		VisualElement m_ConnectorText;
+
 		public NodeAnchor(NodeAnchorData data)
 		{
+			// currently we don't want to be styled as .graphElement since we're contained in a Node
+			classList = ClassList.empty;
+
 			m_CurrentConnector = m_RegularConnector;
 			AddManipulator(m_CurrentConnector);
+
+			m_ConnectorBox = new VisualElement() { name = "connector", width = k_NodeSize, height = k_NodeSize };
+			m_ConnectorBox.pickingMode = PickingMode.Ignore;
+			AddChild(m_ConnectorBox);
+
+			m_ConnectorText = new VisualElement() { name = "type" };
+			m_ConnectorText.content = new GUIContent();
+			m_ConnectorText.pickingMode = PickingMode.Ignore;
+			AddChild(m_ConnectorText);
 
 			dataProvider = data;
 		}
@@ -44,70 +60,9 @@ namespace RMGUI.GraphView.Demo
 			}
 		}
 
-		private Rect GetAnchorRect(NodeAnchorData nodeAnchorData)
-		{
-			Rect rect = new Rect();
-
-			if (nodeAnchorData.orientation == Orientation.Horizontal)
-			{
-				// TODO: placement could be better handled using better CSS properties to place the node anchor itself.
-				if (nodeAnchorData.direction == Direction.Input)
-				{
-					rect = new Rect(position.x + 2, position.y + 2, k_NodeSize, k_NodeSize);
-				}
-				else if (nodeAnchorData.direction == Direction.Output)
-				{
-					rect = new Rect(position.x + position.width - (7 + k_NodeSize), position.y + 2, k_NodeSize, k_NodeSize);
-				}
-			}
-			else
-			{
-				if (nodeAnchorData.direction == Direction.Input)
-				{
-					rect = new Rect(position.x + (position.width - k_NodeSize)/2, position.y + 4, k_NodeSize, k_NodeSize);
-				}
-				else if (nodeAnchorData.direction == Direction.Output)
-				{
-					rect = new Rect(position.x + (position.width - k_NodeSize)/2, position.y + position.height - k_NodeSize - 8, k_NodeSize, k_NodeSize);
-				}
-			}
-			return rect;
-		}
-
-		protected virtual void DrawConnector()
-		{
-			var nodeAnchorData = GetData<NodeAnchorData>();
-			if (nodeAnchorData == null)
-				return;
-
-			var anchorColor = Color.yellow;
-
-			anchorColor.a = 0.7f;
-			Rect rect = GetAnchorRect(nodeAnchorData);
-			Handles.DrawSolidRectangleWithOutline(rect, anchorColor, anchorColor);
-
-			if (nodeAnchorData.highlight)
-			{
-				var highlightColor = Color.blue;
-				Rect highlighRect = rect;
-				highlighRect.x += 4;
-				highlighRect.y += 4;
-				highlighRect.width -= 8;
-				highlighRect.height -= 8;
-				Handles.DrawSolidRectangleWithOutline(highlighRect, highlightColor, highlightColor);
-			}
-		}
-
-		public override void DoRepaint(PaintContext args)
-		{
-			base.DoRepaint(args);
-			DrawConnector();
-		}
-
 		public override void OnDataChanged()
 		{
 			UpdateConnector();
-			ClearChildren();
 
 			var nodeAnchorData = GetData<NodeAnchorData>();
 			if (nodeAnchorData == null)
@@ -119,80 +74,32 @@ namespace RMGUI.GraphView.Demo
 			Type constructedClass = genericClass.MakeGenericType(type);
 			nodeAnchorData.source = Activator.CreateInstance(constructedClass);
 
-			Label label;
-			// TODO: I figure this placement could be more generic with a better use of CSS placement
-			if (nodeAnchorData.orientation == Orientation.Horizontal)
+			if (nodeAnchorData.highlight)
 			{
-				string anchorName = string.IsNullOrEmpty(nodeAnchorData.name) ? type.Name : nodeAnchorData.name;
-				label = new Label(new GUIContent(anchorName))
-				{
-					positionType = PositionType.Absolute,
-					positionTop = 0,
-					positionLeft = 20,
-					positionRight = 0,
-					positionBottom = 0
-				};
-
-				if (nodeAnchorData.direction == Direction.Output)
-				{
-					label.textAlignment = TextAnchor.UpperRight;
-					label.positionLeft = 0;
-					label.positionRight = 25;
-				}
+				m_ConnectorBox.AddToClassList("anchorHighlight");
 			}
 			else
 			{
-				label = new Label(new GUIContent(type.Name))
-				{
-					positionType = PositionType.Absolute,
-					positionTop = 20,
-					positionLeft = 0,
-					positionRight = 0,
-					positionBottom = 0
-				};
-
-				if (nodeAnchorData.direction == Direction.Output)
-				{
-					label.textAlignment = TextAnchor.LowerCenter;
-					label.positionTop = 0;
-					label.positionBottom = 25;
-				}
-				else
-				{
-					label.textAlignment = TextAnchor.UpperCenter;
-				}
+				m_ConnectorBox.RemoveFromClassList("anchorHighlight");
 			}
 
+			string anchorName = string.IsNullOrEmpty(nodeAnchorData.name) ? type.Name : nodeAnchorData.name;
+			m_ConnectorText.content.text = anchorName;
 			GetData<NodeAnchorData>().capabilities &= ~Capabilities.Selectable;
-
-			label.pickingMode = PickingMode.Ignore;
-			AddChild(label);
-		}
-
-		public Rect GetSelectionRect()
-		{
-			var nodeAnchorData = GetData<NodeAnchorData>();
-			if (nodeAnchorData == null)
-				return new Rect();
-
-			return GetAnchorRect(nodeAnchorData);
 		}
 
 		public override Vector3 GetGlobalCenter()
 		{
-			var center = GetSelectionRect().center;
-			var globalCenter = new Vector3(center.x + parent.position.x, center.y + parent.position.y);
-			return parent.globalTransform.MultiplyPoint3x4(globalCenter);
-		}
-
-		public override bool Overlaps(Rect rect)
-		{
-			return GetSelectionRect().Overlaps(rect);
+			var center = m_ConnectorBox.position.center;
+			center = m_ConnectorBox.transform.MultiplyPoint3x4(center);
+			return this.LocalToGlobal(center);
 		}
 
 		public override bool ContainsPoint(Vector2 localPoint)
 		{
-			return GetSelectionRect().Contains(localPoint);
+			// Here local point comes without position offset...
+			localPoint -= position.position;
+			return m_ConnectorBox.ContainsPoint(m_ConnectorBox.transform.MultiplyPoint3x4(localPoint));
 		}
 	}
 }

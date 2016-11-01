@@ -9,12 +9,17 @@ namespace RMGUI.GraphView.Demo
 		WWW m_Www;
 		bool m_IsScheduled;
 
+		VisualElement m_ImageHolder;
+
 		public WWWImage()
 		{
 			m_Www = new WWW("http://lorempixel.com/200/200");
 			onEnter += SchedulePolling;
 			onLeave += UnschedulePolling;
 			pickingMode = PickingMode.Position;
+			m_ImageHolder = new VisualElement();
+			m_ImageHolder.content = new GUIContent("Loading ...");
+			AddChild(m_ImageHolder);
 		}
 
 		private void SchedulePolling()
@@ -52,11 +57,10 @@ namespace RMGUI.GraphView.Demo
 			if (m_WwwTexture == null)
 			{
 				m_WwwTexture = new Texture2D(4, 4, TextureFormat.DXT1, false);
-				AddChild(new Image {image = m_WwwTexture});
+				m_ImageHolder.content.text = string.Empty;
+				m_ImageHolder.backgroundImage = m_WwwTexture;
 			}
-
 			m_Www.LoadImageIntoTexture(m_WwwTexture);
-
 			m_Www = new WWW("http://lorempixel.com/200/200");
 
 			this.Touch(ChangeType.Repaint);

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
-	class NodalViewData : GraphViewDataSource
+	class NodesContentViewData : GraphViewDataSource
 	{
 		protected new void OnEnable()
 		{
@@ -71,7 +71,7 @@ namespace RMGUI.GraphView.Demo
 			AddElement(nodeData);
 		}
 
-		protected NodalViewData() {}
+		protected NodesContentViewData() {}
 	}
 
 	internal static class MyNodeAdapters
@@ -97,12 +97,6 @@ namespace RMGUI.GraphView.Demo
 		internal static bool Adapt(this NodeAdapter value, PortSource<Vector3> a, PortSource<Vector3> b)
 		{
 			// run adapt code for vec3 to vec3 connections
-			return true;
-		}
-
-		internal static bool Adapt(this NodeAdapter value, PortSource<Vector4> a, PortSource<Vector4> b)
-		{
-			// run adapt code for vec4 to vec4 connections
 			return true;
 		}
 

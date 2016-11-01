@@ -5,15 +5,13 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	internal class EdgeConnector<TEdgeData> : Manipulator where TEdgeData : EdgeData
+	internal class EdgeConnector<TEdgeData> : MouseManipulator where TEdgeData : EdgeData
 	{
-		private readonly List<IConnectable> m_CompatibleAnchors = new List<IConnectable>();
+		private readonly List<IConnector> m_CompatibleAnchors = new List<IConnector>();
 		private TEdgeData m_EdgeDataCandidate;
 
 		private IGraphElementDataSource m_DataSource;
 		private GraphView m_GraphView;
-
-		public MouseButton activateButton { get; set; }
 
 		public EdgeConnector()
 		{
@@ -25,17 +23,17 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button != (int)activateButton)
+					if (!CanStartManipulation(evt))
 					{
 						break;
 					}
 
-					IConnectable cnx = null;
+					IConnector cnx = null;
 					var graphElement = finalTarget as GraphElement;
 					if (graphElement != null && graphElement.dataProvider != null)
 					{
 						GraphElementData data = graphElement.dataProvider;
-						cnx = (IConnectable)data;
+						cnx = (IConnector)data;
 						m_GraphView = graphElement.GetFirstAncestorOfType<GraphView>();
 					}
 
@@ -57,34 +55,33 @@ namespace RMGUI.GraphView
 					var nodeAdapter = new NodeAdapter();
 
 					// get all available connectors
-					IEnumerable<IConnectable> visibleAnchors = m_GraphView.allChildren.OfType<GraphElement>()
-																					  .Select(e => e.dataProvider)
-																					  .OfType<IConnectable>()
-																					  .Where(a => a.IsConnectable());
-
-					foreach (var toCnx in visibleAnchors)
+					foreach (var toCnx in m_GraphView.allChildren.OfType<GraphElement>()
+																 .Select(e => e.dataProvider)
+																 .OfType<IConnector>()
+																 .Where(c => c.IsConnectable() &&
+																			 c.orientation == cnx.orientation &&
+																			 c.direction != cnx.direction &&
+																			 nodeAdapter.GetAdapter(c.source, cnx.source) != null))
 					{
-						if (cnx.orientation != toCnx.orientation)
-							continue;
-
-						bool isBidirectional = ((cnx.direction == Direction.Bidirectional) ||
-												(toCnx.direction == Direction.Bidirectional));
-
-						if (cnx.direction != toCnx.direction || isBidirectional)
-						{
-							if (nodeAdapter.GetAdapter(cnx.source, toCnx.source) != null)
-							{
-								toCnx.highlight = true;
-								m_CompatibleAnchors.Add(toCnx);
-							}
-						}
+						toCnx.highlight = true;
+						m_CompatibleAnchors.Add(toCnx);
 					}
 
 					m_EdgeDataCandidate = ScriptableObject.CreateInstance<TEdgeData>();
 
 					m_EdgeDataCandidate.position = new Rect(0, 0, 1, 1);
-					m_EdgeDataCandidate.left = graphElement.dataProvider as IConnectable;
-					m_EdgeDataCandidate.right = null;
+
+					bool startFromOutput = (cnx.direction == Direction.Output);
+					if (startFromOutput)
+					{
+						m_EdgeDataCandidate.output = graphElement.dataProvider as IConnector;
+						m_EdgeDataCandidate.input = null;
+					}
+					else
+					{
+						m_EdgeDataCandidate.output = null;
+						m_EdgeDataCandidate.input = graphElement.dataProvider as IConnector;
+					}
 					m_EdgeDataCandidate.candidate = true;
 					m_EdgeDataCandidate.candidatePosition = target.LocalToGlobal(evt.mousePosition);
 
@@ -101,9 +98,10 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseUp:
-					if (this.HasCapture() && evt.button == (int)activateButton)
+					if (CanStopManipulation(evt))
 					{
 						this.ReleaseCapture();
+						IConnector endConnector = null;
 
 						foreach (var compatibleAnchor in m_CompatibleAnchors)
 						{
@@ -116,7 +114,7 @@ namespace RMGUI.GraphView
 								{
 									if (anchorElement.globalBound.Contains(target.LocalToGlobal(evt.mousePosition)))
 									{
-										m_EdgeDataCandidate.right = compatibleAnchor;
+										endConnector = compatibleAnchor;
 									}
 								}
 							}
@@ -125,17 +123,25 @@ namespace RMGUI.GraphView
 
 						if (m_EdgeDataCandidate != null && m_DataSource != null)
 						{
-							// Not a candidate anymore, let's see if we're actually going to add it to parent
-							m_EdgeDataCandidate.candidate = false;
-
-							m_DataSource.RemoveElement(m_EdgeDataCandidate);
-							
-							if (m_EdgeDataCandidate.right != null)
+							if (endConnector == null)
 							{
-								m_DataSource.AddElement(m_EdgeDataCandidate);
-								m_EdgeDataCandidate.left.connected = true;
-								m_EdgeDataCandidate.right.connected = true;
+								m_DataSource.RemoveElement(m_EdgeDataCandidate);
 							}
+							else
+							{
+								if (m_EdgeDataCandidate.output == null)
+								{
+									m_EdgeDataCandidate.output = endConnector;
+								}
+								else
+								{
+									m_EdgeDataCandidate.input = endConnector;
+								}
+								m_EdgeDataCandidate.output.Connect(m_EdgeDataCandidate);
+								m_EdgeDataCandidate.input.Connect(m_EdgeDataCandidate);
+							}
+
+							m_EdgeDataCandidate.candidate = false;
 						}
 
 						m_EdgeDataCandidate = null;

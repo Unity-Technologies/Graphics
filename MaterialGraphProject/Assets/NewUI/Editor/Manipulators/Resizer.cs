@@ -1,14 +1,12 @@
 using System;
 using UnityEngine;
 using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleEnums.Values;
+using UnityEngine.RMGUI.StyleEnums;
 
 namespace RMGUI.GraphView
 {
-	public class Resizer : Manipulator, IDecorator
+	public class Resizer : MouseManipulator, IDecorator
 	{
-		public MouseButton activateButton { get; set; }
-
 		// When applyInvTransform is true, Resizer will apply target's inverse transform before drawing/picking
 		// (has the effect of being zoom factor independent)
 		public bool applyInvTransform { get; set; }
@@ -43,25 +41,25 @@ namespace RMGUI.GraphView
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
 		{
 			var ce = target as GraphElement;
-			if (ce==null)
+			if (ce == null)
 				return EventPropagation.Continue;
 
-			var data = ce.dataProvider;
-			if (data==null)
+			GraphElementData data = ce.dataProvider;
+			if (data ==  null)
 				return EventPropagation.Continue;
 
-			if ( (data.capabilities & Capabilities.Resizable) != Capabilities.Resizable)
+			if ((data.capabilities & Capabilities.Resizable) != Capabilities.Resizable)
 				return EventPropagation.Continue;
 
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button == (int) activateButton)
+					if (CanStartManipulation(evt))
 					{
 						m_Start = evt.mousePosition;
 						m_StartPos = target.position;
 
-						var adjustedWidget = k_WidgetPickRect;
+						Rect adjustedWidget = k_WidgetPickRect;
 						if (applyInvTransform)
 						{
 							var inv = target.globalTransform.inverse;
@@ -69,7 +67,7 @@ namespace RMGUI.GraphView
 							adjustedWidget.height *= inv.m11;
 						}
 
-						var widget = m_StartPos;
+						Rect widget = m_StartPos;
 
 						widget.x = widget.width - adjustedWidget.width;
 						widget.y = widget.height - adjustedWidget.height;
@@ -92,7 +90,7 @@ namespace RMGUI.GraphView
 				case EventType.MouseDrag:
 					if (this.HasCapture() && target.positionType == PositionType.Absolute)
 					{
-						var diff = evt.mousePosition - m_Start;
+						Vector2 diff = evt.mousePosition - m_Start;
 						var newSize = new Vector2(m_StartPos.width + diff.x, m_StartPos.height + diff.y);
 
 						if (newSize.x < m_MinimumSize.x)
@@ -109,7 +107,7 @@ namespace RMGUI.GraphView
 					return EventPropagation.Continue;
 
 				case EventType.MouseUp:
-					if (this.HasCapture() && evt.button == (int)activateButton)
+					if (CanStopManipulation(evt))
 					{
 						this.ReleaseCapture();
 						return EventPropagation.Stop;
@@ -119,11 +117,11 @@ namespace RMGUI.GraphView
 			return EventPropagation.Continue;
 		}
 
-		public void PrePaint(VisualElement t, PaintContext pc)
+		public void PrePaint(VisualElement t, IStylePainter painter)
 		{
 		}
 
-		public void PostPaint(VisualElement t, PaintContext pc)
+		public void PostPaint(VisualElement t, IStylePainter painter)
 		{
 			// TODO: I would like to listen for skin change and create GUIStyle then and only then
 			if (m_StyleWidget == null)
@@ -137,10 +135,10 @@ namespace RMGUI.GraphView
 			}
 
 			// Draw resize widget
-			var widget = k_WidgetRect;
+			Rect widget = k_WidgetRect;
 			if (applyInvTransform)
 			{
-				var inv = pc.worldXForm.inverse;
+				Matrix4x4 inv = painter.worldXForm.inverse;
 				widget.width *= inv.m00;
 				widget.height *= inv.m11;
 			}
@@ -153,10 +151,10 @@ namespace RMGUI.GraphView
 			if (this.HasCapture())
 			{
 				// Get adjusted text offset
-				var adjustedWidget = k_WidgetTextOffset;
+				Rect adjustedWidget = k_WidgetTextOffset;
 				if (applyInvTransform)
 				{
-					var inv = pc.worldXForm.inverse;
+					Matrix4x4 inv = painter.worldXForm.inverse;
 					adjustedWidget.width *= inv.m00; // Apply scale
 					adjustedWidget.height *= inv.m11;
 				}

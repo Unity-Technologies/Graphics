@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleEnums.Values;
+using UnityEngine.RMGUI.StyleEnums;
 
 namespace RMGUI.GraphView
 {
-	public class Dragger : Manipulator
+	public class Dragger : MouseManipulator
 	{
 		private Vector2 m_Start;
 
@@ -13,13 +13,11 @@ namespace RMGUI.GraphView
  		// hold the data... maybe.
  		public GraphElementData m_data { get; set; }
 
-		public MouseButton activateButton { get; set; }
-
 		public bool clampToParentEdges { get; set; }
 
 		public Dragger()
 		{
-			activateButton = MouseButton.MiddleMouse;
+			activateButton = MouseButton.LeftMouse;
 			panSpeed = new Vector2(1, 1);
 			clampToParentEdges = false;
 		}
@@ -53,7 +51,7 @@ namespace RMGUI.GraphView
 			GraphElement ce = finalTarget as GraphElement;
 			if (ce != null)
 			{
-				var data = ce.dataProvider;
+				GraphElementData data = ce.dataProvider;
 				if (data != null && ((data.capabilities & Capabilities.Movable) != Capabilities.Movable))
 				{
 					return EventPropagation.Continue;
@@ -63,7 +61,7 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button == (int)activateButton)
+					if (CanStartManipulation(evt))
 					{
 						this.TakeCapture();
 
@@ -82,7 +80,7 @@ namespace RMGUI.GraphView
 				case EventType.MouseDrag:
 					if (this.HasCapture() && target.positionType == PositionType.Absolute)
 					{
-						var diff = evt.mousePosition - m_Start;
+						Vector2 diff = evt.mousePosition - m_Start;
 
 						if (m_data != null)
 						{
@@ -102,7 +100,7 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseUp:
-					if (this.HasCapture() && evt.button == (int)activateButton)
+					if (CanStopManipulation(evt))
 					{
 						m_data = null;
 						this.ReleaseCapture();

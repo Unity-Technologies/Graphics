@@ -4,10 +4,8 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	public class ClickSelector : Manipulator
+	public class ClickSelector : MouseManipulator
 	{
-		public MouseButton activateButton { get; set; }
-
 		public ClickSelector()
 		{
 			// snoop events before children
@@ -18,7 +16,7 @@ namespace RMGUI.GraphView
 		public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
 		{
 			var selectable = finalTarget.GetFirstOfType<ISelectable>();
-			if ( selectable==null || !selectable.IsSelectable())
+			if (selectable == null || !selectable.IsSelectable())
 			{
 				return EventPropagation.Continue;
 			}
@@ -32,7 +30,7 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button == (int)activateButton)
+					if (CanStartManipulation(evt))
 					{
 						if (graphView.selection.Contains(selectable))
 						{

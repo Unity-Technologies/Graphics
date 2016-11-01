@@ -25,12 +25,12 @@ namespace UnityEditor.Graphing.Drawing
             AddToClassList("NodeDrawer");
         }
 
-        public override void DoRepaint(PaintContext painter)
+        public override void DoRepaint(IStylePainter painter)
         {
             base.DoRepaint(painter);
             if (GetData<GraphElementData>() != null && GetData<GraphElementData>().selected)
             {
-                painter.DrawRectangleOutline(transform, position, Color.yellow);
+                painter.DrawRect(position, backgroundColor, 0.0f, borderRadius);
             }
         }
 

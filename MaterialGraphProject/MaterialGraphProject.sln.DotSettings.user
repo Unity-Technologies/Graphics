@@ -10,6 +10,6 @@
 	
 	<s:String x:Key="/Default/Environment/ContinuousTesting/PersistentDataLocation/@EntryValue">C:\Users\Tim\AppData\Local\Temp\JetBrains\ContinuousTesting\7e95cb10-f230-442a-ba1f-a26bdb4193cb</s:String>
 	<s:String x:Key="/Default/Environment/ContinuousTesting/ScopeCriterion/@EntryValue">9b0nIQIAAACJbLoh9b0nIQIAAADP4jFoJAAAADwATQBhAHQAZQByAGkAYQBsAEcAcgBhAHAAaABQAHIAbwBqAGUAYwB0AC4AQwBTAGgAYQByAHAALgBFAGQAaQB0AG8AcgA+AC0AAABDADoAXABjAG8AZABlAFwATQBhAHQAZQByAGkAYQBsAEcAcgBhAHAAaABHAGkAdABcAE0AYQB0AGUAcgBpAGEAbABHAHIAYQBwAGgAUAByAG8AagBlAGMAdAA4rDtD+4tkDSUAAABVAG4AaQB0AHkARQBkAGkAdABvAHIALgBHAHIAYQBwAGgAaQBuAGcALgBJAG4AdABlAGcAcgBhAHQAaQBvAG4AVABlAHMAdABzAA==</s:String>
-	<s:String x:Key="/Default/Environment/ContinuousTesting/SnapshotLocation/@EntryValue">C:\Users\Tim\AppData\Local\Temp\ssm.Gazizer.tmp</s:String>
+	<s:String x:Key="/Default/Environment/ContinuousTesting/SnapshotLocation/@EntryValue">C:\Users\Tim\AppData\Local\Temp\ssm.Cuvulyq.tmp</s:String>
 	<s:String x:Key="/Default/Environment/ContinuousTesting/Strategy/@EntryValue">RunTests</s:String>
 	<s:String x:Key="/Default/Environment/ContinuousTesting/TriggerMode/@EntryValue">OnBuild</s:String></wpf:ResourceDictionary>

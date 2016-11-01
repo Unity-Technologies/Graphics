@@ -1,13 +1,14 @@
 using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleEnums.Values;
+using UnityEngine.RMGUI.StyleEnums;
 
 namespace RMGUI.GraphView.Demo
 {
 	public class IMGUIElement : SimpleElement
 	{
+		private IMGUIContainer m_Container;
 		public IMGUIElement()
 		{
-			var imgui = new IMGUIContainer()
+			m_Container = new IMGUIContainer()
 			{
 				positionType = PositionType.Absolute,
 				positionLeft = 0,
@@ -16,7 +17,7 @@ namespace RMGUI.GraphView.Demo
 				positionBottom = 0,
 				OnGUIHandler = OnGUIHandler
 			};
-			AddChild(imgui);
+			AddChild(m_Container);
 		}
 
 		public virtual void OnGUIHandler()
@@ -26,6 +27,12 @@ namespace RMGUI.GraphView.Demo
 			{
 				imguiData.OnGUIHandler();
 			}
+		}
+
+		public override void OnDataChanged()
+		{
+			base.OnDataChanged();
+			m_Container.executionContext = dataProvider.GetInstanceID();
 		}
 	}
 }

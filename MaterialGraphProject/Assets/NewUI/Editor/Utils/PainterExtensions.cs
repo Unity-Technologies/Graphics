@@ -6,7 +6,7 @@ namespace RMGUI.GraphView
 	static class PainterExtensions
 	{
 		// todo arguably the transform should be on context already
-		public static void DrawRectangleOutline(this PaintContext pc, Matrix4x4 transform, Rect rectangle, Color outlineColor)
+		public static void DrawRectangleOutline(this IStylePainter painter, Matrix4x4 transform, Rect rectangle, Color outlineColor)
 		{
 			Vector3[] verts =
 				{

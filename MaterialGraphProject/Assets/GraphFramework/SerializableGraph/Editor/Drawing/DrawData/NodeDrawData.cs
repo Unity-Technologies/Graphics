@@ -14,7 +14,7 @@ namespace UnityEditor.Graphing.Drawing
 
         protected List<GraphElementData> m_Children = new List<GraphElementData>();
 
-        public override IEnumerable<GraphElementData> elements
+        public IEnumerable<GraphElementData> elements
         {
             get { return m_Children; }
         }
@@ -22,9 +22,8 @@ namespace UnityEditor.Graphing.Drawing
         public virtual void OnModified(ModificationScope scope)
         {}
 
-        public override void CommitChanges()
+        public void CommitChanges()
         {
-            base.CommitChanges();
             var drawData = node.drawState;
             drawData.position = position;
             node.drawState = drawData;
@@ -48,7 +47,7 @@ namespace UnityEditor.Graphing.Drawing
             foreach (var input in node.GetSlots<ISlot>())
             {
                 var data = CreateInstance<AnchorDrawData>();
-                data.Initialize(input);
+                data.Initialize(input); 
                 m_Children.Add(data);
             }
 

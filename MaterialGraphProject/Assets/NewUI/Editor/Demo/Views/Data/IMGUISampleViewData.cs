@@ -53,16 +53,46 @@ namespace RMGUI.GraphView.Demo
 		protected IMGUISampleElementData() {}
 	}
 
+	public class EditorGUISampleElementData : IMGUIData
+	{
+		private Color cc;
+		private Color cc2;
+
+		public override void OnGUIHandler()
+		{
+			cc =  EditorGUILayout.ColorField("Color", cc);
+			cc2 =  EditorGUILayout.ColorField("Color2", cc2);
+		}
+	}
+
 	public class IMGUISampleViewData : GraphViewDataSource
 	{
 		protected new void OnEnable()
 		{
 			base.OnEnable();
 			var imguiSample = CreateInstance<IMGUISampleElementData>();
-			imguiSample.position = new Rect(100, 200, 230, 300);
+			imguiSample.position = new Rect(100, 225, 230, 300);
 			imguiSample.title = "IMGUIControls: modal";
 			imguiSample.capabilities |= Capabilities.Resizable;
 			AddElement(imguiSample);
+
+			var imguiSample2 = CreateInstance<IMGUISampleElementData>();
+			imguiSample2.position = new Rect(400, 225, 230, 300);
+			imguiSample2.title = "IMGUIControls: modal";
+			imguiSample2.capabilities |= Capabilities.Resizable;
+			AddElement(imguiSample2);
+
+			var imguiEd = CreateInstance<EditorGUISampleElementData>();
+			imguiEd.position = new Rect(100, 25, 230, 75);
+			imguiEd.title = "IMGUIControls: editor stuff";
+			imguiEd.capabilities |= Capabilities.Resizable;
+			AddElement(imguiEd);
+
+			var imguiEd2 = CreateInstance<EditorGUISampleElementData>();
+			imguiEd2.position = new Rect(100, 125, 230, 75);
+			imguiEd2.title = "IMGUIControls: editor stuff 2";
+			imguiEd2.capabilities |= Capabilities.Resizable;
+			AddElement(imguiEd2);
 		}
 
 		protected IMGUISampleViewData() {}

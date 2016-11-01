@@ -30,11 +30,11 @@ namespace RMGUI.GraphView
 			{
 				case EventType.ScrollWheel:
 				{
-					var transform = graphView.contentViewContainer.transform;
+					Matrix4x4 transform = graphView.contentViewContainer.transform;
 
 					// TODO: augment the data to have the position as well, so we don't have to read in data from the target.
 					// 0-1 ranged center relative to size
-					var zoomCenter = target.ChangeCoordinatesTo(graphView.contentViewContainer, evt.mousePosition);
+					Vector2 zoomCenter = target.ChangeCoordinatesTo(graphView.contentViewContainer, evt.mousePosition);
 					float x = zoomCenter.x + graphView.contentViewContainer.position.x;
 					float y = zoomCenter.y + graphView.contentViewContainer.position.y;
 
