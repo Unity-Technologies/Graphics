@@ -82,7 +82,7 @@ void GetPlane(out float3 p0, out float3 vN, const float3 boxX, const float3 boxY
 	p0 = center + (vA + vB - vC);		// center + vA is center of face when scaleXY is 1.0
 	float3 vNout = cross( vB2, 0.5*(vA-vA2) - vC );
 
-#ifdef LEFT_HAND_COORDINATES
+#if USE_LEFTHAND_CAMERASPACE
 	vNout = -vNout;
 #endif
 
@@ -111,7 +111,7 @@ bool DoesSphereOverlapTile(float3 dir, float halfTileSizeAtZDistOne, float3 sphC
 #endif
 
 	// enlarge sphere so it overlaps the center of the tile assuming it overlaps the tile to begin with.
-#ifdef LEFT_HAND_COORDINATES
+#if USE_LEFTHAND_CAMERASPACE
 	float sphRadius = sphRadiusIn + (sphCen.z+offs)*halfTileSizeAtZDistOne;
 #else
 	float sphRadius = sphRadiusIn - (sphCen.z-offs)*halfTileSizeAtZDistOne;
