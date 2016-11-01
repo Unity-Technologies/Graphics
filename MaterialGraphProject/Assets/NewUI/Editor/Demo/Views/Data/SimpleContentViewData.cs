@@ -31,7 +31,7 @@ namespace RMGUI.GraphView.Demo
 		protected TestIMGUIElementData() {}
 	}
 
-	public class SimpleGraphViewData : GraphViewDataSource
+	public class SimpleContentViewData : GraphViewDataSource
 	{
 		protected new void OnEnable()
 		{
@@ -71,7 +71,7 @@ namespace RMGUI.GraphView.Demo
 
 			var wwwImageData = CreateInstance<WWWImageData>();
 			wwwImageData.title = "WWW Image";
-			wwwImageData.position = new Rect(300, 300, 200, 200);
+			wwwImageData.position = new Rect(300, 300, 204, 219);
 			AddElement(wwwImageData);
 
 			var invisibleBorderContainerData = CreateInstance<InvisibleBorderContainerData>();
@@ -79,6 +79,6 @@ namespace RMGUI.GraphView.Demo
 			AddElement(invisibleBorderContainerData);
 		}
 
-		protected SimpleGraphViewData() {}
+		protected SimpleContentViewData() {}
 	}
 }

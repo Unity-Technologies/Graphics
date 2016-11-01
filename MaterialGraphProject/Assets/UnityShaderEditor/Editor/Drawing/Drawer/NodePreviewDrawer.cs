@@ -9,7 +9,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
         public NodePreviewDrawer() {}
 
-        public override void DoRepaint(PaintContext args)
+        public override void DoRepaint(IStylePainter args)
         {
             image = data.Render(new Vector2(200, 200));
             base.DoRepaint(args);

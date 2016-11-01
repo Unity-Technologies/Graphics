@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace RMGUI.GraphView.Demo
 {
 	[Serializable]
-	class NodeData : SimpleElementData
+	class NodeData : SimpleElementData, IConnectorCollection
 	{
 		[SerializeField]
 		protected List<NodeAnchorData> m_Anchors;
@@ -16,6 +17,22 @@ namespace RMGUI.GraphView.Demo
 
 		// NOTE: This is a demo node. We could have any number of output anchors if we wanted.
 		public NodeAnchorData outputAnchor;
+
+		public IEnumerable<IConnector> inputConnectors
+		{
+			get { return m_Anchors.Cast<IConnector>(); }
+		}
+
+		public IEnumerable<IConnector> outputConnectors
+		{
+			get
+			{
+				if (outputAnchor != null)
+				{
+					yield return outputAnchor;
+				}
+			}
+		}
 
 		// TODO make a simple creation function
 		protected new void OnEnable()
@@ -53,6 +70,12 @@ namespace RMGUI.GraphView.Demo
 			outputAnchor = CreateInstance<NodeAnchorData>();
 			outputAnchor.type = typeof(int);
 			outputAnchor.direction = Direction.Output; // get rid of direction use styles
+
+			capabilities |= Capabilities.Deletable;
+		}
+
+		public override void OnRemoveFromGraph()
+		{
 		}
 
 		protected NodeData() {}

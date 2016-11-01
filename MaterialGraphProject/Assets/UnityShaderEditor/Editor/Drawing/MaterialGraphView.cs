@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Graphing;
 using UnityEngine.MaterialGraph;
 using UnityEngine.RMGUI;
+using Edge = RMGUI.GraphView.Edge;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.MaterialGraph.Drawing
@@ -23,7 +24,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             dataMapper[typeof(MaterialNodeDrawData)] = typeof(MaterialNodeDrawer);
             dataMapper[typeof(NodeAnchorData)] = typeof(NodeAnchor);
-            dataMapper[typeof(EdgeData)] = typeof(RMGUI.GraphView.Edge);
+            dataMapper[typeof(EdgeData)] = typeof(Edge);
 
             var dictionary = new Dictionary<Event, ShortcutDelegate>();
             dictionary[Event.KeyboardEvent("^F1")] = Export;

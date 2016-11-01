@@ -6,52 +6,56 @@ using UnityEngine.RMGUI.StyleSheets;
 
 namespace RMGUI.GraphView.Demo
 {
-	public class GridBackground : IDecorator
+	public class GridBackground : IDecorator, IStyleTarget
 	{
 		const string SpacingProperty = "spacing";
 		const string ThickLinesProperty = "thick-lines";
 		const string LineColorProperty = "line-color";
 		const string ThickLineColorProperty = "thick-line-color";
-		// Most likely will be a built-in style property soon
-		const string BackgroundColorProperty = "background-color";
+		const string GridBackgroundColorProperty = "grid-background-color";
 
+		StyleProperty<float> m_Spacing;
 		float spacing
 		{
 			get
 			{
-				return m_Container.GetStyleFloat(SpacingProperty, 50.0f);
+				return m_Spacing.GetOrDefault(50.0f);
 			}
 		}
 
+		StyleProperty<int> m_ThickLines;
 		int thickLines
 		{
 			get
 			{
-				return m_Container.GetStyleInt(ThickLinesProperty, 10);
+				return m_ThickLines.GetOrDefault(10);
 			}
 		}
 
+		StyleProperty<Color> m_LineColor;
 		Color lineColor
 		{
 			get
 			{
-				return m_Container.GetStyleColor(LineColorProperty, new Color(0f, 0f, 0f, 0.18f));
+				return m_LineColor.GetOrDefault(new Color(0f, 0f, 0f, 0.18f));
 			}
 		}
 
+		StyleProperty<Color> m_ThickLineColor;
 		Color thickLineColor
 		{
 			get
 			{
-				return m_Container.GetStyleColor(ThickLineColorProperty, new Color(0f, 0f, 0f, 0.38f));
+				return m_ThickLineColor.GetOrDefault(new Color(0f, 0f, 0f, 0.38f));
 			}
 		}
 
+		StyleProperty<Color> m_BackgroundColor;
 		Color backgroundColor
 		{
 			get
 			{
-				return m_Container.GetStyleColor(BackgroundColorProperty, new Color(0.17f, 0.17f, 0.17f, 1.0f));
+				return m_BackgroundColor.GetOrDefault(new Color(0.17f, 0.17f, 0.17f, 1.0f));
 			}
 		}
 
@@ -72,7 +76,18 @@ namespace RMGUI.GraphView.Demo
 			return _in;
 		}
 
-		public void PrePaint(VisualElement target, PaintContext pc)
+		// Notes: styles are read from this manipulator's target,
+		// note its m_Container member
+		public void OnStylesResolved(VisualElementStyles styles)
+		{
+			styles.ApplyCustomProperty(SpacingProperty, ref m_Spacing);
+			styles.ApplyCustomProperty(ThickLinesProperty, ref m_ThickLines);
+			styles.ApplyCustomProperty(ThickLineColorProperty, ref m_ThickLineColor);
+			styles.ApplyCustomProperty(LineColorProperty, ref m_LineColor);
+			styles.ApplyCustomProperty(GridBackgroundColorProperty, ref m_BackgroundColor);
+		}
+
+		public void PrePaint(VisualElement target, IStylePainter pc)
 		{
 			var graphView = target as GraphView;
 			if (graphView == null)
@@ -83,8 +98,8 @@ namespace RMGUI.GraphView.Demo
 			Rect clientRect = graphView.position;
 
 			var containerScale = new Vector3(m_Container.transform.GetColumn(0).magnitude,
-			                                 m_Container.transform.GetColumn(1).magnitude,
-			                                 m_Container.transform.GetColumn(2).magnitude);
+				m_Container.transform.GetColumn(1).magnitude,
+				m_Container.transform.GetColumn(2).magnitude);
 			var containerTranslation = m_Container.transform.GetColumn(3);
 			var containerPosition = m_Container.position;
 
@@ -92,11 +107,11 @@ namespace RMGUI.GraphView.Demo
 			UIHelpers.ApplyWireMaterial();
 
 			GL.Begin(GL.QUADS);
-				GL.Color(backgroundColor);
-				GL.Vertex(new Vector3(clientRect.x, clientRect.y));
-				GL.Vertex(new Vector3(clientRect.xMax, clientRect.y));
-				GL.Vertex(new Vector3(clientRect.xMax, clientRect.yMax));
-				GL.Vertex(new Vector3(clientRect.x, clientRect.yMax));
+			GL.Color(backgroundColor);
+			GL.Vertex(new Vector3(clientRect.x, clientRect.y));
+			GL.Vertex(new Vector3(clientRect.xMax, clientRect.y));
+			GL.Vertex(new Vector3(clientRect.xMax, clientRect.yMax));
+			GL.Vertex(new Vector3(clientRect.x, clientRect.yMax));
 			GL.End();
 
 			// vertical lines
@@ -131,9 +146,9 @@ namespace RMGUI.GraphView.Demo
 				to.x += spacing * containerScale.x;
 
 				GL.Begin(GL.LINES);
-					GL.Color(lineColor);
-					GL.Vertex(Clip(clientRect, from));
-					GL.Vertex(Clip(clientRect, to));
+				GL.Color(lineColor);
+				GL.Vertex(Clip(clientRect, from));
+				GL.Vertex(Clip(clientRect, to));
 				GL.End();
 			}
 
@@ -143,9 +158,9 @@ namespace RMGUI.GraphView.Demo
 			while (from.x < clientRect.width + thickLineSpacing)
 			{
 				GL.Begin(GL.LINES);
-					GL.Color(thickLineColor);
-					GL.Vertex(Clip(clientRect, from));
-					GL.Vertex(Clip(clientRect, to));
+				GL.Color(thickLineColor);
+				GL.Vertex(Clip(clientRect, from));
+				GL.Vertex(Clip(clientRect, to));
 				GL.End();
 
 				from.x += (spacing * containerScale.x * thickLines);
@@ -174,9 +189,9 @@ namespace RMGUI.GraphView.Demo
 				to.y += spacing * containerScale.y;
 
 				GL.Begin(GL.LINES);
-					GL.Color(lineColor);
-					GL.Vertex(Clip(clientRect, from));
-					GL.Vertex(Clip(clientRect, to));
+				GL.Color(lineColor);
+				GL.Vertex(Clip(clientRect, from));
+				GL.Vertex(Clip(clientRect, to));
 				GL.End();
 			}
 
@@ -186,9 +201,9 @@ namespace RMGUI.GraphView.Demo
 			while (from.y < clientRect.height + thickLineSpacing)
 			{
 				GL.Begin(GL.LINES);
-					GL.Color(thickLineColor);
-					GL.Vertex(Clip(clientRect, from));
-					GL.Vertex(Clip(clientRect, to));
+				GL.Color(thickLineColor);
+				GL.Vertex(Clip(clientRect, from));
+				GL.Vertex(Clip(clientRect, to));
 				GL.End();
 
 				from.y += spacing * containerScale.y * thickLines;
@@ -196,7 +211,7 @@ namespace RMGUI.GraphView.Demo
 			}
 		}
 
-		public void PostPaint(VisualElement target, PaintContext pc)
+		public void PostPaint(VisualElement element, IStylePainter pc)
 		{
 		}
 	}

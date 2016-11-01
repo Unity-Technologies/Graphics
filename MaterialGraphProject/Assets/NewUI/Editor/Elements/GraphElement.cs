@@ -1,11 +1,19 @@
 using UnityEngine;
 using UnityEngine.RMGUI;
+using UnityEngine.RMGUI.StyleSheets;
 
 namespace RMGUI.GraphView
 {
 	public abstract class GraphElement : DataWatchContainer, ISelectable
 	{
 		GraphElementData m_DataProvider;
+
+		readonly static ClassList s_ElementsClassList = new ClassList("graphElement");
+
+		public GraphElement()
+		{
+			classList = s_ElementsClassList;
+		}
 
 		public T GetData<T>() where T : GraphElementData
 		{
@@ -51,6 +59,15 @@ namespace RMGUI.GraphView
 						childData.selected = data.selected;
 					}
 				}
+			}
+
+			if (data.selected)
+			{
+				AddToClassList("selected");
+			}
+			else
+			{
+				RemoveFromClassList("selected");
 			}
 
 			SetPosition(data.position);

@@ -3,8 +3,7 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	[GUISkinStyle("box")]
-	class VerticalNode : GraphElement
+	class VerticalNode : SimpleElement
 	{
 		readonly VisualContainer m_ContainerTop;
 		readonly VisualContainer m_ContainerBottom;
@@ -25,15 +24,6 @@ namespace RMGUI.GraphView.Demo
 
 			AddChild(m_ContainerTop);
 			AddChild(m_ContainerBottom);
-		}
-
-		public override void DoRepaint(PaintContext painter)
-		{
-			base.DoRepaint(painter);
-			if (GetData<VerticalNodeData>() != null && GetData<VerticalNodeData>().selected)
-			{
-				painter.DrawRectangleOutline(transform, position, Color.yellow);
-			}
 		}
 
 		public override void OnDataChanged()

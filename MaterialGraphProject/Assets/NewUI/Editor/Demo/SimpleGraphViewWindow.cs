@@ -3,12 +3,12 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	public class IMGUISampleView : EditorWindow
+	public class SimpleGraphViewWindow : EditorWindow
 	{
-		[MenuItem("Window/GraphView Demo/IMGUISampleView")]
+		[MenuItem("Window/GraphView Demo/SimpleGraphView")]
 		public static void ShowWindow()
 		{
-			GetWindow<IMGUISampleView>();
+			GetWindow<SimpleGraphViewWindow>();
 		}
 
 		void OnEnable()
@@ -16,7 +16,7 @@ namespace RMGUI.GraphView.Demo
 			var view = new SimpleContentView
 			{
 				name = "theView",
-				dataSource = CreateInstance<IMGUISampleViewData>()
+				dataSource = CreateInstance<SimpleContentViewData>()
 			};
 			view.StretchToParentSize();
 			windowRoot.AddChild(view);

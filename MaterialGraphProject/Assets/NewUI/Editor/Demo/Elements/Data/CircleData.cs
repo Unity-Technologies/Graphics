@@ -24,6 +24,12 @@ namespace RMGUI.GraphView.Demo
 			}
 		}
 
+		protected new void OnEnable()
+		{
+			base.OnEnable();
+			capabilities |= Capabilities.Deletable;
+		}
+
 		protected CircleData() {}
 	}
 }

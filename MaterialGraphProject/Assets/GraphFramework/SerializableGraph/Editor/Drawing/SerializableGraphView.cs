@@ -35,7 +35,7 @@ namespace UnityEditor.Graphing.Drawing
 
             nodalViewData.RemoveElements(
                 selection.OfType<NodeDrawer>().Select(x => x.dataProvider as NodeDrawData),
-                selection.OfType<RMGUI.GraphView.Edge>().Select(x => x.dataProvider as EdgeDrawData)
+                selection.OfType<Edge>().Select(x => x.dataProvider as EdgeDrawData)
                 );
 
             return EventPropagation.Stop;

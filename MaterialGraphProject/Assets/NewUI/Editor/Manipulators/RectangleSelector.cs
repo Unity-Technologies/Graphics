@@ -5,11 +5,10 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
-	public class RectangleSelector : Manipulator, IDecorator
+	public class RectangleSelector : MouseManipulator, IDecorator
 	{
 		private Vector2 m_Start = Vector2.zero;
 		private Vector2 m_End = Vector2.zero;
-		public MouseButton activateButton { get; set; }
 
 		public RectangleSelector()
 		{
@@ -19,8 +18,8 @@ namespace RMGUI.GraphView
 		// get the AA aligned bound
 		public Rect ComputeAAAlignedBound(Rect position, Matrix4x4 transform)
 		{
-			var min = transform.MultiplyPoint3x4(position.min);
-			var max = transform.MultiplyPoint3x4(position.max);
+			Vector3 min = transform.MultiplyPoint3x4(position.min);
+			Vector3 max = transform.MultiplyPoint3x4(position.max);
 			return Rect.MinMaxRect(Math.Min(min.x, max.x), Math.Min(min.y, max.y), Math.Max(min.x, max.x), Math.Max(min.y, max.y));
 		}
 
@@ -38,7 +37,7 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button == (int)activateButton)
+					if (CanStartManipulation(evt))
 					{
 						if (!evt.control)
 						{
@@ -55,14 +54,14 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseUp:
-					if (this.HasCapture() && evt.button == (int)activateButton)
+					if (CanStopManipulation(evt))
 					{
 						this.ReleaseCapture();
 						target.RemoveDecorator(this);
 
 						m_End = evt.mousePosition;
 
-						Rect selectionRect = new Rect();
+						var selectionRect = new Rect();
 						selectionRect.min = new Vector2(Math.Min(m_Start.x, m_End.x), Math.Min(m_Start.y, m_End.y));
 						selectionRect.max = new Vector2(Math.Max(m_Start.x, m_End.x), Math.Max(m_Start.y, m_End.y));
 
@@ -73,16 +72,16 @@ namespace RMGUI.GraphView
 
 						List<ISelectable> selection = graphView.selection;
 
-						var children = graphView.contentViewContainer.GetChildren();
+						List<VisualElement>.Enumerator children = graphView.contentViewContainer.GetChildren();
 						while (children.MoveNext())
 						{
-							var child = children.Current;
+							VisualElement child = children.Current;
 							if (child == null)
 								continue;
 
 							var selectable = child as ISelectable;
 
-							var selectableTransform = child.transform.inverse;
+							Matrix4x4 selectableTransform = child.transform.inverse;
 							var localSelRect = new Rect(selectableTransform.MultiplyPoint3x4(selectionRect.position), selectableTransform.MultiplyPoint3x4(selectionRect.size));
 							if (selectable != null && selectable.IsSelectable() && selectable.Overlaps(localSelRect))
 							{
@@ -112,16 +111,16 @@ namespace RMGUI.GraphView
 			target.RemoveDecorator(this);
 		}
 
-		public void PrePaint(VisualElement t, PaintContext pc)
+		public void PrePaint(VisualElement t, IStylePainter painter)
 		{
 		}
 
 		// todo shanti move paint dotted border to StylePainter
 		// todo move text render to style painter
-		public void PostPaint(VisualElement t, PaintContext pc)
+		public void PostPaint(VisualElement t, IStylePainter painter)
 		{
-			var screenStart = m_Start;
-			var screenEnd = m_End;
+			Vector2 screenStart = m_Start;
+			Vector2 screenEnd = m_End;
 
 			// Avoid drawing useless information
 			if (m_Start == m_End)

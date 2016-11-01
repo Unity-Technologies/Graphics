@@ -24,6 +24,18 @@ namespace RMGUI.GraphView.Demo
 				}
 				m_OutputContainer.AddChild(new NodeAnchor(nodeData.outputAnchor));
 			}
+
+			if (!classList.Contains("vertical") && !classList.Contains("horizontal"))
+			{
+				if (nodeData is VerticalNodeData)
+				{
+					AddToClassList("vertical");
+				}
+				else
+				{
+					AddToClassList("horizontal");
+				}
+			}
 		}
 
 		public Node()

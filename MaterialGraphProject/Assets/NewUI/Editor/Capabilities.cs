@@ -10,6 +10,7 @@ namespace RMGUI.GraphView
 		DoesNotCollapse = 1 << 2,
 		Floating = 1 << 3,
 		Resizable = 1 << 4,
-		Movable = 1 << 5
+		Movable = 1 << 5,
+		Deletable = 1 << 6
 	}
 }

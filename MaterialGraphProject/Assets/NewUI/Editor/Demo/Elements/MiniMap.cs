@@ -5,7 +5,6 @@ using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	[GUISkinStyle("box")]
 	public class MiniMap : GraphElement
 	{
 		private float m_PreviousContainerWidth = -1;
@@ -108,7 +107,7 @@ namespace RMGUI.GraphView.Demo
 			}
 		}
 
-		public override void DoRepaint(PaintContext args)
+		public override void DoRepaint(IStylePainter painter)
 		{
 			var gView = this.GetFirstAncestorOfType<GraphView>();
 			VisualContainer container = gView.contentViewContainer;
@@ -133,7 +132,7 @@ namespace RMGUI.GraphView.Demo
 											 String.Format("{0:0}", containerTranslation.x) + "," + String.Format("{0:0}", containerTranslation.y) + " s: " +
 											 String.Format("{0:N2}", containerScale.x)/* + "," + String.Format("{0:N2}", containerScale.y)*/);
 
-			base.DoRepaint(args);
+			base.DoRepaint(painter);
 
 			foreach (var child in container.children)
 			{

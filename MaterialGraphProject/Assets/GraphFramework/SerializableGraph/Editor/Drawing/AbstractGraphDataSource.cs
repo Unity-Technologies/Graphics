@@ -13,6 +13,9 @@ namespace UnityEditor.Graphing.Drawing
         [SerializeField]
         private List<GraphElementData> m_Elements = new List<GraphElementData>();
 
+        [SerializeField]
+        private List<GraphElementData> m_TempElements = new List<GraphElementData>();
+
         private readonly Dictionary<Type, Type> m_DataMapper = new Dictionary<Type, Type>();
 
         public IGraphAsset graphAsset { get; private set; }
@@ -38,7 +41,7 @@ namespace UnityEditor.Graphing.Drawing
             var deletedElements = m_Elements
                 .OfType<NodeDrawData>()
                 .Where(nd => !graphAsset.graph.GetNodes<INode>().Contains(nd.node))
-                .Cast<GraphElementData>()
+                .OfType<GraphElementData>()
                 .ToList();
 
             var deletedEdges = m_Elements.OfType<EdgeDrawData>()
@@ -48,8 +51,8 @@ namespace UnityEditor.Graphing.Drawing
             foreach (var edgeData in deletedEdges)
             {
                 // Make sure to disconnect the node, otherwise new connections won't be allowed for the used slots
-                edgeData.left.connected = false;
-                edgeData.right.connected = false;
+                edgeData.output.Disconnect(edgeData);
+                edgeData.input.Disconnect(edgeData);
 
                 var toNodeGuid = edgeData.edge.inputSlot.nodeGuid;
                 var toNode = m_Elements.OfType<NodeDrawData>().FirstOrDefault(nd => nd.node.guid == toNodeGuid);
@@ -105,10 +108,12 @@ namespace UnityEditor.Graphing.Drawing
                         var targetAnchors = targetNode.elements.OfType<AnchorDrawData>();
                         var targetAnchor = targetAnchors.FirstOrDefault(x => x.slot == toSlot);
 
-                        var edgeData = ScriptableObject.CreateInstance<EdgeDrawData>();
+                        var edgeData = CreateInstance<EdgeDrawData>();
                         edgeData.Initialize(edge);
-                        edgeData.left = sourceAnchor;
-                        edgeData.right = targetAnchor;
+                        edgeData.output = sourceAnchor;
+                        edgeData.output.Connect(edgeData);
+                        edgeData.input = targetAnchor;
+                        edgeData.input.Connect(edgeData);
                         drawableEdges.Add(edgeData);
                     }
                 }
@@ -136,10 +141,12 @@ namespace UnityEditor.Graphing.Drawing
 
                     OnNodeChanged(targetNode.node, ModificationScope.Graph);
 
-                    var edgeData = ScriptableObject.CreateInstance<EdgeDrawData>();
+                    var edgeData = CreateInstance<EdgeDrawData>();
                     edgeData.Initialize(edge);
-                    edgeData.left = sourceAnchor;
-                    edgeData.right = targetAnchor;
+                    edgeData.output = sourceAnchor;
+                    edgeData.output.Connect(edgeData);
+                    edgeData.input = targetAnchor;
+                    edgeData.input.Connect(edgeData);
                     drawableEdges.Add(edgeData);
                 }
             }
@@ -179,9 +186,6 @@ namespace UnityEditor.Graphing.Drawing
             UpdateData();
         }
 
-        protected AbstractGraphDataSource()
-        { }
-
         public void AddNode(INode node)
         {
             graphAsset.graph.AddNode(node);
@@ -199,32 +203,42 @@ namespace UnityEditor.Graphing.Drawing
 
         public IEnumerable<GraphElementData> elements
         {
-            get { return m_Elements; }
+            get { return m_Elements.Union(m_TempElements); }
+        }
+        
+        public void AddTempElement(GraphElementData element)
+        {
+            m_TempElements.Add(element);
+        }
+
+        public void RemoveTempElement(GraphElementData element)
+        {
+            m_TempElements.Remove(element);
+        }
+
+        public void ClearTempElements()
+        {
+            m_TempElements.Clear();
+        }
+
+        public void Connect(AnchorDrawData left, AnchorDrawData right)
+        {
+            if (left && right)
+            {
+                graphAsset.graph.Connect(left.slot.slotReference, right.slot.slotReference);
+                EditorUtility.SetDirty(graphAsset.GetScriptableObject());
+                UpdateData();
+            }
         }
 
         public void AddElement(GraphElementData element)
         {
-            var edge = element as EdgeData;
-            if (edge != null && edge.candidate == false)
-            {
-                var left = edge.left as AnchorDrawData;
-                var right = edge.right as AnchorDrawData;
-                if (left && right)
-                {
-                    graphAsset.graph.Connect(left.slot.slotReference, right.slot.slotReference);
-                    EditorUtility.SetDirty(graphAsset.GetScriptableObject());
-                }
-                UpdateData();
-                return;
-            }
-
-            m_Elements.Add(element);
+            throw new ArgumentException("Not supported on Serializable Graph, data comes from data store");
         }
 
         public void RemoveElement(GraphElementData element)
         {
-            m_Elements.RemoveAll(x => x == element);
-            UpdateData();
+            throw new ArgumentException("Not supported on Serializable Graph, data comes from data store");
         }
     }
 }

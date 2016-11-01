@@ -1,7 +1,20 @@
 /* this class is added to all graphElement instances*/
 .graphElement {
+	text-alignment:upper-center;
+	text-color:#FFF;
+	/* currently border-XXX is only used for layout
+	   where border-width is used to paint text and border.
+	   They must keep in sync until we support variable border
+	   thickness per edge */
 	border-left:2;
 	border-top:2;
 	border-right:2;
 	border-bottom:2;
+	border-width: 2;
+	border-radius: 5;
+	background-color: #333;
+}
+
+.graphElement.selected {
+	border-color: #FF0;
 }

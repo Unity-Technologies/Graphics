@@ -10,7 +10,13 @@ namespace RMGUI.GraphView.Demo
 		public float maxWidth;
 
 		[SerializeField]
-		public bool anchored;
+		private bool m_Anchored;
+
+		public bool anchored
+		{
+			get { return m_Anchored; }
+			set { m_Anchored = value; }
+		}
 
 		protected new void OnEnable()
 		{

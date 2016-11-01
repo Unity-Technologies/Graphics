@@ -6,9 +6,8 @@ namespace RMGUI.GraphView.Demo
 {
 	public class Circle : GraphElement
 	{
-		public override void DoRepaint(PaintContext args)
+		public override void DoRepaint(IStylePainter painter)
 		{
-			base.DoRepaint(args);
 			Handles.DrawSolidDisc(new Vector3(position.x + position.width/2, position.y + position.height/2, 0.0f),
 								  new Vector3(0.0f, 0.0f, -1.0f),
 								  position.width / 2.0f);

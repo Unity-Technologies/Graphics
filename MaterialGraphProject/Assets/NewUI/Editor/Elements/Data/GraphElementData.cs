@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace RMGUI.GraphView
@@ -22,6 +23,11 @@ namespace RMGUI.GraphView
 			set { m_Position = value; }
 		}
 
+		public Capabilities capabilities
+		{
+			get { return m_Capabilities; }
+			set { m_Capabilities = value; }
+		}
 		public bool selected
 		{
 			get { return m_Selected; }
@@ -40,18 +46,8 @@ namespace RMGUI.GraphView
 			capabilities = Capabilities.Normal | Capabilities.Movable | Capabilities.Selectable;
 		}
 
-		public virtual IEnumerable<GraphElementData> elements
+		public virtual void OnRemoveFromGraph()
 		{
-			get { return new GraphElementData[0]; }
 		}
-
-		public Capabilities capabilities
-		{
-			get { return m_Capabilities; }
-			set { m_Capabilities = value; }
-		}
-
-	    public virtual void CommitChanges()
-	    {}
 	}
 }

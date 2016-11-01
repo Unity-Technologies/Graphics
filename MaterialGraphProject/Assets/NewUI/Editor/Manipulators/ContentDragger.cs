@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleEnums.Values;
+using UnityEngine.RMGUI.StyleEnums;
 
 namespace RMGUI.GraphView
 {
 	// drags the contentContainer of a graphview around
 	// add to the GraphView
-	public class ContentDragger : Manipulator
+	public class ContentDragger : MouseManipulator
 	{
 		private Vector2 m_Start;
 		public Vector2 panSpeed { get; set; }
@@ -16,6 +16,8 @@ namespace RMGUI.GraphView
 
 		public ContentDragger()
 		{
+			activateButton = MouseButton.LeftMouse;
+			activateModifiers = KeyModifiers.Alt;
 			panSpeed = new Vector2(1, 1);
 			clampToParentEdges = false;
 		}
@@ -55,8 +57,7 @@ namespace RMGUI.GraphView
 			switch (evt.type)
 			{
 				case EventType.MouseDown:
-					if (evt.button == (int) MouseButton.MiddleMouse 
-					|| evt.button == (int) MouseButton.LeftMouse && evt.modifiers == EventModifiers.Alt)
+					if (CanStartManipulation(evt))
 					{
 						this.TakeCapture();
 
@@ -69,8 +70,8 @@ namespace RMGUI.GraphView
 				case EventType.MouseDrag:
 					if (this.HasCapture() && graphView.contentViewContainer.positionType == PositionType.Absolute)
 					{
-						var diff = graphView.ChangeCoordinatesTo(graphView.contentViewContainer, evt.mousePosition) - m_Start;
-						var t = graphView.contentViewContainer.transform;
+						Vector2 diff = graphView.ChangeCoordinatesTo(graphView.contentViewContainer, evt.mousePosition) - m_Start;
+						Matrix4x4 t = graphView.contentViewContainer.transform;
 
 						graphView.contentViewContainer.transform = t*Matrix4x4.Translate(new Vector3(diff.x, diff.y, 0));
 						return EventPropagation.Stop;
@@ -78,9 +79,7 @@ namespace RMGUI.GraphView
 					break;
 
 				case EventType.MouseUp:
-				if (this.HasCapture() 
-					&& (evt.button == (int) MouseButton.MiddleMouse
-						|| evt.button == (int) MouseButton.MiddleMouse))
+					if (CanStopManipulation(evt))
 					{
 						this.ReleaseCapture();
 						return EventPropagation.Stop;

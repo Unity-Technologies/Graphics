@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace RMGUI.GraphView
@@ -60,6 +61,17 @@ namespace RMGUI.GraphView
 			}
 
 			return true;
+		}
+
+		public static Rect Encompass(Rect a, Rect b)
+		{
+			return new Rect
+			{
+				xMin = Math.Min(a.xMin, b.xMin),
+				yMin = Math.Min(a.yMin, b.yMin),
+				xMax = Math.Max(a.xMax, b.xMax),
+				yMax = Math.Max(a.yMax, b.yMax)
+			};
 		}
 	}
 }
