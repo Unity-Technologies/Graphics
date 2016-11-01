@@ -82,7 +82,7 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 	float fSy = g_mScrProjection[1].y;
 	float fCy = g_mScrProjection[1].z;
 
-#ifdef LEFT_HAND_COORDINATES
+#if USE_LEFTHAND_CAMERASPACE
 	return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
 #else
 	return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
@@ -283,7 +283,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	GroupMemoryBarrierWithGroupSync();
 #endif
 
-#ifdef LEFT_HAND_COORDINATES
+#if USE_LEFTHAND_CAMERASPACE
 	float3 V = GetViewPosFromLinDepth( screenCoordinate, 1.0);
 #else
 	float3 V = GetViewPosFromLinDepth( screenCoordinate, -1.0);

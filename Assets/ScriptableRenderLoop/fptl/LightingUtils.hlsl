@@ -25,7 +25,7 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
     //float fCy = g_mScrProjection[2].y;
     float fCy = g_mScrProjection[1].z;
 
-#ifdef LEFT_HAND_COORDINATES
+#if USE_LEFTHAND_CAMERASPACE
     return fLinDepth*float3( ((v2ScrPos.x-fCx)/fSx), ((v2ScrPos.y-fCy)/fSy), 1.0 );
 #else
     return fLinDepth*float3( -((v2ScrPos.x+fCx)/fSx), -((v2ScrPos.y+fCy)/fSy), 1.0 );
@@ -34,7 +34,7 @@ float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
 
 float GetLinearZFromSVPosW(float posW)
 {
-#ifdef LEFT_HAND_COORDINATES
+#if USE_LEFTHAND_CAMERASPACE
     float linZ = posW;
 #else
     float linZ = -posW;

@@ -398,11 +398,34 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.SetComputeFloatParams(shadercs, name, data);
         }
 
+        static Matrix4x4 GetFlipMatrix()
+        {
+            Matrix4x4 flip = Matrix4x4.identity;
+            bool isLeftHand = ((int) LightDefinitions.USE_LEFTHAND_CAMERASPACE)!=0;
+            if(isLeftHand) flip.SetColumn(2, new Vector4(0.0f, 0.0f, -1.0f, 0.0f));
+            return flip;
+        }
+
+        static Matrix4x4 WorldToCamera(Camera camera)
+        {
+            return GetFlipMatrix() * camera.worldToCameraMatrix;
+        }
+
+        static Matrix4x4 CameraToWorld(Camera camera)
+        {
+            return camera.cameraToWorldMatrix * GetFlipMatrix();
+        }
+
+        static Matrix4x4 CameraProjection(Camera camera)
+        {
+            return camera.projectionMatrix * GetFlipMatrix();
+        }
+
         static int UpdateDirectionalLights(Camera camera, IList<VisibleLight> visibleLights)
         {
             var dirLightCount = 0;
             var lights = new List<DirectionalLight>();
-            var worldToView = camera.worldToCameraMatrix;
+            var worldToView = WorldToCamera(camera);
 
             for (int nLight = 0; nLight < visibleLights.Count; nLight++)
             {
@@ -575,8 +598,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             var lightData = new SFiniteLightData[numVolumes];
             var boundData = new SFiniteLightBound[numVolumes];
-            var worldToView = camera.worldToCameraMatrix;
-
+            var worldToView = WorldToCamera(camera);
+            bool isNegDeterminant = Vector3.Dot(worldToView.GetColumn(0), Vector3.Cross(worldToView.GetColumn(1), worldToView.GetColumn(2)))<0.0f;      // 3x3 Determinant.
+            
             uint shadowLightIndex = 0;
             foreach (var cl in inputs.visibleLights)
             {
@@ -697,7 +721,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     bound.center = worldToView.MultiplyPoint(lightPos);
                     bound.boxAxisX.Set(range, 0, 0);
                     bound.boxAxisY.Set(0, range, 0);
-                    bound.boxAxisZ.Set(0, 0, -range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
+                    bound.boxAxisZ.Set(0, 0, isNegDeterminant ? (-range) : range);    // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
                     bound.scaleXY.Set(1.0f, 1.0f);
                     bound.radius = range;
 
@@ -897,7 +921,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             //RenderLighting(camera, inputs, loop);
 
             //
-            var proj = camera.projectionMatrix;
+            var proj = CameraProjection(camera);
             var temp = new Matrix4x4();
             temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
             temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
@@ -969,7 +993,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
 
             // Push all global params
-            PushGlobalParams(camera, loop, camera.cameraToWorldMatrix, projscr, invProjscr, numDirLights);
+            PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
 
             // do deferred lighting
             DoTiledDeferredLighting(camera, loop);

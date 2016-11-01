@@ -58,7 +58,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 	
 	const float3 boxX = lgtDat.boxAxisX.xyz;
 	const float3 boxY = lgtDat.boxAxisY.xyz;
-	const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip an axis to make it right handed since Determinant(worldToView)<0
+	const float3 boxZ = -lgtDat.boxAxisZ.xyz;           // flip axis (so it points away from the light direction for a spot-light)
 	const float3 center = lgtDat.center.xyz;
 	const float radius = lgtDat.radius;
 	const float2 scaleXY = lgtDat.scaleXY;
@@ -287,7 +287,7 @@ void ScreenBoundsAABB(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
 					vMax.xy = bMa ? min(vMax.xy, vMa) : vMax.xy;
 				}
 
-#ifdef LEFT_HAND_COORDINATES
+#if USE_LEFTHAND_CAMERASPACE
 				if((center.z-radius)>0.0)
 				{
 					float4 vPosF = mul(g_mProjection, float4(0,0,center.z-radius,1));
@@ -438,7 +438,7 @@ void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, ou
 	float4 planeY = EvalPlanePair(float2(pos_view_space.y, pos_view_space.z), r);
 
 
-#ifdef LEFT_HAND_COORDINATES
+#if USE_LEFTHAND_CAMERASPACE
 	planeX = planeX.zwxy;		// need to swap left/right and top/bottom planes when using left hand system
 	planeY = planeY.zwxy;
 #endif
