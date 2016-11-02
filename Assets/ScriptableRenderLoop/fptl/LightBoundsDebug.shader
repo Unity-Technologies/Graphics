@@ -46,6 +46,7 @@ Shader "Hidden/LightBoundsDebug"
                 float3 viewPos = lightData.center + coord.x * lightData.boxAxisX.xyz + coord.y * lightData.boxAxisY.xyz + coord.z * -lightData.boxAxisZ.xyz;
 #if USE_LEFTHAND_CAMERASPACE
 				// not completely sure why this is necessary since the old stuff pretends camera coordinate system is also left-hand.
+				// see: Camera::CalculateMatrixShaderProps()
 				viewPos.z = -viewPos.z;
 #endif
                 return UnityViewToClipPos(viewPos);
