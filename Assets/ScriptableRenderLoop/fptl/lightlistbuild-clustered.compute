@@ -59,7 +59,7 @@ RWBuffer<float> g_logBaseBuffer : register( u3 );
 #endif
 
 
-#define MAX_NR_COARSE_ENTRIES		64
+#define MAX_NR_COARSE_ENTRIES		128
 
 groupshared unsigned int coarseList[MAX_NR_COARSE_ENTRIES];
 groupshared unsigned int clusterIdxs[MAX_NR_COARSE_ENTRIES/2];
