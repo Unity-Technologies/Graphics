@@ -768,7 +768,7 @@ namespace UnityEditor.Experimental
 
             //builder.WriteLine("#include \"UnityCG.cginc\"");
             builder.WriteLine("#include \"HLSLSupport.cginc\"");
-            builder.WriteLine("#include \"..\\VFXCommon.cginc\"");
+            builder.WriteLine("#include \"../VFXCommon.cginc\"");
             builder.WriteLine();
 
             builder.Write("#define NB_THREADS_PER_GROUP ");
