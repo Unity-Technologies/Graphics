@@ -24,6 +24,7 @@ public class BasicRenderLoop : MonoBehaviour
         RenderLoop.renderLoopDelegate -= Render;
     }
 
+
     // Main entry point for our scriptable render loop
     bool Render (Camera[] cameras, RenderLoop loop)
     {
@@ -62,16 +63,20 @@ public class BasicRenderLoop : MonoBehaviour
         return true;
     }
 
+
+    // Setup lighting variables for shader to use
     static void SetupLightShaderVariables (VisibleLight[] lights, RenderLoop loop)
     {
+        // We only support up to 8 visible lights here. More complex approaches would
+        // be doing some sort of per-object light setups, but here we go for simplest possible
+        // approach.
         const int kMaxLights = 8;
+        // Just take first 8 lights. Possible improvements: sort lights by intensity or distance
+        // to the viewer, so that "most important" lights in the scene are picked, and not the 8
+        // that happened to be first.
         int lightCount = Mathf.Min (lights.Length, kMaxLights);
-        // x - light count
-        // y - zero (needed by d3d9 VS loop instruction; initial loop value)
-        // z - one (needed by d3d9 VS loop instruction; loop increment)
-        // w - unused
-        Vector4 lightCountVector = new Vector4 (lightCount, 0, 1, 0);
 
+        // Prepare light data
         Vector4[] lightColors = new Vector4[kMaxLights];
         Vector4[] lightPositions = new Vector4[kMaxLights];
         Vector4[] lightSpotDirections = new Vector4[kMaxLights];
@@ -82,35 +87,29 @@ public class BasicRenderLoop : MonoBehaviour
             lightColors[i] = light.finalColor;
             if (light.lightType == LightType.Directional)
             {
+                // light position for directional lights is: (-direction, 0)
                 var dir = light.localToWorld.GetColumn (2);
                 lightPositions[i] = new Vector4 (-dir.x, -dir.y, -dir.z, 0);
             }
             else
             {
+                // light position for point/spot lights is: (position, 1)
                 var pos = light.localToWorld.GetColumn (3);
                 lightPositions[i] = new Vector4 (pos.x, pos.y, pos.z, 1);
             }
             // attenuation set in a way where distance attenuation can be computed:
             //	float lengthSq = dot(toLight, toLight);
-            //	float atten = 1.0 / (1.0 + lengthSq * unity_LightAtten[i].z);
+            //	float atten = 1.0 / (1.0 + lengthSq * LightAtten[i].z);
             // and spot cone attenuation:
-            //	float rho = max (0, dot(normalize(toLight), unity_SpotDirection[i].xyz));
-            //	float spotAtt = (rho - unity_LightAtten[i].x) * unity_LightAtten[i].y;
+            //	float rho = max (0, dot(normalize(toLight), SpotDirection[i].xyz));
+            //	float spotAtt = (rho - LightAtten[i].x) * LightAtten[i].y;
             //	spotAtt = saturate(spotAtt);
             // and the above works for all light types, i.e. spot light code works out
             // to correct math for point & directional lights as well.
 
             float rangeSq = light.range * light.range;
 
-            float quadAtten;
-            if (light.lightType == LightType.Directional)
-            {
-                quadAtten = 0.0f;
-            }
-            else
-            {
-                quadAtten = 25.0f / rangeSq;
-            }
+            float quadAtten = (light.lightType == LightType.Directional) ? 0.0f : 25.0f / rangeSq;
 
             // spot direction & attenuation
             if (light.lightType == LightType.Spot)
@@ -132,23 +131,26 @@ public class BasicRenderLoop : MonoBehaviour
             }
     	}
 
+        // ambient lighting spherical harmonics values
         const int kSHCoefficients = 7;
         Vector4[] shConstants = new Vector4[kSHCoefficients];
         SphericalHarmonicsL2 ambientSH = RenderSettings.ambientProbe * RenderSettings.ambientIntensity;
         GetShaderConstantsFromNormalizedSH (ref ambientSH, shConstants);
 
-
+        // setup global shader variables to contain all the data computed above
         CommandBuffer cmd = new CommandBuffer();
         cmd.SetGlobalVectorArray ("globalLightColor", lightColors);
         cmd.SetGlobalVectorArray ("globalLightPos", lightPositions);
         cmd.SetGlobalVectorArray ("globalLightSpotDir", lightSpotDirections);
         cmd.SetGlobalVectorArray ("globalLightAtten", lightAtten);
-        cmd.SetGlobalVector ("globalLightCount", lightCountVector);
+        cmd.SetGlobalVector ("globalLightCount", new Vector4 (lightCount, 0, 0, 0));
         cmd.SetGlobalVectorArray ("globalSH", shConstants);
         loop.ExecuteCommandBuffer (cmd);
         cmd.Dispose ();
     }
 
+
+    // Prepare L2 spherical harmonics values for efficient evaluation in a shader
     static void GetShaderConstantsFromNormalizedSH (ref SphericalHarmonicsL2 ambientProbe, Vector4[] outCoefficients)
     {
         for (int channelIdx = 0; channelIdx < 3; ++channelIdx)
