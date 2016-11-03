@@ -27,6 +27,33 @@ alpha *= camFade;";
         }
     }
 
+    class VFXBlockSubPixelAA : VFXBlockType
+    {
+        public VFXBlockSubPixelAA()
+        {
+            Name = "Subpixel AA";
+            Icon = "Alpha";
+            Category = "Output";
+            CompatibleContexts = VFXContextDesc.Type.kTypeOutput;
+
+            Add(new VFXAttribute(CommonAttrib.Alpha, true));
+            Add(new VFXAttribute(CommonAttrib.Position, false));
+            Add(new VFXAttribute(CommonAttrib.Size, true));
+
+            Source = @"
+#ifdef VFX_WORLD_SPACE
+float clipPosW = mul(UNITY_MATRIX_VP,float4(position,1.0f)).w;
+#else
+float clipPosW = mul(UNITY_MATRIX_MVP,float4(position,1.0f)).w;
+#endif
+float minSize = clipPosW / (0.5f * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)); // max size in one pixel
+float2 clampedSize = max(size,minSize);
+float fade = (size.x * size.y) / (clampedSize.x * clampedSize.y);
+alpha *= fade;
+size = clampedSize;";
+        }
+    }
+
     class VFXBlockFaceCameraPlane : VFXBlockType
     {
         public VFXBlockFaceCameraPlane()
