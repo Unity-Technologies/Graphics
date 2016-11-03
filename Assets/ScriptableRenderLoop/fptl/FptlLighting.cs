@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public bool enableDrawLightBoundsDebug = false;
         public bool enableDrawTileDebug = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
-        
+
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
         float m_ClustScale;
@@ -333,7 +333,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             settings.inputCullingOptions.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
         }
-        
+
         bool UsingFptl()
         {
             bool isEnabledMSAA = false;
@@ -600,7 +600,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var boundData = new SFiniteLightBound[numVolumes];
             var worldToView = WorldToCamera(camera);
             bool isNegDeterminant = Vector3.Dot(worldToView.GetColumn(0), Vector3.Cross(worldToView.GetColumn(1), worldToView.GetColumn(2)))<0.0f;      // 3x3 Determinant.
-            
+
             uint shadowLightIndex = 0;
             foreach (var cl in inputs.visibleLights)
             {
@@ -759,7 +759,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
             }
             var numLightsOut = offsets[LightDefinitions.DIRECT_LIGHT, numVolTypes-1] + numEntries[LightDefinitions.DIRECT_LIGHT, numVolTypes-1];
-            
+
             // probe.m_BlendDistance
             // Vector3f extents = 0.5*Abs(probe.m_BoxSize);
             // C center of rendered refl box <-- GetComponent (Transform).GetPosition() + m_BoxOffset;
@@ -949,7 +949,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
 
             var cmd = new CommandBuffer() { name = "Build light list" };
-            
+
             // generate screen-space AABBs (used for both fptl and clustered).
             cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", numLights);
             SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
@@ -1033,7 +1033,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void ResizeIfNecessary(int curWidth, int curHeight)
         {
-            if (curWidth != s_WidthOnRecord || curHeight != s_HeightOnRecord || s_LightList == null || 
+            if (curWidth != s_WidthOnRecord || curHeight != s_HeightOnRecord || s_LightList == null ||
                 (s_BigTileLightList==null && enableBigTilePrepass) || (s_PerVoxelLightLists==null && enableClustered) )
             {
                 if (s_WidthOnRecord > 0 && s_HeightOnRecord > 0)
@@ -1167,8 +1167,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
             cmd.SetGlobalTexture("_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
 
-            var topCube = ReflectionProbe.GetDefaultCubemapIBL();
-            var defdecode = ReflectionProbe.CalculateHDRDecodeValuesForDefaultTexture();
+            var topCube = ReflectionProbe.GetDefaultTexture();
+            var defdecode = ReflectionProbe.GetDefaultTextureHDRDecodeValues();
             cmd.SetGlobalTexture("_reflRootCubeTexture", topCube);
             cmd.SetGlobalFloat("_reflRootHdrDecodeMult", defdecode.x);
             cmd.SetGlobalFloat("_reflRootHdrDecodeExp", defdecode.y);
