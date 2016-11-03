@@ -30,6 +30,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 name = "preview", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
+            AddChild(m_PreviewContainer);
 
             m_currentPreviewData = new List<NodePreviewDrawData>();
         }
@@ -96,7 +97,6 @@ namespace UnityEditor.MaterialGraph.Drawing
                 }
             }
 
-            AddChild(m_PreviewContainer);
         }
 
         public override void OnDataChanged()
@@ -106,7 +106,8 @@ namespace UnityEditor.MaterialGraph.Drawing
             var nodeData = dataProvider as MaterialNodeDrawData;
             if (nodeData == null)
             {
-                CreateContainers();
+                m_PreviewContainer.ClearChildren();
+                m_currentPreviewData.Clear();
                 return;
             }
 
