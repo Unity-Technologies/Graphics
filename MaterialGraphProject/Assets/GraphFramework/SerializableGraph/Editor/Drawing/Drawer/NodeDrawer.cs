@@ -10,6 +10,7 @@ namespace UnityEditor.Graphing.Drawing
     public class NodeDrawer : GraphElement
     {
         HeaderDrawer m_HeaderDrawer;
+        HeaderDrawData m_HeaderData;
         VisualContainer m_SlotContainer;
         List<AnchorDrawData> m_currentAnchors;
         VisualContainer m_ControlsContainer;
@@ -26,12 +27,6 @@ namespace UnityEditor.Graphing.Drawing
 
         private void AddContainers()
         {
-            m_HeaderDrawer = new HeaderDrawer()
-            {
-                name = "header"
-            };
-            AddChild(m_HeaderDrawer);
-
             // Add slots (with input & output sub-containers) container
             m_SlotContainer = new VisualContainer
             {
@@ -67,6 +62,25 @@ namespace UnityEditor.Graphing.Drawing
             m_currentControlDrawData = new List<ControlDrawData>();
         }
 
+        private void AddHeader(NodeDrawData nodeData)
+        {
+            var headerData = nodeData.elements.OfType<HeaderDrawData>().FirstOrDefault();
+
+            if (headerData == m_HeaderData || headerData == null)
+            {
+                // TODO: Fix data watcher
+                m_HeaderDrawer.OnDataChanged();
+                return;
+            }
+
+            if (m_HeaderData != null)
+                RemoveChild(m_HeaderDrawer);
+
+            m_HeaderDrawer = new HeaderDrawer(headerData);
+            InsertChild(0, m_HeaderDrawer);
+            m_HeaderData = headerData;
+        }
+
         private void AddSlots(NodeDrawData nodeData)
         {
             var anchors = nodeData.elements.OfType<AnchorDrawData>().ToList();
@@ -91,8 +105,6 @@ namespace UnityEditor.Graphing.Drawing
                         outputsContainer.AddChild(new NodeAnchor(anchor));
                 }
             }
-
-            // content.text = nodeData.name;
         }
 
         private void AddControls(NodeDrawData nodeData)
@@ -101,6 +113,13 @@ namespace UnityEditor.Graphing.Drawing
 
             if (controlDrawData.Count == 0)
                 return;
+
+            if (!nodeData.expanded)
+            {
+                m_ControlsContainer.ClearChildren();
+                m_currentControlDrawData.Clear();
+                return;
+            }
 
             if (controlDrawData.ItemsReferenceEquals(m_currentControlDrawData))
             {
@@ -145,7 +164,7 @@ namespace UnityEditor.Graphing.Drawing
                 return;
             }
 
-            m_HeaderDrawer.dataProvider = nodeData.elements.OfType<HeaderDrawData>().FirstOrDefault();
+            AddHeader(nodeData);
             AddSlots(nodeData);
             AddControls(nodeData);
         }

@@ -46,7 +46,12 @@ namespace UnityEngine.Graphing
         public DrawingData drawState
         {
             get { return m_DrawData; }
-            set { m_DrawData = value; }
+            set
+            {
+                m_DrawData = value;
+                if (onModified != null)
+                    onModified(this, ModificationScope.Node);
+            }
         }
 
         public virtual bool hasError { get; protected set; }
