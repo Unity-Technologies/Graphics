@@ -1,10 +1,12 @@
-MaterialNodeDrawer {
-	flex-direction: column;
-}
-
 MaterialNodeDrawer #slots {
 	flex-direction: row;
-	width: 200;
+	flex:1;
+}
+
+MaterialNodeDrawer #slots #output {
+	flex:1;
+	flex-direction: column;
+	justify-content: flex-end;
 }
 
 MaterialNodeDrawer #slots #input {
@@ -12,23 +14,13 @@ MaterialNodeDrawer #slots #input {
 	flex-direction: column;
 }
 
-MaterialNodeDrawer #slots #output {
-	flex:1;
-	flex-direction: column;
-}
-
 MaterialNodeDrawer #controls {
 	flex-direction: column;
 	padding-bottom: 2;
-	width: 200;
 }
 
 MaterialNodeDrawer #controls #element{
 	flex-direction: column;
-}
-
-MaterialNodeDrawer {
-	height: 26;
 }
 
 MaterialNodeDrawer #preview {
@@ -41,5 +33,51 @@ MaterialNodeDrawer #preview #image {
 }
 
 NodeAnchor {
-	height: 26;
+	margin-top:5;
+	margin-bottom:5;
+	margin-right:5;
+	margin-left:5;
 }
+
+NodeAnchor #connector {
+	background-color:#FF0;
+	border-color:#FF0;
+	/* width is currently hard-coded */
+	border-width: 4;
+}
+
+NodeAnchor #connector.anchorHighlight {
+	background-color:#00F;
+}
+
+NodeAnchor #type {
+	text-color:#FFF;
+	flex:1;
+}
+
+MaterialNodeDrawer.horizontal #output NodeAnchor #type {
+	text-alignment:middle-right;
+}
+
+Node.horizontal NodeAnchor #connector {
+	margin-left: 5;
+	margin-right: 5;
+}
+
+MaterialNodeDrawer.horizontal {
+	flex-direction: row;
+}
+
+MaterialNodeDrawer.horizontal #input, MaterialNodeDrawer.horizontal #output {
+	margin-top: 15;
+	background-color:#444;
+}
+
+MaterialNodeDrawer.horizontal #input NodeAnchor {
+	flex-direction: row;
+}
+
+MaterialNodeDrawer.horizontal #output NodeAnchor {
+	flex-direction: row-reverse;
+}
+

@@ -51,13 +51,27 @@ namespace UnityEditor.Graphing.Drawing
                     var nodeAdapter = new NodeAdapter();
 
                     // get all available connectors
-                    foreach (var toCnx in m_GraphView.allChildren.OfType<GraphElement>()
-                        .Select(e => e.dataProvider)
-                        .OfType<IConnector>()
-                        .Where(c => c.IsConnectable() &&
-                                    c.orientation == cnx.orientation &&
-                                    c.direction != cnx.direction &&
-                                    nodeAdapter.GetAdapter(c.source, cnx.source) != null))
+                    var one = m_GraphView.allChildren.OfType<GraphElement>().ToList();
+                    var two = one.Select(e => e.dataProvider).ToList();
+                    var three = two.OfType<IConnector>().ToList();
+                    
+                    List<IConnector> connectors = new List<IConnector>();
+
+                    foreach (var c in three)
+                    {
+                        if (!c.IsConnectable())
+                                continue;
+                        if (c.orientation != cnx.orientation)
+                                continue;
+                        if(c.direction == cnx.direction)
+                                continue;
+                        if(nodeAdapter.GetAdapter(c.source, cnx.source) == null)
+                                continue;
+
+                        connectors.Add(c);
+                    } 
+
+                    foreach (var toCnx in connectors)
                     {
                         toCnx.highlight = true;
                         m_CompatibleAnchors.Add(toCnx);
@@ -118,8 +132,7 @@ namespace UnityEditor.Graphing.Drawing
                         }
                         m_CompatibleAnchors.Clear();
 
-
-                        m_DataSource.RemoveElement(m_EdgeDataCandidate);
+                        m_DataSource.RemoveTempElement(m_EdgeDataCandidate);
 
                         if (m_EdgeDataCandidate != null && m_DataSource != null && endConnector != null)
                         {
