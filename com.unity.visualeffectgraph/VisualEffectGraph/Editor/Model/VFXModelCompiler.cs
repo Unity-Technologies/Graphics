@@ -1204,7 +1204,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("#include \"UnityCG.cginc\"");
             builder.WriteLine("#include \"UnityStandardUtils.cginc\"");
             builder.WriteLine("#include \"HLSLSupport.cginc\"");
-            builder.WriteLine("#include \"..\\VFXCommon.cginc\"");
+            builder.WriteLine("#include \"../VFXCommon.cginc\"");
             builder.WriteLine();
 
             builder.WriteCBuffer("outputUniforms", data.outputUniforms, data.outputParamToName);
