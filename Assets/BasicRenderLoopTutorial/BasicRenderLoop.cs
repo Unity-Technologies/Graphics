@@ -5,8 +5,9 @@ using UnityEngine.Experimental.Rendering;
 // Very basic scriptable rendering loop example:
 // - Use with BasicRenderLoopShader.shader (the loop expects "BasicPass" pass type to exist)
 // - Supports up to 8 enabled lights in the scene (directional, point or spot)
+// - Does the same physically based BRDF as the Standard shader
 // - No shadows
-// - This loop also does not setup lightmaps, light probes or reflection probes
+// - This loop also does not setup lightmaps, light probes, reflection probes or light cookies
 
 [ExecuteInEditMode]
 public class BasicRenderLoop : MonoBehaviour
