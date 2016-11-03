@@ -18,19 +18,31 @@ struct FragInput
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 
-// Should SH (light probe / ambient) calculations be performed?
-// - Presence of *either* of static or dynamic lightmaps means that diffuse indirect ambient is already in them, so no need for SH.
-// - Passes that don't do ambient (additive, shadowcaster etc.) should not do SH either.
-#define UNITY_SHOULD_SAMPLE_SH (!defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON) && !defined(UNITY_PASS_FORWARDADD) && !defined(UNITY_PASS_PREPASSBASE) && !defined(UNITY_PASS_SHADOWCASTER) && !defined(UNITY_PASS_META))
-
-//Check that it is always the case
-// UNITY_SAMPLE_FULL_SH_PER_PIXEL
-
-float3 SampleBakedGI(float3 positionWS, float3 normalWS)
+// In unity we can have a mix of fully baked lightmap (static lightmap) + enlighten realtime lightmap (dynamic lightmap)
+// for each case we can have directional lightmap or not.
+// Else we have lightprobe for dynamic/moving entity. Either SH9 per object lightprobe or SH4 per pixel per object volume probe
+float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
 {
-#if UNITY_SHOULD_SAMPLE_SH
-	#if UNITY_LIGHT_PROBE_PROXY_VOLUME
-	if (unity_ProbeVolumeParams.x == 1.0)
+	// If there is no lightmap, it assume lightprobe
+#if (!defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON))
+
+// TODO: Confirm with Ionut but it seems that UNITY_LIGHT_PROBE_PROXY_VOLUME is always define for high end and 
+// unity_ProbeVolumeParams always bind.
+	if (unity_ProbeVolumeParams.x == 0.0)
+	{
+		// TODO: pass a tab of coefficient instead!
+		float4 SHCoefficients[7];
+		SHCoefficients[0] = unity_SHAr;
+		SHCoefficients[1] = unity_SHAg;
+		SHCoefficients[2] = unity_SHAb;
+		SHCoefficients[3] = unity_SHBr;
+		SHCoefficients[4] = unity_SHBg;
+		SHCoefficients[5] = unity_SHBb;
+		SHCoefficients[6] = unity_SHC;
+
+		return SampleSH9(SHCoefficients, normalWS);
+	}
+	else
 	{
 		// TODO: Move all this to C++!
 		float4x4 identity = 0;
@@ -39,62 +51,41 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS)
 
 		float4x4 translation = identity;
 		translation._m30_m31_m32 = -unity_ProbeVolumeMin.xyz;
-		
+
 		float4x4 scale = 0;
 		scale._m00_m11_m22_m33 = float4(unity_ProbeVolumeSizeInv.xyz, 1.0);
 
 		WorldToTexture = mul(mul(scale, translation), WorldToTexture);
-		return SampleProbeVolumeL0L1(TEXTURE3D_PASS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionWS, normalWS, WorldToTexture, unity_ProbeVolumeParams.z);
-	}
-	#else
-
-	// TODO: pass a tab of coefficient instead!
-	float4 SHCoefficients[7];
-	SHCoefficients[0] = unity_SHAr;
-	SHCoefficients[1] = unity_SHAg;
-	SHCoefficients[2] = unity_SHAb;
-	SHCoefficients[3] = unity_SHBr;
-	SHCoefficients[4] = unity_SHBg;
-	SHCoefficients[5] = unity_SHBb;
-	SHCoefficients[6] = unity_SHC;
 	
-	return SampleSH9(SHCoefficients, normalWS);
+		return SampleProbeVolumeSH4(TEXTURE3D_PASS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionWS, normalWS, WorldToTexture, unity_ProbeVolumeParams.z);
+	}
 
+#else
+
+	float3 bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+
+	#ifdef LIGHTMAP_ON
+		#ifdef DIRLIGHTMAP_COMBINED
+		bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PASS(unity_Lightmap, samplerunity_Lightmap),
+														TEXTURE2D_PASS(unity_LightmapInd, samplerunity_Lightmap),
+														uvStaticLightmap, unity_LightmapST);
+		#else
+		bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PASS(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST);
+		#endif
 	#endif
-#elif defined(LIGHTMAP_ON)
 
-	/*
-	float2 = v.uv1.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-	.uv2.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+	#ifdef DYNAMICLIGHTMAP_ON
+		#ifdef DIRLIGHTMAP_COMBINED
+		bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PASS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+														TEXTURE2D_PASS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
+														uvDynamicLightmap, unity_DynamicLightmapST);
+		#else
+		bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PASS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST);
+		#endif
+	#endif
 
-	// Baked lightmaps
-	half4 bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, data.lightmapUV.xy);
-	half3 bakedColor = DecodeLightmap(bakedColorTex);
+	return bakeDiffuseLighting;
 
-#ifdef DIRLIGHTMAP_COMBINED
-	fixed4 bakedDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_LightmapInd, unity_Lightmap, data.lightmapUV.xy);
-	o_gi.indirect.diffuse = DecodeDirectionalLightmap(bakedColor, bakedDirTex, normalWorld);
-#else // not directional lightmap
-	o_gi.indirect.diffuse = bakedColor;
-#endif
-#endif
-
-#ifdef DYNAMICLIGHTMAP_ON
-	// Dynamic lightmaps
-	fixed4 realtimeColorTex = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, data.lightmapUV.zw);
-	half3 realtimeColor = DecodeRealtimeLightmap(realtimeColorTex);
-
-#ifdef DIRLIGHTMAP_COMBINED
-	half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, data.lightmapUV.zw);
-	o_gi.indirect.diffuse += DecodeDirectionalLightmap(realtimeColor, realtimeDirTex, normalWorld);
-#else
-	o_gi.indirect.diffuse += realtimeColor;
-#endif
-#endif
-*/
-
-#else
-	return float3(0.0, 0.0, 0.0);
 #endif
 }
 
@@ -203,7 +194,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     // TODO: Sample lightmap/lightprobe/volume proxy
     // This should also handle projective lightmap
     // Note that data input above can be use to sample into lightmap (like normal)
-	builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionWS, surfaceData.normalWS);
+	builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
 
     // If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
 #ifdef _EMISSIVE_COLOR
