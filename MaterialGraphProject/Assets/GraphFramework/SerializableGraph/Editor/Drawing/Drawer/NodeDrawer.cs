@@ -64,7 +64,7 @@ namespace UnityEditor.Graphing.Drawing
                 name = "controls", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
-            AddChild(m_ControlsContainer);
+            //AddChild(m_ControlsContainer);
 
             m_currentControlDrawData = new List<ControlDrawData>();
         }
