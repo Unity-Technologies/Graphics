@@ -9,6 +9,7 @@ namespace UnityEditor.Graphing.Drawing
 {
     public class NodeDrawer : GraphElement
     {
+        HeaderDrawer m_HeaderDrawer;
         VisualContainer m_SlotContainer;
         List<AnchorDrawData> m_currentAnchors;
         VisualContainer m_ControlsContainer;
@@ -23,17 +24,14 @@ namespace UnityEditor.Graphing.Drawing
             AddToClassList("NodeDrawer");
         }
 
-        public override void DoRepaint(IStylePainter painter)
-        {
-            base.DoRepaint(painter);
-            if (GetData<GraphElementData>() != null && GetData<GraphElementData>().selected)
-            {
-                painter.DrawRect(position, backgroundColor, 0.0f, borderRadius);
-            }
-        }
-
         private void AddContainers()
         {
+            m_HeaderDrawer = new HeaderDrawer()
+            {
+                name = "header"
+            };
+            AddChild(m_HeaderDrawer);
+
             // Add slots (with input & output sub-containers) container
             m_SlotContainer = new VisualContainer
             {
@@ -94,7 +92,7 @@ namespace UnityEditor.Graphing.Drawing
                 }
             }
 
-            content = new GUIContent(nodeData.name);
+            // content.text = nodeData.name;
         }
 
         private void AddControls(NodeDrawData nodeData)
@@ -147,6 +145,7 @@ namespace UnityEditor.Graphing.Drawing
                 return;
             }
 
+            m_HeaderDrawer.dataProvider = nodeData.elements.OfType<HeaderDrawData>().FirstOrDefault();
             AddSlots(nodeData);
             AddControls(nodeData);
         }

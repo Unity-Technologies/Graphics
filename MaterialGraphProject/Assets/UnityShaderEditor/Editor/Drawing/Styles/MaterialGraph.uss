@@ -2,11 +2,18 @@ MaterialNodeDrawer {
 	flex-direction: column;
 }
 
+
+MaterialNodeDrawer #header #title {
+    text-color: #FFFFFF;
+	width: 200;
+	text-alignment: middle-center;
+}
+
 MaterialNodeDrawer #slots {
 	margin-top: 15;
 	flex-direction: row;
-	background-color:#444;
-	flex:1;
+	background-color: #444;
+	width: 200;
 }
 
 MaterialNodeDrawer #slots #input{
@@ -15,28 +22,12 @@ MaterialNodeDrawer #slots #input{
 
 MaterialNodeDrawer #slots #output {
 	flex:1;
-	justify-content: flex-end;
 }
 
-NodeAnchor {
-	margin-top:5;
-	margin-bottom:5;
-}
+/* NodeAnchor */
 
-NodeAnchor #connector {
-	background-color:#FF0;
-	border-color:#FF0;
-	/* width is currently hard-coded */
-	border-width: 4;
-}
-
-NodeAnchor #connector.anchorHighlight {
-	background-color:#00F;
-}
-
-NodeAnchor #type {
-	text-color:#FFF;
-	flex:1;
+MaterialNodeDrawer #slots NodeAnchor {
+	align-items: center;
 }
 
 MaterialNodeDrawer #slots #input NodeAnchor {
@@ -47,18 +38,40 @@ MaterialNodeDrawer #slots #output NodeAnchor {
 	flex-direction: row-reverse;
 }
 
-MaterialNodeDrawer #output NodeAnchor #type {
-	text-alignment:middle-right;
+/* NodeAnchor #connector */
+
+NodeAnchor #connector {
+	background-color:#FF0;
+	border-color:#FF0;
+	/* width is currently hard-coded */
+	border-width: 4;
+	margin-left: 5;
+    margin-right: 5;
 }
 
-Node.horizontal NodeAnchor #connector {
-	margin-left: 5;
-	margin-right: 5;
+NodeAnchor #connector.anchorHighlight {
+	background-color:#00F;
+}
+
+/* NodeAnchor #type */
+
+MaterialNodeDrawer #slots NodeAnchor #type {
+	text-color:#FFF;
+	flex:1;
+}
+
+MaterialNodeDrawer #slots #input NodeAnchor #type {
+    text-alignment: middle-left;
+}
+
+MaterialNodeDrawer #slots #output NodeAnchor #type {
+    text-alignment: middle-right;
 }
 
 MaterialNodeDrawer #controls {
 	flex-direction: column;
 	padding-bottom: 2;
+	background-color: #444;
 }
 
 MaterialNodeDrawer #controls #element{
@@ -67,6 +80,7 @@ MaterialNodeDrawer #controls #element{
 
 MaterialNodeDrawer #preview {
 	flex-direction: column;
+	background-color: #444;
 }
 
 MaterialNodeDrawer #preview #image {
