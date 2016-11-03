@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using RMGUI.GraphView;
-using RMGUI.GraphView.Demo;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -23,7 +22,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             AddManipulator(new ContextualMenu(DoContextMenu));
 
             dataMapper[typeof(MaterialNodeDrawData)] = typeof(MaterialNodeDrawer);
-            dataMapper[typeof(NodeAnchorData)] = typeof(NodeAnchor);
+            dataMapper[typeof(AnchorDrawData)] = typeof(NodeAnchor);
             dataMapper[typeof(EdgeData)] = typeof(Edge);
 
             var dictionary = new Dictionary<Event, ShortcutDelegate>();

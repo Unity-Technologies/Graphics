@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using RMGUI.GraphView;
-using RMGUI.GraphView.Demo;
 using UnityEngine;
 using UnityEngine.RMGUI;
 using UnityEditor.Graphing.Util;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    [GUISkinStyle("window")]
     public class NodeDrawer : GraphElement
     {
         VisualContainer m_SlotContainer;
-        List<NodeAnchorData> m_currentAnchors;
+        List<AnchorDrawData> m_currentAnchors;
         VisualContainer m_ControlsContainer;
         List<ControlDrawData> m_currentControlDrawData;
 
@@ -36,29 +34,13 @@ namespace UnityEditor.Graphing.Drawing
 
         private void AddContainers()
         {
-            AddSlotsContainer();
-
-            m_currentAnchors = new List<NodeAnchorData>();
-
-            // Add controls container
-            m_ControlsContainer = new VisualContainer
-            {
-                name = "controls", // for USS&Flexbox
-                pickingMode = PickingMode.Ignore,
-            };
-            AddChild(m_ControlsContainer);
-
-            m_currentControlDrawData = new List<ControlDrawData>();
-        }
-
-        private void AddSlotsContainer()
-        {
             // Add slots (with input & output sub-containers) container
             m_SlotContainer = new VisualContainer
             {
                 name = "slots", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
+            AddChild(m_SlotContainer);
 
             var inputs = new VisualContainer
             {
@@ -74,12 +56,22 @@ namespace UnityEditor.Graphing.Drawing
             };
             m_SlotContainer.AddChild(outputs);
 
-            AddChild(m_SlotContainer);
+            m_currentAnchors = new List<AnchorDrawData>();
+
+            // Add controls container
+            m_ControlsContainer = new VisualContainer
+            {
+                name = "controls", // for USS&Flexbox
+                pickingMode = PickingMode.Ignore,
+            };
+            AddChild(m_ControlsContainer);
+
+            m_currentControlDrawData = new List<ControlDrawData>();
         }
 
         private void AddSlots(NodeDrawData nodeData)
         {
-            var anchors = nodeData.elements.OfType<NodeAnchorData>().ToList();
+            var anchors = nodeData.elements.OfType<AnchorDrawData>().ToList();
 
             if (anchors.Count == 0)
                 return;
@@ -93,7 +85,7 @@ namespace UnityEditor.Graphing.Drawing
                 inputsContainer.ClearChildren();
                 outputsContainer.ClearChildren();
 
-                foreach (var anchor in nodeData.elements.OfType<NodeAnchorData>())
+                foreach (var anchor in nodeData.elements.OfType<AnchorDrawData>())
                 {
                     if (anchor.direction == Direction.Input)
                         inputsContainer.AddChild(new NodeAnchor(anchor));

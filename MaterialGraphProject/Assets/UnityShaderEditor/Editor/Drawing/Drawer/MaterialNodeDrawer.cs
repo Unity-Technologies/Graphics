@@ -9,7 +9,6 @@ using UnityEngine;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
-    [GUISkinStyle("window")]
     public class MaterialNodeDrawer : NodeDrawer
     {
         VisualContainer m_PreviewContainer;
