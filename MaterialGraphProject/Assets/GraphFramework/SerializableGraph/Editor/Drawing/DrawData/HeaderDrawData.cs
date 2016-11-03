@@ -1,4 +1,5 @@
-﻿using UnityEngine.Graphing;
+﻿using System;
+using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -7,7 +8,23 @@ namespace UnityEditor.Graphing.Drawing
         protected HeaderDrawData()
         {}
 
-        public INode node { get; private set; }
+        private INode node;
+
+        public string title
+        {
+            get { return node.name; }
+        }
+
+        public bool expanded
+        {
+            get { return node.drawState.expanded; }
+            set
+            {
+                var state = node.drawState;
+                state.expanded = value;
+                node.drawState = state;
+            }
+        }
 
         public void Initialize(INode inNode)
         {

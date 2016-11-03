@@ -2,10 +2,23 @@ MaterialNodeDrawer {
 	flex-direction: column;
 }
 
+HeaderDrawer {
+    flex-direction: row;
+}
 
-MaterialNodeDrawer #header #title {
+HeaderDrawer #title {
     text-color: #FFFFFF;
 	width: 200;
+	text-alignment: middle-center;
+}
+
+HeaderDrawer #expandButton {
+    text-color: #FFFFFF;
+    position-type: absolute;
+    position-top: 0;
+    position-left: 5;
+    background-color: #000;
+    width: 10;
 	text-alignment: middle-center;
 }
 

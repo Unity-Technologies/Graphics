@@ -18,6 +18,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public override void OnModified(ModificationScope scope)
         {
             base.OnModified(scope);
+            // TODO: Propagate callback rather than setting property
             if (nodePreviewDrawData != null)
                 nodePreviewDrawData.modificationScope = scope;
         }

@@ -24,6 +24,7 @@ namespace UnityEditor.Graphing.Drawing
             AddDecorator(new GridBackground());
 
             dataMapper[typeof(NodeDrawData)] = typeof(NodeDrawer);
+            dataMapper[typeof(HeaderDrawData)] = typeof(HeaderDrawer);
         }
 
         private EventPropagation DeleteSelection()

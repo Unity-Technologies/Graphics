@@ -12,6 +12,8 @@ namespace UnityEditor.Graphing.Drawing
 
         public INode node { get; private set; }
 
+        [SerializeField] public bool expanded = true;
+
         protected List<GraphElementData> m_Children = new List<GraphElementData>();
 
         public IEnumerable<GraphElementData> elements
@@ -20,7 +22,9 @@ namespace UnityEditor.Graphing.Drawing
         }
 
         public virtual void OnModified(ModificationScope scope)
-        {}
+        {
+            expanded = node.drawState.expanded;
+        }
 
         public void CommitChanges()
         {
@@ -43,10 +47,11 @@ namespace UnityEditor.Graphing.Drawing
                 return;
 
             name = inNode.name;
+            expanded = node.drawState.expanded;
 
-            var headerData = CreateInstance<HeaderDrawData>();
-            headerData.Initialize(inNode);
-            m_Children.Add(headerData);
+            var m_HeaderData = CreateInstance<HeaderDrawData>();
+            m_HeaderData.Initialize(inNode);
+            m_Children.Add(m_HeaderData);
 
             foreach (var input in node.GetSlots<ISlot>())
             {
