@@ -44,6 +44,10 @@ namespace UnityEditor.Graphing.Drawing
 
             name = inNode.name;
 
+            var headerData = CreateInstance<HeaderDrawData>();
+            headerData.Initialize(inNode);
+            m_Children.Add(headerData);
+
             foreach (var input in node.GetSlots<ISlot>())
             {
                 var data = CreateInstance<AnchorDrawData>();
