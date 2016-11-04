@@ -287,7 +287,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             };
 
             //@TODO: need to get light probes + LPPV too?
-            settings.inputCullingOptions.SetQueuesOpaque();
+            settings.inputFilter.SetQueuesOpaque();
             settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
             loop.DrawRenderers(ref settings);
         }
@@ -312,8 +312,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
             };
             settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-            if (opaquesOnly) settings.inputCullingOptions.SetQueuesOpaque();
-            else settings.inputCullingOptions.SetQueuesTransparent();
+            if (opaquesOnly) settings.inputFilter.SetQueuesOpaque();
+            else settings.inputFilter.SetQueuesTransparent();
 
             loop.DrawRenderers(ref settings);
         }
@@ -330,7 +330,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
             };
-            settings.inputCullingOptions.SetQueuesOpaque();
+            settings.inputFilter.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
         }
 
