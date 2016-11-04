@@ -285,7 +285,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
             settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-            settings.inputCullingOptions.SetQueuesOpaque();
+            settings.inputFilter.SetQueuesOpaque();
             renderLoop.DrawRenderers(ref settings);
         }
 
@@ -299,7 +299,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes,
                 sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
             };
-            settings.inputCullingOptions.SetQueuesTransparent();
+            settings.inputFilter.SetQueuesTransparent();
             renderLoop.DrawRenderers(ref settings);
         }
 
@@ -432,7 +432,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             RenderOpaqueRenderList(cullResults, camera, renderLoop, "ForwardUnlit");
             RenderTransparentRenderList(cullResults, camera, renderLoop, "ForwardUnlit");
-        }        
+        }
 
         void FinalPass(RenderLoop renderLoop)
         {
@@ -514,8 +514,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (light.lightType == LightType.Spot)
                 {
-                    var spotAngle = light.light.spotAngle;
-                    
+                    var spotAngle = light.spotAngle;
+
                     var innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
                     var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
@@ -570,7 +570,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                         s.bias = light.light.shadowBias;
 
-                        shadows.Add(s);                        
+                        shadows.Add(s);
                     }
                 }
 
@@ -581,7 +581,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             Shader.SetGlobalBuffer("_PunctualLightList", s_punctualLightList);
             Shader.SetGlobalInt("_PunctualLightCount", lights.Count);
-            Shader.SetGlobalBuffer("_PunctualShadowList", s_punctualShadowList);            
+            Shader.SetGlobalBuffer("_PunctualShadowList", s_punctualShadowList);
         }
 
         void UpdateReflectionProbes(VisibleReflectionProbe[] activeReflectionProbes)

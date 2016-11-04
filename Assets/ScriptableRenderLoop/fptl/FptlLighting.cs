@@ -287,7 +287,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             };
 
             //@TODO: need to get light probes + LPPV too?
-            settings.inputCullingOptions.SetQueuesOpaque();
+            settings.inputFilter.SetQueuesOpaque();
             settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
             loop.DrawRenderers(ref settings);
         }
@@ -312,8 +312,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
             };
             settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
-            if (opaquesOnly) settings.inputCullingOptions.SetQueuesOpaque();
-            else settings.inputCullingOptions.SetQueuesTransparent();
+            if (opaquesOnly) settings.inputFilter.SetQueuesOpaque();
+            else settings.inputFilter.SetQueuesTransparent();
 
             loop.DrawRenderers(ref settings);
         }
@@ -330,7 +330,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
             };
-            settings.inputCullingOptions.SetQueuesOpaque();
+            settings.inputFilter.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
         }
 
@@ -656,12 +656,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     const float pi = 3.1415926535897932384626433832795f;
                     const float degToRad = (float)(pi / 180.0);
-                    const float radToDeg = (float)(180.0 / pi);
 
 
-                    //float sa = cl.GetSpotAngle();     // total field of view from left to right side
-                    var sa = radToDeg * (2 * Mathf.Acos(1.0f / cl.invCosHalfSpotAngle));       // spot angle doesn't exist in the structure so reversing it for now.
-
+                    var sa = cl.spotAngle;
 
                     var cs = Mathf.Cos(0.5f * sa * degToRad);
                     var si = Mathf.Sin(0.5f * sa * degToRad);
