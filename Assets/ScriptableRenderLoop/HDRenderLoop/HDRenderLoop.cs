@@ -514,7 +514,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (light.lightType == LightType.Spot)
                 {
-                    var spotAngle = light.light.spotAngle;
+                    var spotAngle = light.spotAngle;
 
                     var innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
