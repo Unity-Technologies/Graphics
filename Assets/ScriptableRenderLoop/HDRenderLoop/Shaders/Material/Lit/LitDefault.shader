@@ -114,34 +114,49 @@ Shader "HDRenderLoop/Lit"
 
     // Set of users variables
     float4 _BaseColor;
-    UNITY_DECLARE_TEX2D(_BaseColorMap);
+	TEXTURE2D(_BaseColorMap);
+	SAMPLER2D(sampler_BaseColorMap);
 
     float _Metallic;
     float _Smoothness;
-    UNITY_DECLARE_TEX2D(_MaskMap);
-    UNITY_DECLARE_TEX2D(_SpecularOcclusionMap);
+	TEXTURE2D(_MaskMap);
+	SAMPLER2D(sampler_MaskMap);
+	TEXTURE2D(_SpecularOcclusionMap);
+	SAMPLER2D(sampler_SpecularOcclusionMap);
 
-    UNITY_DECLARE_TEX2D(_NormalMap);
-    UNITY_DECLARE_TEX2D(_Heightmap);
+	TEXTURE2D(_NormalMap);
+	SAMPLER2D(sampler_NormalMap);
+	TEXTURE2D(_Heightmap);
+	SAMPLER2D(sampler_Heightmap);
+
     float _HeightScale;
     float _HeightBias;
 
-    UNITY_DECLARE_TEX2D(_DiffuseLightingMap);
+    TEXTURE2D(_DiffuseLightingMap);
+	SAMPLER2D(sampler_DiffuseLightingMap);
+
     float4 _EmissiveColor;
-    UNITY_DECLARE_TEX2D(_EmissiveColorMap);
-    float _EmissiveIntensity;
+    TEXTURE2D(_EmissiveColorMap);
+	SAMPLER2D(sampler_EmissiveColorMap);
+
+	float _EmissiveIntensity;
 
     float _SubSurfaceRadius;
-    UNITY_DECLARE_TEX2D(_SubSurfaceRadiusMap);
+	TEXTURE2D(_SubSurfaceRadiusMap);
+	SAMPLER2D(sampler_SubSurfaceRadiusMap);
+
     // float _Thickness;
-    // UNITY_DECLARE_TEX2D(_ThicknessMap);
+	//TEXTURE2D(_ThicknessMap);
+	//SAMPLER2D(sampler_ThicknessMap);
 
     // float _CoatCoverage;
-    // UNITY_DECLARE_TEX2D(_CoatCoverageMap);
+	//TEXTURE2D(_CoatCoverageMap);
+	//SAMPLER2D(sampler_CoatCoverageMap);
 
     // float _CoatRoughness;
-    // UNITY_DECLARE_TEX2D(_CoatRoughnessMap);
-
+	//TEXTURE2D(_CoatRoughnessMap);
+	//SAMPLER2D(sampler_CoatRoughnessMap);
+ 
     float _AlphaCutoff;
 
     ENDHLSL

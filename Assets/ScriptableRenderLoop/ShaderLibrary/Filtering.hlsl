@@ -1,7 +1,7 @@
 // Ref: https://gist.github.com/TheRealMJP/c83b8c0f46b63f3a88a5986f4fa982b1 from MJP
 // Samples a texture with Catmull-Rom filtering, using 9 texture fetches instead of 16.
 // See http://vec3.ca/bicubic-filtering-in-fewer-taps/ for more details
-float4 SampleTextureCatmullRom(Texture2D<float4> tex, SamplerState linearSampler, float2 uv, float2 texSize)
+float4 SampleTextureCatmullRom(TEXTURE2D_ARGS(tex, linearSampler), float2 uv, float2 texSize)
 {
     // We're going to sample a a 4x4 grid of texels surrounding the target UV coordinate. We'll do this by rounding
     // down the sample location to get the exact center of our "starting" texel. The starting texel will be at
@@ -43,18 +43,18 @@ float4 SampleTextureCatmullRom(Texture2D<float4> tex, SamplerState linearSampler
     texPos3 /= texSize;
     texPos12 /= texSize;
 
-    float4 result = 0.0f;
-    result += tex.SampleLevel(linearSampler, float2(texPos0.x, texPos0.y), 0.0f) * w0.x * w0.y;
-    result += tex.SampleLevel(linearSampler, float2(texPos12.x, texPos0.y), 0.0f) * w12.x * w0.y;
-    result += tex.SampleLevel(linearSampler, float2(texPos3.x, texPos0.y), 0.0f) * w3.x * w0.y;
+    float4 result = 0.0;
+    result += TEXTURE2D_SAMPLE_LOD(tex, linearSampler, float2(texPos0.x, texPos0.y), 0.0) * w0.x * w0.y;
+    result += TEXTURE2D_SAMPLE_LOD(tex, linearSampler, float2(texPos12.x, texPos0.y), 0.0) * w12.x * w0.y;
+    result += TEXTURE2D_SAMPLE_LOD(tex, linearSampler, float2(texPos3.x, texPos0.y), 0.0) * w3.x * w0.y;
 
-    result += tex.SampleLevel(linearSampler, float2(texPos0.x, texPos12.y), 0.0f) * w0.x * w12.y;
-    result += tex.SampleLevel(linearSampler, float2(texPos12.x, texPos12.y), 0.0f) * w12.x * w12.y;
-    result += tex.SampleLevel(linearSampler, float2(texPos3.x, texPos12.y), 0.0f) * w3.x * w12.y;
+    result += TEXTURE2D_SAMPLE_LOD(tex, linearSampler, float2(texPos0.x, texPos12.y), 0.0) * w0.x * w12.y;
+    result += TEXTURE2D_SAMPLE_LOD(tex, linearSampler, float2(texPos12.x, texPos12.y), 0.0) * w12.x * w12.y;
+    result += TEXTURE2D_SAMPLE_LOD(tex, linearSampler, float2(texPos3.x, texPos12.y), 0.0) * w3.x * w12.y;
 
-    result += tex.SampleLevel(linearSampler, float2(texPos0.x, texPos3.y), 0.0f) * w0.x * w3.y;
-    result += tex.SampleLevel(linearSampler, float2(texPos12.x, texPos3.y), 0.0f) * w12.x * w3.y;
-    result += tex.SampleLevel(linearSampler, float2(texPos3.x, texPos3.y), 0.0f) * w3.x * w3.y;
+    result += TEXTURE2D_SAMPLE_LOD(tex, linearSampler, float2(texPos0.x, texPos3.y), 0.0) * w0.x * w3.y;
+    result += TEXTURE2D_SAMPLE_LOD(tex, linearSampler, float2(texPos12.x, texPos3.y), 0.0) * w12.x * w3.y;
+    result += TEXTURE2D_SAMPLE_LOD(tex, linearSampler, float2(texPos3.x, texPos3.y), 0.0) * w3.x * w3.y;
 
     return result;
 }

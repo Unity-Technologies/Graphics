@@ -27,9 +27,13 @@ int UnpackMaterialId(float f)
 
 // TODO: How can I declare a sampler for this one that is bilinear filtering
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
-UNITY_DECLARE_TEX2D(_PreIntegratedFGD);
-UNITY_DECLARE_TEX2D(_LtcGGXMatrix);
-UNITY_DECLARE_TEX2D(_LtcGGXMagnitude);
+TEXTURE2D(_PreIntegratedFGD);
+SAMPLER2D(sampler_PreIntegratedFGD);
+TEXTURE2D(_LtcGGXMatrix);
+SAMPLER2D(sampler_LtcGGXMatrix);
+TEXTURE2D(_LtcGGXMagnitude);
+SAMPLER2D(sampler_LtcGGXMagnitude);
+
 
 // For image based lighting, a part of the BSDF is pre-integrated.
 // This is done both for specular and diffuse (in case of DisneyDiffuse)
@@ -40,7 +44,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     //  _PreIntegratedFGD.y = Gv * Fc
     // Pre integrate DisneyDiffuse FGD:
     // _PreIntegratedFGD.z = DisneyDiffuse
-    float3 preFGD = UNITY_SAMPLE_TEX2D_LOD(_PreIntegratedFGD, float2(NdotV, perceptualRoughness), 0).xyz;
+    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, sampler_PreIntegratedFGD, float2(NdotV, perceptualRoughness), 0).xyz;
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
@@ -413,9 +417,9 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.minV = 0.0;
     preLightData.minV._m22 = 1.0;
-    preLightData.minV._m00_m02_m11_m20 = UNITY_SAMPLE_TEX2D_LOD(_LtcGGXMatrix, uv, 0);
+    preLightData.minV._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcGGXMatrix, sampler_LtcGGXMatrix, uv, 0);
 
-    preLightData.ltcGGXMagnitude = UNITY_SAMPLE_TEX2D_LOD(_LtcGGXMagnitude, uv, 0).w;
+    preLightData.ltcGGXMagnitude = SAMPLE_TEXTURE2D_LOD(_LtcGGXMagnitude, sampler_LtcGGXMagnitude, uv, 0).w;
 
     // Shadow
     preLightData.unPositionSS = coord.unPositionSS;

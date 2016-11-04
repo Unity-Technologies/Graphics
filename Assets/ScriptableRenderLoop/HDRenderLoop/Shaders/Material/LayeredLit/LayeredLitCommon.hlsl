@@ -18,15 +18,16 @@
 
 #define PROP_DECL(type, name) type name, name##0, name##1, name##2, name##3;
 #define PROP_DECL_TEX2D(name)\
-    UNITY_DECLARE_TEX2D(name##0);\
-    UNITY_DECLARE_TEX2D_NOSAMPLER(name##1);\
-    UNITY_DECLARE_TEX2D_NOSAMPLER(name##2);\
-    UNITY_DECLARE_TEX2D_NOSAMPLER(name##3);
+    TEXTURE2D(name##0);\
+	SAMPLER2D(sampler##name##0); \
+    TEXTURE2D(name##1);\
+    TEXTURE2D(name##2);\
+    TEXTURE2D(name##3);
 #define PROP_SAMPLE(name, textureName, texcoord, swizzle)\
-    name##0 = UNITY_SAMPLE_TEX2D_SAMPLER(textureName##0, textureName##0, texcoord).##swizzle; \
-    name##1 = UNITY_SAMPLE_TEX2D_SAMPLER(textureName##1, textureName##0, texcoord).##swizzle; \
-    name##2 = UNITY_SAMPLE_TEX2D_SAMPLER(textureName##2, textureName##0, texcoord).##swizzle; \
-    name##3 = UNITY_SAMPLE_TEX2D_SAMPLER(textureName##3, textureName##0, texcoord).##swizzle;
+    name##0 = SAMPLE_TEXTURE2D(textureName##0, sampler##textureName##0, texcoord).##swizzle; \
+    name##1 = SAMPLE_TEXTURE2D(textureName##1, sampler##textureName##0, texcoord).##swizzle; \
+    name##2 = SAMPLE_TEXTURE2D(textureName##2, sampler##textureName##0, texcoord).##swizzle; \
+    name##3 = SAMPLE_TEXTURE2D(textureName##3, sampler##textureName##0, texcoord).##swizzle;
 #define PROP_MUL(name, multiplier, swizzle)\
     name##0 *= multiplier##0.##swizzle; \
     name##1 *= multiplier##1.##swizzle; \
@@ -74,7 +75,8 @@ PROP_DECL(float4, _EmissiveColor);
 PROP_DECL(float, _EmissiveIntensity);
 
 float _AlphaCutoff;
-UNITY_DECLARE_TEX2D(_LayerMaskMap);
+TEXTURE2D(_LayerMaskMap);
+SAMPLER2D(sampler_LayerMaskMap);
 
 //-------------------------------------------------------------------------------------
 // Lighting architecture
@@ -260,7 +262,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     float4 maskValues = float4(1.0, 1.0, 1.0, 1.0);// input.vertexColor;
 
 #ifdef _LAYERMASKMAP
-    float4 maskMap = UNITY_SAMPLE_TEX2D(_LayerMaskMap, input.texCoord0);
+    float4 maskMap = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0);
     maskValues *= maskMap;
 #endif
 
@@ -308,16 +310,16 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-    float3 normalTS0 = UnpackNormalAG(UNITY_SAMPLE_TEX2D_SAMPLER(_NormalMap0, _NormalMap0, input.texCoord0));
-    float3 normalTS1 = UnpackNormalAG(UNITY_SAMPLE_TEX2D_SAMPLER(_NormalMap1, _NormalMap0, input.texCoord0));
-    float3 normalTS2 = UnpackNormalAG(UNITY_SAMPLE_TEX2D_SAMPLER(_NormalMap2, _NormalMap0, input.texCoord0));
-    float3 normalTS3 = UnpackNormalAG(UNITY_SAMPLE_TEX2D_SAMPLER(_NormalMap3, _NormalMap0, input.texCoord0));
+    float3 normalTS0 = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap0, sampler_NormalMap0, input.texCoord0));
+    float3 normalTS1 = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap1, sampler_NormalMap0, input.texCoord0));
+    float3 normalTS2 = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap2, sampler_NormalMap0, input.texCoord0));
+    float3 normalTS3 = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap3, sampler_NormalMap0, input.texCoord0));
 
     float3 normalTS = BlendLayeredNormal(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     #else // Object space (TODO: We need to apply the world rotation here!)
-    surfaceData.normalWS = UNITY_SAMPLE_TEX2D(_NormalMap, input.texCoord0).rgb;
+    surfaceData.normalWS = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.texCoord0).rgb;
     #endif
 #else
     surfaceData.normalWS = vertexNormalWS;
@@ -385,7 +387,7 @@ void GetSurfaceAndBuiltinData(Varyings input, out SurfaceData surfaceData, out B
     // TODO: Sample lightmap/lightprobe/volume proxy
     // This should also handle projective lightmap
     // Note that data input above can be use to sample into lightmap (like normal)
-    builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);// tex2D(_DiffuseLightingMap, input.texCoord0).rgb;
+	builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
     // If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
     PROP_DECL(float3, emissiveColor);
