@@ -47,7 +47,7 @@ public class BasicRenderLoop : MonoBehaviour
             // Draw opaque objects using BasicPass shader pass
             var settings = new DrawRendererSettings (cull, camera, shaderPassBasic);
             settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-            settings.inputCullingOptions.SetQueuesOpaque ();
+            settings.inputFilter.SetQueuesOpaque ();
             loop.DrawRenderers (ref settings);
 
             // Draw skybox
@@ -55,7 +55,7 @@ public class BasicRenderLoop : MonoBehaviour
 
             // Draw transparent objects using BasicPass shader pass
             settings.sorting.sortOptions = SortOptions.BackToFront; // sort back to front
-            settings.inputCullingOptions.SetQueuesTransparent ();
+            settings.inputFilter.SetQueuesTransparent ();
             loop.DrawRenderers (ref settings);
 
             loop.Submit ();
@@ -118,7 +118,7 @@ public class BasicRenderLoop : MonoBehaviour
                 var dir = light.localToWorld.GetColumn (2);
                 lightSpotDirections[i] = new Vector4 (-dir.x, -dir.y, -dir.z, 0);
 
-                float radAngle = Mathf.Deg2Rad * light.light.spotAngle;
+                float radAngle = Mathf.Deg2Rad * light.spotAngle;
                 float cosTheta = Mathf.Cos (radAngle * 0.25f);
                 float cosPhi = Mathf.Cos (radAngle * 0.5f);
                 float cosDiff = cosTheta - cosPhi;
