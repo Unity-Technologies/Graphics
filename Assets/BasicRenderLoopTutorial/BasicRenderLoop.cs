@@ -47,7 +47,7 @@ public class BasicRenderLoop : MonoBehaviour
             // Draw opaque objects using BasicPass shader pass
             var settings = new DrawRendererSettings (cull, camera, shaderPassBasic);
             settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
-            settings.inputCullingOptions.SetQueuesOpaque ();
+            settings.inputFilter.SetQueuesOpaque ();
             loop.DrawRenderers (ref settings);
 
             // Draw skybox
@@ -55,7 +55,7 @@ public class BasicRenderLoop : MonoBehaviour
 
             // Draw transparent objects using BasicPass shader pass
             settings.sorting.sortOptions = SortOptions.BackToFront; // sort back to front
-            settings.inputCullingOptions.SetQueuesTransparent ();
+            settings.inputFilter.SetQueuesTransparent ();
             loop.DrawRenderers (ref settings);
 
             loop.Submit ();
