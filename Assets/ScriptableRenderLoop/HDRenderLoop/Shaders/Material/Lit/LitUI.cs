@@ -85,13 +85,14 @@ namespace UnityEditor
             public static GUIContent specularOcclusionMapText = new GUIContent("Specular Occlusion Map (RGBA)", "Specular Occlusion Map");
 
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC5) - DXT5 for test");
-            public static GUIContent normalMapSpaceText = new GUIContent("Normal Map space", "");
+            public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
 
             public static GUIContent heightMapText = new GUIContent("Height Map", "Height Map");
             public static GUIContent heightMapModeText = new GUIContent("Height Map Mode", "");
 
-
-            // public static GUIContent diffuseLightingMapText = new GUIContent("DiffuseLightingMap", "Lightmap/Lightprobe data (fill by system is not done");
+            public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC5) - DXT5 for test");
+            public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
+            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map", "Anisotropy (R)");
 
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
@@ -116,8 +117,10 @@ namespace UnityEditor
         MaterialProperty heightMap = null;
         MaterialProperty heightScale = null;
         MaterialProperty heightBias = null;
+        MaterialProperty tangentMap = null;
+        MaterialProperty anisotropy = null;
+        MaterialProperty anisotropyMap = null;
         MaterialProperty heightMapMode = null;
-//	MaterialProperty diffuseLightingMap = null;
         MaterialProperty emissiveColor = null;
         MaterialProperty emissiveColorMap = null;
         MaterialProperty emissiveIntensity = null;
@@ -141,6 +144,8 @@ namespace UnityEditor
         protected const string kspecularOcclusionMap = "_SpecularOcclusionMap";
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
         protected const string kHeightMap = "_HeightMap";
+        protected const string kTangentMap = "_TangentMap";
+        protected const string kAnisotropyMap = "_AnisotropyMap";
 
         public void FindOptionProperties(MaterialProperty[] props)
         {
@@ -167,7 +172,9 @@ namespace UnityEditor
             heightMap = FindProperty(kHeightMap, props);
             heightScale = FindProperty("_HeightScale", props);
             heightBias = FindProperty("_HeightBias", props);
-            // diffuseLightingMap = FindProperty("_DiffuseLightingMap", props);
+            tangentMap = FindProperty("_TangentMap", props);
+            anisotropy = FindProperty("_Anisotropy", props);
+            anisotropyMap = FindProperty("_AnisotropyMap", props);
             emissiveColor = FindProperty("_EmissiveColor", props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty("_EmissiveIntensity", props);
@@ -238,6 +245,12 @@ namespace UnityEditor
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap, heightScale, heightBias);
+
+            m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
+
+            m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
+            
+            m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap, anisotropy);
 
             if (!useEmissiveMask)
             {
@@ -316,6 +329,8 @@ namespace UnityEditor
             SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kspecularOcclusionMap));
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
+            SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
+            SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
         }
 
         protected void SetupMaterial(Material material)

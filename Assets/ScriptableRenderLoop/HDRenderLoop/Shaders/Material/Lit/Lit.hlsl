@@ -49,7 +49,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
 
-#if DIFFUSE_LAMBERT_BRDF
+#ifdef DIFFUSE_LAMBERT_BRDF
     diffuseFGD = 1.0;
 #else
     diffuseFGD = preFGD.z;
@@ -181,6 +181,7 @@ BSDFData DecodeFromGBuffer( float4 inGBuffer0,
         bsdfData.fresnel0 = lerp(float3(specular, specular, specular), baseColor, metallic);
 
         bsdfData.tangentWS = UnpackNormalOctEncode(float2(inGBuffer2.rg * 2.0 - 1.0));
+        // TODO: Do we need to orthonormalize here, IIRC Eric say that we should
         bsdfData.bitangentWS = cross(bsdfData.normalWS, bsdfData.tangentWS);
         ConvertAnisotropyToRoughness(bsdfData.roughness, anisotropy, bsdfData.roughnessT, bsdfData.roughnessB);
         bsdfData.anisotropy = anisotropy;
@@ -490,15 +491,17 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
         #ifdef USE_BSDF_PRE_LAMBDAV
         Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
-                                            bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXlambdaV);
+                                            bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXLambdaV);
         #else
+        // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
         Vis = V_SmithJointGGXAniso( preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
                                     bsdfData.roughnessT, bsdfData.roughnessB);
         #endif
 
-        float TdotH = saturate(dot(bsdfData.tangentWS, H));
-        float BdotH = saturate(dot(bsdfData.bitangentWS, H));
-        D = D_GGXAnisoDividePI(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
+        // For anisotropy we must not saturate these values
+        float TdotH = dot(bsdfData.tangentWS, H);
+        float BdotH = dot(bsdfData.bitangentWS, H);
+        D = D_GGXAniso(TdotH, BdotH, NdotH, bsdfData.roughnessT, bsdfData.roughnessB);
     }
     else
     {
@@ -507,13 +510,13 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         #else
         Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness);
         #endif
-        D = D_GGXDividePI(NdotH, bsdfData.roughness);
+        D = D_GGX(NdotH, bsdfData.roughness);
     }
     specularLighting.rgb = F * Vis * D;
     #ifdef DIFFUSE_LAMBERT_BRDF
-    float diffuseTerm = LambertDividePI();
+    float diffuseTerm = Lambert();
     #else
-    float diffuseTerm = DisneyDiffuseDividePI(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
+    float diffuseTerm = DisneyDiffuse(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
     #endif
     diffuseLighting.rgb = bsdfData.diffuseColor * diffuseTerm;
 }
@@ -543,31 +546,31 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
     specularLighting = float4(0.0, 0.0, 0.0, 1.0);
 
-	// TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
+    // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
     /*
-	[branch] if (lightData.cookieIndex && illuminance > 0.0f)
-	{
-	    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-		illuminance *= SampleCookie(lightData.cookieIndex, lightToWorld, L);
-	}
+    [branch] if (lightData.cookieIndex && illuminance > 0.0f)
+    {
+        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+        illuminance *= SampleCookie(lightData.cookieIndex, lightToWorld, L);
+    }
     */
 
-	[branch] if (lightData.IESIndex >= 0 && illuminance > 0.0f)
-	{
-	    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0f)
+    {
+        float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
         float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
         illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
-	}
+    }
 
-	[branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
-	{
-		float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
+    {
+        float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
         float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, positionWS + offset, lightData.shadowIndex, L, preLightData.unPositionSS);
-		shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
+        shadowAttenuation = lerp(1.0, shadowAttenuation, lightData.shadowDimmer);
 
-		illuminance *= shadowAttenuation;
-	}
+        illuminance *= shadowAttenuation;
+    }
 
     [branch] if (illuminance > 0.0f)
     {
@@ -723,7 +726,7 @@ float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
             float4 val = SampleEnv(lightLoopContext, lightData.envIndex, L, 0);
 
             // diffuse Albedo is apply here as describe in ImportanceSampleLambert function
-            acc += bsdfData.diffuseColor * Lambert() * weightOverPdf * val.rgb;
+            acc += bsdfData.diffuseColor * LambertNoPI() * weightOverPdf * val.rgb;
         }
     }
 
