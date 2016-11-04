@@ -23,6 +23,10 @@ Shader "HDRenderLoop/Lit"
         _HeightBias("Height Bias", Float) = 0
         [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
 
+        _TangentMap("TangentMap", 2D) = "bump" {}
+        _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
+        _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
+
         _SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
         _SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
         //_Thickness("Thickness", Range(0.0, 1.0)) = 0
@@ -41,7 +45,6 @@ Shader "HDRenderLoop/Lit"
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
 
-        _DiffuseLightingMap("DiffuseLightingMap", 2D) = "black" {}
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
@@ -87,10 +90,12 @@ Shader "HDRenderLoop/Lit"
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
+    #pragma shader_feature _TANGENTMAP
+    #pragma shader_feature _ANISOTROPYMAP
 
-	#pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
-	#pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
-	#pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+    #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
+    #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
+    #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -114,48 +119,55 @@ Shader "HDRenderLoop/Lit"
 
     // Set of users variables
     float4 _BaseColor;
-	TEXTURE2D(_BaseColorMap);
-	SAMPLER2D(sampler_BaseColorMap);
+    TEXTURE2D(_BaseColorMap);
+    SAMPLER2D(sampler_BaseColorMap);
 
     float _Metallic;
     float _Smoothness;
-	TEXTURE2D(_MaskMap);
-	SAMPLER2D(sampler_MaskMap);
-	TEXTURE2D(_SpecularOcclusionMap);
-	SAMPLER2D(sampler_SpecularOcclusionMap);
+    TEXTURE2D(_MaskMap);
+    SAMPLER2D(sampler_MaskMap);
+    TEXTURE2D(_SpecularOcclusionMap);
+    SAMPLER2D(sampler_SpecularOcclusionMap);
 
-	TEXTURE2D(_NormalMap);
-	SAMPLER2D(sampler_NormalMap);
-	TEXTURE2D(_Heightmap);
-	SAMPLER2D(sampler_Heightmap);
+    TEXTURE2D(_NormalMap);
+    SAMPLER2D(sampler_NormalMap);
+    TEXTURE2D(_Heightmap);
+    SAMPLER2D(sampler_Heightmap);
 
     float _HeightScale;
     float _HeightBias;
 
+    TEXTURE2D(_TangentMap);
+    SAMPLER2D(sampler_TangentMap);
+
+    float _Anisotropy;
+    TEXTURE2D(_AnisotropyMap);
+    SAMPLER2D(sampler_AnisotropyMap);
+
     TEXTURE2D(_DiffuseLightingMap);
-	SAMPLER2D(sampler_DiffuseLightingMap);
+    SAMPLER2D(sampler_DiffuseLightingMap);
 
     float4 _EmissiveColor;
     TEXTURE2D(_EmissiveColorMap);
-	SAMPLER2D(sampler_EmissiveColorMap);
+    SAMPLER2D(sampler_EmissiveColorMap);
 
-	float _EmissiveIntensity;
+    float _EmissiveIntensity;
 
     float _SubSurfaceRadius;
-	TEXTURE2D(_SubSurfaceRadiusMap);
-	SAMPLER2D(sampler_SubSurfaceRadiusMap);
+    TEXTURE2D(_SubSurfaceRadiusMap);
+    SAMPLER2D(sampler_SubSurfaceRadiusMap);
 
     // float _Thickness;
-	//TEXTURE2D(_ThicknessMap);
-	//SAMPLER2D(sampler_ThicknessMap);
+    //TEXTURE2D(_ThicknessMap);
+    //SAMPLER2D(sampler_ThicknessMap);
 
     // float _CoatCoverage;
-	//TEXTURE2D(_CoatCoverageMap);
-	//SAMPLER2D(sampler_CoatCoverageMap);
+    //TEXTURE2D(_CoatCoverageMap);
+    //SAMPLER2D(sampler_CoatCoverageMap);
 
     // float _CoatRoughness;
-	//TEXTURE2D(_CoatRoughnessMap);
-	//SAMPLER2D(sampler_CoatRoughnessMap);
+    //TEXTURE2D(_CoatRoughnessMap);
+    //SAMPLER2D(sampler_CoatRoughnessMap);
  
     float _AlphaCutoff;
 
@@ -364,12 +376,12 @@ Shader "HDRenderLoop/Lit"
         // ------------------------------------------------------------------
         Pass
         {
-			Name "ShadowCaster"
-			Tags{ "LightMode" = "ShadowCaster" }
+            Name "ShadowCaster"
+            Tags{ "LightMode" = "ShadowCaster" }
 
-			Cull[_CullMode]
+            Cull[_CullMode]
 
-			ZWrite On ZTest LEqual
+            ZWrite On ZTest LEqual
 
             HLSLPROGRAM
 
