@@ -220,7 +220,7 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
 }
 
 // Ref: Listing 19 in "Moving Frostbite to PBR"
-float4 IntegrateLD( UNITY_ARGS_TEXCUBE(tex),
+float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                     float3 V,
                     float3 N,
                     float roughness,
@@ -284,7 +284,7 @@ float4 IntegrateLD( UNITY_ARGS_TEXCUBE(tex),
 
         if (NdotL > 0.0f)
         {
-            float3 val = UNITY_SAMPLE_TEXCUBE_LOD(tex, L, mipLevel).rgb;
+            float3 val = SAMPLE_TEXTURECUBE_LOD(tex, sampl, L, mipLevel).rgb;
 
             // See p63 equation (53) of moving Frostbite to PBR v2 for the extra NdotL here (both in weight and value)
             acc             += val * NdotL;

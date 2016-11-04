@@ -95,7 +95,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     // TODO: in case of shader graph, a node like parallax must be nullify if use to generate code for Meta pass
     #ifndef _HEIGHTMAP_AS_DISPLACEMENT
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS); // This should be remove by the compiler as we usually cal it before.
-    float height = UNITY_SAMPLE_TEX2D(_HeightMap, input.texCoord0).r * _HeightScale + _HeightBias;
+    float height = SAMPLE_TEXTURE2D(_HeightMap, sampler_HeightMap, input.texCoord0).r * _HeightScale + _HeightBias;
     // Transform view vector in tangent space
     TransformWorldToTangent(V, input.tangentToWorld);
     float2 offset = ParallaxOffset(viewDirTS, height);
@@ -104,11 +104,11 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     #endif
 #endif
 
-    surfaceData.baseColor = UNITY_SAMPLE_TEX2D(_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
+    surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     float alpha = _BaseColor.a;
 #else
-    float alpha = UNITY_SAMPLE_TEX2D(_BaseColorMap, input.texCoord0).a * _BaseColor.a;
+    float alpha = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, input.texCoord0).a * _BaseColor.a;
 #endif
 
 #ifdef _ALPHATEST_ON
@@ -117,7 +117,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
 #ifdef _SPECULAROCCLUSIONMAP
     // TODO: Do something. For now just take alpha channel
-    surfaceData.specularOcclusion = UNITY_SAMPLE_TEX2D(_SpecularOcclusionMap, input.texCoord0).a;
+    surfaceData.specularOcclusion = SAMPLE_TEXTURE2D(_SpecularOcclusionMap, sampler_SpecularOcclusionMap, input.texCoord0).a;
 #else
     // Horizon Occlusion for Normal Mapped Reflections: http://marmosetco.tumblr.com/post/81245981087
     //surfaceData.specularOcclusion = saturate(1.0 + horizonFade * dot(r, input.tangentToWorld[2].xyz);
@@ -131,10 +131,10 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-    float3 normalTS = UnpackNormalAG(UNITY_SAMPLE_TEX2D(_NormalMap, input.texCoord0));
+    float3 normalTS = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.texCoord0));
     surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
     #else // Object space (TODO: We need to apply the world rotation here! - Require to pass world transform)
-    surfaceData.normalWS = UNITY_SAMPLE_TEX2D(_NormalMap, input.texCoord0).rgb;
+    surfaceData.normalWS = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.texCoord0).rgb;
     #endif
 #else
     surfaceData.normalWS = vertexNormalWS;
@@ -154,9 +154,9 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 #endif
 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    surfaceData.perceptualSmoothness = UNITY_SAMPLE_TEX2D(_BaseColorMap, input.texCoord0).a;
+    surfaceData.perceptualSmoothness = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, input.texCoord0).a;
 #elif defined(_MASKMAP)
-    surfaceData.perceptualSmoothness = UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).a;
+    surfaceData.perceptualSmoothness = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, input.texCoord0).a;
 #else
     surfaceData.perceptualSmoothness = 1.0;
 #endif
@@ -166,8 +166,8 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
     // MaskMap is Metallic, Ambient Occlusion, (Optional) - emissive Mask, Optional - Smoothness (in alpha)
 #ifdef _MASKMAP
-    surfaceData.metallic = UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).r;
-    surfaceData.ambientOcclusion = UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).g;
+    surfaceData.metallic = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, input.texCoord0).r;
+    surfaceData.ambientOcclusion = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, input.texCoord0).g;
 #else
     surfaceData.metallic = 1.0;
     surfaceData.ambientOcclusion = 1.0;
@@ -199,12 +199,12 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     // If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
 #ifdef _EMISSIVE_COLOR
     #ifdef _EMISSIVE_COLOR_MAP
-    builtinData.emissiveColor = UNITY_SAMPLE_TEX2D(_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
+    builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
     #else
     builtinData.emissiveColor = _EmissiveColor;
     #endif
 #elif defined(_MASKMAP) // If we have a MaskMap, use emissive slot as a mask on baseColor
-    builtinData.emissiveColor = surfaceData.baseColor * UNITY_SAMPLE_TEX2D(_MaskMap, input.texCoord0).bbb;
+    builtinData.emissiveColor = surfaceData.baseColor * SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, input.texCoord0).bbb;
 #else
     builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
 #endif

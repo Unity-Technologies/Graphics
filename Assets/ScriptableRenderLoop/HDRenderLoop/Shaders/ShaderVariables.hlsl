@@ -153,14 +153,16 @@ CBUFFER_START(UnityLighting)
 CBUFFER_END
 
 // Main lightmap
-UNITY_DECLARE_TEX2D_HALF(unity_Lightmap);
+TEXTURE2D(unity_Lightmap);
+SAMPLER2D(samplerunity_Lightmap);
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
-UNITY_DECLARE_TEX2D_NOSAMPLER_HALF(unity_LightmapInd);
+TEXTURE2D(unity_LightmapInd);
 
 // Dynamic GI lightmap
-UNITY_DECLARE_TEX2D(unity_DynamicLightmap);
-UNITY_DECLARE_TEX2D_NOSAMPLER(unity_DynamicDirectionality);
-UNITY_DECLARE_TEX2D_NOSAMPLER(unity_DynamicNormal);
+TEXTURE2D(unity_DynamicLightmap);
+SAMPLER2D(samplerunity_DynamicLightmap);
+
+TEXTURE2D(unity_DynamicDirectionality);
 
 CBUFFER_START(UnityLightmaps)
 float4 unity_LightmapST;

@@ -59,9 +59,13 @@ Shader "HDRenderLoop/Unlit"
     //-------------------------------------------------------------------------------------
 
     float4  _Color;
-    UNITY_DECLARE_TEX2D(_ColorMap);
+	TEXTURE2D(_ColorMap);
+	SAMPLER2D(sampler_ColorMap);
+
     float3 _EmissiveColor;
-    UNITY_DECLARE_TEX2D(_EmissiveColorMap);
+	TEXTURE2D(_EmissiveColorMap);
+	SAMPLER2D(sampler_EmissiveColorMap);
+
     float _EmissiveIntensity;
 
     float _AlphaCutoff;

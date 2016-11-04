@@ -45,7 +45,8 @@ Shader "Hidden/HDRenderLoop/Deferred"
             DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);
             DECLARE_GBUFFER_BAKE_LIGHTING(_CameraGBufferTexture);
 
-            UNITY_DECLARE_TEX2D(_CameraDepthTexture);
+ 			TEXTURE2D(_CameraDepthTexture);
+			SAMPLER2D(sampler_CameraDepthTexture);
 
             float4x4 _InvViewProjMatrix;
 

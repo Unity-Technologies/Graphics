@@ -107,10 +107,10 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        return UNITY_SAMPLE_TEXCUBEARRAY_LOD(_EnvTextures, float4(texCoord, index), lod);
+        return SAMPLE_TEXTURECUBE_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, float4(texCoord, index), lod);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {
-        return UNITY_SAMPLE_TEXCUBE_LOD(_SkyTexture, texCoord, lod);
+        return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, sampler_SkyTexture, texCoord, lod);
     }
 }
