@@ -42,7 +42,7 @@ float3 F_Schlick(float3 f0, float u)
 // With analytical light (not image based light) we clamp the minimun roughness in the NDF to avoid numerical instability.
 #define UNITY_MIN_ROUGHNESS 0.002
 
-float D_GGX(float NdotH, float roughness)
+float D_GGXNoPI(float NdotH, float roughness)
 {
     roughness = max(roughness, UNITY_MIN_ROUGHNESS);
 
@@ -51,9 +51,9 @@ float D_GGX(float NdotH, float roughness)
     return a2 / (f * f);
 }
 
-float D_GGXDividePI(float NdotH, float roughness)
+float D_GGX(float NdotH, float roughness)
 {
-    return INV_PI * D_GGX(NdotH, roughness);
+    return INV_PI * D_GGXNoPI(NdotH, roughness);
 }
 
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
@@ -108,7 +108,7 @@ float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness)
 float GetSmithJointGGXApproxLambdaV(float NdotV, float roughness)
 {
     float a = roughness;
-    return (NdotV * (1 - a) + a);
+    return NdotV * (1 - a) + a;
 }
 
 float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness, float lambdaV)
@@ -123,7 +123,7 @@ float V_SmithJointGGXApprox(float NdotL, float NdotV, float roughness, float lam
 
 // roughnessT -> roughness in tangent direction
 // roughnessB -> roughness in bitangent direction
-float D_GGXAniso(float TdotH, float BdotH, float NdotH, float roughnessT, float roughnessB)
+float D_GGXAnisoNoPI(float TdotH, float BdotH, float NdotH, float roughnessT, float roughnessB)
 {
     roughnessT = max(roughnessT, UNITY_MIN_ROUGHNESS);
     roughnessB = max(roughnessB, UNITY_MIN_ROUGHNESS);
@@ -132,9 +132,9 @@ float D_GGXAniso(float TdotH, float BdotH, float NdotH, float roughnessT, float 
     return 1.0 / (roughnessT * roughnessB * f * f);
 }
 
-float D_GGXAnisoDividePI(float TdotH, float BdotH, float NdotH, float roughnessT, float roughnessB)
+float D_GGXAniso(float TdotH, float BdotH, float NdotH, float roughnessT, float roughnessB)
 {
-    return INV_PI * D_GGXAniso(TdotH, BdotH, NdotH, roughnessT, roughnessB);
+    return INV_PI * D_GGXAnisoNoPI(TdotH, BdotH, NdotH, roughnessT, roughnessB);
 }
 
 // Ref: https://cedec.cesa.or.jp/2015/session/ENG/14698.html The Rendering Materials of Far Cry 4
@@ -178,17 +178,17 @@ float V_SmithJointGGXAnisoLambdaV(float TdotV, float BdotV, float NdotV, float T
 // Diffuse BRDF - diffuseColor is expected to be multiply by the caller
 //-----------------------------------------------------------------------------
 
-float Lambert()
+float LambertNoPI()
 {
     return 1.0;
 }
 
-float LambertDividePI()
+float Lambert()
 {
     return INV_PI;
 }
 
-float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float perceptualRoughness)
+float DisneyDiffuseNoPI(float NdotV, float NdotL, float LdotH, float perceptualRoughness)
 {
     float fd90 = 0.5 + 2 * LdotH * LdotH * perceptualRoughness;
     // Two schlick fresnel term
@@ -198,9 +198,9 @@ float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float perceptualRough
     return lightScatter * viewScatter;
 }
 
-float DisneyDiffuseDividePI(float NdotV, float NdotL, float LdotH, float perceptualRoughness)
+float DisneyDiffuse(float NdotV, float NdotL, float LdotH, float perceptualRoughness)
 {
-    return INV_PI * DisneyDiffuse(NdotV, NdotL, LdotH, perceptualRoughness);
+    return INV_PI * DisneyDiffuseNoPI(NdotV, NdotL, LdotH, perceptualRoughness);
 }
 
 
