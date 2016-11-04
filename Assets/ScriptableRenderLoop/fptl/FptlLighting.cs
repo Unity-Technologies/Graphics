@@ -67,6 +67,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public bool enableDrawLightBoundsDebug = false;
         public bool enableDrawTileDebug = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
+        const bool k_UseAsyncCompute = true;        // should not use on mobile
 
         const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
@@ -896,37 +897,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // do anything we need to do upon a new frame.
             NewFrame ();
 
-            ShadowOutput shadows;
-            m_ShadowPass.Render(loop, cullResults, out shadows);
+            if(!k_UseAsyncCompute) RenderShadowMaps(cullResults, loop);
 
-            //m_DeferredMaterial.SetInt("_SrcBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.DstColor);
-            //m_DeferredMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
-            //m_DeferredReflectionMaterial.SetInt("_SrcBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.DstColor);
-            //m_DeferredReflectionMaterial.SetInt("_DstBlend", camera.hdr ? (int)BlendMode.One : (int)BlendMode.Zero);
+            // generate g-buffer before shadows to leverage async compute
+            // forward opaques just write to depth.
             loop.SetupCameraProperties(camera);
-
-            UpdateShadowConstants (cullResults.visibleLights, ref shadows);
-
             RenderGBuffer(cullResults, camera, loop);
-
             DepthOnlyForForwardOpaques(cullResults, camera, loop);
-
-            //@TODO: render forward-only objects into depth buffer
             CopyDepthAfterGBuffer(loop);
-            //@TODO: render reflection probes
 
-            //RenderLighting(camera, inputs, loop);
-
-            //
+            // camera to screen matrix (and it's inverse)
             var proj = CameraProjection(camera);
             var temp = new Matrix4x4();
-            temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
-            temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-            temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
-            temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            var projh = temp * proj;
-            var invProjh = projh.inverse;
-
             temp.SetRow(0, new Vector4(0.5f * w, 0.0f, 0.0f, 0.5f * w));
             temp.SetRow(1, new Vector4(0.0f, 0.5f * h, 0.0f, 0.5f * h));
             temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
@@ -935,75 +917,34 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var invProjscr = projscr.inverse;
 
 
+            // build per tile light lists
             var numLights = GenerateSourceLightBuffers(camera, cullResults);
+            BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
 
-
-            var numTilesX = (w + 15) / 16;
-            var numTilesY = (h + 15) / 16;
-            var numBigTilesX = (w + 63) / 64;
-            var numBigTilesY = (h + 63) / 64;
-            //ComputeBuffer lightList = new ComputeBuffer(nrTilesX * nrTilesY * (32 / 2), sizeof(uint));
-
-
-            var cmd = new CommandBuffer() { name = "Build light list" };
-
-            // generate screen-space AABBs (used for both fptl and clustered).
-            cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", numLights);
-            SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
-            SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
-            cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-            cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (numLights + 7) / 8, 1, 1);
-
-            // enable coarse 2D pass on 64x64 tiles.
-            if(enableBigTilePrepass)
-            {
-                cmd.SetComputeIntParams(buildPerBigTileLightListShader, "g_viDimensions", new int[2] { w, h });
-                cmd.SetComputeIntParam(buildPerBigTileLightListShader, "g_iNrVisibLights", numLights);
-                SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mScrProjection", projscr);
-                SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mInvScrProjection", invProjscr);
-                cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fNearPlane", camera.nearClipPlane);
-                cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fFarPlane", camera.farClipPlane);
-                cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, "g_vLightList", s_BigTileLightList);
-                cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
-            }
-
-            if( UsingFptl() )
-            {
-                cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
-                cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
-                SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
-                SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
-                cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(s_CameraDepthTexture));
-                cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
-                if(enableBigTilePrepass) cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
-                cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
-            }
-
-            if (enableClustered)
-            {
-                VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
-            }
-
-            loop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
-
-            var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
+            // render shadow maps (for mobile shadow map rendering should happen before we render g-buffer).
+            // on GCN it needs to be after to leverage async compute since we need the depth-buffer for optimal light list building.
+            if(k_UseAsyncCompute) RenderShadowMaps(cullResults, loop);
 
             // Push all global params
+            var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
             PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
 
             // do deferred lighting
             DoTiledDeferredLighting(camera, loop);
 
+            // render opaques using tiled forward
             RenderForward(cullResults, camera, loop, true);    // opaques only (requires a depth pre-pass)
 
+            // render the backdrop/canvas
             m_SkyboxHelper.Draw(loop, camera);
 
-            if(enableClustered) RenderForward(cullResults, camera, loop, false);    // transparencies atm. requires clustered until we get traditional forward
+            // transparencies atm. requires clustered until we get traditional forward
+            if(enableClustered) RenderForward(cullResults, camera, loop, false);
 
-
+            // debug views.
             if (enableDrawLightBoundsDebug) DrawLightBoundsDebug(loop, cullResults.visibleLights.Length);
 
+            // present frame buffer.
             FinalPass(loop);
         }
 
@@ -1022,10 +963,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_CookieTexArray.NewFrame();
             m_CubeCookieTexArray.NewFrame();
             m_CubeReflTexArray.NewFrame();
+        }
 
-            //m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
-            //m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
-            //m_DeferredReflectionMaterial.SetTexture("_reflCubeTextures", m_cubeReflTexArray.GetTexCache());
+        void RenderShadowMaps(CullResults cullResults, RenderLoop loop)
+        {
+            ShadowOutput shadows;
+            m_ShadowPass.Render(loop, cullResults, out shadows);
+            UpdateShadowConstants (cullResults.visibleLights, ref shadows);
         }
 
         void ResizeIfNecessary(int curWidth, int curHeight)
@@ -1144,6 +1088,69 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var numTilesX = (camera.pixelWidth + 15) / 16;
             var numTilesY = (camera.pixelHeight + 15) / 16;
             cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
+        }
+
+        void BuildPerTileLightLists(Camera camera, RenderLoop loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)
+        {
+            var w = camera.pixelWidth;
+            var h = camera.pixelHeight;
+            var numTilesX = (w + 15) / 16;
+            var numTilesY = (h + 15) / 16;
+            var numBigTilesX = (w + 63) / 64;
+            var numBigTilesY = (h + 63) / 64;
+            
+            var cmd = new CommandBuffer() { name = "Build light list" };
+
+            // generate screen-space AABBs (used for both fptl and clustered).
+            {
+                var proj = CameraProjection(camera);
+                var temp = new Matrix4x4();
+                temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
+                temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                var projh = temp * proj;
+                var invProjh = projh.inverse;
+                
+                cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", numLights);
+                SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
+                SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
+                cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+                cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (numLights + 7) / 8, 1, 1);
+            }
+
+            // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
+            if(enableBigTilePrepass)
+            {
+                cmd.SetComputeIntParams(buildPerBigTileLightListShader, "g_viDimensions", new int[2] { w, h });
+                cmd.SetComputeIntParam(buildPerBigTileLightListShader, "g_iNrVisibLights", numLights);
+                SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mScrProjection", projscr);
+                SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mInvScrProjection", invProjscr);
+                cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fNearPlane", camera.nearClipPlane);
+                cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fFarPlane", camera.farClipPlane);
+                cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, "g_vLightList", s_BigTileLightList);
+                cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
+            }
+
+            if( UsingFptl() )       // optimized for opaques only
+            {
+                cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
+                cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
+                SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
+                SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
+                cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(s_CameraDepthTexture));
+                cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
+                if(enableBigTilePrepass) cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
+                cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
+            }
+
+            if (enableClustered)        // works for transparencies too.
+            {
+                VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
+            }
+
+            loop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
         }
 
         void PushGlobalParams(Camera camera, RenderLoop loop, Matrix4x4 viewToWorld, Matrix4x4 scrProj, Matrix4x4 incScrProj, int numDirLights)
