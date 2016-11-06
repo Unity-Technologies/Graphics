@@ -41,15 +41,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Graph.Connect(m_Abs.GetSlotReference(Function1Input.OutputSlotId), m_PixelNode.GetSlotReference(AbstractSurfaceMasterNode.AlbedoSlotId));
         }
 
-        [Test]
-        public void TestNodeGenerateSurfaceOutputProperly()
-        {
-            var generator = new ShaderGenerator();
-            m_PixelNode.GenerateSurfaceOutput(generator);
-
-            Assert.AreEqual(string.Empty, generator.GetShaderString(0));
-            Assert.AreEqual(MetallicMasterNode.SurfaceOutputStructureName, generator.GetPragmaString());
-        }
 
         [Test]
         public void TestNodeGeneratesCorrectNodeCode()
@@ -62,7 +53,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                     , m_Abs.GetVariableNameForSlot(Function1Input.OutputSlotId));
 
             var generator = new ShaderGenerator();
-            m_PixelNode.GenerateNodeCode(generator, GenerationMode.SurfaceShader);
+            m_PixelNode.GenerateNodeCode(generator, GenerationMode.ForReals);
 
             Console.WriteLine(generator.GetShaderString(0));
 

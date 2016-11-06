@@ -9,7 +9,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Texture Node")]
-    public class TextureNode : PropertyNode, IGeneratesBodyCode, IGeneratesVertexShaderBlock, IGeneratesVertexToFragmentBlock
+    public class TextureNode : PropertyNode, IGeneratesBodyCode, IRequiresMeshUV
     {
         protected const string kUVSlotName = "UV";
         protected const string kOutputSlotRGBAName = "RGBA";
@@ -161,28 +161,6 @@ namespace UnityEngine.MaterialGraph
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             properties.Add(GetPreviewProperty());
-        }
-
-        public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var uvSlot = FindInputSlot<MaterialSlot>(UvSlotId);
-            if (uvSlot == null)
-                return;
-
-            var edges = owner.GetEdges(uvSlot.slotReference);
-            if (!edges.Any())
-                UVNode.StaticGenerateVertexToFragmentBlock(visitor, generationMode);
-        }
-
-        public void GenerateVertexShaderBlock(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            var uvSlot = FindInputSlot<MaterialSlot>(UvSlotId);
-            if (uvSlot == null)
-                return;
-
-            var edges = owner.GetEdges(uvSlot.slotReference);
-            if (!edges.Any())
-                UVNode.GenerateVertexShaderBlock(visitor);
         }
 
         // Properties

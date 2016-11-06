@@ -83,7 +83,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                     , Environment.NewLine);
 
             ShaderGenerator visitor = new ShaderGenerator();
-            m_TestNode.GenerateNodeCode(visitor, GenerationMode.SurfaceShader);
+            m_TestNode.GenerateNodeCode(visitor, GenerationMode.ForReals);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
         }
 
@@ -97,7 +97,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + "}" + Environment.NewLine;
 
             ShaderGenerator visitor = new ShaderGenerator();
-            m_TestNode.GenerateNodeFunction(visitor, GenerationMode.SurfaceShader);
+            m_TestNode.GenerateNodeFunction(visitor, GenerationMode.ForReals);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
         }
     }
