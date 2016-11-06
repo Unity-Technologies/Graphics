@@ -62,7 +62,7 @@ namespace UnityEngine.MaterialGraph
 
                 if (onModified != null)
                 {
-                    onModified(this, ModificationScope.Graph);
+					onModified(this, ModificationScope.Node);
                 }
             }
         }

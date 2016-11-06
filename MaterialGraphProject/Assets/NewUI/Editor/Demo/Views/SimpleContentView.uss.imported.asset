@@ -9,7 +9,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 1
   m_Script: {fileID: 11997, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: SimpleContentView.uss.imported
+  m_Name: 
   m_EditorClassIdentifier: 
   matchers:
   - specificity: 2

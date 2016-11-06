@@ -11,73 +11,11 @@ MonoBehaviour:
   m_Script: {fileID: 11997, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: GraphView.uss.imported
   m_EditorClassIdentifier: 
-  matchers:
-  - specificity: 11
-    selectorValues:
-    - graphElement
-    selectorTypes: 03000000
-    ruleIndex: 0
-    depth: 2147483647
-    previousIndex: -1
-    nextIndex: -1
-  - specificity: 21
-    selectorValues:
-    - graphElement
-    - selected
-    selectorTypes: 0300000003000000
-    ruleIndex: 1
-    depth: 2147483647
-    previousIndex: -1
-    nextIndex: -1
-  rules:
-  - builtinPropertyHandles:
-    - type: 1
-      propertyID: 32
-      valueIndex: 0
-    - type: 3
-      propertyID: 40
-      valueIndex: 0
-    - type: 0
-      propertyID: 8
-      valueIndex: 0
-    - type: 0
-      propertyID: 9
-      valueIndex: 1
-    - type: 0
-      propertyID: 10
-      valueIndex: 2
-    - type: 0
-      propertyID: 11
-      valueIndex: 3
-    - type: 0
-      propertyID: 24
-      valueIndex: 4
-    - type: 0
-      propertyID: 25
-      valueIndex: 5
-    - type: 3
-      propertyID: 41
-      valueIndex: 1
-    customPropertyNames: []
-    customPropertyHandles: []
-  - builtinPropertyHandles:
-    - type: 3
-      propertyID: 42
-      valueIndex: 2
-    customPropertyNames: []
-    customPropertyHandles: []
-  floats:
-  - 2
-  - 2
-  - 2
-  - 2
-  - 2
-  - 5
-  ints: 01000000
+  matchers: []
+  rules: []
+  floats: []
+  ints: 
   bools: 
-  colors:
-  - {r: 1, g: 1, b: 1, a: 1}
-  - {r: 0.2, g: 0.2, b: 0.2, a: 1}
-  - {r: 1, g: 1, b: 0, a: 1}
+  colors: []
   strings: []
   assets: []

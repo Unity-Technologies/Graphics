@@ -6,7 +6,7 @@ namespace UnityEngine.MaterialGraph
     { }
 
     [Title("Input/UV Node")]
-    public class UVNode : AbstractMaterialNode, IGeneratesBodyCode
+	public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IRequiresMeshUV
     {
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "UV";
