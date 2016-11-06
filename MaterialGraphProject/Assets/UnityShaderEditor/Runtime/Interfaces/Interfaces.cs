@@ -6,16 +6,13 @@ namespace UnityEngine.MaterialGraph
 
     public enum GenerationMode
     {
-        Preview2D,
-        Preview3D,
-        SurfaceShader
+        Preview,
+        ForReals
     }
 
     public static class GenerationModeExtensions
     {
-        public static bool IsPreview(this GenerationMode mode) { return mode == GenerationMode.Preview2D || mode == GenerationMode.Preview3D; }
-        public static bool Is2DPreview(this GenerationMode mode) { return mode == GenerationMode.Preview2D; }
-        public static bool Is3DPreview(this GenerationMode mode) { return mode == GenerationMode.Preview3D; }
+        public static bool IsPreview(this GenerationMode mode) { return mode == GenerationMode.Preview; }
     }
 
     public interface IGeneratesBodyCode
@@ -23,21 +20,11 @@ namespace UnityEngine.MaterialGraph
         void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode);
     }
 
-    public interface IGeneratesVertexToFragmentBlock
-    {
-        void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode);
-    }
-
     public interface IGeneratesFunction
     {
         void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode);
     }
-
-    public interface IGeneratesVertexShaderBlock
-    {
-        void GenerateVertexShaderBlock(ShaderGenerator visitor, GenerationMode generationMode);
-    }
-
+    
     public interface IGenerateProperties
     {
         void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode);
