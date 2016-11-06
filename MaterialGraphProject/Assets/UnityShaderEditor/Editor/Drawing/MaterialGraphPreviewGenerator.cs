@@ -122,33 +122,33 @@ namespace UnityEditor.MaterialGraph.Drawing
             {
                 m_PreviewUtility.m_Camera.transform.position = -Vector3.forward * 5;
                 m_PreviewUtility.m_Camera.transform.rotation = Quaternion.identity;
-                EditorUtility.SetCameraAnimateMaterialsTime(m_PreviewUtility.m_Camera, time);
-                var amb = new Color(.2f, .2f, .2f, 0);
-                m_PreviewUtility.m_Light[0].intensity = 1.0f;
-                m_PreviewUtility.m_Light[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
-                m_PreviewUtility.m_Light[1].intensity = 1.0f;
-
-                InternalEditorUtility.SetCustomLighting(m_PreviewUtility.m_Light, amb);
-                m_PreviewUtility.DrawMesh(s_Meshes[0], Vector3.zero, Quaternion.Euler(-20, 0, 0) * Quaternion.Euler(0, 0, 0), mat, 0);
-                var oldFog = RenderSettings.fog;
-                Unsupported.SetRenderSettingsUseFogNoDirty(false);
-                m_PreviewUtility.m_Camera.Render();
-                Unsupported.SetRenderSettingsUseFogNoDirty(oldFog);
-                InternalEditorUtility.RemoveCustomLighting();
+                
             }
             else
             {
                 m_PreviewUtility.m_Camera.projectionMatrix = Matrix4x4.identity;
-                EditorUtility.SetCameraAnimateMaterialsTime(m_PreviewUtility.m_Camera, time);
-                InternalEditorUtility.SetCustomLighting(m_PreviewUtility.m_Light, Color.black);
-                m_PreviewUtility.DrawMesh(quad, Matrix4x4.identity, mat, 0);
-
-                var oldFog = RenderSettings.fog;
-                Unsupported.SetRenderSettingsUseFogNoDirty(false);
-                m_PreviewUtility.m_Camera.Render();
-                Unsupported.SetRenderSettingsUseFogNoDirty(oldFog);
-                InternalEditorUtility.RemoveCustomLighting();
             }
+
+			EditorUtility.SetCameraAnimateMaterialsTime(m_PreviewUtility.m_Camera, time);
+			m_PreviewUtility.m_Light[0].intensity = 1.0f;
+			m_PreviewUtility.m_Light[0].transform.rotation = Quaternion.Euler(50f, 50f, 0);
+			m_PreviewUtility.m_Light[1].intensity = 1.0f;
+			InternalEditorUtility.SetCustomLighting(m_PreviewUtility.m_Light, Color.black);
+			var oldFog = RenderSettings.fog;
+			Unsupported.SetRenderSettingsUseFogNoDirty(false);
+			m_PreviewUtility.m_Camera.clearFlags = CameraClearFlags.SolidColor;
+
+			m_PreviewUtility.DrawMesh(
+				mode == PreviewMode.Preview3D ? s_Meshes[0] : quad,
+				Vector3.zero, 
+				Quaternion.identity,
+				mat,
+				0);
+			m_PreviewUtility.m_Camera.Render();
+
+			Unsupported.SetRenderSettingsUseFogNoDirty(oldFog);
+			InternalEditorUtility.RemoveCustomLighting();
+
             return m_PreviewUtility.EndPreview();
         }
     }

@@ -59,8 +59,6 @@ namespace UnityEditor.Graphing.Drawing
 
                     foreach (var c in three)
                     {
-                        if (!c.IsConnectable())
-                                continue;
                         if (c.orientation != cnx.orientation)
                                 continue;
                         if(c.direction == cnx.direction)
