@@ -96,6 +96,10 @@ namespace UnityEditor
 
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
+
+            public static GUIContent emissiveWarning = new GUIContent("Emissive value is animated but the material has not been configured to support emissive. Please make sure the material itself has some amount of emissive.");
+            public static GUIContent emissiveColorWarning = new GUIContent("Ensure emissive color is non-black for emission to have effect.");
+
         }
 
         MaterialProperty surfaceType = null;
@@ -250,7 +254,7 @@ namespace UnityEditor
 
             m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
             
-            m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap, anisotropy);
+            m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
 
             if (!useEmissiveMask)
             {
@@ -419,26 +423,25 @@ namespace UnityEditor
 
             SetupKeywordsForInputMaps(material);
 
-            /*
             // Setup lightmap emissive flags
+            bool shouldEmissionBeEnabled = ShouldEmissionBeEnabled(material, material.GetFloat("_EmissiveIntensity"));
+
             MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
             if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
-            {
-                flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-                if (!shouldEmissionBeEnabled)
+            {               
+                if (shouldEmissionBeEnabled)
+                    flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                else
                     flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
 
                 material.globalIlluminationFlags = flags;
             }
-            */
         }
 
-        static bool ShouldEmissionBeEnabled(Material mat, Color color)
+        static bool ShouldEmissionBeEnabled(Material mat, float emissiveIntensity)
         {
-            //var realtimeEmission = (mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
-            //return color.maxColorComponent > 0.1f / 255.0f || realtimeEmission;
-
-            return false;
+            var realtimeEmission = (mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
+            return emissiveIntensity > 0.0f || realtimeEmission;
         }
 
         bool HasValidEmissiveKeyword(Material material)
