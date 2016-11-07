@@ -37,14 +37,14 @@
 #define TEXTURE2D_ARRAY_SHADOW_ARGS(textureName, samplerName) Texture2DArray textureName, SamplerComparisonState samplerName
 #define TEXTURECUBE_SHADOW_ARGS(textureName, samplerName) TextureCube textureName, SamplerComparisonState samplerName
 
-#define TEXTURE2D_PASS(textureName, samplerName) textureName, samplerName
-#define TEXTURE2D_ARRAY_PASS(textureName, samplerName) textureName, samplerName
-#define TEXTURECUBE_PASS(textureName, samplerName) textureName, samplerName
-#define TEXTURECUBE_ARRAY_PASS(textureName, samplerName) textureName, samplerName
-#define TEXTURE3D_PASS(textureName, samplerName) textureName, samplerName
-#define TEXTURE2D_SHADOW_PASS(textureName, samplerName) textureName, samplerName
-#define TEXTURE2D_ARRAY_SHADOW_PASS(textureName, samplerName) textureName, samplerName
-#define TEXTURECUBE_SHADOW_PASS(textureName, samplerName) textureName, samplerName
+#define TEXTURE2D_PARAM(textureName, samplerName) textureName, samplerName
+#define TEXTURE2D_ARRAY_PARAM(textureName, samplerName) textureName, samplerName
+#define TEXTURECUBE_PARAM(textureName, samplerName) textureName, samplerName
+#define TEXTURECUBE_ARRAY_PARAM(textureName, samplerName) textureName, samplerName
+#define TEXTURE3D_PARAM(textureName, samplerName) textureName, samplerName
+#define TEXTURE2D_SHADOW_PARAM(textureName, samplerName) textureName, samplerName
+#define TEXTURE2D_ARRAY_SHADOW_PARAM(textureName, samplerName) textureName, samplerName
+#define TEXTURECUBE_SHADOW_PARAM(textureName, samplerName) textureName, samplerName
 
 #define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) textureName.Sample(samplerName, coord2)
 #define SAMPLE_TEXTURE2D_LOD(textureName, samplerName, coord2, lod) textureName.SampleLevel(samplerName, coord2, lod)

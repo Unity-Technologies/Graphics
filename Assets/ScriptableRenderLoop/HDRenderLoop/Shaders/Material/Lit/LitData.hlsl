@@ -57,7 +57,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 
         WorldToTexture = mul(mul(scale, translation), WorldToTexture);
     
-        return SampleProbeVolumeSH4(TEXTURE3D_PASS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionWS, normalWS, WorldToTexture, unity_ProbeVolumeParams.z);
+        return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionWS, normalWS, WorldToTexture, unity_ProbeVolumeParams.z);
     }
 
 #else
@@ -66,21 +66,21 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 
     #ifdef LIGHTMAP_ON
         #ifdef DIRLIGHTMAP_COMBINED
-        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PASS(unity_Lightmap, samplerunity_Lightmap),
-                                                        TEXTURE2D_PASS(unity_LightmapInd, samplerunity_Lightmap),
+        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap),
+                                                        TEXTURE2D_PARAM(unity_LightmapInd, samplerunity_Lightmap),
                                                         uvStaticLightmap, unity_LightmapST, normalWS);
         #else
-        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PASS(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST);
+        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST);
         #endif
     #endif
 
     #ifdef DYNAMICLIGHTMAP_ON
         #ifdef DIRLIGHTMAP_COMBINED
-        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PASS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
-                                                        TEXTURE2D_PASS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
+        bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PARAM(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+                                                        TEXTURE2D_PARAM(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
                                                         uvDynamicLightmap, unity_DynamicLightmapST, normalWS);
         #else
-        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PASS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST);
+        bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PARAM(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST);
         #endif
     #endif
 
