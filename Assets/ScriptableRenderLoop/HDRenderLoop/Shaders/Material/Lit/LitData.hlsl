@@ -68,7 +68,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
         #ifdef DIRLIGHTMAP_COMBINED
         bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PASS(unity_Lightmap, samplerunity_Lightmap),
                                                         TEXTURE2D_PASS(unity_LightmapInd, samplerunity_Lightmap),
-                                                        uvStaticLightmap, unity_LightmapST);
+                                                        uvStaticLightmap, unity_LightmapST, normalWS);
         #else
         bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PASS(unity_Lightmap, samplerunity_Lightmap), uvStaticLightmap, unity_LightmapST);
         #endif
@@ -78,7 +78,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
         #ifdef DIRLIGHTMAP_COMBINED
         bakeDiffuseLighting += SampleDirectionalLightmap(TEXTURE2D_PASS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
                                                         TEXTURE2D_PASS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
-                                                        uvDynamicLightmap, unity_DynamicLightmapST);
+                                                        uvDynamicLightmap, unity_DynamicLightmapST, normalWS);
         #else
         bakeDiffuseLighting += SampleSingleLightmap(TEXTURE2D_PASS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST);
         #endif
