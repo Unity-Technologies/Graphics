@@ -24,7 +24,7 @@ struct FragInput
 float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
 {
     // If there is no lightmap, it assume lightprobe
-#if (!defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON))
+#if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
 
 // TODO: Confirm with Ionut but it seems that UNITY_LIGHT_PROBE_PROXY_VOLUME is always define for high end and 
 // unity_ProbeVolumeParams always bind.
