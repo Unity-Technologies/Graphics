@@ -286,6 +286,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             DrawRendererSettings settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName));
             settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
             settings.inputFilter.SetQueuesOpaque();
+			settings.rendererConfiguration = RendererConfiguration.PerObjectLightProbe | RendererConfiguration.PerObjectReflectionProbes | RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbeProxyVolume;
             renderLoop.DrawRenderers(ref settings);
         }
 
