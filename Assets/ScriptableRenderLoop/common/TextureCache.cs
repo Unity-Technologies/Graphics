@@ -16,12 +16,16 @@ public class TextureCache2D : TextureCache
 
         if (mismatch)
         {
-            Debug.LogErrorFormat(texture, "Texture size or format of \"{0}\" doesn't match renderloop settings (should be {1}x{2} {3})",
-                texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
-            return;
+            if (!Graphics.ConvertTexture(texture, 0, m_Cache, sliceIndex))
+            {
+                Debug.LogErrorFormat(texture, "Unable to convert texture \"{0}\" to match renderloop settings ({1}x{2} {3})",
+                  texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
+            }
         }
-
-        Graphics.CopyTexture(texture, 0, m_Cache, sliceIndex);
+        else
+        {
+            Graphics.CopyTexture(texture, 0, m_Cache, sliceIndex);
+        }
     }
 
     public override Texture GetTexCache()
@@ -64,13 +68,28 @@ public class TextureCacheCubemap : TextureCache
 
         if (mismatch)
         {
-            Debug.LogErrorFormat(texture, "Texture size or format of \"{0}\" doesn't match renderloop settings (should be {1}x{2} {3})",
-                texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
-            return;
-        }
+            bool failed = false;
 
-        for (int f = 0; f < 6; f++)
-            Graphics.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
+            for (int f = 0; f < 6; f++)
+            {
+                if (!Graphics.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f))
+                {
+                    failed = true;
+                    break;
+                }
+            }
+
+            if (failed)
+            {
+                Debug.LogErrorFormat(texture, "Unable to convert texture \"{0}\" to match renderloop settings ({1}x{2} {3})",
+                  texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
+            }
+        }
+        else
+        {
+            for (int f = 0; f < 6; f++)
+                Graphics.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
+        }
     }
 
     public override Texture GetTexCache()
