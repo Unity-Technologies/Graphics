@@ -297,7 +297,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             var cmd = new CommandBuffer { name = opaquesOnly ? "Prep Opaques Only Forward Pass" : "Prep Forward Pass" };
 
-            bool useFptl = opaquesOnly && UsingFptl();     // requires depth pre-pass for forward opaques!
+            bool useFptl = opaquesOnly && usingFptl;     // requires depth pre-pass for forward opaques!
 
             bool haveTiledSolution = opaquesOnly || enableClustered;
             cmd.EnableShaderKeyword(haveTiledSolution ? "TILED_FORWARD" : "REGULAR_FORWARD" );
@@ -335,12 +335,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             loop.DrawRenderers(ref settings);
         }
 
-        bool UsingFptl()
+        bool usingFptl
         {
-            bool isEnabledMSAA = false;
-            Debug.Assert((!isEnabledMSAA) || enableClustered);
-            bool disableFptl = (disableFptlWhenClustered && enableClustered) || isEnabledMSAA;
-            return !disableFptl;
+            get
+            {
+                bool isEnabledMSAA = false;
+                Debug.Assert(!isEnabledMSAA || enableClustered);
+                bool disableFptl = (disableFptlWhenClustered && enableClustered) || isEnabledMSAA;
+                return !disableFptl;
+            }
         }
 
         static void CopyDepthAfterGBuffer(RenderLoop loop)
@@ -353,7 +356,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void DoTiledDeferredLighting(Camera camera, RenderLoop loop)
         {
-            var bUseClusteredForDeferred = !UsingFptl();       // doesn't work on reflections yet but will soon
+            var bUseClusteredForDeferred = !usingFptl;       // doesn't work on reflections yet but will soon
             var cmd = new CommandBuffer();
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
@@ -1132,7 +1135,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
             }
 
-            if( UsingFptl() )       // optimized for opaques only
+            if( usingFptl )       // optimized for opaques only
             {
                 cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
                 cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
