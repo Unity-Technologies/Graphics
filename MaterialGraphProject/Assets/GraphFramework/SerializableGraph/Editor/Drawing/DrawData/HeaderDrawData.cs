@@ -1,14 +1,18 @@
 ﻿using System;
+using RMGUI.GraphView;
+using UnityEngine;
 using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    public class HeaderDrawData : NodeDrawData
+    public class HeaderDrawData : GraphElementData
     {
         protected HeaderDrawData()
         {}
 
         private INode node;
+
+        [SerializeField] private bool m_Expanded;
 
         public string title
         {
@@ -17,12 +21,13 @@ namespace UnityEditor.Graphing.Drawing
 
         public bool expanded
         {
-            get { return node.drawState.expanded; }
+            get { return m_Expanded; }
             set
             {
                 var state = node.drawState;
                 state.expanded = value;
                 node.drawState = state;
+                m_Expanded = value;
             }
         }
 
@@ -30,6 +35,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             node = inNode;
             name = inNode.name + " Header";
+            m_Expanded = node.drawState.expanded;
         }
     }
 }

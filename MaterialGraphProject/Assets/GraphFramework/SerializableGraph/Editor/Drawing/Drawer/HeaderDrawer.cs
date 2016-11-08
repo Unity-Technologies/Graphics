@@ -49,6 +49,8 @@ namespace UnityEditor.Graphing.Drawing
             m_Title.content.text = headerData.title;
             m_ExpandButton.content.text = headerData.expanded ? "-" : "+";
             m_NodeExpander.data = headerData;
+
+            this.Touch(ChangeType.Repaint);
         }
     }
 }

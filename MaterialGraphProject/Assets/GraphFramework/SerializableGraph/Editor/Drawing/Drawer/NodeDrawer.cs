@@ -66,13 +66,7 @@ namespace UnityEditor.Graphing.Drawing
         {
             var headerData = nodeData.elements.OfType<HeaderDrawData>().FirstOrDefault();
 
-            if (m_HeaderData == headerData)
-            {
-                // TODO: Fix data watcher
-                m_HeaderDrawer.OnDataChanged();
-                m_HeaderDrawer.Touch(ChangeType.Repaint);
-            }
-            else if (m_HeaderData != null)
+            if (m_HeaderData != null)
             {
                 m_HeaderDrawer.dataProvider = headerData;
                 m_HeaderData = headerData;
