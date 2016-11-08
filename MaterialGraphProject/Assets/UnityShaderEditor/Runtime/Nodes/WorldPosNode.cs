@@ -2,11 +2,13 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    interface IRequiresWorldPosition
-    { }
+    interface IMayRequireWorldPosition
+    {
+        bool RequiresWorldPosition();
+    }
 
     [Title("Input/World Pos Node")]
-    public class WorldPosNode : AbstractMaterialNode, IRequiresWorldPosition
+    public class WorldPosNode : AbstractMaterialNode, IMayRequireWorldPosition
     {
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "WorldPos";
@@ -33,6 +35,11 @@ namespace UnityEngine.MaterialGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             return "IN.worldPos";
+        }
+
+        public bool RequiresWorldPosition()
+        {
+            return true;
         }
     }
 }

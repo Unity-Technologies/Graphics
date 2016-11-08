@@ -7,12 +7,12 @@ namespace UnityEditor.MaterialGraph.Drawing
     {
         public NodePreviewDrawData data;
 
-        public NodePreviewDrawer() {}
-
-        public override void DoRepaint(IStylePainter args)
+        public override void DoRepaint(IStylePainter painter)
         {
             image = data.Render(new Vector2(200, 200));
-            base.DoRepaint(args);
+
+            painter.DrawTexture(position, image, new Color(1,1,1,1), scaleMode);
+            //base.DoRepaint(args);
         }
     }
 }

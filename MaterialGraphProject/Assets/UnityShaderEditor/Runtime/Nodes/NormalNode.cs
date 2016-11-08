@@ -2,11 +2,13 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public interface IRequiresNormal
-    { }
+    public interface IMayRequireNormal
+    {
+        bool RequiresNormal();
+    }
 
     [Title("Input/World Normal Node")]
-    public class NormalNode : AbstractMaterialNode, IRequiresNormal
+    public class NormalNode : AbstractMaterialNode, IMayRequireNormal
     {
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Normal";
@@ -36,6 +38,11 @@ namespace UnityEngine.MaterialGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             return "IN.worldNormal";
+        }
+
+        public bool RequiresNormal()
+        {
+            return true;
         }
     }
 }
