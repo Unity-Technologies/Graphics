@@ -95,7 +95,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             string expected = string.Format("{0}", m_NodeA.GetVariableNameForSlot(TestNode.V1In));
 
             var slot = m_NodeA.GetInputSlots<MaterialSlot>().FirstOrDefault();
-            var result = m_NodeA.GetSlotValue(slot.id, GenerationMode.Preview2D);
+            var result = m_NodeA.GetSlotValue(slot.id, GenerationMode.Preview);
             Assert.AreEqual(expected, result);
         }
 
@@ -105,19 +105,19 @@ namespace UnityEditor.MaterialGraph.UnitTests
             string expected = string.Format("{0} {1};{2}", AbstractMaterialNode.OutputPrecision.@fixed, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
             var visitor = new ShaderGenerator();
             m_NodeA.precision = AbstractMaterialNode.OutputPrecision.@fixed;
-            m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);
+            m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
 
             expected = string.Format("{0} {1};{2}", AbstractMaterialNode.OutputPrecision.@float, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
             visitor = new ShaderGenerator();
             m_NodeA.precision = AbstractMaterialNode.OutputPrecision.@float;
-            m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);
+            m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
 
             expected = string.Format("{0} {1};{2}", AbstractMaterialNode.OutputPrecision.half, m_NodeA.GetVariableNameForSlot(TestNode.V1In), Environment.NewLine);
             visitor = new ShaderGenerator();
             m_NodeA.precision = AbstractMaterialNode.OutputPrecision.half;
-            m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);
+            m_NodeA.GeneratePropertyUsages(visitor, GenerationMode.Preview);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
         }
     }

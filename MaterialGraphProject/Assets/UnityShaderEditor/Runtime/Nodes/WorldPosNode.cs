@@ -2,8 +2,11 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
+    interface IRequiresWorldPosition
+    { }
+
     [Title("Input/World Pos Node")]
-    public class WorldPosNode : AbstractMaterialNode, IGeneratesVertexToFragmentBlock
+    public class WorldPosNode : AbstractMaterialNode, IRequiresWorldPosition
     {
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "WorldPos";
@@ -30,11 +33,6 @@ namespace UnityEngine.MaterialGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             return "IN.worldPos";
-        }
-
-        public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            visitor.AddShaderChunk(precision + "3 worldPos;", true);
         }
     }
 }

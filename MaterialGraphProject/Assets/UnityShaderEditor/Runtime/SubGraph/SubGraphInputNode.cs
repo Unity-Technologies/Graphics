@@ -29,7 +29,7 @@ namespace UnityEngine.MaterialGraph
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (generationMode == GenerationMode.SurfaceShader)
+            if (generationMode == GenerationMode.ForReals)
                 return;
 
             foreach (var slot in GetOutputSlots<MaterialSlot>())

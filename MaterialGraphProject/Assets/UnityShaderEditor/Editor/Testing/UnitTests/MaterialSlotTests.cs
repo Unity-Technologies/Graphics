@@ -104,7 +104,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             var slot = m_NodeA.slot;
             var visitor = new ShaderGenerator();
-            slot.GeneratePropertyUsages(visitor, GenerationMode.Preview2D);
+            slot.GeneratePropertyUsages(visitor, GenerationMode.Preview);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
         }
 
@@ -114,27 +114,27 @@ namespace UnityEditor.MaterialGraph.UnitTests
             string expected = string.Format("{0}", m_NodeA.GetVariableNameForSlot(TestNode.V1In));
 
             var slot = m_NodeA.slot;
-            var result = slot.GetDefaultValue(GenerationMode.Preview2D);
+            var result = slot.GetDefaultValue(GenerationMode.Preview);
             Assert.AreEqual(expected, result);
 
             slot.valueType = SlotValueType.Vector1;
             slot.currentValue = new Vector4(6, 6, 6, 1);
-            result = slot.GetDefaultValue(GenerationMode.SurfaceShader);
+            result = slot.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("6", result);
 
             slot.valueType = SlotValueType.Vector2;
             slot.currentValue = new Vector4(6, 6, 6, 1);
-            result = slot.GetDefaultValue(GenerationMode.SurfaceShader);
+            result = slot.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half2 (6,6)", result);
 
             slot.valueType = SlotValueType.Vector3;
             slot.currentValue = new Vector4(6, 6, 6, 1);
-            result = slot.GetDefaultValue(GenerationMode.SurfaceShader);
+            result = slot.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half3 (6,6,6)", result);
 
             slot.valueType = SlotValueType.Vector4;
             slot.currentValue = new Vector4(6, 6, 6, 1);
-            result = slot.GetDefaultValue(GenerationMode.SurfaceShader);
+            result = slot.GetDefaultValue(GenerationMode.ForReals);
             Assert.AreEqual("half4 (6,6,6,1)", result);
         }
 
@@ -142,8 +142,8 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void MaterialSlotThrowsWhenNoOwner()
         {
             var slot = new MaterialSlot(0, string.Empty, string.Empty, SlotType.Input, SlotValueType.Vector1, Vector4.zero);
-            Assert.Throws<Exception>(() => slot.GeneratePropertyUsages(new ShaderGenerator(), GenerationMode.Preview2D));
-            Assert.Throws<Exception>(() => slot.GetDefaultValue(GenerationMode.Preview2D));
+            Assert.Throws<Exception>(() => slot.GeneratePropertyUsages(new ShaderGenerator(), GenerationMode.Preview));
+            Assert.Throws<Exception>(() => slot.GetDefaultValue(GenerationMode.Preview));
         }
     }
 }

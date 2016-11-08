@@ -10,8 +10,6 @@ namespace UnityEngine.MaterialGraph
         , IGeneratesBodyCode
         , IGeneratesFunction
         , IGenerateProperties
-        , IGeneratesVertexShaderBlock
-        , IGeneratesVertexToFragmentBlock
     {
         [NonSerialized]
         private SubGraphInputNode m_InputNode;
@@ -141,8 +139,9 @@ namespace UnityEngine.MaterialGraph
         {
             foreach (var node in usedNodes)
             {
-                if (node is IGeneratesVertexShaderBlock)
-                    (node as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(visitor, generationMode);
+                //TODO: Fix
+                //if (node is IGeneratesVertexShaderBlock)
+                //    (node as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(visitor, generationMode);
             }
         }
 
@@ -150,8 +149,9 @@ namespace UnityEngine.MaterialGraph
         {
             foreach (var node in usedNodes)
             {
-                if (node is IGeneratesVertexToFragmentBlock)
-                    (node as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(visitor, generationMode);
+                //TODO: Fix
+                //if (node is IGeneratesVertexToFragmentBlock)
+                //    (node as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(visitor, generationMode);
             }
         }
 

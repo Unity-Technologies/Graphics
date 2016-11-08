@@ -158,14 +158,14 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"eb2b9d57-0599-41c8-a53a-0abe337de364\",\n
         \   \"m_Name\": \"ColorNode\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": -155.91259765625,\n            \"y\": 414.00128173828127,\n
-        \           \"width\": -353.0,\n            \"height\": 89.0\n        }\n
-        \   },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\":
-        {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-        \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\":
-        \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\": \\\"Color\\\",\\n
-        \   \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\":
-        1,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
+        \           \"x\": -142.91259765625,\n            \"y\": 457.00128173828127,\n
+        \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
+        \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
+        \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
+        \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
+        \   \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\": \\\"Color\\\",\\n    \\\"m_SlotType\\\":
+        1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\": 1,\\n
+        \   \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
@@ -181,7 +181,7 @@ MonoBehaviour:
         \   \"m_Name\": \"AddNode\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
         \           \"x\": 234.08740234375,\n            \"y\": 421.00128173828127,\n
-        \           \"width\": -7.0,\n            \"height\": 0.0\n        }\n    },\n
+        \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
         \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
         \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
         \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n

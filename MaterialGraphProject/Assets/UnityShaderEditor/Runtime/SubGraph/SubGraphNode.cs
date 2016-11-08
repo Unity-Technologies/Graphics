@@ -11,8 +11,6 @@ namespace UnityEngine.MaterialGraph
     public class SubGraphNode : AbstractMaterialNode
         , IGeneratesBodyCode
         , IGeneratesFunction
-        , IGeneratesVertexShaderBlock
-        , IGeneratesVertexToFragmentBlock
         , IOnAssetEnabled
     {
         [SerializeField]
@@ -172,7 +170,7 @@ namespace UnityEngine.MaterialGraph
             foreach (var slot in GetInputSlots<MaterialSlot>())
             {
                 var varName = subGraphInputNode.GetVariableNameForSlot(slot.id);
-                var varValue = GetSlotValue(slot.id, GenerationMode.SurfaceShader);
+                var varValue = GetSlotValue(slot.id, GenerationMode.ForReals);
 
                 var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
                 outputString.AddShaderChunk(
@@ -188,7 +186,7 @@ namespace UnityEngine.MaterialGraph
             // Step 4...
             // Using the inputs we can now generate the shader body :)
             var bodyGenerator = new ShaderGenerator();
-            subGraph.GenerateNodeCode(bodyGenerator, GenerationMode.SurfaceShader);
+            subGraph.GenerateNodeCode(bodyGenerator, GenerationMode.ForReals);
             var subGraphOutputNode = subGraphAsset.subGraph.outputNode;
             outputString.AddShaderChunk(bodyGenerator.GetShaderString(0), false);
 
@@ -196,7 +194,7 @@ namespace UnityEngine.MaterialGraph
             // Copy the outputs to the parent context name);
             foreach (var slot in GetOutputSlots<MaterialSlot>())
             {
-                var inputValue = subGraphOutputNode.GetSlotValue(slot.id, GenerationMode.SurfaceShader);
+                var inputValue = subGraphOutputNode.GetSlotValue(slot.id, GenerationMode.ForReals);
 
                 outputString.AddShaderChunk(
                     GetVariableNameForSlot(slot.id)
@@ -219,7 +217,7 @@ namespace UnityEngine.MaterialGraph
             if (subGraph == null)
                 return;
 
-            subGraph.GeneratePropertyBlock(visitor, GenerationMode.SurfaceShader);
+            subGraph.GeneratePropertyBlock(visitor, GenerationMode.ForReals);
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
@@ -229,7 +227,7 @@ namespace UnityEngine.MaterialGraph
             if (subGraph == null)
                 return;
 
-            subGraph.GeneratePropertyUsages(visitor, GenerationMode.SurfaceShader);
+            subGraph.GeneratePropertyUsages(visitor, GenerationMode.ForReals);
         }
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
@@ -247,7 +245,7 @@ namespace UnityEngine.MaterialGraph
             if (subGraph == null)
                 return;
 
-            subGraph.GenerateNodeFunction(visitor, GenerationMode.SurfaceShader);
+            subGraph.GenerateNodeFunction(visitor, GenerationMode.ForReals);
         }
 
         public void GenerateVertexShaderBlock(ShaderGenerator visitor, GenerationMode generationMode)
@@ -255,7 +253,7 @@ namespace UnityEngine.MaterialGraph
             if (subGraph == null)
                 return;
 
-            subGraph.GenerateVertexShaderBlock(visitor, GenerationMode.SurfaceShader);
+            subGraph.GenerateVertexShaderBlock(visitor, GenerationMode.ForReals);
         }
 
         public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
@@ -263,7 +261,7 @@ namespace UnityEngine.MaterialGraph
             if (subGraph == null)
                 return;
 
-            subGraph.GenerateVertexToFragmentBlock(visitor, GenerationMode.SurfaceShader);
+            subGraph.GenerateVertexToFragmentBlock(visitor, GenerationMode.ForReals);
         }
     }
 }

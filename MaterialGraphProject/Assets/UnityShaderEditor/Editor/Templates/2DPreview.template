@@ -4,6 +4,7 @@ ${ShaderPropertiesHeader}
 	}	
 	
 	SubShader {
+		Blend One Zero
 		Pass {
 			CGPROGRAM
 			#pragma vertex vert
