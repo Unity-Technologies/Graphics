@@ -3,22 +3,32 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Graphing
 {
+    public enum ModificationScope
+    {
+        Nothing,
+        Node,
+        Graph
+    }
+
+    public delegate void OnNodeModified(INode node, ModificationScope scope);
+
     public interface INode
     {
+        OnNodeModified onModified { get; set; }
         IGraph owner { get; set; }
         Guid guid { get; }
         Guid RewriteGuid();
         string name { get; set; }
         bool canDeleteNode { get; }
-        IEnumerable<T> GetInputSlots<T>() where T: ISlot;
-        IEnumerable<T> GetOutputSlots<T>() where T: ISlot;
-        IEnumerable<T> GetSlots<T>() where T: ISlot;
+        IEnumerable<T> GetInputSlots<T>() where T : ISlot;
+        IEnumerable<T> GetOutputSlots<T>() where T : ISlot;
+        IEnumerable<T> GetSlots<T>() where T : ISlot;
         void AddSlot(ISlot slot);
         void RemoveSlot(int slotId);
         SlotReference GetSlotReference(int slotId);
-        T FindSlot<T>(int slotId) where T: ISlot;
-        T FindInputSlot<T>(int slotId) where T: ISlot;
-        T FindOutputSlot<T>(int slotId) where T: ISlot;
+        T FindSlot<T>(int slotId) where T : ISlot;
+        T FindInputSlot<T>(int slotId) where T : ISlot;
+        T FindOutputSlot<T>(int slotId) where T : ISlot;
         IEnumerable<ISlot> GetInputsWithNoConnection();
         DrawingData drawState { get; set; }
         bool hasError { get; }

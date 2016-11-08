@@ -1,0 +1,111 @@
+MaterialNodeDrawer {
+	flex-direction: column;
+}
+
+HeaderDrawer {
+    flex-direction: row;
+}
+
+HeaderDrawer #title {
+    text-color: #FFFFFF;
+	width: 200;
+	text-alignment: middle-center;
+}
+
+HeaderDrawer #expandButton {
+    text-color: #FFFFFF;
+    position-type: absolute;
+    position-top: 0;
+    position-left: 5;
+    background-color: #000;
+    width: 10;
+	text-alignment: middle-center;
+}
+
+MaterialNodeDrawer #slots {
+	margin-top: 15;
+	flex-direction: row;
+	background-color: #444;
+	width: 200;
+}
+
+MaterialNodeDrawer #slots #input{
+	flex:1;
+}
+
+MaterialNodeDrawer #slots #output {
+	flex:1;
+}
+
+/* NodeAnchor */
+
+MaterialNodeDrawer #slots NodeAnchor {
+	align-items: center;
+}
+
+MaterialNodeDrawer #slots #input NodeAnchor {
+	flex-direction: row;
+}
+
+MaterialNodeDrawer #slots #output NodeAnchor {
+	flex-direction: row-reverse;
+}
+
+/* NodeAnchor #connector */
+
+NodeAnchor #connector {
+	background-color:#FF0;
+	border-color:#FF0;
+	/* width is currently hard-coded */
+	border-width: 4;
+	margin-left: 5;
+    margin-right: 5;
+}
+
+NodeAnchor #connector.anchorHighlight {
+	background-color:#00F;
+}
+
+/* NodeAnchor #type */
+
+MaterialNodeDrawer #slots NodeAnchor #type {
+	text-color:#FFF;
+	flex:1;
+}
+
+MaterialNodeDrawer #slots #input NodeAnchor #type {
+    text-alignment: middle-left;
+}
+
+MaterialNodeDrawer #slots #output NodeAnchor #type {
+    text-alignment: middle-right;
+}
+
+MaterialNodeDrawer #controls {
+	flex-direction: column;
+	padding-bottom: 2;
+	background-color: #444;
+}
+
+MaterialNodeDrawer #controls #element{
+	flex-direction: column;
+}
+
+MaterialNodeDrawer #preview {
+	flex-direction: column;
+	background-color: #444;
+}
+
+MaterialNodeDrawer #preview #image {
+	height: 200;
+	width: 200;
+}
+
+MaterialGraphView {
+	grid-background-color:#404749;
+	line-color:#20293F;
+	thick-line-color:#030C22;
+	spacing:75.0;
+	thick-lines:10;
+}
+

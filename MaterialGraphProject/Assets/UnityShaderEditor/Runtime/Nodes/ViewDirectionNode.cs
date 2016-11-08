@@ -3,8 +3,11 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
+    interface IRequiresViewDirection : IRequiresWorldPosition
+    {}
+
     [Title("Input/View Direction Node")]
-    public class ViewDirectionNode : AbstractMaterialNode, IGeneratesVertexToFragmentBlock
+    public class ViewDirectionNode : AbstractMaterialNode, IRequiresViewDirection
     {
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "ViewDirection";
@@ -29,15 +32,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return "IN.viewDir";
-        }
-
-        public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            if (generationMode == GenerationMode.Preview2D)
-                throw new InvalidEnumArgumentException(string.Format("Trying to generate 2D preview on {0}. This is not supported!", this));
-
-            visitor.AddShaderChunk("float3 viewDir;", true);
+            return "worldViewDir";
         }
     }
 }

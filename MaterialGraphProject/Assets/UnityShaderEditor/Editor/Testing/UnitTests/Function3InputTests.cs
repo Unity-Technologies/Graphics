@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Graphing;
@@ -61,7 +60,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Graph.AddNode(m_InputTwo);
             m_Graph.AddNode(m_InputThree);
             m_Graph.AddNode(m_TestNode);
-            m_Graph.AddNode(new PixelShaderNode());
+            m_Graph.AddNode(new MetallicMasterNode());
 
             m_InputOne.value = 0.2f;
             m_InputTwo.value = 0.3f;
@@ -70,7 +69,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Graph.Connect(m_InputOne.GetSlotReference(Vector1Node.OutputSlotId), m_TestNode.GetSlotReference(Function3Input.InputSlot1Id));
             m_Graph.Connect(m_InputTwo.GetSlotReference(Vector1Node.OutputSlotId), m_TestNode.GetSlotReference(Function3Input.InputSlot2Id));
             m_Graph.Connect(m_InputThree.GetSlotReference(Vector1Node.OutputSlotId), m_TestNode.GetSlotReference(Function3Input.InputSlot3Id));
-            m_Graph.Connect(m_TestNode.GetSlotReference(Function3Input.OutputSlotId), m_Graph.pixelMasterNode.GetSlotReference(BaseLightFunction.NormalSlotId));
+            m_Graph.Connect(m_TestNode.GetSlotReference(Function3Input.OutputSlotId), m_Graph.masterNode.GetSlotReference(MetallicMasterNode.NormalSlotId));
         }
 
         [Test]
@@ -84,7 +83,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                     , Environment.NewLine);
 
             ShaderGenerator visitor = new ShaderGenerator();
-            m_TestNode.GenerateNodeCode(visitor, GenerationMode.SurfaceShader);
+            m_TestNode.GenerateNodeCode(visitor, GenerationMode.ForReals);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
         }
 
@@ -98,7 +97,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + "}" + Environment.NewLine;
 
             ShaderGenerator visitor = new ShaderGenerator();
-            m_TestNode.GenerateNodeFunction(visitor, GenerationMode.SurfaceShader);
+            m_TestNode.GenerateNodeFunction(visitor, GenerationMode.ForReals);
             Assert.AreEqual(expected, visitor.GetShaderString(0));
         }
     }

@@ -1,7 +1,8 @@
+using RMGUI.GraphView;
 using UnityEditor.Graphing.Drawing;
 using UnityEngine.MaterialGraph;
 
-namespace UnityEditor.MaterialGraph
+namespace UnityEditor.MaterialGraph.Drawing
 {
     public class MaterialGraphEditWindow : AbstractGraphEditWindow<IMaterialGraphAsset>
     {
@@ -9,6 +10,16 @@ namespace UnityEditor.MaterialGraph
         public static void OpenMenu()
         {
             GetWindow<MaterialGraphEditWindow>();
+        }
+
+        public override AbstractGraphDataSource CreateDataSource()
+        {
+            return CreateInstance<MaterialGraphDataSource>();
+        }
+
+        public override GraphView CreateGraphView()
+        {
+            return new MaterialGraphView();
         }
     }
 }

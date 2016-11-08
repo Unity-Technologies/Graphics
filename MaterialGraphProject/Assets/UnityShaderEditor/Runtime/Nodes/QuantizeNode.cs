@@ -1,5 +1,3 @@
-using UnityEngine.Graphing;
-
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Quantize Node")]

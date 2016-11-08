@@ -1,5 +1,3 @@
-using UnityEngine.Graphing;
-
 namespace UnityEngine.MaterialGraph
 {
     [Title("Math/Length Node")]
