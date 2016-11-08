@@ -42,7 +42,7 @@ namespace RMGUI.GraphView
 		protected new void OnEnable()
 		{
 			base.OnEnable();
-			capabilities = Capabilities.Deletable;
+			capabilities = Capabilities.Deletable | Capabilities.Selectable;
 		}
 
 		protected EdgeData() {}

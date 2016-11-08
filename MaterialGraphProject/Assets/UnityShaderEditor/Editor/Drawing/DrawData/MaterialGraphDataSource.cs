@@ -1,5 +1,6 @@
 using UnityEditor.Graphing.Drawing;
 using UnityEngine.MaterialGraph;
+using RMGUI.GraphView;
 
 namespace UnityEditor.MaterialGraph.Drawing
 {
@@ -17,6 +18,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             AddTypeMapping(typeof(Vector2Node), typeof(Vector2NodeDrawData));
             AddTypeMapping(typeof(Vector3Node), typeof(Vector3NodeDrawData));
             AddTypeMapping(typeof(Vector4Node), typeof(Vector4NodeDrawData));
+			AddTypeMapping(typeof(EdgeDrawData), typeof(Edge));
         }
     }
 }

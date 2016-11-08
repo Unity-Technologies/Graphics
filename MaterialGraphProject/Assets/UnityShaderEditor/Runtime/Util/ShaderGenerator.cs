@@ -21,8 +21,15 @@ namespace UnityEngine.MaterialGraph
             private readonly int m_IndentLevel;
             private readonly string m_ShaderChunkString;
 
-            public int chunkIndentLevel { get { return m_IndentLevel; } }
-            public string chunkString { get { return m_ShaderChunkString; } }
+            public int chunkIndentLevel
+            {
+                get { return m_IndentLevel; }
+            }
+
+            public string chunkString
+            {
+                get { return m_ShaderChunkString; }
+            }
         }
 
         private readonly List<ShaderChunk> m_ShaderChunks = new List<ShaderChunk>();
@@ -47,8 +54,15 @@ namespace UnityEngine.MaterialGraph
             m_ShaderChunks.Add(new ShaderChunk(m_IndentLevel, s));
         }
 
-        public void Indent() { m_IndentLevel++; }
-        public void Deindent() { m_IndentLevel = Math.Max(0, m_IndentLevel - 1); }
+        public void Indent()
+        {
+            m_IndentLevel++;
+        }
+
+        public void Deindent()
+        {
+            m_IndentLevel = Math.Max(0, m_IndentLevel - 1);
+        }
 
         public string GetShaderString(int baseIndentLevel)
         {
@@ -68,7 +82,7 @@ namespace UnityEngine.MaterialGraph
             return sb.ToString();
         }
 
-        private static string GetTemplatePath(string templateName)
+        internal static string GetTemplatePath(string templateName)
         {
             var path = new List<string>
             {
@@ -87,6 +101,7 @@ namespace UnityEngine.MaterialGraph
         }
 
         private const string kErrorString = @"ERROR!";
+
         public static string AdaptNodeOutput(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType, bool textureSampleUVHack = false)
         {
             var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
@@ -167,15 +182,20 @@ namespace UnityEngine.MaterialGraph
                     switch (convertFromType)
                     {
                         case ConcreteSlotValueType.Vector2:
-                            return string.Format("half4({0}.x, {0}.y, 0.0, 0.0)", rawOutput);
+                            return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", rawOutput);
                         case ConcreteSlotValueType.Vector3:
-                            return string.Format("half4({0}.x, {0}.y, {0}.z, 0.0)", rawOutput);
+                            return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", rawOutput);
                         default:
                             return kErrorString;
                     }
                 default:
                     return kErrorString;
             }
+        }
+
+        public int numberOfChunks
+        {
+            get { return m_ShaderChunks.Count; }
         }
 
         public static string GeneratePreviewShader(AbstractMaterialNode node, out PreviewMode generatedShaderMode)
@@ -189,55 +209,82 @@ namespace UnityEngine.MaterialGraph
             // figure out what kind of preview we want!
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, node);
-            var generationMode = GenerationMode.Preview2D;
             generatedShaderMode = PreviewMode.Preview2D;
 
             if (activeNodeList.OfType<AbstractMaterialNode>().Any(x => x.previewMode == PreviewMode.Preview3D))
-            {
-                generationMode = GenerationMode.Preview3D;
                 generatedShaderMode = PreviewMode.Preview3D;
-            }
 
-            string templateLocation = GetTemplatePath(generationMode == GenerationMode.Preview2D ? "2DPreview.template" : "3DPreview.template");
+            string templateLocation = GetTemplatePath("2DPreview.template");
             if (!File.Exists(templateLocation))
                 return null;
 
             string template = File.ReadAllText(templateLocation);
 
             var shaderBodyVisitor = new ShaderGenerator();
-            var shaderInputVisitor = new ShaderGenerator();
             var shaderFunctionVisitor = new ShaderGenerator();
             var shaderPropertiesVisitor = new PropertyGenerator();
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
-            var vertexShaderBlock = new ShaderGenerator();
 
             var shaderName = "Hidden/PreviewShader/" + node.GetVariableNameForSlot(node.GetOutputSlots<MaterialSlot>().First().id);
 
+
+            var shaderInputVisitor = new ShaderGenerator();
+            var vertexShaderBlock = new ShaderGenerator();
+
+            // always add color because why not.
+            shaderInputVisitor.AddShaderChunk("float4 color : COLOR;", true);
+
+            vertexShaderBlock.AddShaderChunk("float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;", true);
+            vertexShaderBlock.AddShaderChunk("float3 viewDir = UnityWorldSpaceViewDir(worldPos);", true);
+            vertexShaderBlock.AddShaderChunk("float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(v.vertex));", true);
+            vertexShaderBlock.AddShaderChunk("float3 worldNormal = UnityObjectToWorldNormal(v.normal);", true);
+
+            
+            if (activeNodeList.Any(x => x is IRequiresWorldPosition))
+            {
+                shaderInputVisitor.AddShaderChunk("float3 worldPos : TEXCOORD2;", true);
+                vertexShaderBlock.AddShaderChunk("o.worldPos = worldPos;", true);
+            }
+
+            if (activeNodeList.Any(x => x is IRequiresNormal))
+            {
+                shaderInputVisitor.AddShaderChunk("float3 worldNormal : TEXCOORD3;", true);
+                vertexShaderBlock.AddShaderChunk("o.worldNormal = worldNormal;", true);
+            }
+
+            if (activeNodeList.Any(x => x is IRequiresMeshUV))
+            {
+                shaderInputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD0;", true);
+                vertexShaderBlock.AddShaderChunk("o.meshUV0 = v.texcoord;", true);
+            }
+
+            if (activeNodeList.Any(x => x is IRequiresViewDirection))
+            {
+                shaderBodyVisitor.AddShaderChunk("fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(IN.worldPos));", true);
+            }
+
+            if (activeNodeList.Any(x => x is IRequiresScreenPosition))
+            {
+                shaderInputVisitor.AddShaderChunk("float4 screenPos : TEXCOORD3;", true);
+                vertexShaderBlock.AddShaderChunk("o.screenPos = screenPos;", true);
+            }
+
+            var generationMode = GenerationMode.Preview;
             foreach (var activeNode in activeNodeList.OfType<AbstractMaterialNode>())
             {
                 if (activeNode is IGeneratesFunction)
                     (activeNode as IGeneratesFunction).GenerateNodeFunction(shaderFunctionVisitor, generationMode);
-                if (activeNode is IGeneratesVertexToFragmentBlock)
-                    (activeNode as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(shaderInputVisitor, generationMode);
                 if (activeNode is IGeneratesBodyCode)
                     (activeNode as IGeneratesBodyCode).GenerateNodeCode(shaderBodyVisitor, generationMode);
-                if (activeNode is IGeneratesVertexShaderBlock)
-                    (activeNode as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(vertexShaderBlock, generationMode);
-
+ 
                 activeNode.GeneratePropertyBlock(shaderPropertiesVisitor, generationMode);
                 activeNode.GeneratePropertyUsages(shaderPropertyUsagesVisitor, generationMode);
             }
+           
+            shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id, ConcreteSlotValueType.Vector4) + ";", true);
 
-            if (shaderInputVisitor.numberOfChunks == 0)
-            {
-                shaderInputVisitor.AddShaderChunk("float4 color : COLOR;", true);
-            }
-
-            if (generationMode == GenerationMode.Preview2D)
-                shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id, ConcreteSlotValueType.Vector4) + ";", true);
-            else
-                shaderBodyVisitor.AddShaderChunk("o.Emission = " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id, ConcreteSlotValueType.Vector3) + ";", true);
-
+            ListPool<INode>.Release(activeNodeList);
+           
             template = template.Replace("${ShaderName}", shaderName);
             template = template.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
             template = template.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(3));
@@ -259,130 +306,6 @@ namespace UnityEngine.MaterialGraph
             }
 
             return Regex.Replace(template, @"\r\n|\n\r|\n|\r", Environment.NewLine);
-        }
-
-        private static void GenerateSurfaceShaderInternal(
-            AbstractMasterNode masterNode, 
-            ShaderGenerator shaderBody, 
-            ShaderGenerator inputStruct,
-            ShaderGenerator lightFunction,
-            ShaderGenerator surfaceOutput,
-            ShaderGenerator nodeFunction, 
-            PropertyGenerator shaderProperties, 
-            ShaderGenerator propertyUsages, 
-            ShaderGenerator vertexShader, 
-            bool isPreview)
-        {
-            masterNode.GenerateSurfaceOutput(surfaceOutput);
-            masterNode.GenerateLightFunction(lightFunction);
-
-            var genMode = isPreview ? GenerationMode.Preview3D : GenerationMode.SurfaceShader;
-
-            var activeNodes = new List<INode>();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, masterNode);
-            var activeMaterialNodes = activeNodes.OfType<AbstractMaterialNode>();
-
-            foreach (var node in activeMaterialNodes)
-            {
-                if (node is IGeneratesFunction) (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, genMode);
-                if (node is IGeneratesVertexToFragmentBlock) (node as IGeneratesVertexToFragmentBlock).GenerateVertexToFragmentBlock(inputStruct, genMode);
-                if (node is IGeneratesVertexShaderBlock) (node as IGeneratesVertexShaderBlock).GenerateVertexShaderBlock(vertexShader, genMode);
-
-                if (node is IGenerateProperties)
-                {
-                    (node as IGenerateProperties).GeneratePropertyBlock(shaderProperties, genMode);
-                    (node as IGenerateProperties).GeneratePropertyUsages(propertyUsages, genMode);
-                }
-            }
-
-            masterNode.GenerateNodeCode(shaderBody, genMode);
-        }
-
-        public static string GenerateSurfaceShader(AbstractMasterNode node, MaterialOptions options, string shaderName, bool isPreview, out List<PropertyGenerator.TextureInfo> configuredTextures)
-        {
-            var templateLocation = GetTemplatePath("shader.template");
-
-            if (!File.Exists(templateLocation))
-            {
-                configuredTextures = new List<PropertyGenerator.TextureInfo>();
-                return string.Empty;
-            }
-
-            var templateText = File.ReadAllText(templateLocation);
-
-            var shaderBodyVisitor = new ShaderGenerator();
-            var shaderInputVisitor = new ShaderGenerator();
-            var shaderLightFunctionVisitor = new ShaderGenerator();
-            var shaderOutputSurfaceVisitor = new ShaderGenerator();
-            var shaderFunctionVisitor = new ShaderGenerator();
-            var shaderPropertiesVisitor = new PropertyGenerator();
-            var shaderPropertyUsagesVisitor = new ShaderGenerator();
-            var vertexShaderBlock = new ShaderGenerator();
-
-            GenerateSurfaceShaderInternal(
-                node,
-                shaderBodyVisitor,
-                shaderInputVisitor,
-                shaderLightFunctionVisitor,
-                shaderOutputSurfaceVisitor,
-                shaderFunctionVisitor,
-                shaderPropertiesVisitor,
-                shaderPropertyUsagesVisitor,
-                vertexShaderBlock,
-                isPreview);
-
-            if (shaderInputVisitor.numberOfChunks == 0)
-            {
-                shaderInputVisitor.AddShaderChunk("float4 color : COLOR;", true);
-            }
-
-            var tagsVisitor = new ShaderGenerator();
-            var blendingVisitor = new ShaderGenerator();
-            var cullingVisitor = new ShaderGenerator();
-            var zTestVisitor = new ShaderGenerator();
-            var zWriteVisitor = new ShaderGenerator();
-
-            options.GetTags(tagsVisitor);
-            options.GetBlend(blendingVisitor);
-            options.GetCull(cullingVisitor);
-            options.GetDepthTest(zTestVisitor);
-            options.GetDepthWrite(zWriteVisitor);
-
-            var resultShader = templateText.Replace("${ShaderName}", shaderName);
-            resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${LightingFunctionName}", shaderLightFunctionVisitor.GetPragmaString());
-            resultShader = resultShader.Replace("${LightingFunction}", shaderLightFunctionVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${SurfaceOutputStructureName}", shaderOutputSurfaceVisitor.GetPragmaString());
-            resultShader = resultShader.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${ShaderInputs}", shaderInputVisitor.GetShaderString(3));
-            resultShader = resultShader.Replace("${PixelShaderBody}", shaderBodyVisitor.GetShaderString(3));
-            resultShader = resultShader.Replace("${Tags}", tagsVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${Blending}", blendingVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${Culling}", cullingVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
-
-            string vertexShaderBody = vertexShaderBlock.GetShaderString(3);
-            if (vertexShaderBody.Length > 0)
-            {
-                resultShader = resultShader.Replace("${VertexShaderDecl}", "vertex:vert");
-                resultShader = resultShader.Replace("${VertexShaderBody}", vertexShaderBody);
-            }
-            else
-            {
-                resultShader = resultShader.Replace("${VertexShaderDecl}", "");
-                resultShader = resultShader.Replace("${VertexShaderBody}", "");
-            }
-
-            configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
-
-            return Regex.Replace(resultShader, @"\r\n|\n\r|\n|\r", Environment.NewLine);
-        }
-
-        public int numberOfChunks
-        {
-            get { return m_ShaderChunks.Count; }
         }
     }
 }

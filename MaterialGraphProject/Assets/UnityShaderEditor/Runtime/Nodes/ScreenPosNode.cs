@@ -2,8 +2,11 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
+    public interface IRequiresScreenPosition
+    { }
+
     [Title("Input/Screen Pos Node")]
-    public class ScreenPosNode : AbstractMaterialNode, IGeneratesVertexToFragmentBlock
+    public class ScreenPosNode : AbstractMaterialNode, IRequiresScreenPosition
     {
         public ScreenPosNode()
         {
@@ -17,7 +20,7 @@ namespace UnityEngine.MaterialGraph
         public override bool hasPreview { get { return true; } }
         public override PreviewMode previewMode
         {
-            get { return PreviewMode.Preview3D; }
+            get { return PreviewMode.Preview2D; }
         }
 
 
@@ -30,15 +33,6 @@ namespace UnityEngine.MaterialGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             return "IN.screenPos";
-        }
-
-        public void GenerateVertexToFragmentBlock(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            string temp = precision + "4 screenPos";
-            if (generationMode == GenerationMode.Preview2D)
-                temp += " : TEXCOORD1";
-            temp += ";";
-            visitor.AddShaderChunk(temp, true);
         }
     }
 }
