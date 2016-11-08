@@ -920,12 +920,12 @@ Light:
   serializedVersion: 7
   m_Type: 1
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 8
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -1059,7 +1059,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_RenderLoop: {fileID: 11400000, guid: 2400b74f5ce370c4481e5dc417d03703, type: 2}
-  m_AssetVersion: 0
 --- !u!1 &1893534339
 GameObject:
   m_ObjectHideFlags: 0

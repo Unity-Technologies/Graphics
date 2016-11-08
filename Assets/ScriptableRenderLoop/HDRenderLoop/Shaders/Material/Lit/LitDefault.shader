@@ -196,7 +196,7 @@ Shader "HDRenderLoop/Lit"
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../Material/Material.hlsl"
             #include "LitData.hlsl"
-            #include "LitShare.hlsl"            
+            #include "LitSharePass.hlsl"
 
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -221,32 +221,8 @@ Shader "HDRenderLoop/Lit"
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
             #include "LitData.hlsl"
-            #include "LitShare.hlsl"
-
-            void GetVaryingsDataDebug(uint paramId, FragInput input, inout float3 result, inout bool needLinearToSRGB)
-            {
-                switch (paramId)
-                {
-                case DEBUGVIEW_VARYING_TEXCOORD0:
-                    result = float3(input.texCoord0 * 0.5 + 0.5, 0.0);
-                    break;
-                case DEBUGVIEW_VARYING_TEXCOORD1:
-                    result = float3(input.texCoord1 * 0.5 + 0.5, 0.0);
-                    break;
-                case DEBUGVIEW_VARYING_TEXCOORD2:
-                    result = float3(input.texCoord2 * 0.5 + 0.5, 0.0);
-                    break;
-                case DEBUGVIEW_VARYING_VERTEXTANGENTWS:
-                    result = input.tangentToWorld[0].xyz * 0.5 + 0.5;
-                    break;
-                case DEBUGVIEW_VARYING_VERTEXBITANGENTWS:
-                    result = input.tangentToWorld[1].xyz * 0.5 + 0.5;
-                    break;
-                case DEBUGVIEW_VARYING_VERTEXNORMALWS:
-                    result = input.tangentToWorld[2].xyz * 0.5 + 0.5;
-                    break;
-                }
-            }
+            #include "LitSharePass.hlsl"
+            #include "LitDebugPass.hlsl"
             
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -276,95 +252,7 @@ Shader "HDRenderLoop/Lit"
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../Material/Material.hlsl"
             #include "LitData.hlsl"
-
-            CBUFFER_START(UnityMetaPass)
-            // x = use uv1 as raster position
-            // y = use uv2 as raster position
-            bool4 unity_MetaVertexControl;
-
-            // x = return albedo
-            // y = return normal
-            bool4 unity_MetaFragmentControl;
-
-            CBUFFER_END
-
-            // This was not in constant buffer in original unity, so keep outiside. But should be in as ShaderRenderPass frequency
-            float unity_OneOverOutputBoost;
-            float unity_MaxOutputValue;
-
-            struct Attributes
-            {
-                float3 positionOS : POSITION;
-                float3 normalOS : NORMAL;
-                float2 uv0 : TEXCOORD0;
-                float2 uv1 : TEXCOORD1;
-                float2 uv2 : TEXCOORD2;
-                float4 tangentOS : TANGENT;
-            };
-
-            struct Varyings
-            {
-                float4 positionCS;
-                float2 texCoord0;
-                float2 texCoord1;
-            };
-
-            struct PackedVaryings
-            {
-                float4 positionCS : SV_Position;
-                float4 interpolators[1] : TEXCOORD0;
-            };
-
-            // Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
-            PackedVaryings PackVaryings(Varyings input)
-            {
-                PackedVaryings output;
-                output.positionCS = input.positionCS;
-                output.interpolators[0].xy = input.texCoord0;
-                output.interpolators[0].zw = input.texCoord1;
-
-                return output;
-            }
-
-            FragInput UnpackVaryings(PackedVaryings input)
-            {
-                FragInput output;
-                ZERO_INITIALIZE(FragInput, output);
-
-                output.unPositionSS = input.positionCS;
-                output.texCoord0 = input.interpolators[0].xy;
-                output.texCoord1 = input.interpolators[0].zw;
-
-                return output;
-            }
-
-            PackedVaryings Vert(Attributes input)
-            {
-                Varyings output;
-
-                // Output UV coordinate in vertex shader
-                if (unity_MetaVertexControl.x)
-                {
-                    input.positionOS.xy = input.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
-                    // OpenGL right now needs to actually use incoming vertex position,
-                    // so use it in a very dummy way
-                    //v.positionOS.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
-                }
-                if (unity_MetaVertexControl.y)
-                {
-                    input.positionOS.xy = input.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-                    // OpenGL right now needs to actually use incoming vertex position,
-                    // so use it in a very dummy way
-                    //v.positionOS.z = vertex.z > 0 ? 1.0e-4f : 0.0f;
-                }
-
-                float3 positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionCS = TransformWorldToHClip(positionWS);
-                output.texCoord0 = input.uv0;
-                output.texCoord1 = input.uv1;
-
-                return PackVaryings(output);
-            }
+            #include "LitMetaPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
@@ -391,109 +279,7 @@ Shader "HDRenderLoop/Lit"
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../Material/Material.hlsl"            
             #include "LitData.hlsl"
-
-            #define NEED_TANGENT_TO_WORLD (defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT))
-            #define NEED_TEXCOORD0 defined(_ALPHATEST_ON) || NEED_TANGENT_TO_WORLD
-
-            struct Attributes
-            {
-                float3 positionOS : POSITION;
-                #if NEED_TEXCOORD0
-                float2 uv0 : TEXCOORD0;
-                #endif
-                #if NEED_TANGENT_TO_WORLD
-                float4 tangentOS : TANGENT;
-                #endif
-            };
-
-            struct Varyings
-            {
-                float4 positionCS;
-                #if NEED_TEXCOORD0
-                float2 texCoord0;
-                #endif
-                #if NEED_TANGENT_TO_WORLD
-                float3 positionWS;                
-                float3 tangentToWorld[3];
-                #endif
-            };
-
-            struct PackedVaryings
-            {
-                float4 positionCS : SV_Position;
-                #if NEED_TANGENT_TO_WORLD
-                float4 interpolators[4] : TEXCOORD0;
-                #elif NEED_TEXCOORD0
-                float4 interpolators[1] : TEXCOORD0;
-                #endif
-            };
-
-            // Function to pack data to use as few interpolator as possible, the ShaderGraph should generate these functions
-            PackedVaryings PackVaryings(Varyings input)
-            {
-                PackedVaryings output;
-                output.positionCS = input.positionCS;
-                #if NEED_TANGENT_TO_WORLD
-                output.interpolators[0].xyz = input.positionWS.xyz;
-                output.interpolators[1].xyz = input.tangentToWorld[0];
-                output.interpolators[2].xyz = input.tangentToWorld[1];
-                output.interpolators[3].xyz = input.tangentToWorld[2];
-
-                output.interpolators[0].w = input.texCoord0.x;
-                output.interpolators[1].w = input.texCoord0.y;                
-                #elif NEED_TEXCOORD0
-                output.interpolators[0] = float4(input.texCoord0, 0.0, 0.0);
-                #endif
-
-                return output;
-            }
-
-            FragInput UnpackVaryings(PackedVaryings input)
-            {
-                FragInput output;
-                ZERO_INITIALIZE(FragInput, output);
-
-                output.unPositionSS = input.positionCS;
-
-                #if NEED_TANGENT_TO_WORLD
-                output.positionWS.xyz = input.interpolators[0].xyz;
-                output.tangentToWorld[0] = input.interpolators[1].xyz;
-                output.tangentToWorld[1] = input.interpolators[2].xyz;
-                output.tangentToWorld[2] = input.interpolators[3].xyz;
-
-                output.texCoord0.xy = float2(input.interpolators[0].w, input.interpolators[1].w);
-                #elif NEED_TEXCOORD0
-                output.texCoord0.xy = input.interpolators[0].xy;
-                #endif
-
-                return output;
-            }
-
-            PackedVaryings Vert(Attributes input)
-            {
-                Varyings output;
-
-                float3 positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionCS = TransformWorldToHClip(positionWS);
-
-                #if NEED_TEXCOORD0
-                output.texCoord0 = input.uv0;
-                #endif
-
-                #if NEED_TANGENT_TO_WORLD
-                output.positionWS = positionWS;
-
-                float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
-                float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
-
-                float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
-                output.tangentToWorld[0] = tangentToWorld[0];
-                output.tangentToWorld[1] = tangentToWorld[1];
-                output.tangentToWorld[2] = tangentToWorld[2];
-                #endif
-
-                return PackVaryings(output);
-            }
+            #include "LitDepthPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -525,7 +311,7 @@ Shader "HDRenderLoop/Lit"
 
             #include "../../Lighting/Lighting.hlsl"
             #include "LitData.hlsl"
-            #include "LitShare.hlsl"
+            #include "LitSharePass.hlsl"
 
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 

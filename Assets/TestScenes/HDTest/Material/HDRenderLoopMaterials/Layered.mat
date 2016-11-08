@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Layered
-  m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
+  m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DISTORTIONDEPTHTEST_OFF _DISTORTIONONLY_OFF
     _EMISSION _LAYEREDLIT_4_LAYER _LAYEREDLIT_4_LAYERS _LAYERMASKMAP _MASKMAP _NORMALMAP
     _NORMALMAP_TANGENT_SPACE
@@ -15,460 +15,255 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   m_SavedProperties:
-    serializedVersion: 2
+    serializedVersion: 3
     m_TexEnvs:
-    - first:
-        name: _BaseColorMap
-      second:
+    - _AnisotropyMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _BaseColorMap0
-      second:
+    - _BaseColorMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BaseColorMap0:
         m_Texture: {fileID: 2800000, guid: ded78b6c0a9afd94a8d528c2ec647f8f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _BaseColorMap1
-      second:
+    - _BaseColorMap1:
         m_Texture: {fileID: 2800000, guid: 9099cfe546c2a2c4bb7cc1f114c1985d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _BaseColorMap2
-      second:
+    - _BaseColorMap2:
         m_Texture: {fileID: 2800000, guid: 68b970ec01d028a40a3e68e6e684e8e3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _BaseColorMap3
-      second:
+    - _BaseColorMap3:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _BumpMap
-      second:
+    - _BumpMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _DetailAlbedoMap
-      second:
+    - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _DetailMask
-      second:
+    - _DetailMask:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _DetailNormalMap
-      second:
+    - _DetailNormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _DiffuseLightingMap
-      second:
+    - _DiffuseLightingMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _EmissionMap
-      second:
+    - _EmissionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _EmissiveColorMap
-      second:
+    - _EmissiveColorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _EmissiveColorMap0
-      second:
+    - _EmissiveColorMap0:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _EmissiveColorMap1
-      second:
+    - _EmissiveColorMap1:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _EmissiveColorMap2
-      second:
+    - _EmissiveColorMap2:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _EmissiveColorMap3
-      second:
+    - _EmissiveColorMap3:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _HeightMap
-      second:
+    - _HeightMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _HeightMap0
-      second:
+    - _HeightMap0:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _HeightMap1
-      second:
+    - _HeightMap1:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _HeightMap2
-      second:
+    - _HeightMap2:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _HeightMap3
-      second:
+    - _HeightMap3:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _LayerMaskMap
-      second:
+    - _LayerMaskMap:
         m_Texture: {fileID: 2800000, guid: 6b43fa9736beb354dba359b5d2ec3699, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _MainTex
-      second:
+    - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _MaskMap
-      second:
+    - _MaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _MaskMap0
-      second:
+    - _MaskMap0:
         m_Texture: {fileID: 2800000, guid: eddc784b66d317641bd2c3b078a694b1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _MaskMap1
-      second:
+    - _MaskMap1:
         m_Texture: {fileID: 2800000, guid: 5b9c7f6055407ce41989dbb50fb6df10, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _MaskMap2
-      second:
+    - _MaskMap2:
         m_Texture: {fileID: 2800000, guid: d24c0ec78314b3c47bb17c0f918bff7d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _MaskMap3
-      second:
+    - _MaskMap3:
         m_Texture: {fileID: 2800000, guid: eddc784b66d317641bd2c3b078a694b1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _MetallicGlossMap
-      second:
+    - _MetallicGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _NormalMap
-      second:
+    - _NormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _NormalMap0
-      second:
+    - _NormalMap0:
         m_Texture: {fileID: 2800000, guid: d896c388b98bb614ebe6bb48e0f56dcf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _NormalMap1
-      second:
+    - _NormalMap1:
         m_Texture: {fileID: 2800000, guid: 9f0707fef3f15394ab3aa08fd9b5def3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _NormalMap2
-      second:
+    - _NormalMap2:
         m_Texture: {fileID: 2800000, guid: d6b5108542e0e7547b9afe26c79f9460, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _NormalMap3
-      second:
+    - _NormalMap3:
         m_Texture: {fileID: 2800000, guid: d896c388b98bb614ebe6bb48e0f56dcf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _OcclusionMap
-      second:
+    - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _ParallaxMap
-      second:
+    - _ParallaxMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _SpecularOcclusionMap
-      second:
+    - _SpecularOcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _SpecularOcclusionMap0
-      second:
+    - _SpecularOcclusionMap0:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _SpecularOcclusionMap1
-      second:
+    - _SpecularOcclusionMap1:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _SpecularOcclusionMap2
-      second:
+    - _SpecularOcclusionMap2:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _SpecularOcclusionMap3
-      second:
+    - _SpecularOcclusionMap3:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - first:
-        name: _SubSurfaceRadiusMap
-      second:
+    - _SubSurfaceRadiusMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TangentMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - first:
-        name: _AlphaCutoff
-      second: 0.122
-    - first:
-        name: _AlphaCutoffEnable
-      second: 0
-    - first:
-        name: _BlendMode
-      second: 0
-    - first:
-        name: _BumpScale
-      second: 1
-    - first:
-        name: _CullMode
-      second: 2
-    - first:
-        name: _Cutoff
-      second: 0.5
-    - first:
-        name: _DetailNormalMapScale
-      second: 1
-    - first:
-        name: _DistortionDepthTest
-      second: 0
-    - first:
-        name: _DistortionOnly
-      second: 0
-    - first:
-        name: _DoubleSidedMode
-      second: 0
-    - first:
-        name: _DstBlend
-      second: 0
-    - first:
-        name: _EmissiveColorMode
-      second: 1
-    - first:
-        name: _EmissiveIntensity
-      second: 0
-    - first:
-        name: _EmissiveIntensity0
-      second: 0
-    - first:
-        name: _EmissiveIntensity1
-      second: 0
-    - first:
-        name: _EmissiveIntensity2
-      second: 0
-    - first:
-        name: _EmissiveIntensity3
-      second: 0
-    - first:
-        name: _GlossMapScale
-      second: 1
-    - first:
-        name: _Glossiness
-      second: 0.5
-    - first:
-        name: _GlossyReflections
-      second: 1
-    - first:
-        name: _HeightBias
-      second: 0
-    - first:
-        name: _HeightBias0
-      second: 0
-    - first:
-        name: _HeightBias1
-      second: 0
-    - first:
-        name: _HeightBias2
-      second: 0
-    - first:
-        name: _HeightBias3
-      second: 0
-    - first:
-        name: _HeightMapMode
-      second: 0
-    - first:
-        name: _HeightScale
-      second: 1
-    - first:
-        name: _HeightScale0
-      second: 1
-    - first:
-        name: _HeightScale1
-      second: 1
-    - first:
-        name: _HeightScale2
-      second: 1
-    - first:
-        name: _HeightScale3
-      second: 1
-    - first:
-        name: _LayerCount
-      second: 4
-    - first:
-        name: _MaterialId
-      second: 0
-    - first:
-        name: _Metalic
-      second: 0
-    - first:
-        name: _Metalic0
-      second: 0
-    - first:
-        name: _Metalic1
-      second: 0
-    - first:
-        name: _Metalic2
-      second: 0
-    - first:
-        name: _Metalic3
-      second: 0
-    - first:
-        name: _Metallic
-      second: 0
-    - first:
-        name: _Mode
-      second: 0
-    - first:
-        name: _NormalMapSpace
-      second: 0
-    - first:
-        name: _OcclusionStrength
-      second: 1
-    - first:
-        name: _Parallax
-      second: 0.02
-    - first:
-        name: _Smoothness
-      second: 0.5
-    - first:
-        name: _Smoothness0
-      second: 1
-    - first:
-        name: _Smoothness1
-      second: 1
-    - first:
-        name: _Smoothness2
-      second: 1
-    - first:
-        name: _Smoothness3
-      second: 0.486
-    - first:
-        name: _SmoothnessTextureChannel
-      second: 0
-    - first:
-        name: _SpecularHighlights
-      second: 1
-    - first:
-        name: _SrcBlend
-      second: 1
-    - first:
-        name: _SubSurfaceRadius
-      second: 0
-    - first:
-        name: _SurfaceType
-      second: 0
-    - first:
-        name: _UVSec
-      second: 0
-    - first:
-        name: _ZWrite
-      second: 1
+    - _AlphaCutoff: 0.122
+    - _AlphaCutoffEnable: 0
+    - _Anisotropy: 0
+    - _BlendMode: 0
+    - _BumpScale: 1
+    - _CullMode: 2
+    - _Cutoff: 0.5
+    - _DetailNormalMapScale: 1
+    - _DistortionDepthTest: 0
+    - _DistortionOnly: 0
+    - _DoubleSidedMode: 0
+    - _DstBlend: 0
+    - _EmissiveColorMode: 1
+    - _EmissiveIntensity: 0
+    - _EmissiveIntensity0: 0
+    - _EmissiveIntensity1: 0
+    - _EmissiveIntensity2: 0
+    - _EmissiveIntensity3: 0
+    - _GlossMapScale: 1
+    - _Glossiness: 0.5
+    - _GlossyReflections: 1
+    - _HeightBias: 0
+    - _HeightBias0: 0
+    - _HeightBias1: 0
+    - _HeightBias2: 0
+    - _HeightBias3: 0
+    - _HeightMapMode: 0
+    - _HeightScale: 1
+    - _HeightScale0: 1
+    - _HeightScale1: 1
+    - _HeightScale2: 1
+    - _HeightScale3: 1
+    - _LayerCount: 4
+    - _MaterialId: 0
+    - _Metalic: 0
+    - _Metalic0: 0
+    - _Metalic1: 0
+    - _Metalic2: 0
+    - _Metalic3: 0
+    - _Metallic: 0
+    - _Metallic0: 0
+    - _Metallic1: 0
+    - _Metallic2: 0
+    - _Metallic3: 0
+    - _Mode: 0
+    - _NormalMapSpace: 0
+    - _OcclusionStrength: 1
+    - _Parallax: 0.02
+    - _Smoothness: 0.5
+    - _Smoothness0: 1
+    - _Smoothness1: 1
+    - _Smoothness2: 1
+    - _Smoothness3: 0.486
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
+    - _SubSurfaceRadius: 0
+    - _SurfaceType: 0
+    - _UVSec: 0
+    - _ZWrite: 1
     m_Colors:
-    - first:
-        name: _BaseColor
-      second: {r: 1, g: 1, b: 1, a: 1}
-    - first:
-        name: _BaseColor0
-      second: {r: 1, g: 1, b: 1, a: 1}
-    - first:
-        name: _BaseColor1
-      second: {r: 1, g: 1, b: 1, a: 1}
-    - first:
-        name: _BaseColor2
-      second: {r: 1, g: 1, b: 1, a: 1}
-    - first:
-        name: _BaseColor3
-      second: {r: 1, g: 0, b: 0, a: 1}
-    - first:
-        name: _Color
-      second: {r: 1, g: 1, b: 1, a: 1}
-    - first:
-        name: _EmissionColor
-      second: {r: 0, g: 0, b: 0, a: 1}
-    - first:
-        name: _EmissiveColor
-      second: {r: 0, g: 0, b: 0, a: 1}
-    - first:
-        name: _EmissiveColor0
-      second: {r: 0, g: 0, b: 0, a: 1}
-    - first:
-        name: _EmissiveColor1
-      second: {r: 0, g: 0, b: 0, a: 1}
-    - first:
-        name: _EmissiveColor2
-      second: {r: 0, g: 0, b: 0, a: 1}
-    - first:
-        name: _EmissiveColor3
-      second: {r: 0, g: 0, b: 0, a: 1}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor0: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor1: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor2: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor3: {r: 1, g: 0, b: 0, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColor0: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColor1: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColor2: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissiveColor3: {r: 0, g: 0, b: 0, a: 1}
