@@ -128,33 +128,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // GBuffer management
             //-----------------------------------------------------------------------------
 
-            #if (VELOCITY_IN_GBUFFER)
-            public const int s_GBufferCount = (int)GBufferMaterial.Count + 2; // +1 for emissive buffer
-            #else
-            public const int s_GBufferCount = (int)GBufferMaterial.Count + 1;
-            #endif
-
-            public int GetGBufferCount() { return s_GBufferCount; }
+            public int GetGBufferCount() { return (int)GBufferMaterial.Count; }
 
             public RenderTextureFormat[] RTFormat =
             {
                 RenderTextureFormat.ARGB32,
                 RenderTextureFormat.ARGB2101010,
-                RenderTextureFormat.ARGB32,
-                #if (VELOCITY_IN_GBUFFER)
-                RenderTextureFormat.RGHalf,
-                #endif
-                RenderTextureFormat.RGB111110Float
+                RenderTextureFormat.ARGB32
             };
 
             public RenderTextureReadWrite[] RTReadWrite = 
             {
                 RenderTextureReadWrite.sRGB,
                 RenderTextureReadWrite.Linear,
-                RenderTextureReadWrite.Linear,
-                #if (VELOCITY_IN_GBUFFER)
-                RenderTextureReadWrite.Linear,
-                #endif
                 RenderTextureReadWrite.Linear
             };
       
