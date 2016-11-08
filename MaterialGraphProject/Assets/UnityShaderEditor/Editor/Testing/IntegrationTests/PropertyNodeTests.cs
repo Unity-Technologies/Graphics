@@ -9,13 +9,12 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.MaterialGraph.IntegrationTests
 {
-
     [TestFixture]
     public class PropertyNodeTests
     {
         private PixelGraph m_Graph;
         private TextureNode m_TextureNode;
-        
+
         [TestFixtureSetUp]
         public void RunBeforeAnyTests()
         {
@@ -31,7 +30,6 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             "IntegrationTests",
             "Textures",
             "MudDiffuse.tif"
-
         };
 
         private static Texture2D FindTestTexture()
@@ -84,24 +82,24 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             m_TextureNode.textureType = TextureType.Bump;
             m_TextureNode.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new PropertyGenerator();
-            m_TextureNode.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_TextureNode.GeneratePropertyBlock(generator, GenerationMode.ForReals);
 
             var expected1 = "[NonModifiableTextureData] "
-                           + m_TextureNode.propertyName
-                           + "(\""
-                           + m_TextureNode.description
-                           + "\", 2D) = \"bump\" {}"
-                           + Environment.NewLine;
+                + m_TextureNode.propertyName
+                + "(\""
+                + m_TextureNode.description
+                + "\", 2D) = \"bump\" {}"
+                + Environment.NewLine;
             Assert.AreEqual(expected1, generator.GetShaderString(0));
-            
+
             var expected2 = m_TextureNode.propertyName
-                           + "(\""
-                           + m_TextureNode.description
-                           + "\", 2D) = \"bump\" {}"
-                           + Environment.NewLine;
+                + "(\""
+                + m_TextureNode.description
+                + "\", 2D) = \"bump\" {}"
+                + Environment.NewLine;
             m_TextureNode.exposedState = PropertyNode.ExposedState.Exposed;
             generator = new PropertyGenerator();
-            m_TextureNode.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_TextureNode.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected2, generator.GetShaderString(0));
         }
 
@@ -111,16 +109,16 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
             m_TextureNode.defaultTexture = null;
             m_TextureNode.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new ShaderGenerator();
-            m_TextureNode.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_TextureNode.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             var expected = "sampler2D "
-                          + m_TextureNode.propertyName
-                          + ";"
-                          + Environment.NewLine;
+                + m_TextureNode.propertyName
+                + ";"
+                + Environment.NewLine;
             Assert.AreEqual(expected, generator.GetShaderString(0));
-           
+
             m_TextureNode.exposedState = PropertyNode.ExposedState.Exposed;
             generator = new ShaderGenerator();
-            m_TextureNode.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_TextureNode.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
     }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -28,7 +29,13 @@ namespace UnityEngine.MaterialGraph
 
                 return m_Exposed;
             }
-            set { m_Exposed = value; }
+            set
+            {
+                if (m_Exposed == value)
+                    return;
+
+                m_Exposed = value;
+            }
         }
 
         public string description

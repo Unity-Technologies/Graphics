@@ -1,7 +1,3 @@
-using System.Linq;
-using UnityEngine;
-using System.Collections.Generic;
-
 namespace UnityEditor.MaterialGraph
 {
     /*public abstract class FunctionMultiInput : BaseMaterialNode, IGeneratesBodyCode

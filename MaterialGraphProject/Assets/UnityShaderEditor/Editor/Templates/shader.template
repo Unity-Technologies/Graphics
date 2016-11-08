@@ -21,7 +21,6 @@ ${ZWrite}
 		#pragma glsl
 		#pragma debug
 
-${LightingFunction}
 ${ShaderFunctions}
 ${ShaderPropertyUsages}
 

@@ -186,7 +186,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Vector1Node.value = 0.6f;
             m_Vector1Node.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new PropertyGenerator();
-            m_Vector1Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_Vector1Node.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector1Node.propertyName
@@ -197,7 +197,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_Vector1Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector1Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_Vector1Node.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
 
@@ -207,7 +207,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Vector1Node.value = 0.6f;
             m_Vector1Node.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new ShaderGenerator();
-            m_Vector1Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_Vector1Node.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector1Node.precision
@@ -217,7 +217,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_Vector1Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector1Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_Vector1Node.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
 
@@ -255,7 +255,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Vector2Node.value = value;
             m_Vector2Node.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new PropertyGenerator();
-            m_Vector2Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_Vector2Node.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector2Node.propertyName
@@ -269,7 +269,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_Vector2Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector2Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_Vector2Node.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
 
@@ -280,7 +280,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Vector2Node.value = value;
             m_Vector2Node.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new ShaderGenerator();
-            m_Vector2Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_Vector2Node.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector2Node.precision
@@ -290,10 +290,9 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_Vector2Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector2Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_Vector2Node.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
-
 
         [Test]
         public void TestVector3NodeTypeIsCorrect()
@@ -329,7 +328,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Vector3Node.value = value;
             m_Vector3Node.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new PropertyGenerator();
-            m_Vector3Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_Vector3Node.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector3Node.propertyName
@@ -345,7 +344,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_Vector3Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector3Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_Vector3Node.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
 
@@ -356,7 +355,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Vector3Node.value = value;
             m_Vector3Node.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new ShaderGenerator();
-            m_Vector3Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_Vector3Node.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector3Node.precision
@@ -366,7 +365,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_Vector3Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector3Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_Vector3Node.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
 
@@ -404,7 +403,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Vector4Node.value = value;
             m_Vector4Node.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new PropertyGenerator();
-            m_Vector4Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_Vector4Node.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector4Node.propertyName
@@ -422,7 +421,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_Vector4Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector4Node.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_Vector4Node.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
 
@@ -433,7 +432,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_Vector4Node.value = value;
             m_Vector4Node.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new ShaderGenerator();
-            m_Vector4Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_Vector4Node.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_Vector4Node.precision
@@ -443,7 +442,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_Vector4Node.exposedState = PropertyNode.ExposedState.Exposed;
-            m_Vector4Node.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_Vector4Node.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
 
@@ -481,7 +480,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_ColorNode.color = value;
             m_ColorNode.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new PropertyGenerator();
-            m_ColorNode.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_ColorNode.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_ColorNode.propertyName
@@ -499,7 +498,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_ColorNode.exposedState = PropertyNode.ExposedState.Exposed;
-            m_ColorNode.GeneratePropertyBlock(generator, GenerationMode.SurfaceShader);
+            m_ColorNode.GeneratePropertyBlock(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
 
@@ -510,7 +509,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             m_ColorNode.color = value;
             m_ColorNode.exposedState = PropertyNode.ExposedState.NotExposed;
             var generator = new ShaderGenerator();
-            m_ColorNode.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_ColorNode.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(string.Empty, generator.GetShaderString(0));
 
             var expected = m_ColorNode.precision
@@ -520,7 +519,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
                 + Environment.NewLine;
 
             m_ColorNode.exposedState = PropertyNode.ExposedState.Exposed;
-            m_ColorNode.GeneratePropertyUsages(generator, GenerationMode.SurfaceShader);
+            m_ColorNode.GeneratePropertyUsages(generator, GenerationMode.ForReals);
             Assert.AreEqual(expected, generator.GetShaderString(0));
         }
     }

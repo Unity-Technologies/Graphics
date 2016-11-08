@@ -1,0 +1,94 @@
+Node #input {
+	flex:1;
+}
+
+Node #output {
+	flex:1;
+	justify-content: flex-end;
+}
+
+NodeAnchor {
+	margin-top:5;
+	margin-bottom:5;
+}
+
+NodeAnchor #connector {
+	background-color:#FF0;
+	border-color:#FF0;
+	/* width is currently hard-coded */
+	border-width: 4;
+}
+
+NodeAnchor #connector.anchorHighlight {
+	background-color:#00F;
+}
+
+NodeAnchor #type {
+	text-color:#FFF;
+	flex:1;
+}
+
+Node.horizontal #output NodeAnchor #type {
+	text-alignment:middle-right;
+}
+
+Node.horizontal NodeAnchor #connector {
+	margin-left: 5;
+	margin-right: 5;
+}
+
+Node.horizontal {
+	flex-direction: row;
+}
+
+Node.horizontal #input, Node.horizontal #output {
+	margin-top: 15;
+	background-color:#444;
+}
+
+Node.horizontal #input NodeAnchor {
+	flex-direction: row;
+}
+
+Node.horizontal #output NodeAnchor {
+	flex-direction: row-reverse;
+}
+
+Node.vertical #input, Node.vertical #output {
+	flex: 1;
+	flex-direction: row;
+	justify-content: center;
+}
+
+Node.vertical NodeAnchor {
+	align-items: center;
+}
+
+/* there is currently an issue with text size evaluation
+   which causes layout to "shake", so this is a just to avoid the visual glitch */
+Node.vertical NodeAnchor #type {
+	text-alignment:middle-center;
+}
+
+Node.vertical #input NodeAnchor {
+	flex-direction: column;
+}
+
+Node.vertical #output NodeAnchor {
+	flex-direction: column-reverse;
+}
+
+Node.vertical {
+	border-width: 1;
+	border-color:#CCC;
+	background-color:rgba(100, 100, 100, 0.5);
+}
+/* Example of dynamic properties
+Read from the GridBackground decorator */
+NodesContentView {
+	grid-background-color:#404749;
+	line-color:#20293F;
+	thick-line-color:#030C22;
+	spacing:75.0;
+	thick-lines:10;
+}

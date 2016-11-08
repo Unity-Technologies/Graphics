@@ -29,7 +29,7 @@ namespace UnityEngine.MaterialGraph
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (generationMode == GenerationMode.SurfaceShader)
+            if (generationMode == GenerationMode.ForReals)
                 return;
 
             foreach (var slot in GetOutputSlots<MaterialSlot>())
@@ -46,11 +46,11 @@ namespace UnityEngine.MaterialGraph
             {
                 properties.Add(
                     new PreviewProperty
-                    {
-                        m_Name = GetVariableNameForSlot(slot.id),
-                        m_PropType = PropertyType.Vector4,
-                        m_Vector4 = slot.defaultValue
-                    }
+                {
+                    m_Name = GetVariableNameForSlot(slot.id),
+                    m_PropType = PropertyType.Vector4,
+                    m_Vector4 = slot.defaultValue
+                }
                     );
             }
         }

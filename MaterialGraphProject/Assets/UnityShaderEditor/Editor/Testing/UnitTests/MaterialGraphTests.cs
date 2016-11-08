@@ -25,8 +25,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
 
             graph.PostCreate();
 
-            Assert.AreEqual(1, graph.currentGraph.GetNodes<AbstractMaterialNode>().Count());
-            Assert.IsInstanceOf(typeof(PixelShaderNode), graph.currentGraph.GetNodes<AbstractMaterialNode>().FirstOrDefault());
+            Assert.AreEqual(0, graph.currentGraph.GetNodes<AbstractMaterialNode>().Count());
         }
     }
 }
