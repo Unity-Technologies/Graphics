@@ -43,6 +43,9 @@ namespace UnityEngine.MaterialGraph
             }
             set
             {
+                if (subGraphAsset == value)
+                    return;
+                    
                 var helper = new SubGraphHelper();
                 helper.subGraph = value;
                 m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
