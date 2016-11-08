@@ -121,10 +121,95 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     //-------------------------------------------------------------------------------------
+    // Define
+    //-------------------------------------------------------------------------------------
+
+    #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
+
+    //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
+
     #include "common.hlsl"
-    #include "../../ShaderPass/ShaderPass.cs.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderPass/ShaderPass.cs.hlsl"    
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"
+
+    //-------------------------------------------------------------------------------------
+    // variable declaration
+    //-------------------------------------------------------------------------------------
+
+    // Set of users variables
+    #define PROP_DECL(type, name) type name, name##0, name##1, name##2, name##3;
+    #define PROP_DECL_TEX2D(name)\
+        TEXTURE2D(name##0); \
+        SAMPLER2D(sampler##name##0); \
+        TEXTURE2D(name##1); \
+        TEXTURE2D(name##2); \
+        TEXTURE2D(name##3);
+    #define PROP_SAMPLE(name, textureName, texcoord, swizzle)\
+        name##0 = SAMPLE_TEXTURE2D(textureName##0, sampler##textureName##0, texcoord).##swizzle; \
+        name##1 = SAMPLE_TEXTURE2D(textureName##1, sampler##textureName##0, texcoord).##swizzle; \
+        name##2 = SAMPLE_TEXTURE2D(textureName##2, sampler##textureName##0, texcoord).##swizzle; \
+        name##3 = SAMPLE_TEXTURE2D(textureName##3, sampler##textureName##0, texcoord).##swizzle;
+    #define PROP_MUL(name, multiplier, swizzle)\
+        name##0 *= multiplier##0.##swizzle; \
+        name##1 *= multiplier##1.##swizzle; \
+        name##2 *= multiplier##2.##swizzle; \
+        name##3 *= multiplier##3.##swizzle;
+    #define PROP_ASSIGN(name, input, swizzle)\
+        name##0 = input##0.##swizzle; \
+        name##1 = input##1.##swizzle; \
+        name##2 = input##2.##swizzle; \
+        name##3 = input##3.##swizzle;
+    #define PROP_ASSIGN_VALUE(name, input)\
+        name##0 = input; \
+        name##1 = input; \
+        name##2 = input; \
+        name##3 = input;
+    #define PROP_BLEND_COLOR(name, mask) name = BlendLayeredColor(name##0, name##1, name##2, name##3, mask);
+    #define PROP_BLEND_SCALAR(name, mask) name = BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
+
+    #define _MAX_LAYER 4
+
+    #if defined(_LAYEREDLIT_4_LAYERS)
+    #   define _LAYER_COUNT 4
+    #elif defined(_LAYEREDLIT_3_LAYERS)
+    #   define _LAYER_COUNT 3
+    #else
+    #   define _LAYER_COUNT 2
+    #endif
+
+    //-------------------------------------------------------------------------------------
+    // variable declaration
+    //-------------------------------------------------------------------------------------
+
+    // Set of users variables
+    PROP_DECL(float4, _BaseColor);
+
+    //PROP_DECL_TEX2D(_BaseColorMap);
+    TEXTURE2D(_BaseColorMap0);
+    TEXTURE2D(_BaseColorMap1);
+    TEXTURE2D(_BaseColorMap2);
+    TEXTURE2D(_BaseColorMap3);
+    SAMPLER2D(sampler_BaseColorMap0);
+
+
+    PROP_DECL(float, _Metallic);
+    PROP_DECL(float, _Smoothness);
+    PROP_DECL_TEX2D(_MaskMap);
+    PROP_DECL_TEX2D(_SpecularOcclusionMap);
+    PROP_DECL_TEX2D(_NormalMap);
+    PROP_DECL_TEX2D(_Heightmap);
+    PROP_DECL(float, _HeightScale);
+    PROP_DECL(float, _HeightBias);
+    PROP_DECL(float4, _EmissiveColor);
+    PROP_DECL(float, _EmissiveIntensity);
+
+    float _AlphaCutoff;
+    TEXTURE2D(_LayerMaskMap);
+    SAMPLER2D(sampler_LayerMaskMap);
 
     ENDHLSL
 
@@ -147,14 +232,14 @@ Shader "HDRenderLoop/LayeredLit"
             #pragma vertex VertDefault
             #pragma fragment Frag
 
-            #ifdef SHADER_STAGE_FRAGMENT
-
             #define SHADERPASS SHADERPASS_GBUFFER
-            #include "LayeredLitCommon.hlsl"
+            #define LAYERED_LIT_SHADER
+
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitSharePass.hlsl"    
 
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
-
-            #endif
 
             ENDHLSL
         }
@@ -174,9 +259,73 @@ Shader "HDRenderLoop/LayeredLit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
-            #include "LayeredLitCommon.hlsl"
+            #define LAYERED_LIT_SHADER
+
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitSharePass.hlsl"
+            #include "../Lit/LitDebugPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
+
+            ENDHLSL
+        }
+
+        // ------------------------------------------------------------------
+        // Extracts information for lightmapping, GI (emission, albedo, ...)
+        // This pass it not used during regular rendering.
+        // ------------------------------------------------------------------
+        Pass
+        {
+            Name "META"
+            Tags{ "LightMode" = "Meta" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            // Lightmap memo
+            // DYNAMICLIGHTMAP_ON is used when we have an "enlighten lightmap" ie a lightmap updated at runtime by enlighten.This lightmap contain indirect lighting from realtime lights and realtime emissive material.Offline baked lighting(from baked material / light, 
+            // both direct and indirect lighting) will hand up in the "regular" lightmap->LIGHTMAP_ON.
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
+            #define LAYERED_LIT_SHADER
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitMetaPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
+
+            ENDHLSL
+        }
+
+        // ------------------------------------------------------------------
+        //  Depth only
+        // ------------------------------------------------------------------
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags{ "LightMode" = "ShadowCaster" }
+
+            Cull[_CullMode]
+
+            ZWrite On ZTest LEqual
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define LAYERED_LIT_SHADER
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitDepthPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
         }
@@ -198,7 +347,15 @@ Shader "HDRenderLoop/LayeredLit"
             #pragma fragment Frag
 
             #define SHADERPASS SHADERPASS_FORWARD
-            #include "LayeredLitCommon.hlsl"
+            // TEMP until pragma work in include
+            // #include "../../Lighting/Forward.hlsl"
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS
+            #define LAYERED_LIT_SHADER
+            //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
+
+            #include "../../Lighting/Lighting.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitSharePass.hlsl"
 
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
