@@ -2,11 +2,13 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    public interface IRequiresScreenPosition
-    { }
+    public interface IMayRequireScreenPosition
+    {
+        bool RequiresScreenPosition();
+    }
 
     [Title("Input/Screen Pos Node")]
-    public class ScreenPosNode : AbstractMaterialNode, IRequiresScreenPosition
+    public class ScreenPosNode : AbstractMaterialNode, IMayRequireScreenPosition
     {
         public ScreenPosNode()
         {
@@ -33,6 +35,11 @@ namespace UnityEngine.MaterialGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             return "IN.screenPos";
+        }
+
+        public bool RequiresScreenPosition()
+        {
+            return true;
         }
     }
 }

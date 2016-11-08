@@ -2,11 +2,13 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    interface IRequiresMeshUV
-    { }
+    interface IMayRequireMeshUV
+    {
+        bool RequiresMeshUV();
+    }
 
     [Title("Input/UV Node")]
-	public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IRequiresMeshUV
+	public class UVNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotId = 0;
         private const string kOutputSlotName = "UV";
@@ -29,6 +31,11 @@ namespace UnityEngine.MaterialGraph
         {
             string uvValue = "IN.meshUV0";
             visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + uvValue + ";", true);
+        }
+
+        public bool RequiresMeshUV()
+        {
+            return true;
         }
     }
 }

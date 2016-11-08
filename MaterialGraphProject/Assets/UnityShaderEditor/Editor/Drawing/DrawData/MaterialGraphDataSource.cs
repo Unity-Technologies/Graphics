@@ -18,6 +18,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             AddTypeMapping(typeof(Vector2Node), typeof(Vector2NodeDrawData));
             AddTypeMapping(typeof(Vector3Node), typeof(Vector3NodeDrawData));
             AddTypeMapping(typeof(Vector4Node), typeof(Vector4NodeDrawData));
+            AddTypeMapping(typeof(SubGraphNode), typeof(SubgraphNodeDrawData));
 			AddTypeMapping(typeof(EdgeDrawData), typeof(Edge));
         }
     }

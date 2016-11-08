@@ -4,7 +4,19 @@ ${ShaderPropertiesHeader}
 	}	
 	
 	SubShader {
+		// inside SubShader
+		Tags
+		{
+			"Queue"="Geometry"
+			"RenderType"="Opaque"
+			"IgnoreProjector"="True"
+		}
+
+		// inside Pass
+		ZWrite On
+
 		Blend One Zero
+		
 		Pass {
 			CGPROGRAM
 			#pragma vertex vert
