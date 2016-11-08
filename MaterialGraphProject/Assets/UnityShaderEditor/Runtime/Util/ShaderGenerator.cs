@@ -167,7 +167,7 @@ namespace UnityEngine.MaterialGraph
             switch (convertFromType)
             {
                 case ConcreteSlotValueType.Vector1:
-                    return string.Format("half4({0}.x, 0.0, 0.0, 1.0)", rawOutput);
+                    return string.Format("half4({0}, {0}, {0}, 1.0)", rawOutput);
                 case ConcreteSlotValueType.Vector2:
                     return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", rawOutput);
                 case ConcreteSlotValueType.Vector3:
