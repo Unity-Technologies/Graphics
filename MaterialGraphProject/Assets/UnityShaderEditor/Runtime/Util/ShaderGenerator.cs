@@ -239,7 +239,7 @@ namespace UnityEngine.MaterialGraph
             vertexShaderBlock.AddShaderChunk("float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(v.vertex));", true);
             vertexShaderBlock.AddShaderChunk("float3 worldNormal = UnityObjectToWorldNormal(v.normal);", true);
 
-
+            
             if (activeNodeList.Any(x => x is IRequiresWorldPosition))
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldPos : TEXCOORD2;", true);
@@ -260,8 +260,7 @@ namespace UnityEngine.MaterialGraph
 
             if (activeNodeList.Any(x => x is IRequiresViewDirection))
             {
-                shaderInputVisitor.AddShaderChunk("float3 viewDir : TEXCOORD1;", true);
-                vertexShaderBlock.AddShaderChunk("o.viewDir = viewDir;", true);
+                shaderBodyVisitor.AddShaderChunk("fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(IN.worldPos));", true);
             }
 
             if (activeNodeList.Any(x => x is IRequiresScreenPosition))

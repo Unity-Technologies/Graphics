@@ -129,8 +129,9 @@ namespace UnityEngine.MaterialGraph
             if (activeNodeList.Any(x => x is IRequiresViewDirection))
             {
                 shaderInputVisitor.AddShaderChunk("float3 viewDir;", true);
+                shaderBody.AddShaderChunk("fixed3 worldViewDir = IN.viewDir;", true);
             }
-
+            
             if (activeNodeList.Any(x => x is IRequiresWorldPosition))
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldPos;", true);

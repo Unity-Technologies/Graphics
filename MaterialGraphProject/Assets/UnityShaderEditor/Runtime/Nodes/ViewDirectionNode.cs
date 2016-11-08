@@ -3,7 +3,7 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    interface IRequiresViewDirection
+    interface IRequiresViewDirection : IRequiresWorldPosition
     {}
 
     [Title("Input/View Direction Node")]
@@ -32,7 +32,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return "IN.viewDir";
+            return "worldViewDir";
         }
     }
 }
