@@ -12,9 +12,10 @@ namespace UnityEditor.Graphing.Drawing
         HeaderDrawer m_HeaderDrawer;
         HeaderDrawData m_HeaderData;
         VisualContainer m_SlotContainer;
-        List<AnchorDrawData> m_currentAnchors;
+        List<AnchorDrawData> m_CurrentAnchors;
         VisualContainer m_ControlsContainer;
-        List<ControlDrawData> m_currentControlDrawData;
+        List<ControlDrawData> m_CurrentControlDrawData;
+        bool m_CurrentExpanded;
 
         public NodeDrawer()
         {
@@ -49,7 +50,7 @@ namespace UnityEditor.Graphing.Drawing
             };
             m_SlotContainer.AddChild(outputs);
 
-            m_currentAnchors = new List<AnchorDrawData>();
+            m_CurrentAnchors = new List<AnchorDrawData>();
 
             // Add controls container
             m_ControlsContainer = new VisualContainer
@@ -59,7 +60,7 @@ namespace UnityEditor.Graphing.Drawing
             };
             AddChild(m_ControlsContainer);
 
-            m_currentControlDrawData = new List<ControlDrawData>();
+            m_CurrentControlDrawData = new List<ControlDrawData>();
         }
 
         private void AddHeader(NodeDrawData nodeData)
@@ -89,19 +90,22 @@ namespace UnityEditor.Graphing.Drawing
             var inputsContainer = m_SlotContainer.GetChildAtIndex(0) as VisualContainer;
             var outputsContainer = m_SlotContainer.GetChildAtIndex(1) as VisualContainer;
 
-            if (!anchors.ItemsReferenceEquals(m_currentAnchors))
+            if (anchors.ItemsReferenceEquals(m_CurrentAnchors) && m_CurrentExpanded == nodeData.expanded)
             {
-                m_currentAnchors = anchors;
-                inputsContainer.ClearChildren();
-                outputsContainer.ClearChildren();
+                return;
+            }
 
-                foreach (var anchor in nodeData.elements.OfType<AnchorDrawData>())
-                {
-                    if (anchor.direction == Direction.Input)
-                        inputsContainer.AddChild(new NodeAnchor(anchor));
-                    else
-                        outputsContainer.AddChild(new NodeAnchor(anchor));
-                }
+            m_CurrentAnchors = anchors;
+            inputsContainer.ClearChildren();
+            outputsContainer.ClearChildren();
+
+            foreach (var anchor in anchors)
+            {
+                var hidden = !nodeData.expanded && !anchor.connected;
+                if (!hidden && anchor.direction == Direction.Input)
+                    inputsContainer.AddChild(new NodeAnchor(anchor));
+                else if (!hidden && anchor.direction == Direction.Output)
+                    outputsContainer.AddChild(new NodeAnchor(anchor));
             }
         }
 
@@ -115,11 +119,11 @@ namespace UnityEditor.Graphing.Drawing
             if (!nodeData.expanded)
             {
                 m_ControlsContainer.ClearChildren();
-                m_currentControlDrawData.Clear();
+                m_CurrentControlDrawData.Clear();
                 return;
             }
 
-            if (controlDrawData.ItemsReferenceEquals(m_currentControlDrawData))
+            if (controlDrawData.ItemsReferenceEquals(m_CurrentControlDrawData))
             {
                 for (int i = 0; i < controlDrawData.Count; i++)
                 {
@@ -132,7 +136,7 @@ namespace UnityEditor.Graphing.Drawing
             else
             {
                 m_ControlsContainer.ClearChildren();
-                m_currentControlDrawData.Clear();
+                m_CurrentControlDrawData.Clear();
 
                 foreach (var controlData in controlDrawData)
                 {
@@ -144,7 +148,7 @@ namespace UnityEditor.Graphing.Drawing
                         height = controlData.GetHeight()
                     };
                     m_ControlsContainer.AddChild(imContainer);
-                    m_currentControlDrawData.Add(controlData);
+                    m_CurrentControlDrawData.Add(controlData);
                 }
             }
         }
@@ -176,6 +180,8 @@ namespace UnityEditor.Graphing.Drawing
             AddHeader(nodeData);
             AddSlots(nodeData);
             AddControls(nodeData);
+
+            m_CurrentExpanded = nodeData.expanded;
         }
     }
 }
