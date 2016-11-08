@@ -157,95 +157,22 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V4Out, ConcreteSlotValueType.Vector4);
             Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V4Out)), result);
         }
-
-        [Test]
-        public void AdaptNodeOutput1To1PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V1Out, ConcreteSlotValueType.Vector1);
-            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V1Out)), result);
-        }
-
-        [Test]
-        public void AdaptNodeOutput1To2PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V1Out, ConcreteSlotValueType.Vector2);
-            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
-        }
-
-        [Test]
-        public void AdaptNodeOutput1To3PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V1Out, ConcreteSlotValueType.Vector3);
-            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
-        }
-
+        
         [Test]
         public void AdaptNodeOutput1To4PreviewWorks()
         {
             var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V1Out, ConcreteSlotValueType.Vector4);
+            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V1Out);
             Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
-
-        [Test]
-        public void AdaptNodeOutput2To1PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V2Out, ConcreteSlotValueType.Vector1);
-            Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(TestNode.V2Out)), result);
-        }
-
-        [Test]
-        public void AdaptNodeOutput2To2PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V2Out, ConcreteSlotValueType.Vector2);
-            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V2Out)), result);
-        }
-
-        [Test]
-        public void AdaptNodeOutput2To3PreviewWorks()
-        {
-            var node = new TestNode();
-            var expected = string.Format("half3({0}.x, {0}.y, 0.0)", node.GetVariableNameForSlot(TestNode.V2Out));
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V2Out, ConcreteSlotValueType.Vector3);
-            Assert.AreEqual(expected, result);
-        }
-
+        
         [Test]
         public void AdaptNodeOutput2To4PreviewWorks()
         {
             var node = new TestNode();
             var expected = string.Format("half4({0}.x, {0}.y, 0.0, 0.0)", node.GetVariableNameForSlot(TestNode.V2Out));
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V2Out, ConcreteSlotValueType.Vector4);
+            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V2Out);
             Assert.AreEqual(expected, result);
-        }
-
-        [Test]
-        public void AdaptNodeOutput3To1PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V3Out, ConcreteSlotValueType.Vector1);
-            Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(TestNode.V3Out)), result);
-        }
-
-        [Test]
-        public void AdaptNodeOutput3To2PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V3Out, ConcreteSlotValueType.Vector2);
-            Assert.AreEqual(string.Format("({0}.xy)", node.GetVariableNameForSlot(TestNode.V3Out)), result);
-        }
-
-        [Test]
-        public void AdaptNodeOutput3To3PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V3Out, ConcreteSlotValueType.Vector3);
-            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V3Out)), result);
         }
 
         [Test]
@@ -253,39 +180,15 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var node = new TestNode();
             var expected = string.Format("half4({0}.x, {0}.y, {0}.z, 0.0)", node.GetVariableNameForSlot(TestNode.V3Out));
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V3Out, ConcreteSlotValueType.Vector4);
+            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V3Out);
             Assert.AreEqual(expected, result);
         }
-
-        [Test]
-        public void AdaptNodeOutput4To1PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V4Out, ConcreteSlotValueType.Vector1);
-            Assert.AreEqual(string.Format("({0}).x", node.GetVariableNameForSlot(TestNode.V4Out)), result);
-        }
-
-        [Test]
-        public void AdaptNodeOutput4To2PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V4Out, ConcreteSlotValueType.Vector2);
-            Assert.AreEqual(string.Format("({0}.xy)", node.GetVariableNameForSlot(TestNode.V4Out)), result);
-        }
-
-        [Test]
-        public void AdaptNodeOutput4To3PreviewWorks()
-        {
-            var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V4Out, ConcreteSlotValueType.Vector3);
-            Assert.AreEqual(string.Format("({0}.xyz)", node.GetVariableNameForSlot(TestNode.V4Out)), result);
-        }
-
+        
         [Test]
         public void AdaptNodeOutput4To4PreviewWorks()
         {
             var node = new TestNode();
-            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V4Out, ConcreteSlotValueType.Vector4);
+            var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V4Out);
             Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V4Out)), result);
         }
     }
