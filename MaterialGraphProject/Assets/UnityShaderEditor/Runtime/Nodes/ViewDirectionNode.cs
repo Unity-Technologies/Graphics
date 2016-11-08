@@ -3,11 +3,13 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    interface IRequiresViewDirection : IRequiresWorldPosition
-    {}
+    interface IMayRequireViewDirection
+    {
+        bool RequiresViewDirection();
+    }
 
     [Title("Input/View Direction Node")]
-    public class ViewDirectionNode : AbstractMaterialNode, IRequiresViewDirection
+    public class ViewDirectionNode : AbstractMaterialNode, IMayRequireViewDirection
     {
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "ViewDirection";
@@ -33,6 +35,11 @@ namespace UnityEngine.MaterialGraph
         public override string GetVariableNameForSlot(int slotId)
         {
             return "worldViewDir";
+        }
+
+        public bool RequiresViewDirection()
+        {
+            return true;
         }
     }
 }

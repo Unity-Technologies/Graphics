@@ -108,38 +108,47 @@ namespace UnityEngine.MaterialGraph
 
             foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
             {
-                if (node is IGeneratesFunction) (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, mode);
-
-                if (node is IGenerateProperties)
-                {
-                    (node as IGenerateProperties).GeneratePropertyBlock(shaderProperties, mode);
-                    (node as IGenerateProperties).GeneratePropertyUsages(propertyUsages, mode);
-                }
+                if (node is IGeneratesFunction)
+                    (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, mode);
+                
+                node.GeneratePropertyBlock(shaderProperties, mode);
+                node.GeneratePropertyUsages(propertyUsages, mode);
             }
 
             // always add color because why not.
             shaderInputVisitor.AddShaderChunk("float4 color : COLOR;", true);
 
-            if (activeNodeList.Any(x => x is IRequiresMeshUV))
+            if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV()))
             {
                 shaderInputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD0;", true);
                 vertexShaderBlock.AddShaderChunk("o.meshUV0 = v.texcoord;", true);
             }
 
-            if (activeNodeList.Any(x => x is IRequiresViewDirection))
+            if (activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection()))
             {
-                shaderInputVisitor.AddShaderChunk("float3 viewDir;", true);
-                shaderBody.AddShaderChunk("fixed3 worldViewDir = IN.viewDir;", true);
+                shaderInputVisitor.AddShaderChunk("float3 worldViewDir;", true);
+                shaderBody.AddShaderChunk("fixed3 worldViewDir = IN.worldViewDir;", true);
             }
             
-            if (activeNodeList.Any(x => x is IRequiresWorldPosition))
+            if (activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition()))
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldPos;", true);
             }
 
-            if (activeNodeList.Any(x => x is IRequiresScreenPosition))
+            if (activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition()))
             {
                 shaderInputVisitor.AddShaderChunk("float4 screenPos;", true);
+            }
+
+            if (activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
+            {
+                // is the normal connected?
+                var normalSlot = FindInputSlot<MaterialSlot>(NormalSlotId);
+                var edges = owner.GetEdges(normalSlot.slotReference);
+
+                shaderInputVisitor.AddShaderChunk("float3 worldNormal;", true);
+                if (edges.Any())
+                    shaderInputVisitor.AddShaderChunk("INTERNAL_DATA", true);
             }
 
             GenerateNodeCode(shaderBody, mode);
@@ -147,41 +156,16 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator shaderBody, GenerationMode generationMode)
         {
-            var firstPassSlotId = NormalSlotId;
-            // do the normal slot first so that it can be used later in the shader :)
-            var firstPassSlot = FindInputSlot<MaterialSlot>(firstPassSlotId);
             var nodes = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, firstPassSlotId, NodeUtils.IncludeSelf.Exclude);
-
-            for (int index = 0; index < nodes.Count; index++)
-            {
-                var node = nodes[index];
-                if (node is IGeneratesBodyCode)
-                    (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
-            }
-
-            foreach (var edge in owner.GetEdges(firstPassSlot.slotReference))
-            {
-                var outputRef = edge.outputSlot;
-                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
-                if (fromNode == null)
-                    continue;
-
-                shaderBody.AddShaderChunk("o." + firstPassSlot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
-            }
-
-            // track the last index of nodes... they have already been processed :)
-            int pass2StartIndex = nodes.Count;
-
+            
             //Get the rest of the nodes for all the other slots
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, null, NodeUtils.IncludeSelf.Exclude);
-            for (var i = pass2StartIndex; i < nodes.Count; i++)
+            for (var i = 0; i < nodes.Count; i++)
             {
                 var node = nodes[i];
                 if (node is IGeneratesBodyCode)
                     (node as IGeneratesBodyCode).GenerateNodeCode(shaderBody, generationMode);
             }
-
             ListPool<INode>.Release(nodes);
 
             foreach (var slot in GetInputSlots<MaterialSlot>())

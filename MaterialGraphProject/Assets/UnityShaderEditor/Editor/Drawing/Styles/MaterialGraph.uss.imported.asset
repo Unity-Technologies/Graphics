@@ -483,29 +483,35 @@ MonoBehaviour:
     - type: 0
       propertyID: 13
       valueIndex: 2
+    - type: 3
+      propertyID: 41
+      valueIndex: 2
     - type: 0
       propertyID: 17
       valueIndex: 3
     - type: 1
       propertyID: 32
       valueIndex: 4
-    - type: 0
-      propertyID: 18
-      valueIndex: 4
     customPropertyNames: []
     customPropertyHandles: []
   - builtinPropertyHandles:
     - type: 0
       propertyID: 1
-      valueIndex: 5
+      valueIndex: 4
     - type: 1
       propertyID: 26
       valueIndex: 5
     - type: 3
       propertyID: 41
-      valueIndex: 2
+      valueIndex: 3
     - type: 0
       propertyID: 17
+      valueIndex: 5
+    customPropertyNames: []
+    customPropertyHandles: []
+  - builtinPropertyHandles:
+    - type: 0
+      propertyID: 23
       valueIndex: 6
     customPropertyNames: []
     customPropertyHandles: []
@@ -513,12 +519,6 @@ MonoBehaviour:
     - type: 0
       propertyID: 23
       valueIndex: 7
-    customPropertyNames: []
-    customPropertyHandles: []
-  - builtinPropertyHandles:
-    - type: 0
-      propertyID: 23
-      valueIndex: 8
     customPropertyNames: []
     customPropertyHandles: []
   - builtinPropertyHandles:
@@ -542,34 +542,34 @@ MonoBehaviour:
   - builtinPropertyHandles:
     - type: 3
       propertyID: 41
-      valueIndex: 3
+      valueIndex: 4
     - type: 3
       propertyID: 42
-      valueIndex: 4
+      valueIndex: 5
     - type: 0
       propertyID: 24
-      valueIndex: 9
+      valueIndex: 8
     - type: 0
       propertyID: 0
-      valueIndex: 10
+      valueIndex: 9
     - type: 0
       propertyID: 2
-      valueIndex: 11
+      valueIndex: 10
     customPropertyNames: []
     customPropertyHandles: []
   - builtinPropertyHandles:
     - type: 3
       propertyID: 41
-      valueIndex: 5
+      valueIndex: 6
     customPropertyNames: []
     customPropertyHandles: []
   - builtinPropertyHandles:
     - type: 3
       propertyID: 40
-      valueIndex: 6
+      valueIndex: 7
     - type: 0
       propertyID: 23
-      valueIndex: 12
+      valueIndex: 11
     customPropertyNames: []
     customPropertyHandles: []
   - builtinPropertyHandles:
@@ -590,10 +590,10 @@ MonoBehaviour:
       valueIndex: 11
     - type: 0
       propertyID: 7
-      valueIndex: 13
+      valueIndex: 12
     - type: 3
       propertyID: 41
-      valueIndex: 7
+      valueIndex: 8
     customPropertyNames: []
     customPropertyHandles: []
   - builtinPropertyHandles:
@@ -608,16 +608,16 @@ MonoBehaviour:
       valueIndex: 13
     - type: 3
       propertyID: 41
-      valueIndex: 8
+      valueIndex: 9
     customPropertyNames: []
     customPropertyHandles: []
   - builtinPropertyHandles:
     - type: 0
       propertyID: 18
-      valueIndex: 14
+      valueIndex: 13
     - type: 0
       propertyID: 17
-      valueIndex: 15
+      valueIndex: 14
     customPropertyNames: []
     customPropertyHandles: []
   - builtinPropertyHandles: []
@@ -630,13 +630,13 @@ MonoBehaviour:
     customPropertyHandles:
     - type: 3
       propertyID: 43
-      valueIndex: 9
-    - type: 3
-      propertyID: 43
       valueIndex: 10
     - type: 3
       propertyID: 43
       valueIndex: 11
+    - type: 3
+      propertyID: 43
+      valueIndex: 12
     - type: 1
       propertyID: 43
       valueIndex: 14
@@ -648,7 +648,6 @@ MonoBehaviour:
   - 0
   - 5
   - 10
-  - 14
   - 15
   - 200
   - 1
@@ -665,6 +664,7 @@ MonoBehaviour:
   colors:
   - {r: 1, g: 1, b: 1, a: 1}
   - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0, g: 0, b: 0, a: 1}
   - {r: 0.26666668, g: 0.26666668, b: 0.26666668, a: 1}
   - {r: 1, g: 1, b: 0, a: 1}
   - {r: 1, g: 1, b: 0, a: 1}

@@ -9,7 +9,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Texture Node")]
-    public class TextureNode : PropertyNode, IGeneratesBodyCode
+    public class TextureNode : PropertyNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         protected const string kUVSlotName = "UV";
         protected const string kOutputSlotRGBAName = "RGBA";
@@ -214,5 +214,15 @@ namespace UnityEngine.MaterialGraph
         }
 
         public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
+
+        public bool RequiresMeshUV()
+        {
+            var uvSlot = FindInputSlot<MaterialSlot>(UvSlotId);
+            if (uvSlot == null)
+                return true;
+
+            var edges = owner.GetEdges(uvSlot.slotReference).ToList();
+            return (edges.Count <= 0);
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -12,6 +13,11 @@ namespace UnityEngine.MaterialGraph
         , IGeneratesBodyCode
         , IGeneratesFunction
         , IOnAssetEnabled
+        , IMayRequireNormal
+        , IMayRequireMeshUV
+        , IMayRequireScreenPosition
+        , IMayRequireViewDirection
+        , IMayRequireWorldPosition
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -41,6 +47,9 @@ namespace UnityEngine.MaterialGraph
                 helper.subGraph = value;
                 m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
                 OnEnable();
+
+                if (onModified != null)
+                    onModified(this, ModificationScope.Graph);
             }
         }
         /*
@@ -262,6 +271,46 @@ namespace UnityEngine.MaterialGraph
                 return;
 
             subGraph.GenerateVertexToFragmentBlock(visitor, GenerationMode.ForReals);
+        }
+
+        public bool RequiresNormal()
+        {
+            if (subGraph == null)
+                return false;
+
+            return subGraph.activeNodes.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal());
+        }
+
+        public bool RequiresMeshUV()
+        {
+            if (subGraph == null)
+                return false;
+
+            return subGraph.activeNodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV());
+        }
+
+        public bool RequiresScreenPosition()
+        {
+            if (subGraph == null)
+                return false;
+
+            return subGraph.activeNodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
+        }
+
+        public bool RequiresViewDirection()
+        {
+            if (subGraph == null)
+                return false;
+
+            return subGraph.activeNodes.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
+        }
+
+        public bool RequiresWorldPosition()
+        {
+            if (subGraph == null)
+                return false;
+
+            return subGraph.activeNodes.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition());
         }
     }
 }

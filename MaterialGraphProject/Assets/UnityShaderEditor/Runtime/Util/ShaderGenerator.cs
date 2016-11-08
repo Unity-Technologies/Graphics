@@ -152,7 +152,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId, ConcreteSlotValueType convertToType)
+        public static string AdaptNodeOutputForPreview(AbstractMaterialNode node, int outputSlotId)
         {
             var outputSlot = node.FindOutputSlot<MaterialSlot>(outputSlotId);
 
@@ -161,33 +161,19 @@ namespace UnityEngine.MaterialGraph
 
             var convertFromType = outputSlot.concreteValueType;
 
-            // if we are in a normal situation, just convert!
-            if (convertFromType >= convertToType || convertFromType == ConcreteSlotValueType.Vector1)
-                return AdaptNodeOutput(node, outputSlotId, convertToType);
-
             var rawOutput = node.GetVariableNameForSlot(outputSlotId);
 
-            // otherwise we need to pad output for the preview!
-            switch (convertToType)
+            // preview is always dimension 4, and we always ignore alpha
+            switch (convertFromType)
             {
+                case ConcreteSlotValueType.Vector1:
+                    return string.Format("half4({0}.x, 0.0, 0.0, 1.0)", rawOutput);
+                case ConcreteSlotValueType.Vector2:
+                    return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", rawOutput);
                 case ConcreteSlotValueType.Vector3:
-                    switch (convertFromType)
-                    {
-                        case ConcreteSlotValueType.Vector2:
-                            return string.Format("half3({0}.x, {0}.y, 0.0)", rawOutput);
-                        default:
-                            return kErrorString;
-                    }
+                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", rawOutput);
                 case ConcreteSlotValueType.Vector4:
-                    switch (convertFromType)
-                    {
-                        case ConcreteSlotValueType.Vector2:
-                            return string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", rawOutput);
-                        case ConcreteSlotValueType.Vector3:
-                            return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", rawOutput);
-                        default:
-                            return kErrorString;
-                    }
+                    return string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", rawOutput);
                 default:
                     return kErrorString;
             }
@@ -239,31 +225,31 @@ namespace UnityEngine.MaterialGraph
             vertexShaderBlock.AddShaderChunk("float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(v.vertex));", true);
             vertexShaderBlock.AddShaderChunk("float3 worldNormal = UnityObjectToWorldNormal(v.normal);", true);
 
-            
-            if (activeNodeList.Any(x => x is IRequiresWorldPosition))
+            bool needsWorldPos = activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
+            if (needsWorldPos || activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition()))
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldPos : TEXCOORD2;", true);
                 vertexShaderBlock.AddShaderChunk("o.worldPos = worldPos;", true);
             }
 
-            if (activeNodeList.Any(x => x is IRequiresNormal))
+            if (activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldNormal : TEXCOORD3;", true);
                 vertexShaderBlock.AddShaderChunk("o.worldNormal = worldNormal;", true);
             }
 
-            if (activeNodeList.Any(x => x is IRequiresMeshUV))
+            if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV()))
             {
                 shaderInputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD0;", true);
                 vertexShaderBlock.AddShaderChunk("o.meshUV0 = v.texcoord;", true);
             }
 
-            if (activeNodeList.Any(x => x is IRequiresViewDirection))
+            if (activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection()))
             {
                 shaderBodyVisitor.AddShaderChunk("fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(IN.worldPos));", true);
             }
 
-            if (activeNodeList.Any(x => x is IRequiresScreenPosition))
+            if (activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition()))
             {
                 shaderInputVisitor.AddShaderChunk("float4 screenPos : TEXCOORD3;", true);
                 vertexShaderBlock.AddShaderChunk("o.screenPos = screenPos;", true);
@@ -281,7 +267,7 @@ namespace UnityEngine.MaterialGraph
                 activeNode.GeneratePropertyUsages(shaderPropertyUsagesVisitor, generationMode);
             }
            
-            shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id, ConcreteSlotValueType.Vector4) + ";", true);
+            shaderBodyVisitor.AddShaderChunk("return " + AdaptNodeOutputForPreview(node, node.GetOutputSlots<MaterialSlot>().First().id) + ";", true);
 
             ListPool<INode>.Release(activeNodeList);
            
