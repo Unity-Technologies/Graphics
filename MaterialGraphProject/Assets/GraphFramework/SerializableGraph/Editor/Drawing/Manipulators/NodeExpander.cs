@@ -28,7 +28,7 @@ namespace UnityEditor.Graphing.Drawing
                     {
                         this.ReleaseCapture();
                         var withinInitialTarget = initialTarget != null && initialTarget.ContainsPoint(evt.mousePosition);
-                        if (true || withinInitialTarget)
+                        if (withinInitialTarget)
                         {
                             data.expanded = !data.expanded;
                         }
