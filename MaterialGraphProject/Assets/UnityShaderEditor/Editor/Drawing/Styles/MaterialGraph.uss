@@ -17,9 +17,9 @@ HeaderDrawer #expandButton {
     position-type: absolute;
     position-top: 0;
     position-left: 5;
-    background-color: #000;
     width: 10;
 	text-alignment: middle-center;
+	height: 14;
 }
 
 MaterialNodeDrawer #slots {

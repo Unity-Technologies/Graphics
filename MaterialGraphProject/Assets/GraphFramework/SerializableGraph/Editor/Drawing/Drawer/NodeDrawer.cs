@@ -66,19 +66,23 @@ namespace UnityEditor.Graphing.Drawing
         {
             var headerData = nodeData.elements.OfType<HeaderDrawData>().FirstOrDefault();
 
-            if (headerData == m_HeaderData || headerData == null)
+            if (m_HeaderData == headerData)
             {
                 // TODO: Fix data watcher
                 m_HeaderDrawer.OnDataChanged();
-                return;
+                m_HeaderDrawer.Touch(ChangeType.Repaint);
             }
-
-            if (m_HeaderData != null)
-                RemoveChild(m_HeaderDrawer);
-
-            m_HeaderDrawer = new HeaderDrawer(headerData);
-            InsertChild(0, m_HeaderDrawer);
-            m_HeaderData = headerData;
+            else if (m_HeaderData != null)
+            {
+                m_HeaderDrawer.dataProvider = headerData;
+                m_HeaderData = headerData;
+            }
+            else
+            {
+                m_HeaderDrawer = new HeaderDrawer(headerData);
+                InsertChild(0, m_HeaderDrawer);
+                m_HeaderData = headerData;
+            }
         }
 
         private void AddSlots(NodeDrawData nodeData)
@@ -162,6 +166,17 @@ namespace UnityEditor.Graphing.Drawing
                 ClearChildren();
                 AddContainers();
                 return;
+            }
+
+            if (!nodeData.expanded)
+            {
+                if (!classList.Contains("collapsed"))
+                    AddToClassList("collapsed");
+            }
+            else
+            {
+                if (classList.Contains("collapsed"))
+                    RemoveFromClassList("collapsed");
             }
 
             AddHeader(nodeData);
