@@ -9,7 +9,7 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Title("Input/Texture Node")]
-    public class TextureNode : PropertyNode, IGeneratesBodyCode, IRequiresMeshUV
+    public class TextureNode : PropertyNode, IGeneratesBodyCode
     {
         protected const string kUVSlotName = "UV";
         protected const string kOutputSlotRGBAName = "RGBA";
@@ -100,8 +100,7 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-
-            AddSlot(new MaterialSlot(UvSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector2, Vector4.zero));
+            AddSlot(new MaterialSlotDefaultInput(UvSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector2, new UVNode(), UVNode.OutputSlotId));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
@@ -117,8 +116,7 @@ namespace UnityEngine.MaterialGraph
             if (uvSlot == null)
                 return;
 
-            var uvName = "IN.meshUV0.xy";
-
+            var uvName = "error";
             var edges = owner.GetEdges(uvSlot.slotReference).ToList();
 
             if (edges.Count > 0)
@@ -126,6 +124,10 @@ namespace UnityEngine.MaterialGraph
                 var edge = edges[0];
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
                 uvName = ShaderGenerator.AdaptNodeOutput(fromNode, edge.outputSlot.slotId, ConcreteSlotValueType.Vector2, true);
+            }
+            else
+            {
+                Debug.LogError("Default slot behavior should return a virtual edge to virtual node");
             }
 
             string body = "tex2D (" + propertyName + ", " + uvName + ")";

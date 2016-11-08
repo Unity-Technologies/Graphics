@@ -13,6 +13,9 @@ namespace UnityEngine.Graphing
         [NonSerialized]
         private List<INode> m_Nodes = new List<INode>();
 
+        [NonSerialized]
+        private List<INode> m_VirtualNodes = new List<INode>();
+
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
 
@@ -132,12 +135,12 @@ namespace UnityEngine.Graphing
 
         public INode GetNodeFromGuid(Guid guid)
         {
-            return m_Nodes.FirstOrDefault(x => x.guid == guid);
+            return m_Nodes.Concat(m_VirtualNodes).FirstOrDefault(x => x.guid == guid);
         }
 
         public T GetNodeFromGuid<T>(Guid guid) where T : INode
         {
-            return m_Nodes.Where(x => x.guid == guid).OfType<T>().FirstOrDefault();
+            return m_Nodes.Concat(m_VirtualNodes).Where(x => x.guid == guid).OfType<T>().FirstOrDefault();
         }
 
         public IEnumerable<IEdge> GetEdges(SlotReference s)
@@ -145,9 +148,29 @@ namespace UnityEngine.Graphing
             if (s == null)
                 return new Edge[0];
 
-            return m_Edges.Where(x =>
+            var edges = m_Edges.Where(x =>
                 (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotId == s.slotId)
-                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotId == s.slotId);
+                || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotId == s.slotId).ToList();
+
+            //If we didn't find any connection, we fallback to GenerateDefaultInput if it's provided, generate a virtual edge to a virtual node (UV input for instance)
+            if (edges.Count == 0)
+            {
+                var slot = GetNodeFromGuid(s.nodeGuid).FindInputSlot<ISlot>(s.slotId);
+                if (slot is IGenerateDefaultInput)
+                {
+                    var defaultInputProvider = slot as IGenerateDefaultInput;
+                    var defaultNode = defaultInputProvider.defaultNode;
+                    var node = m_VirtualNodes.FirstOrDefault(o => o != null && defaultNode.GetType() == o.GetType());
+                    if (node == null)
+                    {
+                        defaultNode.owner = this;
+                        m_VirtualNodes.Add(defaultNode);
+                        node = defaultNode;
+                    }
+                    edges.Add(new Edge(new SlotReference(node.guid, defaultInputProvider.defaultSlotID), s));
+                }
+            }
+            return edges;
         }
 
         public virtual void OnBeforeSerialize()
@@ -167,6 +190,7 @@ namespace UnityEngine.Graphing
             m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges);
             m_SerializableEdges = null;
 
+            m_VirtualNodes = new List<INode>();
             ValidateGraph();
         }
 
