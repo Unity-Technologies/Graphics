@@ -46,7 +46,7 @@ namespace UnityEngine.Graphing
             }
         }
 
-        private static TypeSerializationInfo GetTypeSerializableAsString(Type type)
+        public static TypeSerializationInfo GetTypeSerializableAsString(Type type)
         {
             return new TypeSerializationInfo
                    {
@@ -82,14 +82,26 @@ namespace UnityEngine.Graphing
                    };
         }
 
-        public static T Deserialize<T>(JSONSerializedElement item, params object[] constructorArgs) where T : class
+        private static TypeSerializationInfo DoTypeRemap(TypeSerializationInfo info, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper)
+        {
+            TypeSerializationInfo foundInfo;
+            if (remapper.TryGetValue(info, out foundInfo))
+                return foundInfo;
+            return info;
+        }
+
+        public static T Deserialize<T>(JSONSerializedElement item, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper,  params object[] constructorArgs) where T : class
         {
             if (!item.typeInfo.IsValid() || string.IsNullOrEmpty(item.JSONnodeData))
                 throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item));
 
-            var type = GetTypeFromSerializedString(item.typeInfo);
+            TypeSerializationInfo info = item.typeInfo;
+            if (remapper != null)
+                info = DoTypeRemap(info, remapper);
+
+            var type = GetTypeFromSerializedString(info);
             if (type == null)
-                throw new ArgumentException(string.Format("Can not deserialize {0}, type {1} is invalid", item.typeInfo));
+                throw new ArgumentException(string.Format("Can not deserialize {0}, type {1} is invalid", info));
 
             T instance;
             try
@@ -129,7 +141,7 @@ namespace UnityEngine.Graphing
             return result;
         }
 
-        public static List<T> Deserialize<T>(IEnumerable<JSONSerializedElement> list, params object[] constructorArgs) where T : class
+        public static List<T> Deserialize<T>(IEnumerable<JSONSerializedElement> list, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper, params object[] constructorArgs) where T : class
         {
             var result = new List<T>();
             if (list == null)
@@ -139,7 +151,7 @@ namespace UnityEngine.Graphing
             {
                 try
                 {
-                    result.Add(Deserialize<T>(element));
+                    result.Add(Deserialize<T>(element, remapper));
                 }
                 catch (Exception e)
                 {

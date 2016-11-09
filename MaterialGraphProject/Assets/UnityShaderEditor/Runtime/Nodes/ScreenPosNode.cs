@@ -34,7 +34,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return "IN.screenPos";
+            return ShaderGeneratorNames.ScreenPosition;
         }
 
         public bool RequiresScreenPosition()

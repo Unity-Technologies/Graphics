@@ -29,8 +29,7 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            string uvValue = "IN.meshUV0";
-            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + uvValue + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + ShaderGeneratorNames.UV0 + ";", true);
         }
 
         public bool RequiresMeshUV()

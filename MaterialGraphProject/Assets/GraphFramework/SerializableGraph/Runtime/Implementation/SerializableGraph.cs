@@ -56,6 +56,11 @@ namespace UnityEngine.Graphing
             m_Nodes.Remove(node);
         }
 
+        public virtual Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo> GetLegacyTypeRemapping()
+        {
+            return new Dictionary<SerializationHelper.TypeSerializationInfo, SerializationHelper.TypeSerializationInfo>();
+        }
+
         public virtual IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
             if (fromSlotRef == null || toSlotRef == null)
@@ -148,12 +153,12 @@ namespace UnityEngine.Graphing
             if (s == null)
                 return new Edge[0];
 
-            var edges = m_Edges.Where(x =>
+            var foundEdges = m_Edges.Where(x =>
                 (x.outputSlot.nodeGuid == s.nodeGuid && x.outputSlot.slotId == s.slotId)
                 || x.inputSlot.nodeGuid == s.nodeGuid && x.inputSlot.slotId == s.slotId).ToList();
 
             //If we didn't find any connection, we fallback to GenerateDefaultInput if it's provided, generate a virtual edge to a virtual node (UV input for instance)
-            if (edges.Count == 0)
+            if (foundEdges.Count == 0)
             {
                 var slot = GetNodeFromGuid(s.nodeGuid).FindInputSlot<ISlot>(s.slotId);
                 if (slot is IGenerateDefaultInput)
@@ -167,10 +172,10 @@ namespace UnityEngine.Graphing
                         m_VirtualNodes.Add(defaultNode);
                         node = defaultNode;
                     }
-                    edges.Add(new Edge(new SlotReference(node.guid, defaultInputProvider.defaultSlotID), s));
+                    foundEdges.Add(new Edge(new SlotReference(node.guid, defaultInputProvider.defaultSlotID), s));
                 }
             }
-            return edges;
+            return foundEdges;
         }
 
         public virtual void OnBeforeSerialize()
@@ -181,13 +186,13 @@ namespace UnityEngine.Graphing
 
         public virtual void OnAfterDeserialize()
         {
-            m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes);
+            m_Nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GetLegacyTypeRemapping());
             foreach (var node in m_Nodes)
                 node.owner = this;
 
             m_SerializableNodes = null;
 
-            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges);
+            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, null);
             m_SerializableEdges = null;
 
             m_VirtualNodes = new List<INode>();

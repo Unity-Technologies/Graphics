@@ -135,7 +135,7 @@ namespace UnityEditor.Graphing.IntegrationTests
             var serialized = SerializationHelper.Serialize<SimpleSerializeClass>(toSerialize);
             Assert.AreEqual(1, serialized.Count);
 
-            var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(serialized);
+            var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(serialized, null);
             Assert.AreEqual(1, loaded.Count);
             Assert.IsInstanceOf<SimpleSerializeClass>(loaded[0]);
             loaded[0].AssertAsReference();
@@ -154,7 +154,7 @@ namespace UnityEditor.Graphing.IntegrationTests
             var serialized = SerializationHelper.Serialize<SimpleSerializeClass>(toSerialize);
             Assert.AreEqual(3, serialized.Count);
 
-            var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(serialized);
+            var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(serialized, null);
             Assert.AreEqual(3, loaded.Count);
             Assert.IsInstanceOf<SimpleSerializeClass>(loaded[0]);
             Assert.IsInstanceOf<ChildClassA>(loaded[1]);
@@ -177,7 +177,7 @@ namespace UnityEditor.Graphing.IntegrationTests
             var serialized = SerializationHelper.Serialize<ITestInterface>(toSerialize);
             Assert.AreEqual(3, serialized.Count);
 
-            var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(serialized);
+            var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(serialized, null);
             Assert.AreEqual(3, loaded.Count);
             Assert.IsInstanceOf<SimpleSerializeClass>(loaded[0]);
             Assert.IsInstanceOf<ChildClassA>(loaded[1]);
@@ -206,7 +206,7 @@ namespace UnityEditor.Graphing.IntegrationTests
             var serializedContainer = JsonUtility.ToJson(container, true);
 
             var deserializedContainer = JsonUtility.FromJson<SerializationContainer>(serializedContainer);
-            var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(deserializedContainer.serializedElements);
+            var loaded = SerializationHelper.Deserialize<SimpleSerializeClass>(deserializedContainer.serializedElements, null);
             Assert.AreEqual(1, loaded.Count);
             Assert.IsInstanceOf<SimpleSerializeClass>(loaded[0]);
             loaded[0].AssertAsReference();
@@ -222,7 +222,7 @@ namespace UnityEditor.Graphing.IntegrationTests
             };
 
             var serialized = SerializationHelper.Serialize<SerializableSlot>(toSerialize);
-            var loaded = SerializationHelper.Deserialize<SerializableSlot>(serialized);
+            var loaded = SerializationHelper.Deserialize<SerializableSlot>(serialized, null);
             Assert.AreEqual(2, loaded.Count);
 
             Assert.IsInstanceOf<SerializableSlot>(loaded[0]);

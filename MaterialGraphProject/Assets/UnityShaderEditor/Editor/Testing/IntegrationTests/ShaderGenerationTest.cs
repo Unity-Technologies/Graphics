@@ -8,7 +8,6 @@ using UnityEngine;
 using UnityEngine.MaterialGraph;
 using Object = UnityEngine.Object;
 
-
 namespace UnityEditor.MaterialGraph.IntegrationTests
 {
     public class ShaderGenerationTest

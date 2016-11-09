@@ -7,11 +7,10 @@ namespace UnityEngine.MaterialGraph
         bool RequiresWorldPosition();
     }
 
-    [Title("Input/World Pos Node")]
-    public class WorldPosNode : AbstractMaterialNode, IMayRequireWorldPosition
+    [Title("Input/World Space Position Node")]
+    public class WorldSpacePositionNode : AbstractMaterialNode, IMayRequireWorldPosition
     {
         private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "WorldPos";
 
         public override bool hasPreview { get { return true; } }
 
@@ -20,21 +19,27 @@ namespace UnityEngine.MaterialGraph
             get { return PreviewMode.Preview3D; }
         }
 
-        public WorldPosNode()
+        public WorldSpacePositionNode()
         {
-            name = "WorldPos";
+            name = "World Space Pos";
             UpdateNodeAfterDeserialization();
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new MaterialSlot(kOutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, SlotValueType.Vector3, Vector4.zero));
+            AddSlot(new MaterialSlot(
+                kOutputSlotId, 
+                ShaderGeneratorNames.WorldSpacePosition, 
+                ShaderGeneratorNames.WorldSpacePosition, 
+                SlotType.Output, 
+                SlotValueType.Vector3, 
+                Vector4.zero));
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return "IN.worldPos";
+            return ShaderGeneratorNames.WorldSpacePosition;
         }
 
         public bool RequiresWorldPosition()
