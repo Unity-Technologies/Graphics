@@ -27,8 +27,8 @@ TextureImporter:
   textureFormat: 1
   maxTextureSize: 2048
   textureSettings:
-    filterMode: -1
-    aniso: -1
+    filterMode: 2
+    aniso: 16
     mipBias: -1
     wrapMode: -1
   nPOTScale: 1
@@ -61,6 +61,30 @@ TextureImporter:
   - buildTarget: Standalone
     maxTextureSize: 4096
     textureFormat: 25
+    textureCompression: 2
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: iPhone
+    maxTextureSize: 4096
+    textureFormat: -1
+    textureCompression: 2
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: tvOS
+    maxTextureSize: 4096
+    textureFormat: -1
+    textureCompression: 2
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+  - buildTarget: Windows Store Apps
+    maxTextureSize: 4096
+    textureFormat: -1
     textureCompression: 2
     compressionQuality: 50
     crunchedCompression: 0

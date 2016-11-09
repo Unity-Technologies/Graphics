@@ -243,7 +243,7 @@ float3 BlendLayeredColor(float3 rgb0, float3 rgb1, float3 rgb2, float3 rgb3, flo
 {
     float3 result = float3(0.0, 0.0, 0.0);
 
-        result = rgb0 * weight[0] + rgb1 * weight[1];
+    result = rgb0 * weight[0] + rgb1 * weight[1];
 #if _LAYER_COUNT >= 3
     result += (rgb2 * weight[2]);
 #endif
@@ -285,18 +285,18 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
     return result;
 }
 
-void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
+void ComputeMaskWeights(float3 inputMasks, out float outWeights[_MAX_LAYER])
 {
     float masks[_MAX_LAYER];
-    masks[0] = inputMasks.r;
-    masks[1] = inputMasks.g;
-    masks[2] = inputMasks.b;
-    masks[3] = inputMasks.a;
+    masks[0] = 1.0f; // Layer 0 is always full
+    masks[1] = inputMasks.r;
+    masks[2] = inputMasks.g;
+    masks[3] = inputMasks.b;
 
     // calculate weight of each layers
     float left = 1.0f;
 
-    // ATTRIBUTE_UNROLL
+    [unroll]
     for (int i = _LAYER_COUNT - 1; i > 0; --i)
     {
         outWeights[i] = masks[i] * left;
@@ -308,11 +308,11 @@ void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
 
 void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    float4 maskValues = float4(1.0, 1.0, 1.0, 1.0);// input.vertexColor;
+    // Mask Values : Layer 1, 2, 3 are r, g, b
+    float3 maskValues = float3(0.0, 0.0, 0.0);// input.vertexColor;
 
 #ifdef _LAYERMASKMAP
-        float4 maskMap = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0);
-        maskValues *= maskMap;
+    maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
 #endif
 
     float weights[_MAX_LAYER];

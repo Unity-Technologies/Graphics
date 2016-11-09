@@ -100,6 +100,28 @@ void ImportanceSampleGGXDir(float2 u,
     L = 2.0 * dot(V, H) * H - V;
 }
 
+// ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf p26
+void ImportanceSampleAnisoGGXDir(   float2 u,
+                                    float3 V,
+                                    float3 N,
+                                    float3 tangentX,
+                                    float3 tangentY,
+                                    float roughnessT,
+                                    float roughnessB,
+                                    out float3 H,
+                                    out float3 L)
+{
+    // AnisoGGX NDF sampling
+    H = sqrt(u.x / (1.0 - u.x)) * (roughnessT * cos(TWO_PI * u.y) * tangentX + roughnessB * sin(TWO_PI * u.y) * tangentY) + N;
+    H = normalize(H);
+
+    // Local to world
+  //  H = tangentX * H.x + tangentY * H.y + N * H.z;
+
+    // Convert sample from half angle to incident angle
+    L = 2.0 * dot(V, H) * H - V;
+}
+
 // weightOverPdf return the weight (without the diffuseAlbedo term) over pdf. diffuseAlbedo term must be apply by the caller.
 void ImportanceSampleLambert(
     float2 u,
@@ -157,6 +179,46 @@ void ImportanceSampleGGX(
     // F is apply outside the function
 
     float Vis = V_SmithJointGGX(NdotL, NdotV, roughness);
+    weightOverPdf = 4.0 * Vis * NdotL * VdotH / NdotH;
+}
+
+// weightOverPdf return the weight (without the Fresnel term) over pdf. Fresnel term must be apply by the caller.
+void ImportanceSampleAnisoGGX(
+    float2 u,
+    float3 V,
+    float3 N,
+    float3 tangentX,
+    float3 tangentY,
+    float roughnessT,
+    float roughnessB,
+    float NdotV,
+    out float3 L,
+    out float VdotH,
+    out float NdotL,
+    out float weightOverPdf)
+{
+    float3 H;
+    ImportanceSampleAnisoGGXDir(u, V, N, tangentX, tangentY, roughnessT, roughnessB, H, L);
+
+    float NdotH = saturate(dot(N, H));
+    // Note: since L and V are symmetric around H, LdotH == VdotH
+    VdotH = saturate(dot(V, H));
+    NdotL = saturate(dot(N, L));
+
+    // Importance sampling weight for each sample
+    // pdf = D(H) * (N.H) / (4 * (L.H))
+    // weight = fr * (N.L) with fr = F(H) * G(V, L) * D(H) / (4 * (N.L) * (N.V))
+    // weight over pdf is:
+    // weightOverPdf = F(H) * G(V, L) * (L.H) / ((N.H) * (N.V))
+    // weightOverPdf = F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H) with V(V, L) = G(V, L) / (4 * (N.L) * (N.V))
+    // Remind (L.H) == (V.H)
+    // F is apply outside the function        
+    float TdotV = dot(tangentX, V);
+    float BdotV = dot(tangentY, V);
+    float TdotL = saturate(dot(tangentX, L));
+    float BdotL = saturate(dot(tangentY, L));
+
+    float Vis = V_SmithJointGGXAniso(TdotV, BdotV, NdotV, TdotL, BdotL, NdotL, roughnessT, roughnessB);
     weightOverPdf = 4.0 * Vis * NdotL * VdotH / NdotH;
 }
 

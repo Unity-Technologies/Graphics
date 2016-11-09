@@ -187,15 +187,7 @@ Shader "HDRenderLoop/LayeredLit"
 
     // Set of users variables
     PROP_DECL(float4, _BaseColor);
-
-    //PROP_DECL_TEX2D(_BaseColorMap);
-    TEXTURE2D(_BaseColorMap0);
-    TEXTURE2D(_BaseColorMap1);
-    TEXTURE2D(_BaseColorMap2);
-    TEXTURE2D(_BaseColorMap3);
-    SAMPLER2D(sampler_BaseColorMap0);
-
-
+    PROP_DECL_TEX2D(_BaseColorMap);
     PROP_DECL(float, _Metallic);
     PROP_DECL(float, _Smoothness);
     PROP_DECL_TEX2D(_MaskMap);
