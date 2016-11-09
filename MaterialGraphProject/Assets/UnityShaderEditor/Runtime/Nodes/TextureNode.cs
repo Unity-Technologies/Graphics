@@ -175,8 +175,8 @@ namespace UnityEngine.MaterialGraph
                     defaultTexture, m_TextureType,
                     PropertyChunk.HideState.Visible,
                     exposedState == ExposedState.Exposed ?
-                    TexturePropertyChunk.ModifiableState.Modifiable
-                    : TexturePropertyChunk.ModifiableState.NonModifiable));
+                        TexturePropertyChunk.ModifiableState.Modifiable
+                        : TexturePropertyChunk.ModifiableState.NonModifiable));
         }
 
         public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)

@@ -162,7 +162,7 @@ namespace UnityEngine.Graphing
             else
                 m_Guid = Guid.NewGuid();
 
-            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots);
+            m_Slots = SerializationHelper.Deserialize<ISlot>(m_SerializableSlots, null);
             m_SerializableSlots = null;
             foreach (var s in m_Slots)
                 s.owner = this;

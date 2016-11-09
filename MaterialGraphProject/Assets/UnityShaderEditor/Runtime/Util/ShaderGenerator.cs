@@ -8,6 +8,15 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
+    public static class ShaderGeneratorNames
+    {
+        public const string WorldSpaceNormal = "worldSpaceNormal";
+        public const string WorldSpacePosition = "worldPosition";
+        public const string WorldSpaceViewDirection = "worldSpaceViewDirection";
+        public const string ScreenPosition = "screenPosition";
+        public const string UV0 = "uv0";
+    }
+
     public class ShaderGenerator
     {
         private struct ShaderChunk
@@ -228,31 +237,40 @@ namespace UnityEngine.MaterialGraph
             bool needsWorldPos = activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
             if (needsWorldPos || activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition()))
             {
-                shaderInputVisitor.AddShaderChunk("float3 worldPos : TEXCOORD2;", true);
+                shaderInputVisitor.AddShaderChunk("float3 worldPos : TEXCOORD0;", true);
                 vertexShaderBlock.AddShaderChunk("o.worldPos = worldPos;", true);
+                shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpacePosition + " = IN.worldPos;", true);
             }
 
             if (activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
             {
-                shaderInputVisitor.AddShaderChunk("float3 worldNormal : TEXCOORD3;", true);
+                shaderInputVisitor.AddShaderChunk("float3 worldNormal : TEXCOORD1;", true);
                 vertexShaderBlock.AddShaderChunk("o.worldNormal = worldNormal;", true);
+                shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceNormal + " = normalize(IN.worldNormal);", true);
             }
 
             if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV()))
             {
-                shaderInputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD0;", true);
+                shaderInputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD2;", true);
                 vertexShaderBlock.AddShaderChunk("o.meshUV0 = v.texcoord;", true);
+                shaderBodyVisitor.AddShaderChunk("half4 " + ShaderGeneratorNames.UV0 + " = IN.meshUV0;", true);
             }
 
             if (activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection()))
             {
-                shaderBodyVisitor.AddShaderChunk("fixed3 worldViewDir = normalize(UnityWorldSpaceViewDir(IN.worldPos));", true);
+                shaderBodyVisitor.AddShaderChunk(
+                    "float3 " 
+                    + ShaderGeneratorNames.WorldSpaceViewDirection 
+                    + " = normalize(UnityWorldSpaceViewDir(" 
+                    + ShaderGeneratorNames.WorldSpacePosition 
+                    + "));", true);
             }
 
             if (activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition()))
             {
                 shaderInputVisitor.AddShaderChunk("float4 screenPos : TEXCOORD3;", true);
                 vertexShaderBlock.AddShaderChunk("o.screenPos = screenPos;", true);
+                shaderBodyVisitor.AddShaderChunk("half4 " + ShaderGeneratorNames.ScreenPosition + " = IN.screenPos;", true);
             }
 
             var generationMode = GenerationMode.Preview;

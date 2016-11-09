@@ -8,12 +8,12 @@ namespace UnityEngine.MaterialGraph
     }
 
     [Title("Input/World Normal Node")]
-    public class NormalNode : AbstractMaterialNode, IMayRequireNormal
+    public class WorldSpaceNormalNode : AbstractMaterialNode, IMayRequireNormal
     {
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Normal";
 
-        public NormalNode()
+        public WorldSpaceNormalNode()
         {
             name = "World Normal";
             UpdateNodeAfterDeserialization();
@@ -37,7 +37,7 @@ namespace UnityEngine.MaterialGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            return "IN.worldNormal";
+            return ShaderGeneratorNames.WorldSpaceNormal;
         }
 
         public bool RequiresNormal()

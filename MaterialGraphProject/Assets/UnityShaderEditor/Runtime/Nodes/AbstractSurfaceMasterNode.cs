@@ -120,24 +120,27 @@ namespace UnityEngine.MaterialGraph
 
             if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV()))
             {
-                shaderInputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD0;", true);
+                shaderInputVisitor.AddShaderChunk("half4 meshUV0;", true);
                 vertexShaderBlock.AddShaderChunk("o.meshUV0 = v.texcoord;", true);
+                shaderBody.AddShaderChunk("half4 " + ShaderGeneratorNames.UV0 + " = IN.meshUV0;", true);
             }
 
             if (activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection()))
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldViewDir;", true);
-                shaderBody.AddShaderChunk("fixed3 worldViewDir = IN.worldViewDir;", true);
+                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceViewDirection  + " = IN.worldViewDir;", true);
             }
             
             if (activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition()))
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldPos;", true);
+                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpacePosition + " = IN.worldPos;", true);
             }
 
             if (activeNodeList.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition()))
             {
                 shaderInputVisitor.AddShaderChunk("float4 screenPos;", true);
+                shaderBody.AddShaderChunk("float4 " + ShaderGeneratorNames.ScreenPosition + " = IN.screenPos;", true);
             }
 
             if (activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
@@ -149,6 +152,8 @@ namespace UnityEngine.MaterialGraph
                 shaderInputVisitor.AddShaderChunk("float3 worldNormal;", true);
                 if (edges.Any())
                     shaderInputVisitor.AddShaderChunk("INTERNAL_DATA", true);
+
+                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceNormal + " = normalize(IN.worldNormal);", true);
             }
 
             GenerateNodeCode(shaderBody, mode);
