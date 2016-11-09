@@ -41,6 +41,6 @@ MonoBehaviour:
   enableClustered: 1
   disableFptlWhenClustered: 1
   enableBigTilePrepass: 1
-  enableDrawLightBoundsDebug: 1
+  enableDrawLightBoundsDebug: 0
   enableDrawTileDebug: 0
-  enableComputeLightEvaluation: 1
+  enableComputeLightEvaluation: 0
