@@ -19,5 +19,4 @@ float3 ExecuteLightList(out uint numLightsProcessed, uint2 pixCoord, float3 vP, 
     return ExecuteLightList(start, numLights, vP, vPw, Vworld);
 }
 
-
 #endif

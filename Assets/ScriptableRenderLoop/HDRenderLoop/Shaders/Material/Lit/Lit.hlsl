@@ -391,7 +391,8 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
         preLightData.BdotV = dot(bsdfData.bitangentWS, V);
         preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
-        iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.normalWS, bsdfData.tangentWS, V, bsdfData.anisotropy);
+        // Tangent = highlight stretch (anisotropy) direction. Bitangent = grain (brush) direction.
+        iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.bitangentWS, bsdfData.normalWS, V, bsdfData.anisotropy);
         
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NDotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
@@ -800,8 +801,15 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
         float weightOverPdf;
 
         // GGX BRDF
-        ImportanceSampleGGX(u, V, N, tangentX, tangentY, bsdfData.roughness, NdotV,
-                            L, VdotH, NdotL, weightOverPdf);
+        if (bsdfData.materialId = MATERIALID_LIT_ANISO)
+        {
+            ImportanceSampleAnisoGGX(u, V, N, tangentX, tangentY, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
+        }
+        else
+        {
+            ImportanceSampleGGX(u, V, N, tangentX, tangentY, bsdfData.roughness, NdotV, L, VdotH, NdotL, weightOverPdf);
+        }
+
 
         if (NdotL > 0.0)
         {
@@ -829,14 +837,14 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 {
 #ifdef LIT_DISPLAY_REFERENCE
 
-    specularLighting.rgb = IntegrateSpecularGGXIBLRef(V, lightData, bsdfData);
+    specularLighting.rgb = IntegrateSpecularGGXIBLRef(lightLoopContext, V, lightData, bsdfData);
     specularLighting.a = 1.0;
 
 /*
     #ifdef DIFFUSE_LAMBERT_BRDF
     diffuseLighting.rgb = IntegrateLambertIBLRef(lightData, bsdfData);
     #else
-    diffuseLighting.rgb = IntegrateDisneyDiffuseIBLRef(V, lightData, bsdfData);
+    diffuseLighting.rgb = IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, lightData, bsdfData);
     #endif
     diffuseLighting.a = 1.0;
 */
