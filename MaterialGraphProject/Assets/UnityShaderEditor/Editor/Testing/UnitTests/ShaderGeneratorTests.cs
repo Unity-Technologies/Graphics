@@ -163,14 +163,14 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var node = new TestNode();
             var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V1Out);
-            Assert.AreEqual(string.Format("({0})", node.GetVariableNameForSlot(TestNode.V1Out)), result);
+            Assert.AreEqual(string.Format("half4({0}, {0}, {0}, 1.0)", node.GetVariableNameForSlot(TestNode.V1Out)), result);
         }
         
         [Test]
         public void AdaptNodeOutput2To4PreviewWorks()
         {
             var node = new TestNode();
-            var expected = string.Format("half4({0}.x, {0}.y, 0.0, 0.0)", node.GetVariableNameForSlot(TestNode.V2Out));
+            var expected = string.Format("half4({0}.x, {0}.y, 0.0, 1.0)", node.GetVariableNameForSlot(TestNode.V2Out));
             var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V2Out);
             Assert.AreEqual(expected, result);
         }
@@ -179,7 +179,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void AdaptNodeOutput3To4PreviewWorks()
         {
             var node = new TestNode();
-            var expected = string.Format("half4({0}.x, {0}.y, {0}.z, 0.0)", node.GetVariableNameForSlot(TestNode.V3Out));
+            var expected = string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", node.GetVariableNameForSlot(TestNode.V3Out));
             var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V3Out);
             Assert.AreEqual(expected, result);
         }
@@ -188,8 +188,9 @@ namespace UnityEditor.MaterialGraph.UnitTests
         public void AdaptNodeOutput4To4PreviewWorks()
         {
             var node = new TestNode();
+            var expected = string.Format("half4({0}.x, {0}.y, {0}.z, 1.0)", node.GetVariableNameForSlot(TestNode.V4Out));
             var result = ShaderGenerator.AdaptNodeOutputForPreview(node, TestNode.V4Out);
-            Assert.AreEqual(string.Format("{0}", node.GetVariableNameForSlot(TestNode.V4Out)), result);
+            Assert.AreEqual(expected, result);
         }
     }
 }
