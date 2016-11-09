@@ -132,10 +132,10 @@ void SHADE_DEFERRED_ENTRY(uint2 dispatchThreadId : SV_DispatchThreadID, uint2 gr
 	uint2 tileCoord = groupId >> 1;
 
 	uint numLightsProcessed = 0;
-	float3 c = data.emission + ExecuteLightListTile(numLightsProcessed, tileCoord, vP, vPw, Vworld);
+	float3 c = data.emission + ExecuteLightList(numLightsProcessed, tileCoord, vP, vPw, Vworld);
 
 	uint numReflectionsProcessed = 0;
-	c += ExecuteReflectionListTile(numReflectionsProcessed, tileCoord, vP, data.normalWorld, Vworld, data.smoothness);
+	c += ExecuteReflectionList(numReflectionsProcessed, tileCoord, vP, data.normalWorld, Vworld, data.smoothness);
 
 #if ENABLE_DEBUG
 	c = OverlayHeatMap(pixCoord & 15, numLightsProcessed, c);
