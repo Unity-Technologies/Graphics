@@ -391,7 +391,8 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
         preLightData.TdotV = dot(bsdfData.tangentWS, V);
         preLightData.BdotV = dot(bsdfData.bitangentWS, V);
         preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
-        iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.normalWS, bsdfData.tangentWS, V, bsdfData.anisotropy);
+        // Tangent = highlight stretch (anisotropy) direction. Bitangent = grain (brush) direction.
+        iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.bitangentWS, bsdfData.normalWS, V, bsdfData.anisotropy);
         
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NDotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
