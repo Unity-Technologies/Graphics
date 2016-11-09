@@ -8,6 +8,20 @@
 StructuredBuffer<SFiniteLightData> g_vLightData;
 Buffer<uint> g_vLightListGlobal;
 
+uniform float g_fClustScale;
+uniform float g_fClustBase;
+uniform float g_fNearPlane;
+uniform float g_fFarPlane;
+uniform int g_iLog2NumClusters;	// We need to always define these to keep constant buffer layouts compatible
+
+#include "ClusteredUtils.h"
+
+Buffer<uint> g_vLayeredOffsetsBuffer;
+Buffer<float> g_logBaseBuffer;
+
+uniform uint g_isLogBaseBufferEnabled;
+uniform uint g_isOpaquesOnlyEnabled;
+
 void GetCountAndStartOpaque(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth, uint model)
 {
     const int tileOffs = (tileIDX.y+model*nrTilesY)*nrTilesX+tileIDX.x;
@@ -35,21 +49,6 @@ uint FetchIndex(const uint tileOffs, const uint l)
 }
 
 #else
-
-uniform float g_fClustScale;
-uniform float g_fClustBase;
-uniform float g_fNearPlane;
-uniform float g_fFarPlane;
-//uniform int     g_iLog2NumClusters;       // numClusters = (1<<g_iLog2NumClusters)
-uniform int g_iLog2NumClusters;
-
-#include "ClusteredUtils.h"
-
-Buffer<uint> g_vLayeredOffsetsBuffer;
-Buffer<float> g_logBaseBuffer;
-
-uniform uint g_isLogBaseBufferEnabled;
-uniform uint g_isOpaquesOnlyEnabled;
 
 void GetCountAndStart(out uint uStart, out uint uNrLights, uint2 tileIDX, int nrTilesX, int nrTilesY, float linDepth, uint model)
 {
