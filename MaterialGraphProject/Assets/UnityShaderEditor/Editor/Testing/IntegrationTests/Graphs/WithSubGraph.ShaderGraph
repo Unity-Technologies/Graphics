@@ -33,97 +33,15 @@ MonoBehaviour:
     m_PixelGraph:
       m_SerializableNodes:
       - typeInfo:
-          fullName: UnityEngine.MaterialGraph.PixelShaderNode
-          assemblyName: Assembly-CSharp
-        JSONnodeData: "{\n    \"m_GuidSerialized\": \"712c31a5-7797-4061-8443-6d6f332a259d\",\n
-          \   \"m_Name\": \"PixelMaster\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
-          true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-          \           \"x\": 407.2392272949219,\n            \"y\": 8.395115852355957,\n
-          \           \"width\": -407.2392272949219,\n            \"height\": -8.395115852355957\n
-          \       }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\":
-          {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
-          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\":
-          \\\"Albedo\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n
-          \   \\\"m_ValueType\\\": 2,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\":
-          0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\":
-          0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n        \\\"x\\\": 0.0,\\n
-          \       \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n
-          \   },\\n    \\\"m_ConcreteValueType\\\": 3,\\n    \\\"m_ShaderOutputName\\\":
-          \\\"Albedo\\\"\\n}\"\n        },\n        {\n            \"typeInfo\": {\n
-          \               \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
-          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 1,\\n    \\\"m_DisplayName\\\":
-          \\\"Normal\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n
-          \   \\\"m_ValueType\\\": 2,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\":
-          0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\":
-          0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n        \\\"x\\\": 0.0,\\n
-          \       \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n
-          \   },\\n    \\\"m_ConcreteValueType\\\": 3,\\n    \\\"m_ShaderOutputName\\\":
-          \\\"Normal\\\"\\n}\"\n        },\n        {\n            \"typeInfo\": {\n
-          \               \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
-          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 2,\\n    \\\"m_DisplayName\\\":
-          \\\"Specular\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\":
-          2147483647,\\n    \\\"m_ValueType\\\": 2,\\n    \\\"m_DefaultValue\\\":
-          {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
-          0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n
-          \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
-          \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 3,\\n
-          \   \\\"m_ShaderOutputName\\\": \\\"Specular\\\"\\n}\"\n        },\n        {\n
-          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
-          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 3,\\n    \\\"m_DisplayName\\\":
-          \\\"Emission\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\":
-          2147483647,\\n    \\\"m_ValueType\\\": 2,\\n    \\\"m_DefaultValue\\\":
-          {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
-          0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n
-          \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
-          \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 3,\\n
-          \   \\\"m_ShaderOutputName\\\": \\\"Emission\\\"\\n}\"\n        },\n        {\n
-          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
-          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 4,\\n    \\\"m_DisplayName\\\":
-          \\\"Smoothness\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\":
-          2147483647,\\n    \\\"m_ValueType\\\": 4,\\n    \\\"m_DefaultValue\\\":
-          {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
-          0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n
-          \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
-          \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 1,\\n
-          \   \\\"m_ShaderOutputName\\\": \\\"Smoothness\\\"\\n}\"\n        },\n        {\n
-          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
-          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 5,\\n    \\\"m_DisplayName\\\":
-          \\\"Occlusion\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\":
-          2147483647,\\n    \\\"m_ValueType\\\": 4,\\n    \\\"m_DefaultValue\\\":
-          {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
-          0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n
-          \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
-          \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 1,\\n
-          \   \\\"m_ShaderOutputName\\\": \\\"Occlusion\\\"\\n}\"\n        },\n        {\n
-          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
-          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 6,\\n    \\\"m_DisplayName\\\":
-          \\\"Alpha\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n
-          \   \\\"m_ValueType\\\": 4,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\":
-          0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\":
-          0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n        \\\"x\\\": 0.0,\\n
-          \       \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n
-          \   },\\n    \\\"m_ConcreteValueType\\\": 1,\\n    \\\"m_ShaderOutputName\\\":
-          \\\"Alpha\\\"\\n}\"\n        }\n    ],\n    \"m_OutputPrecision\": 1,\n
-          \   \"m_SerializedLightFunction\": {\n        \"typeInfo\": {\n            \"fullName\":
-          \"UnityEngine.MaterialGraph.PBRSpecularLightFunction\",\n            \"assemblyName\":
-          \"Assembly-CSharp\"\n        },\n        \"JSONnodeData\": \"{}\"\n    }\n}"
-      - typeInfo:
           fullName: UnityEngine.MaterialGraph.TextureNode
           assemblyName: Assembly-CSharp
         JSONnodeData: "{\n    \"m_GuidSerialized\": \"f4d20b5e-052c-48dd-8232-e0a67d391307\",\n
           \   \"m_Name\": \"Texture\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
-          false,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-          \           \"x\": -49.50739288330078,\n            \"y\": -533.2178344726563,\n
-          \           \"width\": -1349.2821044921875,\n            \"height\": 587.5730590820313\n
-          \       }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\":
-          {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
+          \           \"x\": -37.374488830566409,\n            \"y\": -461.6337890625,\n
+          \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
+          \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n
+          \               \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
           \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
           \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 1,\\n    \\\"m_DisplayName\\\":
           \\\"RGBA\\\",\\n    \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n
@@ -171,7 +89,7 @@ MonoBehaviour:
           {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
           0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
           1,\\n    \\\"m_ShaderOutputName\\\": \\\"A\\\"\\n}\"\n        },\n        {\n
-          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlotDefaultInput\",\n
           \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
           \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\":
           \\\"UV\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n
@@ -269,18 +187,17 @@ MonoBehaviour:
           \   \\\"m_ShaderOutputName\\\": \\\"Output1\\\"\\n}\"\n        }\n    ],\n
           \   \"m_OutputPrecision\": 1,\n    \"m_SerializedSubGraph\": \"{\\n    \\\"subGraph\\\":
           {\\n        \\\"fileID\\\": 11400000,\\n        \\\"guid\\\": \\\"63179f4461979734ba87324ec6b1268d\\\",\\n
-          \       \\\"type\\\": 2\\n    }\\n}\",\n    \"m_SubGraphAssetGuid\": \"\",\n
-          \   \"serializedVersion\": 1\n}"
+          \       \\\"type\\\": 2\\n    }\\n}\"\n}"
       - typeInfo:
           fullName: UnityEngine.MaterialGraph.TextureNode
           assemblyName: Assembly-CSharp
         JSONnodeData: "{\n    \"m_GuidSerialized\": \"4b76e056-c401-4e70-a65c-9fe48e0fd0b0\",\n
           \   \"m_Name\": \"Texture\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
-          false,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-          \           \"x\": -37.8489875793457,\n            \"y\": -382.5356750488281,\n
-          \           \"width\": -1056.1510009765625,\n            \"height\": 553.535888671875\n
-          \       }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\":
-          {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
+          \           \"x\": -33.38373565673828,\n            \"y\": -305.7333679199219,\n
+          \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
+          \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n
+          \               \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
           \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
           \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 1,\\n    \\\"m_DisplayName\\\":
           \\\"RGBA\\\",\\n    \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n
@@ -328,7 +245,7 @@ MonoBehaviour:
           {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
           0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
           1,\\n    \\\"m_ShaderOutputName\\\": \\\"A\\\"\\n}\"\n        },\n        {\n
-          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlotDefaultInput\",\n
           \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
           \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\":
           \\\"UV\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n
@@ -464,8 +381,86 @@ MonoBehaviour:
           \   \\\"m_ShaderOutputName\\\": \\\"Output1\\\"\\n}\"\n        }\n    ],\n
           \   \"m_OutputPrecision\": 1,\n    \"m_SerializedSubGraph\": \"{\\n    \\\"subGraph\\\":
           {\\n        \\\"fileID\\\": 11400000,\\n        \\\"guid\\\": \\\"10c41d675e06a124a845154dccbcafa8\\\",\\n
-          \       \\\"type\\\": 2\\n    }\\n}\",\n    \"m_SubGraphAssetGuid\": \"\",\n
-          \   \"serializedVersion\": 1\n}"
+          \       \\\"type\\\": 2\\n    }\\n}\"\n}"
+      - typeInfo:
+          fullName: UnityEngine.MaterialGraph.MetallicMasterNode
+          assemblyName: Assembly-CSharp
+        JSONnodeData: "{\n    \"m_GuidSerialized\": \"1dbd1b46-13aa-4ffc-8103-72717ce10c5c\",\n
+          \   \"m_Name\": \"MetallicMasterNode\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
+          true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
+          \           \"x\": 481.94732666015627,\n            \"y\": 67.87423706054688,\n
+          \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
+          \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n
+          \               \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
+          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\":
+          \\\"Albedo\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n
+          \   \\\"m_ValueType\\\": 2,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\":
+          0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\":
+          0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n        \\\"x\\\": 0.0,\\n
+          \       \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n
+          \   },\\n    \\\"m_ConcreteValueType\\\": 3,\\n    \\\"m_ShaderOutputName\\\":
+          \\\"Albedo\\\"\\n}\"\n        },\n        {\n            \"typeInfo\": {\n
+          \               \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
+          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 1,\\n    \\\"m_DisplayName\\\":
+          \\\"Normal\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n
+          \   \\\"m_ValueType\\\": 2,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\":
+          0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\":
+          0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n        \\\"x\\\": 0.0,\\n
+          \       \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n
+          \   },\\n    \\\"m_ConcreteValueType\\\": 3,\\n    \\\"m_ShaderOutputName\\\":
+          \\\"Normal\\\"\\n}\"\n        },\n        {\n            \"typeInfo\": {\n
+          \               \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
+          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 3,\\n    \\\"m_DisplayName\\\":
+          \\\"Emission\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\":
+          2147483647,\\n    \\\"m_ValueType\\\": 2,\\n    \\\"m_DefaultValue\\\":
+          {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
+          0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n
+          \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
+          \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 3,\\n
+          \   \\\"m_ShaderOutputName\\\": \\\"Emission\\\"\\n}\"\n        },\n        {\n
+          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
+          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 2,\\n    \\\"m_DisplayName\\\":
+          \\\"Metallic\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\":
+          2147483647,\\n    \\\"m_ValueType\\\": 4,\\n    \\\"m_DefaultValue\\\":
+          {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
+          0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n
+          \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
+          \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 1,\\n
+          \   \\\"m_ShaderOutputName\\\": \\\"Metallic\\\"\\n}\"\n        },\n        {\n
+          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
+          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 4,\\n    \\\"m_DisplayName\\\":
+          \\\"Smoothness\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\":
+          2147483647,\\n    \\\"m_ValueType\\\": 4,\\n    \\\"m_DefaultValue\\\":
+          {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
+          0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n
+          \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
+          \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 1,\\n
+          \   \\\"m_ShaderOutputName\\\": \\\"Smoothness\\\"\\n}\"\n        },\n        {\n
+          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
+          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 5,\\n    \\\"m_DisplayName\\\":
+          \\\"Occlusion\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\":
+          2147483647,\\n    \\\"m_ValueType\\\": 4,\\n    \\\"m_DefaultValue\\\":
+          {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
+          0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n
+          \       \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n
+          \       \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\": 1,\\n
+          \   \\\"m_ShaderOutputName\\\": \\\"Occlusion\\\"\\n}\"\n        },\n        {\n
+          \           \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
+          \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n
+          \           \"JSONnodeData\": \"{\\n    \\\"m_Id\\\": 6,\\n    \\\"m_DisplayName\\\":
+          \\\"Alpha\\\",\\n    \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n
+          \   \\\"m_ValueType\\\": 4,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\":
+          0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\":
+          0.0\\n    },\\n    \\\"m_CurrentValue\\\": {\\n        \\\"x\\\": 0.0,\\n
+          \       \\\"y\\\": 0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n
+          \   },\\n    \\\"m_ConcreteValueType\\\": 1,\\n    \\\"m_ShaderOutputName\\\":
+          \\\"Alpha\\\"\\n}\"\n        }\n    ],\n    \"m_OutputPrecision\": 1\n}"
       m_SerializableEdges:
       - typeInfo:
           fullName: UnityEngine.Graphing.Edge
@@ -485,29 +480,8 @@ MonoBehaviour:
           fullName: UnityEngine.Graphing.Edge
           assemblyName: Assembly-CSharp
         JSONnodeData: "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\":
-          \"f4d20b5e-052c-48dd-8232-e0a67d391307\"\n    },\n    \"m_InputSlot\": {\n
-          \       \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"712c31a5-7797-4061-8443-6d6f332a259d\"\n
-          \   }\n}"
-      - typeInfo:
-          fullName: UnityEngine.Graphing.Edge
-          assemblyName: Assembly-CSharp
-        JSONnodeData: "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\":
-          \"4b76e056-c401-4e70-a65c-9fe48e0fd0b0\"\n    },\n    \"m_InputSlot\": {\n
-          \       \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\": \"712c31a5-7797-4061-8443-6d6f332a259d\"\n
-          \   }\n}"
-      - typeInfo:
-          fullName: UnityEngine.Graphing.Edge
-          assemblyName: Assembly-CSharp
-        JSONnodeData: "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\":
           \"c4f88992-c8cb-473e-806b-ce184af4a9ef\"\n    },\n    \"m_InputSlot\": {\n
           \       \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\": \"437833c2-a078-48ef-9f9e-12139369ebae\"\n
-          \   }\n}"
-      - typeInfo:
-          fullName: UnityEngine.Graphing.Edge
-          assemblyName: Assembly-CSharp
-        JSONnodeData: "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 2,\n        \"m_NodeGUIDSerialized\":
-          \"437833c2-a078-48ef-9f9e-12139369ebae\"\n    },\n    \"m_InputSlot\": {\n
-          \       \"m_SlotId\": 3,\n        \"m_NodeGUIDSerialized\": \"712c31a5-7797-4061-8443-6d6f332a259d\"\n
           \   }\n}"
       - typeInfo:
           fullName: UnityEngine.Graphing.Edge
@@ -529,5 +503,26 @@ MonoBehaviour:
         JSONnodeData: "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\":
           \"5ca423d1-8734-42c9-85c1-c015b29129ce\"\n    },\n    \"m_InputSlot\": {\n
           \       \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"437833c2-a078-48ef-9f9e-12139369ebae\"\n
+          \   }\n}"
+      - typeInfo:
+          fullName: UnityEngine.Graphing.Edge
+          assemblyName: Assembly-CSharp
+        JSONnodeData: "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\":
+          \"4b76e056-c401-4e70-a65c-9fe48e0fd0b0\"\n    },\n    \"m_InputSlot\": {\n
+          \       \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\": \"1dbd1b46-13aa-4ffc-8103-72717ce10c5c\"\n
+          \   }\n}"
+      - typeInfo:
+          fullName: UnityEngine.Graphing.Edge
+          assemblyName: Assembly-CSharp
+        JSONnodeData: "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 1,\n        \"m_NodeGUIDSerialized\":
+          \"f4d20b5e-052c-48dd-8232-e0a67d391307\"\n    },\n    \"m_InputSlot\": {\n
+          \       \"m_SlotId\": 0,\n        \"m_NodeGUIDSerialized\": \"1dbd1b46-13aa-4ffc-8103-72717ce10c5c\"\n
+          \   }\n}"
+      - typeInfo:
+          fullName: UnityEngine.Graphing.Edge
+          assemblyName: Assembly-CSharp
+        JSONnodeData: "{\n    \"m_OutputSlot\": {\n        \"m_SlotId\": 2,\n        \"m_NodeGUIDSerialized\":
+          \"437833c2-a078-48ef-9f9e-12139369ebae\"\n    },\n    \"m_InputSlot\": {\n
+          \       \"m_SlotId\": 3,\n        \"m_NodeGUIDSerialized\": \"1dbd1b46-13aa-4ffc-8103-72717ce10c5c\"\n
           \   }\n}"
     m_Name: 
