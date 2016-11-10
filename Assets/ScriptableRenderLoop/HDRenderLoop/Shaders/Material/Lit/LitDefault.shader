@@ -178,9 +178,6 @@ Shader "HDRenderLoop/Lit"
         Tags { "RenderType"="Opaque" "PerformanceChecks"="False" }
         LOD 300
 
-        // ------------------------------------------------------------------
-        //  Deferred pass
-        // ------------------------------------------------------------------
         Pass
         {
             Name "GBuffer"  // Name is not used
@@ -203,9 +200,6 @@ Shader "HDRenderLoop/Lit"
             ENDHLSL
         }
 
-        // ------------------------------------------------------------------
-        //  Debug pass
-        // ------------------------------------------------------------------
         Pass
         {
             Name "Debug"
@@ -229,10 +223,8 @@ Shader "HDRenderLoop/Lit"
             ENDHLSL
         }
 
-        // ------------------------------------------------------------------
         // Extracts information for lightmapping, GI (emission, albedo, ...)
         // This pass it not used during regular rendering.
-        // ------------------------------------------------------------------
         Pass
         {
             Name "META"
@@ -259,9 +251,6 @@ Shader "HDRenderLoop/Lit"
             ENDHLSL
         }
 
-        // ------------------------------------------------------------------
-        //  Depth only
-        // ------------------------------------------------------------------
         Pass
         {
             Name "ShadowCaster"
@@ -286,9 +275,31 @@ Shader "HDRenderLoop/Lit"
             ENDHLSL
         }
 
-        // ------------------------------------------------------------------
-        //  forward pass
-        // ------------------------------------------------------------------
+        Pass
+        {
+            Name "Motion Vectors"
+            Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
+
+            Cull[_CullMode]
+
+            ZTest LEqual
+            ZWrite Off // TODO: Test Z equal here.
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_VELOCITY
+            #include "../../Material/Material.hlsl"         
+            #include "LitData.hlsl"
+            #include "LitVelocityPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassVelocity.hlsl"
+
+            ENDHLSL
+        }
+
         Pass
         {
             Name "Forward" // Name is not used

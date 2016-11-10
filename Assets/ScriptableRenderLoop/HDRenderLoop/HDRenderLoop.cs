@@ -138,12 +138,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         static private int s_CameraColorBuffer;
         static private int s_CameraDepthBuffer;
         static private int s_VelocityBuffer;
-        #if VELOCITY_IN_GBUFFER
-        private const bool m_velocityInGBuffer = true;
-        #else
-        private const bool m_velocityInGBuffer = false;
-        #endif
-        private bool m_requireVelocityBuffer = false;
 
         static private ComputeBuffer s_punctualLightList;
         static private ComputeBuffer s_envLightList;
@@ -207,28 +201,25 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Init Lit material buffer - GBuffer and init
             m_LitRenderLoop = new Lit.RenderLoop(); // Our object can be garbacge collected, so need to be allocate here
             m_BuiltinRenderLoop = new Builtin.RenderLoop();
-
-            m_gbufferManager.gbufferCount = m_LitRenderLoop.GetGBufferCount();
-            for (int gbufferIndex = 0; gbufferIndex < m_gbufferManager.gbufferCount; ++gbufferIndex)
+            
+            for (int gbufferIndex = 0; gbufferIndex < m_LitRenderLoop.GetGBufferCount(); ++gbufferIndex)
             {
                 m_gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_LitRenderLoop.RTFormat[gbufferIndex], m_LitRenderLoop.RTReadWrite[gbufferIndex]);
             }
+            m_gbufferManager.gbufferCount = m_LitRenderLoop.GetGBufferCount();
 
-            // In forward we still name the buffer as if they were gbuffer, it doesn't matter
-            int previousGbufferCount = m_gbufferManager.gbufferCount;
-            m_gbufferManager.gbufferCount += m_BuiltinRenderLoop.GetGBufferCount();
-            for (int gbufferIndex = previousGbufferCount; gbufferIndex < m_gbufferManager.gbufferCount; ++gbufferIndex)
+            // In forward we still name the buffer as if they were gbuffer, it doesn't matter            
+            for (int gbufferIndex = 0; gbufferIndex < m_BuiltinRenderLoop.GetGBufferCount(); ++gbufferIndex)
             {
-                m_gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_BuiltinRenderLoop.RTFormat[gbufferIndex], m_BuiltinRenderLoop.RTReadWrite[gbufferIndex]);
+                m_gbufferManager.SetBufferDescription(m_gbufferManager.gbufferCount + gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_BuiltinRenderLoop.RTFormat[gbufferIndex], m_BuiltinRenderLoop.RTReadWrite[gbufferIndex]);
             }
+            m_gbufferManager.gbufferCount += m_BuiltinRenderLoop.GetGBufferCount();
 
             s_VelocityBuffer = Shader.PropertyToID("_VelocityTexture");
-            if (m_velocityInGBuffer)
-            {
-                int gbufferIndex = m_gbufferManager.gbufferCount;
-                m_gbufferManager.gbufferCount++;
-                m_gbufferManager.SetBufferDescription(gbufferIndex, "_VelocityTexture", m_BuiltinRenderLoop.RTFormat[gbufferIndex], m_BuiltinRenderLoop.RTReadWrite[gbufferIndex]);
-            }      
+            #if VELOCITY_IN_GBUFFER
+            m_gbufferManager.SetBufferDescription(m_gbufferManager.gbufferCount, "_VelocityTexture", m_BuiltinRenderLoop.GetVelocityBufferFormat(), m_BuiltinRenderLoop.GetVelocityBufferReadWrite());
+            m_gbufferManager.gbufferCount++;
+            #endif     
 
             m_LitRenderLoop.Rebuild();
             m_BuiltinRenderLoop.Rebuild();
@@ -471,21 +462,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             int h = camera.pixelHeight;
 
             var cmd = new CommandBuffer { name = "Velocity Pass" };
-            // If we are not using the velocity buffer inside GBuffer, allocate one
-            if (m_requireVelocityBuffer)
-            {
-                cmd.GetTemporaryRT(s_VelocityBuffer, w, h, 0, FilterMode.Point, m_BuiltinRenderLoop.GetVelocityBufferFormat(), m_BuiltinRenderLoop.GetVelocityBufferReadWrite());
-            }
+            cmd.GetTemporaryRT(s_VelocityBuffer, w, h, 0, FilterMode.Point, m_BuiltinRenderLoop.GetVelocityBufferFormat(), m_BuiltinRenderLoop.GetVelocityBufferReadWrite());
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_VelocityBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-            // If opaque haven't been render during gbuffer pass, render them now
-            if (m_requireVelocityBuffer)
-            {
-                RenderOpaqueRenderList(cullResults, camera, renderLoop, "MotionVectors");
-            }
-            RenderTransparentRenderList(cullResults, camera, renderLoop, "MotionVectors");
+            RenderOpaqueRenderList(cullResults, camera, renderLoop, "MotionVectors");
         }
 
         void FinalPass(RenderLoop renderLoop)
@@ -699,9 +681,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_LitRenderLoop.RenderInit(renderLoop);
             }
 
-            // Allocate a velocity buffer if we are forward only or if we haven't set the velocity buffer to be part of GBuffer
-            m_requireVelocityBuffer = debugParameters.useForwardRenderingOnly || (!debugParameters.useForwardRenderingOnly && !m_velocityInGBuffer);
-
             // Do anything we need to do upon a new frame.
             NewFrame();
 
@@ -746,8 +725,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     RenderForward(cullResults, camera, renderLoop);
                     RenderForwardUnlit(cullResults, camera, renderLoop);
 
+                    // If opaque velocity have been render during GBuffer no need to render them here
+                    // TODO: What about forward opaque object that will come later, (with stencil bit to avoid double lighting), we need to
+                    // also render their velocity inside the buffer. So It mean that when they are deferred opaque they should render during GBuffer pass
+                    // but when they are forward they should render a second time here in velocity pass... Maybe we should enable MRT during forward pass ?
+                    // TODO: implement MRT velocity buffer as an option in case of forward
                     // Render as late as possible to benefit from an up to date depth buffer (TODO: could use equal depth test ?)
-                    RenderVelocity(cullResults, camera, renderLoop);
+#if VELOCITY_IN_GBUFFER
+                    if (debugParameters.useForwardRenderingOnly)                    
+#endif
+                        RenderVelocity(cullResults, camera, renderLoop);
 
                     FinalPass(renderLoop);
                 }
