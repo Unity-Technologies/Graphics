@@ -49,8 +49,8 @@ PackedVaryings PackVaryings(Varyings input)
 {
     PackedVaryings output;
     output.positionCS = input.positionCS;
-    output.interpolators[0].xyz = float4(input.transferPositionCS.xyw, 0.0);
-    output.interpolators[1].xyz = float4(input.transferPreviousPositionCS.xyw, 0.0);
+    output.interpolators[0] = float4(input.transferPositionCS.xyw, 0.0);
+    output.interpolators[1] = float4(input.transferPreviousPositionCS.xyw, 0.0);
 
 #if NEED_TANGENT_TO_WORLD
     output.interpolators[0].w = input.texCoord0.x;
@@ -101,8 +101,8 @@ PackedVaryings Vert(Attributes input)
     output.positionCS = TransformWorldToHClip(positionWS);
 
     // TODO: Clean this code, put in function ?
-    output.transferPositionCS = mul(_NonJitteredVP, mul(unity_ObjectToWorld, input.positionOS));
-    output.transferPreviousPositionCS = mul(_PreviousVP, mul(_PreviousM, _HasLastPositionData ? float4(input.previousPositionOS, 1.0) : input.positionOS));
+    output.transferPositionCS = mul(_NonJitteredVP, mul(unity_ObjectToWorld, float4(input.positionOS, 1.0)));
+    output.transferPreviousPositionCS = mul(_PreviousVP, mul(_PreviousM, _HasLastPositionData ? float4(input.previousPositionOS, 1.0) : float4(input.positionOS, 1.0)));
 
 #if NEED_TEXCOORD0
     output.texCoord0 = input.uv0;
