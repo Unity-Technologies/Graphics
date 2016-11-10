@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 var lightType = visibleLights[lightIndex].lightType;
                 var lightDirection = visibleLights[lightIndex].light.transform.forward;
-                var shadowNearClip = visibleLights[lightIndex].light.shadowNearPlane;
+                var shadowNearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
                 int shadowSliceIndex = packedShadows.GetShadowSliceIndex(lightIndex, 0);
 
@@ -360,7 +360,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     {
                         var settings = new DrawShadowsSettings(cullResults, lightIndex);
                         var shadowResolution = shadowSlices[shadowSliceIndex].shadowResolution;
-                        bool needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, s, shadowSliceCount, splitRatio, shadowResolution, shadowNearClip, out view, out proj, out settings.splitData);
+                        bool needRendering = cullResults.ComputeDirectionalShadowMatricesAndCullingPrimitives(lightIndex, s, shadowSliceCount, splitRatio, shadowResolution, shadowNearPlaneOffset, out view, out proj, out settings.splitData);
 
                         packedShadows.directionalShadowSplitSphereSqr[s] = settings.splitData.cullingSphere;
                         packedShadows.directionalShadowSplitSphereSqr[s].w *= packedShadows.directionalShadowSplitSphereSqr[s].w;
