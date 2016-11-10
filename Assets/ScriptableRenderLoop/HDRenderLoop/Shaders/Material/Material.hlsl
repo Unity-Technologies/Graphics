@@ -162,11 +162,4 @@
 
 #endif // #ifdef GBUFFERMATERIAL_COUNT
 
-// Decode velocity need to be accessible in both forward and deferred
-#ifdef VELOCITY_IN_GBUFFER
-#define DECODE_VELOCITY_BUFFER(NAME) DecodeVelocity(GBUFFER_VELOCITY_NAME(NAME))
-#else
-#define DECODE_VELOCITY_BUFFER(NAME) DecodeVelocity(GBUFFER_VELOCITY_NAME(NAME))
-#endif
-
 #endif // UNITY_MATERIAL_INCLUDED

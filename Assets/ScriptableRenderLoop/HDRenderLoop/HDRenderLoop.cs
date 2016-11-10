@@ -1,3 +1,6 @@
+// Must be in sync with ShaderConfig.cs
+//#define VELOCITY_IN_GBUFFER
+
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
@@ -211,10 +214,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // In forward we still name the buffer as if they were gbuffer, it doesn't matter            
             for (int gbufferIndex = 0; gbufferIndex < m_BuiltinRenderLoop.GetGBufferCount(); ++gbufferIndex)
             {
-                m_gbufferManager.SetBufferDescription(m_gbufferManager.gbufferCount + gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_BuiltinRenderLoop.RTFormat[gbufferIndex], m_BuiltinRenderLoop.RTReadWrite[gbufferIndex]);
+                int textureIndex = m_gbufferManager.gbufferCount + gbufferIndex;
+                m_gbufferManager.SetBufferDescription(textureIndex, "_CameraGBufferTexture" + textureIndex, m_BuiltinRenderLoop.RTFormat[gbufferIndex], m_BuiltinRenderLoop.RTReadWrite[gbufferIndex]);
             }
             m_gbufferManager.gbufferCount += m_BuiltinRenderLoop.GetGBufferCount();
 
+            // Caution velocity texture name must match with Macro in Material.hlsl
             s_VelocityBuffer = Shader.PropertyToID("_VelocityTexture");
             #if VELOCITY_IN_GBUFFER
             m_gbufferManager.SetBufferDescription(m_gbufferManager.gbufferCount, "_VelocityTexture", m_BuiltinRenderLoop.GetVelocityBufferFormat(), m_BuiltinRenderLoop.GetVelocityBufferReadWrite());
@@ -731,9 +736,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     // but when they are forward they should render a second time here in velocity pass... Maybe we should enable MRT during forward pass ?
                     // TODO: implement MRT velocity buffer as an option in case of forward
                     // Render as late as possible to benefit from an up to date depth buffer (TODO: could use equal depth test ?)
-#if VELOCITY_IN_GBUFFER
+                    #if VELOCITY_IN_GBUFFER
                     if (debugParameters.useForwardRenderingOnly)                    
-#endif
+                    #endif
                         RenderVelocity(cullResults, camera, renderLoop);
 
                     FinalPass(renderLoop);
