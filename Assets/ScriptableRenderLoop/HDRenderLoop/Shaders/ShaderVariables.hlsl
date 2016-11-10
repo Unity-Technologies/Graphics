@@ -184,6 +184,15 @@ CBUFFER_START(UnityProbeVolume)
 	float3 unity_ProbeVolumeMin;		
 CBUFFER_END
 
+CBUFFER_START(UnityVelocityPass)
+    float4x4 _NonJitteredVP;
+    float4x4 _PreviousVP;
+    float4x4 _PreviousM;
+    bool _HasLastPositionData;
+    bool _ForceNoMotion;
+    float _MotionVectorDepthBias;
+CBUFFER_END
+
 // ----------------------------------------------------------------------------
 
 // TODO: move this to constant buffer by Pass

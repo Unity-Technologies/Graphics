@@ -3,11 +3,11 @@
 #endif
 
 void Frag(  PackedVaryings packedInput,
-			OUTPUT_GBUFFER(outGBuffer)
-			#ifdef VELOCITY_IN_GBUFFER
-			, OUTPUT_GBUFFER_VELOCITY(outGBuffer)
-			#endif
-			, OUTPUT_GBUFFER_BAKE_LIGHTING(outGBuffer)
+			OUTPUT_GBUFFER(outGBuffer),
+			OUTPUT_GBUFFER_BAKE_LIGHTING(outGBuffer)
+            #ifdef VELOCITY_IN_GBUFFER
+            , OUTPUT_GBUFFER_VELOCITY(outGBuffer)
+            #endif
 			)
 {
     FragInput input = UnpackVaryings(packedInput);
@@ -23,8 +23,8 @@ void Frag(  PackedVaryings packedInput,
 	PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
 
 	ENCODE_INTO_GBUFFER(surfaceData, outGBuffer);
+	ENCODE_BAKE_LIGHTING_INTO_GBUFFER(GetBakedDiffuseLigthing(preLightData, surfaceData, builtinData, bsdfData), outGBuffer);
 	#ifdef VELOCITY_IN_GBUFFER
 	ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outGBuffer);
 	#endif
-	ENCODE_BAKE_LIGHTING_INTO_GBUFFER(GetBakedDiffuseLigthing(preLightData, surfaceData, builtinData, bsdfData), outGBuffer);
 }

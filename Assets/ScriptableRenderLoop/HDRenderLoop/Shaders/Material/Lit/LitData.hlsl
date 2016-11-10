@@ -5,12 +5,19 @@
 
 struct FragInput
 {
-    float4 unPositionSS; // This is the position return by VPOS, only xy is use
+    float4 unPositionSS; // This is the position return by VPOS (That is name positionCS in PackedVarying), only xy is use
     float3 positionWS;
     float2 texCoord0;
     float2 texCoord1;
     float2 texCoord2;
     float3 tangentToWorld[3];
+
+    // For velocity
+    // Note: Z component is not use
+    float4 positionCS; // This is the clip spae position. Warning, do not confuse with the value of positionCS in PackedVarying which is VPOS and store in unPositionSS
+    float4 previousPositionCS;
+
+    // For two sided lighting
     bool isFrontFace;
 };
 
@@ -86,6 +93,20 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 
     return bakeDiffuseLighting;
 
+#endif
+}
+
+float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
+{
+    // This test on define is required to remove warning of divide by 0 when initializing empty struct
+#if SHADERPASS == SHADERPASS_VELOCITY || (SHADERPASS == SHADERPASS_GBUFFER && defined(VELOCITY_IN_GBUFFER))
+    // Encode velocity
+    positionCS.xy = positionCS.xy / positionCS.w;
+    previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;
+
+    return (positionCS.xy - previousPositionCS.xy) * _ForceNoMotion;
+#else
+    return float2(0.0, 0.0);
 #endif
 }
 
@@ -230,7 +251,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
     builtinData.emissiveIntensity = _EmissiveIntensity;
 
-    builtinData.velocity = float2(0.0, 0.0);
+    builtinData.velocity = CalculateVelocity(input.positionCS, input.previousPositionCS);
 
     builtinData.distortion = float2(0.0, 0.0);
     builtinData.distortionBlur = 0.0;
@@ -460,7 +481,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     PROP_BLEND_SCALAR(emissiveIntensity, weights);
     builtinData.emissiveIntensity = emissiveIntensity;
 
-    builtinData.velocity = float2(0.0, 0.0);
+    builtinData.velocity = CalculateVelocity(input.positionCS, input.previousPositionCS);
 
     builtinData.distortion = float2(0.0, 0.0);
     builtinData.distortionBlur = 0.0;
