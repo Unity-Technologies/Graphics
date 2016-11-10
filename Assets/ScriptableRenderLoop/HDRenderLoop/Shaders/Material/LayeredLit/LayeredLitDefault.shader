@@ -210,9 +210,7 @@ Shader "HDRenderLoop/LayeredLit"
         Tags { "RenderType"="Opaque" "PerformanceChecks"="False" }
         LOD 300
 
-        // ------------------------------------------------------------------
-        //  Deferred pass
-        Pass
+       Pass
         {
             Name "GBuffer"  // Name is not used
             Tags { "LightMode" = "GBuffer" } // This will be only for opaque object based on the RenderQueue index
@@ -236,8 +234,6 @@ Shader "HDRenderLoop/LayeredLit"
             ENDHLSL
         }
 
-        // ------------------------------------------------------------------
-        //  Debug pass
         Pass
         {
             Name "Debug"
@@ -263,10 +259,8 @@ Shader "HDRenderLoop/LayeredLit"
             ENDHLSL
         }
 
-        // ------------------------------------------------------------------
         // Extracts information for lightmapping, GI (emission, albedo, ...)
         // This pass it not used during regular rendering.
-        // ------------------------------------------------------------------
         Pass
         {
             Name "META"
@@ -294,9 +288,32 @@ Shader "HDRenderLoop/LayeredLit"
             ENDHLSL
         }
 
-        // ------------------------------------------------------------------
-        //  Depth only
-        // ------------------------------------------------------------------
+        Pass
+        {
+            Name "Motion Vectors"
+            Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
+
+            Cull[_CullMode]
+
+            ZTest LEqual
+            ZWrite Off // TODO: Test Z equal here.
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_VELOCITY
+            #define LAYERED_LIT_SHADER
+            #include "../../Material/Material.hlsl"         
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitVelocityPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassVelocity.hlsl"
+
+            ENDHLSL
+        }
+
         Pass
         {
             Name "ShadowCaster"
@@ -322,8 +339,6 @@ Shader "HDRenderLoop/LayeredLit"
             ENDHLSL
         }
 
-        // ------------------------------------------------------------------
-        //  forward pass
         Pass
         {
             Name "Forward" // Name is not used
