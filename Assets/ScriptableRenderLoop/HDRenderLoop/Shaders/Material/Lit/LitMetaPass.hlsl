@@ -55,7 +55,7 @@ FragInput UnpackVaryings(PackedVaryings input)
     FragInput output;
     ZERO_INITIALIZE(FragInput, output);
 
-    output.unPositionSS = input.positionCS;
+    output.unPositionSS = input.positionCS;  // as input we have the vpos
     output.texCoord0 = input.interpolators[0].xy;
     output.texCoord1 = input.interpolators[0].zw;
 

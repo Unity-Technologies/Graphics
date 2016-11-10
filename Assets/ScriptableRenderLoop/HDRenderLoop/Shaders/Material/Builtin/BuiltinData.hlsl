@@ -10,6 +10,37 @@
 
 #include "BuiltinData.cs.hlsl"
 
+//-----------------------------------------------------------------------------
+// common Encode/Decode functions
+//-----------------------------------------------------------------------------
+
+// Encode/Decode velocity in a buffer (either forward of deferred)
+// Design note: We assume that VelocityVector fit into a single buffer (i.e not spread on several buffer)
+void EncodeVelocity(float2 velocity, out float4 outBuffer)
+{
+    // RT - 16:16 float
+    outBuffer = float4(velocity.xy, 0.0, 0.0);
+}
+
+float2 DecodeVelocity(float4 inBuffer)
+{
+    return float2(inBuffer.xy);
+}
+
+// Encode/Decode into GBuffer - This is share so others material can use it.
+// Design note: We assume that BakeDiffuseLighting and emissive fit into a single buffer (i.e not spread on several buffer)
+void EncodeBakedDiffuseLigthingIntoGBuffer(float3 bakeDiffuseLighting, out float4 outBuffer)
+{
+    // RT - 11:11:10f
+    outBuffer = float4(bakeDiffuseLighting.xyz, 0.0);
+}
+
+float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
+{
+    return float3(inBuffer.xyz);
+}
+
+
 void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout bool needLinearToSRGB)
 {
     switch (paramId)

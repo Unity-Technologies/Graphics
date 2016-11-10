@@ -9,36 +9,6 @@
 #include "EntityLighting.hlsl"
 
 //-----------------------------------------------------------------------------
-// common Encode/Decode functions
-//-----------------------------------------------------------------------------
-
-// Encode/Decode velocity in a buffer (either forward of deferred)
-// Design note: We assume that VelocityVector fit into a single buffer (i.e not spread on several buffer)
-void EncodeVelocity(float2 velocity, out float4 outBuffer)
-{
-    // RT - 16:16 float
-    outBuffer = float4(velocity.xy, 0.0, 0.0);
-}
-
-float2 DecodeVelocity(float4 inBuffer)
-{
-    return float2(inBuffer.xy);
-}
-
-// Encode/Decode into GBuffer - This is share so others material can use it.
-// Design note: We assume that BakeDiffuseLighting and emissive fit into a single buffer (i.e not spread on several buffer)
-void EncodeBakedDiffuseLigthingIntoGBuffer(float3 bakeDiffuseLighting, out float4 outBuffer)
-{
-    // RT - 11:11:10f
-    outBuffer = float4(bakeDiffuseLighting.xyz, 0.0);
-}
-
-float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
-{
-    return float3(inBuffer.xyz);
-}
-
-//-----------------------------------------------------------------------------
 // BuiltinData
 //-----------------------------------------------------------------------------
 
@@ -61,7 +31,31 @@ float3 DecodeBakedDiffuseLigthingFromGBuffer(float4 inBuffer)
 
 #ifdef GBUFFERMATERIAL_COUNT
 
-#if GBUFFERMATERIAL_COUNT == 3
+#if GBUFFERMATERIAL_COUNT == 2
+
+#define OUTPUT_GBUFFER(NAME)                            \
+        out float4 MERGE_NAME(NAME, 0) : SV_Target0,    \
+        out float4 MERGE_NAME(NAME, 1) : SV_Target1
+
+#define DECLARE_GBUFFER_TEXTURE(NAME)   \
+        TEXTURE2D(MERGE_NAME(NAME, 0));  \
+        TEXTURE2D(MERGE_NAME(NAME, 1));
+
+#define FETCH_GBUFFER(NAME, TEX, UV)                                        \
+        float4 MERGE_NAME(NAME, 0) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 0), uint3(UV, 0)); \
+        float4 MERGE_NAME(NAME, 1) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 1), uint3(UV, 0));
+
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, NAME) EncodeIntoGBuffer(SURFACE_DATA, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
+#define DECODE_FROM_GBUFFER(NAME) DecodeFromGBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
+
+#define GBUFFER_BAKE_LIGHTING_NAME(NAME) MERGE_NAME(NAME, 2)
+#define GBUFFER_BAKE_LIGHTING_TARGET(TARGET) MERGE_NAME(TARGET, 2)
+#ifdef VELOCITY_IN_GBUFFER
+#define GBUFFER_VELOCITY_NAME(NAME) MERGE_NAME(NAME, 3)
+#define GBUFFER_VELOCITY_TARGET(TARGET) MERGE_NAME(TARGET, 3)
+#endif
+
+#elif GBUFFERMATERIAL_COUNT == 3
 
 #define OUTPUT_GBUFFER(NAME)                            \
         out float4 MERGE_NAME(NAME, 0) : SV_Target0,    \
