@@ -20,12 +20,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         // Area Light Hack
         public bool treatAsAreaLight = false;
-        public bool isDoubleSided = false;
+        public bool isDoubleSided    = false;
 
-        [RangeAttribute(0.0F, 20.0f)]
+        [RangeAttribute(0.0f, 20.0f)]
         public float areaLightLength = 0.0f;
 
-        [RangeAttribute(0.0F, 20.0f)]
+        [RangeAttribute(0.0f, 20.0f)]
         public float areaLightWidth = 0.0f;
 
         public static float GetInnerSpotPercent01(AdditionalLightData lightData)
