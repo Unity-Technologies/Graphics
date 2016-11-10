@@ -7,13 +7,10 @@
 //
 // LightDefinitions:  static fields
 //
-
-#define USE_LEFTHAND_CAMERASPACE (0)
-
-
 #define MAX_NR_LIGHTS_PER_CAMERA (1024)
 #define MAX_NR_BIGTILE_LIGHTS_PLUSONE (512)
 #define VIEWPORT_SCALE_Z (1)
+#define USE_LEFTHAND_CAMERASPACE (0)
 #define IS_CIRCULAR_SPOT_SHAPE (1)
 #define HAS_COOKIE_TEXTURE (2)
 #define IS_BOX_PROJECTED (4)

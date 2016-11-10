@@ -38,7 +38,7 @@ FragInput UnpackVaryings(PackedVaryings input)
     FragInput output;
     ZERO_INITIALIZE(FragInput, output);
 
-    output.positionCS = input.positionCS;
+    output.unPositionSS = input.positionCS;
     output.texCoord0.xy = input.interpolators[0].xy;
 
     return output;

@@ -23,7 +23,6 @@ struct Attributes
     float2 uv0 : TEXCOORD0;
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
-    float4 tangentOS : TANGENT;
 };
 
 struct Varyings
@@ -55,7 +54,7 @@ FragInput UnpackVaryings(PackedVaryings input)
     FragInput output;
     ZERO_INITIALIZE(FragInput, output);
 
-    output.unPositionSS = input.positionCS;
+    output.unPositionSS = input.positionCS;  // as input we have the vpos
     output.texCoord0 = input.interpolators[0].xy;
     output.texCoord1 = input.interpolators[0].zw;
 
