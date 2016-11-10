@@ -138,6 +138,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         static private int s_CameraDepthBuffer;
 
         static private ComputeBuffer s_punctualLightList;
+        static private ComputeBuffer s_areaLightList;
         static private ComputeBuffer s_envLightList;
         static private ComputeBuffer s_punctualShadowList;
 
@@ -157,6 +158,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             if (s_punctualLightList != null)
                 s_punctualLightList.Release();
+
+            if (s_areaLightList != null)
+                s_areaLightList.Release();
 
             if (s_punctualShadowList != null)
                 s_punctualShadowList.Release();
@@ -178,15 +182,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             ClearComputeBuffers();
 
-            s_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
-            s_CameraDepthBuffer = Shader.PropertyToID("_CameraDepthTexture");
+            s_CameraColorBuffer  = Shader.PropertyToID("_CameraColorTexture");
+            s_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
 
-            s_punctualLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
-            s_envLightList = new ComputeBuffer(MaxLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+            s_punctualLightList  = new ComputeBuffer(MaxLights,  System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
+            s_areaLightList      = new ComputeBuffer(MaxLights,  System.Runtime.InteropServices.Marshal.SizeOf(typeof(AreaLightData)));
+            s_envLightList       = new ComputeBuffer(MaxLights,  System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
             s_punctualShadowList = new ComputeBuffer(MaxShadows, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
 
-            m_DeferredMaterial = CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
-            m_FinalPassMaterial = CreateEngineMaterial("Hidden/HDRenderLoop/FinalPass");
+            m_DeferredMaterial   = CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+            m_FinalPassMaterial  = CreateEngineMaterial("Hidden/HDRenderLoop/FinalPass");
 
             // Debug
             m_DebugViewMaterialGBuffer = CreateEngineMaterial("Hidden/HDRenderLoop/DebugViewMaterialGBuffer");
@@ -213,10 +218,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_LitRenderLoop.OnDisable();
 
             s_punctualLightList.Release();
+            s_areaLightList.Release();
             s_envLightList.Release();
             s_punctualShadowList.Release();
 
-            if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
+            if (m_DeferredMaterial)  DestroyImmediate(m_DeferredMaterial);
             if (m_FinalPassMaterial) DestroyImmediate(m_FinalPassMaterial);
 
             m_cubeReflTexArray.Release();
@@ -475,16 +481,54 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void UpdatePunctualLights(VisibleLight[] visibleLights, ref ShadowOutput shadowOutput)
         {
-            var lights = new List<PunctualLightData>();
+            var pLights = new List<PunctualLightData>();
+            var aLights = new List<AreaLightData>();
             var shadows = new List<PunctualShadowData>();
 
-            for (int lightIndex = 0; lightIndex < Math.Min(visibleLights.Length, MaxLights); lightIndex++)
+            for (int lightIndex = 0, numLights = Math.Min(visibleLights.Length, MaxLights); lightIndex < numLights; ++lightIndex)
             {
                 var light = visibleLights[lightIndex];
-                if (light.lightType != LightType.Spot && light.lightType != LightType.Point && light.lightType != LightType.Directional)
-                    continue;
 
-                var additionalLightData = light.light.GetComponent<AdditionalLightData>();
+                if (light.lightType == LightType.Area) {
+                    // Skip area lights which are currently only used for baking.
+                    continue;
+                }
+
+                // Correct intensity calculation (different from Unity)
+                var lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
+                var lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
+                var lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
+
+                var additionalData = light.light.GetComponent<AdditionalLightData>();
+
+                // Test whether we should treat this punctual light as an area light.
+                // It's a temporary hack until the proper UI support is added.
+                if (AdditionalLightData.GetTreatAsAreaLight(additionalData))
+                {
+                    AreaLightData lightData = new AreaLightData();
+
+                    // TODO: add AreaShapeType.Line support for small widths.
+                    lightData.shapeType     = AreaShapeType.Rectangle;
+                    lightData.size          = new Vector2(additionalData.areaLightLength, additionalData.areaLightWidth);
+                    lightData.twoSided      = additionalData.isDoubleSided ? 1.0f : 0.0f;
+
+                    lightData.positionWS    = light.light.transform.position;
+                    lightData.forward       = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
+                    lightData.up            = light.light.transform.up;
+                    lightData.right         = light.light.transform.right;
+
+                    lightData.color         = new Vector3(lightColorR, lightColorG, lightColorB);
+                    lightData.diffuseScale  = additionalData.affectDiffuse  ? 1.0f : 0.0f;
+                    lightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
+                    lightData.shadowDimmer  = additionalData.shadowDimmer;
+
+                    lightData.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
+
+                    aLights.Add(lightData);
+
+                    // TODO: shadows.
+                    continue;
+                }
 
                 var l = new PunctualLightData();
 
@@ -502,10 +546,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     l.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
                 }
 
-                // Correct intensity calculation (Different from Unity)
-                var lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
-                var lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
-                var lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
 
                 l.color.Set(lightColorR, lightColorG, lightColorB);
 
@@ -517,7 +557,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     var spotAngle = light.spotAngle;
 
-                    var innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
+                    var innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalData);
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
                     var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
 
@@ -532,9 +572,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     l.angleOffset = 2.0f;
                 }
 
-                l.diffuseScale = AdditionalLightData.GetAffectDiffuse(additionalLightData) ? 1.0f : 0.0f;
-                l.specularScale = AdditionalLightData.GetAffectSpecular(additionalLightData) ? 1.0f : 0.0f;
-                l.shadowDimmer = AdditionalLightData.GetShadowDimmer(additionalLightData);
+                l.diffuseScale = AdditionalLightData.GetAffectDiffuse(additionalData) ? 1.0f : 0.0f;
+                l.specularScale = AdditionalLightData.GetAffectSpecular(additionalData) ? 1.0f : 0.0f;
+                l.shadowDimmer = AdditionalLightData.GetShadowDimmer(additionalData);
 
                 l.IESIndex = -1;
                 l.cookieIndex = -1;
@@ -575,13 +615,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     }
                 }
 
-                lights.Add(l);
+                pLights.Add(l);
             }
-            s_punctualLightList.SetData(lights.ToArray());
+
+            s_punctualLightList.SetData(pLights.ToArray());
+            s_areaLightList.SetData(aLights.ToArray());
             s_punctualShadowList.SetData(shadows.ToArray());
 
             Shader.SetGlobalBuffer("_PunctualLightList", s_punctualLightList);
-            Shader.SetGlobalInt("_PunctualLightCount", lights.Count);
+            Shader.SetGlobalBuffer("_AreaLightList", s_areaLightList);
+            Shader.SetGlobalInt("_PunctualLightCount", pLights.Count);
+            Shader.SetGlobalInt("_AreaLightCount", aLights.Count);
             Shader.SetGlobalBuffer("_PunctualShadowList", s_punctualShadowList);
         }
 

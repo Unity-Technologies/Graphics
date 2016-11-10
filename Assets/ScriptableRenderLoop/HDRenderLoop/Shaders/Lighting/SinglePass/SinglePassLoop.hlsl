@@ -10,7 +10,7 @@ void LightLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData
     LightLoopContext context;
     ZERO_INITIALIZE(LightLoopContext, context);
 
-    diffuseLighting = float4(0.0, 0.0, 0.0, 0.0);
+    diffuseLighting  = float4(0.0, 0.0, 0.0, 0.0);
     specularLighting = float4(0.0, 0.0, 0.0, 0.0);
 
     for (int i = 0; i < _PunctualLightCount; ++i)
@@ -22,18 +22,17 @@ void LightLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData
         specularLighting += localSpecularLighting;
     }
 
-    /*
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < _AreaLightCount; ++i)
     {
-    float4 localDiffuseLighting;
-    float4 localSpecularLighting;
-    EvaluateBSDF_Area(0, V, positionWS, areaLightData[i], bsdfData, localDiffuseLighting, localSpecularLighting);
-    diffuseLighting += localDiffuseLighting;
-    specularLighting += localSpecularLighting;
-    }
-    */
+        float4 localDiffuseLighting, localSpecularLighting;
 
-    float4 iblDiffuseLighting = float4(0.0, 0.0, 0.0, 0.0);
+        EvaluateBSDF_Area(context, V, positionWS, prelightData, _AreaLightList[i], bsdfData, localDiffuseLighting, localSpecularLighting);
+
+        diffuseLighting  += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
+    }
+
+    float4 iblDiffuseLighting  = float4(0.0, 0.0, 0.0, 0.0);
     float4 iblSpecularLighting = float4(0.0, 0.0, 0.0, 0.0);
 
     for (int j = 0; j < _EnvLightCount; ++j)
@@ -58,7 +57,7 @@ void LightLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData
     }
     */
 
-    diffuseLighting += iblDiffuseLighting;
+    diffuseLighting  += iblDiffuseLighting;
     specularLighting += iblSpecularLighting;
 
     diffuseLighting.rgb += bakeDiffuseLighting;
