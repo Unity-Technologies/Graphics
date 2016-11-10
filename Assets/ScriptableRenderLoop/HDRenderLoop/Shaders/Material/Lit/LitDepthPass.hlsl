@@ -2,8 +2,9 @@
 #error Undefine_SHADERPASS
 #endif
 
-#define NEED_TANGENT_TO_WORLD (defined(_HEIGHTMAP) && !defined (_HEIGHTMAP_AS_DISPLACEMENT))
-#define NEED_TEXCOORD0 defined(_ALPHATEST_ON) || NEED_TANGENT_TO_WORLD
+// Check if Alpha test is enabled. If it is, check if parallax is enabled on this material
+#define NEED_TEXCOORD0 defined(_ALPHATEST_ON)
+#define NEED_TANGENT_TO_WORLD NEED_TEXCOORD0 && (defined(_HEIGHTMAP) && !defined(_HEIGHTMAP_AS_DISPLACEMENT))
 
 struct Attributes
 {
@@ -63,7 +64,7 @@ FragInput UnpackVaryings(PackedVaryings input)
     FragInput output;
     ZERO_INITIALIZE(FragInput, output);
 
-    output.unPositionSS = input.positionCS;
+    output.unPositionSS = input.positionCS;  // as input we have the vpos
 
 #if NEED_TANGENT_TO_WORLD
     output.positionWS.xyz = input.interpolators[0].xyz;
@@ -94,10 +95,10 @@ PackedVaryings Vert(Attributes input)
     output.positionWS = positionWS;
 
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
-        float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+    float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 
-        float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
-        output.tangentToWorld[0] = tangentToWorld[0];
+    float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
+    output.tangentToWorld[0] = tangentToWorld[0];
     output.tangentToWorld[1] = tangentToWorld[1];
     output.tangentToWorld[2] = tangentToWorld[2];
 #endif

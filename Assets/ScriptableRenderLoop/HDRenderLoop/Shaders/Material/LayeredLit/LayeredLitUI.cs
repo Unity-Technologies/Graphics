@@ -17,6 +17,7 @@ namespace UnityEditor
             };
             public readonly GUIContent syncButton = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
             public readonly GUIContent layers = new GUIContent("Layers");
+            public readonly GUIContent emission = new GUIContent("Emissive");
             public readonly GUIContent layerMapMask = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color)");
             public readonly GUIContent layerCount = new GUIContent("Layer Count", "Number of layers.");
         }
@@ -357,6 +358,35 @@ namespace UnityEditor
             SetKeyword(material, "_LAYERMASKMAP", material.GetTexture(kLayerMaskMap));
         }
 
+        protected override void SetupEmissionGIFlags(Material material)
+        {
+            // Setup lightmap emissive flags
+            bool nonNullEmissive = false;
+            for(int i = 0 ; i < layerCount ; ++i)
+            {
+                string paramName = string.Format("_EmissiveIntensity{0}", i);
+                if (material.GetFloat(paramName) > 0.0f)
+                {
+                    nonNullEmissive = true;
+                    break;
+                }
+            }
+            var realtimeEmission = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
+            bool shouldEmissionBeEnabled = nonNullEmissive || realtimeEmission;
+
+
+            MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
+            if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
+            {
+                if (shouldEmissionBeEnabled)
+                    flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                else
+                    flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+
+                material.globalIlluminationFlags = flags;
+            }
+        }
+
         void SetupMaterialForLayers(Material material)
         {
             if (layerCount == 4)
@@ -395,6 +425,10 @@ namespace UnityEditor
             EditorGUI.BeginChangeCheck();
             {
                 ShaderOptionsGUI();
+                EditorGUI.indentLevel++;
+                EditorGUILayout.LabelField(styles.emission);
+                m_MaterialEditor.LightmapEmissionProperty(1);
+                EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
             if (EditorGUI.EndChangeCheck())
