@@ -261,6 +261,8 @@ namespace UnityEditor
                 m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             }
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+            m_MaterialEditor.LightmapEmissionProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
+
             EditorGUI.indentLevel--;
         }
 
@@ -335,6 +337,22 @@ namespace UnityEditor
             SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
             SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
+        }
+
+        protected virtual void SetupEmissionGIFlags(Material material)
+        {
+            // Setup lightmap emissive flags
+
+            MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
+            if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
+            {
+                if (ShouldEmissionBeEnabled(material))
+                    flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                else
+                    flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+
+                material.globalIlluminationFlags = flags;
+            }
         }
 
         protected void SetupMaterial(Material material)
@@ -422,24 +440,12 @@ namespace UnityEditor
             SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", (HeightmapMode)material.GetFloat(kHeightMapMode) == HeightmapMode.Displacement);
 
             SetupKeywordsForInputMaps(material);
-
-            // Setup lightmap emissive flags
-            bool shouldEmissionBeEnabled = ShouldEmissionBeEnabled(material, material.GetFloat("_EmissiveIntensity"));
-
-            MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
-            if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
-            {               
-                if (shouldEmissionBeEnabled)
-                    flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-                else
-                    flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-
-                material.globalIlluminationFlags = flags;
-            }
+            SetupEmissionGIFlags(material);
         }
 
-        static bool ShouldEmissionBeEnabled(Material mat, float emissiveIntensity)
+        public static bool ShouldEmissionBeEnabled(Material mat)
         {
+            float emissiveIntensity = mat.GetFloat("_EmissiveIntensity");
             var realtimeEmission = (mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
             return emissiveIntensity > 0.0f || realtimeEmission;
         }

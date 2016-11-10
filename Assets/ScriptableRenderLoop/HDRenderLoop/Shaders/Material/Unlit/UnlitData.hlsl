@@ -5,8 +5,9 @@
 
 struct FragInput
 {
-    float4 positionCS;
+    float4 unPositionSS;
     float2 texCoord0;
+    float2 texCoord1;
 };
 
 //-------------------------------------------------------------------------------------

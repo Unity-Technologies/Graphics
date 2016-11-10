@@ -15,6 +15,6 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 		
 	// TODO: we must not access bsdfData here, it break the genericity of the code!
-	return float4(bsdfData.color, builtinData.opacity);
+    return float4(bsdfData.color + builtinData.emissiveColor * builtinData.emissiveIntensity, builtinData.opacity);
 }
 

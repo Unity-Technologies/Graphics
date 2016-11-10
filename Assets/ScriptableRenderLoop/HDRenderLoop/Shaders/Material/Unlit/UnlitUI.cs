@@ -137,6 +137,7 @@ namespace UnityEditor
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
             m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+            m_MaterialEditor.LightmapEmissionProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel + 1);
 
             EditorGUI.indentLevel--;
         }
@@ -274,26 +275,18 @@ namespace UnityEditor
 
             SetupKeywordsForInputMaps(material);
 
-            /*
             // Setup lightmap emissive flags
+
             MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
             if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
             {
-                flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-                if (!shouldEmissionBeEnabled)
+                if (LitGUI.ShouldEmissionBeEnabled(material))
+                    flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                else
                     flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
 
                 material.globalIlluminationFlags = flags;
             }
-            */
-        }
-
-        static bool ShouldEmissionBeEnabled(Material mat, Color color)
-        {
-            //var realtimeEmission = (mat.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
-            //return color.maxColorComponent > 0.1f / 255.0f || realtimeEmission;
-
-            return false;
         }
 
         bool HasValidEmissiveKeyword(Material material)
