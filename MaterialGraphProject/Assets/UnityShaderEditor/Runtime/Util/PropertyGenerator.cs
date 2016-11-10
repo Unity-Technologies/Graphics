@@ -17,6 +17,8 @@ namespace UnityEngine.MaterialGraph
 
         public void AddShaderProperty(PropertyChunk chunk)
         {
+            if (m_Properties.Any(x => x.propertyName == chunk.propertyName))
+                return;
             m_Properties.Add(chunk);
         }
 
