@@ -44,3 +44,13 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
         break;
     }
 }
+
+LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
+{
+    LighTransportData lightTransportData;
+
+    lightTransportData.diffuseColor = float3(0.0, 0.0, 0.0);
+    lightTransportData.emissiveColor = builtinData.emissiveColor * builtinData.emissiveIntensity;
+
+    return lightTransportData;
+}

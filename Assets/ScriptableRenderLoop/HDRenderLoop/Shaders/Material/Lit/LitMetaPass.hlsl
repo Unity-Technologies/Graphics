@@ -23,7 +23,6 @@ struct Attributes
     float2 uv0 : TEXCOORD0;
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
-    float4 tangentOS : TANGENT;
 };
 
 struct Varyings
