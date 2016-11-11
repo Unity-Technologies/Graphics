@@ -8,11 +8,11 @@
 // Reference Lambert diffuse / GGX Specular for IBL and area lights
 //#define LIT_DISPLAY_REFERENCE
 
-// TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotrpy and anisotropy case.
+// TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotropy and anisotropy case.
 // Maybe we should always calculate anisotropy in case of standard ? Don't think the compile can optimize correctly.
 
 //-----------------------------------------------------------------------------
-// Helper functions/variable specific to this materia
+// Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
 float PackMaterialId(int materialId)
