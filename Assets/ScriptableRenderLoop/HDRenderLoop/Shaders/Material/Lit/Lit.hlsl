@@ -626,8 +626,12 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
         float sqrDist = dot(unL, unL);
         float3 L = normalize(unL);
 
+        // Cosine of the angle between the light direction and the normal of the light's surface.
+        float cosLNs = dot(-L, Ns);
+        cosLNs = lightData.twoSided ? abs(cosLNs) : saturate(cosLNs);
+
         // We calculate area reference light with the area integral rather than the solid angle one.
-        float illuminance = saturate(dot(Ns, -L)) * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
+        float illuminance = cosLNs * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
 
         float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
         float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
