@@ -657,42 +657,60 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 
 void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
                         float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
-                        out float4 diffuseLighting,
-                        out float4 specularLighting)
+                        out float4 diffuseLighting, out float4 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE
     IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
 #else
-
     // TODO: This could be precomputed
-    float halfWidth = lightData.size.x * 0.5;
-    float halfHeight = lightData.size.y * 0.5;
-    float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * halfHeight;
+    float halfWidth  = lightData.size.x * 0.5f;
+    float halfHeight = lightData.size.y * 0.5f;
+
+    float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
     float3 p1 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    float3 p2 = lightData.positionWS + lightData.right * halfWidth + lightData.up * -halfHeight;
-    float3 p3 = lightData.positionWS + lightData.right * halfWidth + lightData.up * halfHeight;
+    float3 p2 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    float3 p3 = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
 
     float4x3 matL = float4x3(p0, p1, p2, p3);
-    float4x3 L = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
+    float4x3 L    = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
 
-    // TODO: Can we get early out based on diffuse computation ? (if all point are clip)
-    diffuseLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    diffuseLighting  = float4(0.0f, 0.0f, 0.0f, 1.0f);
     specularLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
-    // TODO: Fresnel is missing here but should be present
-    specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, preLightData.minV, L, lightData.twoSided) * preLightData.ltcGGXMagnitude;
+    float ltcValue;
 
-//#ifdef DIFFUSE_LAMBERT_BRDF
-    // Lambert diffuse term (here it should be Disney)
-    float3x3 identity = 0;
-    identity._m00_m11_m22 = 1.0;
-    diffuseLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, identity, L, lightData.twoSided) * bsdfData.diffuseColor;
-//#else
-    // TODO: Disney
-//#endif
-   
-    diffuseLighting.rgb  *= lightData.color * lightData.diffuseScale;
-    specularLighting.rgb *= lightData.color * lightData.specularScale;
+    // Evaluate the diffuse part.
+    {
+    //#ifdef DIFFUSE_LAMBERT_BRDF
+        static float3x3 identity = {1.f, 0.f, 0.f,
+                                    0.f, 1.f, 0.f,
+                                    0.f, 0.f, 1.f};
+
+        ltcValue = LTCEvaluate(V, bsdfData.normalWS, identity, L, lightData.twoSided);
+
+        if (ltcValue == 0.f)
+        {
+            // The polygon is either back-facing, or has been completely clipped.
+            return;
+        }
+
+        // Group scalars.
+        ltcValue *= lightData.diffuseScale;
+        diffuseLighting.rgb = ltcValue * bsdfData.diffuseColor * lightData.color;
+    //#else
+        // TODO: Disney
+    //#endif
+    }
+
+    // Evaluate the specular part.
+    {
+        ltcValue = LTCEvaluate(V, bsdfData.normalWS, preLightData.minV, L, lightData.twoSided);
+
+        // Group scalars.
+        // TODO: Fresnel is missing here but should be present.
+        ltcValue *= preLightData.ltcGGXMagnitude * lightData.specularScale;
+        specularLighting.rgb = ltcValue * lightData.color;
+    }
 
     // TODO: current area light code doesn't take into account artist attenuation radius!
 #endif
