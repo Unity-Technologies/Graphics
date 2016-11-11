@@ -691,9 +691,8 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
     // TODO: Disney
 //#endif
    
-    // Divide all by 2 PI as it is Lambert integration for diffuse
-    diffuseLighting.rgb *= lightData.color * INV_TWO_PI * lightData.diffuseScale;
-    specularLighting.rgb *= lightData.color * INV_TWO_PI * lightData.specularScale;
+    diffuseLighting.rgb  *= lightData.color * lightData.diffuseScale;
+    specularLighting.rgb *= lightData.color * lightData.specularScale;
 
     // TODO: current area light code doesn't take into account artist attenuation radius!
 #endif
