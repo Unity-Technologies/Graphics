@@ -830,8 +830,10 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 {
 #ifdef LIT_DISPLAY_REFERENCE
 
-    specularLighting.rgb = IntegrateSpecularGGXIBLRef(V, lightData, bsdfData);
-    specularLighting.a = 1.0;
+    // TODO: fix 'IntegrateSpecularGGXIBLRef'.
+    //specularLighting.rgb = IntegrateSpecularGGXIBLRef(lightLoopContext, V, lightData, bsdfData);
+    //specularLighting.a = 1.0;
+    specularLighting = float4(0.0, 0.0, 0.0, 0.0);
 
 /*
     #ifdef DIFFUSE_LAMBERT_BRDF
