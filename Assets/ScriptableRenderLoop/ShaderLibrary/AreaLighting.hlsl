@@ -36,6 +36,7 @@ float PolygonRadiance(float4x3 L, bool twoSided)
     // Even though that replaced the switch with just some indexing and no branches, it became
     // way, way slower - mem fetch stalls?
 
+    // clip
     uint n = 0;
     switch (config)
     {
@@ -127,19 +128,27 @@ float PolygonRadiance(float4x3 L, bool twoSided)
         break;
     }
 
-    if (n == 0)
-        return 0;
-    if (n == 3)
-        L[3] = L[0];
-    if (n == 4)
-        L4 = L[0];
+    if (n == 0) return 0;
 
     // 2. Project onto sphere
     L[0] = normalize(L[0]);
     L[1] = normalize(L[1]);
     L[2] = normalize(L[2]);
-    L[3] = normalize(L[3]);
-    L4 = normalize(L4);
+
+    switch (n)
+    {
+        case 3:
+            L[3] = L[0];
+            break;
+        case 4:
+            L[3] = normalize(L[3]);
+            L4   = L[0];
+            break;
+        default: // 1, 2, 5
+            L[3] = normalize(L[3]);
+            L4   = normalize(L4);
+            break;
+    }
 
     // 3. Integrate
     float sum = 0;
@@ -151,7 +160,9 @@ float PolygonRadiance(float4x3 L, bool twoSided)
     if (n == 5)
         sum += IntegrateEdge(L4, L[0]);
 
-    return twoSided > 0.0 ? abs(sum) : max(0.0, sum);
+    sum *= INV_TWO_PI; // Normalization of the Lambertian integral over the sphere
+
+    return twoSided ? abs(sum) : max(sum, 0.0);
 }
 
 float LTCEvaluate(float3 V, float3 N, float3x3 minV, float4x3 L, bool twoSided)
