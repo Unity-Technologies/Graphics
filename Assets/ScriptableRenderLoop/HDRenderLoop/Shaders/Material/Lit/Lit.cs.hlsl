@@ -57,7 +57,7 @@
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.Lit.GBufferMaterial:  static fields
 //
-#define GBUFFERMATERIAL_COUNT (3)
+#define GBUFFERMATERIAL_COUNT (4)
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.Lit.SurfaceData
 // PackingRules = Exact

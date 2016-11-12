@@ -30,21 +30,20 @@ Shader "Hidden/HDRenderLoop/Deferred"
             //-------------------------------------------------------------------------------------
 
             #include "Common.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_DISNEYGXX
             // TODO: Currently a users that add a new deferred material must also add it manually here... Need to think about it. Maybe add a multicompile inside a file in Material directory to include here ?
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
-
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/Lighting.hlsl" // This include Material.hlsl
+ 
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
 
-            DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);
-            DECLARE_GBUFFER_BAKE_LIGHTING(_CameraGBufferTexture);
-
+            DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
+ 
  			TEXTURE2D(_CameraDepthTexture);
 			SAMPLER2D(sampler_CameraDepthTexture);
 
@@ -81,15 +80,15 @@ Shader "Hidden/HDRenderLoop/Deferred"
                 float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
                 float3 V = GetWorldSpaceNormalizeViewDir(positionWS);
 
-                FETCH_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
-                BSDFData bsdfData = DECODE_FROM_GBUFFER(gbuffer);
+                FETCH_GBUFFER(gbuffer, _GBufferTexture, coord.unPositionSS);
+                BSDFData bsdfData;
+                float3 bakeDiffuseLighting;
+                DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
 
                 PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
 
                 float4 diffuseLighting;
                 float4 specularLighting;
-                FETCH_BAKE_LIGHTING_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
-                float3 bakeDiffuseLighting = DECODE_BAKE_LIGHTING_FROM_GBUFFER(gbuffer);
                 LightLoop(V, positionWS, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
                 return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);

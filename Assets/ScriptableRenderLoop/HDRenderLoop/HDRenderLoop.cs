@@ -129,22 +129,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         Material m_DeferredMaterial;
         Material m_FinalPassMaterial;
 
-        // TODO: Find a way to automatically create/iterate through these kind of class
+        // TODO: Find a way to automatically create/iterate through deferred material
         Lit.RenderLoop m_LitRenderLoop;
-        Builtin.RenderLoop m_BuiltinRenderLoop;
 
         // Debug
         Material m_DebugViewMaterialGBuffer;
 
         GBufferManager m_gbufferManager = new GBufferManager();
 
-        static private int s_CameraColorBuffer;
-        static private int s_CameraDepthBuffer;
-        static private int s_VelocityBuffer;
+        private int s_CameraColorBuffer;
+        private int s_CameraDepthBuffer;
+        private int s_VelocityBuffer;
+        private int s_DistortionBuffer;
 
-        static private ComputeBuffer s_punctualLightList;
-        static private ComputeBuffer s_envLightList;
-        static private ComputeBuffer s_punctualShadowList;
+        private ComputeBuffer s_punctualLightList;
+        private ComputeBuffer s_envLightList;
+        private ComputeBuffer s_punctualShadowList;
 
         private TextureCacheCubemap m_cubeReflTexArray;
 
@@ -201,33 +201,31 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_cubeReflTexArray = new TextureCacheCubemap();
             m_cubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
-            // Init Lit material buffer - GBuffer and init
+            // Init Gbuffer description
             m_LitRenderLoop = new Lit.RenderLoop(); // Our object can be garbacge collected, so need to be allocate here
-            m_BuiltinRenderLoop = new Builtin.RenderLoop();
+
+            m_gbufferManager.gbufferCount = m_LitRenderLoop.GetMaterialGBufferCount();
+            RenderTextureFormat[] RTFormat; RenderTextureReadWrite[] RTReadWrite;
+            m_LitRenderLoop.GetMaterialGBufferDescription(out RTFormat, out RTReadWrite);
             
-            for (int gbufferIndex = 0; gbufferIndex < m_LitRenderLoop.GetGBufferCount(); ++gbufferIndex)
+            for (int gbufferIndex = 0; gbufferIndex < m_gbufferManager.gbufferCount; ++gbufferIndex)
             {
-                m_gbufferManager.SetBufferDescription(gbufferIndex, "_CameraGBufferTexture" + gbufferIndex, m_LitRenderLoop.RTFormat[gbufferIndex], m_LitRenderLoop.RTReadWrite[gbufferIndex]);
+                m_gbufferManager.SetBufferDescription(gbufferIndex, "_GBufferTexture" + gbufferIndex, RTFormat[gbufferIndex], RTReadWrite[gbufferIndex]);
             }
-            m_gbufferManager.gbufferCount = m_LitRenderLoop.GetGBufferCount();
 
-            // In forward we still name the buffer as if they were gbuffer, it doesn't matter            
-            for (int gbufferIndex = 0; gbufferIndex < m_BuiltinRenderLoop.GetGBufferCount(); ++gbufferIndex)
-            {
-                int textureIndex = m_gbufferManager.gbufferCount + gbufferIndex;
-                m_gbufferManager.SetBufferDescription(textureIndex, "_CameraGBufferTexture" + textureIndex, m_BuiltinRenderLoop.RTFormat[gbufferIndex], m_BuiltinRenderLoop.RTReadWrite[gbufferIndex]);
-            }
-            m_gbufferManager.gbufferCount += m_BuiltinRenderLoop.GetGBufferCount();
-
-            // Caution velocity texture name must match with Macro in Material.hlsl
+#pragma warning disable 162 // warning CS0162: Unreachable code detected
             s_VelocityBuffer = Shader.PropertyToID("_VelocityTexture");
-            #if VELOCITY_IN_GBUFFER
-            m_gbufferManager.SetBufferDescription(m_gbufferManager.gbufferCount, "_VelocityTexture", m_BuiltinRenderLoop.GetVelocityBufferFormat(), m_BuiltinRenderLoop.GetVelocityBufferReadWrite());
-            m_gbufferManager.gbufferCount++;
-            #endif     
+            if (ShaderConfig.VelocityInGbuffer == 1)
+            {
+                // If velocity is in GBuffer then it is in the last RT. Assign a different name to it.
+                m_gbufferManager.SetBufferDescription(m_gbufferManager.gbufferCount, "_VelocityTexture", Builtin.RenderLoop.GetVelocityBufferFormat(), Builtin.RenderLoop.GetVelocityBufferReadWrite());
+                m_gbufferManager.gbufferCount++;
+            }
+#pragma warning restore 162
+
+            s_DistortionBuffer = Shader.PropertyToID("_DistortionTexture");
 
             m_LitRenderLoop.Rebuild();
-            m_BuiltinRenderLoop.Rebuild();
         }
 
         void OnDisable()
@@ -384,7 +382,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Last blit
             {
                 var cmd = new CommandBuffer { name = "Blit DebugView Material Debug" };
-                cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget);
+                cmd.Blit(new RenderTargetIdentifier(s_CameraColorBuffer), BuiltinRenderTextureType.CameraTarget);
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
@@ -463,17 +461,40 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void RenderVelocity(CullResults cullResults, Camera camera, RenderLoop renderLoop)
         {
+            // warning CS0162: Unreachable code detected // warning CS0429: Unreachable expression code detected
+#pragma warning disable 162, 429 
+            // If opaque velocity have been render during GBuffer no need to render it here
+            if ((ShaderConfig.VelocityInGbuffer == 0) || debugParameters.useForwardRenderingOnly)
+                return ;
+
             int w = camera.pixelWidth;
             int h = camera.pixelHeight;
 
             var cmd = new CommandBuffer { name = "Velocity Pass" };
-            cmd.GetTemporaryRT(s_VelocityBuffer, w, h, 0, FilterMode.Point, m_BuiltinRenderLoop.GetVelocityBufferFormat(), m_BuiltinRenderLoop.GetVelocityBufferReadWrite());
+            cmd.GetTemporaryRT(s_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.RenderLoop.GetVelocityBufferFormat(), Builtin.RenderLoop.GetVelocityBufferReadWrite());
             cmd.SetRenderTarget(new RenderTargetIdentifier(s_VelocityBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
             RenderOpaqueRenderList(cullResults, camera, renderLoop, "MotionVectors");
+#pragma warning restore 162, 429
         }
+
+        void RenderDistortion(CullResults cullResults, Camera camera, RenderLoop renderLoop)
+        {
+            int w = camera.pixelWidth;
+            int h = camera.pixelHeight;
+
+            var cmd = new CommandBuffer { name = "Distortion Pass" };
+            cmd.GetTemporaryRT(s_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.RenderLoop.GetDistortionBufferFormat(), Builtin.RenderLoop.GetDistortionBufferReadWrite());
+            cmd.SetRenderTarget(new RenderTargetIdentifier(s_DistortionBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+
+            // Only transparent object can render distortion vectors
+            RenderTransparentRenderList(cullResults, camera, renderLoop, "DistortionVectors");
+        }
+        
 
         void FinalPass(RenderLoop renderLoop)
         {
@@ -500,7 +521,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var cmd = new CommandBuffer { name = "FinalPass" };
 
             // Resolve our HDR texture to CameraTarget.
-            cmd.Blit(s_CameraColorBuffer, BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
+            cmd.Blit(new RenderTargetIdentifier(s_CameraColorBuffer), BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
@@ -555,7 +576,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (light.lightType == LightType.Spot)
                 {
-                    var spotAngle = light.spotAngle;
+                    var spotAngle = light.light.spotAngle;
 
                     var innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalLightData);
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
@@ -730,16 +751,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     RenderForward(cullResults, camera, renderLoop);
                     RenderForwardUnlit(cullResults, camera, renderLoop);
 
-                    // If opaque velocity have been render during GBuffer no need to render them here
-                    // TODO: What about forward opaque object that will come later, (with stencil bit to avoid double lighting), we need to
-                    // also render their velocity inside the buffer. So It mean that when they are deferred opaque they should render during GBuffer pass
-                    // but when they are forward they should render a second time here in velocity pass... Maybe we should enable MRT during forward pass ?
-                    // TODO: implement MRT velocity buffer as an option in case of forward
-                    // Render as late as possible to benefit from an up to date depth buffer (TODO: could use equal depth test ?)
-                    #if VELOCITY_IN_GBUFFER
-                    if (debugParameters.useForwardRenderingOnly)                    
-                    #endif
-                        RenderVelocity(cullResults, camera, renderLoop);
+                    RenderVelocity(cullResults, camera, renderLoop);
+
+                    // TODO: Check with VFX team.
+                    // Rendering distortion here have off course lot of artifact.
+                    // But resolving at each objects that write in distortion is not possible (need to sort transparent, render those that do not distort, then resolve, then etc...)
+                    // Instead we chose to apply distortion at the end after we cumulate distortion vector and desired blurriness. This
+                    // RenderDistortion(cullResults, camera, renderLoop);
 
                     FinalPass(renderLoop);
                 }

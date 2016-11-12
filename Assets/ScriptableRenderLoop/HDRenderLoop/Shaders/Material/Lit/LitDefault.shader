@@ -96,6 +96,8 @@ Shader "HDRenderLoop/Lit"
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
     #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+    // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
+    //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON 
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -108,7 +110,7 @@ Shader "HDRenderLoop/Lit"
     //-------------------------------------------------------------------------------------
     
     #include "common.hlsl"
-    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderPass/ShaderPass.cs.hlsl"    
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"
