@@ -21,11 +21,6 @@
 #define DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_DIFFUSE_COLOR (120)
 #define DEBUGVIEW_BUILTIN_LIGHTRANSPORTDATA_EMISSIVE_COLOR (121)
 
-//
-// UnityEngine.Experimental.ScriptableRenderLoop.Builtin.GBufferBuiltin:  static fields
-//
-#define GBUFFERBUILTIN_COUNT (1)
-
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.Builtin.BuiltinData
 // PackingRules = Exact
 struct BuiltinData

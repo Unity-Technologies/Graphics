@@ -119,7 +119,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         [GenerateHLSL(PackingRules.Exact)]
         public enum GBufferMaterial
         {
-            Count = 3
+            // Note: This count doesn't include the velocity buffer. On shader and csharp side the velocity buffer will be added by the framework
+            Count = (ShaderConfig.PackgbufferInFP16 == 1) ? 2 : 4
         };
 
         public class RenderLoop : Object
@@ -128,22 +129,29 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // GBuffer management
             //-----------------------------------------------------------------------------
 
-            public int GetGBufferCount() { return (int)GBufferMaterial.Count; }
+            public int GetMaterialGBufferCount() { return (int)GBufferMaterial.Count; }
 
-            public RenderTextureFormat[] RTFormat =
+            public void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out RenderTextureReadWrite[] RTReadWrite)
             {
-                RenderTextureFormat.ARGB32,
-                RenderTextureFormat.ARGB2101010,
-                RenderTextureFormat.ARGB32
-            };
+                RTFormat = new RenderTextureFormat[(int)GBufferMaterial.Count];
+                RTReadWrite = new RenderTextureReadWrite[(int)GBufferMaterial.Count];
 
-            public RenderTextureReadWrite[] RTReadWrite = 
-            {
-                RenderTextureReadWrite.sRGB,
-                RenderTextureReadWrite.Linear,
-                RenderTextureReadWrite.Linear
-            };
-      
+#pragma warning disable 162 // warning CS0162: Unreachable code detected
+                if (ShaderConfig.PackgbufferInFP16 == 1)
+                {
+                    RTFormat[0] = RenderTextureFormat.ARGBHalf; RTReadWrite[0] = RenderTextureReadWrite.Linear;
+                    RTFormat[1] = RenderTextureFormat.ARGBHalf; RTReadWrite[1] = RenderTextureReadWrite.Linear;
+                }
+                else
+                {
+                    RTFormat[0] = RenderTextureFormat.ARGB32; RTReadWrite[0] = RenderTextureReadWrite.sRGB;
+                    RTFormat[1] = RenderTextureFormat.ARGB2101010; RTReadWrite[1] = RenderTextureReadWrite.Linear;
+                    RTFormat[2] = RenderTextureFormat.ARGB32; RTReadWrite[2] = RenderTextureReadWrite.Linear;
+                    RTFormat[3] = RenderTextureFormat.RGB111110Float; RTReadWrite[3] = RenderTextureReadWrite.Linear;
+                }
+#pragma warning restore 162
+            }
+
             //-----------------------------------------------------------------------------
             // Init precomputed texture
             //-----------------------------------------------------------------------------

@@ -6,7 +6,12 @@
 #include "Lit.cs.hlsl"
 
 // Reference Lambert diffuse / GGX Specular for IBL and area lights
-//#define LIT_DISPLAY_REFERENCE
+// #define LIT_DISPLAY_REFERENCE
+// Use Lambert diffuse instead of Disney diffuse
+// #define LIT_DIFFUSE_LAMBERT_BRDF
+// Use optimization of Precomputing LambdaV
+// TODO: Test if this is a win
+// #define LIT_USE_BSDF_PRE_LAMBDAV
 
 // TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotrpy and anisotropy case.
 // Maybe we should always calculate anisotropy in case of standard ? Don't think the compile can optimize correctly.
@@ -49,7 +54,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
 
-#ifdef DIFFUSE_LAMBERT_BRDF
+#ifdef LIT_DIFFUSE_LAMBERT_BRDF
     diffuseFGD = 1.0;
 #else
     diffuseFGD = preFGD.z;
@@ -115,9 +120,11 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 // Encode SurfaceData (BSDF parameters) into GBuffer
 // Must be in sync with RT declared in HDRenderLoop.cs ::Rebuild
 void EncodeIntoGBuffer( SurfaceData surfaceData,
+                        float3 bakeDiffuseLighting,
                         out float4 outGBuffer0,
                         out float4 outGBuffer1,
-                        out float4 outGBuffer2)
+                        out float4 outGBuffer2,
+                        out float4 outGBuffer3)
 {
     // RT0 - 8:8:8:8 sRGB
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
@@ -153,13 +160,18 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     {
         outGBuffer2 = float4(surfaceData.specularColor, 0.0);
     }
+
+    // Lighting
+    outGBuffer3 = float4(bakeDiffuseLighting, 0.0);
 }
 
-BSDFData DecodeFromGBuffer( float4 inGBuffer0,
-                            float4 inGBuffer1,
-                            float4 inGBuffer2)
+void DecodeFromGBuffer( float4 inGBuffer0,
+                        float4 inGBuffer1,
+                        float4 inGBuffer2,
+                        float4 inGBuffer3,
+                        out BSDFData bsdfData,
+                        out float3 bakeDiffuseLighting)
 {
-    BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
     float3 baseColor = inGBuffer0.rgb;
@@ -213,7 +225,7 @@ BSDFData DecodeFromGBuffer( float4 inGBuffer0,
         bsdfData.fresnel0 = inGBuffer2.rgb;
     }
 
-    return bsdfData;
+    bakeDiffuseLighting = inGBuffer3.rgb;
 }
 
 //-----------------------------------------------------------------------------
@@ -436,7 +448,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 // GetBakedDiffuseLigthing function compute the bake lighting + emissive color to be store in emissive buffer (Deferred case)
 // In forward it must be add to the final contribution.
 // This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
-float3 GetBakedDiffuseLigthing(PreLightData preLightData, SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData)
+float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
 {
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
     return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
@@ -490,7 +502,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         float TdotL = saturate(dot(bsdfData.tangentWS, L));
         float BdotL = saturate(dot(bsdfData.bitangentWS, L));
 
-        #ifdef USE_BSDF_PRE_LAMBDAV
+        #ifdef LIT_USE_BSDF_PRE_LAMBDAV
         Vis = V_SmithJointGGXAnisoLambdaV(  preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, TdotL, BdotL, NdotL,
                                             bsdfData.roughnessT, bsdfData.roughnessB, preLightData.anisoGGXLambdaV);
         #else
@@ -506,7 +518,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
     }
     else
     {
-        #ifdef USE_BSDF_PRE_LAMBDAV
+        #ifdef LIT_USE_BSDF_PRE_LAMBDAV
         Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness, preLightData.ggxLambdaV);
         #else
         Vis = V_SmithJointGGX(NdotL, preLightData.NdotV, bsdfData.roughness);
@@ -514,7 +526,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         D = D_GGX(NdotH, bsdfData.roughness);
     }
     specularLighting.rgb = F * Vis * D;
-    #ifdef DIFFUSE_LAMBERT_BRDF
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float diffuseTerm = Lambert();
     #else
     float diffuseTerm = DisneyDiffuse(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
@@ -678,7 +690,7 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
     // TODO: Fresnel is missing here but should be present
     specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, preLightData.minV, L, lightData.twoSided) * preLightData.ltcGGXMagnitude;
 
-//#ifdef DIFFUSE_LAMBERT_BRDF
+//#ifdef LIT_DIFFUSE_LAMBERT_BRDF
     // Lambert diffuse term (here it should be Disney)
     float3x3 identity = 0;
     identity._m00_m11_m22 = 1.0;
@@ -841,7 +853,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     specularLighting.a = 1.0;
 
 /*
-    #ifdef DIFFUSE_LAMBERT_BRDF
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     diffuseLighting.rgb = IntegrateLambertIBLRef(lightData, bsdfData);
     #else
     diffuseLighting.rgb = IntegrateDisneyDiffuseIBLRef(lightLoopContext, V, lightData, bsdfData);

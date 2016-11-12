@@ -53,43 +53,26 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public Vector3 emissiveColor;
         };
 
-        [GenerateHLSL(PackingRules.Exact)]
-        public enum GBufferBuiltin
-        {
-            Count = 1
-        };
-
         public class RenderLoop : Object
         {
-            // Note: Velocity buffer must be the last buffer of a GBuffer pass if applicable
-            public RenderTextureFormat GetVelocityBufferFormat()
+            public static RenderTextureFormat GetVelocityBufferFormat()
             {
-                return RenderTextureFormat.RGHalf;
+                return RenderTextureFormat.RGHalf; // TODO: We should use 16bit normalized instead, better precision // RGInt
             }
 
-            public RenderTextureReadWrite GetVelocityBufferReadWrite()
+            public static RenderTextureReadWrite GetVelocityBufferReadWrite()
             {
                 return RenderTextureReadWrite.Linear;
             }
 
-            //-----------------------------------------------------------------------------
-            // GBuffer management
-            //-----------------------------------------------------------------------------
-
-            public int GetGBufferCount() { return (int)GBufferBuiltin.Count; }
-
-            public RenderTextureFormat[] RTFormat =
+            public static RenderTextureFormat GetDistortionBufferFormat()
             {
-                RenderTextureFormat.RGB111110Float
-            };
+                return RenderTextureFormat.ARGBHalf; // This format need to be blendable and include distortionBlur
+            }
 
-            public RenderTextureReadWrite[] RTReadWrite =
+            public static RenderTextureReadWrite GetDistortionBufferReadWrite()
             {
-                RenderTextureReadWrite.Linear
-            };
-
-            public void Rebuild()
-            {
+                return RenderTextureReadWrite.Linear;
             }
         }
     }

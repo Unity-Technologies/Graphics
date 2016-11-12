@@ -791,7 +791,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     const float degToRad = (float)(pi / 180.0);
 
 
-                    var sa = cl.spotAngle;
+                    var sa = cl.light.spotAngle;
 
                     var cs = Mathf.Cos(0.5f * sa * degToRad);
                     var si = Mathf.Sin(0.5f * sa * degToRad);
@@ -1029,8 +1029,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // do anything we need to do upon a new frame.
             NewFrame ();
 
-            if(!k_UseAsyncCompute) RenderShadowMaps(cullResults, loop);
-
+#pragma warning disable 162 // warning CS0162: Unreachable code detected
+            if (!k_UseAsyncCompute) RenderShadowMaps(cullResults, loop);
+#pragma warning restore 162
             // generate g-buffer before shadows to leverage async compute
             // forward opaques just write to depth.
             loop.SetupCameraProperties(camera);
@@ -1347,6 +1348,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         private float PerceptualRoughnessToBlinnPhongPower(float perceptualRoughness)
         {
+#pragma warning disable 162 // warning CS0162: Unreachable code detected
             // There is two code here, by default the code corresponding for UNITY_GLOSS_MATCHES_MARMOSET_TOOLBAG2 was use for cloud reasons
             // The other code (not marmoset) is not matching the shader code for cloud reasons.
             // As none of this solution match BRDF 1 or 2, I let the Marmoset code to avoid to break current test. But ideally, all this should be rewrite to match BRDF1
@@ -1370,6 +1372,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 return n;
             }
+#pragma warning restore 162
         }
         private float PerceptualRoughnessToPhongPower(float perceptualRoughness)
         {

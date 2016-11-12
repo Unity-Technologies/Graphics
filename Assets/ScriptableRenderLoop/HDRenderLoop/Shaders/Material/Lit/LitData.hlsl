@@ -99,7 +99,8 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 {
     // This test on define is required to remove warning of divide by 0 when initializing empty struct
-#if SHADERPASS == SHADERPASS_VELOCITY || (SHADERPASS == SHADERPASS_GBUFFER && defined(VELOCITY_IN_GBUFFER))
+    // TODO: Add forward opaque MRT case...
+#if (SHADERPASS == SHADERPASS_VELOCITY) || (SHADERPASS == SHADERPASS_GBUFFER && SHADEROPTIONS_VELOCITY_IN_GBUFFER)
     // Encode velocity
     positionCS.xy = positionCS.xy / positionCS.w;
     previousPositionCS.xy = previousPositionCS.xy / previousPositionCS.w;

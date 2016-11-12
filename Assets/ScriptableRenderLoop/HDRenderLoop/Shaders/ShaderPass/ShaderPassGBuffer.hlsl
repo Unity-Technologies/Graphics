@@ -3,11 +3,8 @@
 #endif
 
 void Frag(  PackedVaryings packedInput,
-			OUTPUT_GBUFFER(outGBuffer),
-			OUTPUT_GBUFFER_BAKE_LIGHTING(outGBuffer)
-            #ifdef VELOCITY_IN_GBUFFER
-            , OUTPUT_GBUFFER_VELOCITY(outGBuffer)
-            #endif
+			OUTPUT_GBUFFER(outGBuffer)
+            OUTPUT_GBUFFER_VELOCITY(outVelocityBuffer)
 			)
 {
     FragInput input = UnpackVaryings(packedInput);
@@ -21,10 +18,8 @@ void Frag(  PackedVaryings packedInput,
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 	Coordinate coord = GetCoordinate(input.unPositionSS.xy, _ScreenSize.zw);
 	PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
+    float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
 
-	ENCODE_INTO_GBUFFER(surfaceData, outGBuffer);
-	ENCODE_BAKE_LIGHTING_INTO_GBUFFER(GetBakedDiffuseLigthing(preLightData, surfaceData, builtinData, bsdfData), outGBuffer);
-	#ifdef VELOCITY_IN_GBUFFER
-	ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outGBuffer);
-	#endif
+	ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, outGBuffer);
+    ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outVelocityBuffer);
 }

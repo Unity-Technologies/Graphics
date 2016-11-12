@@ -15,17 +15,17 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
             #pragma fragment FragDeferred
 
             #include "Common.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs"
             #include "Color.hlsl"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"            
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"    
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
+        
 
-            DECLARE_GBUFFER_TEXTURE(_CameraGBufferTexture);
-            DECLARE_GBUFFER_BAKE_LIGHTING(_CameraGBufferTexture);
+            DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
             TEXTURE2D(_CameraDepthTexture);
 			SAMPLER2D(sampler_CameraDepthTexture);
@@ -58,8 +58,10 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
 
                 float depth = _CameraDepthTexture.Load(uint3(coord.unPositionSS, 0)).x;
 
-                FETCH_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
-                BSDFData bsdfData = DECODE_FROM_GBUFFER(gbuffer);
+                FETCH_GBUFFER(gbuffer, _GBufferTexture, coord.unPositionSS);
+                BSDFData bsdfData;
+                float3 bakeDiffuseLighting;
+                DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
 
                 // Init to not expected value
                 float3 result = float3(-666.0, 0.0, 0.0);
@@ -72,8 +74,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
                 }
                 else if (_DebugViewMaterial == DEBUGVIEW_GBUFFER_BAKEDIFFUSELIGHTING)
                 {
-                    FETCH_BAKE_LIGHTING_GBUFFER(gbuffer, _CameraGBufferTexture, coord.unPositionSS);
-                    result = DECODE_BAKE_LIGHTING_FROM_GBUFFER(gbuffer);
+                    result = bakeDiffuseLighting;
                 }
 
                 GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
