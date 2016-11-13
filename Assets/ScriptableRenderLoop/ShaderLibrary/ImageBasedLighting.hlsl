@@ -340,7 +340,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth);   // Solid angle associated to a pixel of the cubemap
             // Clamp is not necessary as the hardware will do it.
-            // mipLevel     = clamp(0.5f * log2(omegaS * invOmegaP), 0, mipmapcount);
+            // mipLevel     = Clamp(0.5f * log2(omegaS * invOmegaP), 0, mipmapcount);
             mipLevel        = 0.5 * log2(omegaS * invOmegaP); // Clamp is not necessary as the hardware will do it.
         }
 

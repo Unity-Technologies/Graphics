@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // TODO: Currently it is not yet possible to use this feature, we need to provide previousPositionCS to the vertex shader as part of Attribute for GBuffer pass
         // TODO: How to enable this feature only on mesh that effectively require it like skinned and moving mesh (other can be done with depth reprojection. But TAA can be an issue)
         VelocityInGBuffer = 0, // Change to 1 to enable the feature
-        PackGBufferInFP16 = 0
+        PackGBufferInU16 = 0
     };
 
     // Note: #define can't be use in include file in C# so we choes this way to configure both C# and hlsl
@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     public class ShaderConfig
     {
         public const int VelocityInGbuffer = (int)ShaderOptions.VelocityInGBuffer;
-        public const int PackgbufferInFP16 = (int)ShaderOptions.PackGBufferInFP16;
+        public const int PackgbufferInU16 = (int)ShaderOptions.PackGBufferInU16;
     }
 }
 

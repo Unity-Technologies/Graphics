@@ -204,4 +204,43 @@ float UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
     UnpackFloatInt(val, maxi, 65536.0, f, i);
 }
 
+//-----------------------------------------------------------------------------
+// float packing to sint/uint
+//-----------------------------------------------------------------------------
+
+uint PackFloatToUInt(float src, uint size, uint offset)
+{
+    const uint MAX_VALUE = (1 << size) - 1;
+
+    return Clamp(uint(src * MAX_VALUE), uint(0), uint(MAX_VALUE)) << offset;
+}
+
+float UnpackUIntToFloat(uint src, uint size, uint offset)
+{
+    const uint MAX_VALUE = (1 << size) - 1;
+
+    return BitFieldExtract(src, size, offset) / float(MAX_VALUE);
+}
+
+uint PackNUpperbitFromU8(uint src, uint nbit, uint offset)
+{
+    return ( (src & (((1 << nbit) - 1) << (8 - nbit))) >> (8 - nbit) ) << offset;
+}
+
+uint PackNLowerbitFromU8(uint src, uint nbit, uint offset)
+{
+    return (src & ((1 << nbit) - 1)) << offset;
+}
+
+uint UnpackNUpperbitToU8(uint src, uint nbit, uint offset)
+{
+    return ((src & (((1 << nbit) - 1) << offset)) >> offset) << (8 - nbit);
+}
+
+uint UnpackNLowerbitToU8(uint src, uint nbit, uint offset)
+{
+    return (src & (((1 << nbit) - 1) << offset)) >> offset;
+}
+
+
 #endif // UNITY_PACKING_INCLUDED
