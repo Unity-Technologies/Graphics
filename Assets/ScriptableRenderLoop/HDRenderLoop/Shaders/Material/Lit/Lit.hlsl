@@ -513,7 +513,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         #endif
         D = D_GGX(NdotH, bsdfData.roughness);
     }
-    specularLighting.rgb = F * Vis * D;
+    specularLighting.rgb = F * (Vis * D);
     #ifdef DIFFUSE_LAMBERT_BRDF
     float diffuseTerm = Lambert();
     #else
