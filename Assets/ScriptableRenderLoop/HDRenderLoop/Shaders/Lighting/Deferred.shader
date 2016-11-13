@@ -31,8 +31,9 @@ Shader "Hidden/HDRenderLoop/Deferred"
 
             #include "Common.hlsl"
 
-            // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_DISNEYGXX
-            // TODO: Currently a users that add a new deferred material must also add it manually here... Need to think about it. Maybe add a multicompile inside a file in Material directory to include here ?
+            // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
+            // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem), 
+            // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"

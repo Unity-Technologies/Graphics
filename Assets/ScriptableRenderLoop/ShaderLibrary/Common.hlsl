@@ -62,6 +62,123 @@
 #include "API/Validate.hlsl"
 
 // ----------------------------------------------------------------------------
+// Common intrinsic (general implementation of intrinsic available on some platform)
+// ----------------------------------------------------------------------------
+
+#ifndef INTRINSIC_BITFIELD_EXTRACT
+// unsigned integer bit field extract implementation
+uint BitFieldExtract(uint inData, uint inSize, uint inOffset)
+{
+    return (inData >> inOffset) & ((1u << inSize) - 1u);
+}
+#endif // INTRINSIC_BITFIELD_EXTRACT
+
+#ifndef INTRINSIC_CLAMP
+// TODO: should we force all clamp to be intrinsic by default ?
+// Some platform have one instruction clamp
+#define Clamp clamp
+#endif // INTRINSIC_CLAMP
+
+#ifndef INTRINSIC_MED3
+float Med3(float a, float b, float c)
+{
+    return Clamp(a, b, c);
+}
+#endif // INTRINSIC_MED3
+
+#ifndef INTRINSIC_MINMAX3
+float Min3(float a, float b, float c)
+{
+    return min(min(a, b), c);
+}
+
+float2 Min3(float2 a, float2 b, float2 c)
+{
+    return min(min(a, b), c);
+}
+
+float3 Min3(float3 a, float3 b, float3 c)
+{
+    return min(min(a, b), c);
+}
+
+float4 Min3(float4 a, float4 b, float4 c)
+{
+    return min(min(a, b), c);
+}
+
+float Max3(float a, float b, float c)
+{
+    return max(max(a, b), c);
+}
+
+float2 Max3(float2 a, float2 b, float2 c)
+{
+    return max(max(a, b), c);
+}
+
+float3 Max3(float3 a, float3 b, float3 c)
+{
+    return max(max(a, b), c);
+}
+
+float4 Max3(float4 a, float4 b, float4 c)
+{
+    return max(max(a, b), c);
+}
+#endif // INTRINSIC_MINMAX3
+
+#ifndef INTRINSIC_CUBEMAP_FACE_ID
+// TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ? 
+/*
+float CubemapFaceID(float3 dir)
+{
+    float faceID;
+    if (abs(dir.z) >= abs(dir.x) && abs(dir.z) >= abs(dir.y))
+    {
+        faceID = (dir.z < 0.0) ? 5.0 : 4.0;
+    }
+    else if (abs(dir.y) >= abs(dir.x))
+    {
+        faceID = (dir.y < 0.0) ? 3.0 : 2.0;
+    }
+    else
+    {
+        faceID = (dir.x < 0.0) ? 1.0 : 0.0;
+    }
+    return faceID;
+}
+*/
+#endif // INTRINSIC_CUBEMAP_FACE_ID
+
+#define CUBEMAPFACE_POSITIVE_X 0
+#define CUBEMAPFACE_NEGATIVE_X 1
+#define CUBEMAPFACE_POSITIVE_Y 2
+#define CUBEMAPFACE_NEGATIVE_Y 3
+#define CUBEMAPFACE_POSITIVE_Z 4
+#define CUBEMAPFACE_NEGATIVE_Z 5
+
+void GetCubeFaceID(float3 dir, out int faceIndex)
+{
+    // TODO: Use faceID intrinsic on console
+    float3 adir = abs(dir);
+
+    // +Z -Z
+    faceIndex = dir.z > 0.0f ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
+
+    // +X -X
+    if (adir.x > adir.y && adir.x > adir.z)
+    {
+        faceIndex = dir.x > 0.0 ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
+    }
+    // +Y -Y
+    else if (adir.y > adir.x && adir.y > adir.z)
+    {
+        faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
+    }
+}
+
+// ----------------------------------------------------------------------------
 // Common math definition and fastmath function
 // ----------------------------------------------------------------------------
 
@@ -197,37 +314,6 @@ float GetShiftedNdotV(float3 N, float3 V)
     N = normalize(N);
 
     return saturate(dot(N, V)); // TODO: this saturate should not be necessary here
-}
-
-// ----------------------------------------------------------------------------
-// Util cubemap
-// ----------------------------------------------------------------------------
-
-#define CUBEMAPFACE_POSITIVE_X 0
-#define CUBEMAPFACE_NEGATIVE_X 1
-#define CUBEMAPFACE_POSITIVE_Y 2
-#define CUBEMAPFACE_NEGATIVE_Y 3
-#define CUBEMAPFACE_POSITIVE_Z 4
-#define CUBEMAPFACE_NEGATIVE_Z 5
-
-void GetCubeFaceID(float3 dir, out int faceIndex)
-{
-    // TODO: Use faceID intrinsic on console
-    float3 adir = abs(dir);
-
-    // +Z -Z
-    faceIndex = dir.z > 0.0f ? CUBEMAPFACE_NEGATIVE_Z : CUBEMAPFACE_POSITIVE_Z;
-
-    // +X -X
-    if (adir.x > adir.y && adir.x > adir.z)
-    {
-        faceIndex = dir.x > 0.0 ? CUBEMAPFACE_NEGATIVE_X : CUBEMAPFACE_POSITIVE_X;
-    }
-    // +Y -Y
-    else if (adir.y > adir.x && adir.y > adir.z)
-    {
-        faceIndex = dir.y > 0.0 ? CUBEMAPFACE_NEGATIVE_Y : CUBEMAPFACE_POSITIVE_Y;
-    }
 }
 
 #endif // UNITY_COMMON_INCLUDED

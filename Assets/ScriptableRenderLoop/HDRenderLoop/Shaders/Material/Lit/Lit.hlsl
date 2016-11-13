@@ -5,6 +5,26 @@
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 
+// In case we pack data uint16 buffer we need to change the output render target format to uint16
+// TODO: Is there a way to automate these output type based on the format declare in lit.cs ?
+#if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+#define GBufferType0 uint4
+#define GBufferType1 uint4
+
+// TODO: How to abstract that ? We would like to avoid this PS4 test here
+#ifdef SHADER_API_PS4
+// On PS4 we need to specify manually the format of the output render target, output type is not enough
+#pragma PSSL_target_output_format(target 0 FMT_UINT16_ABGR)
+#pragma PSSL_target_output_format(target 1 FMT_UINT16_ABGR)
+#endif
+
+#else
+#define GBufferType0 float4
+#define GBufferType1 float4
+#define GBufferType2 float4
+#define GBufferType3 float4
+#endif
+
 // Reference Lambert diffuse / GGX Specular for IBL and area lights
 // #define LIT_DISPLAY_REFERENCE
 // Use Lambert diffuse instead of Disney diffuse
@@ -121,11 +141,21 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 // Must be in sync with RT declared in HDRenderLoop.cs ::Rebuild
 void EncodeIntoGBuffer( SurfaceData surfaceData,
                         float3 bakeDiffuseLighting,
-                        out float4 outGBuffer0,
-                        out float4 outGBuffer1,
-                        out float4 outGBuffer2,
-                        out float4 outGBuffer3)
+                        #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+                        out GBufferType0 outGBufferU0,
+                        out GBufferType1 outGBufferU1
+                        #else
+                        out GBufferType0 outGBuffer0,
+                        out GBufferType1 outGBuffer1,
+                        out GBufferType2 outGBuffer2,
+                        out GBufferType3 outGBuffer3
+                        #endif
+                        )
 {
+    #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+    float4 outGBuffer0, outGBuffer1, outGBuffer2, outGBuffer3;
+    #endif
+
     // RT0 - 8:8:8:8 sRGB
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
@@ -163,16 +193,78 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
 
     // Lighting
     outGBuffer3 = float4(bakeDiffuseLighting, 0.0);
+
+    #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+    // Now pack all buffer into 2 uint buffer
+    // TODO: should be more efficient to pack data directly in uint format rather than going through outGBuffer but easier to maintain in case of change
+
+    // We don't have hardware sRGB, so just sqrt the baseColor value instead
+    data.outGBuffer0.xyz = sqrt(data.outGBuffer0.xyz);
+
+    uint outGBuffer0X = uint(saturate(data.outGBuffer0.x) * 255.5);
+    uint outGBuffer0Y = uint(saturate(data.outGBuffer0.y) * 255.5);
+    uint outGBuffer0Z = uint(saturate(data.outGBuffer0.z) * 255.5);
+    uint outGBuffer0W = uint(saturate(data.outGBuffer0.w) * 255.5);
+
+    outGBufferU0 = uint4(   PackFloatToUInt(outGBuffer1.x, 10, 0) | PackFloatToUInt(outGBuffer1.w, 2, 10) | PackNUpperbitFromU8(outGBuffer0Z, 2, 12) | PackNUpperbitFromU8(outGBuffer0W, 2, 14),
+                            PackFloatToUInt(outGBuffer1.y, 10, 0) | PackNLowerbitFromU8(outGBuffer0Z, 6, 10),
+                            PackFloatToUInt(outGBuffer1.z, 10, 0) | PackNLowerbitFromU8(outGBuffer0W, 6, 10),
+                            outGBuffer0X | outGBuffer0Y << 8
+                        );
+
+    uint outGBuffer2X = uint(saturate(data.outGBuffer2.x) * 255.5);
+    uint outGBuffer2Y = uint(saturate(data.outGBuffer2.y) * 255.5);
+    uint outGBuffer2Z = uint(saturate(data.outGBuffer2.z) * 255.5);
+    uint outGBuffer2W = uint(saturate(data.outGBuffer2.w) * 255.5);
+
+    // TODO: This doesn't work for lighting buffer as the encoded format is float. i.e it mean that we must convert first to 111110Float format (TODO: Look at the code maybe not so expensive ?)
+    // before storing as uint the binary representation. Alternative is to use RGBM/LogLuv.
+    outGBufferU1 = uint4(   PackFloatToUInt(outGBuffer3.x, 11, 0) | PackNUpperbitFromU8(outGBuffer2Z, 3, 11) | PackNUpperbitFromU8(outGBuffer2W, 2, 14),
+                            PackFloatToUInt(outGBuffer3.z, 11, 0) | PackNLowerbitFromU8(outGBuffer2Z, 5, 11),
+                            PackFloatToUInt(outGBuffer3.x, 10, 0) | PackNLowerbitFromU8(outGBuffer2W, 6, 10),
+                            outGBuffer2X | outGBuffer2Y << 8
+                        );
+    #endif
 }
 
-void DecodeFromGBuffer( float4 inGBuffer0,
-                        float4 inGBuffer1,
-                        float4 inGBuffer2,
-                        float4 inGBuffer3,
+void DecodeFromGBuffer( 
+                        #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+                        GBufferType0 inGBufferU0,
+                        GBufferType1 inGBufferU1,
+                        #else
+                        GBufferType0 inGBuffer0,
+                        GBufferType1 inGBuffer1,
+                        GBufferType2 inGBuffer2,
+                        GBufferType3 inGBuffer3,
+                        #endif
                         out BSDFData bsdfData,
                         out float3 bakeDiffuseLighting)
 {
     ZERO_INITIALIZE(BSDFData, bsdfData);
+
+    #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
+    float4 inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3;
+    
+    inGBuffer0.x = UnpackUIntToFloat(inGBufferU0.w, 8, 0);
+    inGBuffer0.y = UnpackUIntToFloat(inGBufferU0.w, 8, 8);
+    inGBuffer0.z = (UnpackNLowerbitFromU8(inGBufferU1.y, 6, 10) | UnpackNUpperbitFromU8(inGBufferU1.x, 2, 12)) / 255.0;
+    inGBuffer0.w = (UnpackNLowerbitFromU8(inGBufferU1.z, 6, 10) | UnpackNUpperbitFromU8(inGBufferU1.x, 2, 14)) / 255.0;
+
+    inGBuffer1.x = UnpackUIntToFloat(inGBufferU0.x, 10, 0);
+    inGBuffer1.y = UnpackUIntToFloat(inGBufferU0.y, 10, 0);
+    inGBuffer1.z = UnpackUIntToFloat(inGBufferU0.z, 10, 0);
+    inGBuffer1.w = UnpackUIntToFloat(inGBufferU0.x, 2, 10);
+    
+    inGBuffer2.x = UnpackUIntToFloat(inGBufferU1.w, 8, 0);
+    inGBuffer2.y = UnpackUIntToFloat(inGBufferU1.w, 8, 8);
+    inGBuffer2.z = (UnpackNLowerbitFromU8(inGBufferU1.y, 5, 11) | UnpackNUpperbitFromU8(inGBufferU1.x, 3, 11)) / 255.0;
+    inGBuffer2.w = (UnpackNLowerbitFromU8(inGBufferU1.z, 6, 10) | UnpackNUpperbitFromU8(inGBufferU1.x, 2, 14)) / 255.0;
+
+    inGBuffer3.x = UnpackUIntToFloat(inGBufferU1.x, 11, 0);
+    inGBuffer3.y = UnpackUIntToFloat(inGBufferU1.y, 11, 0);
+    inGBuffer3.z = UnpackUIntToFloat(inGBufferU1.z, 10, 0);
+    inGBuffer3.w = 0.0;
+    #endif
 
     float3 baseColor = inGBuffer0.rgb;
     bsdfData.specularOcclusion = inGBuffer0.a;

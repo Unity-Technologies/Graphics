@@ -8,7 +8,7 @@
 // UnityEngine.Experimental.ScriptableRenderLoop.ShaderOptions:  static fields
 //
 #define SHADEROPTIONS_VELOCITY_IN_GBUFFER (0)
-#define SHADEROPTIONS_PACK_GBUFFER_IN_FP16 (0)
+#define SHADEROPTIONS_PACK_GBUFFER_IN_U16 (0)
 
 
 #endif

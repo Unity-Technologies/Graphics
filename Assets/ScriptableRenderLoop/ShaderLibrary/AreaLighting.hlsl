@@ -5,7 +5,7 @@ float IntegrateEdge(float3 v1, float3 v2)
 {
     float cosTheta = dot(v1, v2);
     // TODO: Explain the 0.9999 <= precision is important!
-    cosTheta = clamp(cosTheta, -0.9999, 0.9999);
+    cosTheta = Clamp(cosTheta, -0.9999, 0.9999);
 
     // TODO: Experiment with fastAcos
     float theta = acos(cosTheta);

@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public enum GBufferMaterial
         {
             // Note: This count doesn't include the velocity buffer. On shader and csharp side the velocity buffer will be added by the framework
-            Count = (ShaderConfig.PackgbufferInFP16 == 1) ? 2 : 4
+            Count = (ShaderConfig.PackgbufferInU16 == 1) ? 2 : 4
         };
 
         public class RenderLoop : Object
@@ -137,10 +137,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 RTReadWrite = new RenderTextureReadWrite[(int)GBufferMaterial.Count];
 
 #pragma warning disable 162 // warning CS0162: Unreachable code detected
-                if (ShaderConfig.PackgbufferInFP16 == 1)
+                if (ShaderConfig.PackgbufferInU16 == 1)
                 {
-                    RTFormat[0] = RenderTextureFormat.ARGBHalf; RTReadWrite[0] = RenderTextureReadWrite.Linear;
-                    RTFormat[1] = RenderTextureFormat.ARGBHalf; RTReadWrite[1] = RenderTextureReadWrite.Linear;
+                    RTFormat[0] = RenderTextureFormat.ARGBInt; RTReadWrite[0] = RenderTextureReadWrite.Linear;
+                    RTFormat[1] = RenderTextureFormat.ARGBInt; RTReadWrite[1] = RenderTextureReadWrite.Linear;
                 }
                 else
                 {
