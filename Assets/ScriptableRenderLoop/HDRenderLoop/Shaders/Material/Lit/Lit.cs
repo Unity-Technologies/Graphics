@@ -169,9 +169,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             private RenderTexture m_PreIntegratedFGD;
 
             // For area lighting
-            private Texture2D m_LtcGGXMatrix;
-            private Texture2D m_LtcGGXMagnitude;
-            const int k_LtcLUTMatrixDim = 3; // size of the matrix (3x3)
+            private Texture2D m_LtcGGXMatrix;                    // RGBA
+            private Texture2D m_LtcDisneyDiffuseMatrix;          // RGBA
+            private Texture2D m_LtcMultiGGXFresnelDisneyDiffuse; // RGB, A unused
+
+            const int k_LtcLUTMatrixDim  =  3; // size of the matrix (3x3)
             const int k_LtcLUTResolution = 64;
 
             Material CreateEngineMaterial(string shaderPath)
@@ -215,23 +217,46 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // transformInv
                 for (int i = 0; i < count; i++)
                 {
-                    // Only columns 0, 2, 4 and 6 contain interesting values (at least in the case of GGX).
-                    pixels[i] = new Color(  (float)LUTTransformInv[i, 0],
-                                            (float)LUTTransformInv[i, 2],
-                                            (float)LUTTransformInv[i, 4],
-                                            (float)LUTTransformInv[i, 6]);
+                    // Both GGX and Disney Diffuse BRDFs have zero values in columns 1, 3, 5, 7.
+                    // Column 8 contains only ones.
+                    pixels[i] = new Color((float)LUTTransformInv[i, 0],
+                                          (float)LUTTransformInv[i, 2],
+                                          (float)LUTTransformInv[i, 4],
+                                          (float)LUTTransformInv[i, 6]);
                 }
 
                 return CreateLUT(k_LtcLUTResolution, k_LtcLUTResolution, format, pixels);
             }
+
+            // Special-case function for 'm_LtcMultiGGXFresnelDisneyDiffuse'.
+            Texture2D LoadLUT(TextureFormat format, float[] LtcGGXMagnitudeData,
+                                                    float[] LtcGGXFresnelData,
+                                                    float[] LtcDisneyDiffuseMagnitudeData)
+            {
+                const int count = k_LtcLUTResolution * k_LtcLUTResolution;
+                Color[] pixels = new Color[count];
+
+                for (int i = 0; i < count; i++)
+                {
+                    // We store the result of the subtraction as a run-time optimization.
+                    // See the footnote 2 of "LTC Fresnel Approximation" by Stephen Hill.
+                    pixels[i] = new Color(LtcGGXMagnitudeData[i] - LtcGGXFresnelData[i],
+                                          LtcGGXFresnelData[i], LtcDisneyDiffuseMagnitudeData[i], 1);
+                }
+
+                return CreateLUT(k_LtcLUTResolution, k_LtcLUTResolution, format, pixels);
+            }            
 
             public void Rebuild()
             {
                 m_InitPreFGD = CreateEngineMaterial("Hidden/HDRenderLoop/PreIntegratedFGD");
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
 
-                m_LtcGGXMatrix = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
-                m_LtcGGXMagnitude = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMagnitudeData);
+                m_LtcGGXMatrix                    = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
+                m_LtcDisneyDiffuseMatrix          = LoadLUT(TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
+                m_LtcMultiGGXFresnelDisneyDiffuse = LoadLUT(TextureFormat.RGBAHalf, s_LtcGGXMagnitudeData,
+                                                                                    s_LtcGGXFresnelData,
+                                                                                    s_LtcDisneyDiffuseMagnitudeData);
 
                 isInit = false;
             }
@@ -256,9 +281,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public void Bind()
             {
-                Shader.SetGlobalTexture("_PreIntegratedFGD", m_PreIntegratedFGD);
-                Shader.SetGlobalTexture("_LtcGGXMatrix", m_LtcGGXMatrix);
-                Shader.SetGlobalTexture("_LtcGGXMagnitude", m_LtcGGXMagnitude);
+                Shader.SetGlobalTexture("_PreIntegratedFGD",                m_PreIntegratedFGD);
+                Shader.SetGlobalTexture("_LtcGGXMatrix",                    m_LtcGGXMatrix);
+                Shader.SetGlobalTexture("_LtcDisneyDiffuseMatrix",          m_LtcDisneyDiffuseMatrix);
+                Shader.SetGlobalTexture("_LtcMultiGGXFresnelDisneyDiffuse", m_LtcMultiGGXFresnelDisneyDiffuse);
             }
         }
     }
