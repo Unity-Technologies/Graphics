@@ -364,7 +364,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 RenderOpaqueRenderList(cull, camera, renderLoop, "DebugViewMaterial");
             }
 
-            // Render GBUffer opaque
+            // Render GBuffer opaque
+            if (!debugParameters.useForwardRenderingOnly)
             {
                 Vector4 screenSize = ComputeScreenSize(camera);
                 m_DebugViewMaterialGBuffer.SetVector("_ScreenSize", screenSize);
