@@ -18,6 +18,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public bool affectDiffuse = true;
         public bool affectSpecular = true;
 
+        // Area Light Hack
+        public bool treatAsAreaLight = false;
+        public bool isDoubleSided    = false;
+
+        [RangeAttribute(0.0f, 20.0f)]
+        public float areaLightLength = 0.0f;
+
+        [RangeAttribute(0.0f, 20.0f)]
+        public float areaLightWidth = 0.0f;
+
         public static float GetInnerSpotPercent01(AdditionalLightData lightData)
         {
             if (lightData != null)
@@ -56,6 +66,30 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return lightData.shadowResolution;
             else
                 return DefaultShadowResolution;
+        }
+
+        public static bool GetTreatAsAreaLight(AdditionalLightData lightData)
+        {
+            if (lightData != null)
+                return lightData.treatAsAreaLight;
+            else
+                return false;
+        }
+
+        public static bool GetIsDoubleSided(AdditionalLightData lightData)
+        {
+            if (lightData != null)
+                return lightData.isDoubleSided;
+            else
+                return false;
+        }
+
+        public static Vector2 GetAreaLightDimensions(AdditionalLightData lightData)
+        {
+            if (lightData != null)
+                return new Vector2(lightData.areaLightLength, lightData.areaLightWidth);
+            else
+                return new Vector2(0.0f, 0.0f);
         }
     }
 }

@@ -9,8 +9,9 @@
 // Constant and structure declaration
 // ----------------------------------------------------------------------------
 
-StructuredBuffer<PunctualLightData> _PunctualLightList;
-StructuredBuffer<EnvLightData> _EnvLightList;
+StructuredBuffer<PunctualLightData>  _PunctualLightList;
+StructuredBuffer<AreaLightData>  	 _AreaLightList;
+StructuredBuffer<EnvLightData> 		 _EnvLightList;
 StructuredBuffer<PunctualShadowData> _PunctualShadowList;
 
 //TEXTURE2D_ARRAY(_ShadowArray);
@@ -37,6 +38,7 @@ SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvT
 
 CBUFFER_START(UnityPerLightLoop)
     int _PunctualLightCount;
+    int _AreaLightCount;
     int _EnvLightCount;
     EnvLightData _EnvLightSky;
 	float4 _ShadowMapSize;
