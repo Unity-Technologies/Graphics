@@ -778,7 +778,7 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
     float4x3 L    = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
 
     diffuseLighting  = float3(0.0, 0.0, 0.0);
-    specularLighting = float4(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
 
     float ltcValue;
 
