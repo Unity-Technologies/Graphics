@@ -1,6 +1,7 @@
 #ifndef UNITY_MATERIAL_INCLUDED
 #define UNITY_MATERIAL_INCLUDED
 
+#include "Color.hlsl"
 #include "Packing.hlsl"
 #include "BSDF.hlsl"
 #include "Debug.hlsl"

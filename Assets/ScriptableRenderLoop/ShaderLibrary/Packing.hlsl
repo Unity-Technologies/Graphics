@@ -69,6 +69,97 @@ float3 UnpackNormalmapRGorAG(float4 packedNormal)
 }
 
 //-----------------------------------------------------------------------------
+// HDR packing
+//-----------------------------------------------------------------------------
+
+// Ref: http://realtimecollisiondetection.net/blog/?p=15
+float4 PackLogLuv(float3 vRGB)
+{
+    // M matrix, for encoding
+    const float3x3 M = float3x3(
+        0.2209, 0.3390, 0.4184,
+        0.1138, 0.6780, 0.7319,
+        0.0102, 0.1130, 0.2969);
+
+    float4 vResult;
+    float3 Xp_Y_XYZp = mul(vRGB, M);
+    Xp_Y_XYZp = max(Xp_Y_XYZp, float3(1e-6, 1e-6, 1e-6));
+    vResult.xy = Xp_Y_XYZp.xy / Xp_Y_XYZp.z;
+    float Le = 2.0 * log2(Xp_Y_XYZp.y) + 127.0;
+    vResult.w = frac(Le);
+    vResult.z = (Le - (floor(vResult.w*255.0f)) / 255.0f) / 255.0f;
+    return vResult;
+}
+
+float3 UnpackLogLuv(float4 vLogLuv)
+{
+    // Inverse M matrix, for decoding
+    const float3x3 InverseM = float3x3(
+        6.0014, -2.7008, -1.7996,
+        -1.3320, 3.1029, -5.7721,
+        0.3008, -1.0882, 5.6268);
+
+    float Le = vLogLuv.z * 255.0 + vLogLuv.w;
+    float3 Xp_Y_XYZp;
+    Xp_Y_XYZp.y = exp2((Le - 127.0) / 2.0);
+    Xp_Y_XYZp.z = Xp_Y_XYZp.y / vLogLuv.y;
+    Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;
+    float3 vRGB = mul(Xp_Y_XYZp, InverseM);
+    return max(vRGB, float3(0.0, 0.0, 0.0));
+}
+
+// TODO: This function is used with the LightTransport pass to encode lightmap or emissive
+float4 PackRGBM(float3 rgb, float maxRGBM)
+{
+    float kOneOverRGBMMaxRange = 1.0 / maxRGBM;
+    const float kMinMultiplier = 2.0 * 1e-2;
+
+    float4 rgbm = float4(rgb * kOneOverRGBMMaxRange, 1.0);
+    rgbm.a = max(max(rgbm.r, rgbm.g), max(rgbm.b, kMinMultiplier));
+    rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
+
+    // Division-by-zero warning from d3d9, so make compiler happy.
+    rgbm.a = max(rgbm.a, kMinMultiplier);
+
+    rgbm.rgb /= rgbm.a;
+    return rgbm;
+}
+
+// Alternative...
+#define RGBMRANGE (8.0)
+float4 PackRGBM(float3 color)
+{
+    float4 rgbm;
+    color *= (1.0 / RGBMRANGE);
+    rgbm.a = saturate(max(max(color.r, color.g), max(color.b, 1e-6)));
+    rgbm.a = ceil(rgbm.a * 255.0) / 255.0;
+    rgbm.rgb = color / rgbm.a;
+    return rgbm;
+}
+
+float3 UnpackRGBM(float4 rgbm)
+{
+    return RGBMRANGE * rgbm.rgb * rgbm.a;
+}
+
+// The standard 32-bit HDR color format
+uint PackR11G11B10f(float3 rgb)
+{
+    uint r = (f32tof16(rgb.x) << 17) & 0xFFE00000;
+    uint g = (f32tof16(rgb.y) << 6) & 0x001FFC00;
+    uint b = (f32tof16(rgb.z) >> 5) & 0x000003FF;
+    return r | g | b;
+}
+
+float3 UnpackR11G11B10f(uint rgb)
+{
+    float r = f16tof32((rgb >> 17) & 0x7FF0);
+    float g = f16tof32((rgb >> 6) & 0x7FF0);
+    float b = f16tof32((rgb << 5) & 0x7FE0);
+    return float3(r, g, b);
+}
+
+//-----------------------------------------------------------------------------
 // Quaternion packing
 //-----------------------------------------------------------------------------
 
@@ -208,38 +299,33 @@ float UnpackFloatInt16bit(float val, float maxi, out float f, out int i)
 // float packing to sint/uint
 //-----------------------------------------------------------------------------
 
+// src must be between 0.0 and 1.0
 uint PackFloatToUInt(float src, uint size, uint offset)
 {
-    const uint MAX_VALUE = (1 << size) - 1;
-
-    return Clamp(uint(src * MAX_VALUE), uint(0), uint(MAX_VALUE)) << offset;
+    const float maxValue = float((1u << size) - 1u) + 0.5; // Shader compiler should be able to remove this
+    return uint(src * maxValue) << offset;
 }
 
 float UnpackUIntToFloat(uint src, uint size, uint offset)
 {
-    const uint MAX_VALUE = (1 << size) - 1;
+    const float invMaxValue = 1.0 / float((1 << size) - 1);
 
-    return BitFieldExtract(src, size, offset) / float(MAX_VALUE);
+    return float(BitFieldExtract(src, size, offset)) * invMaxValue;
 }
 
-uint PackNUpperbitFromU8(uint src, uint nbit, uint offset)
+uint PackR10G10B10A2(float4 rgba)
 {
-    return ( (src & (((1 << nbit) - 1) << (8 - nbit))) >> (8 - nbit) ) << offset;
+    return (PackFloatToUInt(rgba.x, 10, 0) | PackFloatToUInt(rgba.y, 10, 10) | PackFloatToUInt(rgba.z, 10, 20) | PackFloatToUInt(rgba.w, 2, 30));
 }
 
-uint PackNLowerbitFromU8(uint src, uint nbit, uint offset)
+float4 UnpackR10G10B10A2(uint rgba)
 {
-    return (src & ((1 << nbit) - 1)) << offset;
-}
-
-uint UnpackNUpperbitToU8(uint src, uint nbit, uint offset)
-{
-    return ((src & (((1 << nbit) - 1) << offset)) >> offset) << (8 - nbit);
-}
-
-uint UnpackNLowerbitToU8(uint src, uint nbit, uint offset)
-{
-    return (src & (((1 << nbit) - 1) << offset)) >> offset;
+    float4 ouput;
+    ouput.x = UnpackUIntToFloat(rgba, 10, 0);
+    ouput.y = UnpackUIntToFloat(rgba, 10, 10);
+    ouput.z = UnpackUIntToFloat(rgba, 10, 20);
+    ouput.w = UnpackUIntToFloat(rgba, 2, 30);
+    return ouput;
 }
 
 
