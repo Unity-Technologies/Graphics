@@ -39,8 +39,6 @@ void LightLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData
 
     float3 iblDiffuseLighting  = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
-    float  weightDiffuse       = 0.0;
-    float  weightSpecular      = 0.0;
 
     for (i = 0; i < _EnvLightCount; ++i)
     {
@@ -67,5 +65,6 @@ void LightLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData
     diffuseLighting  += iblDiffuseLighting;
     specularLighting += iblSpecularLighting;
 
+    // Add indirect diffuse + emissive (if any)
     diffuseLighting += bakeDiffuseLighting;
 }
