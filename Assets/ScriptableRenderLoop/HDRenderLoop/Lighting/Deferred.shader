@@ -35,9 +35,9 @@ Shader "Hidden/HDRenderLoop/Deferred"
             // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem), 
             // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/Lighting.hlsl" // This include Material.hlsl
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderConfig.cs.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/Lighting.hlsl" // This include Material.hlsl
  
             //-------------------------------------------------------------------------------------
             // variable declaration

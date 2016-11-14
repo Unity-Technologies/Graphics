@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/SinglePass/SinglePass.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/SinglePass/SinglePass.cs.  Please don't edit by hand.
 //
 
 #ifndef SINGLEPASS_CS_HLSL

@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderPass/ShaderPass.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/ShaderPass/ShaderPass.cs.  Please don't edit by hand.
 //
 
 #ifndef SHADERPASS_CS_HLSL

@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Lighting/LightDefinition.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/LightDefinition.cs.  Please don't edit by hand.
 //
 
 #ifndef LIGHTDEFINITION_CS_HLSL

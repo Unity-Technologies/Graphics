@@ -12,7 +12,7 @@ Shader "Hidden/HDRenderLoop/PreIntegratedFGD"
 
             #include "Common.hlsl"
             #include "ImageBasedLighting.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
 
 
             struct Attributes 
