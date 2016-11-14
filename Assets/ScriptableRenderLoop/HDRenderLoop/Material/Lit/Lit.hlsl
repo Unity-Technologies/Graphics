@@ -32,12 +32,21 @@
 // Use optimization of Precomputing LambdaV
 // TODO: Test if this is a win
 // #define LIT_USE_BSDF_PRE_LAMBDAV
-
-// TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotrpy and anisotropy case.
+// TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotropy and anisotropy case.
 // Maybe we should always calculate anisotropy in case of standard ? Don't think the compile can optimize correctly.
 
+// TODO: How can I declare a sampler for this one that is bilinear filtering
+SAMPLER2D(sampler_PreIntegratedFGD);
+#define SRL_PointSampler sampler_PreIntegratedFGD // Used for all textures
+
+// TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
+TEXTURE2D(_PreIntegratedFGD);
+TEXTURE2D(_LtcGGXMatrix);                    // RGBA
+TEXTURE2D(_LtcDisneyDiffuseMatrix);          // RGBA
+TEXTURE2D(_LtcMultiGGXFresnelDisneyDiffuse); // RGB, A unused
+
 //-----------------------------------------------------------------------------
-// Helper functions/variable specific to this materia
+// Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
 float PackMaterialId(int materialId)
@@ -50,16 +59,6 @@ int UnpackMaterialId(float f)
     return int(round(f * 3.0));
 }
 
-// TODO: How can I declare a sampler for this one that is bilinear filtering
-// TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
-TEXTURE2D(_PreIntegratedFGD);
-SAMPLER2D(sampler_PreIntegratedFGD);
-TEXTURE2D(_LtcGGXMatrix);
-SAMPLER2D(sampler_LtcGGXMatrix);
-TEXTURE2D(_LtcGGXMagnitude);
-SAMPLER2D(sampler_LtcGGXMagnitude);
-
-
 // For image based lighting, a part of the BSDF is pre-integrated.
 // This is done both for specular and diffuse (in case of DisneyDiffuse)
 void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 specularFGD, out float diffuseFGD)
@@ -69,7 +68,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     //  _PreIntegratedFGD.y = Gv * Fc
     // Pre integrate DisneyDiffuse FGD:
     // _PreIntegratedFGD.z = DisneyDiffuse
-    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, sampler_PreIntegratedFGD, float2(NdotV, perceptualRoughness), 0).xyz;
+    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, SRL_PointSampler, float2(NdotV, perceptualRoughness), 0).xyz;
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
@@ -446,7 +445,7 @@ struct PreLightData
     // image based lighting
     // These variables aim to be use with EvaluateBSDF_Env 
     float3 iblNormalWS; // Normal to be use with image based lighting
-    float3 iblR;        // Reflction vector, same as above.
+    float3 iblR;        // Reflection vector, same as above.
 
     float3 specularFGD; // Store preconvole BRDF for both specular and diffuse
     float diffuseFGD;
@@ -455,8 +454,11 @@ struct PreLightData
     // float ambientOcclusion; // Feed from an ambient occlusion buffer
 
     // area light
-    float3x3 minV;
-    float ltcGGXMagnitude;
+    float3x3 ltcXformGGX;                // TODO: make sure the compiler not wasting VGPRs on constants
+    float3x3 ltcXformDisneyDiffuse;      // TODO: make sure the compiler not wasting VGPRs on constants
+    float    ltcGGXFresnelMagnitudeDiff; // The difference of magnitudes of GGX and Fresnel
+    float    ltcGGXFresnelMagnitude;
+    float    ltcDisneyDiffuseMagnitude;
 
     // Shadow (sampling rotation disc)
     float2 unPositionSS;
@@ -510,11 +512,19 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
-    preLightData.minV = 0.0;
-    preLightData.minV._m22 = 1.0;
-    preLightData.minV._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcGGXMatrix, sampler_LtcGGXMatrix, uv, 0);
+    preLightData.ltcXformGGX      = 0.0;
+    preLightData.ltcXformGGX._m22 = 1.0;
+    preLightData.ltcXformGGX._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcGGXMatrix, SRL_PointSampler, uv, 0);
 
-    preLightData.ltcGGXMagnitude = SAMPLE_TEXTURE2D_LOD(_LtcGGXMagnitude, sampler_LtcGGXMagnitude, uv, 0).w;
+    // Get the inverse LTC matrix for Disney Diffuse
+    // Note we load the matrix transpose (avoid to have to transpose it in shader)
+    preLightData.ltcXformDisneyDiffuse      = 0.0;
+    preLightData.ltcXformDisneyDiffuse._m22 = 1.0;
+    preLightData.ltcXformDisneyDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcDisneyDiffuseMatrix, SRL_PointSampler, uv, 0);
+
+    preLightData.ltcGGXFresnelMagnitudeDiff = SAMPLE_TEXTURE2D_LOD(_LtcMultiGGXFresnelDisneyDiffuse, SRL_PointSampler, uv, 0).r;
+    preLightData.ltcGGXFresnelMagnitude     = SAMPLE_TEXTURE2D_LOD(_LtcMultiGGXFresnelDisneyDiffuse, SRL_PointSampler, uv, 0).g;
+    preLightData.ltcDisneyDiffuseMagnitude  = SAMPLE_TEXTURE2D_LOD(_LtcMultiGGXFresnelDisneyDiffuse, SRL_PointSampler, uv, 0).b;
 
     // Shadow
     preLightData.unPositionSS = coord.unPositionSS;
@@ -606,7 +616,7 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         #endif
         D = D_GGX(NdotH, bsdfData.roughness);
     }
-    specularLighting.rgb = F * Vis * D;
+    specularLighting.rgb = F * (Vis * D);
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float diffuseTerm = Lambert();
     #else
@@ -719,8 +729,12 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
         float sqrDist = dot(unL, unL);
         float3 L = normalize(unL);
 
+        // Cosine of the angle between the light direction and the normal of the light's surface.
+        float cosLNs = dot(-L, Ns);
+        cosLNs = lightData.twoSided ? abs(cosLNs) : saturate(cosLNs);
+
         // We calculate area reference light with the area integral rather than the solid angle one.
-        float illuminance = saturate(dot(Ns, -L)) * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
+        float illuminance = cosLNs * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
 
         float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
         float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
@@ -746,43 +760,64 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 
 void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
                         float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
-                        out float4 diffuseLighting,
-                        out float4 specularLighting)
+                        out float4 diffuseLighting, out float4 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE
     IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
 #else
-
     // TODO: This could be precomputed
-    float halfWidth = lightData.size.x * 0.5;
+    float halfWidth  = lightData.size.x * 0.5;
     float halfHeight = lightData.size.y * 0.5;
-    float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * halfHeight;
+
+    float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
     float3 p1 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    float3 p2 = lightData.positionWS + lightData.right * halfWidth + lightData.up * -halfHeight;
-    float3 p3 = lightData.positionWS + lightData.right * halfWidth + lightData.up * halfHeight;
+    float3 p2 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    float3 p3 = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
 
     float4x3 matL = float4x3(p0, p1, p2, p3);
-    float4x3 L = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
+    float4x3 L    = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
 
-    // TODO: Can we get early out based on diffuse computation ? (if all point are clip)
-    diffuseLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    specularLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    diffuseLighting  = float4(0.0, 0.0, 0.0, 1.0);
+    specularLighting = float4(0.0, 0.0, 0.0, 1.0);
 
-    // TODO: Fresnel is missing here but should be present
-    specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, preLightData.minV, L, lightData.twoSided) * preLightData.ltcGGXMagnitude;
+    float ltcValue;
 
-//#ifdef LIT_DIFFUSE_LAMBERT_BRDF
-    // Lambert diffuse term (here it should be Disney)
-    float3x3 identity = 0;
-    identity._m00_m11_m22 = 1.0;
-    diffuseLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, identity, L, lightData.twoSided) * bsdfData.diffuseColor;
-//#else
-    // TODO: Disney
-//#endif
-   
-    // Divide all by 2 PI as it is Lambert integration for diffuse
-    diffuseLighting.rgb *= lightData.color * INV_TWO_PI * lightData.diffuseScale;
-    specularLighting.rgb *= lightData.color * INV_TWO_PI * lightData.specularScale;
+    // Evaluate the diffuse part.
+    {
+    #ifdef DIFFUSE_LAMBERT_BRDF
+        static const float3x3 identity3x3 = {1.0, 0.0, 0.0,
+                                             0.0, 1.0, 0.0,
+                                             0.0, 0.0, 1.0};
+                                             
+        ltcValue = LTCEvaluate(V, bsdfData.normalWS, identity3x3, L, lightData.twoSided);
+    #else
+        ltcValue = LTCEvaluate(V, bsdfData.normalWS, preLightData.ltcXformDisneyDiffuse, L, lightData.twoSided);
+    #endif
+
+        if (ltcValue == 0.0)
+        {
+            // The polygon is either back-facing, or has been completely clipped.
+            return;
+        }
+
+    #ifndef DIFFUSE_LAMBERT_BRDF
+        // TODO: verify that we do not need to multiply by PI.
+        ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
+    #endif
+
+        ltcValue *= lightData.diffuseScale;
+        diffuseLighting.rgb = bsdfData.diffuseColor * lightData.color * ltcValue;
+    }
+
+    // Evaluate the specular part.
+    {
+        float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
+                           + (float3)preLightData.ltcGGXFresnelMagnitude;
+
+        ltcValue  = LTCEvaluate(V, bsdfData.normalWS, preLightData.ltcXformGGX, L, lightData.twoSided);
+        ltcValue *= lightData.specularScale;
+        specularLighting.rgb = fresnelTerm * lightData.color * ltcValue;
+    }
 
     // TODO: current area light code doesn't take into account artist attenuation radius!
 #endif
@@ -930,7 +965,9 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 {
 #ifdef LIT_DISPLAY_REFERENCE
 
-    specularLighting.rgb = IntegrateSpecularGGXIBLRef(lightLoopContext, V, lightData, bsdfData);
+    // TODO: fix 'IntegrateSpecularGGXIBLRef'.
+    // specularLighting.rgb = IntegrateSpecularGGXIBLRef(lightLoopContext, V, lightData, bsdfData);
+    specularLighting.rgb = float3(0.0, 0.0, 0.0);
     specularLighting.a = 1.0;
 
 /*
