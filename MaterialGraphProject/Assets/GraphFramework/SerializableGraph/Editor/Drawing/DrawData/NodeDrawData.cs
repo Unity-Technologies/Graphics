@@ -12,7 +12,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public INode node { get; private set; }
 
-        [SerializeField] public bool expanded = true;
+        public bool expanded = true;
 
         protected List<GraphElementData> m_Children = new List<GraphElementData>();
 
