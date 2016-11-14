@@ -35,9 +35,10 @@
 // TODO: Check if anisotropy with a dynamic if on anisotropy > 0 is performant. Because it may mean we always calculate both isotropy and anisotropy case.
 // Maybe we should always calculate anisotropy in case of standard ? Don't think the compile can optimize correctly.
 
-// TODO: How can I declare a sampler for this one that is bilinear filtering
+// TODO: I haven't configure this sampler in the code, we should be able to do it (but Unity don't allow it for now...)
+// By default Unity provide MIG_MAG_LINEAR_POINT sampler, so it fit with our need.
 SAMPLER2D(sampler_PreIntegratedFGD);
-#define SRL_PointSampler sampler_PreIntegratedFGD // Used for all textures
+#define SRL_BilinearSampler sampler_PreIntegratedFGD // Used for all textures
 
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
@@ -68,7 +69,7 @@ void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0
     //  _PreIntegratedFGD.y = Gv * Fc
     // Pre integrate DisneyDiffuse FGD:
     // _PreIntegratedFGD.z = DisneyDiffuse
-    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, SRL_PointSampler, float2(NdotV, perceptualRoughness), 0).xyz;
+    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, SRL_BilinearSampler, float2(NdotV, perceptualRoughness), 0).xyz;
 
     // f0 * Gv * (1 - Fc) + Gv * Fc
     specularFGD = fresnel0 * preFGD.x + preFGD.y;
@@ -506,24 +507,25 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     // UVs for sampling the LUTs
     // TODO: Test with fastAcos
     float theta = acos(dot(bsdfData.normalWS, V));
-    // Scale and bias for the current precomputed table
+    // Scale and bias for the current precomputed table - the constant use here are the one that have been use when the table in LtcData.DisneyDiffuse.cs and LtcData.GGX.cs was use
     float2 uv = 0.0078125 + 0.984375 * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
 
     // Get the inverse LTC matrix for GGX
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcXformGGX      = 0.0;
     preLightData.ltcXformGGX._m22 = 1.0;
-    preLightData.ltcXformGGX._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcGGXMatrix, SRL_PointSampler, uv, 0);
+    preLightData.ltcXformGGX._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcGGXMatrix, SRL_BilinearSampler, uv, 0);
 
     // Get the inverse LTC matrix for Disney Diffuse
     // Note we load the matrix transpose (avoid to have to transpose it in shader)
     preLightData.ltcXformDisneyDiffuse      = 0.0;
     preLightData.ltcXformDisneyDiffuse._m22 = 1.0;
-    preLightData.ltcXformDisneyDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcDisneyDiffuseMatrix, SRL_PointSampler, uv, 0);
+    preLightData.ltcXformDisneyDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_LOD(_LtcDisneyDiffuseMatrix, SRL_BilinearSampler, uv, 0);
 
-    preLightData.ltcGGXFresnelMagnitudeDiff = SAMPLE_TEXTURE2D_LOD(_LtcMultiGGXFresnelDisneyDiffuse, SRL_PointSampler, uv, 0).r;
-    preLightData.ltcGGXFresnelMagnitude     = SAMPLE_TEXTURE2D_LOD(_LtcMultiGGXFresnelDisneyDiffuse, SRL_PointSampler, uv, 0).g;
-    preLightData.ltcDisneyDiffuseMagnitude  = SAMPLE_TEXTURE2D_LOD(_LtcMultiGGXFresnelDisneyDiffuse, SRL_PointSampler, uv, 0).b;
+    float3 ltcMagnitude = SAMPLE_TEXTURE2D_LOD(_LtcMultiGGXFresnelDisneyDiffuse, SRL_BilinearSampler, uv, 0).r;
+    preLightData.ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r;
+    preLightData.ltcGGXFresnelMagnitude     = ltcMagnitude.g;
+    preLightData.ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
 
     // Shadow
     preLightData.unPositionSS = coord.unPositionSS;
@@ -818,7 +820,9 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
+
     // TODO: current area light code doesn't take into account artist attenuation radius!
+
 #endif
 }
 

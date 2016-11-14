@@ -1770,7 +1770,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shadowResolution: 512
-  innerSpotPercent: 49
   shadowDimmer: 1
   affectDiffuse: 1
   affectSpecular: 1
@@ -1851,6 +1850,7 @@ GameObject:
   m_Component:
   - component: {fileID: 605581071}
   - component: {fileID: 605581070}
+  - component: {fileID: 605581072}
   m_Layer: 0
   m_Name: Directional light
   m_TagString: Untagged
@@ -1905,6 +1905,25 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 142.28, y: 106.256996, z: -160.70999}
+--- !u!114 &605581072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 605581069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowResolution: 512
+  shadowDimmer: 1
+  affectDiffuse: 1
+  affectSpecular: 1
+  treatAsAreaLight: 0
+  isDoubleSided: 0
+  areaLightLength: 0
+  areaLightWidth: 0
 --- !u!1 &609148480
 GameObject:
   m_ObjectHideFlags: 0
@@ -2492,7 +2511,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shadowResolution: 512
-  innerSpotPercent: 0
   shadowDimmer: 1
   affectDiffuse: 1
   affectSpecular: 1
@@ -2778,6 +2796,7 @@ GameObject:
   m_Component:
   - component: {fileID: 785457126}
   - component: {fileID: 785457125}
+  - component: {fileID: 785457127}
   m_Layer: 0
   m_Name: Point light (2)
   m_TagString: Untagged
@@ -2832,6 +2851,25 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: -0.39200002, y: 1.033, z: -0.92}
+--- !u!114 &785457127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 785457124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowResolution: 512
+  shadowDimmer: 1
+  affectDiffuse: 1
+  affectSpecular: 1
+  treatAsAreaLight: 0
+  isDoubleSided: 0
+  areaLightLength: 0
+  areaLightWidth: 0
 --- !u!1 &818701168
 GameObject:
   m_ObjectHideFlags: 0
@@ -2948,7 +2986,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shadowResolution: 512
-  innerSpotPercent: 0
   shadowDimmer: 1
   affectDiffuse: 1
   affectSpecular: 1
@@ -3374,7 +3411,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shadowResolution: 512
-  innerSpotPercent: 49
   shadowDimmer: 1
   affectDiffuse: 1
   affectSpecular: 1
@@ -4492,6 +4528,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1220024535}
   - component: {fileID: 1220024534}
+  - component: {fileID: 1220024536}
   m_Layer: 0
   m_Name: Point light
   m_TagString: Untagged
@@ -4546,6 +4583,25 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: -0.39200002, y: 1.033, z: -0.92}
+--- !u!114 &1220024536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1220024533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowResolution: 512
+  shadowDimmer: 1
+  affectDiffuse: 1
+  affectSpecular: 1
+  treatAsAreaLight: 0
+  isDoubleSided: 0
+  areaLightLength: 0
+  areaLightWidth: 0
 --- !u!1 &1247488469
 GameObject:
   m_ObjectHideFlags: 0
@@ -7285,7 +7341,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shadowResolution: 512
-  innerSpotPercent: 0
   shadowDimmer: 1
   affectDiffuse: 1
   affectSpecular: 1

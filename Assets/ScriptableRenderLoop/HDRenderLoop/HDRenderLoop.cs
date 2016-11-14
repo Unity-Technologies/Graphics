@@ -548,7 +548,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 var light = visibleLights[lightIndex];
 
-                if (light.lightType == LightType.Area) {
+                // We only process light with additional data
+                var additionalData = light.light.GetComponent<AdditionalLightData>();
+
+                if (additionalData == null)
+                {
+                    Debug.LogWarning("Light entity detected without additional data, will not be taken into account " + light.light.name);
+                    continue;
+                }
+
+                if (light.lightType == LightType.Area)
+                {
                     // Skip area lights which are currently only used for baking.
                     continue;
                 }
@@ -558,123 +568,121 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 var lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
                 var lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
 
-                var additionalData = light.light.GetComponent<AdditionalLightData>();
-
                 // Test whether we should treat this punctual light as an area light.
                 // It's a temporary hack until the proper UI support is added.
-                if (AdditionalLightData.GetTreatAsAreaLight(additionalData))
+                if (additionalData.treatAsAreaLight)
                 {
                     AreaLightData lightData = new AreaLightData();
 
                     // TODO: add AreaShapeType.Line support for small widths.
-                    lightData.shapeType     = AreaShapeType.Rectangle;
-                    lightData.size          = new Vector2(additionalData.areaLightLength, additionalData.areaLightWidth);
-                    lightData.twoSided      = additionalData.isDoubleSided ? 1.0f : 0.0f;
+                    lightData.shapeType = AreaShapeType.Rectangle;
+                    lightData.size = new Vector2(additionalData.areaLightLength, additionalData.areaLightWidth);
+                    lightData.twoSided = additionalData.isDoubleSided ? 1.0f : 0.0f;
 
-                    lightData.positionWS    = light.light.transform.position;
-                    lightData.forward       = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
-                    lightData.up            = light.light.transform.up;
-                    lightData.right         = light.light.transform.right;
+                    lightData.positionWS = light.light.transform.position;
+                    lightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
+                    lightData.up = light.light.transform.up;
+                    lightData.right = light.light.transform.right;
 
-                    lightData.color         = new Vector3(lightColorR, lightColorG, lightColorB);
-                    lightData.diffuseScale  = additionalData.affectDiffuse  ? 1.0f : 0.0f;
+                    lightData.color = new Vector3(lightColorR, lightColorG, lightColorB);
+                    lightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
                     lightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
-                    lightData.shadowDimmer  = additionalData.shadowDimmer;
+                    lightData.shadowDimmer = additionalData.shadowDimmer;
 
                     lightData.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
 
                     aLights.Add(lightData);
 
                     // TODO: shadows.
-                    continue;
-                }
-
-                var l = new PunctualLightData();
-
-                if (light.lightType == LightType.Directional)
-                {
-                    l.useDistanceAttenuation = 0.0f;
-                    // positionWS store Light direction for directional and is opposite to the forward direction
-                    l.positionWS = -light.light.transform.forward;
-                    l.invSqrAttenuationRadius = 0.0f;
                 }
                 else
                 {
-                    l.useDistanceAttenuation = 1.0f;
-                    l.positionWS = light.light.transform.position;
-                    l.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
-                }
+                    var l = new PunctualLightData();
 
-
-                l.color.Set(lightColorR, lightColorG, lightColorB);
-
-                l.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
-                l.up = light.light.transform.up;
-                l.right = light.light.transform.right;
-
-                if (light.lightType == LightType.Spot)
-                {
-                    var spotAngle = light.light.spotAngle;
-
-                    var innerConePercent = AdditionalLightData.GetInnerSpotPercent01(additionalData);
-                    var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
-                    var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
-
-                    var val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
-                    l.angleScale    = 1.0f / val;
-                    l.angleOffset   = -cosSpotOuterHalfAngle * l.angleScale;
-                }
-                else
-                {
-                    // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
-                    l.angleScale = 1.0f;
-                    l.angleOffset = 2.0f;
-                }
-
-                l.diffuseScale = AdditionalLightData.GetAffectDiffuse(additionalData) ? 1.0f : 0.0f;
-                l.specularScale = AdditionalLightData.GetAffectSpecular(additionalData) ? 1.0f : 0.0f;
-                l.shadowDimmer = AdditionalLightData.GetShadowDimmer(additionalData);
-
-                l.IESIndex = -1;
-                l.cookieIndex = -1;
-                l.shadowIndex = -1;
-
-                // Setup shadow data arrays
-                bool hasShadows = shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
-                bool hasNotReachMaxLimit = shadows.Count + (light.lightType == LightType.Point ? 6 : 1) <= MaxShadows;
-
-                if (hasShadows && hasNotReachMaxLimit) // Note  < MaxShadows should be check at shadowOutput creation
-                {
-                    // When we have a point light, we assumed that there is 6 consecutive PunctualShadowData
-                    l.shadowIndex = shadows.Count;
-
-                    for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
+                    if (light.lightType == LightType.Directional)
                     {
-                        PunctualShadowData s = new PunctualShadowData();
-
-                        int shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
-                        s.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose for hlsl reading ?
-
-                        if (light.lightType == LightType.Spot)
-                        {
-                            s.shadowType = ShadowType.Spot;
-                        }
-                        else if (light.lightType == LightType.Point)
-                        {
-                            s.shadowType = ShadowType.Point;
-                        }
-                        else
-                        {
-                            s.shadowType = ShadowType.Directional;
-                        }
-
-                        s.bias = light.light.shadowBias;
-
-                        shadows.Add(s);
+                        l.useDistanceAttenuation = 0.0f;
+                        // positionWS store Light direction for directional and is opposite to the forward direction
+                        l.positionWS = -light.light.transform.forward;
+                        l.invSqrAttenuationRadius = 0.0f;
                     }
-                }
+                    else
+                    {
+                        l.useDistanceAttenuation = 1.0f;
+                        l.positionWS = light.light.transform.position;
+                        l.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
+                    }
 
-                pLights.Add(l);
+                    l.color = new Vector3(lightColorR, lightColorG, lightColorB);
+
+                    l.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
+                    l.up = light.light.transform.up;
+                    l.right = light.light.transform.right;
+
+                    if (light.lightType == LightType.Spot)
+                    {
+                        var spotAngle = light.light.spotAngle;
+
+                        var innerConePercent = additionalData.GetInnerSpotPercent01();
+                        var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
+                        var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
+
+                        var val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
+                        l.angleScale = 1.0f / val;
+                        l.angleOffset = -cosSpotOuterHalfAngle * l.angleScale;
+                    }
+                    else
+                    {
+                        // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
+                        l.angleScale = 1.0f;
+                        l.angleOffset = 2.0f;
+                    }
+
+                    l.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
+                    l.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
+                    l.shadowDimmer = additionalData.shadowDimmer;
+
+                    l.IESIndex = -1;
+                    l.cookieIndex = -1;
+                    l.shadowIndex = -1;
+
+                    // Setup shadow data arrays
+                    bool hasShadows = shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
+                    bool hasNotReachMaxLimit = shadows.Count + (light.lightType == LightType.Point ? 6 : 1) <= MaxShadows;
+
+                    if (hasShadows && hasNotReachMaxLimit) // Note  < MaxShadows should be check at shadowOutput creation
+                    {
+                        // When we have a point light, we assumed that there is 6 consecutive PunctualShadowData
+                        l.shadowIndex = shadows.Count;
+
+                        for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
+                        {
+                            PunctualShadowData s = new PunctualShadowData();
+
+                            int shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
+                            s.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose for hlsl reading ?
+
+                            if (light.lightType == LightType.Spot)
+                            {
+                                s.shadowType = ShadowType.Spot;
+                            }
+                            else if (light.lightType == LightType.Point)
+                            {
+                                s.shadowType = ShadowType.Point;
+                            }
+                            else
+                            {
+                                s.shadowType = ShadowType.Directional;
+                            }
+
+                            s.bias = light.light.shadowBias;
+
+                            shadows.Add(s);
+                        }
+                    }
+
+                    pLights.Add(l);
+                }
             }
 
             s_punctualLightList.SetData(pLights.ToArray());

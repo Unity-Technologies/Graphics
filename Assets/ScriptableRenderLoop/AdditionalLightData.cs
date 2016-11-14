@@ -9,8 +9,21 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public int shadowResolution = DefaultShadowResolution;
 
+        public static int GetShadowResolution(AdditionalLightData lightData)
+        {
+            if (lightData != null)
+                return lightData.shadowResolution;
+            else
+                return DefaultShadowResolution;
+        }
+
         [RangeAttribute(0.0F, 100.0F)]
-        public float innerSpotPercent = 0.0F;
+        private float m_innerSpotPercent = 0.0F;
+
+        public float GetInnerSpotPercent01()
+        {
+            return Mathf.Clamp(m_innerSpotPercent, 0.0f, 100.0f) / 100.0f;
+        }
 
         [RangeAttribute(0.0F, 1.0F)]
         public float shadowDimmer = 1.0F;
@@ -27,69 +40,5 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         [RangeAttribute(0.0f, 20.0f)]
         public float areaLightWidth = 0.0f;
-
-        public static float GetInnerSpotPercent01(AdditionalLightData lightData)
-        {
-            if (lightData != null)
-                return Mathf.Clamp(lightData.innerSpotPercent, 0.0f, 100.0f) / 100.0f;
-            else
-                return 0.0F;
-        }
-
-        public static bool GetAffectDiffuse(AdditionalLightData lightData)
-        {
-            if (lightData != null)
-                return lightData.affectDiffuse;
-            else
-                return true;
-        }
-
-        public static bool GetAffectSpecular(AdditionalLightData lightData)
-        {
-            if (lightData != null)
-                return lightData.affectSpecular;
-            else
-                return true;
-        }
-
-        public static float GetShadowDimmer(AdditionalLightData lightData)
-        {
-            if (lightData != null)
-                return Mathf.Clamp(lightData.shadowDimmer, 0F, 1F);
-            else
-                return 1.0F;
-        }
-
-        public static int GetShadowResolution(AdditionalLightData lightData)
-        {
-            if (lightData != null)
-                return lightData.shadowResolution;
-            else
-                return DefaultShadowResolution;
-        }
-
-        public static bool GetTreatAsAreaLight(AdditionalLightData lightData)
-        {
-            if (lightData != null)
-                return lightData.treatAsAreaLight;
-            else
-                return false;
-        }
-
-        public static bool GetIsDoubleSided(AdditionalLightData lightData)
-        {
-            if (lightData != null)
-                return lightData.isDoubleSided;
-            else
-                return false;
-        }
-
-        public static Vector2 GetAreaLightDimensions(AdditionalLightData lightData)
-        {
-            if (lightData != null)
-                return new Vector2(lightData.areaLightLength, lightData.areaLightWidth);
-            else
-                return new Vector2(0.0f, 0.0f);
-        }
     }
 }
