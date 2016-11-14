@@ -6,8 +6,6 @@ using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
 using System;
 
-using UnityEditor;
-
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
@@ -57,7 +55,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 
         #if UNITY_EDITOR
-        [MenuItem("Renderloop/CreateHDRenderLoop")]
+        [UnityEditor.MenuItem("Renderloop/CreateHDRenderLoop")]
         static void CreateHDRenderLoop()
         {
             var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
@@ -768,7 +766,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Post effects
         }
 
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         public override UnityEditor.SupportedRenderingFeatures GetSupportedRenderingFeatures()
         {
             var features = new UnityEditor.SupportedRenderingFeatures
@@ -778,7 +776,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             return features;
         }
-
-#endif
+        #endif
     }
 }
