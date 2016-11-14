@@ -88,11 +88,11 @@ Shader "Hidden/HDRenderLoop/Deferred"
 
                 PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
 
-                float4 diffuseLighting;
-                float4 specularLighting;
+                float3 diffuseLighting;
+                float3 specularLighting;
                 LightLoop(V, positionWS, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
-                return float4(diffuseLighting.rgb + specularLighting.rgb, 1.0);
+                return float4(diffuseLighting + specularLighting, 1.0);
             }
 
         ENDHLSL
