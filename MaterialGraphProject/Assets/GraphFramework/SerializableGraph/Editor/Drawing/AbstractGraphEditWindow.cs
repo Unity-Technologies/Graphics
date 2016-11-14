@@ -31,6 +31,8 @@ namespace UnityEditor.Graphing.Drawing
 
         private GraphView m_GraphView;
 
+        private TitleBarDrawer m_TitleBarDrawer;
+
         public virtual AbstractGraphDataSource CreateDataSource()
         {
             return CreateInstance<SerializedGraphDataSource>();
@@ -47,9 +49,15 @@ namespace UnityEditor.Graphing.Drawing
             m_GraphView.name = "Graph View";
             var source = CreateDataSource();
             source.Initialize(m_LastSelection);
+
+            var titleBarData = CreateInstance<TitleBarDrawData>();
+            titleBarData.title = m_LastSelection != null ? m_LastSelection.GetScriptableObject().name : "";
+            m_TitleBarDrawer = new TitleBarDrawer(titleBarData);
+
             m_GraphView.dataSource = source;
             m_GraphView.StretchToParentSize();
 
+            windowRoot.AddChild(m_TitleBarDrawer);
             windowRoot.AddChild(m_GraphView);
         }
 
@@ -79,9 +87,14 @@ namespace UnityEditor.Graphing.Drawing
                     graph.ValidateGraph();
                     m_LastSelection = selection;
 
+
                     var source = CreateDataSource();
                     source.Initialize(m_LastSelection);
                     m_GraphView.dataSource = source;
+
+                    var titleBarData = CreateInstance<TitleBarDrawData>();
+                    titleBarData.title = m_LastSelection != null ? m_LastSelection.GetScriptableObject().name : "";
+                    m_TitleBarDrawer.dataProvider = titleBarData;
 
                     m_GraphView.StretchToParentSize();
                     Repaint();

@@ -1,0 +1,21 @@
+#TitleBar {
+    position-type: absolute;
+    position-left: 0;
+    position-right: 0;
+    position-top: 0;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    background-color: #333;
+}
+
+#TitleBar #left {
+    /* background-color: #f00; */
+    align-items: center;
+    flex-direction: row;
+}
+
+#TitleBar #left #title {
+    background-color: #f00;
+    font-size: 12;
+}
