@@ -196,34 +196,24 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
 
     #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     // Now pack all buffer into 2 uint buffer
-    // TODO: should be more efficient to pack data directly in uint format rather than going through outGBuffer but easier to maintain in case of change
 
-    // We don't have hardware sRGB, so just sqrt the baseColor value instead
-    data.outGBuffer0.xyz = sqrt(data.outGBuffer0.xyz);
+    // We don't have hardware sRGB to store base color in case we pack int u16, so rather than perform full sRGB encoding just use cheap gamma20
+    // TODO: test alternative like FastLinearToSRGB to better match unpacked gbuffer
+    outGBuffer0.xyz = LinearToGamma20(outGBuffer0.xyz);
 
-    uint outGBuffer0X = uint(saturate(data.outGBuffer0.x) * 255.5);
-    uint outGBuffer0Y = uint(saturate(data.outGBuffer0.y) * 255.5);
-    uint outGBuffer0Z = uint(saturate(data.outGBuffer0.z) * 255.5);
-    uint outGBuffer0W = uint(saturate(data.outGBuffer0.w) * 255.5);
+    uint packedGBuffer1 = PackR10G10B10A2(outGBuffer1);
 
-    outGBufferU0 = uint4(   PackFloatToUInt(outGBuffer1.x, 10, 0) | PackFloatToUInt(outGBuffer1.w, 2, 10) | PackNUpperbitFromU8(outGBuffer0Z, 2, 12) | PackNUpperbitFromU8(outGBuffer0W, 2, 14),
-                            PackFloatToUInt(outGBuffer1.y, 10, 0) | PackNLowerbitFromU8(outGBuffer0Z, 6, 10),
-                            PackFloatToUInt(outGBuffer1.z, 10, 0) | PackNLowerbitFromU8(outGBuffer0W, 6, 10),
-                            outGBuffer0X | outGBuffer0Y << 8
-                        );
+    outGBufferU0 = uint4(   PackFloatToUInt(outGBuffer0.x, 8, 0)  | PackFloatToUInt(outGBuffer0.y, 8, 8),
+                            PackFloatToUInt(outGBuffer0.z, 8, 0)  | PackFloatToUInt(outGBuffer0.w, 8, 8),
+                            (packedGBuffer1 & 0x0000FFFF),
+                            (packedGBuffer1 & 0xFFFF0000) >> 16);
 
-    uint outGBuffer2X = uint(saturate(data.outGBuffer2.x) * 255.5);
-    uint outGBuffer2Y = uint(saturate(data.outGBuffer2.y) * 255.5);
-    uint outGBuffer2Z = uint(saturate(data.outGBuffer2.z) * 255.5);
-    uint outGBuffer2W = uint(saturate(data.outGBuffer2.w) * 255.5);
+    uint packedGBuffer3 = PackR11G11B10f(outGBuffer3.xyz);
 
-    // TODO: This doesn't work for lighting buffer as the encoded format is float. i.e it mean that we must convert first to 111110Float format (TODO: Look at the code maybe not so expensive ?)
-    // before storing as uint the binary representation. Alternative is to use RGBM/LogLuv.
-    outGBufferU1 = uint4(   PackFloatToUInt(outGBuffer3.x, 11, 0) | PackNUpperbitFromU8(outGBuffer2Z, 3, 11) | PackNUpperbitFromU8(outGBuffer2W, 2, 14),
-                            PackFloatToUInt(outGBuffer3.z, 11, 0) | PackNLowerbitFromU8(outGBuffer2Z, 5, 11),
-                            PackFloatToUInt(outGBuffer3.x, 10, 0) | PackNLowerbitFromU8(outGBuffer2W, 6, 10),
-                            outGBuffer2X | outGBuffer2Y << 8
-                        );
+    outGBufferU1 = uint4(   PackFloatToUInt(outGBuffer2.x, 8, 0)  | PackFloatToUInt(outGBuffer2.y, 8, 8),
+                            PackFloatToUInt(outGBuffer2.z, 8, 0)  | PackFloatToUInt(outGBuffer2.w, 8, 8),
+                            (packedGBuffer3 & 0x0000FFFF),
+                            (packedGBuffer3 & 0xFFFF0000) >> 16);
     #endif
 }
 
@@ -245,24 +235,23 @@ void DecodeFromGBuffer(
     #if SHADEROPTIONS_PACK_GBUFFER_IN_U16
     float4 inGBuffer0, inGBuffer1, inGBuffer2, inGBuffer3;
     
-    inGBuffer0.x = UnpackUIntToFloat(inGBufferU0.w, 8, 0);
-    inGBuffer0.y = UnpackUIntToFloat(inGBufferU0.w, 8, 8);
-    inGBuffer0.z = (UnpackNLowerbitFromU8(inGBufferU1.y, 6, 10) | UnpackNUpperbitFromU8(inGBufferU1.x, 2, 12)) / 255.0;
-    inGBuffer0.w = (UnpackNLowerbitFromU8(inGBufferU1.z, 6, 10) | UnpackNUpperbitFromU8(inGBufferU1.x, 2, 14)) / 255.0;
+    inGBuffer0.x = UnpackUIntToFloat(inGBufferU0.x, 8, 0);
+    inGBuffer0.y = UnpackUIntToFloat(inGBufferU0.x, 8, 8);
+    inGBuffer0.z = UnpackUIntToFloat(inGBufferU0.y, 8, 0);
+    inGBuffer0.w = UnpackUIntToFloat(inGBufferU0.y, 8, 8);
 
-    inGBuffer1.x = UnpackUIntToFloat(inGBufferU0.x, 10, 0);
-    inGBuffer1.y = UnpackUIntToFloat(inGBufferU0.y, 10, 0);
-    inGBuffer1.z = UnpackUIntToFloat(inGBufferU0.z, 10, 0);
-    inGBuffer1.w = UnpackUIntToFloat(inGBufferU0.x, 2, 10);
+    inGBuffer0.xyz = Gamma20ToLinear(inGBuffer0.xyz);
+
+    uint packedGBuffer1 = inGBufferU0.z | inGBufferU0.w << 16;
+    inGBuffer1 = UnpackR10G10B10A2(packedGBuffer1);
     
-    inGBuffer2.x = UnpackUIntToFloat(inGBufferU1.w, 8, 0);
-    inGBuffer2.y = UnpackUIntToFloat(inGBufferU1.w, 8, 8);
-    inGBuffer2.z = (UnpackNLowerbitFromU8(inGBufferU1.y, 5, 11) | UnpackNUpperbitFromU8(inGBufferU1.x, 3, 11)) / 255.0;
-    inGBuffer2.w = (UnpackNLowerbitFromU8(inGBufferU1.z, 6, 10) | UnpackNUpperbitFromU8(inGBufferU1.x, 2, 14)) / 255.0;
+    inGBuffer2.x = UnpackUIntToFloat(inGBufferU1.x, 8, 0);
+    inGBuffer2.y = UnpackUIntToFloat(inGBufferU1.x, 8, 8);
+    inGBuffer2.z = UnpackUIntToFloat(inGBufferU1.y, 8, 0);
+    inGBuffer2.w = UnpackUIntToFloat(inGBufferU1.y, 8, 8);
 
-    inGBuffer3.x = UnpackUIntToFloat(inGBufferU1.x, 11, 0);
-    inGBuffer3.y = UnpackUIntToFloat(inGBufferU1.y, 11, 0);
-    inGBuffer3.z = UnpackUIntToFloat(inGBufferU1.z, 10, 0);
+    uint packedGBuffer3 = inGBufferU1.z | inGBufferU1.w << 16;
+    inGBuffer3.xyz = UnpackR11G11B10f(packedGBuffer1);
     inGBuffer3.w = 0.0;
     #endif
 

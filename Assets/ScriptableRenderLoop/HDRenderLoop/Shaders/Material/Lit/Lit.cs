@@ -139,6 +139,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 #pragma warning disable 162 // warning CS0162: Unreachable code detected
                 if (ShaderConfig.PackgbufferInU16 == 1)
                 {
+                    // TODO: Just discovered that Unity doesn't support unsigned 16 RT format.
                     RTFormat[0] = RenderTextureFormat.ARGBInt; RTReadWrite[0] = RenderTextureReadWrite.Linear;
                     RTFormat[1] = RenderTextureFormat.ARGBInt; RTReadWrite[1] = RenderTextureReadWrite.Linear;
                 }
