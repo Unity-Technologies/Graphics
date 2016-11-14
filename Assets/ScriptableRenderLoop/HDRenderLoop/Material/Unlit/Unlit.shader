@@ -49,10 +49,10 @@ Shader "HDRenderLoop/Unlit"
     //-------------------------------------------------------------------------------------
 
     #include "common.hlsl"
-    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs.hlsl"
-    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
-    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderPass/ShaderPass.cs.hlsl"    
-    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderConfig.cs.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderPass/ShaderPass.cs.hlsl"    
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration

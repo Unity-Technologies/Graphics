@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Unlit/Unlit.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Material/Unlit/Unlit.cs.  Please don't edit by hand.
 //
 
 #ifndef UNLIT_CS_HLSL

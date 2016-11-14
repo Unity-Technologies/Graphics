@@ -19,10 +19,10 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
 
             // CAUTION: In case deferred lighting need to support various lighting model statically, we will require to do multicompile with different define like UNITY_MATERIAL_LIT
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Debug/DebugViewMaterial.hlsl"    
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/Material/Material.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderConfig.cs.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.hlsl"    
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Material/Material.hlsl"
         
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);

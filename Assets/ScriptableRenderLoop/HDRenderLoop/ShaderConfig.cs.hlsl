@@ -1,5 +1,5 @@
 //
-// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderConfig.cs.  Please don't edit by hand.
+// This file was automatically generated from Assets/ScriptableRenderLoop/HDRenderLoop/ShaderConfig.cs.  Please don't edit by hand.
 //
 
 #ifndef SHADERCONFIG_CS_HLSL

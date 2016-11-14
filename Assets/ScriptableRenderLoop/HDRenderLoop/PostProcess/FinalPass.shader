@@ -22,7 +22,7 @@ Shader "Hidden/HDRenderLoop/FinalPass"
 
             #include "Common.hlsl"
             #include "Color.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Shaders/ShaderVariables.hlsl"
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
 
   			TEXTURE2D(_MainTex);
 			SAMPLER2D(sampler_MainTex);
