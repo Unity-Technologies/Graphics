@@ -204,6 +204,11 @@ namespace UnityEngine.MaterialGraph
 
     public class MaterialSlotDefaultInput : MaterialSlot, IGenerateDefaultInput
     {
+        public MaterialSlotDefaultInput() : base()
+        {
+
+        }
+
         public MaterialSlotDefaultInput(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, INode _defaultNode, int _defaultSlotID)
             : base(slotId, displayName, shaderOutputName, slotType, valueType, Vector4.zero)
         {
