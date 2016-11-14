@@ -692,12 +692,15 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
 
     // Evaluate the diffuse part.
     {
-    //#ifdef DIFFUSE_LAMBERT_BRDF
-        static float3x3 identity = {1.0, 0.0, 0.0,
-                                    0.0, 1.0, 0.0,
-                                    0.0, 0.0, 1.0};
-
-        ltcValue = LTCEvaluate(V, bsdfData.normalWS, identity, L, lightData.twoSided);
+    #ifdef DIFFUSE_LAMBERT_BRDF
+        static const float3x3 identity3x3 = {1.0, 0.0, 0.0,
+                                             0.0, 1.0, 0.0,
+                                             0.0, 0.0, 1.0};
+                                             
+        ltcValue = LTCEvaluate(V, bsdfData.normalWS, identity3x3, L, lightData.twoSided);
+    #else
+        ltcValue = LTCEvaluate(V, bsdfData.normalWS, preLightData.ltcXformDisneyDiffuse, L, lightData.twoSided);
+    #endif
 
         if (ltcValue == 0.0)
         {
@@ -705,11 +708,13 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
             return;
         }
 
+    #ifndef DIFFUSE_LAMBERT_BRDF
+        // TODO: verify that we do not need to multiply by PI.
+        ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
+    #endif
+
         ltcValue *= lightData.diffuseScale;
         diffuseLighting.rgb = bsdfData.diffuseColor * lightData.color * ltcValue;
-    //#else
-        // TODO: Disney
-    //#endif
     }
 
     // Evaluate the specular part.
