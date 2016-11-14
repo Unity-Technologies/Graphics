@@ -16,11 +16,11 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
 	Coordinate coord = GetCoordinate(input.unPositionSS.xy, _ScreenSize.zw);
 	PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
 
-	float4 diffuseLighting;
-	float4 specularLighting;
+	float3 diffuseLighting;
+	float3 specularLighting;
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
     LightLoop(V, positionWS, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
-	return float4(diffuseLighting.rgb + specularLighting.rgb, builtinData.opacity);
+	return float4(diffuseLighting + specularLighting, builtinData.opacity);
 }
 

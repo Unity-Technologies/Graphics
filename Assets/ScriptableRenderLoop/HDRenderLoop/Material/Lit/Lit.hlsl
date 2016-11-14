@@ -95,7 +95,6 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
     bsdfData.roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     bsdfData.materialId = surfaceData.materialId;
-    bsdfData.diffuseColor = surfaceData.baseColor;
 
     if (bsdfData.materialId == MATERIALID_LIT_STANDARD)
     {
@@ -606,13 +605,13 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
         #endif
         D = D_GGX(NdotH, bsdfData.roughness);
     }
-    specularLighting.rgb = F * Vis * D;
+    specularLighting = F * Vis * D;
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
     float diffuseTerm = Lambert();
     #else
     float diffuseTerm = DisneyDiffuse(preLightData.NdotV, NdotL, LdotH, bsdfData.perceptualRoughness);
     #endif
-    diffuseLighting.rgb = bsdfData.diffuseColor * diffuseTerm;
+    diffuseLighting = bsdfData.diffuseColor * diffuseTerm;
 }
 
 //-----------------------------------------------------------------------------
@@ -621,8 +620,8 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
                             float3 V, float3 positionWS, PreLightData preLightData, PunctualLightData lightData, BSDFData bsdfData,
-                            out float4 diffuseLighting,
-                            out float4 specularLighting)
+                            out float3 diffuseLighting,
+                            out float3 specularLighting)
 {
     // All punctual light type in the same formula, attenuation is neutral depends on light type.
     // light.positionWS is the normalize light direction in case of directional light and invSqrAttenuationRadius is 0
@@ -637,8 +636,8 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
     float illuminance = saturate(dot(bsdfData.normalWS, L)) * attenuation;
 
-    diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
-    specularLighting = float4(0.0, 0.0, 0.0, 1.0);
+    diffuseLighting = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
 
     // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
@@ -668,9 +667,9 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
     [branch] if (illuminance > 0.0f)
     {
-        BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting.rgb, specularLighting.rgb);
-        diffuseLighting.rgb *= lightData.color * illuminance * lightData.diffuseScale;
-        specularLighting.rgb *= lightData.color * illuminance * lightData.specularScale;
+        BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+        diffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
+        specularLighting *= lightData.color * illuminance * lightData.specularScale;
     }
 }
 
@@ -679,15 +678,15 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 //-----------------------------------------------------------------------------
 
 void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
-                            out float4 diffuseLighting,
-                            out float4 specularLighting,
+                            out float3 diffuseLighting,
+                            out float3 specularLighting,
                             uint sampleCount = 512)
 {
     // Add some jittering on Hammersley2d
     float2 randNum = InitRandom(V.xy * 0.5 + 0.5);
 
-    diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
-    specularLighting = float4(0.0, 0.0, 0.0, 1.0);
+    diffuseLighting = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
@@ -732,12 +731,12 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
             localSpecularLighting *= lightData.color * illuminance * lightData.specularScale;
         }
 
-        diffuseLighting.rgb += localDiffuseLighting;
-        specularLighting.rgb += localSpecularLighting;
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
     }
 
-    diffuseLighting.rgb /= float(sampleCount);
-    specularLighting.rgb /= float(sampleCount);
+    diffuseLighting /= float(sampleCount);
+    specularLighting /= float(sampleCount);
 }
 
 //-----------------------------------------------------------------------------
@@ -746,8 +745,8 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 
 void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
                         float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
-                        out float4 diffuseLighting,
-                        out float4 specularLighting)
+                        out float3 diffuseLighting,
+                        out float3 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE
     IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
@@ -765,8 +764,8 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
     float4x3 L = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
 
     // TODO: Can we get early out based on diffuse computation ? (if all point are clip)
-    diffuseLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    specularLighting = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    diffuseLighting = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
 
     // TODO: Fresnel is missing here but should be present
     specularLighting.rgb = LTCEvaluate(V, bsdfData.normalWS, preLightData.minV, L, lightData.twoSided) * preLightData.ltcGGXMagnitude;
@@ -925,13 +924,11 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                         float3 V, float3 positionWS, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
-                        out float4 diffuseLighting,
-                        out float4 specularLighting)
+                        out float3 diffuseLighting, out float3 specularLighting, out float2 weight)
 {
 #ifdef LIT_DISPLAY_REFERENCE
 
-    specularLighting.rgb = IntegrateSpecularGGXIBLRef(lightLoopContext, V, lightData, bsdfData);
-    specularLighting.a = 1.0;
+    specularLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, lightData, bsdfData);
 
 /*
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
@@ -941,7 +938,9 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     #endif
     diffuseLighting.a = 1.0;
 */
-    diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
+    diffuseLighting = float3(0.0, 0.0, 0.0);
+
+    weight = float2(0.0, 0.0);
 
 #else
     // TODO: factor this code in common, so other material authoring don't require to rewrite everything, 
@@ -957,7 +956,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, preLightData.iblR, bsdfData.roughness);
 
     float3 R = rayWS;
-    float weight = 1.0;
+    weight = float2(1.0, 1.0);
 
     // In this code we redefine a bit the behavior of the reflcetion proble. We separate the projection volume (the proxy of the scene) form the influence volume (what pixel on the screen is affected)
 
@@ -1000,17 +999,18 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
     {
         float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
-        weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+        weight.y = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
     }
     else // ENVSHAPETYPE_BOX or ENVSHAPETYPE_NONE 
     {
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
         float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
-        weight = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
+        weight.y = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
     }
 
     // Smooth weighting
-    weight = smoothstep01(weight);
+    weight.x = 0.0;
+    weight.y = smoothstep01(weight.y);
 
     // TODO: we must always perform a weight calculation as due to tiled rendering we need to smooth out cubemap at boundaries.
     // So goal is to split into two category and have an option to say if we parallax correct or not.
@@ -1020,13 +1020,11 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // We let GetSpecularDominantDir currently as it still an improvement but not as good as it could be
     float mip = perceptualRoughnessToMipmapLevel(bsdfData.perceptualRoughness);
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, mip);
-    specularLighting.rgb = preLD.rgb * preLightData.specularFGD;
+    specularLighting = preLD.rgb * preLightData.specularFGD;
 
     // Apply specular occlusion on it
-    specularLighting.rgb *= bsdfData.specularOcclusion;
-    specularLighting.a = weight;
-
-    diffuseLighting = float4(0.0, 0.0, 0.0, 1.0);
+    specularLighting *= bsdfData.specularOcclusion;
+    diffuseLighting = float3(0.0, 0.0, 0.0);
 
 #endif    
 }
