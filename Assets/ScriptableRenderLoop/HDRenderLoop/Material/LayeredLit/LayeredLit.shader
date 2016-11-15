@@ -376,6 +376,31 @@ Shader "HDRenderLoop/LayeredLit"
 
         Pass
         {
+            Name "DepthOnly"
+            Tags{ "LightMode" = "DepthOnly" }
+
+            Cull[_CullMode]
+
+            ZWrite On ZTest LEqual
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define LAYERED_LIT_SHADER
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitDepthPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "Forward" // Name is not used
             Tags{ "LightMode" = "Forward" } // This will be only for transparent object based on the RenderQueue index
 
