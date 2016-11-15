@@ -279,6 +279,30 @@ Shader "HDRenderLoop/Lit"
 
         Pass
         {
+            Name "DepthOnly"
+            Tags{ "LightMode" = "DepthOnly" }
+
+            Cull[_CullMode]
+
+            ZWrite On ZTest LEqual
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #include "../../Material/Material.hlsl"            
+            #include "LitData.hlsl"
+            #include "LitDepthPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "Motion Vectors"
             Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
 
