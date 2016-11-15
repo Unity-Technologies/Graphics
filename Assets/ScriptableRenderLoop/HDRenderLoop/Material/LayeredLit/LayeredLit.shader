@@ -75,6 +75,11 @@ Shader "HDRenderLoop/LayeredLit"
         _EmissiveIntensity2("EmissiveIntensity2", Float) = 0
         _EmissiveIntensity3("EmissiveIntensity3", Float) = 0
 
+        _LayerSize0("LayerSize0", Float) = 1.0
+        _LayerSize1("LayerSize1", Float) = 1.0
+        _LayerSize2("LayerSize2", Float) = 1.0
+        _LayerSize3("LayerSize3", Float) = 1.0
+
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
 
         [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
@@ -99,6 +104,11 @@ Shader "HDRenderLoop/LayeredLit"
         [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
+
+        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping0("Layer 0 Mapping", Float) = 0
+        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping1("Layer 1 Mapping", Float) = 0
+        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping2("Layer 2 Mapping", Float) = 0
+        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping3("Layer 3 Mapping", Float) = 0
     }
 
     HLSLINCLUDE
@@ -119,6 +129,10 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
     #pragma shader_feature _LAYERMASKMAP
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+    #pragma shader_feature _ _LAYER_MAPPING_UV1_0 _LAYER_MAPPING_PLANAR_0 _LAYER_MAPPING_TRIPLANAR_0
+    #pragma shader_feature _ _LAYER_MAPPING_UV1_1 _LAYER_MAPPING_PLANAR_1 _LAYER_MAPPING_TRIPLANAR_1
+    #pragma shader_feature _ _LAYER_MAPPING_UV1_2 _LAYER_MAPPING_PLANAR_2 _LAYER_MAPPING_TRIPLANAR_2
+    #pragma shader_feature _ _LAYER_MAPPING_UV1_3 _LAYER_MAPPING_PLANAR_3 _LAYER_MAPPING_TRIPLANAR_3
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -140,6 +154,36 @@ Shader "HDRenderLoop/LayeredLit"
     // variable declaration
     //-------------------------------------------------------------------------------------
 
+
+    #define _MAX_LAYER 4
+
+    #if defined(_LAYEREDLIT_4_LAYERS)
+    #   define _LAYER_COUNT 4
+    #elif defined(_LAYEREDLIT_3_LAYERS)
+    #   define _LAYER_COUNT 3
+    #else
+    #   define _LAYER_COUNT 2
+    #endif
+
+    struct LayerCoordinates
+    {
+        float2  texcoord[_MAX_LAYER];
+        bool    isTriplanar[_MAX_LAYER];
+    };
+
+    float4 SampleLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerCoordinates layerCoord, int layerIndex)
+    {
+        if (layerCoord.isTriplanar[layerIndex])
+        {
+            // TODO 
+            return SAMPLE_TEXTURE2D(layerTex, layerSampler, layerCoord.texcoord[layerIndex]);
+        }
+        else
+        {
+            return SAMPLE_TEXTURE2D(layerTex, layerSampler, layerCoord.texcoord[layerIndex]);
+        }
+    }
+
     // Set of users variables
     #define PROP_DECL(type, name) type name, name##0, name##1, name##2, name##3;
     #define PROP_DECL_TEX2D(name)\
@@ -148,11 +192,11 @@ Shader "HDRenderLoop/LayeredLit"
         TEXTURE2D(name##1); \
         TEXTURE2D(name##2); \
         TEXTURE2D(name##3);
-    #define PROP_SAMPLE(name, textureName, texcoord, swizzle)\
-        name##0 = SAMPLE_TEXTURE2D(textureName##0, sampler##textureName##0, texcoord).##swizzle; \
-        name##1 = SAMPLE_TEXTURE2D(textureName##1, sampler##textureName##0, texcoord).##swizzle; \
-        name##2 = SAMPLE_TEXTURE2D(textureName##2, sampler##textureName##0, texcoord).##swizzle; \
-        name##3 = SAMPLE_TEXTURE2D(textureName##3, sampler##textureName##0, texcoord).##swizzle;
+    #define PROP_SAMPLE(name, textureName, layerCoord, swizzle)\
+        name##0 = SampleLayer(TEXTURE2D_PARAM(textureName##0, sampler##textureName##0), layerCoord, 0).##swizzle; \
+        name##1 = SampleLayer(TEXTURE2D_PARAM(textureName##1, sampler##textureName##0), layerCoord, 1).##swizzle; \
+        name##2 = SampleLayer(TEXTURE2D_PARAM(textureName##2, sampler##textureName##0), layerCoord, 2).##swizzle; \
+        name##3 = SampleLayer(TEXTURE2D_PARAM(textureName##3, sampler##textureName##0), layerCoord, 3).##swizzle;
     #define PROP_MUL(name, multiplier, swizzle)\
         name##0 *= multiplier##0.##swizzle; \
         name##1 *= multiplier##1.##swizzle; \
@@ -171,16 +215,6 @@ Shader "HDRenderLoop/LayeredLit"
     #define PROP_BLEND_COLOR(name, mask) name = BlendLayeredColor(name##0, name##1, name##2, name##3, mask);
     #define PROP_BLEND_SCALAR(name, mask) name = BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
-    #define _MAX_LAYER 4
-
-    #if defined(_LAYEREDLIT_4_LAYERS)
-    #   define _LAYER_COUNT 4
-    #elif defined(_LAYEREDLIT_3_LAYERS)
-    #   define _LAYER_COUNT 3
-    #else
-    #   define _LAYER_COUNT 2
-    #endif
-
     //-------------------------------------------------------------------------------------
     // variable declaration
     //-------------------------------------------------------------------------------------
@@ -198,6 +232,7 @@ Shader "HDRenderLoop/LayeredLit"
     PROP_DECL(float, _HeightBias);
     PROP_DECL(float3, _EmissiveColor);
     PROP_DECL(float, _EmissiveIntensity);
+    PROP_DECL(float, _LayerSize);
 
     float _AlphaCutoff;
     TEXTURE2D(_LayerMaskMap);
