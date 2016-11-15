@@ -118,7 +118,7 @@ public class BasicRenderLoop : MonoBehaviour
                 var dir = light.localToWorld.GetColumn (2);
                 lightSpotDirections[i] = new Vector4 (-dir.x, -dir.y, -dir.z, 0);
 
-                float radAngle = Mathf.Deg2Rad * light.light.spotAngle;
+                float radAngle = Mathf.Deg2Rad * light.spotAngle;
                 float cosTheta = Mathf.Cos (radAngle * 0.25f);
                 float cosPhi = Mathf.Cos (radAngle * 0.5f);
                 float cosDiff = cosTheta - cosPhi;

@@ -210,7 +210,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_gbufferManager.gbufferCount = m_LitRenderLoop.GetMaterialGBufferCount();
             RenderTextureFormat[] RTFormat; RenderTextureReadWrite[] RTReadWrite;
             m_LitRenderLoop.GetMaterialGBufferDescription(out RTFormat, out RTReadWrite);
-            
+
             for (int gbufferIndex = 0; gbufferIndex < m_gbufferManager.gbufferCount; ++gbufferIndex)
             {
                 m_gbufferManager.SetBufferDescription(gbufferIndex, "_GBufferTexture" + gbufferIndex, RTFormat[gbufferIndex], RTReadWrite[gbufferIndex]);
@@ -467,7 +467,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         void RenderVelocity(CullResults cullResults, Camera camera, RenderLoop renderLoop)
         {
             // warning CS0162: Unreachable code detected // warning CS0429: Unreachable expression code detected
-#pragma warning disable 162, 429 
+#pragma warning disable 162, 429
             // If opaque velocity have been render during GBuffer no need to render it here
             if ((ShaderConfig.VelocityInGbuffer == 0) || debugParameters.useForwardRenderingOnly)
                 return ;
@@ -499,7 +499,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Only transparent object can render distortion vectors
             RenderTransparentRenderList(cullResults, camera, renderLoop, "DistortionVectors");
         }
-        
+
 
         void FinalPass(RenderLoop renderLoop)
         {
@@ -622,7 +622,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     if (light.lightType == LightType.Spot)
                     {
-                        var spotAngle = light.light.spotAngle;
+                        var spotAngle = light.spotAngle;
 
                         var innerConePercent = additionalData.GetInnerSpotPercent01();
                         var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);

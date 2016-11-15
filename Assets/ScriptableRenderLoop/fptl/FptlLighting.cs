@@ -416,7 +416,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "g_tShadowBuffer", new RenderTargetIdentifier(m_shadowBufferID));
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "unity_NHxRoughness", m_NHxRoughnessTexture);
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LightTextureB0", m_LightAttentuationTexture);
-                
+
                 cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
                 cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightData", s_LightDataBuffer);
                 cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
@@ -740,7 +740,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 var range = cl.range;
 
                 var lightToWorld = cl.localToWorld;
-                //Matrix4x4 worldToLight = l.worldToLocal;
 
                 Vector3 lightPos = lightToWorld.GetColumn(3);
 
@@ -1231,7 +1230,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var numTilesY = (h + 15) / 16;
             var numBigTilesX = (w + 63) / 64;
             var numBigTilesY = (h + 63) / 64;
-            
+
             var cmd = new CommandBuffer() { name = "Build light list" };
 
             // generate screen-space AABBs (used for both fptl and clustered).
@@ -1244,7 +1243,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
                 var projh = temp * proj;
                 var invProjh = projh.inverse;
-                
+
                 cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", numLights);
                 SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
                 SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
@@ -1427,7 +1426,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false, true);   //TODO: no alpha16 support?
             Color[] pixels = new Color[height*width];
-                
+
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
