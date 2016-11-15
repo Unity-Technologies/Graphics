@@ -129,10 +129,10 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
     #pragma shader_feature _LAYERMASKMAP
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
-    #pragma shader_feature _ _LAYER_MAPPING_UV1_0 _LAYER_MAPPING_PLANAR_0 _LAYER_MAPPING_TRIPLANAR_0
-    #pragma shader_feature _ _LAYER_MAPPING_UV1_1 _LAYER_MAPPING_PLANAR_1 _LAYER_MAPPING_TRIPLANAR_1
-    #pragma shader_feature _ _LAYER_MAPPING_UV1_2 _LAYER_MAPPING_PLANAR_2 _LAYER_MAPPING_TRIPLANAR_2
-    #pragma shader_feature _ _LAYER_MAPPING_UV1_3 _LAYER_MAPPING_PLANAR_3 _LAYER_MAPPING_TRIPLANAR_3
+    //#pragma shader_feature _ _LAYER_MAPPING_UV1_0 _LAYER_MAPPING_PLANAR_0 _LAYER_MAPPING_TRIPLANAR_0
+    //#pragma shader_feature _ _LAYER_MAPPING_UV1_1 _LAYER_MAPPING_PLANAR_1 _LAYER_MAPPING_TRIPLANAR_1
+    //#pragma shader_feature _ _LAYER_MAPPING_UV1_2 _LAYER_MAPPING_PLANAR_2 _LAYER_MAPPING_TRIPLANAR_2
+    //#pragma shader_feature _ _LAYER_MAPPING_UV1_3 _LAYER_MAPPING_PLANAR_3 _LAYER_MAPPING_TRIPLANAR_3
 
     //-------------------------------------------------------------------------------------
     // Define
