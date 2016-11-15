@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         enum PrimitiveType
         {
-            Float, Int, UInt
+            Float, Int, UInt, Bool
         };
 
         static string PrimitiveToString(PrimitiveType type, int rows, int cols)
@@ -31,6 +31,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     break;
                 case PrimitiveType.UInt:
                     text = "uint";
+                    break;
+                case PrimitiveType.Bool:
+                    text = "bool";
                     break;
             }
 
@@ -171,8 +174,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         bool ExtractComplex(FieldInfo field, List<ShaderFieldInfo> shaderFields)
         {
             var floatFields = new List<FieldInfo>();
-            var intFields = new List<FieldInfo>();
-            var uintFields = new List<FieldInfo>();
+            var intFields   = new List<FieldInfo>();
+            var uintFields  = new List<FieldInfo>();
+            var boolFields  = new List<FieldInfo>();
             var descs = new string[4] { "x: ", "y: ", "z: ", "w: " };
             int numFields = 0;
 
@@ -194,6 +198,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     intFields.Add(subField);
                 else if (subField.FieldType == typeof(uint))
                     uintFields.Add(subField);
+                else if (subField.FieldType == typeof(bool))
+                    boolFields.Add(subField);
                 else
                 {
                     Error("'" + fieldName + "' can not be packed into a register, since it contains an unsupported field type '" + subField.FieldType + "'");
@@ -216,7 +222,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             if (floatFields.Count > 0)
             {
-                if (intFields.Count + uintFields.Count > 0)
+                if (intFields.Count + uintFields.Count + boolFields.Count > 0)
                 {
                     Error(mismatchErrorMsg);
                     return false;
@@ -225,7 +231,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
             else if (intFields.Count > 0)
             {
-                if (floatFields.Count + uintFields.Count > 0)
+                if (floatFields.Count + uintFields.Count + boolFields.Count > 0)
                 {
                     Error(mismatchErrorMsg);
                     return false;
@@ -234,12 +240,21 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
             else if (uintFields.Count > 0)
             {
-                if (floatFields.Count + intFields.Count > 0)
+                if (floatFields.Count + intFields.Count + boolFields.Count > 0)
                 {
                     Error(mismatchErrorMsg);
                     return false;
                 }
                 EmitPrimitiveType(PrimitiveType.UInt, uintFields.Count, field.Name, "", shaderFields);
+            }
+            else if (boolFields.Count > 0)
+            {
+                if (floatFields.Count + intFields.Count + uintFields.Count > 0)
+                {
+                    Error(mismatchErrorMsg);
+                    return false;
+                }
+                EmitPrimitiveType(PrimitiveType.Bool, boolFields.Count, field.Name, "", shaderFields);
             }
             else
             {
@@ -476,6 +491,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         EmitPrimitiveType(PrimitiveType.Int, 1, field.Name, "", m_ShaderFields);
                     else if (field.FieldType == typeof(uint))
                         EmitPrimitiveType(PrimitiveType.UInt, 1, field.Name, "", m_ShaderFields);
+                        else if (field.FieldType == typeof(bool))
+                        EmitPrimitiveType(PrimitiveType.Bool, 1, field.Name, "", m_ShaderFields);
                     else
                     {
                         Error("unsupported field type '" + field.FieldType + "'");
