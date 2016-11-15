@@ -15,6 +15,7 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
             #pragma fragment Frag
 
             #include "Common.hlsl"
+            #include "CommonLighting.hlsl"
         
             TEXTURECUBE(_Cubemap);
             SAMPLERCUBE(sampler_Cubemap);
