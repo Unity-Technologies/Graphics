@@ -19,6 +19,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly GUIContent exposure = new GUIContent("Exposure");
 
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
+            public readonly GUIContent useDepthPrepass = new GUIContent("Use Depth Prepass");
 
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
@@ -154,6 +155,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             debugParameters.displayOpaqueObjects = EditorGUILayout.Toggle(styles.displayOpaqueObjects, debugParameters.displayOpaqueObjects);
             debugParameters.displayTransparentObjects = EditorGUILayout.Toggle(styles.displayTransparentObjects, debugParameters.displayTransparentObjects);
 			debugParameters.useForwardRenderingOnly = EditorGUILayout.Toggle(styles.useForwardRenderingOnly, debugParameters.useForwardRenderingOnly);
+            debugParameters.useDepthPrepass = EditorGUILayout.Toggle(styles.useDepthPrepass, debugParameters.useDepthPrepass);            
 
             if (EditorGUI.EndChangeCheck())
             {
