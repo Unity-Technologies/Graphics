@@ -99,5 +99,4 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Vector3 offsetLS;
         public float unused2;
     };
-
 } // namespace UnityEngine.Experimental.ScriptableRenderLoop
