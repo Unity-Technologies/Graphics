@@ -19,12 +19,12 @@ namespace RMGUI.GraphView.Demo
 				dataSource = CreateInstance<NodesContentViewData>()
 			};
 			view.StretchToParentSize();
-			windowRoot.AddChild(view);
+            rootVisualContainer.AddChild(view);
 		}
 
 		void OnDisable()
 		{
-			windowRoot.ClearChildren();
+            rootVisualContainer.ClearChildren();
 		}
 	}
 }
