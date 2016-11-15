@@ -24,6 +24,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
             public int[] debugViewMaterialValues = null;
+
+            public readonly GUIContent skyParameters = new GUIContent("Sky Parameters");
+            public readonly GUIContent skyExposure = new GUIContent("Sky Exposure");
+            public readonly GUIContent skyRotation = new GUIContent("Sky Rotation");
+            public readonly GUIContent skyMultiplier = new GUIContent("Sky Multiplier");
         }
 
         private static Styles s_Styles = null;
@@ -157,6 +162,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 			debugParameters.useForwardRenderingOnly = EditorGUILayout.Toggle(styles.useForwardRenderingOnly, debugParameters.useForwardRenderingOnly);
             debugParameters.useDepthPrepass = EditorGUILayout.Toggle(styles.useDepthPrepass, debugParameters.useDepthPrepass);            
 
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.SetDirty(renderLoop); // Repaint
+            }
+            EditorGUI.indentLevel--;
+
+            var skyParameters = renderLoop.skyParameters;
+
+            EditorGUILayout.LabelField(styles.skyParameters);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+
+            skyParameters.skyHDRI = (Cubemap)EditorGUILayout.ObjectField("Cubemap", skyParameters.skyHDRI, typeof(Cubemap), false);
+            skyParameters.exposure = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyExposure, skyParameters.exposure), 32), -32);
+            skyParameters.multiplier = Mathf.Max(EditorGUILayout.FloatField(styles.skyMultiplier, skyParameters.multiplier), 0);
+            skyParameters.rotation = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyRotation, skyParameters.rotation), 360), 0);
+ 
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(renderLoop); // Repaint
