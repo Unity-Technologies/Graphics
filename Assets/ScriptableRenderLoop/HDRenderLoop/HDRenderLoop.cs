@@ -33,6 +33,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             BakeDiffuseLighting = 11,
         }
 
+        public class SkyParameters
+        {
+            public Cubemap skyHDRI;
+            public float rotation;
+            public float exposure;
+            public float multiplier;
+        }
+
+        [SerializeField]
+        private SkyParameters m_SkyParameters = new SkyParameters();
+ 
+        public SkyParameters skyParameters
+        {
+            get { return m_SkyParameters; }
+        }
+
         public class DebugParameters
         {
             // Material Debugging
@@ -125,6 +141,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
+        Material m_SkyboxMaterial;
+        Material m_SkyHDRIMaterial;
         Material m_DeferredMaterial;
         Material m_FinalPassMaterial;
 
@@ -194,6 +212,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             s_envLightList       = new ComputeBuffer(MaxLights,  System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
             s_punctualShadowList = new ComputeBuffer(MaxShadows, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
 
+            // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
+            m_SkyboxMaterial = CreateEngineMaterial("Skybox/Cubemap");
+            RenderSettings.skybox = m_SkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+            RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
+            RenderSettings.reflectionIntensity = 1.0f;
+        
+            m_SkyHDRIMaterial = CreateEngineMaterial("Hidden/HDRenderLoop/SkyHDRI");
             m_DeferredMaterial   = CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
             m_FinalPassMaterial  = CreateEngineMaterial("Hidden/HDRenderLoop/FinalPass");
 
@@ -240,7 +266,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             s_areaLightList.Release();
             s_envLightList.Release();
             s_punctualShadowList.Release();
-
+     
+            if (m_SkyboxMaterial) DestroyImmediate(m_SkyboxMaterial);
+            if (m_SkyHDRIMaterial) DestroyImmediate(m_SkyHDRIMaterial);
             if (m_DeferredMaterial)  DestroyImmediate(m_DeferredMaterial);
             if (m_FinalPassMaterial) DestroyImmediate(m_FinalPassMaterial);
 
@@ -493,6 +521,58 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DeferredMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
+        }
+
+        void RenderSky(Camera camera, RenderLoop renderLoop)
+        {
+            /*
+            // Render sky into a cubemap - doesn't happen every frame, can be control
+
+            // TODO: do a render to texture here
+
+            // Downsample the cubemap and provide it to Enlighten
+
+            // TODO: currently workaround is to set the cubemap in a Skybox/cubemap material
+            //m_SkyboxMaterial.SetTexture(cubemap);
+
+            // Render the sky itself
+
+            Vector3[] vertData = new Vector3[4];
+            vertData[0] = new Vector3(-1.0f, -1.0f, 0.0f);
+            vertData[1] = new Vector3(1.0f, -1.0f, 0.0f);
+            vertData[2] = new Vector3(1.0f, 1.0f, 0.0f);
+            vertData[3] = new Vector3(-1.0f, 1.0f, 0.0f);            
+
+            Vector3[] eyeVectorData = new Vector3[4];
+            // camera.worldToCameraMatrix, camera.projectionMatrix
+            // Get view vector vased on the frustrum, i.e (invert transform frustrum get position etc...)
+            eyeVectorData[0] = 
+            eyeVectorData[1] = 
+            eyeVectorData[2] = 
+            eyeVectorData[3] = 
+
+            // Write out the mesh
+            var triangles = new int[4];
+            for (int i = 0; i < 4; i++)
+            {
+                triangles[i] = i;
+            }
+
+            Mesh mesh = new Mesh
+            {
+                vertices = vertData,
+                normals = eyeVectorData,
+                triangles = triangles
+            };
+
+            m_SkyHDRIMaterial.SetTexture("_Cubemap", skyParameters.skyHDRI);
+            m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
+
+            var cmd = new CommandBuffer { name = "Skybox" };
+            cmd.DrawMesh(mesh, Matrix4x4.identity, m_SkyHDRIMaterial);
+            renderloop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+            */
         }
 
         void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop)
@@ -867,10 +947,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     RenderDeferredLighting(camera, renderLoop);
 
-                    RenderForward(cullResults, camera, renderLoop);
+                    RenderSky(camera, renderLoop);
+
+                    RenderForward(cullResults, camera, renderLoop); // Note: We want to render forward opaque before RenderSky, then RenderTransparent - can only do that once we have material.SetPass feature...
                     RenderForwardUnlit(cullResults, camera, renderLoop);
 
-                    RenderVelocity(cullResults, camera, renderLoop);
+                    RenderVelocity(cullResults, camera, renderLoop); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ? 
 
                     // TODO: Check with VFX team.
                     // Rendering distortion here have off course lot of artifact.
