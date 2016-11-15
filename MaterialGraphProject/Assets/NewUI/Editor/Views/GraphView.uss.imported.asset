@@ -7,10 +7,10 @@ MonoBehaviour:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
-  m_EditorHideFlags: 1
-  m_Script: {fileID: 11997, guid: 0000000000000000e000000000000000, type: 0}
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
   m_Name: GraphView.uss.imported
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: UnityEngine:UnityEngine:StyleSheetData
   matchers:
   - specificity: 11
     selectorValues:

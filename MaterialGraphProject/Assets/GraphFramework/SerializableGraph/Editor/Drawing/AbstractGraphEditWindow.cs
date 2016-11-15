@@ -57,13 +57,13 @@ namespace UnityEditor.Graphing.Drawing
             m_GraphView.dataSource = source;
             m_GraphView.StretchToParentSize();
 
-            windowRoot.AddChild(m_TitleBarDrawer);
-            windowRoot.AddChild(m_GraphView);
+            rootVisualContainer.AddChild(m_TitleBarDrawer);
+            rootVisualContainer.AddChild(m_GraphView);
         }
 
         void OnDisable()
         {
-            windowRoot.ClearChildren();
+            rootVisualContainer.ClearChildren();
         }
 
         void Update()
