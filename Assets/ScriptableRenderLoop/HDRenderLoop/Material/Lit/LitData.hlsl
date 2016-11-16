@@ -1,25 +1,3 @@
-//-------------------------------------------------------------------------------------
-// FragInput
-// This structure gather all possible varying/interpolator for this shader.
-//-------------------------------------------------------------------------------------
-
-struct FragInput
-{
-    float4 unPositionSS; // This is the position return by VPOS (That is name positionCS in PackedVarying), only xy is use
-    float3 positionWS;
-    float2 texCoord0;
-    float2 texCoord1;
-    float2 texCoord2;
-    float3 tangentToWorld[3];
-
-    // For velocity
-    // Note: Z component is not use
-    float4 positionCS; // This is the clip spae position. Warning, do not confuse with the value of positionCS in PackedVarying which is VPOS and store in unPositionSS
-    float4 previousPositionCS;
-
-    // For two sided lighting
-    bool isFrontFace;
-};
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function

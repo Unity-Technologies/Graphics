@@ -14,25 +14,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     {
         private const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
-        // Must be in sync with DebugViewMaterial.hlsl
-        public enum DebugViewVaryingMode
-        {
-            TexCoord0 = 1,
-            TexCoord1 = 2,
-            TexCoord2 = 3,
-            VertexTangentWS = 4,
-            VertexBitangentWS = 5,
-            VertexNormalWS = 6,
-            VertexColor = 7,
-        }
-
-        // Must be in sync with DebugViewMaterial.hlsl
-        public enum DebugViewGbufferMode
-        {
-            Depth = 10,
-            BakeDiffuseLighting = 11,
-        }
-
         public class SkyParameters
         {
             public Cubemap skyHDRI;
