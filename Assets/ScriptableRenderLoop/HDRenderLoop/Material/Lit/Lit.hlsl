@@ -505,8 +505,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 
     // Area light specific
     // UVs for sampling the LUTs
-    // TODO: Test with fastAcos
-    float theta = acos(dot(bsdfData.normalWS, V));
+    float theta = FastACos(dot(bsdfData.normalWS, V));
     // Scale and bias for the current precomputed table - the constant use here are the one that have been use when the table in LtcData.DisneyDiffuse.cs and LtcData.GGX.cs was use
     float2 uv = 0.0078125 + 0.984375 * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
 
@@ -841,7 +840,6 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
         }
 
     #ifndef DIFFUSE_LAMBERT_BRDF
-        // TODO: verify that we do not need to multiply by PI.
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
     #endif
 
@@ -858,9 +856,6 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
-
-    // TODO: current area light code doesn't take into account artist attenuation radius!
-
 #endif
 }
 
