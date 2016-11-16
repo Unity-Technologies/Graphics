@@ -21,7 +21,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderConfig.cs.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.hlsl"    
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.cs.hlsl"    
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Material/Material.hlsl"
         
 
@@ -67,12 +67,12 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
                 float3 result = float3(-666.0, 0.0, 0.0);
                 bool needLinearToSRGB = false;
 
-                if (_DebugViewMaterial == DEBUGVIEW_GBUFFER_DEPTH)
+                if (_DebugViewMaterial == DEBUGVIEWGBUFFER_DEPTH)
                 {
                     float linearDepth = frac(LinearEyeDepth(depth, _ZBufferParams) * 0.1);
                     result = linearDepth.xxx;
                 }
-                else if (_DebugViewMaterial == DEBUGVIEW_GBUFFER_BAKEDIFFUSELIGHTING)
+                else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING)
                 {
                     result = bakeDiffuseLighting;
                 }

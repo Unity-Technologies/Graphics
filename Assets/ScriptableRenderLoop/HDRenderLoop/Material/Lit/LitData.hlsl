@@ -1,25 +1,3 @@
-//-------------------------------------------------------------------------------------
-// FragInput
-// This structure gather all possible varying/interpolator for this shader.
-//-------------------------------------------------------------------------------------
-
-struct FragInput
-{
-    float4 unPositionSS; // This is the position return by VPOS (That is name positionCS in PackedVarying), only xy is use
-    float3 positionWS;
-    float2 texCoord0;
-    float2 texCoord1;
-    float2 texCoord2;
-    float3 tangentToWorld[3];
-
-    // For velocity
-    // Note: Z component is not use
-    float4 positionCS; // This is the clip spae position. Warning, do not confuse with the value of positionCS in PackedVarying which is VPOS and store in unPositionSS
-    float4 previousPositionCS;
-
-    // For two sided lighting
-    bool isFrontFace;
-};
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
@@ -114,7 +92,7 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 #if !defined(LAYERED_LIT_SHADER)
 
 void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
-{    
+{
 #ifdef _HEIGHTMAP
     // TODO: in case of shader graph, a node like parallax must be nullify if use to generate code for Meta pass
     #ifndef _HEIGHTMAP_AS_DISPLACEMENT
@@ -327,21 +305,95 @@ void ComputeMaskWeights(float3 inputMasks, out float outWeights[_MAX_LAYER])
     outWeights[0] = left;
 }
 
+float2 ComputePlanarXZCoord(float3 worldPos, float layerSize)
+{
+    return frac(worldPos.xz / layerSize);
+}
+
+void ComputeLayerCoordinates(out LayerCoordinates outCoord, FragInput input)
+{
+#if defined(_LAYER_MAPPING_UV1_0)
+    outCoord.texcoord[0] = input.texCoord1;
+    outCoord.isTriplanar[0] = false;
+#elif defined(_LAYER_MAPPING_PLANAR_0)
+    outCoord.texcoord[0] = ComputePlanarXZCoord(input.positionWS, _LayerSize0);
+    outCoord.isTriplanar[0] = false;
+#elif defined(_LAYER_MAPPING_TRIPLANAR_0)
+    outCoord.texcoord[0] = input.texCoord0;
+    outCoord.isTriplanar[0] = true;
+#else
+    outCoord.texcoord[0] = input.texCoord0;
+    outCoord.isTriplanar[0] = false;
+#endif
+
+#if defined(_LAYER_MAPPING_UV1_1)
+    outCoord.texcoord[1] = input.texCoord1;
+    outCoord.isTriplanar[1] = false;
+#elif defined(_LAYER_MAPPING_PLANAR_1)
+    outCoord.texcoord[1] = ComputePlanarXZCoord(input.positionWS, _LayerSize1);
+    outCoord.isTriplanar[1] = false;
+#elif defined(_LAYER_MAPPING_TRIPLANAR_1)
+    outCoord.texcoord[1] = input.texCoord0;
+    outCoord.isTriplanar[1] = true;
+#else
+    outCoord.texcoord[1] = input.texCoord0;
+    outCoord.isTriplanar[1] = false;
+#endif
+
+#if defined(_LAYER_MAPPING_UV1_2)
+    outCoord.texcoord[2] = input.texCoord1;
+    outCoord.isTriplanar[2] = false;
+#elif defined(_LAYER_MAPPING_PLANAR_2)
+    outCoord.texcoord[2] = ComputePlanarXZCoord(input.positionWS, _LayerSize2);
+    outCoord.isTriplanar[2] = false;
+#elif defined(_LAYER_MAPPING_TRIPLANAR_2)
+    outCoord.texcoord[2] = input.texCoord0;
+    outCoord.isTriplanar[2] = true;
+#else
+    outCoord.texcoord[2] = input.texCoord0;
+    outCoord.isTriplanar[2] = false;
+#endif
+
+#if defined(_LAYER_MAPPING_UV1_3)
+    outCoord.texcoord[3] = input.texCoord1;
+    outCoord.isTriplanar[3] = false;
+#elif defined(_LAYER_MAPPING_PLANAR_3)
+    outCoord.texcoord[3] = ComputePlanarXZCoord(input.positionWS, _LayerSize3);
+    outCoord.isTriplanar[3] = false;
+#elif defined(_LAYER_MAPPING_TRIPLANAR_3)
+    outCoord.texcoord[3] = input.texCoord0;
+    outCoord.isTriplanar[3] = true;
+#else
+    outCoord.texcoord[3] = input.texCoord0;
+    outCoord.isTriplanar[3] = false;
+#endif
+}
 
 void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    // Mask Values : Layer 1, 2, 3 are r, g, b
-    float3 maskValues = float3(0.0, 0.0, 0.0);// input.vertexColor;
+    LayerCoordinates layerCoord;
+    ComputeLayerCoordinates(layerCoord, input);
 
-#ifdef _LAYERMASKMAP
+    // Mask Values : Layer 1, 2, 3 are r, g, b
+    float3 maskValues = float3(0.0, 0.0, 0.0);
+
+#if defined(_LAYER_MASK_MAP)
     maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
+#endif
+
+#if defined(_LAYER_MASK_VERTEX_COLOR)
+    maskValues = input.vertexColor.rgb;
+#endif
+
+#if defined(_LAYER_MASK_MAP) && defined(_LAYER_MASK_VERTEX_COLOR)
+    maskValues = input.vertexColor.rgb * SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
 #endif
 
     float weights[_MAX_LAYER];
     ComputeMaskWeights(maskValues, weights);
 
     PROP_DECL(float3, baseColor);
-    PROP_SAMPLE(baseColor, _BaseColorMap, input.texCoord0, rgb);
+    PROP_SAMPLE(baseColor, _BaseColorMap, layerCoord, rgb);
     PROP_MUL(baseColor, _BaseColor, rgb);
     PROP_BLEND_COLOR(baseColor, weights);
 
@@ -351,7 +403,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     PROP_ASSIGN(alpha, _BaseColor, a);
 #else
-    PROP_SAMPLE(alpha, _BaseColorMap, input.texCoord0, a);
+    PROP_SAMPLE(alpha, _BaseColorMap, layerCoord, a);
     PROP_MUL(alpha, _BaseColor, a);
 #endif
     PROP_BLEND_SCALAR(alpha, weights);
@@ -365,7 +417,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     PROP_DECL(float, specularOcclusion);
 #ifdef _SPECULAROCCLUSIONMAP
     // TODO: Do something. For now just take alpha channel
-    PROP_SAMPLE(specularOcclusion, _SpecularOcclusionMap, input.texCoord0, a);
+    PROP_SAMPLE(specularOcclusion, _SpecularOcclusionMap, layerCoord, a);
 #else
     // Horizon Occlusion for Normal Mapped Reflections: http://marmosetco.tumblr.com/post/81245981087
     //surfaceData.specularOcclusion = saturate(1.0 + horizonFade * dot(r, input.tangentToWorld[2].xyz);
@@ -381,10 +433,10 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-        float3 normalTS0 = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap0, sampler_NormalMap0, input.texCoord0));
-        float3 normalTS1 = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap1, sampler_NormalMap0, input.texCoord0));
-        float3 normalTS2 = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap2, sampler_NormalMap0, input.texCoord0));
-        float3 normalTS3 = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap3, sampler_NormalMap0, input.texCoord0));
+        float3 normalTS0 = UnpackNormalAG(SampleLayer(TEXTURE2D_PARAM(_NormalMap0, sampler_NormalMap0), layerCoord, 0));
+        float3 normalTS1 = UnpackNormalAG(SampleLayer(TEXTURE2D_PARAM(_NormalMap1, sampler_NormalMap0), layerCoord, 1));
+        float3 normalTS2 = UnpackNormalAG(SampleLayer(TEXTURE2D_PARAM(_NormalMap2, sampler_NormalMap0), layerCoord, 2));
+        float3 normalTS3 = UnpackNormalAG(SampleLayer(TEXTURE2D_PARAM(_NormalMap3, sampler_NormalMap0), layerCoord, 3));
 
         float3 normalTS = BlendLayeredNormal(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 
@@ -410,9 +462,9 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
     PROP_DECL(float, perceptualSmoothness);
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    PROP_SAMPLE(perceptualSmoothness, _BaseColorMap, input.texCoord0, a);
+    PROP_SAMPLE(perceptualSmoothness, _BaseColorMap, layerCoord, a);
 #elif defined(_MASKMAP)
-    PROP_SAMPLE(perceptualSmoothness, _MaskMap, input.texCoord0, a);
+    PROP_SAMPLE(perceptualSmoothness, _MaskMap, layerCoord, a);
 #else
     PROP_ASSIGN_VALUE(perceptualSmoothness, 1.0);
 #endif
@@ -427,8 +479,8 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     PROP_DECL(float, metallic);
     PROP_DECL(float, ambientOcclusion);
 #ifdef _MASKMAP
-    PROP_SAMPLE(metallic, _MaskMap, input.texCoord0, a);
-    PROP_SAMPLE(ambientOcclusion, _MaskMap, input.texCoord0, g);
+    PROP_SAMPLE(metallic, _MaskMap, layerCoord, a);
+    PROP_SAMPLE(ambientOcclusion, _MaskMap, layerCoord, g);
 #else
     PROP_ASSIGN_VALUE(metallic, 1.0);
     PROP_ASSIGN_VALUE(ambientOcclusion, 1.0);
@@ -464,12 +516,12 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     PROP_DECL(float3, emissiveColor);
 #ifdef _EMISSIVE_COLOR
 #ifdef _EMISSIVE_COLOR_MAP
-    PROP_SAMPLE(emissiveColor, _EmissiveColorMap, input.texCoord0, rgb);
+    PROP_SAMPLE(emissiveColor, _EmissiveColorMap, layerCoord, rgb);
 #else
     PROP_ASSIGN(emissiveColor, _EmissiveColor, rgb);
 #endif
 #elif defined(_MASKMAP) // If we have a MaskMap, use emissive slot as a mask on baseColor
-    PROP_SAMPLE(emissiveColor, _MaskMap, input.texCoord0, bbb);
+    PROP_SAMPLE(emissiveColor, _MaskMap, layerCoord, bbb);
     PROP_MUL(emissiveColor, baseColor, rgb);
 #else
     PROP_ASSIGN_VALUE(emissiveColor, float3(0.0, 0.0, 0.0));
