@@ -6,6 +6,14 @@ namespace UnityEditor
 {
     internal class LayeredLitGUI : LitGUI
     {
+        public enum LayerMapping
+        {
+            UV0,
+            UV1,
+            Planar,
+            Triplanar,
+        }
+
         private class Styles
         {
             public readonly GUIContent[] materialLayerLabels =
@@ -20,6 +28,8 @@ namespace UnityEditor
             public readonly GUIContent emission = new GUIContent("Emissive");
             public readonly GUIContent layerMapMask = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color)");
             public readonly GUIContent layerCount = new GUIContent("Layer Count", "Number of layers.");
+            public readonly GUIContent layerSize = new GUIContent("Size", "Size of the layer mapping in world units.");
+            public readonly GUIContent layerMapping = new GUIContent("Mapping", "Mapping mode of the layer.");
         }
 
         static Styles s_Styles = null;
@@ -34,13 +44,17 @@ namespace UnityEditor
 
         private const int kMaxLayerCount = 4;
         private const int kSyncButtonWidth = 58;
-        private string kLayerMaskMap = "_LayerMaskMap";
-        private string kLayerCount = "_LayerCount";
+        private const string kLayerMaskMap = "_LayerMaskMap";
+        private const string kLayerCount = "_LayerCount";
+        private const string kLayerMapping = "_LayerMapping";
+        private const string kLayerSize = "_LayerSize";
 
         private Material[] m_MaterialLayers = new Material[kMaxLayerCount];
 
         MaterialProperty layerCountProperty = null;
         MaterialProperty layerMaskMapProperty = null;
+        MaterialProperty[] layerMappingProperty = new MaterialProperty[kMaxLayerCount];
+        MaterialProperty[] layerSizeProperty = new MaterialProperty[kMaxLayerCount];
 
         int layerCount
         {
@@ -290,7 +304,30 @@ namespace UnityEditor
             }
         }
 
-        bool LayersGUI(AssetImporter materialImporter)
+        bool DoLayerGUI(AssetImporter materialImporter, int layerIndex)
+        {
+            bool result = false;
+            EditorGUI.BeginChangeCheck();
+            m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.materialLayerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(materialImporter, "Change layer material");
+                SynchronizeLayerProperties(layerIndex);
+                result = true;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            m_MaterialEditor.ShaderProperty(layerMappingProperty[layerIndex], styles.layerMapping);
+            if (EditorGUI.EndChangeCheck())
+            {
+                result = true;
+            }
+            m_MaterialEditor.ShaderProperty(layerSizeProperty[layerIndex], styles.layerSize);
+
+            return result;
+        }
+
+        bool DoLayersGUI(AssetImporter materialImporter)
         {
             Material material = m_MaterialEditor.target as Material;
 
@@ -313,14 +350,7 @@ namespace UnityEditor
 
             for (int i = 0; i < layerCount; i++)
             {
-                EditorGUI.BeginChangeCheck();
-                m_MaterialLayers[i] = EditorGUILayout.ObjectField(styles.materialLayerLabels[i], m_MaterialLayers[i], typeof(Material), true) as Material;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Undo.RecordObject(materialImporter, "Change layer material");
-                    SynchronizeLayerProperties(i);
-                    layerChanged = true;
-                }
+                layerChanged |= DoLayerGUI(materialImporter, i);
             }
 
             EditorGUILayout.Space();
@@ -404,13 +434,56 @@ namespace UnityEditor
                 SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
                 SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
             }
+
+            const string kLayerMappingUV1 = "_LAYER_MAPPING_UV1_";
+            const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR_";
+            const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR_";
+
+            for (int i = 0 ; i <layerCount ; ++i)
+            {
+                string layerMappingParam = string.Format("{0}{1}", kLayerMapping, i);
+                LayerMapping layerMapping = (LayerMapping)material.GetFloat(layerMappingParam);
+
+                string currentLayerMappingUV1 = string.Format("{0}{1}", kLayerMappingUV1, i);
+                string currentLayerMappingPlanar = string.Format("{0}{1}", kLayerMappingPlanar, i);
+                string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
+
+                if(layerMapping == LayerMapping.UV1)
+                {
+                    SetKeyword(material, currentLayerMappingUV1, true);
+                    SetKeyword(material, currentLayerMappingPlanar, false);
+                    SetKeyword(material, currentLayerMappingTriplanar, false);
+                }
+                else if(layerMapping == LayerMapping.Planar)
+                {
+                    SetKeyword(material, currentLayerMappingUV1, false);
+                    SetKeyword(material, currentLayerMappingPlanar, true);
+                    SetKeyword(material, currentLayerMappingTriplanar, false);
+                }
+                else if(layerMapping == LayerMapping.Triplanar)
+                {
+                    SetKeyword(material, currentLayerMappingUV1, false);
+                    SetKeyword(material, currentLayerMappingPlanar, false);
+                    SetKeyword(material, currentLayerMappingTriplanar, true);
+                }
+            }
+        }
+
+        private void FindLayerProperties(MaterialProperty[] props)
+        {
+            layerMaskMapProperty = FindProperty(kLayerMaskMap, props);
+            layerCountProperty = FindProperty(kLayerCount, props);
+            for (int i = 0; i < layerCount; ++i)
+            {
+                layerMappingProperty[i] = FindProperty(string.Format("{0}{1}", kLayerMapping, i), props);
+                layerSizeProperty[i] = FindProperty(string.Format("{0}{1}", kLayerSize, i), props);
+            }
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             FindOptionProperties(props);
-            layerMaskMapProperty = FindProperty(kLayerMaskMap, props);
-            layerCountProperty = FindProperty(kLayerCount, props);
+            FindLayerProperties(props);
 
             m_MaterialEditor = materialEditor;
 
@@ -436,7 +509,7 @@ namespace UnityEditor
                 optionsChanged = true;
             }
 
-            bool layerChanged = LayersGUI(materialImporter);
+            bool layerChanged = DoLayersGUI(materialImporter);
 
             CheckLayerConsistency();
 
