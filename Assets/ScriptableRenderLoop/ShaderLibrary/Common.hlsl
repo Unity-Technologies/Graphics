@@ -195,13 +195,15 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 
 #define MERGE_NAME(X, Y) X##Y
 
+// Acos in 14 cycles.
 // Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
 float FastACos(float inX)
 {
     float x = abs(inX);
-    float res = -0.156583 * x + HALF_PI;
-    res *= sqrt(1.0 - x);
-    return (inX >= 0) ? res : PI - res;
+    float res = (0.0468878 * x + -0.203471) * x + 1.570796; // p(x)
+    res *= sqrt(1.0f - x);
+
+    return (inX >= 0) ? res : PI - res; // Undo range reduction
 }
 
 // Same cost as Acos + 1 FR
