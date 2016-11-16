@@ -1,11 +1,5 @@
 Shader "Hidden/HDRenderLoop/Deferred"
 {
-    Properties
-    {
-        _SrcBlend("", Float) = 1
-        _DstBlend("", Float) = 1
-    }
-
     SubShader
     {
 

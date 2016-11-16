@@ -65,6 +65,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return "LIGHTLOOP_SINGLE_PASS";
             }
 
+            public const int MaxNumLights = 1024;
+            public const int MaxNumDirLights = 2;
+            public const float FltMax = 3.402823466e+38F;
+
+            ComputeShader buildScreenAABBShader;
+            ComputeShader buildPerTileLightListShader;     // FPTL
+            ComputeShader buildPerBigTileLightListShader;
+            ComputeShader buildPerVoxelLightListShader;    // clustered
+
             private static int s_GenAABBKernel;
             private static int s_GenListPerTileKernel;
             private static int s_GenListPerVoxelKernel;
@@ -85,7 +94,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public bool enableDrawLightBoundsDebug = false;
             public bool enableDrawTileDebug = false;
             public bool enableComputeLightEvaluation = false;
-            const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
+            const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
             const bool k_UseAsyncCompute = true;        // should not use on mobile
 
             const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
@@ -98,6 +107,99 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // clustered light list specific buffers and data end
 
             const int k_TileSize = 16;
+
+            bool usingFptl
+            {
+                get
+                {
+                    bool isEnabledMSAA = false;
+                    Debug.Assert(!isEnabledMSAA || enableClustered);
+                    bool disableFptl = (disableFptlWhenClustered && enableClustered) || isEnabledMSAA;
+                    return !disableFptl;
+                }
+            }
+
+            // Local function
+            void ClearComputeBuffers()
+            {
+                ReleaseResolutionDependentBuffers();
+
+                if (s_AABBBoundsBuffer != null)
+                    s_AABBBoundsBuffer.Release();
+
+                if (s_ConvexBoundsBuffer != null)
+                    s_ConvexBoundsBuffer.Release();
+
+                if (s_LightDataBuffer != null)
+                    s_LightDataBuffer.Release();
+
+                if (s_DirLightList != null)
+                    s_DirLightList.Release();
+
+                if (enableClustered)
+                {
+                    if (s_GlobalLightListAtomic != null)
+                        s_GlobalLightListAtomic.Release();
+                }
+            }
+
+            void Rebuild()
+            {
+                ClearComputeBuffers();
+
+                buildScreenAABBShader = Resources.Load<ComputeShader>("Resources/srcbound");
+                buildPerTileLightListShader = Resources.Load<ComputeShader>("Resources/lightlistbuild");
+                buildPerBigTileLightListShader = Resources.Load<ComputeShader>("Resources/lightlistbuild-bigtile");
+                buildPerVoxelLightListShader = Resources.Load<ComputeShader>("Resources/lightlistbuild-clustered");
+
+                s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
+                s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
+                s_AABBBoundsBuffer = new ComputeBuffer(2 * MaxNumLights, 3 * sizeof(float));
+                s_ConvexBoundsBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
+                s_LightDataBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
+                s_DirLightList = new ComputeBuffer(MaxNumDirLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLight)));
+
+                buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
+                //m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
+
+                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vLightData", s_LightDataBuffer);
+                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_data", s_ConvexBoundsBuffer);
+
+                if (enableClustered)
+                {
+                    var kernelName = enableBigTilePrepass ? (k_UseDepthBuffer ? "TileLightListGen_DepthRT_SrcBigTile" : "TileLightListGen_NoDepthRT_SrcBigTile") : (k_UseDepthBuffer ? "TileLightListGen_DepthRT" : "TileLightListGen_NoDepthRT");
+                    s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
+                    s_ClearVoxelAtomicKernel = buildPerVoxelLightListShader.FindKernel("ClearAtomic");
+                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_vLightData", s_LightDataBuffer);
+                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_data", s_ConvexBoundsBuffer);
+
+                    s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
+                }
+
+                if (enableBigTilePrepass)
+                {
+                    s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
+                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_vLightData", s_LightDataBuffer);
+                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_data", s_ConvexBoundsBuffer);
+                }
+            }
+
+            void OnDisable()
+            {
+                s_AABBBoundsBuffer.Release();
+                s_ConvexBoundsBuffer.Release();
+                s_LightDataBuffer.Release();
+                ReleaseResolutionDependentBuffers();
+                s_DirLightList.Release();
+
+                if (enableClustered)
+                {
+                    s_GlobalLightListAtomic.Release();
+                }
+            }
 
             public bool NeedResize()
             {
@@ -467,6 +569,68 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
 
+            void BuildPerTileLightLists(Camera camera, RenderLoop loop, int numLights, Matrix4x4 projscr, Matrix4x4 invProjscr)
+            {
+                var w = camera.pixelWidth;
+                var h = camera.pixelHeight;
+                var numTilesX = (w + 15) / 16;
+                var numTilesY = (h + 15) / 16;
+                var numBigTilesX = (w + 63) / 64;
+                var numBigTilesY = (h + 63) / 64;
+
+                var cmd = new CommandBuffer() { name = "Build light list" };
+
+                // generate screen-space AABBs (used for both fptl and clustered).
+                {
+                    var proj = CameraProjection(camera);
+                    var temp = new Matrix4x4();
+                    temp.SetRow(0, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                    temp.SetRow(1, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                    temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
+                    temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                    var projh = temp * proj;
+                    var invProjh = projh.inverse;
+
+                    cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", numLights);
+                    SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
+                    SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
+                    cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
+                    cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (numLights + 7) / 8, 1, 1);
+                }
+
+                // enable coarse 2D pass on 64x64 tiles (used for both fptl and clustered).
+                if (enableBigTilePrepass)
+                {
+                    cmd.SetComputeIntParams(buildPerBigTileLightListShader, "g_viDimensions", new int[2] { w, h });
+                    cmd.SetComputeIntParam(buildPerBigTileLightListShader, "g_iNrVisibLights", numLights);
+                    SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mScrProjection", projscr);
+                    SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mInvScrProjection", invProjscr);
+                    cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fNearPlane", camera.nearClipPlane);
+                    cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fFarPlane", camera.farClipPlane);
+                    cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, "g_vLightList", s_BigTileLightList);
+                    cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
+                }
+
+                if (usingFptl)       // optimized for opaques only
+                {
+                    cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
+                    cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", numLights);
+                    SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
+                    SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
+                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(s_CameraDepthTexture));
+                    cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
+                    if (enableBigTilePrepass) cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
+                    cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
+                }
+
+                if (enableClustered)        // works for transparencies too.
+                {
+                    VoxelLightListGeneration(cmd, camera, numLights, projscr, invProjscr);
+                }
+
+                loop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
 
         }
     }

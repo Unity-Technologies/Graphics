@@ -90,9 +90,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     colorMRTs[index] = RTIDs[index];
                 }
 
+
                 return colorMRTs;
             }
 
+            
             /*
             public void BindBuffers(Material mat)
             {
@@ -102,6 +104,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
             }
             */
+            
 
 
             public int gbufferCount { get; set; }
@@ -138,20 +141,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         GBufferManager m_gbufferManager = new GBufferManager();
 
-        private int s_CameraColorBuffer;
-        private int s_CameraDepthBuffer;
-        private int s_VelocityBuffer;
-        private int s_DistortionBuffer;
+        int s_CameraColorBuffer;
+        int s_CameraDepthBuffer;
+        int s_VelocityBuffer;
+        int s_DistortionBuffer;
 
-        private ComputeBuffer s_punctualLightList;
-        private ComputeBuffer s_envLightList;
-        private ComputeBuffer s_areaLightList;
-        private ComputeBuffer s_punctualShadowList;
+        ComputeBuffer s_punctualLightList;
+        ComputeBuffer s_envLightList;
+        ComputeBuffer s_areaLightList;
+        ComputeBuffer s_punctualShadowList;
 
-        private TextureCacheCubemap m_cubeReflTexArray;
+        TextureCacheCubemap m_cubeReflTexArray;
+        TextureCache2D m_CookieTexArray;
+        TextureCacheCubemap m_CubeCookieTexArray;
 
-        private static int s_WidthOnRecord;
-        private static int s_HeightOnRecord;
+        static int s_WidthOnRecord;
+        static int s_HeightOnRecord;
 
         void OnEnable()
         {
@@ -217,8 +222,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_cubeReflTexArray = new TextureCacheCubemap();
             m_cubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
+            m_CookieTexArray = new TextureCache2D();
+            m_CookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
+            m_CubeCookieTexArray = new TextureCacheCubemap();            
+            m_CubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
 
             m_TilePassLightLoop = new TilePass.LightLoop();
+            m_TilePassLightLoop.Rebuild();
 
             // Init Gbuffer description
             m_LitRenderLoop = new Lit.RenderLoop(); // Our object can be garbacge collected, so need to be allocate here
@@ -250,6 +260,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         void OnDisable()
         {
             m_LitRenderLoop.OnDisable();
+            m_TilePassLightLoop.OnDisable();
 
             s_punctualLightList.Release();
             s_areaLightList.Release();
@@ -262,6 +273,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             if (m_FinalPassMaterial) DestroyImmediate(m_FinalPassMaterial);
 
             m_cubeReflTexArray.Release();
+            m_CookieTexArray.Release();
+            m_CubeCookieTexArray.Release();
         }
 
         void InitAndClearBuffer(Camera camera, RenderLoop renderLoop)
@@ -955,18 +968,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     UpdatePunctualLights(cullResults.visibleLights, ref shadows);
                     UpdateReflectionProbes(cullResults.visibleReflectionProbes);
 
-                    if (true)
                     {
                         // build per tile light lists
-                        var numLights = GenerateSourceLightBuffers(camera, cullResults);
-                        BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
+                        var numLights = 0; // GenerateSourceLightBuffers(camera, cullResults);
+                        m_tilePassLightLoop.BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
 
+                        /*
                         // Push all global params
                         var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
-                        PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
+                        m_tilePassLightLoop.PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
 
                         // do deferred lighting
-                        DoTiledDeferredLighting(camera, loop, numLights, numDirLights);
+                        m_tilePassLightLoop.DoTiledDeferredLighting(camera, loop, numLights, numDirLights);
+                        */
                     }
 
                     RenderDeferredLighting(camera, renderLoop);
