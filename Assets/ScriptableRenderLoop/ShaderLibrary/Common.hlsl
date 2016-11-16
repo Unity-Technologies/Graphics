@@ -316,4 +316,25 @@ float GetShiftedNdotV(float3 N, float3 V)
     return saturate(dot(N, V)); // TODO: this saturate should not be necessary here
 }
 
+// Performs the mapping of the vector 'v' located within the cube of dimensions [-r, r]^3
+// to a vector within the sphere of radius 'r', where r = sqrt(r2).
+// Modified version of http://mathproofs.blogspot.com/2005/07/mapping-cube-to-sphere.html
+float3 MapCubeToSphere(float3 v, float r2)
+{
+    float3 v2  = v * v;
+    float2 vr3 = v2.xy * rcp(3.0 * r2);
+    return v * sqrt((float3)r2 - 0.5 * v2.yzx - 0.5 * v2.zxy + vr3.yxx * v2.zzy);
+}
+
+// Computes the squared magnitude of the vector 'v' after mapping it
+// to a vector within the sphere of radius 'r', where r = sqrt(r2).
+// The vector is originally defined within the cube of dimensions [-r, r]^3.
+// The mapping is performed as per MapCubeToSphere().
+// 'dotV' is the squared magnitude of the vector 'v' prior to the mapping.
+float ComputeCubeToSphereMapSqMagnitude(float3 v, float dotV, float r2)
+{
+    float3 v2 = v * v;
+    return r2 * dotV - v2.x * v2.y - v2.y * v2.z - v2.z * v2.x + v2.x * v2.y * v2.z * rcp(r2);
+}
+
 #endif // UNITY_COMMON_INCLUDED
