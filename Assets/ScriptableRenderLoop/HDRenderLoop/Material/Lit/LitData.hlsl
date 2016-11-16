@@ -1,26 +1,3 @@
-//-------------------------------------------------------------------------------------
-// FragInput
-// This structure gather all possible varying/interpolator for this shader.
-//-------------------------------------------------------------------------------------
-
-struct FragInput
-{
-    float4 unPositionSS; // This is the position return by VPOS (That is name positionCS in PackedVarying), only xy is use
-    float3 positionWS;
-    float2 texCoord0;
-    float2 texCoord1;
-    float2 texCoord2;
-    float3 tangentToWorld[3];
-    float4 vertexColor;
-
-    // For velocity
-    // Note: Z component is not use
-    float4 positionCS; // This is the clip spae position. Warning, do not confuse with the value of positionCS in PackedVarying which is VPOS and store in unPositionSS
-    float4 previousPositionCS;
-
-    // For two sided lighting
-    bool isFrontFace;
-};
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
@@ -399,7 +376,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
     // Mask Values : Layer 1, 2, 3 are r, g, b
     float3 maskValues = float3(0.0, 0.0, 0.0);
-    
+
 #if defined(_LAYER_MASK_MAP)
     maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
 #endif

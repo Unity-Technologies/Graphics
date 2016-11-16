@@ -149,8 +149,8 @@ Shader "HDRenderLoop/LayeredLit"
     #include "common.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderConfig.cs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Material/Attributes.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderPass/ShaderPass.cs.hlsl"    
-    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -289,7 +289,6 @@ Shader "HDRenderLoop/LayeredLit"
             #include "../../Material/Material.hlsl"
             #include "../Lit/LitData.hlsl"
             #include "../Lit/LitSharePass.hlsl"
-            #include "../Lit/LitDebugPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -355,6 +354,31 @@ Shader "HDRenderLoop/LayeredLit"
         {
             Name "ShadowCaster"
             Tags{ "LightMode" = "ShadowCaster" }
+
+            Cull[_CullMode]
+
+            ZWrite On ZTest LEqual
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define LAYERED_LIT_SHADER
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitDepthPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "DepthOnly"
+            Tags{ "LightMode" = "DepthOnly" }
 
             Cull[_CullMode]
 
