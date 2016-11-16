@@ -26,7 +26,8 @@ namespace UnityEditor
             public readonly GUIContent syncButton = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
             public readonly GUIContent layers = new GUIContent("Layers");
             public readonly GUIContent emission = new GUIContent("Emissive");
-            public readonly GUIContent layerMapMask = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color)");
+            public readonly GUIContent layerMapMask = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color if enabled)");
+            public readonly GUIContent layerMapVertexColor = new GUIContent("Use Vertex Color", "Layer mask (multiplied by layer mask if enabled)");
             public readonly GUIContent layerCount = new GUIContent("Layer Count", "Number of layers.");
             public readonly GUIContent layerSize = new GUIContent("Size", "Size of the layer mapping in world units.");
             public readonly GUIContent layerMapping = new GUIContent("Mapping", "Mapping mode of the layer.");
@@ -45,6 +46,7 @@ namespace UnityEditor
         private const int kMaxLayerCount = 4;
         private const int kSyncButtonWidth = 58;
         private const string kLayerMaskMap = "_LayerMaskMap";
+        private const string kLayerMaskVertexColor = "_LayerMaskVertexColor";
         private const string kLayerCount = "_LayerCount";
         private const string kLayerMapping = "_LayerMapping";
         private const string kLayerSize = "_LayerSize";
@@ -53,6 +55,7 @@ namespace UnityEditor
 
         MaterialProperty layerCountProperty = null;
         MaterialProperty layerMaskMapProperty = null;
+        MaterialProperty layerMaskVertexColorProperty = null;
         MaterialProperty[] layerMappingProperty = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerSizeProperty = new MaterialProperty[kMaxLayerCount];
 
@@ -333,6 +336,8 @@ namespace UnityEditor
 
             bool layerChanged = false;
 
+            GUI.changed = false;
+
             EditorGUI.indentLevel++;
             GUILayout.Label(styles.layers, EditorStyles.boldLabel);
 
@@ -346,6 +351,7 @@ namespace UnityEditor
                 layerChanged = true;
             }
 
+            m_MaterialEditor.ShaderProperty(layerMaskVertexColorProperty, styles.layerMapVertexColor);
             m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMask, layerMaskMapProperty);
 
             for (int i = 0; i < layerCount; i++)
@@ -367,6 +373,9 @@ namespace UnityEditor
 
             EditorGUI.indentLevel--;
 
+            layerChanged |= GUI.changed;
+            GUI.changed = false;
+
             return layerChanged;
         }
 
@@ -385,7 +394,8 @@ namespace UnityEditor
                 SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap + i));
             }
 
-            SetKeyword(material, "_LAYERMASKMAP", material.GetTexture(kLayerMaskMap));
+            SetKeyword(material, "_LAYER_MASK_MAP", material.GetTexture(kLayerMaskMap));
+            SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
         }
 
         protected override void SetupEmissionGIFlags(Material material)
@@ -472,6 +482,7 @@ namespace UnityEditor
         private void FindLayerProperties(MaterialProperty[] props)
         {
             layerMaskMapProperty = FindProperty(kLayerMaskMap, props);
+            layerMaskVertexColorProperty = FindProperty(kLayerMaskVertexColor, props);
             layerCountProperty = FindProperty(kLayerCount, props);
             for (int i = 0; i < layerCount; ++i)
             {
