@@ -109,4 +109,51 @@ void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
 }
 */
 
+//-----------------------------------------------------------------------------
+// various helper
+//-----------------------------------------------------------------------------
+
+// NdotV should not be negative for visible pixels, but it can happen due to perspective projection and normal mapping + decal
+// In this case this may cause weird artifact.
+// GetNdotV return a 'valid' data
+float GetNdotV(float3 N, float3 V)
+{
+    return abs(dot(N, V)); // This abs allow to limit artifact
+}
+
+// NdotV should not be negative for visible pixels, but it can happen due to perspective projection and normal mapping + decal
+// In this case normal should be modified to become valid (i.e facing camera) and not cause weird artifacts.
+// but this operation adds few ALU and users may not want it. Alternative is to simply take the abs of NdotV (less correct but works too).
+// Note: This code is not compatible with two sided lighting used in SpeedTree (TODO: investigate).
+float GetShiftedNdotV(float3 N, float3 V)
+{
+    // The amount we shift the normal toward the view vector is defined by the dot product.
+    float shiftAmount = dot(N, V);
+    N = shiftAmount < 0.0 ? N + V * (-shiftAmount + 1e-5f) : N;
+    N = normalize(N);
+
+    return saturate(dot(N, V)); // TODO: this saturate should not be necessary here
+}
+
+// Performs the mapping of the vector 'v' located within the cube of dimensions [-r, r]^3
+// to a vector within the sphere of radius 'r', where r = sqrt(r2).
+// Modified version of http://mathproofs.blogspot.com/2005/07/mapping-cube-to-sphere.html
+float3 MapCubeToSphere(float3 v, float r2)
+{
+    float3 v2 = v * v;
+    float2 vr3 = v2.xy * rcp(3.0 * r2);
+    return v * sqrt((float3)r2 - 0.5 * v2.yzx - 0.5 * v2.zxy + vr3.yxx * v2.zzy);
+}
+
+// Computes the squared magnitude of the vector 'v' after mapping it
+// to a vector within the sphere of radius 'r', where r = sqrt(r2).
+// The vector is originally defined within the cube of dimensions [-r, r]^3.
+// The mapping is performed as per MapCubeToSphere().
+// 'dotV' is dot(v, v) (often calculated when calling such a function)
+float ComputeCubeToSphereMapSqMagnitude(float3 v, float dotV, float r2)
+{
+    float3 v2 = v * v;
+    return r2 * dotV - v2.x * v2.y - v2.y * v2.z - v2.z * v2.x + v2.x * v2.y * v2.z * rcp(r2);
+}
+
 #endif // UNITY_COMMON_LIGHTING_INCLUDED
