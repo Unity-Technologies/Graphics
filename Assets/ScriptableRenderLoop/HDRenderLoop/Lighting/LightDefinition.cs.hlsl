@@ -58,7 +58,7 @@ struct AreaLightData
 	float3 right;
 	float shadowDimmer;
 	float2 size;
-	float twoSided;
+	bool twoSided;
 	float unused;
 };
 
@@ -195,7 +195,7 @@ float2 GetSize(AreaLightData value)
 {
 	return value.size;
 }
-float GetTwoSided(AreaLightData value)
+bool GetTwoSided(AreaLightData value)
 {
 	return value.twoSided;
 }
