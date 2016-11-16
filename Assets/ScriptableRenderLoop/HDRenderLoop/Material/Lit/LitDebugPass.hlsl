@@ -24,5 +24,8 @@ void GetVaryingsDataDebug(uint paramId, FragInput input, inout float3 result, in
     case DEBUGVIEW_VARYING_VERTEXNORMALWS:
         result = input.tangentToWorld[2].xyz * 0.5 + 0.5;
         break;
+    case DEBUGVIEW_VARYING_VERTEXCOLOR:
+        result = input.vertexColor.rgb;
+        break;
     }
 }

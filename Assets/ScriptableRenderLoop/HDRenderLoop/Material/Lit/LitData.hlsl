@@ -11,6 +11,7 @@ struct FragInput
     float2 texCoord1;
     float2 texCoord2;
     float3 tangentToWorld[3];
+    float4 vertexColor;
 
     // For velocity
     // Note: Z component is not use
@@ -397,10 +398,18 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     ComputeLayerCoordinates(layerCoord, input);
 
     // Mask Values : Layer 1, 2, 3 are r, g, b
-    float3 maskValues = float3(0.0, 0.0, 0.0);// input.vertexColor;
-
-#ifdef _LAYERMASKMAP
+    float3 maskValues = float3(0.0, 0.0, 0.0);
+    
+#if defined(_LAYER_MASK_MAP)
     maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
+#endif
+
+#if defined(_LAYER_MASK_VERTEX_COLOR)
+    maskValues = input.vertexColor.rgb;
+#endif
+
+#if defined(_LAYER_MASK_MAP) && defined(_LAYER_MASK_VERTEX_COLOR)
+    maskValues = input.vertexColor.rgb * SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
 #endif
 
     float weights[_MAX_LAYER];

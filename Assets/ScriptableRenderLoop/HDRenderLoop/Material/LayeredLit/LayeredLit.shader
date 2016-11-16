@@ -81,6 +81,7 @@ Shader "HDRenderLoop/LayeredLit"
         _LayerSize3("LayerSize3", Float) = 1.0
 
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
+        [ToggleOff]  _LayerMaskVertexColor("Use Vertex Color Mask", Float) = 0.0
 
         [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
         [ToggleOff]     _DistortionDepthTest("Distortion Only", Float) = 0.0
@@ -127,7 +128,8 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
-    #pragma shader_feature _LAYERMASKMAP
+    #pragma shader_feature _LAYER_MASK_MAP
+    #pragma shader_feature _LAYER_MASK_VERTEX_COLOR
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
     //#pragma shader_feature _ _LAYER_MAPPING_UV1_0 _LAYER_MAPPING_PLANAR_0 _LAYER_MAPPING_TRIPLANAR_0
     //#pragma shader_feature _ _LAYER_MAPPING_UV1_1 _LAYER_MAPPING_PLANAR_1 _LAYER_MAPPING_TRIPLANAR_1
