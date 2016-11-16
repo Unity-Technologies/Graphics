@@ -840,7 +840,6 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
         }
 
     #ifndef DIFFUSE_LAMBERT_BRDF
-        // TODO: verify that we do not need to multiply by PI.
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
     #endif
 
@@ -857,9 +856,6 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
-
-    // TODO: current area light code doesn't take into account artist attenuation radius!
-
 #endif
 }
 
