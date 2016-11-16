@@ -106,10 +106,15 @@ Shader "HDRenderLoop/LayeredLit"
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
 
-        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping0("Layer 0 Mapping", Float) = 0
-        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping1("Layer 1 Mapping", Float) = 0
-        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping2("Layer 2 Mapping", Float) = 0
-        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping3("Layer 3 Mapping", Float) = 0
+        //[Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping0("Layer 0 Mapping", Float) = 0
+        //[Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping1("Layer 1 Mapping", Float) = 0
+        //[Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping2("Layer 2 Mapping", Float) = 0
+        //[Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping3("Layer 3 Mapping", Float) = 0
+
+        [Enum(UV0, 0, UV1, 1, Planar, 2)] _LayerMapping0("Layer 0 Mapping", Float) = 0
+        [Enum(UV0, 0, UV1, 1, Planar, 2)] _LayerMapping1("Layer 1 Mapping", Float) = 0
+        [Enum(UV0, 0, UV1, 1, Planar, 2)] _LayerMapping2("Layer 2 Mapping", Float) = 0
+        [Enum(UV0, 0, UV1, 1, Planar, 2)] _LayerMapping3("Layer 3 Mapping", Float) = 0
     }
 
     HLSLINCLUDE

@@ -7,6 +7,7 @@
 #include "Debug.hlsl"
 #include "GeometricTools.hlsl"
 #include "CommonMaterial.hlsl"
+#include "CommonLighting.hlsl"
 #include "EntityLighting.hlsl"
 
 //-----------------------------------------------------------------------------

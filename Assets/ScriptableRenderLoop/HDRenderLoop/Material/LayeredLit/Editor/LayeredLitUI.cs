@@ -11,18 +11,20 @@ namespace UnityEditor
             UV0,
             UV1,
             Planar,
-            Triplanar,
+            //Triplanar,
         }
 
         private class Styles
         {
-            public readonly GUIContent[] materialLayerLabels =
+            public readonly GUIContent[] layerLabels =
             {
-                new GUIContent("Material Layer 0"),
-                new GUIContent("Material Layer 1"),
-                new GUIContent("Material Layer 2"),
-                new GUIContent("Material Layer 3"),
+                new GUIContent("Layer 0"),
+                new GUIContent("Layer 1"),
+                new GUIContent("Layer 2"),
+                new GUIContent("Layer 3"),
             };
+
+            public readonly GUIContent materialLayer = new GUIContent("Material");
             public readonly GUIContent syncButton = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
             public readonly GUIContent layers = new GUIContent("Layers");
             public readonly GUIContent emission = new GUIContent("Emissive");
@@ -310,8 +312,13 @@ namespace UnityEditor
         bool DoLayerGUI(AssetImporter materialImporter, int layerIndex)
         {
             bool result = false;
+
+            EditorGUILayout.LabelField(styles.layerLabels[layerIndex]);
+
+            EditorGUI.indentLevel++;
+
             EditorGUI.BeginChangeCheck();
-            m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.materialLayerLabels[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
+            m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.materialLayer, m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(materialImporter, "Change layer material");
@@ -325,7 +332,14 @@ namespace UnityEditor
             {
                 result = true;
             }
-            m_MaterialEditor.ShaderProperty(layerSizeProperty[layerIndex], styles.layerSize);
+            if ((LayerMapping)layerMappingProperty[layerIndex].floatValue == LayerMapping.Planar)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(layerSizeProperty[layerIndex], styles.layerSize);
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUI.indentLevel--;
 
             return result;
         }
@@ -353,6 +367,8 @@ namespace UnityEditor
 
             m_MaterialEditor.ShaderProperty(layerMaskVertexColorProperty, styles.layerMapVertexColor);
             m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMask, layerMaskMapProperty);
+
+            EditorGUILayout.Space();
 
             for (int i = 0; i < layerCount; i++)
             {
@@ -470,12 +486,12 @@ namespace UnityEditor
                     SetKeyword(material, currentLayerMappingPlanar, true);
                     SetKeyword(material, currentLayerMappingTriplanar, false);
                 }
-                else if(layerMapping == LayerMapping.Triplanar)
-                {
-                    SetKeyword(material, currentLayerMappingUV1, false);
-                    SetKeyword(material, currentLayerMappingPlanar, false);
-                    SetKeyword(material, currentLayerMappingTriplanar, true);
-                }
+                //else if(layerMapping == LayerMapping.Triplanar)
+                //{
+                //    SetKeyword(material, currentLayerMappingUV1, false);
+                //    SetKeyword(material, currentLayerMappingPlanar, false);
+                //    SetKeyword(material, currentLayerMappingTriplanar, true);
+                //}
             }
         }
 
