@@ -144,7 +144,7 @@ float PolygonRadiance(float4x3 L, bool twoSided)
             L[3] = normalize(L[3]);
             L4   = L[0];
             break;
-        default: // 1, 2, 5
+        case 5:
             L[3] = normalize(L[3]);
             L4   = normalize(L4);
             break;
@@ -160,7 +160,7 @@ float PolygonRadiance(float4x3 L, bool twoSided)
     if (n == 5)
         sum += IntegrateEdge(L4, L[0]);
 
-    sum *= INV_TWO_PI; // Normalization of the integral of cosine over the sphere
+    sum *= INV_TWO_PI; // Normalization
 
     return twoSided ? abs(sum) : max(sum, 0.0);
 }
