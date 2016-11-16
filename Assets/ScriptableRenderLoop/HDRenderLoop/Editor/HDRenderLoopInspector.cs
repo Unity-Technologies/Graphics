@@ -47,7 +47,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         string GetSubNameSpaceName(Type type)
         {
-            var attributes = type.GetCustomAttributes(true);
             return type.Namespace.Substring(type.Namespace.LastIndexOf((".")) + 1) + "/";
         }
 
@@ -63,8 +62,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
             var fields = type.GetFields();
-
-            var subNamespace = GetSubNameSpaceName(type);
 
             var localIndex = 0;
             foreach (var field in fields)
@@ -121,8 +118,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             if (!styles.isDebugViewMaterialInit)
             {
-                var varyingNames = Enum.GetNames(typeof(HDRenderLoop.DebugViewVaryingMode));
-                var gbufferNames = Enum.GetNames(typeof(HDRenderLoop.DebugViewGbufferMode));
+                var varyingNames = Enum.GetNames(typeof(Attributes.DebugViewVarying));
+                var gbufferNames = Enum.GetNames(typeof(Attributes.DebugViewGbuffer));
 
                 // +1 for the zero case
                 var num = 1 + varyingNames.Length
@@ -143,14 +140,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 styles.debugViewMaterialValues[0] = 0;
                 index++;
 
-                FillWithPropertiesEnum(typeof(HDRenderLoop.DebugViewVaryingMode), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, "Attributes/", false, ref index);
+                FillWithPropertiesEnum(typeof(Attributes.DebugViewVarying), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, GetSubNameSpaceName(typeof(Attributes.DebugViewVarying)), false, ref index);
                 FillWithProperties(typeof(Builtin.BuiltinData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, GetSubNameSpaceName(typeof(Lit.SurfaceData)), ref index);
                 FillWithProperties(typeof(Lit.SurfaceData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, GetSubNameSpaceName(typeof(Lit.SurfaceData)), ref index);
                 FillWithProperties(typeof(Builtin.BuiltinData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, GetSubNameSpaceName(typeof(Unlit.SurfaceData)), ref index);
                 FillWithProperties(typeof(Unlit.SurfaceData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, false, GetSubNameSpaceName(typeof(Unlit.SurfaceData)), ref index);                
 
                 // Engine
-                FillWithPropertiesEnum(typeof(HDRenderLoop.DebugViewGbufferMode), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, "", true, ref index);
+                FillWithPropertiesEnum(typeof(Attributes.DebugViewGbuffer), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, "", true, ref index);
                 FillWithProperties(typeof(Lit.BSDFData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, true, "", ref index);
                 FillWithProperties(typeof(Unlit.BSDFData), styles.debugViewMaterialStrings, styles.debugViewMaterialValues, true, "", ref index);
 
