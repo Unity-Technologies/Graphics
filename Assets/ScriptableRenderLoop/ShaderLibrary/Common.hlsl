@@ -294,4 +294,29 @@ float LinearEyeDepth(float depth, float4 zBufferParam)
     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
 }
 
+//-----------------------------------------------------------------------------
+// various helper
+//-----------------------------------------------------------------------------
+
+// NdotV should not be negative for visible pixels, but it can happen due to perspective projection and normal mapping + decal
+// In this case this may cause weird artifact.
+// GetNdotV return a 'valid' data
+float GetNdotV(float3 N, float3 V)
+{
+    return abs(dot(N, V)); // This abs allow to limit artifact
+}
+
+// NdotV should not be negative for visible pixels, but it can happen due to perspective projection and normal mapping + decal
+// In this case normal should be modified to become valid (i.e facing camera) and not cause weird artifacts.
+// but this operation adds few ALU and users may not want it. Alternative is to simply take the abs of NdotV (less correct but works too).
+// Note: This code is not compatible with two sided lighting used in SpeedTree (TODO: investigate).
+float GetShiftedNdotV(float3 N, float3 V)
+{
+    // The amount we shift the normal toward the view vector is defined by the dot product.
+    float shiftAmount = dot(N, V);
+    N = shiftAmount < 0.0 ? N + V * (-shiftAmount + 1e-5f) : N;
+    N = normalize(N);
+
+    return saturate(dot(N, V)); // TODO: this saturate should not be necessary here
+}
 #endif // UNITY_COMMON_INCLUDED
