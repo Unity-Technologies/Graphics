@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float shadowDimmer;
 
         public Vector2 size;
-        public float twoSided;
+        public bool twoSided;
         public float unused;
     };
 

@@ -723,7 +723,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     // TODO: add AreaShapeType.Line support for small widths.
                     lightData.shapeType = AreaShapeType.Rectangle;
                     lightData.size = new Vector2(additionalData.areaLightLength, additionalData.areaLightWidth);
-                    lightData.twoSided = additionalData.isDoubleSided ? 1.0f : 0.0f;
+                    lightData.twoSided = additionalData.isDoubleSided;
 
                     lightData.positionWS = light.light.transform.position;
                     lightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
