@@ -782,6 +782,44 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
 
+    // Pick the correct axis along which to expand the fade-out sphere into an ellipsoid.
+    float3 axisLS;
+    float  minDim, maxDim;
+
+    // The compiler should generate conditional MOVs.
+    if (halfWidth >= halfHeight)
+    {
+        axisLS = lightData.right;
+        minDim = halfHeight;
+        maxDim = halfWidth;
+    }
+    else
+    {
+        axisLS = lightData.up;
+        minDim = halfWidth;
+        maxDim = halfHeight;
+    }
+
+    float3 dirLS          = positionWS - lightData.positionWS;
+    float  lightSpaceProj = dot(dirLS, axisLS);
+    float  invAspectRatio = minDim / maxDim;
+
+    // We want 'dirLS' to shrink along 'axisLS' by the aspect ratio. Therefore,
+    // we compute the difference between the original length and the shrunk one.
+    // This is equivalent to the expansion of the fade-out sphere into an ellipsoid.
+    float scaleLS = lightSpaceProj - lightSpaceProj * invAspectRatio;
+    dirLS -= scaleLS * axisLS;
+
+    // Compute the light attenuation.
+    float sqDist    = dot(dirLS, dirLS);
+    float intensity = SmoothDistanceAttenuation(sqDist, lightData.invSqrAttenuationRadius);
+
+    // Return the black color if the shaded point is too far away.
+    if (intensity == 0.0) return;
+
+    lightData.diffuseScale  *= intensity;
+    lightData.specularScale *= intensity;
+
     float ltcValue;
 
     // Evaluate the diffuse part.
