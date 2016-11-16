@@ -1,14 +1,3 @@
-//-------------------------------------------------------------------------------------
-// FragInput
-// This structure gather all possible varying/interpolator for this shader.
-//-------------------------------------------------------------------------------------
-
-struct FragInput
-{
-    float4 unPositionSS;
-    float2 texCoord0;
-    float2 texCoord1;
-};
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function

@@ -51,8 +51,8 @@ Shader "HDRenderLoop/Unlit"
     #include "common.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderConfig.cs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Material/Attributes.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderPass/ShaderPass.cs.hlsl"    
-    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -94,17 +94,7 @@ Shader "HDRenderLoop/Unlit"
             #define SHADERPASS SHADERPASS_DEBUG_VIEW_MATERIAL
             #include "../../Material/Material.hlsl"
             #include "UnlitData.hlsl"
-            #include "UnlitShare.hlsl"
-
-            void GetVaryingsDataDebug(uint paramId, FragInput input, inout float3 result, inout bool needLinearToSRGB)
-            {
-                switch (paramId)
-                {
-                case DEBUGVIEW_VARYING_TEXCOORD0:
-                    result = float3(input.texCoord0 * 0.5 + 0.5, 0.0);
-                    break;
-                }
-            }
+            #include "UnlitSharePass.hlsl"
             
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
@@ -130,7 +120,7 @@ Shader "HDRenderLoop/Unlit"
             #define SHADERPASS SHADERPASS_FORWARD_UNLIT
             #include "../../Material/Material.hlsl"
             #include "UnlitData.hlsl"
-            #include "UnlitShare.hlsl"
+            #include "UnlitSharePass.hlsl"
             
             #include "../../ShaderPass/ShaderPassForwardUnlit.hlsl"
 

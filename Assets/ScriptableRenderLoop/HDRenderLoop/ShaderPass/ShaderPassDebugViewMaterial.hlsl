@@ -15,7 +15,7 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
-	float3 result = float3(1.0, 1.0, 0.0);
+	float3 result = float3(1.0, 0.0, 1.0);
 	bool needLinearToSRGB = false;
 
 	GetVaryingsDataDebug(_DebugViewMaterial, input, result, needLinearToSRGB);

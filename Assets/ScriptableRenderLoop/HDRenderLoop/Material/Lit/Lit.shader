@@ -112,8 +112,8 @@ Shader "HDRenderLoop/Lit"
     #include "common.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderConfig.cs.hlsl"
     #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
-    #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderPass/ShaderPass.cs.hlsl"    
-    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/Material/Attributes.hlsl"
+    #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderPass/ShaderPass.cs.hlsl"
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -218,7 +218,6 @@ Shader "HDRenderLoop/Lit"
             #include "../../Material/Material.hlsl"
             #include "LitData.hlsl"
             #include "LitSharePass.hlsl"
-            #include "LitDebugPass.hlsl"
             
             #include "../../ShaderPass/ShaderPassDebugViewMaterial.hlsl"
 
