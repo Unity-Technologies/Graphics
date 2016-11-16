@@ -16,6 +16,7 @@ struct Attributes
     float2 uv2		    : TEXCOORD2;
 #endif    
     float4 tangentOS    : TANGENT;  // Always present as we require it also in case of anisotropic lighting
+    float4 color        : COLOR;
 
     // UNITY_INSTANCE_ID
 };
@@ -30,15 +31,16 @@ struct Varyings
     float2 texCoord2;
 #endif
     float3 tangentToWorld[3];
+    float4 color;
 };
 
 struct PackedVaryings
 {
     float4 positionCS : SV_Position;
 #if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
-    float4 interpolators[5] : TEXCOORD0;
+    float4 interpolators[6] : TEXCOORD0;
 #else
-    float4 interpolators[4] : TEXCOORD0;
+    float4 interpolators[5] : TEXCOORD0;
 #endif
 
 #if SHADER_STAGE_FRAGMENT
@@ -63,8 +65,10 @@ PackedVaryings PackVaryings(Varyings input)
     output.interpolators[2].w = input.texCoord1.x;
     output.interpolators[3].w = input.texCoord1.y;
 
+    output.interpolators[4] = input.color;
+
 #if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
-    output.interpolators[4] = float4(input.texCoord2.xy, 0.0, 0.0);
+    output.interpolators[5] = float4(input.texCoord2.xy, 0.0, 0.0);
 #endif
 
     return output;
@@ -84,8 +88,10 @@ FragInput UnpackVaryings(PackedVaryings input)
     output.texCoord0.xy = float2(input.interpolators[0].w, input.interpolators[1].w);
     output.texCoord1.xy = float2(input.interpolators[2].w, input.interpolators[3].w);
 
+    output.vertexColor = input.interpolators[4];
+
 #if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
-    output.texCoord2 = input.interpolators[4].xy;
+    output.texCoord2 = input.interpolators[5].xy;
 #endif
 
 #if SHADER_STAGE_FRAGMENT
@@ -124,6 +130,8 @@ PackedVaryings VertDefault(Attributes input)
     output.tangentToWorld[0] = tangentToWorld[0];
     output.tangentToWorld[1] = tangentToWorld[1];
     output.tangentToWorld[2] = tangentToWorld[2];
+
+    output.color = input.color;
 
     return PackVaryings(output);
 }
