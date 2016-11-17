@@ -7,10 +7,12 @@
 // Constant and structure declaration
 // ----------------------------------------------------------------------------
 
-StructuredBuffer<PunctualLightData>  _PunctualLightList;
-StructuredBuffer<AreaLightData>  	 _AreaLightList;
-StructuredBuffer<EnvLightData> 		 _EnvLightList;
-StructuredBuffer<PunctualShadowData> _PunctualShadowList;
+
+StructuredBuffer<DirectionalLightData>  _DirectionalLightList;
+StructuredBuffer<LightData>             _PunctualLightList;
+StructuredBuffer<LightData>  	        _AreaLightList;
+StructuredBuffer<EnvLightData>          _EnvLightList;
+StructuredBuffer<PunctualShadowData>    _PunctualShadowList;
 
 //TEXTURE2D_ARRAY(_ShadowArray);
 //SAMPLER2D_SHADOW(sampler_ShadowArray);
@@ -35,6 +37,7 @@ TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
 
 CBUFFER_START(UnityPerLightLoop)
+    int _DirectionalLightCount;
     int _PunctualLightCount;
     int _AreaLightCount;
     int _EnvLightCount;
@@ -58,7 +61,7 @@ struct LightLoopContext
 float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
 {
 	int faceIndex = 0;
-	if (_PunctualShadowList[index].shadowType == SHADOWTYPE_POINT)
+    if (_PunctualShadowList[index].lightType == GPULIGHTTYPE_POINT)
 	{
 		GetCubeFaceID(L, faceIndex);
 	}

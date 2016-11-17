@@ -15,6 +15,17 @@ void LightLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData
 
     int i = 0; // Declare once to avoid the D3D11 compiler warning.
 
+    for (i = 0; i < _DirectionalLightCount; ++i)
+    {
+        float3 localDiffuseLighting, localSpecularLighting;
+
+        EvaluateBSDF_Directional(   context, V, positionWS, prelightData, _DirectionalLightList[i], bsdfData,
+                                    localDiffuseLighting, localSpecularLighting);
+
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
+    }
+
     for (i = 0; i < _PunctualLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;

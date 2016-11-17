@@ -506,8 +506,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 
     // Area light specific
     // UVs for sampling the LUTs
-    // TODO: Test with fastAcos
-    float theta = acos(dot(bsdfData.normalWS, V));
+    float theta = FastACos(dot(bsdfData.normalWS, V));
     // Scale and bias for the current precomputed table - the constant use here are the one that have been use when the table in LtcData.DisneyDiffuse.cs and LtcData.GGX.cs was use
     float2 uv = 0.0078125 + 0.984375 * float2(bsdfData.perceptualRoughness, theta * INV_HALF_PI);
 
@@ -573,7 +572,7 @@ LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bui
 #ifdef HAS_LIGHTLOOP
 
 //-----------------------------------------------------------------------------
-// BSDF share between area light (reference) and punctual light
+// BSDF share between directional light, punctual light and area light (reference) 
 //-----------------------------------------------------------------------------
 
 void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
@@ -628,11 +627,41 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 }
 
 //-----------------------------------------------------------------------------
+// EvaluateBSDF_Directional
+//-----------------------------------------------------------------------------
+
+void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
+                                float3 V, float3 positionWS, PreLightData preLightData, DirectionalLightData lightData, BSDFData bsdfData,
+                                out float3 diffuseLighting,
+                                out float3 specularLighting)
+{
+    float3 L = lightData.direction;
+    float illuminance = saturate(dot(bsdfData.normalWS, L));
+
+    diffuseLighting = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
+    {
+        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, preLightData.unPositionSS);
+
+        illuminance *= shadowAttenuation;
+    }
+
+    [branch] if (illuminance > 0.0f)
+    {
+        BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
+        diffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
+        specularLighting *= lightData.color * illuminance * lightData.specularScale;
+    }
+}
+
+//-----------------------------------------------------------------------------
 // EvaluateBSDF_Punctual
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
-                            float3 V, float3 positionWS, PreLightData preLightData, PunctualLightData lightData, BSDFData bsdfData,
+                            float3 V, float3 positionWS, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                             out float3 diffuseLighting,
                             out float3 specularLighting)
 {
@@ -641,7 +670,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     // mean dot(unL, unL) = 1 and mean GetDistanceAttenuation() will return 1
     // For point light and directional GetAngleAttenuation() return 1
 
-    float3 unL = lightData.positionWS - positionWS * lightData.useDistanceAttenuation;
+    float3 unL = lightData.positionWS - positionWS;
     float3 L = normalize(unL);
 
     float attenuation = GetDistanceAttenuation(unL, lightData.invSqrAttenuationRadius);
@@ -690,7 +719,7 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 // EvaluateBSDF_Area - Reference
 //-----------------------------------------------------------------------------
 
-void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
+void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                             out float3 diffuseLighting,
                             out float3 specularLighting,
                             uint sampleCount = 512)
@@ -712,17 +741,17 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 
         float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
 
-        if (lightData.shapeType == AREASHAPETYPE_SPHERE)
+        if (lightData.lightType == GPULIGHTTYPE_SPHERE)
             SampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-        else if (lightData.shapeType == AREASHAPETYPE_HEMISPHERE)
+        else if (lightData.lightType == GPULIGHTTYPE_HEMISPHERE)
             SampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-        else if (lightData.shapeType == AREASHAPETYPE_CYLINDER)
+        else if (lightData.lightType == GPULIGHTTYPE_CYLINDER)
             SampleCylinder(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
-        else if (lightData.shapeType == AREASHAPETYPE_RECTANGLE)
+        else if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
             SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
-        else if (lightData.shapeType == AREASHAPETYPE_DISK)
+        else if (lightData.lightType == GPULIGHTTYPE_DISK)
             SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-        else if (lightData.shapeType == AREASHAPETYPE_LINE)
+        else if (lightData.lightType == GPULIGHTTYPE_LINE)
             // SampleLine(u, localToWorld, areaLight.lightRadius0, lightPdf, P, Ns);
             ; // TODO
 
@@ -761,7 +790,7 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
-                        float3 V, float3 positionWS, PreLightData preLightData, AreaLightData lightData, BSDFData bsdfData,
+                        float3 V, float3 positionWS, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                         out float3 diffuseLighting,
                         out float3 specularLighting)
 {
@@ -842,7 +871,6 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
         }
 
     #ifndef DIFFUSE_LAMBERT_BRDF
-        // TODO: verify that we do not need to multiply by PI.
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
     #endif
 
@@ -859,9 +887,6 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
-
-    // TODO: current area light code doesn't take into account artist attenuation radius!
-
 #endif
 }
 
@@ -875,12 +900,12 @@ float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
                                 uint sampleCount = 2048)
 {
     float3 N        = bsdfData.normalWS;
+    float3 tangentX = bsdfData.tangentWS;
+    float3 tangentY = bsdfData.bitangentWS;
     float3 acc      = float3(0.0, 0.0, 0.0);
+
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
-
-    float3 tangentX, tangentY;
-    GetLocalFrame(N, tangentX, tangentY);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
@@ -908,14 +933,14 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     float3 V, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 2048)
 {
-    float3 N = bsdfData.normalWS;
-    float NdotV = dot(N, V);
-    float3 acc  = float3(0.0, 0.0, 0.0);
+    float3 N        = bsdfData.normalWS;
+    float3 tangentX = bsdfData.tangentWS;
+    float3 tangentY = bsdfData.bitangentWS;
+    float  NdotV    = saturate(dot(N, V));
+    float3 acc      = float3(0.0, 0.0, 0.0);
+
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
-
-    float3 tangentX, tangentY;
-    GetLocalFrame(N, tangentX, tangentY);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
@@ -951,14 +976,13 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
                                     uint sampleCount = 2048)
 {
     float3 N        = bsdfData.normalWS;
-    float NdotV     = saturate(dot(N, V));
+    float3 tangentX = bsdfData.tangentWS;
+    float3 tangentY = bsdfData.bitangentWS;
+    float  NdotV    = saturate(dot(N, V));
     float3 acc      = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
-
-    float3 tangentX, tangentY;
-    GetLocalFrame(N, tangentX, tangentY);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
@@ -1017,7 +1041,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 */
     diffuseLighting = float3(0.0, 0.0, 0.0);
 
-    weight = float2(0.0, 0.0);
+    weight = float2(0.0, 1.0);
 
 #else
     // TODO: factor this code in common, so other material authoring don't require to rewrite everything, 
