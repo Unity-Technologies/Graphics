@@ -869,12 +869,12 @@ float3 IntegrateLambertIBLRef(  LightLoopContext lightLoopContext,
                                 uint sampleCount = 2048)
 {
     float3 N        = bsdfData.normalWS;
+    float3 tangentX = bsdfData.tangentWS;
+    float3 tangentY = bsdfData.bitangentWS;
     float3 acc      = float3(0.0, 0.0, 0.0);
+
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
-
-    float3 tangentX, tangentY;
-    GetLocalFrame(N, tangentX, tangentY);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
@@ -902,14 +902,14 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
                                     float3 V, EnvLightData lightData, BSDFData bsdfData,
                                     uint sampleCount = 2048)
 {
-    float3 N = bsdfData.normalWS;
-    float NdotV = dot(N, V);
-    float3 acc  = float3(0.0, 0.0, 0.0);
+    float3 N        = bsdfData.normalWS;
+    float3 tangentX = bsdfData.tangentWS;
+    float3 tangentY = bsdfData.bitangentWS;
+    float  NdotV    = saturate(dot(N, V));
+    float3 acc      = float3(0.0, 0.0, 0.0);
+
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(N.xy * 0.5 + 0.5);
-
-    float3 tangentX, tangentY;
-    GetLocalFrame(N, tangentX, tangentY);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
@@ -945,14 +945,13 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
                                     uint sampleCount = 2048)
 {
     float3 N        = bsdfData.normalWS;
-    float NdotV     = saturate(dot(N, V));
+    float3 tangentX = bsdfData.tangentWS;
+    float3 tangentY = bsdfData.bitangentWS;
+    float  NdotV    = saturate(dot(N, V));
     float3 acc      = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
-
-    float3 tangentX, tangentY;
-    GetLocalFrame(N, tangentX, tangentY);
 
     for (uint i = 0; i < sampleCount; ++i)
     {
@@ -1011,7 +1010,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 */
     diffuseLighting = float3(0.0, 0.0, 0.0);
 
-    weight = float2(0.0, 0.0);
+    weight = float2(0.0, 1.0);
 
 #else
     // TODO: factor this code in common, so other material authoring don't require to rewrite everything, 
