@@ -5,14 +5,19 @@
 #ifndef LIGHTDEFINITION_CS_HLSL
 #define LIGHTDEFINITION_CS_HLSL
 //
-// UnityEngine.Experimental.ScriptableRenderLoop.AreaShapeType:  static fields
+// UnityEngine.Experimental.ScriptableRenderLoop.GPULightType:  static fields
 //
-#define AREASHAPETYPE_RECTANGLE (0)
-#define AREASHAPETYPE_LINE (1)
-#define AREASHAPETYPE_SPHERE (2)
-#define AREASHAPETYPE_DISK (3)
-#define AREASHAPETYPE_HEMISPHERE (4)
-#define AREASHAPETYPE_CYLINDER (5)
+#define GPULIGHTTYPE_DIRECTIONAL (0)
+#define GPULIGHTTYPE_SPOT (1)
+#define GPULIGHTTYPE_POINT (2)
+#define GPULIGHTTYPE_PROJECTOR_ORTHO (3)
+#define GPULIGHTTYPE_PROJECTOR_PYRAMID (4)
+#define GPULIGHTTYPE_RECTANGLE (5)
+#define GPULIGHTTYPE_LINE (6)
+#define GPULIGHTTYPE_SPHERE (7)
+#define GPULIGHTTYPE_DISK (8)
+#define GPULIGHTTYPE_HEMISPHERE (9)
+#define GPULIGHTTYPE_CYLINDER (10)
 
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.EnvShapeType:  static fields
@@ -21,44 +26,51 @@
 #define ENVSHAPETYPE_BOX (1)
 #define ENVSHAPETYPE_SPHERE (2)
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.PunctualLightData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.LightData
 // PackingRules = Exact
-struct PunctualLightData
+struct LightData
 {
 	float3 positionWS;
 	float invSqrAttenuationRadius;
 	float3 color;
-	float useDistanceAttenuation;
-	float3 forward;
 	float angleScale;
-	float3 up;
+	float3 forward;
 	float angleOffset;
-	float3 right;
+	float3 up;
 	float diffuseScale;
+	float3 right;
 	float specularScale;
 	float shadowDimmer;
 	int shadowIndex;
 	int IESIndex;
 	int cookieIndex;
-	float3 unused;
-};
-
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.AreaLightData
-// PackingRules = Exact
-struct AreaLightData
-{
-	float3 positionWS;
-	float invSqrAttenuationRadius;
-	float3 color;
-	int shapeType;
-	float3 forward;
-	float diffuseScale;
-	float3 up;
-	float specularScale;
-	float3 right;
-	float shadowDimmer;
+	int lightType;
 	float2 size;
 	bool twoSided;
+};
+
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.DirectionalLightData
+// PackingRules = Exact
+struct DirectionalLightData
+{
+	float3 direction;
+	float diffuseScale;
+	float3 color;
+	float specularScale;
+	float cosAngle;
+	float sinAngle;
+	int shadowIndex;
+	float unsued;
+};
+
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
+// PackingRules = Exact
+struct PunctualShadowData
+{
+	float4x4 worldToShadow;
+	int lightType;
+	float bias;
+	float quality;
 	float unused;
 };
 
@@ -81,125 +93,133 @@ struct EnvLightData
 };
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.PunctualLightData
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.LightData
 //
-float3 GetPositionWS(PunctualLightData value)
+float3 GetPositionWS(LightData value)
 {
 	return value.positionWS;
 }
-float GetInvSqrAttenuationRadius(PunctualLightData value)
+float GetInvSqrAttenuationRadius(LightData value)
 {
 	return value.invSqrAttenuationRadius;
 }
-float3 GetColor(PunctualLightData value)
+float3 GetColor(LightData value)
 {
 	return value.color;
 }
-float GetUseDistanceAttenuation(PunctualLightData value)
-{
-	return value.useDistanceAttenuation;
-}
-float3 GetForward(PunctualLightData value)
-{
-	return value.forward;
-}
-float GetAngleScale(PunctualLightData value)
+float GetAngleScale(LightData value)
 {
 	return value.angleScale;
 }
-float3 GetUp(PunctualLightData value)
-{
-	return value.up;
-}
-float GetAngleOffset(PunctualLightData value)
-{
-	return value.angleOffset;
-}
-float3 GetRight(PunctualLightData value)
-{
-	return value.right;
-}
-float GetDiffuseScale(PunctualLightData value)
-{
-	return value.diffuseScale;
-}
-float GetSpecularScale(PunctualLightData value)
-{
-	return value.specularScale;
-}
-float GetShadowDimmer(PunctualLightData value)
-{
-	return value.shadowDimmer;
-}
-int GetShadowIndex(PunctualLightData value)
-{
-	return value.shadowIndex;
-}
-int GetIESIndex(PunctualLightData value)
-{
-	return value.IESIndex;
-}
-int GetCookieIndex(PunctualLightData value)
-{
-	return value.cookieIndex;
-}
-float3 GetUnused(PunctualLightData value)
-{
-	return value.unused;
-}
-
-//
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.AreaLightData
-//
-float3 GetPositionWS(AreaLightData value)
-{
-	return value.positionWS;
-}
-float GetInvSqrAttenuationRadius(AreaLightData value)
-{
-	return value.invSqrAttenuationRadius;
-}
-float3 GetColor(AreaLightData value)
-{
-	return value.color;
-}
-int GetShapeType(AreaLightData value)
-{
-	return value.shapeType;
-}
-float3 GetForward(AreaLightData value)
+float3 GetForward(LightData value)
 {
 	return value.forward;
 }
-float GetDiffuseScale(AreaLightData value)
+float GetAngleOffset(LightData value)
 {
-	return value.diffuseScale;
+	return value.angleOffset;
 }
-float3 GetUp(AreaLightData value)
+float3 GetUp(LightData value)
 {
 	return value.up;
 }
-float GetSpecularScale(AreaLightData value)
+float GetDiffuseScale(LightData value)
 {
-	return value.specularScale;
+	return value.diffuseScale;
 }
-float3 GetRight(AreaLightData value)
+float3 GetRight(LightData value)
 {
 	return value.right;
 }
-float GetShadowDimmer(AreaLightData value)
+float GetSpecularScale(LightData value)
+{
+	return value.specularScale;
+}
+float GetShadowDimmer(LightData value)
 {
 	return value.shadowDimmer;
 }
-float2 GetSize(AreaLightData value)
+int GetShadowIndex(LightData value)
+{
+	return value.shadowIndex;
+}
+int GetIESIndex(LightData value)
+{
+	return value.IESIndex;
+}
+int GetCookieIndex(LightData value)
+{
+	return value.cookieIndex;
+}
+int GetLightType(LightData value)
+{
+	return value.lightType;
+}
+float2 GetSize(LightData value)
 {
 	return value.size;
 }
-bool GetTwoSided(AreaLightData value)
+bool GetTwoSided(LightData value)
 {
 	return value.twoSided;
 }
-float GetUnused(AreaLightData value)
+
+//
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.DirectionalLightData
+//
+float3 GetDirection(DirectionalLightData value)
+{
+	return value.direction;
+}
+float GetDiffuseScale(DirectionalLightData value)
+{
+	return value.diffuseScale;
+}
+float3 GetColor(DirectionalLightData value)
+{
+	return value.color;
+}
+float GetSpecularScale(DirectionalLightData value)
+{
+	return value.specularScale;
+}
+float GetCosAngle(DirectionalLightData value)
+{
+	return value.cosAngle;
+}
+float GetSinAngle(DirectionalLightData value)
+{
+	return value.sinAngle;
+}
+int GetShadowIndex(DirectionalLightData value)
+{
+	return value.shadowIndex;
+}
+float GetUnsued(DirectionalLightData value)
+{
+	return value.unsued;
+}
+
+//
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
+//
+float4x4 GetWorldToShadow(PunctualShadowData value)
+{
+	return value.worldToShadow;
+}
+int GetLightType(PunctualShadowData value)
+{
+	return value.lightType;
+}
+float GetBias(PunctualShadowData value)
+{
+	return value.bias;
+}
+float GetQuality(PunctualShadowData value)
+{
+	return value.quality;
+}
+float GetUnused(PunctualShadowData value)
 {
 	return value.unused;
 }
