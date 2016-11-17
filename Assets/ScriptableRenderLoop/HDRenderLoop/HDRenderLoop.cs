@@ -776,15 +776,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // Note: LightType.Area is offline only, use for baking, no need to test it
                 var lightData = new LightData();
 
-                // Early out if we reach the maximum
                 // Test whether we should treat this punctual light as an area light.
                 // It's a temporary hack until the proper UI support is added.
-                if (additionalData.treatAsAreaLight)
+                if (additionalData.archetype != LightArchetype.Punctual)
                 {
+                    // Early out if we reach the maximum
                     if (lightList.areaLights.Count >= k_MaxAreaLightsOnSCreen)
                         continue;
 
-                    lightData.lightType = GPULightType.Rectangle;
+                    if (additionalData.archetype == LightArchetype.Rectangle)
+                    {
+                        lightData.lightType = GPULightType.Rectangle;
+                    }
+                    else
+                    {
+                        lightData.lightType = GPULightType.Line;
+                    }
                 }
                 else
                 {
@@ -874,13 +881,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 lightData.size = new Vector2(additionalData.areaLightLength, additionalData.areaLightWidth);
                 lightData.twoSided = additionalData.isDoubleSided;
 
-                if (additionalData.treatAsAreaLight)
+                if (additionalData.archetype == LightArchetype.Punctual)
                 {
-                    lightList.areaLights.Add(lightData);
+                    lightList.punctualLights.Add(lightData);
                 }
                 else
                 {
-                    lightList.punctualLights.Add(lightData);
+                    // Area and line lights are both currently stored as area lights on the GPU.
+                    lightList.areaLights.Add(lightData);
                 }
             }
 
