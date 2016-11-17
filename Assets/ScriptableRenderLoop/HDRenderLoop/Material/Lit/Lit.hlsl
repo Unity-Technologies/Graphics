@@ -808,7 +808,7 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 void IntegrateBSDFLineRef(float3 V, float3 positionWS, PreLightData preLightData,
                           LightData lightData, BSDFData bsdfData,
                           out float3 diffuseLighting, out float3 specularLighting,
-                          int sampleCount = 64)
+                          int sampleCount = 128)
 {
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
