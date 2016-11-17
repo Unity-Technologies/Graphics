@@ -69,7 +69,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float cosAngle; // Distance to disk
         public float sinAngle; // Disk radius
         public int shadowIndex;
-        public float unsued;
+        public float unused;
     };
 
 
@@ -86,6 +86,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float bias;
         public float quality;
         public float unused;
+    };
+
+    [GenerateHLSL]
+    public struct DirectionalShadowData
+    {
+        // World to ShadowMap matrix
+        // Include scale and bias for shadow atlas if any
+        public Matrix4x4 worldToShadow;
+
+        public float bias;
+        public float quality;
+        public Vector2 unused2;
     };
 
     [GenerateHLSL]
