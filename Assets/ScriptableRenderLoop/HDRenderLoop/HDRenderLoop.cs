@@ -22,6 +22,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             UnityEditor.AssetDatabase.CreateAsset(instance, k_HDRenderLoopPath);
         }
 
+        [UnityEditor.MenuItem("HDRenderLoop/Add \"Additional Light Data\" (if not present)")]
+        static void AddAdditionalLightData()
+        {
+            Light[] lights = FindObjectsOfType(typeof(Light)) as Light[];
+
+            foreach (Light light in lights)
+            {
+                // Do not add a component if there already is one.
+                if (light.GetComponent<AdditionalLightData>() == null)
+                {
+                    light.gameObject.AddComponent<AdditionalLightData>();
+                }
+            }
+        }
 #endif
 
         public class SkyParameters
