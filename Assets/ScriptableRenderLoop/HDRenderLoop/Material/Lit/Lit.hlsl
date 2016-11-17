@@ -26,7 +26,8 @@
 #endif
 
 // Reference Lambert diffuse / GGX Specular for IBL and area lights
-// #define LIT_DISPLAY_REFERENCE
+// #define LIT_DISPLAY_REFERENCE_AREA
+// #define LIT_DISPLAY_REFERENCE_IBL
 // Use Lambert diffuse instead of Disney diffuse
 // #define LIT_DIFFUSE_LAMBERT_BRDF
 // Use optimization of Precomputing LambdaV
@@ -764,7 +765,7 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
                         out float3 diffuseLighting,
                         out float3 specularLighting)
 {
-#ifdef LIT_DISPLAY_REFERENCE
+#ifdef LIT_DISPLAY_REFERENCE_AREA
     IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
 #else
     // TODO: This could be precomputed
@@ -1003,7 +1004,7 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
                         float3 V, float3 positionWS, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                         out float3 diffuseLighting, out float3 specularLighting, out float2 weight)
 {
-#ifdef LIT_DISPLAY_REFERENCE
+#ifdef LIT_DISPLAY_REFERENCE_IBL
 
     specularLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, lightData, bsdfData);
 
