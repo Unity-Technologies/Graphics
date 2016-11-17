@@ -728,7 +728,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (light.lightType == LightType.Directional)
                 {
-                    if (lightList.areaLights.Count >= k_MaxDirectionalLightsOnSCreen)
+                    if (lightList.areaLights.Count >= k_MaxAreaLightsOnSCreen)
                         continue;
 
                     var directionalLightData = new DirectionalLightData();
