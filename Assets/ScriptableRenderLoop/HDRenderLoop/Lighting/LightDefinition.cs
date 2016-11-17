@@ -6,42 +6,72 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     // structure definition
     //-----------------------------------------------------------------------------
 
+    [GenerateHLSL]
+    public enum GPULightType
+    {
+        Directional,
+        Spot, 
+        Point,
+        ProjectorOrtho,
+        ProjectorPyramid,
+
+        // AreaLight
+        Rectangle,
+        Line,
+        // Currently not supported in real time (just use for reference)
+        Sphere,
+        Disk,
+        Hemisphere,
+        Cylinder
+    };
+
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL]
-    public struct PunctualLightData
+    public struct LightData
     {
         public Vector3 positionWS;
         public float invSqrAttenuationRadius;
 
         public Vector3 color;
-        public float useDistanceAttenuation;
+        public float angleScale; // Spot light
 
         public Vector3 forward;
-        public float angleScale;
-
-        public Vector3 up;
         public float angleOffset;
 
-        public Vector3 right;
-        public float diffuseScale;
+        public Vector3 up;
+        public float diffuseScale; // Spot light
 
+        public Vector3 right;
         public float specularScale;
+        
         public float shadowDimmer;
         // index are -1 if not used
         public int shadowIndex;
         public int IESIndex;
-
         public int cookieIndex;
-        public Vector3 unused;
+
+        public GPULightType lightType;        
+        // Area Light specific
+        public Vector2 size;
+        public bool twoSided;
     };
 
     [GenerateHLSL]
-    public enum ShadowType
+    public struct DirectionalLightData
     {
-        Spot,
-        Directional,
-        Point
+        public Vector3 direction;
+        public float diffuseScale;
+
+        public Vector3 color;
+        public float specularScale;        
+
+        // Sun disc size 
+        public float cosAngle; // Distance to disk
+        public float sinAngle; // Disk radius
+        public int shadowIndex;
+        public float unsued;
     };
+
 
     // TODO: we may have to add various parameters here for shadow - was suppose to be coupled with a light loop
     // A point light is 6x PunctualShadowData
@@ -52,44 +82,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // Include scale and bias for shadow atlas if any
         public Matrix4x4 worldToShadow;
 
-        public ShadowType shadowType;
+        public GPULightType lightType;
         public float bias;
         public float quality;
-        public Vector2 unused;
-    };
-
-    [GenerateHLSL]
-    public enum AreaShapeType
-    {
-        Rectangle,
-        Line,
-        // Currently not supported in real time (just use for reference)
-        Sphere,
-        Disk,
-        Hemisphere,
-        Cylinder
-    };
-
-    [GenerateHLSL]
-    public struct AreaLightData
-    {
-        public Vector3 positionWS;
-        public float invSqrAttenuationRadius;
-
-        public Vector3 color;
-        public AreaShapeType shapeType;
-
-        public Vector3 forward;
-        public float diffuseScale;
-
-        public Vector3 up;
-        public float specularScale;
-
-        public Vector3 right;
-        public float shadowDimmer;
-
-        public Vector2 size;
-        public bool twoSided;
         public float unused;
     };
 

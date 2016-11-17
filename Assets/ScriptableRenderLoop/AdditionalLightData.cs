@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 
         [RangeAttribute(0.0F, 1.0F)]
-        public float shadowDimmer = 1.0F;
+        public float shadowDimmer = 1.0f;
 
         public bool affectDiffuse = true;
         public bool affectSpecular = true;
