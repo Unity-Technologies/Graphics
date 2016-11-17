@@ -1,10 +1,13 @@
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
-    //@TODO: We should continously move these values
+    public enum LightArchetype {Punctual, Rectangle, Line};
+
+    //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
     [RequireComponent(typeof(Light))]
     public class AdditionalLightData : MonoBehaviour
     {
+
         public const int DefaultShadowResolution = 512;
 
         public int shadowResolution = DefaultShadowResolution;
@@ -31,9 +34,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public bool affectDiffuse = true;
         public bool affectSpecular = true;
 
-        // Area Light Hack
-        public bool treatAsAreaLight = false;
-        public bool isDoubleSided    = false;
+        public LightArchetype archetype = LightArchetype.Punctual;
+        public bool isDoubleSided = false;
 
         [RangeAttribute(0.0f, 20.0f)]
         public float areaLightLength = 0.0f;
