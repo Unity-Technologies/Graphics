@@ -174,7 +174,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 /*
                 ClearComputeBuffers();
 
-                buildScreenAABBShader = Resources.Load<ComputeShader>("srcbound");
+                buildScreenAABBShader = Resources.Load<ComputeShader>("scrbound");
                 buildPerTileLightListShader = Resources.Load<ComputeShader>("lightlistbuild");
                 buildPerBigTileLightListShader = Resources.Load<ComputeShader>("lightlistbuild-bigtile");
                 buildPerVoxelLightListShader = Resources.Load<ComputeShader>("lightlistbuild-clustered");
