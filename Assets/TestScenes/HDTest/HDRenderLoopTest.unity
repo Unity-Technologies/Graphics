@@ -2736,10 +2736,10 @@ MonoBehaviour:
   shadowDimmer: 1
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  archetype: 2
   isDoubleSided: 1
   areaLightLength: 16
-  areaLightWidth: 2
+  areaLightWidth: 0
 --- !u!108 &710116622
 Light:
   m_ObjectHideFlags: 0
@@ -2888,8 +2888,6 @@ GameObject:
   - component: {fileID: 740109900}
   - component: {fileID: 740109899}
   - component: {fileID: 740109898}
-  - component: {fileID: 740109897}
-  - component: {fileID: 740109896}
   m_Layer: 0
   m_Name: LightQuad
   m_TagString: Untagged
@@ -2910,59 +2908,6 @@ Transform:
   m_Father: {fileID: 710116623}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &740109896
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 740109894}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  shadowDimmer: 1
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 2
-  isDoubleSided: 1
-  areaLightLength: 16
-  areaLightWidth: 2
---- !u!108 &740109897
-Light:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 740109894}
-  m_Enabled: 1
-  serializedVersion: 7
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
-  m_Range: 10
-  m_SpotAngle: 30
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_Lightmapping: 4
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
 --- !u!23 &740109898
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3574,7 +3519,7 @@ MonoBehaviour:
   shadowDimmer: 1
   affectDiffuse: 1
   affectSpecular: 1
-  archetype: 0
+  archetype: 1
   isDoubleSided: 1
   areaLightLength: 16
   areaLightWidth: 2
@@ -3791,8 +3736,6 @@ GameObject:
   - component: {fileID: 925222277}
   - component: {fileID: 925222276}
   - component: {fileID: 925222275}
-  - component: {fileID: 925222279}
-  - component: {fileID: 925222278}
   m_Layer: 0
   m_Name: LightQuad
   m_TagString: Untagged
@@ -3866,59 +3809,6 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 925222273}
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &925222278
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 925222273}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shadowResolution: 512
-  shadowDimmer: 1
-  affectDiffuse: 1
-  affectSpecular: 1
-  archetype: 1
-  isDoubleSided: 1
-  areaLightLength: 16
-  areaLightWidth: 2
---- !u!108 &925222279
-Light:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 925222273}
-  m_Enabled: 1
-  serializedVersion: 7
-  m_Type: 2
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
-  m_Range: 10
-  m_SpotAngle: 30
-  m_CookieSize: 10
-  m_Shadows:
-    m_Type: 0
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_Lightmapping: 4
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
 --- !u!1 &928571527
 GameObject:
   m_ObjectHideFlags: 0
