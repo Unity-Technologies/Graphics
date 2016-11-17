@@ -11,30 +11,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         //-----------------------------------------------------------------------------
 
         [GenerateHLSL]
-        public enum ShadowType
-        {
-            Spot,
-            Directional,
-            Point
-        };
-
-        // TODO: we may have to add various parameters here for shadow
-        // A point light is 6x PunctualShadowData
-        [GenerateHLSL]
-        public struct PunctualShadowData
-        {
-            // World to ShadowMap matrix
-            // Include scale and bias for shadow atlas if any
-            public Matrix4x4 worldToShadow;
-
-            public ShadowType shadowType;
-            public float bias;
-            public float quality;
-            public Vector2 unused;
-        };
-
-
-        [GenerateHLSL]
         public class LightDefinitions
         {
             public static int MAX_NR_LIGHTS_PER_CAMERA = 1024;
@@ -43,6 +19,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // enable unity's original left-hand shader camera space (right-hand internally in unity).
             public static int USE_LEFTHAND_CAMERASPACE = 0;
+
+            // flags
+            public static int IS_CIRCULAR_SPOT_SHAPE = 1;
+            public static int HAS_COOKIE_TEXTURE = 2;
+            public static int IS_BOX_PROJECTED = 4;
+            public static int HAS_SHADOW = 8;
+
 
             // types
             public static int MAX_TYPES = 3;
@@ -58,6 +41,42 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public static int REFLECTION_LIGHT = 1;
         }
 
+        [GenerateHLSL]
+        public struct SFiniteLightBound
+        {
+            public Vector3 boxAxisX;
+            public Vector3 boxAxisY;
+            public Vector3 boxAxisZ;
+            public Vector3 center;        // a center in camera space inside the bounding volume of the light source.
+            public Vector2 scaleXY;
+            public float radius;
+        };
+
+        [GenerateHLSL]
+        public struct SFiniteLightData
+        {
+            public Vector3 lightPos;
+            public int flags;
+
+            public Vector3 lightAxisX;
+            public uint lightType;
+
+            public Vector3 lightAxisY;
+            public float radiusSq;
+
+            public Vector3 lightAxisZ;      // spot +Z axis
+            public float cotan;
+
+            public Vector3 color;
+            public uint lightModel;        // DIRECT_LIGHT=0, REFLECTION_LIGHT=1
+
+            public Vector3 boxInnerDist;
+            public float unusued;
+
+            public Vector3 boxInvRange;
+            public float unused2;
+        };
+
         public class LightLoop
         {
             string GetKeyword()
@@ -65,7 +84,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return "LIGHTLOOP_SINGLE_PASS";
             }
 
-            public const int MaxNumLights = 1024;
+            /*
+            public const int MaxNumLights = HDRenderLoop.k_MaxPunctualLightsOnSCreen + HDRenderLoop.k_MaxAreaLightsOnSCreen + HDRenderLoop.k_MaxEnvLightsOnSCreen;
             public const int MaxNumDirLights = 2;
             public const float FltMax = 3.402823466e+38F;
 
@@ -107,21 +127,26 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // clustered light list specific buffers and data end
 
             const int k_TileSize = 16;
+            */
 
             bool usingFptl
             {
                 get
                 {
+                    /*
                     bool isEnabledMSAA = false;
                     Debug.Assert(!isEnabledMSAA || enableClustered);
                     bool disableFptl = (disableFptlWhenClustered && enableClustered) || isEnabledMSAA;
                     return !disableFptl;
+                    */
+                    return true;
                 }
             }
 
             // Local function
             void ClearComputeBuffers()
             {
+                /*
                 ReleaseResolutionDependentBuffers();
 
                 if (s_AABBBoundsBuffer != null)
@@ -141,16 +166,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     if (s_GlobalLightListAtomic != null)
                         s_GlobalLightListAtomic.Release();
                 }
+                */
             }
 
-            void Rebuild()
+            public void Rebuild()
             {
+                /*
                 ClearComputeBuffers();
 
-                buildScreenAABBShader = Resources.Load<ComputeShader>("Resources/srcbound");
-                buildPerTileLightListShader = Resources.Load<ComputeShader>("Resources/lightlistbuild");
-                buildPerBigTileLightListShader = Resources.Load<ComputeShader>("Resources/lightlistbuild-bigtile");
-                buildPerVoxelLightListShader = Resources.Load<ComputeShader>("Resources/lightlistbuild-clustered");
+                buildScreenAABBShader = Resources.Load<ComputeShader>("srcbound");
+                buildPerTileLightListShader = Resources.Load<ComputeShader>("lightlistbuild");
+                buildPerBigTileLightListShader = Resources.Load<ComputeShader>("lightlistbuild-bigtile");
+                buildPerVoxelLightListShader = Resources.Load<ComputeShader>("lightlistbuild-clustered");
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
@@ -160,8 +187,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_DirLightList = new ComputeBuffer(MaxNumDirLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLight)));
 
                 buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
-                //m_BuildScreenAABBShader.SetBuffer(kGenAABBKernel, "g_vBoundsBuffer", m_aabbBoundsBuffer);
-
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vLightData", s_LightDataBuffer);
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_data", s_ConvexBoundsBuffer);
@@ -185,10 +210,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_vLightData", s_LightDataBuffer);
                     buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_data", s_ConvexBoundsBuffer);
                 }
+                */
             }
 
-            void OnDisable()
-            {
+            public void OnDisable()
+            {/*
+                // TODO: do something for Resources.Load<ComputeShader> ?
+
                 s_AABBBoundsBuffer.Release();
                 s_ConvexBoundsBuffer.Release();
                 s_LightDataBuffer.Release();
@@ -199,8 +227,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     s_GlobalLightListAtomic.Release();
                 }
+                */
             }
 
+            /*
             public bool NeedResize()
             {
                 return s_LightList == null || (s_BigTileLightList == null && enableBigTilePrepass) || (s_PerVoxelLightLists == null && enableClustered);
@@ -264,7 +294,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     s_BigTileLightList = new ComputeBuffer(LightDefinitions.MAX_NR_BIGTILE_LIGHTS_PLUSONE * nrBigTiles, sizeof(uint));
                 }
             }
+            */
 
+            /*
             int GenerateSourceLightBuffers(Camera camera, CullResults inputs)
             {
                 var probes = inputs.visibleReflectionProbes;
@@ -631,7 +663,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 loop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
+            */
 
+            public void PushGlobalParams(Camera camera, RenderLoop loop, HDRenderLoop.LightList lightList)
+            {
+
+            }
         }
     }
 }

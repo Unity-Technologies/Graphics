@@ -5,6 +5,13 @@
 #ifndef LIGHTDEFINITION_CS_HLSL
 #define LIGHTDEFINITION_CS_HLSL
 //
+// UnityEngine.Experimental.ScriptableRenderLoop.ShadowType:  static fields
+//
+#define SHADOWTYPE_SPOT (0)
+#define SHADOWTYPE_DIRECTIONAL (1)
+#define SHADOWTYPE_POINT (2)
+
+//
 // UnityEngine.Experimental.ScriptableRenderLoop.AreaShapeType:  static fields
 //
 #define AREASHAPETYPE_RECTANGLE (0)
@@ -41,6 +48,17 @@ struct PunctualLightData
 	int IESIndex;
 	int cookieIndex;
 	float3 unused;
+};
+
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
+// PackingRules = Exact
+struct PunctualShadowData
+{
+	float4x4 worldToShadow;
+	int shadowType;
+	float bias;
+	float quality;
+	float2 unused;
 };
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.AreaLightData
@@ -144,6 +162,30 @@ int GetCookieIndex(PunctualLightData value)
 	return value.cookieIndex;
 }
 float3 GetUnused(PunctualLightData value)
+{
+	return value.unused;
+}
+
+//
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
+//
+float4x4 GetWorldToShadow(PunctualShadowData value)
+{
+	return value.worldToShadow;
+}
+int GetShadowType(PunctualShadowData value)
+{
+	return value.shadowType;
+}
+float GetBias(PunctualShadowData value)
+{
+	return value.bias;
+}
+float GetQuality(PunctualShadowData value)
+{
+	return value.quality;
+}
+float2 GetUnused(PunctualShadowData value)
 {
 	return value.unused;
 }

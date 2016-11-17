@@ -4,14 +4,16 @@
 #pragma kernel TileLightListGen					LIGHTLISTGEN=TileLightListGen
 #pragma kernel TileLightListGen_SrcBigTile		LIGHTLISTGEN=TileLightListGen_SrcBigTile		USE_TWO_PASS_TILED_LIGHTING
 
+float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
+{
+    return 1 - depthTexture.Load(uint3(pixCoord.xy, 0)).x;
+}
 
-#include "..\common\ShaderBase.h"
-#include "LightDefinitions.cs.hlsl"
-
-#include "LightingConvexHullUtils.hlsl"
+#include "../TilePass.cs.hlsl"
+#include "../LightingConvexHullUtils.hlsl"
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
-#include "SortingComputeUtils.hlsl"
+#include "../SortingComputeUtils.hlsl"
 #endif
 
 
