@@ -88,7 +88,7 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
     return float2(0.0, 0.0);
 #endif
 }
-
+                                           
 #if !defined(LAYERED_LIT_SHADER)
 
 void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -99,7 +99,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS); // This should be remove by the compiler as we usually cal it before.
     float height = SAMPLE_TEXTURE2D(_HeightMap, sampler_HeightMap, input.texCoord0).r * _HeightScale + _HeightBias;
     // Transform view vector in tangent space
-    TransformWorldToTangent(V, input.tangentToWorld);
+    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
     float2 offset = ParallaxOffset(viewDirTS, height);
     input.texCoord0 += offset;
     input.texCoord1 += offset;

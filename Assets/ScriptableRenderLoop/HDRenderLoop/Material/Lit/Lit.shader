@@ -133,8 +133,8 @@ Shader "HDRenderLoop/Lit"
 
     TEXTURE2D(_NormalMap);
     SAMPLER2D(sampler_NormalMap);
-    TEXTURE2D(_Heightmap);
-    SAMPLER2D(sampler_Heightmap);
+    TEXTURE2D(_HeightMap);
+    SAMPLER2D(sampler_HeightMap);
 
     float _HeightScale;
     float _HeightBias;
