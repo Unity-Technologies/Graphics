@@ -12,7 +12,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
     public partial class HDRenderLoop : ScriptableRenderLoop
     {
-        private const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
+        const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
+
+#if UNITY_EDITOR
+        [UnityEditor.MenuItem("Renderloop/CreateHDRenderLoop")]
+        static void CreateHDRenderLoop()
+        {
+            var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
+            UnityEditor.AssetDatabase.CreateAsset(instance, k_HDRenderLoopPath);
+        }
+
+#endif
 
         public class SkyParameters
         {
@@ -23,7 +33,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 
         [SerializeField]
-        private SkyParameters m_SkyParameters = new SkyParameters();
+        SkyParameters m_SkyParameters = new SkyParameters();
  
         public SkyParameters skyParameters
         {
@@ -46,21 +56,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public float exposure = 0;
         }
 
-        private DebugParameters m_DebugParameters = new DebugParameters();
+        DebugParameters m_DebugParameters = new DebugParameters();
         public DebugParameters debugParameters
         {
             get { return m_DebugParameters; }
         }
-
-        #if UNITY_EDITOR
-        [UnityEditor.MenuItem("Renderloop/CreateHDRenderLoop")]
-        static void CreateHDRenderLoop()
-        {
-            var instance = ScriptableObject.CreateInstance<HDRenderLoop>();
-            UnityEditor.AssetDatabase.CreateAsset(instance, k_HDRenderLoopPath);
-        }
-
-        #endif
 
         public class GBufferManager
         {
@@ -93,8 +93,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 return colorMRTs;
             }
-
-            
+        
             /*
             public void BindBuffers(Material mat)
             {
@@ -104,8 +103,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
             }
             */
-            
-
 
             public int gbufferCount { get; set; }
             int[] IDs = new int[MaxGbuffer];
@@ -114,49 +111,56 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             RenderTextureReadWrite[] sRGBWrites = new RenderTextureReadWrite[MaxGbuffer];
         }
 
-        public const int MaxLights = 32;
-        public const int MaxShadows = 16; // Max shadow allowed on screen simultaneously - a point light is 6 shadows
-        public const int MaxProbes = 32;
+        GBufferManager m_gbufferManager = new GBufferManager();
 
         [SerializeField]
         ShadowSettings m_ShadowSettings = ShadowSettings.Default;
         ShadowRenderPass m_ShadowPass;
 
+
+        public const int k_MaxPunctualLightsOnSCreen = 512;
+        public const int k_MaxAreaLightsOnSCreen = 128;
+        public const int k_MaxEnvLightsOnSCreen = 64;
+        public const int k_MaxShadowOnScreen = 16;
+
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
+        // Various set of material use in render loop
         Material m_SkyboxMaterial;
         Material m_SkyHDRIMaterial;
         Material m_DeferredMaterial;
         Material m_FinalPassMaterial;
-
-        // TODO: Find a way to automatically create/iterate through lightloop
-        TilePass.LightLoop m_TilePassLightLoop;
-
-        // TODO: Find a way to automatically create/iterate through deferred material
-        Lit.RenderLoop m_LitRenderLoop;
-
-        // Debug
         Material m_DebugViewMaterialGBuffer;
 
-        GBufferManager m_gbufferManager = new GBufferManager();
-
+        // Various buffer
         int s_CameraColorBuffer;
         int s_CameraDepthBuffer;
         int s_VelocityBuffer;
         int s_DistortionBuffer;
 
-        ComputeBuffer s_punctualLightList;
-        ComputeBuffer s_envLightList;
-        ComputeBuffer s_areaLightList;
-        ComputeBuffer s_punctualShadowList;
+        public class LightList
+        {
+            public List<PunctualLightData> punctualLights;
+            public List<AreaLightData> areaLights;
+            public List<EnvLightData> envLights;
+            public List<PunctualShadowData> punctualShadows;            
+        }
 
-        TextureCacheCubemap m_cubeReflTexArray;
+        // Detect when windows size is changing
+        int m_WidthOnRecord;
+        int m_HeightOnRecord;
+
+        // TODO: Find a way to automatically create/iterate through lightloop
+        SinglePass.LightLoop m_SinglePassLightLoop;
+       // TilePass.LightLoop m_TilePassLightLoop;
+
+        // TODO: Find a way to automatically create/iterate through deferred material
+        Lit.RenderLoop m_LitRenderLoop;
+
+        TextureCacheCubemap m_CubeReflTexArray;
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
-
-        static int s_WidthOnRecord;
-        static int s_HeightOnRecord;
 
         void OnEnable()
         {
@@ -166,21 +170,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         void OnValidate()
         {
             Rebuild();
-        }
-
-        void ClearComputeBuffers()
-        {
-            if (s_punctualLightList != null)
-                s_punctualLightList.Release();
-
-            if (s_areaLightList != null)
-                s_areaLightList.Release();
-
-            if (s_punctualShadowList != null)
-                s_punctualShadowList.Release();
-
-            if (s_envLightList != null)
-                s_envLightList.Release();
         }
 
         Material CreateEngineMaterial(string shaderPath)
@@ -194,15 +183,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public override void Rebuild()
         {
-            ClearComputeBuffers();
-
             s_CameraColorBuffer  = Shader.PropertyToID("_CameraColorTexture");
             s_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
-
-            s_punctualLightList  = new ComputeBuffer(MaxLights,  System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualLightData)));
-            s_areaLightList      = new ComputeBuffer(MaxLights,  System.Runtime.InteropServices.Marshal.SizeOf(typeof(AreaLightData)));
-            s_envLightList       = new ComputeBuffer(MaxLights,  System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
-            s_punctualShadowList = new ComputeBuffer(MaxShadows, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_SkyboxMaterial = CreateEngineMaterial("Skybox/Cubemap");
@@ -214,24 +196,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_SkyHDRIMaterial = CreateEngineMaterial("Hidden/HDRenderLoop/SkyHDRI");
             m_DeferredMaterial   = CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
             m_FinalPassMaterial  = CreateEngineMaterial("Hidden/HDRenderLoop/FinalPass");
-
-            // Debug
             m_DebugViewMaterialGBuffer = CreateEngineMaterial("Hidden/HDRenderLoop/DebugViewMaterialGBuffer");
 
-            m_ShadowPass = new ShadowRenderPass (m_ShadowSettings);
-
-            m_cubeReflTexArray = new TextureCacheCubemap();
-            m_cubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
-            m_CookieTexArray = new TextureCache2D();
-            m_CookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
-            m_CubeCookieTexArray = new TextureCacheCubemap();            
-            m_CubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-
-            m_TilePassLightLoop = new TilePass.LightLoop();
-            m_TilePassLightLoop.Rebuild();
+            m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
 
             // Init Gbuffer description
-            m_LitRenderLoop = new Lit.RenderLoop(); // Our object can be garbacge collected, so need to be allocate here
+            m_LitRenderLoop = new Lit.RenderLoop(); // Our object can be garbage collected, so need to be allocate here
 
             m_gbufferManager.gbufferCount = m_LitRenderLoop.GetMaterialGBufferCount();
             RenderTextureFormat[] RTFormat; RenderTextureReadWrite[] RTReadWrite;
@@ -255,26 +225,43 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             s_DistortionBuffer = Shader.PropertyToID("_DistortionTexture");
 
             m_LitRenderLoop.Rebuild();
+
+            m_CookieTexArray = new TextureCache2D();
+            m_CookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
+            m_CubeCookieTexArray = new TextureCacheCubemap();
+            m_CubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
+            m_CubeReflTexArray = new TextureCacheCubemap();
+            m_CubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
+
+            // Init various light loop
+            m_SinglePassLightLoop = new SinglePass.LightLoop();
+            m_SinglePassLightLoop.Rebuild();
+            // m_TilePassLightLoop = new TilePass.LightLoop();
+            // m_TilePassLightLoop.Rebuild();
         }
 
         void OnDisable()
         {
             m_LitRenderLoop.OnDisable();
-            m_TilePassLightLoop.OnDisable();
+            m_SinglePassLightLoop.OnDisable();
+            //m_TilePassLightLoop.OnDisable();
 
-            s_punctualLightList.Release();
-            s_areaLightList.Release();
-            s_envLightList.Release();
-            s_punctualShadowList.Release();
-     
             if (m_SkyboxMaterial) DestroyImmediate(m_SkyboxMaterial);
             if (m_SkyHDRIMaterial) DestroyImmediate(m_SkyHDRIMaterial);
             if (m_DeferredMaterial)  DestroyImmediate(m_DeferredMaterial);
             if (m_FinalPassMaterial) DestroyImmediate(m_FinalPassMaterial);
+            if (m_DebugViewMaterialGBuffer) DestroyImmediate(m_DebugViewMaterialGBuffer);
 
-            m_cubeReflTexArray.Release();
+            m_CubeReflTexArray.Release();
             m_CookieTexArray.Release();
             m_CubeCookieTexArray.Release();
+        }
+
+        void NewFrame()
+        {
+            m_CookieTexArray.NewFrame();
+            m_CubeCookieTexArray.NewFrame();
+            m_CubeReflTexArray.NewFrame();
         }
 
         void InitAndClearBuffer(Camera camera, RenderLoop renderLoop)
@@ -676,23 +663,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.Dispose();
         }
 
-        void NewFrame()
+        // Function to prepare light structure for GPU lighting
+        void ConvertLightForGPU(CullResults cullResults, ref ShadowOutput shadowOutput, out LightList lightList)
         {
-            // update texture caches
-            m_cubeReflTexArray.NewFrame();
-        }
+            // Init light list
+            lightList = new LightList();
+            lightList.punctualLights = new List<PunctualLightData>();
+            lightList.areaLights = new List<AreaLightData>();
+            lightList.envLights = new List<EnvLightData>();
+            lightList.punctualShadows = new List<PunctualShadowData>();
 
-        //---------------------------------------------------------------------------------------------------------------------------------------------------
-
-        void UpdatePunctualLights(VisibleLight[] visibleLights, ref ShadowOutput shadowOutput)
-        {
-            var pLights = new List<PunctualLightData>();
-            var aLights = new List<AreaLightData>();
-            var shadows = new List<PunctualShadowData>();
-
-            for (int lightIndex = 0, numLights = Math.Min(visibleLights.Length, MaxLights); lightIndex < numLights; ++lightIndex)
+            for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; lightIndex < numLights; ++lightIndex)
             {
-                var light = visibleLights[lightIndex];
+                var light = cullResults.visibleLights[lightIndex];
 
                 // We only process light with additional data
                 var additionalData = light.light.GetComponent<AdditionalLightData>();
@@ -703,13 +686,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     continue;
                 }
 
-                if (light.lightType == LightType.Area)
-                {
-                    // Skip area lights which are currently only used for baking.
-                    continue;
-                }
+                // Note: LightType.Area is offline only, use for baking, no need to test it
 
-                // Correct intensity calculation (different from Unity)
+                // Linear intensity calculation (different Unity 5.5)
                 var lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
                 var lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
                 var lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
@@ -718,7 +697,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // It's a temporary hack until the proper UI support is added.
                 if (additionalData.treatAsAreaLight)
                 {
-                    AreaLightData lightData = new AreaLightData();
+                    if (lightList.areaLights.Count >= k_MaxAreaLightsOnSCreen)
+                        continue;
+
+                    var lightData = new AreaLightData();
 
                     // TODO: add AreaShapeType.Line support for small widths.
                     lightData.shapeType = AreaShapeType.Rectangle;
@@ -737,33 +719,36 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     lightData.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
 
-                    aLights.Add(lightData);
+                    lightList.areaLights.Add(lightData);
 
                     // TODO: shadows.
                 }
                 else
                 {
-                    var l = new PunctualLightData();
+                    if (lightList.punctualLights.Count >= k_MaxPunctualLightsOnSCreen)
+                        continue;
+
+                    var punctualLightData = new PunctualLightData();
 
                     if (light.lightType == LightType.Directional)
                     {
-                        l.useDistanceAttenuation = 0.0f;
+                        punctualLightData.useDistanceAttenuation = 0.0f;
                         // positionWS store Light direction for directional and is opposite to the forward direction
-                        l.positionWS = -light.light.transform.forward;
-                        l.invSqrAttenuationRadius = 0.0f;
+                        punctualLightData.positionWS = -light.light.transform.forward;
+                        punctualLightData.invSqrAttenuationRadius = 0.0f;
                     }
                     else
                     {
-                        l.useDistanceAttenuation = 1.0f;
-                        l.positionWS = light.light.transform.position;
-                        l.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
+                        punctualLightData.useDistanceAttenuation = 1.0f;
+                        punctualLightData.positionWS = light.light.transform.position;
+                        punctualLightData.invSqrAttenuationRadius = 1.0f / (light.range * light.range);
                     }
 
-                    l.color = new Vector3(lightColorR, lightColorG, lightColorB);
+                    punctualLightData.color = new Vector3(lightColorR, lightColorG, lightColorB);
 
-                    l.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
-                    l.up = light.light.transform.up;
-                    l.right = light.light.transform.right;
+                    punctualLightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
+                    punctualLightData.up = light.light.transform.up;
+                    punctualLightData.right = light.light.transform.right;
 
                     if (light.lightType == LightType.Spot)
                     {
@@ -774,105 +759,107 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
 
                         var val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
-                        l.angleScale = 1.0f / val;
-                        l.angleOffset = -cosSpotOuterHalfAngle * l.angleScale;
+                        punctualLightData.angleScale = 1.0f / val;
+                        punctualLightData.angleOffset = -cosSpotOuterHalfAngle * punctualLightData.angleScale;
                     }
                     else
                     {
                         // 1.0f, 2.0f are neutral value allowing GetAngleAnttenuation in shader code to return 1.0
-                        l.angleScale = 1.0f;
-                        l.angleOffset = 2.0f;
+                        punctualLightData.angleScale = 1.0f;
+                        punctualLightData.angleOffset = 2.0f;
                     }
 
-                    l.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
-                    l.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
-                    l.shadowDimmer = additionalData.shadowDimmer;
+                    punctualLightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
+                    punctualLightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
+                    punctualLightData.shadowDimmer = additionalData.shadowDimmer;
 
-                    l.IESIndex = -1;
-                    l.cookieIndex = -1;
-                    l.shadowIndex = -1;
+                    punctualLightData.IESIndex = -1;
+                    punctualLightData.cookieIndex = -1;
+                    punctualLightData.shadowIndex = -1;
+
+                    bool hasCookie = light.light.cookie != null;
+                    if (hasCookie)
+                    {
+                        if (light.lightType == LightType.Point)
+                        {
+                            punctualLightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
+                        }
+                        else if (light.lightType == LightType.Spot)
+                        {
+                            punctualLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                        }
+                    }
 
                     // Setup shadow data arrays
-                    bool hasShadows = shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
-                    bool hasNotReachMaxLimit = shadows.Count + (light.lightType == LightType.Point ? 6 : 1) <= MaxShadows;
+                    bool hasShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
+                    bool hasNotReachMaxLimit = lightList.punctualShadows.Count + (light.lightType == LightType.Point ? 6 : 1) <= k_MaxShadowOnScreen;
 
                     if (hasShadows && hasNotReachMaxLimit) // Note  < MaxShadows should be check at shadowOutput creation
                     {
                         // When we have a point light, we assumed that there is 6 consecutive PunctualShadowData
-                        l.shadowIndex = shadows.Count;
+                        punctualLightData.shadowIndex = lightList.punctualShadows.Count;
 
                         for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
                         {
-                            PunctualShadowData s = new PunctualShadowData();
+                            PunctualShadowData punctualShadowData = new PunctualShadowData();
 
                             int shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
-                            s.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose for hlsl reading ?
+                            punctualShadowData.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose for hlsl reading ?
 
                             if (light.lightType == LightType.Spot)
                             {
-                                s.shadowType = ShadowType.Spot;
+                                punctualShadowData.shadowType = ShadowType.Spot;
                             }
                             else if (light.lightType == LightType.Point)
                             {
-                                s.shadowType = ShadowType.Point;
+                                punctualShadowData.shadowType = ShadowType.Point;
                             }
                             else
                             {
-                                s.shadowType = ShadowType.Directional;
+                                punctualShadowData.shadowType = ShadowType.Directional;
                             }
 
-                            s.bias = light.light.shadowBias;
+                            punctualShadowData.bias = light.light.shadowBias;
 
-                            shadows.Add(s);
+                            lightList.punctualShadows.Add(punctualShadowData);
                         }
                     }
 
-                    pLights.Add(l);
+                    lightList.punctualLights.Add(punctualLightData);
                 }
             }
 
-            s_punctualLightList.SetData(pLights.ToArray());
-            s_areaLightList.SetData(aLights.ToArray());
-            s_punctualShadowList.SetData(shadows.ToArray());
-
-            Shader.SetGlobalBuffer("_PunctualLightList", s_punctualLightList);
-            Shader.SetGlobalBuffer("_AreaLightList", s_areaLightList);
-            Shader.SetGlobalInt("_PunctualLightCount", pLights.Count);
-            Shader.SetGlobalInt("_AreaLightCount", aLights.Count);
-            Shader.SetGlobalBuffer("_PunctualShadowList", s_punctualShadowList);
-        }
-
-        void UpdateReflectionProbes(VisibleReflectionProbe[] activeReflectionProbes)
-        {
-            var lights = new List<EnvLightData>();
-
-            for (int lightIndex = 0; lightIndex < Math.Min(activeReflectionProbes.Length, MaxProbes); lightIndex++)
+            for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Length; probeIndex < numProbes; probeIndex++)
             {
-                var probe = activeReflectionProbes[lightIndex];
+                var probe = cullResults.visibleReflectionProbes[probeIndex];
 
+                // If probe have not been rendered discard
                 if (probe.texture == null)
                     continue;
 
-                var l = new EnvLightData();
+                if (lightList.envLights.Count >= k_MaxEnvLightsOnSCreen)
+                    continue;
+
+                var envLightData = new EnvLightData();
 
                 // CAUTION: localToWorld is the transform for the widget of the reflection probe. i.e the world position of the point use to do the cubemap capture (mean it include the local offset)
-                l.positionWS = probe.localToWorld.GetColumn(3);
+                envLightData.positionWS = probe.localToWorld.GetColumn(3);
 
-                l.envShapeType = EnvShapeType.None;
+                envLightData.envShapeType = EnvShapeType.None;
 
                 // TODO: Support sphere in the interface
                 if (probe.boxProjection != 0)
                 {
-                    l.envShapeType = EnvShapeType.Box;
+                    envLightData.envShapeType = EnvShapeType.Box;
                 }
 
                 // remove scale from the matrix (Scale in this matrix is use to scale the widget)
-                l.right = probe.localToWorld.GetColumn(0);
-                l.right.Normalize();
-                l.up = probe.localToWorld.GetColumn(1);
-                l.up.Normalize();
-                l.forward = probe.localToWorld.GetColumn(2);
-                l.forward.Normalize();
+                envLightData.right = probe.localToWorld.GetColumn(0);
+                envLightData.right.Normalize();
+                envLightData.up = probe.localToWorld.GetColumn(1);
+                envLightData.up.Normalize();
+                envLightData.forward = probe.localToWorld.GetColumn(2);
+                envLightData.forward.Normalize();
 
                 // Artists prefer to have blend distance inside the volume!
                 // So we let the current UI but we assume blendDistance is an inside factor instead
@@ -880,27 +867,21 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // probe.bounds.extents is BoxSize / 2
                 float maxBlendDist = Mathf.Min(probe.bounds.extents.x, Mathf.Min(probe.bounds.extents.y, probe.bounds.extents.z));
                 float blendDistance = Mathf.Min(maxBlendDist, probe.blendDistance);
-                l.innerDistance = probe.bounds.extents - new Vector3(blendDistance, blendDistance, blendDistance);
+                envLightData.innerDistance = probe.bounds.extents - new Vector3(blendDistance, blendDistance, blendDistance);
 
-                l.envIndex = m_cubeReflTexArray.FetchSlice(probe.texture);
+                envLightData.envIndex = m_CubeReflTexArray.FetchSlice(probe.texture);
 
-                l.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
-                l.blendDistance = blendDistance;
-                lights.Add(l);
+                envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
+                envLightData.blendDistance = blendDistance;
+                lightList.envLights.Add(envLightData);
             }
-
-            s_envLightList.SetData(lights.ToArray());
-
-            Shader.SetGlobalBuffer("_EnvLightList", s_envLightList);
-            Shader.SetGlobalInt("_EnvLightCount", lights.Count);
-            Shader.SetGlobalTexture("_EnvTextures", m_cubeReflTexArray.GetTexCache());
         }
 
         void Resize(Camera camera)
-        {
-            if (camera.pixelWidth != s_WidthOnRecord || camera.pixelHeight != s_HeightOnRecord || m_TilePassLightLoop.NeedResize())
+        { /*
+            if (camera.pixelWidth != m_WidthOnRecord || camera.pixelHeight != m_HeightOnRecord || m_TilePassLightLoop.NeedResize())
             {
-                if (s_WidthOnRecord > 0 && s_HeightOnRecord > 0)
+                if (m_WidthOnRecord > 0 && m_HeightOnRecord > 0)
                 {
                     m_TilePassLightLoop.ReleaseResolutionDependentBuffers();
                 }
@@ -908,9 +889,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_TilePassLightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
 
                 // update recorded window resolution
-                s_WidthOnRecord = camera.pixelWidth;
-                s_HeightOnRecord = camera.pixelHeight;
+                m_WidthOnRecord = camera.pixelWidth;
+                m_HeightOnRecord = camera.pixelHeight;
             }
+            */
+        }
+
+        public void PushGlobalParams(Camera camera, RenderLoop renderLoop, HDRenderLoop.LightList lightList)
+        {
+            //Shader.SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
+            //Shader.SetGlobalTexture("_CubeCookieTextures", m_CubeCookieTexArray.GetTexCache());
+            Shader.SetGlobalTexture("_EnvTextures", m_CubeReflTexArray.GetTexCache());
+
+            m_SinglePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
+          //  m_TilePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
         }
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
@@ -935,7 +927,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (!CullResults.GetCullingParameters(camera, out cullingParams))
                     continue;
 
-                m_ShadowPass.UpdateCullingParameters (ref cullingParams);
+                m_ShadowPass.UpdateCullingParameters(ref cullingParams);
 
                 var cullResults = CullResults.Cull(ref cullingParams, renderLoop);
 
@@ -947,9 +939,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 RenderDepthPrepass(cullResults, camera, renderLoop);
 
-                RenderGBuffer(cullResults, camera, renderLoop);
-                
-                RenderForwardOpaqueDepth(cullResults, camera, renderLoop);
+                RenderGBuffer(cullResults, camera, renderLoop); 
 
                 // For tile lighting with forward opaque
                 //RenderForwardOpaqueDepth(cullResults, camera, renderLoop);
@@ -965,23 +955,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     renderLoop.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
 
-                    UpdatePunctualLights(cullResults.visibleLights, ref shadows);
-                    UpdateReflectionProbes(cullResults.visibleReflectionProbes);
+                    LightList lightList;
+                    ConvertLightForGPU(cullResults, ref shadows, out lightList);
+                    PushGlobalParams(camera, renderLoop, lightList);
 
-                    {
-                        // build per tile light lists
-                        var numLights = 0; // GenerateSourceLightBuffers(camera, cullResults);
-                        m_tilePassLightLoop.BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
-
-                        /*
-                        // Push all global params
-                        var numDirLights = UpdateDirectionalLights(camera, cullResults.visibleLights);
-                        m_tilePassLightLoop.PushGlobalParams(camera, loop, CameraToWorld(camera), projscr, invProjscr, numDirLights);
-
-                        // do deferred lighting
-                        m_tilePassLightLoop.DoTiledDeferredLighting(camera, loop, numLights, numDirLights);
-                        */
-                    }
+                    // build per tile light lists
+                    //var numLights = 0; // GenerateSourceLightBuffers(camera, cullResults);
+                    //m_tilePassLightLoop.BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
 
                     RenderDeferredLighting(camera, renderLoop);
 

@@ -3,8 +3,6 @@
 // It use  maxed list of lights of the scene - use just as proof of concept - do not used in regular game
 //-----------------------------------------------------------------------------
 
-#include "SinglePass.cs.hlsl"
-
 //-----------------------------------------------------------------------------
 // Constant and structure declaration
 // ----------------------------------------------------------------------------

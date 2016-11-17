@@ -3,8 +3,7 @@
 
 #pragma kernel ScreenBoundsAABB
 
-#include "..\common\ShaderBase.h"
-#include "LightDefinitions.cs.hlsl"
+#include "../TilePass.cs.hlsl"
 
 uniform int g_iNrVisibLights;
 uniform float4x4 g_mInvProjection;
@@ -38,7 +37,7 @@ unsigned int GetClip(const float4 P);
 int ClipAgainstPlane(const int iSrcIndex, const int iNrSrcVerts, const int subLigt, const int p);
 void CalcBound(out bool2 bIsMinValid, out bool2 bIsMaxValid, out float2 vMin, out float2 vMax, float4x4 InvProjection, float3 pos_view_space, float r);
 
-#include "LightingConvexHullUtils.hlsl"
+#include "../LightingConvexHullUtils.hlsl"
 
 
 [numthreads(NR_THREADS, 1, 1)]

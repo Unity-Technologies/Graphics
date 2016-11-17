@@ -6,7 +6,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
         Pass
         {
             ZWrite Off
-            Blend[_SrcBlend][_DstBlend]
+            Blend Off
 
             HLSLPROGRAM
             #pragma target 5.0
