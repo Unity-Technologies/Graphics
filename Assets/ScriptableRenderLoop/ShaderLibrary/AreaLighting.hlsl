@@ -4,12 +4,10 @@
 float IntegrateEdge(float3 v1, float3 v2)
 {
     float cosTheta = dot(v1, v2);
-    // TODO: Explain the 0.9999 <= precision is important!
-    cosTheta = Clamp(cosTheta, -0.9999, 0.9999);
-
-    // TODO: Experiment with fastAcos
-    float theta = acos(cosTheta);
-    float res = cross(v1, v2).z * theta / sin(theta);
+    // Clamp to avoid artifacts. This particular constant gives the best results.
+    cosTheta    = Clamp(cosTheta, -0.9999, 0.9999);
+    float theta = FastACos(cosTheta);
+    float res   = cross(v1, v2).z * theta / sin(theta);
 
     return res;
 }

@@ -123,15 +123,13 @@ float3 MapCubeToSphere(float3 v, float r2)
     return v * sqrt((float3)r2 - 0.5 * v2.yzx - 0.5 * v2.zxy + vr3.yxx * v2.zzy);
 }
 
-// Computes the squared magnitude of the vector 'v' after mapping it
-// to a vector within the sphere of radius 'r', where r = sqrt(r2).
-// The vector is originally defined within the cube of dimensions [-r, r]^3.
-// The mapping is performed as per MapCubeToSphere().
-// 'dotV' is dot(v, v) (often calculated when calling such a function)
-float ComputeCubeToSphereMapSqMagnitude(float3 v, float dotV, float r2)
+// Computes the squared magnitude of the vector computed by MapCubeToSphere().
+float ComputeCubeToSphereMapSqMagnitude(float3 v, float r2)
 {
     float3 v2 = v * v;
-    return r2 * dotV - v2.x * v2.y - v2.y * v2.z - v2.z * v2.x + v2.x * v2.y * v2.z * rcp(r2);
+    // Note: dot(v, v) is often computed before this function is called,
+    // so the compiler should optimize and use the precomputed result here.
+    return r2 * dot(v, v) - v2.x * v2.y - v2.y * v2.z - v2.z * v2.x + v2.x * v2.y * v2.z * rcp(r2);
 }
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED
