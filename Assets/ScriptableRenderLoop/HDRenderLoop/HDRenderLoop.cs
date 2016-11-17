@@ -137,6 +137,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public const int k_MaxAreaLightsOnSCreen = 128;
         public const int k_MaxEnvLightsOnSCreen = 64;
         public const int k_MaxShadowOnScreen = 16;
+        public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
 
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
@@ -157,11 +158,25 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public class LightList
         {
             public List<DirectionalLightData> directionalLights;
+            public List<DirectionalShadowData> directionalShadows;
             public List<LightData> punctualLights;
+            public List<PunctualShadowData> punctualShadows;
             public List<LightData> areaLights;
             public List<EnvLightData> envLights;
-            public List<PunctualShadowData> punctualShadows;            
+            public Vector4[] directionalShadowSplitSphereSqr;
+
+            public void Clear()
+            {
+                directionalLights.Clear();
+                directionalShadows.Clear();
+                punctualLights.Clear();
+                punctualShadows.Clear();
+                areaLights.Clear();
+                envLights.Clear();
+            }
         }
+
+        LightList m_lightList;
 
         // Detect when windows size is changing
         int m_WidthOnRecord;
@@ -254,6 +269,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_SinglePassLightLoop.Rebuild();
             // m_TilePassLightLoop = new TilePass.LightLoop();
             // m_TilePassLightLoop.Rebuild();
+
+            m_lightList = new LightList();
+            m_lightList.directionalLights = new List<DirectionalLightData>();
+            m_lightList.punctualLights = new List<LightData>();
+            m_lightList.areaLights = new List<LightData>();
+            m_lightList.envLights = new List<EnvLightData>();
+            m_lightList.punctualShadows = new List<PunctualShadowData>();
+            m_lightList.directionalShadows = new List<DirectionalShadowData>();
+            m_lightList.directionalShadowSplitSphereSqr = new Vector4[k_MaxCascadeCount];
         }
 
         void OnDisable()
@@ -680,15 +704,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 
         // Function to prepare light structure for GPU lighting
-        void ConvertLightForGPU(CullResults cullResults, ref ShadowOutput shadowOutput, out LightList lightList)
+        void ConvertLightForGPU(CullResults cullResults, ref ShadowOutput shadowOutput, ref LightList lightList)
         {
-            // Init light list
-            lightList = new LightList();
-            lightList.directionalLights = new List<DirectionalLightData>();
-            lightList.punctualLights = new List<LightData>();
-            lightList.areaLights = new List<LightData>();
-            lightList.envLights = new List<EnvLightData>();
-            lightList.punctualShadows = new List<PunctualShadowData>();
+            lightList.Clear();
 
             for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; lightIndex < numLights; ++lightIndex)
             {
@@ -710,7 +728,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (light.lightType == LightType.Directional)
                 {
-                    if (lightList.areaLights.Count >= k_MaxDirectionalLightsOnSCreen)
+                    if (lightList.directionalLights.Count >= k_MaxDirectionalLightsOnSCreen)
                         continue;
 
                     var directionalLightData = new DirectionalLightData();
@@ -723,7 +741,32 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     directionalLightData.sinAngle = 0.0f;
                     directionalLightData.shadowIndex = -1;
 
-                    // TODO: shadow
+                    bool hasDirectionalShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
+                    bool hasDirectionalNotReachMaxLimit = lightList.directionalShadows.Count == 0; // Only one cascade shadow allowed
+
+                    if (hasDirectionalShadows && hasDirectionalNotReachMaxLimit) // Note  < MaxShadows should be check at shadowOutput creation
+                    {
+                        // When we have a point light, we assumed that there is 6 consecutive PunctualShadowData
+                        directionalLightData.shadowIndex = 0;
+
+                        for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
+                        {
+                            DirectionalShadowData directionalShadowData = new DirectionalShadowData();
+
+                            int shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
+                            directionalShadowData.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose for hlsl reading ?
+
+                            directionalShadowData.bias = light.light.shadowBias;
+
+                            lightList.directionalShadows.Add(directionalShadowData);
+                        }
+
+                        // Fill split information for shaders
+                        for (int s = 0; s < k_MaxCascadeCount; ++s)
+                        {
+                            lightList.directionalShadowSplitSphereSqr[s] = shadowOutput.directionalShadowSplitSphereSqr[s];
+                        }
+                    }
 
                     lightList.directionalLights.Add(directionalLightData);
 
@@ -733,15 +776,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // Note: LightType.Area is offline only, use for baking, no need to test it
                 var lightData = new LightData();
 
-                // Early out if we reach the maximum
                 // Test whether we should treat this punctual light as an area light.
                 // It's a temporary hack until the proper UI support is added.
-                if (additionalData.treatAsAreaLight)
+                if (additionalData.archetype != LightArchetype.Punctual)
                 {
+                    // Early out if we reach the maximum
                     if (lightList.areaLights.Count >= k_MaxAreaLightsOnSCreen)
                         continue;
 
-                    lightData.lightType = GPULightType.Rectangle;
+                    if (additionalData.archetype == LightArchetype.Rectangle)
+                    {
+                        lightData.lightType = GPULightType.Rectangle;
+                    }
+                    else
+                    {
+                        lightData.lightType = GPULightType.Line;
+                    }
                 }
                 else
                 {
@@ -831,13 +881,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 lightData.size = new Vector2(additionalData.areaLightLength, additionalData.areaLightWidth);
                 lightData.twoSided = additionalData.isDoubleSided;
 
-                if (additionalData.treatAsAreaLight)
+                if (additionalData.archetype == LightArchetype.Punctual)
                 {
-                    lightList.areaLights.Add(lightData);
+                    lightList.punctualLights.Add(lightData);
                 }
                 else
                 {
-                    lightList.punctualLights.Add(lightData);
+                    // Area and line lights are both currently stored as area lights on the GPU.
+                    lightList.areaLights.Add(lightData);
                 }
             }
 
@@ -967,9 +1018,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     renderLoop.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
 
-                    LightList lightList;
-                    ConvertLightForGPU(cullResults, ref shadows, out lightList);
-                    PushGlobalParams(camera, renderLoop, lightList);
+                    ConvertLightForGPU(cullResults, ref shadows, ref m_lightList);
+                    PushGlobalParams(camera, renderLoop, m_lightList);
 
                     // build per tile light lists
                     //var numLights = 0; // GenerateSourceLightBuffers(camera, cullResults);

@@ -26,8 +26,10 @@
 #endif
 
 // Reference Lambert diffuse / GGX Specular for IBL and area lights
+#ifdef HAS_LIGHTLOOP // Both reference define below need to be define only if LightLoop is present, else we get a compile error
 // #define LIT_DISPLAY_REFERENCE_AREA
 // #define LIT_DISPLAY_REFERENCE_IBL
+#endif
 // Use Lambert diffuse instead of Disney diffuse
 // #define LIT_DIFFUSE_LAMBERT_BRDF
 // Use optimization of Precomputing LambdaV
@@ -38,14 +40,22 @@
 
 // TODO: I haven't configure this sampler in the code, we should be able to do it (but Unity don't allow it for now...)
 // By default Unity provide MIG_MAG_LINEAR_POINT sampler, so it fit with our need.
+#ifdef LIT_DISPLAY_REFERENCE_IBL
+// When reference mode is enabled, then we need to chose another sampler not related to cubemap code...
+SAMPLER2D(sampler_LtcGGXMatrix);
+#define SRL_BilinearSampler sampler_LtcGGXMatrix // Used for all textures
+#else
 SAMPLER2D(sampler_PreIntegratedFGD);
 #define SRL_BilinearSampler sampler_PreIntegratedFGD // Used for all textures
+#endif
 
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
 TEXTURE2D(_LtcGGXMatrix);                    // RGBA
 TEXTURE2D(_LtcDisneyDiffuseMatrix);          // RGBA
 TEXTURE2D(_LtcMultiGGXFresnelDisneyDiffuse); // RGB, A unused
+
+
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -643,7 +653,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
     {
-        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, preLightData.unPositionSS);
+        float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, preLightData.unPositionSS);
 
         illuminance *= shadowAttenuation;
     }
@@ -741,19 +751,25 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 
         float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
 
-        if (lightData.lightType == GPULIGHTTYPE_SPHERE)
-            SampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-        else if (lightData.lightType == GPULIGHTTYPE_HEMISPHERE)
-            SampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-        else if (lightData.lightType == GPULIGHTTYPE_CYLINDER)
-            SampleCylinder(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
-        else if (lightData.lightType == GPULIGHTTYPE_RECTANGLE)
-            SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
-        else if (lightData.lightType == GPULIGHTTYPE_DISK)
-            SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-        else if (lightData.lightType == GPULIGHTTYPE_LINE)
-            // SampleLine(u, localToWorld, areaLight.lightRadius0, lightPdf, P, Ns);
-            ; // TODO
+        switch (lightData.lightType)
+        {
+            case GPULIGHTTYPE_SPHERE:
+                SampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+                break;
+            case GPULIGHTTYPE_HEMISPHERE:
+                SampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+                break;
+            case GPULIGHTTYPE_CYLINDER:
+                SampleCylinder(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+                break;
+            case GPULIGHTTYPE_RECTANGLE:
+                SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+                break;
+            case GPULIGHTTYPE_DISK:
+                SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+                break;
+            // case GPULIGHTTYPE_LINE: handled by a separate function.
+        }
 
         // Get distance
         float3 unL = P - positionWS;
@@ -786,6 +802,53 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 }
 
 //-----------------------------------------------------------------------------
+// EvaluateBSDFLine - Reference
+//-----------------------------------------------------------------------------
+
+void IntegrateBSDFLineRef(float3 V, float3 positionWS, PreLightData preLightData,
+                          LightData lightData, BSDFData bsdfData,
+                          out float3 diffuseLighting, out float3 specularLighting,
+                          int sampleCount = 128)
+{
+    diffuseLighting  = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    const float  len = lightData.size.x;
+    const float3 p0  = lightData.positionWS - lightData.right * (0.5 * len);
+    const float3 dir = lightData.right;
+    const float  dt  = len * rcp(sampleCount);
+    const float  off = 0.5 * dt;
+
+    // Uniformly sample the line segment with the Pdf = 1 / len.
+    const float invPdf = len;
+
+    for (int i = 0; i < sampleCount; ++i)
+    {
+        // Place the sample in the middle of the interval.
+        float  t     = off + i * dt;
+        float3 sPos  = p0 + t * dir;
+        float3 unL   = sPos - positionWS;
+        float  dist2 = dot(unL, unL);
+        float3 L     = normalize(unL);
+        float  sinLD = length(cross(L, dir));
+        float  NdotL = saturate(dot(bsdfData.normalWS, L));
+
+        float3 lightDiff, lightSpec;
+
+        BSDF(V, L, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
+
+        diffuseLighting  += lightDiff * (sinLD / dist2 * NdotL);
+        specularLighting += lightSpec * (sinLD / dist2 * NdotL);
+    }
+
+    // The factor of 2 is due to the fact: Integral{0, 2 PI}{max(0, cos(x))dx} = 2.
+    float normFactor = 2.0 * invPdf * rcp(sampleCount);
+
+    diffuseLighting  *= normFactor * lightData.diffuseScale  * lightData.color;
+    specularLighting *= normFactor * lightData.specularScale * lightData.color;
+}
+
+//-----------------------------------------------------------------------------
 // EvaluateBSDF_Area
 //-----------------------------------------------------------------------------
 
@@ -795,7 +858,14 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
                         out float3 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE_AREA
-    IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
+    if (lightData.lightType == GPULIGHTTYPE_LINE)
+    {
+        IntegrateBSDFLineRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
+    }
+    else
+    {
+        IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
+    }
 #else
     // TODO: This could be precomputed
     float halfWidth  = lightData.size.x * 0.5;
