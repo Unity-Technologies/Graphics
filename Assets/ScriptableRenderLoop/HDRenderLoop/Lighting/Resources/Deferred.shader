@@ -1,18 +1,12 @@
 Shader "Hidden/HDRenderLoop/Deferred"
 {
-    Properties
-    {
-        _SrcBlend("", Float) = 1
-        _DstBlend("", Float) = 1
-    }
-
     SubShader
     {
 
         Pass
         {
             ZWrite Off
-            Blend[_SrcBlend][_DstBlend]
+            Blend Off
 
             HLSLPROGRAM
             #pragma target 5.0
