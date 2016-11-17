@@ -9,10 +9,11 @@
 
 
 StructuredBuffer<DirectionalLightData>  _DirectionalLightList;
+StructuredBuffer<DirectionalShadowData> _DirectionalShadowList;
 StructuredBuffer<LightData>             _PunctualLightList;
+StructuredBuffer<PunctualShadowData>    _PunctualShadowList;
 StructuredBuffer<LightData>  	        _AreaLightList;
 StructuredBuffer<EnvLightData>          _EnvLightList;
-StructuredBuffer<PunctualShadowData>    _PunctualShadowList;
 
 //TEXTURE2D_ARRAY(_ShadowArray);
 //SAMPLER2D_SHADOW(sampler_ShadowArray);
@@ -43,6 +44,7 @@ CBUFFER_START(UnityPerLightLoop)
     int _EnvLightCount;
     EnvLightData _EnvLightSky;
 	float4 _ShadowMapSize;
+    float4 _DirShadowSplitSpheres[4]; // TODO share this max between C# and hlsl
 CBUFFER_END
 
 struct LightLoopContext
@@ -82,6 +84,51 @@ float GetPunctualShadowAttenuation(LightLoopContext lightLoopContext, float3 pos
 	// float3 shadowPosDY = ddy_fine(positionTXS);
 
 	return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, positionTXS);
+}
+
+// Gets the cascade weights based on the world position of the fragment and the positions of the split spheres for each cascade.
+// Returns an invalid split index if past shadowDistance (ie 4 is invalid for cascade)
+uint GetSplitSphereIndexForDirshadows(float3 positionWS, float4 dirShadowSplitSpheres[4])
+{
+    float3 fromCenter0 = positionWS.xyz - dirShadowSplitSpheres[0].xyz;
+    float3 fromCenter1 = positionWS.xyz - dirShadowSplitSpheres[1].xyz;
+    float3 fromCenter2 = positionWS.xyz - dirShadowSplitSpheres[2].xyz;
+    float3 fromCenter3 = positionWS.xyz - dirShadowSplitSpheres[3].xyz;
+    float4 distances2 = float4(dot(fromCenter0, fromCenter0), dot(fromCenter1, fromCenter1), dot(fromCenter2, fromCenter2), dot(fromCenter3, fromCenter3));
+
+    float4 dirShadowSplitSphereSqRadii;
+    dirShadowSplitSphereSqRadii.x = dirShadowSplitSpheres[0].w;
+    dirShadowSplitSphereSqRadii.y = dirShadowSplitSpheres[1].w;
+    dirShadowSplitSphereSqRadii.z = dirShadowSplitSpheres[2].w;
+    dirShadowSplitSphereSqRadii.w = dirShadowSplitSpheres[3].w;
+
+    float4 weights = float4(distances2 < dirShadowSplitSphereSqRadii);
+    weights.yzw = saturate(weights.yzw - weights.xyz);
+
+    return uint(4.0 - dot(weights, float4(4.0, 3.0, 2.0, 1.0)));
+}
+
+float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 positionWS, int index, float3 L, float2 unPositionSS)
+{
+    // Note Index is 0 for now, but else we need to provide the correct index in _DirShadowSplitSpheres and _DirectionalShadowList
+    uint shadowSplitIndex = GetSplitSphereIndexForDirshadows(positionWS, _DirShadowSplitSpheres);
+
+    DirectionalShadowData shadowData = _DirectionalShadowList[shadowSplitIndex];
+
+    // Note: scale and bias of shadow atlas are included in ShadowTransform but could be apply here.
+    float4 positionTXS = mul(float4(positionWS, 1.0), shadowData.worldToShadow);
+    positionTXS.xyz /= positionTXS.w;
+    //	positionTXS.z -=  shadowData.bias; // Apply a linear bias
+    positionTXS.z -= 0.003;
+
+#if UNITY_REVERSED_Z
+    positionTXS.z = 1.0 - positionTXS.z;
+#endif
+
+    // float3 shadowPosDX = ddx_fine(positionTXS);
+    // float3 shadowPosDY = ddy_fine(positionTXS);
+
+    return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, positionTXS);
 }
 
 //-----------------------------------------------------------------------------

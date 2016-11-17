@@ -60,7 +60,7 @@ struct DirectionalLightData
 	float cosAngle;
 	float sinAngle;
 	int shadowIndex;
-	float unsued;
+	float unused;
 };
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
@@ -72,6 +72,16 @@ struct PunctualShadowData
 	float bias;
 	float quality;
 	float unused;
+};
+
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.DirectionalShadowData
+// PackingRules = Exact
+struct DirectionalShadowData
+{
+	float4x4 worldToShadow;
+	float bias;
+	float quality;
+	float2 unused2;
 };
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.EnvLightData
@@ -195,9 +205,9 @@ int GetShadowIndex(DirectionalLightData value)
 {
 	return value.shadowIndex;
 }
-float GetUnsued(DirectionalLightData value)
+float GetUnused(DirectionalLightData value)
 {
-	return value.unsued;
+	return value.unused;
 }
 
 //
@@ -222,6 +232,26 @@ float GetQuality(PunctualShadowData value)
 float GetUnused(PunctualShadowData value)
 {
 	return value.unused;
+}
+
+//
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.DirectionalShadowData
+//
+float4x4 GetWorldToShadow(DirectionalShadowData value)
+{
+	return value.worldToShadow;
+}
+float GetBias(DirectionalShadowData value)
+{
+	return value.bias;
+}
+float GetQuality(DirectionalShadowData value)
+{
+	return value.quality;
+}
+float2 GetUnused2(DirectionalShadowData value)
+{
+	return value.unused2;
 }
 
 //
