@@ -26,8 +26,10 @@
 #endif
 
 // Reference Lambert diffuse / GGX Specular for IBL and area lights
+#ifdef HAS_LIGHTLOOP // Both reference define below need to be define only if LightLoop is present, else we get a compile error
 // #define LIT_DISPLAY_REFERENCE_AREA
 // #define LIT_DISPLAY_REFERENCE_IBL
+#endif
 // Use Lambert diffuse instead of Disney diffuse
 // #define LIT_DIFFUSE_LAMBERT_BRDF
 // Use optimization of Precomputing LambdaV
@@ -38,14 +40,22 @@
 
 // TODO: I haven't configure this sampler in the code, we should be able to do it (but Unity don't allow it for now...)
 // By default Unity provide MIG_MAG_LINEAR_POINT sampler, so it fit with our need.
+#ifdef LIT_DISPLAY_REFERENCE_IBL
+// When reference mode is enabled, then we need to chose another sampler not related to cubemap code...
+SAMPLER2D(sampler_LtcGGXMatrix);
+#define SRL_BilinearSampler sampler_LtcGGXMatrix // Used for all textures
+#else
 SAMPLER2D(sampler_PreIntegratedFGD);
 #define SRL_BilinearSampler sampler_PreIntegratedFGD // Used for all textures
+#endif
 
 // TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
 TEXTURE2D(_PreIntegratedFGD);
 TEXTURE2D(_LtcGGXMatrix);                    // RGBA
 TEXTURE2D(_LtcDisneyDiffuseMatrix);          // RGBA
 TEXTURE2D(_LtcMultiGGXFresnelDisneyDiffuse); // RGB, A unused
+
+
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
