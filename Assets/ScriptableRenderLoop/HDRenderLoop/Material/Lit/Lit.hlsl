@@ -643,7 +643,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
     {
-        float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, preLightData.unPositionSS);
+        float shadowAttenuation = GetDirectionalShadowAttenuation(lightLoopContext, positionWS, lightData.shadowIndex, L, preLightData.unPositionSS);
 
         illuminance *= shadowAttenuation;
     }

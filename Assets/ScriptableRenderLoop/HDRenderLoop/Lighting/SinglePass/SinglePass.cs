@@ -23,11 +23,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             static ComputeBuffer s_EnvLightList;
             static ComputeBuffer s_AreaLightList;
             static ComputeBuffer s_PunctualShadowList;
+            static ComputeBuffer s_DirectionalShadowList;
 
             void ClearComputeBuffers()
             {
                 if (s_DirectionalLights != null)
                     s_DirectionalLights.Release();
+
+                if (s_DirectionalShadowList != null)
+                    s_DirectionalShadowList.Release();
 
                 if (s_PunctualLightList != null)
                     s_PunctualLightList.Release();
@@ -47,6 +51,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 ClearComputeBuffers();
 
                 s_DirectionalLights = new ComputeBuffer(HDRenderLoop.k_MaxDirectionalLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
+                s_DirectionalShadowList = new ComputeBuffer(HDRenderLoop.k_MaxCascadeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalShadowData)));
                 s_PunctualLightList = new ComputeBuffer(HDRenderLoop.k_MaxPunctualLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 s_AreaLightList = new ComputeBuffer(HDRenderLoop.k_MaxAreaLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 s_EnvLightList = new ComputeBuffer(HDRenderLoop.k_MaxEnvLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
@@ -57,6 +62,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 s_DirectionalLights.Release();
                 s_DirectionalLights = null;
+                s_DirectionalShadowList.Release();
+                s_DirectionalShadowList = null;
                 s_PunctualLightList.Release();
                 s_PunctualLightList = null;
                 s_AreaLightList.Release();
@@ -70,20 +77,24 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public void PushGlobalParams(Camera camera, RenderLoop loop, HDRenderLoop.LightList lightList)
             {
                 s_DirectionalLights.SetData(lightList.directionalLights.ToArray());
+                s_DirectionalShadowList.SetData(lightList.directionalShadows.ToArray());
                 s_PunctualLightList.SetData(lightList.punctualLights.ToArray());
                 s_AreaLightList.SetData(lightList.areaLights.ToArray());
                 s_EnvLightList.SetData(lightList.envLights.ToArray());
                 s_PunctualShadowList.SetData(lightList.punctualShadows.ToArray());
 
                 Shader.SetGlobalBuffer("_DirectionalLightList", s_DirectionalLights);
-                Shader.SetGlobalInt("_DirectionalLightCount", lightList.directionalLights.Count);
+                Shader.SetGlobalBuffer("_DirectionalShadowList", s_DirectionalShadowList);
                 Shader.SetGlobalBuffer("_PunctualLightList", s_PunctualLightList);
                 Shader.SetGlobalInt("_PunctualLightCount", lightList.punctualLights.Count);
                 Shader.SetGlobalBuffer("_AreaLightList", s_AreaLightList);
                 Shader.SetGlobalInt("_AreaLightCount", lightList.areaLights.Count);  
                 Shader.SetGlobalBuffer("_PunctualShadowList", s_PunctualShadowList);
                 Shader.SetGlobalBuffer("_EnvLightList", s_EnvLightList);
-                Shader.SetGlobalInt("_EnvLightCount", lightList.envLights.Count);         
+                Shader.SetGlobalInt("_EnvLightCount", lightList.envLights.Count);
+
+                Shader.SetGlobalVectorArray("_DirShadowSplitSpheres", lightList.directionalShadowSplitSphereSqr);
+                
             }
         }
     }
