@@ -163,11 +163,12 @@ float PolygonRadiance(float4x3 L, bool twoSided)
     return twoSided ? abs(sum) : max(sum, 0.0);
 }
 
-float LTCEvaluate(float3 V, float3 N, float3x3 minV, float4x3 L, bool twoSided)
+float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, float3x3 minV)
 {
     // Construct local orthonormal basis around N, aligned with N
+    // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
     float3x3 basis;
-    basis[0] = normalize(V - N * dot(V, N));
+    basis[0] = normalize(V - N * NdotV);
     basis[1] = normalize(cross(N, basis[0]));
     basis[2] = N;
 
@@ -177,6 +178,33 @@ float LTCEvaluate(float3 V, float3 N, float3x3 minV, float4x3 L, bool twoSided)
 
     // Polygon radiance in transformed configuration - specular
     return PolygonRadiance(L, twoSided);
+}
+
+float LineFpo(float rcpD, float rcpDL, float l)
+{
+    // Compute: l / d / (d * d + l * l) + 1.0 / (d * d) * atan(l / d).
+    return l * rcpDL + rcpD * rcpD * atan(l * rcpD);
+}
+
+float LineFwt(float sqL, float rcpDL)
+{
+    // Compute: l * l / d / (d * d + l * l).
+    return sqL * rcpDL;
+}
+
+// Computes the integral of the clamped cosine over the line segment.
+// 'dist' is the shortest distance to the line. 'l1' and 'l2' define the integration interval.
+float LineIrradiance(float l1, float l2, float dist, float pointZ, float tangentZ)
+{   
+    float sqD    = dist * dist;
+    float sqL1   = l1 * l1;
+    float sqL2   = l2 * l2;
+    float rcpD   = rcp(dist);
+    float rcpDL1 = rcpD * rcp(sqD + sqL1);
+    float rcpDL2 = rcpD * rcp(sqD + sqL2);
+    float intP0  = LineFpo(rcpD, rcpDL2, l2) - LineFpo(rcpD, rcpDL1, l1);
+    float intWt  = LineFwt(sqL2, rcpDL2) - LineFwt(sqL1, rcpDL1);
+    return intP0 * pointZ + intWt * tangentZ;
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
