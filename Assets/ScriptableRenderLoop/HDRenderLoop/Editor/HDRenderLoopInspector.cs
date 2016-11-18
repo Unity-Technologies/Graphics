@@ -181,7 +181,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             skyParameters.skyHDRI = (Cubemap)EditorGUILayout.ObjectField("Cubemap", skyParameters.skyHDRI, typeof(Cubemap), false);
             skyParameters.exposure = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyExposure, skyParameters.exposure), 32), -32);
             skyParameters.multiplier = Mathf.Max(EditorGUILayout.FloatField(styles.skyMultiplier, skyParameters.multiplier), 0);
-            skyParameters.rotation = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyRotation, skyParameters.rotation), 360), 0);
+            skyParameters.rotation = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyRotation, skyParameters.rotation), 360), -360);
  
             if (EditorGUI.EndChangeCheck())
             {
