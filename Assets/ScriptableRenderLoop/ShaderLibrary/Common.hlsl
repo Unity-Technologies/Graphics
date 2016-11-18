@@ -128,6 +128,26 @@ float4 Max3(float4 a, float4 b, float4 c)
 }
 #endif // INTRINSIC_MINMAX3
 
+void swap(inout float a, inout float b)
+{
+    float  t = a; a = b; b = t;
+}
+
+void swap(inout float2 a, inout float2 b)
+{
+    float2 t = a; a = b; b = t;
+}
+
+void swap(inout float3 a, inout float3 b)
+{
+    float3 t = a; a = b; b = t;
+}
+
+void swap(inout float4 a, inout float4 b)
+{
+    float4 t = a; a = b; b = t;
+}
+
 #ifndef INTRINSIC_CUBEMAP_FACE_ID
 // TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ? 
 /*
