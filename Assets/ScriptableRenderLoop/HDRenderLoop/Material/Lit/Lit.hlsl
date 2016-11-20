@@ -941,7 +941,9 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
 #else
     if (lightData.lightType == GPULIGHTTYPE_LINE)
     {
-        EvaluateBSDF_Line(lightLoopContext, V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
+        diffuseLighting = float3(0.0, 0.0, 0.0);
+        specularLighting = float3(0.0, 0.0, 0.0);
+        // EvaluateBSDF_Line(lightLoopContext, V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
         return;
     }
     
