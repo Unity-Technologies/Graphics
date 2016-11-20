@@ -84,6 +84,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_PunctualShadowList.SetData(lightList.punctualShadows.ToArray());
 
                 Shader.SetGlobalBuffer("_DirectionalLightList", s_DirectionalLights);
+                Shader.SetGlobalInt("_DirectionalLightCount", lightList.directionalLights.Count);
                 Shader.SetGlobalBuffer("_DirectionalShadowList", s_DirectionalShadowList);
                 Shader.SetGlobalBuffer("_PunctualLightList", s_PunctualLightList);
                 Shader.SetGlobalInt("_PunctualLightCount", lightList.punctualLights.Count);
