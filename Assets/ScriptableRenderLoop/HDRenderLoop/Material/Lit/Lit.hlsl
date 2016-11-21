@@ -55,7 +55,9 @@ TEXTURE2D(_LtcGGXMatrix);                    // RGBA
 TEXTURE2D(_LtcDisneyDiffuseMatrix);          // RGBA
 TEXTURE2D(_LtcMultiGGXFresnelDisneyDiffuse); // RGB, A unused
 
-
+static const float3x3 _identity3x3 = {1.0, 0.0, 0.0,
+                                      0.0, 1.0, 0.0,
+                                      0.0, 0.0, 1.0};
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -862,10 +864,12 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
 
     float  len = lightData.size.x;
     float3 T   = lightData.right;
+
+    // TODO: This could be precomputed.
     float3 P1  = lightData.positionWS - T * (0.5 * len);
     float3 P2  = lightData.positionWS + T * (0.5 * len);
 
-    // Translate both points s.t. the shaded point is at the origin of the coordinate system.
+    // Translate the endpoints s.t. the shaded point is at the origin of the coordinate system.
     P1 -= positionWS;
     P2 -= positionWS;
 
@@ -877,47 +881,46 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
     basis[1] = normalize(cross(bsdfData.normalWS, basis[0]));
     basis[2] = bsdfData.normalWS;
 
-    // Rotate both endpoints into the local coordinate system (left-handed).
+    // Rotate the endpoints into the local coordinate system (left-handed).
     P1 = mul(P1, transpose(basis));
     P2 = mul(P2, transpose(basis));
 
-    // Terminate the algorithm if both points are below the horizon.
-    if (P1.z <= 0.0 && P2.z <= 0.0) return;
+    // Compute the binormal.
+    float3 B = normalize(cross(P2 - P1, P1));
 
-    if (P2.z <= 0.0)
+    float ltcValue;
+
+    // Evaluate the diffuse part.
     {
-        // Convention: 'P2' is above the horizon.
-        swap(P1, P2);
+    #ifdef DIFFUSE_LAMBERT_BRDF
+        ltcValue = LTCEvaluate(P1, P2, B, _identity3x3);
+    #else
+        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcXformDisneyDiffuse);
+    #endif
+
+        if (ltcValue == 0.0)
+        {
+            // The light is below the horizon.
+            return;
+        }
+
+    #ifndef DIFFUSE_LAMBERT_BRDF
+        ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
+    #endif
+
+        ltcValue *= lightData.diffuseScale;
+        diffuseLighting = bsdfData.diffuseColor * lightData.color * ltcValue;
     }
 
-    // Recompute the tangent in the local coordinate system.
-    T = normalize(P2 - P1);
-
-    // Clip the part of the light below the horizon.
-    if (P1.z <= 0.0)
+    // Evaluate the specular part.
     {
-        // P = P1 + t * T; P.z == 0.
-        float t = -P1.z / T.z;
-        P1 = float3(P1.xy + t * T.xy, 0.0);
+        float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
+                           + (float3)preLightData.ltcGGXFresnelMagnitude;
 
-        // Set the length of the visible part of the light.
-        len -= t;
+        ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcXformGGX);
+        ltcValue *= lightData.specularScale;
+        specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
-
-    // Compute the normal direction to the line, s.t. it is the shortest vector between the shaded
-    // point and the line, pointing away from the shaded point. Can be viewed as a point on the line.
-    float  proj = dot(P1, T);
-    float3 P0   = P1 - proj * T;
-
-    // Compute the parameterization: distances from 'P1' and 'P2' to 'P0'.
-    float l1 = proj;
-    float l2 = l1 + len;
-
-    // Integrate the clamped cosine over the line segment.
-    float irradiance = LineIrradiance(l1, l2, P0, T);
-
-    // Only Lambertian for now. TODO: Disney Diffuse and GGX.
-    diffuseLighting = (lightData.diffuseScale * irradiance * INV_PI) * bsdfData.diffuseColor * lightData.color;
 }
 
 //-----------------------------------------------------------------------------
@@ -1007,12 +1010,8 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
     // Evaluate the diffuse part.
     {
     #ifdef DIFFUSE_LAMBERT_BRDF
-        static const float3x3 identity3x3 = {1.0, 0.0, 0.0,
-                                             0.0, 1.0, 0.0,
-                                             0.0, 0.0, 1.0};
-                                             
         ltcValue = LTCEvaluate(L, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
-                               identity3x3);
+                               _identity3x3);
     #else
         ltcValue = LTCEvaluate(L, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
                                preLightData.ltcXformDisneyDiffuse);
