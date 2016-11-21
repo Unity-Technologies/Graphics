@@ -70,5 +70,23 @@ float2 ParallaxOffset(float3 viewDirTS, float height)
     return viewDirTS.xy * height;
 }
 
+// ref http://blog.selfshadow.com/publications/blending-in-detail/
+// ref https://gist.github.com/selfshadow/8048308
+// Reoriented Normal Mapping
+// Blending when n1 and n2 are already 'unpacked' and normalised
+float3 blendNormalRNM(float3 n1, float3 n2)
+{
+    float3 t = n1.xyz + float3(0.0, 0.0, 1.0);
+    float3 u = n2.xyz * float3(-1.0, -1.0, 1.0);
+    float3 r = (t / t.z) * dot(t, u) - u;
+    return r;
+}
+
+float3 blendNormal(float3 n1, float3 n2)
+{
+    return normalize(float3(n1.xy * n2.z + n2.xy * n1.z, n1.z * n2.z));
+}
+
+
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED

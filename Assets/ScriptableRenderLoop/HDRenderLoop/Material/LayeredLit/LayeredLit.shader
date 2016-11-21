@@ -234,7 +234,7 @@ Shader "HDRenderLoop/LayeredLit"
     PROP_DECL_TEX2D(_MaskMap);
     PROP_DECL_TEX2D(_SpecularOcclusionMap);
     PROP_DECL_TEX2D(_NormalMap);
-    PROP_DECL_TEX2D(_Heightmap);
+    PROP_DECL_TEX2D(_HeightMap);
     PROP_DECL(float, _HeightScale);
     PROP_DECL(float, _HeightBias);
     PROP_DECL(float3, _EmissiveColor);

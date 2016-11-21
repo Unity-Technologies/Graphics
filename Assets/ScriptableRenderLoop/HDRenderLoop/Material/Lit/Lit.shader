@@ -27,6 +27,15 @@ Shader "HDRenderLoop/Lit"
         _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
+        _DetailMap("DetailMap", 2D) = "black" {}
+        _DetailMask("DetailMask", 2D) = "white" {}
+        _DetailAlbedoScale("_DetailAlbedoScale", Range(-2.0, 2.0)) = 1
+        _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
+        _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 1
+        _DetailHeightScale("_DetailHeightScale", Range(-2.0, 2.0)) = 1
+        _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1
+        [Enum(UV0, 0, UV1, 1)] _UVDetail("UV Set for detailMap", Float) = 0
+
         _SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
         _SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
         //_Thickness("Thickness", Range(0.0, 1.0)) = 0
@@ -68,6 +77,7 @@ Shader "HDRenderLoop/Lit"
         [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
+        [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
     }
 
     HLSLINCLUDE
@@ -92,6 +102,8 @@ Shader "HDRenderLoop/Lit"
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
+    #pragma shader_feature _DETAIL_MAP
+    #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -133,8 +145,21 @@ Shader "HDRenderLoop/Lit"
 
     TEXTURE2D(_NormalMap);
     SAMPLER2D(sampler_NormalMap);
-    TEXTURE2D(_Heightmap);
-    SAMPLER2D(sampler_Heightmap);
+
+    TEXTURE2D(_DetailMask);
+    SAMPLER2D(sampler_DetailMask);
+    TEXTURE2D(_DetailMap);
+    SAMPLER2D(sampler_DetailMap);
+    float4  _DetailMap_ST;
+    float _UVDetail;
+    float _DetailAlbedoScale;
+    float _DetailNormalScale;
+    float _DetailSmoothnessScale;
+    float _DetailHeightScale;
+    float _DetailAOScale;
+
+    TEXTURE2D(_HeightMap);
+    SAMPLER2D(sampler_HeightMap);
 
     float _HeightScale;
     float _HeightBias;

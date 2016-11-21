@@ -41,17 +41,14 @@ struct SFiniteLightBound
 struct SFiniteLightData
 {
 	float3 lightPos;
-	int flags;
 	float3 lightAxisX;
 	uint lightType;
 	float3 lightAxisY;
 	float radiusSq;
 	float3 lightAxisZ;
 	float cotan;
-	float3 color;
-	uint lightModel;
 	float3 boxInnerDist;
-	float unusued;
+	uint lightModel;
 	float3 boxInvRange;
 	float unused2;
 };
@@ -91,10 +88,6 @@ float3 GetLightPos(SFiniteLightData value)
 {
 	return value.lightPos;
 }
-int GetFlags(SFiniteLightData value)
-{
-	return value.flags;
-}
 float3 GetLightAxisX(SFiniteLightData value)
 {
 	return value.lightAxisX;
@@ -119,21 +112,13 @@ float GetCotan(SFiniteLightData value)
 {
 	return value.cotan;
 }
-float3 GetColor(SFiniteLightData value)
-{
-	return value.color;
-}
-uint GetLightModel(SFiniteLightData value)
-{
-	return value.lightModel;
-}
 float3 GetBoxInnerDist(SFiniteLightData value)
 {
 	return value.boxInnerDist;
 }
-float GetUnusued(SFiniteLightData value)
+uint GetLightModel(SFiniteLightData value)
 {
-	return value.unusued;
+	return value.lightModel;
 }
 float3 GetBoxInvRange(SFiniteLightData value)
 {

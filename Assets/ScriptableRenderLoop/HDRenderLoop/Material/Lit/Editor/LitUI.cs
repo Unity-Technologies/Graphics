@@ -49,12 +49,20 @@ namespace UnityEditor
             Parallax,
             Displacement,
         }
+        public enum DetailMapMode
+        {
+            DetailWithNormal,
+            DetailWithAOHeight,
+        }
 
         private static class Styles
         {
             public static string OptionText = "Options";
             public static string SurfaceTypeText = "Surface Type";
             public static string BlendModeText = "Blend Mode";
+            public static GUIContent uvSetLabel = new GUIContent("UV Set");
+            public static string detailText = "Inputs Detail";
+            public static string lightingText = "Inputs Lighting";
 
             public static GUIContent alphaCutoffEnableText = new GUIContent("Alpha Cutoff Enable", "Threshold for alpha cutoff");
             public static GUIContent alphaCutoffText = new GUIContent("Alpha Cutoff", "Threshold for alpha cutoff");
@@ -67,6 +75,7 @@ namespace UnityEditor
 
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
             public static GUIContent emissiveColorModeText = new GUIContent("Emissive Color Usage", "Use emissive color or emissive mask");
+            public static GUIContent detailMapModeText = new GUIContent("Detail Map with Normal", "Detail Map with AO / Height");
 
             public static string InputsText = "Inputs";
 
@@ -87,12 +96,21 @@ namespace UnityEditor
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC5) - DXT5 for test");
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
 
-            public static GUIContent heightMapText = new GUIContent("Height Map", "Height Map");
+            public static GUIContent heightMapText = new GUIContent("Height Map (R)", "Height Map");
             public static GUIContent heightMapModeText = new GUIContent("Height Map Mode", "");
 
             public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC5) - DXT5 for test");
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
-            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map", "Anisotropy (R)");
+            public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (G)", "Anisotropy");
+
+            public static GUIContent detailMapNormalText = new GUIContent("Detail Map A(R) Ny(G) S(B) Nx(A)", "Detail Map");
+            public static GUIContent detailMapAOHeightText = new GUIContent("Detail Map  A(R) AO(G) S(B) H(A)", "Detail Map");
+            public static GUIContent detailMaskText = new GUIContent("Detail Mask (B)", "Mask for detailMap");
+            public static GUIContent detailAlbedoScaleText = new GUIContent("Detail AlbedoScale", "Detail Albedo Scale factor");
+            public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
+            public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
+            public static GUIContent detailHeightScaleText = new GUIContent("Detail HeightScale", "Height Scale factor");
+            public static GUIContent detailAOScaleText = new GUIContent("Detail AOScale", "AO Scale factor");
 
             public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
             public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
@@ -104,11 +122,13 @@ namespace UnityEditor
 
         MaterialProperty surfaceType = null;
         MaterialProperty blendMode = null;
+        MaterialProperty UVDetail = null;
         MaterialProperty alphaCutoff = null;
         MaterialProperty alphaCutoffEnable = null;
         MaterialProperty doubleSidedMode = null;
         MaterialProperty smoothnessMapChannel = null;
         MaterialProperty emissiveColorMode = null;
+        MaterialProperty detailMapMode = null;
 
         MaterialProperty baseColor = null;
         MaterialProperty baseColorMap = null;
@@ -125,6 +145,13 @@ namespace UnityEditor
         MaterialProperty anisotropy = null;
         MaterialProperty anisotropyMap = null;
         MaterialProperty heightMapMode = null;
+        MaterialProperty detailMap = null;
+        MaterialProperty detailMask = null;
+        MaterialProperty detailAlbedoScale = null;
+        MaterialProperty detailNormalScale = null;
+        MaterialProperty detailSmoothnessScale = null;
+        MaterialProperty detailHeightScale = null;
+        MaterialProperty detailAOScale = null;
         MaterialProperty emissiveColor = null;
         MaterialProperty emissiveColorMap = null;
         MaterialProperty emissiveIntensity = null;
@@ -135,6 +162,7 @@ namespace UnityEditor
 
         protected const string kSurfaceType = "_SurfaceType";
         protected const string kBlendMode = "_BlendMode";
+        protected const string kUVDetail = "_UVDetail";
         protected const string kAlphaCutoff = "_AlphaCutoff";
         protected const string kAlphaCutoffEnabled = "_AlphaCutoffEnable";
         protected const string kDoubleSidedMode = "_DoubleSidedMode";
@@ -142,6 +170,7 @@ namespace UnityEditor
         protected const string kEmissiveColorMode = "_EmissiveColorMode";
         protected const string kNormalMapSpace = "_NormalMapSpace";
         protected const string kHeightMapMode = "_HeightMapMode";
+        protected const string kDetailMapMode = "_DetailMapMode";
 
         protected const string kNormalMap = "_NormalMap";
         protected const string kMaskMap = "_MaskMap";
@@ -150,11 +179,19 @@ namespace UnityEditor
         protected const string kHeightMap = "_HeightMap";
         protected const string kTangentMap = "_TangentMap";
         protected const string kAnisotropyMap = "_AnisotropyMap";
+        protected const string kDetailMap = "_DetailMap";
+        protected const string kDetailMask = "_DetailMask";
+        protected const string kDetailAlbedoScale = "_DetailAlbedoScale";
+        protected const string kDetailNormalScale = "_DetailNormalScale";
+        protected const string kDetailSmoothnessScale = "_DetailSmoothnessScale";
+        protected const string kDetailHeightScale = "_DetailHeightScale";
+        protected const string kDetailAOScale = "_DetailAOScale";
 
         public void FindOptionProperties(MaterialProperty[] props)
         {
             surfaceType = FindProperty(kSurfaceType, props);
             blendMode = FindProperty(kBlendMode, props);
+            UVDetail = FindProperty(kUVDetail, props);
             alphaCutoff = FindProperty(kAlphaCutoff, props);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props);
             doubleSidedMode = FindProperty(kDoubleSidedMode, props);
@@ -162,6 +199,7 @@ namespace UnityEditor
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
             heightMapMode = FindProperty(kHeightMapMode, props);
+            detailMapMode = FindProperty(kDetailMapMode, props);
         }
 
         public void FindInputProperties(MaterialProperty[] props)
@@ -182,6 +220,13 @@ namespace UnityEditor
             emissiveColor = FindProperty("_EmissiveColor", props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
             emissiveIntensity = FindProperty("_EmissiveIntensity", props);
+            detailMap = FindProperty(kDetailMap, props);
+            detailMask = FindProperty(kDetailMask, props);
+            detailAlbedoScale = FindProperty(kDetailAlbedoScale, props);
+            detailNormalScale = FindProperty(kDetailNormalScale, props);
+            detailSmoothnessScale = FindProperty(kDetailSmoothnessScale, props);
+            detailHeightScale = FindProperty(kDetailHeightScale, props);
+            detailAOScale = FindProperty(kDetailAOScale, props);
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -221,6 +266,7 @@ namespace UnityEditor
             m_MaterialEditor.ShaderProperty(emissiveColorMode, Styles.emissiveColorModeText.text);
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);
             m_MaterialEditor.ShaderProperty(heightMapMode, Styles.heightMapModeText.text);
+            m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);
             EditorGUI.indentLevel--;
         }
 
@@ -229,6 +275,7 @@ namespace UnityEditor
             EditorGUI.indentLevel++;
             bool smoothnessInAlbedoAlpha = (SmoothnessMapChannel)smoothnessMapChannel.floatValue == SmoothnessMapChannel.AlbedoAlpha;
             bool useEmissiveMask = (EmissiveColorMode)emissiveColorMode.floatValue == EmissiveColorMode.UseEmissiveMask;
+            bool useDetailMapWithNormal = (DetailMapMode)detailMapMode.floatValue == DetailMapMode.DetailWithNormal;
 
             GUILayout.Label(Styles.InputsText, EditorStyles.boldLabel);
             m_MaterialEditor.TexturePropertySingleLine(smoothnessInAlbedoAlpha ? Styles.baseColorSmoothnessText : Styles.baseColorText, baseColorMap, baseColor);
@@ -255,6 +302,32 @@ namespace UnityEditor
             m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
             
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
+
+            EditorGUILayout.Space();
+            GUILayout.Label(Styles.detailText, EditorStyles.boldLabel);
+
+            m_MaterialEditor.TexturePropertySingleLine(Styles.detailMaskText, detailMask); 
+			m_MaterialEditor.ShaderProperty(UVDetail, Styles.uvSetLabel.text);          
+
+            if (useDetailMapWithNormal)
+            {
+                m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap);
+            }
+            else
+            {
+                m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapAOHeightText, detailMap);
+            }
+            m_MaterialEditor.TextureScaleOffsetProperty(detailMap);
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(detailAlbedoScale, Styles.detailAlbedoScaleText);
+            m_MaterialEditor.ShaderProperty(detailNormalScale, Styles.detailNormalScaleText);
+            m_MaterialEditor.ShaderProperty(detailSmoothnessScale, Styles.detailSmoothnessScaleText);
+            m_MaterialEditor.ShaderProperty(detailHeightScale, Styles.detailHeightScaleText);
+            m_MaterialEditor.ShaderProperty(detailAOScale, Styles.detailAOScaleText);
+            EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            GUILayout.Label(Styles.lightingText, EditorStyles.boldLabel);
 
             if (!useEmissiveMask)
             {
@@ -330,13 +403,14 @@ namespace UnityEditor
 
         protected virtual void SetupKeywordsForInputMaps(Material material)
         {
-            SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
+            SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
             SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kspecularOcclusionMap));
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
             SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
             SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
+            SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
         }
 
         protected virtual void SetupEmissionGIFlags(Material material)
@@ -438,6 +512,7 @@ namespace UnityEditor
             SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannelProp)) == SmoothnessMapChannel.AlbedoAlpha);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
             SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", (HeightmapMode)material.GetFloat(kHeightMapMode) == HeightmapMode.Displacement);
+            SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", (DetailMapMode)material.GetFloat(kDetailMapMode) == DetailMapMode.DetailWithNormal);
 
             SetupKeywordsForInputMaps(material);
             SetupEmissionGIFlags(material);

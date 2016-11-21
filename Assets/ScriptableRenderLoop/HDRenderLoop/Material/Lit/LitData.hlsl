@@ -88,6 +88,16 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
     return float2(0.0, 0.0);
 #endif
 }
+                                
+float3 LerpWhiteTo(float3 b, float t)
+{
+    float oneMinusT = 1.0 - t;
+    return float3(oneMinusT, oneMinusT, oneMinusT) + b * t;
+}
+
+// Transforms 2D UV by scale/bias property
+#define TRANSFORM_TEX(tex,name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
+
 
 #if !defined(LAYERED_LIT_SHADER)
 
@@ -99,14 +109,41 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS); // This should be remove by the compiler as we usually cal it before.
     float height = SAMPLE_TEXTURE2D(_HeightMap, sampler_HeightMap, input.texCoord0).r * _HeightScale + _HeightBias;
     // Transform view vector in tangent space
-    TransformWorldToTangent(V, input.tangentToWorld);
+    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
     float2 offset = ParallaxOffset(viewDirTS, height);
     input.texCoord0 += offset;
     input.texCoord1 += offset;
     #endif
 #endif
 
+#ifdef _DETAIL_MAP
+    float2 texCoordDetail = TRANSFORM_TEX(_UVDetail ? input.texCoord1 : input.texCoord0, _DetailMap);
+    float detailMask = SAMPLE_TEXTURE2D(_DetailMask, sampler_DetailMask, input.texCoord0).b;
+    float4 detail = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, texCoordDetail);
+    float detailAlbedo = detail.r;
+    float detailSmoothness = detail.b;
+    #ifdef _DETAIL_MAP_WITH_NORMAL
+    float3 detailNormalTS = UnpackNormalAG(detail, _DetailNormalScale);
+    //float detailAO = 0.0;
+    #else
+    // TODO: Use heightmap as a derivative with Morten Mikklesen approach
+    // Or reconstruct
+    float U = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, texCoordDetail + float2(0.005, 0)).a;
+    float V = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, texCoordDetail + float2(0, 0.005)).a;
+    float dHdU = U - detail.a;	//create bump map U offset
+    float dHdV = V - detail.a;	//create bump map V offset
+    //float3 detailNormal = 1 - float3(dHdU, dHdV, 0.05);	//create the tangent space normal
+    float3 detailNormalTS = float3(0.0, 0.0, 1.0);
+    //float3 detailNormal = UnpackNormalAG(unifiedDetail.r).a;
+    //float detailAO = detail.b;
+    #endif
+#endif
+
     surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, input.texCoord0).rgb * _BaseColor.rgb;
+#ifdef _DETAIL_MAP
+    surfaceData.baseColor *= LerpWhiteTo(2.0 * saturate(detailAlbedo * _DetailAlbedoScale), detailMask);
+#endif
+
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     float alpha = _BaseColor.a;
 #else
@@ -133,10 +170,18 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
-    float3 normalTS = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.texCoord0));
-    surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
-    #else // Object space (TODO: We need to apply the world rotation here! - Require to pass world transform)
-    surfaceData.normalWS = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.texCoord0).rgb;
+        float3 normalTS = UnpackNormalAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.texCoord0));
+        #ifdef _DETAIL_MAP
+        normalTS = lerp(normalTS, blendNormal(normalTS, detailNormalTS), detailMask);
+        #endif
+        surfaceData.normalWS = TransformTangentToWorld(normalTS, input.tangentToWorld);
+    #else // Object space
+        float3 normalOS = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.texCoord0).rgb;
+        surfaceData.normalWS = TransformObjectToWorldDir(normalOS);
+        #ifdef _DETAIL_MAP
+        float3 detailNormalWS = TransformTangentToWorld(detailNormalTS, input.tangentToWorld);
+        surfaceData.normalWS = lerp(surfaceData.normalWS, blendNormal(surfaceData.normalWS, detailNormalWS), detailMask);
+        #endif
     #endif
 #else
     surfaceData.normalWS = vertexNormalWS;
@@ -163,6 +208,9 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     surfaceData.perceptualSmoothness = 1.0;
 #endif
     surfaceData.perceptualSmoothness *= _Smoothness;
+#ifdef _DETAIL_MAP
+    surfaceData.perceptualSmoothness *= LerpWhiteTo(2.0 * saturate(detailSmoothness * _DetailSmoothnessScale), detailMask);
+#endif
 
     surfaceData.materialId = 0;
 
@@ -190,7 +238,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     // TODO: Is there anything todo regarding flip normal but for the tangent ?
 
 #ifdef _ANISOTROPYMAP
-    surfaceData.anisotropy = SAMPLE_TEXTURE2D(_AnisotropyMap, sampler_AnisotropyMap, input.texCoord0).r;
+    surfaceData.anisotropy = SAMPLE_TEXTURE2D(_AnisotropyMap, sampler_AnisotropyMap, input.texCoord0).g;
 #else
     surfaceData.anisotropy = 1.0;
 #endif

@@ -412,7 +412,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_spotCookieTextures", m_CookieTexArray.GetTexCache());
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
-                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_reflRootCubeTexture", ReflectionProbe.GetDefaultTexture());
+                cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_reflRootCubeTexture", ReflectionProbe.defaultTexture);
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "g_tShadowBuffer", new RenderTargetIdentifier(m_shadowBufferID));
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "unity_NHxRoughness", m_NHxRoughnessTexture);
                 cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LightTextureB0", m_LightAttentuationTexture);
@@ -421,7 +421,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightData", s_LightDataBuffer);
                 cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
 
-                var defdecode = ReflectionProbe.GetDefaultTextureHDRDecodeValues();
+                var defdecode = ReflectionProbe.defaultTextureHDRDecodeValues;
                 cmd.SetComputeFloatParam(deferredComputeShader, "_reflRootHdrDecodeMult", defdecode.x);
                 cmd.SetComputeFloatParam(deferredComputeShader, "_reflRootHdrDecodeExp", defdecode.y);
 
@@ -1303,8 +1303,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.SetGlobalTexture("_pointCookieTextures", m_CubeCookieTexArray.GetTexCache());
             cmd.SetGlobalTexture("_reflCubeTextures", m_CubeReflTexArray.GetTexCache());
 
-            var topCube = ReflectionProbe.GetDefaultTexture();
-            var defdecode = ReflectionProbe.GetDefaultTextureHDRDecodeValues();
+            var topCube = ReflectionProbe.defaultTexture;
+            var defdecode = ReflectionProbe.defaultTextureHDRDecodeValues;
             cmd.SetGlobalTexture("_reflRootCubeTexture", topCube);
             cmd.SetGlobalFloat("_reflRootHdrDecodeMult", defdecode.x);
             cmd.SetGlobalFloat("_reflRootHdrDecodeExp", defdecode.y);
