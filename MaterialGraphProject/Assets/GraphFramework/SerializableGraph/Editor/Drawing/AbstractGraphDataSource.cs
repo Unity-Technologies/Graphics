@@ -16,9 +16,17 @@ namespace UnityEditor.Graphing.Drawing
         [SerializeField]
         private List<GraphElementData> m_TempElements = new List<GraphElementData>();
 
+		[SerializeField]
+		private TitleBarDrawData m_TitleBar;
+
         private readonly Dictionary<Type, Type> m_DataMapper = new Dictionary<Type, Type>();
 
         public IGraphAsset graphAsset { get; private set; }
+
+		public TitleBarDrawData titleBar
+		{
+			get { return m_TitleBar; }
+		}
 
         void OnNodeChanged(INode inNode, ModificationScope scope)
         {
@@ -179,6 +187,9 @@ namespace UnityEditor.Graphing.Drawing
             AddTypeMappings();
 
             this.graphAsset = graphAsset;
+
+			m_TitleBar = CreateInstance<TitleBarDrawData>();
+			m_TitleBar.Initialize(graphAsset);
 
             if (graphAsset == null)
                 return;

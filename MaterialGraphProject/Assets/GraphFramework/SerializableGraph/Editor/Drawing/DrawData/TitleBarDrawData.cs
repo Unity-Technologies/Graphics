@@ -1,5 +1,6 @@
 ﻿using RMGUI.GraphView;
 using UnityEngine;
+using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -9,6 +10,14 @@ namespace UnityEditor.Graphing.Drawing
         {
         }
 
-        public string title;
+		public string title;
+
+		public void Initialize(IGraphAsset graphAsset)
+		{
+			if (graphAsset == null)
+				return;
+			
+			title = graphAsset.GetScriptableObject().name;
+		}
     }
 }

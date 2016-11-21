@@ -90,10 +90,7 @@ namespace UnityEditor.Graphing.Drawing
                     var source = CreateDataSource();
                     source.Initialize(m_LastSelection);
                     m_GraphView.dataSource = source;
-
-                    var titleBarData = CreateInstance<TitleBarDrawData>();
-                    titleBarData.title = m_LastSelection != null ? m_LastSelection.GetScriptableObject().name : "";
-                    m_TitleBarDrawer.dataProvider = titleBarData;
+					m_TitleBarDrawer.dataProvider = source.titleBar;
 
                     m_GraphView.StretchToParentSize();
                     Repaint();
