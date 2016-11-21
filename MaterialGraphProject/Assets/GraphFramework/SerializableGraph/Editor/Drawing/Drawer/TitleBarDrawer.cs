@@ -45,9 +45,10 @@ namespace UnityEditor.Graphing.Drawing
             };
             AddChild(rightContainer);
 
-            m_title = new Label(new GUIContent("testttt"))
+            m_title = new Label(new GUIContent(""))
             {
                 name = "title",
+				pickingMode = PickingMode.Ignore
             };
             leftContainer.AddChild(m_title);
 

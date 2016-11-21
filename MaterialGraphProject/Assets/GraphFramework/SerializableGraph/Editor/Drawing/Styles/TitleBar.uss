@@ -4,7 +4,7 @@
     align-items: stretch;
     background-color: #212121;
     padding-bottom: 1;
-    padding-left: 1;
+    margin-left: 1;
 }
 
 #TitleBar #left,
@@ -14,12 +14,11 @@
 }
 
 #TitleBar #left {
-    /* background-color: #f00; */
     align-items: center;
     flex-direction: row;
 }
 
-#TitleBar #left #title {
+#TitleBar #title {
     background-color: #f00;
-    font-size: 12;
+    font-style: bold;
 }

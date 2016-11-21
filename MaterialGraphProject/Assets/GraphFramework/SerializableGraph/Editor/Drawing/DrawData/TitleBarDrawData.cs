@@ -15,9 +15,9 @@ namespace UnityEditor.Graphing.Drawing
 		public void Initialize(IGraphAsset graphAsset)
 		{
 			if (graphAsset == null)
-				return;
-			
-			title = graphAsset.GetScriptableObject().name;
+				title = "";
+			else
+				title = graphAsset.GetScriptableObject().name;
 		}
     }
 }
