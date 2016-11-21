@@ -2,23 +2,34 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: stretch;
-    background-color: #212121;
+    background-color: rgba(33, 33, 33, 0.5);
     padding-bottom: 1;
-    margin-left: 1;
+    /*margin-top: -1;*/
 }
 
 #TitleBar #left,
 #TitleBar #right {
-    background-color: #3d3d3d;
     flex: 1;
-}
-
-#TitleBar #left {
-    align-items: center;
+    height: 16;
+    background-color: #3d3d3d;
+    align-items: stretch;
     flex-direction: row;
+    justify-content: flex-start;
 }
 
-#TitleBar #title {
-    background-color: #f00;
-    font-style: bold;
+.titleBarItem {
+    flex-direction: row;
+    margin-left: 5;
+}
+
+.titleBarItemBorder {
+    background-color: rgba(33, 33, 33, 0.5);
+    width: 1;
+}
+
+.titleBarItemLabel {
+    text-color: rgba(255, 255, 255, 0.6);
+    font-size: 9;
+    text-alignment: middle-left;
+    padding-left: 5;
 }

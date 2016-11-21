@@ -11,7 +11,7 @@ namespace UnityEditor.Graphing.Drawing
     public class TitleBarDrawer : DataWatchContainer
     {
         private TitleBarDrawData m_dataProvider;
-        private Label m_title;
+		private VisualElement m_title;
 
         public TitleBarDrawData dataProvider
         {
@@ -45,12 +45,27 @@ namespace UnityEditor.Graphing.Drawing
             };
             AddChild(rightContainer);
 
-            m_title = new Label(new GUIContent(""))
+			var titleItem = new VisualContainer() { classList = new ClassList("titleBarItem") };
+			titleItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
+			m_title = new VisualElement()
             {
-                name = "title",
-				pickingMode = PickingMode.Ignore
+				classList = new ClassList("titleBarItemLabel"),
+				content = new GUIContent("")
             };
-            leftContainer.AddChild(m_title);
+			titleItem.AddChild(m_title);
+			titleItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
+			leftContainer.AddChild(titleItem);
+
+			var showInProjectItem = new VisualContainer() { classList = new ClassList("titleBarItem") };
+			showInProjectItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
+			var showInProjectLabel = new VisualElement()
+			{
+				classList = new ClassList("titleBarItemLabel"),
+				content = new GUIContent("Show in project")
+			};
+			showInProjectItem.AddChild(showInProjectLabel);
+			showInProjectItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
+			leftContainer.AddChild(showInProjectItem);
 
             this.dataProvider = dataProvider;
         }
