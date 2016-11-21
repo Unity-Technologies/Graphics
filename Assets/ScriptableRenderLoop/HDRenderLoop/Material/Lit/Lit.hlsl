@@ -814,8 +814,8 @@ void IntegrateBSDFLineRef(float3 V, float3 positionWS, PreLightData preLightData
     specularLighting = float3(0.0, 0.0, 0.0);
 
     const float  len = lightData.size.x;
-    const float3 dir = lightData.right;
-    const float3 p1  = lightData.positionWS - lightData.right * (0.5 * len);
+    const float3 T   = lightData.right;
+    const float3 P1  = lightData.positionWS - T * (0.5 * len);
     const float  dt  = len * rcp(sampleCount);
     const float  off = 0.5 * dt;
 
@@ -826,19 +826,19 @@ void IntegrateBSDFLineRef(float3 V, float3 positionWS, PreLightData preLightData
     {
         // Place the sample in the middle of the interval.
         float  t     = off + i * dt;
-        float3 sPos  = p1 + t * dir;
+        float3 sPos  = P1 + t * T;
         float3 unL   = sPos - positionWS;
         float  dist2 = dot(unL, unL);
         float3 L     = normalize(unL);
-        float  sinLD = length(cross(L, dir));
+        float  sinLT = length(cross(L, T));
         float  NdotL = saturate(dot(bsdfData.normalWS, L));
 
         float3 lightDiff, lightSpec;
 
         BSDF(V, L, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
 
-        diffuseLighting  += lightDiff * (sinLD / dist2 * NdotL);
-        specularLighting += lightSpec * (sinLD / dist2 * NdotL);
+        diffuseLighting  += lightDiff * (sinLT / dist2 * NdotL);
+        specularLighting += lightSpec * (sinLT / dist2 * NdotL);
     }
 
     // The factor of 2 is due to the fact: Integral{0, 2 PI}{max(0, cos(x))dx} = 2.
@@ -861,15 +861,15 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
     specularLighting = float3(0.0, 0.0, 0.0);
 
     float  len = lightData.size.x;
-    float3 dir = lightData.right;
+    float3 T   = lightData.right;
 
     // TODO: precompute half-length. Same as for LTC area lights.
-    float3 p1 = lightData.positionWS - lightData.right * (0.5 * len);
-    float3 p2 = lightData.positionWS + lightData.right * (0.5 * len);
+    float3 P1 = lightData.positionWS - T * (0.5 * len);
+    float3 P2 = lightData.positionWS + T * (0.5 * len);
 
     // Translate both points s.t. the shaded point is at the origin of the coordinate system.
-    p1 -= positionWS;
-    p2 -= positionWS;
+    P1 -= positionWS;
+    P2 -= positionWS;
 
     // Construct an orthonormal basis (local coordinate system) around N.
     // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
@@ -879,42 +879,43 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
     basis[1] = normalize(cross(bsdfData.normalWS, basis[0]));
     basis[2] = bsdfData.normalWS;
 
-    // Transform (rotate) both endpoints into the local coordinate system (left-handed).
-    p1 = mul(p1, transpose(basis));
-    p2 = mul(p2, transpose(basis));
+    // Rotate both endpoints and the tangent into the local coordinate system (left-handed).
+    P1 = mul(P1, transpose(basis));
+    P2 = mul(P2, transpose(basis));
+    T  = mul(T,  transpose(basis));
 
     // Terminate the algorithm if both points are below the horizon.
-    if (p1.z <= 0.0 && p2.z <= 0.0) return;
+    if (P1.z <= 0.0 && P2.z <= 0.0) return;
 
-    if (p2.z <= 0.0)
+    if (P2.z <= 0.0)
     {
-        // Convention: 'p2' is above the horizon.
-        swap(p1, p2);
-        dir = -dir;
+        // Convention: 'P2' is above the horizon.
+        swap(P1, P2);
+        T = -T;
     }
 
     // Clip the part of the light below the horizon.
-    if (p1.z <= 0.0)
+    if (P1.z <= 0.0)
     {
-        // p = p1 + t * dir; p.z == 0.
-        float t = -p1.z / dir.z;
-        p1 = float3(p1.xy + t * dir.xy, 0.0);
+        // p = P1 + t * T; p.z == 0.
+        float t = -P1.z / T.z;
+        P1 = float3(P1.xy + t * T.xy, 0.0);
 
         // Set the length of the visible part of the light.
         len -= t;
     }
 
-    // Compute the direction to the point on the line orthogonal to 'dir'.
-    // Its length is the shortest distance to the line.
-    float3 p0   = p1 - dot(p1, dir) * dir;
-    float  dist = length(p0);
+    // Compute the normal direction to the line, s.t. it is the shortest vector between the shaded
+    // point and the line, pointing away from the shaded point. Can be viewed as a point on the line.
+    float  proj = dot(P1, T);
+    float3 P0   = P1 - proj * T;
 
-    // Compute the parameterization: distances from 'l1' and 'l2' to 'l0'.
-    float l1 = dot(p1 - p0, dir);
+    // Compute the parameterization: distances from 'P1' and 'P2' to 'P0'.
+    float l1 = proj;
     float l2 = l1 + len;
 
     // Integrate the clamped cosine over the line segment.
-    float irradiance = LineIrradiance(l1, l2, dist, p0.z, dir.z);
+    float irradiance = LineIrradiance(l1, l2, P0, T);
 
     // Only Lambertian for now. TODO: Disney Diffuse and GGX.
     diffuseLighting = (lightData.diffuseScale * irradiance * INV_PI) * bsdfData.diffuseColor * lightData.color;
@@ -932,18 +933,19 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
 #ifdef LIT_DISPLAY_REFERENCE_AREA
     if (lightData.lightType == GPULIGHTTYPE_LINE)
     {
-        IntegrateBSDFLineRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
+        IntegrateBSDFLineRef(V, positionWS, preLightData, lightData, bsdfData,
+                             diffuseLighting, specularLighting);
     }
     else
     {
-        IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
+        IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData,
+                            diffuseLighting, specularLighting);
     }
 #else
     if (lightData.lightType == GPULIGHTTYPE_LINE)
     {
-        diffuseLighting = float3(0.0, 0.0, 0.0);
-        specularLighting = float3(0.0, 0.0, 0.0);
-        // EvaluateBSDF_Line(lightLoopContext, V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
+        EvaluateBSDF_Line(lightLoopContext, V, positionWS, preLightData, lightData, bsdfData,
+                          diffuseLighting, specularLighting);
         return;
     }
     

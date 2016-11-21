@@ -128,6 +128,11 @@ float4 Max3(float4 a, float4 b, float4 c)
 }
 #endif // INTRINSIC_MINMAX3
 
+float sq(float x)
+{
+    return x * x;
+}
+
 void swap(inout float a, inout float b)
 {
     float  t = a; a = b; b = t;
