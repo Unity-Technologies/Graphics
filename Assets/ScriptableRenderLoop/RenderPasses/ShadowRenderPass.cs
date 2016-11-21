@@ -344,7 +344,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (lightType == LightType.Spot)
                 {
                     var settings = new DrawShadowsSettings(cullResults, lightIndex);
-                    bool needRendering = cullResults.ComputeSpotShadowsMatricesAndCullingPrimitives(lightIndex, out view, out proj, out settings.splitData);
+                    bool needRendering = cullResults.ComputeSpotShadowMatricesAndCullingPrimitives(lightIndex, out view, out proj, out settings.splitData);
                     SetupShadowSplitMatrices(ref packedShadows.shadowSlices[shadowSliceIndex], proj, view);
                     if (needRendering)
                         RenderShadowSplit(ref shadowSlices[shadowSliceIndex], lightDirection, proj, view, ref loop, settings);
@@ -375,7 +375,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     for (int s = 0; s < shadowSliceCount; ++s, shadowSliceIndex++)
                     {
                         var settings = new DrawShadowsSettings(cullResults, lightIndex);
-                        bool needRendering = cullResults.ComputePointShadowsMatricesAndCullingPrimitives(lightIndex, (CubemapFace)s, 2.0f, out view, out proj, out settings.splitData);
+                        bool needRendering = cullResults.ComputePointShadowMatricesAndCullingPrimitives(lightIndex, (CubemapFace)s, 2.0f, out view, out proj, out settings.splitData);
 
                         SetupShadowSplitMatrices(ref shadowSlices[shadowSliceIndex], proj, view);
                         if (needRendering)
