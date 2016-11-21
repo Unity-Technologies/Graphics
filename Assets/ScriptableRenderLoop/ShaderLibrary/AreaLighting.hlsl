@@ -163,7 +163,8 @@ float PolygonRadiance(float4x3 L, bool twoSided)
     return twoSided ? abs(sum) : max(sum, 0.0);
 }
 
-float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, float3x3 minV)
+// For polygonal lights.
+float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, float3x3 invM)
 {
     // Construct local orthonormal basis around N, aligned with N
     // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
@@ -174,8 +175,8 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
     basis[2] = N;
 
     // rotate area light in local basis
-    minV = mul(transpose(basis), minV);
-    L = mul(L, minV);
+    invM = mul(transpose(basis), invM);
+    L = mul(L, invM);
 
     // Polygon radiance in transformed configuration - specular
     return PolygonRadiance(L, twoSided);
@@ -208,6 +209,57 @@ float LineIrradiance(float l1, float l2, float3 normal, float3 tangent)
     float intWt  = LineFwt(tLDDL2, l2) - LineFwt(tLDDL1, l1);
     float intP0  = LineFpo(tLDDL2, l2rcpD, rcp(d)) - LineFpo(tLDDL1, l1rcpD, rcp(d));
     return intP0 * normal.z + intWt * tangent.z;
+}
+
+// For line lights.
+float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
+{
+    // Inverse-transform the endpoints and the binormal.
+    P1 = mul(P1, invM);
+    P2 = mul(P2, invM);
+    B  = mul(B,  invM);
+
+    // Terminate the algorithm if both points are below the horizon.
+    if (P1.z <= 0.0 && P2.z <= 0.0) return 0.0;
+
+    if (P2.z <= 0.0)
+    {
+        // Convention: 'P2' is above the horizon.
+        swap(P1, P2);
+    }
+
+    // Recompute the length and the tangent in the new coordinate system.
+    float  len = length(P2 - P1);
+    float3 T   = normalize(P2 - P1);
+
+    // Clip the part of the light below the horizon.
+    if (P1.z <= 0.0)
+    {
+        // P = P1 + t * T; P.z == 0.
+        float t = -P1.z / T.z;
+        P1 = float3(P1.xy + t * T.xy, 0.0);
+
+        // Set the length of the visible part of the light.
+        len -= t;
+    }
+
+    // Compute the normal direction to the line, s.t. it is the shortest vector
+    // between the shaded point and the line, pointing away from the shaded point.
+    // Can be interpreted as a point on the line, since the shaded point is at the origin.
+    float  proj = dot(P1, T);
+    float3 P0   = P1 - proj * T;
+
+    // Compute the parameterization: distances from 'P1' and 'P2' to 'P0'.
+    float l1 = proj;
+    float l2 = l1 + len;
+
+    // Integrate the clamped cosine over the line segment.
+    float irradiance = LineIrradiance(l1, l2, P0, T);
+
+    // Compute the width factor. We take the absolute value because the points may be swapped.
+    float width = abs(dot(B, normalize(cross(T, P1))));
+
+    return INV_PI * width * irradiance;
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
