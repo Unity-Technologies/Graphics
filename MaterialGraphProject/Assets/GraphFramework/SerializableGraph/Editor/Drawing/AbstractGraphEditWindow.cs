@@ -55,7 +55,6 @@ namespace UnityEditor.Graphing.Drawing
             m_TitleBarDrawer = new TitleBarDrawer(titleBarData);
 
             m_GraphView.dataSource = source;
-            m_GraphView.StretchToParentSize();
 
             rootVisualContainer.AddChild(m_TitleBarDrawer);
             rootVisualContainer.AddChild(m_GraphView);
