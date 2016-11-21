@@ -892,7 +892,7 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
 
     // Evaluate the diffuse part.
     {
-    #ifdef DIFFUSE_LAMBERT_BRDF
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue = LTCEvaluate(P1, P2, B, _identity3x3);
     #else
         ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcXformDisneyDiffuse);
@@ -904,7 +904,7 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
             return;
         }
 
-    #ifndef DIFFUSE_LAMBERT_BRDF
+    #ifndef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
     #endif
 
@@ -1009,7 +1009,7 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
 
     // Evaluate the diffuse part.
     {
-    #ifdef DIFFUSE_LAMBERT_BRDF
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue = LTCEvaluate(L, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
                                _identity3x3);
     #else
@@ -1023,7 +1023,7 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
             return;
         }
 
-    #ifndef DIFFUSE_LAMBERT_BRDF
+    #ifndef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
     #endif
 
