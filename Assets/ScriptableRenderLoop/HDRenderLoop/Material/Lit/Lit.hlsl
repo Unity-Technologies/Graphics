@@ -862,10 +862,8 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
 
     float  len = lightData.size.x;
     float3 T   = lightData.right;
-
-    // TODO: precompute half-length. Same as for LTC area lights.
-    float3 P1 = lightData.positionWS - T * (0.5 * len);
-    float3 P2 = lightData.positionWS + T * (0.5 * len);
+    float3 P1  = lightData.positionWS - T * (0.5 * len);
+    float3 P2  = lightData.positionWS + T * (0.5 * len);
 
     // Translate both points s.t. the shaded point is at the origin of the coordinate system.
     P1 -= positionWS;
@@ -898,7 +896,7 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
     // Clip the part of the light below the horizon.
     if (P1.z <= 0.0)
     {
-        // p = P1 + t * T; p.z == 0.
+        // P = P1 + t * T; P.z == 0.
         float t = -P1.z / T.z;
         P1 = float3(P1.xy + t * T.xy, 0.0);
 
