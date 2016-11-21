@@ -181,10 +181,10 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
     return PolygonRadiance(L, twoSided);
 }
 
-float LineFpo(float rcpD, float rcpDL, float l)
+float LineFpo(float l, float rcpD, float rcpDL)
 {
     // Compute: l / d / (d * d + l * l) + 1.0 / (d * d) * atan(l / d).
-    return l * rcpDL + rcpD * rcpD * atan(l * rcpD);
+    return l * rcpDL + sq(rcpD) * atan(l * rcpD);
 }
 
 float LineFwt(float sqL, float rcpDL)
@@ -194,18 +194,18 @@ float LineFwt(float sqL, float rcpDL)
 }
 
 // Computes the integral of the clamped cosine over the line segment.
-// 'dist' is the shortest distance to the line. 'l1' and 'l2' define the integration interval.
-float LineIrradiance(float l1, float l2, float dist, float pointZ, float tangentZ)
+// 'l1' and 'l2' define the integration interval.
+// 'tangent' is the line's tangent direction.
+// 'normal' is the direction orthogonal to the tangent. It is the shortest vector between
+// the shaded point and the line, pointing away from the shaded point.
+float LineIrradiance(float l1, float l2, float3 normal, float3 tangent)
 {   
-    float sqD    = dist * dist;
-    float sqL1   = l1 * l1;
-    float sqL2   = l2 * l2;
-    float rcpD   = rcp(dist);
-    float rcpDL1 = rcpD * rcp(sqD + sqL1);
-    float rcpDL2 = rcpD * rcp(sqD + sqL2);
-    float intP0  = LineFpo(rcpD, rcpDL2, l2) - LineFpo(rcpD, rcpDL1, l1);
-    float intWt  = LineFwt(sqL2, rcpDL2) - LineFwt(sqL1, rcpDL1);
-    return intP0 * pointZ + intWt * tangentZ;
+    float dist   = length(normal);
+    float rcpDL1 = rcp(dist) * rcp(sq(dist) + sq(l1));
+    float rcpDL2 = rcp(dist) * rcp(sq(dist) + sq(l2));
+    float intP0  = LineFpo(l2, rcp(dist), rcpDL2) - LineFpo(l1, rcp(dist), rcpDL1);
+    float intWt  = LineFwt(sq(l2), rcpDL2) - LineFwt(sq(l1), rcpDL1);
+    return intP0 * normal.z + intWt * tangent.z;
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
