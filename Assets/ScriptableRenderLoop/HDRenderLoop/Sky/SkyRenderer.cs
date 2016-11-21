@@ -16,14 +16,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
     public class SkyRenderer
     {
-        const int kSkyCubemapSize = 128;
+        const int kSkyCubemapSize = 256;
 
-        RenderTexture m_SkyboxCubemap = null;
+        RenderTexture m_SkyboxCubemapRT = null;
 
-        Material m_SkyboxMaterial = null;
-        Material m_SkyHDRIMaterial = null;
+        Material m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
+        Material m_SkyHDRIMaterial = null; // Renders a cubemap into a render texture (can be cube or 2D)
 
-        Mesh BuildSkyMesh(Camera camera)
+        GameObject[] m_CubemapFaceCamera = new GameObject[6];
+
+        Mesh BuildSkyMesh(Camera camera, bool forceUVBottom)
         {
             Vector4 vertData0 = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);
             Vector4 vertData1 = new Vector4(1.0f, -1.0f, 1.0f, 1.0f);
@@ -54,7 +56,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Vector4 direction2 = (posWorldSpace2 / posWorldSpace2.w - cameraPosition);
             Vector4 direction3 = (posWorldSpace3 / posWorldSpace3.w - cameraPosition);
 
-            if (SystemInfo.graphicsUVStartsAtTop)
+            if (SystemInfo.graphicsUVStartsAtTop && !forceUVBottom)
             {
                 eyeVectorData[3] = new Vector3(direction0.x, direction0.y, direction0.z).normalized;
                 eyeVectorData[2] = new Vector3(direction1.x, direction1.y, direction1.z).normalized;
@@ -83,32 +85,90 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public void Rebuild()
         {
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
-            m_SkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");
-            RenderSettings.skybox = m_SkyboxMaterial; // Setup this material as the default to be use in RenderSettings
-            RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
-            RenderSettings.reflectionIntensity = 1.0f;
+            m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");
 
             m_SkyHDRIMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/SkyHDRI");
 
-            m_SkyboxCubemap = new RenderTexture(kSkyCubemapSize, kSkyCubemapSize, 1, RenderTextureFormat.ARGBHalf);
-            m_SkyboxCubemap.dimension = TextureDimension.Cube;
-            m_SkyboxCubemap.Create();
+            m_SkyboxCubemapRT = new RenderTexture(kSkyCubemapSize, kSkyCubemapSize, 1, RenderTextureFormat.ARGBHalf);
+            m_SkyboxCubemapRT.dimension = TextureDimension.Cube;
+            m_SkyboxCubemapRT.useMipMap = true;
+            m_SkyboxCubemapRT.autoGenerateMips = true;
+            m_SkyboxCubemapRT.Create();
+
+            Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.1f, 1.0f);
+
+            Vector3[] lookAtList = {
+                            new Vector3(1.0f, 0.0f, 0.0f),
+                            new Vector3(-1.0f, 0.0f, 0.0f),
+                            new Vector3(0.0f, 1.0f, 0.0f),
+                            new Vector3(0.0f, -1.0f, 0.0f),
+                            new Vector3(0.0f, 0.0f, 1.0f),
+                            new Vector3(0.0f, 0.0f, -1.0f),
+                        };
+            
+            Vector3[] UpVectorList = {
+                            new Vector3(0.0f, 1.0f, 0.0f),
+                            new Vector3(0.0f, 1.0f, 0.0f),
+                            new Vector3(0.0f, 0.0f, -1.0f),
+                            new Vector3(0.0f, 0.0f, 1.0f),
+                            new Vector3(0.0f, 1.0f, 0.0f),
+                            new Vector3(0.0f, 1.0f, 0.0f),
+                        };
+
+            for (int i = 0; i < 6; ++i)
+            {
+                m_CubemapFaceCamera[i] = new GameObject();
+                m_CubemapFaceCamera[i].hideFlags = HideFlags.HideAndDontSave;
+
+                Camera camera = m_CubemapFaceCamera[i].AddComponent<Camera>();
+                camera.projectionMatrix = cubeProj;
+                Transform transform = camera.GetComponent<Transform>();
+                transform.LookAt(lookAtList[i], UpVectorList[i]);
+            }
         }
 
         public void OnDisable()
         {
-            Utilities.Destroy(m_SkyboxMaterial);
+            Utilities.Destroy(m_StandardSkyboxMaterial);
             Utilities.Destroy(m_SkyHDRIMaterial);
+            Utilities.Destroy(m_SkyboxCubemapRT);
 
-            //m_SkyboxCubemap.Release();
-            Utilities.Destroy(m_SkyboxCubemap);
+            for(int i = 0 ; i < 6 ; ++i)
+            {
+                Utilities.Destroy(m_CubemapFaceCamera[i]);
+            }
 
+        }
+
+        private void RenderSky(Camera camera, SkyParameters skyParameters, bool forceUVBottom, RenderLoop renderLoop)
+        {
+            Mesh skyMesh = BuildSkyMesh(camera, forceUVBottom);
+
+            m_SkyHDRIMaterial.SetTexture("_Cubemap", skyParameters.skyHDRI);
+            m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
+
+            var cmd = new CommandBuffer { name = "Skybox" };
+            cmd.DrawMesh(skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial);
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
         }
 
         public void RenderSky(Camera camera, SkyParameters skyParameters, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
         {
             // Render sky into a cubemap - doesn't happen every frame, can be control
+            for (int i = 0; i < 6; ++i)
+            {
+                Utilities.SetRenderTarget(renderLoop, m_SkyboxCubemapRT, "", 0, (CubemapFace)i);
+                Camera faceCamera = m_CubemapFaceCamera[i].GetComponent<Camera>();
+                RenderSky(faceCamera, skyParameters, true, renderLoop);
+            }
+
+            m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
+            RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+            RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
+            RenderSettings.reflectionIntensity = 1.0f;
+            DynamicGI.UpdateEnvironment();
 
             // TODO: do a render to texture here
 
@@ -118,18 +178,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             //m_SkyboxMaterial.SetTexture(cubemap);
 
             // Render the sky itself
-
             Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer, "Sky Pass");
-
-            Mesh skyMesh = BuildSkyMesh(camera);
-            
-            m_SkyHDRIMaterial.SetTexture("_Cubemap", skyParameters.skyHDRI);
-            m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
-
-            var cmd = new CommandBuffer { name = "Skybox" };
-            cmd.DrawMesh(skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial);
-            renderLoop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            RenderSky(camera, skyParameters, false, renderLoop);
         }
     }
 }

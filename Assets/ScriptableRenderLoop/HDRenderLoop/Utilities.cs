@@ -26,39 +26,34 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // Render Target Management.
         public const ClearFlag kClearAll = ClearFlag.ClearDepth | ClearFlag.ClearColor;
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier depthBuffer, string name = "")
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier buffer, string name = "", int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var cmd = new CommandBuffer();
             cmd.name = name;
-            cmd.SetRenderTarget(depthBuffer);
+            cmd.SetRenderTarget(buffer, miplevel, cubemapFace);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, string name = "")
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, string name = "", int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            //RenderTargetIdentifier[] colorBuffers = { colorBuffer };
-            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, ClearFlag.ClearNone, new Color(0.0f, 0.0f, 0.0f, 0.0f), name);
+            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, ClearFlag.ClearNone, new Color(0.0f, 0.0f, 0.0f, 0.0f), name, miplevel, cubemapFace);
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, string name = "")
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, string name = "", int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            //RenderTargetIdentifier[] colorBuffers = { colorBuffer };
-            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, clearFlag, new Color(0.0f, 0.0f, 0.0f, 0.0f), name);
+            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, clearFlag, new Color(0.0f, 0.0f, 0.0f, 0.0f), name, miplevel, cubemapFace);
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, string name = "")
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, string name = "", int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var cmd = new CommandBuffer();
             cmd.name = name;
-            cmd.SetRenderTarget(colorBuffer, depthBuffer);
+            cmd.SetRenderTarget(colorBuffer, depthBuffer, miplevel, cubemapFace);
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
-
-            //RenderTargetIdentifier[] colorBuffers = { colorBuffer };
-            //SetRenderTarget(renderLoop, colorBuffers, depthBuffer, clearFlag, clearColor, name);
         }
 
         public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, string name = "")
@@ -71,7 +66,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             SetRenderTarget(renderLoop, colorBuffers, depthBuffer, clearFlag, Color.black, name);
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, string name = "" )
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, string name = "")
         {
             var cmd = new CommandBuffer();
             cmd.name = name;
