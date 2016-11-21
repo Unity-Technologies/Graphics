@@ -4,14 +4,9 @@
 #pragma kernel TileLightListGen					LIGHTLISTGEN=TileLightListGen
 #pragma kernel TileLightListGen_SrcBigTile		LIGHTLISTGEN=TileLightListGen_SrcBigTile		USE_TWO_PASS_TILED_LIGHTING
 
-float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
-{
-    return 1 - depthTexture.Load(uint3(pixCoord.xy, 0)).x;
-}
-
+#include "../ShaderBase.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"
-
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 #include "../SortingComputeUtils.hlsl"
 #endif
@@ -338,7 +333,8 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 		while(l<iNrCoarseLights && uLgtType==SPOT_LIGHT)
 		{
 			SFiniteLightData lightData = g_vLightData[idxCoarse];
-			const bool bIsSpotDisc = (lightData.flags&IS_CIRCULAR_SPOT_SHAPE)!=0;
+            // TODO: Change by SebL
+            const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
 				
 			// serially check 4 pixels
 			uint uVal = 0;
