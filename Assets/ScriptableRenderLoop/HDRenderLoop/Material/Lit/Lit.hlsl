@@ -879,10 +879,9 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
     basis[1] = normalize(cross(bsdfData.normalWS, basis[0]));
     basis[2] = bsdfData.normalWS;
 
-    // Rotate both endpoints and the tangent into the local coordinate system (left-handed).
+    // Rotate both endpoints into the local coordinate system (left-handed).
     P1 = mul(P1, transpose(basis));
     P2 = mul(P2, transpose(basis));
-    T  = mul(T,  transpose(basis));
 
     // Terminate the algorithm if both points are below the horizon.
     if (P1.z <= 0.0 && P2.z <= 0.0) return;
@@ -891,8 +890,10 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
     {
         // Convention: 'P2' is above the horizon.
         swap(P1, P2);
-        T = -T;
     }
+
+    // Recompute the tangent in the local coordinate system.
+    T = normalize(P2 - P1);
 
     // Clip the part of the light below the horizon.
     if (P1.z <= 0.0)
