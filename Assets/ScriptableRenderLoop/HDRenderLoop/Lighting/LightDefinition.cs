@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public int IESIndex;
         public int cookieIndex;
 
-        public GPULightType lightType;        
+        public GPULightType lightType;   
         // Area Light specific
         public Vector2 size;
         public bool twoSided;

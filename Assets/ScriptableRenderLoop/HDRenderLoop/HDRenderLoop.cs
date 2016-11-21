@@ -150,10 +150,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         Material m_DebugViewMaterialGBuffer;
 
         // Various buffer
-        int s_CameraColorBuffer;
-        int s_CameraDepthBuffer;
-        int s_VelocityBuffer;
-        int s_DistortionBuffer;
+        int m_CameraColorBuffer;
+        int m_CameraDepthBuffer;
+        int m_VelocityBuffer;
+        int m_DistortionBuffer;
 
         public class LightList
         {
@@ -165,6 +165,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public List<EnvLightData> envLights;
             public Vector4[] directionalShadowSplitSphereSqr;
 
+            // Index mapping list to go from GPU lights (above) to CPU light (in cullResult)
+            public List<int> directionalCullIndices;
+            public List<int> punctualCullIndices;
+            public List<int> areaCullIndices;
+            public List<int> envCullIndices;
+
             public void Clear()
             {
                 directionalLights.Clear();
@@ -173,6 +179,27 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 punctualShadows.Clear();
                 areaLights.Clear();
                 envLights.Clear();
+
+                directionalCullIndices.Clear();
+                punctualCullIndices.Clear();
+                areaCullIndices.Clear();
+                envCullIndices.Clear();
+            }
+
+            public void Allocate()
+            {
+                directionalLights = new List<DirectionalLightData>();
+                punctualLights = new List<LightData>();
+                areaLights = new List<LightData>();
+                envLights = new List<EnvLightData>();
+                punctualShadows = new List<PunctualShadowData>();
+                directionalShadows = new List<DirectionalShadowData>();
+                directionalShadowSplitSphereSqr = new Vector4[k_MaxCascadeCount];
+
+                directionalCullIndices = new List<int>();
+                punctualCullIndices = new List<int>();
+                areaCullIndices = new List<int>();
+                envCullIndices = new List<int>();
             }
         }
 
@@ -184,7 +211,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         // TODO: Find a way to automatically create/iterate through lightloop
         SinglePass.LightLoop m_SinglePassLightLoop;
-       // TilePass.LightLoop m_TilePassLightLoop;
+        TilePass.LightLoop m_TilePassLightLoop;
 
         // TODO: Find a way to automatically create/iterate through deferred material
         Lit.RenderLoop m_LitRenderLoop;
@@ -214,8 +241,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public override void Rebuild()
         {
-            s_CameraColorBuffer  = Shader.PropertyToID("_CameraColorTexture");
-            s_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
+            m_CameraColorBuffer  = Shader.PropertyToID("_CameraColorTexture");
+            m_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_SkyboxMaterial = CreateEngineMaterial("Skybox/Cubemap");
@@ -244,7 +271,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
 #pragma warning disable 162 // warning CS0162: Unreachable code detected
-            s_VelocityBuffer = Shader.PropertyToID("_VelocityTexture");
+            m_VelocityBuffer = Shader.PropertyToID("_VelocityTexture");
             if (ShaderConfig.VelocityInGbuffer == 1)
             {
                 // If velocity is in GBuffer then it is in the last RT. Assign a different name to it.
@@ -253,7 +280,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 #pragma warning restore 162
 
-            s_DistortionBuffer = Shader.PropertyToID("_DistortionTexture");
+            m_DistortionBuffer = Shader.PropertyToID("_DistortionTexture");
 
             m_LitRenderLoop.Rebuild();
 
@@ -267,24 +294,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Init various light loop
             m_SinglePassLightLoop = new SinglePass.LightLoop();
             m_SinglePassLightLoop.Rebuild();
-            // m_TilePassLightLoop = new TilePass.LightLoop();
-            // m_TilePassLightLoop.Rebuild();
+            m_TilePassLightLoop = new TilePass.LightLoop();
+            m_TilePassLightLoop.Rebuild();
 
             m_lightList = new LightList();
-            m_lightList.directionalLights = new List<DirectionalLightData>();
-            m_lightList.punctualLights = new List<LightData>();
-            m_lightList.areaLights = new List<LightData>();
-            m_lightList.envLights = new List<EnvLightData>();
-            m_lightList.punctualShadows = new List<PunctualShadowData>();
-            m_lightList.directionalShadows = new List<DirectionalShadowData>();
-            m_lightList.directionalShadowSplitSphereSqr = new Vector4[k_MaxCascadeCount];
+            m_lightList.Allocate();
         }
 
         void OnDisable()
         {
             m_LitRenderLoop.OnDisable();
             m_SinglePassLightLoop.OnDisable();
-            //m_TilePassLightLoop.OnDisable();
+            m_TilePassLightLoop.OnDisable();
 
             if (m_SkyboxMaterial) DestroyImmediate(m_SkyboxMaterial);
             if (m_SkyHDRIMaterial) DestroyImmediate(m_SkyHDRIMaterial);
@@ -320,14 +341,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 int w = camera.pixelWidth;
                 int h = camera.pixelHeight;
 
-                cmd.GetTemporaryRT(s_CameraColorBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                cmd.GetTemporaryRT(s_CameraDepthBuffer, w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
+                cmd.GetTemporaryRT(m_CameraColorBuffer, w, h, 0, FilterMode.Point, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                cmd.GetTemporaryRT(m_CameraDepthBuffer, w, h, 24, FilterMode.Point, RenderTextureFormat.Depth);
                 if (!debugParameters.useForwardRenderingOnly)
                 {
                     m_gbufferManager.InitGBuffers(w, h, cmd);
                 }
 
-                cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+                cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorBuffer), new RenderTargetIdentifier(m_CameraDepthBuffer));
                 cmd.ClearRenderTarget(true, false, new Color(0, 0, 0, 0));
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
@@ -340,7 +361,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 var cmd = new CommandBuffer();
                 cmd.name = "Clear HDR target";
-                cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+                cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorBuffer), new RenderTargetIdentifier(m_CameraDepthBuffer));
                 cmd.ClearRenderTarget(false, true, new Color(0, 0, 0, 0));
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
@@ -352,7 +373,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 var cmd = new CommandBuffer();
                 cmd.name = "Clear GBuffer";
                 // Write into the Camera Depth buffer
-                cmd.SetRenderTarget(m_gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
+                cmd.SetRenderTarget(m_gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(m_CameraDepthBuffer));
                 // Clear everything
                 // TODO: Clear is not required for color as we rewrite everything, will save performance.
                 cmd.ClearRenderTarget(false, true, new Color(0, 0, 0, 0));
@@ -429,7 +450,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
               // TODO: Must do opaque then alpha masked for performance! 
             // TODO: front to back for opaque and by materal for opaque tested when we split in two
             var cmd = new CommandBuffer { name = "Depth Prepass" };
-            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
@@ -445,7 +466,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // setup GBuffer for rendering
             var cmd = new CommandBuffer { name = "GBuffer Pass" };
-            cmd.SetRenderTarget(m_gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.SetRenderTarget(m_gbufferManager.GetGBuffers(cmd), new RenderTargetIdentifier(m_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
@@ -462,7 +483,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // TODO: Use the render queue index to only send the forward opaque!
             var cmd = new CommandBuffer { name = "Depth Prepass" };
-            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
@@ -474,7 +495,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Render Opaque forward
             {
                 var cmd = new CommandBuffer { name = "DebugView Material Mode Pass" };
-                cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+                cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorBuffer), new RenderTargetIdentifier(m_CameraDepthBuffer));
                 cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
@@ -494,7 +515,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // m_gbufferManager.BindBuffers(m_DeferredMaterial);
                 // TODO: Bind depth textures
                 var cmd = new CommandBuffer { name = "GBuffer Debug Pass" };
-                cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DebugViewMaterialGBuffer, 0);
+                cmd.Blit(null, new RenderTargetIdentifier(m_CameraColorBuffer), m_DebugViewMaterialGBuffer, 0);
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
@@ -507,7 +528,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Last blit
             {
                 var cmd = new CommandBuffer { name = "Blit DebugView Material Debug" };
-                cmd.Blit(new RenderTargetIdentifier(s_CameraColorBuffer), BuiltinRenderTextureType.CameraTarget);
+                cmd.Blit(new RenderTargetIdentifier(m_CameraColorBuffer), BuiltinRenderTextureType.CameraTarget);
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
@@ -547,7 +568,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // m_gbufferManager.BindBuffers(m_DeferredMaterial);
             // TODO: Bind depth textures
             var cmd = new CommandBuffer { name = "Deferred Ligthing Pass" };
-            cmd.Blit(null, new RenderTargetIdentifier(s_CameraColorBuffer), m_DeferredMaterial, 0);
+            cmd.Blit(null, new RenderTargetIdentifier(m_CameraColorBuffer), m_DeferredMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
@@ -610,7 +631,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_LitRenderLoop.Bind();
 
             var cmd = new CommandBuffer { name = "Forward Pass" };
-            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorBuffer), new RenderTargetIdentifier(m_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
@@ -628,7 +649,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_LitRenderLoop.Bind();
 
             var cmd = new CommandBuffer { name = "Forward Unlit Pass" };
-            cmd.SetRenderTarget(new RenderTargetIdentifier(s_CameraColorBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.SetRenderTarget(new RenderTargetIdentifier(m_CameraColorBuffer), new RenderTargetIdentifier(m_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
@@ -648,8 +669,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             int h = camera.pixelHeight;
 
             var cmd = new CommandBuffer { name = "Velocity Pass" };
-            cmd.GetTemporaryRT(s_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.RenderLoop.GetVelocityBufferFormat(), Builtin.RenderLoop.GetVelocityBufferReadWrite());
-            cmd.SetRenderTarget(new RenderTargetIdentifier(s_VelocityBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.GetTemporaryRT(m_VelocityBuffer, w, h, 0, FilterMode.Point, Builtin.RenderLoop.GetVelocityBufferFormat(), Builtin.RenderLoop.GetVelocityBufferReadWrite());
+            cmd.SetRenderTarget(new RenderTargetIdentifier(m_VelocityBuffer), new RenderTargetIdentifier(m_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
@@ -663,8 +684,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             int h = camera.pixelHeight;
 
             var cmd = new CommandBuffer { name = "Distortion Pass" };
-            cmd.GetTemporaryRT(s_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.RenderLoop.GetDistortionBufferFormat(), Builtin.RenderLoop.GetDistortionBufferReadWrite());
-            cmd.SetRenderTarget(new RenderTargetIdentifier(s_DistortionBuffer), new RenderTargetIdentifier(s_CameraDepthBuffer));
+            cmd.GetTemporaryRT(m_DistortionBuffer, w, h, 0, FilterMode.Point, Builtin.RenderLoop.GetDistortionBufferFormat(), Builtin.RenderLoop.GetDistortionBufferReadWrite());
+            cmd.SetRenderTarget(new RenderTargetIdentifier(m_DistortionBuffer), new RenderTargetIdentifier(m_CameraDepthBuffer));
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
@@ -698,13 +719,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var cmd = new CommandBuffer { name = "FinalPass" };
 
             // Resolve our HDR texture to CameraTarget.
-            cmd.Blit(new RenderTargetIdentifier(s_CameraColorBuffer), BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
+            cmd.Blit(new RenderTargetIdentifier(m_CameraColorBuffer), BuiltinRenderTextureType.CameraTarget, m_FinalPassMaterial, 0);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
         // Function to prepare light structure for GPU lighting
-        void ConvertLightForGPU(CullResults cullResults, ref ShadowOutput shadowOutput, ref LightList lightList)
+        void PrepareLightsForGPU(CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput, ref LightList lightList)
         {
             lightList.Clear();
 
@@ -769,6 +790,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     }
 
                     lightList.directionalLights.Add(directionalLightData);
+                    lightList.directionalCullIndices.Add(lightIndex);
 
                     continue;
                 }
@@ -884,11 +906,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (additionalData.archetype == LightArchetype.Punctual)
                 {
                     lightList.punctualLights.Add(lightData);
+                    lightList.punctualCullIndices.Add(lightIndex);
                 }
                 else
                 {
                     // Area and line lights are both currently stored as area lights on the GPU.
                     lightList.areaLights.Add(lightData);
+                    lightList.areaCullIndices.Add(lightIndex);
                 }
             }
 
@@ -937,11 +961,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
                 envLightData.blendDistance = blendDistance;
                 lightList.envLights.Add(envLightData);
+                lightList.envCullIndices.Add(probeIndex);
             }
+
+            // build per tile light lists           
+            m_SinglePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
+            m_TilePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
         }
 
         void Resize(Camera camera)
-        { /*
+        {
             if (camera.pixelWidth != m_WidthOnRecord || camera.pixelHeight != m_HeightOnRecord || m_TilePassLightLoop.NeedResize())
             {
                 if (m_WidthOnRecord > 0 && m_HeightOnRecord > 0)
@@ -955,7 +984,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_WidthOnRecord = camera.pixelWidth;
                 m_HeightOnRecord = camera.pixelHeight;
             }
-            */
         }
 
         public void PushGlobalParams(Camera camera, RenderLoop renderLoop, HDRenderLoop.LightList lightList)
@@ -965,7 +993,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Shader.SetGlobalTexture("_EnvTextures", m_CubeReflTexArray.GetTexCache());
 
             m_SinglePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
-          //  m_TilePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
+            m_TilePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
         }
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
@@ -1018,12 +1046,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     renderLoop.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
 
-                    ConvertLightForGPU(cullResults, ref shadows, ref m_lightList);
+                    PrepareLightsForGPU(cullResults, camera, ref shadows, ref m_lightList);
+                    m_TilePassLightLoop.BuildGPULightLists(camera, renderLoop, m_lightList, m_CameraDepthBuffer);
+
                     PushGlobalParams(camera, renderLoop, m_lightList);
 
-                    // build per tile light lists
-                    //var numLights = 0; // GenerateSourceLightBuffers(camera, cullResults);
-                    //m_tilePassLightLoop.BuildPerTileLightLists(camera, loop, numLights, projscr, invProjscr);
+                    
 
                     RenderDeferredLighting(camera, renderLoop);
 

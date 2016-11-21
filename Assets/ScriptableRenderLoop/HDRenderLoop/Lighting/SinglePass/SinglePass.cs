@@ -74,6 +74,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_PunctualShadowList = null;
             }
 
+            public void PrepareLightsForGPU(CullResults cullResults, Camera camera, HDRenderLoop.LightList lightList) {}
+
             public void PushGlobalParams(Camera camera, RenderLoop loop, HDRenderLoop.LightList lightList)
             {
                 s_DirectionalLights.SetData(lightList.directionalLights.ToArray());
