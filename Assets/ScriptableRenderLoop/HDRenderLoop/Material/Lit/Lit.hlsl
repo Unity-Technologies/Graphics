@@ -873,6 +873,7 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
 
     // Construct an orthonormal basis (local coordinate system) around N.
     // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
+    // Also consider using 'bsdfData.tangentWS', 'bsdfData.bitangentWS', 'bsdfData.normalWS'.
     float3x3 basis;
     basis[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
     basis[1] = normalize(cross(bsdfData.normalWS, basis[0]));
