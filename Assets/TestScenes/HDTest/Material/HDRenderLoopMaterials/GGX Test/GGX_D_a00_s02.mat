@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: GGX_D_a00_s05
+  m_Name: GGX_D_a00_s02
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DETAIL_MAP_WITH_NORMAL _DISTORTIONDEPTHTEST_OFF
     _DISTORTIONONLY_OFF _EMISSION _NORMALMAP_TANGENT_SPACE
@@ -146,7 +146,7 @@ Material:
     - _NormalMapSpace: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Smoothness: 0.5
+    - _Smoothness: 0.2
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
