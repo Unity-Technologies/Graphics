@@ -220,6 +220,16 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 
 #define MERGE_NAME(X, Y) X##Y
 
+float DegToRad(float deg)
+{
+    return deg * PI / 180.0;
+}
+
+float RadToDeg(float rad)
+{
+    return rad * 180.0 / PI;
+}
+
 // Acos in 14 cycles.
 // Ref: https://seblagarde.wordpress.com/2014/12/01/inverse-trigonometric-functions-gpu-optimization-for-amd-gcn-architecture/
 float FastACos(float inX)
