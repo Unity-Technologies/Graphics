@@ -167,6 +167,7 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
 {
     // Construct local orthonormal basis around N, aligned with N
     // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
+    // Also consider using 'bsdfData.tangentWS', 'bsdfData.bitangentWS', 'bsdfData.normalWS'.
     float3x3 basis;
     basis[0] = normalize(V - N * NdotV);
     basis[1] = normalize(cross(N, basis[0]));
