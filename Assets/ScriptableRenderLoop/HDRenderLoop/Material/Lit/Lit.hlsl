@@ -888,6 +888,8 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
     // Compute the binormal.
     float3 B = normalize(cross(P2 - P1, P1));
 
+    // TODO: there is no light attenuation according to the artist-defined radius.
+
     float ltcValue;
 
     // Evaluate the diffuse part.
@@ -914,6 +916,8 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
 
     // Evaluate the specular part.
     {
+        // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
+        // to match the reference for rough metals, but further darkens dielectrics.
         float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
                            + (float3)preLightData.ltcGGXFresnelMagnitude;
 
@@ -1033,6 +1037,8 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
 
     // Evaluate the specular part.
     {
+        // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
+        // to match the reference for rough metals, but further darkens dielectrics.
         float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
                            + (float3)preLightData.ltcGGXFresnelMagnitude;
 
