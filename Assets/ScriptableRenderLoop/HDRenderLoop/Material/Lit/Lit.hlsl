@@ -864,7 +864,6 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
     float3 dir = lightData.right;
 
     // TODO: precompute half-length. Same as for LTC area lights.
-    // In fact, why not store both endpoints? Saves us 7 cycles.
     float3 p1 = lightData.positionWS - lightData.right * (0.5 * len);
     float3 p2 = lightData.positionWS + lightData.right * (0.5 * len);
 
@@ -951,7 +950,7 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
     float halfWidth  = lightData.size.x * 0.5;
     float halfHeight = lightData.size.y * 0.5;
 
-    // TODO: store 4 points and save 24 cycles.
+    // TODO: store 4 points and save 12 cycles (24x MADs - 12x MOVs).
     float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
     float3 p1 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
     float3 p2 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
