@@ -1,8 +1,6 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using RMGUI.GraphView;
-using UnityEngine;
 using UnityEngine.RMGUI;
-using UnityEngine.RMGUI.StyleEnums;
 using UnityEngine.RMGUI.StyleSheets;
 
 namespace UnityEditor.Graphing.Drawing
@@ -10,8 +8,9 @@ namespace UnityEditor.Graphing.Drawing
     [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/TitleBar.uss")]
     public class TitleBarDrawer : DataWatchContainer
     {
-        private TitleBarDrawData m_dataProvider;
-		private VisualElement m_title;
+        TitleBarDrawData m_dataProvider;
+        VisualContainer m_leftContainer;
+        VisualContainer m_rightContainer;
 
         public TitleBarDrawData dataProvider
         {
@@ -33,50 +32,23 @@ namespace UnityEditor.Graphing.Drawing
             name = "TitleBar";
             zBias = 99;
 
-            var leftContainer = new VisualContainer()
+            m_leftContainer = new VisualContainer()
             {
                 name = "left"
             };
-            AddChild(leftContainer);
+            AddChild(m_leftContainer);
 
-            var rightContainer = new VisualContainer()
+            m_rightContainer = new VisualContainer()
             {
                 name = "right"
             };
-            AddChild(rightContainer);
+            AddChild(m_rightContainer);
 
-			var titleItem = new VisualContainer() { classList = new ClassList("titleBarItem") };
-			titleItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
-			m_title = new VisualElement()
-            {
-				classList = new ClassList("titleBarItemLabel"),
-				content = new GUIContent("")
-            };
-			titleItem.AddChild(m_title);
-			titleItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
-			leftContainer.AddChild(titleItem);
+            foreach (var leftItemData in dataProvider.leftItems)
+                m_leftContainer.AddChild(new TitleBarButtonDrawer(leftItemData));
 
-			var showInProjectItem = new VisualContainer() { classList = new ClassList("titleBarItem") };
-			showInProjectItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
-			var showInProjectLabel = new VisualElement()
-			{
-				classList = new ClassList("titleBarItemLabel"),
-				content = new GUIContent("Show in project")
-			};
-			showInProjectItem.AddChild(showInProjectLabel);
-			showInProjectItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
-			leftContainer.AddChild(showInProjectItem);
-
-			var optionsItem = new VisualContainer() { classList = new ClassList("titleBarItem") };
-			optionsItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
-			var optionsLabel = new VisualElement()
-			{
-				classList = new ClassList("titleBarItemLabel"),
-				content = new GUIContent("Options")
-			};
-			optionsItem.AddChild(optionsLabel);
-			optionsItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
-			rightContainer.AddChild(optionsItem);
+            foreach (var rightItemData in dataProvider.rightItems)
+                m_rightContainer.AddChild(new TitleBarButtonDrawer(rightItemData));
 
             this.dataProvider = dataProvider;
         }
@@ -86,9 +58,21 @@ namespace UnityEditor.Graphing.Drawing
             if (m_dataProvider == null)
                 return;
 
-            m_title.content.text = m_dataProvider.title;
+            UpdateContainer(m_leftContainer, m_dataProvider.leftItems);
+            UpdateContainer(m_rightContainer, m_dataProvider.rightItems);
+        }
 
-            this.Touch(ChangeType.Repaint);
+        void UpdateContainer(VisualContainer container, IEnumerable<TitleBarButtonDrawData> itemDatas)
+        {
+            // The number of items can't change for now.
+            int i = 0;
+            foreach (var itemData in itemDatas)
+            {
+                var item = container.GetChildAtIndex(i) as TitleBarButtonDrawer;
+                if (item != null)
+                    item.dataProvider = itemData;
+                i++;
+            }
         }
 
         protected override object toWatch

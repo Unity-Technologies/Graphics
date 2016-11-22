@@ -50,10 +50,7 @@ namespace UnityEditor.Graphing.Drawing
             var source = CreateDataSource();
             source.Initialize(m_LastSelection);
 
-            var titleBarData = CreateInstance<TitleBarDrawData>();
-            titleBarData.title = m_LastSelection != null ? m_LastSelection.GetScriptableObject().name : "";
-            m_TitleBarDrawer = new TitleBarDrawer(titleBarData);
-
+			m_TitleBarDrawer = new TitleBarDrawer(source.titleBar);
             m_GraphView.dataSource = source;
 
             rootVisualContainer.AddChild(m_TitleBarDrawer);
