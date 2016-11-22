@@ -763,6 +763,10 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
 
         BSDF(V, L, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
 
+        // The value of the specular BSDF could be infinite.
+        // Summing up infinities leads to NaNs.
+        lightSpec = min(lightSpec, FLT_MAX);
+
         diffuseLighting  += lightDiff * (sinLT / dist2 * NdotL);
         specularLighting += lightSpec * (sinLT / dist2 * NdotL);
     }
