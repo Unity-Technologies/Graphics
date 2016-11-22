@@ -46,4 +46,5 @@
     font-size: 9;
     text-alignment: middle-left;
     padding-left: 5;
+    padding-right: 5;
 }
