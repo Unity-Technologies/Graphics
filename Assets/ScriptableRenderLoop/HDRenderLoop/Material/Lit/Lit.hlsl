@@ -859,6 +859,10 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
                         LightData lightData, BSDFData bsdfData,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
+#ifdef LIT_DISPLAY_REFERENCE_AREA
+    IntegrateBSDFLineRef(V, positionWS, preLightData, lightData, bsdfData,
+                         diffuseLighting, specularLighting);
+#else
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
 
@@ -925,6 +929,7 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -937,24 +942,12 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
                         out float3 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE_AREA
-    if (lightData.lightType == GPULIGHTTYPE_LINE)
-    {
-        IntegrateBSDFLineRef(V, positionWS, preLightData, lightData, bsdfData,
-                             diffuseLighting, specularLighting);
-    }
-    else
-    {
-        IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData,
-                            diffuseLighting, specularLighting);
-    }
-#else
-    if (lightData.lightType == GPULIGHTTYPE_LINE)
-    {
-        EvaluateBSDF_Line(lightLoopContext, V, positionWS, preLightData, lightData, bsdfData,
-                          diffuseLighting, specularLighting);
-        return;
-    }
-    
+    IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData,
+                        diffuseLighting, specularLighting);
+#else    
+    diffuseLighting  = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+
     // TODO: This could be precomputed
     float halfWidth  = lightData.size.x * 0.5;
     float halfHeight = lightData.size.y * 0.5;
@@ -967,9 +960,6 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
 
     float4x3 matL = float4x3(p0, p1, p2, p3);
     float4x3 L    = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
-
-    diffuseLighting  = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
 
     // Pick the correct axis along which to expand the fade-out sphere into an ellipsoid.
     float3 axisLS;
