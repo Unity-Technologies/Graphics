@@ -797,9 +797,29 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     float  len = lightData.size.x;
     float3 T   = lightData.right;
 
+    float3 unL = positionWS - lightData.positionWS;
+
+    // Pick the axis along which to expand the fade-out sphere into an ellipsoid.
+    float3 axis = lightData.right;
+
+    // We define the ellipsoid s.t. r1 = r, r2 = (r + len / 2).
     // TODO: This could be precomputed.
-    float3 P1  = lightData.positionWS - T * (0.5 * len);
-    float3 P2  = lightData.positionWS + T * (0.5 * len);
+    float radius         = rsqrt(lightData.invSqrAttenuationRadius);
+    float invAspectRatio = radius / (radius + (0.5 * len));
+
+    // Compute the light attenuation.
+    float intensity = GetEllipsoidalDistanceAttenuation(unL,  lightData.invSqrAttenuationRadius,
+                                                        axis, invAspectRatio);
+
+    // Terminate if the shaded point is too far away.
+    if (intensity == 0.0) return;
+
+    lightData.diffuseScale  *= intensity;
+    lightData.specularScale *= intensity;
+
+    // TODO: This could be precomputed.
+    float3 P1 = lightData.positionWS - T * (0.5 * len);
+    float3 P2 = lightData.positionWS + T * (0.5 * len);
 
     // Translate the endpoints s.t. the shaded point is at the origin of the coordinate system.
     P1 -= positionWS;
@@ -952,9 +972,29 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
 
-    // TODO: This could be precomputed
+    // TODO: This could be precomputed.
     float halfWidth  = lightData.size.x * 0.5;
     float halfHeight = lightData.size.y * 0.5;
+
+    float3 unL = positionWS - lightData.positionWS;
+
+    // Pick the axis along which to expand the fade-out sphere into an ellipsoid.
+    float3 axis = (halfWidth >= halfHeight) ? lightData.right : lightData.up;
+
+    // We define the ellipsoid s.t. r1 = r, r2 = (r + |w - h| / 2).
+    // TODO: This could be precomputed.
+    float radius         = rsqrt(lightData.invSqrAttenuationRadius);
+    float invAspectRatio = radius / (radius + abs(halfWidth - halfHeight));
+
+    // Compute the light attenuation.
+    float intensity = GetEllipsoidalDistanceAttenuation(unL,  lightData.invSqrAttenuationRadius,
+                                                        axis, invAspectRatio);
+
+    // Terminate if the shaded point is too far away.
+    if (intensity == 0.0) return;
+
+    lightData.diffuseScale  *= intensity;
+    lightData.specularScale *= intensity;
 
     // TODO: store 4 points and save 12 cycles (24x MADs - 12x MOVs).
     float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
@@ -962,56 +1002,17 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     float3 p2 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
     float3 p3 = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
 
-    float4x3 matL = float4x3(p0, p1, p2, p3);
-    float4x3 L    = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
-
-    // Pick the correct axis along which to expand the fade-out sphere into an ellipsoid.
-    float3 axisLS;
-    float  minDim, maxDim;
-
-    // The compiler should generate conditional MOVs.
-    if (halfWidth >= halfHeight)
-    {
-        axisLS = lightData.right;
-        minDim = halfHeight;
-        maxDim = halfWidth;
-    }
-    else
-    {
-        axisLS = lightData.up;
-        minDim = halfWidth;
-        maxDim = halfHeight;
-    }
-
-    float3 dirLS          = positionWS - lightData.positionWS;
-    float  lightSpaceProj = dot(dirLS, axisLS);
-    float  invAspectRatio = minDim / maxDim;
-
-    // We want 'dirLS' to shrink along 'axisLS' by the aspect ratio. Therefore,
-    // we compute the difference between the original length and the shrunk one.
-    // This is equivalent to the expansion of the fade-out sphere into an ellipsoid.
-    float scaleLS = lightSpaceProj - lightSpaceProj * invAspectRatio;
-    dirLS -= scaleLS * axisLS;
-
-    // Compute the light attenuation.
-    float sqDist    = dot(dirLS, dirLS);
-    float intensity = SmoothDistanceAttenuation(sqDist, lightData.invSqrAttenuationRadius);
-
-    // Return the black color if the shaded point is too far away.
-    if (intensity == 0.0) return;
-
-    lightData.diffuseScale  *= intensity;
-    lightData.specularScale *= intensity;
+    float4x3 matL = float4x3(p0, p1, p2, p3) - float4x3(positionWS, positionWS, positionWS, positionWS);
 
     float ltcValue;
 
     // Evaluate the diffuse part.
     {
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        ltcValue = LTCEvaluate(L, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
+        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
                                _identity3x3);
     #else
-        ltcValue = LTCEvaluate(L, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
+        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
                                preLightData.ltcXformDisneyDiffuse);
     #endif
 
@@ -1036,7 +1037,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
         float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
                            + (float3)preLightData.ltcGGXFresnelMagnitude;
 
-        ltcValue  = LTCEvaluate(L, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
+        ltcValue  = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
                                 preLightData.ltcXformGGX);
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
