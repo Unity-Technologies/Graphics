@@ -8,6 +8,7 @@ namespace UnityEditor.Graphing.Drawing
     {
         List<TitleBarButtonDrawData> m_leftItems;
         List<TitleBarButtonDrawData> m_rightItems;
+        IGraphAsset m_graphAsset;
 
         public IEnumerable<TitleBarButtonDrawData> leftItems
         {
@@ -25,6 +26,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public void Initialize(IGraphAsset graphAsset)
         {
+            m_graphAsset = graphAsset;
             m_leftItems = new List<TitleBarButtonDrawData>();
             m_rightItems = new List<TitleBarButtonDrawData>();
 
@@ -34,11 +36,18 @@ namespace UnityEditor.Graphing.Drawing
 
             var showInProjectItem = CreateInstance<TitleBarButtonDrawData>();
             showInProjectItem.text = "Show in project";
+            showInProjectItem.onClick += OnShowInProjectClick;
             m_leftItems.Add(showInProjectItem);
 
             var optionsItem = CreateInstance<TitleBarButtonDrawData>();
             optionsItem.text = "Options";
             m_rightItems.Add(optionsItem);
+        }
+
+        void OnShowInProjectClick()
+        {
+            if (m_graphAsset != null)
+                EditorGUIUtility.PingObject(m_graphAsset.GetScriptableObject());
         }
     }
 }

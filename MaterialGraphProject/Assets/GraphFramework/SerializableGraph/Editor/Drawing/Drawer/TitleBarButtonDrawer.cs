@@ -8,6 +8,7 @@ namespace UnityEditor.Graphing.Drawing
     public class TitleBarButtonDrawer : DataWatchContainer
     {
         TitleBarButtonDrawData m_dataProvider;
+        Clicker m_clicker;
         VisualElement m_label;
 
         public TitleBarButtonDrawData dataProvider
@@ -27,6 +28,10 @@ namespace UnityEditor.Graphing.Drawing
         public TitleBarButtonDrawer(TitleBarButtonDrawData dataProvider)
         {
             classList = new ClassList("titleBarItem");
+
+            m_clicker = new Clicker();
+            m_clicker.onClick += OnClick;
+            AddManipulator(m_clicker);
 
             AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
             m_label = new VisualElement()
@@ -49,6 +54,13 @@ namespace UnityEditor.Graphing.Drawing
 
             this.Touch(ChangeType.Repaint);
         }
+
+        void OnClick()
+        {
+            if (m_dataProvider != null && m_dataProvider.onClick != null)
+                m_dataProvider.onClick();
+        }
+
 
         protected override object toWatch
         {
