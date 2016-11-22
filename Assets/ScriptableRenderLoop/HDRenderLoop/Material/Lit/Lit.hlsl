@@ -511,7 +511,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     GetPreIntegratedFGD(iblNdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
 
     // #if SHADERPASS == SHADERPASS_GBUFFER
-    // preLightData.ambientOcclusion = _AmbientOcclusion.Load(uint3(coord.unPositionSS, 0)).x;
+    // preLightData.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusion, uint3(coord.unPositionSS, 0)).x;
     // #endif
 
     // Area light specific
