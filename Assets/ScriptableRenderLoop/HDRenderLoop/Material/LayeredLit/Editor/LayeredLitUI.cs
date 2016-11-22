@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.ScriptableRenderLoop
 {
     internal class LayeredLitGUI : LitGUI
     {
