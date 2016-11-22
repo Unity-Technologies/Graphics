@@ -728,89 +728,13 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDF_Area - Reference
+// EvaluateBSDF_Line - Reference
 //-----------------------------------------------------------------------------
 
-void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                            out float3 diffuseLighting,
-                            out float3 specularLighting,
-                            uint sampleCount = 512)
-{
-    // Add some jittering on Hammersley2d
-    float2 randNum = InitRandom(V.xy * 0.5 + 0.5);
-
-    diffuseLighting = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
-
-    for (uint i = 0; i < sampleCount; ++i)
-    {
-        float3 P = float3(0.0, 0.0, 0.0);	// Sample light point. Random point on the light shape in local space.
-        float3 Ns = float3(0.0, 0.0, 0.0);	// Unit surface normal at P
-        float lightPdf = 0.0;	            // Pdf of the light sample
-
-        float2 u = Hammersley2d(i, sampleCount);
-        u = frac(u + randNum + 0.5);
-
-        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
-
-        switch (lightData.lightType)
-        {
-            case GPULIGHTTYPE_SPHERE:
-                SampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-                break;
-            case GPULIGHTTYPE_HEMISPHERE:
-                SampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-                break;
-            case GPULIGHTTYPE_CYLINDER:
-                SampleCylinder(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
-                break;
-            case GPULIGHTTYPE_RECTANGLE:
-                SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
-                break;
-            case GPULIGHTTYPE_DISK:
-                SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
-                break;
-            // case GPULIGHTTYPE_LINE: handled by a separate function.
-        }
-
-        // Get distance
-        float3 unL = P - positionWS;
-        float sqrDist = dot(unL, unL);
-        float3 L = normalize(unL);
-
-        // Cosine of the angle between the light direction and the normal of the light's surface.
-        float cosLNs = dot(-L, Ns);
-        cosLNs = lightData.twoSided ? abs(cosLNs) : saturate(cosLNs);
-
-        // We calculate area reference light with the area integral rather than the solid angle one.
-        float illuminance = cosLNs * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
-
-        float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
-        float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
-
-        if (illuminance > 0.0)
-        {
-            BSDF(V, L, positionWS, preLightData, bsdfData, localDiffuseLighting, localSpecularLighting);
-            localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
-            localSpecularLighting *= lightData.color * illuminance * lightData.specularScale;
-        }
-
-        diffuseLighting += localDiffuseLighting;
-        specularLighting += localSpecularLighting;
-    }
-
-    diffuseLighting /= float(sampleCount);
-    specularLighting /= float(sampleCount);
-}
-
-//-----------------------------------------------------------------------------
-// EvaluateBSDFLine - Reference
-//-----------------------------------------------------------------------------
-
-void IntegrateBSDFLineRef(float3 V, float3 positionWS, PreLightData preLightData,
-                          LightData lightData, BSDFData bsdfData,
-                          out float3 diffuseLighting, out float3 specularLighting,
-                          int sampleCount = 128)
+void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
+                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                           out float3 diffuseLighting, out float3 specularLighting,
+                           int sampleCount = 128)
 {
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -851,17 +775,17 @@ void IntegrateBSDFLineRef(float3 V, float3 positionWS, PreLightData preLightData
 }
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDF_Line | Approximation with Linearly Transformed Cosines
+// EvaluateBSDF_Line - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
-void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
-                        float3 V, float3 positionWS, PreLightData preLightData,
-                        LightData lightData, BSDFData bsdfData,
-                        out float3 diffuseLighting, out float3 specularLighting)
+void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
+                       float3 V, float3 positionWS,
+                       PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                       out float3 diffuseLighting, out float3 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE_AREA
-    IntegrateBSDFLineRef(V, positionWS, preLightData, lightData, bsdfData,
-                         diffuseLighting, specularLighting);
+    IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
+                          diffuseLighting, specularLighting);
 #else
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
@@ -933,17 +857,93 @@ void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDF_Area | Approximation with Linearly Transformed Cosines
+// EvaluateBSDF_Area - Reference
 //-----------------------------------------------------------------------------
 
-void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
-                        float3 V, float3 positionWS, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                        out float3 diffuseLighting,
-                        out float3 specularLighting)
+void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
+                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                           out float3 diffuseLighting, out float3 specularLighting,
+                           uint sampleCount = 512)
+{
+    // Add some jittering on Hammersley2d
+    float2 randNum = InitRandom(V.xy * 0.5 + 0.5);
+
+    diffuseLighting = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        float3 P = float3(0.0, 0.0, 0.0);   // Sample light point. Random point on the light shape in local space.
+        float3 Ns = float3(0.0, 0.0, 0.0);  // Unit surface normal at P
+        float lightPdf = 0.0;               // Pdf of the light sample
+
+        float2 u = Hammersley2d(i, sampleCount);
+        u = frac(u + randNum + 0.5);
+
+        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
+
+        switch (lightData.lightType)
+        {
+            case GPULIGHTTYPE_SPHERE:
+                SampleSphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+                break;
+            case GPULIGHTTYPE_HEMISPHERE:
+                SampleHemisphere(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+                break;
+            case GPULIGHTTYPE_CYLINDER:
+                SampleCylinder(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+                break;
+            case GPULIGHTTYPE_RECTANGLE:
+                SampleRectangle(u, localToWorld, lightData.size.x, lightData.size.y, lightPdf, P, Ns);
+                break;
+            case GPULIGHTTYPE_DISK:
+                SampleDisk(u, localToWorld, lightData.size.x, lightPdf, P, Ns);
+                break;
+            // case GPULIGHTTYPE_LINE: handled by a separate function.
+        }
+
+        // Get distance
+        float3 unL = P - positionWS;
+        float sqrDist = dot(unL, unL);
+        float3 L = normalize(unL);
+
+        // Cosine of the angle between the light direction and the normal of the light's surface.
+        float cosLNs = dot(-L, Ns);
+        cosLNs = lightData.twoSided ? abs(cosLNs) : saturate(cosLNs);
+
+        // We calculate area reference light with the area integral rather than the solid angle one.
+        float illuminance = cosLNs * saturate(dot(bsdfData.normalWS, L)) / (sqrDist * lightPdf);
+
+        float3 localDiffuseLighting = float3(0.0, 0.0, 0.0);
+        float3 localSpecularLighting = float3(0.0, 0.0, 0.0);
+
+        if (illuminance > 0.0)
+        {
+            BSDF(V, L, positionWS, preLightData, bsdfData, localDiffuseLighting, localSpecularLighting);
+            localDiffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
+            localSpecularLighting *= lightData.color * illuminance * lightData.specularScale;
+        }
+
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
+    }
+
+    diffuseLighting /= float(sampleCount);
+    specularLighting /= float(sampleCount);
+}
+
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_Area - Approximation with Linearly Transformed Cosines
+//-----------------------------------------------------------------------------
+
+void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
+                       float3 V, float3 positionWS,
+                       PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                       out float3 diffuseLighting, out float3 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE_AREA
-    IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData,
-                        diffuseLighting, specularLighting);
+    IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
+                          diffuseLighting, specularLighting);
 #else    
     diffuseLighting  = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
