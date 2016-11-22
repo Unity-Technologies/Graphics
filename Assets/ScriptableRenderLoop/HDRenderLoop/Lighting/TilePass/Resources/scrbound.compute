@@ -3,6 +3,7 @@
 
 #pragma kernel ScreenBoundsAABB
 
+#include "common.hlsl"
 #include "../TilePass.cs.hlsl"
 
 uniform int g_iNrVisibLights;

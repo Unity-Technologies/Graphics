@@ -128,6 +128,11 @@ float4 Max3(float4 a, float4 b, float4 c)
 }
 #endif // INTRINSIC_MINMAX3
 
+float sq(float x)
+{
+    return x * x;
+}
+
 void swap(inout float a, inout float b)
 {
     float  t = a; a = b; b = t;
@@ -211,7 +216,8 @@ void GetCubeFaceID(float3 dir, out int faceIndex)
 #define HALF_PI     1.57079632679
 #define INV_HALF_PI 0.636619772367
 
-#define FLT_EPSILON     1.192092896e-07f // smallest such that 1.0 + FLT_EPSILON != 1.0
+#define FLT_EPSILON 1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
+#define FLT_MAX     3.402823466e+38 // Maximum representable floating-point number
 
 #define MERGE_NAME(X, Y) X##Y
 

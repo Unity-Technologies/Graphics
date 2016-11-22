@@ -1,5 +1,6 @@
 #pragma kernel BigTileLightListGen
 
+#include "common.hlsl"
 #include "../TilePass.cs.hlsl"
 #include "../LightingConvexHullUtils.hlsl"
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)

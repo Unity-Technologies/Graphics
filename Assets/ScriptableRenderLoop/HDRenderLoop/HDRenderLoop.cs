@@ -1,6 +1,3 @@
-// Must be in sync with ShaderConfig.cs
-//#define VELOCITY_IN_GBUFFER
-
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
@@ -136,7 +133,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
         // Various set of material use in render loop
-        Material m_DeferredMaterial;
         Material m_FinalPassMaterial;
         Material m_DebugViewMaterialGBuffer;
 
@@ -150,8 +146,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         RenderTargetIdentifier m_CameraDepthBufferRT;
         RenderTargetIdentifier m_VelocityBufferRT;
         RenderTargetIdentifier m_DistortionBufferRT;
-
-
+		
         public class LightList
         {
             public List<DirectionalLightData> directionalLights;
@@ -237,8 +232,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_SkyRenderer = new SkyRenderer();
             m_SkyRenderer.Rebuild();
-        
-            m_DeferredMaterial   = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+
             m_FinalPassMaterial  = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/FinalPass");
             m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/DebugViewMaterialGBuffer");
 
@@ -295,7 +289,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_SinglePassLightLoop.OnDisable();
             m_TilePassLightLoop.OnDisable();
 
-            Utilities.Destroy(m_DeferredMaterial);
             Utilities.Destroy(m_FinalPassMaterial);
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
 
@@ -340,6 +333,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 Utilities.SetRenderTarget(renderLoop, m_CameraColorBufferRT, m_CameraDepthBufferRT, ClearFlag.ClearDepth);
             }
+
 
             // TEMP: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
 
@@ -392,10 +386,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             if (!debugParameters.useDepthPrepass)
                 return;
 
-              // TODO: Must do opaque then alpha masked for performance! 
+            // TODO: Must do opaque then alpha masked for performance! 
             // TODO: front to back for opaque and by materal for opaque tested when we split in two
             Utilities.SetRenderTarget(renderLoop, m_CameraDepthBufferRT, "Depth Prepass");
-			RenderOpaqueRenderList(cull, camera, renderLoop, "DepthOnly");
+            RenderOpaqueRenderList(cull, camera, renderLoop, "DepthOnly");
         }
 
         void RenderGBuffer(CullResults cull, Camera camera, RenderLoop renderLoop)
@@ -437,11 +431,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Render GBuffer opaque
             if (!debugParameters.useForwardRenderingOnly)
             {
-                Vector4 screenSize = ComputeScreenSize(camera);
+                Vector4 screenSize = Utilities.ComputeScreenSize(camera);
                 m_DebugViewMaterialGBuffer.SetVector("_ScreenSize", screenSize);
                 m_DebugViewMaterialGBuffer.SetFloat("_DebugViewMaterial", (float)debugParameters.debugViewMaterial);
 
-                // m_gbufferManager.BindBuffers(m_DeferredMaterial);
+                // m_gbufferManager.BindBuffers(m_DebugViewMaterialGBuffer);
                 // TODO: Bind depth textures
                 var cmd = new CommandBuffer { name = "GBuffer Debug Pass" };
                 cmd.Blit(null, m_CameraColorBufferRT, m_DebugViewMaterialGBuffer, 0);
@@ -463,21 +457,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        Matrix4x4 GetViewProjectionMatrix(Camera camera)
-        {
-            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
-            // (different Z value ranges etc.)
-            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
-            var gpuVP = gpuProj * camera.worldToCameraMatrix;
-
-            return gpuVP;
-        }
-
-        Vector4 ComputeScreenSize(Camera camera)
-        {
-            return new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
-        }
-
         void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
         {
             if (debugParameters.useForwardRenderingOnly)
@@ -488,24 +467,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Bind material data
             m_LitRenderLoop.Bind();
 
-            var invViewProj = GetViewProjectionMatrix(camera).inverse;
-            m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-
-            var screenSize = ComputeScreenSize(camera);
-            m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
-
-            // m_gbufferManager.BindBuffers(m_DeferredMaterial);
-            // TODO: Bind depth textures
-            var cmd = new CommandBuffer { name = "Deferred Ligthing Pass" };
-            cmd.Blit(null, m_CameraColorBufferRT, m_DeferredMaterial, 0);
-            renderLoop.ExecuteCommandBuffer(cmd);
-            cmd.Dispose();
+            m_SinglePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
+           // m_TilePassLightLoop.RenderDeferredLighting(camera, renderLoop, );
         }
 
         void RenderSky(Camera camera, RenderLoop renderLoop)
         {
             m_SkyRenderer.RenderSky(camera, m_SkyParameters, m_CameraColorBufferRT, m_CameraDepthBufferRT, renderLoop);
-            }
+        }
 
         void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop)
         {
@@ -683,10 +652,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     if (additionalData.archetype == LightArchetype.Rectangle)
                     {
-                    lightData.lightType = GPULightType.Rectangle;
-                }
-                else
-                {
+                        lightData.lightType = GPULightType.Rectangle;
+                    }
+                    else
+                    {
                         lightData.lightType = GPULightType.Line;
                     }
                 }
@@ -925,8 +894,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_TilePassLightLoop.BuildGPULightLists(camera, renderLoop, m_lightList, m_CameraDepthBuffer);
 
                     PushGlobalParams(camera, renderLoop, m_lightList);
-
-                    
 
                     RenderDeferredLighting(camera, renderLoop);
 
