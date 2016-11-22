@@ -840,8 +840,6 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     // Compute the binormal.
     float3 B = normalize(cross(P2 - P1, P1));
 
-    // TODO: there is no light attenuation according to the artist-defined radius.
-
     float ltcValue;
 
     // Evaluate the diffuse part.
