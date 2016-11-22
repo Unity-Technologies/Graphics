@@ -19,6 +19,10 @@ Shader "Hidden/HDRenderLoop/Deferred"
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS
             //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF 
 
+        // TODO: This must be on lightloop side and include here....
+#pragma multi_compile USE_FPTL_LIGHTLIST    USE_CLUSTERED_LIGHTLIST
+#pragma multi_compile __ ENABLE_DEBUG
+
             //-------------------------------------------------------------------------------------
             // Include
             //-------------------------------------------------------------------------------------
@@ -71,7 +75,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
                 Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
 
                 // No need to manage inverse depth, this is handled by the projection matrix
-                float depth = _CameraDepthTexture.Load(uint3(coord.unPositionSS, 0)).x;
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, uint3(coord.unPositionSS, 0)).x;
                 float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
                 float3 V = GetWorldSpaceNormalizeViewDir(positionWS);
 

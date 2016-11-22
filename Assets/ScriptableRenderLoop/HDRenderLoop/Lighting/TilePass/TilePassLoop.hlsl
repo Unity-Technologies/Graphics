@@ -1,0 +1,50 @@
+//-----------------------------------------------------------------------------
+// LightLoop
+// ----------------------------------------------------------------------------
+
+// bakeDiffuseLighting is part of the prototype so a user is able to implement a "base pass" with GI and multipass direct light (aka old unity rendering path)
+void LightLoop(float3 V, float3 positionWS, PreLightData prelightData, BSDFData bsdfData, float3 bakeDiffuseLighting,
+    out float3 diffuseLighting,
+    out float3 specularLighting)
+{
+    LightLoopContext context;
+    ZERO_INITIALIZE(LightLoopContext, context);
+
+    diffuseLighting = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    int i = 0; // Declare once to avoid the D3D11 compiler warning.
+
+    for (i = 0; i < _DirectionalLightCount; ++i)
+    {
+        float3 localDiffuseLighting, localSpecularLighting;
+
+        EvaluateBSDF_Directional(context, V, positionWS, prelightData, _DirectionalLightList[i], bsdfData,
+            localDiffuseLighting, localSpecularLighting);
+
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
+    }
+
+    for (i = 0; i < _PunctualLightCount; ++i)
+    {
+        float3 localDiffuseLighting, localSpecularLighting;
+
+        EvaluateBSDF_Punctual(context, V, positionWS, prelightData, _PunctualLightList[i], bsdfData,
+            localDiffuseLighting, localSpecularLighting);
+
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
+    }
+
+    for (i = 0; i < _AreaLightCount; ++i)
+    {
+        float3 localDiffuseLighting, localSpecularLighting;
+
+        EvaluateBSDF_Area(context, V, positionWS, prelightData, _AreaLightList[i], bsdfData,
+            localDiffuseLighting, localSpecularLighting);
+
+        diffuseLighting += localDiffuseLighting;
+        specularLighting += localSpecularLighting;
+    }
+}

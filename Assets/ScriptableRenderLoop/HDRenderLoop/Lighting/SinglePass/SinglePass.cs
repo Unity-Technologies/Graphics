@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using System;
 
@@ -24,6 +25,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             static ComputeBuffer s_AreaLightList;
             static ComputeBuffer s_PunctualShadowList;
             static ComputeBuffer s_DirectionalShadowList;
+
+            Material m_DeferredMaterial;
 
             void ClearComputeBuffers()
             {
@@ -56,6 +59,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_AreaLightList = new ComputeBuffer(HDRenderLoop.k_MaxAreaLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 s_EnvLightList = new ComputeBuffer(HDRenderLoop.k_MaxEnvLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 s_PunctualShadowList = new ComputeBuffer(HDRenderLoop.k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
+
+                m_DeferredMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
             }
 
             public void OnDisable()
@@ -72,6 +77,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_EnvLightList = null;
                 s_PunctualShadowList.Release();
                 s_PunctualShadowList = null;
+
+                Utilities.Destroy(m_DeferredMaterial);
             }
 
             public void PrepareLightsForGPU(CullResults cullResults, Camera camera, HDRenderLoop.LightList lightList) {}
@@ -96,8 +103,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Shader.SetGlobalBuffer("_EnvLightList", s_EnvLightList);
                 Shader.SetGlobalInt("_EnvLightCount", lightList.envLights.Count);
 
-                Shader.SetGlobalVectorArray("_DirShadowSplitSpheres", lightList.directionalShadowSplitSphereSqr);
-                
+                Shader.SetGlobalVectorArray("_DirShadowSplitSpheres", lightList.directionalShadowSplitSphereSqr);      
+            }
+
+            public void RenderDeferredLighting(Camera camera, RenderLoop renderLoop, RenderTargetIdentifier colorBuffer)
+            {
+                var invViewProj = Utilities.GetViewProjectionMatrix(camera).inverse;
+                m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
+
+                var screenSize = Utilities.ComputeScreenSize(camera);
+                m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
+
+                // m_gbufferManager.BindBuffers(m_DeferredMaterial);
+                // TODO: Bind depth textures
+                var cmd = new CommandBuffer { name = "Single Pass - Deferred Ligthing Pass" };
+                cmd.Blit(null, colorBuffer, m_DeferredMaterial, 0);
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
             }
         }
     }

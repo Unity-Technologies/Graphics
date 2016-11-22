@@ -163,48 +163,104 @@ float PolygonRadiance(float4x3 L, bool twoSided)
     return twoSided ? abs(sum) : max(sum, 0.0);
 }
 
-float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, float3x3 minV)
+// For polygonal lights.
+float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, float3x3 invM)
 {
     // Construct local orthonormal basis around N, aligned with N
     // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
+    // Also consider using 'bsdfData.tangentWS', 'bsdfData.bitangentWS', 'bsdfData.normalWS'.
     float3x3 basis;
     basis[0] = normalize(V - N * NdotV);
     basis[1] = normalize(cross(N, basis[0]));
     basis[2] = N;
 
     // rotate area light in local basis
-    minV = mul(transpose(basis), minV);
-    L = mul(L, minV);
+    invM = mul(transpose(basis), invM);
+    L = mul(L, invM);
 
     // Polygon radiance in transformed configuration - specular
     return PolygonRadiance(L, twoSided);
 }
 
-float LineFpo(float rcpD, float rcpDL, float l)
+float LineFpo(float tLDDL, float lrcpD, float rcpD)
 {
-    // Compute: l / d / (d * d + l * l) + 1.0 / (d * d) * atan(l / d).
-    return l * rcpDL + rcpD * rcpD * atan(l * rcpD);
+    // Compute: ((l / d) / (d * d + l * l)) + (1.0 / (d * d)) * atan(l / d).
+    return tLDDL + sq(rcpD) * atan(lrcpD);
 }
 
-float LineFwt(float sqL, float rcpDL)
+float LineFwt(float tLDDL, float l)
 {
-    // Compute: l * l / d / (d * d + l * l).
-    return sqL * rcpDL;
+    // Compute: l * ((l / d) / (d * d + l * l)).
+    return l * tLDDL;
 }
 
 // Computes the integral of the clamped cosine over the line segment.
-// 'dist' is the shortest distance to the line. 'l1' and 'l2' define the integration interval.
-float LineIrradiance(float l1, float l2, float dist, float pointZ, float tangentZ)
+// 'l1' and 'l2' define the integration interval.
+// 'tangent' is the line's tangent direction.
+// 'normal' is the direction orthogonal to the tangent. It is the shortest vector between
+// the shaded point and the line, pointing away from the shaded point.
+float LineIrradiance(float l1, float l2, float3 normal, float3 tangent)
 {   
-    float sqD    = dist * dist;
-    float sqL1   = l1 * l1;
-    float sqL2   = l2 * l2;
-    float rcpD   = rcp(dist);
-    float rcpDL1 = rcpD * rcp(sqD + sqL1);
-    float rcpDL2 = rcpD * rcp(sqD + sqL2);
-    float intP0  = LineFpo(rcpD, rcpDL2, l2) - LineFpo(rcpD, rcpDL1, l1);
-    float intWt  = LineFwt(sqL2, rcpDL2) - LineFwt(sqL1, rcpDL1);
-    return intP0 * pointZ + intWt * tangentZ;
+    float d      = length(normal);
+    float l1rcpD = l1 * rcp(d);
+    float l2rcpD = l2 * rcp(d);
+    float tLDDL1 = l1rcpD * rcp(sq(d) + sq(l1));
+    float tLDDL2 = l2rcpD * rcp(sq(d) + sq(l2));
+    float intWt  = LineFwt(tLDDL2, l2) - LineFwt(tLDDL1, l1);
+    float intP0  = LineFpo(tLDDL2, l2rcpD, rcp(d)) - LineFpo(tLDDL1, l1rcpD, rcp(d));
+    return intP0 * normal.z + intWt * tangent.z;
+}
+
+// For line lights.
+float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
+{
+    // Inverse-transform the endpoints and the binormal.
+    P1 = mul(P1, invM);
+    P2 = mul(P2, invM);
+    B  = mul(B,  invM);
+
+    // Terminate the algorithm if both points are below the horizon.
+    if (P1.z <= 0.0 && P2.z <= 0.0) return 0.0;
+
+    if (P2.z <= 0.0)
+    {
+        // Convention: 'P2' is above the horizon.
+        swap(P1, P2);
+    }
+
+    // Recompute the length and the tangent in the new coordinate system.
+    float  len = length(P2 - P1);
+    float3 T   = normalize(P2 - P1);
+
+    // Clip the part of the light below the horizon.
+    if (P1.z <= 0.0)
+    {
+        // P = P1 + t * T; P.z == 0.
+        float t = -P1.z / T.z;
+        P1 = float3(P1.xy + t * T.xy, 0.0);
+
+        // Set the length of the visible part of the light.
+        len -= t;
+    }
+
+    // Compute the normal direction to the line, s.t. it is the shortest vector
+    // between the shaded point and the line, pointing away from the shaded point.
+    // Can be interpreted as a point on the line, since the shaded point is at the origin.
+    float  proj = dot(P1, T);
+    float3 P0   = P1 - proj * T;
+
+    // Compute the parameterization: distances from 'P1' and 'P2' to 'P0'.
+    float l1 = proj;
+    float l2 = l1 + len;
+
+    // Integrate the clamped cosine over the line segment.
+    float irradiance = LineIrradiance(l1, l2, P0, T);
+
+    // Compute the width factor. We take the absolute value because the points may be swapped.
+    float width = abs(dot(B, normalize(cross(T, P1))));
+
+    // Guard against numerical precision issues.
+    return max(INV_PI * width * irradiance, 0.0);
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
