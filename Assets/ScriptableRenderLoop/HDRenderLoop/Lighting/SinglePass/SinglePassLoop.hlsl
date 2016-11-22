@@ -41,8 +41,16 @@ void LightLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
-        EvaluateBSDF_Area(context, V, positionWS, prelightData, _AreaLightList[i], bsdfData,
-                          localDiffuseLighting, localSpecularLighting);
+        if (_AreaLightList[i].lightType == GPULIGHTTYPE_LINE)
+        {
+            EvaluateBSDF_Line(context, V, positionWS, prelightData, _AreaLightList[i], bsdfData,
+                              localDiffuseLighting, localSpecularLighting);
+        }
+        else
+        {
+            EvaluateBSDF_Area(context, V, positionWS, prelightData, _AreaLightList[i], bsdfData,
+                              localDiffuseLighting, localSpecularLighting);
+        }
 
         diffuseLighting  += localDiffuseLighting;
         specularLighting += localSpecularLighting;

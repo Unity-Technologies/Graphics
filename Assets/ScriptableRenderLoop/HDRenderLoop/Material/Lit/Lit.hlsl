@@ -55,7 +55,9 @@ TEXTURE2D(_LtcGGXMatrix);                    // RGBA
 TEXTURE2D(_LtcDisneyDiffuseMatrix);          // RGBA
 TEXTURE2D(_LtcMultiGGXFresnelDisneyDiffuse); // RGB, A unused
 
-
+static const float3x3 _identity3x3 = {1.0, 0.0, 0.0,
+                                      0.0, 1.0, 0.0,
+                                      0.0, 0.0, 1.0};
 
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
@@ -726,13 +728,164 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 }
 
 //-----------------------------------------------------------------------------
+// EvaluateBSDF_Line - Reference
+//-----------------------------------------------------------------------------
+
+void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
+                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                           out float3 diffuseLighting, out float3 specularLighting,
+                           int sampleCount = 128)
+{
+    diffuseLighting  = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    const float  len = lightData.size.x;
+    const float3 T   = lightData.right;
+    const float3 P1  = lightData.positionWS - T * (0.5 * len);
+    const float  dt  = len * rcp(sampleCount);
+    const float  off = 0.5 * dt;
+
+    // Uniformly sample the line segment with the Pdf = 1 / len.
+    const float invPdf = len;
+
+    for (int i = 0; i < sampleCount; ++i)
+    {
+        // Place the sample in the middle of the interval.
+        float  t     = off + i * dt;
+        float3 sPos  = P1 + t * T;
+        float3 unL   = sPos - positionWS;
+        float  dist2 = dot(unL, unL);
+        float3 L     = normalize(unL);
+        float  sinLT = length(cross(L, T));
+        float  NdotL = saturate(dot(bsdfData.normalWS, L));
+
+        float3 lightDiff, lightSpec;
+
+        BSDF(V, L, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
+
+        // The value of the specular BSDF could be infinite.
+        // Summing up infinities leads to NaNs.
+        lightSpec = min(lightSpec, FLT_MAX);
+
+        diffuseLighting  += lightDiff * (sinLT / dist2 * NdotL);
+        specularLighting += lightSpec * (sinLT / dist2 * NdotL);
+    }
+
+    // The factor of 2 is due to the fact: Integral{0, 2 PI}{max(0, cos(x))dx} = 2.
+    float normFactor = 2.0 * invPdf * rcp(sampleCount);
+
+    diffuseLighting  *= normFactor * lightData.diffuseScale  * lightData.color;
+    specularLighting *= normFactor * lightData.specularScale * lightData.color;
+}
+
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_Line - Approximation with Linearly Transformed Cosines
+//-----------------------------------------------------------------------------
+
+void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
+                       float3 V, float3 positionWS,
+                       PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                       out float3 diffuseLighting, out float3 specularLighting)
+{
+#ifdef LIT_DISPLAY_REFERENCE_AREA
+    IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
+                          diffuseLighting, specularLighting);
+#else
+    diffuseLighting  = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    float  len = lightData.size.x;
+    float3 T   = lightData.right;
+
+    float3 unL = positionWS - lightData.positionWS;
+
+    // Pick the axis along which to expand the fade-out sphere into an ellipsoid.
+    float3 axis = lightData.right;
+
+    // We define the ellipsoid s.t. r1 = r, r2 = (r + len / 2).
+    // TODO: This could be precomputed.
+    float radius         = rsqrt(lightData.invSqrAttenuationRadius);
+    float invAspectRatio = radius / (radius + (0.5 * len));
+
+    // Compute the light attenuation.
+    float intensity = GetEllipsoidalDistanceAttenuation(unL,  lightData.invSqrAttenuationRadius,
+                                                        axis, invAspectRatio);
+
+    // Terminate if the shaded point is too far away.
+    if (intensity == 0.0) return;
+
+    lightData.diffuseScale  *= intensity;
+    lightData.specularScale *= intensity;
+
+    // TODO: This could be precomputed.
+    float3 P1 = lightData.positionWS - T * (0.5 * len);
+    float3 P2 = lightData.positionWS + T * (0.5 * len);
+
+    // Translate the endpoints s.t. the shaded point is at the origin of the coordinate system.
+    P1 -= positionWS;
+    P2 -= positionWS;
+
+    // Construct an orthonormal basis (local coordinate system) around N.
+    // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
+    // Also consider using 'bsdfData.tangentWS', 'bsdfData.bitangentWS', 'bsdfData.normalWS'.
+    float3x3 basis;
+    basis[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
+    basis[1] = normalize(cross(bsdfData.normalWS, basis[0]));
+    basis[2] = bsdfData.normalWS;
+
+    // Rotate the endpoints into the local coordinate system (left-handed).
+    P1 = mul(P1, transpose(basis));
+    P2 = mul(P2, transpose(basis));
+
+    // Compute the binormal.
+    float3 B = normalize(cross(P2 - P1, P1));
+
+    float ltcValue;
+
+    // Evaluate the diffuse part.
+    {
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
+        ltcValue = LTCEvaluate(P1, P2, B, _identity3x3);
+    #else
+        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcXformDisneyDiffuse);
+    #endif
+
+        if (ltcValue == 0.0)
+        {
+            // The light is below the horizon.
+            return;
+        }
+
+    #ifndef LIT_DIFFUSE_LAMBERT_BRDF
+        ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
+    #endif
+
+        ltcValue *= lightData.diffuseScale;
+        diffuseLighting = bsdfData.diffuseColor * lightData.color * ltcValue;
+    }
+
+    // Evaluate the specular part.
+    {
+        // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
+        // to match the reference for rough metals, but further darkens dielectrics.
+        float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
+                           + (float3)preLightData.ltcGGXFresnelMagnitude;
+
+        ltcValue  = LTCEvaluate(P1, P2, B, preLightData.ltcXformGGX);
+        ltcValue *= lightData.specularScale;
+        specularLighting = fresnelTerm * lightData.color * ltcValue;
+    }
+#endif
+}
+
+//-----------------------------------------------------------------------------
 // EvaluateBSDF_Area - Reference
 //-----------------------------------------------------------------------------
 
-void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                            out float3 diffuseLighting,
-                            out float3 specularLighting,
-                            uint sampleCount = 512)
+void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
+                           PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                           out float3 diffuseLighting, out float3 specularLighting,
+                           uint sampleCount = 512)
 {
     // Add some jittering on Hammersley2d
     float2 randNum = InitRandom(V.xy * 0.5 + 0.5);
@@ -742,9 +895,9 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float3 P = float3(0.0, 0.0, 0.0);	// Sample light point. Random point on the light shape in local space.
-        float3 Ns = float3(0.0, 0.0, 0.0);	// Unit surface normal at P
-        float lightPdf = 0.0;	            // Pdf of the light sample
+        float3 P = float3(0.0, 0.0, 0.0);   // Sample light point. Random point on the light shape in local space.
+        float3 Ns = float3(0.0, 0.0, 0.0);  // Unit surface normal at P
+        float lightPdf = 0.0;               // Pdf of the light sample
 
         float2 u = Hammersley2d(i, sampleCount);
         u = frac(u + randNum + 0.5);
@@ -802,218 +955,62 @@ void IntegrateGGXAreaRef(   float3 V, float3 positionWS, PreLightData preLightDa
 }
 
 //-----------------------------------------------------------------------------
-// EvaluateBSDFLine - Reference
+// EvaluateBSDF_Area - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
-void IntegrateBSDFLineRef(float3 V, float3 positionWS, PreLightData preLightData,
-                          LightData lightData, BSDFData bsdfData,
-                          out float3 diffuseLighting, out float3 specularLighting,
-                          int sampleCount = 128)
-{
-    diffuseLighting  = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
-
-    const float  len = lightData.size.x;
-    const float3 dir = lightData.right;
-    const float3 p1  = lightData.positionWS - lightData.right * (0.5 * len);
-    const float  dt  = len * rcp(sampleCount);
-    const float  off = 0.5 * dt;
-
-    // Uniformly sample the line segment with the Pdf = 1 / len.
-    const float invPdf = len;
-
-    for (int i = 0; i < sampleCount; ++i)
-    {
-        // Place the sample in the middle of the interval.
-        float  t     = off + i * dt;
-        float3 sPos  = p1 + t * dir;
-        float3 unL   = sPos - positionWS;
-        float  dist2 = dot(unL, unL);
-        float3 L     = normalize(unL);
-        float  sinLD = length(cross(L, dir));
-        float  NdotL = saturate(dot(bsdfData.normalWS, L));
-
-        float3 lightDiff, lightSpec;
-
-        BSDF(V, L, positionWS, preLightData, bsdfData, lightDiff, lightSpec);
-
-        diffuseLighting  += lightDiff * (sinLD / dist2 * NdotL);
-        specularLighting += lightSpec * (sinLD / dist2 * NdotL);
-    }
-
-    // The factor of 2 is due to the fact: Integral{0, 2 PI}{max(0, cos(x))dx} = 2.
-    float normFactor = 2.0 * invPdf * rcp(sampleCount);
-
-    diffuseLighting  *= normFactor * lightData.diffuseScale  * lightData.color;
-    specularLighting *= normFactor * lightData.specularScale * lightData.color;
-}
-
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_Line | Approximation with Linearly Transformed Cosines
-//-----------------------------------------------------------------------------
-
-void EvaluateBSDF_Line( LightLoopContext lightLoopContext,
-                        float3 V, float3 positionWS, PreLightData preLightData,
-                        LightData lightData, BSDFData bsdfData,
-                        out float3 diffuseLighting, out float3 specularLighting)
-{
-    diffuseLighting  = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
-
-    float  len = lightData.size.x;
-    float3 dir = lightData.right;
-
-    // TODO: precompute half-length. Same as for LTC area lights.
-    // In fact, why not store both endpoints? Saves us 7 cycles.
-    float3 p1 = lightData.positionWS - lightData.right * (0.5 * len);
-    float3 p2 = lightData.positionWS + lightData.right * (0.5 * len);
-
-    // Translate both points s.t. the shaded point is at the origin of the coordinate system.
-    p1 -= positionWS;
-    p2 -= positionWS;
-
-    // Construct an orthonormal basis (local coordinate system) around N.
-    // TODO: it could be stored in PreLightData. All LTC lights compute it more than once!
-    float3x3 basis;
-    basis[0] = normalize(V - bsdfData.normalWS * preLightData.NdotV);
-    basis[1] = normalize(cross(bsdfData.normalWS, basis[0]));
-    basis[2] = bsdfData.normalWS;
-
-    // Transform (rotate) both endpoints into the local coordinate system (left-handed).
-    p1 = mul(p1, transpose(basis));
-    p2 = mul(p2, transpose(basis));
-
-    // Terminate the algorithm if both points are below the horizon.
-    if (p1.z <= 0.0 && p2.z <= 0.0) return;
-
-    if (p2.z <= 0.0)
-    {
-        // Convention: 'p2' is above the horizon.
-        swap(p1, p2);
-        dir = -dir;
-    }
-
-    // Clip the part of the light below the horizon.
-    if (p1.z <= 0.0)
-    {
-        // p = p1 + t * dir; p.z == 0.
-        float t = -p1.z / dir.z;
-        p1 = float3(p1.xy + t * dir.xy, 0.0);
-
-        // Set the length of the visible part of the light.
-        len -= t;
-    }
-
-    // Compute the direction to the point on the line orthogonal to 'dir'.
-    // Its length is the shortest distance to the line.
-    float3 p0   = p1 - dot(p1, dir) * dir;
-    float  dist = length(p0);
-
-    // Compute the parameterization: distances from 'l1' and 'l2' to 'l0'.
-    float l1 = dot(p1 - p0, dir);
-    float l2 = l1 + len;
-
-    // Integrate the clamped cosine over the line segment.
-    float irradiance = LineIrradiance(l1, l2, dist, p0.z, dir.z);
-
-    // Only Lambertian for now. TODO: Disney Diffuse and GGX.
-    diffuseLighting = (lightData.diffuseScale * irradiance * INV_PI) * bsdfData.diffuseColor * lightData.color;
-}
-
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_Area | Approximation with Linearly Transformed Cosines
-//-----------------------------------------------------------------------------
-
-void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
-                        float3 V, float3 positionWS, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
-                        out float3 diffuseLighting,
-                        out float3 specularLighting)
+void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
+                       float3 V, float3 positionWS,
+                       PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                       out float3 diffuseLighting, out float3 specularLighting)
 {
 #ifdef LIT_DISPLAY_REFERENCE_AREA
-    if (lightData.lightType == GPULIGHTTYPE_LINE)
-    {
-        IntegrateBSDFLineRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
-    }
-    else
-    {
-        IntegrateGGXAreaRef(V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
-    }
-#else
-    if (lightData.lightType == GPULIGHTTYPE_LINE)
-    {
-        diffuseLighting = float3(0.0, 0.0, 0.0);
-        specularLighting = float3(0.0, 0.0, 0.0);
-        // EvaluateBSDF_Line(lightLoopContext, V, positionWS, preLightData, lightData, bsdfData, diffuseLighting, specularLighting);
-        return;
-    }
-    
-    // TODO: This could be precomputed
+    IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
+                          diffuseLighting, specularLighting);
+#else    
+    diffuseLighting  = float3(0.0, 0.0, 0.0);
+    specularLighting = float3(0.0, 0.0, 0.0);
+
+    // TODO: This could be precomputed.
     float halfWidth  = lightData.size.x * 0.5;
     float halfHeight = lightData.size.y * 0.5;
 
-    // TODO: store 4 points and save 24 cycles.
-    float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
-    float3 p1 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    float3 p2 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    float3 p3 = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+    float3 unL = positionWS - lightData.positionWS;
 
-    float4x3 matL = float4x3(p0, p1, p2, p3);
-    float4x3 L    = matL - float4x3(positionWS, positionWS, positionWS, positionWS);
+    // Pick the axis along which to expand the fade-out sphere into an ellipsoid.
+    float3 axis = (halfWidth >= halfHeight) ? lightData.right : lightData.up;
 
-    diffuseLighting  = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
-
-    // Pick the correct axis along which to expand the fade-out sphere into an ellipsoid.
-    float3 axisLS;
-    float  minDim, maxDim;
-
-    // The compiler should generate conditional MOVs.
-    if (halfWidth >= halfHeight)
-    {
-        axisLS = lightData.right;
-        minDim = halfHeight;
-        maxDim = halfWidth;
-    }
-    else
-    {
-        axisLS = lightData.up;
-        minDim = halfWidth;
-        maxDim = halfHeight;
-    }
-
-    float3 dirLS          = positionWS - lightData.positionWS;
-    float  lightSpaceProj = dot(dirLS, axisLS);
-    float  invAspectRatio = minDim / maxDim;
-
-    // We want 'dirLS' to shrink along 'axisLS' by the aspect ratio. Therefore,
-    // we compute the difference between the original length and the shrunk one.
-    // This is equivalent to the expansion of the fade-out sphere into an ellipsoid.
-    float scaleLS = lightSpaceProj - lightSpaceProj * invAspectRatio;
-    dirLS -= scaleLS * axisLS;
+    // We define the ellipsoid s.t. r1 = r, r2 = (r + |w - h| / 2).
+    // TODO: This could be precomputed.
+    float radius         = rsqrt(lightData.invSqrAttenuationRadius);
+    float invAspectRatio = radius / (radius + abs(halfWidth - halfHeight));
 
     // Compute the light attenuation.
-    float sqDist    = dot(dirLS, dirLS);
-    float intensity = SmoothDistanceAttenuation(sqDist, lightData.invSqrAttenuationRadius);
+    float intensity = GetEllipsoidalDistanceAttenuation(unL,  lightData.invSqrAttenuationRadius,
+                                                        axis, invAspectRatio);
 
-    // Return the black color if the shaded point is too far away.
+    // Terminate if the shaded point is too far away.
     if (intensity == 0.0) return;
 
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
 
+    // TODO: store 4 points and save 12 cycles (24x MADs - 12x MOVs).
+    float3 p0 = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    float3 p1 = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+    float3 p2 = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    float3 p3 = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+
+    float4x3 matL = float4x3(p0, p1, p2, p3) - float4x3(positionWS, positionWS, positionWS, positionWS);
+
     float ltcValue;
 
     // Evaluate the diffuse part.
     {
-    #ifdef DIFFUSE_LAMBERT_BRDF
-        static const float3x3 identity3x3 = {1.0, 0.0, 0.0,
-                                             0.0, 1.0, 0.0,
-                                             0.0, 0.0, 1.0};
-                                             
-        ltcValue = LTCEvaluate(L, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
-                               identity3x3);
+    #ifdef LIT_DIFFUSE_LAMBERT_BRDF
+        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
+                               _identity3x3);
     #else
-        ltcValue = LTCEvaluate(L, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
+        ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
                                preLightData.ltcXformDisneyDiffuse);
     #endif
 
@@ -1023,7 +1020,7 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
             return;
         }
 
-    #ifndef DIFFUSE_LAMBERT_BRDF
+    #ifndef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue *= preLightData.ltcDisneyDiffuseMagnitude;
     #endif
 
@@ -1033,10 +1030,12 @@ void EvaluateBSDF_Area( LightLoopContext lightLoopContext,
 
     // Evaluate the specular part.
     {
+        // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
+        // to match the reference for rough metals, but further darkens dielectrics.
         float3 fresnelTerm = bsdfData.fresnel0 * preLightData.ltcGGXFresnelMagnitudeDiff
                            + (float3)preLightData.ltcGGXFresnelMagnitude;
 
-        ltcValue  = LTCEvaluate(L, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
+        ltcValue  = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
                                 preLightData.ltcXformGGX);
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
