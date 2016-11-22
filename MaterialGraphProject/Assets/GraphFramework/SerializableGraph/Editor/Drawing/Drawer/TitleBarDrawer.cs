@@ -67,6 +67,17 @@ namespace UnityEditor.Graphing.Drawing
 			showInProjectItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
 			leftContainer.AddChild(showInProjectItem);
 
+			var optionsItem = new VisualContainer() { classList = new ClassList("titleBarItem") };
+			optionsItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
+			var optionsLabel = new VisualElement()
+			{
+				classList = new ClassList("titleBarItemLabel"),
+				content = new GUIContent("Options")
+			};
+			optionsItem.AddChild(optionsLabel);
+			optionsItem.AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
+			rightContainer.AddChild(optionsItem);
+
             this.dataProvider = dataProvider;
         }
 

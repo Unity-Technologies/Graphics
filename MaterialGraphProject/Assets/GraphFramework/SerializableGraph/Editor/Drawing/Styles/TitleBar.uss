@@ -14,12 +14,26 @@
     background-color: #3d3d3d;
     align-items: stretch;
     flex-direction: row;
+}
+
+#TitleBar #left {
     justify-content: flex-start;
+}
+
+#TitleBar #right {
+    justify-content: flex-end;
 }
 
 .titleBarItem {
     flex-direction: row;
+}
+
+#left .titleBarItem {
     margin-left: 5;
+}
+
+#right .titleBarItem {
+    margin-right: 5;
 }
 
 .titleBarItemBorder {
