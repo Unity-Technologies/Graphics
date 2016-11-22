@@ -101,5 +101,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 #endif
             }
         }
+		
+        public static Matrix4x4 GetViewProjectionMatrix(Camera camera)
+        {
+            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
+            // (different Z value ranges etc.)
+            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            var gpuVP = gpuProj * camera.worldToCameraMatrix;
+
+            return gpuVP;
+        }
+
+        public static Vector4 ComputeScreenSize(Camera camera)
+        {
+            return new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+        }
     }
 }

@@ -19,12 +19,12 @@
 
 float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
 {
-    return 1 - depthTexture.Load(uint3(pixCoord.xy, 0)).x;
+    return 1 - LOAD_TEXTURE2D(depthTexture, uint3(pixCoord.xy, 0)).x;
 }
 
 float FetchDepthMSAA(Texture2DMS<float> depthTexture, uint2 pixCoord, uint sampleIdx)
 {
-    return 1 - depthTexture.Load(uint3(pixCoord.xy, 0), sampleIdx).x;
+    return 1 - LOAD_TEXTURE2D_MSAA(depthTexture, uint3(pixCoord.xy, 0), sampleIdx).x;
 }
 
 #endif
