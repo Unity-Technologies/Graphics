@@ -259,7 +259,8 @@ float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
     // Compute the width factor. We take the absolute value because the points may be swapped.
     float width = abs(dot(B, normalize(cross(T, P1))));
 
-    return INV_PI * width * irradiance;
+    // Guard against numerical precision issues.
+    return max(INV_PI * width * irradiance, 0.0);
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
