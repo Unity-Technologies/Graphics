@@ -128,27 +128,27 @@ float4 Max3(float4 a, float4 b, float4 c)
 }
 #endif // INTRINSIC_MINMAX3
 
-float sq(float x)
+float Square(float x)
 {
     return x * x;
 }
 
-void swap(inout float a, inout float b)
+void Swap(inout float a, inout float b)
 {
     float  t = a; a = b; b = t;
 }
 
-void swap(inout float2 a, inout float2 b)
+void Swap(inout float2 a, inout float2 b)
 {
     float2 t = a; a = b; b = t;
 }
 
-void swap(inout float3 a, inout float3 b)
+void Swap(inout float3 a, inout float3 b)
 {
     float3 t = a; a = b; b = t;
 }
 
-void swap(inout float4 a, inout float4 b)
+void Swap(inout float4 a, inout float4 b)
 {
     float4 t = a; a = b; b = t;
 }
@@ -278,6 +278,14 @@ float smoothstep01(float x)
 {
     return x * x * (3.0 - (2.0 * x));
 }
+
+const float3x3 k_identity3x3 = {1.0, 0.0, 0.0,
+                                0.0, 1.0, 0.0,
+                                0.0, 0.0, 1.0};
+
+                                0.0, 1.0, 0.0, 0.0,
+                                0.0, 0.0, 1.0, 0.0,
+                                0.0, 0.0, 0.0, 1.0 };
 
 // ----------------------------------------------------------------------------
 // World position reconstruction / transformation

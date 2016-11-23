@@ -1,10 +1,6 @@
 #ifndef __CLUSTEREDUTILS_H__
 #define __CLUSTEREDUTILS_H__
 
-#ifndef FLT_EPSILON
-    #define FLT_EPSILON     1.192092896e-07f
-#endif
-
 float GetScaleFromBase(float base)
 {
     const float C = (float)(1 << g_iLog2NumClusters);

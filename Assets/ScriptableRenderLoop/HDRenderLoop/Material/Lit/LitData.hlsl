@@ -263,20 +263,21 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     // Note that data input above can be use to sample into lightmap (like normal)
     builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
 
+    // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
+    builtinData.emissiveIntensity = _EmissiveIntensity; // We still store intensity here so we can reuse it with debug code
+
     // If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
 #ifdef _EMISSIVE_COLOR
     #ifdef _EMISSIVE_COLOR_MAP
-    builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
+    builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor * builtinData.emissiveIntensity;
     #else
-    builtinData.emissiveColor = _EmissiveColor;
+    builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity;
     #endif
 #elif defined(_MASKMAP) // If we have a MaskMap, use emissive slot as a mask on baseColor
-    builtinData.emissiveColor = surfaceData.baseColor * SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, input.texCoord0).bbb;
+    builtinData.emissiveColor = surfaceData.baseColor * (SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, input.texCoord0).b * builtinData.emissiveIntensity).xxx;
 #else
     builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
 #endif
-
-    builtinData.emissiveIntensity = _EmissiveIntensity;
 
     builtinData.velocity = CalculateVelocity(input.positionCS, input.previousPositionCS);
 
@@ -560,6 +561,12 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     // Note that data input above can be use to sample into lightmap (like normal)
     builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
 
+    // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
+    PROP_DECL(float, emissiveIntensity);
+    PROP_ASSIGN(emissiveIntensity, _EmissiveIntensity, r);
+    PROP_BLEND_SCALAR(emissiveIntensity, weights);
+    builtinData.emissiveIntensity = emissiveIntensity; // We still store intensity here so we can reuse it with debug code
+
     // If we chose an emissive color, we have a dedicated texture for it and don't use MaskMap
     PROP_DECL(float3, emissiveColor);
 #ifdef _EMISSIVE_COLOR
@@ -575,12 +582,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     PROP_ASSIGN_VALUE(emissiveColor, float3(0.0, 0.0, 0.0));
 #endif
     PROP_BLEND_COLOR(emissiveColor, weights);
-    builtinData.emissiveColor = emissiveColor;
-
-    PROP_DECL(float, emissiveIntensity);
-    PROP_ASSIGN(emissiveIntensity, _EmissiveIntensity, r);
-    PROP_BLEND_SCALAR(emissiveIntensity, weights);
-    builtinData.emissiveIntensity = emissiveIntensity;
+    builtinData.emissiveColor = emissiveColor * builtinData.emissiveIntensity;
 
     builtinData.velocity = CalculateVelocity(input.positionCS, input.previousPositionCS);
 
