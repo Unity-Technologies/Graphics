@@ -468,7 +468,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_LitRenderLoop.Bind();
 
             m_SinglePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
-           // m_TilePassLightLoop.RenderDeferredLighting(camera, renderLoop, );
+          //  m_TilePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
         }
 
         void RenderSky(Camera camera, RenderLoop renderLoop)
@@ -810,7 +810,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // build per tile light lists           
             m_SinglePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
-            m_TilePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
+            //m_TilePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
         }
 
         void Resize(Camera camera)
@@ -891,7 +891,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     renderLoop.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
 
                     PrepareLightsForGPU(cullResults, camera, ref shadows, ref m_lightList);
-                    m_TilePassLightLoop.BuildGPULightLists(camera, renderLoop, m_lightList, m_CameraDepthBuffer);
+                    //m_TilePassLightLoop.BuildGPULightLists(camera, renderLoop, m_lightList, m_CameraDepthBuffer);
 
                     PushGlobalParams(camera, renderLoop, m_lightList);
 
