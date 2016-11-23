@@ -66,6 +66,6 @@
 #define SAMPLER2D_HALF SAMPLER2D
 #define SAMPLER2D_FLOAT SAMPLER2D
 
-#define LOAD_TEXTURE2D(textureName, unCoord3) textureName.Load(unCoord3)
-#define LOAD_TEXTURE2D_MSAA(textureName, unCoord3, sampleIndex) textureName.Load(unCoord3, sampleIndex)
+#define LOAD_TEXTURE2D(textureName, unCoord2) textureName.Load(int3(unCoord2, 0))
+#define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex) textureName.Load(unCoord2, sampleIndex)
 

@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 // bakeDiffuseLighting is part of the prototype so a user is able to implement a "base pass" with GI and multipass direct light (aka old unity rendering path)
-void LightLoop(	float3 V, float3 positionWS, PreLightData prelightData, BSDFData bsdfData, float3 bakeDiffuseLighting,
+void LightLoop(	float3 V, float3 positionWS, Coordinate coord, PreLightData prelightData, BSDFData bsdfData, float3 bakeDiffuseLighting,
                 out float3 diffuseLighting,
                 out float3 specularLighting)
 {
