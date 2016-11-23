@@ -50,7 +50,7 @@ LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bui
     LighTransportData lightTransportData;
 
     lightTransportData.diffuseColor = float3(0.0, 0.0, 0.0);
-    lightTransportData.emissiveColor = builtinData.emissiveColor * builtinData.emissiveIntensity;
+    lightTransportData.emissiveColor = builtinData.emissiveColor;
 
     return lightTransportData;
 }

@@ -17,13 +17,14 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
     builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
-#ifdef _EMISSIVE_COLOR_MAP
-    builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor;
-#else
-    builtinData.emissiveColor = _EmissiveColor;
-#endif
-
+    // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
     builtinData.emissiveIntensity = _EmissiveIntensity;
+
+#ifdef _EMISSIVE_COLOR_MAP
+    builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, input.texCoord0).rgb * _EmissiveColor * builtinData.emissiveIntensity;
+#else
+    builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity;
+#endif
 
     builtinData.velocity = float2(0.0, 0.0);
 
