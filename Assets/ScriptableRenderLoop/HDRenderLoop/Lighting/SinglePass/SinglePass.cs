@@ -61,6 +61,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_PunctualShadowList = new ComputeBuffer(HDRenderLoop.k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
 
                 m_DeferredMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+                m_DeferredMaterial.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
             }
 
             public void OnDisable()

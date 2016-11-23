@@ -71,7 +71,8 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         result = builtinData.bakeDiffuseLighting;
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR:
-        result = builtinData.emissiveColor; needLinearToSRGB = true;
+        // emissiveColor is premultiply by emissive intensity
+        result = (builtinData.emissiveColor / builtinData.emissiveIntensity); needLinearToSRGB = true;
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_INTENSITY:
         result = builtinData.emissiveIntensity.xxx;

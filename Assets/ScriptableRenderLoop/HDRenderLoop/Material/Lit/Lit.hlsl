@@ -55,10 +55,6 @@ TEXTURE2D(_LtcGGXMatrix);                    // RGBA
 TEXTURE2D(_LtcDisneyDiffuseMatrix);          // RGBA
 TEXTURE2D(_LtcMultiGGXFresnelDisneyDiffuse); // RGB, A unused
 
-static const float3x3 _identity3x3 = {1.0, 0.0, 0.0,
-                                      0.0, 1.0, 0.0,
-                                      0.0, 0.0, 1.0};
-
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
@@ -513,7 +509,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     GetPreIntegratedFGD(iblNdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
 
     // #if SHADERPASS == SHADERPASS_GBUFFER
-    // preLightData.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusion, uint3(coord.unPositionSS, 0)).x;
+    // preLightData.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusion, coord.unPositionSS).x;
     // #endif
 
     // Area light specific
@@ -555,7 +551,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 float3 GetBakedDiffuseLigthing(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
 {
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
-    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor * builtinData.emissiveIntensity;
+    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
 }
 
 //-----------------------------------------------------------------------------
@@ -571,7 +567,7 @@ LighTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bui
     // we want to take some of that into account too.
 
     lightTransportData.diffuseColor = bsdfData.diffuseColor + bsdfData.fresnel0 * bsdfData.roughness * 0.5 * surfaceData.metallic;
-    lightTransportData.emissiveColor = builtinData.emissiveColor * builtinData.emissiveIntensity;
+    lightTransportData.emissiveColor = builtinData.emissiveColor;
 
     return lightTransportData;
 }
@@ -845,7 +841,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     // Evaluate the diffuse part.
     {
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
-        ltcValue = LTCEvaluate(P1, P2, B, _identity3x3);
+        ltcValue = LTCEvaluate(P1, P2, B, k_identity3x3);
     #else
         ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcXformDisneyDiffuse);
     #endif
@@ -1008,7 +1004,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     {
     #ifdef LIT_DIFFUSE_LAMBERT_BRDF
         ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
-                               _identity3x3);
+                               k_identity3x3);
     #else
         ltcValue = LTCEvaluate(matL, V, bsdfData.normalWS, preLightData.NdotV, lightData.twoSided,
                                preLightData.ltcXformDisneyDiffuse);

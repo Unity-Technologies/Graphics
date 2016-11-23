@@ -225,7 +225,7 @@ float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
     if (P2.z <= 0.0)
     {
         // Convention: 'P2' is above the horizon.
-        swap(P1, P2);
+        Swap(P1, P2);
     }
 
     // Recompute the length and the tangent in the new coordinate system.
