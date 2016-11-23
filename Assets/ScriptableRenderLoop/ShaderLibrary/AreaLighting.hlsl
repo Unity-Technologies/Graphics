@@ -185,7 +185,7 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
 float LineFpo(float tLDDL, float lrcpD, float rcpD)
 {
     // Compute: ((l / d) / (d * d + l * l)) + (1.0 / (d * d)) * atan(l / d).
-    return tLDDL + sq(rcpD) * atan(lrcpD);
+    return tLDDL + rcpD * rcpD * atan(lrcpD);
 }
 
 float LineFwt(float tLDDL, float l)
@@ -204,8 +204,8 @@ float LineIrradiance(float l1, float l2, float3 normal, float3 tangent)
     float d      = length(normal);
     float l1rcpD = l1 * rcp(d);
     float l2rcpD = l2 * rcp(d);
-    float tLDDL1 = l1rcpD / (sq(d) + sq(l1));
-    float tLDDL2 = l2rcpD / (sq(d) + sq(l2));
+    float tLDDL1 = l1rcpD / (d * d + l1 * l1);
+    float tLDDL2 = l2rcpD / (d * d + l2 * l2);
     float intWt  = LineFwt(tLDDL2, l2) - LineFwt(tLDDL1, l1);
     float intP0  = LineFpo(tLDDL2, l2rcpD, rcp(d)) - LineFpo(tLDDL1, l1rcpD, rcp(d));
     return intP0 * normal.z + intWt * tangent.z;
