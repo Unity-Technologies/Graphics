@@ -16,12 +16,13 @@ Shader "Hidden/HDRenderLoop/Deferred"
             #pragma fragment FragDeferred
 
             // Chose supported lighting architecture in case of deferred rendering
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF 
 
-        // TODO: This must be on lightloop side and include here....
-#pragma multi_compile USE_FPTL_LIGHTLIST    USE_CLUSTERED_LIGHTLIST
-#pragma multi_compile __ ENABLE_DEBUG
+            // TODO: Workflow problem here, I would like to only generate variant for the LIGHTLOOP_TILE_PASS case, not the LIGHTLOOP_SINGLE_PASS case. This must be on lightloop side and include here.... (Can we codition
+            #pragma multi_compile LIGHTLOOP_TILE_DIRECT LIGHTLOOP_TILE_INDIRECT LIGHTLOOP_TILE_ALL
+            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+            #pragma multi_compile _ ENABLE_DEBUG
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -75,7 +76,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
                 Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
 
                 // No need to manage inverse depth, this is handled by the projection matrix
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, uint3(coord.unPositionSS, 0)).x;
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
                 float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
                 float3 V = GetWorldSpaceNormalizeViewDir(positionWS);
 
@@ -88,7 +89,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
 
                 float3 diffuseLighting;
                 float3 specularLighting;
-                LightLoop(V, positionWS, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+                LightLoop(V, positionWS, coord, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
                 return float4(diffuseLighting + specularLighting, 1.0);
             }

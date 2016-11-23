@@ -185,7 +185,7 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
 float LineFpo(float tLDDL, float lrcpD, float rcpD)
 {
     // Compute: ((l / d) / (d * d + l * l)) + (1.0 / (d * d)) * atan(l / d).
-    return tLDDL + sq(rcpD) * atan(lrcpD);
+    return tLDDL + Square(rcpD) * atan(lrcpD);
 }
 
 float LineFwt(float tLDDL, float l)
@@ -204,8 +204,8 @@ float LineIrradiance(float l1, float l2, float3 normal, float3 tangent)
     float d      = length(normal);
     float l1rcpD = l1 * rcp(d);
     float l2rcpD = l2 * rcp(d);
-    float tLDDL1 = l1rcpD * rcp(sq(d) + sq(l1));
-    float tLDDL2 = l2rcpD * rcp(sq(d) + sq(l2));
+    float tLDDL1 = l1rcpD * rcp(Square(d) + Square(l1));
+    float tLDDL2 = l2rcpD * rcp(Square(d) + Square(l2));
     float intWt  = LineFwt(tLDDL2, l2) - LineFwt(tLDDL1, l1);
     float intP0  = LineFpo(tLDDL2, l2rcpD, rcp(d)) - LineFpo(tLDDL1, l1rcpD, rcp(d));
     return intP0 * normal.z + intWt * tangent.z;
@@ -225,7 +225,7 @@ float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
     if (P2.z <= 0.0)
     {
         // Convention: 'P2' is above the horizon.
-        swap(P1, P2);
+        Swap(P1, P2);
     }
 
     // Recompute the length and the tangent in the new coordinate system.
