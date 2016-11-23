@@ -29,6 +29,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly GUIContent skyExposure = new GUIContent("Sky Exposure");
             public readonly GUIContent skyRotation = new GUIContent("Sky Rotation");
             public readonly GUIContent skyMultiplier = new GUIContent("Sky Multiplier");
+
+            public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
+
+            public readonly GUIContent shadowsEnabled = new GUIContent("Enabled");
+            public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas width");
+            public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas height");
+
+            public readonly GUIContent shadowsMaxShadowDistance = new GUIContent("Maximum shadow distance");
+            public readonly GUIContent shadowsDirectionalLightCascadeCount = new GUIContent("Directional cascade count");
+            public readonly GUIContent[] shadowsCascadeCounts = new GUIContent[] { new GUIContent("1"), new GUIContent("2"), new GUIContent("3"), new GUIContent("4") };
+            public readonly int[] shadowsCascadeCountValues = new int[] { 1, 2, 3, 4 };
+            public readonly GUIContent shadowsCascades = new GUIContent("Cascade values");
         }
 
         private static Styles s_Styles = null;
@@ -172,6 +184,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
             EditorGUI.indentLevel--;
 
+            EditorGUILayout.Space();
             var skyParameters = renderLoop.skyParameters;
 
             EditorGUILayout.LabelField(styles.skyParameters);
@@ -183,6 +196,33 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             skyParameters.multiplier = Mathf.Max(EditorGUILayout.FloatField(styles.skyMultiplier, skyParameters.multiplier), 0);
             skyParameters.rotation = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyRotation, skyParameters.rotation), 360), -360);
  
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.SetDirty(renderLoop); // Repaint
+            }
+            EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            var shadowParameters = renderLoop.shadowSettings;
+
+            EditorGUILayout.LabelField(styles.shadowSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+
+
+            shadowParameters.enabled = EditorGUILayout.Toggle(styles.shadowsEnabled, shadowParameters.enabled);
+            shadowParameters.shadowAtlasWidth = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasWidth, shadowParameters.shadowAtlasWidth));
+            shadowParameters.shadowAtlasHeight = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasHeight, shadowParameters.shadowAtlasHeight));
+            shadowParameters.maxShadowDistance = Mathf.Max(0, EditorGUILayout.FloatField(styles.shadowsMaxShadowDistance, shadowParameters.maxShadowDistance));
+            shadowParameters.directionalLightCascadeCount = EditorGUILayout.IntPopup(styles.shadowsDirectionalLightCascadeCount, shadowParameters.directionalLightCascadeCount, styles.shadowsCascadeCounts, styles.shadowsCascadeCountValues);
+
+            EditorGUI.indentLevel++;
+            for (int i = 0; i < shadowParameters.directionalLightCascadeCount-1; i++)
+            {
+                shadowParameters.directionalLightCascades[i] = Mathf.Max(0, EditorGUILayout.FloatField(shadowParameters.directionalLightCascades[i]));
+            }
+            EditorGUI.indentLevel--;
+            
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(renderLoop); // Repaint
