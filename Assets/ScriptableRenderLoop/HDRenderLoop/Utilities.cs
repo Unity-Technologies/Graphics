@@ -26,29 +26,29 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // Render Target Management.
         public const ClearFlag kClearAll = ClearFlag.ClearDepth | ClearFlag.ClearColor;
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier buffer, string name = "", int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier buffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var cmd = new CommandBuffer();
-            cmd.name = name;
+            cmd.name = "";
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, string name = "", int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, ClearFlag.ClearNone, new Color(0.0f, 0.0f, 0.0f, 0.0f), name, miplevel, cubemapFace);
+            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, ClearFlag.ClearNone, new Color(0.0f, 0.0f, 0.0f, 0.0f), miplevel, cubemapFace);
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, string name = "", int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
-            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, clearFlag, new Color(0.0f, 0.0f, 0.0f, 0.0f), name, miplevel, cubemapFace);
+            SetRenderTarget(renderLoop, colorBuffer, depthBuffer, clearFlag, new Color(0.0f, 0.0f, 0.0f, 0.0f), miplevel, cubemapFace);
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, string name = "", int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var cmd = new CommandBuffer();
-            cmd.name = name;
+            cmd.name = "";
             cmd.SetRenderTarget(colorBuffer, depthBuffer, miplevel, cubemapFace);
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
@@ -56,20 +56,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.Dispose();
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, string name = "")
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer)
         {
-            SetRenderTarget(renderLoop, colorBuffers, depthBuffer, ClearFlag.ClearNone, Color.black, name);
+            SetRenderTarget(renderLoop, colorBuffers, depthBuffer, ClearFlag.ClearNone, Color.black);
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag = ClearFlag.ClearNone, string name = "")
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag = ClearFlag.ClearNone)
         {
-            SetRenderTarget(renderLoop, colorBuffers, depthBuffer, clearFlag, Color.black, name);
+            SetRenderTarget(renderLoop, colorBuffers, depthBuffer, clearFlag, Color.black);
         }
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor, string name = "")
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
             var cmd = new CommandBuffer();
-            cmd.name = name;
+            cmd.name = "";
             cmd.SetRenderTarget(colorBuffers, depthBuffer);
             if (clearFlag != ClearFlag.ClearNone)
                 cmd.ClearRenderTarget((clearFlag & ClearFlag.ClearDepth) != 0, (clearFlag & ClearFlag.ClearColor) != 0, clearColor);
@@ -101,7 +101,56 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 #endif
             }
         }
-		
+
+
+        public class ProfilingSample
+            : IDisposable
+        {
+            bool        disposed = false;
+            RenderLoop  renderLoop;
+            string      name;
+
+            public ProfilingSample(string _name, RenderLoop _renderloop)
+            {
+                renderLoop = _renderloop;
+                name = _name;
+
+                CommandBuffer cmd = new CommandBuffer();
+                cmd.name = "";
+                cmd.BeginSample(name);
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
+
+            ~ProfilingSample()
+            {
+                Dispose(false);
+            }
+
+            public void Dispose()
+            { 
+                Dispose(true);
+            }
+
+            // Protected implementation of Dispose pattern.
+            protected virtual void Dispose(bool disposing)
+            {
+                if (disposed)
+                    return; 
+
+                if (disposing)
+                {
+                    CommandBuffer cmd = new CommandBuffer();
+                    cmd.name = "";
+                    cmd.EndSample(name);
+                    renderLoop.ExecuteCommandBuffer(cmd);
+                    cmd.Dispose();
+                }
+
+                disposed = true;
+            }
+        }
+
         public static Matrix4x4 GetViewProjectionMatrix(Camera camera)
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms

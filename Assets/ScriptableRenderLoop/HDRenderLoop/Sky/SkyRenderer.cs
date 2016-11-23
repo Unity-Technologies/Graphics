@@ -153,7 +153,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_SkyHDRIMaterial.SetTexture("_Cubemap", skyParameters.skyHDRI);
             m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
 
-            var cmd = new CommandBuffer { name = "Skybox" };
+            var cmd = new CommandBuffer { name = "" };
             cmd.DrawMesh(skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
@@ -161,22 +161,29 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public void RenderSky(Camera camera, SkyParameters skyParameters, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
         {
+            using (new Utilities.ProfilingSample("Sky Pass", renderLoop))
+
+            //using (new EditorGUI.DisabledScope(m_LookDevEnvLibrary.hdriList.Count <= 1))
             if (IsSkyValid(skyParameters))
             {
-                // Render sky into a cubemap - doesn't happen every frame, can be control
-                for (int i = 0; i < 6; ++i)
+                using (new Utilities.ProfilingSample("Sky Pass: Render Cubemap", renderLoop))
                 {
-                    Utilities.SetRenderTarget(renderLoop, m_SkyboxCubemapRT, "", 0, (CubemapFace)i);
-                    Camera faceCamera = m_CubemapFaceCamera[i].GetComponent<Camera>();
-                    RenderSky(faceCamera, skyParameters, true, renderLoop);
+                    // Render sky into a cubemap - doesn't happen every frame, can be control
+                    for (int i = 0; i < 6; ++i)
+                    {
+                        Utilities.SetRenderTarget(renderLoop, m_SkyboxCubemapRT, 0, (CubemapFace)i);
+                        Camera faceCamera = m_CubemapFaceCamera[i].GetComponent<Camera>();
+                        RenderSky(faceCamera, skyParameters, true, renderLoop);
+                    }
+
+                    m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
+                    RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                    RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+                    RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
+                    RenderSettings.reflectionIntensity = 1.0f;
+                    //DynamicGI.UpdateEnvironment();
                 }
 
-                m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
-                RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
-                RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
-                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
-                RenderSettings.reflectionIntensity = 1.0f;
-                //DynamicGI.UpdateEnvironment();
 
                 // TODO: do a render to texture here
 
@@ -186,7 +193,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 //m_SkyboxMaterial.SetTexture(cubemap);
 
                 // Render the sky itself
-                Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer, "Sky Pass");
+                Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer);
                 RenderSky(camera, skyParameters, false, renderLoop);
 
             }
