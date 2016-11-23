@@ -185,7 +185,7 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
 float LineFpo(float tLDDL, float lrcpD, float rcpD)
 {
     // Compute: ((l / d) / (d * d + l * l)) + (1.0 / (d * d)) * atan(l / d).
-    return tLDDL + rcpD * rcpD * atan(lrcpD);
+    return tLDDL + (rcpD * rcpD) * atan(lrcpD);
 }
 
 float LineFwt(float tLDDL, float l)
