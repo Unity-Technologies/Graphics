@@ -119,6 +119,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         [SerializeField]
         ShadowSettings m_ShadowSettings = ShadowSettings.Default;
+
+        public ShadowSettings shadowSettings
+        {
+            get { return m_ShadowSettings; }
+        }
+
         ShadowRenderPass m_ShadowPass;
 
 
