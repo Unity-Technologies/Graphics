@@ -257,6 +257,7 @@ float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
     float irradiance = LineIrradiance(l1, l2, P0, T);
 
     // Compute the width factor. We take the absolute value because the points may be swapped.
+    // TODO: consider using an inverse-transpose of 'invM' - potentially faster.
     float width = abs(dot(B, normalize(cross(T, P1))));
 
     // Guard against numerical precision issues.
