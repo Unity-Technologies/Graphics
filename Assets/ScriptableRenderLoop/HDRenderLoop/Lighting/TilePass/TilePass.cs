@@ -673,7 +673,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 var projscr = temp * proj;
                 var invProjscr = projscr.inverse;
 
-                var cmd = new CommandBuffer() { name = "Build light list" };
+                var cmd = new CommandBuffer() { name = "" };
 
                 // generate screen-space AABBs (used for both fptl and clustered).
                 {
