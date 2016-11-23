@@ -41,6 +41,12 @@ public class BasicRenderLoop : MonoBehaviour
             // per-camera built-in shader variables).
             loop.SetupCameraProperties (camera);
 
+            // clear depth buffer
+            var cmd = new CommandBuffer();
+            cmd.ClearRenderTarget(true, false, Color.black);
+            loop.ExecuteCommandBuffer(cmd);
+            cmd.Release();
+
             // Setup global lighting shader variables
             SetupLightShaderVariables (cull.visibleLights, loop);
 
