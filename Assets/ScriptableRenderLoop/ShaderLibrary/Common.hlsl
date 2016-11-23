@@ -297,7 +297,7 @@ struct Coordinate
     // Normalize coordinates
     float2  positionSS;
     // Unormalize coordinates
-    int2    unPositionSS;
+    uint2    unPositionSS;
 };
 
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
@@ -314,7 +314,7 @@ Coordinate GetCoordinate(float2 unPositionSS, float2 invScreenSize)
 #endif
     coord.positionSS *= invScreenSize;
 
-    coord.unPositionSS = int2(unPositionSS);
+    coord.unPositionSS = uint2(unPositionSS);
 
     return coord;
 }

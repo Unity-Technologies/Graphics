@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             string GetKeyword()
             {
-                return "LIGHTLOOP_SINGLE_PASS";
+                return "LIGHTLOOP_TILE_PASS";
             }
 
             public const int MaxNumLights = 1024;
@@ -121,8 +121,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             private static ComputeBuffer s_GlobalLightListAtomic;
             // clustered light list specific buffers and data end
 
-            const int k_TileSize = 16;
-
             SFiniteLightBound[] m_boundData;
             SFiniteLightData[] m_lightData;
             int m_lightCount;
@@ -148,6 +146,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             Material m_DeferredMaterial;
             Material m_DeferredReflectionMaterial;
+
+            const int k_TileSize = 16;
+
+            int GetNumTileX(Camera camera)
+            {
+                return (camera.pixelWidth + (k_TileSize - 1)) / k_TileSize;
+            }
+
+            int GetNumTileY(Camera camera)
+            {
+                return (camera.pixelWidth + (k_TileSize - 1)) / k_TileSize;
+            }
 
             // Local function
             void ClearComputeBuffers()
@@ -239,8 +249,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_EnvLightList = new ComputeBuffer(HDRenderLoop.k_MaxEnvLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 s_PunctualShadowList = new ComputeBuffer(HDRenderLoop.k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
 
-      //          m_DeferredMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/TileDeferred");
-       //         m_DeferredReflectionMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/TileDeferredReflection");
+                m_DeferredMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+                m_DeferredMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredMaterial.EnableKeyword("LIGHTLOOP_TILE_DIRECT");
+                
+                m_DeferredReflectionMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+                m_DeferredReflectionMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredReflectionMaterial.EnableKeyword("LIGHTLOOP_TILE_INDIRECT");
             }
 
             public void OnDisable()
@@ -269,10 +284,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_EnvLightList = null;
                 s_PunctualShadowList.Release();
                 s_PunctualShadowList = null;
-/*
+
                 Utilities.Destroy(m_DeferredMaterial);
                 Utilities.Destroy(m_DeferredReflectionMaterial);
-*/
             }
 
             public bool NeedResize()
@@ -337,43 +351,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     var nrBigTiles = nrBigTilesX * nrBigTilesY;
                     s_BigTileLightList = new ComputeBuffer(LightDefinitions.MAX_NR_BIGTILE_LIGHTS_PLUSONE * nrBigTiles, sizeof(uint));
                 }
-            }
-
-            // TEMP: These functions should be implemented C++ side, for now do it in C#
-            private static void SetMatrixCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4 mat)
-            {
-                var data = new float[16];
-
-                for (int c = 0; c < 4; c++)
-                    for (int r = 0; r < 4; r++)
-                        data[4 * c + r] = mat[r, c];
-
-                cmd.SetComputeFloatParams(shadercs, name, data);
-            }
-
-            private static void SetMatrixArrayCS(CommandBuffer cmd, ComputeShader shadercs, string name, Matrix4x4[] matArray)
-            {
-                int numMatrices = matArray.Length;
-                var data = new float[numMatrices * 16];
-
-                for (int n = 0; n < numMatrices; n++)
-                    for (int c = 0; c < 4; c++)
-                        for (int r = 0; r < 4; r++)
-                            data[16 * n + 4 * c + r] = matArray[n][r, c];
-
-                cmd.SetComputeFloatParams(shadercs, name, data);
-            }
-
-            private static void SetVectorArrayCS(CommandBuffer cmd, ComputeShader shadercs, string name, Vector4[] vecArray)
-            {
-                int numVectors = vecArray.Length;
-                var data = new float[numVectors * 4];
-
-                for (int n = 0; n < numVectors; n++)
-                    for (int i = 0; i < 4; i++)
-                        data[4 * n + i] = vecArray[n][i];
-
-                cmd.SetComputeFloatParams(shadercs, name, data);
             }
 
             static Matrix4x4 GetFlipMatrix()
@@ -617,8 +594,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
                 cmd.SetComputeIntParam(buildPerVoxelLightListShader, "g_iNrVisibLights", m_lightCount);
-                SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mScrProjection", projscr);
-                SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mInvScrProjection", invProjscr);
+                Utilities.SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mScrProjection", projscr);
+                Utilities.SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mInvScrProjection", invProjscr);
 
                 cmd.SetComputeIntParam(buildPerVoxelLightListShader, "g_iLog2NumClusters", k_Log2NumClusters);
 
@@ -649,8 +626,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_logBaseBuffer", s_PerTileLogBaseTweak);
                 }
 
-                var numTilesX = (camera.pixelWidth + 15) / 16;
-                var numTilesY = (camera.pixelHeight + 15) / 16;
+                var numTilesX = GetNumTileX(camera);
+                var numTilesY = GetNumTileY(camera);
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
             }
 
@@ -658,8 +635,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 var w = camera.pixelWidth;
                 var h = camera.pixelHeight;
-                var numTilesX = (w + 15) / 16;
-                var numTilesY = (h + 15) / 16;
+                var numTilesX = GetNumTileX(camera);
+                var numTilesY = GetNumTileY(camera);
                 var numBigTilesX = (w + 63) / 64;
                 var numBigTilesY = (h + 63) / 64;
 
@@ -685,8 +662,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     var invProjh = projh.inverse;
 
                     cmd.SetComputeIntParam(buildScreenAABBShader, "g_iNrVisibLights", m_lightCount);
-                    SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
-                    SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
+                    Utilities.SetMatrixCS(cmd, buildScreenAABBShader, "g_mProjection", projh);
+                    Utilities.SetMatrixCS(cmd, buildScreenAABBShader, "g_mInvProjection", invProjh);
                     cmd.SetComputeBufferParam(buildScreenAABBShader, s_GenAABBKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
                     cmd.DispatchCompute(buildScreenAABBShader, s_GenAABBKernel, (m_lightCount + 7) / 8, 1, 1);
                 }
@@ -696,20 +673,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     cmd.SetComputeIntParams(buildPerBigTileLightListShader, "g_viDimensions", new int[2] { w, h });
                     cmd.SetComputeIntParam(buildPerBigTileLightListShader, "g_iNrVisibLights", m_lightCount);
-                    SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mScrProjection", projscr);
-                    SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mInvScrProjection", invProjscr);
+                    Utilities.SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mScrProjection", projscr);
+                    Utilities.SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mInvScrProjection", invProjscr);
                     cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fNearPlane", camera.nearClipPlane);
                     cmd.SetComputeFloatParam(buildPerBigTileLightListShader, "g_fFarPlane", camera.farClipPlane);
                     cmd.SetComputeBufferParam(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, "g_vLightList", s_BigTileLightList);
                     cmd.DispatchCompute(buildPerBigTileLightListShader, s_GenListPerBigTileKernel, numBigTilesX, numBigTilesY, 1);
                 }
-/*
+
                 if (usingFptl)       // optimized for opaques only
                 {
                     cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
                     cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", m_lightCount);
-                    SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
-                    SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
+                    Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
+                    Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
                     cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(cameraDepthBuffer));
                     cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
                     if (enableBigTilePrepass) cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
@@ -720,7 +697,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBuffer);
                 }
-                */
+
                 loop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }
@@ -741,10 +718,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Shader.SetGlobalBuffer("_AreaLightList", s_AreaLightList);
                 Shader.SetGlobalBuffer("_PunctualShadowList", s_PunctualShadowList);
                 Shader.SetGlobalBuffer("_EnvLightList", s_EnvLightList);
- 
+
                 Shader.SetGlobalVectorArray("_DirShadowSplitSpheres", lightList.directionalShadowSplitSphereSqr);
 
-                /*
+                var cmd = new CommandBuffer { name = "Push Global Parameters" };
+
+                cmd.SetGlobalFloat("_NumTileX", (float)GetNumTileX(camera));
+                cmd.SetGlobalFloat("_NumTileY", (float)GetNumTileY(camera));
+
                 if (enableBigTilePrepass)
                     cmd.SetGlobalBuffer("g_vBigTileLightList", s_BigTileLightList);
 
@@ -766,17 +747,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     }
                 }
 
-                cmd.SetGlobalFloat("g_nNumDirLights", numDirLights);
-                cmd.SetGlobalBuffer("g_dirLightData", s_DirLightList);
-
                 loop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
-                */
             }
 
             public void RenderDeferredLighting(Camera camera, RenderLoop renderLoop, RenderTargetIdentifier colorBuffer)
             {
-                /*
                 var bUseClusteredForDeferred = !usingFptl;       // doesn't work on reflections yet but will soon
                 var cmd = new CommandBuffer();
 
@@ -887,12 +863,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
                 else
                 {*/
-            //        cmd.Blit(0, colorBuffer, m_DeferredMaterial, 0);
-              //      cmd.Blit(0, colorBuffer, m_DeferredReflectionMaterial, 0);
+                    cmd.Blit(0, colorBuffer, m_DeferredMaterial, 0);
+                    cmd.Blit(0, colorBuffer, m_DeferredReflectionMaterial, 0);
                 //}
 
-               // renderLoop.ExecuteCommandBuffer(cmd);
-               // cmd.Dispose();
+                renderLoop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
             }
         }
     }

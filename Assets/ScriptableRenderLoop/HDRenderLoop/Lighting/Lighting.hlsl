@@ -18,8 +18,10 @@
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/LightDefinition.cs.hlsl"
 
-#ifdef LIGHTLOOP_SINGLE_PASS 
+#ifdef LIGHTLOOP_SINGLE_PASS
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/SinglePass/SinglePass.hlsl"
+#elif  LIGHTLOOP_TILED_PASS
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/TilePass/TilePass.hlsl"
 #endif
 
 // Shadow use samling function define in header above and must be include before Material.hlsl
@@ -29,6 +31,8 @@
 // LightLoop use evaluation BSDF function for light type define in Material.hlsl
 #ifdef LIGHTLOOP_SINGLE_PASS 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/SinglePass/SinglePassLoop.hlsl"
+#elif  LIGHTLOOP_TILED_PASS
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/TilePass/TilePassLoop.hlsl"
 #endif
 
 
