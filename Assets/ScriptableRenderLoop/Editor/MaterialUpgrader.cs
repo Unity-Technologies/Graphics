@@ -45,10 +45,14 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 		// Overridable function to implement custom material upgrading functionality
 		public virtual void Convert(Material srcMaterial, Material dstMaterial)
 		{
-			foreach (var t in m_TextureRename)
-				dstMaterial.SetTexture (t.Value, srcMaterial.GetTexture (t.Key));
+		    foreach (var t in m_TextureRename)
+		    {
+		        dstMaterial.SetTextureScale(t.Value, srcMaterial.GetTextureScale(t.Key));
+		        dstMaterial.SetTextureOffset(t.Value, srcMaterial.GetTextureOffset(t.Key));
+		        dstMaterial.SetTexture(t.Value, srcMaterial.GetTexture(t.Key));
+		    }
 
-			foreach (var t in m_FloatRename)
+		    foreach (var t in m_FloatRename)
 				dstMaterial.SetFloat (t.Value, srcMaterial.GetFloat(t.Key));
 
 			foreach (var t in m_ColorRename)
@@ -126,7 +130,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 					Material m = UnityEditor.AssetDatabase.LoadMainAssetAtPath( path ) as Material;
 					Upgrade (m, upgraders, UpgradeFlags.None);
 
-					SaveAssetsAndFreeMemory();
+					//SaveAssetsAndFreeMemory();
 				}
 			}
 
