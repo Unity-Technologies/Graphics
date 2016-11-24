@@ -10,8 +10,8 @@ namespace UnityEngine.MaterialGraph
     [Title("Input/World Normal Node")]
     public class WorldSpaceNormalNode : AbstractMaterialNode, IMayRequireNormal
     {
-        private const int kOutputSlotId = 0;
-        private const string kOutputSlotName = "Normal";
+        public const int kOutputSlotId = 0;
+        public const string kOutputSlotName = "Normal";
 
         public WorldSpaceNormalNode()
         {
