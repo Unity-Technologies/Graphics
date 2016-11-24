@@ -87,6 +87,19 @@ float3 blendNormal(float3 n1, float3 n2)
     return normalize(float3(n1.xy * n2.z + n2.xy * n1.z, n1.z * n2.z));
 }
 
+// Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch01.html
+float3 ComputeTriplanarWeights(float3 normal)
+{ 
+    // Determine the blend weights for the 3 planar projections.  
+    // N_orig is the vertex-interpolated normal vector.  
+    float3 blendWeights = abs(normal);
+    // Tighten up the blending zone
+    blendWeights = (blendWeights - 0.2) * 7.0;
+    // Force weights to sum to 1.0 (very important!)  
+    blendWeights = max(blendWeights, float3(0.0, 0.0, 0.0));
+    blendWeights /= dot(blendWeights.x, 1.0);
 
+    return blendWeights;
+}
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED
