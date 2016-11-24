@@ -109,6 +109,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     };
 
     [GenerateHLSL]
+    public enum EnvConstants
+    {
+        SpecCubeLodStep = 6
+    }
+
+
+    [GenerateHLSL]
     public struct EnvLightData
     {
         public Vector3 positionWS;
