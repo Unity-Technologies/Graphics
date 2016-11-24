@@ -5,16 +5,22 @@ using UnityEngine.RMGUI;
 
 namespace UnityEditor.Graphing.Drawing
 {
+    public enum ClickerState
+    {
+        Inactive,
+        Active
+    }
+
     public class Clicker : MouseManipulator
     {
-
-        public delegate void StateChangeCallback();
+        public delegate void StateChangeCallback(ClickerState newState);
         public delegate void ClickCallback();
 
+        public StateChangeCallback onStateChange { get; set; }
         public ClickCallback onClick { get; set; }
 
         VisualElement initialTarget;
-        bool withinInitialTarget;
+        ClickerState state;
 
         public override EventPropagation HandleEvent(Event evt, VisualElement finalTarget)
         {
@@ -25,23 +31,41 @@ namespace UnityEditor.Graphing.Drawing
                     {
                         this.TakeCapture();
                         initialTarget = finalTarget;
+                        UpdateState(evt);
                     }
+                    break;
+
+                case EventType.mouseDrag:
+                    UpdateState(evt);
                     break;
 
                 case EventType.MouseUp:
                     if (CanStopManipulation(evt))
                     {
                         this.ReleaseCapture();
-                        withinInitialTarget = initialTarget != null && initialTarget.ContainsPoint(evt.mousePosition);
-                        if (withinInitialTarget && onClick != null)
-                        {
+                        // withinInitialTarget = initialTarget != null && initialTarget.ContainsPoint(evt.mousePosition);
+                        if (initialTarget != null && state == ClickerState.Active && onClick != null)
                             onClick();
-                        }
+                        initialTarget = null;
+                        UpdateState(evt);
                     }
                     break;
 
             }
             return this.HasCapture() ? EventPropagation.Stop : EventPropagation.Continue;
+        }
+
+        void UpdateState(Event evt)
+        {
+            ClickerState newState;
+            if (initialTarget != null && initialTarget.ContainsPoint(evt.mousePosition))
+                newState = ClickerState.Active;
+            else
+                newState = ClickerState.Inactive;
+            
+            if (onStateChange != null && state != newState)
+                onStateChange(newState);
+            state = newState;
         }
     }
 }

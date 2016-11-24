@@ -31,6 +31,7 @@ namespace UnityEditor.Graphing.Drawing
 
             m_clicker = new Clicker();
             m_clicker.onClick += OnClick;
+            m_clicker.onStateChange += OnClickStateChanged;
             AddManipulator(m_clicker);
 
             AddChild(new VisualElement() { classList = new ClassList("titleBarItemBorder") });
@@ -61,6 +62,14 @@ namespace UnityEditor.Graphing.Drawing
                 m_dataProvider.onClick();
         }
 
+        void OnClickStateChanged(ClickerState newState)
+        {
+            if (newState == ClickerState.Active)
+                AddToClassList("active");
+            else if (newState == ClickerState.Inactive)
+                RemoveFromClassList("active");
+            this.Touch(ChangeType.Repaint);
+        }
 
         protected override object toWatch
         {

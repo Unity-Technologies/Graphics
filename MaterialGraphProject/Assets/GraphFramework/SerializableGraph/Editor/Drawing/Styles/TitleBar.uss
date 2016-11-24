@@ -28,6 +28,10 @@
     flex-direction: row;
 }
 
+.titleBarItem.active {
+    background-color: rgba(33, 33, 33, 0.5);
+}
+
 #left .titleBarItem {
     margin-left: 5;
 }
