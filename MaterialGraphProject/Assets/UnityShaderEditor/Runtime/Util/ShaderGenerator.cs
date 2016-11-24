@@ -57,6 +57,9 @@ namespace UnityEngine.MaterialGraph
 
         public void AddShaderChunk(string s, bool unique)
         {
+            if (string.IsNullOrEmpty(s))
+                return;
+
             if (unique && m_ShaderChunks.Any(x => x.chunkString == s))
                 return;
 
