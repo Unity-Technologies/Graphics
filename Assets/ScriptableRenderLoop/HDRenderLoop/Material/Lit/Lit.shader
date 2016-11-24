@@ -171,15 +171,6 @@ Shader "HDRenderLoop/Lit"
     TEXTURE2D(_AnisotropyMap);
     SAMPLER2D(sampler_AnisotropyMap);
 
-    TEXTURE2D(_DiffuseLightingMap);
-    SAMPLER2D(sampler_DiffuseLightingMap);
-
-    float3 _EmissiveColor;
-    TEXTURE2D(_EmissiveColorMap);
-    SAMPLER2D(sampler_EmissiveColorMap);
-
-    float _EmissiveIntensity;
-
     float _SubSurfaceRadius;
     TEXTURE2D(_SubSurfaceRadiusMap);
     SAMPLER2D(sampler_SubSurfaceRadiusMap);
@@ -195,6 +186,15 @@ Shader "HDRenderLoop/Lit"
     // float _CoatRoughness;
     //TEXTURE2D(_CoatRoughnessMap);
     //SAMPLER2D(sampler_CoatRoughnessMap);
+
+    TEXTURE2D(_DiffuseLightingMap);
+    SAMPLER2D(sampler_DiffuseLightingMap);
+
+    float3 _EmissiveColor;
+    TEXTURE2D(_EmissiveColorMap);
+    SAMPLER2D(sampler_EmissiveColorMap);
+
+    float _EmissiveIntensity;
  
     float _AlphaCutoff;
 
