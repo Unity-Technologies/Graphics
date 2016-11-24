@@ -50,7 +50,7 @@ namespace UnityEditor.Graphing.Drawing
             var source = CreateDataSource();
             source.Initialize(m_LastSelection);
 
-			m_TitleBarDrawer = new TitleBarDrawer(source.titleBar);
+            m_TitleBarDrawer = new TitleBarDrawer(source.titleBar);
             m_GraphView.dataSource = source;
 
             rootVisualContainer.AddChild(m_TitleBarDrawer);
@@ -87,7 +87,7 @@ namespace UnityEditor.Graphing.Drawing
                     var source = CreateDataSource();
                     source.Initialize(m_LastSelection);
                     m_GraphView.dataSource = source;
-					m_TitleBarDrawer.dataProvider = source.titleBar;
+                    m_TitleBarDrawer.dataProvider = source.titleBar;
 
                     m_GraphView.StretchToParentSize();
                     Repaint();
