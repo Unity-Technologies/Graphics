@@ -7,7 +7,7 @@ using System;
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [System.Serializable]
-    public struct ShadowSettings
+    public class ShadowSettings
     {
         public bool     enabled;
         public int      shadowAtlasWidth;
@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             get
             {
-                ShadowSettings settings;
+                ShadowSettings settings = new ShadowSettings();
                 settings.enabled = true;
                 settings.shadowAtlasHeight = settings.shadowAtlasWidth = 4096;
                 settings.directionalLightCascadeCount = 1;
