@@ -834,7 +834,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     P2 = mul(P2, transpose(basis));
 
     // Compute the binormal.
-    float3 B = normalize(cross(P2 - P1, P1));
+    float3 B = normalize(cross(P1, P2));
 
     float ltcValue;
 
