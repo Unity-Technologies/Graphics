@@ -8,7 +8,8 @@
 #define ATMOSPHERICS_DBG_RAYLEIGH               4
 #define ATMOSPHERICS_DBG_MIE                    5
 #define ATMOSPHERICS_DBG_HEIGHT                 6
-uniform int _AtmosphericsDebugMode;
+
+uniform int         _AtmosphericsDebugMode;
 
 uniform float3      _SunDirection;
 
@@ -16,10 +17,9 @@ uniform float       _ShadowBias;
 uniform float       _ShadowBiasIndirect;
 uniform float       _ShadowBiasClouds;
 uniform float       _OcclusionDepthThreshold;
-TEXTURE2D(_OcclusionTexture);
 uniform float4      _OcclusionTexture_TexelSize;
+
 uniform float4      _DepthTextureScaledTexelSize;
-uniform sampler2D   _CameraDepthTexture;
 
 uniform float       _WorldScaleExponent;
 uniform float       _WorldNormalDistanceRcp;
@@ -38,7 +38,7 @@ uniform float3      _MieColorM20;
 uniform float3      _MieColorO00;
 uniform float3      _MieColorP20;
 uniform float3      _MieColorP45;
-        
+
 uniform float       _HeightNormalDistanceRcp;
 uniform float       _HeightNearScatterPush;
 uniform float       _HeightRayleighDensity;
@@ -61,13 +61,19 @@ uniform float       _MieExtinctionFactor;
 
 uniform float4      _HeightRayleighColor;
 
+SAMPLER2D(sampler_CameraDepthTexture)
+#define SRL_BilinearSampler sampler_CameraDepthTexture // Used for all textures
+
+TEXTURE2D(_CameraDepthTexture);
+TEXTURE2D(_OcclusionTexture);
+
 float HenyeyGreensteinPhase(float g, float cosTheta) {
     float gSqr = g * g;
     float a1 = (1.f - gSqr);
     float a2 = (2.f + gSqr);
     float b1 = 1.f + cosTheta * cosTheta;
     float b2 = pow(1.f + gSqr - 2.f * g * cosTheta, 1.5f);
-    return (a1 / a2) * (b1 / b2); 
+    return (a1 / a2) * (b1 / b2);
 }
 
 float RayleighPhase(float cosTheta) {
@@ -102,7 +108,7 @@ void VolundTransferScatter(float3 worldPos, out float4 coords1, out float4 coord
     const float3 worldDir = worldVec / worldVecLen;
 
     const float3 worldDirUnscaled = normalize(worldPos - _WorldSpaceCameraPos.xyz);
-        
+
     const float viewSunCos = dot(worldDirUnscaled, _SunDirection);
     const float rayleighPh = min(1.f, RayleighPhase(viewSunCos) * 12.f);
     const float miePh = MiePhase(viewSunCos, _MiePhaseAnisotropy);
@@ -110,13 +116,13 @@ void VolundTransferScatter(float3 worldPos, out float4 coords1, out float4 coord
     const float angle20 = 0.324f / 1.5f;
     const float angle10 = 0.174f / 1.5f;
     const float angleY = worldDir.y * saturate(worldVecLen / 250.0);
-    
+
     float3 rayleighColor;
     if(angleY >= angle10) rayleighColor = lerp(_RayleighColorP10, _RayleighColorP20, saturate((angleY - angle10) / (angle20 - angle10)));
     else if(angleY >= 0.f) rayleighColor = lerp(_RayleighColorO00, _RayleighColorP10, angleY / angle10);
     else if(angleY >= -angle10) rayleighColor = lerp(_RayleighColorM10, _RayleighColorO00, (angleY + angle10) / angle10);
     else rayleighColor = lerp(_RayleighColorM20, _RayleighColorM10, saturate((angleY + angle20) / (angle20 - angle10)));
-    
+
     float3 mieColor;
     if(angleY >= 0.f) mieColor = lerp(_MieColorO00, _MieColorP20, saturate(angleY / angle20));
     else mieColor = lerp(_MieColorM20, _MieColorO00, saturate((angleY + angle20) / angle20));
@@ -143,7 +149,7 @@ void VolundTransferScatter(float3 worldPos, out float4 coords1, out float4 coord
 
     rayleighColor = lerp(Luminance(rayleighColor).rrr, rayleighColor, saturate(pushedDistance * _WorldNormalDistanceRcp));
     float3 heightRayleighColor = lerp(Luminance(_HeightRayleighColor.xyz).rrr, _HeightRayleighColor.xyz, saturate(pushedHeightDistance * _HeightNormalDistanceRcp));
-    
+
     coords1.rgb = rayleighScatter * rayleighColor;
     coords1.a = rayleighScatter;
 
@@ -157,7 +163,7 @@ void VolundTransferScatter(float3 worldPos, out float4 coords1, out float4 coord
 void VolundTransferScatter(float3 scaledWorldPos, out float4 coords1) {
      float4 c1, c2, c3;
      VolundTransferScatter(scaledWorldPos, c1, c2, c3);
-     
+
 #ifdef IS_RENDERING_SKY
     coords1.rgb = c3.rgb;
     coords1.a = max(0.f, 1.f - c3.a * _HeightExtinctionFactor);
@@ -181,11 +187,7 @@ void VolundTransferScatter(float3 scaledWorldPos, out float4 coords1) {
 }
 
 float2 UVFromPos(float2 pos) {
-#if defined(UNITY_PASS_FORWARDBASE)
-    return pos;
-#else
     return pos / _ScreenParams.xy;
-#endif
 }
 
 float3 VolundApplyScatter(float4 coords1, float2 pos, float3 color) {
@@ -208,13 +210,13 @@ float3 VolundApplyScatterAdd(float coords1, float3 color) {
 void VolundTransferScatterOcclusion(float3 scaledWorldPos, out float4 coords1, out float3 coords2) {
      float4 c1, c2, c3;
      VolundTransferScatter(scaledWorldPos, c1, c2, c3);
-     
+
     coords1.rgb = c1.rgb * _RayleighInScatterPct.x;
     coords1.a = max(0.f, 1.f - c1.a * _RayleighExtinctionFactor - c3.a * _HeightExtinctionFactor);
 
     coords1.rgb += c2.rgb;
     coords1.a *= max(0.f, 1.f - c2.a * _MieExtinctionFactor);
-    
+
     coords2.rgb = c3.rgb + c1.rgb * _RayleighInScatterPct.y;
 
 #ifdef ATMOSPHERICS_DEBUG
@@ -232,40 +234,37 @@ inline float4 LinearEyeDepth4(float4 z) { return float4(1.0, 1.0, 1.0, 1.0) / (_
 float VolundSampleScatterOcclusion(float2 pos) {
 #if defined(ATMOSPHERICS_OCCLUSION)
     float2 uv = UVFromPos(pos);
-#if defined(ATMOSPHERICS_OCCLUSION_EDGE_FIXUP) && defined(SHADER_API_D3D11) && SHADER_TARGET > 40
+#if defined(ATMOSPHERICS_OCCLUSION_EDGE_FIXUP)
     float4 baseUV = float4(uv.x, uv.y, 0.f, 0.f);
 
-    float cDepth = SAMPLE_DEPTH_TEXTURE_LOD(_CameraDepthTexture, baseUV);
+    float cDepth = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV, 0.f).r;
     cDepth = LinearEyeDepth(cDepth);
 
     float4 xDepth;
-    baseUV.xy = uv + _DepthTextureScaledTexelSize.zy; xDepth.x = SAMPLE_DEPTH_TEXTURE_LOD(_CameraDepthTexture, baseUV);
-    baseUV.xy = uv + _DepthTextureScaledTexelSize.xy; xDepth.y = SAMPLE_DEPTH_TEXTURE_LOD(_CameraDepthTexture, baseUV);
-    baseUV.xy = uv + _DepthTextureScaledTexelSize.xw; xDepth.z = SAMPLE_DEPTH_TEXTURE_LOD(_CameraDepthTexture, baseUV);
-    baseUV.xy = uv + _DepthTextureScaledTexelSize.zw; xDepth.w = SAMPLE_DEPTH_TEXTURE_LOD(_CameraDepthTexture, baseUV);
-    
+    baseUV.xy = uv + _DepthTextureScaledTexelSize.zy; xDepth.x = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
+    baseUV.xy = uv + _DepthTextureScaledTexelSize.xy; xDepth.y = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
+    baseUV.xy = uv + _DepthTextureScaledTexelSize.xw; xDepth.z = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
+    baseUV.xy = uv + _DepthTextureScaledTexelSize.zw; xDepth.w = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
+
     xDepth = LinearEyeDepth4(xDepth);
-        
+
     float4 diffDepth = xDepth - cDepth.rrrr;
     float4 maskDepth = abs(diffDepth) < _OcclusionDepthThreshold;
     float maskWeight = dot(maskDepth, maskDepth);
-    
+
     UNITY_BRANCH
     if(maskWeight == 4.f || maskWeight == 0.f) {
-        return _OcclusionTexture.SampleLevel(sampler_OcclusionTexture, uv, 0.f);
+        return SAMPLE_TEXTURE2D_LOD(_OcclusionTexture, SRL_BilinearSampler, uv, 0.f).r;
     } else {
-        float4 occ = _OcclusionTexture.Gather(sampler_OcclusionTexture, uv);
-        
+        float4 occ = GATHER_TEXTURE2D(_OcclusionTexture, SRL_BilinearSampler, uv);
+
         float4 fWeights;
         fWeights.xy = frac(uv * _OcclusionTexture_TexelSize.zw - 0.5f);
         fWeights.zw = float2(1.f, 1.f) - fWeights.xy;
-        
+
         float4 mfWeights = float4(fWeights.z * fWeights.y, fWeights.x * fWeights.y, fWeights.x * fWeights.w, fWeights.z * fWeights.w);
         return dot(occ, mfWeights * maskDepth) / dot(mfWeights, maskDepth);
     }
-#else
-    return UNITY_SAMPLE_TEX2D(_OcclusionTexture, uv).r;
-#endif
 #else //defined(ATMOSPHERICS_OCCLUSION)
     return 1.f;
 #endif //defined(ATMOSPHERICS_OCCLUSION)
@@ -273,7 +272,7 @@ float VolundSampleScatterOcclusion(float2 pos) {
 
 float3 VolundApplyScatterOcclusion(float4 coords1, float3 coords2, float2 pos, float3 color) {
     float occlusion = VolundSampleScatterOcclusion(pos);
-    
+
 #ifdef ATMOSPHERICS_DEBUG
     if(_AtmosphericsDebugMode == ATMOSPHERICS_DBG_SCATTERING)
         return coords1.rgb + coords2.rgb;
@@ -322,7 +321,7 @@ float4 VolundApplyCloudScatterOcclusion(float4 coords1, float3 coords2, float2 p
 #endif
 
     color.rgb = color.rgb * coords1.a + coords1.rgb * min(1.f, occlusion + _ShadowBias) + coords2.rgb * min(1.f, occlusion + _ShadowBiasIndirect);
-    
+
     float cloudOcclusion = min(1.f, occlusion + _ShadowBiasClouds);
     color.a *= cloudOcclusion;
 
@@ -351,55 +350,6 @@ float4 VolundApplyCloudScatterOcclusion(float4 coords1, float3 coords2, float2 p
         #define VOLUND_TRANSFER_SCATTER(pos, o) VolundTransferScatter(pos, o.scatterCoords1)
         #define VOLUND_APPLY_SCATTER(i, color) color = VolundApplyScatter(i.scatterCoords1, i.pos.xy, color)
         #define VOLUND_CLOUD_SCATTER(i, color) color = VolundApplyCloudScatter(i.scatterCoords1, color)
-    #endif
-#endif
-
-// Surface shader macros (specifically do nothing for deferred as that needs post-support)
-#if defined(ATMOSPHERICS)
-    #if defined(UNITY_PASS_FORWARDBASE) && defined(ATMOSPHERICS_OCCLUSION)
-        #define SURFACE_SCATTER_COORDS              float3 scaledWorldPos; float4 scatterCoords1; float3 scatterCoords2;
-        #define SURFACE_SCATTER_TRANSFER(pos, o)    VolundTransferScatterOcclusion(pos, o.scatterCoords1, o.scatterCoords2)
-                                                    /* we can't fit screenPos interpolator, so calculate per-pixel. if only we had vpos available.. */
-        #define SURFACE_SCATTER_APPLY(i, color)     { \
-                                                        float4 scatterPos = ComputeScreenPos(mul(UNITY_MATRIX_VP, float4(i.scaledWorldPos, 1.f))); \
-                                                        color = VolundApplyScatterOcclusion(i.scatterCoords1, i.scatterCoords2, scatterPos.xy / scatterPos.w, color); \
-                                                    }
-    #elif defined(UNITY_PASS_FORWARDBASE)
-        #define SURFACE_SCATTER_COORDS              float3 scaledWorldPos; float4 scatterCoords1; float scatterCoords2;
-        #define SURFACE_SCATTER_TRANSFER(pos, o)    VolundTransferScatter(pos, o.scatterCoords1)
-        #define SURFACE_SCATTER_APPLY(i, color)     { \
-                                                        float4 scatterPos = ComputeScreenPos(mul(UNITY_MATRIX_VP, float4(i.scaledWorldPos, 1.f))); \
-                                                        color = VolundApplyScatter(i.scatterCoords1, scatterPos.xy / scatterPos.w, color); \
-                                                    }
-    #elif defined(UNITY_PASS_FORWARDADD)
-        #define SURFACE_SCATTER_COORDS              float3 scaledWorldPos; float scatterCoords1; float scatterCoords2;
-        #define SURFACE_SCATTER_TRANSFER(pos, o)    { float4 scatterCoords; VolundTransferScatter(pos, scatterCoords); o.scatterCoords1 = scatterCoords.a; }
-        #define SURFACE_SCATTER_APPLY(i, color)     color = VolundApplyScatterAdd(i.scatterCoords1, color)
-    #endif
-#elif defined(ATMOSPHERICS_PER_PIXEL)
-    #if defined(UNITY_PASS_FORWARDBASE) && defined(ATMOSPHERICS_OCCLUSION)
-        #define SURFACE_SCATTER_COORDS              float3 scaledWorldPos; float scatterCoords1; float scatterCoords2;
-        #define SURFACE_SCATTER_TRANSFER(pos, o)
-        #define SURFACE_SCATTER_APPLY(i, color)     { \
-                                                        float4 scatterPos = ComputeScreenPos(mul(UNITY_MATRIX_VP, float4(i.scaledWorldPos, 1.f))); \
-                                                        float4 scatterCoords1; float3 scatterCoords2; VolundTransferScatterOcclusion(i.scaledWorldPos, scatterCoords1, scatterCoords2); \
-                                                        color = VolundApplyScatterOcclusion(scatterCoords1, scatterCoords2, scatterPos.xy / scatterPos.w, color); \
-                                                    }
-    #elif defined(UNITY_PASS_FORWARDBASE)
-        #define SURFACE_SCATTER_COORDS              float3 scaledWorldPos; float scatterCoords1; float scatterCoords2;
-        #define SURFACE_SCATTER_TRANSFER(pos, o)
-        #define SURFACE_SCATTER_APPLY(i, color)     { \
-                                                        float4 scatterCoords1; VolundTransferScatter(i.scaledWorldPos, scatterCoords1); \
-                                                        float4 scatterPos = ComputeScreenPos(mul(UNITY_MATRIX_VP, float4(i.scaledWorldPos, 1.f))); \
-                                                        color = VolundApplyScatter(scatterCoords1, scatterPos.xy / scatterPos.w, color); \
-                                                    }
-    #elif defined(UNITY_PASS_FORWARDADD)
-        #define SURFACE_SCATTER_COORDS              float3 scaledWorldPos; float scatterCoords1; float scatterCoords2;
-        #define SURFACE_SCATTER_TRANSFER(pos, o)
-        #define SURFACE_SCATTER_APPLY(i, color)     { \
-                                                        float4 scatterCoords1; VolundTransferScatter(i.scaledWorldPos, scatterCoords1); \
-                                                        color = VolundApplyScatterAdd(scatterCoords1.a, color); \
-                                                    }
     #endif
 #endif
 
