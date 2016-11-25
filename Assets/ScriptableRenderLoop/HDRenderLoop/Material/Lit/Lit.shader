@@ -16,12 +16,10 @@ Shader "HDRenderLoop/Lit"
         _SpecularOcclusionMap("SpecularOcclusion", 2D) = "white" {}
 
         _NormalMap("NormalMap", 2D) = "bump" {}
-        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
 
         _HeightMap("HeightMap", 2D) = "black" {}
         _HeightScale("Height Scale", Float) = 1
         _HeightBias("Height Bias", Float) = 0
-        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
 
         _TangentMap("TangentMap", 2D) = "bump" {}
         _Anisotropy("Anisotropy", Range(0.0, 1.0)) = 0
@@ -33,8 +31,7 @@ Shader "HDRenderLoop/Lit"
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 1
         _DetailHeightScale("_DetailHeightScale", Range(-2.0, 2.0)) = 1
-        _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1
-        [Enum(UV0, 0, UV1, 1)] _UVDetail("UV Set for detailMap", Float) = 0
+        _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1        
 
         _SubSurfaceRadius("SubSurfaceRadius", Range(0.0, 1.0)) = 0
         _SubSurfaceRadiusMap("SubSurfaceRadiusMap", 2D) = "white" {}
@@ -71,13 +68,22 @@ Shader "HDRenderLoop/Lit"
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
+        
         // Material Id
         [HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
 
-        [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
-        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
+
+        [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
+        [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
+        _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
+        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1,0,0,0)
+        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
+        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
+        [Enum(UV0, 0, UV1, 1,  UV3, 2)] _UVDetail("UV Set for detail", Float) = 0
+        [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1,0,0,0)
+        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
     }
 
     HLSLINCLUDE
@@ -91,19 +97,23 @@ Shader "HDRenderLoop/Lit"
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
-    #pragma shader_feature _NORMALMAP
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE
+
+    #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    #pragma shader_feature _MAPPING_TRIPLANAR
+    #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
+    #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
+    #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
+    #pragma shader_feature _REQUIRE_UV3
+    #pragma shader_feature _EMISSIVE_COLOR
+
+    #pragma shader_feature _NORMALMAP  
     #pragma shader_feature _MASKMAP
     #pragma shader_feature _SPECULAROCCLUSIONMAP
-    #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    #pragma shader_feature _EMISSIVE_COLOR
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP
-    #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
-    #pragma shader_feature _DETAIL_MAP
-    #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
+    #pragma shader_feature _DETAIL_MAP  
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
@@ -150,8 +160,7 @@ Shader "HDRenderLoop/Lit"
     SAMPLER2D(sampler_DetailMask);
     TEXTURE2D(_DetailMap);
     SAMPLER2D(sampler_DetailMap);
-    float4  _DetailMap_ST;
-    float _UVDetail;
+    float4 _DetailMap_ST;
     float _DetailAlbedoScale;
     float _DetailNormalScale;
     float _DetailSmoothnessScale;
@@ -171,18 +180,9 @@ Shader "HDRenderLoop/Lit"
     TEXTURE2D(_AnisotropyMap);
     SAMPLER2D(sampler_AnisotropyMap);
 
-    TEXTURE2D(_DiffuseLightingMap);
-    SAMPLER2D(sampler_DiffuseLightingMap);
-
-    float3 _EmissiveColor;
-    TEXTURE2D(_EmissiveColorMap);
-    SAMPLER2D(sampler_EmissiveColorMap);
-
-    float _EmissiveIntensity;
-
-    float _SubSurfaceRadius;
-    TEXTURE2D(_SubSurfaceRadiusMap);
-    SAMPLER2D(sampler_SubSurfaceRadiusMap);
+    //float _SubSurfaceRadius;
+    //TEXTURE2D(_SubSurfaceRadiusMap);
+    //SAMPLER2D(sampler_SubSurfaceRadiusMap);
 
     // float _Thickness;
     //TEXTURE2D(_ThicknessMap);
@@ -195,8 +195,20 @@ Shader "HDRenderLoop/Lit"
     // float _CoatRoughness;
     //TEXTURE2D(_CoatRoughnessMap);
     //SAMPLER2D(sampler_CoatRoughnessMap);
+
+    TEXTURE2D(_DiffuseLightingMap);
+    SAMPLER2D(sampler_DiffuseLightingMap);
+
+    float3 _EmissiveColor;
+    TEXTURE2D(_EmissiveColorMap);
+    SAMPLER2D(sampler_EmissiveColorMap);
+    float _EmissiveIntensity;
  
     float _AlphaCutoff;
+
+    float _TexWorldScale;
+    float4 _UVMappingMask;
+    float4 _UVDetailsMappingMask;
 
     ENDHLSL
 

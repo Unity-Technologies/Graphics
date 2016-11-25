@@ -6,15 +6,23 @@ namespace UnityEditor
 {
     internal class LayeredLitGUI : LitGUI
     {
-        public enum LayerMapping
+        public enum LayerUVBaseMapping
         {
             UV0,
             UV1,
+            UV3,
             Planar,
-            //Triplanar,
+            Triplanar,
         }
 
-        private class Styles
+        public enum LayerUVDetailMapping
+        {
+            UV0,
+            UV1,
+            UV3
+        }
+
+        private class StylesLayer
         {
             public readonly GUIContent[] layerLabels =
             {
@@ -24,19 +32,20 @@ namespace UnityEditor
                 new GUIContent("Layer 3"),
             };
 
-            public readonly GUIContent materialLayer = new GUIContent("Material");
-            public readonly GUIContent syncButton = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
-            public readonly GUIContent layers = new GUIContent("Layers");
-            public readonly GUIContent emission = new GUIContent("Emissive");
-            public readonly GUIContent layerMapMask = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color if enabled)");
-            public readonly GUIContent layerMapVertexColor = new GUIContent("Use Vertex Color", "Layer mask (multiplied by layer mask if enabled)");
-            public readonly GUIContent layerCount = new GUIContent("Layer Count", "Number of layers.");
-            public readonly GUIContent layerSize = new GUIContent("Size", "Size of the layer mapping in world units.");
-            public readonly GUIContent layerMapping = new GUIContent("Mapping", "Mapping mode of the layer.");
+            public readonly GUIContent materialLayerText = new GUIContent("Material");
+            public readonly GUIContent syncButtonText = new GUIContent("Re-Synchronize Layers", "Re-synchronize all layers's properties with the referenced Material");
+            public readonly GUIContent layersText = new GUIContent("Layers");
+            public readonly GUIContent emissiveText = new GUIContent("Emissive");
+            public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color if enabled)");
+            public readonly GUIContent layerMapVertexColorText = new GUIContent("Use Vertex Color", "Layer mask (multiplied by layer mask if enabled)");
+            public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
+            public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tex world scale", "Scale to apply to world position for Planar/Trilinear");
+            public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
+            public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
         }
 
-        static Styles s_Styles = null;
-        private static Styles styles { get { if (s_Styles == null) s_Styles = new Styles(); return s_Styles; } }
+        static StylesLayer s_Styles = null;
+        private static StylesLayer styles { get { if (s_Styles == null) s_Styles = new StylesLayer(); return s_Styles; } }
 
         // Needed for json serialization to work
         [Serializable]
@@ -45,31 +54,63 @@ namespace UnityEditor
             public string[] GUIDArray;
         }
 
-        private const int kMaxLayerCount = 4;
-        private const int kSyncButtonWidth = 58;
-        private const string kLayerMaskMap = "_LayerMaskMap";
-        private const string kLayerMaskVertexColor = "_LayerMaskVertexColor";
-        private const string kLayerCount = "_LayerCount";
-        private const string kLayerMapping = "_LayerMapping";
-        private const string kLayerSize = "_LayerSize";
+        const int kMaxLayerCount = 4;
+        const int kSyncButtonWidth = 58;
 
-        private Material[] m_MaterialLayers = new Material[kMaxLayerCount];
+        Material[] m_MaterialLayers = new Material[kMaxLayerCount];
 
-        MaterialProperty layerCountProperty = null;
-        MaterialProperty layerMaskMapProperty = null;
-        MaterialProperty layerMaskVertexColorProperty = null;
-        MaterialProperty[] layerMappingProperty = new MaterialProperty[kMaxLayerCount];
-        MaterialProperty[] layerSizeProperty = new MaterialProperty[kMaxLayerCount];
+        MaterialProperty layerMaskMap = null;
+        const string kLayerMaskMap = "_LayerMaskMap";
+        MaterialProperty layerMaskVertexColor = null;
+        const string kLayerMaskVertexColor = "_LayerMaskVertexColor";
+        MaterialProperty layerCount = null;
+        const string kLayerCount = "_LayerCount";
+        MaterialProperty[] layerTexWorldScale = new MaterialProperty[kMaxLayerCount];
+        const string kLayerTexWorldScale = "_TexWorldScale";
+        MaterialProperty[] layerUVBase = new MaterialProperty[kMaxLayerCount];
+        const string kLayerUVBase = "_UVBase";
+        MaterialProperty[] layerUVMappingMask = new MaterialProperty[kMaxLayerCount];
+        const string kLayerUVMappingMask = "_UVMappingMask";
+        MaterialProperty[] layerUVDetail = new MaterialProperty[kMaxLayerCount];
+        const string kLayerUVDetail = "_UVDetail";
+        MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
+        const string kLayerUVDetailsMappingMask = "_UVDetailsMappingMask";
 
-        int layerCount
+        MaterialProperty layerEmissiveColor = null;
+        const string kLayerEmissiveColor = "_EmissiveColor";
+        MaterialProperty layerEmissiveColorMap = null;
+        const string kLayerEmissiveColorMap = "_EmissiveColorMap";
+        MaterialProperty layerEmissiveIntensity = null;
+        const string kLayerEmissiveIntensity = "_EmissiveIntensity";
+
+        private void FindLayerProperties(MaterialProperty[] props)
         {
-            set { layerCountProperty.floatValue = (float)value; }
-            get { return (int)layerCountProperty.floatValue; }
+            layerMaskMap = FindProperty(kLayerMaskMap, props);
+            layerMaskVertexColor = FindProperty(kLayerMaskVertexColor, props);
+            layerCount = FindProperty(kLayerCount, props);
+            for (int i = 0; i < numLayer; ++i)
+            {
+                layerTexWorldScale[i] = FindProperty(string.Format("{0}{1}", kLayerTexWorldScale, i), props);
+                layerUVBase[i] = FindProperty(string.Format("{0}{1}", kLayerUVBase, i), props);
+                layerUVMappingMask[i] = FindProperty(string.Format("{0}{1}", kLayerUVMappingMask, i), props);
+                layerUVDetail[i] = FindProperty(string.Format("{0}{1}", kLayerUVDetail, i), props);
+                layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kLayerUVDetailsMappingMask, i), props);
+            }
+
+            layerEmissiveColor = FindProperty(kLayerEmissiveColor, props);
+            layerEmissiveColorMap = FindProperty(kLayerEmissiveColorMap, props);
+            layerEmissiveIntensity = FindProperty(kLayerEmissiveIntensity, props);
+        }
+
+        int numLayer
+        {
+            set { layerCount.floatValue = (float)value; }
+            get { return (int)layerCount.floatValue; }
         }
 
         void SynchronizeAllLayersProperties()
         {
-            for (int i = 0; i < layerCount; ++i)
+            for (int i = 0; i < numLayer; ++i)
             {
                 SynchronizeLayerProperties(i);
             }
@@ -153,7 +194,7 @@ namespace UnityEditor
         {
             bool result = true;
             outValueNames = "";
-            for (int i = 0; i < layerCount; ++i)
+            for (int i = 0; i < numLayer; ++i)
             {
                 Material layer = m_MaterialLayers[i];
                 if (layer != null)
@@ -162,7 +203,7 @@ namespace UnityEditor
                     Debug.Assert(currentValue < shortNames.Length);
                     outValueNames += shortNames[currentValue] + "    ";
 
-                    for (int j = i + 1; j < layerCount; ++j)
+                    for (int j = i + 1; j < numLayer; ++j)
                     {
                         Material otherLayer = m_MaterialLayers[j];
                         if (otherLayer != null)
@@ -187,7 +228,7 @@ namespace UnityEditor
         {
             bool result = true;
             outValueNames = "";
-            for (int i = 0; i < layerCount; ++i)
+            for (int i = 0; i < numLayer; ++i)
             {
                 Material layer = m_MaterialLayers[i];
                 if (layer != null)
@@ -195,7 +236,7 @@ namespace UnityEditor
                     bool currentValue = layer.GetTexture(mapName) != null;
                     outValueNames += (currentValue ? "Y" : "N") + "    ";
 
-                    for (int j = i + 1; j < layerCount; ++j)
+                    for (int j = i + 1; j < numLayer; ++j)
                     {
                         Material otherLayer = m_MaterialLayers[j];
                         if (otherLayer != null)
@@ -221,23 +262,19 @@ namespace UnityEditor
         {
             string optionValueNames = "";
             // We need to check consistency between all layers.
-            // Each input options and each input maps might can result in different #defines in the shader so all of them need to be consistent
+            // Each input options and each input maps can result in different #defines in the shader so all of them need to be consistent
             // otherwise the result will be undetermined
 
             // Input options consistency
             string[] smoothnessSourceShortNames = { "Mask", "Albedo" };
-            string[] emissiveModeShortNames = { "Color", "Mask" };
             string[] normalMapShortNames = { "Tan", "Obj" };
             string[] heightMapShortNames = { "Parallax", "Disp" };
+            string[] detailModeShortNames = { "DNormal", "DAOHeight" };
 
             string warningInputOptions = "";
-            if (!CheckInputOptionConsistency(kSmoothnessTextureChannelProp, smoothnessSourceShortNames, ref optionValueNames))
+            if (!CheckInputOptionConsistency(kSmoothnessTextureChannel, smoothnessSourceShortNames, ref optionValueNames))
             {
                 warningInputOptions += "Smoothness Source:    " + optionValueNames + "\n";
-            }
-            if (!CheckInputOptionConsistency(kEmissiveColorMode, emissiveModeShortNames, ref optionValueNames))
-            {
-                warningInputOptions += "Emissive Mode:    " + optionValueNames + "\n";
             }
             if (!CheckInputOptionConsistency(kNormalMapSpace, normalMapShortNames, ref optionValueNames))
             {
@@ -246,6 +283,10 @@ namespace UnityEditor
             if (!CheckInputOptionConsistency(kHeightMapMode, heightMapShortNames, ref optionValueNames))
             {
                 warningInputOptions += "Height Map Mode:    " + optionValueNames + "\n";
+            }
+            if (!CheckInputOptionConsistency(kDetailMapMode, detailModeShortNames, ref optionValueNames))
+            {
+                warningInputOptions += "Detail Map Mode:    " + optionValueNames + "\n";
             }
 
             if (warningInputOptions != string.Empty)
@@ -260,17 +301,17 @@ namespace UnityEditor
             {
                 warningInputMaps += "Normal Map:    " + optionValueNames + "\n";
             }
+            if (!CheckInputMapConsistency(kDetailMap, ref optionValueNames))
+            {
+                warningInputMaps += "Detail Map:    " + optionValueNames + "\n";
+            }
             if (!CheckInputMapConsistency(kMaskMap, ref optionValueNames))
             {
                 warningInputMaps += "Mask Map:    " + optionValueNames + "\n";
             }
-            if (!CheckInputMapConsistency(kspecularOcclusionMap, ref optionValueNames))
+            if (!CheckInputMapConsistency(kSpecularOcclusionMap, ref optionValueNames))
             {
                 warningInputMaps += "Specular Occlusion Map:    " + optionValueNames + "\n";
-            }
-            if (!CheckInputMapConsistency(kEmissiveColorMap, ref optionValueNames))
-            {
-                warningInputMaps += "Emissive Color Map:    " + optionValueNames + "\n";
             }
             if (!CheckInputMapConsistency(kHeightMap, ref optionValueNames))
             {
@@ -298,14 +339,15 @@ namespace UnityEditor
             // We synchronize input options with the firsts non null Layer (all layers should have consistent options)
             Material firstLayer = null;
             int i = 0;
-            while (i < layerCount && !(firstLayer = m_MaterialLayers[i])) ++i;
+            while (i < numLayer && !(firstLayer = m_MaterialLayers[i])) ++i;
 
             if (firstLayer != null)
             {
-                material.SetFloat(kSmoothnessTextureChannelProp, firstLayer.GetFloat(kSmoothnessTextureChannelProp));
-                material.SetFloat(kEmissiveColorMode, firstLayer.GetFloat(kEmissiveColorMode));
+                material.SetFloat(kSmoothnessTextureChannel, firstLayer.GetFloat(kSmoothnessTextureChannel));
                 material.SetFloat(kNormalMapSpace, firstLayer.GetFloat(kNormalMapSpace));
                 material.SetFloat(kHeightMapMode, firstLayer.GetFloat(kHeightMapMode));
+                // Force emissive to be emissive color
+                material.SetFloat(kEmissiveColorMode, (float)EmissiveColorMode.UseEmissiveColor);
             }
         }
 
@@ -318,7 +360,7 @@ namespace UnityEditor
             EditorGUI.indentLevel++;
 
             EditorGUI.BeginChangeCheck();
-            m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.materialLayer, m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
+            m_MaterialLayers[layerIndex] = EditorGUILayout.ObjectField(styles.materialLayerText, m_MaterialLayers[layerIndex], typeof(Material), true) as Material;
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(materialImporter, "Change layer material");
@@ -327,16 +369,26 @@ namespace UnityEditor
             }
 
             EditorGUI.BeginChangeCheck();
-            m_MaterialEditor.ShaderProperty(layerMappingProperty[layerIndex], styles.layerMapping);
+            m_MaterialEditor.ShaderProperty(layerUVBase[layerIndex], styles.UVBaseText);
             if (EditorGUI.EndChangeCheck())
             {
                 result = true;
             }
-            if ((LayerMapping)layerMappingProperty[layerIndex].floatValue == LayerMapping.Planar)
+            if (((LayerUVBaseMapping)layerUVBase[layerIndex].floatValue == LayerUVBaseMapping.Planar) ||
+                ((LayerUVBaseMapping)layerUVBase[layerIndex].floatValue == LayerUVBaseMapping.Triplanar))
             {
                 EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(layerSizeProperty[layerIndex], styles.layerSize);
+                m_MaterialEditor.ShaderProperty(layerTexWorldScale[layerIndex], styles.layerTexWorldScaleText);
                 EditorGUI.indentLevel--;
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                m_MaterialEditor.ShaderProperty(layerUVDetail[layerIndex], styles.UVDetailText);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    result = true;
+                }
             }
 
             EditorGUI.indentLevel--;
@@ -353,24 +405,24 @@ namespace UnityEditor
             GUI.changed = false;
 
             EditorGUI.indentLevel++;
-            GUILayout.Label(styles.layers, EditorStyles.boldLabel);
+            GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
 
             EditorGUI.BeginChangeCheck();
-            int newLayerCount = EditorGUILayout.IntSlider(styles.layerCount, (int)layerCountProperty.floatValue, 2, 4);
+            int newLayerCount = EditorGUILayout.IntSlider(styles.layerCountText, (int)layerCount.floatValue, 2, 4);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(material, "Change layer count");
-                layerCountProperty.floatValue = (float)newLayerCount;
+                layerCount.floatValue = (float)newLayerCount;
                 SynchronizeAllLayersProperties();
                 layerChanged = true;
             }
 
-            m_MaterialEditor.ShaderProperty(layerMaskVertexColorProperty, styles.layerMapVertexColor);
-            m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMask, layerMaskMapProperty);
+            m_MaterialEditor.ShaderProperty(layerMaskVertexColor, styles.layerMapVertexColorText);
+            m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
 
             EditorGUILayout.Space();
 
-            for (int i = 0; i < layerCount; i++)
+            for (int i = 0; i < numLayer; i++)
             {
                 layerChanged |= DoLayerGUI(materialImporter, i);
             }
@@ -379,7 +431,7 @@ namespace UnityEditor
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button(styles.syncButton))
+                if (GUILayout.Button(styles.syncButtonText))
                 {
                     SynchronizeAllLayersProperties();
                     layerChanged = true;
@@ -399,58 +451,28 @@ namespace UnityEditor
         {
             // Find first non null layer
             int i = 0;
-            while (i < layerCount && (m_MaterialLayers[i] == null)) ++i;
+            while (i < numLayer && (m_MaterialLayers[i] == null)) ++i;
 
-            if (i < layerCount)
+            if (i < numLayer)
             {
                 SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap + i));
                 SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap + i));
-                SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kspecularOcclusionMap + i));
+                SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap + i));
                 SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap + i));
                 SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap + i));
             }
 
-            SetKeyword(material, "_LAYER_MASK_MAP", material.GetTexture(kLayerMaskMap));
             SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
-        }
-
-        protected override void SetupEmissionGIFlags(Material material)
-        {
-            // Setup lightmap emissive flags
-            bool nonNullEmissive = false;
-            for(int i = 0 ; i < layerCount ; ++i)
-            {
-                string paramName = string.Format("_EmissiveIntensity{0}", i);
-                if (material.GetFloat(paramName) > 0.0f)
-                {
-                    nonNullEmissive = true;
-                    break;
-                }
-            }
-            var realtimeEmission = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
-            bool shouldEmissionBeEnabled = nonNullEmissive || realtimeEmission;
-
-
-            MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
-            if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
-            {
-                if (shouldEmissionBeEnabled)
-                    flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-                else
-                    flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-
-                material.globalIlluminationFlags = flags;
-            }
         }
 
         void SetupMaterialForLayers(Material material)
         {
-            if (layerCount == 4)
+            if (numLayer == 4)
             {
                 SetKeyword(material, "_LAYEREDLIT_4_LAYERS", true);
                 SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
             }
-            else if (layerCount == 3)
+            else if (numLayer == 3)
             {
                 SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
                 SetKeyword(material, "_LAYEREDLIT_3_LAYERS", true);
@@ -461,49 +483,42 @@ namespace UnityEditor
                 SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
             }
 
-            const string kLayerMappingUV1 = "_LAYER_MAPPING_UV1_";
-            const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR_";
             const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR_";
 
-            for (int i = 0 ; i <layerCount ; ++i)
+            for (int i = 0 ; i < numLayer; ++i)
             {
-                string layerMappingParam = string.Format("{0}{1}", kLayerMapping, i);
-                LayerMapping layerMapping = (LayerMapping)material.GetFloat(layerMappingParam);
-
-                string currentLayerMappingUV1 = string.Format("{0}{1}", kLayerMappingUV1, i);
-                string currentLayerMappingPlanar = string.Format("{0}{1}", kLayerMappingPlanar, i);
+                // We setup the masking map based on the enum for each layer.
+                // using mapping mask allow to reduce the number of generated combination for a very small increase in ALU
+                string layerUVBaseParam = string.Format("{0}{1}", kLayerUVBase, i);
+                LayerUVBaseMapping layerUVBaseMapping = (LayerUVBaseMapping)material.GetFloat(layerUVBaseParam);
+                string layerUVDetailParam = string.Format("{0}{1}", kLayerUVDetail, i);
+                LayerUVDetailMapping layerUVDetailMapping = (LayerUVDetailMapping)material.GetFloat(layerUVDetailParam);
                 string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
 
-                if(layerMapping == LayerMapping.UV1)
-                {
-                    SetKeyword(material, currentLayerMappingUV1, true);
-                    SetKeyword(material, currentLayerMappingPlanar, false);
-                    SetKeyword(material, currentLayerMappingTriplanar, false);
-                }
-                else if(layerMapping == LayerMapping.Planar)
-                {
-                    SetKeyword(material, currentLayerMappingUV1, false);
-                    SetKeyword(material, currentLayerMappingPlanar, true);
-                    SetKeyword(material, currentLayerMappingTriplanar, false);
-                }
-                //else if(layerMapping == LayerMapping.Triplanar)
-                //{
-                //    SetKeyword(material, currentLayerMappingUV1, false);
-                //    SetKeyword(material, currentLayerMappingPlanar, false);
-                //    SetKeyword(material, currentLayerMappingTriplanar, true);
-                //}
-            }
-        }
+                float X, Y, Z, W;
+                X = (layerUVBaseMapping == LayerUVBaseMapping.UV0) ? 1.0f : 0.0f;
+                Y = (layerUVBaseMapping == LayerUVBaseMapping.UV1) ? 1.0f : 0.0f;
+                Z = (layerUVBaseMapping == LayerUVBaseMapping.UV3) ? 1.0f : 0.0f;
+                W = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
+                layerUVMappingMask[i].colorValue = new Color(X, Y, Z, W);
 
-        private void FindLayerProperties(MaterialProperty[] props)
-        {
-            layerMaskMapProperty = FindProperty(kLayerMaskMap, props);
-            layerMaskVertexColorProperty = FindProperty(kLayerMaskVertexColor, props);
-            layerCountProperty = FindProperty(kLayerCount, props);
-            for (int i = 0; i < layerCount; ++i)
-            {
-                layerMappingProperty[i] = FindProperty(string.Format("{0}{1}", kLayerMapping, i), props);
-                layerSizeProperty[i] = FindProperty(string.Format("{0}{1}", kLayerSize, i), props);
+                if (layerUVBaseMapping == LayerUVBaseMapping.Triplanar)
+                {
+                    SetKeyword(material, currentLayerMappingTriplanar, true);
+                }
+
+                // If base is planar mode, detail is planar too
+                if (W > 0.0f)
+                {
+                    X = Y = Z = 0.0f;
+                }
+                else
+                {
+                    X = (layerUVDetailMapping == LayerUVDetailMapping.UV0) ? 1.0f : 0.0f;
+                    Y = (layerUVDetailMapping == LayerUVDetailMapping.UV1) ? 1.0f : 0.0f;
+                    Z = (layerUVDetailMapping == LayerUVDetailMapping.UV3) ? 1.0f : 0.0f;
+                }
+                layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, 0.0f); // W Reuse planar mode from base
             }
         }
 
@@ -525,10 +540,6 @@ namespace UnityEditor
             EditorGUI.BeginChangeCheck();
             {
                 ShaderOptionsGUI();
-                EditorGUI.indentLevel++;
-                EditorGUILayout.LabelField(styles.emission);
-                m_MaterialEditor.LightmapEmissionProperty(1);
-                EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
             if (EditorGUI.EndChangeCheck())
@@ -537,6 +548,14 @@ namespace UnityEditor
             }
 
             bool layerChanged = DoLayersGUI(materialImporter);
+
+            EditorGUILayout.Space();
+            GUILayout.Label(Styles.emissiveText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, layerEmissiveColorMap, layerEmissiveColor);
+            m_MaterialEditor.ShaderProperty(layerEmissiveIntensity, Styles.emissiveIntensityText);
+            m_MaterialEditor.LightmapEmissionProperty(1);
+            EditorGUI.indentLevel--;
 
             CheckLayerConsistency();
 

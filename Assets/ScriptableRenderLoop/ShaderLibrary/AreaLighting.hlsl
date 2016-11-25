@@ -7,7 +7,7 @@ float IntegrateEdge(float3 v1, float3 v2)
     // Clamp to avoid artifacts. This particular constant gives the best results.
     cosTheta    = Clamp(cosTheta, -0.9999, 0.9999);
     float theta = FastACos(cosTheta);
-    float res   = cross(v1, v2).z * theta / sin(theta);
+    float res = cross(v1, v2).z * theta * rsqrt(1.0f - cosTheta * cosTheta); // optimization from * 1 / sin(theta)
 
     return res;
 }

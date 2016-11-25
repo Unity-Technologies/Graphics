@@ -3,12 +3,13 @@ using UnityEngine.Experimental.Rendering;
 using System.Collections.Generic;
 using System;
 
+
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [Serializable]
     public class SkyParameters
     {
-        public Cubemap skyHDRI;
+        public Texture skyHDRI;
         public float rotation = 0.0f;
         public float exposure = 0.0f;
         public float multiplier = 1.0f;
@@ -19,9 +20,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         const int kSkyCubemapSize = 256;
 
         RenderTexture m_SkyboxCubemapRT = null;
+        RenderTexture m_SkyboxGGXCubemapRT = null;
 
         Material m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material m_SkyHDRIMaterial = null; // Renders a cubemap into a render texture (can be cube or 2D)
+        Material m_GGXConvolveMaterial = null; // Apply GGX convolution to cubemap
+
+        MaterialPropertyBlock m_RenderSkyPropertyBlock = null;
 
         GameObject[] m_CubemapFaceCamera = new GameObject[6];
 
@@ -82,18 +87,40 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             };
         }
 
+        void RebuildTextures()
+        {
+            if(m_SkyboxCubemapRT == null)
+            {
+                m_SkyboxCubemapRT = new RenderTexture(kSkyCubemapSize, kSkyCubemapSize, 1, RenderTextureFormat.ARGBHalf);
+                m_SkyboxCubemapRT.dimension = TextureDimension.Cube;
+                m_SkyboxCubemapRT.useMipMap = true;
+                m_SkyboxCubemapRT.autoGenerateMips = true;
+                m_SkyboxCubemapRT.filterMode = FilterMode.Point;
+                m_SkyboxCubemapRT.Create();
+            }
+
+            if(m_SkyboxGGXCubemapRT == null)
+            {
+                m_SkyboxGGXCubemapRT = new RenderTexture(kSkyCubemapSize, kSkyCubemapSize, 1, RenderTextureFormat.ARGBHalf);
+                m_SkyboxGGXCubemapRT.dimension = TextureDimension.Cube;
+                m_SkyboxGGXCubemapRT.useMipMap = true;
+                m_SkyboxGGXCubemapRT.autoGenerateMips = false;
+                m_SkyboxGGXCubemapRT.filterMode = FilterMode.Trilinear;
+                m_SkyboxGGXCubemapRT.Create();
+            }
+        }
+
         public void Rebuild()
         {
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");
 
             m_SkyHDRIMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/SkyHDRI");
+            m_GGXConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/GGXConvolve");
 
-            m_SkyboxCubemapRT = new RenderTexture(kSkyCubemapSize, kSkyCubemapSize, 1, RenderTextureFormat.ARGBHalf);
-            m_SkyboxCubemapRT.dimension = TextureDimension.Cube;
-            m_SkyboxCubemapRT.useMipMap = true;
-            m_SkyboxCubemapRT.autoGenerateMips = true;
-            m_SkyboxCubemapRT.Create();
+            m_RenderSkyPropertyBlock = new MaterialPropertyBlock();
+
+            RebuildTextures();
 
             Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.1f, 1.0f);
 
@@ -131,7 +158,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             Utilities.Destroy(m_StandardSkyboxMaterial);
             Utilities.Destroy(m_SkyHDRIMaterial);
+            Utilities.Destroy(m_GGXConvolveMaterial);
             Utilities.Destroy(m_SkyboxCubemapRT);
+            Utilities.Destroy(m_SkyboxGGXCubemapRT);
 
             for(int i = 0 ; i < 6 ; ++i)
             {
@@ -150,52 +179,105 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             Mesh skyMesh = BuildSkyMesh(camera, forceUVBottom);
 
-            m_SkyHDRIMaterial.SetTexture("_Cubemap", skyParameters.skyHDRI);
-            m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
+            m_RenderSkyPropertyBlock.SetTexture("_Cubemap", skyParameters.skyHDRI);
+            m_RenderSkyPropertyBlock.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
 
             var cmd = new CommandBuffer { name = "" };
-            cmd.DrawMesh(skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial);
+            cmd.DrawMesh(skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, 0, m_RenderSkyPropertyBlock);
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
+        }
+
+        private void RenderSkyToCubemap(SkyParameters skyParameters, RenderTexture target, RenderLoop renderLoop)
+        {
+            for (int i = 0; i < 6; ++i)
+            {
+                Utilities.SetRenderTarget(renderLoop, target, 0, (CubemapFace)i);
+                Camera faceCamera = m_CubemapFaceCamera[i].GetComponent<Camera>();
+                RenderSky(faceCamera, skyParameters, true, renderLoop);
+            }
+        }
+
+        private void RenderCubemapGGXConvolution(Texture input, RenderTexture target, RenderLoop renderLoop)
+        {
+            using (new Utilities.ProfilingSample("Sky Pass: GGX Convolution", renderLoop))
+            {
+                int mipCount = 1 + (int)Mathf.Log(input.width, 2.0f);
+                if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
+                {
+                    Debug.LogWarning("RenderCubemapGGXConvolution: Cubemap size is too small for GGX convolution, needs at least " + ((int)EnvConstants.SpecCubeLodStep + 1) + " mip levels");
+                    return;
+                }
+
+                // Copy the first mip.
+                // All parameters are neutral because exposure/multiplier have already been applied in the first copy.
+                SkyParameters skyParams = new SkyParameters();
+                skyParams.exposure = 0.0f;
+                skyParams.multiplier = 1.0f;
+                skyParams.rotation = 0.0f;
+                skyParams.skyHDRI = input;
+                RenderSkyToCubemap(skyParams, target, renderLoop);
+
+                // Do the convolution on remaining mipmaps
+                float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
+
+                m_GGXConvolveMaterial.SetTexture("_MainTex", input);
+                m_GGXConvolveMaterial.SetFloat("_MipMapCount", mipCount);
+                m_GGXConvolveMaterial.SetFloat("_InvOmegaP", invOmegaP);
+
+                for (int mip = 1; mip < ((int)EnvConstants.SpecCubeLodStep + 1); ++mip)
+                {
+                    MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+                    propertyBlock.SetFloat("_Level", mip);
+
+                    for (int face = 0; face < 6; ++face)
+                    {
+                        Utilities.SetRenderTarget(renderLoop, target, mip, (CubemapFace)face);
+                        Camera faceCamera = m_CubemapFaceCamera[face].GetComponent<Camera>();
+
+                        Mesh skyMesh = BuildSkyMesh(faceCamera, true);
+
+                        var cmd = new CommandBuffer { name = "" };
+                        cmd.DrawMesh(skyMesh, Matrix4x4.identity, m_GGXConvolveMaterial, 0, 0, propertyBlock);
+                        renderLoop.ExecuteCommandBuffer(cmd);
+                        cmd.Dispose();
+                    }
+                }
+
+            }
         }
 
         public void RenderSky(Camera camera, SkyParameters skyParameters, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
         {
             using (new Utilities.ProfilingSample("Sky Pass", renderLoop))
-
-            //using (new EditorGUI.DisabledScope(m_LookDevEnvLibrary.hdriList.Count <= 1))
-            if (IsSkyValid(skyParameters))
             {
-                using (new Utilities.ProfilingSample("Sky Pass: Render Cubemap", renderLoop))
+                //using (new EditorGUI.DisabledScope(m_LookDevEnvLibrary.hdriList.Count <= 1))
+                if (IsSkyValid(skyParameters))
                 {
-                    // Render sky into a cubemap - doesn't happen every frame, can be control
-                    for (int i = 0; i < 6; ++i)
+                    // When loading RenderDoc, RenderTextures will go null
+                    RebuildTextures();
+
+                    using (new Utilities.ProfilingSample("Sky Pass: Render Cubemap", renderLoop))
                     {
-                        Utilities.SetRenderTarget(renderLoop, m_SkyboxCubemapRT, 0, (CubemapFace)i);
-                        Camera faceCamera = m_CubemapFaceCamera[i].GetComponent<Camera>();
-                        RenderSky(faceCamera, skyParameters, true, renderLoop);
+                        // Render sky into a cubemap - doesn't happen every frame, can be controlled
+                        RenderSkyToCubemap(skyParameters, m_SkyboxCubemapRT, renderLoop);
+                        // Convolve downsampled cubemap
+                        RenderCubemapGGXConvolution(m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT, renderLoop);
+
+                        // TODO: Properly send the cubemap to Enlighten. Currently workaround is to set the cubemap in a Skybox/cubemap material
+                        m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
+                        RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
+                        RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+                        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
+                        RenderSettings.reflectionIntensity = 1.0f;
+                        RenderSettings.customReflection = null;
+                        //DynamicGI.UpdateEnvironment();
                     }
 
-                    m_StandardSkyboxMaterial.SetTexture("_Tex", m_SkyboxCubemapRT);
-                    RenderSettings.skybox = m_StandardSkyboxMaterial; // Setup this material as the default to be use in RenderSettings
-                    RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
-                    RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
-                    RenderSettings.reflectionIntensity = 1.0f;
-                    //DynamicGI.UpdateEnvironment();
+                    // Render the sky itself
+                    Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer);
+                    RenderSky(camera, skyParameters, false, renderLoop);
                 }
-
-
-                // TODO: do a render to texture here
-
-                // Downsample the cubemap and provide it to Enlighten
-
-                // TODO: currently workaround is to set the cubemap in a Skybox/cubemap material
-                //m_SkyboxMaterial.SetTexture(cubemap);
-
-                // Render the sky itself
-                Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer);
-                RenderSky(camera, skyParameters, false, renderLoop);
-
             }
         }
     }
