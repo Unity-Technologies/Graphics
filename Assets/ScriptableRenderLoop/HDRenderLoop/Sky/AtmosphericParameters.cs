@@ -3,10 +3,10 @@
 [ExecuteInEditMode]
 public class AtmosphericParameters : MonoBehaviour
 {
-    // public enum OcclusionDownscale { x1 = 1, x2 = 2, x4 = 4 }
-    // public enum OcclusionSamples { x64 = 0, x164 = 1, x244 = 2 }
-    // public enum DepthTexture { Enable, Disable, Ignore }
-    public enum ScatterDebugMode { None, Scattering, Occlusion, OccludedScattering, Rayleigh, Mie, Height }
+    public enum OcclusionDownscale { x1 = 1, x2 = 2, x4 = 4 }
+    public enum OcclusionSamples   { x64 = 0, x164 = 1, x244 = 2 }
+    public enum DepthTexture       { Enable, Disable/*, Ignore*/ } // 'Ignore' appears to be currently unused.
+    public enum ScatterDebugMode   { None, Scattering, Occlusion, OccludedScattering, Rayleigh, Mie, Height }
 
     [Header("Global Settings")]
     public Gradient worldRayleighColorRamp              = null;
@@ -35,40 +35,41 @@ public class AtmosphericParameters : MonoBehaviour
     public float    heightNormalDistance                = 1000f;
 
     [Header("Sky Dome")]
-    /*public*/ Vector3      skyDomeScale                = new Vector3(1f, 1f, 1f);
-    /*public*/ Vector3      skyDomeRotation             = Vector3.zero;
-    /*public*/ Transform    skyDomeTrackedYawRotation   = null;
-    /*public*/ bool         skyDomeVerticalFlip         = false;
-    /*public*/ Cubemap      skyDomeCube                 = null;
-    /*public*/ float        skyDomeExposure             = 1f;
-    /*public*/ Color        skyDomeTint                 = Color.white;
-    /*public*/ Vector3      skyDomeOffset               = Vector3.zero;
+    /*public*/ Vector3        skyDomeScale              = new Vector3(1f, 1f, 1f);
+    /*public*/ Vector3        skyDomeRotation           = Vector3.zero;
+    /*public*/ Transform      skyDomeTrackedYawRotation = null;
+    /*public*/ bool           skyDomeVerticalFlip       = false;
+    /*public*/ Cubemap        skyDomeCube               = null;
+    /*public*/ float          skyDomeExposure           = 1f;
+    /*public*/ Color          skyDomeTint               = Color.white;
+    /*public*/ Vector3        skyDomeOffset             = Vector3.zero;
 
-    // [Header("Scatter Occlusion")]
-    // public bool                 useOcclusion            = false;
-    // public float                occlusionBias           = 0f;
-    // public float                occlusionBiasIndirect   = 0.6f;
-    // public float                occlusionBiasClouds     = 0.3f;
-    // public OcclusionDownscale   occlusionDownscale      = OcclusionDownscale.x2;
-    // public OcclusionSamples     occlusionSamples        = OcclusionSamples.x64;
-    // public bool                 occlusionDepthFixup     = true;
-    // public float                occlusionDepthThreshold = 25f;
-    // public bool                 occlusionFullSky        = false;
-    // public float                occlusionBiasSkyRayleigh= 0.2f;
-    // public float                occlusionBiasSkyMie     = 0.4f;
+    /*
+    [Header("Scatter Occlusion")]
+    public bool               useOcclusion              = false;
+    public float              occlusionBias             = 0f;
+    public float              occlusionBiasIndirect     = 0.6f;
+    public float              occlusionBiasClouds       = 0.3f;
+    public OcclusionDownscale occlusionDownscale        = OcclusionDownscale.x2;
+    public OcclusionSamples   occlusionSamples          = OcclusionSamples.x64;
+    public bool               occlusionDepthFixup       = true;
+    public float              occlusionDepthThreshold   = 25f;
+    public bool               occlusionFullSky          = false;
+    public float              occlusionBiasSkyRayleigh  = 0.2f;
+    public float              occlusionBiasSkyMie       = 0.4f;
+    */
     
     [Header("Other")]
-    public float               worldScaleExponent          = 1.0f;
-    // public bool             forcePerPixel               = true; 
-    // public bool             forcePostEffect             = true;
-    public Shader              atmosphericShader           = null;
-    // public Shader           occlusionShader             = null;
-    // [Tooltip("Soft clouds need depth values. Ignore means externally controlled.")]
-    // public DepthTexture     depthTexture                = DepthTexture.Enable;
-    public ScatterDebugMode    debugMode                   = ScatterDebugMode.None;
+    public Shader             atmosphericShaderOverride = null;
+    // public Shader             occlusionShaderOverride   = null;
+    public float              worldScaleExponent        = 1.0f;
+    // public bool            forcePerPixel             = true; 
+    // public bool            forcePostEffect           = true;
+    [Tooltip("Soft clouds need depth values. Ignore means externally controlled.")]
+    public DepthTexture       depthTexture              = DepthTexture.Enable;
+    public ScatterDebugMode   debugMode                 = ScatterDebugMode.None;
     
-    // [HideInInspector] public Shader occlusionShader;
-
+    // [HideInInspector] public Shader occlusionShaderOverride;
 
     // Camera   m_currentCamera;
 
@@ -104,24 +105,20 @@ public class AtmosphericParameters : MonoBehaviour
             );
         }
 
-        if (atmosphericShader == null)
+        if (atmosphericShaderOverride != null)
         {
-            // TODO: add a default shader.
-            // atmosphericShader = Shader.Find("Path/UnityShaderNameWithoutExt");
+            // Override the default shader.
+            m_atmosphericMaterial           = new Material(atmosphericShaderOverride);
+            m_atmosphericMaterial.hideFlags = HideFlags.HideAndDontSave;
         }
-
-        m_atmosphericMaterial           = new Material(atmosphericShader);
-        m_atmosphericMaterial.hideFlags = HideFlags.HideAndDontSave;
 
         /*
-        if (occlusionShader == null)
+        if (occlusionShaderOverride != null)
         {
-            // TODO: add a default shader.
-            // occlusionShader = Shader.Find("Path/UnityShaderNameWithoutExt");
+            // Override the default shader.
+            m_occlusionMaterial           = new Material(occlusionShaderOverride);
+            m_occlusionMaterial.hideFlags = HideFlags.HideAndDontSave;
         }
-        
-        m_occlusionMaterial             = new Material(occlusionShader);
-        m_occlusionMaterial.hideFlags   = HideFlags.HideAndDontSave;
         */
 
         m_isAwake = true;
@@ -137,12 +134,6 @@ public class AtmosphericParameters : MonoBehaviour
         {
             Debug.LogErrorFormat("Unexpected: AtmosphericParameters is not attached to a directional light.");
             return;
-        }
-
-        if (atmosphericShader == null)
-        {
-             Debug.LogErrorFormat("Unexpected: AtmosphericParameters.atmosphericShader is not set.");
-             return;
         }
 
         worldScaleExponent           = Mathf.Clamp(worldScaleExponent, 1f, 2f);
@@ -216,12 +207,6 @@ public class AtmosphericParameters : MonoBehaviour
 
     void UpdateKeywords(bool enable)
     {
-        if (atmosphericShader == null)
-        {
-             Debug.LogErrorFormat("Unexpected: AtmosphericParameters.atmosphericShader is not set.");
-             return;
-        }
-
         Shader.DisableKeyword("ATMOSPHERICS");
         Shader.DisableKeyword("ATMOSPHERICS_PER_PIXEL");
         Shader.DisableKeyword("ATMOSPHERICS_OCCLUSION");
@@ -318,6 +303,14 @@ public class AtmosphericParameters : MonoBehaviour
     {
         if (!m_isAwake) return;
 
+        /* For now, we only use the directional light we are attached to, and the current camera. */
+
+        if (depthTexture == DepthTexture.Disable)
+        {
+            // Disable depth texture rendering.
+            Camera.current.depthTextureMode = DepthTextureMode.None;
+        }
+
         // Set shader constants.
         UpdateDynamicUniforms();
 
@@ -363,15 +356,6 @@ public class AtmosphericParameters : MonoBehaviour
 
     void UpdateDynamicUniforms()
     {
-        if (atmosphericShader == null)
-        {
-             // Do nothing. Avoid spamming the console.
-             return;
-        }
-
-        /* For now, we only use the directional light  *
-         * we are attached to, and the primary camera. */
-
         var trackedYaw = skyDomeTrackedYawRotation ? skyDomeTrackedYawRotation.eulerAngles.y : 0f;
         Shader.SetGlobalMatrix("u_SkyDomeRotation",
              Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(skyDomeRotation.x, 0f, 0f), Vector3.one)
@@ -383,9 +367,13 @@ public class AtmosphericParameters : MonoBehaviour
         Shader.SetGlobalFloat("u_WorldMieDensity",  -worldMieDensity / 100000f);
         Shader.SetGlobalFloat("u_HeightMieDensity", -heightMieDensity / 100000f);
 
-        var pixelRect = new Rect(0f, 0f, Screen.width, Screen.height);
+        var pixelRect = Camera.current ? Camera.current.pixelRect
+                                       : new Rect(0f, 0f, Screen.width, Screen.height);
         var scale = 1.0f; //(float)(int)occlusionDownscale;
-        var depthTextureScaledTexelSize = new Vector4(scale / pixelRect.width, scale / pixelRect.height, -scale / pixelRect.width, -scale / pixelRect.height);
+        var depthTextureScaledTexelSize = new Vector4(scale / pixelRect.width,
+                                                      scale / pixelRect.height,
+                                                     -scale / pixelRect.width,
+                                                     -scale / pixelRect.height);
         Shader.SetGlobalVector("u_DepthTextureScaledTexelSize", depthTextureScaledTexelSize);
     }
 
