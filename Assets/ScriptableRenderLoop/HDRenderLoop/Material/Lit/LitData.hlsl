@@ -404,16 +404,9 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     float alpha3 = GetSurfaceData3(input, layerTexCoord, surfaceData3);
 
     // Mask Values : Layer 1, 2, 3 are r, g, b
-    float3 maskValues = float3(0.0, 0.0, 0.0);
-#if defined(_LAYER_MASK_MAP)
-    maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
-#endif
+    float3 maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
 #if defined(_LAYER_MASK_VERTEX_COLOR)
-    maskValues = input.vertexColor.rgb;
-#endif
-
-#if defined(_LAYER_MASK_MAP) && defined(_LAYER_MASK_VERTEX_COLOR)
-    maskValues = input.vertexColor.rgb * SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
+    maskValues *= input.vertexColor.rgb;
 #endif
 
     float weights[_MAX_LAYER];

@@ -462,7 +462,6 @@ namespace UnityEditor
                 SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap + i));
             }
 
-            SetKeyword(material, "_LAYER_MASK_MAP", material.GetTexture(kLayerMaskMap));
             SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
         }
 
