@@ -76,6 +76,13 @@ namespace UnityEditor
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
         const string kLayerUVDetailsMappingMask = "_UVDetailsMappingMask";
 
+        MaterialProperty layerEmissiveColor = null;
+        const string kLayerEmissiveColor = "_EmissiveColor";
+        MaterialProperty layerEmissiveColorMap = null;
+        const string kLayerEmissiveColorMap = "_EmissiveColorMap";
+        MaterialProperty layerEmissiveIntensity = null;
+        const string kLayerEmissiveIntensity = "_EmissiveIntensity";
+
         private void FindLayerProperties(MaterialProperty[] props)
         {
             layerMaskMap = FindProperty(kLayerMaskMap, props);
@@ -89,6 +96,10 @@ namespace UnityEditor
                 layerUVDetail[i] = FindProperty(string.Format("{0}{1}", kLayerUVDetail, i), props);
                 layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kLayerUVDetailsMappingMask, i), props);
             }
+
+            layerEmissiveColor = FindProperty(kLayerEmissiveColor, props);
+            layerEmissiveColorMap = FindProperty(kLayerEmissiveColorMap, props);
+            layerEmissiveIntensity = FindProperty(kLayerEmissiveIntensity, props);
         }
 
         int numLayer
@@ -455,34 +466,6 @@ namespace UnityEditor
             SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
         }
 
-        protected override void SetupEmissionGIFlags(Material material)
-        {
-            // Setup lightmap emissive flags
-            bool nonNullEmissive = false;
-            for(int i = 0 ; i < numLayer; ++i)
-            {
-                string paramName = string.Format("_EmissiveIntensity{0}", i);
-                if (material.GetFloat(paramName) > 0.0f)
-                {
-                    nonNullEmissive = true;
-                    break;
-                }
-            }
-            var realtimeEmission = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeEmissive) > 0;
-            bool shouldEmissionBeEnabled = nonNullEmissive || realtimeEmission;
-
-            MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
-            if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
-            {
-                if (shouldEmissionBeEnabled)
-                    flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-                else
-                    flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-
-                material.globalIlluminationFlags = flags;
-            }
-        }
-
         void SetupMaterialForLayers(Material material)
         {
             if (numLayer == 4)
@@ -525,10 +508,18 @@ namespace UnityEditor
                     SetKeyword(material, currentLayerMappingTriplanar, true);
                 }
 
-                X = (layerUVDetailMapping == LayerUVDetailMapping.UV0) ? 1.0f : 0.0f;
-                Y = (layerUVDetailMapping == LayerUVDetailMapping.UV1) ? 1.0f : 0.0f;
-                Z = (layerUVDetailMapping == LayerUVDetailMapping.UV3) ? 1.0f : 0.0f;
-                layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, 0.0f);
+                // If base is planar mode, detail is planar too
+                if (W > 0.0f)
+                {
+                    X = Y = Z = 0.0f;
+                }
+                else
+                {
+                    X = (layerUVDetailMapping == LayerUVDetailMapping.UV0) ? 1.0f : 0.0f;
+                    Y = (layerUVDetailMapping == LayerUVDetailMapping.UV1) ? 1.0f : 0.0f;
+                    Z = (layerUVDetailMapping == LayerUVDetailMapping.UV3) ? 1.0f : 0.0f;
+                }
+                layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, 0.0f); // W Reuse planar mode from base
             }
         }
 
@@ -550,12 +541,6 @@ namespace UnityEditor
             EditorGUI.BeginChangeCheck();
             {
                 ShaderOptionsGUI();
-                EditorGUI.indentLevel++;
-                EditorGUILayout.LabelField(styles.emissiveText);
-                m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-                m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-                m_MaterialEditor.LightmapEmissionProperty(1);
-                EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
             }
             if (EditorGUI.EndChangeCheck())
@@ -564,6 +549,14 @@ namespace UnityEditor
             }
 
             bool layerChanged = DoLayersGUI(materialImporter);
+
+            EditorGUILayout.Space();
+            GUILayout.Label(Styles.emissiveText, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, layerEmissiveColorMap, layerEmissiveColor);
+            m_MaterialEditor.ShaderProperty(layerEmissiveIntensity, Styles.emissiveIntensityText);
+            m_MaterialEditor.LightmapEmissionProperty(1);
+            EditorGUI.indentLevel--;
 
             CheckLayerConsistency();
 

@@ -135,6 +135,10 @@ struct LayerUV
 
 struct LayerTexCoord
 {
+#ifndef LAYERED_LIT_SHADER
+    LayerUV base;
+    LayerUV details;
+#else
     // Regular texcoord
     LayerUV base0;
     LayerUV base1;
@@ -145,6 +149,7 @@ struct LayerTexCoord
     LayerUV details1;
     LayerUV details2;
     LayerUV details3;
+#endif
 
     // triplanar weight
     float3 weights;
@@ -157,11 +162,11 @@ float4 SampleLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, floa
         float4 val = float4(0.0, 0.0, 0.0, 0.0);
 
         if (weights.x > 0.0)
-            val += outCoord.blendWeights.x * SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ);
+            val += weights.x * SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ);
         if (weights.y > 0.0)
-            val += outCoord.blendWeights.y * SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX);
+            val += weights.y * SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX);
         if (weights.z > 0.0)
-            val += outCoord.blendWeights.z * SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY);
+            val += weights.z * SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY);
 
         return val;
     }
@@ -173,20 +178,20 @@ float4 SampleLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, floa
 
 // TODO: Handle BC5 format, currently this code is for DXT5nm
 // THis function below must call UnpackNormalmapRGorAG
-float4 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights)
+float3 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights)
 {
     if (layerUV.isTriplanar)
     {
-        float4 val = float4(0.0, 0.0, 0.0, 0.0);
+        float3 val = float3(0.0, 0.0, 0.0);
 
         if (weights.x > 0.0)
-            val += outCoord.blendWeights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ));
+            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ));
         if (weights.y > 0.0)
-            val += outCoord.blendWeights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX));
+            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX));
         if (weights.z > 0.0)
-            val += outCoord.blendWeights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY));
+            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY));
 
-        return val;
+        return normalize(val);
     }
     else
     {
@@ -195,20 +200,20 @@ float4 SampleNormalLayer(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV
 }
 
 // This version is for normalmap with AG encoding only (use with details map)
-float4 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights)
+float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layerUV, float3 weights)
 {
     if (layerUV.isTriplanar)
     {
-        float4 val = float4(0.0, 0.0, 0.0, 0.0);
+        float3 val = float3(0.0, 0.0, 0.0);
 
         if (weights.x > 0.0)
-            val += outCoord.blendWeights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ));
+            val += weights.x * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvYZ));
         if (weights.y > 0.0)
-            val += outCoord.blendWeights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX));
+            val += weights.y * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvZX));
         if (weights.z > 0.0)
-            val += outCoord.blendWeights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY));
+            val += weights.z * UnpackNormalAG(SAMPLE_TEXTURE2D(layerTex, layerSampler, layerUV.uvXY));
 
-        return val;
+        return normalize(val);
     }
     else
     {
@@ -217,9 +222,9 @@ float4 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layer
 }
 
 // Macro to improve readibility of surface data
-#define SAMPLE_LAYER_TEXTURE2D(textureName, samplerName, coord) SampleLayer(TEXTURE2D_PASS(textureName, samplerName), coord, coord.weights);
-#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord) SampleNormalLayer(TEXTURE2D_PASS(textureName, samplerName), coord, coord.weights);
-#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord) SampleNormalLayerAG(TEXTURE2D_PASS(textureName, samplerName), coord, coord.weights);
+#define SAMPLE_LAYER_TEXTURE2D(textureName, samplerName, coord) SampleLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
+#define SAMPLE_LAYER_NORMALMAP(textureName, samplerName, coord) SampleNormalLayer(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
+#define SAMPLE_LAYER_NORMALMAP_AG(textureName, samplerName, coord) SampleNormalLayerAG(TEXTURE2D_PARAM(textureName, samplerName), coord, layerTexCoord.weights)
 
 // Transforms 2D UV by scale/bias property
 #define TRANSFORM_TEX(tex,name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
@@ -234,15 +239,18 @@ float4 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layer
 void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     LayerTexCoord layerTexCoord;
+    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
 
+#ifdef _MAPPING_TRIPLANAR
     // one weight for each direction XYZ - Use vertex normal for triplanar
-    layerTexCoord.weights = ComputeTriplanarWeights(input.tangentToWorld[2].xyz); // Will be remove if triplanar not used
+    layerTexCoord.weights = ComputeTriplanarWeights(input.tangentToWorld[2].xyz);
+#endif
 
     // Be sure that the compiler is aware that we don't touch UV1 and UV3 for base layer in case of non layer shader
     // so it can remove code
-    _UVMappingMask.yz = flat2(0.0, 0.0);
+    _UVMappingMask.yz = float2(0.0, 0.0);
     bool isTriplanar = false;
-#ifdef MAPPING_TRIPLANAR
+#ifdef _MAPPING_TRIPLANAR
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord(input, isTriplanar, layerTexCoord);
@@ -346,24 +354,40 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
     return result;
 }
 
-#define PROP_BLEND_COLOR(name, mask) name = BlendLayeredColor(name##0, name##1, name##2, name##3, mask);
-#define PROP_BLEND_NORMAL(name, mask) name = BlendLayeredNormal(name##0, name##1, name##2, name##3, mask);
-#define PROP_BLEND_SCALAR(name, mask) name = BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
+#define SURFACEDATA_BLEND_COLOR(surfaceData, name, mask) BlendLayeredColor(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
+#define SURFACEDATA_BLEND_NORMAL(surfaceData, name, mask) BlendLayeredNormal(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
+#define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
+#define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
 void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     LayerTexCoord layerTexCoord;
+    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
 
+#if defined(_LAYER_MAPPING_TRIPLANAR_0) || defined(_LAYER_MAPPING_TRIPLANAR_1) || defined(_LAYER_MAPPING_TRIPLANAR_2) || defined(_LAYER_MAPPING_TRIPLANAR_3)
     // one weight for each direction XYZ - Use vertex normal for triplanar
-    layerTexCoord.weights = ComputeTriplanarWeights(input.tangentToWorld[2].xyz); // Will be remove if triplanar not used
+    layerTexCoord.weights = ComputeTriplanarWeights(input.tangentToWorld[2].xyz);
+#endif
 
     bool isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_0
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord0(input, isTriplanar, layerTexCoord);
+    isTriplanar = false;
+#ifdef _LAYER_MAPPING_TRIPLANAR_1
+    isTriplanar = true;
+#endif
     ComputeLayerTexCoord1(input, isTriplanar, layerTexCoord);
+    isTriplanar = false;
+#ifdef _LAYER_MAPPING_TRIPLANAR_2
+    isTriplanar = true;
+#endif
     ComputeLayerTexCoord2(input, isTriplanar, layerTexCoord);
+    isTriplanar = false;
+#ifdef _LAYER_MAPPING_TRIPLANAR_3
+    isTriplanar = true;
+#endif
     ComputeLayerTexCoord3(input, isTriplanar, layerTexCoord);
     ApplyDisplacement0(input, layerTexCoord);
     ApplyDisplacement1(input, layerTexCoord);
@@ -380,28 +404,32 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     float alpha3 = GetSurfaceData3(input, layerTexCoord, surfaceData3);
 
     // Mask Values : Layer 1, 2, 3 are r, g, b
-    float3 maskValues = float3(1.0, 1.0, 1.0);
+    float3 maskValues = float3(0.0, 0.0, 0.0);
 #if defined(_LAYER_MASK_MAP)
-    maskValues *= SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
+    maskValues = SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
 #endif
 #if defined(_LAYER_MASK_VERTEX_COLOR)
-    maskValues *= input.vertexColor.rgb;
+    maskValues = input.vertexColor.rgb;
+#endif
+
+#if defined(_LAYER_MASK_MAP) && defined(_LAYER_MASK_VERTEX_COLOR)
+    maskValues = input.vertexColor.rgb * SAMPLE_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, input.texCoord0).rgb;
 #endif
 
     float weights[_MAX_LAYER];
     ComputeMaskWeights(maskValues, weights);
 
-    surfaceData.baseColor = PROP_BLEND_COLOR(surfaceData.baseColor, weights);
-    surfaceData.specularOcclusion = PROP_BLEND_SCALAR(surfaceData.specularOcclusion, weights);
+    surfaceData.baseColor = SURFACEDATA_BLEND_COLOR(surfaceData, baseColor, weights);
+    surfaceData.specularOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, specularOcclusion, weights);
     // Note: for normal map (in tangent space) it is possible to have better performance
     // by blending in tangent space then transform to world and apply flip. 
     // Sadly this require a specific path (without taking into account that there is detail normal map)
     // mean it add an extra cost of maintenance. We chose to not do this optimization in favor 
     // of simpler code and in the future will rely on shader graph to create optimize code.
-    surfaceData.normalWS = PROP_BLEND_NORMAL(surfaceData.normalWS, weights);
-    surfaceData.perceptualSmoothness = PROP_BLEND_SCALAR(surfaceData.perceptualSmoothness, weights);
-    surfaceData.ambientOcclusion = PROP_BLEND_SCALAR(surfaceData.ambientOcclusion, weights);
-    surfaceData.metallic = PROP_BLEND_SCALAR(surfaceData.metallic, weights);
+    surfaceData.normalWS = SURFACEDATA_BLEND_NORMAL(surfaceData,  normalWS, weights);
+    surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
+    surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
+    surfaceData.metallic = SURFACEDATA_BLEND_SCALAR(surfaceData, metallic, weights);
 
     // Init other unused parameter
     surfaceData.materialId = 0;

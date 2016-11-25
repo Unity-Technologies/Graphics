@@ -97,7 +97,7 @@ float3 ComputeTriplanarWeights(float3 normal)
     blendWeights = (blendWeights - 0.2) * 7.0;
     // Force weights to sum to 1.0 (very important!)  
     blendWeights = max(blendWeights, float3(0.0, 0.0, 0.0));
-    blendWeights /= dot(blendWeights.x, 1.0);
+    blendWeights /= dot(blendWeights, 1.0);
 
     return blendWeights;
 }
