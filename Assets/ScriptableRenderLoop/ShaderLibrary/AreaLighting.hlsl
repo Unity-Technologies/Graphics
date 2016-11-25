@@ -185,7 +185,7 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
 float LineFpo(float tLDDL, float lrcpD, float rcpD)
 {
     // Compute: ((l / d) / (d * d + l * l)) + (1.0 / (d * d)) * atan(l / d).
-    return tLDDL + Square(rcpD) * atan(lrcpD);
+    return tLDDL + (rcpD * rcpD) * FastATan(lrcpD);
 }
 
 float LineFwt(float tLDDL, float l)
@@ -204,23 +204,39 @@ float LineIrradiance(float l1, float l2, float3 normal, float3 tangent)
     float d      = length(normal);
     float l1rcpD = l1 * rcp(d);
     float l2rcpD = l2 * rcp(d);
-    float tLDDL1 = l1rcpD * rcp(Square(d) + Square(l1));
-    float tLDDL2 = l2rcpD * rcp(Square(d) + Square(l2));
+    float tLDDL1 = l1rcpD / (d * d + l1 * l1);
+    float tLDDL2 = l2rcpD / (d * d + l2 * l2);
     float intWt  = LineFwt(tLDDL2, l2) - LineFwt(tLDDL1, l1);
     float intP0  = LineFpo(tLDDL2, l2rcpD, rcp(d)) - LineFpo(tLDDL1, l1rcpD, rcp(d));
-    return intP0 * normal.z + intWt * tangent.z;
+    // Guard against numerical precision issues.
+    return max(intP0 * normal.z + intWt * tangent.z, 0.0);
+}
+
+// Computes 1.0 / length(mul(ortho, transpose(inverse(invM)))).
+float ComputeLineWidthFactor(float3x3 invM, float3 ortho)
+{
+    // transpose(inverse(M)) = (1.0 / determinant(M)) * cofactor(M).
+    // Take into account that m12 = m21 = m23 = m32 = 0 and m33 = 1.
+    float    det = invM._11 * invM._22 - invM._22 * invM._31 * invM._13;
+    float3x3 cof = {invM._22, 0.0, -invM._22 * invM._31,
+                    0.0, invM._11 - invM._13 * invM._31, 0.0,
+                    -invM._13 * invM._22, 0.0, invM._11 * invM._22};
+
+    // 1.0 / length(mul(V, (1.0 / s * M))) = abs(s) / length(mul(V, M)).
+    return abs(det) / length(mul(ortho, cof));
 }
 
 // For line lights.
 float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
 {
-    // Inverse-transform the endpoints and the binormal.
+    // Inverse-transform the endpoints.
     P1 = mul(P1, invM);
     P2 = mul(P2, invM);
-    B  = mul(B,  invM);
 
     // Terminate the algorithm if both points are below the horizon.
     if (P1.z <= 0.0 && P2.z <= 0.0) return 0.0;
+
+    float width = ComputeLineWidthFactor(invM, B);
 
     if (P2.z <= 0.0)
     {
@@ -256,11 +272,7 @@ float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
     // Integrate the clamped cosine over the line segment.
     float irradiance = LineIrradiance(l1, l2, P0, T);
 
-    // Compute the width factor. We take the absolute value because the points may be swapped.
-    float width = abs(dot(B, normalize(cross(T, P1))));
-
-    // Guard against numerical precision issues.
-    return max(INV_PI * width * irradiance, 0.0);
+    return INV_PI * width * irradiance;
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
