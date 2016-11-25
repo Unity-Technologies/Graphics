@@ -69,8 +69,8 @@
 #define LOAD_TEXTURE2D(textureName, unCoord2) textureName.Load(int3(unCoord2, 0))
 #define LOAD_TEXTURE2D_MSAA(textureName, unCoord2, sampleIndex) textureName.Load(unCoord2, sampleIndex)
 
-#define SAMPLE_TEXTURE2D(textureName, samplerName, coord2) textureName.Gather(samplerName, coord2)
-#define SAMPLE_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) textureName.Gather(samplerName, float3(coord2, index))
-#define SAMPLE_TEXTURECUBE(textureName, samplerName, coord3) textureName.Gather(samplerName, coord3)
-#define SAMPLE_TEXTURECUBE_ARRAY(textureName, samplerName, coord3) textureName.Gather(samplerName, float4(coord3, index))
-#define SAMPLE_TEXTURE3D(textureName, samplerName, coord3) textureName.Gather(samplerName, coord3)
+#define GATHER_TEXTURE2D(textureName, samplerName, coord2) textureName.Gather(samplerName, coord2)
+#define GATHER_TEXTURE2D_ARRAY(textureName, samplerName, coord2, index) textureName.Gather(samplerName, float3(coord2, index))
+#define GATHER_TEXTURECUBE(textureName, samplerName, coord3) textureName.Gather(samplerName, coord3)
+#define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3) textureName.Gather(samplerName, float4(coord3, index))
+#define GATHER_TEXTURE3D(textureName, samplerName, coord3) textureName.Gather(samplerName, coord3)
