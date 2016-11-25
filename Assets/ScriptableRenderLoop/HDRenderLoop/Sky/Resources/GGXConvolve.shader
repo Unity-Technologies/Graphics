@@ -49,7 +49,7 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
                 float3 N = input.eyeVector;
                 float3 V = N;
 
-                float perceptualRoughness = 0.1;// mipmapLevelToPerceptualRoughness(_Level);
+                float perceptualRoughness = mipmapLevelToPerceptualRoughness(_Level);
                 // We approximate the pre-integration with V == N
                 float4 val = IntegrateLD(   TEXTURECUBE_PARAM(_MainTex, sampler_MainTex),
                                             V,
