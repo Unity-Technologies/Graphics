@@ -41,8 +41,6 @@ Shader "HDRenderLoop/LayeredLit"
         _NormalMap2("NormalMap2", 2D) = "bump" {}
         _NormalMap3("NormalMap3", 2D) = "bump" {}
 
-        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
-
         _HeightMap0("HeightMap0", 2D) = "black" {}
         _HeightMap1("HeightMap1", 2D) = "black" {}
         _HeightMap2("HeightMap2", 2D) = "black" {}
@@ -57,8 +55,6 @@ Shader "HDRenderLoop/LayeredLit"
         _HeightBias1("Height Bias1", Float) = 0
         _HeightBias2("Height Bias2", Float) = 0
         _HeightBias3("Height Bias3", Float) = 0
-
-        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
 
         _DetailMap0("DetailMap0", 2D) = "black" {}
         _DetailMap1("DetailMap1", 2D) = "black" {}
@@ -95,8 +91,6 @@ Shader "HDRenderLoop/LayeredLit"
         _DetailAOScale2("_DetailAOScale2", Range(-2.0, 2.0)) = 1
         _DetailAOScale3("_DetailAOScale3", Range(-2.0, 2.0)) = 1
 
-        [Enum(UV0, 0, UV1, 1)] _UVDetail("UV Set for detailMap", Float) = 0
-
         // Specific to planar mapping
         _TexWorldScale0("TexWorldScale0", Float) = 1.0
         _TexWorldScale1("TexWorldScale1", Float) = 1.0
@@ -125,25 +119,41 @@ Shader "HDRenderLoop/LayeredLit"
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
-        // Material Id
-        [HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
 
-        [HideInInspector] _LayerCount("__layerCount", Float) = 2.0
+        [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
 
         [Enum(Mask Alpha, 0, BaseColor Alpha, 1)] _SmoothnessTextureChannel("Smoothness texture channel", Float) = 1
-        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-        [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
+        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
+        [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
+        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
 
-        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping0("Layer 0 Mapping", Float) = 0
-        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping1("Layer 1 Mapping", Float) = 0
-        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping2("Layer 2 Mapping", Float) = 0
-        [Enum(UV0, 0, UV1, 1, Planar, 2, Triplanar, 3)] _LayerMapping3("Layer 3 Mapping", Float) = 0
-        // Following store the result of the enum above
-        _CoordWeight0("CoordWeight0", Color) = (1, 0, 0, 0)
-        _CoordWeight1("CoordWeight1", Color) = (1, 0, 0, 0)
-        _CoordWeight2("CoordWeight2", Color) = (1, 0, 0, 0)
-        _CoordWeight3("CoordWeight3", Color) = (1, 0, 0, 0)
+        [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
+
+        _TexWorldScale0("Scale to apply on world coordinate", Float) = 1.0
+        _TexWorldScale1("Scale to apply on world coordinate", Float) = 1.0
+        _TexWorldScale2("Scale to apply on world coordinate", Float) = 1.0
+        _TexWorldScale3("Scale to apply on world coordinate", Float) = 1.0
+
+        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase0("UV Set for base0", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase1("UV Set for base1", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase2("UV Set for base2", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase3("UV Set for base3", Float) = 0
+
+        [HideInInspector] _UVMappingMask0("_UVMappingMask0", Color) = (1, 0, 0, 0)
+        [HideInInspector] _UVMappingMask1("_UVMappingMask1", Color) = (1, 0, 0, 0)
+        [HideInInspector] _UVMappingMask2("_UVMappingMask2", Color) = (1, 0, 0, 0)
+        [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)
+
+        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail0("UV Set for detail0", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail1("UV Set for detail1", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail2("UV Set for detail2", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail3("UV Set for detail3", Float) = 0
+
+        [HideInInspector] _UVDetailsMappingMask0("_UVDetailsMappingMask0", Float) = 0
+        [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Float) = 0
+        [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Float) = 0
+        [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Float) = 0
     }
 
     HLSLINCLUDE
@@ -153,27 +163,33 @@ Shader "HDRenderLoop/LayeredLit"
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
+
+    #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_1
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_2
+    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_3
+    #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
+    #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
+    #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
+    #pragma shader_feature _REQUIRE_UV3
+    #pragma shader_feature _EMISSIVE_COLOR
+
     #pragma shader_feature _NORMALMAP
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE
     #pragma shader_feature _MASKMAP
     #pragma shader_feature _SPECULAROCCLUSIONMAP
-    #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    #pragma shader_feature _EMISSIVE_COLOR
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP
-    #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
     #pragma shader_feature _DETAIL_MAP
-    #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
-    #pragma shader_feature _LAYER_MASK_MAP _LAYER_VERTEX_COLOR _LAYER_MASK_MAP_VERTEX_COLOR
-    #pragma shader_feature _LAYEREDLIT_2_LAYERS _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
-    #pragma shader_feature _ _LAYER_MAPPING_TRIPLANAR_0
-    #pragma shader_feature _ _LAYER_MAPPING_TRIPLANAR_1
-    #pragma shader_feature _ _LAYER_MAPPING_TRIPLANAR_2
-    #pragma shader_feature _ _LAYER_MAPPING_TRIPLANAR_3
+    #pragma shader_feature _LAYER_MASK_MAP 
+    #pragma shader_feature _LAYER_VERTEX_COLOR
+    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
     #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED
     #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
+    // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
+    //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON 
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -206,8 +222,6 @@ Shader "HDRenderLoop/LayeredLit"
     #   define _LAYER_COUNT 2
     #endif
 
-
-
     // Set of users variables
     #define PROP_DECL(type, name) type name, name##0, name##1, name##2, name##3;
     #define PROP_DECL_TEX2D(name)\
@@ -216,28 +230,6 @@ Shader "HDRenderLoop/LayeredLit"
         TEXTURE2D(name##1); \
         TEXTURE2D(name##2); \
         TEXTURE2D(name##3);
-    #define PROP_SAMPLE(name, textureName, layerCoord, swizzle)\
-        name##0 = SampleLayer(TEXTURE2D_PARAM(textureName##0, sampler##textureName##0), layerCoord, 0).##swizzle; \
-        name##1 = SampleLayer(TEXTURE2D_PARAM(textureName##1, sampler##textureName##0), layerCoord, 1).##swizzle; \
-        name##2 = SampleLayer(TEXTURE2D_PARAM(textureName##2, sampler##textureName##0), layerCoord, 2).##swizzle; \
-        name##3 = SampleLayer(TEXTURE2D_PARAM(textureName##3, sampler##textureName##0), layerCoord, 3).##swizzle;
-    #define PROP_MUL(name, multiplier, swizzle)\
-        name##0 *= multiplier##0.##swizzle; \
-        name##1 *= multiplier##1.##swizzle; \
-        name##2 *= multiplier##2.##swizzle; \
-        name##3 *= multiplier##3.##swizzle;
-    #define PROP_ASSIGN(name, input, swizzle)\
-        name##0 = input##0.##swizzle; \
-        name##1 = input##1.##swizzle; \
-        name##2 = input##2.##swizzle; \
-        name##3 = input##3.##swizzle;
-    #define PROP_ASSIGN_VALUE(name, input)\
-        name##0 = input; \
-        name##1 = input; \
-        name##2 = input; \
-        name##3 = input;
-    #define PROP_BLEND_COLOR(name, mask) name = BlendLayeredColor(name##0, name##1, name##2, name##3, mask);
-    #define PROP_BLEND_SCALAR(name, mask) name = BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -271,17 +263,17 @@ Shader "HDRenderLoop/LayeredLit"
     TEXTURE2D(_DiffuseLightingMap);
     SAMPLER2D(sampler_DiffuseLightingMap);
 
+    TEXTURE2D(_LayerMaskMap);
+    SAMPLER2D(sampler_LayerMaskMap);
+
     float3 _EmissiveColor;
     TEXTURE2D(_EmissiveColorMap);
     SAMPLER2D(sampler_EmissiveColorMap);
-
     float _EmissiveIntensity;
 
     PROP_DECL(float, _TexWorldScale);
-    PROP_DECL(float, _CoordWeight);
-
-    TEXTURE2D(_LayerMaskMap);
-    SAMPLER2D(sampler_LayerMaskMap);
+    PROP_DECL(float4, _UVMappingMask);
+    PROP_DECL(float4, _UVDetailMappingMask);
 
     float _AlphaCutoff;
 
