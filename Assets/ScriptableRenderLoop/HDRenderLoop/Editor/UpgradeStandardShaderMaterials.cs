@@ -13,7 +13,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 		{
 			var upgraders = new List<MaterialUpgrader> ();
 			upgraders.Add(new StandardToHDLitMaterialUpgrader ());
-			return upgraders;
+            upgraders.Add(new StandardSpecularToHDLitMaterialUpgrader());
+            return upgraders;
 		}
 
 		[MenuItem("HDRenderLoop/Upgrade Materials - Project")]
@@ -27,5 +28,15 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 		{
 			MaterialUpgrader.UpgradeSelection (GetHDUpgraders(), "Upgrade to HD Material");
 		}
+
+	    [MenuItem("HDRenderLoop/Modify Light Intensity for Upgrade - Scene Only")]
+	    static void UpgradeLights()
+	    {
+	        Light[] lights = Light.GetLights(LightType.Directional, 0);
+	        foreach (var l in lights)
+	        {
+	            l.intensity *= Mathf.PI;
+	        }
+	    }
 	}
 }
