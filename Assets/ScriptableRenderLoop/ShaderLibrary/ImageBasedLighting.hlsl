@@ -34,6 +34,11 @@ float perceptualRoughnessToMipmapLevel(float perceptualRoughness)
     return perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
 }
 
+float mipmapLevelToPerceptualRoughness(float mipmapLevel)
+{
+    return mipmapLevel / UNITY_SPECCUBE_LOD_STEPS;
+}
+
 // Ref: See "Moving Frostbite to PBR" Listing 22
 // This formulation is for GGX only (with smith joint visibility or regular)
 float3 GetSpecularDominantDir(float3 N, float3 R, float roughness)

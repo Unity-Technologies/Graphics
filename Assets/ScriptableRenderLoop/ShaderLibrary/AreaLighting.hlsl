@@ -7,7 +7,7 @@ float IntegrateEdge(float3 v1, float3 v2)
     // Clamp to avoid artifacts. This particular constant gives the best results.
     cosTheta    = Clamp(cosTheta, -0.9999, 0.9999);
     float theta = FastACos(cosTheta);
-    float res   = cross(v1, v2).z * theta / sin(theta);
+    float res = cross(v1, v2).z * theta * rsqrt(1.0f - cosTheta * cosTheta); // optimization from * 1 / sin(theta)
 
     return res;
 }
@@ -185,7 +185,7 @@ float LTCEvaluate(float4x3 L, float3 V, float3 N, float NdotV, bool twoSided, fl
 float LineFpo(float tLDDL, float lrcpD, float rcpD)
 {
     // Compute: ((l / d) / (d * d + l * l)) + (1.0 / (d * d)) * atan(l / d).
-    return tLDDL + (rcpD * rcpD) * atan(lrcpD);
+    return tLDDL + (rcpD * rcpD) * FastATan(lrcpD);
 }
 
 float LineFwt(float tLDDL, float l)

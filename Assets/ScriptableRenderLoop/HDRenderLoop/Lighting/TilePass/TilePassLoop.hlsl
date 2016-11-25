@@ -127,7 +127,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
 #ifdef PROCESS_PUNCTUAL_LIGHT
     uint punctualLightStart;
     uint punctualLightCount;
-    GetCountAndStart(coord, DIRECT_LIGHT, linearDepth, start, punctualLightCount);
+    GetCountAndStart(coord, DIRECT_LIGHT, linearDepth, punctualLightStart, punctualLightCount);
     for (i = 0; i < punctualLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
@@ -145,7 +145,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
     // TODO: Area lights are where the sorting is important (Morten approach with while loop)
     uint areaLightStart;
     uint areaLightCount;
-    GetCountAndStart(coord, LightCatergory.AreaLight, linearDepth, start, punctualLightCount);
+    GetCountAndStart(coord, LightCatergory.AreaLight, linearDepth, areaLightStart, areaLightCount);
     for (i = 0; i < areaLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
@@ -162,7 +162,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
 #ifdef PROCESS_ENV_LIGHT
     uint envLightStart;
     uint envLightCount;
-    GetCountAndStart(coord, REFLECTION_LIGHT, linearDepth, start, envLightCount);
+    GetCountAndStart(coord, REFLECTION_LIGHT, linearDepth, envLightStart, envLightCount);
 
     float3 iblDiffuseLighting = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
@@ -172,7 +172,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
         float3 localDiffuseLighting, localSpecularLighting;
         float2 weight;
         context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
-        EvaluateBSDF_Env(context, V, positionWS, prelightData, _EnvLightList[FetchIndex(punctualLightStart, i)], bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+        EvaluateBSDF_Env(context, V, positionWS, prelightData, _EnvLightList[FetchIndex(envLightStart, i)], bsdfData, localDiffuseLighting, localSpecularLighting, weight);
         iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
     }
