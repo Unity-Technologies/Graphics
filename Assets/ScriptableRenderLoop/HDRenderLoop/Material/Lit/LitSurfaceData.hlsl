@@ -114,7 +114,7 @@ float ADD_IDX(GetSurfaceData)(FragInput input, LayerTexCoord layerTexCoord, out 
 #endif
 
     // TODO: think about using BC5
-    float3 vertexNormalWS = input.tangentToWorld[2].xyz;
+    float3 vertexNormalWS = normalize(input.tangentToWorld[2].xyz);
 
 #ifdef _NORMALMAP
     #ifdef _NORMALMAP_TANGENT_SPACE
@@ -185,7 +185,7 @@ float ADD_IDX(GetSurfaceData)(FragInput input, LayerTexCoord layerTexCoord, out 
     surfaceData.tangentWS = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base)).rgb;
 #endif
 #else
-    surfaceData.tangentWS = input.tangentToWorld[0].xyz;
+    surfaceData.tangentWS = normalize(input.tangentToWorld[0].xyz);
 #endif
     // TODO: Is there anything todo regarding flip normal but for the tangent ?
 
