@@ -14,6 +14,7 @@ namespace UnityEngine.MaterialGraph
         , IGeneratesFunction
         , IOnAssetEnabled
         , IMayRequireNormal
+        , IMayRequireTangent
         , IMayRequireMeshUV
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
@@ -314,6 +315,14 @@ namespace UnityEngine.MaterialGraph
                 return false;
 
             return subGraph.activeNodes.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition());
+        }
+
+        public bool RequiresTangent()
+        {
+            if (subGraph == null)
+                return false;
+
+            return subGraph.activeNodes.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent());
         }
     }
 }

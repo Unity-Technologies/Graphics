@@ -11,6 +11,7 @@ namespace UnityEngine.MaterialGraph
     public static class ShaderGeneratorNames
     {
         public const string WorldSpaceNormal = "worldSpaceNormal";
+        public const string WorldSpaceTangent = "worldSpaceTangent";
         public const string WorldSpacePosition = "worldPosition";
         public const string WorldSpaceViewDirection = "worldSpaceViewDirection";
         public const string ScreenPosition = "screenPosition";
@@ -274,6 +275,13 @@ namespace UnityEngine.MaterialGraph
                 shaderInputVisitor.AddShaderChunk("float4 screenPos : TEXCOORD3;", true);
                 vertexShaderBlock.AddShaderChunk("o.screenPos = screenPos;", true);
                 shaderBodyVisitor.AddShaderChunk("half4 " + ShaderGeneratorNames.ScreenPosition + " = IN.screenPos;", true);
+            }
+
+            if (activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent()))
+            {
+                shaderInputVisitor.AddShaderChunk("float3 worldTangent : TEXCOORD4;", true);
+                vertexShaderBlock.AddShaderChunk("o.worldTangent = UnityObjectToWorldDir(v.tangent.xyz);", true);
+                shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceTangent + " = normalize(IN.worldTangent);", true);
             }
 
             var generationMode = GenerationMode.Preview;

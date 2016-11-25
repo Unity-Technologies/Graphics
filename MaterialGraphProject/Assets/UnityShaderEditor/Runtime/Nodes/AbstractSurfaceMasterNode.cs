@@ -143,6 +143,13 @@ namespace UnityEngine.MaterialGraph
                 shaderBody.AddShaderChunk("float4 " + ShaderGeneratorNames.ScreenPosition + " = IN.screenPos;", true);
             }
 
+            if (activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent()))
+            {
+                shaderInputVisitor.AddShaderChunk("float3 worldTangent;", true);
+                vertexShaderBlock.AddShaderChunk("o.worldTangent = UnityObjectToWorldDir(v.tangent.xyz);", true);
+                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceTangent + " = normalize(IN.worldTangent);", true);
+            }
+
             if (activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
             {
                 // is the normal connected?
