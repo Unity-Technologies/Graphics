@@ -74,7 +74,7 @@ float2 ParallaxOffset(float3 viewDirTS, float height)
 // ref https://gist.github.com/selfshadow/8048308
 // Reoriented Normal Mapping
 // Blending when n1 and n2 are already 'unpacked' and normalised
-float3 blendNormalRNM(float3 n1, float3 n2)
+float3 BlendNormalRNM(float3 n1, float3 n2)
 {
     float3 t = n1.xyz + float3(0.0, 0.0, 1.0);
     float3 u = n2.xyz * float3(-1.0, -1.0, 1.0);
@@ -82,11 +82,30 @@ float3 blendNormalRNM(float3 n1, float3 n2)
     return r;
 }
 
-float3 blendNormal(float3 n1, float3 n2)
+float3 BlendNormal(float3 n1, float3 n2)
 {
     return normalize(float3(n1.xy * n2.z + n2.xy * n1.z, n1.z * n2.z));
 }
 
+// Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch01.html
+float3 ComputeTriplanarWeights(float3 normal)
+{ 
+    // Determine the blend weights for the 3 planar projections.  
+    // N_orig is the vertex-interpolated normal vector.  
+    float3 blendWeights = abs(normal);
+    // Tighten up the blending zone
+    blendWeights = (blendWeights - 0.2) * 7.0;
+    // Force weights to sum to 1.0 (very important!)  
+    blendWeights = max(blendWeights, float3(0.0, 0.0, 0.0));
+    blendWeights /= dot(blendWeights, 1.0);
 
+    return blendWeights;
+}
+
+float3 LerpWhiteTo(float3 b, float t)
+{
+    float oneMinusT = 1.0 - t;
+    return float3(oneMinusT, oneMinusT, oneMinusT) + b * t;
+}
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED
