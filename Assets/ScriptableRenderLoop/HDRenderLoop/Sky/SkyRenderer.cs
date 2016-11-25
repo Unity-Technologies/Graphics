@@ -87,30 +87,40 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             };
         }
 
+        void RebuildTextures()
+        {
+            if(m_SkyboxCubemapRT == null)
+            {
+                m_SkyboxCubemapRT = new RenderTexture(kSkyCubemapSize, kSkyCubemapSize, 1, RenderTextureFormat.ARGBHalf);
+                m_SkyboxCubemapRT.dimension = TextureDimension.Cube;
+                m_SkyboxCubemapRT.useMipMap = true;
+                m_SkyboxCubemapRT.autoGenerateMips = true;
+                m_SkyboxCubemapRT.filterMode = FilterMode.Point;
+                m_SkyboxCubemapRT.Create();
+            }
+
+            if(m_SkyboxGGXCubemapRT == null)
+            {
+                m_SkyboxGGXCubemapRT = new RenderTexture(kSkyCubemapSize, kSkyCubemapSize, 1, RenderTextureFormat.ARGBHalf);
+                m_SkyboxGGXCubemapRT.dimension = TextureDimension.Cube;
+                m_SkyboxGGXCubemapRT.useMipMap = true;
+                m_SkyboxGGXCubemapRT.autoGenerateMips = false;
+                m_SkyboxGGXCubemapRT.filterMode = FilterMode.Trilinear;
+                m_SkyboxGGXCubemapRT.Create();
+            }
+        }
+
         public void Rebuild()
         {
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");
 
             m_SkyHDRIMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/SkyHDRI");
-          //  m_GGXConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/GGXConvolve");
+            m_GGXConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/GGXConvolve");
 
             m_RenderSkyPropertyBlock = new MaterialPropertyBlock();
 
-            m_SkyboxCubemapRT = new RenderTexture(kSkyCubemapSize, kSkyCubemapSize, 1, RenderTextureFormat.ARGBHalf);
-            m_SkyboxCubemapRT.dimension = TextureDimension.Cube;
-            m_SkyboxCubemapRT.useMipMap = true;
-            m_SkyboxCubemapRT.autoGenerateMips = true;
-            m_SkyboxCubemapRT.filterMode = FilterMode.Point;
-            m_SkyboxCubemapRT.Create();
-
-
-            m_SkyboxGGXCubemapRT = new RenderTexture(kSkyCubemapSize, kSkyCubemapSize, 1, RenderTextureFormat.ARGBHalf);
-            m_SkyboxGGXCubemapRT.dimension = TextureDimension.Cube;
-            m_SkyboxGGXCubemapRT.useMipMap = true;
-            m_SkyboxGGXCubemapRT.autoGenerateMips = false;
-            m_SkyboxGGXCubemapRT.filterMode = FilterMode.Trilinear;
-            m_SkyboxGGXCubemapRT.Create();
+            RebuildTextures();
 
             Matrix4x4 cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.1f, 1.0f);
 
@@ -148,7 +158,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             Utilities.Destroy(m_StandardSkyboxMaterial);
             Utilities.Destroy(m_SkyHDRIMaterial);
-        //    Utilities.Destroy(m_GGXConvolveMaterial);
+            Utilities.Destroy(m_GGXConvolveMaterial);
             Utilities.Destroy(m_SkyboxCubemapRT);
             Utilities.Destroy(m_SkyboxGGXCubemapRT);
 
@@ -207,7 +217,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 skyParams.rotation = 0.0f;
                 skyParams.skyHDRI = input;
                 RenderSkyToCubemap(skyParams, target, renderLoop);
-/*
+
                 // Do the convolution on remaining mipmaps
                 float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
 
@@ -233,7 +243,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         cmd.Dispose();
                     }
                 }
- */
+
             }
         }
 
@@ -244,6 +254,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 //using (new EditorGUI.DisabledScope(m_LookDevEnvLibrary.hdriList.Count <= 1))
                 if (IsSkyValid(skyParameters))
                 {
+                    // When loading RenderDoc, RenderTextures will go null
+                    RebuildTextures();
+
                     using (new Utilities.ProfilingSample("Sky Pass: Render Cubemap", renderLoop))
                     {
                         // Render sky into a cubemap - doesn't happen every frame, can be controlled
