@@ -1,4 +1,4 @@
-void ADD_IDX(ComputeLayerTexCoord)(FragInput input, bool isTriplanar, inout LayerTexCoord outLayerTexCoord)
+void ADD_IDX(ComputeLayerTexCoord)(FragInput input, bool isTriplanar, inout LayerTexCoord layerTexCoord)
 {
     // TODO: Do we want to manage local or world triplanar/planar
     //float3 position = localTriplanar ? TransformWorldToObject(input.positionWS) : input.positionWS;
@@ -9,13 +9,13 @@ void ADD_IDX(ComputeLayerTexCoord)(FragInput input, bool isTriplanar, inout Laye
     ADD_IDX(layerTexCoord.base).uv =    ADD_IDX(_UVMappingMask).x * input.texCoord0 +
                                         ADD_IDX(_UVMappingMask).y * input.texCoord1 + 
                                         ADD_IDX(_UVMappingMask).z * input.texCoord3 +
-                                        ADD_IDX(_UVMappingMask).w * positionWS.xz;
+                                        ADD_IDX(_UVMappingMask).w * position.xz;
 
     float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * input.texCoord0 +
                         ADD_IDX(_UVDetailsMappingMask).y * input.texCoord1 +
                         ADD_IDX(_UVDetailsMappingMask).z * input.texCoord3 +
                         // Note that if base is planar, detail map is planar
-                        ADD_IDX(_UVMappingMask).w * positionWS.xz;
+                        ADD_IDX(_UVMappingMask).w * position.xz;
 
     ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(uvDetails, ADD_IDX(_DetailMap));
 
@@ -23,12 +23,14 @@ void ADD_IDX(ComputeLayerTexCoord)(FragInput input, bool isTriplanar, inout Laye
     ADD_IDX(layerTexCoord.base).isTriplanar = isTriplanar;
 
     ADD_IDX(layerTexCoord.base).uvYZ = position.yz;
-    ADD_IDX(layerTexCoord.base).uvZX = position.xy;
-    ADD_IDX(layerTexCoord.base).uvXY = position.xz;
+    ADD_IDX(layerTexCoord.base).uvZX = position.zx;
+    ADD_IDX(layerTexCoord.base).uvXY = position.xy;
+
+    ADD_IDX(layerTexCoord.details).isTriplanar = isTriplanar;
 
     ADD_IDX(layerTexCoord.details).uvYZ = TRANSFORM_TEX(position.yz, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvZX = TRANSFORM_TEX(position.xy, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(position.xz, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvZX = TRANSFORM_TEX(position.zx, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(position.xy, ADD_IDX(_DetailMap));
 }
 
 void ADD_IDX(ApplyDisplacement)(inout FragInput input, inout LayerTexCoord layerTexCoord)
@@ -82,11 +84,11 @@ float ADD_IDX(GetSurfaceData)(FragInput input, LayerTexCoord layerTexCoord, out 
     float detailMask = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_DetailMask), ADD_ZERO_IDX(sampler_DetailMask), ADD_IDX(layerTexCoord.base)).b;
     float2 detailAlbedoAndSmoothness = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_DetailMap), ADD_ZERO_IDX(sampler_DetailMap), ADD_IDX(layerTexCoord.details)).rb;
     float detailAlbedo = detailAlbedoAndSmoothness.r;
-    float detailSmoothness = detailAlbedoAndSmoothness.b;
+    float detailSmoothness = detailAlbedoAndSmoothness.g;
     #ifdef _DETAIL_MAP_WITH_NORMAL
     // Resample the detail map but this time for the normal map. This call should be optimize by the compiler
     // We split both call due to trilinear mapping
-    float3 detailNormalTS = SAMPLE_LAYER_NORMALMAP_AG(ADD_IDX(_DetailMap), ADD_ZERO_IDX(sampler_DetailMap), ADD_IDX(layerTexCoord.details)).rb;
+    float3 detailNormalTS = SAMPLE_LAYER_NORMALMAP_AG(ADD_IDX(_DetailMap), ADD_ZERO_IDX(sampler_DetailMap), ADD_IDX(layerTexCoord.details));
     //float detailAO = 0.0;
     #else
     // TODO: Use heightmap as a derivative with Morten Mikklesen approach, how this work with our abstraction and triplanar ?

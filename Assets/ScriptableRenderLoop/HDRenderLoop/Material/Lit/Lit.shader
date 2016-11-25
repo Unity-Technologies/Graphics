@@ -208,7 +208,7 @@ Shader "HDRenderLoop/Lit"
 
     float _TexWorldScale;
     float4 _UVMappingMask;
-    float4 _UVDetailMappingMask;
+    float4 _UVDetailsMappingMask;
 
     ENDHLSL
 

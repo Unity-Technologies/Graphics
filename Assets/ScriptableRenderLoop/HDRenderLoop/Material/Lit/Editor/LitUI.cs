@@ -370,7 +370,7 @@ namespace UnityEditor
         protected MaterialProperty baseColorMap = null;
         protected const string kBaseColorMap = "_BaseColorMap";
         protected MaterialProperty metallic = null;
-        protected const string kMettalic = "_Mettalic";
+        protected const string kMetallic = "_Metallic";
         protected MaterialProperty smoothness = null;
         protected const string kSmoothness = "_Smoothness";
         protected MaterialProperty maskMap = null;
@@ -484,9 +484,18 @@ namespace UnityEditor
             {
                 m_MaterialEditor.ShaderProperty(UVDetail, Styles.UVDetailMappingText.text);
             }
-            X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-            Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-            Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+
+            // If base is planar mode, detail is planar too
+            if (W > 0.0f)
+            {
+                X = Y = Z = 0.0f;
+            }
+            else
+            {
+                X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+                Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+                Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+            }
             UVDetailsMappingMask.colorValue = new Color(X, Y, Z, 0.0f); // W Reuse planar mode from base
 
             m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);

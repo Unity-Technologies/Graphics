@@ -154,6 +154,13 @@ Shader "HDRenderLoop/LayeredLit"
         [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Float) = 0
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Float) = 0
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Float) = 0
+
+        // Unused but to be able to share litUI.Sahder and layeredUI.Shader
+        [HideInInspector] _UVBase("UV Set for base", Float) = 0
+        [HideInInspector] _UVDetail("UV Set for base", Float) = 0
+        [HideInInspector] _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
+        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
+        [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
     }
 
     HLSLINCLUDE
@@ -249,7 +256,10 @@ Shader "HDRenderLoop/LayeredLit"
 
     PROP_DECL_TEX2D(_DetailMask);
     PROP_DECL_TEX2D(_DetailMap);
-    PROP_DECL(float4, _DetailMap_ST);
+    float4 _DetailMap0_ST;
+    float4 _DetailMap1_ST;
+    float4 _DetailMap2_ST;
+    float4 _DetailMap3_ST;
     PROP_DECL(float, _UVDetail);
     PROP_DECL(float, _DetailAlbedoScale);
     PROP_DECL(float, _DetailNormalScale);
@@ -273,7 +283,7 @@ Shader "HDRenderLoop/LayeredLit"
 
     PROP_DECL(float, _TexWorldScale);
     PROP_DECL(float4, _UVMappingMask);
-    PROP_DECL(float4, _UVDetailMappingMask);
+    PROP_DECL(float4, _UVDetailsMappingMask);
 
     float _AlphaCutoff;
 
