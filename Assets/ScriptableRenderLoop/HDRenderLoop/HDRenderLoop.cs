@@ -884,14 +884,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {
-            if (!m_LitRenderLoop.isInit)
-            {
-                m_LitRenderLoop.RenderInit(renderLoop);
-            }
-
             if (m_Dirty)
             {
                 Rebuild();
+            }
+
+            if (!m_LitRenderLoop.isInit)
+            {
+                m_LitRenderLoop.RenderInit(renderLoop);
             }
 
             // Do anything we need to do upon a new frame.

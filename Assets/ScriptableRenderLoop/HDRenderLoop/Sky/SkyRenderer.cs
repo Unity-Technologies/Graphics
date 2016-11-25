@@ -93,7 +93,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");
 
             m_SkyHDRIMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/SkyHDRI");
-            m_GGXConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/GGXConvolve");
+          //  m_GGXConvolveMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/GGXConvolve");
 
             m_RenderSkyPropertyBlock = new MaterialPropertyBlock();
 
@@ -148,7 +148,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             Utilities.Destroy(m_StandardSkyboxMaterial);
             Utilities.Destroy(m_SkyHDRIMaterial);
-            Utilities.Destroy(m_GGXConvolveMaterial);
+        //    Utilities.Destroy(m_GGXConvolveMaterial);
             Utilities.Destroy(m_SkyboxCubemapRT);
             Utilities.Destroy(m_SkyboxGGXCubemapRT);
 
@@ -207,7 +207,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 skyParams.rotation = 0.0f;
                 skyParams.skyHDRI = input;
                 RenderSkyToCubemap(skyParams, target, renderLoop);
-
+/*
                 // Do the convolution on remaining mipmaps
                 float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
 
@@ -233,6 +233,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         cmd.Dispose();
                     }
                 }
+ */
             }
         }
 
