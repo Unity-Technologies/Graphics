@@ -77,12 +77,12 @@ float HenyeyGreensteinPhase(float g, float cosTheta) {
 }
 
 float RayleighPhase(float cosTheta) {
-    const float f = 3.f / (16.f * M_PI);
+    const float f = 3.f / (16.f * PI);
     return f + f * cosTheta * cosTheta;
 }
 
 float MiePhase(float cosTheta, float anisotropy) {
-    const float f = 3.f / (8.f * M_PI);
+    const float f = 3.f / (8.f * PI);
     return f * HenyeyGreensteinPhase(anisotropy, cosTheta);
 }
 
@@ -265,6 +265,7 @@ float VolundSampleScatterOcclusion(float2 pos) {
         float4 mfWeights = float4(fWeights.z * fWeights.y, fWeights.x * fWeights.y, fWeights.x * fWeights.w, fWeights.z * fWeights.w);
         return dot(occ, mfWeights * maskDepth) / dot(mfWeights, maskDepth);
     }
+#endif //defined(ATMOSPHERICS_OCCLUSION_EDGE_FIXUP)
 #else //defined(ATMOSPHERICS_OCCLUSION)
     return 1.f;
 #endif //defined(ATMOSPHERICS_OCCLUSION)
