@@ -15,9 +15,12 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
             #pragma vertex Vert
             #pragma fragment Frag
 
+            #include "Color.hlsl"
             #include "Common.hlsl"
             #include "CommonLighting.hlsl"
-        
+            #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
+            #include "AtmosphericScattering.hlsl"
+
             TEXTURECUBE(_Cubemap);
             SAMPLERCUBE(sampler_Cubemap);
             float4 _SkyParam; // x exposure, y multiplier, z rotation
