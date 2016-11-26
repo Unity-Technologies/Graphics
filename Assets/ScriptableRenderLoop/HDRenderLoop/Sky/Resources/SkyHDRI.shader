@@ -19,6 +19,8 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
             #include "Common.hlsl"
             #include "CommonLighting.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
+
+            #define IS_RENDERING_SKY
             #include "AtmosphericScattering.hlsl"
 
             TEXTURECUBE(_Cubemap);
