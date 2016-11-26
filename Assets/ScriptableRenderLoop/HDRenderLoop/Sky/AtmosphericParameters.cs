@@ -207,8 +207,6 @@ public class AtmosphericParameters : MonoBehaviour
 
     void UpdateKeywords(bool enable)
     {
-        Shader.DisableKeyword("ATMOSPHERICS");
-        Shader.DisableKeyword("ATMOSPHERICS_PER_PIXEL");
         Shader.DisableKeyword("ATMOSPHERICS_OCCLUSION");
         Shader.DisableKeyword("ATMOSPHERICS_OCCLUSION_FULLSKY");
         Shader.DisableKeyword("ATMOSPHERICS_OCCLUSION_EDGE_FIXUP");
@@ -217,8 +215,6 @@ public class AtmosphericParameters : MonoBehaviour
 
         if (enable)
         {
-            Shader.EnableKeyword("ATMOSPHERICS_PER_PIXEL");
-            
             /*
             if (useOcclusion)
             {

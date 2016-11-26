@@ -332,26 +332,14 @@ float4 VolundApplyCloudScatterOcclusion(float4 coords1, float3 coords2, float2 p
 // Original vert/frag macros
 #if defined(ATMOSPHERICS_OCCLUSION)
     #define VOLUND_SCATTER_COORDS(idx1, idx2) float4 scatterCoords1 : TEXCOORD##idx1; float3 scatterCoords2 : TEXCOORD##idx2;
-    #if defined(ATMOSPHERICS_PER_PIXEL)
-        #define VOLUND_TRANSFER_SCATTER(pos, o) o.scatterCoords1 = pos.xyzz; o.scatterCoords2 = pos.xyz;
-        #define VOLUND_APPLY_SCATTER(i, color) VolundTransferScatterOcclusion(i.scatterCoords1.xyz, i.scatterCoords1, i.scatterCoords2); color = VolundApplyScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
-        #define VOLUND_CLOUD_SCATTER(i, color) VolundTransferScatterOcclusion(i.scatterCoords1.xyz, i.scatterCoords1, i.scatterCoords2); color = VolundApplyCloudScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
-    #else
-        #define VOLUND_TRANSFER_SCATTER(pos, o) VolundTransferScatterOcclusion(pos, o.scatterCoords1, o.scatterCoords2)
-        #define VOLUND_APPLY_SCATTER(i, color) color = VolundApplyScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
-        #define VOLUND_CLOUD_SCATTER(i, color) color = VolundApplyCloudScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
-    #endif
+    #define VOLUND_TRANSFER_SCATTER(pos, o) o.scatterCoords1 = pos.xyzz; o.scatterCoords2 = pos.xyz;
+    #define VOLUND_APPLY_SCATTER(i, color) VolundTransferScatterOcclusion(i.scatterCoords1.xyz, i.scatterCoords1, i.scatterCoords2); color = VolundApplyScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
+    #define VOLUND_CLOUD_SCATTER(i, color) VolundTransferScatterOcclusion(i.scatterCoords1.xyz, i.scatterCoords1, i.scatterCoords2); color = VolundApplyCloudScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
 #else
     #define VOLUND_SCATTER_COORDS(idx1, idx2) float4 scatterCoords1 : TEXCOORD##idx1;
-    #if defined(ATMOSPHERICS_PER_PIXEL)
-        #define VOLUND_TRANSFER_SCATTER(pos, o) o.scatterCoords1 = pos.xyzz;
-        #define VOLUND_APPLY_SCATTER(i, color) VolundTransferScatter(i.scatterCoords1.xyz, i.scatterCoords1); color = VolundApplyScatter(i.scatterCoords1, i.pos.xy, color);
-        #define VOLUND_CLOUD_SCATTER(i, color) VolundTransferScatter(i.scatterCoords1.xyz, i.scatterCoords1); color = VolundApplyCloudScatter(i.scatterCoords1, color);
-    #else
-        #define VOLUND_TRANSFER_SCATTER(pos, o) VolundTransferScatter(pos, o.scatterCoords1)
-        #define VOLUND_APPLY_SCATTER(i, color) color = VolundApplyScatter(i.scatterCoords1, i.pos.xy, color)
-        #define VOLUND_CLOUD_SCATTER(i, color) color = VolundApplyCloudScatter(i.scatterCoords1, color)
-    #endif
+    #define VOLUND_TRANSFER_SCATTER(pos, o) o.scatterCoords1 = pos.xyzz;
+    #define VOLUND_APPLY_SCATTER(i, color) VolundTransferScatter(i.scatterCoords1.xyz, i.scatterCoords1); color = VolundApplyScatter(i.scatterCoords1, i.pos.xy, color);
+    #define VOLUND_CLOUD_SCATTER(i, color) VolundTransferScatter(i.scatterCoords1.xyz, i.scatterCoords1); color = VolundApplyCloudScatter(i.scatterCoords1, color);
 #endif
 
 #if !defined(SURFACE_SCATTER_COORDS)
