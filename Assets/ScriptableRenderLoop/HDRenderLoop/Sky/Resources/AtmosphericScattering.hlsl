@@ -72,7 +72,7 @@ float HenyeyGreensteinPhase(float g, float cosTheta) {
     float a1 = (1.f - gSqr);
     float a2 = (2.f + gSqr);
     float b1 = 1.f + cosTheta * cosTheta;
-    float b2 = pow(1.f + gSqr - 2.f * g * cosTheta, 1.5f);
+    float b2 = pow(abs(1.f + gSqr - 2.f * g * cosTheta), 1.5f);
     return (a1 / a2) * (b1 / b2);
 }
 
