@@ -90,13 +90,13 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
                         case ATMOSPHERICS_DBG_RAYLEIGH:           return c1;
                         case ATMOSPHERICS_DBG_MIE:                return c2 * miePh;
                         case ATMOSPHERICS_DBG_HEIGHT:             return c3;
-                        case ATMOSPHERICS_DBG_SCATTERING:         return float4(scatter, 1.0);
-                        case ATMOSPHERICS_DBG_OCCLUSION:          return float4(occlusion.xy, 0.0, 1.0);
-                        case ATMOSPHERICS_DBG_OCCLUDEDSCATTERING: return float4(scatter, 1.0);
+                        case ATMOSPHERICS_DBG_SCATTERING:         return float4(scatter, 0.0);
+                        case ATMOSPHERICS_DBG_OCCLUSION:          return float4(occlusion.xy, 0.0, 0.0);
+                        case ATMOSPHERICS_DBG_OCCLUDEDSCATTERING: return float4(scatter, 0.0);
                     }
                 #endif
 
-                return float4(skyDome * extinction + scatter, 1.0);
+                return float4(skyDome * extinction + scatter, 0.0);
             }
 
             ENDHLSL
