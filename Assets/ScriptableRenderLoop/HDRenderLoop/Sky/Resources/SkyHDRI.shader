@@ -68,9 +68,8 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
 
                 Coordinate coord = GetCoordinate(input.positionCS.xy, _ScreenSize.zw);
 
-                // TODO: what sort of depth and world position values do we compute here?
-                float  rawDepth   = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).r;
-                float3 positionWS = UnprojectToWorld(rawDepth, coord.positionSS, _InvViewProjMatrix);
+                // Pass the depth value near the far plane.
+                float3 positionWS = UnprojectToWorld(0.01, coord.positionSS, _InvViewProjMatrix);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(positionWS, c1, c2, c3);
