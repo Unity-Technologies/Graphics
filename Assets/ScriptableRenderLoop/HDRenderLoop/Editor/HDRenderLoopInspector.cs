@@ -20,6 +20,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
             public readonly GUIContent useDepthPrepass = new GUIContent("Use Depth Prepass");
+            public readonly GUIContent useSinglePassLightLoop = new GUIContent("Use single Pass light loop");
 
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
@@ -44,6 +45,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop settings");
             public readonly GUIContent tileLightLoopDebugMode = new GUIContent("Enable Debug mode", "Toggle overheat map mode");
+            public readonly GUIContent directIndirectSinglePass = new GUIContent("Enable direct and indirect lighting in single pass", "Toggle");
         }
 
         private static Styles s_Styles = null;
@@ -179,7 +181,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             debugParameters.displayOpaqueObjects = EditorGUILayout.Toggle(styles.displayOpaqueObjects, debugParameters.displayOpaqueObjects);
             debugParameters.displayTransparentObjects = EditorGUILayout.Toggle(styles.displayTransparentObjects, debugParameters.displayTransparentObjects);
 			debugParameters.useForwardRenderingOnly = EditorGUILayout.Toggle(styles.useForwardRenderingOnly, debugParameters.useForwardRenderingOnly);
-            debugParameters.useDepthPrepass = EditorGUILayout.Toggle(styles.useDepthPrepass, debugParameters.useDepthPrepass);            
+            debugParameters.useDepthPrepass = EditorGUILayout.Toggle(styles.useDepthPrepass, debugParameters.useDepthPrepass);
+            debugParameters.useSinglePassLightLoop = EditorGUILayout.Toggle(styles.useSinglePassLightLoop, debugParameters.useSinglePassLightLoop);     
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -240,7 +243,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.BeginChangeCheck();
 
             renderLoop.tilePassLightLoop.enableDrawTileDebug = EditorGUILayout.Toggle(styles.tileLightLoopDebugMode, renderLoop.tilePassLightLoop.enableDrawTileDebug);
-
+            renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass = EditorGUILayout.Toggle(styles.directIndirectSinglePass, renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass);
+            
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(renderLoop); // Repaint

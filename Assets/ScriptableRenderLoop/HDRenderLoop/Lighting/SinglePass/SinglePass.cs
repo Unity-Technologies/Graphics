@@ -115,6 +115,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 var screenSize = Utilities.ComputeScreenSize(camera);
                 m_DeferredMaterial.SetVector("_ScreenSize", screenSize);
 
+                m_DeferredMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                m_DeferredMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+
                 // m_gbufferManager.BindBuffers(m_DeferredMaterial);
                 // TODO: Bind depth textures
                 var cmd = new CommandBuffer { name = "" };
