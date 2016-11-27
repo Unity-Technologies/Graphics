@@ -379,6 +379,7 @@ Shader "HDRenderLoop/Lit"
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
             // #include "../../Lighting/Forward.hlsl"
+            // LIGHTLOOP_TILE_PASS
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS
             //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
 

@@ -156,7 +156,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             int GetNumTileY(Camera camera)
             {
-                return (camera.pixelWidth + (k_TileSize - 1)) / k_TileSize;
+                return (camera.pixelHeight + (k_TileSize - 1)) / k_TileSize;
             }
 
             // Local function
@@ -238,6 +238,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_data", s_ConvexBoundsBuffer);
                 }
 
+                s_LightList = null;
                 m_boundData = new SFiniteLightBound[MaxNumLights];
                 m_lightData = new SFiniteLightData[MaxNumLights];
                 m_lightCount = 0;
@@ -572,6 +573,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     int i = LightDefinitions.REFLECTION_LIGHT, j = LightDefinitions.BOX_LIGHT;
                     int index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     m_boundData[index] = bound;
+                    m_lightData[index] = lightData;
                 }
 
                 // Sanity check
@@ -585,9 +587,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_lightCount = lightList.punctualLights.Count + lightList.envLights.Count;
                 s_ConvexBoundsBuffer.SetData(m_boundData); // TODO: check with Vlad what is happening here, do we copy 1024 element always ? Could we setup the size we want to copy ?
+                s_LightDataBuffer.SetData(m_lightData);
             }
 
-            void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, int cameraDepthBuffer)
+            void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
             {
                 // clear atomic offset index
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, "g_LayeredSingleIdxBuffer", s_GlobalLightListAtomic);
@@ -615,7 +618,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.SetComputeFloatParam(buildPerVoxelLightListShader, "g_fClustScale", m_ClustScale);
                 cmd.SetComputeFloatParam(buildPerVoxelLightListShader, "g_fClustBase", k_ClustLogBase);
 
-                cmd.SetComputeTextureParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_depth_tex", new RenderTargetIdentifier(cameraDepthBuffer));
+                cmd.SetComputeTextureParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_depth_tex", cameraDepthBufferRT);
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_vLayeredLightList", s_PerVoxelLightLists);
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_LayeredOffset", s_PerVoxelOffset);
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_LayeredSingleIdxBuffer", s_GlobalLightListAtomic);
@@ -631,7 +634,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, numTilesX, numTilesY, 1);
             }
 
-            public void BuildGPULightLists(Camera camera, RenderLoop loop, HDRenderLoop.LightList lightList, int cameraDepthBuffer)
+            public void BuildGPULightLists(Camera camera, RenderLoop loop, HDRenderLoop.LightList lightList, RenderTargetIdentifier cameraDepthBufferRT)
             {
                 var w = camera.pixelWidth;
                 var h = camera.pixelHeight;
@@ -687,15 +690,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", m_lightCount);
                     Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
                     Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
-                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", new RenderTargetIdentifier(cameraDepthBuffer));
+                    cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", cameraDepthBufferRT);
                     cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vLightList", s_LightList);
-                    if (enableBigTilePrepass) cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
+                    if (enableBigTilePrepass)
+                        cmd.SetComputeBufferParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_vBigTileLightList", s_BigTileLightList);
                     cmd.DispatchCompute(buildPerTileLightListShader, s_GenListPerTileKernel, numTilesX, numTilesY, 1);
                 }
 
                 if (enableClustered)        // works for transparencies too.
                 {
-                    VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBuffer);
+                    VoxelLightListGeneration(cmd, camera, projscr, invProjscr, cameraDepthBufferRT);
                 }
 
                 loop.ExecuteCommandBuffer(cmd);
@@ -751,7 +755,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.Dispose();
             }
 
-            public void RenderDeferredLighting(Camera camera, RenderLoop renderLoop, RenderTargetIdentifier colorBuffer)
+            public void RenderDeferredLighting(Camera camera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT)
             {
                 var bUseClusteredForDeferred = !usingFptl;       // doesn't work on reflections yet but will soon
                 var cmd = new CommandBuffer();
@@ -863,8 +867,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
                 else
                 {*/
-                    cmd.Blit(0, colorBuffer, m_DeferredMaterial, 0);
-                    cmd.Blit(0, colorBuffer, m_DeferredReflectionMaterial, 0);
+                    cmd.Blit(null, cameraColorBufferRT, m_DeferredMaterial, 0);
+  //                  cmd.Blit(null, cameraColorBufferRT, m_DeferredReflectionMaterial, 0);
                 //}
 
                 renderLoop.ExecuteCommandBuffer(cmd);

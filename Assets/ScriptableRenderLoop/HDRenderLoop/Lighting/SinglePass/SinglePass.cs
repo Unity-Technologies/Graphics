@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Shader.SetGlobalVectorArray("_DirShadowSplitSpheres", lightList.directionalShadowSplitSphereSqr);      
             }
 
-            public void RenderDeferredLighting(Camera camera, RenderLoop renderLoop, RenderTargetIdentifier colorBuffer)
+            public void RenderDeferredLighting(Camera camera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT)
             {
                 var invViewProj = Utilities.GetViewProjectionMatrix(camera).inverse;
                 m_DeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
@@ -118,7 +118,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // m_gbufferManager.BindBuffers(m_DeferredMaterial);
                 // TODO: Bind depth textures
                 var cmd = new CommandBuffer { name = "" };
-                cmd.Blit(null, colorBuffer, m_DeferredMaterial, 0);
+                cmd.Blit(null, cameraColorBufferRT, m_DeferredMaterial, 0);
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
             }

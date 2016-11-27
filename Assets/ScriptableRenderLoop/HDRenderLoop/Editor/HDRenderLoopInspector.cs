@@ -41,6 +41,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly GUIContent[] shadowsCascadeCounts = new GUIContent[] { new GUIContent("1"), new GUIContent("2"), new GUIContent("3"), new GUIContent("4") };
             public readonly int[] shadowsCascadeCountValues = new int[] { 1, 2, 3, 4 };
             public readonly GUIContent shadowsCascades = new GUIContent("Cascade values");
+
+            public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop settings");
+            public readonly GUIContent tileLightLoopDebugMode = new GUIContent("Enable Debug mode", "Toggle overheat map mode");
         }
 
         private static Styles s_Styles = null;
@@ -191,10 +194,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
+            /*
             skyParameters.skyHDRI = (Cubemap)EditorGUILayout.ObjectField("Cubemap", skyParameters.skyHDRI, typeof(Cubemap), false);
             skyParameters.exposure = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyExposure, skyParameters.exposure), 32), -32);
             skyParameters.multiplier = Mathf.Max(EditorGUILayout.FloatField(styles.skyMultiplier, skyParameters.multiplier), 0);
             skyParameters.rotation = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyRotation, skyParameters.rotation), 360), -360);
+            */
  
             if (EditorGUI.EndChangeCheck())
             {
@@ -223,6 +228,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
             EditorGUI.indentLevel--;
             
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.SetDirty(renderLoop); // Repaint
+            }
+            EditorGUI.indentLevel--;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(styles.tileLightLoopSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+
+            renderLoop.tilePassLightLoop.enableDrawTileDebug = EditorGUILayout.Toggle(styles.tileLightLoopDebugMode, renderLoop.tilePassLightLoop.enableDrawTileDebug);
+
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(renderLoop); // Repaint
