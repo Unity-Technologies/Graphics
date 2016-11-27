@@ -229,8 +229,6 @@ void VolundTransferScatterOcclusion(float3 scaledWorldPos, out float4 coords1, o
 #endif
 }
 
-inline float4 LinearEyeDepth4(float4 z) { return float4(1.0, 1.0, 1.0, 1.0) / (_ZBufferParams.zzzz * z + _ZBufferParams.wwww); }
-
 float VolundSampleScatterOcclusion(float2 pos) {
 #if defined(ATMOSPHERICS_OCCLUSION)
     float2 uv = UVFromPos(pos);
@@ -246,7 +244,10 @@ float VolundSampleScatterOcclusion(float2 pos) {
     baseUV.xy = uv + _DepthTextureScaledTexelSize.xw; xDepth.z = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
     baseUV.xy = uv + _DepthTextureScaledTexelSize.zw; xDepth.w = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
 
-    xDepth = LinearEyeDepth4(xDepth);
+    xDepth.x = LinearEyeDepth4(xDepth.x);
+    xDepth.y = LinearEyeDepth4(xDepth.y);
+    xDepth.z = LinearEyeDepth4(xDepth.z);
+    xDepth.w = LinearEyeDepth4(xDepth.w);
 
     float4 diffDepth = xDepth - cDepth.rrrr;
     float4 maskDepth = abs(diffDepth) < _OcclusionDepthThreshold;
