@@ -911,12 +911,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 var bnds = rl.bounds;
                 var boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
                 var blendDistance = rl.blendDistance;
-                float imp = rl.importance;
 
                 var mat = rl.localToWorld;
-                //Matrix4x4 mat = rl.transform.localToWorldMatrix;
-                Vector3 cubeCapturePos = mat.GetColumn(3);      // cube map capture position in world space
-
 
                 // implicit in CalculateHDRDecodeValues() --> float ints = rl.intensity;
                 var boxProj = (rl.boxProjection != 0);
@@ -928,8 +924,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 //Vector3 C = bnds.center;        // P + boxOffset;
                 var C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
 
-                //Vector3 posForShaderParam = bnds.center - boxOffset;    // gives same as rl.GetComponent<Transform>().position;
-                var posForShaderParam = cubeCapturePos;        // same as commented out line above when rot is identity
                 var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
 
                 Vector3 vx = mat.GetColumn(0);
