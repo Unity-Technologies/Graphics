@@ -2,6 +2,43 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
+float3 OverlayHeatMap(uint2 pixCoord, uint numLights, float3 c)
+{
+    const float4 kRadarColors[12] =
+    {
+        float4(0.0,0.0,0.0,0.0),   // black
+        float4(0.0,0.0,0.6,0.5),   // dark blue
+        float4(0.0,0.0,0.9,0.5),   // blue
+        float4(0.0,0.6,0.9,0.5),   // light blue
+        float4(0.0,0.9,0.9,0.5),   // cyan
+        float4(0.0,0.9,0.6,0.5),   // blueish green
+        float4(0.0,0.9,0.0,0.5),   // green
+        float4(0.6,0.9,0.0,0.5),   // yellowish green
+        float4(0.9,0.9,0.0,0.5),   // yellow
+        float4(0.9,0.6,0.0,0.5),   // orange
+        float4(0.9,0.0,0.0,0.5),   // red
+        float4(1.0,0.0,0.0,0.9)    // strong red
+    };
+
+    float maxNrLightsPerTile = 31;
+
+    int nColorIndex = numLights == 0 ? 0 : (1 + (int)floor(10 * (log2((float)numLights) / log2(maxNrLightsPerTile))));
+    nColorIndex = nColorIndex<0 ? 0 : nColorIndex;
+    float4 col = nColorIndex>11 ? float4(1.0, 1.0, 1.0, 1.0) : kRadarColors[nColorIndex];
+
+    int2 coord = pixCoord - int2(1, 1);
+
+    float3 color = lerp(c, pow(col.xyz, 2.2), 0.3*col.w);
+    if (numLights > 0)
+    {
+        if (SampleDebugFontNumber(coord, numLights))		// Shadow
+            color = 0.0f;
+        if (SampleDebugFontNumber(coord + 1, numLights))	// Text
+            color = 1.0f;
+    }
+    return color;
+}
+
 // Calculate the offset in global light index light for current light category
 int GetTileOffset(Coordinate coord, uint lightCategory)
 {
@@ -14,7 +51,7 @@ void GetCountAndStartOpaque(Coordinate coord, uint lightCategory, float linearDe
     const int tileOffset = GetTileOffset(coord, lightCategory);
 
     // The first entry inside a tile is the number of light for lightCategory (thus the +0)
-    lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffs + 0] & 0xffff;
+    lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
     start = tileOffset;
 }
 
@@ -34,7 +71,7 @@ void GetCountAndStart(Coordinate coord, uint lightCategory, float linearDepth, o
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
-    return FetchIndexOpaque(tileOffs, lightIndex);
+    return FetchIndexOpaque(tileOffset, lightIndex);
 }
 
 #else
@@ -109,7 +146,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
     diffuseLighting = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
 
-    int i = 0; // Declare once to avoid the D3D11 compiler warning.
+    uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
 #ifdef PROCESS_DIRECTIONAL_LIGHT
     for (i = 0; i < _DirectionalLightCount; ++i)
@@ -176,10 +213,14 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
         iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
     }
+
+    diffuseLighting += iblDiffuseLighting;
+    specularLighting += iblSpecularLighting;
 #endif
 
     // TODO
-#if ENABLE_DEBUG
-//    c = OverlayHeatMap(pixCoord & 15, numLightsProcessed, c);
+#if ENABLE_DEBUG && defined(PROCESS_PUNCTUAL_LIGHT)
+    diffuseLighting = OverlayHeatMap(coord.unPositionSS.xy & (TILE_SIZE - 1), punctualLightCount, diffuseLighting);
+    specularLighting = float3(0.0, 0.0, 0.0);
 #endif
 }

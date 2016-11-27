@@ -38,10 +38,10 @@ TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
 
 CBUFFER_START(UnityPerLightLoop)
-    int _DirectionalLightCount;
-    int _PunctualLightCount;
-    int _AreaLightCount;
-    int _EnvLightCount;
+    uint _DirectionalLightCount;
+    uint _PunctualLightCount;
+    uint _AreaLightCount;
+    uint _EnvLightCount;
     EnvLightData _EnvLightSky;
 	float4 _ShadowMapSize;
     float4 _DirShadowSplitSpheres[4]; // TODO share this max between C# and hlsl
