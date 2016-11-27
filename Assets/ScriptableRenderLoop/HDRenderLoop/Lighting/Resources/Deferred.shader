@@ -1,5 +1,12 @@
 Shader "Hidden/HDRenderLoop/Deferred"
 {
+    Properties
+    {
+        // We need to be able to control the blend mode for deferred shader in case we do multiple pass
+        _SrcBlend("", Float) = 1
+        _DstBlend("", Float) = 1
+    }
+
     SubShader
     {
 
@@ -7,6 +14,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
         {
             ZWrite Off
             Blend Off
+            Blend[_SrcBlend][_DstBlend]
 
             HLSLPROGRAM
             #pragma target 5.0

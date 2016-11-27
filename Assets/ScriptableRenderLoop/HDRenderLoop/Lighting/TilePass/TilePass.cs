@@ -108,6 +108,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public bool enableBigTilePrepass = false; // SebL - TODO: I get a crash when enabling this
             public bool enableDrawLightBoundsDebug = false;
             public bool enableDrawTileDebug = false;
+            public bool enableDirectIndirectSinglePass = false;
             public bool enableComputeLightEvaluation = false;
             const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
             const bool k_UseAsyncCompute = true;        // should not use on mobile
@@ -144,8 +145,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             static ComputeBuffer s_PunctualShadowList;
             static ComputeBuffer s_DirectionalShadowList;
 
-            Material m_DeferredMaterial;
-            Material m_DeferredReflectionMaterial;
+            Material m_DeferredDirectMaterial;
+            Material m_DeferredIndirectMaterial;
+            Material m_DeferredAllMaterial;
 
             const int k_TileSize = 16;
 
@@ -250,13 +252,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_EnvLightList = new ComputeBuffer(HDRenderLoop.k_MaxEnvLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 s_PunctualShadowList = new ComputeBuffer(HDRenderLoop.k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
 
-                m_DeferredMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
-                m_DeferredMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredMaterial.EnableKeyword("LIGHTLOOP_TILE_DIRECT");
-                
-                m_DeferredReflectionMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
-                m_DeferredReflectionMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
-                m_DeferredReflectionMaterial.EnableKeyword("LIGHTLOOP_TILE_INDIRECT");
+                m_DeferredDirectMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+                m_DeferredDirectMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredDirectMaterial.EnableKeyword("LIGHTLOOP_TILE_DIRECT");
+                m_DeferredDirectMaterial.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
+                m_DeferredDirectMaterial.DisableKeyword("LIGHTLOOP_TILE_ALL");
+
+                m_DeferredIndirectMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+                m_DeferredIndirectMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredIndirectMaterial.DisableKeyword("LIGHTLOOP_TILE_DIRECT");
+                m_DeferredIndirectMaterial.EnableKeyword("LIGHTLOOP_TILE_INDIRECT");
+                m_DeferredIndirectMaterial.DisableKeyword("LIGHTLOOP_TILE_ALL");
+
+                m_DeferredAllMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+                m_DeferredAllMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
+                m_DeferredAllMaterial.DisableKeyword("LIGHTLOOP_TILE_DIRECT");
+                m_DeferredAllMaterial.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
+                m_DeferredAllMaterial.EnableKeyword("LIGHTLOOP_TILE_ALL");
             }
 
             public void OnDisable()
@@ -286,8 +298,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_PunctualShadowList.Release();
                 s_PunctualShadowList = null;
 
-                Utilities.Destroy(m_DeferredMaterial);
-                Utilities.Destroy(m_DeferredReflectionMaterial);
+                Utilities.Destroy(m_DeferredDirectMaterial);
+                Utilities.Destroy(m_DeferredIndirectMaterial);
+                Utilities.Destroy(m_DeferredAllMaterial);
             }
 
             public bool NeedResize()
@@ -570,6 +583,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     lightData.boxInnerDist = e;
                     lightData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
 
+                    lightData.lightType = (uint)LightDefinitions.BOX_LIGHT;
+                    lightData.lightModel = (uint)LightDefinitions.REFLECTION_LIGHT;
+
                     int i = LightDefinitions.REFLECTION_LIGHT, j = LightDefinitions.BOX_LIGHT;
                     int index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     m_boundData[index] = bound;
@@ -758,15 +774,36 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public void RenderDeferredLighting(Camera camera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT)
             {
                 var bUseClusteredForDeferred = !usingFptl;       // doesn't work on reflections yet but will soon
+
+                var invViewProj = Utilities.GetViewProjectionMatrix(camera).inverse;
+                var screenSize = Utilities.ComputeScreenSize(camera);
+
+                m_DeferredDirectMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
+                m_DeferredDirectMaterial.SetVector("_ScreenSize", screenSize);
+                m_DeferredDirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                m_DeferredDirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                m_DeferredDirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                m_DeferredDirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                Utilities.SetKeyword(m_DeferredDirectMaterial, "ENABLE_DEBUG", enableDrawTileDebug);
+
+                m_DeferredIndirectMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
+                m_DeferredIndirectMaterial.SetVector("_ScreenSize", screenSize);
+                m_DeferredIndirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                m_DeferredIndirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One); // Additive
+                m_DeferredIndirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                m_DeferredIndirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                Utilities.SetKeyword(m_DeferredIndirectMaterial, "ENABLE_DEBUG", enableDrawTileDebug);
+
+                m_DeferredAllMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
+                m_DeferredAllMaterial.SetVector("_ScreenSize", screenSize);
+                m_DeferredAllMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                m_DeferredAllMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                m_DeferredAllMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                m_DeferredAllMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
+                Utilities.SetKeyword(m_DeferredAllMaterial, "ENABLE_DEBUG", enableDrawTileDebug);
+
+
                 var cmd = new CommandBuffer();
-
-                m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                m_DeferredReflectionMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                if (enableDrawTileDebug)
-                    m_DeferredMaterial.EnableKeyword("ENABLE_DEBUG");
-                else
-                    m_DeferredMaterial.DisableKeyword("ENABLE_DEBUG");
-
                 cmd.SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
                 // In case of bUseClusteredForDeferred disable toggle option since we're using m_perVoxelLightLists as opposed to lightList
@@ -867,8 +904,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
                 else
                 {*/
-                    cmd.Blit(null, cameraColorBufferRT, m_DeferredMaterial, 0);
-  //                  cmd.Blit(null, cameraColorBufferRT, m_DeferredReflectionMaterial, 0);
+                    if (enableDirectIndirectSinglePass)
+                    {
+                        cmd.Blit(null, cameraColorBufferRT, m_DeferredAllMaterial, 0);
+                    }
+                    else
+                    {
+                        cmd.Blit(null, cameraColorBufferRT, m_DeferredDirectMaterial, 0);
+                        cmd.Blit(null, cameraColorBufferRT, m_DeferredIndirectMaterial, 0);
+                    }
                 //}
 
                 renderLoop.ExecuteCommandBuffer(cmd);

@@ -218,9 +218,20 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
     specularLighting += iblSpecularLighting;
 #endif
 
-    // TODO
-#if ENABLE_DEBUG && defined(PROCESS_PUNCTUAL_LIGHT)
+#if ENABLE_DEBUG
+    #if defined(PROCESS_PUNCTUAL_LIGHT) && defined(PROCESS_ENV_LIGHT)
+    diffuseLighting = OverlayHeatMap(coord.unPositionSS.xy & (TILE_SIZE - 1), punctualLightCount + envLightCount, diffuseLighting);
+    #elif defined(PROCESS_PUNCTUAL_LIGHT)
     diffuseLighting = OverlayHeatMap(coord.unPositionSS.xy & (TILE_SIZE - 1), punctualLightCount, diffuseLighting);
-    specularLighting = float3(0.0, 0.0, 0.0);
+    #elif defined(PROCESS_ENV_LIGHT)
+    diffuseLighting = OverlayHeatMap(coord.unPositionSS.xy & (TILE_SIZE - 1), envLightCount, diffuseLighting);
+    #endif
+#endif
+
+    // Currently do lightmap with indirect specula
+    // TODO: test what is the most appropriate here...
+#ifdef PROCESS_ENV_LIGHT
+    // Add indirect diffuse + emissive (if any)
+    diffuseLighting += bakeDiffuseLighting;
 #endif
 }
