@@ -68,8 +68,9 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
 
                 Coordinate coord = GetCoordinate(input.positionCS.xy, _ScreenSize.zw);
 
-                // Pass the depth value near the far plane.
-                float3 positionWS = UnprojectToWorld(0.01, coord.positionSS, _InvViewProjMatrix);
+                // Get the depth value of the scene, or use 0.01 otherwise.
+                float  rawDepth   = max(LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).r, 0.01);
+                float3 positionWS = UnprojectToWorld(rawDepth, coord.positionSS, _InvViewProjMatrix);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(positionWS, c1, c2, c3);
@@ -96,6 +97,7 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
                     }
                 #endif
 
+                // Blend with the color of the scene.
                 return float4(skyDome * extinction + scatter, 0.0);
             }
 
