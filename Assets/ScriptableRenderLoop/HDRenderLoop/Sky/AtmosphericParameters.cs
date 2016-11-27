@@ -292,7 +292,7 @@ public class AtmosphericParameters : MonoBehaviour
         Shader.SetGlobalVector("_MieColorO00", (Vector4)mieColorO00 * worldMieColorIntensity);
         Shader.SetGlobalVector("_MieColorP20", (Vector4)mieColorP20 * worldMieColorIntensity);
 
-        Shader.SetGlobalFloat("_AtmosphericsDebugMode", (int)debugMode);
+        Shader.SetGlobalInt("_AtmosphericsDebugMode", (int)debugMode);
     }
 
     void OnWillRenderObject()
