@@ -2,7 +2,7 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
-float3 OverlayHeatMap(uint2 pixCoord, uint numLights, float3 c)
+float4 OverlayHeatMap(uint2 pixCoord, uint numLights)
 {
     const float4 kRadarColors[12] =
     {
@@ -28,13 +28,13 @@ float3 OverlayHeatMap(uint2 pixCoord, uint numLights, float3 c)
 
     int2 coord = pixCoord - int2(1, 1);
 
-    float3 color = lerp(c, pow(col.xyz, 2.2), 0.3*col.w);
+    float4 color = float4(pow(col.xyz, 2.2), 0.3*col.w);
     if (numLights > 0)
     {
         if (SampleDebugFontNumber(coord, numLights))		// Shadow
-            color = 0.0f;
+            color = float4(0,0,0,1);
         if (SampleDebugFontNumber(coord + 1, numLights))	// Text
-            color = 1.0f;
+            color = float4(1,1,1,1);
     }
     return color;
 }
@@ -216,16 +216,6 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
 
     diffuseLighting += iblDiffuseLighting;
     specularLighting += iblSpecularLighting;
-#endif
-
-#if ENABLE_DEBUG
-    #if defined(PROCESS_PUNCTUAL_LIGHT) && defined(PROCESS_ENV_LIGHT)
-    diffuseLighting = OverlayHeatMap(coord.unPositionSS.xy & (TILE_SIZE - 1), punctualLightCount + envLightCount, diffuseLighting);
-    #elif defined(PROCESS_PUNCTUAL_LIGHT)
-    diffuseLighting = OverlayHeatMap(coord.unPositionSS.xy & (TILE_SIZE - 1), punctualLightCount, diffuseLighting);
-    #elif defined(PROCESS_ENV_LIGHT)
-    diffuseLighting = OverlayHeatMap(coord.unPositionSS.xy & (TILE_SIZE - 1), envLightCount, diffuseLighting);
-    #endif
 #endif
 
     // Currently do lightmap with indirect specula
