@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // clustered light list specific buffers and data begin
             public bool enableClustered = false;
             public bool disableFptlWhenClustered = false;    // still useful on opaques
-            public bool enableBigTilePrepass = false; // SebL - TODO: I get a crash when enabling this
+            public bool enableBigTilePrepass = true;
             public bool enableDrawLightBoundsDebug = false;
             public bool enableDrawTileDebug = false;
             public bool enableDirectIndirectSinglePass = false;
@@ -638,7 +638,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_vLayeredLightList", s_PerVoxelLightLists);
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_LayeredOffset", s_PerVoxelOffset);
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_LayeredSingleIdxBuffer", s_GlobalLightListAtomic);
-                if (enableBigTilePrepass) cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_vBigTileLightList", s_BigTileLightList);
+                if (enableBigTilePrepass) 
+                    cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_GenListPerVoxelKernel, "g_vBigTileLightList", s_BigTileLightList);
 
                 if (k_UseDepthBuffer)
                 {
