@@ -179,8 +179,15 @@ public class AtmosphericParameters : MonoBehaviour
         // Define select preprocessor symbols.
         UpdateKeywords(true);
 
+        if (depthTexture == DepthTexture.Disable)
+        {
+            // Disable depth texture rendering.
+            Camera.current.depthTextureMode = DepthTextureMode.None;
+        }
+
         // Set shader constants.
         UpdateStaticUniforms();
+        UpdateDynamicUniforms();
 
         if (instance && instance != this)
         {
@@ -297,9 +304,10 @@ public class AtmosphericParameters : MonoBehaviour
 
     void OnWillRenderObject()
     {
+        /*
         if (!m_isAwake) return;
 
-        /* For now, we only use the directional light we are attached to, and the current camera. */
+        // For now, we only use the directional light we are attached to, and the current camera.
 
         if (depthTexture == DepthTexture.Disable)
         {
@@ -310,8 +318,8 @@ public class AtmosphericParameters : MonoBehaviour
         // Set shader constants.
         UpdateDynamicUniforms();
 
-        /*
-        if(useOcclusion) {
+
+        if (useOcclusion) {
             var camRgt = m_currentCamera.transform.right;
             var camUp = m_currentCamera.transform.up;
             var camFwd = m_currentCamera.transform.forward;
@@ -352,6 +360,8 @@ public class AtmosphericParameters : MonoBehaviour
 
     void UpdateDynamicUniforms()
     {
+        /* For now, we only use the directional light we are attached to, and the current camera. */
+
         var trackedYaw = skyDomeTrackedYawRotation ? skyDomeTrackedYawRotation.eulerAngles.y : 0f;
         Shader.SetGlobalMatrix("_SkyDomeRotation",
              Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(skyDomeRotation.x, 0f, 0f), Vector3.one)
