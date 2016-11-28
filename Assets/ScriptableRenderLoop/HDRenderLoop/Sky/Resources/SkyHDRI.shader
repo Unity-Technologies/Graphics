@@ -75,6 +75,9 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
                 float  rawDepth   = max(LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).r, 0.01);
                 float3 positionWS = UnprojectToWorld(rawDepth, coord.positionSS, _InvViewProjMatrix);
 
+                // Do not perform blending with the environment map if the sky is occluded.
+                float skyDomeWeight = (rawDepth > 0.01) ? 0.0 : 1.0;
+
                 float4 c1, c2, c3;
                 VolundTransferScatter(positionWS, c1, c2, c3);
 
@@ -101,7 +104,7 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
                 #endif
 
                 // Blend with the color of the scene.
-                return float4(skyDome * extinction + scatter, 0.0);
+                return float4(skyDome * (skyDomeWeight * extinction) + scatter, 0.0);
             }
 
             ENDHLSL
