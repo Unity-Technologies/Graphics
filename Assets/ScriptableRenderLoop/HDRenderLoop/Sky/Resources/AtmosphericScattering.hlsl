@@ -236,7 +236,7 @@ float VolundSampleScatterOcclusion(float2 pos) {
     float4 baseUV = float4(uv.x, uv.y, 0.f, 0.f);
 
     float cDepth = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV, 0.f).r;
-    cDepth = LinearEyeDepth(cDepth);
+    cDepth = LinearEyeDepth(cDepth, _ZBufferParams);
 
     float4 xDepth;
     baseUV.xy = uv + _DepthTextureScaledTexelSize.zy; xDepth.x = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
@@ -244,10 +244,10 @@ float VolundSampleScatterOcclusion(float2 pos) {
     baseUV.xy = uv + _DepthTextureScaledTexelSize.xw; xDepth.z = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
     baseUV.xy = uv + _DepthTextureScaledTexelSize.zw; xDepth.w = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
 
-    xDepth.x = LinearEyeDepth(xDepth.x);
-    xDepth.y = LinearEyeDepth(xDepth.y);
-    xDepth.z = LinearEyeDepth(xDepth.z);
-    xDepth.w = LinearEyeDepth(xDepth.w);
+    xDepth.x = LinearEyeDepth(xDepth.x, _ZBufferParams);
+    xDepth.y = LinearEyeDepth(xDepth.y, _ZBufferParams);
+    xDepth.z = LinearEyeDepth(xDepth.z, _ZBufferParams);
+    xDepth.w = LinearEyeDepth(xDepth.w, _ZBufferParams);
 
     float4 diffDepth = xDepth - cDepth.rrrr;
     float4 maskDepth = abs(diffDepth) < _OcclusionDepthThreshold;
