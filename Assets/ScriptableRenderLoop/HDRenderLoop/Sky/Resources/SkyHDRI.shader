@@ -15,16 +15,18 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma multi_compile _ ATMOSPHERICS_OCCLUSION_FULLSKY
             #pragma multi_compile _ ATMOSPHERICS_DEBUG
+            #pragma multi_compile _ ATMOSPHERICS_OCCLUSION_FULLSKY
             #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
+
+            #ifndef PERFORM_SKY_OCCLUSION_TEST
+                #define IS_RENDERING_SKY
+            #endif
 
             #include "Color.hlsl"
             #include "Common.hlsl"
             #include "CommonLighting.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
-
-            #define IS_RENDERING_SKY
             #include "AtmosphericScattering.hlsl"
 
             TEXTURECUBE(_Cubemap);
@@ -49,9 +51,8 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
             {
                 // TODO: implement SV_vertexID full screen quad
                 Varyings output;
-                output.positionCS = float4(input.positionCS.xy, UNITY_RAW_FAR_CLIP_VALUE
-                    , 1.0);
-                output.eyeVector = input.eyeVector;
+                output.positionCS = float4(input.positionCS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0);
+                output.eyeVector  = input.eyeVector;
 
                 return output;
             }
