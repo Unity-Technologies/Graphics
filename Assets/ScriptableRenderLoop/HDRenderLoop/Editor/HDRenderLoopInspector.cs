@@ -244,7 +244,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
-            renderLoop.tilePassLightLoop.enableDrawTileDebug = EditorGUILayout.Toggle(styles.tileLightLoopDebugMode, renderLoop.tilePassLightLoop.enableDrawTileDebug);
+            renderLoop.tilePassLightLoop.debugViewTilesFlags = (TilePass.DebugViewTilesFlags)EditorGUILayout.EnumMaskField("DebugView Tiles", renderLoop.tilePassLightLoop.debugViewTilesFlags);
             renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass = EditorGUILayout.Toggle(styles.directIndirectSinglePass, renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass);
             renderLoop.tilePassLightLoop.enableBigTilePrepass = EditorGUILayout.Toggle(styles.bigTilePrepass, renderLoop.tilePassLightLoop.enableBigTilePrepass);
             renderLoop.tilePassLightLoop.enableClustered = EditorGUILayout.Toggle(styles.clustered, renderLoop.tilePassLightLoop.enableClustered);

@@ -43,6 +43,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 
         [GenerateHLSL]
+        public enum DebugViewTilesFlags
+        {
+            DirectLighting = 1,
+            Reflection = 2
+        };
+
+        [GenerateHLSL]
         public struct SFiniteLightBound
         {
             public Vector3 boxAxisX;
@@ -103,11 +110,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             private static int s_GenListPerBigTileKernel;
 
             // clustered light list specific buffers and data begin
+            public DebugViewTilesFlags debugViewTilesFlags = 0;
             public bool enableClustered = false;
             public bool disableFptlWhenClustered = false;    // still useful on opaques
             public bool enableBigTilePrepass = true;
             public bool enableDrawLightBoundsDebug = false;
-            public bool enableDrawTileDebug = false;
             public bool enableDirectIndirectSinglePass = false;
             public bool enableComputeLightEvaluation = false;
             const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
@@ -148,6 +155,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Material m_DeferredDirectMaterial;
             Material m_DeferredIndirectMaterial;
             Material m_DeferredAllMaterial;
+            Material m_DebugViewTilesMaterial;
 
             const int k_TileSize = 16;
 
@@ -269,6 +277,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_DeferredAllMaterial.DisableKeyword("LIGHTLOOP_TILE_DIRECT");
                 m_DeferredAllMaterial.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
                 m_DeferredAllMaterial.EnableKeyword("LIGHTLOOP_TILE_ALL");
+
+
+                m_DebugViewTilesMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/DebugViewTiles");
+
             }
 
             public void OnDisable()
@@ -301,6 +313,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Utilities.Destroy(m_DeferredDirectMaterial);
                 Utilities.Destroy(m_DeferredIndirectMaterial);
                 Utilities.Destroy(m_DeferredAllMaterial);
+                Utilities.Destroy(m_DebugViewTilesMaterial);
             }
 
             public bool NeedResize()
@@ -785,24 +798,24 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_DeferredDirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 m_DeferredDirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredDirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                Utilities.SetKeyword(m_DeferredDirectMaterial, "ENABLE_DEBUG", enableDrawTileDebug);
-
+                
                 m_DeferredIndirectMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
                 m_DeferredIndirectMaterial.SetVector("_ScreenSize", screenSize);
                 m_DeferredIndirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_DeferredIndirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One); // Additive
                 m_DeferredIndirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredIndirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                Utilities.SetKeyword(m_DeferredIndirectMaterial, "ENABLE_DEBUG", enableDrawTileDebug);
-
+                
                 m_DeferredAllMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
                 m_DeferredAllMaterial.SetVector("_ScreenSize", screenSize);
                 m_DeferredAllMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_DeferredAllMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 m_DeferredAllMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredAllMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                Utilities.SetKeyword(m_DeferredAllMaterial, "ENABLE_DEBUG", enableDrawTileDebug);
-
+                
+                m_DebugViewTilesMaterial.SetVector("_ScreenSize", screenSize);
+                m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)debugViewTilesFlags);
+                
 
                 var cmd = new CommandBuffer();
                 cmd.SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
@@ -915,6 +928,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         cmd.Blit(null, cameraColorBufferRT, m_DeferredIndirectMaterial, 0);
                     }
                 //}
+
+                if(debugViewTilesFlags != 0)
+                {
+                    cmd.Blit(null, cameraColorBufferRT, m_DebugViewTilesMaterial, 0);
+                }
 
                 renderLoop.ExecuteCommandBuffer(cmd);
                 cmd.Dispose();
