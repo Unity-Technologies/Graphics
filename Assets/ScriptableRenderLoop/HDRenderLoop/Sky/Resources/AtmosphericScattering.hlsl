@@ -244,10 +244,10 @@ float VolundSampleScatterOcclusion(float2 pos) {
     baseUV.xy = uv + _DepthTextureScaledTexelSize.xw; xDepth.z = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
     baseUV.xy = uv + _DepthTextureScaledTexelSize.zw; xDepth.w = SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, SRL_BilinearSampler, baseUV);
 
-    xDepth.x = LinearEyeDepth4(xDepth.x);
-    xDepth.y = LinearEyeDepth4(xDepth.y);
-    xDepth.z = LinearEyeDepth4(xDepth.z);
-    xDepth.w = LinearEyeDepth4(xDepth.w);
+    xDepth.x = LinearEyeDepth(xDepth.x);
+    xDepth.y = LinearEyeDepth(xDepth.y);
+    xDepth.z = LinearEyeDepth(xDepth.z);
+    xDepth.w = LinearEyeDepth(xDepth.w);
 
     float4 diffDepth = xDepth - cDepth.rrrr;
     float4 maskDepth = abs(diffDepth) < _OcclusionDepthThreshold;
