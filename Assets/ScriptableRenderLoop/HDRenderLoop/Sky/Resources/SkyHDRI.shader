@@ -15,6 +15,9 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
             #pragma vertex Vert
             #pragma fragment Frag
 
+            #pragma multi_compile _ ATMOSPHERICS_OCCLUSION_FULLSKY
+            #pragma multi_compile _ ATMOSPHERICS_DEBUG
+
             #include "Color.hlsl"
             #include "Common.hlsl"
             #include "CommonLighting.hlsl"
