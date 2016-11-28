@@ -11,6 +11,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 558064ecdbf6b6742892d699acb39aed, type: 3}
   m_Name: HDRenderLoop
   m_EditorClassIdentifier: 
+  m_SkyParameters:
+    skyHDRI: {fileID: 0}
+    rotation: 0
+    exposure: 0
+    multiplier: 1
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096

@@ -24,6 +24,12 @@
 #define DIRECT_LIGHT (0)
 #define REFLECTION_LIGHT (1)
 
+//
+// UnityEngine.Experimental.ScriptableRenderLoop.TilePass.DebugViewTilesFlags:  static fields
+//
+#define DEBUGVIEWTILESFLAGS_DIRECT_LIGHTING (1)
+#define DEBUGVIEWTILESFLAGS_REFLECTION (2)
+
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.TilePass.SFiniteLightBound
 // PackingRules = Exact
 struct SFiniteLightBound

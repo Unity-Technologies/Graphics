@@ -20,7 +20,7 @@
 
 #ifdef LIGHTLOOP_SINGLE_PASS
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/SinglePass/SinglePass.hlsl"
-#elif  LIGHTLOOP_TILED_PASS
+#elif defined(LIGHTLOOP_TILE_PASS)
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/TilePass/TilePass.hlsl"
 #endif
 
@@ -31,7 +31,7 @@
 // LightLoop use evaluation BSDF function for light type define in Material.hlsl
 #ifdef LIGHTLOOP_SINGLE_PASS 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/SinglePass/SinglePassLoop.hlsl"
-#elif  LIGHTLOOP_TILED_PASS
+#elif defined(LIGHTLOOP_TILE_PASS)
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/TilePass/TilePassLoop.hlsl"
 #endif
 

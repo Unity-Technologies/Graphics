@@ -26,6 +26,11 @@
 #define ENVSHAPETYPE_BOX (1)
 #define ENVSHAPETYPE_SPHERE (2)
 
+//
+// UnityEngine.Experimental.ScriptableRenderLoop.EnvConstants:  static fields
+//
+#define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
+
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.LightData
 // PackingRules = Exact
 struct LightData
