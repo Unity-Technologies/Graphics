@@ -113,7 +113,8 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
 
                 float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
 
-                return float4(skyColor * (skyTexWeight * extinction) + scatter, 0.0);
+                // Apply extinction to the scene color when performing alpha-blending.
+                return float4(skyColor * (skyTexWeight * extinction) + scatter, extinction);
             }
 
             ENDHLSL
