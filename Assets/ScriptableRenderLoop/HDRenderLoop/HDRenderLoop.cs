@@ -58,6 +58,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public bool enableTonemap = true;
             public float exposure = 0;
+
+            public bool useSinglePassLightLoop = true;
         }
 
         DebugParameters m_DebugParameters = new DebugParameters();
@@ -211,7 +213,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         // TODO: Find a way to automatically create/iterate through lightloop
         SinglePass.LightLoop m_SinglePassLightLoop;
-        TilePass.LightLoop m_TilePassLightLoop;
+        TilePass.LightLoop m_TilePassLightLoop = null;
+        public TilePass.LightLoop tilePassLightLoop
+        {
+            get { return m_TilePassLightLoop; }
+        }
 
         // TODO: Find a way to automatically create/iterate through deferred material
         Lit.RenderLoop m_LitRenderLoop;
@@ -285,7 +291,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_SinglePassLightLoop = new SinglePass.LightLoop();
             m_SinglePassLightLoop.Rebuild();
             m_TilePassLightLoop = new TilePass.LightLoop();
-            m_TilePassLightLoop.Rebuild();
+            tilePassLightLoop.Rebuild();
 
             m_lightList = new LightList();
             m_lightList.Allocate();
@@ -297,7 +303,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             m_LitRenderLoop.OnDisable();
             m_SinglePassLightLoop.OnDisable();
-            m_TilePassLightLoop.OnDisable();
+            tilePassLightLoop.OnDisable();
 
             Utilities.Destroy(m_FinalPassMaterial);
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
@@ -493,8 +499,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 // Bind material data
                 m_LitRenderLoop.Bind();
-                m_SinglePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
-                //  m_TilePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
+                if (debugParameters.useSinglePassLightLoop)
+                {
+                    m_SinglePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
+                }
+                else
+                {
+                    tilePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBufferRT);
+                }
             }
         }
 
@@ -850,21 +862,27 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 lightList.envCullIndices.Add(probeIndex);
             }
 
-            // build per tile light lists           
-            m_SinglePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
-            //m_TilePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
+            // build per tile light lists
+            if (debugParameters.useSinglePassLightLoop)
+            {
+                m_SinglePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
+            }
+            else
+            {
+                tilePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
+            }            
         }
 
         void Resize(Camera camera)
         {
-            if (camera.pixelWidth != m_WidthOnRecord || camera.pixelHeight != m_HeightOnRecord || m_TilePassLightLoop.NeedResize())
+            if (camera.pixelWidth != m_WidthOnRecord || camera.pixelHeight != m_HeightOnRecord || tilePassLightLoop.NeedResize())
             {
                 if (m_WidthOnRecord > 0 && m_HeightOnRecord > 0)
                 {
-                    m_TilePassLightLoop.ReleaseResolutionDependentBuffers();
+                    tilePassLightLoop.ReleaseResolutionDependentBuffers();
                 }
 
-                m_TilePassLightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
+                tilePassLightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
 
                 // update recorded window resolution
                 m_WidthOnRecord = camera.pixelWidth;
@@ -878,8 +896,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             //Shader.SetGlobalTexture("_CubeCookieTextures", m_CubeCookieTexArray.GetTexCache());
             Shader.SetGlobalTexture("_EnvTextures", m_CubeReflTexArray.GetTexCache());
 
-            m_SinglePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
-            m_TilePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
+            if (debugParameters.useSinglePassLightLoop)
+            {
+                m_SinglePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
+            }
+            else
+            {
+                tilePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
+            }            
         }
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
@@ -943,7 +967,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     using (new Utilities.ProfilingSample("Build Light list", renderLoop))
                     {
                         PrepareLightsForGPU(cullResults, camera, ref shadows, ref m_lightList);
-                        //m_TilePassLightLoop.BuildGPULightLists(camera, renderLoop, m_lightList, m_CameraDepthBuffer);
+                        if (!debugParameters.useSinglePassLightLoop)
+                            tilePassLightLoop.BuildGPULightLists(camera, renderLoop, m_lightList, m_CameraDepthBufferRT);
 
                         PushGlobalParams(camera, renderLoop, m_lightList);
                     }
