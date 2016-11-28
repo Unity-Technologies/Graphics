@@ -58,17 +58,17 @@ public class AtmosphericParameters : MonoBehaviour
     public float              occlusionBiasSkyRayleigh  = 0.2f;
     public float              occlusionBiasSkyMie       = 0.4f;
     */
-    
+
     [Header("Other")]
     public Shader             atmosphericShaderOverride = null;
     // public Shader             occlusionShaderOverride   = null;
     public float              worldScaleExponent        = 1.0f;
-    // public bool            forcePerPixel             = true; 
+    // public bool            forcePerPixel             = true;
     // public bool            forcePostEffect           = true;
     [Tooltip("Soft clouds need depth values. Ignore means externally controlled.")]
     public DepthTexture       depthTexture              = DepthTexture.Enable;
     public ScatterDebugMode   debugMode                 = ScatterDebugMode.None;
-    
+
     // [HideInInspector] public Shader occlusionShaderOverride;
 
     // Camera   m_currentCamera;
@@ -78,7 +78,7 @@ public class AtmosphericParameters : MonoBehaviour
     Material m_atmosphericMaterial = null;
     // Material m_occlusionMaterial   = null;
     bool     m_isAwake             = false;
-    
+
     public static AtmosphericParameters instance { get; private set; }
 
     void Awake()
@@ -156,7 +156,7 @@ public class AtmosphericParameters : MonoBehaviour
         occlusionBiasSkyRayleigh = Mathf.Clamp01(occlusionBiasSkyRayleigh);
         occlusionBiasSkyMie      = Mathf.Clamp01(occlusionBiasSkyMie);
         */
-        
+
         skyDomeExposure = Mathf.Clamp(skyDomeExposure, 0f, 8f);
 
         if (instance == this)
@@ -186,7 +186,7 @@ public class AtmosphericParameters : MonoBehaviour
         {
             Debug.LogErrorFormat("Unexpected: AtmosphericParameters.instance already set (to: {0}). Still overriding with: {1}.", instance.name, name);
         }
-        
+
         instance = this;
     }
 
@@ -252,18 +252,18 @@ public class AtmosphericParameters : MonoBehaviour
         */
 
         Shader.SetGlobalFloat("_WorldScaleExponent", worldScaleExponent);
-        
+
         Shader.SetGlobalFloat("_WorldNormalDistanceRcp", 1f/worldNormalDistance);
         Shader.SetGlobalFloat("_WorldNearScatterPush", -Mathf.Pow(Mathf.Abs(worldNearScatterPush), worldScaleExponent) * Mathf.Sign(worldNearScatterPush));
-        
+
         Shader.SetGlobalFloat("_WorldRayleighDensity", -worldRayleighDensity / 100000f);
         Shader.SetGlobalFloat("_MiePhaseAnisotropy", worldMiePhaseAnisotropy);
         Shader.SetGlobalVector("_RayleighInScatterPct", new Vector4(1f - worldRayleighIndirectScatter, worldRayleighIndirectScatter, 0f, 0f));
-        
+
         Shader.SetGlobalFloat("_HeightNormalDistanceRcp", 1f/heightNormalDistance);
         Shader.SetGlobalFloat("_HeightNearScatterPush", -Mathf.Pow(Mathf.Abs(heightNearScatterPush), worldScaleExponent) * Mathf.Sign(heightNearScatterPush));
         Shader.SetGlobalFloat("_HeightRayleighDensity", -heightRayleighDensity / 100000f);
-        
+
         Shader.SetGlobalFloat("_HeightSeaLevel", heightSeaLevel);
         Shader.SetGlobalFloat("_HeightDistanceRcp", 1f/heightDistance);
         Shader.SetGlobalVector("_HeightPlaneShift", heightPlaneShift);
@@ -271,23 +271,23 @@ public class AtmosphericParameters : MonoBehaviour
         Shader.SetGlobalFloat("_HeightExtinctionFactor", heightExtinctionFactor);
         Shader.SetGlobalFloat("_RayleighExtinctionFactor", worldRayleighExtinctionFactor);
         Shader.SetGlobalFloat("_MieExtinctionFactor", worldMieExtinctionFactor);
-        
+
         var rayleighColorM20 = worldRayleighColorRamp.Evaluate(0.00f);
         var rayleighColorM10 = worldRayleighColorRamp.Evaluate(0.25f);
         var rayleighColorO00 = worldRayleighColorRamp.Evaluate(0.50f);
         var rayleighColorP10 = worldRayleighColorRamp.Evaluate(0.75f);
         var rayleighColorP20 = worldRayleighColorRamp.Evaluate(1.00f);
-        
+
         var mieColorM20 = worldMieColorRamp.Evaluate(0.00f);
         var mieColorO00 = worldMieColorRamp.Evaluate(0.50f);
         var mieColorP20 = worldMieColorRamp.Evaluate(1.00f);
-        
+
         Shader.SetGlobalVector("_RayleighColorM20", (Vector4)rayleighColorM20 * worldRayleighColorIntensity);
         Shader.SetGlobalVector("_RayleighColorM10", (Vector4)rayleighColorM10 * worldRayleighColorIntensity);
         Shader.SetGlobalVector("_RayleighColorO00", (Vector4)rayleighColorO00 * worldRayleighColorIntensity);
         Shader.SetGlobalVector("_RayleighColorP10", (Vector4)rayleighColorP10 * worldRayleighColorIntensity);
         Shader.SetGlobalVector("_RayleighColorP20", (Vector4)rayleighColorP20 * worldRayleighColorIntensity);
-        
+
         Shader.SetGlobalVector("_MieColorM20", (Vector4)mieColorM20 * worldMieColorIntensity);
         Shader.SetGlobalVector("_MieColorO00", (Vector4)mieColorO00 * worldMieColorIntensity);
         Shader.SetGlobalVector("_MieColorP20", (Vector4)mieColorP20 * worldMieColorIntensity);
@@ -315,10 +315,10 @@ public class AtmosphericParameters : MonoBehaviour
             var camRgt = m_currentCamera.transform.right;
             var camUp = m_currentCamera.transform.up;
             var camFwd = m_currentCamera.transform.forward;
-                
+
             var dy = Mathf.Tan(m_currentCamera.fieldOfView * 0.5f * Mathf.Deg2Rad);
             var dx = dy * m_currentCamera.aspect;
-                
+
             var vpCenter = camFwd * m_currentCamera.farClipPlane;
             var vpRight = camRgt * dx * m_currentCamera.farClipPlane;
             var vpUp = camUp * dy * m_currentCamera.farClipPlane;
@@ -335,12 +335,12 @@ public class AtmosphericParameters : MonoBehaviour
             var downscale = 1f / (float)(int)occlusionDownscale;
             var occWidth = Mathf.RoundToInt(srcRect.width * downscale);
             var occHeight = Mathf.RoundToInt(srcRect.height * downscale);
-            var occlusionId = Shader.PropertyToID("_OcclusionTexture");    
+            var occlusionId = Shader.PropertyToID("_OcclusionTexture");
 
             m_occlusionCmdBeforeScreen.Clear();
             m_occlusionCmdBeforeScreen.GetTemporaryRT(occlusionId, occWidth, occHeight, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.sRGB);
             m_occlusionCmdBeforeScreen.Blit(
-                null, 
+                null,
                 occlusionId,
                 m_occlusionMaterial,
                 (int)occlusionSamples
@@ -356,10 +356,10 @@ public class AtmosphericParameters : MonoBehaviour
         Shader.SetGlobalMatrix("_SkyDomeRotation",
              Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(skyDomeRotation.x, 0f, 0f), Vector3.one)
            * Matrix4x4.TRS(Vector3.zero, Quaternion.Euler(0f, skyDomeRotation.y - trackedYaw, 0f), Vector3.one)
-           * Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1f, skyDomeVerticalFlip ? -1f : 1f, 1f))                   
+           * Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1f, skyDomeVerticalFlip ? -1f : 1f, 1f))
         );
 
-        Shader.SetGlobalVector("_SunDirection",    transform.forward); 
+        Shader.SetGlobalVector("_SunDirection",    -transform.forward);
         Shader.SetGlobalFloat("_WorldMieDensity",  -worldMieDensity / 100000f);
         Shader.SetGlobalFloat("_HeightMieDensity", -heightMieDensity / 100000f);
 
