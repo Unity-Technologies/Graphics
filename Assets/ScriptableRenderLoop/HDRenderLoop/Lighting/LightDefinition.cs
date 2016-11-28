@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public EnvShapeType envShapeType;
 
         public Vector3 forward;
-        public float envIndex;
+        public int envIndex;
 
         public Vector3 up;
         public float blendDistance;     // blend transition outside the volume

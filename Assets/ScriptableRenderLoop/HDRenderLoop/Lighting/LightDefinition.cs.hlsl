@@ -96,7 +96,7 @@ struct EnvLightData
 	float3 positionWS;
 	int envShapeType;
 	float3 forward;
-	float envIndex;
+	int envIndex;
 	float3 up;
 	float blendDistance;
 	float3 right;
@@ -274,7 +274,7 @@ float3 GetForward(EnvLightData value)
 {
 	return value.forward;
 }
-float GetEnvIndex(EnvLightData value)
+int GetEnvIndex(EnvLightData value)
 {
 	return value.envIndex;
 }
