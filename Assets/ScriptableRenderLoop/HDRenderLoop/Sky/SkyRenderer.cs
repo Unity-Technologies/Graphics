@@ -181,6 +181,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_RenderSkyPropertyBlock.SetTexture("_Cubemap", skyParameters.skyHDRI);
             m_RenderSkyPropertyBlock.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
+            m_RenderSkyPropertyBlock.SetMatrix("_InvViewProjMatrix", Utilities.GetViewProjectionMatrix(camera).inverse);
 
             var cmd = new CommandBuffer { name = "" };
             cmd.DrawMesh(skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, 0, m_RenderSkyPropertyBlock);

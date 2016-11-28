@@ -741,7 +741,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 485392, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_RootOrder
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 115764, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_Name
@@ -909,7 +909,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 646b4ac0331f8e447bd20f06eba916a3, type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 646b4ac0331f8e447bd20f06eba916a3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -2021,7 +2021,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 9
+  m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 37.039, y: 0, z: 0}
 --- !u!114 &580932148
 MonoBehaviour:
@@ -2116,8 +2116,9 @@ GameObject:
   - component: {fileID: 605581071}
   - component: {fileID: 605581070}
   - component: {fileID: 605581072}
+  - component: {fileID: 605581073}
   m_Layer: 0
-  m_Name: Directional light
+  m_Name: Sun (directional light)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2168,7 +2169,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 11
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 142.28, y: 106.256996, z: -160.70999}
 --- !u!114 &605581072
 MonoBehaviour:
@@ -2189,6 +2190,128 @@ MonoBehaviour:
   isDoubleSided: 0
   areaLightLength: 0
   areaLightWidth: 0
+--- !u!114 &605581073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 605581069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97f65a78ace4fbf4187144e9fe724009, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  worldRayleighColorRamp:
+    key0:
+      serializedVersion: 2
+      rgba: 4288243277
+    key1:
+      serializedVersion: 2
+      rgba: 4291598720
+    key2:
+      serializedVersion: 2
+      rgba: 0
+    key3:
+      serializedVersion: 2
+      rgba: 0
+    key4:
+      serializedVersion: 2
+      rgba: 0
+    key5:
+      serializedVersion: 2
+      rgba: 0
+    key6:
+      serializedVersion: 2
+      rgba: 0
+    key7:
+      serializedVersion: 2
+      rgba: 0
+    ctime0: 0
+    ctime1: 65535
+    ctime2: 0
+    ctime3: 0
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 2
+    m_NumAlphaKeys: 2
+  worldRayleighColorIntensity: 1
+  worldRayleighDensity: 10
+  worldRayleighExtinctionFactor: 1.1
+  worldRayleighIndirectScatter: 0.33
+  worldMieColorRamp:
+    key0:
+      serializedVersion: 2
+      rgba: 4286627826
+    key1:
+      serializedVersion: 2
+      rgba: 4294960895
+    key2:
+      serializedVersion: 2
+      rgba: 0
+    key3:
+      serializedVersion: 2
+      rgba: 0
+    key4:
+      serializedVersion: 2
+      rgba: 0
+    key5:
+      serializedVersion: 2
+      rgba: 0
+    key6:
+      serializedVersion: 2
+      rgba: 0
+    key7:
+      serializedVersion: 2
+      rgba: 0
+    ctime0: 0
+    ctime1: 65535
+    ctime2: 0
+    ctime3: 0
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 2
+    m_NumAlphaKeys: 2
+  worldMieColorIntensity: 1
+  worldMieDensity: 15
+  worldMieExtinctionFactor: 0
+  worldMiePhaseAnisotropy: 0.9
+  worldNearScatterPush: 0
+  worldNormalDistance: 1000
+  heightRayleighColor: {r: 1, g: 1, b: 1, a: 1}
+  heightRayleighIntensity: 1
+  heightRayleighDensity: 10
+  heightMieDensity: 0
+  heightExtinctionFactor: 1.1
+  heightSeaLevel: 0
+  heightDistance: 50
+  heightPlaneShift: {x: 0, y: 0, z: 0}
+  heightNearScatterPush: 0
+  heightNormalDistance: 1000
+  worldScaleExponent: 1
+  atmosphericShader: {fileID: 0}
+  debugMode: 0
 --- !u!1 &609148480
 GameObject:
   m_ObjectHideFlags: 0
@@ -2485,7 +2608,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 485392, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 115764, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_Name
@@ -3929,7 +4052,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 10
+  m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 37.039, y: 0, z: 0}
 --- !u!114 &970745598
 MonoBehaviour:
@@ -4877,7 +5000,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1175446862
 GameObject:
@@ -5205,7 +5328,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: -0.39200002, y: 1.033, z: -0.92}
 --- !u!114 &1220024536
 MonoBehaviour:
@@ -5719,7 +5842,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 485392, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_RootOrder
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 115764, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_Name
@@ -6687,7 +6810,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 485392, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_RootOrder
-      value: 6
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 2374582, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_Materials.Array.data[0]
@@ -8114,7 +8237,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 485392, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_RootOrder
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 115764, guid: e641a36bceddbf24a89656e94dafb3e5, type: 2}
       propertyPath: m_Name
