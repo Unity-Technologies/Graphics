@@ -25,6 +25,7 @@
 #define ENVSHAPETYPE_NONE (0)
 #define ENVSHAPETYPE_BOX (1)
 #define ENVSHAPETYPE_SPHERE (2)
+#define ENVSHAPETYPE_SKY (3)
 
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.EnvConstants:  static fields

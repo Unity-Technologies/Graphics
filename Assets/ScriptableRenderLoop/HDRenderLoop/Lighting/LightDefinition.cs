@@ -103,9 +103,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     [GenerateHLSL]
     public enum EnvShapeType
     {
-        None, 
-        Box, 
-        Sphere
+        None,
+        Box,
+        Sphere,
+        Sky
     };
 
     [GenerateHLSL]
