@@ -46,6 +46,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop settings");
             public readonly GUIContent tileLightLoopDebugMode = new GUIContent("Enable Debug mode", "Toggle overheat map mode");
             public readonly GUIContent directIndirectSinglePass = new GUIContent("Enable direct and indirect lighting in single pass", "Toggle");
+            public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
+            public readonly GUIContent clustered = new GUIContent("Enable clusted", "Toggle");   
         }
 
         private static Styles s_Styles = null;
@@ -244,7 +246,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             renderLoop.tilePassLightLoop.enableDrawTileDebug = EditorGUILayout.Toggle(styles.tileLightLoopDebugMode, renderLoop.tilePassLightLoop.enableDrawTileDebug);
             renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass = EditorGUILayout.Toggle(styles.directIndirectSinglePass, renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass);
-            
+            renderLoop.tilePassLightLoop.enableBigTilePrepass = EditorGUILayout.Toggle(styles.bigTilePrepass, renderLoop.tilePassLightLoop.enableBigTilePrepass);
+            renderLoop.tilePassLightLoop.enableClustered = EditorGUILayout.Toggle(styles.clustered, renderLoop.tilePassLightLoop.enableClustered);
+
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(renderLoop); // Repaint
