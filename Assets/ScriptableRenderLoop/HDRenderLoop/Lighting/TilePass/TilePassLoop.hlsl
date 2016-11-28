@@ -2,43 +2,6 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
-float4 OverlayHeatMap(uint2 pixCoord, uint numLights)
-{
-    const float4 kRadarColors[12] =
-    {
-        float4(0.0,0.0,0.0,0.0),   // black
-        float4(0.0,0.0,0.6,0.5),   // dark blue
-        float4(0.0,0.0,0.9,0.5),   // blue
-        float4(0.0,0.6,0.9,0.5),   // light blue
-        float4(0.0,0.9,0.9,0.5),   // cyan
-        float4(0.0,0.9,0.6,0.5),   // blueish green
-        float4(0.0,0.9,0.0,0.5),   // green
-        float4(0.6,0.9,0.0,0.5),   // yellowish green
-        float4(0.9,0.9,0.0,0.5),   // yellow
-        float4(0.9,0.6,0.0,0.5),   // orange
-        float4(0.9,0.0,0.0,0.5),   // red
-        float4(1.0,0.0,0.0,0.9)    // strong red
-    };
-
-    float maxNrLightsPerTile = 31;
-
-    int nColorIndex = numLights == 0 ? 0 : (1 + (int)floor(10 * (log2((float)numLights) / log2(maxNrLightsPerTile))));
-    nColorIndex = nColorIndex<0 ? 0 : nColorIndex;
-    float4 col = nColorIndex>11 ? float4(1.0, 1.0, 1.0, 1.0) : kRadarColors[nColorIndex];
-
-    int2 coord = pixCoord - int2(1, 1);
-
-    float4 color = float4(pow(col.xyz, 2.2), 0.3*col.w);
-    if (numLights > 0)
-    {
-        if (SampleDebugFontNumber(coord, numLights))		// Shadow
-            color = float4(0,0,0,1);
-        if (SampleDebugFontNumber(coord + 1, numLights))	// Text
-            color = float4(1,1,1,1);
-    }
-    return color;
-}
-
 // Calculate the offset in global light index light for current light category
 int GetTileOffset(Coordinate coord, uint lightCategory)
 {
