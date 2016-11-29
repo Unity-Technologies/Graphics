@@ -201,29 +201,4 @@ namespace UnityEngine.MaterialGraph
             return EditorGUI.EndChangeCheck();
         }*/
     }
-
-    public class MaterialSlotDefaultInput : MaterialSlot, IGenerateDefaultInput
-    {
-        public MaterialSlotDefaultInput() : base()
-        {
-
-        }
-
-        public MaterialSlotDefaultInput(int slotId, string displayName, string shaderOutputName, SlotType slotType, SlotValueType valueType, INode _defaultNode, int _defaultSlotID)
-            : base(slotId, displayName, shaderOutputName, slotType, valueType, Vector4.zero)
-        {
-            defaultNode = _defaultNode;
-            defaultSlotID = _defaultSlotID;
-        }
-
-        public INode defaultNode
-        {
-            get; private set;
-        }
-
-        public int defaultSlotID
-        {
-            get; private set;
-        }
-    }
 }
