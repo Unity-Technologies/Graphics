@@ -1,5 +1,12 @@
 Shader "Hidden/HDRenderLoop/Deferred"
 {
+    Properties
+    {
+        // We need to be able to control the blend mode for deferred shader in case we do multiple pass
+        _SrcBlend("", Float) = 1
+        _DstBlend("", Float) = 1
+    }
+
     SubShader
     {
 
@@ -7,6 +14,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
         {
             ZWrite Off
             Blend Off
+            Blend[_SrcBlend][_DstBlend]
 
             HLSLPROGRAM
             #pragma target 5.0
@@ -22,7 +30,6 @@ Shader "Hidden/HDRenderLoop/Deferred"
             // TODO: Workflow problem here, I would like to only generate variant for the LIGHTLOOP_TILE_PASS case, not the LIGHTLOOP_SINGLE_PASS case. This must be on lightloop side and include here.... (Can we codition
             #pragma multi_compile LIGHTLOOP_TILE_DIRECT LIGHTLOOP_TILE_INDIRECT LIGHTLOOP_TILE_ALL
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-            #pragma multi_compile _ ENABLE_DEBUG
 
             //-------------------------------------------------------------------------------------
             // Include

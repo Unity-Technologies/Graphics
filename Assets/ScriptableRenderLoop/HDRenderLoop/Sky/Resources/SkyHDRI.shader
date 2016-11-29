@@ -15,15 +15,18 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma multi_compile _ ATMOSPHERICS_OCCLUSION_FULLSKY
             #pragma multi_compile _ ATMOSPHERICS_DEBUG
+            #pragma multi_compile _ ATMOSPHERICS_OCCLUSION_FULLSKY
+            #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
+
+            #ifndef PERFORM_SKY_OCCLUSION_TEST
+                #define IS_RENDERING_SKY
+            #endif
 
             #include "Color.hlsl"
             #include "Common.hlsl"
             #include "CommonLighting.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
-
-            #define IS_RENDERING_SKY
             #include "AtmosphericScattering.hlsl"
 
             TEXTURECUBE(_Cubemap);
@@ -48,9 +51,8 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
             {
                 // TODO: implement SV_vertexID full screen quad
                 Varyings output;
-                output.positionCS = float4(input.positionCS.xy, UNITY_RAW_FAR_CLIP_VALUE
-                    , 1.0);
-                output.eyeVector = input.eyeVector;
+                output.positionCS = float4(input.positionCS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0);
+                output.eyeVector  = input.eyeVector;
 
                 return output;
             }
@@ -67,16 +69,22 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
                 float3 rotDirY = float3(sinPhi, 0, cosPhi);
                 dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
-                float3 skyDome = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
-
                 Coordinate coord = GetCoordinate(input.positionCS.xy, _ScreenSize.zw);
 
-                // Get the depth value of the scene, or use 0.01 otherwise.
-                float  rawDepth   = max(LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).r, 0.01);
-                float3 positionWS = UnprojectToWorld(rawDepth, coord.positionSS, _InvViewProjMatrix);
+                // If the sky box is too far away (depth set to 0), the resulting look is too foggy.
+                const float skyDepth = 0.01;
 
-                // Do not perform blending with the environment map if the sky is occluded.
-                float skyDomeWeight = (rawDepth > 0.01) ? 0.0 : 1.0;
+                #ifdef PERFORM_SKY_OCCLUSION_TEST
+                    // Determine whether the sky is occluded by the scene geometry.
+                    // Do not perform blending with the environment map if the sky is occluded.
+                    float rawDepth     = max(skyDepth, LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).r);
+                    float skyTexWeight = (rawDepth > skyDepth) ? 0.0 : 1.0;
+                #else
+                    float rawDepth     = skyDepth;
+                    float skyTexWeight = 1.0;
+                #endif
+
+                float3 positionWS = UnprojectToWorld(rawDepth, coord.positionSS, _InvViewProjMatrix);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(positionWS, c1, c2, c3);
@@ -103,8 +111,10 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
                     }
                 #endif
 
-                // Blend with the color of the scene.
-                return float4(skyDome * (skyDomeWeight * extinction) + scatter, 0.0);
+                float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
+
+                // Apply extinction to the scene color when performing alpha-blending.
+                return float4(skyColor * (skyTexWeight * extinction) + scatter, extinction);
             }
 
             ENDHLSL

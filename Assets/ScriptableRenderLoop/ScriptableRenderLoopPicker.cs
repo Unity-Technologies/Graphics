@@ -15,6 +15,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         [SerializeField]
         private ScriptableRenderLoop m_RenderLoop;
 
+        // TEMPORARY
+        public int legacyRenderLoopMaxShaderLOD = int.MaxValue;
+
         void OnEnable()
         {
             RenderLoop.renderLoopDelegate += Render;
@@ -29,6 +32,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void SyncRenderingFeatures()
         {
+            if (m_RenderLoop != null && isActiveAndEnabled)
+                Shader.globalMaximumLOD = int.MaxValue; 
+
 #if UNITY_EDITOR
             if (m_RenderLoop != null && isActiveAndEnabled)
                 UnityEditor.SupportedRenderingFeatures.active = m_RenderLoop.GetSupportedRenderingFeatures();
@@ -40,8 +46,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         void OnDisable()
         {
             RenderLoop.renderLoopDelegate -= Render;
+            Shader.globalMaximumLOD = legacyRenderLoopMaxShaderLOD;
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
             #endif
         }
