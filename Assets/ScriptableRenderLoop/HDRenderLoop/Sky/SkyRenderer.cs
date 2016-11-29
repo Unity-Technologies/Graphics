@@ -110,6 +110,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
+        // Sets the global "_SkyTexture" cubemap array in the shader.
+        // The texture being set is a sky (environment) map pre-convolved with GGX.
+        public void SetGlobalSkyTexture()
+        {
+            Shader.SetGlobalTexture("_SkyTexture", m_SkyboxGGXCubemapRT);
+        }
+
         public void Rebuild()
         {
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
