@@ -46,7 +46,8 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
 
             half4 Frag(Varyings input) : SV_Target
             {
-                float3 N = input.eyeVector;
+                // Vector interpolation is not magnitude-preserving.
+                float3 N = normalize(input.eyeVector);
                 float3 V = N;
 
                 float perceptualRoughness = mipmapLevelToPerceptualRoughness(_Level);

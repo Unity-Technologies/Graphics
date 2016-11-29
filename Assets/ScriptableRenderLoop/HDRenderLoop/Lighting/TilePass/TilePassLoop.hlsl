@@ -14,7 +14,7 @@ void GetCountAndStartOpaque(Coordinate coord, uint lightCategory, float linearDe
     const int tileOffset = GetTileOffset(coord, lightCategory);
 
     // The first entry inside a tile is the number of light for lightCategory (thus the +0)
-    lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffs + 0] & 0xffff;
+    lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
     start = tileOffset;
 }
 
@@ -34,7 +34,7 @@ void GetCountAndStart(Coordinate coord, uint lightCategory, float linearDepth, o
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
-    return FetchIndexOpaque(tileOffs, lightIndex);
+    return FetchIndexOpaque(tileOffset, lightIndex);
 }
 
 #else
@@ -109,7 +109,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
     diffuseLighting = float3(0.0, 0.0, 0.0);
     specularLighting = float3(0.0, 0.0, 0.0);
 
-    int i = 0; // Declare once to avoid the D3D11 compiler warning.
+    uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
 #ifdef PROCESS_DIRECTIONAL_LIGHT
     for (i = 0; i < _DirectionalLightCount; ++i)
@@ -176,10 +176,15 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
         iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
     }
+
+    diffuseLighting += iblDiffuseLighting;
+    specularLighting += iblSpecularLighting;
 #endif
 
-    // TODO
-#if ENABLE_DEBUG
-//    c = OverlayHeatMap(pixCoord & 15, numLightsProcessed, c);
+    // Currently do lightmap with indirect specula
+    // TODO: test what is the most appropriate here...
+#ifdef PROCESS_ENV_LIGHT
+    // Add indirect diffuse + emissive (if any)
+    diffuseLighting += bakeDiffuseLighting;
 #endif
 }

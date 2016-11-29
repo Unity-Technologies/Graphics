@@ -283,6 +283,29 @@ const float4x4 k_identity4x4 = {1.0, 0.0, 0.0, 0.0,
                                 0.0, 0.0, 1.0, 0.0,
                                 0.0, 0.0, 0.0, 1.0 };
 
+// Using pow often result to a warning like this
+// "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
+// PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
+float PositivePow(float base, float power)
+{
+    return pow(max(abs(base), float(FLT_EPSILON)), power);
+}
+
+float2 PositivePow(float2 base, float2 power)
+{
+    return pow(max(abs(base), float2(FLT_EPSILON, FLT_EPSILON)), power);
+}
+
+float3 PositivePow(float3 base, float3 power)
+{
+    return pow(max(abs(base), float3(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
+}
+
+float4 PositivePow(float4 base, float4 power)
+{
+    return pow(max(abs(base), float4(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
+}
+
 // ----------------------------------------------------------------------------
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------

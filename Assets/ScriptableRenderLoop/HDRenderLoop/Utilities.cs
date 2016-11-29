@@ -202,5 +202,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             cmd.SetComputeFloatParams(shadercs, name, data);
         }
+
+        public static void SetKeyword(Material m, string keyword, bool state)
+        {
+            if (state)
+                m.EnableKeyword(keyword);
+            else
+                m.DisableKeyword(keyword);
+        }
     }
 }

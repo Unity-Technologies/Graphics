@@ -188,7 +188,7 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _HEIGHTMAP
     #pragma shader_feature _DETAIL_MAP
-    #pragma shader_feature _LAYER_VERTEX_COLOR
+    #pragma shader_feature _LAYER_MASK_VERTEX_COLOR
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
     #pragma multi_compile LIGHTMAP_OFF LIGHTMAP_ON
@@ -477,5 +477,5 @@ Shader "HDRenderLoop/LayeredLit"
         }
     }
 
-    CustomEditor "LayeredLitGUI"
+	CustomEditor "UnityEditor.Experimental.ScriptableRenderLoop.LayeredLitGUI"
 }

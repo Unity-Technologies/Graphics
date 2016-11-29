@@ -66,7 +66,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 eyeVectorData[3] = new Vector3(direction0.x, direction0.y, direction0.z).normalized;
                 eyeVectorData[2] = new Vector3(direction1.x, direction1.y, direction1.z).normalized;
                 eyeVectorData[1] = new Vector3(direction2.x, direction2.y, direction2.z).normalized;
-                eyeVectorData[0] = new Vector3(direction3.x, direction3.y, direction3.z).normalized;                
+                eyeVectorData[0] = new Vector3(direction3.x, direction3.y, direction3.z).normalized;
             }
             else
             {
@@ -110,6 +110,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
+        // Sets the global "_SkyTexture" cubemap array in the shader.
+        // The texture being set is a sky (environment) map pre-convolved with GGX.
+        public void SetGlobalSkyTexture()
+        {
+            Shader.SetGlobalTexture("_SkyTexture", m_SkyboxGGXCubemapRT);
+        }
+
         public void Rebuild()
         {
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
@@ -132,7 +139,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                             new Vector3(0.0f, 0.0f, 1.0f),
                             new Vector3(0.0f, 0.0f, -1.0f),
                         };
-            
+
             Vector3[] UpVectorList = {
                             new Vector3(0.0f, 1.0f, 0.0f),
                             new Vector3(0.0f, 1.0f, 0.0f),
@@ -179,6 +186,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             Mesh skyMesh = BuildSkyMesh(camera, forceUVBottom);
 
+            Shader.EnableKeyword("PERFORM_SKY_OCCLUSION_TEST");
+
             m_RenderSkyPropertyBlock.SetTexture("_Cubemap", skyParameters.skyHDRI);
             m_RenderSkyPropertyBlock.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
             m_RenderSkyPropertyBlock.SetMatrix("_InvViewProjMatrix", Utilities.GetViewProjectionMatrix(camera).inverse);
@@ -191,6 +200,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         private void RenderSkyToCubemap(SkyParameters skyParameters, RenderTexture target, RenderLoop renderLoop)
         {
+            Shader.DisableKeyword("PERFORM_SKY_OCCLUSION_TEST");
+
             for (int i = 0; i < 6; ++i)
             {
                 Utilities.SetRenderTarget(renderLoop, target, 0, (CubemapFace)i);
