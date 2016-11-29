@@ -74,8 +74,8 @@ void LightLoop(	float3 V, float3 positionWS, Coordinate coord, PreLightData prel
         float3 localDiffuseLighting, localSpecularLighting;
         float2 weight;
         context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
-        InitSkyEnvLightData(0);
-        EvaluateBSDF_Env(context, V, positionWS, prelightData, _EnvLightSky, bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+        EnvLightData envLightSky = InitSkyEnvLightData(0);
+        EvaluateBSDF_Env(context, V, positionWS, prelightData, envLightSky, bsdfData, localDiffuseLighting, localSpecularLighting, weight);
         iblDiffuseLighting  = lerp(iblDiffuseLighting,  localDiffuseLighting,  weight.x); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
     }
