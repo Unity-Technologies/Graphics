@@ -110,8 +110,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        // Sets the global "_SkyTexture" cubemap array in the shader.
-        // The texture being set is a sky (environment) map pre-convolved with GGX.
+        // Sets the global MIP-mapped cubemap '_SkyTexture' in the shader.
+        // The texture being set is the sky (environment) map pre-convolved with GGX.
         public void SetGlobalSkyTexture()
         {
             Shader.SetGlobalTexture("_SkyTexture", m_SkyboxGGXCubemapRT);
