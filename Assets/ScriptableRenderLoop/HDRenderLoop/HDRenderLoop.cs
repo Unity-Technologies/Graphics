@@ -226,9 +226,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
 
-        void OnValidate()
+        private void OnEnable()
         {
+            // TODO: Design workaround for OnValidate being missing on ScriptableObject
             m_Dirty = true;
+            Rebuild();
+        }
+
+        private void OnDisable()
+        {
+            // TODO: Rework ScriptableRenderLoop Lifecycle 
+            //CleanUp();
         }
 
         public override void Rebuild()
