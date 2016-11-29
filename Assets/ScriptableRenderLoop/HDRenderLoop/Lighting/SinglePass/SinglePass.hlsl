@@ -55,7 +55,8 @@ struct LightLoopContext
 
 // The EnvLightData of the sky light contains a bunch of compile-time constants.
 // This function sets them directly to allow the compiler to propagate them and optimize the code.
-void InitSkyEnvLightData(int index) {
+void InitSkyEnvLightData(int index)
+{
     _EnvLightSky.envShapeType  = ENVSHAPETYPE_SKY;
     _EnvLightSky.envIndex      = index;
     _EnvLightSky.forward       = float3(0.0, 0.0, 1.0);
