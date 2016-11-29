@@ -118,9 +118,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Rebuild();
         }
 
+        private void OnEnable()
+        {
+            Rebuild();
+        }
+
         private void OnDisable()
         {
-            CleanUp();
+            // TODO: Rework ScriptableRenderLoop Lifecycle
+            //CleanUp();
         }
 
         public override void CleanUp()
@@ -149,11 +155,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
             ClearComputeBuffers();
-        }
-
-        void OnValidate()
-        {
-            Rebuild();
         }
 
         void ClearComputeBuffers()

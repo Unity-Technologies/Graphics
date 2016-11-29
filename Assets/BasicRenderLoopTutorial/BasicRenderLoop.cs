@@ -25,6 +25,11 @@ public class BasicRenderLoop : ScriptableRenderLoop
 
     private ShaderPassName shaderPassBasic;
 
+    public void OnEnable()
+    {
+        Rebuild();
+    }
+
     public override void Initialize()
     {
         shaderPassBasic = new ShaderPassName("BasicPass");
