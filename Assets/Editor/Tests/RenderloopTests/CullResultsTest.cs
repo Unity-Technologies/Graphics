@@ -31,9 +31,6 @@ public class CullResultsTest
     public void TestReflectionProbes()
     {
         UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Editor/Tests/TestScene.unity");
-
-        // Asserts.ExpectLogError("Boing");
-
         RenderLoopTestFixture.Run(InspectCullResults);
     }
 }

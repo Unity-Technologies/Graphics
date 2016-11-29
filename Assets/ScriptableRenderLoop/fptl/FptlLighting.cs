@@ -113,9 +113,42 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         private Texture2D m_LightAttentuationTexture;
         private int m_shadowBufferID;
 
-        void OnEnable()
+        public override void Initialize()
         {
             Rebuild();
+        }
+
+        private void OnDisable()
+        {
+            CleanUp();
+        }
+
+        public override void CleanUp()
+        {
+            // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
+            if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
+            if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
+            if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
+            if (m_DebugLightBoundsMaterial) DestroyImmediate(m_DebugLightBoundsMaterial);
+            if (m_NHxRoughnessTexture) DestroyImmediate(m_NHxRoughnessTexture);
+            if (m_LightAttentuationTexture) DestroyImmediate(m_LightAttentuationTexture);
+
+            m_CookieTexArray.Release();
+            m_CubeCookieTexArray.Release();
+            m_CubeReflTexArray.Release();
+
+            s_AABBBoundsBuffer.Release();
+            s_ConvexBoundsBuffer.Release();
+            s_LightDataBuffer.Release();
+            ReleaseResolutionDependentBuffers();
+            s_DirLightList.Release();
+
+            if (enableClustered)
+            {
+                s_GlobalLightListAtomic.Release();
+            }
+
+            ClearComputeBuffers();
         }
 
         void OnValidate()
@@ -230,34 +263,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             s_BigTileLightList = null;
 
             m_shadowBufferID = Shader.PropertyToID("g_tShadowBuffer");
-        }
-
-        void OnDisable()
-        {
-            // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
-            if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
-            if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
-            if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
-            if (m_DebugLightBoundsMaterial) DestroyImmediate(m_DebugLightBoundsMaterial);
-            if (m_NHxRoughnessTexture) DestroyImmediate(m_NHxRoughnessTexture);
-            if (m_LightAttentuationTexture) DestroyImmediate(m_LightAttentuationTexture);
-
-            m_CookieTexArray.Release();
-            m_CubeCookieTexArray.Release();
-            m_CubeReflTexArray.Release();
-
-            s_AABBBoundsBuffer.Release();
-            s_ConvexBoundsBuffer.Release();
-            s_LightDataBuffer.Release();
-            ReleaseResolutionDependentBuffers();
-            s_DirLightList.Release();
-
-
-
-            if (enableClustered)
-            {
-                s_GlobalLightListAtomic.Release();
-            }
         }
 
         static void SetupGBuffer(int width, int height, CommandBuffer cmd)
