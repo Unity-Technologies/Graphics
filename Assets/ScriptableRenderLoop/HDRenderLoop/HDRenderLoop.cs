@@ -895,6 +895,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             //Shader.SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
             //Shader.SetGlobalTexture("_CubeCookieTextures", m_CubeCookieTexArray.GetTexCache());
             Shader.SetGlobalTexture("_EnvTextures", m_CubeReflTexArray.GetTexCache());
+            m_SkyRenderer.SetGlobalSkyTexture();
 
             if (debugParameters.useSinglePassLightLoop)
             {
