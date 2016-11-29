@@ -20,6 +20,7 @@
 
 #ifdef LIGHTLOOP_SINGLE_PASS
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/SinglePass/SinglePass.hlsl"
+#include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/LightUtilities.hlsl"
 #elif defined(LIGHTLOOP_TILE_PASS)
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/TilePass/TilePass.hlsl"
 #endif

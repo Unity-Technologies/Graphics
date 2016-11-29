@@ -1251,7 +1251,8 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
         weight.y = saturate(1.0 - distFade / max(lightData.blendDistance, 0.0001)); // avoid divide by zero
     }
-    else // ENVSHAPETYPE_BOX or ENVSHAPETYPE_NONE 
+    else if (lightData.envShapeType == ENVSHAPETYPE_BOX ||
+             lightData.envShapeType == ENVSHAPETYPE_NONE)
     {
         // Calculate falloff value, so reflections on the edges of the volume would gradually blend to previous reflection.
         float distFade = DistancePointBox(positionLS, -lightData.innerDistance, lightData.innerDistance);
