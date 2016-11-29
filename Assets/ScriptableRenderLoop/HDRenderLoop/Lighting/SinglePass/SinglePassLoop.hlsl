@@ -74,19 +74,7 @@ void LightLoop(	float3 V, float3 positionWS, Coordinate coord, PreLightData prel
         float3 localDiffuseLighting, localSpecularLighting;
         float2 weight;
         context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
-
-        // The EnvLightData of the sky light contains a bunch of compile-time constants.
-        // We set them here directly to allow the compiler to propagate them and optimize the code.
-        _EnvLightSky.envShapeType  = ENVSHAPETYPE_SKY;
-        _EnvLightSky.envIndex      = 0;
-        _EnvLightSky.forward       = float3(0.0, 0.0, 1.0);
-        _EnvLightSky.up            = float3(0.0, 1.0, 0.0);
-        _EnvLightSky.right         = float3(1.0, 0.0, 0.0);
-        _EnvLightSky.positionWS    = float3(0.0, 0.0, 0.0);
-        _EnvLightSky.offsetLS      = float3(0.0, 0.0, 0.0);
-        _EnvLightSky.innerDistance = float3(0.0, 0.0, 0.0);
-        _EnvLightSky.blendDistance = 1.0;
-
+        InitSkyEnvLightData(0);
         EvaluateBSDF_Env(context, V, positionWS, prelightData, _EnvLightSky, bsdfData, localDiffuseLighting, localSpecularLighting, weight);
         iblDiffuseLighting  = lerp(iblDiffuseLighting,  localDiffuseLighting,  weight.x); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
