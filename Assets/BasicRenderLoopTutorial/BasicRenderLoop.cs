@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.ScriptableRenderLoop;
 
 // Very basic scriptable rendering loop example:
 // - Use with BasicRenderLoopShader.shader (the loop expects "BasicPass" pass type to exist)
@@ -10,24 +11,27 @@ using UnityEngine.Experimental.Rendering;
 // - This loop also does not setup lightmaps, light probes, reflection probes or light cookies
 
 [ExecuteInEditMode]
-public class BasicRenderLoop : MonoBehaviour
+public class BasicRenderLoop : ScriptableRenderLoop
 {
+
+#if UNITY_EDITOR
+    [UnityEditor.MenuItem("Renderloop/CreateBasicRenderLoop")]
+    static void CreateBasicRenderLoop()
+    {
+        var instance = ScriptableObject.CreateInstance<BasicRenderLoop>();
+        UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/basicrenderloop.asset");
+    }
+#endif
+
     private ShaderPassName shaderPassBasic;
 
-    public void OnEnable ()
+    public override void Initialize()
     {
-        shaderPassBasic = new ShaderPassName ("BasicPass");
-        RenderLoop.renderLoopDelegate += Render;
+        shaderPassBasic = new ShaderPassName("BasicPass");
     }
-
-    public void OnDisable ()
-    {
-        RenderLoop.renderLoopDelegate -= Render;
-    }
-
 
     // Main entry point for our scriptable render loop
-    bool Render (Camera[] cameras, RenderLoop loop)
+    public override void Render(Camera[] cameras, RenderLoop loop)
     {
         foreach (var camera in cameras)
         {
@@ -66,8 +70,6 @@ public class BasicRenderLoop : MonoBehaviour
 
             loop.Submit ();
         }
-
-        return true;
     }
 
 
