@@ -393,5 +393,5 @@ Shader "HDRenderLoop/Lit"
         }
     }
 
-    CustomEditor "UnityEditor.Experimental.ScriptableRenderLoop.LitGUI"
+    CustomEditor "Experimental.ScriptableRenderLoop.LitGUI"
 }

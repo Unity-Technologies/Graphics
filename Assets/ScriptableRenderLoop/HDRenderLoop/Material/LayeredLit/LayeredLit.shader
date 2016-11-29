@@ -477,5 +477,5 @@ Shader "HDRenderLoop/LayeredLit"
         }
     }
 
-	CustomEditor "UnityEditor.Experimental.ScriptableRenderLoop.LayeredLitGUI"
+	CustomEditor "Experimental.ScriptableRenderLoop.LayeredLitGUI"
 }
