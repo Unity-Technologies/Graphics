@@ -176,7 +176,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         }
 
-        bool IsSkyValid(SkyParameters parameters)
+        public bool IsSkyValid(SkyParameters parameters)
         {
             // Later we will also test shader for procedural skies.
             return parameters.skyHDRI != null;
