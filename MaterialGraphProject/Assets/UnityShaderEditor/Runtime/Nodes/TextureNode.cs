@@ -62,7 +62,7 @@ namespace UnityEngine.MaterialGraph
 
                 if (onModified != null)
                 {
-					onModified(this, ModificationScope.Node);
+                    onModified(this, ModificationScope.Node);
                 }
             }
         }
@@ -100,7 +100,7 @@ namespace UnityEngine.MaterialGraph
             AddSlot(new MaterialSlot(OutputSlotGId, kOutputSlotGName, kOutputSlotGName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(OutputSlotBId, kOutputSlotBName, kOutputSlotBName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
             AddSlot(new MaterialSlot(OutputSlotAId, kOutputSlotAName, kOutputSlotAName, SlotType.Output, SlotValueType.Vector1, Vector4.zero));
-            AddSlot(new MaterialSlotDefaultInput(UvSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector2, new UVNode(), UVNode.OutputSlotId));
+            AddSlot(new MaterialSlot(UvSlotId, kUVSlotName, kUVSlotName, SlotType.Input, SlotValueType.Vector2, Vector4.zero));
             RemoveSlotsNameNotMatching(validSlots);
         }
 
@@ -116,7 +116,7 @@ namespace UnityEngine.MaterialGraph
             if (uvSlot == null)
                 return;
 
-            var uvName = "error";
+            var uvName = string.Format("{0}.xy", ShaderGeneratorNames.UV0);
             var edges = owner.GetEdges(uvSlot.slotReference).ToList();
 
             if (edges.Count > 0)
@@ -124,10 +124,6 @@ namespace UnityEngine.MaterialGraph
                 var edge = edges[0];
                 var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(edge.outputSlot.nodeGuid);
                 uvName = ShaderGenerator.AdaptNodeOutput(fromNode, edge.outputSlot.slotId, ConcreteSlotValueType.Vector2, true);
-            }
-            else
-            {
-                Debug.LogError("Default slot behavior should return a virtual edge to virtual node");
             }
 
             string body = "tex2D (" + propertyName + ", " + uvName + ")";
@@ -222,7 +218,7 @@ namespace UnityEngine.MaterialGraph
                 return true;
 
             var edges = owner.GetEdges(uvSlot.slotReference).ToList();
-            return (edges.Count <= 0);
+            return edges.Count == 0;
         }
     }
 }

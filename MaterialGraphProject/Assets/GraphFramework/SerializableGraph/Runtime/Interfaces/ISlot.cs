@@ -10,10 +10,4 @@ namespace UnityEngine.Graphing
         SlotReference slotReference { get; }
         INode owner { get; set; }
     }
-
-    public interface IGenerateDefaultInput
-    {
-        INode defaultNode { get; }
-        int defaultSlotID { get; }
-    }
 }
