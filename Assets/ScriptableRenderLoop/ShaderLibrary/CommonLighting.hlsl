@@ -29,8 +29,8 @@ float4 ClampToFloat16Max(float4 value)
 // Helper functions
 //-----------------------------------------------------------------------------
 
-// Performs the mapping of the vector 'v' centered within the cube of dimensions [-1, 1]^3
-// to a vector centered within the sphere of radius 1.
+// Performs the mapping of the vector 'v' centered within the axis-aligned cube
+// of dimensions [-1, 1]^3 to a vector centered within the sphere of radius 1.
 // The function expects 'v' to be within the cube (possibly unexpected results otherwise).
 // Ref: http://mathproofs.blogspot.com/2005/07/mapping-cube-to-sphere.html
 float3 MapCubeToSphere(float3 v)
@@ -125,7 +125,7 @@ float GetEllipsoidalDistanceAttenuation(float3 unL,   float invSqrAttenuationRad
     return SmoothDistanceAttenuation(dot(unL, unL), invSqrAttenuationRadius);
 }
 
-// Applies SmoothDistanceAttenuation() after performing the box to sphere mapping.
+// Applies SmoothDistanceAttenuation() after mapping the axis-aligned box to a sphere.
 // If the length of the diagonal of the box is 'd', invHalfDiag = rcp(0.5 * d).
 // Both the box (e.i. 'invHalfDiag') and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the box.
