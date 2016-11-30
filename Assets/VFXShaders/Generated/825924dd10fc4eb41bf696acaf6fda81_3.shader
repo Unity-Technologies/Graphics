@@ -21,7 +21,7 @@ Shader "Hidden/VFX_3"
 			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
-			#include "..\VFXCommon.cginc"
+			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
 				float3 outputUniform0;
@@ -38,8 +38,8 @@ Shader "Hidden/VFX_3"
 			
 			struct ps_input
 			{
-				linear noperspective centroid float4 pos : SV_POSITION;
-				nointerpolation float4 col : SV_Target0;
+				/*linear noperspective centroid*/ float4 pos : SV_POSITION;
+				nointerpolation float4 col : COLOR0;
 			};
 			
 			void VFXBlockSetColorConstant( inout float3 color,float3 Color)

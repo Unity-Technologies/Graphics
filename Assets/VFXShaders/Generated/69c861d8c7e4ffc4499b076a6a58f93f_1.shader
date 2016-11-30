@@ -21,7 +21,7 @@ Shader "Hidden/VFX_1"
 			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
-			#include "..\VFXCommon.cginc"
+			#include "../VFXCommon.cginc"
 			
 			Texture2D outputSampler0Texture;
 			SamplerState sampleroutputSampler0Texture;
@@ -37,7 +37,7 @@ Shader "Hidden/VFX_1"
 			
 			struct ps_input
 			{
-				linear noperspective centroid float4 pos : SV_POSITION;
+				/*linear noperspective centroid*/ float4 pos : SV_POSITION;
 				float2 offsets : TEXCOORD0;
 			};
 			
