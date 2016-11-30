@@ -26,6 +26,30 @@ float4 ClampToFloat16Max(float4 value)
 // Light direction is oriented backward (-Z). i.e in shader code, light direction is -lightData.forward
 
 //-----------------------------------------------------------------------------
+// Various helper
+//-----------------------------------------------------------------------------
+
+// Performs the mapping of the vector 'v' centered within the cube of dimensions [-1, 1]^3
+// to a vector centered within the sphere of radius 1.
+// The function expects 'v' to be within the cube (possibly unexpected results otherwise).
+// Ref: http://mathproofs.blogspot.com/2005/07/mapping-cube-to-sphere.html
+float3 MapCubeToSphere(float3 v)
+{
+    float3 v2 = v * v;
+    float2 vr3 = v2.xy * rcp(3.0);
+    return v * sqrt((float3)1.0 - 0.5 * v2.yzx - 0.5 * v2.zxy + vr3.yxx * v2.zzy);
+}
+
+// Computes the squared magnitude of the vector computed by MapCubeToSphere().
+float ComputeCubeToSphereMapSqMagnitude(float3 v)
+{
+    float3 v2 = v * v;
+    // Note: dot(v, v) is often computed before this function is called,
+    // so the compiler should optimize and use the precomputed result here.
+    return dot(v, v) - v2.x * v2.y - v2.y * v2.z - v2.z * v2.x + v2.x * v2.y * v2.z;
+}
+
+//-----------------------------------------------------------------------------
 // Attenuation functions
 //-----------------------------------------------------------------------------
 
@@ -60,7 +84,9 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
 }
 
 // Applies SmoothDistanceAttenuation() after stretching the attenuation sphere of the
-// given radius into an ellipsoid with the specified aspect ratio and the longest axis.
+// given radius into an ellipsoid with the specified (positive) aspect ratio and the longest axis.
+// Both the ellipsoid (e.i. 'axis') and 'unL' should be in the same coordinate system.
+// 'unL' should be computed from the center of the ellipsoid.
 float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqrAttenuationRadius,
                                         float3 axis, float invAspectRatio)
 {
@@ -74,6 +100,24 @@ float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqrAttenuationRadi
     unL -= scale * axis;
 
     return SmoothDistanceAttenuation(dot(unL, unL), invSqrAttenuationRadius);
+}
+
+// Applies SmoothDistanceAttenuation() after performing the box to sphere mapping.
+// If the length of the diagonal of the box is 'd', invHalfDiag = rcp(0.5 * d).
+// Both the box (e.i. 'invHalfDiag') and 'unL' should be in the same coordinate system.
+// 'unL' should be computed from the center of the box.
+float GetBoxToSphereMapDistanceAttenuation(float3 unL, float3 invHalfDiag)
+{
+    // As our algorithm only works with the [-1, 1]^2 cube,
+    // we rescale the light vector to compensate.
+    unL *= invHalfDiag;
+
+    // Our algorithm expects the input vector to be within the cube.
+    if (dot(unL, unL) > 1.0) return 0.0;
+
+    // Compute the light attenuation.
+    float sqDist = ComputeCubeToSphereMapSqMagnitude(unL);
+    return SmoothDistanceAttenuation(sqDist, 1.0);
 }
 
 //-----------------------------------------------------------------------------
@@ -125,28 +169,5 @@ void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
     tangentY    = float3(b, 1.0f - N.y * N.y * a, -N.y);
 }
 */
-
-//-----------------------------------------------------------------------------
-// various helper
-//-----------------------------------------------------------------------------
-
-// Performs the mapping of the vector 'v' located within the cube of dimensions [-r, r]^3
-// to a vector within the sphere of radius 'r', where r = sqrt(r2).
-// Modified version of http://mathproofs.blogspot.com/2005/07/mapping-cube-to-sphere.html
-float3 MapCubeToSphere(float3 v, float r2)
-{
-    float3 v2 = v * v;
-    float2 vr3 = v2.xy * rcp(3.0 * r2);
-    return v * sqrt((float3)r2 - 0.5 * v2.yzx - 0.5 * v2.zxy + vr3.yxx * v2.zzy);
-}
-
-// Computes the squared magnitude of the vector computed by MapCubeToSphere().
-float ComputeCubeToSphereMapSqMagnitude(float3 v, float r2)
-{
-    float3 v2 = v * v;
-    // Note: dot(v, v) is often computed before this function is called,
-    // so the compiler should optimize and use the precomputed result here.
-    return r2 * dot(v, v) - v2.x * v2.y - v2.y * v2.z - v2.z * v2.x + v2.x * v2.y * v2.z * rcp(r2);
-}
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED
