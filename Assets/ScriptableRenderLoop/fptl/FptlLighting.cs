@@ -993,6 +993,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return numLightsOut + numProbesOut;
         }
 
+#if UNITY_EDITOR
+        public override void RenderSceneView(Camera camera, RenderLoop renderLoop)
+        {
+            base.RenderSceneView(camera, renderLoop);
+            renderLoop.PrepareForEditorRendering(camera, new RenderTargetIdentifier(s_CameraDepthTexture));
+            renderLoop.Submit();
+        }
+#endif
+
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {
             foreach (var camera in cameras)
