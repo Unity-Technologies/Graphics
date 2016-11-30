@@ -828,6 +828,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     // In case of bUseClusteredForDeferred disable toggle option since we're using m_perVoxelLightLists as opposed to lightList
                     if (bUseClusteredForDeferred)
                     {
+                        cmd.SetGlobalFloat("_UseTileLightList", 0);
                     }
 
                     /*
@@ -868,6 +869,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         cmd.SetComputeFloatParam(deferredComputeShader, "g_fFarPlane", camera.farClipPlane);
                         cmd.SetComputeIntParam(deferredComputeShader, "g_iLog2NumClusters", k_Log2NumClusters);
                         cmd.SetComputeIntParam(deferredComputeShader, "g_isLogBaseBufferEnabled", k_UseDepthBuffer ? 1 : 0);
+                        cmd.SetComputeIntParam(deferredComputeShader, "_UseTileLightList", 0);
 
 
                         //
