@@ -26,7 +26,7 @@ float4 ClampToFloat16Max(float4 value)
 // Light direction is oriented backward (-Z). i.e in shader code, light direction is -lightData.forward
 
 //-----------------------------------------------------------------------------
-// Various helper
+// Helper functions
 //-----------------------------------------------------------------------------
 
 // Performs the mapping of the vector 'v' centered within the cube of dimensions [-1, 1]^3
