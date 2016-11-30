@@ -4,14 +4,18 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 using NUnit.Framework;
+using UnityEngine.Experimental.ScriptableRenderLoop;
+using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
-public class RenderLoopTestFixture : MonoBehaviour
+public class RenderLoopTestFixture : ScriptableRenderLoop
 {
     public delegate void TestDelegate(Camera camera, CullResults cullResults, RenderLoop renderLoop);
     private static TestDelegate s_Callback;
 
-    public static void Render(RenderLoopWrapper wrapper, Camera[] cameras, RenderLoop renderLoop)
+    private static RenderLoopTestFixture m_Instance;
+
+    public override void Render(Camera[] cameras, RenderLoop renderLoop)
     {
         foreach (var camera in cameras)
         {
@@ -21,7 +25,8 @@ public class RenderLoopTestFixture : MonoBehaviour
 
             CullResults cullResults = CullResults.Cull(ref cullingParams, renderLoop);
 
-            s_Callback(camera, cullResults, renderLoop);
+            if (s_Callback != null)
+                s_Callback(camera, cullResults, renderLoop);
         }
 
         renderLoop.Submit();
@@ -29,14 +34,16 @@ public class RenderLoopTestFixture : MonoBehaviour
 
     public static void Run(TestDelegate renderCallback)
     {
+        if (m_Instance == null)
+        {
+            m_Instance = ScriptableObject.CreateInstance<RenderLoopTestFixture>();
+        }
+
         var sceneCamera = Camera.main;
         var camObject = sceneCamera.gameObject;
 
-        var instance = camObject.AddComponent<RenderLoopWrapper>();
-        instance.callback = Render;
+        GraphicsSettings.SetScriptableRenderLoop(m_Instance);
         s_Callback = renderCallback;
-        instance.enabled = true;
-
         Transform t = camObject.transform;
 
         // Can't use AlignViewToObject because it animates over time, and we want the first frame
@@ -45,14 +52,7 @@ public class RenderLoopTestFixture : MonoBehaviour
         float camDist = size / Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);
         SceneView.lastActiveSceneView.LookAtDirect(t.position + t.forward * camDist, t.rotation, size);
 
-        // Invoke renderer
-        try
-        {
-            sceneCamera.Render();
-        }
-        finally
-        {
-            Object.DestroyImmediate(instance);
-        }
+        sceneCamera.Render();
+        GraphicsSettings.SetScriptableRenderLoop(null);
     }
 }

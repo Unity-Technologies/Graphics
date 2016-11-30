@@ -226,14 +226,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
 
-        void OnEnable()
+        private void OnEnable()
         {
+            // TODO: Design workaround for OnValidate being missing on ScriptableObject
+            m_Dirty = true;
             Rebuild();
         }
 
-        void OnValidate()
+        private void OnDisable()
         {
-            m_Dirty = true;
+            // TODO: Rework ScriptableRenderLoop Lifecycle 
+            //CleanUp();
         }
 
         public override void Rebuild()
@@ -299,7 +302,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_Dirty = false;
         }
 
-        void OnDisable()
+        public override void Initialize()
+        {
+#if UNITY_EDITOR
+            UnityEditor.SupportedRenderingFeatures.active = new UnityEditor.SupportedRenderingFeatures
+            {
+                reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation
+            };
+#endif
+
+            Rebuild();
+        }
+
+        public override void CleanUp()
         {
             m_LitRenderLoop.OnDisable();
             m_SinglePassLightLoop.OnDisable();
@@ -313,6 +328,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_CubeCookieTexArray.Release();
 
             m_SkyRenderer.OnDisable();
+
+#if UNITY_EDITOR
+            UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
+#endif
         }
 
         void NewFrame()
@@ -1005,17 +1024,5 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // Post effects
         }
-
-        #if UNITY_EDITOR
-        public override UnityEditor.SupportedRenderingFeatures GetSupportedRenderingFeatures()
-        {
-            var features = new UnityEditor.SupportedRenderingFeatures
-            {
-                reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation
-            };
-
-            return features;
-        }
-        #endif
     }
 }

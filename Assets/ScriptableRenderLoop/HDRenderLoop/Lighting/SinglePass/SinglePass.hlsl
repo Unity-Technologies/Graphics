@@ -42,8 +42,7 @@ CBUFFER_START(UnityPerLightLoop)
     uint _PunctualLightCount;
     uint _AreaLightCount;
     uint _EnvLightCount;
-    int  _EnvLightSkyEnabled;         // TODO: make it a bool and move it into '_EnvLightSky'
-    EnvLightData _EnvLightSky;
+    int  _EnvLightSkyEnabled;         // TODO: make it a bool
 	float4 _ShadowMapSize;
     float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 CBUFFER_END
