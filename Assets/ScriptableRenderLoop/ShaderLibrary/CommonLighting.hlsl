@@ -84,7 +84,7 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
 }
 
 // Applies SmoothDistanceAttenuation() after transforming the attenuation ellipsoid into a sphere.
-// If r = rsqrt(invSqRadius), then ellipsoid is defined s.t. r1 = r / invAspectRatio, r2 = r3 = r.
+// If r = rsqrt(invSqRadius), then the ellipsoid is defined s.t. r1 = r / invAspectRatio, r2 = r3 = r.
 // The transformation is performed along the major axis of the ellipsoid (corresponding to 'r1').
 // Both the ellipsoid (e.i. 'axis') and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the ellipsoid.
