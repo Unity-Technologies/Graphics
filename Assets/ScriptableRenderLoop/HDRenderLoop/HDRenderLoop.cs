@@ -919,7 +919,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             //Shader.SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
             //Shader.SetGlobalTexture("_CubeCookieTextures", m_CubeCookieTexArray.GetTexCache());
             Shader.SetGlobalTexture("_EnvTextures", m_CubeReflTexArray.GetTexCache());
-            m_SkyRenderer.SetGlobalSkyTexture();
+
+            if (m_SkyRenderer.IsSkyValid(m_SkyParameters))
+            {
+                m_SkyRenderer.SetGlobalSkyTexture();
+                Shader.SetGlobalInt("_EnvLightSkyEnabled", 1);
+            }
+            else
+            {
+                Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
+            }
 
             if (debugParameters.useSinglePassLightLoop)
             {
