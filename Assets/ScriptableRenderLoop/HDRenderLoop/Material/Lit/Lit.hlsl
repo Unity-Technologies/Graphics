@@ -794,7 +794,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
 
     float3 unL = positionWS - lightData.positionWS;
 
-    // Pick the axis along which to dilate the attenuation sphere into an ellipsoid.
+    // Pick the major axis of the ellipsoid.
     float3 axis = lightData.right;
 
     // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
@@ -953,7 +953,7 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
 // EvaluateBSDF_Area - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
-#define ELLIPSOIDAL_ATTENUATION
+// #define ELLIPSOIDAL_ATTENUATION
 
 void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
                        float3 V, float3 positionWS,
@@ -973,31 +973,26 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
     float3 unL = positionWS - lightData.positionWS;
 
-#ifdef ELLIPSOIDAL_ATTENUATION
-    // We define the ellipsoid s.t. r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
-    // TODO: This could be precomputed.
-    float radius          = rsqrt(lightData.invSqrAttenuationRadius);
-    float invAspectRatio1 = radius / (radius + halfWidth);
-    float invAspectRatio2 = radius / (radius + halfHeight);
-
-    // Compute the light attenuation.
-    float intensity = GetEllipsoidalDistanceAttenuation(unL, lightData.invSqrAttenuationRadius,
-                                                        lightData.right, invAspectRatio1,
-                                                        lightData.up,    invAspectRatio2);
-#else
     // Rotate the light direction into the light space.
     float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
     unL = mul(unL, transpose(lightToWorld));
 
-    // The attenuation volume is a box of size [2 * r + w, 2 * r + h, 2 * r].
-    // TODO: this could be precomputed.
-    float  radius      = rsqrt(lightData.invSqrAttenuationRadius);
-    float3 invHalfDiag = float3(rcp(radius + halfWidth),
-                                rcp(radius + halfHeight),
-                                rcp(radius));
+    // Define the dimensions of the attenuation volume.
+    // TODO: This could be precomputed.
+    float  radius     = rsqrt(lightData.invSqrAttenuationRadius);
+    float3 invHalfDim = rcp(float3(radius + halfWidth,
+                                   radius + halfHeight,
+                                   radius));
 
     // Compute the light attenuation.
-    float intensity = GetBoxToSphereMapDistanceAttenuation(unL, invHalfDiag);
+#ifdef ELLIPSOIDAL_ATTENUATION
+    // The attenuation volume is an axis-aligned ellipsoid s.t.
+    // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
+    float intensity = GetEllipsoidalDistanceAttenuation(unL, invHalfDim);
+#else
+    // The attenuation volume is an axis-aligned box s.t.
+    // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
+    float intensity = GetBoxDistanceAttenuation(unL, invHalfDim);
 #endif
 
     // Terminate if the shaded point is too far away.
