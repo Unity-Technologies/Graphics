@@ -69,6 +69,7 @@ void LightLoop(	float3 V, float3 positionWS, Coordinate coord, PreLightData prel
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
     }
 
+    /*
     // Sky Ibl
     {
         float3 localDiffuseLighting, localSpecularLighting;
@@ -79,6 +80,7 @@ void LightLoop(	float3 V, float3 positionWS, Coordinate coord, PreLightData prel
         iblDiffuseLighting  = lerp(iblDiffuseLighting,  localDiffuseLighting,  weight.x); // Should be remove by the compiler if it is smart as all is constant 0
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
     }
+    */
 
     diffuseLighting  += iblDiffuseLighting;
     specularLighting += iblSpecularLighting;
