@@ -971,17 +971,19 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
     float3 unL = positionWS - lightData.positionWS;
 
-    // Pick the axis along which to dilate the attenuation sphere into an ellipsoid.
-    float3 axis = (halfWidth >= halfHeight) ? lightData.right : lightData.up;
+    // Rotate the light direction into the light space.
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    unL = mul(unL, transpose(lightToWorld));
 
-    // We define the ellipsoid s.t. r1 = r2 = r, r3 = (r + |w - h| / 2).
-    // TODO: This could be precomputed.
-    float radius         = rsqrt(lightData.invSqrAttenuationRadius);
-    float invAspectRatio = radius / (radius + abs(halfWidth - halfHeight));
+    // The attenuation volume is a box of size [2 * r + w, 2 * r + h, 2 * r].
+    // TODO: this could be precomputed.
+    float  radius      = rsqrt(lightData.invSqrAttenuationRadius);
+    float3 invHalfDiag = float3(rcp(radius + halfWidth),
+                                rcp(radius + halfHeight),
+                                rcp(radius));
 
     // Compute the light attenuation.
-    float intensity = GetEllipsoidalDistanceAttenuation(unL,  lightData.invSqrAttenuationRadius,
-                                                        axis, invAspectRatio);
+    float intensity = GetBoxToSphereMapDistanceAttenuation(unL, invHalfDiag);
 
     // Terminate if the shaded point is too far away.
     if (intensity == 0.0) return;
