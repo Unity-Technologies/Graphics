@@ -30,7 +30,7 @@ float4 ClampToFloat16Max(float4 value)
 //-----------------------------------------------------------------------------
 
 // Performs the mapping of the vector 'v' centered within the axis-aligned cube
-// of dimensions [-1, 1]^3 to a vector centered within the sphere of radius 1.
+// of dimensions [-1, 1]^3 to a vector centered within the unit sphere.
 // The function expects 'v' to be within the cube (possibly unexpected results otherwise).
 // Ref: http://mathproofs.blogspot.com/2005/07/mapping-cube-to-sphere.html
 float3 MapCubeToSphere(float3 v)
@@ -83,12 +83,12 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
     return attenuation;
 }
 
-// Applies SmoothDistanceAttenuation() after transforming the attenuation ellipsoid into a sphere
-// of the given radius. The process is performed along the major axis of the ellipsoid, and
-// the magnitude of the transformation is controlled by the aspect ratio (the inverse is given).
+// Applies SmoothDistanceAttenuation() after transforming the attenuation ellipsoid into a sphere.
+// If r = rsqrt(invSqRadius), then ellipsoid is defined s.t. r1 = r / invAspectRatio, r2 = r3 = r.
+// The transformation is performed along the major axis of the ellipsoid (corresponding to 'r1').
 // Both the ellipsoid (e.i. 'axis') and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the ellipsoid.
-float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqrAttenuationRadius,
+float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqRadius,
                                         float3 axis, float invAspectRatio)
 {
     // Project the unnormalized light vector onto the axis.
@@ -99,7 +99,7 @@ float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqrAttenuationRadi
     unL -= diff * axis;
 
     float sqDist = dot(unL, unL);
-    return SmoothDistanceAttenuation(sqDist, invSqrAttenuationRadius);
+    return SmoothDistanceAttenuation(sqDist, invSqRadius);
 }
 
 // Applies SmoothDistanceAttenuation() using the axis-aligned ellipsoid of the given dimensions.
