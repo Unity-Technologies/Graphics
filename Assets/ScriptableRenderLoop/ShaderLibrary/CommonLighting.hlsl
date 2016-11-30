@@ -83,62 +83,51 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
     return attenuation;
 }
 
-// Applies SmoothDistanceAttenuation() after stretching/shrinking the attenuation sphere
-// of the given radius into an ellipsoid. The process is performed along the specified axis, and
+// Applies SmoothDistanceAttenuation() after transforming the attenuation ellipsoid into a sphere
+// of the given radius. The process is performed along the major axis of the ellipsoid, and
 // the magnitude of the transformation is controlled by the aspect ratio (the inverse is given).
 // Both the ellipsoid (e.i. 'axis') and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the ellipsoid.
 float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqrAttenuationRadius,
                                         float3 axis, float invAspectRatio)
 {
-    // Project the unnormalized light vector onto the stretching/shrinking axis.
+    // Project the unnormalized light vector onto the axis.
     float projL = dot(unL, axis);
 
-    // We want 'unL' to stretch/shrink along each axis (by the inverse of the aspect ratio).
-    // It is equivalent to stretching/shrinking the sphere (by the aspect ratio) into an ellipsoid.
+    // Transform the light vector instead of transforming the ellipsoid.
     float diff = projL - projL * invAspectRatio;
     unL -= diff * axis;
 
-    return SmoothDistanceAttenuation(dot(unL, unL), invSqrAttenuationRadius);
+    float sqDist = dot(unL, unL);
+    return SmoothDistanceAttenuation(sqDist, invSqrAttenuationRadius);
 }
 
-// Applies SmoothDistanceAttenuation() after stretching/shrinking the attenuation sphere
-// of the given radius into an ellipsoid. The process is performed along the 2 specified axes, and
-// the magnitude of the transformation is controlled by the aspect ratios (the inverses are given).
-// Both the ellipsoid (e.i. 'axis1', 'axis2') and 'unL' should be in the same coordinate system.
+// Applies SmoothDistanceAttenuation() using the axis-aligned ellipsoid of the given dimensions.
+// Both the ellipsoid and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the ellipsoid.
-float GetEllipsoidalDistanceAttenuation(float3 unL,   float invSqrAttenuationRadius,
-                                        float3 axis1, float invAspectRatio1,
-                                        float3 axis2, float invAspectRatio2)
+float GetEllipsoidalDistanceAttenuation(float3 unL, float3 invHalfDim)
 {
-    // Project the unnormalized light vector onto the stretching/shrinking axes.
-    float projL1 = dot(unL, axis1);
-    float projL2 = dot(unL, axis2);
+    // Transform the light vector so that we can work with
+    // with the ellipsoid as if it was a unit sphere.
+    unL *= invHalfDim;
 
-    // We want 'unL' to stretch/shrink along each axis (by the inverse of the aspect ratio).
-    // It is equivalent to stretching/shrinking the sphere (by the aspect ratio) into an ellipsoid.
-    float diff1 = projL1 - projL1 * invAspectRatio1;
-    float diff2 = projL2 - projL2 * invAspectRatio2;
-    unL -= diff1 * axis1;
-    unL -= diff2 * axis2;
-
-    return SmoothDistanceAttenuation(dot(unL, unL), invSqrAttenuationRadius);
+    float sqDist = dot(unL, unL);
+    return SmoothDistanceAttenuation(sqDist, 1.0);
 }
 
 // Applies SmoothDistanceAttenuation() after mapping the axis-aligned box to a sphere.
-// If the length of the diagonal of the box is 'd', invHalfDiag = rcp(0.5 * d).
-// Both the box (e.i. 'invHalfDiag') and 'unL' should be in the same coordinate system.
+// If the diagonal of the box is 'd', invHalfDim = rcp(0.5 * d).
+// Both the box and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the box.
-float GetBoxToSphereMapDistanceAttenuation(float3 unL, float3 invHalfDiag)
+float GetBoxDistanceAttenuation(float3 unL, float3 invHalfDim)
 {
-    // As our algorithm only works with the [-1, 1]^2 cube,
-    // we rescale the light vector to compensate.
-    unL *= invHalfDiag;
+    // Transform the light vector so that we can work with
+    // with the box as if it was a [-1, 1]^2 cube.
+    unL *= invHalfDim;
 
     // Our algorithm expects the input vector to be within the cube.
     if (Max3(abs(unL.x), abs(unL.y), abs(unL.z)) > 1.0) return 0.0;
 
-    // Compute the light attenuation.
     float sqDist = ComputeCubeToSphereMapSqMagnitude(unL);
     return SmoothDistanceAttenuation(sqDist, 1.0);
 }
