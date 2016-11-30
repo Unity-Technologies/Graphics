@@ -514,18 +514,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return ;
             }
 
-            using (new Utilities.ProfilingSample("Single Pass - Deferred Lighting Pass", renderLoop))
+            // Bind material data
+            m_LitRenderLoop.Bind();
+            if (debugParameters.useSinglePassLightLoop)
             {
-                // Bind material data
-                m_LitRenderLoop.Bind();
-                if (debugParameters.useSinglePassLightLoop)
-                {
-                    m_SinglePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
-                }
-                else
-                {
-                    tilePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBufferRT);
-                }
+                m_SinglePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
+            }
+            else
+            {
+                tilePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBufferRT);
             }
         }
 

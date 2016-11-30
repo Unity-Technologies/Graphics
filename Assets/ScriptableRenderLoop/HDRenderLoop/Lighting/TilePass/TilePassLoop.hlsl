@@ -9,7 +9,7 @@ int GetTileOffset(Coordinate coord, uint lightCategory)
     return (tileIndex.y + lightCategory * _NumTileY) * _NumTileX + tileIndex.x;
 }
 
-void GetCountAndStartOpaque(Coordinate coord, uint lightCategory, float linearDepth, out uint start, out uint lightCount)
+void GetCountAndStartTile(Coordinate coord, uint lightCategory, float linearDepth, out uint start, out uint lightCount)
 {
     const int tileOffset = GetTileOffset(coord, lightCategory);
 
@@ -18,61 +18,68 @@ void GetCountAndStartOpaque(Coordinate coord, uint lightCategory, float linearDe
     start = tileOffset;
 }
 
-uint FetchIndexOpaque(uint tileOffset, uint lightIndex)
+uint FetchIndexTile(uint tileOffset, uint lightIndex)
 {
     const uint lightIndexPlusOne = lightIndex + 1; // Add +1 as first slot is reserved to store number of light
     // Light index are store on 16bit
     return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightIndexPlusOne >> 1)] >> ((lightIndexPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
 }
 
+
 #ifdef USE_FPTL_LIGHTLIST
 
 void GetCountAndStart(Coordinate coord, uint lightCategory, float linearDepth, out uint start, out uint lightCount)
 {
-    GetCountAndStartOpaque(coord, lightCategory, linearDepth, start, lightCount);
+    GetCountAndStartTile(coord, lightCategory, linearDepth, start, lightCount);
 }
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
-    return FetchIndexOpaque(tileOffset, lightIndex);
+    return FetchIndexTile(tileOffset, lightIndex);
 }
 
 #else
 
 #include "ClusteredUtils.hlsl"
 
+void GetCountAndStartCluster(Coordinate coord, uint lightCategory, float linearDepth, out uint start, out uint lightCount)
+{
+    uint2 tileIndex = coord.unPositionSS / TILE_SIZE;
+
+    float logBase = g_fClustBase;
+    if (g_isLogBaseBufferEnabled)
+    {
+        logBase = g_logBaseBuffer[tileIndex.y * _NumTileX + tileIndex.x];
+    }
+
+    int clustIdx = SnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
+
+    int nrClusters = (1 << g_iLog2NumClusters);
+    const int idx = ((lightCategory * nrClusters + clustIdx) * _NumTileY + tileIndex.y) * _NumTileX + tileIndex.x;
+    uint dataPair = g_vLayeredOffsetsBuffer[idx];
+    start = dataPair & 0x7ffffff;
+    lightCount = (dataPair >> 27) & 31;
+}
+
+uint FetchIndexCluster(uint tileOffset, uint lightIndex)
+{
+    return g_vLightListGlobal[tileOffset + lightIndex];
+}
+
 void GetCountAndStart(Coordinate coord, uint lightCategory, float linearDepth, out uint start, out uint lightCount)
 {
-    if(g_isOpaquesOnlyEnabled)
-    {
-        GetCountAndStartOpaque(coord, lightCategory, linearDepth, start, lightCount);
-    }
+    if (_UseTileLightList)
+        GetCountAndStartTile(coord, lightCategory, linearDepth, start, lightCount);
     else
-    {
-        uint2 tileIndex = coord.unPositionSS / TILE_SIZE;
-
-        float logBase = g_fClustBase;
-        if (g_isLogBaseBufferEnabled)
-        {
-            logBase = g_logBaseBuffer[tileIndex.y * _NumTileX + tileIndex.x];
-        }
-
-        int clustIdx = SnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
-
-        int nrClusters = (1 << g_iLog2NumClusters);
-        const int idx = ((model * nrClusters + clustIdx) * _NumTileY + tileIndex.y) * _NumTileX + tileIndex.x;
-        uint dataPair = g_vLayeredOffsetsBuffer[idx];
-        start = dataPair & 0x7ffffff;
-        lightCount = (dataPair >> 27) & 31;
-    }
+        GetCountAndStartCluster(coord, lightCategory, linearDepth, start, lightCount);
 }
 
 uint FetchIndex(uint tileOffset, uint lightIndex)
 {
-    if(g_isOpaquesOnlyEnabled)
-        return FetchIndexOpaque(tileOffset, lightIndex);
+    if (_UseTileLightList)
+        return FetchIndexTile(tileOffset, lightIndex);
     else
-        return g_vLightListGlobal[tileOffset + lightIndex];
+        return FetchIndexCluster(tileOffset, lightIndex);
 }
 
 float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
@@ -95,12 +102,12 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
                 out float3 diffuseLighting,
                 out float3 specularLighting)
 {
-#if USE_CLUSTERED_LIGHTLIST
-    // TODO: Think more about the design, it is ok to do that ? hope the compiler could optimize it out as we do it before LightLoop call, else need to pass it as argument...
+#ifdef USE_CLUSTERED_LIGHTLIST
+    // TODO: Think more about the design, it is ok to do that ? hope the compiler could optimize it out as we already depth before LightLoop call, else need to pass it as argument...
     float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
     float linearDepth = GetLinearDepth(depth); // View space linear depth
 #else
-    float linearDepth = 0.0; // unsued
+    float linearDepth = 0.0; // unused
 #endif
 
     LightLoopContext context;
