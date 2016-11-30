@@ -83,21 +83,44 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
     return attenuation;
 }
 
-// Applies SmoothDistanceAttenuation() after stretching the attenuation sphere of the
-// given radius into an ellipsoid with the specified (positive) aspect ratio and the longest axis.
+// Applies SmoothDistanceAttenuation() after stretching/shrinking the attenuation sphere
+// of the given radius into an ellipsoid. The process is performed along the specified axis, and
+// the magnitude of the transformation is controlled by the aspect ratio (the inverse is given).
 // Both the ellipsoid (e.i. 'axis') and 'unL' should be in the same coordinate system.
 // 'unL' should be computed from the center of the ellipsoid.
 float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqrAttenuationRadius,
                                         float3 axis, float invAspectRatio)
 {
-    // Project the unnormalized light vector onto the dilation axis.
+    // Project the unnormalized light vector onto the stretching/shrinking axis.
     float projL = dot(unL, axis);
 
-    // We want 'unL' to shrink along 'axis' by the aspect ratio. Therefore, we compute
-    // the difference between the length of the original projection and the shrunk one.
-    // It is equivalent to stretching the attenuation sphere into an ellipsoid.
-    float scale = projL - projL * invAspectRatio;
-    unL -= scale * axis;
+    // We want 'unL' to stretch/shrink along each axis (by the inverse of the aspect ratio).
+    // It is equivalent to stretching/shrinking the sphere (by the aspect ratio) into an ellipsoid.
+    float diff = projL - projL * invAspectRatio;
+    unL -= diff * axis;
+
+    return SmoothDistanceAttenuation(dot(unL, unL), invSqrAttenuationRadius);
+}
+
+// Applies SmoothDistanceAttenuation() after stretching/shrinking the attenuation sphere
+// of the given radius into an ellipsoid. The process is performed along the 2 specified axes, and
+// the magnitude of the transformation is controlled by the aspect ratios (the inverses are given).
+// Both the ellipsoid (e.i. 'axis1', 'axis2') and 'unL' should be in the same coordinate system.
+// 'unL' should be computed from the center of the ellipsoid.
+float GetEllipsoidalDistanceAttenuation(float3 unL,   float invSqrAttenuationRadius,
+                                        float3 axis1, float invAspectRatio1,
+                                        float3 axis2, float invAspectRatio2)
+{
+    // Project the unnormalized light vector onto the stretching/shrinking axes.
+    float projL1 = dot(unL, axis1);
+    float projL2 = dot(unL, axis2);
+
+    // We want 'unL' to stretch/shrink along each axis (by the inverse of the aspect ratio).
+    // It is equivalent to stretching/shrinking the sphere (by the aspect ratio) into an ellipsoid.
+    float diff1 = projL1 - projL1 * invAspectRatio1;
+    float diff2 = projL2 - projL2 * invAspectRatio2;
+    unL -= diff1 * axis1;
+    unL -= diff2 * axis2;
 
     return SmoothDistanceAttenuation(dot(unL, unL), invSqrAttenuationRadius);
 }

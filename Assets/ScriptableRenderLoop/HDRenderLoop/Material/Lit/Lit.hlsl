@@ -797,7 +797,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
     // Pick the axis along which to dilate the attenuation sphere into an ellipsoid.
     float3 axis = lightData.right;
 
-    // We define the ellipsoid s.t. r1 = r2 = r, r3 = (r + len / 2).
+    // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
     // TODO: This could be precomputed.
     float radius         = rsqrt(lightData.invSqrAttenuationRadius);
     float invAspectRatio = radius / (radius + (0.5 * len));
@@ -953,6 +953,8 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
 // EvaluateBSDF_Area - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
+#define ELLIPSOIDAL_ATTENUATION
+
 void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
                        float3 V, float3 positionWS,
                        PreLightData preLightData, LightData lightData, BSDFData bsdfData,
@@ -971,6 +973,18 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
     float3 unL = positionWS - lightData.positionWS;
 
+#ifdef ELLIPSOIDAL_ATTENUATION
+    // We define the ellipsoid s.t. r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
+    // TODO: This could be precomputed.
+    float radius          = rsqrt(lightData.invSqrAttenuationRadius);
+    float invAspectRatio1 = radius / (radius + halfWidth);
+    float invAspectRatio2 = radius / (radius + halfHeight);
+
+    // Compute the light attenuation.
+    float intensity = GetEllipsoidalDistanceAttenuation(unL, lightData.invSqrAttenuationRadius,
+                                                        lightData.right, invAspectRatio1,
+                                                        lightData.up,    invAspectRatio2);
+#else
     // Rotate the light direction into the light space.
     float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
     unL = mul(unL, transpose(lightToWorld));
@@ -984,6 +998,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
     // Compute the light attenuation.
     float intensity = GetBoxToSphereMapDistanceAttenuation(unL, invHalfDiag);
+#endif
 
     // Terminate if the shaded point is too far away.
     if (intensity == 0.0) return;
