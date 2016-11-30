@@ -794,10 +794,10 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
 
     float3 unL = positionWS - lightData.positionWS;
 
-    // Pick the axis along which to expand the fade-out sphere into an ellipsoid.
+    // Pick the axis along which to dilate the attenuation sphere into an ellipsoid.
     float3 axis = lightData.right;
 
-    // We define the ellipsoid s.t. r1 = r, r2 = (r + len / 2).
+    // We define the ellipsoid s.t. r1 = r2 = r, r3 = (r + len / 2).
     // TODO: This could be precomputed.
     float radius         = rsqrt(lightData.invSqrAttenuationRadius);
     float invAspectRatio = radius / (radius + (0.5 * len));
@@ -971,10 +971,10 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
     float3 unL = positionWS - lightData.positionWS;
 
-    // Pick the axis along which to expand the fade-out sphere into an ellipsoid.
+    // Pick the axis along which to dilate the attenuation sphere into an ellipsoid.
     float3 axis = (halfWidth >= halfHeight) ? lightData.right : lightData.up;
 
-    // We define the ellipsoid s.t. r1 = r, r2 = (r + |w - h| / 2).
+    // We define the ellipsoid s.t. r1 = r2 = r, r3 = (r + |w - h| / 2).
     // TODO: This could be precomputed.
     float radius         = rsqrt(lightData.invSqrAttenuationRadius);
     float invAspectRatio = radius / (radius + abs(halfWidth - halfHeight));

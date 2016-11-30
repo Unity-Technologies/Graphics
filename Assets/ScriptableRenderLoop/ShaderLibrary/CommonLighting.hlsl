@@ -59,17 +59,17 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
     return attenuation;
 }
 
-// Applies SmoothDistanceAttenuation() after stretching the fade-out sphere of the given radius
-// into an ellipsoid with the specified aspect ratio and the longest axis.
+// Applies SmoothDistanceAttenuation() after stretching the attenuation sphere of the
+// given radius into an ellipsoid with the specified aspect ratio and the longest axis.
 float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqrAttenuationRadius,
                                         float3 axis, float invAspectRatio)
 {
-    // Project the unnormalized light vector onto the expansion axis.
+    // Project the unnormalized light vector onto the dilation axis.
     float projL = dot(unL, axis);
 
     // We want 'unL' to shrink along 'axis' by the aspect ratio. Therefore, we compute
     // the difference between the length of the original projection and the shrunk one.
-    // It is equivalent to the expansion of the fade-out sphere into an ellipsoid.
+    // It is equivalent to stretching the attenuation sphere into an ellipsoid.
     float scale = projL - projL * invAspectRatio;
     unL -= scale * axis;
 
