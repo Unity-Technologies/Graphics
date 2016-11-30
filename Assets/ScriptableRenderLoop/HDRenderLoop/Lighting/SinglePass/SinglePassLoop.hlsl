@@ -69,7 +69,8 @@ void LightLoop(	float3 V, float3 positionWS, Coordinate coord, PreLightData prel
         iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
     }
 
-    // Sky Ibl
+    // Only apply sky IBL if the sky texture is available.
+    if (_EnvLightSkyEnabled)
     {
         float3 localDiffuseLighting, localSpecularLighting;
         float2 weight;
