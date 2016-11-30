@@ -67,6 +67,11 @@ namespace UnityEngine.Graphing
 
         public static void DepthFirstCollectNodesFromNode(List<INode> nodeList, INode node, int? slotId = null, IncludeSelf includeSelf = IncludeSelf.Include)
         {
+            DepthFirstCollectNodesFromNodeSlotList(nodeList, node, slotId.HasValue ? new List<int>() { slotId.Value } : null, includeSelf);
+        }
+
+        public static void DepthFirstCollectNodesFromNodeSlotList(List<INode> nodeList, INode node, List<int> slotId = null, IncludeSelf includeSelf = IncludeSelf.Include)
+        {
             // no where to start
             if (node == null)
                 return;
@@ -76,12 +81,12 @@ namespace UnityEngine.Graphing
                 return;
 
             // if we have a slot passed in but can not find it on the node abort
-            if (slotId.HasValue && node.GetInputSlots<ISlot>().All(x => x.id != slotId.Value))
+            if (slotId != null && node.GetInputSlots<ISlot>().All(x => !slotId.Contains(x.id)))
                 return;
 
             var validSlots = ListPool<int>.Get();
-            if (slotId.HasValue)
-                validSlots.Add(slotId.Value);
+            if (slotId != null)
+                slotId.ForEach(x => validSlots.Add(x));
             else
                 validSlots.AddRange(node.GetInputSlots<ISlot>().Select(x => x.id));
 
@@ -90,7 +95,7 @@ namespace UnityEngine.Graphing
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
                     var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                    DepthFirstCollectNodesFromNode(nodeList, outputNode);
+                    DepthFirstCollectNodesFromNodeSlotList(nodeList, outputNode);
                 }
             }
 
