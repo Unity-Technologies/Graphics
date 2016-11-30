@@ -607,6 +607,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
+#if UNITY_EDITOR
+        public override void RenderSceneView(Camera camera, RenderLoop renderLoop)
+        {
+            base.RenderSceneView(camera, renderLoop);
+            renderLoop.PrepareForEditorRendering(camera, m_CameraDepthBufferRT);
+            renderLoop.Submit();
+        }
+#endif
 
         void FinalPass(RenderLoop renderLoop)
         {
