@@ -113,7 +113,7 @@ float GetBoxToSphereMapDistanceAttenuation(float3 unL, float3 invHalfDiag)
     unL *= invHalfDiag;
 
     // Our algorithm expects the input vector to be within the cube.
-    if (dot(unL, unL) > 1.0) return 0.0;
+    if (Max3(abs(unL.x), abs(unL.y), abs(unL.z)) > 1.0) return 0.0;
 
     // Compute the light attenuation.
     float sqDist = ComputeCubeToSphereMapSqMagnitude(unL);
