@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
-    public class FptlLighting : ScriptableRenderLoop
+    public class FptlLighting : RenderPipeline
     {
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("Renderloop/CreateRenderLoopFPTL")]
@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             //CleanUp();
         }
 
-        public override void CleanUp()
+        public override void Cleanup()
         {
             // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
