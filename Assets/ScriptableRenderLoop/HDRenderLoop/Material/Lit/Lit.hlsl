@@ -448,13 +448,10 @@ struct PreLightData
     // Aniso
     float TdotV;
     float BdotV;
-    
+
     float anisoGGXLambdaV;
 
-    // image based lighting
-    // These variables aim to be use with EvaluateBSDF_Env 
-    float3 iblNormalWS; // Normal to be use with image based lighting
-    float3 iblR;        // Reflection vector, same as above.
+    float3 iblDirWS;    // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
 
     float3 specularFGD; // Store preconvole BRDF for both specular and diffuse
     float diffuseFGD;
@@ -486,7 +483,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
 
-    float iblNdotV = preLightData.NdotV;
+    float  iblNdotV    = preLightData.NdotV;
     float3 iblNormalWS = bsdfData.normalWS;
 
     // Check if we precompute anisotropy too
@@ -497,16 +494,18 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
         preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
         // Tangent = highlight stretch (anisotropy) direction. Bitangent = grain (brush) direction.
         iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.bitangentWS, bsdfData.normalWS, V, bsdfData.anisotropy);
-        
+
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NDotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
         // iblNdotV = GetNdotV(iblNormalWS, V);
     }
 
-    // We need to take into account the modified normal for faking anisotropic here.
-    preLightData.iblR = reflect(-V, iblNormalWS);
     GetPreIntegratedFGD(iblNdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
+
+    // We need to take into account the modified normal for faking anisotropic here.
+    float3 iblR = reflect(-V, iblNormalWS);
+    preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness);
 
     // #if SHADERPASS == SHADERPASS_GBUFFER
     // preLightData.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusion, coord.unPositionSS).x;
@@ -1201,51 +1200,48 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     // TODO: test the strech from Tomasz
     // float shrinkedRoughness = AnisotropicStrechAtGrazingAngle(bsdfData.roughness, bsdfData.perceptualRoughness, NdotV);
-    
-    // Note: As explain in GetPreLightData we use normalWS and not iblNormalWS here (in case of anisotropy)
-    float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, preLightData.iblR, bsdfData.roughness);
-
-    float3 R = rayWS;
-    weight = float2(1.0, 1.0);
 
     // In this code we redefine a bit the behavior of the reflcetion proble. We separate the projection volume (the proxy of the scene) form the influence volume (what pixel on the screen is affected)
 
     // 1. First determine the projection volume
-    
-    // In Unity the cubemaps are capture with the localToWorld transform of the component. 
+
+    // In Unity the cubemaps are capture with the localToWorld transform of the component.
     // This mean that location and oritention matter. So after intersection of proxy volume we need to convert back to world.
-    
+
     // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
     // the center of the bounding box is thus in locals space: positionLS - offsetLS
     // We use this formulation as it is the one of legacy unity that was using only AABB box.
 
+    float3 R = preLightData.iblDirWS;
     float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
     float3 positionLS = positionWS - lightData.positionWS;
     positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
 
     if (lightData.envShapeType == ENVSHAPETYPE_BOX)
     {
-        float3 rayLS = mul(rayWS, worldToLocal);
+        float3 dirLS = mul(preLightData.iblDirWS, worldToLocal);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
-        float dist = BoxRayIntersectSimple(positionLS, rayLS, -boxOuterDistance, boxOuterDistance);
+        float dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
 
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + dist * rayWS) - lightData.positionWS;
-        
+        R = (positionWS + dist * preLightData.iblDirWS) - lightData.positionWS;
+
         // TODO: add distance based roughness
-    } 
+    }
     else if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
     {
-        float3 rayLS = mul(rayWS, worldToLocal);
+        float3 dirLS = mul(preLightData.iblDirWS, worldToLocal);
         float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
-        float dist = SphereRayIntersectSimple(positionLS, rayLS, sphereOuterDistance);
+        float dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
 
-        R = (positionWS + dist * rayWS) - lightData.positionWS;
+        R = (positionWS + dist * preLightData.iblDirWS) - lightData.positionWS;
     }
 
     // 2. Apply the influence volume (Box volume is used for culling whatever the influence shape)
     // TODO: In the future we could have an influence volume inside the projection volume (so with a different transform, in this case we will need another transform)
+    weight.y = 1.0;
+
     if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
     {
         float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);
