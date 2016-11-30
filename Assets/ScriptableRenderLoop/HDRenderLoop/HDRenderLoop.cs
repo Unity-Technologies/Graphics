@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
-    public partial class HDRenderLoop : ScriptableRenderLoop
+    public partial class HDRenderLoop : RenderPipeline
     {
         const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
@@ -314,7 +314,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Rebuild();
         }
 
-        public override void CleanUp()
+        public override void Cleanup()
         {
             m_LitRenderLoop.OnDisable();
             m_SinglePassLightLoop.OnDisable();
