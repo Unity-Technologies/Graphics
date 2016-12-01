@@ -21,7 +21,7 @@ Shader "Hidden/VFX_1"
 			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
-			#include "..\VFXCommon.cginc"
+			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
 				float3 outputUniform0;
@@ -58,8 +58,8 @@ Shader "Hidden/VFX_1"
 			
 			struct ps_input
 			{
-				linear noperspective centroid float4 pos : SV_POSITION;
-				nointerpolation float4 col : SV_Target0;
+				/*linear noperspective centroid*/ float4 pos : SV_POSITION;
+				nointerpolation float4 col : COLOR0;
 				float2 offsets : TEXCOORD0;
 				nointerpolation float flipbookIndex : TEXCOORD1;
 			};

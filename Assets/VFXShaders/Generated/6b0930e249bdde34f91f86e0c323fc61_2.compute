@@ -1,0 +1,206 @@
+#pragma kernel CSVFXInit
+#pragma kernel CSVFXUpdate
+
+#include "HLSLSupport.cginc"
+#include "../VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 30
+
+CBUFFER_START(GlobalInfo)
+	float deltaTime;
+	float totalTime;
+	uint nbMax;
+	uint systemSeed;
+CBUFFER_END
+
+CBUFFER_START(SpawnInfo)
+	uint nbSpawned;
+	uint spawnIndex;
+CBUFFER_END
+
+CBUFFER_START(initUniforms)
+	float4x4 initUniform0;
+	float initUniform1;
+	float initUniform2;
+	float3 initUniform3;
+	float3 initUniform4;
+	float initUniform5;
+	float initUniform6;
+	float initUniform7;
+	float initUniform8;
+CBUFFER_END
+
+CBUFFER_START(updateUniforms)
+	float updateUniform0;
+	float updateUniform1;
+CBUFFER_END
+
+struct Attribute0
+{
+	float3 position;
+	float age;
+};
+
+struct Attribute1
+{
+	float texIndex;
+};
+
+struct Attribute2
+{
+	float lifetime;
+};
+
+struct Attribute3
+{
+	float3 velocity;
+	float phase;
+};
+
+struct Attribute4
+{
+	float angle;
+};
+
+struct Attribute5
+{
+	float2 size;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+RWStructuredBuffer<Attribute1> attribBuffer1;
+RWStructuredBuffer<Attribute2> attribBuffer2;
+StructuredBuffer<Attribute2> attribBuffer2_RO;
+RWStructuredBuffer<Attribute3> attribBuffer3;
+StructuredBuffer<Attribute3> attribBuffer3_RO;
+RWStructuredBuffer<Attribute4> attribBuffer4;
+RWStructuredBuffer<Attribute5> attribBuffer5;
+
+RWStructuredBuffer<int> flags;
+ConsumeStructuredBuffer<uint> deadListIn;
+AppendStructuredBuffer<uint> deadListOut;
+Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
+
+RWStructuredBuffer<uint3> bounds;
+
+float rand(inout uint seed)
+{
+	seed = 1664525 * seed + 1013904223;
+	return float(seed) / 4294967296.0;
+}
+
+void VFXBlockSetPositionBox( inout float3 position,float4x4 box,inout uint seed)
+{
+	position = RAND3 - 0.5f;
+	position = mul(box,float4(position,1.0f)).xyz;
+}
+
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
+{
+	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
+}
+
+void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
+{
+	velocity += Velocity;
+}
+
+void VFXBlockVelocityRandomVector( inout float3 velocity,float3 Divergence,inout uint seed)
+{
+	velocity += (RAND3 * 2 - 1) * Divergence;
+}
+
+void VFXBlockAngleRandom( inout float angle,float Min,float Max,inout uint seed)
+{
+	angle += lerp(Min,Max,RAND);
+}
+
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
+{
+	float s = lerp(MinSize,MaxSize,RAND);
+	size = float2(s,s);
+}
+
+void VFXBlockSubUVAnimateRandomRate( inout float texIndex,float phase,float MinFramerate,float MaxFramerate)
+{
+	texIndex += lerp(MinFramerate, MaxFramerate, phase) * deltaTime;
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < min(nbSpawned,deadListCount[0]))
+	{
+		uint index = deadListIn.Consume();
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		Attribute1 attrib1 = (Attribute1)0;
+		Attribute2 attrib2 = (Attribute2)0;
+		Attribute3 attrib3 = (Attribute3)0;
+		Attribute4 attrib4 = (Attribute4)0;
+		Attribute5 attrib5 = (Attribute5)0;
+		
+		uint local_seed = (uint)0;
+		
+		
+		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		seed = (seed ^ 61) ^ (seed >> 16);
+		seed *= 9;
+		seed = seed ^ (seed >> 4);
+		seed *= 0x27d4eb2d;
+		seed = seed ^ (seed >> 15);
+		local_seed = seed;
+		
+		VFXBlockSetPositionBox( attrib0.position,initUniform0,local_seed);
+		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform1,initUniform2,local_seed);
+		VFXBlockVelocityConstant( attrib3.velocity,initUniform3);
+		VFXBlockVelocityRandomVector( attrib3.velocity,initUniform4,local_seed);
+		VFXBlockAngleRandom( attrib4.angle,initUniform5,initUniform6,local_seed);
+		VFXBlockSizeRandomSquare( attrib5.size,initUniform7,initUniform8,local_seed);
+		
+		attribBuffer0[index] = attrib0;
+		attribBuffer1[index] = attrib1;
+		attribBuffer2[index] = attrib2;
+		attribBuffer3[index] = attrib3;
+		attribBuffer4[index] = attrib4;
+		attribBuffer5[index] = attrib5;
+		
+		flags[index] = 1;
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < nbMax && flags[id.x] == 1)
+	{
+		uint index = id.x;
+		bool kill = false;
+		
+		Attribute0 attrib0 = attribBuffer0[index];
+		Attribute1 attrib1 = attribBuffer1[index];
+		Attribute2 attrib2 = attribBuffer2_RO[index];
+		Attribute3 attrib3 = attribBuffer3_RO[index];
+		
+		
+		VFXBlockSubUVAnimateRandomRate( attrib1.texIndex,attrib3.phase,updateUniform0,updateUniform1);
+		
+		attrib0.position += attrib3.velocity * deltaTime;
+		
+		attrib0.age += deltaTime;
+		if (attrib0.age >= attrib2.lifetime)
+			kill = true;
+		
+		if (kill)
+		{
+			flags[index] = 0;
+			deadListOut.Append(index);
+		}
+		else
+		{
+			attribBuffer0[index] = attrib0;
+			attribBuffer1[index] = attrib1;
+		}
+	}
+}
+

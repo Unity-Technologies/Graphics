@@ -182,10 +182,20 @@ namespace UnityEditor.Experimental
 
             if (CLAMP_SIZE)
             {
-                builder.WriteLine("// Clamp size so that billboards are never less than one pixel size");
-                builder.WriteLine("const float PIXEL_SIZE = 0.003f; // This should be a uniform depending on fov and viewport dimension");
-                builder.WriteLine("float minSize = dot(UNITY_MATRIX_VP[3],float4(position,1.0f)) * PIXEL_SIZE; // w * pixel size");
-                builder.WriteLine("size = max(size,minSize);");
+                builder.WriteLine("// Clamp size so that billboards are never less than one pixel size"); 
+                //builder.WriteLine("const float PIXEL_SIZE = (max(_ScreenParams.z,_ScreenParams.w) - 1.0f); // This should be a uniform depending on fov and viewport dimension");
+                builder.WriteLine("float4 clipPos = mul(UNITY_MATRIX_MVP,float4(position,1.0f));");
+                builder.WriteLine("float currentSize = (min(size.x,size.y) * min(UNITY_MATRIX_P[0][0] * _ScreenParams.x,-UNITY_MATRIX_P[1][1] * _ScreenParams.y)) / clipPos.w;");
+                builder.WriteLine("size /= saturate(currentSize);");
+/*
+                builder.WriteLine("float2 screenPos = min(size.x,size.y) * _ScreenParams.xy * clipPos.xy / clipPos.w");
+                builder.WriteLine("minSize = 0.5 * min(screenPos.x,screenPos.y);");
+                builder.WriteLine("if (minSize < 1.0f) size /= minSize;");*/
+               // if (data.system.WorldSpace)
+               //     builder.WriteLine("float minSize = 2.0f * mul(float4(position,1.0f),UNITY_MATRIX_VP).w / (max(_ScreenParams.z,_ScreenParams.w) - 1.0f); // w * pixel size");
+               // else
+               //     builder.WriteLine("float minSize = 2.0f * mul(float4(position,1.0f),UNITY_MATRIX_MVP).w / (max(_ScreenParams.z,_ScreenParams.w) - 1.0f); // w * pixel size");
+               // builder.WriteLine("size = max(size,float2(minSize,minSize));");
                 builder.WriteLine();
             }
 
@@ -326,6 +336,9 @@ namespace UnityEditor.Experimental
                     builder.WriteLine(";");
                 }
             }
+
+            if (CLAMP_SIZE)
+                builder.WriteLine("local_alpha *= smoothstep(0.5,1,currentSize);");
 
             builder.WriteLine();
             builder.WriteLineFormat("o.pos = mul ({0}, float4(position,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
