@@ -891,7 +891,8 @@ namespace UnityEditor.Experimental
                     rtData.outputType,
                     SpawnRate,
                     OrderPriority,
-                    rtData.hasKill
+                    rtData.hasKill,
+                    0
                 );
 
                 VFXEditor.ForeachComponents(c => c.vfxAsset = VFXEditor.asset);

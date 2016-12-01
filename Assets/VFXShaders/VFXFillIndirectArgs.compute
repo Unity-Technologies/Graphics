@@ -1,0 +1,73 @@
+#pragma kernel CSVFXSync
+
+#include "HLSLSupport.cginc"
+
+CBUFFER_START(Uniform)
+	uint nbMax;
+CBUFFER_END
+
+#define NB_THREADS_PER_GROUP 64
+#define NB_INDICES_PER_INSTANCE 4096
+
+Buffer<uint> nbElements;
+Buffer<uint> nbIndices; // For mesh particles only
+
+struct IndirectArgs
+{
+	uint vertexCount;
+	uint instanceCount;
+	uint startVertexLocation;
+	uint startInstanceLocation;
+};
+
+RWStructuredBuffer<IndirectArgs> output;
+
+// Points
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXIndirectArgsPoint(uint3 id : SV_DispatchThreadID)
+{
+	if (id < nbMax)
+	{
+		IndirectArgs args = (IndirectArgs)0;
+		args.vertexCount = nbElements[id];
+		args.instanceCount = 1;
+		output[id] = args;
+	}
+}
+
+// Quads
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXIndirectArgsQuad(uint3 id : SV_DispatchThreadID)
+{
+	if (id < nbMax)
+	{
+		IndirectArgs args = (IndirectArgs)0;
+		
+		uint nb = nbElements[id];
+		if (currentNb > 16384) // Due to 16bits indices
+		{
+			args.vertexCount = NB_INDICES_PER_INSTANCE * 6;
+			args.instanceCount = (nb + (NB_INDICES_PER_INSTANCE - 1)) / NB_INDICES_PER_INSTANCE;
+		}
+		else
+		{
+			args.vertexCount = nb * 6;
+			args.instanceCount = 1;
+		}		
+		
+		output[id] = args;
+	}
+}
+
+// Meshes
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXIndirectArgsMesh(uint3 id : SV_DispatchThreadID)
+{
+	if (id < nbMax)
+	{
+		IndirectArgs args = (IndirectArgs)0;
+		args.vertexCount = nbIndices[id];
+		args.instanceCount = nbElements[id];
+		output[id] = args;
+	}
+}
