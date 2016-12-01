@@ -8,7 +8,6 @@ using UnityEngine.Graphing;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    [Title("Math/Add Node")]
     public abstract class AbstractSurfaceMasterNode : AbstractMasterNode
     {
         public const string AlbedoSlotName = "Albedo";
@@ -25,11 +24,18 @@ namespace UnityEngine.MaterialGraph
         public const int OcclusionSlotId = 5;
         public const int AlphaSlotId = 6;
 
+        [SerializeField]
+        private SurfaceMaterialOptions m_MaterialOptions = new SurfaceMaterialOptions();
+
+        public SurfaceMaterialOptions options
+        {
+            get { return m_MaterialOptions; }
+        }
+
         public abstract string GetSurfaceOutputName();
         public abstract string GetLightFunction();
 
         public override string GetShader(
-            MaterialOptions options,
             GenerationMode mode,
             out List<PropertyGenerator.TextureInfo> configuredTextures)
         {
@@ -65,11 +71,11 @@ namespace UnityEngine.MaterialGraph
             var zTestVisitor = new ShaderGenerator();
             var zWriteVisitor = new ShaderGenerator();
 
-            options.GetTags(tagsVisitor);
-            options.GetBlend(blendingVisitor);
-            options.GetCull(cullingVisitor);
-            options.GetDepthTest(zTestVisitor);
-            options.GetDepthWrite(zWriteVisitor);
+            m_MaterialOptions.GetTags(tagsVisitor);
+            m_MaterialOptions.GetBlend(blendingVisitor);
+            m_MaterialOptions.GetCull(cullingVisitor);
+            m_MaterialOptions.GetDepthTest(zTestVisitor);
+            m_MaterialOptions.GetDepthWrite(zWriteVisitor);
 
             var resultShader = templateText.Replace("${ShaderName}", GetType() + guid.ToString());
             resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));

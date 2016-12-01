@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    public class MaterialOptions
+    public class SurfaceMaterialOptions
     {
         public enum BlendMode
         {

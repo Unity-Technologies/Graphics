@@ -21,7 +21,6 @@ namespace UnityEditor.MaterialGraph.UnitTests
             var graph = new UnityEngine.MaterialGraph.MaterialGraph();
 
             Assert.IsNotNull(graph.currentGraph);
-            Assert.IsNotNull(graph.materialOptions);
 
             graph.PostCreate();
 

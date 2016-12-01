@@ -124,7 +124,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var shaderName = "Hidden/PreviewShader/" + localNode.GetVariableNameForNode();
                 List<PropertyGenerator.TextureInfo> defaultTextures;
                 //TODO: Need to get the real options somehow
-                var resultShader =  ((AbstractMasterNode) m_Node).GetShader(new MaterialOptions(), GenerationMode.Preview, out defaultTextures);
+                var resultShader =  ((AbstractMasterNode) m_Node).GetShader(GenerationMode.Preview, out defaultTextures);
                 m_GeneratedShaderMode = PreviewMode.Preview3D;
                 return resultShader;
             }

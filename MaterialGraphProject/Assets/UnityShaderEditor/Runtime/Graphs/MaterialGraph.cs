@@ -6,9 +6,6 @@ namespace UnityEngine.MaterialGraph
     public class MaterialGraph
     {
         [SerializeField]
-        private MaterialOptions m_MaterialOptions = new MaterialOptions();
-
-        [SerializeField]
         private PixelGraph m_PixelGraph;
 
         [SerializeField]
@@ -24,12 +21,7 @@ namespace UnityEngine.MaterialGraph
         {
             m_PixelGraph = new PixelGraph();
         }
-
-        public MaterialOptions materialOptions
-        {
-            get { return m_MaterialOptions; }
-        }
-
+        
         public AbstractMaterialGraph currentGraph
         {
             get { return m_PixelGraph; }

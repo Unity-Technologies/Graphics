@@ -4,14 +4,6 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
-    interface IMasterNode
-    {
-        string GetShader(
-            MaterialOptions options,
-            GenerationMode mode,
-            out List<PropertyGenerator.TextureInfo> configuredTextures);
-    }
-
     [Serializable]
     public abstract class AbstractMasterNode : AbstractMaterialNode, IMasterNode
     {
@@ -27,6 +19,6 @@ namespace UnityEngine.MaterialGraph
             get { return true; }
         }
 
-        public abstract string GetShader(MaterialOptions options, GenerationMode mode, out List<PropertyGenerator.TextureInfo> configuredTextures);
+        public abstract string GetShader(GenerationMode mode, out List<PropertyGenerator.TextureInfo> configuredTextures);
     }
 }
