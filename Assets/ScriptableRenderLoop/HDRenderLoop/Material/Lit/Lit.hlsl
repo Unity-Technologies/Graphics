@@ -703,10 +703,10 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
 
         [branch] if (lightData.lightType == GPULIGHTTYPE_SPOT)
         {
-            // Perform a perspective projection of the hemisphere onto the disk.
+            // Perform the perspective projection of the hemisphere onto the disk.
             coord.xy /= coord.z;
 
-            // Rescale the projective coordinates into the [0, 1]^2 range.
+            // Rescale the projective coordinates to fit into the [-1, 1]^2 range.
             float cotOuterHalfAngle = lightData.size.x;
             coord.xy *= cotOuterHalfAngle;
 
