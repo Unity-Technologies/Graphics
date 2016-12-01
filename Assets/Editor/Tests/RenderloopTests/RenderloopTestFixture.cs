@@ -8,7 +8,7 @@ using UnityEngine.Experimental.ScriptableRenderLoop;
 using UnityEngine.Rendering;
 
 [ExecuteInEditMode]
-public class RenderLoopTestFixture : ScriptableRenderLoop
+public class RenderLoopTestFixture : RenderPipeline
 {
     public delegate void TestDelegate(Camera camera, CullResults cullResults, RenderLoop renderLoop);
     private static TestDelegate s_Callback;
@@ -42,7 +42,7 @@ public class RenderLoopTestFixture : ScriptableRenderLoop
         var sceneCamera = Camera.main;
         var camObject = sceneCamera.gameObject;
 
-        GraphicsSettings.SetScriptableRenderLoop(m_Instance);
+        GraphicsSettings.SetRenderPipeline(m_Instance);
         s_Callback = renderCallback;
         Transform t = camObject.transform;
 
@@ -53,6 +53,6 @@ public class RenderLoopTestFixture : ScriptableRenderLoop
         SceneView.lastActiveSceneView.LookAtDirect(t.position + t.forward * camDist, t.rotation, size);
 
         sceneCamera.Render();
-        GraphicsSettings.SetScriptableRenderLoop(null);
+        GraphicsSettings.SetRenderPipeline(null);
     }
 }
