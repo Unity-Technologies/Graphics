@@ -297,6 +297,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     // Trigger a rebuild of cubemap / convolution
                     // TODO: can we have some kind of hash value here ? +> use or override GetHashCode() + include a refresh rate value in parameters
+                    // TODO: we could apply multiplier/exposure and rotation on the final result (i.e on the sky ibl and on lightprobe / lightmap, but can be tricky as Unity seems to merge sky information with 
+                    // other lighting into SH / lightmap.
                     if (skyParameters.skyResolution != m_bakedSkyParameters.skyResolution ||
                         skyParameters.exposure != m_bakedSkyParameters.exposure ||
                         skyParameters.rotation != m_bakedSkyParameters.rotation ||
@@ -316,7 +318,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
                             RenderSettings.reflectionIntensity = 1.0f;
                             RenderSettings.customReflection = null;
-                            //DynamicGI.UpdateEnvironment();
+                            DynamicGI.UpdateEnvironment();
                         }
 
                         // Cleanup all this...
