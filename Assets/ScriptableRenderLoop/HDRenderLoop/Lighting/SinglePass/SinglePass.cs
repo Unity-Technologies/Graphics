@@ -120,10 +120,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 // m_gbufferManager.BindBuffers(m_DeferredMaterial);
                 // TODO: Bind depth textures
-                var cmd = new CommandBuffer { name = "" };
-                cmd.Blit(null, cameraColorBufferRT, m_DeferredMaterial, 0);
-                renderLoop.ExecuteCommandBuffer(cmd);
-                cmd.Dispose();
+
+                using (new Utilities.ProfilingSample("SinglePass - Deferred Lighting Pass", renderLoop))
+                {
+                    var cmd = new CommandBuffer { name = "" };
+                    cmd.Blit(null, cameraColorBufferRT, m_DeferredMaterial, 0);
+                    renderLoop.ExecuteCommandBuffer(cmd);
+                    cmd.Dispose();
+                }
             }
         }
     }

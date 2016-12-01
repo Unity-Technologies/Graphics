@@ -870,7 +870,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
-#endif
+#endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
 //-----------------------------------------------------------------------------
@@ -1047,7 +1047,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
-#endif
+#endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
 //-----------------------------------------------------------------------------
@@ -1231,23 +1231,23 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     if (lightData.envShapeType == ENVSHAPETYPE_BOX)
     {
-        float3 dirLS = mul(preLightData.iblDirWS, worldToLocal);
+        float3 dirLS = mul(R, worldToLocal);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
         float dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
 
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + dist * preLightData.iblDirWS) - lightData.positionWS;
+        R = (positionWS + dist * R) - lightData.positionWS;
 
         // TODO: add distance based roughness
     }
     else if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
     {
-        float3 dirLS = mul(preLightData.iblDirWS, worldToLocal);
+        float3 dirLS = mul(R, worldToLocal);
         float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
         float dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
 
-        R = (positionWS + dist * preLightData.iblDirWS) - lightData.positionWS;
+        R = (positionWS + dist * R) - lightData.positionWS;
     }
 
     // 2. Apply the influence volume (Box volume is used for culling whatever the influence shape)

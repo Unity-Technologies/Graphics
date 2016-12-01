@@ -179,7 +179,7 @@ float ADD_IDX(GetSurfaceData)(FragInput input, LayerTexCoord layerTexCoord, out 
     // TODO: think about using BC5
 #ifdef _TANGENTMAP
 #ifdef _NORMALMAP_TANGENT_SPACE // Normal and tangent use same space
-    float3 tangentTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base)));
+    float3 tangentTS = SAMPLE_LAYER_NORMALMAP(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base));
     surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.tangentToWorld);
 #else // Object space (TODO: We need to apply the world rotation here! - Require to pass world transform)
     surfaceData.tangentWS = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_TangentMap), ADD_ZERO_IDX(sampler_TangentMap), ADD_IDX(layerTexCoord.base)).rgb;

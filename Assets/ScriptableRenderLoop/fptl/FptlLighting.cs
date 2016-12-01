@@ -377,7 +377,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void DoTiledDeferredLighting(Camera camera, RenderLoop loop, int numLights, int numDirLights)
         {
-            var bUseClusteredForDeferred = !usingFptl;       // doesn't work on reflections yet but will soon
+            var bUseClusteredForDeferred = !usingFptl;
             var cmd = new CommandBuffer();
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
