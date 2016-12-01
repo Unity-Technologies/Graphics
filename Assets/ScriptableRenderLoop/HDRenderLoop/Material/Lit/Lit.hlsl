@@ -685,27 +685,53 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
     float illuminance = saturate(dot(bsdfData.normalWS, L)) * attenuation;
 
-    diffuseLighting = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
+    diffuseLighting    = float3(0.0, 0.0, 0.0);
+    specularLighting   = float3(0.0, 0.0, 0.0);
+    float3 cookieColor = float3(1.0, 1.0, 1.0);
 
     // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
-    /*
-    [branch] if (lightData.cookieIndex && illuminance > 0.0f)
+    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
     {
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-        illuminance *= SampleCookie(lightData.cookieIndex, lightToWorld, L);
-    }
-    */
 
-    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0f)
+        // Rotate 'L' into the light space.
+        // We perform the negation because lights are oriented backwards (-Z).
+        float3 coord = mul(-L, transpose(lightToWorld));
+
+        float4 cookie;
+
+        [branch] if (lightData.lightType == GPULIGHTTYPE_SPOT)
+        {
+            // Perform a perspective projection of the hemisphere onto the disk.
+            coord.xy /= coord.z;
+
+            // Rescale the projective coordinates into the [0, 1]^2 range.
+            float cotOuterHalfAngle = lightData.size.x;
+            coord.xy *= cotOuterHalfAngle;
+
+            // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+            coord.xy = coord.xy * 0.5 + 0.5;
+
+            cookie = SampleCookie2D(lightLoopContext, coord.xy, lightData.cookieIndex);
+        }
+        else // GPULIGHTTYPE_POINT
+        {
+            cookie = SampleCookieCube(lightLoopContext, coord, lightData.cookieIndex);
+        }
+
+        cookieColor  = cookie.rgb;
+        illuminance *= cookie.a;
+    }
+
+    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
     {
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
         float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
         illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
     }
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
         float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, positionWS + offset, lightData.shadowIndex, L, preLightData.unPositionSS);
@@ -714,11 +740,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         illuminance *= shadowAttenuation;
     }
 
-    [branch] if (illuminance > 0.0f)
+    [branch] if (illuminance > 0.0)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
-        diffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
-        specularLighting *= lightData.color * illuminance * lightData.specularScale;
+
+        diffuseLighting  *= (cookieColor * lightData.color) * (illuminance * lightData.diffuseScale);
+        specularLighting *= (cookieColor * lightData.color) * (illuminance * lightData.specularScale);
     }
 }
 

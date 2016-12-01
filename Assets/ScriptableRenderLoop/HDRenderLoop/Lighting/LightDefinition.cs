@@ -43,16 +43,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public Vector3 right;
         public float specularScale;
-        
+
         public float shadowDimmer;
         // index are -1 if not used
         public int shadowIndex;
         public int IESIndex;
         public int cookieIndex;
 
-        public GPULightType lightType;   
+        public GPULightType lightType;
         // Area Light specific
-        public Vector2 size;
+        public Vector2 size; // x = cot(outerHalfAngle) for spot lights
         public bool twoSided;
     };
 
