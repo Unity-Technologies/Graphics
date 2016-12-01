@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
-    public class FptlLighting : ScriptableRenderLoop
+    public class FptlLighting : RenderPipeline
     {
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("Renderloop/CreateRenderLoopFPTL")]
@@ -113,23 +113,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         private Texture2D m_LightAttentuationTexture;
         private int m_shadowBufferID;
 
+        private void OnValidate()
+        {
+            Rebuild();
+        }
+
         public override void Initialize()
         {
             Rebuild();
         }
 
-        private void OnEnable()
-        {
-            Rebuild();
-        }
-
-        private void OnDisable()
-        {
-            // TODO: Rework ScriptableRenderLoop Lifecycle
-            //CleanUp();
-        }
-
-        public override void CleanUp()
+        public override void Cleanup()
         {
             // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);

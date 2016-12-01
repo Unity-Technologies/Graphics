@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.ScriptableRenderLoop;
 
 // Very basic scriptable rendering loop example:
 // - Use with BasicRenderLoopShader.shader (the loop expects "BasicPass" pass type to exist)
@@ -11,7 +10,7 @@ using UnityEngine.Experimental.ScriptableRenderLoop;
 // - This loop also does not setup lightmaps, light probes, reflection probes or light cookies
 
 [ExecuteInEditMode]
-public class BasicRenderLoop : ScriptableRenderLoop
+public class BasicRenderLoop : RenderPipeline
 {
 
 #if UNITY_EDITOR
