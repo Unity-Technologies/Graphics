@@ -27,6 +27,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public int[] debugViewMaterialValues = null;
 
             public readonly GUIContent skyParameters = new GUIContent("Sky Parameters");
+            public readonly GUIContent skyResolution = new GUIContent("Sky Resolution");
             public readonly GUIContent skyExposure = new GUIContent("Sky Exposure");
             public readonly GUIContent skyRotation = new GUIContent("Sky Rotation");
             public readonly GUIContent skyMultiplier = new GUIContent("Sky Multiplier");
@@ -200,6 +201,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.BeginChangeCheck();
 
             skyParameters.skyHDRI = (Texture)EditorGUILayout.ObjectField("Cubemap", skyParameters.skyHDRI, typeof(Cubemap), false);
+
+            skyParameters.skyResolution = (SkyResolution)EditorGUILayout.EnumPopup(styles.skyResolution, skyParameters.skyResolution);
             skyParameters.exposure = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyExposure, skyParameters.exposure), 32), -32);
             skyParameters.multiplier = Mathf.Max(EditorGUILayout.FloatField(styles.skyMultiplier, skyParameters.multiplier), 0);
             skyParameters.rotation = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyRotation, skyParameters.rotation), 360), -360);

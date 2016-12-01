@@ -15,10 +15,10 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
             #pragma vertex VertViewTiles
             #pragma fragment FragViewTiles
 
-            #define LIGHTLOOP_TILE_PASS 1
-            #define USE_FPTL_LIGHTLIST	1		//TODO: make it also work with clustered
+            #define LIGHTLOOP_TILE_PASS 1            
             #define LIGHTLOOP_TILE_ALL	1
 
+            #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
 		    //-------------------------------------------------------------------------------------
 		    // Include
@@ -89,11 +89,11 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 	        {
 		        Coordinate coord = GetCoordinate(positionCS.xy, _ScreenSize.zw);
 
-                #if USE_FPTL_LIGHTLIST
-		        float linearDepth = 0.0;
+                #ifdef USE_CLUSTERED_LIGHTLIST
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
+                float linearDepth = GetLinearDepth(depth); // View space linear depth
                 #else
-		        float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
-		        float linearDepth = GetLinearDepth(depth);
+                float linearDepth = 0.0; // unused
                 #endif
 
 		        int n = 0;

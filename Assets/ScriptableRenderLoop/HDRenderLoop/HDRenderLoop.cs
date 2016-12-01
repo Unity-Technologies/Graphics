@@ -514,18 +514,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return ;
             }
 
-            using (new Utilities.ProfilingSample("Single Pass - Deferred Lighting Pass", renderLoop))
+            // Bind material data
+            m_LitRenderLoop.Bind();
+            if (debugParameters.useSinglePassLightLoop)
             {
-                // Bind material data
-                m_LitRenderLoop.Bind();
-                if (debugParameters.useSinglePassLightLoop)
-                {
-                    m_SinglePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
-                }
-                else
-                {
-                    tilePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBufferRT);
-                }
+                m_SinglePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
+            }
+            else
+            {
+                tilePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBufferRT);
             }
         }
 
@@ -902,6 +899,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void Resize(Camera camera)
         {
+            // TODO: Detect if renderdoc just load and force a resize in this case, as often renderdoc require to realloc resource.
+
+            // TODO: This is the wrong way to handle resize/allocation. We can have several different camera here, mean that the loop on camera will allocate and deallocate
+            // the below buffer which is bad. Best is to have a set of buffer for each camera that is persistent and reallocate resource if need
+            // For now consider we have only one camera that go to this code, the main one.
+            m_SkyRenderer.Resize(m_SkyParameters); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
+            
             if (camera.pixelWidth != m_WidthOnRecord || camera.pixelHeight != m_HeightOnRecord || tilePassLightLoop.NeedResize())
             {
                 if (m_WidthOnRecord > 0 && m_HeightOnRecord > 0)

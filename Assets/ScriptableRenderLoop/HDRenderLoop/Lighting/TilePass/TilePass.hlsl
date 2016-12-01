@@ -28,7 +28,7 @@ float g_fFarPlane;
 int g_iLog2NumClusters;	// We need to always define these to keep constant buffer layouts compatible
 
 uint g_isLogBaseBufferEnabled;
-uint g_isOpaquesOnlyEnabled;
+uint _UseTileLightList;
 //#endif
 
 #ifdef USE_CLUSTERED_LIGHTLIST
