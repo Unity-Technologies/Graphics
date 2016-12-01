@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
     // This HDRenderLoop assume linear lighting. Don't work with gamma.
-    public partial class HDRenderLoop : ScriptableRenderLoop
+    public partial class HDRenderLoop : RenderPipeline
     {
         const string k_HDRenderLoopPath = "Assets/ScriptableRenderLoop/HDRenderLoop/HDRenderLoop.asset";
 
@@ -226,17 +226,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
 
-        private void OnEnable()
+        private void OnValidate()
         {
-            // TODO: Design workaround for OnValidate being missing on ScriptableObject
             m_Dirty = true;
-            Rebuild();
-        }
-
-        private void OnDisable()
-        {
-            // TODO: Rework ScriptableRenderLoop Lifecycle 
-            //CleanUp();
         }
 
         public override void Rebuild()
@@ -314,7 +306,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Rebuild();
         }
 
-        public override void CleanUp()
+        public override void Cleanup()
         {
             m_LitRenderLoop.OnDisable();
             m_SinglePassLightLoop.OnDisable();
