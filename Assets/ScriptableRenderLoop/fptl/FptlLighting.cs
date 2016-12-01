@@ -113,20 +113,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         private Texture2D m_LightAttentuationTexture;
         private int m_shadowBufferID;
 
+        private void OnValidate()
+        {
+            Rebuild();
+        }
+
         public override void Initialize()
         {
             Rebuild();
-        }
-
-        private void OnEnable()
-        {
-            Rebuild();
-        }
-
-        private void OnDisable()
-        {
-            // TODO: Rework ScriptableRenderLoop Lifecycle
-            //CleanUp();
         }
 
         public override void Cleanup()
