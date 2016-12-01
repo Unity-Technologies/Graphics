@@ -40,7 +40,7 @@ struct Attribute0
 struct Attribute1
 {
 	float3 velocity;
-	float _PADDING_;
+	uint _PADDING_1;
 };
 
 struct Attribute2

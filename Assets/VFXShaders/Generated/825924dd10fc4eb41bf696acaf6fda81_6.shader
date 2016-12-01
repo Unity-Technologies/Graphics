@@ -30,7 +30,7 @@ Shader "Hidden/VFX_6"
 			struct Attribute0
 			{
 				float3 position;
-				float _PADDING_;
+				uint _PADDING_1;
 			};
 			
 			StructuredBuffer<Attribute0> attribBuffer0;

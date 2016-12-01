@@ -93,17 +93,6 @@ namespace UnityEditor.Experimental
             }
         }
 
-        private static ComputeShader s_SyncShader;
-        public static ComputeShader SyncShader
-        {
-            get
-            {
-                if (s_SyncShader == null)
-                    s_SyncShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/VFXShaders/VFXSync.compute");
-                return s_SyncShader;
-            }
-        }
-
         public static VFXGraph Graph { get { return s_Graph; }}
 
         public static void Log(string s) {
