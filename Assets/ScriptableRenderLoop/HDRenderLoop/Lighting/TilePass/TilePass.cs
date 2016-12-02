@@ -93,21 +93,21 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public const int MaxNumDirLights = 2;
             public const float FltMax = 3.402823466e+38F;
 
-            static ComputeShader buildScreenAABBShader;
-            static ComputeShader buildPerTileLightListShader;     // FPTL
-            static ComputeShader buildPerBigTileLightListShader;
-            static ComputeShader buildPerVoxelLightListShader;    // clustered
+            static ComputeShader buildScreenAABBShader = null;
+            static ComputeShader buildPerTileLightListShader = null;     // FPTL
+            static ComputeShader buildPerBigTileLightListShader = null;
+            static ComputeShader buildPerVoxelLightListShader = null;    // clustered
 
             private static int s_GenAABBKernel;
             private static int s_GenListPerTileKernel;
             private static int s_GenListPerVoxelKernel;
             private static int s_ClearVoxelAtomicKernel;
-            private static ComputeBuffer s_LightShapeDataBuffer;
-            private static ComputeBuffer s_ConvexBoundsBuffer;
-            private static ComputeBuffer s_AABBBoundsBuffer;
-            private static ComputeBuffer s_LightList;
+            private static ComputeBuffer s_LightShapeDataBuffer = null;
+            private static ComputeBuffer s_ConvexBoundsBuffer = null;
+            private static ComputeBuffer s_AABBBoundsBuffer = null;
+            private static ComputeBuffer s_LightList = null;
 
-            private static ComputeBuffer s_BigTileLightList;        // used for pre-pass coarse culling on 64x64 tiles
+            private static ComputeBuffer s_BigTileLightList = null;        // used for pre-pass coarse culling on 64x64 tiles
             private static int s_GenListPerBigTileKernel;
 
             // clustered light list specific buffers and data begin
@@ -124,10 +124,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6. NumClusters is 1<<g_iLog2NumClusters
             const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
             float m_ClustScale;
-            private static ComputeBuffer s_PerVoxelLightLists;
-            private static ComputeBuffer s_PerVoxelOffset;
-            private static ComputeBuffer s_PerTileLogBaseTweak;
-            private static ComputeBuffer s_GlobalLightListAtomic;
+            private static ComputeBuffer s_PerVoxelLightLists = null;
+            private static ComputeBuffer s_PerVoxelOffset = null;
+            private static ComputeBuffer s_PerTileLogBaseTweak = null;
+            private static ComputeBuffer s_GlobalLightListAtomic = null;
             // clustered light list specific buffers and data end
 
             SFiniteLightBound[] m_boundData;
@@ -146,17 +146,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
             // Static keyword is required here else we get a "DestroyBuffer can only be call in main thread"
-            static ComputeBuffer s_DirectionalLights;
-            static ComputeBuffer s_PunctualLightList;
-            static ComputeBuffer s_EnvLightList;
-            static ComputeBuffer s_AreaLightList;
-            static ComputeBuffer s_PunctualShadowList;
-            static ComputeBuffer s_DirectionalShadowList;
+            static ComputeBuffer s_DirectionalLights = null;
+            static ComputeBuffer s_PunctualLightList = null;
+            static ComputeBuffer s_EnvLightList = null;
+            static ComputeBuffer s_AreaLightList = null;
+            static ComputeBuffer s_PunctualShadowList = null;
+            static ComputeBuffer s_DirectionalShadowList = null;
 
-            Material m_DeferredDirectMaterial;
-            Material m_DeferredIndirectMaterial;
-            Material m_DeferredAllMaterial;
-            Material m_DebugViewTilesMaterial;
+            Material m_DeferredDirectMaterial = null;
+            Material m_DeferredIndirectMaterial = null;
+            Material m_DeferredAllMaterial = null;
+            Material m_DebugViewTilesMaterial = null;
 
             const int k_TileSize = 16;
 
@@ -170,49 +170,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return (camera.pixelHeight + (k_TileSize - 1)) / k_TileSize;
             }
 
-            // Local function
-            void ClearComputeBuffers()
-            {
-                ReleaseResolutionDependentBuffers();
-
-                if (s_AABBBoundsBuffer != null)
-                    s_AABBBoundsBuffer.Release();
-
-                if (s_ConvexBoundsBuffer != null)
-                    s_ConvexBoundsBuffer.Release();
-
-                if (s_LightShapeDataBuffer != null)
-                    s_LightShapeDataBuffer.Release();
-
-                if (enableClustered)
-                {
-                    if (s_GlobalLightListAtomic != null)
-                        s_GlobalLightListAtomic.Release();
-                }
-
-                if (s_DirectionalLights != null)
-                    s_DirectionalLights.Release();
-
-                if (s_DirectionalShadowList != null)
-                    s_DirectionalShadowList.Release();
-
-                if (s_PunctualLightList != null)
-                    s_PunctualLightList.Release();
-
-                if (s_AreaLightList != null)
-                    s_AreaLightList.Release();
-
-                if (s_PunctualShadowList != null)
-                    s_PunctualShadowList.Release();
-
-                if (s_EnvLightList != null)
-                    s_EnvLightList.Release();
-            }
-
             public void Rebuild()
             {
-                ClearComputeBuffers();
-
                 buildScreenAABBShader = Resources.Load<ComputeShader>("scrbound");
                 buildPerTileLightListShader = Resources.Load<ComputeShader>("lightlistbuild");
                 buildPerBigTileLightListShader = Resources.Load<ComputeShader>("lightlistbuild-bigtile");
@@ -279,37 +238,26 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_DeferredAllMaterial.DisableKeyword("LIGHTLOOP_TILE_INDIRECT");
                 m_DeferredAllMaterial.EnableKeyword("LIGHTLOOP_TILE_ALL");
 
-
                 m_DebugViewTilesMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/DebugViewTiles");
-
             }
 
-            public void OnDisable()
+            public void Cleanup()
             {
-                // TODO: do something for Resources.Load<ComputeShader> ?
-
-                s_AABBBoundsBuffer.Release();
-                s_ConvexBoundsBuffer.Release();
-                s_LightShapeDataBuffer.Release();
                 ReleaseResolutionDependentBuffers();
 
-                if (enableClustered)
-                {
-                    s_GlobalLightListAtomic.Release();
-                }
+                Utilities.SafeRelease(s_AABBBoundsBuffer);
+                Utilities.SafeRelease(s_ConvexBoundsBuffer);
+                Utilities.SafeRelease(s_LightShapeDataBuffer);           
 
-                s_DirectionalLights.Release();
-                s_DirectionalLights = null;
-                s_DirectionalShadowList.Release();
-                s_DirectionalShadowList = null;
-                s_PunctualLightList.Release();
-                s_PunctualLightList = null;
-                s_AreaLightList.Release();
-                s_AreaLightList = null;
-                s_EnvLightList.Release();
-                s_EnvLightList = null;
-                s_PunctualShadowList.Release();
-                s_PunctualShadowList = null;
+                // enableClustered
+                Utilities.SafeRelease(s_GlobalLightListAtomic);
+
+                Utilities.SafeRelease(s_DirectionalLights);
+                Utilities.SafeRelease(s_DirectionalShadowList);
+                Utilities.SafeRelease(s_PunctualLightList);
+                Utilities.SafeRelease(s_AreaLightList);
+                Utilities.SafeRelease(s_EnvLightList);
+                Utilities.SafeRelease(s_PunctualShadowList);
 
                 Utilities.Destroy(m_DeferredDirectMaterial);
                 Utilities.Destroy(m_DeferredIndirectMaterial);
@@ -319,31 +267,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public bool NeedResize()
             {
-                return s_LightList == null || (s_BigTileLightList == null && enableBigTilePrepass) || (s_PerVoxelLightLists == null && enableClustered);
+                return  s_LightList == null || 
+                        (s_BigTileLightList == null && enableBigTilePrepass) || 
+                        (s_PerVoxelLightLists == null && enableClustered);
             }
 
             public void ReleaseResolutionDependentBuffers()
             {
-                if (s_LightList != null)
-                    s_LightList.Release();
+                Utilities.SafeRelease(s_LightList);
 
-                if (enableClustered)
-                {
-                    if (s_PerVoxelLightLists != null)
-                        s_PerVoxelLightLists.Release();
+                // enableClustered
+                Utilities.SafeRelease(s_PerVoxelLightLists);
+                Utilities.SafeRelease(s_PerVoxelOffset);
+                Utilities.SafeRelease(s_PerTileLogBaseTweak);
 
-                    if (s_PerVoxelOffset != null)
-                        s_PerVoxelOffset.Release();
-
-                    if (k_UseDepthBuffer && s_PerTileLogBaseTweak != null)
-                        s_PerTileLogBaseTweak.Release();
-                }
-
-                if (enableBigTilePrepass)
-                {
-                    if (s_BigTileLightList != null)
-                        s_BigTileLightList.Release();
-                }
+                // enableBigTilePrepass
+                Utilities.SafeRelease(s_BigTileLightList);
             }
 
             int NumLightIndicesPerClusteredTile()
@@ -826,6 +765,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     var cmd = new CommandBuffer();
                     cmd.SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
+
+                    cmd.name = bUseClusteredForDeferred ? "Clustered pass" : "Tiled pass";
 
                     // In case of bUseClusteredForDeferred disable toggle option since we're using m_perVoxelLightLists as opposed to lightList
                     if (bUseClusteredForDeferred)

@@ -15,10 +15,6 @@ StructuredBuffer<PunctualShadowData>    _PunctualShadowList;
 StructuredBuffer<LightData>  	        _AreaLightList;
 StructuredBuffer<EnvLightData>          _EnvLightList;
 
-//TEXTURE2D_ARRAY(_ShadowArray);
-//SAMPLER2D_SHADOW(sampler_ShadowArray);
-//SAMPLER2D(sampler_ManualShadowArray); // TODO: settings sampler individually is not supported in shader yet...
-
 // Use texture atlas for shadow map
 //TEXTURE2D(_ShadowAtlas);
 //SAMPLER2D_SHADOW(sampler_ShadowAtlas);

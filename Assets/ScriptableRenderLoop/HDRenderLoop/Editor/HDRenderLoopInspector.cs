@@ -48,7 +48,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly GUIContent tileLightLoopDebugMode = new GUIContent("Enable Debug mode", "Toggle overheat map mode");
             public readonly GUIContent directIndirectSinglePass = new GUIContent("Enable direct and indirect lighting in single pass", "Toggle");
             public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
-            public readonly GUIContent clustered = new GUIContent("Enable clusted", "Toggle");   
+            public readonly GUIContent clustered = new GUIContent("Enable clustered", "Toggle");
+
+
+            public readonly GUIContent textureSettings = new GUIContent("texture Settings");
+
+            public readonly GUIContent spotCookieSize = new GUIContent("spotCookie Size");
+            public readonly GUIContent pointCookieSize = new GUIContent("pointCookie Size");
+            public readonly GUIContent reflectionCubemapSize = new GUIContent("reflectionCubemap Size");              
         }
 
         private static Styles s_Styles = null;
@@ -220,7 +227,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
-
             shadowParameters.enabled = EditorGUILayout.Toggle(styles.shadowsEnabled, shadowParameters.enabled);
             shadowParameters.shadowAtlasWidth = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasWidth, shadowParameters.shadowAtlasWidth));
             shadowParameters.shadowAtlasHeight = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasHeight, shadowParameters.shadowAtlasHeight));
@@ -233,7 +239,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 shadowParameters.directionalLightCascades[i] = Mathf.Max(0, EditorGUILayout.FloatField(shadowParameters.directionalLightCascades[i]));
             }
             EditorGUI.indentLevel--;
-            
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(renderLoop); // Repaint
@@ -241,14 +246,35 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.indentLevel--;
 
             EditorGUILayout.Space();
+            var textureParameters = renderLoop.textureSettings;
+
+            EditorGUILayout.LabelField(styles.textureSettings);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+
+            textureParameters.spotCookieSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.spotCookieSize, textureParameters.spotCookieSize), 16, 1024));
+            textureParameters.pointCookieSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.pointCookieSize, textureParameters.pointCookieSize), 16, 1024));
+            textureParameters.reflectionCubemapSize = Mathf.NextPowerOfTwo(Mathf.Clamp(EditorGUILayout.IntField(styles.reflectionCubemapSize, textureParameters.reflectionCubemapSize), 64, 1024));
+ 
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.SetDirty(renderLoop); // Repaint
+            }
+            EditorGUI.indentLevel--;
+
+
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField(styles.tileLightLoopSettings);
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
 
-            renderLoop.tilePassLightLoop.debugViewTilesFlags = (TilePass.DebugViewTilesFlags)EditorGUILayout.EnumMaskField("DebugView Tiles", renderLoop.tilePassLightLoop.debugViewTilesFlags);
-            renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass = EditorGUILayout.Toggle(styles.directIndirectSinglePass, renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass);
-            renderLoop.tilePassLightLoop.enableBigTilePrepass = EditorGUILayout.Toggle(styles.bigTilePrepass, renderLoop.tilePassLightLoop.enableBigTilePrepass);
-            renderLoop.tilePassLightLoop.enableClustered = EditorGUILayout.Toggle(styles.clustered, renderLoop.tilePassLightLoop.enableClustered);
+            if (renderLoop.tilePassLightLoop != null)
+            {
+                renderLoop.tilePassLightLoop.debugViewTilesFlags = (TilePass.DebugViewTilesFlags)EditorGUILayout.EnumMaskField("DebugView Tiles", renderLoop.tilePassLightLoop.debugViewTilesFlags);
+                renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass = EditorGUILayout.Toggle(styles.directIndirectSinglePass, renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass);
+                renderLoop.tilePassLightLoop.enableBigTilePrepass = EditorGUILayout.Toggle(styles.bigTilePrepass, renderLoop.tilePassLightLoop.enableBigTilePrepass);
+                renderLoop.tilePassLightLoop.enableClustered = EditorGUILayout.Toggle(styles.clustered, renderLoop.tilePassLightLoop.enableClustered);
+            }
 
             if (EditorGUI.EndChangeCheck())
             {

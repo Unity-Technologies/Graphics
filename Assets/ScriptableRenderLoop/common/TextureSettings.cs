@@ -1,19 +1,22 @@
-[System.Serializable]
-public struct TextureSettings
+namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
-    public uint spotCookieSize;
-    public uint pointCookieSize;
-    public uint reflectionCubemapSize;
-
-    public static TextureSettings Default
+    [System.Serializable]
+    public struct TextureSettings
     {
-        get
+        public int spotCookieSize;
+        public int pointCookieSize;
+        public int reflectionCubemapSize;
+
+        public static TextureSettings Default
         {
-            TextureSettings settings;
-            settings.spotCookieSize = 128;
-            settings.pointCookieSize = 512;
-            settings.reflectionCubemapSize = 128;
-            return settings;
+            get
+            {
+                TextureSettings settings = new TextureSettings();
+                settings.spotCookieSize = 128;
+                settings.pointCookieSize = 512;
+                settings.reflectionCubemapSize = 128;
+                return settings;
+            }
         }
     }
 }
