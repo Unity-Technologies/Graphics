@@ -113,7 +113,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // clustered light list specific buffers and data begin
             public DebugViewTilesFlags debugViewTilesFlags = 0;
             public bool enableClustered = false;
-            public bool disableFptlWhenClustered = false;    // still useful on opaques
+            public bool disableFptlWhenClustered = true;    // still useful on opaques. Should be false by default to force tile on opaque.
             public bool enableBigTilePrepass = true;
             public bool enableDrawLightBoundsDebug = false;
             public bool enableDirectIndirectSinglePass = false;
@@ -754,7 +754,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_DeferredAllMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 m_DeferredAllMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredAllMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                
+
+                m_DebugViewTilesMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
                 m_DebugViewTilesMaterial.SetVector("_ScreenSize", screenSize);
                 m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)debugViewTilesFlags);
                 m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");

@@ -21,6 +21,8 @@ Buffer<uint> g_vLightListGlobal;
 // these uniforms are only needed for when OPAQUES_ONLY is NOT defined
 // but there's a problem with our front-end compilation of compute shaders with multiple kernels causing it to error
 //#ifdef USE_CLUSTERED_LIGHTLIST
+float4x4 g_mInvScrProjection;
+
 float g_fClustScale;
 float g_fClustBase;
 float g_fNearPlane;
