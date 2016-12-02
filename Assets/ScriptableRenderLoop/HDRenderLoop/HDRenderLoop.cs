@@ -140,6 +140,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
+        public TextureSettings textureSettings
+        {
+            get { return m_TextureSettings; }
+        }
+
         // Various set of material use in render loop
         Material m_FinalPassMaterial;
         Material m_DebugViewMaterialGBuffer;
@@ -228,12 +233,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         private void OnValidate()
         {
+            // Calling direction Rebuild() here cause this warning:
+            // "SendMessage cannot be called during Awake, CheckConsistency, or OnValidate UnityEngine.Experimental.ScriptableRenderLoop.HDRenderLoop:OnValidate()"
+            // Workaround is to declare this dirty flag and call REbuild in Render()
             m_Dirty = true;
         }
 
         public override void Rebuild()
         {
-            m_CameraColorBuffer  = Shader.PropertyToID("_CameraColorTexture");
+            // We call Cleanup() here because Rebuild() can be call by OnValidate(), i.e when inspector is touch
+            // Note that module don't need to do the same as the call here is propagated correctly
+            Cleanup();
+
+            m_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
             m_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
 
             m_CameraColorBufferRT = new RenderTargetIdentifier(m_CameraColorBuffer);
@@ -276,11 +288,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_LitRenderLoop.Rebuild();
 
             m_CookieTexArray = new TextureCache2D();
-            m_CookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
+            m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap();
-            m_CubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
+            m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
             m_CubeReflTexArray = new TextureCacheCubemap();
-            m_CubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
+            m_CubeReflTexArray.AllocTextureArray(32, m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
             // Init various light loop
             m_SinglePassLightLoop = new SinglePass.LightLoop();
@@ -308,18 +320,47 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public override void Cleanup()
         {
-            m_LitRenderLoop.OnDisable();
-            m_SinglePassLightLoop.OnDisable();
-            tilePassLightLoop.OnDisable();
+            if (m_LitRenderLoop != null)
+            {
+                m_LitRenderLoop.Cleanup();
+                m_LitRenderLoop = null;
+            }
+
+            if (m_SinglePassLightLoop != null)
+            {
+                m_SinglePassLightLoop.Cleanup();
+                m_SinglePassLightLoop = null;
+            }
+
+            if (m_TilePassLightLoop != null)
+            {
+                m_TilePassLightLoop.Cleanup();
+                m_TilePassLightLoop = null;
+            }
 
             Utilities.Destroy(m_FinalPassMaterial);
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
 
-            m_CubeReflTexArray.Release();
-            m_CookieTexArray.Release();
-            m_CubeCookieTexArray.Release();
+            if (m_CubeReflTexArray != null)
+            {
+                m_CubeReflTexArray.Release();
+                m_CubeReflTexArray = null;
+            }
+            if (m_CookieTexArray != null)
+            {
+                m_CookieTexArray.Release();
+                m_CookieTexArray = null;
+            }
+            if (m_CubeCookieTexArray != null)
+            {
+                m_CubeCookieTexArray.Release();
+                m_CubeCookieTexArray = null;
+            }
 
-            m_SkyRenderer.OnDisable();
+            if (m_SkyRenderer != null)
+            {
+                m_SkyRenderer.Cleanup();
+            }
 
 #if UNITY_EDITOR
             UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
