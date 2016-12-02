@@ -30,6 +30,14 @@ SAMPLER2D_SHADOW(samplerg_tShadowBuffer);
 TEXTURE2D_ARRAY(_IESArray);
 SAMPLER2D(sampler_IESArray);
 
+// Used by directional and spot lights
+TEXTURE2D_ARRAY(_CookieTextures);
+SAMPLER2D(sampler_CookieTextures);
+
+// Used by point lights
+TEXTURECUBE_ARRAY(_CookieCubeTextures);
+SAMPLERCUBE(sampler_CookieCubeTextures);
+
 // Use texture array for reflection
 TEXTURECUBE_ARRAY(_EnvTextures);
 SAMPLERCUBE(sampler_EnvTextures);
@@ -129,6 +137,28 @@ float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 
     // float3 shadowPosDY = ddy_fine(positionTXS);
 
     return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, positionTXS);
+}
+
+//-----------------------------------------------------------------------------
+// Cookie sampling functions
+// ----------------------------------------------------------------------------
+
+#define SINGLE_PASS_CONTEXT_SAMPLE_COOKIE_TEXTURES 0
+
+// Used by directional and spot lights.
+// Returns the color in the RGB components, and the transparency (lack of occlusion) in A.
+float4 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index)
+{
+    return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, sampler_CookieTextures, coord, index, 0);
+}
+
+#define SINGLE_PASS_CONTEXT_SAMPLE_COOKIE_CUBE_TEXTURES 0
+
+// Used by point lights.
+// Returns the color in the RGB components, and the transparency (lack of occlusion) in A.
+float4 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
+{
+    return SAMPLE_TEXTURECUBE_ARRAY_LOD(_CookieCubeTextures, sampler_CookieCubeTextures, coord, index, 0);
 }
 
 //-----------------------------------------------------------------------------
