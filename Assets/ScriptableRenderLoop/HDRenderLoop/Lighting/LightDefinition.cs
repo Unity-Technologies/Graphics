@@ -60,22 +60,25 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     public struct DirectionalLightData
     {
         public Vector3 direction;
-        public float diffuseScale;
+        public float   diffuseScale;
 
         public Vector3 up;
-        public float invScaleX;
+        public float   invScaleY;
+
+        public Vector3 right;
+        public float   invScaleX;
 
         public Vector3 positionWS;
-        public float invScaleY;
+        public bool    tileCookie;
 
         public Vector3 color;
-        public float specularScale;
+        public float   specularScale;
 
         // Sun disc size
         public float cosAngle;  // Distance to the disk
         public float sinAngle;  // Disk radius
         public int shadowIndex; // -1 if unused
-        public int cookieIndex; // INT_MIN if unused; (i >= 0) ? (i2D = i) : (iCube = ~i)
+        public int cookieIndex; // -1 if unused
     };
 
 

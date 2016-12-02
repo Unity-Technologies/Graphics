@@ -656,36 +656,25 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         illuminance *= shadowAttenuation;
     }
 
-    [branch] if (lightData.cookieIndex != INT_MIN && illuminance > 0.0)
+    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
     {
-        float4 cookie;
+        float3 unL = positionWS - lightData.positionWS;
 
-        [branch] if (lightData.cookieIndex >= 0)
-        {
-            // The cookie is a 2D texture.
-            float3 unL = positionWS - lightData.positionWS;
+        // Project 'unL' onto the light's axes.
+        float3 right = cross(lightData.up, lightData.direction);
+        float2 coord = float2(dot(unL, right), dot(unL, lightData.up));
 
-            // Project 'unL' onto the light's axes.
-            float3 right = cross(lightData.up, lightData.direction);
-            float2 coord = float2(dot(unL, right), dot(unL, lightData.up));
+        // Rescale the texture.
+        coord.x *= lightData.invScaleX;
+        coord.y *= lightData.invScaleY;
 
-            // Rescale the texture.
-            coord.x *= lightData.invScaleX;
-            coord.y *= lightData.invScaleY;
+        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+        coord = coord * 0.5 + 0.5;
 
-            // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-            coord = coord * 0.5 + 0.5;
+        // Tile the texture if the 'repeat' wrap mode is enabled.
+        if (lightData.tileCookie) coord = frac(coord);
 
-            // Tile the texture via wrapping. TODO: the sampler should do this for us.
-            cookie = SampleCookie2D(lightLoopContext, frac(coord), lightData.cookieIndex);
-        }
-        else
-        {
-            // The cookie is a cubemap. We flip the bits to get the real index.
-            lightData.cookieIndex = ~lightData.cookieIndex;
-
-            cookie = SampleCookieCube(lightLoopContext, L, lightData.cookieIndex);
-        }
+        float4 cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
         cookieColor  = cookie.rgb;
         illuminance *= cookie.a;
@@ -694,8 +683,8 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
     [branch] if (illuminance > 0.0f)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
-        diffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
-        specularLighting *= lightData.color * illuminance * lightData.specularScale;
+        diffuseLighting  *= (cookieColor * lightData.color) * (illuminance * lightData.diffuseScale);
+        specularLighting *= (cookieColor * lightData.color) * (illuminance * lightData.specularScale);
     }
 }
 
