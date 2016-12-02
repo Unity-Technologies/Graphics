@@ -12,7 +12,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
     [TestFixture]
     public class PropertyNodeTests
     {
-        private PixelGraph m_Graph;
+        private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
         private TextureNode m_TextureNode;
 
         [TestFixtureSetUp]
@@ -41,7 +41,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new PixelGraph();
+            m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
             m_TextureNode = new TextureNode();
             m_Graph.AddNode(m_TextureNode);
         }

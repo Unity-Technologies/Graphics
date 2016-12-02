@@ -68,7 +68,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [Test]
         public void TestCreatePixelShaderGraphWorks()
         {
-            var graph = new PixelGraph();
+            var graph = new UnityEngine.MaterialGraph.MaterialGraph();
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
 
             var psn = new MetallicMasterNode();
@@ -83,7 +83,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [Test]
         public void TestCanAddMultipleMasterNode()
         {
-            var graph = new PixelGraph();
+            var graph = new UnityEngine.MaterialGraph.MaterialGraph();
             Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
 
             var psn = new MetallicMasterNode();

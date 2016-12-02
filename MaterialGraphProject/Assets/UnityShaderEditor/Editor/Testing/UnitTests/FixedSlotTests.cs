@@ -8,7 +8,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
     [TestFixture]
     public class FixedSlotTests
     {
-        private PixelGraph m_Graph;
+        private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
         private TestNode m_NodeA;
         private TestNode m_NodeB;
 
@@ -48,7 +48,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new PixelGraph();
+            m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
             m_NodeA = new TestNode();
             m_NodeB = new TestNode();
             m_Graph.AddNode(m_NodeA);

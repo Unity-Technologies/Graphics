@@ -60,7 +60,7 @@ MonoBehaviour:
         4,\\n    \\\"m_ShaderOutputName\\\": \\\"Output1\\\"\\n}\"\n        }\n    ],\n
         \   \"m_OutputPrecision\": 1\n}"
     - typeInfo:
-        fullName: UnityEngine.MaterialGraph.ViewDirectionNode
+        fullName: UnityEngine.MaterialGraph.WorldSpaceViewDirectionNode
         assemblyName: Assembly-CSharp
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"e8000378-07ad-437c-b2a1-4e807bf69c3c\",\n
         \   \"m_Name\": \"View Direction\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
@@ -70,16 +70,16 @@ MonoBehaviour:
         \       }\n    },\n    \"m_SerializableSlots\": [\n        {\n            \"typeInfo\":
         {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
         \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\":
-        \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\": \\\"ViewDirection\\\",\\n
+        \"{\\n    \\\"m_Id\\\": 0,\\n    \\\"m_DisplayName\\\": \\\"worldSpaceViewDirection\\\",\\n
         \   \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\":
         2,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
-        3,\\n    \\\"m_ShaderOutputName\\\": \\\"ViewDirection\\\"\\n}\"\n        }\n
-        \   ],\n    \"m_OutputPrecision\": 1\n}"
+        3,\\n    \\\"m_ShaderOutputName\\\": \\\"worldSpaceViewDirection\\\"\\n}\"\n
+        \       }\n    ],\n    \"m_OutputPrecision\": 1\n}"
     - typeInfo:
-        fullName: UnityEngine.MaterialGraph.NormalNode
+        fullName: UnityEngine.MaterialGraph.WorldSpaceNormalNode
         assemblyName: Assembly-CSharp
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"d31d4a7e-3a4a-4a1d-88c6-2987a58ae1d5\",\n
         \   \"m_Name\": \"Normal\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
