@@ -11,8 +11,8 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
             #pragma target 5.0
             #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
-            #pragma vertex VertDeferred
-            #pragma fragment FragDeferred
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             #include "Common.hlsl"
             #include "Color.hlsl"
@@ -41,7 +41,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
                 float4 positionCS : SV_POSITION;
             };
 
-            Varyings VertDeferred(Attributes input)
+            Varyings Vert(Attributes input)
             {
                 // TODO: implement SV_vertexID full screen quad
                 Varyings output;
@@ -51,12 +51,12 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
                 return output;
             }
 
-            float4 FragDeferred(Varyings input) : SV_Target
+            float4 Frag(Varyings input) : SV_Target
             {
 				float4 unPositionSS = input.positionCS; // as input we have the vpos
 				Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
 
-                float depth = _CameraDepthTexture.Load(uint3(coord.unPositionSS, 0)).x;
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
 
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, coord.unPositionSS);
                 BSDFData bsdfData;
