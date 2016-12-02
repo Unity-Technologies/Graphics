@@ -20,8 +20,8 @@ Shader "Hidden/HDRenderLoop/Deferred"
             #pragma target 5.0
             #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
-            #pragma vertex VertDeferred
-            #pragma fragment FragDeferred
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             // Chose supported lighting architecture in case of deferred rendering
             #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
@@ -66,7 +66,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
                 float4 positionCS : SV_POSITION;
             };
 
-            Varyings VertDeferred(Attributes input)
+            Varyings Vert(Attributes input)
             {
                 // TODO: implement SV_vertexID full screen quad
                 // Lights are draw as one fullscreen quad
@@ -77,7 +77,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
                 return output;
             }
 
-            float4 FragDeferred(Varyings input) : SV_Target
+            float4 Frag(Varyings input) : SV_Target
             {
 				float4 unPositionSS = input.positionCS; // as input we have the vpos
                 Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
