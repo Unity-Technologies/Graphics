@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         ShadowRenderPass m_ShadowPass;
 
 
-        public const int k_MaxDirectionalLightsOnSCreen = 2;
+        public const int k_MaxDirectionalLightsOnSCreen = 3;
         public const int k_MaxPunctualLightsOnSCreen = 512;
         public const int k_MaxAreaLightsOnSCreen = 128;
         public const int k_MaxEnvLightsOnSCreen = 64;

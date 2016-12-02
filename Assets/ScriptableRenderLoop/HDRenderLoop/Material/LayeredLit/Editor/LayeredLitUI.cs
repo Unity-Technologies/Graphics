@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+using System.Linq;
+
 namespace UnityEditor
 {
     internal class LayeredLitGUI : LitGUI
@@ -66,22 +68,14 @@ namespace UnityEditor
         MaterialProperty layerCount = null;
         const string kLayerCount = "_LayerCount";
         MaterialProperty[] layerTexWorldScale = new MaterialProperty[kMaxLayerCount];
-        const string kLayerTexWorldScale = "_TexWorldScale";
         MaterialProperty[] layerUVBase = new MaterialProperty[kMaxLayerCount];
-        const string kLayerUVBase = "_UVBase";
         MaterialProperty[] layerUVMappingMask = new MaterialProperty[kMaxLayerCount];
-        const string kLayerUVMappingMask = "_UVMappingMask";
         MaterialProperty[] layerUVDetail = new MaterialProperty[kMaxLayerCount];
-        const string kLayerUVDetail = "_UVDetail";
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
-        const string kLayerUVDetailsMappingMask = "_UVDetailsMappingMask";
 
         MaterialProperty layerEmissiveColor = null;
-        const string kLayerEmissiveColor = "_EmissiveColor";
         MaterialProperty layerEmissiveColorMap = null;
-        const string kLayerEmissiveColorMap = "_EmissiveColorMap";
         MaterialProperty layerEmissiveIntensity = null;
-        const string kLayerEmissiveIntensity = "_EmissiveIntensity";
 
         private void FindLayerProperties(MaterialProperty[] props)
         {
@@ -90,16 +84,16 @@ namespace UnityEditor
             layerCount = FindProperty(kLayerCount, props);
             for (int i = 0; i < numLayer; ++i)
             {
-                layerTexWorldScale[i] = FindProperty(string.Format("{0}{1}", kLayerTexWorldScale, i), props);
-                layerUVBase[i] = FindProperty(string.Format("{0}{1}", kLayerUVBase, i), props);
-                layerUVMappingMask[i] = FindProperty(string.Format("{0}{1}", kLayerUVMappingMask, i), props);
-                layerUVDetail[i] = FindProperty(string.Format("{0}{1}", kLayerUVDetail, i), props);
-                layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kLayerUVDetailsMappingMask, i), props);
+                layerTexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, i), props);
+                layerUVBase[i] = FindProperty(string.Format("{0}{1}", kUVBase, i), props);
+                layerUVMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVMappingMask, i), props);
+                layerUVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, i), props);
+                layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, i), props);
             }
 
-            layerEmissiveColor = FindProperty(kLayerEmissiveColor, props);
-            layerEmissiveColorMap = FindProperty(kLayerEmissiveColorMap, props);
-            layerEmissiveIntensity = FindProperty(kLayerEmissiveIntensity, props);
+            layerEmissiveColor = FindProperty(kEmissiveColor, props);
+            layerEmissiveColorMap = FindProperty(kEmissiveColorMap, props);
+            layerEmissiveIntensity = FindProperty(kEmissiveIntensity, props);
         }
 
         int numLayer
@@ -118,6 +112,8 @@ namespace UnityEditor
 
         void SynchronizeLayerProperties(int layerIndex)
         {
+			string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVDetailsMappingMask };
+
             Material material = m_MaterialEditor.target as Material;
             Material layerMaterial = m_MaterialLayers[layerIndex];
 
@@ -129,34 +125,38 @@ namespace UnityEditor
                 {
                     string propertyName = ShaderUtil.GetPropertyName(layerShader, i);
                     string layerPropertyName = propertyName + layerIndex;
-                    if (material.HasProperty(layerPropertyName))
-                    {
-                        ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
-                        switch (type)
-                        {
-                            case ShaderUtil.ShaderPropertyType.Color:
-                            {
-                                material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
-                                break;
-                            }
-                            case ShaderUtil.ShaderPropertyType.Float:
-                            case ShaderUtil.ShaderPropertyType.Range:
-                            {
-                                material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
-                                break;
-                            }
-                            case ShaderUtil.ShaderPropertyType.Vector:
-                            {
-                                material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
-                                break;
-                            }
-                            case ShaderUtil.ShaderPropertyType.TexEnv:
-                            {
-                                material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
-                                break;
-                            }
-                        }
-                    }
+
+					if(!exclusionList.Contains(propertyName))
+					{
+						if (material.HasProperty(layerPropertyName))
+						{
+							ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
+							switch (type)
+							{
+								case ShaderUtil.ShaderPropertyType.Color:
+									{
+										material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
+										break;
+									}
+								case ShaderUtil.ShaderPropertyType.Float:
+								case ShaderUtil.ShaderPropertyType.Range:
+									{
+										material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
+										break;
+									}
+								case ShaderUtil.ShaderPropertyType.Vector:
+									{
+										material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
+										break;
+									}
+								case ShaderUtil.ShaderPropertyType.TexEnv:
+									{
+										material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
+										break;
+									}
+							}
+						}
+					}
                 }
             }
         }
@@ -458,10 +458,11 @@ namespace UnityEditor
                 SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap + i));
                 SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap + i));
                 SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap + i));
-                SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap + i));
                 SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap + i));
+				SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap + i));
             }
 
+            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
         }
 
@@ -489,9 +490,9 @@ namespace UnityEditor
             {
                 // We setup the masking map based on the enum for each layer.
                 // using mapping mask allow to reduce the number of generated combination for a very small increase in ALU
-                string layerUVBaseParam = string.Format("{0}{1}", kLayerUVBase, i);
+                string layerUVBaseParam = string.Format("{0}{1}", kUVBase, i);
                 LayerUVBaseMapping layerUVBaseMapping = (LayerUVBaseMapping)material.GetFloat(layerUVBaseParam);
-                string layerUVDetailParam = string.Format("{0}{1}", kLayerUVDetail, i);
+                string layerUVDetailParam = string.Format("{0}{1}", kUVDetail, i);
                 LayerUVDetailMapping layerUVDetailMapping = (LayerUVDetailMapping)material.GetFloat(layerUVDetailParam);
                 string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
 
@@ -502,10 +503,7 @@ namespace UnityEditor
                 W = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
                 layerUVMappingMask[i].colorValue = new Color(X, Y, Z, W);
 
-                if (layerUVBaseMapping == LayerUVBaseMapping.Triplanar)
-                {
-                    SetKeyword(material, currentLayerMappingTriplanar, true);
-                }
+                SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == LayerUVBaseMapping.Triplanar);
 
                 // If base is planar mode, detail is planar too
                 if (W > 0.0f)

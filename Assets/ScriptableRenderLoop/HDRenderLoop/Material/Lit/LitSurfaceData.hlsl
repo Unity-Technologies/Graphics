@@ -22,15 +22,15 @@ void ADD_IDX(ComputeLayerTexCoord)(FragInput input, bool isTriplanar, inout Laye
     // triplanar
     ADD_IDX(layerTexCoord.base).isTriplanar = isTriplanar;
 
-    ADD_IDX(layerTexCoord.base).uvYZ = position.yz;
-    ADD_IDX(layerTexCoord.base).uvZX = position.zx;
-    ADD_IDX(layerTexCoord.base).uvXY = position.xy;
+    ADD_IDX(layerTexCoord.base).uvYZ = position.zy;
+    ADD_IDX(layerTexCoord.base).uvZX = position.xz;
+    ADD_IDX(layerTexCoord.base).uvXY = float2(-position.x, position.y);
 
     ADD_IDX(layerTexCoord.details).isTriplanar = isTriplanar;
 
-    ADD_IDX(layerTexCoord.details).uvYZ = TRANSFORM_TEX(position.yz, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvZX = TRANSFORM_TEX(position.zx, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(position.xy, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvYZ = TRANSFORM_TEX(position.zy, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvZX = TRANSFORM_TEX(position.xz, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(float2(-position.x, position.y), ADD_IDX(_DetailMap));
 }
 
 void ADD_IDX(ApplyDisplacement)(inout FragInput input, inout LayerTexCoord layerTexCoord)
