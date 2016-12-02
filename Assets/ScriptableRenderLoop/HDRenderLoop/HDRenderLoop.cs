@@ -155,7 +155,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         int m_VelocityBuffer;
         int m_DistortionBuffer;
 
-        bool m_Dirty = false;
+        public bool m_Dirty = false;
 
         RenderTargetIdentifier m_CameraColorBufferRT;
         RenderTargetIdentifier m_CameraDepthBufferRT;
@@ -217,21 +217,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         int m_HeightOnRecord;
 
         // TODO: Find a way to automatically create/iterate through lightloop
-        SinglePass.LightLoop m_SinglePassLightLoop;
-        TilePass.LightLoop m_TilePassLightLoop = null;
+        // This must be init externally else The value can't be set in the inspector... (as it will recreate the class with default value)
+        SinglePass.LightLoop m_SinglePassLightLoop = new SinglePass.LightLoop();
+        TilePass.LightLoop m_TilePassLightLoop = new TilePass.LightLoop();
         public TilePass.LightLoop tilePassLightLoop
         {
             get { return m_TilePassLightLoop; }
         }
 
         // TODO: Find a way to automatically create/iterate through deferred material
-        Lit.RenderLoop m_LitRenderLoop;
+        // TODO TO CHECK: SebL I move allocation from Rebuild() to here, but there was a comment "// Our object can be garbage collected, so need to be allocate here", it is still true ?
+        Lit.RenderLoop m_LitRenderLoop = new Lit.RenderLoop();
 
         TextureCacheCubemap m_CubeReflTexArray;
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
 
-        private void OnValidate()
+        public void OnValidate()
         {
             // Calling direction Rebuild() here cause this warning:
             // "SendMessage cannot be called during Awake, CheckConsistency, or OnValidate UnityEngine.Experimental.ScriptableRenderLoop.HDRenderLoop:OnValidate()"
@@ -259,8 +261,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
 
-            // Init Gbuffer description
-            m_LitRenderLoop = new Lit.RenderLoop(); // Our object can be garbage collected, so need to be allocate here
+            // Init Gbuffer description            
 
             m_gbufferManager.gbufferCount = m_LitRenderLoop.GetMaterialGBufferCount();
             RenderTextureFormat[] RTFormat; RenderTextureReadWrite[] RTReadWrite;
@@ -295,9 +296,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_CubeReflTexArray.AllocTextureArray(32, m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
             // Init various light loop
-            m_SinglePassLightLoop = new SinglePass.LightLoop();
             m_SinglePassLightLoop.Rebuild();
-            m_TilePassLightLoop = new TilePass.LightLoop();
             tilePassLightLoop.Rebuild();
 
             m_lightList = new LightList();
@@ -320,23 +319,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public override void Cleanup()
         {
-            if (m_LitRenderLoop != null)
-            {
-                m_LitRenderLoop.Cleanup();
-                m_LitRenderLoop = null;
-            }
-
-            if (m_SinglePassLightLoop != null)
-            {
-                m_SinglePassLightLoop.Cleanup();
-                m_SinglePassLightLoop = null;
-            }
-
-            if (m_TilePassLightLoop != null)
-            {
-                m_TilePassLightLoop.Cleanup();
-                m_TilePassLightLoop = null;
-            }
+            m_LitRenderLoop.Cleanup();
+            m_SinglePassLightLoop.Cleanup();
+            m_TilePassLightLoop.Cleanup();
 
             Utilities.Destroy(m_FinalPassMaterial);
             Utilities.Destroy(m_DebugViewMaterialGBuffer);

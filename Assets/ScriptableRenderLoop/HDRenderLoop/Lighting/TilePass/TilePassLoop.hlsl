@@ -82,19 +82,6 @@ uint FetchIndex(uint tileOffset, uint lightIndex)
         return FetchIndexCluster(tileOffset, lightIndex);
 }
 
-float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
-{
-    // todo (simplify): m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
-    float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
-    float m32 = g_mInvScrProjection[3].z, m33 = g_mInvScrProjection[3].w;
-
-    return (m22 * zDptBufSpace + m23) / (m32 * zDptBufSpace + m33);
-
-    //float3 vP = float3(0.0f,0.0f,zDptBufSpace);
-    //float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
-    //return v4Pres.z / v4Pres.w;
-}
-
 #endif
 
 // bakeDiffuseLighting is part of the prototype so a user is able to implement a "base pass" with GI and multipass direct light (aka old unity rendering path)
@@ -103,9 +90,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
                 out float3 specularLighting)
 {
 #ifdef USE_CLUSTERED_LIGHTLIST
-    // TODO: Think more about the design, it is ok to do that ? hope the compiler could optimize it out as we already depth before LightLoop call, else need to pass it as argument...
-    float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
-    float linearDepth = GetLinearDepth(depth); // View space linear depth
+    float linearDepth = TransformWorldToView(positionWS).z; // View space linear depth
 #else
     float linearDepth = 0.0; // unused
 #endif

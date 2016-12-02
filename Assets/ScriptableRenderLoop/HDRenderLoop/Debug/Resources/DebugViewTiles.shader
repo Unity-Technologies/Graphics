@@ -40,8 +40,10 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 
 	        uint _ViewTilesFlags;
 
-	        TEXTURE2D(_CameraDepthTexture);
-	        SAMPLER2D(sampler_CameraDepthTexture);
+            TEXTURE2D(_CameraDepthTexture);
+            SAMPLER2D(sampler_CameraDepthTexture);
+
+            float4x4 _InvViewProjMatrix;
 
 	        float4 Vert(float3 positionOS : POSITION): SV_POSITION
 	        {
@@ -90,8 +92,10 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 		        Coordinate coord = GetCoordinate(positionCS.xy, _ScreenSize.zw);
 
                 #ifdef USE_CLUSTERED_LIGHTLIST
+                // Perform same calculation than in deferred.shader
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
-                float linearDepth = GetLinearDepth(depth); // View space linear depth
+                float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
+                float linearDepth = TransformWorldToView(positionWS).z; // View space linear depth
                 #else
                 float linearDepth = 0.0; // unused
                 #endif
