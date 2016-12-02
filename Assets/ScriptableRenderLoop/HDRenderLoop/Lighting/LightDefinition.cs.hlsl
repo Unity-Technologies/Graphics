@@ -61,12 +61,16 @@ struct DirectionalLightData
 {
 	float3 direction;
 	float diffuseScale;
+	float3 up;
+	float invScaleX;
+	float3 positionWS;
+	float invScaleY;
 	float3 color;
 	float specularScale;
 	float cosAngle;
 	float sinAngle;
 	int shadowIndex;
-	float unused;
+	int cookieIndex;
 };
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
@@ -191,6 +195,22 @@ float GetDiffuseScale(DirectionalLightData value)
 {
 	return value.diffuseScale;
 }
+float3 GetUp(DirectionalLightData value)
+{
+	return value.up;
+}
+float GetInvScaleX(DirectionalLightData value)
+{
+	return value.invScaleX;
+}
+float3 GetPositionWS(DirectionalLightData value)
+{
+	return value.positionWS;
+}
+float GetInvScaleY(DirectionalLightData value)
+{
+	return value.invScaleY;
+}
 float3 GetColor(DirectionalLightData value)
 {
 	return value.color;
@@ -211,9 +231,9 @@ int GetShadowIndex(DirectionalLightData value)
 {
 	return value.shadowIndex;
 }
-float GetUnused(DirectionalLightData value)
+int GetCookieIndex(DirectionalLightData value)
 {
-	return value.unused;
+	return value.cookieIndex;
 }
 
 //

@@ -676,13 +676,31 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     var directionalLightData = new DirectionalLightData();
                     // Light direction for directional and is opposite to the forward direction
-                    directionalLightData.direction = -light.light.transform.forward;
+                    directionalLightData.direction  = -light.light.transform.forward;
+                    directionalLightData.up         = -light.light.transform.up;
+                    directionalLightData.positionWS = light.light.transform.position;
                     directionalLightData.color = new Vector3(lightColorR, lightColorG, lightColorB);
                     directionalLightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
                     directionalLightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
+                    directionalLightData.invScaleX = 1.0f / light.light.transform.localScale.x;
+                    directionalLightData.invScaleY = 1.0f / light.light.transform.localScale.y;
                     directionalLightData.cosAngle = 0.0f;
                     directionalLightData.sinAngle = 0.0f;
                     directionalLightData.shadowIndex = -1;
+                    directionalLightData.cookieIndex = Int32.MinValue;
+
+                    if (light.light.cookie != null)
+                    {
+                        if (light.light.cookie.dimension == TextureDimension.Tex2D)
+                        {
+                            directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                        }
+                        else // Cube
+                        {
+                            // Note the bitwise (one's) complement operator which flips the bits.
+                            directionalLightData.cookieIndex = ~m_CubeCookieTexArray.FetchSlice(light.light.cookie);
+                        }
+                    }
 
                     bool hasDirectionalShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
                     bool hasDirectionalNotReachMaxLimit = lightList.directionalShadows.Count == 0; // Only one cascade shadow allowed
@@ -798,9 +816,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         case LightType.Spot:
                             lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
                             break;
-                        case LightType.Directional:
-                            lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
-                            break;
                         case LightType.Point:
                             lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
                             break;
@@ -841,7 +856,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     lightData.size     = new Vector2(additionalData.areaLightLength,
                                                      additionalData.areaLightWidth);
 
-                    // Area and line lights are both currently stored as regular lights on the GPU.
+                    // Area and line lights are both currently stored as area lights on the GPU.
                     lightList.areaLights.Add(lightData);
                     lightList.areaCullIndices.Add(lightIndex);
                 }
