@@ -89,6 +89,8 @@ NavMeshSettings:
     minRegionArea: 2
     manualCellSize: 0
     cellSize: 0.16666667
+    manualTileSize: 0
+    tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
 --- !u!1 &68487706
@@ -2202,30 +2204,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   worldRayleighColorRamp:
-    key0:
-      serializedVersion: 2
-      rgba: 4288243277
-    key1:
-      serializedVersion: 2
-      rgba: 4291598720
-    key2:
-      serializedVersion: 2
-      rgba: 0
-    key3:
-      serializedVersion: 2
-      rgba: 0
-    key4:
-      serializedVersion: 2
-      rgba: 0
-    key5:
-      serializedVersion: 2
-      rgba: 0
-    key6:
-      serializedVersion: 2
-      rgba: 0
-    key7:
-      serializedVersion: 2
-      rgba: 0
+    serializedVersion: 2
+    key0: {r: 0.3019608, g: 0.4, b: 0.6, a: 1}
+    key1: {r: 0.5019608, g: 0.6, b: 0.8, a: 1}
+    key2: {r: 0, g: 0, b: 0, a: 0}
+    key3: {r: 0, g: 0, b: 0, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
     ctime0: 0
     ctime1: 65535
     ctime2: 0
@@ -2250,30 +2237,15 @@ MonoBehaviour:
   worldRayleighExtinctionFactor: 1.1
   worldRayleighIndirectScatter: 0.33
   worldMieColorRamp:
-    key0:
-      serializedVersion: 2
-      rgba: 4286627826
-    key1:
-      serializedVersion: 2
-      rgba: 4294960895
-    key2:
-      serializedVersion: 2
-      rgba: 0
-    key3:
-      serializedVersion: 2
-      rgba: 0
-    key4:
-      serializedVersion: 2
-      rgba: 0
-    key5:
-      serializedVersion: 2
-      rgba: 0
-    key6:
-      serializedVersion: 2
-      rgba: 0
-    key7:
-      serializedVersion: 2
-      rgba: 0
+    serializedVersion: 2
+    key0: {r: 0.9490196, g: 0.7490196, b: 0.5019608, a: 1}
+    key1: {r: 1, g: 0.9019608, b: 1, a: 1}
+    key2: {r: 0, g: 0, b: 0, a: 0}
+    key3: {r: 0, g: 0, b: 0, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
     ctime0: 0
     ctime1: 65535
     ctime2: 0
@@ -2309,8 +2281,9 @@ MonoBehaviour:
   heightPlaneShift: {x: 0, y: 0, z: 0}
   heightNearScatterPush: 0
   heightNormalDistance: 1000
+  atmosphericShaderOverride: {fileID: 0}
   worldScaleExponent: 1
-  atmosphericShader: {fileID: 0}
+  depthTexture: 0
   debugMode: 0
 --- !u!1 &609148480
 GameObject:
@@ -2874,7 +2847,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 10
+  m_Range: 12
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
@@ -3657,7 +3630,7 @@ Light:
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 10
+  m_Range: 12
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
