@@ -62,9 +62,11 @@ struct DirectionalLightData
 	float3 direction;
 	float diffuseScale;
 	float3 up;
+	float invScaleY;
+	float3 right;
 	float invScaleX;
 	float3 positionWS;
-	float invScaleY;
+	bool tileCookie;
 	float3 color;
 	float specularScale;
 	float cosAngle;
@@ -199,6 +201,14 @@ float3 GetUp(DirectionalLightData value)
 {
 	return value.up;
 }
+float GetInvScaleY(DirectionalLightData value)
+{
+	return value.invScaleY;
+}
+float3 GetRight(DirectionalLightData value)
+{
+	return value.right;
+}
 float GetInvScaleX(DirectionalLightData value)
 {
 	return value.invScaleX;
@@ -207,9 +217,9 @@ float3 GetPositionWS(DirectionalLightData value)
 {
 	return value.positionWS;
 }
-float GetInvScaleY(DirectionalLightData value)
+bool GetTileCookie(DirectionalLightData value)
 {
-	return value.invScaleY;
+	return value.tileCookie;
 }
 float3 GetColor(DirectionalLightData value)
 {

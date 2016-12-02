@@ -34,7 +34,7 @@ SAMPLER2D(sampler_IESArray);
 TEXTURE2D_ARRAY(_CookieTextures);
 SAMPLER2D(sampler_CookieTextures);
 
-// Used by directional and point lights
+// Used by point lights
 TEXTURECUBE_ARRAY(_CookieCubeTextures);
 SAMPLERCUBE(sampler_CookieCubeTextures);
 
@@ -154,7 +154,7 @@ float4 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index
 
 #define SINGLE_PASS_CONTEXT_SAMPLE_COOKIE_CUBE_TEXTURES 0
 
-// Used by directional and point lights.
+// Used by point lights.
 // Returns the color in the RGB components, and the transparency (lack of occlusion) in A.
 float4 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
 {
