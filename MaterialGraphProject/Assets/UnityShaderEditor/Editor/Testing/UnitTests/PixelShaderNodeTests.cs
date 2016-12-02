@@ -9,7 +9,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
     [TestFixture]
     public class PixelShaderNodeTests
     {
-        private PixelGraph m_Graph;
+        private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
         private Vector1Node m_InputOne;
         private AbsoluteNode m_Abs;
         private MetallicMasterNode m_PixelNode;
@@ -23,7 +23,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new PixelGraph();
+            m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
             m_PixelNode = new MetallicMasterNode();
             m_InputOne = new Vector1Node();
             m_Abs = new AbsoluteNode();

@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using RMGUI.GraphView;
 using UnityEditor.Graphing.Drawing;
@@ -24,10 +21,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             dataMapper[typeof(MaterialNodeDrawData)] = typeof(MaterialNodeDrawer);
             dataMapper[typeof(AnchorDrawData)] = typeof(NodeAnchor);
             dataMapper[typeof(EdgeData)] = typeof(Edge);
-
-            var dictionary = new Dictionary<Event, ShortcutDelegate>();
-            dictionary[Event.KeyboardEvent("^F1")] = Export;
-            AddManipulator(new ShortcutHandler(dictionary));
         }
 
         public virtual bool CanAddToNodeMenu(Type type)
@@ -95,6 +88,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             graphDataSource.AddNode(node);
         }
 
+        /*
         public EventPropagation Export()
         {
             var path = EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
@@ -115,7 +109,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (graphAsset == null)
                 return null;
 
-            var materialGraph = graphAsset.graph as PixelGraph;
+            var materialGraph = graphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph;
             if (materialGraph == null)
                 return null;
 
@@ -159,6 +153,6 @@ namespace UnityEditor.MaterialGraph.Drawing
             shaderImporter.SaveAndReimport();
 
             return shaderImporter.GetShader();
-        }
+        }*/
     }
 }

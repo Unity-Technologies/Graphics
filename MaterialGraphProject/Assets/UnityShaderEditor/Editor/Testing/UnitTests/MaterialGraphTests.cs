@@ -20,11 +20,9 @@ namespace UnityEditor.MaterialGraph.UnitTests
         {
             var graph = new UnityEngine.MaterialGraph.MaterialGraph();
 
-            Assert.IsNotNull(graph.currentGraph);
-
-            graph.PostCreate();
-
-            Assert.AreEqual(0, graph.currentGraph.GetNodes<AbstractMaterialNode>().Count());
+            Assert.IsNotNull(graph);
+            
+            Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
         }
     }
 }

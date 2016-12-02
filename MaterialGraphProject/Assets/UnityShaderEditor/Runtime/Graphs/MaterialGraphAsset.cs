@@ -1,4 +1,10 @@
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+#if UNITY_EDITOR
+using System.Reflection;
+using UnityEditor;
+#endif
 using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
@@ -8,9 +14,12 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private MaterialGraph m_MaterialGraph = new MaterialGraph();
 
+        [SerializeField]
+        private Shader m_GeneratedShader;
+
         public IGraph graph
         {
-            get { return m_MaterialGraph.currentGraph; }
+            get { return m_MaterialGraph; }
         }
 
         public bool shouldRepaint
@@ -28,14 +37,81 @@ namespace UnityEngine.MaterialGraph
             graph.OnEnable();
         }
 
-        public Material GetMaterial()
+#if UNITY_EDITOR
+        public static bool ShaderHasError(Shader shader)
         {
-            return null;
+            var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
+            var result = hasErrorsCall.Invoke(null, new object[] { shader });
+            return (int)result != 0;
         }
 
-        public void PostCreate()
+        public bool RegenerateInternalShader()
         {
-            m_MaterialGraph.PostCreate();
+            if (m_MaterialGraph.masterNode == null)
+                return false;
+
+            var path = "Assets/GraphTemp.shader";
+            List<PropertyGenerator.TextureInfo> configuredTextures;
+            var shaderString = m_MaterialGraph.masterNode.GetShader(GenerationMode.ForReals, out configuredTextures);
+            File.WriteAllText(path, shaderString);
+            AssetDatabase.ImportAsset(path);
+
+            var shader = AssetDatabase.LoadAssetAtPath(path, typeof(Shader)) as Shader;
+            if (shader == null)
+                return false;
+
+            var shaderImporter = AssetImporter.GetAtPath(path) as ShaderImporter;
+            if (shaderImporter == null)
+                return false;
+
+            var textureNames = new List<string>();
+            var textures = new List<Texture>();
+            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable == TexturePropertyChunk.ModifiableState.Modifiable))
+            {
+                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
+                if (texture == null)
+                    continue;
+                textureNames.Add(textureInfo.name);
+                textures.Add(texture);
+            }
+            shaderImporter.SetDefaultTextures(textureNames.ToArray(), textures.ToArray());
+
+            textureNames.Clear();
+            textures.Clear();
+            foreach (var textureInfo in configuredTextures.Where(x => x.modifiable == TexturePropertyChunk.ModifiableState.NonModifiable))
+            {
+                var texture = EditorUtility.InstanceIDToObject(textureInfo.textureId) as Texture;
+                if (texture == null)
+                    continue;
+                textureNames.Add(textureInfo.name);
+                textures.Add(texture);
+            }
+            shaderImporter.SetNonModifiableTextures(textureNames.ToArray(), textures.ToArray());
+            shaderImporter.SaveAndReimport();
+
+            var imported = shaderImporter.GetShader();
+
+	        if (m_GeneratedShader == null)
+	        {
+		        m_GeneratedShader = Instantiate(imported);
+	        }
+	        else
+	        {
+		        var oldID = m_GeneratedShader.GetInstanceID();
+		        DestroyImmediate(m_GeneratedShader,  true);
+		        var newAsset = Instantiate(imported, oldID);
+		        m_GeneratedShader = newAsset;
+	        }
+	        AssetDatabase.AddObjectToAsset(m_GeneratedShader, this);
+            AssetDatabase.DeleteAsset(path);
+            
+            return true;
+        }
+#endif
+
+        private int GetShaderInstanceID()
+        {
+            return m_GeneratedShader == null ? 0 : m_GeneratedShader.GetInstanceID();
         }
     }
 }

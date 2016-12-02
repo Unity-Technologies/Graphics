@@ -120,10 +120,8 @@ namespace UnityEditor.MaterialGraph.Drawing
                 var localNode = (AbstractMasterNode)m_Node;
                 if (localNode == null)
                     return string.Empty;
-
-                var shaderName = "Hidden/PreviewShader/" + localNode.GetVariableNameForNode();
+                
                 List<PropertyGenerator.TextureInfo> defaultTextures;
-                //TODO: Need to get the real options somehow
                 var resultShader =  ((AbstractMasterNode) m_Node).GetShader(GenerationMode.Preview, out defaultTextures);
                 m_GeneratedShaderMode = PreviewMode.Preview3D;
                 return resultShader;
@@ -146,7 +144,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             // if we are in error we sometimes to not properly clean
             // out the error flags and will stay in error, even
             // if we are now valid
-            if (m_PreviewShader && ShaderHasError(m_PreviewShader))
+            if (m_PreviewShader && MaterialGraphAsset.ShaderHasError(m_PreviewShader))
             {
                 Object.DestroyImmediate(m_PreviewShader, true);
                 m_PreviewShader = null;
@@ -162,15 +160,10 @@ namespace UnityEditor.MaterialGraph.Drawing
                 ShaderUtil.UpdateShaderAsset(m_PreviewShader, resultShader);
             }
 
-            return !ShaderHasError(m_PreviewShader);
+            return !MaterialGraphAsset.ShaderHasError(m_PreviewShader);
         }
 
-        public static bool ShaderHasError(Shader shader)
-        {
-            var hasErrorsCall = typeof(ShaderUtil).GetMethod("GetShaderErrorCount", BindingFlags.Static | BindingFlags.NonPublic);
-            var result = hasErrorsCall.Invoke(null, new object[] {shader});
-            return (int)result != 0;
-        }
+
 
         /// <summary>
         ///     RenderPreview gets called in OnPreviewGUI. Nodes can override

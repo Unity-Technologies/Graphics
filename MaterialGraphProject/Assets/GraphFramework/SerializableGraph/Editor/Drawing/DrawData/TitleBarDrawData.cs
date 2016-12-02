@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Graphing;
 using System.Collections.Generic;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -34,6 +35,11 @@ namespace UnityEditor.Graphing.Drawing
             currentGraphItem.text = graphAsset != null ? graphAsset.GetScriptableObject().name : "";
             m_leftItems.Add(currentGraphItem);
 
+            var updateAsset = CreateInstance<TitleBarButtonDrawData>();
+            updateAsset.text = "Update Asset";
+            updateAsset.onClick += UpdateAsset;
+            m_leftItems.Add(updateAsset);
+
             var showInProjectItem = CreateInstance<TitleBarButtonDrawData>();
             showInProjectItem.text = "Show in project";
             showInProjectItem.onClick += OnShowInProjectClick;
@@ -48,6 +54,14 @@ namespace UnityEditor.Graphing.Drawing
         {
             if (m_graphAsset != null)
                 EditorGUIUtility.PingObject(m_graphAsset.GetScriptableObject());
+        }
+        void UpdateAsset()
+        {
+            if (m_graphAsset != null && m_graphAsset is MaterialGraphAsset)
+            {
+                var mg = (MaterialGraphAsset)m_graphAsset;
+                mg.RegenerateInternalShader();
+            }
         }
     }
 }

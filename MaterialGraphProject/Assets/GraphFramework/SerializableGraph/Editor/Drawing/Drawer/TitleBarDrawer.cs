@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEngine.RMGUI;
 using UnityEngine.RMGUI.StyleSheets;
@@ -8,19 +8,19 @@ namespace UnityEditor.Graphing.Drawing
     [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/TitleBar.uss")]
     public class TitleBarDrawer : DataWatchContainer
     {
-        TitleBarDrawData m_dataProvider;
-        VisualContainer m_leftContainer;
-        VisualContainer m_rightContainer;
+        TitleBarDrawData m_DataProvider;
+        VisualContainer m_LeftContainer;
+        VisualContainer m_RightContainer;
 
         public TitleBarDrawData dataProvider
         {
-            get { return m_dataProvider; }
+            get { return m_DataProvider; }
             set
             {
-                if (m_dataProvider == value)
+                if (m_DataProvider == value)
                     return;
                 RemoveWatch();
-                m_dataProvider = value;
+                m_DataProvider = value;
                 OnDataChanged();
                 AddWatch();
             }
@@ -32,34 +32,34 @@ namespace UnityEditor.Graphing.Drawing
             name = "TitleBar";
             zBias = 99;
 
-            m_leftContainer = new VisualContainer()
+            m_LeftContainer = new VisualContainer()
             {
                 name = "left"
             };
-            AddChild(m_leftContainer);
+            AddChild(m_LeftContainer);
 
-            m_rightContainer = new VisualContainer()
+            m_RightContainer = new VisualContainer()
             {
                 name = "right"
             };
-            AddChild(m_rightContainer);
+            AddChild(m_RightContainer);
 
             foreach (var leftItemData in dataProvider.leftItems)
-                m_leftContainer.AddChild(new TitleBarButtonDrawer(leftItemData));
+                m_LeftContainer.AddChild(new TitleBarButtonDrawer(leftItemData));
 
             foreach (var rightItemData in dataProvider.rightItems)
-                m_rightContainer.AddChild(new TitleBarButtonDrawer(rightItemData));
+                m_RightContainer.AddChild(new TitleBarButtonDrawer(rightItemData));
 
             this.dataProvider = dataProvider;
         }
 
         public override void OnDataChanged()
         {
-            if (m_dataProvider == null)
+            if (m_DataProvider == null)
                 return;
 
-            UpdateContainer(m_leftContainer, m_dataProvider.leftItems);
-            UpdateContainer(m_rightContainer, m_dataProvider.rightItems);
+            UpdateContainer(m_LeftContainer, m_DataProvider.leftItems);
+            UpdateContainer(m_RightContainer, m_DataProvider.rightItems);
         }
 
         void UpdateContainer(VisualContainer container, IEnumerable<TitleBarButtonDrawData> itemDatas)

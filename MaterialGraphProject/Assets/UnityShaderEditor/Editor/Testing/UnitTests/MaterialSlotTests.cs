@@ -9,7 +9,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
     [TestFixture]
     public class MaterialSlotTests
     {
-        private PixelGraph m_Graph;
+        private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
         private TestNode m_NodeA;
 
         class TestNode : AbstractMaterialNode
@@ -34,7 +34,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new PixelGraph();
+            m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
             m_NodeA = new TestNode();
             m_Graph.AddNode(m_NodeA);
         }

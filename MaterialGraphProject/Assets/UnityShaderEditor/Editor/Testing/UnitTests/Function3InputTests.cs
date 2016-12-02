@@ -35,7 +35,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
             }
         }
 
-        private PixelGraph m_Graph;
+        private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
         private Vector1Node m_InputOne;
         private Vector1Node m_InputTwo;
         private Vector1Node m_InputThree;
@@ -50,7 +50,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new PixelGraph();
+            m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
             m_InputOne = new Vector1Node();
             m_InputTwo = new Vector1Node();
             m_InputThree = new Vector1Node();

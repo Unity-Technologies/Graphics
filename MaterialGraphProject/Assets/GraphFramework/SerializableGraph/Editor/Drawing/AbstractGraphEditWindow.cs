@@ -96,8 +96,6 @@ namespace UnityEditor.Graphing.Drawing
         }
 
         /*
-
-
         private void ConvertSelectionToSubGraph()
         {
             if (m_Canvas.dataSource == null)
@@ -239,68 +237,6 @@ namespace UnityEditor.Graphing.Drawing
                 m_Canvas.selection.Add(toSelect);
             }
             m_Canvas.Repaint();
-        }
-
-        private void Rebuild()
-        {
-            if (m_Canvas == null || m_LastSelection == null)
-                return;
-
-            m_DataSource.graphAsset = m_LastSelection;
-            m_Canvas.ReloadData();
-        }*/
-
-        /*     void OnGUI()
-             {
-                 m_HostWindow = this;
-                 if (m_Canvas == null)
-                 {
-                     InitializeCanvas();
-                 }
-
-                 if (m_LastSelection == null || m_LastSelection.graph == null)
-                 {
-                     GUILayout.Label("No Graph selected");
-                     return;
-                 }
-
-                 m_Canvas.OnGUI(this, new Rect(0, 0, position.width - 250, position.height));
-
-                 if (GUI.Button(new Rect(position.width - 250, 0, 250, 50), "Convert to Sub-Graph"))
-                     ConvertSelectionToSubGraph();
-
-                 if (GUI.Button(new Rect(position.width - 250, 70, 250, 50), "Export"))
-                     Export(false);
-
-
-                 if (GUI.Button(new Rect(position.width - 250, 140, 250, 50), "Export - quick"))
-                     Export(true);
-
-
-                 EditorGUI.ObjectField(new Rect(position.width - 250, 210, 250, 50), rt, typeof(RenderTexture), false);
-             }*/
-
-
-        /*public void RenderOptions(MaterialGraph graph)
-        {
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
-            EditorGUILayout.BeginVertical();
-            m_ScrollPos = GUILayout.BeginScrollView(m_ScrollPos, EditorStyles.textArea, GUILayout.width(250), GUILayout.ExpandHeight(true));
-            graph.materialOptions.DoGUI();
-            EditorGUILayout.Separator();
-
-            m_NodeExpanded = MaterialGraphStyles.Header("Selected", m_NodeExpanded);
-            if (m_NodeExpanded)
-                DrawableMaterialNode.OnGUI(m_Canvas.selection);
-
-            GUILayout.EndScrollView();
-            if (GUILayout.Button("Export"))
-                m_DataSource.Export(false);
-
-            GUILayout.EndVertical();
-            EditorGUILayout.EndHorizontal();
         }*/
 
         public void OnBeforeSerialize()

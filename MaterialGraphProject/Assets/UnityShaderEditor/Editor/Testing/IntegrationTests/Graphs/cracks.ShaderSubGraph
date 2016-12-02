@@ -19,13 +19,14 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"be9ff4e1-caa8-4e27-afa3-cb97b096423e\",\n
         \   \"m_Name\": \"SubGraphInputs\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": 0.0,\n            \"y\": 0.0,\n            \"width\": 0.0,\n
-        \           \"height\": 0.0\n        }\n    },\n    \"m_SerializableSlots\":
-        [\n        {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-        \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\":
-        \"{\\n    \\\"m_Id\\\": -1,\\n    \\\"m_DisplayName\\\": \\\"Input 1\\\",\\n
-        \   \\\"m_SlotType\\\": 1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\":
-        1,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
+        \           \"x\": -1179.3194580078125,\n            \"y\": 304.45880126953127,\n
+        \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
+        \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
+        \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
+        \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
+        \   \\\"m_Id\\\": -1,\\n    \\\"m_DisplayName\\\": \\\"Input 1\\\",\\n    \\\"m_SlotType\\\":
+        1,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\": 1,\\n
+        \   \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":
@@ -46,13 +47,14 @@ MonoBehaviour:
       JSONnodeData: "{\n    \"m_GuidSerialized\": \"f1a71249-a296-4de6-a298-98da37ae3e1e\",\n
         \   \"m_Name\": \"SubGraphOutputs\",\n    \"m_DrawData\": {\n        \"m_Expanded\":
         true,\n        \"m_Position\": {\n            \"serializedVersion\": \"2\",\n
-        \           \"x\": 0.0,\n            \"y\": 0.0,\n            \"width\": 0.0,\n
-        \           \"height\": 0.0\n        }\n    },\n    \"m_SerializableSlots\":
-        [\n        {\n            \"typeInfo\": {\n                \"fullName\": \"UnityEngine.MaterialGraph.MaterialSlot\",\n
-        \               \"assemblyName\": \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\":
-        \"{\\n    \\\"m_Id\\\": 1,\\n    \\\"m_DisplayName\\\": \\\"Output 1\\\",\\n
-        \   \\\"m_SlotType\\\": 0,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\":
-        1,\\n    \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
+        \           \"x\": 1.8341208696365357,\n            \"y\": 159.56576538085938,\n
+        \           \"width\": 0.0,\n            \"height\": 0.0\n        }\n    },\n
+        \   \"m_SerializableSlots\": [\n        {\n            \"typeInfo\": {\n                \"fullName\":
+        \"UnityEngine.MaterialGraph.MaterialSlot\",\n                \"assemblyName\":
+        \"Assembly-CSharp\"\n            },\n            \"JSONnodeData\": \"{\\n
+        \   \\\"m_Id\\\": 1,\\n    \\\"m_DisplayName\\\": \\\"Output 1\\\",\\n    \\\"m_SlotType\\\":
+        0,\\n    \\\"m_Priority\\\": 2147483647,\\n    \\\"m_ValueType\\\": 1,\\n
+        \   \\\"m_DefaultValue\\\": {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\":
         0.0,\\n        \\\"z\\\": 0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_CurrentValue\\\":
         {\\n        \\\"x\\\": 0.0,\\n        \\\"y\\\": 0.0,\\n        \\\"z\\\":
         0.0,\\n        \\\"w\\\": 0.0\\n    },\\n    \\\"m_ConcreteValueType\\\":

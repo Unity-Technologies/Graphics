@@ -87,7 +87,7 @@ namespace UnityEditor.MaterialGraph.IntegrationTests
 
             Assert.IsNotNull(graphAsset, "Graph asset not found");
 
-            var materialGraph = graphAsset.graph as PixelGraph;
+            var materialGraph = graphAsset.graph as UnityEngine.MaterialGraph.MaterialGraph;
             Assert.IsNotNull(materialGraph);
 
             // Generate the shader

@@ -8,7 +8,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
     [TestFixture]
     public class DynamicSlotTests
     {
-        private PixelGraph m_Graph;
+        private UnityEngine.MaterialGraph.MaterialGraph m_Graph;
         private DynamicNode m_DynamicNode;
         private TestNode m_StaticNode;
 
@@ -51,7 +51,7 @@ namespace UnityEditor.MaterialGraph.UnitTests
         [SetUp]
         public void TestSetUp()
         {
-            m_Graph = new PixelGraph();
+            m_Graph = new UnityEngine.MaterialGraph.MaterialGraph();
             m_DynamicNode = new DynamicNode();
             m_Graph.AddNode(m_DynamicNode);
             m_StaticNode = new TestNode();

@@ -1,44 +1,53 @@
 using System;
+using System.Linq;
 
 namespace UnityEngine.MaterialGraph
 {
     [Serializable]
-    public class MaterialGraph
+    public class MaterialGraph : AbstractMaterialGraph
     {
-        [SerializeField]
-        private PixelGraph m_PixelGraph;
+        [NonSerialized]
+        private Guid m_ActiveMasterNodeGUID;
 
         [SerializeField]
-        private string m_Name;
-
-        public string name
-        {
-            get { return m_Name; }
-            set { m_Name = value; }
-        }
+        private string m_ActiveMasterNodeGUIDSerialized;
 
         public MaterialGraph()
         {
-            m_PixelGraph = new PixelGraph();
-        }
-        
-        public AbstractMaterialGraph currentGraph
-        {
-            get { return m_PixelGraph; }
+            m_ActiveMasterNodeGUID = Guid.NewGuid();
         }
 
-        /*
-        public Material GetMaterial()
+        public IMasterNode masterNode
         {
-            if (m_PixelGraph == null)
-                return null;
+            get
+            {
+                var found = GetNodeFromGuid(m_ActiveMasterNodeGUID) as IMasterNode;
+                if (found != null)
+                    return found;
 
-            return m_PixelGraph.GetMaterial();
-        }*/
+                return GetNodes<IMasterNode>().FirstOrDefault();
+            }
+        }
 
-        public void PostCreate()
+        public string name
         {
-            //m_PixelGraph.AddNode(new PixelShaderNode());
+            get { return "Graph_ " + masterNode.GetVariableNameForNode(); }
+        }
+
+        public override void OnBeforeSerialize()
+        {
+            base.OnBeforeSerialize();
+
+            m_ActiveMasterNodeGUIDSerialized = m_ActiveMasterNodeGUID.ToString();
+        }
+        public override void OnAfterDeserialize()
+        {
+            base.OnAfterDeserialize();
+
+            if (!string.IsNullOrEmpty(m_ActiveMasterNodeGUIDSerialized))
+                m_ActiveMasterNodeGUID = new Guid(m_ActiveMasterNodeGUIDSerialized);
+            else
+                m_ActiveMasterNodeGUID = Guid.NewGuid();
         }
     }
 }
