@@ -4,7 +4,7 @@
 float GetScaleFromBase(float base)
 {
     const float C = (float)(1 << g_iLog2NumClusters);
-    const float geomSeries = (1.0 - pow(base, C)) / (1 - base);     // geometric series: sum_k=0^{C-1} base^k
+    const float geomSeries = (1.0 - pow(abs(base), C)) / (1 - base);     // geometric series: sum_k=0^{C-1} base^k
     return geomSeries / (g_fFarPlane - g_fNearPlane);
 }
 

@@ -8,9 +8,12 @@
 #define PROCESS_ENV_LIGHT
 #endif
 
+#include "TilePass.cs.hlsl"
 
 uint _NumTileX;
 uint _NumTileY;
+
+Buffer<uint> g_vLightListGlobal;
 
 #define TILE_SIZE 16 // This is fixed
 #define DWORD_PER_TILE 16 // See dwordsPerTile in TilePass.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
@@ -25,7 +28,7 @@ float g_fFarPlane;
 int g_iLog2NumClusters;	// We need to always define these to keep constant buffer layouts compatible
 
 uint g_isLogBaseBufferEnabled;
-uint g_isOpaquesOnlyEnabled;
+uint _UseTileLightList;
 //#endif
 
 #ifdef USE_CLUSTERED_LIGHTLIST

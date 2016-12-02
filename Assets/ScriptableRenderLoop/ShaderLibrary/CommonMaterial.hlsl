@@ -102,6 +102,12 @@ float3 ComputeTriplanarWeights(float3 normal)
     return blendWeights;
 }
 
+float LerpWhiteTo(float b, float t)
+{
+    float oneMinusT = 1.0 - t;
+    return oneMinusT + b * t;
+}
+
 float3 LerpWhiteTo(float3 b, float t)
 {
     float oneMinusT = 1.0 - t;

@@ -25,6 +25,12 @@
 #define ENVSHAPETYPE_NONE (0)
 #define ENVSHAPETYPE_BOX (1)
 #define ENVSHAPETYPE_SPHERE (2)
+#define ENVSHAPETYPE_SKY (3)
+
+//
+// UnityEngine.Experimental.ScriptableRenderLoop.EnvConstants:  static fields
+//
+#define ENVCONSTANTS_SPEC_CUBE_LOD_STEP (6)
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.LightData
 // PackingRules = Exact
@@ -91,7 +97,7 @@ struct EnvLightData
 	float3 positionWS;
 	int envShapeType;
 	float3 forward;
-	float envIndex;
+	int envIndex;
 	float3 up;
 	float blendDistance;
 	float3 right;
@@ -269,7 +275,7 @@ float3 GetForward(EnvLightData value)
 {
 	return value.forward;
 }
-float GetEnvIndex(EnvLightData value)
+int GetEnvIndex(EnvLightData value)
 {
 	return value.envIndex;
 }

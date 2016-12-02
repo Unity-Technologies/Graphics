@@ -246,5 +246,5 @@ Shader "HDRenderLoop/Unlit"
         }
     }
 
-    CustomEditor "UnlitGUI"
+    CustomEditor "Experimental.ScriptableRenderLoop.UnlitGUI"
 }

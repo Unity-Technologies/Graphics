@@ -38,13 +38,13 @@ TEXTURECUBE(_SkyTexture);
 SAMPLERCUBE(sampler_SkyTexture); // NOTE: Sampler could be share here with _EnvTextures. Don't know if the shader compiler will complain...
 
 CBUFFER_START(UnityPerLightLoop)
-    int _DirectionalLightCount;
-    int _PunctualLightCount;
-    int _AreaLightCount;
-    int _EnvLightCount;
-    EnvLightData _EnvLightSky;
+    uint _DirectionalLightCount;
+    uint _PunctualLightCount;
+    uint _AreaLightCount;
+    uint _EnvLightCount;
+    int  _EnvLightSkyEnabled;         // TODO: make it a bool
 	float4 _ShadowMapSize;
-    float4 _DirShadowSplitSpheres[4]; // TODO share this max between C# and hlsl
+    float4 _DirShadowSplitSpheres[4]; // TODO: share this max between C# and hlsl
 CBUFFER_END
 
 struct LightLoopContext
@@ -157,7 +157,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     // This code will be inlined as lightLoopContext is hardcoded in the light loop
     if (lightLoopContext.sampleReflection == SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES)
     {
-        return SAMPLE_TEXTURECUBE_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, float4(texCoord, index), lod);
+        return SAMPLE_TEXTURECUBE_ARRAY_LOD(_EnvTextures, sampler_EnvTextures, texCoord, index, lod);
     }
     else // SINGLE_PASS_SAMPLE_SKY
     {

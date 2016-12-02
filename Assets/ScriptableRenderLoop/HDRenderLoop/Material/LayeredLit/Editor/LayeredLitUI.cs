@@ -4,7 +4,7 @@ using UnityEngine.Rendering;
 
 using System.Linq;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.ScriptableRenderLoop
 {
     internal class LayeredLitGUI : LitGUI
     {
@@ -128,37 +128,37 @@ namespace UnityEditor
 
 					if(!exclusionList.Contains(propertyName))
 					{
-						if (material.HasProperty(layerPropertyName))
-						{
-							ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
-							switch (type)
-							{
-								case ShaderUtil.ShaderPropertyType.Color:
-									{
-										material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
-										break;
-									}
-								case ShaderUtil.ShaderPropertyType.Float:
-								case ShaderUtil.ShaderPropertyType.Range:
-									{
-										material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
-										break;
-									}
-								case ShaderUtil.ShaderPropertyType.Vector:
-									{
-										material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
-										break;
-									}
-								case ShaderUtil.ShaderPropertyType.TexEnv:
-									{
-										material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
-										break;
-									}
-							}
-						}
-					}
+                    if (material.HasProperty(layerPropertyName))
+                    {
+                        ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
+                        switch (type)
+                        {
+                            case ShaderUtil.ShaderPropertyType.Color:
+                            {
+                                material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
+                                break;
+                            }
+                            case ShaderUtil.ShaderPropertyType.Float:
+                            case ShaderUtil.ShaderPropertyType.Range:
+                            {
+                                material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
+                                break;
+                            }
+                            case ShaderUtil.ShaderPropertyType.Vector:
+                            {
+                                material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
+                                break;
+                            }
+                            case ShaderUtil.ShaderPropertyType.TexEnv:
+                            {
+                                material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
+                                break;
+                            }
+                        }
+                    }
                 }
             }
+        }
         }
 
         void InitializeMaterialLayers(AssetImporter materialImporter)

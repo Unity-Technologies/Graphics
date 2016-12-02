@@ -8,6 +8,7 @@
 #include "GeometricTools.hlsl"
 #include "CommonMaterial.hlsl"
 #include "EntityLighting.hlsl"
+#include "ImageBasedLighting.hlsl"
 
 //-----------------------------------------------------------------------------
 // BuiltinData
