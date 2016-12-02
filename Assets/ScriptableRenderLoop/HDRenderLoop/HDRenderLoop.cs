@@ -668,13 +668,31 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     var directionalLightData = new DirectionalLightData();
                     // Light direction for directional and is opposite to the forward direction
-                    directionalLightData.direction = -light.light.transform.forward;
+                    directionalLightData.direction  = -light.light.transform.forward;
+                    directionalLightData.up         = -light.light.transform.up;
+                    directionalLightData.positionWS = light.light.transform.position;
                     directionalLightData.color = new Vector3(lightColorR, lightColorG, lightColorB);
                     directionalLightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
                     directionalLightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
+                    directionalLightData.invScaleX = 1.0f / light.light.transform.localScale.x;
+                    directionalLightData.invScaleY = 1.0f / light.light.transform.localScale.y;
                     directionalLightData.cosAngle = 0.0f;
                     directionalLightData.sinAngle = 0.0f;
                     directionalLightData.shadowIndex = -1;
+                    directionalLightData.cookieIndex = Int32.MinValue;
+
+                    if (light.light.cookie != null)
+                    {
+                        if (light.light.cookie.dimension == TextureDimension.Tex2D)
+                        {
+                            directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                        }
+                        else // Cube
+                        {
+                            // Note the bitwise (one's) complement operator which flips the bits.
+                            directionalLightData.cookieIndex = ~m_CubeCookieTexArray.FetchSlice(light.light.cookie);
+                        }
+                    }
 
                     bool hasDirectionalShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
                     bool hasDirectionalNotReachMaxLimit = lightList.directionalShadows.Count == 0; // Only one cascade shadow allowed
@@ -757,11 +775,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     var innerConePercent = additionalData.GetInnerSpotPercent01();
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
+                    var sinSpotOuterHalfAngle = Mathf.Sqrt(1.0f - cosSpotOuterHalfAngle * cosSpotOuterHalfAngle);
                     var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
 
                     var val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
                     lightData.angleScale = 1.0f / val;
                     lightData.angleOffset = -cosSpotOuterHalfAngle * lightData.angleScale;
+
+                    // TODO: find a proper place to store the cotangent.
+                    lightData.size.x = cosSpotOuterHalfAngle / sinSpotOuterHalfAngle;
                 }
                 else
                 {
@@ -778,16 +800,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
 
-                bool hasCookie = light.light.cookie != null;
-                if (hasCookie)
+                if (light.light.cookie != null)
                 {
-                    if (light.lightType == LightType.Point)
+                    // TODO: add texture atlas support for cookie textures.
+                    switch (light.lightType)
                     {
-                        lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
-                    }
-                    else if (light.lightType == LightType.Spot)
-                    {
-                        lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                        case LightType.Spot:
+                            lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                            break;
+                        case LightType.Point:
+                            lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
+                            break;
                     }
                 }
 
@@ -814,9 +837,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     }
                 }
 
-                lightData.size = new Vector2(additionalData.areaLightLength, additionalData.areaLightWidth);
-                lightData.twoSided = additionalData.isDoubleSided;
-
                 if (additionalData.archetype == LightArchetype.Punctual)
                 {
                     lightList.punctualLights.Add(lightData);
@@ -824,6 +844,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
                 else
                 {
+                    lightData.twoSided = additionalData.isDoubleSided;
+                    lightData.size     = new Vector2(additionalData.areaLightLength,
+                                                     additionalData.areaLightWidth);
+
                     // Area and line lights are both currently stored as area lights on the GPU.
                     lightList.areaLights.Add(lightData);
                     lightList.areaCullIndices.Add(lightIndex);
@@ -915,8 +939,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public void PushGlobalParams(Camera camera, RenderLoop renderLoop, HDRenderLoop.LightList lightList)
         {
-            //Shader.SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
-            //Shader.SetGlobalTexture("_CubeCookieTextures", m_CubeCookieTexArray.GetTexCache());
+            Shader.SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
+            Shader.SetGlobalTexture("_CookieCubeTextures", m_CubeCookieTexArray.GetTexCache());
+
             Shader.SetGlobalTexture("_EnvTextures", m_CubeReflTexArray.GetTexCache());
 
             if (m_SkyRenderer.IsSkyValid(m_SkyParameters))

@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     public enum GPULightType
     {
         Directional,
-        Spot, 
+        Spot,
         Point,
         ProjectorOrtho,
         ProjectorPyramid,
@@ -33,26 +33,26 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float invSqrAttenuationRadius;
 
         public Vector3 color;
-        public float angleScale; // Spot light
+        public float angleScale;  // Spot light
 
         public Vector3 forward;
-        public float angleOffset;
+        public float angleOffset; // Spot light
 
         public Vector3 up;
-        public float diffuseScale; // Spot light
+        public float diffuseScale;
 
         public Vector3 right;
         public float specularScale;
-        
+
         public float shadowDimmer;
         // index are -1 if not used
         public int shadowIndex;
         public int IESIndex;
         public int cookieIndex;
 
-        public GPULightType lightType;   
+        public GPULightType lightType;
         // Area Light specific
-        public Vector2 size;
+        public Vector2 size; // x = cot(outerHalfAngle) for spot lights
         public bool twoSided;
     };
 
@@ -62,14 +62,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Vector3 direction;
         public float diffuseScale;
 
-        public Vector3 color;
-        public float specularScale;        
+        public Vector3 up;
+        public float invScaleX;
 
-        // Sun disc size 
-        public float cosAngle; // Distance to disk
-        public float sinAngle; // Disk radius
-        public int shadowIndex;
-        public float unused;
+        public Vector3 positionWS;
+        public float invScaleY;
+
+        public Vector3 color;
+        public float specularScale;
+
+        // Sun disc size
+        public float cosAngle;  // Distance to the disk
+        public float sinAngle;  // Disk radius
+        public int shadowIndex; // -1 if unused
+        public int cookieIndex; // INT_MIN if unused; (i >= 0) ? (i2D = i) : (iCube = ~i)
     };
 
 
