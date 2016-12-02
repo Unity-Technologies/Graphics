@@ -42,11 +42,12 @@ struct SFiniteLightBound
 	float radius;
 };
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.TilePass.SFiniteLightData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightShapeData
 // PackingRules = Exact
-struct SFiniteLightData
+struct LightShapeData
 {
 	float3 lightPos;
+	uint lightIndex;
 	float3 lightAxisX;
 	uint lightType;
 	float3 lightAxisY;
@@ -54,7 +55,7 @@ struct SFiniteLightData
 	float3 lightAxisZ;
 	float cotan;
 	float3 boxInnerDist;
-	uint lightModel;
+	uint lightCategory;
 	float3 boxInvRange;
 	float unused2;
 };
@@ -88,49 +89,53 @@ float GetRadius(SFiniteLightBound value)
 }
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.TilePass.SFiniteLightData
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightShapeData
 //
-float3 GetLightPos(SFiniteLightData value)
+float3 GetLightPos(LightShapeData value)
 {
 	return value.lightPos;
 }
-float3 GetLightAxisX(SFiniteLightData value)
+uint GetLightIndex(LightShapeData value)
+{
+	return value.lightIndex;
+}
+float3 GetLightAxisX(LightShapeData value)
 {
 	return value.lightAxisX;
 }
-uint GetLightType(SFiniteLightData value)
+uint GetLightType(LightShapeData value)
 {
 	return value.lightType;
 }
-float3 GetLightAxisY(SFiniteLightData value)
+float3 GetLightAxisY(LightShapeData value)
 {
 	return value.lightAxisY;
 }
-float GetRadiusSq(SFiniteLightData value)
+float GetRadiusSq(LightShapeData value)
 {
 	return value.radiusSq;
 }
-float3 GetLightAxisZ(SFiniteLightData value)
+float3 GetLightAxisZ(LightShapeData value)
 {
 	return value.lightAxisZ;
 }
-float GetCotan(SFiniteLightData value)
+float GetCotan(LightShapeData value)
 {
 	return value.cotan;
 }
-float3 GetBoxInnerDist(SFiniteLightData value)
+float3 GetBoxInnerDist(LightShapeData value)
 {
 	return value.boxInnerDist;
 }
-uint GetLightModel(SFiniteLightData value)
+uint GetLightCategory(LightShapeData value)
 {
-	return value.lightModel;
+	return value.lightCategory;
 }
-float3 GetBoxInvRange(SFiniteLightData value)
+float3 GetBoxInvRange(LightShapeData value)
 {
 	return value.boxInvRange;
 }
-float GetUnused2(SFiniteLightData value)
+float GetUnused2(LightShapeData value)
 {
 	return value.unused2;
 }

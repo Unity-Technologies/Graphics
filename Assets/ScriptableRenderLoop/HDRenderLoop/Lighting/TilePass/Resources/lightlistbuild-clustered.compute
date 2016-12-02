@@ -38,7 +38,7 @@ Texture2DMS<float> g_depth_tex : register( t0 );
 Texture2D g_depth_tex : register( t0 );
 #endif
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
-StructuredBuffer<SFiniteLightData> g_vLightData : register( t2 );
+StructuredBuffer<LightShapeData> _LightShapeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 #ifdef USE_TWO_PASS_TILED_LIGHTING
@@ -346,8 +346,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		{
 			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase) )
 			{
-				uint lightModel = g_vLightData[ coarseList[l] ].lightModel;
-				++modelListCount[ lightModel==REFLECTION_LIGHT ? 1 : 0];
+                uint lightCategory = _LightShapeData[coarseList[l]].lightCategory;
+                ++modelListCount[lightCategory == REFLECTION_LIGHT ? 1 : 0];
 				g_vLayeredLightList[offs++] = coarseList[l];			// reflection lights will be last since we sorted
 			}
 		}
@@ -480,7 +480,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 		GroupMemoryBarrierWithGroupSync();
 #endif
 		const int idxCoarse = coarseList[l];
-		[branch]if(g_vLightData[idxCoarse].lightType!=SPHERE_LIGHT)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+        [branch]if (_LightShapeData[idxCoarse].lightType != SPHERE_LIGHT)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 	

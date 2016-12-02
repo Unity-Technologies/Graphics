@@ -61,9 +61,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         };
 
         [GenerateHLSL]
-        public struct SFiniteLightData
+        public struct LightShapeData
         {
             public Vector3 lightPos;
+            public uint lightIndex; // Index in light tabs like LightData / EnvLightData
 
             public Vector3 lightAxisX;
             public uint lightType;
@@ -75,7 +76,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public float cotan;
  
             public Vector3 boxInnerDist;
-            public uint lightModel;        // DIRECT_LIGHT=0, REFLECTION_LIGHT=1
+            public uint lightCategory;        // DIRECT_LIGHT=0, REFLECTION_LIGHT=1
 
             public Vector3 boxInvRange;
             public float unused2;
@@ -101,7 +102,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             private static int s_GenListPerTileKernel;
             private static int s_GenListPerVoxelKernel;
             private static int s_ClearVoxelAtomicKernel;
-            private static ComputeBuffer s_LightDataBuffer;
+            private static ComputeBuffer s_LightShapeDataBuffer;
             private static ComputeBuffer s_ConvexBoundsBuffer;
             private static ComputeBuffer s_AABBBoundsBuffer;
             private static ComputeBuffer s_LightList;
@@ -130,7 +131,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // clustered light list specific buffers and data end
 
             SFiniteLightBound[] m_boundData;
-            SFiniteLightData[] m_lightData;
+            LightShapeData[] m_lightShapeData;
             int m_lightCount;
 
             bool usingFptl
@@ -180,8 +181,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (s_ConvexBoundsBuffer != null)
                     s_ConvexBoundsBuffer.Release();
 
-                if (s_LightDataBuffer != null)
-                    s_LightDataBuffer.Release();
+                if (s_LightShapeDataBuffer != null)
+                    s_LightShapeDataBuffer.Release();
 
                 if (enableClustered)
                 {
@@ -221,11 +222,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
                 s_AABBBoundsBuffer = new ComputeBuffer(2 * MaxNumLights, 3 * sizeof(float));
                 s_ConvexBoundsBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
-                s_LightDataBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightData)));
+                s_LightShapeDataBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightShapeData)));
  
                 buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vLightData", s_LightDataBuffer);
+                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "_LightShapeData", s_LightShapeDataBuffer);
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_data", s_ConvexBoundsBuffer);
 
                 if (enableClustered)
@@ -234,7 +235,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
                     s_ClearVoxelAtomicKernel = buildPerVoxelLightListShader.FindKernel("ClearAtomic");
                     buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_vLightData", s_LightDataBuffer);
+                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "_LightShapeData", s_LightShapeDataBuffer);
                     buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_data", s_ConvexBoundsBuffer);
 
                     s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
@@ -244,13 +245,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
                     buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_vLightData", s_LightDataBuffer);
+                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "_LightShapeData", s_LightShapeDataBuffer);
                     buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_data", s_ConvexBoundsBuffer);
                 }
 
                 s_LightList = null;
                 m_boundData = new SFiniteLightBound[MaxNumLights];
-                m_lightData = new SFiniteLightData[MaxNumLights];
+                m_lightShapeData = new LightShapeData[MaxNumLights];
                 m_lightCount = 0;
 
                 s_DirectionalLights = new ComputeBuffer(HDRenderLoop.k_MaxDirectionalLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
@@ -289,7 +290,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 s_AABBBoundsBuffer.Release();
                 s_ConvexBoundsBuffer.Release();
-                s_LightDataBuffer.Release();
+                s_LightShapeDataBuffer.Release();
                 ReleaseResolutionDependentBuffers();
 
                 if (enableClustered)
@@ -426,10 +427,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // add decals here too similar to the above
 
                 // establish offsets
-                for (var m = 0; m < numModels; m++)
+                for (int m = 0; m < numModels; m++)
                 {
                     offsets[m, 0] = m == 0 ? 0 : (numEntries[m - 1, numVolTypes - 1] + offsets[m - 1, numVolTypes - 1]);
-                    for (var v = 1; v < numVolTypes; v++)
+                    for (int v = 1; v < numVolTypes; v++)
                     {
                         offsets[m, v] = numEntries[m, v - 1] + offsets[m, v - 1];
                     }
@@ -448,10 +449,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     // Fill bounds
                     var bound = new SFiniteLightBound();
-                    var lightData = new SFiniteLightData();
+                    var lightShapeData = new LightShapeData();
                     int index = -1;
 
-                    lightData.lightModel = (uint)LightDefinitions.DIRECT_LIGHT;
+                    lightShapeData.lightCategory = (uint)LightDefinitions.DIRECT_LIGHT;
+                    lightShapeData.lightIndex = (uint)lightIndex;
 
                     if (punctualLightData.lightType == GPULightType.Spot || punctualLightData.lightType == GPULightType.ProjectorPyramid)
                     {
@@ -505,13 +507,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         bound.scaleXY = squeeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
 
 
-                        lightData.lightAxisX = vx;
-                        lightData.lightAxisY = vy;
-                        lightData.lightAxisZ = vz;
-                        lightData.lightType = (uint)LightDefinitions.SPOT_LIGHT;
-                        lightData.lightPos = worldToView.MultiplyPoint(lightPos);
-                        lightData.radiusSq = range * range;
-                        lightData.cotan = cota;
+                        lightShapeData.lightAxisX = vx;
+                        lightShapeData.lightAxisY = vy;
+                        lightShapeData.lightAxisZ = vz;
+                        lightShapeData.lightType = (uint)LightDefinitions.SPOT_LIGHT;
+                        lightShapeData.lightPos = worldToView.MultiplyPoint(lightPos);
+                        lightShapeData.radiusSq = range * range;
+                        lightShapeData.cotan = cota;
 
                         int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPOT_LIGHT;
                         index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
@@ -534,19 +536,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         Vector3 vz = lightToView.GetColumn(2);
 
                         // fill up ldata
-                        lightData.lightAxisX = vx;
-                        lightData.lightAxisY = vy;
-                        lightData.lightAxisZ = vz;
-                        lightData.lightType = (uint)LightDefinitions.SPHERE_LIGHT;
-                        lightData.lightPos = bound.center;
-                        lightData.radiusSq = range * range;
+                        lightShapeData.lightAxisX = vx;
+                        lightShapeData.lightAxisY = vy;
+                        lightShapeData.lightAxisZ = vz;
+                        lightShapeData.lightType = (uint)LightDefinitions.SPHERE_LIGHT;
+                        lightShapeData.lightPos = bound.center;
+                        lightShapeData.radiusSq = range * range;
 
                         int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPHERE_LIGHT;
                         index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     }
 
                     m_boundData[index] = bound;
-                    m_lightData[index] = lightData;
+                    m_lightShapeData[index] = lightShapeData;
                 }
 
                 for (int envIndex = 0; envIndex < lightList.envLights.Count; envIndex++)
@@ -554,8 +556,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     EnvLightData envLightData = lightList.envLights[envIndex];
                     VisibleReflectionProbe probe = cullResults.visibleReflectionProbes[lightList.envCullIndices[envIndex]];
 
-                    var bound = new SFiniteLightBound();
-                    var lightData = new SFiniteLightData();
+                    var bound = new SFiniteLightBound();                    
 
                     var bnds = probe.bounds;
                     var boxOffset = probe.center;                  // reflection volume offset relative to cube map capture point
@@ -588,21 +589,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     bound.scaleXY.Set(1.0f, 1.0f);
                     bound.radius = combinedExtent.magnitude;
 
-                    lightData.lightPos = Cw;
-                    lightData.lightAxisX = vx;
-                    lightData.lightAxisY = vy;
-                    lightData.lightAxisZ = vz;
-                    var delta = combinedExtent - e;
-                    lightData.boxInnerDist = e;
-                    lightData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+                    var lightShapeData = new LightShapeData();
+                    lightShapeData.lightType = (uint)LightDefinitions.BOX_LIGHT;
+                    lightShapeData.lightCategory = (uint)LightDefinitions.REFLECTION_LIGHT;
+                    lightShapeData.lightIndex = (uint)envIndex;
 
-                    lightData.lightType = (uint)LightDefinitions.BOX_LIGHT;
-                    lightData.lightModel = (uint)LightDefinitions.REFLECTION_LIGHT;
+                    lightShapeData.lightPos = Cw;
+                    lightShapeData.lightAxisX = vx;
+                    lightShapeData.lightAxisY = vy;
+                    lightShapeData.lightAxisZ = vz;
+                    var delta = combinedExtent - e;
+                    lightShapeData.boxInnerDist = e;
+                    lightShapeData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
 
                     int i = LightDefinitions.REFLECTION_LIGHT, j = LightDefinitions.BOX_LIGHT;
                     int index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     m_boundData[index] = bound;
-                    m_lightData[index] = lightData;
+                    m_lightShapeData[index] = lightShapeData;
                 }
 
                 // Sanity check
@@ -616,7 +619,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_lightCount = lightList.punctualLights.Count + lightList.envLights.Count;
                 s_ConvexBoundsBuffer.SetData(m_boundData); // TODO: check with Vlad what is happening here, do we copy 1024 element always ? Could we setup the size we want to copy ?
-                s_LightDataBuffer.SetData(m_lightData);
+                s_LightShapeDataBuffer.SetData(m_lightShapeData);
             }
 
             void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
@@ -718,7 +721,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
                     cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", m_lightCount);
-                    cmd.SetComputeIntParam(buildPerTileLightListShader, "_PunctualLightCount", lightList.punctualLights.Count);              
                     Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
                     Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
                     cmd.SetComputeTextureParam(buildPerTileLightListShader, s_GenListPerTileKernel, "g_depth_tex", cameraDepthBufferRT);
@@ -856,7 +858,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LightTextureB0", m_LightAttentuationTexture);
 
                         cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
-                        cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightData", s_LightDataBuffer);
+                        cmd.SetComputeBufferParam(deferredComputeShader, kernel, "_LightShapeData", s_LightShapeDataBuffer);
                         cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
 
                         var defdecode = ReflectionProbe.GetDefaultTextureHDRDecodeValues();
