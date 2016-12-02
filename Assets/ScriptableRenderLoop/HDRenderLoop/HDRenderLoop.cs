@@ -678,6 +678,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     // Light direction for directional and is opposite to the forward direction
                     directionalLightData.direction  = -light.light.transform.forward;
                     directionalLightData.up         = -light.light.transform.up;
+                    directionalLightData.right      = -light.light.transform.right;
                     directionalLightData.positionWS = light.light.transform.position;
                     directionalLightData.color = new Vector3(lightColorR, lightColorG, lightColorB);
                     directionalLightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
@@ -687,19 +688,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     directionalLightData.cosAngle = 0.0f;
                     directionalLightData.sinAngle = 0.0f;
                     directionalLightData.shadowIndex = -1;
-                    directionalLightData.cookieIndex = Int32.MinValue;
+                    directionalLightData.cookieIndex = -1;
 
                     if (light.light.cookie != null)
                     {
-                        if (light.light.cookie.dimension == TextureDimension.Tex2D)
-                        {
-                            directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
-                        }
-                        else // Cube
-                        {
-                            // Note the bitwise (one's) complement operator which flips the bits.
-                            directionalLightData.cookieIndex = ~m_CubeCookieTexArray.FetchSlice(light.light.cookie);
-                        }
+                        directionalLightData.tileCookie  = (light.light.cookie.wrapMode == TextureWrapMode.Repeat);
+                        directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
                     }
 
                     bool hasDirectionalShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
