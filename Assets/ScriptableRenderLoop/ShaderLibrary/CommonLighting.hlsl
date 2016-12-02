@@ -26,6 +26,30 @@ float4 ClampToFloat16Max(float4 value)
 // Light direction is oriented backward (-Z). i.e in shader code, light direction is -lightData.forward
 
 //-----------------------------------------------------------------------------
+// Helper functions
+//-----------------------------------------------------------------------------
+
+// Performs the mapping of the vector 'v' centered within the axis-aligned cube
+// of dimensions [-1, 1]^3 to a vector centered within the unit sphere.
+// The function expects 'v' to be within the cube (possibly unexpected results otherwise).
+// Ref: http://mathproofs.blogspot.com/2005/07/mapping-cube-to-sphere.html
+float3 MapCubeToSphere(float3 v)
+{
+    float3 v2 = v * v;
+    float2 vr3 = v2.xy * rcp(3.0);
+    return v * sqrt((float3)1.0 - 0.5 * v2.yzx - 0.5 * v2.zxy + vr3.yxx * v2.zzy);
+}
+
+// Computes the squared magnitude of the vector computed by MapCubeToSphere().
+float ComputeCubeToSphereMapSqMagnitude(float3 v)
+{
+    float3 v2 = v * v;
+    // Note: dot(v, v) is often computed before this function is called,
+    // so the compiler should optimize and use the precomputed result here.
+    return dot(v, v) - v2.x * v2.y - v2.y * v2.z - v2.z * v2.x + v2.x * v2.y * v2.z;
+}
+
+//-----------------------------------------------------------------------------
 // Attenuation functions
 //-----------------------------------------------------------------------------
 
@@ -59,21 +83,53 @@ float GetAngleAttenuation(float3 L, float3 lightDir, float lightAngleScale, floa
     return attenuation;
 }
 
-// Applies SmoothDistanceAttenuation() after stretching the fade-out sphere of the given radius
-// into an ellipsoid with the specified aspect ratio and the longest axis.
-float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqrAttenuationRadius,
+// Applies SmoothDistanceAttenuation() after transforming the attenuation ellipsoid into a sphere.
+// If r = rsqrt(invSqRadius), then the ellipsoid is defined s.t. r1 = r / invAspectRatio, r2 = r3 = r.
+// The transformation is performed along the major axis of the ellipsoid (corresponding to 'r1').
+// Both the ellipsoid (e.i. 'axis') and 'unL' should be in the same coordinate system.
+// 'unL' should be computed from the center of the ellipsoid.
+float GetEllipsoidalDistanceAttenuation(float3 unL,  float invSqRadius,
                                         float3 axis, float invAspectRatio)
 {
-    // Project the unnormalized light vector onto the expansion axis.
+    // Project the unnormalized light vector onto the axis.
     float projL = dot(unL, axis);
 
-    // We want 'unL' to shrink along 'axis' by the aspect ratio. Therefore, we compute
-    // the difference between the length of the original projection and the shrunk one.
-    // It is equivalent to the expansion of the fade-out sphere into an ellipsoid.
-    float scale = projL - projL * invAspectRatio;
-    unL -= scale * axis;
+    // Transform the light vector instead of transforming the ellipsoid.
+    float diff = projL - projL * invAspectRatio;
+    unL -= diff * axis;
 
-    return SmoothDistanceAttenuation(dot(unL, unL), invSqrAttenuationRadius);
+    float sqDist = dot(unL, unL);
+    return SmoothDistanceAttenuation(sqDist, invSqRadius);
+}
+
+// Applies SmoothDistanceAttenuation() using the axis-aligned ellipsoid of the given dimensions.
+// Both the ellipsoid and 'unL' should be in the same coordinate system.
+// 'unL' should be computed from the center of the ellipsoid.
+float GetEllipsoidalDistanceAttenuation(float3 unL, float3 invHalfDim)
+{
+    // Transform the light vector so that we can work with
+    // with the ellipsoid as if it was a unit sphere.
+    unL *= invHalfDim;
+
+    float sqDist = dot(unL, unL);
+    return SmoothDistanceAttenuation(sqDist, 1.0);
+}
+
+// Applies SmoothDistanceAttenuation() after mapping the axis-aligned box to a sphere.
+// If the diagonal of the box is 'd', invHalfDim = rcp(0.5 * d).
+// Both the box and 'unL' should be in the same coordinate system.
+// 'unL' should be computed from the center of the box.
+float GetBoxDistanceAttenuation(float3 unL, float3 invHalfDim)
+{
+    // Transform the light vector so that we can work with
+    // with the box as if it was a [-1, 1]^2 cube.
+    unL *= invHalfDim;
+
+    // Our algorithm expects the input vector to be within the cube.
+    if (Max3(abs(unL.x), abs(unL.y), abs(unL.z)) > 1.0) return 0.0;
+
+    float sqDist = ComputeCubeToSphereMapSqMagnitude(unL);
+    return SmoothDistanceAttenuation(sqDist, 1.0);
 }
 
 //-----------------------------------------------------------------------------
@@ -125,28 +181,5 @@ void GetLocalFrame(float3 N, out float3 tangentX, out float3 tangentY)
     tangentY    = float3(b, 1.0f - N.y * N.y * a, -N.y);
 }
 */
-
-//-----------------------------------------------------------------------------
-// various helper
-//-----------------------------------------------------------------------------
-
-// Performs the mapping of the vector 'v' located within the cube of dimensions [-r, r]^3
-// to a vector within the sphere of radius 'r', where r = sqrt(r2).
-// Modified version of http://mathproofs.blogspot.com/2005/07/mapping-cube-to-sphere.html
-float3 MapCubeToSphere(float3 v, float r2)
-{
-    float3 v2 = v * v;
-    float2 vr3 = v2.xy * rcp(3.0 * r2);
-    return v * sqrt((float3)r2 - 0.5 * v2.yzx - 0.5 * v2.zxy + vr3.yxx * v2.zzy);
-}
-
-// Computes the squared magnitude of the vector computed by MapCubeToSphere().
-float ComputeCubeToSphereMapSqMagnitude(float3 v, float r2)
-{
-    float3 v2 = v * v;
-    // Note: dot(v, v) is often computed before this function is called,
-    // so the compiler should optimize and use the precomputed result here.
-    return r2 * dot(v, v) - v2.x * v2.y - v2.y * v2.z - v2.z * v2.x + v2.x * v2.y * v2.z * rcp(r2);
-}
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

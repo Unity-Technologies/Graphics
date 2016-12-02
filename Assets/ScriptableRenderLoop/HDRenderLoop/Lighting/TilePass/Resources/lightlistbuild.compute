@@ -25,7 +25,7 @@ uniform float4x4 g_mScrProjection;
 
 Texture2D g_depth_tex : register( t0 );
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
-StructuredBuffer<SFiniteLightData> g_vLightData : register( t2 );
+StructuredBuffer<LightShapeData> _LightShapeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 #ifdef USE_TWO_PASS_TILED_LIGHTING
@@ -232,7 +232,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int nrLightsCombinedList = min(ldsNrLightsFinal,MAX_NR_COARSE_ENTRIES);
 	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS) 
 	{
-		InterlockedAdd(ldsModelListCount[ g_vLightData[ prunedList[i] ].lightModel ], 1);
+        InterlockedAdd(ldsModelListCount[_LightShapeData[prunedList[i]].lightCategory], 1);
 	}
 
 
@@ -245,6 +245,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	// write lights to global buffers
 	int localOffs=0;
 	int offs = tileIDX.y*nrTilesX + tileIDX.x;
+
 	for(int m=0; m<NR_LIGHT_MODELS; m++)
 	{
 		int nrLightsFinal = ldsModelListCount[ m ];
@@ -254,8 +255,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		const int nrDWords = ((nrLightsFinalClamped+1)+1)>>1;
 		for(int l=(int) t; l<(int) nrDWords; l += NR_THREADS)
 		{
-			uint uLow = l==0 ? nrLightsFinalClamped : prunedList[2*l-1+localOffs];
-			uint uHigh = prunedList[2*l+0+localOffs];
+            // We remap the prunedList index to the original LightData / EnvLightData indices
+			uint uLow = l==0 ? nrLightsFinalClamped : _LightShapeData[prunedList[2*l-1+localOffs]].lightIndex;
+            uint uHigh = _LightShapeData[prunedList[2 * l + 0 + localOffs]].lightIndex;
 
 			g_vLightList[16*offs + l] = (uLow&0xffff) | (uHigh<<16);
 		}
@@ -263,7 +265,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		localOffs += nrLightsFinal;
 		offs += (nrTilesX*nrTilesY);
 	}
-
 }
 
 
@@ -274,7 +275,8 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	lightOffsSph = 0;
 
 	// make a copy of coarseList in prunedList.
-	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
+    int l;
+	for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 		prunedList[l]=coarseList[l];
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
@@ -290,7 +292,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	float onePixDiagDist = GetOnePixDiagWorldDistAtDepthOne();
 	float halfTileSizeAtZDistOne = 8*onePixDiagDist;		// scale by half a tile
 	
-	for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
+	for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
 		SFiniteLightBound lightData = g_data[coarseList[l]];
 	
@@ -328,12 +330,12 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 	{
 		// fetch light
 		int idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-		uint uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
+        uint uLgtType = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightType : 0;
 
 		// spot
 		while(l<iNrCoarseLights && uLgtType==SPOT_LIGHT)
 		{
-			SFiniteLightData lightData = g_vLightData[idxCoarse];
+            LightShapeData lightData = _LightShapeData[idxCoarse];
             // TODO: Change by SebL
             const bool bIsSpotDisc = true; // (lightData.flags&IS_CIRCULAR_SPOT_SHAPE) != 0;
 				
@@ -359,13 +361,13 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-			uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
+            uLgtType = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightType : 0;
 		}
 
 		// sphere
 		while(l<iNrCoarseLights && uLgtType==SPHERE_LIGHT)
 		{
-			SFiniteLightData lightData = g_vLightData[idxCoarse];
+            LightShapeData lightData = _LightShapeData[idxCoarse];
 
 			// serially check 4 pixels
 			uint uVal = 0;
@@ -386,13 +388,13 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-			uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
+            uLgtType = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightType : 0;
 		}
 
 		// Box
 		while(l<iNrCoarseLights && uLgtType==BOX_LIGHT)
 		{
-			SFiniteLightData lightData = g_vLightData[idxCoarse];
+            LightShapeData lightData = _LightShapeData[idxCoarse];
 
 			// serially check 4 pixels
 			uint uVal = 0;
@@ -413,7 +415,7 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-			uLgtType = l<iNrCoarseLights ? g_vLightData[idxCoarse].lightType : 0;
+            uLgtType = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightType : 0;
 		}
 
 		// in case we have some corrupt data make sure we terminate

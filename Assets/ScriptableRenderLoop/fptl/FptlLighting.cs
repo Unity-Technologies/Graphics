@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
-    public class FptlLighting : ScriptableRenderLoop
+    public class FptlLighting : RenderPipeline
     {
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("Renderloop/CreateRenderLoopFPTL")]
@@ -113,14 +113,42 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         private Texture2D m_LightAttentuationTexture;
         private int m_shadowBufferID;
 
-        void OnEnable()
+        private void OnValidate()
         {
             Rebuild();
         }
 
-        void OnValidate()
+        public override void Initialize()
         {
             Rebuild();
+        }
+
+        public override void Cleanup()
+        {
+            // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
+            if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
+            if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
+            if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
+            if (m_DebugLightBoundsMaterial) DestroyImmediate(m_DebugLightBoundsMaterial);
+            if (m_NHxRoughnessTexture) DestroyImmediate(m_NHxRoughnessTexture);
+            if (m_LightAttentuationTexture) DestroyImmediate(m_LightAttentuationTexture);
+
+            m_CookieTexArray.Release();
+            m_CubeCookieTexArray.Release();
+            m_CubeReflTexArray.Release();
+
+            s_AABBBoundsBuffer.Release();
+            s_ConvexBoundsBuffer.Release();
+            s_LightDataBuffer.Release();
+            ReleaseResolutionDependentBuffers();
+            s_DirLightList.Release();
+
+            if (enableClustered)
+            {
+                s_GlobalLightListAtomic.Release();
+            }
+
+            ClearComputeBuffers();
         }
 
         void ClearComputeBuffers()
@@ -230,34 +258,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             s_BigTileLightList = null;
 
             m_shadowBufferID = Shader.PropertyToID("g_tShadowBuffer");
-        }
-
-        void OnDisable()
-        {
-            // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
-            if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
-            if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
-            if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
-            if (m_DebugLightBoundsMaterial) DestroyImmediate(m_DebugLightBoundsMaterial);
-            if (m_NHxRoughnessTexture) DestroyImmediate(m_NHxRoughnessTexture);
-            if (m_LightAttentuationTexture) DestroyImmediate(m_LightAttentuationTexture);
-
-            m_CookieTexArray.Release();
-            m_CubeCookieTexArray.Release();
-            m_CubeReflTexArray.Release();
-
-            s_AABBBoundsBuffer.Release();
-            s_ConvexBoundsBuffer.Release();
-            s_LightDataBuffer.Release();
-            ReleaseResolutionDependentBuffers();
-            s_DirLightList.Release();
-
-
-
-            if (enableClustered)
-            {
-                s_GlobalLightListAtomic.Release();
-            }
         }
 
         static void SetupGBuffer(int width, int height, CommandBuffer cmd)
@@ -371,7 +371,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void DoTiledDeferredLighting(Camera camera, RenderLoop loop, int numLights, int numDirLights)
         {
-            var bUseClusteredForDeferred = !usingFptl;       // doesn't work on reflections yet but will soon
+            var bUseClusteredForDeferred = !usingFptl;
             var cmd = new CommandBuffer();
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
@@ -911,12 +911,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 var bnds = rl.bounds;
                 var boxOffset = rl.center;                  // reflection volume offset relative to cube map capture point
                 var blendDistance = rl.blendDistance;
-                float imp = rl.importance;
 
                 var mat = rl.localToWorld;
-                //Matrix4x4 mat = rl.transform.localToWorldMatrix;
-                Vector3 cubeCapturePos = mat.GetColumn(3);      // cube map capture position in world space
-
 
                 // implicit in CalculateHDRDecodeValues() --> float ints = rl.intensity;
                 var boxProj = (rl.boxProjection != 0);
@@ -928,8 +924,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 //Vector3 C = bnds.center;        // P + boxOffset;
                 var C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
 
-                //Vector3 posForShaderParam = bnds.center - boxOffset;    // gives same as rl.GetComponent<Transform>().position;
-                var posForShaderParam = cubeCapturePos;        // same as commented out line above when rot is identity
                 var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
 
                 Vector3 vx = mat.GetColumn(0);
@@ -992,6 +986,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             return numLightsOut + numProbesOut;
         }
+
+#if UNITY_EDITOR
+        public override void RenderSceneView(Camera camera, RenderLoop renderLoop)
+        {
+            base.RenderSceneView(camera, renderLoop);
+            renderLoop.PrepareForEditorRendering(camera, new RenderTargetIdentifier(s_CameraDepthTexture));
+            renderLoop.Submit();
+        }
+#endif
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {

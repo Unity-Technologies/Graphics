@@ -21,7 +21,7 @@ uniform float g_fNearPlane;
 uniform float g_fFarPlane;
 
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
-StructuredBuffer<SFiniteLightData> g_vLightData : register( t2 );
+StructuredBuffer<LightShapeData> _LightShapeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 
@@ -137,13 +137,14 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
 
 	lightOffs = 0;
 	GroupMemoryBarrierWithGroupSync();
-	for(int i=t; i<iNrCoarseLights; i+=NR_THREADS) if(lightsListLDS[i]<g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
+    int i;
+	for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if(lightsListLDS[i]<g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
 	GroupMemoryBarrierWithGroupSync();
 	iNrCoarseLights = lightOffs;
 
 	int offs = tileIDX.y*nrBigTilesX + tileIDX.x;
 
-	for(int i=t; i<(iNrCoarseLights+1); i+=NR_THREADS)
+	for(i=t; i<(iNrCoarseLights+1); i+=NR_THREADS)
 		g_vLightList[MAX_NR_BIGTILE_LIGHTS_PLUSONE*offs + i] = t==0 ? iNrCoarseLights : lightsListLDS[i-1];
 }
 
@@ -210,8 +211,8 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
 	const int totNrEdgePairs = 12*nrFrustEdges;
 	for(int l=0; l<iNrCoarseLights; l++)
 	{
-		const int idxCoarse = lightsListLDS[l];
-		[branch]if(idxCoarse<(uint) g_iNrVisibLights && g_vLightData[idxCoarse].lightType!=SPHERE_LIGHT)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+		const uint idxCoarse = lightsListLDS[l];
+        [branch]if (idxCoarse<(uint)g_iNrVisibLights && _LightShapeData[idxCoarse].lightType != SPHERE_LIGHT)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 	
