@@ -669,8 +669,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     var directionalLightData = new DirectionalLightData();
                     // Light direction for directional and is opposite to the forward direction
                     directionalLightData.direction  = -light.light.transform.forward;
-                    directionalLightData.up         = -light.light.transform.up;
-                    directionalLightData.right      = -light.light.transform.right;
+                    directionalLightData.up         = light.light.transform.up;
+                    directionalLightData.right      = light.light.transform.right;
                     directionalLightData.positionWS = light.light.transform.position;
                     directionalLightData.color = new Vector3(lightColorR, lightColorG, lightColorB);
                     directionalLightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;

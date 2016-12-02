@@ -661,8 +661,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         float3 unL = positionWS - lightData.positionWS;
 
         // Project 'unL' onto the light's axes.
-        float3 right = cross(lightData.up, lightData.direction);
-        float2 coord = float2(dot(unL, right), dot(unL, lightData.up));
+        float2 coord = float2(dot(unL, lightData.right), dot(unL, lightData.up));
 
         // Rescale the texture.
         coord.x *= lightData.invScaleX;
