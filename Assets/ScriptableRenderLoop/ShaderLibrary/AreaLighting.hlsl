@@ -208,8 +208,7 @@ float LineIrradiance(float l1, float l2, float3 normal, float3 tangent)
     float tLDDL2 = l2rcpD / (d * d + l2 * l2);
     float intWt  = LineFwt(tLDDL2, l2) - LineFwt(tLDDL1, l1);
     float intP0  = LineFpo(tLDDL2, l2rcpD, rcp(d)) - LineFpo(tLDDL1, l1rcpD, rcp(d));
-    // Guard against numerical precision issues.
-    return max(intP0 * normal.z + intWt * tangent.z, 0.0);
+    return intP0 * normal.z + intWt * tangent.z;
 }
 
 // Computes 1.0 / length(mul(ortho, transpose(inverse(invM)))).
@@ -238,9 +237,9 @@ float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
 
     float width = ComputeLineWidthFactor(invM, B);
 
-    if (P2.z <= 0.0)
+    if (P1.z > P2.z)
     {
-        // Convention: 'P2' is above the horizon.
+        // Convention: 'P2' is above 'P1', with the tangent pointing upwards.
         Swap(P1, P2);
     }
 
@@ -272,7 +271,8 @@ float LTCEvaluate(float3 P1, float3 P2, float3 B, float3x3 invM)
     // Integrate the clamped cosine over the line segment.
     float irradiance = LineIrradiance(l1, l2, P0, T);
 
-    return INV_PI * width * irradiance;
+    // Guard against numerical precision issues.
+    return max(INV_PI * width * irradiance, 0.0);
 }
 
 #endif // UNITY_AREA_LIGHTING_INCLUDED
