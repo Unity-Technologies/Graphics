@@ -33,10 +33,10 @@ uint g_isLogBaseBufferEnabled;
 uint _UseTileLightList;
 //#endif
 
-#ifdef USE_CLUSTERED_LIGHTLIST
+//#ifdef USE_CLUSTERED_LIGHTLIST
 Buffer<uint> g_vLayeredOffsetsBuffer;
 Buffer<float> g_logBaseBuffer;
-#endif
+//#endif
 
 // TODO: Need to correctly define the shadow framework, WIP
 #include "../SinglePass/SinglePass.hlsl"
