@@ -25,6 +25,8 @@ CBUFFER_START(initUniforms)
 	float initUniform3;
 	float initUniform4;
 	float initUniform5;
+	float3 initUniform6;
+	float3 initUniform7;
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
@@ -91,6 +93,16 @@ void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float Max
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
+void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
+{
+	velocity += Velocity;
+}
+
+void VFXBlockVelocityRandomVector( inout float3 velocity,float3 Divergence,inout uint seed)
+{
+	velocity += (RAND3 * 2 - 1) * Divergence;
+}
+
 void VFXBlockSetForceRelative( inout float3 velocity,float3 InfluenceSpeed,float DragCoefficient)
 {
 	float3 relativeForce = InfluenceSpeed - velocity;
@@ -123,6 +135,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		VFXBlockSetPositionSphereVolume( attrib0.position,initUniform0,initUniform1,local_seed);
 		VFXBlockAngleRandom( attrib1.angle,initUniform2,initUniform3,local_seed);
 		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform4,initUniform5,local_seed);
+		VFXBlockVelocityConstant( attrib3.velocity,initUniform6);
+		VFXBlockVelocityRandomVector( attrib3.velocity,initUniform7,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
