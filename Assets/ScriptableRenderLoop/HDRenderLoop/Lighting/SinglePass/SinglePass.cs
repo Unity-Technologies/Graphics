@@ -19,40 +19,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
             // Static keyword is required here else we get a "DestroyBuffer can only be call in main thread"
-            static ComputeBuffer s_DirectionalLights;
-            static ComputeBuffer s_PunctualLightList;
-            static ComputeBuffer s_EnvLightList;
-            static ComputeBuffer s_AreaLightList;
-            static ComputeBuffer s_PunctualShadowList;
-            static ComputeBuffer s_DirectionalShadowList;
+            static ComputeBuffer s_DirectionalLights = null;
+            static ComputeBuffer s_PunctualLightList = null;
+            static ComputeBuffer s_EnvLightList = null;
+            static ComputeBuffer s_AreaLightList = null;
+            static ComputeBuffer s_PunctualShadowList = null;
+            static ComputeBuffer s_DirectionalShadowList = null;
 
-            Material m_DeferredMaterial;
-
-            void ClearComputeBuffers()
-            {
-                if (s_DirectionalLights != null)
-                    s_DirectionalLights.Release();
-
-                if (s_DirectionalShadowList != null)
-                    s_DirectionalShadowList.Release();
-
-                if (s_PunctualLightList != null)
-                    s_PunctualLightList.Release();
-
-                if (s_AreaLightList != null)
-                    s_AreaLightList.Release();
-
-                if (s_PunctualShadowList != null)
-                    s_PunctualShadowList.Release();
-
-                if (s_EnvLightList != null)
-                    s_EnvLightList.Release();
-            }
+            Material m_DeferredMaterial = null;
 
             public void Rebuild()
             {
-                ClearComputeBuffers();
-
                 s_DirectionalLights = new ComputeBuffer(HDRenderLoop.k_MaxDirectionalLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
                 s_DirectionalShadowList = new ComputeBuffer(HDRenderLoop.k_MaxCascadeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalShadowData)));
                 s_PunctualLightList = new ComputeBuffer(HDRenderLoop.k_MaxPunctualLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
@@ -64,20 +41,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_DeferredMaterial.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
             }
 
-            public void OnDisable()
+            public void Cleanup()
             {
-                s_DirectionalLights.Release();
-                s_DirectionalLights = null;
-                s_DirectionalShadowList.Release();
-                s_DirectionalShadowList = null;
-                s_PunctualLightList.Release();
-                s_PunctualLightList = null;
-                s_AreaLightList.Release();
-                s_AreaLightList = null;
-                s_EnvLightList.Release();
-                s_EnvLightList = null;
-                s_PunctualShadowList.Release();
-                s_PunctualShadowList = null;
+                Utilities.SafeRelease(s_DirectionalLights);
+                Utilities.SafeRelease(s_DirectionalShadowList);
+                Utilities.SafeRelease(s_PunctualLightList);
+                Utilities.SafeRelease(s_AreaLightList);
+                Utilities.SafeRelease(s_EnvLightList);
+                Utilities.SafeRelease(s_PunctualShadowList);
 
                 Utilities.Destroy(m_DeferredMaterial);
             }

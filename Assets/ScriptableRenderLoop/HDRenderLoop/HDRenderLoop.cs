@@ -140,6 +140,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
+        public TextureSettings textureSettings
+        {
+            get { return m_TextureSettings; }
+        }
+
         // Various set of material use in render loop
         Material m_FinalPassMaterial;
         Material m_DebugViewMaterialGBuffer;
@@ -150,7 +155,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         int m_VelocityBuffer;
         int m_DistortionBuffer;
 
-        bool m_Dirty = false;
+        public bool m_Dirty = false;
 
         RenderTargetIdentifier m_CameraColorBufferRT;
         RenderTargetIdentifier m_CameraDepthBufferRT;
@@ -212,28 +217,37 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         int m_HeightOnRecord;
 
         // TODO: Find a way to automatically create/iterate through lightloop
-        SinglePass.LightLoop m_SinglePassLightLoop;
-        TilePass.LightLoop m_TilePassLightLoop = null;
+        // This must be init externally else The value can't be set in the inspector... (as it will recreate the class with default value)
+        SinglePass.LightLoop m_SinglePassLightLoop = new SinglePass.LightLoop();
+        TilePass.LightLoop m_TilePassLightLoop = new TilePass.LightLoop();
         public TilePass.LightLoop tilePassLightLoop
         {
             get { return m_TilePassLightLoop; }
         }
 
         // TODO: Find a way to automatically create/iterate through deferred material
-        Lit.RenderLoop m_LitRenderLoop;
+        // TODO TO CHECK: SebL I move allocation from Rebuild() to here, but there was a comment "// Our object can be garbage collected, so need to be allocate here", it is still true ?
+        Lit.RenderLoop m_LitRenderLoop = new Lit.RenderLoop();
 
         TextureCacheCubemap m_CubeReflTexArray;
         TextureCache2D m_CookieTexArray;
         TextureCacheCubemap m_CubeCookieTexArray;
 
-        private void OnValidate()
+        public void OnValidate()
         {
+            // Calling direction Rebuild() here cause this warning:
+            // "SendMessage cannot be called during Awake, CheckConsistency, or OnValidate UnityEngine.Experimental.ScriptableRenderLoop.HDRenderLoop:OnValidate()"
+            // Workaround is to declare this dirty flag and call REbuild in Render()
             m_Dirty = true;
         }
 
         public override void Rebuild()
         {
-            m_CameraColorBuffer  = Shader.PropertyToID("_CameraColorTexture");
+            // We call Cleanup() here because Rebuild() can be call by OnValidate(), i.e when inspector is touch
+            // Note that module don't need to do the same as the call here is propagated correctly
+            Cleanup();
+
+            m_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
             m_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
 
             m_CameraColorBufferRT = new RenderTargetIdentifier(m_CameraColorBuffer);
@@ -247,8 +261,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
 
-            // Init Gbuffer description
-            m_LitRenderLoop = new Lit.RenderLoop(); // Our object can be garbage collected, so need to be allocate here
+            // Init Gbuffer description            
 
             m_gbufferManager.gbufferCount = m_LitRenderLoop.GetMaterialGBufferCount();
             RenderTextureFormat[] RTFormat; RenderTextureReadWrite[] RTReadWrite;
@@ -276,16 +289,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_LitRenderLoop.Rebuild();
 
             m_CookieTexArray = new TextureCache2D();
-            m_CookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
+            m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap();
-            m_CubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
+            m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
             m_CubeReflTexArray = new TextureCacheCubemap();
-            m_CubeReflTexArray.AllocTextureArray(32, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
+            m_CubeReflTexArray.AllocTextureArray(32, m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
             // Init various light loop
-            m_SinglePassLightLoop = new SinglePass.LightLoop();
             m_SinglePassLightLoop.Rebuild();
-            m_TilePassLightLoop = new TilePass.LightLoop();
             tilePassLightLoop.Rebuild();
 
             m_lightList = new LightList();
@@ -308,18 +319,33 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public override void Cleanup()
         {
-            m_LitRenderLoop.OnDisable();
-            m_SinglePassLightLoop.OnDisable();
-            tilePassLightLoop.OnDisable();
+            m_LitRenderLoop.Cleanup();
+            m_SinglePassLightLoop.Cleanup();
+            m_TilePassLightLoop.Cleanup();
 
             Utilities.Destroy(m_FinalPassMaterial);
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
 
-            m_CubeReflTexArray.Release();
-            m_CookieTexArray.Release();
-            m_CubeCookieTexArray.Release();
+            if (m_CubeReflTexArray != null)
+            {
+                m_CubeReflTexArray.Release();
+                m_CubeReflTexArray = null;
+            }
+            if (m_CookieTexArray != null)
+            {
+                m_CookieTexArray.Release();
+                m_CookieTexArray = null;
+            }
+            if (m_CubeCookieTexArray != null)
+            {
+                m_CubeCookieTexArray.Release();
+                m_CubeCookieTexArray = null;
+            }
 
-            m_SkyRenderer.OnDisable();
+            if (m_SkyRenderer != null)
+            {
+                m_SkyRenderer.Cleanup();
+            }
 
 #if UNITY_EDITOR
             UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
@@ -668,13 +694,25 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     var directionalLightData = new DirectionalLightData();
                     // Light direction for directional and is opposite to the forward direction
-                    directionalLightData.direction = -light.light.transform.forward;
+                    directionalLightData.direction  = -light.light.transform.forward;
+                    directionalLightData.up         = light.light.transform.up;
+                    directionalLightData.right      = light.light.transform.right;
+                    directionalLightData.positionWS = light.light.transform.position;
                     directionalLightData.color = new Vector3(lightColorR, lightColorG, lightColorB);
                     directionalLightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
                     directionalLightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
+                    directionalLightData.invScaleX = 1.0f / light.light.transform.localScale.x;
+                    directionalLightData.invScaleY = 1.0f / light.light.transform.localScale.y;
                     directionalLightData.cosAngle = 0.0f;
                     directionalLightData.sinAngle = 0.0f;
                     directionalLightData.shadowIndex = -1;
+                    directionalLightData.cookieIndex = -1;
+
+                    if (light.light.cookie != null)
+                    {
+                        directionalLightData.tileCookie  = (light.light.cookie.wrapMode == TextureWrapMode.Repeat);
+                        directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                    }
 
                     bool hasDirectionalShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
                     bool hasDirectionalNotReachMaxLimit = lightList.directionalShadows.Count == 0; // Only one cascade shadow allowed
@@ -757,11 +795,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     var innerConePercent = additionalData.GetInnerSpotPercent01();
                     var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
+                    var sinSpotOuterHalfAngle = Mathf.Sqrt(1.0f - cosSpotOuterHalfAngle * cosSpotOuterHalfAngle);
                     var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
 
                     var val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
                     lightData.angleScale = 1.0f / val;
                     lightData.angleOffset = -cosSpotOuterHalfAngle * lightData.angleScale;
+
+                    // TODO: find a proper place to store the cotangent.
+                    lightData.size.x = cosSpotOuterHalfAngle / sinSpotOuterHalfAngle;
                 }
                 else
                 {
@@ -778,16 +820,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 lightData.cookieIndex = -1;
                 lightData.shadowIndex = -1;
 
-                bool hasCookie = light.light.cookie != null;
-                if (hasCookie)
+                if (light.light.cookie != null)
                 {
-                    if (light.lightType == LightType.Point)
+                    // TODO: add texture atlas support for cookie textures.
+                    switch (light.lightType)
                     {
-                        lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
-                    }
-                    else if (light.lightType == LightType.Spot)
-                    {
-                        lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                        case LightType.Spot:
+                            lightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                            break;
+                        case LightType.Point:
+                            lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(light.light.cookie);
+                            break;
                     }
                 }
 
@@ -814,9 +857,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     }
                 }
 
-                lightData.size = new Vector2(additionalData.areaLightLength, additionalData.areaLightWidth);
-                lightData.twoSided = additionalData.isDoubleSided;
-
                 if (additionalData.archetype == LightArchetype.Punctual)
                 {
                     lightList.punctualLights.Add(lightData);
@@ -824,6 +864,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
                 else
                 {
+                    lightData.twoSided = additionalData.isDoubleSided;
+                    lightData.size     = new Vector2(additionalData.areaLightLength,
+                                                     additionalData.areaLightWidth);
+
                     // Area and line lights are both currently stored as area lights on the GPU.
                     lightList.areaLights.Add(lightData);
                     lightList.areaCullIndices.Add(lightIndex);
@@ -915,8 +959,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public void PushGlobalParams(Camera camera, RenderLoop renderLoop, HDRenderLoop.LightList lightList)
         {
-            //Shader.SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
-            //Shader.SetGlobalTexture("_CubeCookieTextures", m_CubeCookieTexArray.GetTexCache());
+            Shader.SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
+            Shader.SetGlobalTexture("_CookieCubeTextures", m_CubeCookieTexArray.GetTexCache());
+
             Shader.SetGlobalTexture("_EnvTextures", m_CubeReflTexArray.GetTexCache());
 
             if (m_SkyRenderer.IsSkyValid(m_SkyParameters))

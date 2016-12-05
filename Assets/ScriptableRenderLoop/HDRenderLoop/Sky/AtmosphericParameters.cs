@@ -162,7 +162,7 @@ public class AtmosphericParameters : MonoBehaviour
         if (instance == this)
         {
             // TODO: what's the point of doing this?
-            OnDisable();
+            Cleanup();
             OnEnable();
         }
 
@@ -197,7 +197,7 @@ public class AtmosphericParameters : MonoBehaviour
         instance = this;
     }
 
-    void OnDisable()
+    void Cleanup()
     {
         // Undefine all preprocessor symbols.
         UpdateKeywords(false);
