@@ -133,22 +133,29 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
 #endif
 
 #ifdef PROCESS_AREA_LIGHT
-    /*
     // TODO: Area lights are where the sorting is important (Morten approach with while loop)
     uint areaLightStart;
     uint areaLightCount;
-    GetCountAndStart(coord, LightCatergory.AreaLight, linearDepth, areaLightStart, areaLightCount);
+    GetCountAndStart(coord, AREA_LIGHT, linearDepth, areaLightStart, areaLightCount);
     for (i = 0; i < areaLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
 
-        EvaluateBSDF_Area(  context, V, positionWS, prelightData, _AreaLightList[FetchIndex(areaLightStart, i)], bsdfData,
-                            localDiffuseLighting, localSpecularLighting);
+        if(_AreaLightList[i].lightType == GPULIGHTTYPE_LINE)
+        {
+            EvaluateBSDF_Line(context, V, positionWS, prelightData, _AreaLightList[FetchIndex(areaLightStart, i)], bsdfData,
+                localDiffuseLighting, localSpecularLighting);
+        }
+        else
+        {
+            EvaluateBSDF_Area(context, V, positionWS, prelightData, _AreaLightList[FetchIndex(areaLightStart, i)], bsdfData,
+                localDiffuseLighting, localSpecularLighting);
+        }
+
 
         diffuseLighting += localDiffuseLighting;
         specularLighting += localSpecularLighting;
     }
-    */
 #endif
 
 #ifdef PROCESS_ENV_LIGHT

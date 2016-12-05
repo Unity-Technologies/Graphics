@@ -37,17 +37,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public static int DIRECTIONAL_LIGHT = 3;
 
             // direct lights and reflection probes for now
-            public static int NR_LIGHT_MODELS = 2;
+            public static int NR_LIGHT_MODELS = 3;
             public static int DIRECT_LIGHT = 0;
             public static int REFLECTION_LIGHT = 1;
+            public static int AREA_LIGHT = 2;
         }
-
-        [GenerateHLSL]
-        public enum DebugViewTilesFlags
-        {
-            DirectLighting = 1,
-            Reflection = 2
-        };
 
         [GenerateHLSL]
         public struct SFiniteLightBound
@@ -76,7 +70,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public float cotan;
  
             public Vector3 boxInnerDist;
-            public uint lightCategory;        // DIRECT_LIGHT=0, REFLECTION_LIGHT=1
+            public uint lightCategory;        // DIRECT_LIGHT=0, REFLECTION_LIGHT=1, AREA_LIGHT=2
 
             public Vector3 boxInvRange;
             public float unused2;
@@ -111,7 +105,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             private static int s_GenListPerBigTileKernel;
 
             // clustered light list specific buffers and data begin
-            public DebugViewTilesFlags debugViewTilesFlags = 0;
+            public int debugViewTilesFlags = 0;
             public bool enableClustered = false;
             public bool disableFptlWhenClustered = true;    // still useful on opaques. Should be false by default to force tile on opaque.
             public bool enableBigTilePrepass = true;
@@ -348,7 +342,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // Use for the second pass (fine pruning)
                 var numEntries2nd = new int[numModels, numVolTypes];
 
-                // TODO manage area lights
                 foreach (var punctualLight in lightList.punctualLights)
                 {
                     var volType = punctualLight.lightType == GPULightType.Spot ? LightDefinitions.SPOT_LIGHT : (punctualLight.lightType == GPULightType.Point ? LightDefinitions.SPHERE_LIGHT : -1);
@@ -362,6 +355,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     var volType = LightDefinitions.BOX_LIGHT;       // always a box for now
                     ++numEntries[LightDefinitions.REFLECTION_LIGHT, volType];
                 }
+
+                foreach (var areaLight in lightList.areaLights)
+                {
+                    var volType = LightDefinitions.BOX_LIGHT;
+                    ++numEntries[LightDefinitions.AREA_LIGHT, volType];
+                }
+
 
                 // add decals here too similar to the above
 
@@ -508,7 +508,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     //Vector3 C = bnds.center;        // P + boxOffset;
                     var C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
 
-                   var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
+                    var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
 
                     Vector3 vx = mat.GetColumn(0);
                     Vector3 vy = mat.GetColumn(1);
@@ -547,6 +547,86 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_lightShapeData[index] = lightShapeData;
                 }
 
+                for (int areaLightIndex = 0; areaLightIndex < lightList.areaLights.Count; areaLightIndex++)
+                {
+                    LightData areaLightData = lightList.areaLights[areaLightIndex];
+                    VisibleLight light = cullResults.visibleLights[lightList.areaCullIndices[areaLightIndex]];
+                    
+                    // Fill bounds
+                    var bound = new SFiniteLightBound();
+                    var lightShapeData = new LightShapeData();
+
+                    lightShapeData.lightType = (uint)LightDefinitions.BOX_LIGHT;
+                    lightShapeData.lightCategory = (uint)LightDefinitions.AREA_LIGHT;
+                    lightShapeData.lightIndex = (uint)areaLightIndex;
+
+
+                    if (areaLightData.lightType == GPULightType.Rectangle)
+                    {
+                        Vector3 centerVS = worldToView.MultiplyPoint(areaLightData.positionWS);
+                        Vector3 xAxisVS = worldToView.MultiplyVector(areaLightData.right);
+                        Vector3 yAxisVS = worldToView.MultiplyVector(areaLightData.up);
+                        Vector3 zAxisVS = worldToView.MultiplyVector(areaLightData.forward);
+                        float radius = 1.0f / Mathf.Sqrt(areaLightData.invSqrAttenuationRadius);
+
+                        Vector3 dimensions = new Vector3(areaLightData.size.x * 0.5f + radius, areaLightData.size.y * 0.5f + radius, radius);
+
+                        if(!areaLightData.twoSided)
+                        {
+                            centerVS -= zAxisVS * radius * 0.5f;
+                            dimensions.z *= 0.5f;
+                        }
+
+                        bound.center = centerVS;
+                        bound.boxAxisX = dimensions.x * xAxisVS;
+                        bound.boxAxisY = dimensions.y * yAxisVS;
+                        bound.boxAxisZ = dimensions.z * zAxisVS;
+                        bound.scaleXY.Set(1.0f, 1.0f);
+                        bound.radius = dimensions.magnitude;
+                        
+                        lightShapeData.lightPos = centerVS;
+                        lightShapeData.lightAxisX = xAxisVS;
+                        lightShapeData.lightAxisY = yAxisVS;
+                        lightShapeData.lightAxisZ = zAxisVS;
+                        lightShapeData.boxInnerDist = dimensions;
+                        lightShapeData.boxInvRange.Set(1e5f, 1e5f, 1e5f);
+                    }
+                    else if (areaLightData.lightType == GPULightType.Line)
+                    {
+                        Vector3 centerVS = worldToView.MultiplyPoint(areaLightData.positionWS);
+                        Vector3 xAxisVS = worldToView.MultiplyVector(areaLightData.right);
+                        Vector3 yAxisVS = worldToView.MultiplyVector(areaLightData.up);
+                        Vector3 zAxisVS = worldToView.MultiplyVector(areaLightData.forward);
+                        float radius = 1.0f / Mathf.Sqrt(areaLightData.invSqrAttenuationRadius);
+
+                        Vector3 dimensions = new Vector3(areaLightData.size.x * 0.5f + radius, radius, radius);
+
+                        bound.center = centerVS;
+                        bound.boxAxisX = dimensions.x * xAxisVS;
+                        bound.boxAxisY = dimensions.y * yAxisVS;
+                        bound.boxAxisZ = dimensions.z * zAxisVS;
+                        bound.scaleXY.Set(1.0f, 1.0f);
+                        bound.radius = dimensions.magnitude;
+
+                        lightShapeData.lightPos = centerVS;
+                        lightShapeData.lightAxisX = xAxisVS;
+                        lightShapeData.lightAxisY = yAxisVS;
+                        lightShapeData.lightAxisZ = zAxisVS;
+                        lightShapeData.boxInnerDist = new Vector3(areaLightData.size.x * 0.5f, 0.01f, 0.01f);
+                        lightShapeData.boxInvRange.Set(1.0f / radius, 1.0f / radius, 1.0f / radius);
+                    }
+                    else
+                    {
+                        Debug.Assert(false);
+                    }
+
+                    int i = LightDefinitions.AREA_LIGHT, j = LightDefinitions.BOX_LIGHT;
+                    int index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
+
+                    m_boundData[index] = bound;
+                    m_lightShapeData[index] = lightShapeData;
+                }
+
                 // Sanity check
                 for (var m = 0; m < numModels; m++)
                 {
@@ -556,7 +636,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     }
                 }
 
-                m_lightCount = lightList.punctualLights.Count + lightList.envLights.Count;
+                m_lightCount = lightList.punctualLights.Count + lightList.envLights.Count + lightList.areaLights.Count;
                 s_ConvexBoundsBuffer.SetData(m_boundData); // TODO: check with Vlad what is happening here, do we copy 1024 element always ? Could we setup the size we want to copy ?
                 s_LightShapeDataBuffer.SetData(m_lightShapeData);
             }
@@ -757,7 +837,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_DebugViewTilesMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
                 m_DebugViewTilesMaterial.SetVector("_ScreenSize", screenSize);
-                m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", (int)debugViewTilesFlags);
+                m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", debugViewTilesFlags);
                 m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 

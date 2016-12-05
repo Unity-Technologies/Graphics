@@ -20,9 +20,10 @@
 #define SPHERE_LIGHT (1)
 #define BOX_LIGHT (2)
 #define DIRECTIONAL_LIGHT (3)
-#define NR_LIGHT_MODELS (2)
+#define NR_LIGHT_MODELS (3)
 #define DIRECT_LIGHT (0)
 #define REFLECTION_LIGHT (1)
+#define AREA_LIGHT (2)
 
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.TilePass.DebugViewTilesFlags:  static fields
