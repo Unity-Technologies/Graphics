@@ -37,7 +37,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.5456174, g: 0.39782104, b: 0.24038851, a: 1}
+  m_IndirectSpecularColor: {r: 0.6238628, g: 0.56322443, b: 0.5425187, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -454,6 +454,7 @@ GameObject:
   m_Component:
   - component: {fileID: 565152815}
   - component: {fileID: 565152816}
+  - component: {fileID: 565152817}
   m_Layer: 0
   m_Name: Spotlight
   m_TagString: Untagged
@@ -508,6 +509,25 @@ Light:
   m_BounceIntensity: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &565152817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 565152814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shadowResolution: 512
+  shadowDimmer: 1
+  affectDiffuse: 1
+  affectSpecular: 1
+  archetype: 0
+  isDoubleSided: 0
+  areaLightLength: 0
+  areaLightWidth: 0
 --- !u!1 &841702834
 GameObject:
   m_ObjectHideFlags: 0
@@ -963,7 +983,7 @@ MonoBehaviour:
   shadowDimmer: 1
   affectDiffuse: 1
   affectSpecular: 1
-  treatAsAreaLight: 0
+  archetype: 0
   isDoubleSided: 0
   areaLightLength: 0
   areaLightWidth: 0
@@ -1379,7 +1399,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1543726725}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -6.33, y: 0.428, z: -5.0499997}
+  m_LocalPosition: {x: -6.33, y: 0.428, z: -4.84}
   m_LocalScale: {x: 1.6119599, y: 1.6119599, z: 1.6119599}
   m_Children: []
   m_Father: {fileID: 1027688891}

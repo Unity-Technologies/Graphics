@@ -9,10 +9,11 @@ Material:
   m_Name: Lit_Blue
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
   m_ShaderKeywords: _ALPHACUTOFFENABLE_OFF _DETAIL_MAP_WITH_NORMAL _DISTORTIONDEPTHTEST_OFF
-    _DISTORTIONONLY_OFF _EMISSION _NORMALMAP_TANGENT_SPACE _REQUIRE_UV3
+    _DISTORTIONONLY_OFF _EMISSION _NORMALMAP_TANGENT_SPACE
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
+  disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -125,7 +126,7 @@ Material:
     - _NormalMapSpace: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Smoothness: 0.5
+    - _Smoothness: 0.4
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1

@@ -12,10 +12,10 @@ Material:
     _DISTORTIONONLY_OFF _EMISSION _EMISSIVE_COLOR _LAYEREDLIT_4_LAYER _LAYEREDLIT_4_LAYERS
     _LAYERMASKMAP _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_PLANAR_0 _LAYER_MAPPING_PLANAR_1
     _LAYER_MAPPING_PLANAR_2 _LAYER_MAPPING_PLANAR_3 _LAYER_MASK_VERTEX_COLOR _NORMALMAP_TANGENT_SPACE
-    _REQUIRE_UV3
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
+  disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -312,9 +312,9 @@ Material:
     - _Parallax: 0.02
     - _Smoothness: 0.5
     - _Smoothness0: 0.5
-    - _Smoothness1: 0.5
+    - _Smoothness1: 0.2
     - _Smoothness2: 0.5
-    - _Smoothness3: 0.5
+    - _Smoothness3: 0.4
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
