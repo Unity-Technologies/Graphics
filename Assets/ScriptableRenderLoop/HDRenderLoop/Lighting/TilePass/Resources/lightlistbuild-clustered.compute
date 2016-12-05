@@ -331,7 +331,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		InterlockedAdd(g_LayeredSingleIdxBuffer[0], (uint) iSpaceAvail, start);		// alloc list memory
 	}
 
-	int modelListCount[NR_LIGHT_MODELS]={0,0};		// direct light count and reflection lights
+	int modelListCount[NR_LIGHT_MODELS]={0,0,0};		// direct light count and reflection lights
 	uint offs = start;
 	for(int ll=0; ll<iNrCoarseLights; ll+=4)
 	{

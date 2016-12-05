@@ -52,7 +52,7 @@ groupshared uint ldsDoesLightIntersect[2];
 #endif
 groupshared int ldsNrLightsFinal;
 
-groupshared int ldsModelListCount[NR_LIGHT_MODELS];		// since NR_LIGHT_MODELS is 2
+groupshared int ldsModelListCount[NR_LIGHT_MODELS];		// since NR_LIGHT_MODELS is 3
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 groupshared uint lightOffsSph;

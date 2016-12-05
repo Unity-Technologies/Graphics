@@ -1,14 +1,14 @@
 Shader "Hidden/HDRenderLoop/DebugViewTiles"
 {
-	SubShader
-	{
+    SubShader
+    {
 
-		Pass
-	    {
-		    ZWrite Off
-		    Blend SrcAlpha OneMinusSrcAlpha
+        Pass
+        {
+            ZWrite Off
+            Blend SrcAlpha OneMinusSrcAlpha
 
-		    HLSLPROGRAM
+            HLSLPROGRAM
             #pragma target 5.0
             #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
@@ -20,35 +20,35 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 
             #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
-		    //-------------------------------------------------------------------------------------
-		    // Include
-		    //-------------------------------------------------------------------------------------
+            //-------------------------------------------------------------------------------------
+            // Include
+            //-------------------------------------------------------------------------------------
 
             #include "Common.hlsl"
 
-		    // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
-		    // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem), 
-		    // the deferred shader will require to use multicompile.
+            // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
+            // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem), 
+            // the deferred shader will require to use multicompile.
             #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderConfig.cs.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Lighting/Lighting.hlsl" // This include Material.hlsl
 
-		    //-------------------------------------------------------------------------------------
-		    // variable declaration
-		    //-------------------------------------------------------------------------------------
+            //-------------------------------------------------------------------------------------
+            // variable declaration
+            //-------------------------------------------------------------------------------------
 
-	        uint _ViewTilesFlags;
+            uint _ViewTilesFlags;
 
             TEXTURE2D(_CameraDepthTexture);
             SAMPLER2D(sampler_CameraDepthTexture);
 
             float4x4 _InvViewProjMatrix;
 
-	        float4 Vert(float3 positionOS : POSITION): SV_POSITION
-	        {
-		        return TransformWorldToHClip(TransformObjectToWorld(positionOS));
-	        }
+            float4 Vert(float3 positionOS : POSITION): SV_POSITION
+            {
+                return TransformWorldToHClip(TransformObjectToWorld(positionOS));
+            }
 
             float4 OverlayHeatMap(uint2 pixCoord, uint numLights)
             {
@@ -87,9 +87,9 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                 return color;
             }
 
-	        float4 Frag(float4 positionCS : SV_POSITION) : SV_Target
-	        {
-		        Coordinate coord = GetCoordinate(positionCS.xy, _ScreenSize.zw);
+            float4 Frag(float4 positionCS : SV_POSITION) : SV_Target
+            {
+                Coordinate coord = GetCoordinate(positionCS.xy, _ScreenSize.zw);
 
                 #ifdef USE_CLUSTERED_LIGHTLIST
                 // Perform same calculation than in deferred.shader
@@ -100,35 +100,28 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                 float linearDepth = 0.0; // unused
                 #endif
 
-		        int n = 0;
-		        if (_ViewTilesFlags & DEBUGVIEWTILESFLAGS_DIRECT_LIGHTING)
-		        {
-			        uint punctualLightStart;
-			        uint punctualLightCount;
-			        GetCountAndStart(coord, DIRECT_LIGHT, linearDepth, punctualLightStart, punctualLightCount);
-			        n += punctualLightCount;
-		        }
+                int n = 0;
+                for(int category = 0; category < NR_LIGHT_MODELS; category++)
+                {
+                    uint mask = 1u << category;
+                    uint start;
+                    uint count;
+                    GetCountAndStart(coord, category, linearDepth, start, count);
+                    n += count;
+                }
+                
+                if (n > 0)
+                {
+                    return OverlayHeatMap(int2(coord.unPositionSS.xy) & 15, n);
+                }
+                else
+                {
+                    return 0.0;
+                }
+            }
 
-		        if (_ViewTilesFlags & DEBUGVIEWTILESFLAGS_REFLECTION)
-		        {
-			        uint envLightStart;
-			        uint envLightCount;
-			        GetCountAndStart(coord, REFLECTION_LIGHT, linearDepth, envLightStart, envLightCount);
-			        n += envLightCount;
-		        }
-
-		        if (n > 0)
-		        {
-			        return OverlayHeatMap(int2(coord.unPositionSS.xy) & 15, n);
-		        }
-		        else
-		        {
-			        return 0.0;
-		        }
-	        }
-
-		    ENDHLSL
-	    }
-	}
-	Fallback Off
+            ENDHLSL
+        }
+    }
+    Fallback Off
 }
