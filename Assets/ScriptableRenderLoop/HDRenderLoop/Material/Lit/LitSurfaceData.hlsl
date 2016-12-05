@@ -156,7 +156,7 @@ float ADD_IDX(GetSurfaceData)(FragInput input, LayerTexCoord layerTexCoord, out 
 #else
     surfaceData.perceptualSmoothness = 1.0;
 #endif
-    surfaceData.perceptualSmoothness *= _Smoothness;
+	surfaceData.perceptualSmoothness = ADD_IDX(_Smoothness);
 #ifdef _DETAIL_MAP
     surfaceData.perceptualSmoothness *= LerpWhiteTo(2.0 * saturate(detailSmoothness * ADD_IDX(_DetailSmoothnessScale)), detailMask);
 #endif
@@ -169,7 +169,7 @@ float ADD_IDX(GetSurfaceData)(FragInput input, LayerTexCoord layerTexCoord, out 
     surfaceData.metallic = 1.0;
     surfaceData.ambientOcclusion = 1.0;
 #endif
-    surfaceData.metallic *= _Metallic;
+    surfaceData.metallic *= ADD_IDX(_Metallic);
 
     // This part of the code is not used in case of layered shader but we keep the same macro system for simplicity
 #if !defined(LAYERED_LIT_SHADER)
@@ -194,7 +194,7 @@ float ADD_IDX(GetSurfaceData)(FragInput input, LayerTexCoord layerTexCoord, out 
 #else
     surfaceData.anisotropy = 1.0;
 #endif
-    surfaceData.anisotropy *= _Anisotropy;
+    surfaceData.anisotropy *= ADD_IDX(_Anisotropy);
 
     surfaceData.specular = 0.04;
 
