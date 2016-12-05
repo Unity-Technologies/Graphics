@@ -12,8 +12,8 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
             #pragma target 5.0
             #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
-            #pragma vertex VertViewTiles
-            #pragma fragment FragViewTiles
+            #pragma vertex Vert
+            #pragma fragment Frag
 
             #define LIGHTLOOP_TILE_PASS 1            
             #define LIGHTLOOP_TILE_ALL	1
@@ -40,10 +40,12 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 
 	        uint _ViewTilesFlags;
 
-	        TEXTURE2D(_CameraDepthTexture);
-	        SAMPLER2D(sampler_CameraDepthTexture);
+            TEXTURE2D(_CameraDepthTexture);
+            SAMPLER2D(sampler_CameraDepthTexture);
 
-	        float4 VertViewTiles(float3 positionOS : POSITION): SV_POSITION
+            float4x4 _InvViewProjMatrix;
+
+	        float4 Vert(float3 positionOS : POSITION): SV_POSITION
 	        {
 		        return TransformWorldToHClip(TransformObjectToWorld(positionOS));
 	        }
@@ -66,11 +68,11 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                     float4(1.0, 0.0, 0.0, 0.9)    // strong red
                 };
 
-                float maxNrLightsPerTile = 31;
+                float maxNrLightsPerTile = 31; // TODO: setup a constant for that
 
-                int nColorIndex = numLights == 0 ? 0 : (1 + (int)floor(10 * (log2((float)numLights) / log2(maxNrLightsPerTile))));
-                nColorIndex = nColorIndex<0 ? 0 : nColorIndex;
-                float4 col = nColorIndex>11 ? float4(1.0, 1.0, 1.0, 1.0) : kRadarColors[nColorIndex];
+                int colorIndex = numLights == 0 ? 0 : (1 + (int)floor(10 * (log2((float)numLights) / log2(maxNrLightsPerTile))));
+                colorIndex = colorIndex < 0 ? 0 : colorIndex;
+                float4 col = colorIndex > 11 ? float4(1.0, 1.0, 1.0, 1.0) : kRadarColors[colorIndex];
 
                 int2 coord = pixCoord - int2(1, 1);
 
@@ -85,13 +87,15 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                 return color;
             }
 
-	        float4 FragViewTiles(float4 positionCS : SV_POSITION) : SV_Target
+	        float4 Frag(float4 positionCS : SV_POSITION) : SV_Target
 	        {
 		        Coordinate coord = GetCoordinate(positionCS.xy, _ScreenSize.zw);
 
                 #ifdef USE_CLUSTERED_LIGHTLIST
+                // Perform same calculation than in deferred.shader
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
-                float linearDepth = GetLinearDepth(depth); // View space linear depth
+                float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
+                float linearDepth = TransformWorldToView(positionWS).z; // View space linear depth
                 #else
                 float linearDepth = 0.0; // unused
                 #endif

@@ -107,9 +107,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             if ((m_SkyboxCubemapRT != null) && (m_SkyboxCubemapRT.width != (int)skyParameters.skyResolution))
             {
                 Utilities.Destroy(m_SkyboxCubemapRT);
-                m_SkyboxCubemapRT = null;
                 Utilities.Destroy(m_SkyboxGGXCubemapRT);
-                m_SkyboxGGXCubemapRT = null;
             }
             
             if (m_SkyboxCubemapRT == null)
@@ -188,7 +186,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public void OnDisable()
+        public void Cleanup()
         {
             Utilities.Destroy(m_StandardSkyboxMaterial);
             Utilities.Destroy(m_SkyHDRIMaterial);

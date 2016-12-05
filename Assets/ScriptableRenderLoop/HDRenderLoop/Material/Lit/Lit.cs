@@ -256,9 +256,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 isInit = false;
             }
 
-            public void OnDisable()
+            public void Cleanup()
             {
-                if (m_InitPreFGD) DestroyImmediate(m_InitPreFGD);
+                Utilities.Destroy(m_InitPreFGD);
+
                 // TODO: how to delete RenderTexture ?
                 isInit = false;
             }
