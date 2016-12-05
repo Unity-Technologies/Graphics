@@ -128,37 +128,39 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
 					if(!exclusionList.Contains(propertyName))
 					{
-                    if (material.HasProperty(layerPropertyName))
-                    {
-                        ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
-                        switch (type)
-                        {
-                            case ShaderUtil.ShaderPropertyType.Color:
-                            {
-                                material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
-                                break;
-                            }
-                            case ShaderUtil.ShaderPropertyType.Float:
-                            case ShaderUtil.ShaderPropertyType.Range:
-                            {
-                                material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
-                                break;
-                            }
-                            case ShaderUtil.ShaderPropertyType.Vector:
-                            {
-                                material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
-                                break;
-                            }
-                            case ShaderUtil.ShaderPropertyType.TexEnv:
-                            {
-                                material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+						if (material.HasProperty(layerPropertyName))
+						{
+							ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
+							switch (type)
+							{
+								case ShaderUtil.ShaderPropertyType.Color:
+								{
+									material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
+									break;
+								}
+								case ShaderUtil.ShaderPropertyType.Float:
+								case ShaderUtil.ShaderPropertyType.Range:
+								{
+									material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
+									break;
+								}
+								case ShaderUtil.ShaderPropertyType.Vector:
+								{
+									material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
+									break;
+								}
+								case ShaderUtil.ShaderPropertyType.TexEnv:
+								{
+									material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
+									material.SetTextureOffset(layerPropertyName, layerMaterial.GetTextureOffset(propertyName));
+									material.SetTextureScale(layerPropertyName, layerMaterial.GetTextureScale(propertyName));
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
         }
 
         void InitializeMaterialLayers(AssetImporter materialImporter)
@@ -372,6 +374,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             m_MaterialEditor.ShaderProperty(layerUVBase[layerIndex], styles.UVBaseText);
             if (EditorGUI.EndChangeCheck())
             {
+				SynchronizeLayerProperties(layerIndex);
                 result = true;
             }
             if (((LayerUVBaseMapping)layerUVBase[layerIndex].floatValue == LayerUVBaseMapping.Planar) ||
@@ -387,6 +390,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 m_MaterialEditor.ShaderProperty(layerUVDetail[layerIndex], styles.UVDetailText);
                 if (EditorGUI.EndChangeCheck())
                 {
+					SynchronizeLayerProperties(layerIndex);
                     result = true;
                 }
             }
