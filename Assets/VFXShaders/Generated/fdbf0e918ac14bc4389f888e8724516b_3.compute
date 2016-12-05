@@ -1,0 +1,231 @@
+#pragma kernel CSVFXInit
+#pragma kernel CSVFXUpdate
+
+#include "HLSLSupport.cginc"
+#include "../VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 256
+
+CBUFFER_START(GlobalInfo)
+	float deltaTime;
+	float totalTime;
+	uint nbMax;
+	uint systemSeed;
+CBUFFER_END
+
+CBUFFER_START(SpawnInfo)
+	uint nbSpawned;
+	uint spawnIndex;
+CBUFFER_END
+
+CBUFFER_START(initUniforms)
+	float4x4 initUniform0;
+	float initUniform1;
+	float3 initUniform2;
+	float initUniform3;
+	float initUniform4;
+	float initUniform5;
+	float initUniform6;
+	float initUniform7;
+CBUFFER_END
+
+CBUFFER_START(updateUniforms)
+	float4x4 updateUniform0;
+	float updateUniform1;
+	float updateUniform2;
+	float3 updateUniform3;
+	float updateUniform4;
+	float updateUniform5;
+	float updateUniform6;
+	float updateUniform7;
+	float updateUniform8;
+	float updateUniform9;
+	float updateUniform10;
+	float4x4 updateUniform11;
+CBUFFER_END
+
+Texture2D initSampler0Texture;
+SamplerState samplerinitSampler0Texture;
+
+Texture3D updateSampler0Texture;
+SamplerState samplerupdateSampler0Texture;
+
+struct Attribute0
+{
+	float3 velocity;
+	float age;
+};
+
+struct Attribute1
+{
+	float3 position;
+	float _PADDING_;
+};
+
+struct Attribute2
+{
+	float2 size;
+};
+
+struct Attribute3
+{
+	float lifetime;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+RWStructuredBuffer<Attribute1> attribBuffer1;
+RWStructuredBuffer<Attribute2> attribBuffer2;
+RWStructuredBuffer<Attribute3> attribBuffer3;
+StructuredBuffer<Attribute3> attribBuffer3_RO;
+
+RWStructuredBuffer<int> flags;
+ConsumeStructuredBuffer<uint> deadListIn;
+AppendStructuredBuffer<uint> deadListOut;
+Buffer<uint> deadListCount; // This is bad to use a SRV to fetch deadList count but Unity API currently prevent from copying to CB
+
+RWStructuredBuffer<uint3> bounds;
+
+float rand(inout uint seed)
+{
+	seed = 1664525 * seed + 1013904223;
+	return float(seed) / 4294967296.0;
+}
+
+void VFXBlockSetPositionMap( inout float3 position,VFXSampler2D tex,float4x4 box,float divergence,float3 posmapcenter,inout uint seed)
+{
+	float3 div = (RAND3 - 0.5f) * (divergence * 2.0f);
+	position = (div + SampleTexture(tex,RAND2).rgb) - posmapcenter;
+	position = mul(box,float4(position.xyz,1.0f)).xyz;
+}
+
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
+{
+	float s = lerp(MinSize,MaxSize,RAND);
+	size = float2(s,s);
+}
+
+void VFXBlockApplyScaleRatio( inout float2 size,float Ratio)
+{
+	size *= float2(1.0,Ratio);
+}
+
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
+{
+	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
+}
+
+void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFXSampler3D VectorField,float4x4 Box,float4x4 InvBox,float Intensity,float DragCoefficient)
+{
+	float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
+	float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;
+	value = mul(Box,float4(value,0.0f)).xyz * Intensity;
+	float3 relativeForce = value - velocity;
+	velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));
+}
+
+void VFXBlockSetForceConformToSphere( inout float3 velocity,float3 position,float3 Sphere_center,float Sphere_radius,float attractionSpeed,float attractionForce,float stickForce,float stickDistance)
+{
+	float3 dir = Sphere_center - position;
+	float distToCenter = length(dir);
+	float distToSurface = distToCenter - Sphere_radius;
+	dir /= distToCenter;
+	float spdNormal = dot(dir,velocity);
+	float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));
+	float tgtSpeed = sign(distToSurface) * attractionSpeed * ratio;
+	float deltaSpeed = tgtSpeed - spdNormal;
+	velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir;
+}
+
+void VFXBlockCollideWithSphere( inout float3 position,inout float3 velocity,float3 Sphere_center,float Sphere_radius,float Elasticity)
+{
+	float3 nextPos = position + velocity * deltaTime;
+	float3 dir = Sphere_center - nextPos;
+	float sqrLength = dot(dir,dir);
+	if (sqrLength <= Sphere_radius * Sphere_radius)
+	{	
+		float dist = sqrt(sqrLength);
+		float3 n = dir / dist;	
+		float projVelocity = dot(n,velocity);
+		
+		if (projVelocity > 0)
+			velocity -= ((1 + Elasticity) * projVelocity) * n;
+			
+		position += n * (dist - Sphere_radius);
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < min(nbSpawned,deadListCount[0]))
+	{
+		uint index = deadListIn.Consume();
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		Attribute1 attrib1 = (Attribute1)0;
+		Attribute2 attrib2 = (Attribute2)0;
+		Attribute3 attrib3 = (Attribute3)0;
+		
+		uint local_seed = (uint)0;
+		
+		VFXSampler2D initSampler0 = InitSampler(initSampler0Texture,samplerinitSampler0Texture);
+		
+		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		seed = (seed ^ 61) ^ (seed >> 16);
+		seed *= 9;
+		seed = seed ^ (seed >> 4);
+		seed *= 0x27d4eb2d;
+		seed = seed ^ (seed >> 15);
+		local_seed = seed;
+		
+		VFXBlockSetPositionMap( attrib1.position,initSampler0,initUniform0,initUniform1,initUniform2,local_seed);
+		VFXBlockSizeRandomSquare( attrib2.size,initUniform3,initUniform4,local_seed);
+		VFXBlockApplyScaleRatio( attrib2.size,initUniform5);
+		VFXBlockSetLifetimeRandom( attrib3.lifetime,initUniform6,initUniform7,local_seed);
+		
+		attribBuffer0[index] = attrib0;
+		attribBuffer1[index] = attrib1;
+		attribBuffer2[index] = attrib2;
+		attribBuffer3[index] = attrib3;
+		
+		flags[index] = 1;
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < nbMax && flags[id.x] == 1)
+	{
+		uint index = id.x;
+		bool kill = false;
+		
+		Attribute0 attrib0 = attribBuffer0[index];
+		Attribute1 attrib1 = attribBuffer1[index];
+		Attribute3 attrib3 = attribBuffer3_RO[index];
+		
+		VFXSampler3D updateSampler0 = InitSampler(updateSampler0Texture,samplerupdateSampler0Texture);
+		
+		VFXBlockVectorFieldRelativeForce( attrib0.velocity,attrib1.position,updateSampler0,updateUniform0,updateUniform11,updateUniform1,updateUniform2);
+		VFXBlockSetForceConformToSphere( attrib0.velocity,attrib1.position,updateUniform3,updateUniform4,updateUniform5,updateUniform6,updateUniform7,updateUniform8);
+		VFXBlockCollideWithSphere( attrib1.position,attrib0.velocity,updateUniform3,updateUniform9,updateUniform10);
+		
+		attrib1.position += attrib0.velocity * deltaTime;
+		
+		attrib0.age += deltaTime;
+		if (attrib0.age >= attrib3.lifetime)
+			kill = true;
+		
+		if (kill)
+		{
+			flags[index] = 0;
+			deadListOut.Append(index);
+		}
+		else
+		{
+			attribBuffer0[index] = attrib0;
+			attribBuffer1[index] = attrib1;
+		}
+	}
+}
+
