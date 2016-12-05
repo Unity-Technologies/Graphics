@@ -4,7 +4,7 @@
 #include "HLSLSupport.cginc"
 #include "../VFXCommon.cginc"
 
-#define NB_THREADS_PER_GROUP 20
+#define NB_THREADS_PER_GROUP 120
 
 CBUFFER_START(GlobalInfo)
 	float deltaTime;
@@ -19,46 +19,53 @@ CBUFFER_START(SpawnInfo)
 CBUFFER_END
 
 CBUFFER_START(initUniforms)
-	float3 initUniform0;
+	float initUniform0;
 	float initUniform1;
-	float initUniform2;
-	float initUniform3;
+	float3 initUniform2;
+	float3 initUniform3;
 	float initUniform4;
 	float initUniform5;
-CBUFFER_END
-
-CBUFFER_START(updateUniforms)
-	float3 updateUniform0;
-	float updateUniform1;
+	float initUniform6;
+	float initUniform7;
+	float3 initUniform8;
+	float initUniform9;
+	float initUniform10;
 CBUFFER_END
 
 struct Attribute0
+{
+	float lifetime;
+};
+
+struct Attribute1
 {
 	float3 position;
 	float age;
 };
 
-struct Attribute1
-{
-	float angle;
-};
-
 struct Attribute2
 {
-	float lifetime;
+	float2 size;
 };
 
 struct Attribute3
+{
+	float texIndex;
+};
+
+struct Attribute4
 {
 	float3 velocity;
 	float _PADDING_;
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
+StructuredBuffer<Attribute0> attribBuffer0_RO;
 RWStructuredBuffer<Attribute1> attribBuffer1;
 RWStructuredBuffer<Attribute2> attribBuffer2;
-StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
+RWStructuredBuffer<Attribute4> attribBuffer4;
+StructuredBuffer<Attribute4> attribBuffer4_RO;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -73,28 +80,32 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
-{
-	float u1 = 2.0 * RAND - 1.0;
-	float u2 = UNITY_TWO_PI * RAND;
-	float u3 = pow(RAND,1.0/3.0);
-	position = VFXPositionOnSphere(Sphere,u1,u2,u3);
-}
-
-void VFXBlockAngleRandom( inout float angle,float Min,float Max,inout uint seed)
-{
-	angle += lerp(Min,Max,RAND);
-}
-
 void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSetForceRelative( inout float3 velocity,float3 InfluenceSpeed,float DragCoefficient)
+void VFXBlockPositionCylinderSurface( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,inout uint seed)
 {
-	float3 relativeForce = InfluenceSpeed - velocity;
-	velocity += relativeForce * min(1.0f,(DragCoefficient * deltaTime));
+	float u1 = 1.0 * RAND - 0.5;
+	float u2 = UNITY_TWO_PI * RAND;
+	position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);
+}
+
+void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,inout uint seed)
+{
+	texIndex = lerp(MinIndex,MaxIndex,RAND);
+}
+
+void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
+{
+	velocity += Velocity;
+}
+
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
+{
+	float s = lerp(MinSize,MaxSize,RAND);
+	size = float2(s,s);
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
@@ -108,6 +119,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		Attribute1 attrib1 = (Attribute1)0;
 		Attribute2 attrib2 = (Attribute2)0;
 		Attribute3 attrib3 = (Attribute3)0;
+		Attribute4 attrib4 = (Attribute4)0;
 		
 		uint local_seed = (uint)0;
 		
@@ -120,14 +132,17 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionSphereVolume( attrib0.position,initUniform0,initUniform1,local_seed);
-		VFXBlockAngleRandom( attrib1.angle,initUniform2,initUniform3,local_seed);
-		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform4,initUniform5,local_seed);
+		VFXBlockSetLifetimeRandom( attrib0.lifetime,initUniform0,initUniform1,local_seed);
+		VFXBlockPositionCylinderSurface( attrib1.position,initUniform2,initUniform3,initUniform4,initUniform5,local_seed);
+		VFXBlockSetSubUVRandom( attrib3.texIndex,initUniform6,initUniform7,local_seed);
+		VFXBlockVelocityConstant( attrib4.velocity,initUniform8);
+		VFXBlockSizeRandomSquare( attrib2.size,initUniform9,initUniform10,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
 		attribBuffer2[index] = attrib2;
 		attribBuffer3[index] = attrib3;
+		attribBuffer4[index] = attrib4;
 		
 		flags[index] = 1;
 	}
@@ -141,17 +156,16 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		uint index = id.x;
 		bool kill = false;
 		
-		Attribute0 attrib0 = attribBuffer0[index];
-		Attribute2 attrib2 = attribBuffer2_RO[index];
-		Attribute3 attrib3 = attribBuffer3[index];
+		Attribute0 attrib0 = attribBuffer0_RO[index];
+		Attribute1 attrib1 = attribBuffer1[index];
+		Attribute4 attrib4 = attribBuffer4_RO[index];
 		
 		
-		VFXBlockSetForceRelative( attrib3.velocity,updateUniform0,updateUniform1);
 		
-		attrib0.position += attrib3.velocity * deltaTime;
+		attrib1.position += attrib4.velocity * deltaTime;
 		
-		attrib0.age += deltaTime;
-		if (attrib0.age >= attrib2.lifetime)
+		attrib1.age += deltaTime;
+		if (attrib1.age >= attrib0.lifetime)
 			kill = true;
 		
 		if (kill)
@@ -161,8 +175,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		}
 		else
 		{
-			attribBuffer0[index] = attrib0;
-			attribBuffer3[index] = attrib3;
+			attribBuffer1[index] = attrib1;
 		}
 	}
 }

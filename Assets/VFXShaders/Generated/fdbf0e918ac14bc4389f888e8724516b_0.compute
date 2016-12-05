@@ -1,0 +1,67 @@
+#pragma kernel CSVFXInit
+#pragma kernel CSVFXUpdate
+
+#include "HLSLSupport.cginc"
+#include "../VFXCommon.cginc"
+
+#define NB_THREADS_PER_GROUP 1
+
+CBUFFER_START(GlobalInfo)
+	float deltaTime;
+	float totalTime;
+	uint nbMax;
+CBUFFER_END
+
+CBUFFER_START(SpawnInfo)
+	uint nbSpawned;
+	uint spawnIndex;
+CBUFFER_END
+
+CBUFFER_START(initUniforms)
+	float3 initUniform0;
+CBUFFER_END
+
+struct Attribute0
+{
+	float3 position;
+	float _PADDING_;
+};
+
+RWStructuredBuffer<Attribute0> attribBuffer0;
+
+RWStructuredBuffer<uint3> bounds;
+
+void VFXBlockSetPositionPoint( inout float3 position,float3 pos)
+{
+	position = pos;
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < nbSpawned)
+	{
+		uint index = id.x + spawnIndex;
+		
+		Attribute0 attrib0 = (Attribute0)0;
+		
+		
+		VFXBlockSetPositionPoint( attrib0.position,initUniform0);
+		
+		attribBuffer0[index] = attrib0;
+	}
+}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
+{
+	if (id.x < nbMax)
+	{
+		uint index = id.x;
+		
+		
+		
+		
+	}
+}
+
