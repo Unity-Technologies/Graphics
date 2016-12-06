@@ -348,7 +348,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 			{
                 uint lightCategory = _LightShapeData[coarseList[l]].lightCategory;
                 ++modelListCount[lightCategory == REFLECTION_LIGHT ? 1 : 0];
-				g_vLayeredLightList[offs++] = coarseList[l];			// reflection lights will be last since we sorted
+				g_vLayeredLightList[offs++] = _LightShapeData[coarseList[l]].lightIndex;			// reflection lights will be last since we sorted
 			}
 		}
 
