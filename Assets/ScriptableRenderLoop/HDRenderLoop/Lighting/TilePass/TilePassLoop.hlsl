@@ -119,7 +119,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
 #ifdef PROCESS_PUNCTUAL_LIGHT
     uint punctualLightStart;
     uint punctualLightCount;
-    GetCountAndStart(coord, DIRECT_LIGHT_CATEGORY, linearDepth, punctualLightStart, punctualLightCount);
+    GetCountAndStart(coord, PUNCTUAL_LIGHT_CATEGORY, linearDepth, punctualLightStart, punctualLightCount);
     for (i = 0; i < punctualLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
