@@ -25,6 +25,7 @@ Shader "Hidden/VFX_3"
 			
 			CBUFFER_START(outputUniforms)
 				float outputUniform0;
+				float3 outputUniform1;
 			CBUFFER_END
 			
 			Texture2D outputSampler0Texture;
@@ -103,6 +104,11 @@ Shader "Hidden/VFX_3"
 	size = clampedSize;
 			}
 			
+			void VFXBlockSetPivot( inout float3 pivot,float3 Pivot)
+			{
+				pivot = Pivot;
+			}
+			
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
@@ -119,10 +125,12 @@ Shader "Hidden/VFX_3"
 					float3 local_up = (float3)0;
 					float3 local_color = (float3)0;
 					float local_alpha = (float)0;
+					float3 local_pivot = (float3)0;
 					
 					VFXBlockOrientAlongVelocity( local_front,local_side,local_up,attrib0.velocity,attrib1.position);
 					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,attrib0.age,attrib3.lifetime,outputUniform0);
 					VFXBlockSubPixelAA( local_alpha,attrib1.position,attrib2.size);
+					VFXBlockSetPivot( local_pivot,outputUniform1);
 					
 					float2 size = attrib2.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
@@ -130,13 +138,16 @@ Shader "Hidden/VFX_3"
 					
 					float3 position = attrib1.position;
 					
-					float2 posOffsets = o.offsets.xy;
+					float2 posOffsets = o.offsets.xy - local_pivot.xy;
+					
 					float3 cameraPos = _WorldSpaceCameraPos.xyz;
+					float3 front = local_front;
 					float3 side = local_side;
 					float3 up = local_up;
 					
 					position += side * (posOffsets.x * size.x);
 					position += up * (posOffsets.y * size.y);
+					position -= front * local_pivot.z;
 					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
 					
 					o.pos = mul (UNITY_MATRIX_VP, float4(position,1.0f));
