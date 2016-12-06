@@ -56,7 +56,7 @@ struct Attribute3
 struct Attribute4
 {
 	float3 velocity;
-	float _PADDING_;
+	uint _PADDING_1;
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
