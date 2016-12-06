@@ -68,11 +68,11 @@ namespace UnityEditor.Experimental
             return m_Builder.ToString();
         }
 
-        private int WritePadding(int alignment,int offset,int index)
+        private int WritePadding(int alignment,int offset,ref int index)
         {
             int padding = (alignment - (offset % alignment)) % alignment;
             if (padding != 0)
-                WriteLineFormat("uint{0} _PADDING_{1};", padding == 1 ? "" : padding.ToString(), index);
+                WriteLineFormat("uint{0} _PADDING_{1};", padding == 1 ? "" : padding.ToString(), index++);
             return padding;
         }
 
@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental
             for (int i = 0; i < attributeBuffer.Count; ++i)
             {
                 int size = VFXValue.TypeToSize(attributeBuffer[i].m_Type);
-                int padding = WritePadding(size == 3 ? 4 : size, offset, paddingIndex++);
+                int padding = WritePadding(size == 3 ? 4 : size, offset, ref paddingIndex);
 
                 WriteType(attributeBuffer[i].m_Type);
                 WriteLineFormat(" {0};", attributeBuffer[i].m_Name);
@@ -101,7 +101,7 @@ namespace UnityEditor.Experimental
             }
 
             int alignment = Math.Min(offset,4);
-            WritePadding(alignment == 3 ? 4 : alignment, offset, paddingIndex);
+            WritePadding(alignment == 3 ? 4 : alignment, offset, ref paddingIndex);
 
             ExitScopeStruct();
             WriteLine();
@@ -298,7 +298,7 @@ namespace UnityEditor.Experimental
             {
                 Write(separator);
                 separator = ',';
-                WriteAttrib(arg, data);
+                WriteAttrib(arg, data, output);
             }
 
             List<VFXNamedValue> namedValues = new List<VFXNamedValue>();
@@ -369,21 +369,18 @@ namespace UnityEditor.Experimental
             WriteLine(";");
         }
 
-        public void WriteAttrib(VFXAttribute attrib, ShaderMetaData data)
+        public void WriteAttrib(VFXAttribute attrib, ShaderMetaData data, bool output = false)
         {
             AttributeBuffer buffer;
             if (data.attribToBuffer.TryGetValue(attrib,out buffer))
             {
-                Write("attrib");
-                Write(buffer.Index);
-                Write(".");
-                Write(attrib.m_Name);
+                if (output && data.outputBuffer != null)
+                    WriteFormat("outputData.{0}", attrib.m_Name);
+                else
+                    WriteFormat("attrib{0}.{1}", buffer.Index, attrib.m_Name);
             }
             else // local attribute (dont even check if it is in the localAttrib dictionary but we should for consistency)
-            {
-                Write("local_");
-                Write(attrib.m_Name);
-            }
+                WriteFormat("local_{0}", attrib.m_Name);
         }
 
         public void WriteLocalAttribDeclaration(ShaderMetaData data,VFXContextDesc.Type context)
