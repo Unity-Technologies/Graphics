@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
             public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
             public static GUIContent UVBaseMappingText = new GUIContent("UV set for Base", "");
-			public static GUIContent texWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
+            public static GUIContent texWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public static GUIContent UVBaseDetailMappingText = new GUIContent("UV set for Base and Detail", "");
             public static GUIContent normalMapSpaceText = new GUIContent("Normal/Tangent Map space", "");
             public static GUIContent heightMapModeText = new GUIContent("Height Map Mode", "");
