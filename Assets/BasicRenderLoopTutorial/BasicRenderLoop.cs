@@ -14,11 +14,11 @@ public class BasicRenderLoop : RenderPipeline
 {
 
 #if UNITY_EDITOR
-    [UnityEditor.MenuItem("Renderloop/CreateBasicRenderLoop")]
+    [UnityEditor.MenuItem("Renderloop/Create BasicRenderLoop")]
     static void CreateBasicRenderLoop()
     {
         var instance = ScriptableObject.CreateInstance<BasicRenderLoop>();
-        UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/basicrenderloop.asset");
+        UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/BasicRenderLoopTutorial/BasicRenderLoop.asset");
     }
 #endif
 
