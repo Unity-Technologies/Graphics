@@ -29,18 +29,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
 
             // types
-            public static int MAX_TYPES = 3;
+            public static int MAX_VOLUME_TYPES = 3;
 
-            public static int SPOT_LIGHT = 0;
-            public static int SPHERE_LIGHT = 1;
-            public static int BOX_LIGHT = 2;
-            public static int DIRECTIONAL_LIGHT = 3;
+            public static int SPOT_VOLUME = 0;
+            public static int SPHERE_VOLUME = 1;
+            public static int BOX_VOLUME = 2;
+            public static int DIRECTIONAL_VOLUME = 3;
 
             // direct lights and reflection probes for now
-            public static int NR_LIGHT_MODELS = 3;
-            public static int DIRECT_LIGHT = 0;
-            public static int REFLECTION_LIGHT = 1;
-            public static int AREA_LIGHT = 2;
+            public static int NR_LIGHT_CATEGORIES = 3;
+            public static int DIRECT_LIGHT_CATEGORY = 0;
+            public static int REFLECTION_LIGHT_CATEGORY = 1;
+            public static int AREA_LIGHT_CATEGORY = 2;
         }
 
         [GenerateHLSL]
@@ -61,7 +61,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public uint lightIndex; // Index in light tabs like LightData / EnvLightData
 
             public Vector3 lightAxisX;
-            public uint lightType;
+            public uint lightVolume;
 
             public Vector3 lightAxisY;
             public float radiusSq;
@@ -292,11 +292,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 const int capacityUShortsPerTile = 32;
                 const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1;        // room for 31 lights and a nrLights value.
 
-                s_LightList = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * dwordsPerTile * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
+                s_LightList = new ComputeBuffer(LightDefinitions.NR_LIGHT_CATEGORIES * dwordsPerTile * nrTiles, sizeof(uint));       // enough list memory for a 4k x 4k display
 
                 if (enableClustered)
                 {
-                    s_PerVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_MODELS * (1 << k_Log2NumClusters) * nrTiles, sizeof(uint));
+                    s_PerVoxelOffset = new ComputeBuffer(LightDefinitions.NR_LIGHT_CATEGORIES * (1 << k_Log2NumClusters) * nrTiles, sizeof(uint));
                     s_PerVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrTiles, sizeof(uint));
 
                     if (k_UseDepthBuffer)
@@ -334,44 +334,44 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public void PrepareLightsForGPU(CullResults cullResults, Camera camera, HDRenderLoop.LightList lightList)
             {
-                var numModels = (int)LightDefinitions.NR_LIGHT_MODELS;
-                var numVolTypes = (int)LightDefinitions.MAX_TYPES;
+                var numCategories = (int)LightDefinitions.NR_LIGHT_CATEGORIES;
+                var numVolTypes = (int)LightDefinitions.MAX_VOLUME_TYPES;
                 // Use for first space screen AABB
-                var numEntries = new int[numModels, numVolTypes];
-                var offsets = new int[numModels, numVolTypes];
+                var numEntries = new int[numCategories, numVolTypes];
+                var offsets = new int[numCategories, numVolTypes];
                 // Use for the second pass (fine pruning)
-                var numEntries2nd = new int[numModels, numVolTypes];
+                var numEntries2nd = new int[numCategories, numVolTypes];
 
                 foreach (var punctualLight in lightList.punctualLights)
                 {
-                    var volType = punctualLight.lightType == GPULightType.Spot ? LightDefinitions.SPOT_LIGHT : (punctualLight.lightType == GPULightType.Point ? LightDefinitions.SPHERE_LIGHT : -1);
+                    var volType = punctualLight.lightType == GPULightType.Spot ? LightDefinitions.SPOT_VOLUME : (punctualLight.lightType == GPULightType.Point ? LightDefinitions.SPHERE_VOLUME : -1);
                     if (volType >= 0)
-                        ++numEntries[LightDefinitions.DIRECT_LIGHT, volType];
+                        ++numEntries[LightDefinitions.DIRECT_LIGHT_CATEGORY, volType];
                 }
 
                 // TODO: manage sphere_light
                 foreach (var envLight in lightList.envLights)
                 {
-                    var volType = LightDefinitions.BOX_LIGHT;       // always a box for now
-                    ++numEntries[LightDefinitions.REFLECTION_LIGHT, volType];
+                    var volType = LightDefinitions.BOX_VOLUME;       // always a box for now
+                    ++numEntries[LightDefinitions.REFLECTION_LIGHT_CATEGORY, volType];
                 }
 
                 foreach (var areaLight in lightList.areaLights)
                 {
-                    var volType = LightDefinitions.BOX_LIGHT;
-                    ++numEntries[LightDefinitions.AREA_LIGHT, volType];
+                    var volType = LightDefinitions.BOX_VOLUME;
+                    ++numEntries[LightDefinitions.AREA_LIGHT_CATEGORY, volType];
                 }
 
 
                 // add decals here too similar to the above
 
                 // establish offsets
-                for (int m = 0; m < numModels; m++)
+                for (int category = 0; category < numCategories; category++)
                 {
-                    offsets[m, 0] = m == 0 ? 0 : (numEntries[m - 1, numVolTypes - 1] + offsets[m - 1, numVolTypes - 1]);
+                    offsets[category, 0] = category == 0 ? 0 : (numEntries[category - 1, numVolTypes - 1] + offsets[category - 1, numVolTypes - 1]);
                     for (int v = 1; v < numVolTypes; v++)
                     {
-                        offsets[m, v] = numEntries[m, v - 1] + offsets[m, v - 1];
+                        offsets[category, v] = numEntries[category, v - 1] + offsets[category, v - 1];
                     }
                 }
 
@@ -391,7 +391,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     var lightShapeData = new LightShapeData();
                     int index = -1;
 
-                    lightShapeData.lightCategory = (uint)LightDefinitions.DIRECT_LIGHT;
+                    lightShapeData.lightCategory = (uint)LightDefinitions.DIRECT_LIGHT_CATEGORY;
                     lightShapeData.lightIndex = (uint)lightIndex;
 
                     if (punctualLightData.lightType == GPULightType.Spot || punctualLightData.lightType == GPULightType.ProjectorPyramid)
@@ -449,12 +449,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         lightShapeData.lightAxisX = vx;
                         lightShapeData.lightAxisY = vy;
                         lightShapeData.lightAxisZ = vz;
-                        lightShapeData.lightType = (uint)LightDefinitions.SPOT_LIGHT;
+                        lightShapeData.lightVolume = (uint)LightDefinitions.SPOT_VOLUME;
                         lightShapeData.lightPos = worldToView.MultiplyPoint(lightPos);
                         lightShapeData.radiusSq = range * range;
                         lightShapeData.cotan = cota;
 
-                        int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPOT_LIGHT;
+                        int i = LightDefinitions.DIRECT_LIGHT_CATEGORY, j = LightDefinitions.SPOT_VOLUME;
                         index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     }
                     else // if (punctualLightData.lightType == GPULightType.Point)
@@ -478,11 +478,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         lightShapeData.lightAxisX = vx;
                         lightShapeData.lightAxisY = vy;
                         lightShapeData.lightAxisZ = vz;
-                        lightShapeData.lightType = (uint)LightDefinitions.SPHERE_LIGHT;
+                        lightShapeData.lightVolume = (uint)LightDefinitions.SPHERE_VOLUME;
                         lightShapeData.lightPos = bound.center;
                         lightShapeData.radiusSq = range * range;
 
-                        int i = LightDefinitions.DIRECT_LIGHT, j = LightDefinitions.SPHERE_LIGHT;
+                        int i = LightDefinitions.DIRECT_LIGHT_CATEGORY, j = LightDefinitions.SPHERE_VOLUME;
                         index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     }
 
@@ -529,8 +529,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     bound.radius = combinedExtent.magnitude;
 
                     var lightShapeData = new LightShapeData();
-                    lightShapeData.lightType = (uint)LightDefinitions.BOX_LIGHT;
-                    lightShapeData.lightCategory = (uint)LightDefinitions.REFLECTION_LIGHT;
+                    lightShapeData.lightVolume = (uint)LightDefinitions.BOX_VOLUME;
+                    lightShapeData.lightCategory = (uint)LightDefinitions.REFLECTION_LIGHT_CATEGORY;
                     lightShapeData.lightIndex = (uint)envIndex;
 
                     lightShapeData.lightPos = Cw;
@@ -541,7 +541,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     lightShapeData.boxInnerDist = e;
                     lightShapeData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
 
-                    int i = LightDefinitions.REFLECTION_LIGHT, j = LightDefinitions.BOX_LIGHT;
+                    int i = LightDefinitions.REFLECTION_LIGHT_CATEGORY, j = LightDefinitions.BOX_VOLUME;
                     int index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     m_boundData[index] = bound;
                     m_lightShapeData[index] = lightShapeData;
@@ -550,14 +550,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 for (int areaLightIndex = 0; areaLightIndex < lightList.areaLights.Count; areaLightIndex++)
                 {
                     LightData areaLightData = lightList.areaLights[areaLightIndex];
-                    VisibleLight light = cullResults.visibleLights[lightList.areaCullIndices[areaLightIndex]];
                     
                     // Fill bounds
                     var bound = new SFiniteLightBound();
                     var lightShapeData = new LightShapeData();
 
-                    lightShapeData.lightType = (uint)LightDefinitions.BOX_LIGHT;
-                    lightShapeData.lightCategory = (uint)LightDefinitions.AREA_LIGHT;
+                    lightShapeData.lightVolume = (uint)LightDefinitions.BOX_VOLUME;
+                    lightShapeData.lightCategory = (uint)LightDefinitions.AREA_LIGHT_CATEGORY;
                     lightShapeData.lightIndex = (uint)areaLightIndex;
 
 
@@ -620,7 +619,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         Debug.Assert(false);
                     }
 
-                    int i = LightDefinitions.AREA_LIGHT, j = LightDefinitions.BOX_LIGHT;
+                    int i = LightDefinitions.AREA_LIGHT_CATEGORY, j = LightDefinitions.BOX_VOLUME;
                     int index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
 
                     m_boundData[index] = bound;
@@ -628,11 +627,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
 
                 // Sanity check
-                for (var m = 0; m < numModels; m++)
+                for (var category = 0; category < numCategories; category++)
                 {
                     for (var v = 0; v < numVolTypes; v++)
                     {
-                        Debug.Assert(numEntries[m, v] == numEntries2nd[m, v], "count mismatch on second pass!");
+                        Debug.Assert(numEntries[category, v] == numEntries2nd[category, v], "count mismatch on second pass!");
                     }
                 }
 

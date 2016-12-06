@@ -119,7 +119,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
 #ifdef PROCESS_PUNCTUAL_LIGHT
     uint punctualLightStart;
     uint punctualLightCount;
-    GetCountAndStart(coord, DIRECT_LIGHT, linearDepth, punctualLightStart, punctualLightCount);
+    GetCountAndStart(coord, DIRECT_LIGHT_CATEGORY, linearDepth, punctualLightStart, punctualLightCount);
     for (i = 0; i < punctualLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
@@ -136,7 +136,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
     // TODO: Area lights are where the sorting is important (Morten approach with while loop)
     uint areaLightStart;
     uint areaLightCount;
-    GetCountAndStart(coord, AREA_LIGHT, linearDepth, areaLightStart, areaLightCount);
+    GetCountAndStart(coord, AREA_LIGHT_CATEGORY, linearDepth, areaLightStart, areaLightCount);
     for (i = 0; i < areaLightCount; ++i)
     {
         float3 localDiffuseLighting, localSpecularLighting;
@@ -161,7 +161,7 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
 #ifdef PROCESS_ENV_LIGHT
     uint envLightStart;
     uint envLightCount;
-    GetCountAndStart(coord, REFLECTION_LIGHT, linearDepth, envLightStart, envLightCount);
+    GetCountAndStart(coord, REFLECTION_LIGHT_CATEGORY, linearDepth, envLightStart, envLightCount);
 
     float3 iblDiffuseLighting = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
