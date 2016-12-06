@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // direct lights and reflection probes for now
             public static int NR_LIGHT_CATEGORIES = 3;
-            public static int DIRECT_LIGHT_CATEGORY = 0;
+            public static int PUNCTUAL_LIGHT_CATEGORY = 0;
             public static int REFLECTION_LIGHT_CATEGORY = 1;
             public static int AREA_LIGHT_CATEGORY = 2;
         }
@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         };
 
         [GenerateHLSL]
-        public struct LightShapeData
+        public struct LightVolumeData
         {
             public Vector3 lightPos;
             public uint lightIndex; // Index in light tabs like LightData / EnvLightData
@@ -78,10 +78,24 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public class LightLoop
         {
-            string GetKeyword()
-            {
-                return "LIGHTLOOP_TILE_PASS";
-            }
+            public const int k_MaxDirectionalLightsOnSCreen = 3;
+            public const int k_MaxPunctualLightsOnSCreen = 512;
+            public const int k_MaxAreaLightsOnSCreen = 128;
+            public const int k_MaxEnvLightsOnSCreen = 64;
+            public const int k_MaxShadowOnScreen = 16;
+            public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
+
+            // Static keyword is required here else we get a "DestroyBuffer can only be call in main thread"
+            static ComputeBuffer s_DirectionalLights = null;
+            static ComputeBuffer s_PunctualLightList = null;
+            static ComputeBuffer s_EnvLightList = null;
+            static ComputeBuffer s_AreaLightList = null;
+            static ComputeBuffer s_PunctualShadowList = null;
+            static ComputeBuffer s_DirectionalShadowList = null;
+
+            TextureCacheCubemap m_CubeReflTexArray;
+            TextureCache2D m_CookieTexArray;
+            TextureCacheCubemap m_CubeCookieTexArray;
 
             public const int MaxNumLights = 1024;
             public const int MaxNumDirLights = 2;
@@ -96,7 +110,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             private static int s_GenListPerTileKernel;
             private static int s_GenListPerVoxelKernel;
             private static int s_ClearVoxelAtomicKernel;
-            private static ComputeBuffer s_LightShapeDataBuffer = null;
+            private static ComputeBuffer s_LigthVolumeDataBuffer = null;
             private static ComputeBuffer s_ConvexBoundsBuffer = null;
             private static ComputeBuffer s_AABBBoundsBuffer = null;
             private static ComputeBuffer s_LightList = null;
@@ -124,8 +138,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             private static ComputeBuffer s_GlobalLightListAtomic = null;
             // clustered light list specific buffers and data end
 
-            SFiniteLightBound[] m_boundData;
-            LightShapeData[] m_lightShapeData;
             int m_lightCount;
 
             bool usingFptl
@@ -139,18 +151,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
             }
 
-            // Static keyword is required here else we get a "DestroyBuffer can only be call in main thread"
-            static ComputeBuffer s_DirectionalLights = null;
-            static ComputeBuffer s_PunctualLightList = null;
-            static ComputeBuffer s_EnvLightList = null;
-            static ComputeBuffer s_AreaLightList = null;
-            static ComputeBuffer s_PunctualShadowList = null;
-            static ComputeBuffer s_DirectionalShadowList = null;
-
             Material m_DeferredDirectMaterial = null;
             Material m_DeferredIndirectMaterial = null;
             Material m_DeferredAllMaterial = null;
             Material m_DebugViewTilesMaterial = null;
+
+            Material m_SingleDeferredMaterial = null;
 
             const int k_TileSize = 16;
 
@@ -175,11 +181,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
                 s_AABBBoundsBuffer = new ComputeBuffer(2 * MaxNumLights, 3 * sizeof(float));
                 s_ConvexBoundsBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
-                s_LightShapeDataBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightShapeData)));
+                s_LigthVolumeDataBuffer = new ComputeBuffer(MaxNumLights, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LigthVolumeData)));
  
                 buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "_LightShapeData", s_LightShapeDataBuffer);
+                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "_LigthVolumeData", s_LigthVolumeDataBuffer);
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_data", s_ConvexBoundsBuffer);
 
                 if (enableClustered)
@@ -188,7 +194,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
                     s_ClearVoxelAtomicKernel = buildPerVoxelLightListShader.FindKernel("ClearAtomic");
                     buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "_LightShapeData", s_LightShapeDataBuffer);
+                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "_LigthVolumeData", s_LigthVolumeDataBuffer);
                     buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_data", s_ConvexBoundsBuffer);
 
                     s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
@@ -198,21 +204,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
                     buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "_LightShapeData", s_LightShapeDataBuffer);
+                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "_LigthVolumeData", s_LigthVolumeDataBuffer);
                     buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_data", s_ConvexBoundsBuffer);
                 }
 
                 s_LightList = null;
-                m_boundData = new SFiniteLightBound[MaxNumLights];
-                m_lightShapeData = new LightShapeData[MaxNumLights];
                 m_lightCount = 0;
 
-                s_DirectionalLights = new ComputeBuffer(HDRenderLoop.k_MaxDirectionalLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
-                s_DirectionalShadowList = new ComputeBuffer(HDRenderLoop.k_MaxCascadeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalShadowData)));
-                s_PunctualLightList = new ComputeBuffer(HDRenderLoop.k_MaxPunctualLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-                s_AreaLightList = new ComputeBuffer(HDRenderLoop.k_MaxAreaLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-                s_EnvLightList = new ComputeBuffer(HDRenderLoop.k_MaxEnvLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
-                s_PunctualShadowList = new ComputeBuffer(HDRenderLoop.k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(PunctualShadowData)));
+                s_DirectionalLights = new ComputeBuffer(k_MaxDirectionalLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
+                s_DirectionalShadowList = new ComputeBuffer(k_MaxCascadeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
+                s_PunctualLightList = new ComputeBuffer(k_MaxPunctualLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                s_AreaLightList = new ComputeBuffer(k_MaxAreaLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                s_EnvLightList = new ComputeBuffer(k_MaxEnvLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+                s_PunctualShadowList = new ComputeBuffer(k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 
                 m_DeferredDirectMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
                 m_DeferredDirectMaterial.EnableKeyword("LIGHTLOOP_TILE_PASS");
@@ -233,6 +237,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_DeferredAllMaterial.EnableKeyword("LIGHTLOOP_TILE_ALL");
 
                 m_DebugViewTilesMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/DebugViewTiles");
+
+                m_SingleDeferredMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
+                m_DeferredAllMaterial.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
             }
 
             public void Cleanup()
@@ -241,7 +248,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 Utilities.SafeRelease(s_AABBBoundsBuffer);
                 Utilities.SafeRelease(s_ConvexBoundsBuffer);
-                Utilities.SafeRelease(s_LightShapeDataBuffer);           
+                Utilities.SafeRelease(s_LigthVolumeDataBuffer);           
 
                 // enableClustered
                 Utilities.SafeRelease(s_GlobalLightListAtomic);
@@ -257,6 +264,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Utilities.Destroy(m_DeferredIndirectMaterial);
                 Utilities.Destroy(m_DeferredAllMaterial);
                 Utilities.Destroy(m_DebugViewTilesMaterial);
+
+                Utilities.Destroy(m_SingleDeferredMaterial);
             }
 
             public bool NeedResize()
@@ -332,38 +341,110 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return camera.projectionMatrix * GetFlipMatrix();
             }
 
+            public Vector3 GetLightColor(VisibleLight light)
+            {
+                // Linear intensity calculation (different from legacy Unity - match LinearLighting new option in 5.6)
+                var lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
+                var lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
+                var lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
+
+                return new Vector3(lightColorR, lightColorG, lightColorB);
+            }
+
             public void PrepareLightsForGPU(CullResults cullResults, Camera camera, HDRenderLoop.LightList lightList)
             {
-                var numCategories = (int)LightDefinitions.NR_LIGHT_CATEGORIES;
-                var numVolTypes = (int)LightDefinitions.MAX_VOLUME_TYPES;
+                // 1. Count the number of lights and type of volume required
+                int directionalLightcount = 0;
+                int punctualLightcount = 0;
+                int areaLightCount = 0;
+                int envLightCount = 0;
+
+                int numCategories = (int)LightDefinitions.NR_LIGHT_CATEGORIES;
+                int numVolTypes = (int)LightDefinitions.MAX_VOLUME_TYPES;
                 // Use for first space screen AABB
                 var numEntries = new int[numCategories, numVolTypes];
                 var offsets = new int[numCategories, numVolTypes];
                 // Use for the second pass (fine pruning)
                 var numEntries2nd = new int[numCategories, numVolTypes];
 
-                foreach (var punctualLight in lightList.punctualLights)
+                var lightIsUse = new bool[cullResults.visibleLights.Length];
+                var probeIsUse = new bool[cullResults.reflectionProbe.Length];
+
+                for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; lightIndex < numLights; ++lightIndex)
                 {
-                    var volType = punctualLight.lightType == GPULightType.Spot ? LightDefinitions.SPOT_VOLUME : (punctualLight.lightType == GPULightType.Point ? LightDefinitions.SPHERE_VOLUME : -1);
-                    if (volType >= 0)
-                        ++numEntries[LightDefinitions.DIRECT_LIGHT_CATEGORY, volType];
+                    lightIsUse[lightIndex] = false;
+
+                    var light = cullResults.visibleLights[lightIndex];
+
+                    // We only process light with additional data
+                    var additionalData = light.light.GetComponent<AdditionalLightData>();
+
+                    if (additionalData == null)
+                    {
+                        Debug.LogWarning("Light entity detected without additional data, will not be taken into account " + light.light.name);
+                        continue;
+                    }
+
+                    if (additionalData.archetype == LightArchetype.Punctual)
+                    {
+                        switch (light.lightType)
+                        {
+                            case LightType.Point:
+                                if (punctualLightcount >= k_MaxPunctualLightsOnSCreen)
+                                    continue;
+                                ++numEntries[LightDefinitions.PUNCTUAL_LIGHT_CATEGORY, LightDefinitions.SPHERE_VOLUME];
+                                ++punctualLightcount;
+                                lightIsUse[lightIndex] = true;
+                                break;
+
+                            case LightType.Spot:
+                                if (punctualLightcount >= k_MaxPunctualLightsOnSCreen)
+                                    continue;
+                                ++numEntries[LightDefinitions.PUNCTUAL_LIGHT_CATEGORY, LightDefinitions.SPOT_VOLUME];
+                                ++punctualLightcount;
+                                lightIsUse[lightIndex] = true;
+                                break;
+
+                            case LightType.Directional:
+                                if (directionalLightcount >= k_MaxDirectionalLightsOnSCreen)
+                                    continue;
+                                // No need to add volume, always visible
+                                ++directionalLightcount;
+                                lightIsUse[lightIndex] = true;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (additionalData.archetype)
+                        {
+                            case LightArchetype.Rectangle:
+                            case LightArchetype.Line:
+                                if (lightList.areaLights.Count >= k_MaxAreaLightsOnSCreen)
+                                    continue;
+                                ++numEntries[LightDefinitions.AREA_LIGHT_CATEGORY, LightDefinitions.BOX_VOLUME];
+                                ++areaLightCount;
+                                lightIsUse[lightIndex] = true;
+                                break;
+
+                        }
+                    }
                 }
 
-                // TODO: manage sphere_light
-                foreach (var envLight in lightList.envLights)
+                for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Length; probeIndex < numProbes; probeIndex++)
                 {
-                    var volType = LightDefinitions.BOX_VOLUME;       // always a box for now
-                    ++numEntries[LightDefinitions.REFLECTION_LIGHT_CATEGORY, volType];
+                    var probe = cullResults.visibleReflectionProbes[probeIndex];
+
+                    if (lightList.envLights.Count >= k_MaxEnvLightsOnSCreen)
+                        continue;
+
+                    // TODO Handle sphere shape
+                    ++numEntries[LightDefinitions.REFLECTION_LIGHT_CATEGORY, LightDefinitions.BOX_VOLUME];
+                    ++envLightCount;
+                    probeIsUse[probeIndex] = true;
                 }
 
-                foreach (var areaLight in lightList.areaLights)
-                {
-                    var volType = LightDefinitions.BOX_VOLUME;
-                    ++numEntries[LightDefinitions.AREA_LIGHT_CATEGORY, volType];
-                }
-
-
-                // add decals here too similar to the above
+                // TODO: Can add volume decal in the future
 
                 // establish offsets
                 for (int category = 0; category < numCategories; category++)
@@ -375,12 +456,94 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     }
                 }
 
+                // 2. Allocate light list
+                // TODO: don't allocate 0!
+                var directionalLights = new DirectionalLightData[directionalLightcount];
+                var punctualLights = new LightData[punctualLightcount];
+                var areaLights = new LightData[areaLightCount];
+
+                var directionalShadows = new ShadowData[k_MaxCascadeCount];
+                // k_MaxShadowOnScreen is share between punctual and area shadows, here we just maximise allocation
+                var punctualShadows = new ShadowData[k_MaxShadowOnScreen];
+                var areaShadows = new ShadowData[k_MaxShadowOnScreen];
+                var directionalShadowSplitSphereSqr = new Vector4[k_MaxCascadeCount];
+
+                int volumeCount = punctualLightcount + areaLightCount + envLightCount;
+
+                var boundData = new SFiniteLightData[volumeCount];
+                var lightVolumeData = new LightVolumeData[volumeCount];
+
+                // 3. Go thought all lights, convert them to GPU format.
+                // Create simultaneously data for culling (LigthVolumeData and rendering
+                int directionalLightIndex = 0;
                 var worldToView = WorldToCamera(camera);
 
-                for (int lightIndex = 0; lightIndex < lightList.punctualLights.Count; lightIndex++)
+                for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; lightIndex < numLights; ++lightIndex)
                 {
-                    LightData punctualLightData = lightList.punctualLights[lightIndex];
-                    VisibleLight light = cullResults.visibleLights[lightList.punctualCullIndices[lightIndex]];
+                    if (!lightIsUse[lightIndex])
+                        continue;
+
+                    var light = cullResults.visibleLights[lightIndex];
+                    var additionalData = light.light.GetComponent<AdditionalLightData>();
+                    
+                    if (light.lightType == LightType.Directional)
+                    {                        
+                        var directionalLightData = new DirectionalLightData();
+                        // Light direction for directional and is opposite to the forward direction
+                        directionalLightData.direction = -light.light.transform.forward;
+                        directionalLightData.up = light.light.transform.up;
+                        directionalLightData.right = light.light.transform.right;
+                        directionalLightData.positionWS = light.light.transform.position;
+                        directionalLightData.color = GetLightColor(light);
+                        directionalLightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
+                        directionalLightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
+                        directionalLightData.invScaleX = 1.0f / light.light.transform.localScale.x;
+                        directionalLightData.invScaleY = 1.0f / light.light.transform.localScale.y;
+                        directionalLightData.cosAngle = 0.0f;
+                        directionalLightData.sinAngle = 0.0f;
+                        directionalLightData.shadowIndex = -1;
+                        directionalLightData.cookieIndex = -1;
+
+                        if (light.light.cookie != null)
+                        {
+                            directionalLightData.tileCookie = (light.light.cookie.wrapMode == TextureWrapMode.Repeat);
+                            directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
+                        }
+
+                        bool hasDirectionalShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
+                        bool hasDirectionalNotReachMaxLimit = lightList.directionalShadows.Count == 0; // Only one cascade shadow allowed
+
+                        if (hasDirectionalShadows && hasDirectionalNotReachMaxLimit) // Note  < MaxShadows should be check at shadowOutput creation
+                        {
+                            // When we have a point light, we assumed that there is 6 consecutive PunctualShadowData
+                            directionalLightData.shadowIndex = 0;
+
+                            for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
+                            {
+                                ShadowData directionalShadowData = new ShadowData();
+
+                                int shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
+                                directionalShadowData.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose for hlsl reading ?
+
+                                directionalShadowData.bias = light.light.shadowBias;
+
+                                lightList.directionalShadows.Add(directionalShadowData);
+                            }
+
+                            // Fill split information for shaders
+                            for (int s = 0; s < k_MaxCascadeCount; ++s)
+                            {
+                                lightList.directionalShadowSplitSphereSqr[s] = shadowOutput.directionalShadowSplitSphereSqr[s];
+                            }
+                        }
+
+                        directionalLights[directionalLightIndex++];
+
+                        continue;
+                    }
+
+                    // Note: LightType.Area is offline only, use for baking, no need to test it
+                    var lightData = new LightData();
 
                     var range = light.range;
                     var lightToWorld = light.localToWorld;
@@ -388,11 +551,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     // Fill bounds
                     var bound = new SFiniteLightBound();
-                    var lightShapeData = new LightShapeData();
+                    var ligthVolumeData = new LigthVolumeData();
                     int index = -1;
 
-                    lightShapeData.lightCategory = (uint)LightDefinitions.DIRECT_LIGHT_CATEGORY;
-                    lightShapeData.lightIndex = (uint)lightIndex;
+                    ligthVolumeData.lightCategory = (uint)LightDefinitions.PUNCTUAL_LIGHT_CATEGORY;
+                    ligthVolumeData.lightIndex = (uint)lightIndex;
 
                     if (punctualLightData.lightType == GPULightType.Spot || punctualLightData.lightType == GPULightType.ProjectorPyramid)
                     {
@@ -446,15 +609,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         bound.scaleXY = squeeze ? new Vector2(0.01f, 0.01f) : new Vector2(1.0f, 1.0f);
 
 
-                        lightShapeData.lightAxisX = vx;
-                        lightShapeData.lightAxisY = vy;
-                        lightShapeData.lightAxisZ = vz;
-                        lightShapeData.lightVolume = (uint)LightDefinitions.SPOT_VOLUME;
-                        lightShapeData.lightPos = worldToView.MultiplyPoint(lightPos);
-                        lightShapeData.radiusSq = range * range;
-                        lightShapeData.cotan = cota;
+                        ligthVolumeData.lightAxisX = vx;
+                        ligthVolumeData.lightAxisY = vy;
+                        ligthVolumeData.lightAxisZ = vz;
+                        ligthVolumeData.lightVolume = (uint)LightDefinitions.SPOT_VOLUME;
+                        ligthVolumeData.lightPos = worldToView.MultiplyPoint(lightPos);
+                        ligthVolumeData.radiusSq = range * range;
+                        ligthVolumeData.cotan = cota;
 
-                        int i = LightDefinitions.DIRECT_LIGHT_CATEGORY, j = LightDefinitions.SPOT_VOLUME;
+                        int i = LightDefinitions.PUNCTUAL_LIGHT_CATEGORY, j = LightDefinitions.SPOT_VOLUME;
                         index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     }
                     else // if (punctualLightData.lightType == GPULightType.Point)
@@ -475,19 +638,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         Vector3 vz = lightToView.GetColumn(2);
 
                         // fill up ldata
-                        lightShapeData.lightAxisX = vx;
-                        lightShapeData.lightAxisY = vy;
-                        lightShapeData.lightAxisZ = vz;
-                        lightShapeData.lightVolume = (uint)LightDefinitions.SPHERE_VOLUME;
-                        lightShapeData.lightPos = bound.center;
-                        lightShapeData.radiusSq = range * range;
+                        ligthVolumeData.lightAxisX = vx;
+                        ligthVolumeData.lightAxisY = vy;
+                        ligthVolumeData.lightAxisZ = vz;
+                        ligthVolumeData.lightVolume = (uint)LightDefinitions.SPHERE_VOLUME;
+                        ligthVolumeData.lightPos = bound.center;
+                        ligthVolumeData.radiusSq = range * range;
 
-                        int i = LightDefinitions.DIRECT_LIGHT_CATEGORY, j = LightDefinitions.SPHERE_VOLUME;
+                        int i = LightDefinitions.PUNCTUAL_LIGHT_CATEGORY, j = LightDefinitions.SPHERE_VOLUME;
                         index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     }
 
                     m_boundData[index] = bound;
-                    m_lightShapeData[index] = lightShapeData;
+                    m_ligthVolumeData[index] = ligthVolumeData;
                 }
 
                 for (int envIndex = 0; envIndex < lightList.envLights.Count; envIndex++)
@@ -528,23 +691,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     bound.scaleXY.Set(1.0f, 1.0f);
                     bound.radius = combinedExtent.magnitude;
 
-                    var lightShapeData = new LightShapeData();
-                    lightShapeData.lightVolume = (uint)LightDefinitions.BOX_VOLUME;
-                    lightShapeData.lightCategory = (uint)LightDefinitions.REFLECTION_LIGHT_CATEGORY;
-                    lightShapeData.lightIndex = (uint)envIndex;
+                    var ligthVolumeData = new LigthVolumeData();
+                    ligthVolumeData.lightVolume = (uint)LightDefinitions.BOX_VOLUME;
+                    ligthVolumeData.lightCategory = (uint)LightDefinitions.REFLECTION_LIGHT_CATEGORY;
+                    ligthVolumeData.lightIndex = (uint)envIndex;
 
-                    lightShapeData.lightPos = Cw;
-                    lightShapeData.lightAxisX = vx;
-                    lightShapeData.lightAxisY = vy;
-                    lightShapeData.lightAxisZ = vz;
+                    ligthVolumeData.lightPos = Cw;
+                    ligthVolumeData.lightAxisX = vx;
+                    ligthVolumeData.lightAxisY = vy;
+                    ligthVolumeData.lightAxisZ = vz;
                     var delta = combinedExtent - e;
-                    lightShapeData.boxInnerDist = e;
-                    lightShapeData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+                    ligthVolumeData.boxInnerDist = e;
+                    ligthVolumeData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
 
                     int i = LightDefinitions.REFLECTION_LIGHT_CATEGORY, j = LightDefinitions.BOX_VOLUME;
                     int index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
                     m_boundData[index] = bound;
-                    m_lightShapeData[index] = lightShapeData;
+                    m_ligthVolumeData[index] = ligthVolumeData;
                 }
 
                 for (int areaLightIndex = 0; areaLightIndex < lightList.areaLights.Count; areaLightIndex++)
@@ -553,11 +716,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     
                     // Fill bounds
                     var bound = new SFiniteLightBound();
-                    var lightShapeData = new LightShapeData();
+                    var ligthVolumeData = new LigthVolumeData();
 
-                    lightShapeData.lightVolume = (uint)LightDefinitions.BOX_VOLUME;
-                    lightShapeData.lightCategory = (uint)LightDefinitions.AREA_LIGHT_CATEGORY;
-                    lightShapeData.lightIndex = (uint)areaLightIndex;
+                    ligthVolumeData.lightVolume = (uint)LightDefinitions.BOX_VOLUME;
+                    ligthVolumeData.lightCategory = (uint)LightDefinitions.AREA_LIGHT_CATEGORY;
+                    ligthVolumeData.lightIndex = (uint)areaLightIndex;
 
 
                     if (areaLightData.lightType == GPULightType.Rectangle)
@@ -583,12 +746,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         bound.scaleXY.Set(1.0f, 1.0f);
                         bound.radius = dimensions.magnitude;
                         
-                        lightShapeData.lightPos = centerVS;
-                        lightShapeData.lightAxisX = xAxisVS;
-                        lightShapeData.lightAxisY = yAxisVS;
-                        lightShapeData.lightAxisZ = zAxisVS;
-                        lightShapeData.boxInnerDist = dimensions;
-                        lightShapeData.boxInvRange.Set(1e5f, 1e5f, 1e5f);
+                        ligthVolumeData.lightPos = centerVS;
+                        ligthVolumeData.lightAxisX = xAxisVS;
+                        ligthVolumeData.lightAxisY = yAxisVS;
+                        ligthVolumeData.lightAxisZ = zAxisVS;
+                        ligthVolumeData.boxInnerDist = dimensions;
+                        ligthVolumeData.boxInvRange.Set(1e5f, 1e5f, 1e5f);
                     }
                     else if (areaLightData.lightType == GPULightType.Line)
                     {
@@ -607,12 +770,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         bound.scaleXY.Set(1.0f, 1.0f);
                         bound.radius = dimensions.magnitude;
 
-                        lightShapeData.lightPos = centerVS;
-                        lightShapeData.lightAxisX = xAxisVS;
-                        lightShapeData.lightAxisY = yAxisVS;
-                        lightShapeData.lightAxisZ = zAxisVS;
-                        lightShapeData.boxInnerDist = new Vector3(areaLightData.size.x * 0.5f, 0.01f, 0.01f);
-                        lightShapeData.boxInvRange.Set(1.0f / radius, 1.0f / radius, 1.0f / radius);
+                        ligthVolumeData.lightPos = centerVS;
+                        ligthVolumeData.lightAxisX = xAxisVS;
+                        ligthVolumeData.lightAxisY = yAxisVS;
+                        ligthVolumeData.lightAxisZ = zAxisVS;
+                        ligthVolumeData.boxInnerDist = new Vector3(areaLightData.size.x * 0.5f, 0.01f, 0.01f);
+                        ligthVolumeData.boxInvRange.Set(1.0f / radius, 1.0f / radius, 1.0f / radius);
                     }
                     else
                     {
@@ -623,7 +786,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     int index = numEntries2nd[i, j] + offsets[i, j]; ++numEntries2nd[i, j];
 
                     m_boundData[index] = bound;
-                    m_lightShapeData[index] = lightShapeData;
+                    m_ligthVolumeData[index] = ligthVolumeData;
                 }
 
                 // Sanity check
@@ -637,7 +800,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_lightCount = lightList.punctualLights.Count + lightList.envLights.Count + lightList.areaLights.Count;
                 s_ConvexBoundsBuffer.SetData(m_boundData); // TODO: check with Vlad what is happening here, do we copy 1024 element always ? Could we setup the size we want to copy ?
-                s_LightShapeDataBuffer.SetData(m_lightShapeData);
+                s_LigthVolumeDataBuffer.SetData(m_ligthVolumeData);
             }
 
             void VoxelLightListGeneration(CommandBuffer cmd, Camera camera, Matrix4x4 projscr, Matrix4x4 invProjscr, RenderTargetIdentifier cameraDepthBufferRT)
@@ -879,7 +1042,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LightTextureB0", m_LightAttentuationTexture);
 
                         cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
-                        cmd.SetComputeBufferParam(deferredComputeShader, kernel, "_LightShapeData", s_LightShapeDataBuffer);
+                        cmd.SetComputeBufferParam(deferredComputeShader, kernel, "_LigthVolumeData", s_LigthVolumeDataBuffer);
                         cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
 
                         var defdecode = ReflectionProbe.GetDefaultTextureHDRDecodeValues();

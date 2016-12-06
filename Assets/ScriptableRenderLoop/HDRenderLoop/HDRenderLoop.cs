@@ -129,14 +129,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         ShadowRenderPass m_ShadowPass;
 
-
-        public const int k_MaxDirectionalLightsOnSCreen = 3;
-        public const int k_MaxPunctualLightsOnSCreen = 512;
-        public const int k_MaxAreaLightsOnSCreen = 128;
-        public const int k_MaxEnvLightsOnSCreen = 64;
-        public const int k_MaxShadowOnScreen = 16;
-        public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
-
         [SerializeField]
         TextureSettings m_TextureSettings = TextureSettings.Default;
 
@@ -161,77 +153,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         RenderTargetIdentifier m_CameraDepthBufferRT;
         RenderTargetIdentifier m_VelocityBufferRT;
         RenderTargetIdentifier m_DistortionBufferRT;
-		
-        public class LightList
-        {
-            public List<DirectionalLightData> directionalLights;
-            public List<DirectionalShadowData> directionalShadows;
-            public List<LightData> punctualLights;
-            public List<PunctualShadowData> punctualShadows;
-            public List<LightData> areaLights;
-            public List<EnvLightData> envLights;
-            public Vector4[] directionalShadowSplitSphereSqr;
-
-            // Index mapping list to go from GPU lights (above) to CPU light (in cullResult)
-            public List<int> directionalCullIndices;
-            public List<int> punctualCullIndices;
-            public List<int> areaCullIndices;
-            public List<int> envCullIndices;
-
-            public void Clear()
-            {
-                directionalLights.Clear();
-                directionalShadows.Clear();
-                punctualLights.Clear();
-                punctualShadows.Clear();
-                areaLights.Clear();
-                envLights.Clear();
-
-                directionalCullIndices.Clear();
-                punctualCullIndices.Clear();
-                areaCullIndices.Clear();
-                envCullIndices.Clear();
-            }
-
-            public void Allocate()
-            {
-                directionalLights = new List<DirectionalLightData>();
-                punctualLights = new List<LightData>();
-                areaLights = new List<LightData>();
-                envLights = new List<EnvLightData>();
-                punctualShadows = new List<PunctualShadowData>();
-                directionalShadows = new List<DirectionalShadowData>();
-                directionalShadowSplitSphereSqr = new Vector4[k_MaxCascadeCount];
-
-                directionalCullIndices = new List<int>();
-                punctualCullIndices = new List<int>();
-                areaCullIndices = new List<int>();
-                envCullIndices = new List<int>();
-            }
-        }
-
-        LightList m_lightList;
 
         // Detect when windows size is changing
         int m_WidthOnRecord;
         int m_HeightOnRecord;
 
-        // TODO: Find a way to automatically create/iterate through lightloop
-        // This must be init externally else The value can't be set in the inspector... (as it will recreate the class with default value)
-        SinglePass.LightLoop m_SinglePassLightLoop = new SinglePass.LightLoop();
-        TilePass.LightLoop m_TilePassLightLoop = new TilePass.LightLoop();
-        public TilePass.LightLoop tilePassLightLoop
+        enum LightLoopType
         {
-            get { return m_TilePassLightLoop; }
-        }
+            SinglePass = 0,
+            TilePass = 1
+        };
+
+        // This must be init externally else The value can't be set in the inspector... (as it will recreate the class with default value)
+        LightLoop m_lightLoop = new SinglePass();
 
         // TODO: Find a way to automatically create/iterate through deferred material
         // TODO TO CHECK: SebL I move allocation from Rebuild() to here, but there was a comment "// Our object can be garbage collected, so need to be allocate here", it is still true ?
         Lit.RenderLoop m_LitRenderLoop = new Lit.RenderLoop();
-
-        TextureCacheCubemap m_CubeReflTexArray;
-        TextureCache2D m_CookieTexArray;
-        TextureCacheCubemap m_CubeCookieTexArray;
 
         public void OnValidate()
         {
@@ -239,6 +177,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // "SendMessage cannot be called during Awake, CheckConsistency, or OnValidate UnityEngine.Experimental.ScriptableRenderLoop.HDRenderLoop:OnValidate()"
             // Workaround is to declare this dirty flag and call REbuild in Render()
             m_Dirty = true;
+        }
+
+        public void ChangeLoop(LightLoopType type)
+        {
+            m_lightLoop.Cleanup();
+
+            switch (type)
+            {
+                case LightLoopType.SinglePass:
+                    m_lightLoop = new SinglePass();
+                break;
+                case LightLoopType.TilePass:
+                    m_lightLoop = new TilePass();
+                break;
+            }
+            
+            m_lightLoop.Rebuild();
         }
 
         public override void Rebuild()
@@ -288,19 +243,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_LitRenderLoop.Rebuild();
 
-            m_CookieTexArray = new TextureCache2D();
-            m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
-            m_CubeCookieTexArray = new TextureCacheCubemap();
-            m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-            m_CubeReflTexArray = new TextureCacheCubemap();
-            m_CubeReflTexArray.AllocTextureArray(32, m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
-
             // Init various light loop
-            m_SinglePassLightLoop.Rebuild();
-            tilePassLightLoop.Rebuild();
-
-            m_lightList = new LightList();
-            m_lightList.Allocate();
+            m_lightLoop.Rebuild();
 
             m_Dirty = false;
         }
@@ -320,27 +264,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public override void Cleanup()
         {
             m_LitRenderLoop.Cleanup();
-            m_SinglePassLightLoop.Cleanup();
-            m_TilePassLightLoop.Cleanup();
+            m_lightLoop.Cleanup();
 
             Utilities.Destroy(m_FinalPassMaterial);
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
-
-            if (m_CubeReflTexArray != null)
-            {
-                m_CubeReflTexArray.Release();
-                m_CubeReflTexArray = null;
-            }
-            if (m_CookieTexArray != null)
-            {
-                m_CookieTexArray.Release();
-                m_CookieTexArray = null;
-            }
-            if (m_CubeCookieTexArray != null)
-            {
-                m_CubeCookieTexArray.Release();
-                m_CubeCookieTexArray = null;
-            }
 
             if (m_SkyRenderer != null)
             {
@@ -350,13 +277,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 #if UNITY_EDITOR
             UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
 #endif
-        }
-
-        void NewFrame()
-        {
-            m_CookieTexArray.NewFrame();
-            m_CubeCookieTexArray.NewFrame();
-            m_CubeReflTexArray.NewFrame();
         }
 
         void InitAndClearBuffer(Camera camera, RenderLoop renderLoop)
@@ -534,14 +454,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // Bind material data
             m_LitRenderLoop.Bind();
-            if (debugParameters.useSinglePassLightLoop)
-            {
-                m_SinglePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
-            }
-            else
-            {
-                tilePassLightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBufferRT);
-            }
+            m_lightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
         }
 
         void RenderSky(Camera camera, RenderLoop renderLoop)
@@ -664,11 +577,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        // Function to prepare light structure for GPU lighting
-        void PrepareLightsForGPU(CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput, ref LightList lightList)
-        {
-            lightList.Clear();
 
+
+        // Function to prepare light structure for GPU lighting
+        void PrepareLightsForGPU(CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
+        {
             for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; lightIndex < numLights; ++lightIndex)
             {
                 var light = cullResults.visibleLights[lightIndex];
@@ -679,71 +592,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (additionalData == null)
                 {
                     Debug.LogWarning("Light entity detected without additional data, will not be taken into account " + light.light.name);
-                    continue;
-                }
-
-                // Linear intensity calculation (different Unity 5.5)
-                var lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
-                var lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
-                var lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
-
-                if (light.lightType == LightType.Directional)
-                {
-                    if (lightList.directionalLights.Count >= k_MaxDirectionalLightsOnSCreen)
-                        continue;
-
-                    var directionalLightData = new DirectionalLightData();
-                    // Light direction for directional and is opposite to the forward direction
-                    directionalLightData.direction  = -light.light.transform.forward;
-                    directionalLightData.up         = light.light.transform.up;
-                    directionalLightData.right      = light.light.transform.right;
-                    directionalLightData.positionWS = light.light.transform.position;
-                    directionalLightData.color = new Vector3(lightColorR, lightColorG, lightColorB);
-                    directionalLightData.diffuseScale = additionalData.affectDiffuse ? 1.0f : 0.0f;
-                    directionalLightData.specularScale = additionalData.affectSpecular ? 1.0f : 0.0f;
-                    directionalLightData.invScaleX = 1.0f / light.light.transform.localScale.x;
-                    directionalLightData.invScaleY = 1.0f / light.light.transform.localScale.y;
-                    directionalLightData.cosAngle = 0.0f;
-                    directionalLightData.sinAngle = 0.0f;
-                    directionalLightData.shadowIndex = -1;
-                    directionalLightData.cookieIndex = -1;
-
-                    if (light.light.cookie != null)
-                    {
-                        directionalLightData.tileCookie  = (light.light.cookie.wrapMode == TextureWrapMode.Repeat);
-                        directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(light.light.cookie);
-                    }
-
-                    bool hasDirectionalShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
-                    bool hasDirectionalNotReachMaxLimit = lightList.directionalShadows.Count == 0; // Only one cascade shadow allowed
-
-                    if (hasDirectionalShadows && hasDirectionalNotReachMaxLimit) // Note  < MaxShadows should be check at shadowOutput creation
-                    {
-                        // When we have a point light, we assumed that there is 6 consecutive PunctualShadowData
-                        directionalLightData.shadowIndex = 0;
-
-                        for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
-                        {
-                            DirectionalShadowData directionalShadowData = new DirectionalShadowData();
-
-                            int shadowSliceIndex = shadowOutput.GetShadowSliceIndex(lightIndex, sliceIndex);
-                            directionalShadowData.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose for hlsl reading ?
-
-                            directionalShadowData.bias = light.light.shadowBias;
-
-                            lightList.directionalShadows.Add(directionalShadowData);
-                        }
-
-                        // Fill split information for shaders
-                        for (int s = 0; s < k_MaxCascadeCount; ++s)
-                        {
-                            lightList.directionalShadowSplitSphereSqr[s] = shadowOutput.directionalShadowSplitSphereSqr[s];
-                        }
-                    }
-
-                    lightList.directionalLights.Add(directionalLightData);
-                    lightList.directionalCullIndices.Add(lightIndex);
-
                     continue;
                 }
 
@@ -860,7 +708,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (additionalData.archetype == LightArchetype.Punctual)
                 {
                     lightList.punctualLights.Add(lightData);
-                    lightList.punctualCullIndices.Add(lightIndex);
                 }
                 else
                 {
@@ -870,7 +717,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     // Area and line lights are both currently stored as area lights on the GPU.
                     lightList.areaLights.Add(lightData);
-                    lightList.areaCullIndices.Add(lightIndex);
                 }
             }
 
@@ -919,18 +765,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 envLightData.offsetLS = probe.center; // center is misnamed, it is the offset (in local space) from center of the bounding box to the cubemap capture point
                 envLightData.blendDistance = blendDistance;
                 lightList.envLights.Add(envLightData);
-                lightList.envCullIndices.Add(probeIndex);
             }
 
             // build per tile light lists
-            if (debugParameters.useSinglePassLightLoop)
-            {
-                m_SinglePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
-            }
-            else
-            {
-                tilePassLightLoop.PrepareLightsForGPU(cullResults, camera, m_lightList);
-            }            
+            m_lightLoop.PrepareLightsForGPU(cullResults, camera);         
         }
 
         void Resize(Camera camera)
@@ -942,14 +780,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // For now consider we have only one camera that go to this code, the main one.
             m_SkyRenderer.Resize(m_SkyParameters); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
             
-            if (camera.pixelWidth != m_WidthOnRecord || camera.pixelHeight != m_HeightOnRecord || tilePassLightLoop.NeedResize())
+            if (camera.pixelWidth != m_WidthOnRecord || camera.pixelHeight != m_HeightOnRecord || m_lightLoop.NeedResize())
             {
                 if (m_WidthOnRecord > 0 && m_HeightOnRecord > 0)
                 {
-                    tilePassLightLoop.ReleaseResolutionDependentBuffers();
+                    m_lightLoop.ReleaseResolutionDependentBuffers();
                 }
 
-                tilePassLightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
+                m_lightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
 
                 // update recorded window resolution
                 m_WidthOnRecord = camera.pixelWidth;
@@ -959,11 +797,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public void PushGlobalParams(Camera camera, RenderLoop renderLoop, HDRenderLoop.LightList lightList)
         {
-            Shader.SetGlobalTexture("_CookieTextures", m_CookieTexArray.GetTexCache());
-            Shader.SetGlobalTexture("_CookieCubeTextures", m_CubeCookieTexArray.GetTexCache());
-
-            Shader.SetGlobalTexture("_EnvTextures", m_CubeReflTexArray.GetTexCache());
-
             if (m_SkyRenderer.IsSkyValid(m_SkyParameters))
             {
                 m_SkyRenderer.SetGlobalSkyTexture();
@@ -974,14 +807,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
             }
 
-            if (debugParameters.useSinglePassLightLoop)
-            {
-                m_SinglePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
-            }
-            else
-            {
-                tilePassLightLoop.PushGlobalParams(camera, renderLoop, lightList);
-            }            
+            m_lightLoop.PushGlobalParams(camera, renderLoop, lightList);          
         }
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
@@ -997,7 +823,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
             // Do anything we need to do upon a new frame.
-            NewFrame();
+            m_lightLoop.NewFrame();
 
             // Set Frame constant buffer
             // TODO...
@@ -1044,11 +870,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     using (new Utilities.ProfilingSample("Build Light list", renderLoop))
                     {
-                        PrepareLightsForGPU(cullResults, camera, ref shadows, ref m_lightList);
-                        if (!debugParameters.useSinglePassLightLoop)
-                            tilePassLightLoop.BuildGPULightLists(camera, renderLoop, m_lightList, m_CameraDepthBufferRT);
+                        m_lightLoop.PrepareLightsForGPU(cullResults, camera, ref shadows);    
+                        m_lightLoop.BuildGPULightLists(camera, renderLoop, m_CameraDepthBufferRT);
 
-                        PushGlobalParams(camera, renderLoop, m_lightList);
+                        PushGlobalParams(camera, renderLoop);
                     }
                     RenderDeferredLighting(camera, renderLoop);
 
