@@ -134,10 +134,10 @@ Shader "HDRenderLoop/LayeredLit"
 		// All the following properties that concern the UV mapping are the same as in the Lit shader.
 		// This means that they will get overridden when synchronizing the various layers.
 		// To avoid this, make sure that all properties here are in the exclusion list in LayeredLitUI.SynchronizeLayerProperties
-        _TexWorldScale0("Scale to apply on world coordinate", Float) = 1.0
-        _TexWorldScale1("Scale to apply on world coordinate", Float) = 1.0
-        _TexWorldScale2("Scale to apply on world coordinate", Float) = 1.0
-        _TexWorldScale3("Scale to apply on world coordinate", Float) = 1.0
+        _TexWorldScale0("Tiling", Float) = 1.0
+        _TexWorldScale1("Tiling", Float) = 1.0
+        _TexWorldScale2("Tiling", Float) = 1.0
+        _TexWorldScale3("Tiling", Float) = 1.0
 
         [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase0("UV Set for base0", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase1("UV Set for base1", Float) = 0
@@ -162,7 +162,7 @@ Shader "HDRenderLoop/LayeredLit"
         // Unused but to be able to share litUI.Sahder and layeredUI.Shader
         [HideInInspector] _UVBase("UV Set for base", Float) = 0
         [HideInInspector] _UVDetail("UV Set for base", Float) = 0
-        [HideInInspector] _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
+        [HideInInspector] _TexWorldScale("Tiling", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
     }
