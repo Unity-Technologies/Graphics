@@ -294,7 +294,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 	
 	for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
 	{
-		SFiniteLightBound lightData = g_data[coarseList[l]];
+		SFiniteLightBound lightData = g_data[prunedList[l]];
 	
 		if( DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius) )
 		{
