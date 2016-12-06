@@ -52,7 +52,7 @@ groupshared uint ldsDoesLightIntersect[2];
 #endif
 groupshared int ldsNrLightsFinal;
 
-groupshared int ldsModelListCount[NR_LIGHT_MODELS];		// since NR_LIGHT_MODELS is 3
+groupshared int ldsCategoryListCount[NR_LIGHT_CATEGORIES];		// since NR_LIGHT_CATEGORIES is 3
 
 #ifdef PERFORM_SPHERICAL_INTERSECTION_TESTS
 groupshared uint lightOffsSph;
@@ -222,7 +222,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 	//
-	if(t<NR_LIGHT_MODELS) ldsModelListCount[t]=0;
+	if(t<NR_LIGHT_CATEGORIES) ldsCategoryListCount[t]=0;
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
 	GroupMemoryBarrierWithGroupSync();
@@ -232,7 +232,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int nrLightsCombinedList = min(ldsNrLightsFinal,MAX_NR_COARSE_ENTRIES);
 	for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS) 
 	{
-        InterlockedAdd(ldsModelListCount[_LightShapeData[prunedList[i]].lightCategory], 1);
+        InterlockedAdd(ldsCategoryListCount[_LightShapeData[prunedList[i]].lightCategory], 1);
 	}
 
 
@@ -246,9 +246,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 	int localOffs=0;
 	int offs = tileIDX.y*nrTilesX + tileIDX.x;
 
-	for(int m=0; m<NR_LIGHT_MODELS; m++)
+	for(int category=0; category<NR_LIGHT_CATEGORIES; category++)
 	{
-		int nrLightsFinal = ldsModelListCount[ m ];
+		int nrLightsFinal = ldsCategoryListCount[category];
 		int nrLightsFinalClamped = nrLightsFinal<MAX_NR_PRUNED_ENTRIES ? nrLightsFinal : MAX_NR_PRUNED_ENTRIES;
 		
 
@@ -330,10 +330,10 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 	{
 		// fetch light
 		int idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-        uint uLgtType = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightType : 0;
+        uint uLightVolume = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightVolume : 0;
 
 		// spot
-		while(l<iNrCoarseLights && uLgtType==SPOT_LIGHT)
+		while(l<iNrCoarseLights && uLightVolume==SPOT_VOLUME)
 		{
             LightShapeData lightData = _LightShapeData[idxCoarse];
             // TODO: Change by SebL
@@ -361,11 +361,11 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-            uLgtType = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightType : 0;
+            uLightVolume = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightVolume : 0;
 		}
 
 		// sphere
-		while(l<iNrCoarseLights && uLgtType==SPHERE_LIGHT)
+		while(l<iNrCoarseLights && uLightVolume==SPHERE_VOLUME)
 		{
             LightShapeData lightData = _LightShapeData[idxCoarse];
 
@@ -388,11 +388,11 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-            uLgtType = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightType : 0;
+            uLightVolume = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightVolume : 0;
 		}
 
 		// Box
-		while(l<iNrCoarseLights && uLgtType==BOX_LIGHT)
+		while(l<iNrCoarseLights && uLightVolume==BOX_VOLUME)
 		{
             LightShapeData lightData = _LightShapeData[idxCoarse];
 
@@ -415,11 +415,11 @@ void FinePruneLights(uint threadID, int iNrCoarseLights, uint2 viTilLL, float4 v
 
 			uLightsFlags[l<32 ? 0 : 1] |= (uVal<<(l&31));
 			++l; idxCoarse = l<iNrCoarseLights ? coarseList[l] : 0;
-            uLgtType = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightType : 0;
+			uLightVolume = l<iNrCoarseLights ? _LightShapeData[idxCoarse].lightVolume : 0;
 		}
 
 		// in case we have some corrupt data make sure we terminate
-		if(uLgtType>=MAX_TYPES) ++l;
+		if(uLightVolume >=MAX_VOLUME_TYPES) ++l;
 	}
 
 	InterlockedOr(ldsDoesLightIntersect[0], uLightsFlags[0]);

@@ -101,7 +101,7 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                 #endif
 
                 int n = 0;
-                for(int category = 0; category < NR_LIGHT_MODELS; category++)
+                for(int category = 0; category < NR_LIGHT_CATEGORIES; category++)
                 {
                     uint mask = 1u << category;
                     uint start;

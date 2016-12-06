@@ -15,21 +15,15 @@
 #define HAS_COOKIE_TEXTURE (2)
 #define IS_BOX_PROJECTED (4)
 #define HAS_SHADOW (8)
-#define MAX_TYPES (3)
-#define SPOT_LIGHT (0)
-#define SPHERE_LIGHT (1)
-#define BOX_LIGHT (2)
-#define DIRECTIONAL_LIGHT (3)
-#define NR_LIGHT_MODELS (3)
-#define DIRECT_LIGHT (0)
-#define REFLECTION_LIGHT (1)
-#define AREA_LIGHT (2)
-
-//
-// UnityEngine.Experimental.ScriptableRenderLoop.TilePass.DebugViewTilesFlags:  static fields
-//
-#define DEBUGVIEWTILESFLAGS_DIRECT_LIGHTING (1)
-#define DEBUGVIEWTILESFLAGS_REFLECTION (2)
+#define MAX_VOLUME_TYPES (3)
+#define SPOT_VOLUME (0)
+#define SPHERE_VOLUME (1)
+#define BOX_VOLUME (2)
+#define DIRECTIONAL_VOLUME (3)
+#define NR_LIGHT_CATEGORIES (3)
+#define DIRECT_LIGHT_CATEGORY (0)
+#define REFLECTION_LIGHT_CATEGORY (1)
+#define AREA_LIGHT_CATEGORY (2)
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.TilePass.SFiniteLightBound
 // PackingRules = Exact
@@ -50,7 +44,7 @@ struct LightShapeData
 	float3 lightPos;
 	uint lightIndex;
 	float3 lightAxisX;
-	uint lightType;
+	uint lightVolume;
 	float3 lightAxisY;
 	float radiusSq;
 	float3 lightAxisZ;
@@ -104,9 +98,9 @@ float3 GetLightAxisX(LightShapeData value)
 {
 	return value.lightAxisX;
 }
-uint GetLightType(LightShapeData value)
+uint GetLightVolume(LightShapeData value)
 {
-	return value.lightType;
+	return value.lightVolume;
 }
 float3 GetLightAxisY(LightShapeData value)
 {
