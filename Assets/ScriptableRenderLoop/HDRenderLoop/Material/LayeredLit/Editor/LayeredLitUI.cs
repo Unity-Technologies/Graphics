@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask (multiplied by vertex color if enabled)");
             public readonly GUIContent layerMapVertexColorText = new GUIContent("Use Vertex Color", "Layer mask (multiplied by layer mask if enabled)");
             public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
-            public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tex world scale", "Scale to apply to world position for Planar/Trilinear");
+            public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
         }
