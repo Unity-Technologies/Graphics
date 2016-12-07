@@ -15,18 +15,9 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #pragma multi_compile _ ATMOSPHERICS_DEBUG
-            #pragma multi_compile _ ATMOSPHERICS_OCCLUSION_FULLSKY
-            #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
-
-            #ifndef PERFORM_SKY_OCCLUSION_TEST
-                #define IS_RENDERING_SKY
-            #endif
-
             #include "Color.hlsl"
             #include "Common.hlsl"
             #include "CommonLighting.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
 
             TEXTURECUBE(_Cubemap);
             SAMPLERCUBE(sampler_Cubemap);
