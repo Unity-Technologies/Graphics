@@ -149,14 +149,15 @@ namespace UnityEngine.MaterialGraph
                 shaderBody.AddShaderChunk("float4 " + ShaderGeneratorNames.ScreenPosition + " = IN.screenPos;", true);
             }
 
-            if (activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent()))
+            bool needBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
+            if (needBitangent || activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent()))
             {
-                shaderInputVisitor.AddShaderChunk("float3 worldTangent;", true);
-                vertexShaderBlock.AddShaderChunk("o.worldTangent = UnityObjectToWorldDir(v.tangent.xyz);", true);
-                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceTangent + " = normalize(IN.worldTangent);", true);
+                shaderInputVisitor.AddShaderChunk("float4 worldTangent;", true);
+                vertexShaderBlock.AddShaderChunk("o.worldTangent = float4(UnityObjectToWorldDir(v.tangent.xyz), v.tangent.w);", true);
+                shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceTangent + " = normalize(IN.worldTangent.xyz);", true);
             }
 
-            if (activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
+            if (needBitangent || activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
             {
                 // is the normal connected?
                 var normalSlot = FindInputSlot<MaterialSlot>(NormalSlotId);
@@ -168,6 +169,17 @@ namespace UnityEngine.MaterialGraph
 
                 shaderBody.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceNormal + " = normalize(IN.worldNormal);", true);
             }
+
+            if (needBitangent)
+            {
+                shaderBody.AddShaderChunk(string.Format("float3 {0} = cross({1}, {2}) * IN.worldTangent.w;", ShaderGeneratorNames.WorldSpaceBitangent, ShaderGeneratorNames.WorldSpaceNormal, ShaderGeneratorNames.WorldSpaceTangent), true);
+            }
+
+            if (activeNodeList.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor()))
+            {
+                shaderBody.AddShaderChunk("float4 " + ShaderGeneratorNames.VertexColor + " = IN.color;", true);
+            }
+
 
             GenerateNodeCode(shaderBody, mode);
         }
