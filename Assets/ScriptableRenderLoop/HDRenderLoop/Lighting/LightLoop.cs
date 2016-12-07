@@ -5,7 +5,7 @@ using System;
 
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
-    public class LightLoop
+    public class BaseLightLoop
     {
         // TODO: We should rather put the texture settings in LightLoop, but how do we serialize it ?
         public virtual void Rebuild(TextureSettings textureSettings) {}

@@ -268,7 +268,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUILayout.Space();
 
             // TODO: we should call a virtual method or something similar to setup the UI, inspector should not know about it
-            TilePass tilePass = renderLoop.lightLoop as TilePass;
+            TilePass.LightLoop tilePass = renderLoop.lightLoop as TilePass.LightLoop;
             if (tilePass != null)
             {
                 EditorGUILayout.LabelField(styles.tileLightLoopSettings);
@@ -276,7 +276,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 EditorGUI.BeginChangeCheck();
 
                 tilePass.debugViewTilesFlags = EditorGUILayout.MaskField("DebugView Tiles", tilePass.debugViewTilesFlags, styles.tileLightLoopDebugTileFlagStrings);
-                tilePass.enableSplitLightEvaluation = EditorGUILayout.Toggle(styles.directSplitLightEvaluation, tilePass.enableSplitLightEvaluation);
+                tilePass.enableSplitLightEvaluation = EditorGUILayout.Toggle(styles.splitLightEvaluation, tilePass.enableSplitLightEvaluation);
                 tilePass.enableBigTilePrepass = EditorGUILayout.Toggle(styles.bigTilePrepass, tilePass.enableBigTilePrepass);
                 tilePass.enableClustered = EditorGUILayout.Toggle(styles.clustered, tilePass.enableClustered);
                 tilePass.disableTileAndCluster = EditorGUILayout.Toggle(styles.disableTileAndCluster, tilePass.disableTileAndCluster);
