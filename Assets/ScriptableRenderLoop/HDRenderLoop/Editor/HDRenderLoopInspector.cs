@@ -273,18 +273,27 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
 
-                tilePass.debugViewTilesFlags = EditorGUILayout.MaskField("DebugView Tiles", tilePass.debugViewTilesFlags, styles.tileLightLoopDebugTileFlagStrings);
-                tilePass.enableSplitLightEvaluation = EditorGUILayout.Toggle(styles.splitLightEvaluation, tilePass.enableSplitLightEvaluation);
                 tilePass.enableBigTilePrepass = EditorGUILayout.Toggle(styles.bigTilePrepass, tilePass.enableBigTilePrepass);
                 tilePass.enableClustered = EditorGUILayout.Toggle(styles.clustered, tilePass.enableClustered);
-                tilePass.disableTileAndCluster = EditorGUILayout.Toggle(styles.disableTileAndCluster, tilePass.disableTileAndCluster);
 
                 if (EditorGUI.EndChangeCheck())
                 {
                     EditorUtility.SetDirty(renderLoop); // Repaint
 
-                    // If something is chanage on tilePassLightLoop we need to force a OnValidate() OnHDRenderLoop, else change Rebuild() will not be call
+                    // If something is chanage regarding tile/cluster rendering we need to force a OnValidate() OnHDRenderLoop, else change Rebuild() will not be call
                     renderLoop.OnValidate();
+                }
+
+                EditorGUI.BeginChangeCheck();
+
+                tilePass.debugViewTilesFlags = EditorGUILayout.MaskField("DebugView Tiles", tilePass.debugViewTilesFlags, styles.tileLightLoopDebugTileFlagStrings);
+                tilePass.enableSplitLightEvaluation = EditorGUILayout.Toggle(styles.splitLightEvaluation, tilePass.enableSplitLightEvaluation);
+                tilePass.disableTileAndCluster = EditorGUILayout.Toggle(styles.disableTileAndCluster, tilePass.disableTileAndCluster);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    EditorUtility.SetDirty(renderLoop); // Repaint
+                    UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
                 }
                 EditorGUI.indentLevel--;
             }
