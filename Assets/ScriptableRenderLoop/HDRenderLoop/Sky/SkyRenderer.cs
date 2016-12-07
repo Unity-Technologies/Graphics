@@ -289,12 +289,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     // Trigger a rebuild of cubemap / convolution
                     // TODO: can we have some kind of hash value here ? +> use or override GetHashCode() + include a refresh rate value in parameters
-                    // TODO: we could apply multiplier/exposure and rotation on the final result (i.e on the sky ibl and on lightprobe / lightmap, but can be tricky as Unity seems to merge sky information with 
+                    // TODO: we could apply multiplier/exposure and rotation on the final result (i.e on the sky ibl and on lightprobe / lightmap, but can be tricky as Unity seems to merge sky information with
                     // other lighting into SH / lightmap.
                     if (skyParameters.skyResolution != m_bakedSkyParameters.skyResolution ||
                         skyParameters.exposure != m_bakedSkyParameters.exposure ||
                         skyParameters.rotation != m_bakedSkyParameters.rotation ||
-                        skyParameters.multiplier != m_bakedSkyParameters.multiplier)
+                        skyParameters.multiplier != m_bakedSkyParameters.multiplier ||
+                        skyParameters.skyHDRI != m_bakedSkyParameters.skyHDRI)
                     {
                         using (new Utilities.ProfilingSample("Sky Pass: Render Cubemap", renderLoop))
                         {
@@ -314,6 +315,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         }
 
                         // Cleanup all this...
+                        m_bakedSkyParameters.skyHDRI = skyParameters.skyHDRI;
                         m_bakedSkyParameters.skyResolution = skyParameters.skyResolution;
                         m_bakedSkyParameters.exposure = skyParameters.exposure;
                         m_bakedSkyParameters.rotation = skyParameters.rotation;
