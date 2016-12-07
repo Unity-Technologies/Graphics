@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     [GenerateHLSL]
     public struct DirectionalLightData
     {
-        public Vector3 direction;
+        public Vector3 forward;
         public float   diffuseScale;
 
         public Vector3 up;
