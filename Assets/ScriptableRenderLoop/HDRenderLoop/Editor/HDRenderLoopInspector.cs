@@ -280,8 +280,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     EditorUtility.SetDirty(renderLoop); // Repaint
 
-                    // If something is chanage regarding tile/cluster rendering we need to force a OnValidate() OnHDRenderLoop, else change Rebuild() will not be call
-                    renderLoop.OnValidate();
+                    // SetAssetDirty will tell renderloop to rebuild
+                    renderLoop.SetAssetDirty();
                 }
 
                 EditorGUI.BeginChangeCheck();
