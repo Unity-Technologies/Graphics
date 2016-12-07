@@ -9,53 +9,52 @@ CBUFFER_END
 #define NB_THREADS_PER_GROUP 64
 #define NB_INDICES_PER_INSTANCE 4096
 
-Buffer<uint> nbElements;  // Filled by GPU
-Buffer<uint> outputTypes; // Filled by CPU
+ByteAddressBuffer nbElements;		// Filled by GPU
+StructuredBuffer<uint> outputTypes; // Filled by CPU
 
-struct IndirectArgs
-{
-	uint vertexCount;
-	uint instanceCount;
-	uint startVertexLocation;
-	uint startInstanceLocation;
-};
-
-RWStructuredBuffer<IndirectArgs> output;
+RWBuffer<uint> output;
 
 // Points
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 {
-	if (id.x < nbMax)
+	if (id.x < nbMax) 
 	{
-		IndirectArgs args = (IndirectArgs)0;
+		uint vertexCount = 0;
+		uint instanceCount = 0;
+
+		uint elementCount = nbElements.Load(id.x << 2);
+
 		switch(outputTypes[id.x])
 		{
 			case 0: // point
 			{
-				args.vertexCount = nbElements[id.x];
-				args.instanceCount = 1;
+				vertexCount = elementCount;
+				instanceCount = 1;
 				break;
 			}
 			
 			case 1: // quads
 			case 2:
 			{
-				uint nb = nbElements[id.x];
-				if (nb > 16384) // Due to 16bits indices
+				if (elementCount > 16384) // Due to 16bits indices
 				{
-					args.vertexCount = NB_INDICES_PER_INSTANCE * 6;
-					args.instanceCount = (nb + (NB_INDICES_PER_INSTANCE - 1)) / NB_INDICES_PER_INSTANCE;
+					vertexCount = NB_INDICES_PER_INSTANCE * 6;
+					instanceCount = (elementCount + (NB_INDICES_PER_INSTANCE - 1)) / NB_INDICES_PER_INSTANCE;
 				}
 				else
 				{
-					args.vertexCount = nb * 6;
-					args.instanceCount = 1;
+					vertexCount = elementCount * 6;
+					instanceCount = 1;
 				}
 				break;
 			}
 		}
 		
-		output[id.x] = args;
+		uint index = id.x << 2;
+		output[index + 0] = vertexCount;
+		output[index + 1] = instanceCount;
+		output[index + 2] = 0;
+		output[index + 3] = 0;
 	}
 }

@@ -124,12 +124,14 @@ namespace UnityEditor.Experimental
             return VFXAttribute.Writable(m_Usage,type);
         }
 
-        public int GetSizeInBytes()
+        public int GetSizeInBytes(bool withPadding = false)
         {
             int size = 0;
             foreach (VFXAttribute attrib in m_Attribs)
-                size += VFXValue.TypeToSize(attrib.m_Type) * 4;
-            return size;
+                size += VFXValue.TypeToSize(attrib.m_Type);
+            if (withPadding)
+                size = (size + 3) & ~0x3; // size is multiple of dword
+            return size << 2;
         }
 
         int m_Index;
@@ -392,7 +394,7 @@ namespace UnityEditor.Experimental
 
             //--------------------------------------------------------------------------
             // OUTPUT BUFFER GENERATION
-            bool useOutputBuffer = true;// updateHasKill; // TODO By default use this as soon as we have kill behavior
+            bool useOutputBuffer = updateHasKill; // TODO By default use this as soon as we have kill behavior
             var outputAttribs = new List<VFXAttribute>();
             AttributeBuffer outputBuffer = useOutputBuffer ? new AttributeBuffer(-1,VFXAttribute.Usage.kUpdateW | VFXAttribute.Usage.kOutputR) : null;
             if (updateHasKill)
@@ -686,7 +688,7 @@ namespace UnityEditor.Experimental
             rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
             rtData.hasKill = shaderMetaData.hasKill;
 
-            rtData.outputBufferSize = outputBuffer != null ? outputBuffer.GetSizeInBytes() : 0;
+            rtData.outputBufferSize = outputBuffer != null ? outputBuffer.GetSizeInBytes(true) : 0;
             Debug.Log("OUTPUTBUFFER SIZE: " + rtData.outputBufferSize);
 
             rtData.m_GeneratedTextureData = system.GeneratedTextureData;
@@ -1447,7 +1449,7 @@ namespace UnityEditor.Experimental
 
                 if (hasColor)
                 {
-                    builder.WriteAttrib(CommonAttrib.Color, data);
+                    builder.WriteAttrib(CommonAttrib.Color, data, true);
                     builder.Write(".xyz,");
                 }
                 else
@@ -1455,7 +1457,7 @@ namespace UnityEditor.Experimental
 
                 if (hasAlpha)
                 {
-                    builder.WriteAttrib(CommonAttrib.Alpha, data);
+                    builder.WriteAttrib(CommonAttrib.Alpha, data, true);
                     builder.WriteLine(");");
                 }
                 else
