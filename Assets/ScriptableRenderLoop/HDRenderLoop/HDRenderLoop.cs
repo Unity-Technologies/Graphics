@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         SkyRenderer m_SkyRenderer = null;
         [SerializeField]
         SkyParameters m_SkyParameters = new SkyParameters();
- 
+
         public SkyParameters skyParameters
         {
             get { return m_SkyParameters; }
@@ -97,7 +97,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 return colorMRTs;
             }
-        
+
             /*
             public void BindBuffers(Material mat)
             {
@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         // This must be allocate outside of Rebuild() else the option in the class can't be set in the inspector (as it will in this case recreate the class with default value)
         BaseLightLoop m_lightLoop = new TilePass.LightLoop();
-   
+
         public BaseLightLoop lightLoop
         {
             get { return m_lightLoop; }
@@ -196,7 +196,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_ShadowPass = new ShadowRenderPass(m_ShadowSettings);
 
-            // Init Gbuffer description            
+            // Init Gbuffer description
 
             m_gbufferManager.gbufferCount = m_LitRenderLoop.GetMaterialGBufferCount();
             RenderTextureFormat[] RTFormat; RenderTextureReadWrite[] RTReadWrite;
@@ -315,8 +315,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName))
             {
                 rendererConfiguration = rendererConfiguration,
-                sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
-            };        
+                sorting = { flags = SortFlags.CommonOpaque }
+            };
             settings.inputFilter.SetQueuesOpaque();
             renderLoop.DrawRenderers(ref settings);
         }
@@ -329,7 +329,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName(passName))
             {
                 rendererConfiguration = rendererConfiguration,
-                sorting = { sortOptions = SortOptions.BackToFront }
+                sorting = { flags = SortFlags.CommonTransparent }
             };
             settings.inputFilter.SetQueuesTransparent();
             renderLoop.DrawRenderers(ref settings);
@@ -344,7 +344,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             using (new Utilities.ProfilingSample("Depth Prepass", renderLoop))
             {
-                // TODO: Must do opaque then alpha masked for performance! 
+                // TODO: Must do opaque then alpha masked for performance!
                 // TODO: front to back for opaque and by materal for opaque tested when we split in two
                 Utilities.SetRenderTarget(renderLoop, m_CameraDepthBufferRT);
                 RenderOpaqueRenderList(cull, camera, renderLoop, "DepthOnly");
@@ -570,7 +570,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         void PrepareLightsForGPU(CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
         {
             // build per tile light lists
-            m_lightLoop.PrepareLightsForGPU(cullResults, camera, ref shadowOutput);         
+            m_lightLoop.PrepareLightsForGPU(cullResults, camera, ref shadowOutput);
         }
 
         void Resize(Camera camera)
@@ -581,7 +581,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // the below buffer which is bad. Best is to have a set of buffer for each camera that is persistent and reallocate resource if need
             // For now consider we have only one camera that go to this code, the main one.
             m_SkyRenderer.Resize(m_SkyParameters); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
-            
+
             if (camera.pixelWidth != m_WidthOnRecord || camera.pixelHeight != m_HeightOnRecord || m_lightLoop.NeedResize())
             {
                 if (m_WidthOnRecord > 0 && m_HeightOnRecord > 0)
@@ -609,7 +609,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
             }
 
-            m_lightLoop.PushGlobalParams(camera, renderLoop);          
+            m_lightLoop.PushGlobalParams(camera, renderLoop);
         }
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
@@ -658,7 +658,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // TODO: avoid double lighting by tagging stencil or gbuffer that we must not lit.
                 // TODO: ask Morten why this pass is not before GBuffer ? Will make more sense and avoid
                 // to do gbuffer pass on unseen mesh.
-                // TODO: how do we select only the object that must be render forward ? 
+                // TODO: how do we select only the object that must be render forward ?
                 // this is all object with gbuffer pass disabled ?
                 //RenderForwardOpaqueDepth(cullResults, camera, renderLoop);
 
@@ -678,7 +678,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     using (new Utilities.ProfilingSample("Build Light list", renderLoop))
                     {
-                        m_lightLoop.PrepareLightsForGPU(cullResults, camera, ref shadows);    
+                        m_lightLoop.PrepareLightsForGPU(cullResults, camera, ref shadows);
                         m_lightLoop.BuildGPULightLists(camera, renderLoop, m_CameraDepthBufferRT);
 
                         PushGlobalParams(camera, renderLoop);
@@ -693,7 +693,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     RenderForwardUnlit(cullResults, camera, renderLoop);
 
-                    RenderVelocity(cullResults, camera, renderLoop); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ? 
+                    RenderVelocity(cullResults, camera, renderLoop); // Note we may have to render velocity earlier if we do temporalAO, temporal volumetric etc... Mean we will not take into account forward opaque in case of deferred rendering ?
 
                     // TODO: Check with VFX team.
                     // Rendering distortion here have off course lot of artifact.
