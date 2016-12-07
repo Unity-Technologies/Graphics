@@ -231,9 +231,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_CookieTexArray = new TextureCache2D();
             m_CubeCookieTexArray = new TextureCacheCubemap();
             m_CubeReflTexArray = new TextureCacheCubemap();
-            m_CookieTexArray.AllocTextureArray(8, (int)m_TextureSettings.spotCookieSize, (int)m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
-            m_CubeCookieTexArray.AllocTextureArray(4, (int)m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
-            m_CubeReflTexArray.AllocTextureArray(64, (int)m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
+            m_CookieTexArray.AllocTextureArray(8, m_TextureSettings.spotCookieSize, m_TextureSettings.spotCookieSize, TextureFormat.RGBA32, true);
+            m_CubeCookieTexArray.AllocTextureArray(4, m_TextureSettings.pointCookieSize, TextureFormat.RGBA32, true);
+            m_CubeReflTexArray.AllocTextureArray(64, m_TextureSettings.reflectionCubemapSize, TextureFormat.BC6H, true);
 
             //m_DeferredMaterial.SetTexture("_spotCookieTextures", m_cookieTexArray.GetTexCache());
             //m_DeferredMaterial.SetTexture("_pointCookieTextures", m_cubeCookieTexArray.GetTexCache());
@@ -298,7 +298,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"))
             {
-                sorting = {sortOptions = SortOptions.SortByMaterialThenMesh},
+                sorting = { flags = SortFlags.CommonOpaque },
                 rendererConfiguration = RendererConfiguration.PerObjectLightmaps
             };
 
@@ -325,7 +325,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"))
             {
-                sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
+                sorting = { flags = SortFlags.CommonOpaque }
             };
             settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
             if (opaquesOnly) settings.inputFilter.SetQueuesOpaque();
@@ -344,7 +344,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("DepthOnly"))
             {
-                sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
+                sorting = { flags = SortFlags.CommonOpaque }
             };
             settings.inputFilter.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
@@ -371,7 +371,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void DoTiledDeferredLighting(Camera camera, RenderLoop loop, int numLights, int numDirLights)
         {
-            var bUseClusteredForDeferred = !usingFptl;       // doesn't work on reflections yet but will soon
+            var bUseClusteredForDeferred = !usingFptl;
             var cmd = new CommandBuffer();
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
@@ -986,6 +986,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             return numLightsOut + numProbesOut;
         }
+
+#if UNITY_EDITOR
+        public override void RenderSceneView(Camera camera, RenderLoop renderLoop)
+        {
+            base.RenderSceneView(camera, renderLoop);
+            renderLoop.PrepareForEditorRendering(camera, new RenderTargetIdentifier(s_CameraDepthTexture));
+            renderLoop.Submit();
+        }
+#endif
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {

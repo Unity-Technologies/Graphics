@@ -326,7 +326,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (!cullResults.GetShadowCasterBounds(lightIndex, out bounds))
                 {
                     Profiler.EndSample();
-                    return;
+                    continue;
                 }
                 Profiler.EndSample();
 

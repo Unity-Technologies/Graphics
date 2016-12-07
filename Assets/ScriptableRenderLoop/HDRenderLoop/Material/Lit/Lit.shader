@@ -18,7 +18,7 @@ Shader "HDRenderLoop/Lit"
         _NormalMap("NormalMap", 2D) = "bump" {}
 
         _HeightMap("HeightMap", 2D) = "black" {}
-        _HeightScale("Height Scale", Float) = 1
+        _HeightScale("Height Scale", Float) = 0.01
         _HeightBias("Height Bias", Float) = 0
 
         _TangentMap("TangentMap", 2D) = "bump" {}
@@ -29,7 +29,7 @@ Shader "HDRenderLoop/Lit"
         _DetailMask("DetailMask", 2D) = "white" {}
         _DetailAlbedoScale("_DetailAlbedoScale", Range(-2.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
-        _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 1
+        _DetailSmoothnessScale("_DetailSmoothnessScale", Range(-2.0, 2.0)) = 0.01
         _DetailHeightScale("_DetailHeightScale", Range(-2.0, 2.0)) = 1
         _DetailAOScale("_DetailAOScale", Range(-2.0, 2.0)) = 1        
 
@@ -379,8 +379,7 @@ Shader "HDRenderLoop/Lit"
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
             // #include "../../Lighting/Forward.hlsl"
-            // LIGHTLOOP_TILE_PASS
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
 
             #include "../../Lighting/Lighting.hlsl"

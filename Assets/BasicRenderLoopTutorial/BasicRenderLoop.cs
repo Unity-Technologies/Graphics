@@ -14,11 +14,11 @@ public class BasicRenderLoop : RenderPipeline
 {
 
 #if UNITY_EDITOR
-    [UnityEditor.MenuItem("Renderloop/CreateBasicRenderLoop")]
+    [UnityEditor.MenuItem("Renderloop/Create BasicRenderLoop")]
     static void CreateBasicRenderLoop()
     {
         var instance = ScriptableObject.CreateInstance<BasicRenderLoop>();
-        UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/basicrenderloop.asset");
+        UnityEditor.AssetDatabase.CreateAsset(instance, "Assets/BasicRenderLoopTutorial/BasicRenderLoop.asset");
     }
 #endif
 
@@ -60,7 +60,7 @@ public class BasicRenderLoop : RenderPipeline
 
             // Draw opaque objects using BasicPass shader pass
             var settings = new DrawRendererSettings (cull, camera, shaderPassBasic);
-            settings.sorting.sortOptions = SortOptions.SortByMaterialThenMesh;
+            settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque ();
             loop.DrawRenderers (ref settings);
 
@@ -68,7 +68,7 @@ public class BasicRenderLoop : RenderPipeline
             loop.DrawSkybox (camera);
 
             // Draw transparent objects using BasicPass shader pass
-            settings.sorting.sortOptions = SortOptions.BackToFront; // sort back to front
+            settings.sorting.flags = SortFlags.CommonTransparent;
             settings.inputFilter.SetQueuesTransparent ();
             loop.DrawRenderers (ref settings);
 

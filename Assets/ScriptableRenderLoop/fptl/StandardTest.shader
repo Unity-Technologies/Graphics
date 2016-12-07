@@ -84,6 +84,7 @@ Shader "Experim/StdShader"
             #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
             #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
+			#pragma multi_compile TILED_FORWARD REGULAR_FORWARD
 
             #pragma vertex vertForward
             #pragma fragment fragForward
@@ -124,7 +125,6 @@ Shader "Experim/StdShader"
             #pragma multi_compile DIRLIGHTMAP_OFF DIRLIGHTMAP_COMBINED DIRLIGHTMAP_SEPARATE
             #pragma multi_compile DYNAMICLIGHTMAP_OFF DYNAMICLIGHTMAP_ON
             #pragma multi_compile_fog
-			#pragma multi_compile TILED_FORWARD REGULAR_FORWARD
 
             #pragma vertex vertForward
             #pragma fragment fragNoLight

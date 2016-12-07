@@ -16,6 +16,7 @@ MonoBehaviour:
     rotation: 0
     exposure: 0
     multiplier: 1
+    skyResolution: 256
   m_ShadowSettings:
     enabled: 1
     shadowAtlasWidth: 4096
@@ -27,3 +28,4 @@ MonoBehaviour:
     spotCookieSize: 128
     pointCookieSize: 512
     reflectionCubemapSize: 128
+  m_Dirty: 0

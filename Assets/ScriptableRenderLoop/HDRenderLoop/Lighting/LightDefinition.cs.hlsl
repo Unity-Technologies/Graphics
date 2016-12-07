@@ -59,35 +59,31 @@ struct LightData
 // PackingRules = Exact
 struct DirectionalLightData
 {
-	float3 direction;
+	float3 forward;
 	float diffuseScale;
+	float3 up;
+	float invScaleY;
+	float3 right;
+	float invScaleX;
+	float3 positionWS;
+	bool tileCookie;
 	float3 color;
 	float specularScale;
 	float cosAngle;
 	float sinAngle;
 	int shadowIndex;
-	float unused;
+	int cookieIndex;
 };
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.ShadowData
 // PackingRules = Exact
-struct PunctualShadowData
+struct ShadowData
 {
 	float4x4 worldToShadow;
 	int lightType;
 	float bias;
 	float quality;
 	float unused;
-};
-
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.DirectionalShadowData
-// PackingRules = Exact
-struct DirectionalShadowData
-{
-	float4x4 worldToShadow;
-	float bias;
-	float quality;
-	float2 unused2;
 };
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.EnvLightData
@@ -183,13 +179,37 @@ bool GetTwoSided(LightData value)
 //
 // Accessors for UnityEngine.Experimental.ScriptableRenderLoop.DirectionalLightData
 //
-float3 GetDirection(DirectionalLightData value)
+float3 GetForward(DirectionalLightData value)
 {
-	return value.direction;
+	return value.forward;
 }
 float GetDiffuseScale(DirectionalLightData value)
 {
 	return value.diffuseScale;
+}
+float3 GetUp(DirectionalLightData value)
+{
+	return value.up;
+}
+float GetInvScaleY(DirectionalLightData value)
+{
+	return value.invScaleY;
+}
+float3 GetRight(DirectionalLightData value)
+{
+	return value.right;
+}
+float GetInvScaleX(DirectionalLightData value)
+{
+	return value.invScaleX;
+}
+float3 GetPositionWS(DirectionalLightData value)
+{
+	return value.positionWS;
+}
+bool GetTileCookie(DirectionalLightData value)
+{
+	return value.tileCookie;
 }
 float3 GetColor(DirectionalLightData value)
 {
@@ -211,53 +231,33 @@ int GetShadowIndex(DirectionalLightData value)
 {
 	return value.shadowIndex;
 }
-float GetUnused(DirectionalLightData value)
+int GetCookieIndex(DirectionalLightData value)
 {
-	return value.unused;
+	return value.cookieIndex;
 }
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.PunctualShadowData
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.ShadowData
 //
-float4x4 GetWorldToShadow(PunctualShadowData value)
+float4x4 GetWorldToShadow(ShadowData value)
 {
 	return value.worldToShadow;
 }
-int GetLightType(PunctualShadowData value)
+int GetLightType(ShadowData value)
 {
 	return value.lightType;
 }
-float GetBias(PunctualShadowData value)
+float GetBias(ShadowData value)
 {
 	return value.bias;
 }
-float GetQuality(PunctualShadowData value)
+float GetQuality(ShadowData value)
 {
 	return value.quality;
 }
-float GetUnused(PunctualShadowData value)
+float GetUnused(ShadowData value)
 {
 	return value.unused;
-}
-
-//
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.DirectionalShadowData
-//
-float4x4 GetWorldToShadow(DirectionalShadowData value)
-{
-	return value.worldToShadow;
-}
-float GetBias(DirectionalShadowData value)
-{
-	return value.bias;
-}
-float GetQuality(DirectionalShadowData value)
-{
-	return value.quality;
-}
-float2 GetUnused2(DirectionalShadowData value)
-{
-	return value.unused2;
 }
 
 //

@@ -58,8 +58,8 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
                                             PerceptualRoughnessToRoughness(perceptualRoughness),
                                             _MipMapCount,
                                             _InvOmegaP,
-                                            2048,
-                                            false);
+                                            64,
+                                            true);
 
                 return val;
             }

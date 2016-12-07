@@ -99,6 +99,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 #else
                     UnityObject.Destroy(obj);
 #endif
+                obj = null;
+            }
+        }
+
+        public static void SafeRelease(ComputeBuffer buffer)
+        {
+            if (buffer != null)
+            {
+                buffer.Release();
+                buffer = null;
             }
         }
 
