@@ -31,26 +31,16 @@ Shader "Hidden/VFX_3"
 			Texture2D gradientTexture;
 			SamplerState samplergradientTexture;
 			
-			struct Attribute0
+			struct OutputData
 			{
 				float3 position;
 				float age;
-			};
-			
-			struct Attribute2
-			{
 				float2 size;
-			};
-			
-			struct Attribute3
-			{
 				float lifetime;
+				uint _PADDING_0;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<Attribute3> attribBuffer3;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
@@ -75,42 +65,31 @@ Shader "Hidden/VFX_3"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
-				if (flags[index] == 1)
-				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					Attribute2 attrib2 = attribBuffer2[index];
-					Attribute3 attrib3 = attribBuffer3[index];
-					
-					float3 local_color = (float3)0;
-					float local_alpha = (float)0;
-					
-					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,attrib0.age,attrib3.lifetime,outputUniform0);
-					
-					float2 size = attrib2.size * 0.5f;
-					o.offsets.x = 2.0 * float(id & 1) - 1.0;
-					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-					
-					float3 position = attrib0.position;
-					
-					float2 posOffsets = o.offsets.xy;
-					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
-					float3 side = UNITY_MATRIX_IT_MV[0].xyz;
-					float3 up = UNITY_MATRIX_IT_MV[1].xyz;
-					
-					position += side * (posOffsets.x * size.x);
-					position += up * (posOffsets.y * size.y);
-					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-					
-					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
-					o.col = float4(local_color.xyz,local_alpha);
-				}
-				else
-				{
-					o.pos = -1.0;
-					o.col = 0;
-				}
+				uint index = (id >> 2) + instanceID * 2048;
+				OutputData outputData = outputBuffer[index];
 				
+				float3 local_color = (float3)0;
+				float local_alpha = (float)0;
+				
+				VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0);
+				
+				float2 size = outputData.size * 0.5f;
+				o.offsets.x = 2.0 * float(id & 1) - 1.0;
+				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+				
+				float3 position = outputData.position;
+				
+				float2 posOffsets = o.offsets.xy;
+				float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
+				float3 side = UNITY_MATRIX_IT_MV[0].xyz;
+				float3 up = UNITY_MATRIX_IT_MV[1].xyz;
+				
+				position += side * (posOffsets.x * size.x);
+				position += up * (posOffsets.y * size.y);
+				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
+				
+				o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+				o.col = float4(local_color.xyz,local_alpha);
 				return o;
 			}
 			

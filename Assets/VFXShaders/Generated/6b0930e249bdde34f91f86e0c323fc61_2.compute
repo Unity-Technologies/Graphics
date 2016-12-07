@@ -74,7 +74,22 @@ StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
 StructuredBuffer<Attribute3> attribBuffer3_RO;
 RWStructuredBuffer<Attribute4> attribBuffer4;
+StructuredBuffer<Attribute4> attribBuffer4_RO;
 RWStructuredBuffer<Attribute5> attribBuffer5;
+StructuredBuffer<Attribute5> attribBuffer5_RO;
+
+struct OutputData
+{
+	float3 position;
+	float age;
+	float2 size;
+	float texIndex;
+	float lifetime;
+	float angle;
+	uint3 _PADDING_0;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -181,6 +196,8 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute1 attrib1 = attribBuffer1[index];
 		Attribute2 attrib2 = attribBuffer2_RO[index];
 		Attribute3 attrib3 = attribBuffer3_RO[index];
+		Attribute4 attrib4 = attribBuffer4_RO[index];
+		Attribute5 attrib5 = attribBuffer5_RO[index];
 		
 		
 		VFXBlockSubUVAnimateRandomRate( attrib1.texIndex,attrib3.phase,updateUniform0,updateUniform1);
@@ -200,6 +217,15 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		{
 			attribBuffer0[index] = attrib0;
 			attribBuffer1[index] = attrib1;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.position = attrib0.position;
+			outputData.age = attrib0.age;
+			outputData.size = attrib5.size;
+			outputData.texIndex = attrib1.texIndex;
+			outputData.lifetime = attrib2.lifetime;
+			outputData.angle = attrib4.angle;
+			outputBuffer.Append(outputData);
 		}
 	}
 }

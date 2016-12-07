@@ -46,7 +46,7 @@ struct Attribute0
 struct Attribute1
 {
 	float3 position;
-	uint _PADDING_1;
+	uint _PADDING_0;
 };
 
 struct Attribute2
@@ -70,7 +70,23 @@ RWStructuredBuffer<Attribute1> attribBuffer1;
 RWStructuredBuffer<Attribute2> attribBuffer2;
 StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
+StructuredBuffer<Attribute3> attribBuffer3_RO;
 RWStructuredBuffer<Attribute4> attribBuffer4;
+StructuredBuffer<Attribute4> attribBuffer4_RO;
+
+struct OutputData
+{
+	float3 velocity;
+	float age;
+	float3 position;
+	float lifetime;
+	float3 color;
+	float texIndex;
+	float alpha;
+	uint3 _PADDING_0;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -185,6 +201,8 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute0 attrib0 = attribBuffer0[index];
 		Attribute1 attrib1 = attribBuffer1[index];
 		Attribute2 attrib2 = attribBuffer2_RO[index];
+		Attribute3 attrib3 = attribBuffer3_RO[index];
+		Attribute4 attrib4 = attribBuffer4_RO[index];
 		
 		
 		VFXBlockSetForceConstant( attrib0.velocity,updateUniform0);
@@ -204,6 +222,16 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		{
 			attribBuffer0[index] = attrib0;
 			attribBuffer1[index] = attrib1;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.velocity = attrib0.velocity;
+			outputData.age = attrib0.age;
+			outputData.position = attrib1.position;
+			outputData.lifetime = attrib2.lifetime;
+			outputData.color = attrib3.color;
+			outputData.texIndex = attrib3.texIndex;
+			outputData.alpha = attrib4.alpha;
+			outputBuffer.Append(outputData);
 		}
 	}
 }

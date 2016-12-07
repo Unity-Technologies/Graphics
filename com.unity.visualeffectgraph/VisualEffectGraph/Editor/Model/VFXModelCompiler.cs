@@ -394,7 +394,7 @@ namespace UnityEditor.Experimental
 
             //--------------------------------------------------------------------------
             // OUTPUT BUFFER GENERATION
-            bool useOutputBuffer = updateHasKill; // TODO By default use this as soon as we have kill behavior
+            bool useOutputBuffer = updateHasKill && system.BlendingMode != BlendMode.kAlpha; // Let's not use indirect output with alpha blend till we have sorting
             var outputAttribs = new List<VFXAttribute>();
             AttributeBuffer outputBuffer = useOutputBuffer ? new AttributeBuffer(-1,VFXAttribute.Usage.kUpdateW | VFXAttribute.Usage.kOutputR) : null;
             if (updateHasKill)

@@ -32,7 +32,7 @@ Shader "Hidden/VFX_7"
 			struct Attribute0
 			{
 				float3 position;
-				uint _PADDING_1;
+				uint _PADDING_0;
 			};
 			
 			struct Attribute1

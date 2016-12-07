@@ -34,26 +34,16 @@ Shader "Hidden/VFX_0"
 			Texture2D curveTexture;
 			SamplerState samplercurveTexture;
 			
-			struct Attribute0
+			struct OutputData
 			{
 				float3 position;
 				float age;
-			};
-			
-			struct Attribute1
-			{
 				float2 size;
-			};
-			
-			struct Attribute2
-			{
 				float lifetime;
+				uint _PADDING_0;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
@@ -96,47 +86,36 @@ Shader "Hidden/VFX_0"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
-				if (flags[index] == 1)
-				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
-					
-					float3 local_front = (float3)0;
-					float3 local_side = (float3)0;
-					float3 local_up = (float3)0;
-					float3 local_color = (float3)0;
-					float local_alpha = (float)0;
-					
-					VFXBlockFaceCameraPosition( local_front,local_side,local_up,attrib0.position);
-					VFXBlockSetColorConstant( local_color,outputUniform0);
-					VFXBlockSetAlphaCurveOverLifetime( local_alpha,attrib0.age,attrib2.lifetime,outputUniform1);
-					
-					float2 size = attrib1.size * 0.5f;
-					o.offsets.x = 2.0 * float(id & 1) - 1.0;
-					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-					
-					float3 position = attrib0.position;
-					
-					float2 posOffsets = o.offsets.xy;
-					float3 cameraPos = _WorldSpaceCameraPos.xyz;
-					float3 side = local_side;
-					float3 up = local_up;
-					
-					position += side * (posOffsets.x * size.x);
-					position += up * (posOffsets.y * size.y);
-					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-					
-					o.pos = mul (UNITY_MATRIX_VP, float4(position,1.0f));
-					o.col = float4(local_color.xyz,local_alpha);
-				}
-				else
-				{
-					o.pos = -1.0;
-					o.col = 0;
-				}
+				uint index = (id >> 2) + instanceID * 2048;
+				OutputData outputData = outputBuffer[index];
 				
+				float3 local_front = (float3)0;
+				float3 local_side = (float3)0;
+				float3 local_up = (float3)0;
+				float3 local_color = (float3)0;
+				float local_alpha = (float)0;
+				
+				VFXBlockFaceCameraPosition( local_front,local_side,local_up,outputData.position);
+				VFXBlockSetColorConstant( local_color,outputUniform0);
+				VFXBlockSetAlphaCurveOverLifetime( local_alpha,outputData.age,outputData.lifetime,outputUniform1);
+				
+				float2 size = outputData.size * 0.5f;
+				o.offsets.x = 2.0 * float(id & 1) - 1.0;
+				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+				
+				float3 position = outputData.position;
+				
+				float2 posOffsets = o.offsets.xy;
+				float3 cameraPos = _WorldSpaceCameraPos.xyz;
+				float3 side = local_side;
+				float3 up = local_up;
+				
+				position += side * (posOffsets.x * size.x);
+				position += up * (posOffsets.y * size.y);
+				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
+				
+				o.pos = mul (UNITY_MATRIX_VP, float4(position,1.0f));
+				o.col = float4(local_color.xyz,local_alpha);
 				return o;
 			}
 			

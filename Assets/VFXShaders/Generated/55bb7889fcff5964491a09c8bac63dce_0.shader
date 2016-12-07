@@ -29,20 +29,15 @@ Shader "Hidden/VFX_0"
 				float outputUniform3;
 			CBUFFER_END
 			
-			struct Attribute1
+			struct OutputData
 			{
 				float3 position;
-				uint _PADDING_1;
-			};
-			
-			struct Attribute2
-			{
+				uint _PADDING_0;
 				float2 size;
+				uint2 _PADDING_1;
 			};
 			
-			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
@@ -70,53 +65,43 @@ Shader "Hidden/VFX_0"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
-				if (flags[index] == 1)
-				{
-					bool kill = false;
-					
-					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
-					
-					float local_alpha = (float)0;
-					float3 local_color = (float3)0;
-					
-					VFXBlockCameraFade( local_alpha,attrib1.position,outputUniform0,kill);
-					VFXBlockSetColorConstant( local_color,outputUniform1);
-					
-					float2 size = attrib2.size * 0.5f;
-					o.offsets.x = 2.0 * float(id & 1) - 1.0;
-					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-					
-					float3 position = attrib1.position;
-					
-					float3 posToCam = VFXCameraPos() - position;
-					float camDist = length(posToCam);
-					float scale = 1.0f - size.x / camDist;
-					float3 front = posToCam / camDist;
-					float3 side = normalize(cross(front,VFXCameraMatrix()[1].xyz));
-					float3 up = cross(side,front);
-					
-					o.viewCenterPos = mul(UNITY_MATRIX_V,float4(position,1.0f)).xyz;
-					position += side * (o.offsets.x * size.x) * scale;
-					position += up * (o.offsets.y * size.y) * scale;
-					position += front * size.x;
-					
-					o.viewPosAndSize = float4(mul(UNITY_MATRIX_V,float4(position,1.0f)).xyz,size.x);
-					o.pos = mul (UNITY_MATRIX_VP, float4(position,1.0f));
-					o.col = float4(local_color.xyz,local_alpha);
-					if (kill)
-					{
-						o.pos = -1.0;
-						o.col = 0;
-					}
-				}
-				else
+				uint index = (id >> 2) + instanceID * 2048;
+				bool kill = false;
+				
+				OutputData outputData = outputBuffer[index];
+				
+				float local_alpha = (float)0;
+				float3 local_color = (float3)0;
+				
+				VFXBlockCameraFade( local_alpha,outputData.position,outputUniform0,kill);
+				VFXBlockSetColorConstant( local_color,outputUniform1);
+				
+				float2 size = outputData.size * 0.5f;
+				o.offsets.x = 2.0 * float(id & 1) - 1.0;
+				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+				
+				float3 position = outputData.position;
+				
+				float3 posToCam = VFXCameraPos() - position;
+				float camDist = length(posToCam);
+				float scale = 1.0f - size.x / camDist;
+				float3 front = posToCam / camDist;
+				float3 side = normalize(cross(front,VFXCameraMatrix()[1].xyz));
+				float3 up = cross(side,front);
+				
+				o.viewCenterPos = mul(UNITY_MATRIX_V,float4(position,1.0f)).xyz;
+				position += side * (o.offsets.x * size.x) * scale;
+				position += up * (o.offsets.y * size.y) * scale;
+				position += front * size.x;
+				
+				o.viewPosAndSize = float4(mul(UNITY_MATRIX_V,float4(position,1.0f)).xyz,size.x);
+				o.pos = mul (UNITY_MATRIX_VP, float4(position,1.0f));
+				o.col = float4(local_color.xyz,local_alpha);
+				if (kill)
 				{
 					o.pos = -1.0;
 					o.col = 0;
 				}
-				
 				return o;
 			}
 			

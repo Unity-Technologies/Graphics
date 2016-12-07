@@ -3,11 +3,11 @@
 #include "HLSLSupport.cginc"
 
 CBUFFER_START(Uniform)
-	uint nbMax;
+	uint maxNb;
 CBUFFER_END
  
 #define NB_THREADS_PER_GROUP 64
-#define NB_INDICES_PER_INSTANCE 4096
+#define NB_INDICES_PER_INSTANCE 2048
 
 ByteAddressBuffer nbElements;		// Filled by GPU
 StructuredBuffer<uint> outputTypes; // Filled by CPU
@@ -18,7 +18,7 @@ RWBuffer<uint> output;
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 {
-	if (id.x < nbMax) 
+	if (id.x < maxNb) 
 	{
 		uint vertexCount = 0;
 		uint instanceCount = 0;

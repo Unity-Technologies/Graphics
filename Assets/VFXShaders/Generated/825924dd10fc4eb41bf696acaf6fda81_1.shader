@@ -27,14 +27,13 @@ Shader "Hidden/VFX_1"
 				float3 outputUniform0;
 			CBUFFER_END
 			
-			struct Attribute0
+			struct OutputData
 			{
 				float3 position;
-				uint _PADDING_1;
+				uint _PADDING_0;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
@@ -51,24 +50,15 @@ Shader "Hidden/VFX_1"
 			{
 				ps_input o;
 				uint index = id;
-				if (flags[index] == 1)
-				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					
-					float3 local_color = (float3)0;
-					
-					VFXBlockSetColorConstant( local_color,outputUniform0);
-					
-					float3 worldPos = attrib0.position;
-					o.pos = mul(UNITY_MATRIX_MVP, float4(worldPos,1.0f));
-					o.col = float4(local_color.xyz,0.5);
-				}
-				else
-				{
-					o.pos = -1.0;
-					o.col = 0;
-				}
+				OutputData outputData = outputBuffer[index];
 				
+				float3 local_color = (float3)0;
+				
+				VFXBlockSetColorConstant( local_color,outputUniform0);
+				
+				float3 worldPos = outputData.position;
+				o.pos = mul(UNITY_MATRIX_MVP, float4(worldPos,1.0f));
+				o.col = float4(local_color.xyz,0.5);
 				return o;
 			}
 			

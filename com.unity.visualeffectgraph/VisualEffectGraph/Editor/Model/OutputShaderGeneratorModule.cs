@@ -128,7 +128,7 @@ namespace UnityEditor.Experimental
 
         public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {
-            builder.WriteLine("uint index = (id >> 2) + instanceID * 16384;");
+            builder.WriteLine("uint index = (id >> 2) + instanceID * 2048;");
         }
 
         public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
@@ -511,7 +511,7 @@ namespace UnityEditor.Experimental
 
         public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {
-            builder.WriteLine("uint index = (id >> 2) + instanceID * 16384;");
+            builder.WriteLine("uint index = (id >> 2) + instanceID * 2048;");
         }
 
         public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
