@@ -20,7 +20,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
             public readonly GUIContent useDepthPrepass = new GUIContent("Use Depth Prepass");
-            public readonly GUIContent useSinglePassLightLoop = new GUIContent("Use single Pass light loop");
 
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
@@ -45,10 +44,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly GUIContent shadowsCascades = new GUIContent("Cascade values");
 
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop settings");
-            public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Direct Light", "Reflection Light", "Area Light"};
-            public readonly GUIContent directIndirectSinglePass = new GUIContent("Enable direct and indirect lighting in single pass", "Toggle");
+            public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Punctual Light", "Area Light", "Env Light"};
+            public readonly GUIContent splitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
             public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
             public readonly GUIContent clustered = new GUIContent("Enable clustered", "Toggle");
+            public readonly GUIContent disableTileAndCluster = new GUIContent("Disable Tile/clustered", "Toggle");
+            
 
 
             public readonly GUIContent textureSettings = new GUIContent("texture Settings");
@@ -192,7 +193,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             debugParameters.displayTransparentObjects = EditorGUILayout.Toggle(styles.displayTransparentObjects, debugParameters.displayTransparentObjects);
             debugParameters.useForwardRenderingOnly = EditorGUILayout.Toggle(styles.useForwardRenderingOnly, debugParameters.useForwardRenderingOnly);
             debugParameters.useDepthPrepass = EditorGUILayout.Toggle(styles.useDepthPrepass, debugParameters.useDepthPrepass);
-            debugParameters.useSinglePassLightLoop = EditorGUILayout.Toggle(styles.useSinglePassLightLoop, debugParameters.useSinglePassLightLoop);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -265,23 +265,35 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             EditorGUILayout.Space();
 
-            if (renderLoop.tilePassLightLoop != null)
+            // TODO: we should call a virtual method or something similar to setup the UI, inspector should not know about it
+            TilePass.LightLoop tilePass = renderLoop.lightLoop as TilePass.LightLoop;
+            if (tilePass != null)
             {
                 EditorGUILayout.LabelField(styles.tileLightLoopSettings);
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
 
-                renderLoop.tilePassLightLoop.debugViewTilesFlags = EditorGUILayout.MaskField("DebugView Tiles", renderLoop.tilePassLightLoop.debugViewTilesFlags, styles.tileLightLoopDebugTileFlagStrings);
-                renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass = EditorGUILayout.Toggle(styles.directIndirectSinglePass, renderLoop.tilePassLightLoop.enableDirectIndirectSinglePass);
-                renderLoop.tilePassLightLoop.enableBigTilePrepass = EditorGUILayout.Toggle(styles.bigTilePrepass, renderLoop.tilePassLightLoop.enableBigTilePrepass);
-                renderLoop.tilePassLightLoop.enableClustered = EditorGUILayout.Toggle(styles.clustered, renderLoop.tilePassLightLoop.enableClustered);
+                tilePass.enableBigTilePrepass = EditorGUILayout.Toggle(styles.bigTilePrepass, tilePass.enableBigTilePrepass);
+                tilePass.enableClustered = EditorGUILayout.Toggle(styles.clustered, tilePass.enableClustered);
 
                 if (EditorGUI.EndChangeCheck())
                 {
                     EditorUtility.SetDirty(renderLoop); // Repaint
 
-                    // If something is chanage on tilePassLightLoop we need to force a OnValidate() OnHDRenderLoop, else change Rebuild() will not be call
+                    // If something is chanage regarding tile/cluster rendering we need to force a OnValidate() OnHDRenderLoop, else change Rebuild() will not be call
                     renderLoop.OnValidate();
+                }
+
+                EditorGUI.BeginChangeCheck();
+
+                tilePass.debugViewTilesFlags = EditorGUILayout.MaskField("DebugView Tiles", tilePass.debugViewTilesFlags, styles.tileLightLoopDebugTileFlagStrings);
+                tilePass.enableSplitLightEvaluation = EditorGUILayout.Toggle(styles.splitLightEvaluation, tilePass.enableSplitLightEvaluation);
+                tilePass.disableTileAndCluster = EditorGUILayout.Toggle(styles.disableTileAndCluster, tilePass.disableTileAndCluster);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    EditorUtility.SetDirty(renderLoop); // Repaint
+                    UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
                 }
                 EditorGUI.indentLevel--;
             }

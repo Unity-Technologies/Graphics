@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     [GenerateHLSL]
     public struct DirectionalLightData
     {
-        public Vector3 direction;
+        public Vector3 forward;
         public float   diffuseScale;
 
         public Vector3 up;
@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     // TODO: we may have to add various parameters here for shadow - was suppose to be coupled with a light loop
     // A point light is 6x PunctualShadowData
     [GenerateHLSL]
-    public struct PunctualShadowData
+    public struct ShadowData
     {
         // World to ShadowMap matrix
         // Include scale and bias for shadow atlas if any
@@ -95,18 +95,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float bias;
         public float quality;
         public float unused;
-    };
-
-    [GenerateHLSL]
-    public struct DirectionalShadowData
-    {
-        // World to ShadowMap matrix
-        // Include scale and bias for shadow atlas if any
-        public Matrix4x4 worldToShadow;
-
-        public float bias;
-        public float quality;
-        public Vector2 unused2;
     };
 
     [GenerateHLSL]

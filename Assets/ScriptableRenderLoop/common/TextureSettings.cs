@@ -1,7 +1,7 @@
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [System.Serializable]
-    public struct TextureSettings
+    public class TextureSettings
     {
         public int spotCookieSize;
         public int pointCookieSize;
