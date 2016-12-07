@@ -285,7 +285,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_DebugViewTilesMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/DebugViewTiles");
 
                 m_SingleDeferredMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
-                m_DeferredAllMaterial.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
+                m_SingleDeferredMaterial.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
             }
 
             public override void Cleanup()
