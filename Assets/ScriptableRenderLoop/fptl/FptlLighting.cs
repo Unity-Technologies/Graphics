@@ -298,7 +298,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("Deferred"))
             {
-                sorting = {sortOptions = SortOptions.SortByMaterialThenMesh},
+                sorting = { flags = SortFlags.CommonOpaque },
                 rendererConfiguration = RendererConfiguration.PerObjectLightmaps
             };
 
@@ -325,7 +325,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("ForwardSinglePass"))
             {
-                sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
+                sorting = { flags = SortFlags.CommonOpaque }
             };
             settings.rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe;
             if (opaquesOnly) settings.inputFilter.SetQueuesOpaque();
@@ -344,7 +344,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // render opaque objects using Deferred pass
             var settings = new DrawRendererSettings(cull, camera, new ShaderPassName("DepthOnly"))
             {
-                sorting = { sortOptions = SortOptions.SortByMaterialThenMesh }
+                sorting = { flags = SortFlags.CommonOpaque }
             };
             settings.inputFilter.SetQueuesOpaque();
             loop.DrawRenderers(ref settings);
