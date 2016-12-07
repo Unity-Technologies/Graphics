@@ -467,7 +467,7 @@ Shader "HDRenderLoop/LayeredLit"
             #define SHADERPASS SHADERPASS_FORWARD
             // TEMP until pragma work in include
             // #include "../../Lighting/Forward.hlsl"
-            #pragma multi_compile LIGHTLOOP_SINGLE_PASS
+            #pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             #define LAYERED_LIT_SHADER
             //#pragma multi_compile SHADOWFILTERING_FIXED_SIZE_PCF
 
