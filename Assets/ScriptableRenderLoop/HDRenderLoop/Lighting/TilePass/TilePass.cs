@@ -209,6 +209,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public override void Rebuild(TextureSettings textureSettings)
             {
                 m_lightList = new LightList();
+                m_lightList.Allocate();
 
                 s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
                 s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnSCreen + k_MaxAreaLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
@@ -968,7 +969,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         continue;
 
                     // TODO: Support LightVolumeType.Sphere, currently in UI there is no way to specify a sphere influence volume                    
-                    LightVolumeType lightVolumeType = LightVolumeType.Box;
+                    LightVolumeType lightVolumeType = probe.boxProjection != 0 ? LightVolumeType.Box : LightVolumeType.Box;
                     ++envLightCount;
 
                     // 16 bit lightVolume, 16 bit index
@@ -1006,6 +1007,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.SetComputeBufferParam(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, "g_LayeredSingleIdxBuffer", s_GlobalLightListAtomic);
                 cmd.DispatchCompute(buildPerVoxelLightListShader, s_ClearVoxelAtomicKernel, 1, 1, 1);
 
+                cmd.SetComputeIntParam(buildPerVoxelLightListShader, "_EnvLightIndexShift", m_lightList.lights.Count);    
                 cmd.SetComputeIntParam(buildPerVoxelLightListShader, "g_iNrVisibLights", m_lightCount);
                 Utilities.SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mScrProjection", projscr);
                 Utilities.SetMatrixCS(cmd, buildPerVoxelLightListShader, "g_mInvScrProjection", invProjscr);
@@ -1086,6 +1088,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (enableBigTilePrepass)
                 {
                     cmd.SetComputeIntParams(buildPerBigTileLightListShader, "g_viDimensions", new int[2] { w, h });
+                    cmd.SetComputeIntParam(buildPerBigTileLightListShader, "_EnvLightIndexShift", m_lightList.lights.Count);
                     cmd.SetComputeIntParam(buildPerBigTileLightListShader, "g_iNrVisibLights", m_lightCount);
                     Utilities.SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mScrProjection", projscr);
                     Utilities.SetMatrixCS(cmd, buildPerBigTileLightListShader, "g_mInvScrProjection", invProjscr);
@@ -1098,6 +1101,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 if (usingFptl)       // optimized for opaques only
                 {
                     cmd.SetComputeIntParams(buildPerTileLightListShader, "g_viDimensions", new int[2] { w, h });
+                    cmd.SetComputeIntParam(buildPerTileLightListShader, "_EnvLightIndexShift", m_lightList.lights.Count);
                     cmd.SetComputeIntParam(buildPerTileLightListShader, "g_iNrVisibLights", m_lightCount);
                     Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mScrProjection", projscr);
                     Utilities.SetMatrixCS(cmd, buildPerTileLightListShader, "g_mInvScrProjection", invProjscr);
@@ -1132,14 +1136,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_ConvexBoundsBuffer.SetData(m_lightList.bounds.ToArray());
                 s_LigthVolumeDataBuffer.SetData(m_lightList.lightVolumes.ToArray());
 
-                Shader.SetGlobalBuffer("_DirectionalLightList", s_DirectionalLightDatas);
+                Shader.SetGlobalBuffer("_DirectionalLightDatas", s_DirectionalLightDatas);
                 Shader.SetGlobalInt("_DirectionalLightCount", m_lightList.directionalLights.Count);
-                Shader.SetGlobalBuffer("_PunctualLightList", s_LightDatas);
+                Shader.SetGlobalBuffer("_LightDatas", s_LightDatas);
                 Shader.SetGlobalInt("_PunctualLightCount", m_punctualLightCount);
-                Shader.SetGlobalBuffer("_AreaLightList", s_LightDatas);
                 Shader.SetGlobalInt("_AreaLightCount", m_areaLightCount);
-                Shader.SetGlobalBuffer("_EnvLightList", s_EnvLightDatas);
-                Shader.SetGlobalBuffer("_ShadowList", s_shadowDatas);
+                Shader.SetGlobalBuffer("_EnvLightDatas", s_EnvLightDatas);
+                Shader.SetGlobalInt("_EnvLightCount", m_lightList.envLights.Count);
+                Shader.SetGlobalBuffer("_ShadowDatas", s_shadowDatas);
                 Shader.SetGlobalVectorArray("_DirShadowSplitSpheres", m_lightList.directionalShadowSplitSphereSqr);
 
                 var cmd = new CommandBuffer { name = "Push Global Parameters" };
@@ -1282,6 +1286,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         var projscr = temp * proj;
                         var invProjscr = projscr.inverse;
 
+                        cmd.SetComputeIntParam(deferredComputeShader, "_EnvLightIndexShift", m_lightList.lights.Count);
                         cmd.SetComputeIntParam(deferredComputeShader, "g_iNrVisibLights", numLights);
                         SetMatrixCS(cmd, deferredComputeShader, "g_mScrProjection", projscr);
                         SetMatrixCS(cmd, deferredComputeShader, "g_mInvScrProjection", invProjscr);
