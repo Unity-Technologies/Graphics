@@ -40,7 +40,9 @@
 
 // TODO: I haven't configure this sampler in the code, we should be able to do it (but Unity don't allow it for now...)
 // By default Unity provide MIG_MAG_LINEAR_POINT sampler, so it fit with our need.
-#ifdef LIT_DISPLAY_REFERENCE_IBL
+// TODO: to avoid the message Fragment program 'Frag' : sampler 'sampler_PreIntegratedFGD' has no matching texture and will be undefined.
+// We need to test this define LIGHTLOOP_TILE_DIRECT, this is a bad workaround but no alternative until we can setup sampler correctly...
+#if defined(LIT_DISPLAY_REFERENCE_IBL) || defined(LIGHTLOOP_TILE_DIRECT)
 // When reference mode is enabled, then we need to chose another sampler not related to cubemap code...
 SAMPLER2D(sampler_LtcGGXMatrix);
 #define SRL_BilinearSampler sampler_LtcGGXMatrix // Used for all textures

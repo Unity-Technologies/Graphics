@@ -149,7 +149,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             static int s_GenListPerTileKernel;
             static int s_GenListPerVoxelKernel;
             static int s_ClearVoxelAtomicKernel;
-            static ComputeBuffer s_LigthVolumeDataBuffer = null;
+            static ComputeBuffer s_LightVolumeDataBuffer = null;
             static ComputeBuffer s_ConvexBoundsBuffer = null;
             static ComputeBuffer s_AABBBoundsBuffer = null;
             static ComputeBuffer s_LightList = null;
@@ -235,11 +235,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
                 s_AABBBoundsBuffer = new ComputeBuffer(2 * k_MaxLightsOnSCreen, 3 * sizeof(float));
                 s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
-                s_LigthVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
+                s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
 
                 buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "_LigthVolumeData", s_LigthVolumeDataBuffer);
+                buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "_LightVolumeData", s_LightVolumeDataBuffer);
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_data", s_ConvexBoundsBuffer);
 
                 if (enableClustered)
@@ -248,7 +248,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     s_GenListPerVoxelKernel = buildPerVoxelLightListShader.FindKernel(kernelName);
                     s_ClearVoxelAtomicKernel = buildPerVoxelLightListShader.FindKernel("ClearAtomic");
                     buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "_LigthVolumeData", s_LigthVolumeDataBuffer);
+                    buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "_LightVolumeData", s_LightVolumeDataBuffer);
                     buildPerVoxelLightListShader.SetBuffer(s_GenListPerVoxelKernel, "g_data", s_ConvexBoundsBuffer);
 
                     s_GlobalLightListAtomic = new ComputeBuffer(1, sizeof(uint));
@@ -258,7 +258,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
                     buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
-                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "_LigthVolumeData", s_LigthVolumeDataBuffer);
+                    buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "_LightVolumeData", s_LightVolumeDataBuffer);
                     buildPerBigTileLightListShader.SetBuffer(s_GenListPerBigTileKernel, "g_data", s_ConvexBoundsBuffer);
                 }
 
@@ -315,7 +315,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 Utilities.SafeRelease(s_AABBBoundsBuffer);
                 Utilities.SafeRelease(s_ConvexBoundsBuffer);
-                Utilities.SafeRelease(s_LigthVolumeDataBuffer);
+                Utilities.SafeRelease(s_LightVolumeDataBuffer);
 
                 // enableClustered
                 Utilities.SafeRelease(s_GlobalLightListAtomic);
@@ -1140,7 +1140,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 // These two buffers have been set in Rebuild()
                 s_ConvexBoundsBuffer.SetData(m_lightList.bounds.ToArray());
-                s_LigthVolumeDataBuffer.SetData(m_lightList.lightVolumes.ToArray());
+                s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes.ToArray());
 
                 Shader.SetGlobalBuffer("_DirectionalLightDatas", s_DirectionalLightDatas);
                 Shader.SetGlobalInt("_DirectionalLightCount", m_lightList.directionalLights.Count);
@@ -1259,7 +1259,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, "_LightTextureB0", m_LightAttentuationTexture);
 
                         cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);
-                        cmd.SetComputeBufferParam(deferredComputeShader, kernel, "_LigthVolumeData", s_LigthVolumeDataBuffer);
+                        cmd.SetComputeBufferParam(deferredComputeShader, kernel, "_LightVolumeData", s_LightVolumeDataBuffer);
                         cmd.SetComputeBufferParam(deferredComputeShader, kernel, "g_dirLightData", s_DirLightList);
 
                         var defdecode = ReflectionProbe.GetDefaultTextureHDRDecodeValues();
