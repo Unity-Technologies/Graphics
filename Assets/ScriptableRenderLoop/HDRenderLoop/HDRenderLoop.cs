@@ -159,9 +159,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         int m_HeightOnRecord;
 
         // This must be allocate outside of Rebuild() else the option in the class can't be set in the inspector (as it will in this case recreate the class with default value)
-        LightLoop m_lightLoop = new TilePass();
+        BaseLightLoop m_lightLoop = new TilePass.LightLoop();
    
-        public LightLoop lightLoop
+        public BaseLightLoop lightLoop
         {
             get { return m_lightLoop; }
         }
@@ -445,6 +445,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop, bool renderOpaque)
         {
+            // TODO: Currently we can't render opaque object forward when deferred is enabled
+            // miss option
+            if (!debugParameters.useForwardRenderingOnly && renderOpaque)
+                return;
+
             using (new Utilities.ProfilingSample("Forward Pass", renderLoop))
             {
                 // Bind material data
@@ -454,12 +459,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_lightLoop.RenderForward(camera, renderLoop, renderOpaque);
 
-                if (debugParameters.useForwardRenderingOnly)
+                if (renderOpaque)
                 {
                     RenderOpaqueRenderList(cullResults, camera, renderLoop, "Forward");
                 }
-
-                RenderTransparentRenderList(cullResults, camera, renderLoop, "Forward", Utilities.kRendererConfigurationBakedLighting);
+                else
+                {
+                    RenderTransparentRenderList(cullResults, camera, renderLoop, "Forward", Utilities.kRendererConfigurationBakedLighting);
+                }
             }
         }
 

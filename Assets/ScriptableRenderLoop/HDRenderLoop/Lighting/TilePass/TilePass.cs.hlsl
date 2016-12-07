@@ -5,6 +5,22 @@
 #ifndef TILEPASS_CS_HLSL
 #define TILEPASS_CS_HLSL
 //
+// UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightVolumeType:  static fields
+//
+#define LIGHTVOLUMETYPE_CONE (0)
+#define LIGHTVOLUMETYPE_SPHERE (1)
+#define LIGHTVOLUMETYPE_BOX (2)
+#define LIGHTVOLUMETYPE_COUNT (3)
+
+//
+// UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightCategory:  static fields
+//
+#define LIGHTCATEGORY_PUNCTUAL (0)
+#define LIGHTCATEGORY_AREA (1)
+#define LIGHTCATEGORY_ENV (2)
+#define LIGHTCATEGORY_COUNT (3)
+
+//
 // UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightDefinitions:  static fields
 //
 #define MAX_NR_LIGHTS_PER_CAMERA (1024)
@@ -15,15 +31,6 @@
 #define HAS_COOKIE_TEXTURE (2)
 #define IS_BOX_PROJECTED (4)
 #define HAS_SHADOW (8)
-#define MAX_VOLUME_TYPES (3)
-#define SPOT_VOLUME (0)
-#define SPHERE_VOLUME (1)
-#define BOX_VOLUME (2)
-#define DIRECTIONAL_VOLUME (3)
-#define NR_LIGHT_CATEGORIES (3)
-#define PUNCTUAL_LIGHT_CATEGORY (0)
-#define REFLECTION_LIGHT_CATEGORY (1)
-#define AREA_LIGHT_CATEGORY (2)
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.TilePass.SFiniteLightBound
 // PackingRules = Exact
@@ -37,20 +44,20 @@ struct SFiniteLightBound
 	float radius;
 };
 
-// Generated from UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightShapeData
+// Generated from UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightVolumeData
 // PackingRules = Exact
-struct LightShapeData
+struct LightVolumeData
 {
 	float3 lightPos;
-	uint lightIndex;
-	float3 lightAxisX;
 	uint lightVolume;
+	float3 lightAxisX;
+	uint lightCategory;
 	float3 lightAxisY;
 	float radiusSq;
 	float3 lightAxisZ;
 	float cotan;
 	float3 boxInnerDist;
-	uint lightCategory;
+	float unused;
 	float3 boxInvRange;
 	float unused2;
 };
@@ -84,53 +91,53 @@ float GetRadius(SFiniteLightBound value)
 }
 
 //
-// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightShapeData
+// Accessors for UnityEngine.Experimental.ScriptableRenderLoop.TilePass.LightVolumeData
 //
-float3 GetLightPos(LightShapeData value)
+float3 GetLightPos(LightVolumeData value)
 {
 	return value.lightPos;
 }
-uint GetLightIndex(LightShapeData value)
-{
-	return value.lightIndex;
-}
-float3 GetLightAxisX(LightShapeData value)
-{
-	return value.lightAxisX;
-}
-uint GetLightVolume(LightShapeData value)
+uint GetLightVolume(LightVolumeData value)
 {
 	return value.lightVolume;
 }
-float3 GetLightAxisY(LightShapeData value)
+float3 GetLightAxisX(LightVolumeData value)
 {
-	return value.lightAxisY;
+	return value.lightAxisX;
 }
-float GetRadiusSq(LightShapeData value)
-{
-	return value.radiusSq;
-}
-float3 GetLightAxisZ(LightShapeData value)
-{
-	return value.lightAxisZ;
-}
-float GetCotan(LightShapeData value)
-{
-	return value.cotan;
-}
-float3 GetBoxInnerDist(LightShapeData value)
-{
-	return value.boxInnerDist;
-}
-uint GetLightCategory(LightShapeData value)
+uint GetLightCategory(LightVolumeData value)
 {
 	return value.lightCategory;
 }
-float3 GetBoxInvRange(LightShapeData value)
+float3 GetLightAxisY(LightVolumeData value)
+{
+	return value.lightAxisY;
+}
+float GetRadiusSq(LightVolumeData value)
+{
+	return value.radiusSq;
+}
+float3 GetLightAxisZ(LightVolumeData value)
+{
+	return value.lightAxisZ;
+}
+float GetCotan(LightVolumeData value)
+{
+	return value.cotan;
+}
+float3 GetBoxInnerDist(LightVolumeData value)
+{
+	return value.boxInnerDist;
+}
+float GetUnused(LightVolumeData value)
+{
+	return value.unused;
+}
+float3 GetBoxInvRange(LightVolumeData value)
 {
 	return value.boxInvRange;
 }
-float GetUnused2(LightShapeData value)
+float GetUnused2(LightVolumeData value)
 {
 	return value.unused2;
 }
