@@ -642,7 +642,7 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
                                 out float3 diffuseLighting,
                                 out float3 specularLighting)
 {
-    float3 L = lightData.direction;
+    float3 L = -lightData.forward; // Lights are pointing backward in Unity
     float illuminance = saturate(dot(bsdfData.normalWS, L));
 
     diffuseLighting    = float3(0.0, 0.0, 0.0);
