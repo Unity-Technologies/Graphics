@@ -22,6 +22,7 @@
 uniform int g_iNrVisibLights;
 uniform float4x4 g_mInvScrProjection;
 uniform float4x4 g_mScrProjection;
+uniform int _EnvLightIndexShift;
 
 uniform float g_fClustScale;
 uniform float g_fClustBase;
@@ -38,7 +39,7 @@ Texture2DMS<float> g_depth_tex : register( t0 );
 Texture2D g_depth_tex : register( t0 );
 #endif
 StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
-StructuredBuffer<LightShapeData> _LightShapeData : register(t2);
+StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
 #ifdef USE_TWO_PASS_TILED_LIGHTING
@@ -331,7 +332,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		InterlockedAdd(g_LayeredSingleIdxBuffer[0], (uint) iSpaceAvail, start);		// alloc list memory
 	}
 
-	int categoryListCount[NR_LIGHT_CATEGORIES]={0,0,0};		// direct light count and reflection lights
+    // All our cull data are in the same list, but at render time envLights are separated so we need to shit the index
+    // to make it work correctly
+    int shiftIndex[LIGHTCATEGORY_COUNT] = {0, 0, _EnvLightIndexShift}; // 3 for now, will throw an error if we change LIGHTCATEGORY_COUNT
+
+	int categoryListCount[LIGHTCATEGORY_COUNT]={0,0,0};		// direct light count and reflection lights
 	uint offs = start;
 	for(int ll=0; ll<iNrCoarseLights; ll+=4)
 	{
@@ -346,9 +351,9 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 		{
 			if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase) )
 			{
-                uint lightCategory = _LightShapeData[coarseList[l]].lightCategory;
+                uint lightCategory = _LightVolumeData[coarseList[l]].lightCategory;
                 ++categoryListCount[lightCategory];
-				g_vLayeredLightList[offs++] = _LightShapeData[coarseList[l]].lightIndex;			// reflection lights will be last since we sorted
+				g_vLayeredLightList[offs++] = coarseList[l] - shiftIndex[lightCategory];			// reflection lights will be last since we sorted
 			}
 		}
 
@@ -359,7 +364,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 	uint localOffs=0;
 	offs = i*nrTilesX*nrTilesY + tileIDX.y*nrTilesX + tileIDX.x;
-	for(int category=0; category<NR_LIGHT_CATEGORIES; category++)
+	for(int category=0; category<LIGHTCATEGORY_COUNT; category++)
 	{
 		int numLights = min(categoryListCount[category],31);		// only allow 5 bits
 		if(i<nrClusters)
@@ -480,7 +485,7 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 		GroupMemoryBarrierWithGroupSync();
 #endif
 		const int idxCoarse = coarseList[l];
-        [branch]if (_LightShapeData[idxCoarse].lightVolume != SPHERE_VOLUME)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
+        [branch]if (_LightVolumeData[idxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE)		// don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
 		{
 			SFiniteLightBound lgtDat = g_data[idxCoarse];
 	
