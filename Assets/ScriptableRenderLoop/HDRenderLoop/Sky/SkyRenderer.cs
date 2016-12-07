@@ -209,8 +209,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         private void RenderSky(Camera camera, SkyParameters skyParameters, Mesh skyMesh, RenderLoop renderLoop)
         {
-            Shader.EnableKeyword("PERFORM_SKY_OCCLUSION_TEST");
-
             m_RenderSkyPropertyBlock.SetTexture("_Cubemap", skyParameters.skyHDRI);
             m_RenderSkyPropertyBlock.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
             m_RenderSkyPropertyBlock.SetMatrix("_InvViewProjMatrix", Utilities.GetViewProjectionMatrix(camera).inverse);
@@ -223,8 +221,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         private void RenderSkyToCubemap(SkyParameters skyParameters, RenderTexture target, RenderLoop renderLoop)
         {
-            Shader.DisableKeyword("PERFORM_SKY_OCCLUSION_TEST");
-
             for (int i = 0; i < 6; ++i)
             {
                 Utilities.SetRenderTarget(renderLoop, target, 0, (CubemapFace)i);
@@ -244,12 +240,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     return;
                 }
 
-                var cmd = new CommandBuffer { name = "" };
-
                 // Copy the first mip.
 
                 // TEMP code until CopyTexture is implemented for command buffer
-                cmd.CopyTexture(input, target);
+                // All parameters are neutral because exposure/multiplier have already been applied in the first copy.
+                SkyParameters skyParams = new SkyParameters();
+                skyParams.exposure = 0.0f;
+                skyParams.multiplier = 1.0f;
+                skyParams.rotation = 0.0f;
+                skyParams.skyHDRI = input;
+                RenderSkyToCubemap(skyParams, target, renderLoop);
                 // End temp
 
                 //for (int f = 0; f < 6; f++)
@@ -271,6 +271,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     {
                         Utilities.SetRenderTarget(renderLoop, target, mip, (CubemapFace)face);
 
+                        var cmd = new CommandBuffer { name = "" };
                         cmd.DrawMesh(m_CubemapFaceMesh[face], Matrix4x4.identity, m_GGXConvolveMaterial, 0, 0, propertyBlock);
                         renderLoop.ExecuteCommandBuffer(cmd);
                         cmd.Dispose();
