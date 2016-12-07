@@ -20,7 +20,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
             public readonly GUIContent useDepthPrepass = new GUIContent("Use Depth Prepass");
-            public readonly GUIContent useSinglePassLightLoop = new GUIContent("Use single Pass light loop");
 
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
@@ -45,8 +44,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly GUIContent shadowsCascades = new GUIContent("Cascade values");
 
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop settings");
-            public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Direct Light", "Reflection Light", "Area Light"};
-            public readonly GUIContent splitLightEvaluation = new GUIContent("Enable direct and indirect lighting in single pass", "Toggle");
+            public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Punctual Light", "Area Light", "Env Light"};
+            public readonly GUIContent splitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
             public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
             public readonly GUIContent clustered = new GUIContent("Enable clustered", "Toggle");
             public readonly GUIContent disableTileAndCluster = new GUIContent("Disable Tile/clustered", "Toggle");
@@ -194,7 +193,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             debugParameters.displayTransparentObjects = EditorGUILayout.Toggle(styles.displayTransparentObjects, debugParameters.displayTransparentObjects);
             debugParameters.useForwardRenderingOnly = EditorGUILayout.Toggle(styles.useForwardRenderingOnly, debugParameters.useForwardRenderingOnly);
             debugParameters.useDepthPrepass = EditorGUILayout.Toggle(styles.useDepthPrepass, debugParameters.useDepthPrepass);
-            debugParameters.useSinglePassLightLoop = EditorGUILayout.Toggle(styles.useSinglePassLightLoop, debugParameters.useSinglePassLightLoop);
 
             if (EditorGUI.EndChangeCheck())
             {
