@@ -199,9 +199,8 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
     specularLighting += iblSpecularLighting;
 #endif
 
-    // TODO: HACK: to avoid the message Fragment program 'Frag': sampler 'sampler_PreIntegratedFGD' has no matching texture and will be undefined.
-    // we sample the GI during direct lighting, so FGD texture is used...
-#ifdef LIGHTLOOP_TILE_DIRECT
+    // TODO: currently apply GI at the same time as reflection
+#ifdef PROCESS_ENV_LIGHT
     // Add indirect diffuse + emissive (if any)
     diffuseLighting += bakeDiffuseLighting;
 #endif
