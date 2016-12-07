@@ -20,6 +20,7 @@ namespace UnityEngine.MaterialGraph
         , IMayRequireScreenPosition
         , IMayRequireViewDirection
         , IMayRequireWorldPosition
+        , IMayRequireVertexColor
     {
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
@@ -332,6 +333,14 @@ namespace UnityEngine.MaterialGraph
                 return false;
 
             return subGraph.activeNodes.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
+        }
+
+        public bool RequiresVertexColor()
+        {
+            if (subGraph == null)
+                return false;
+
+            return subGraph.activeNodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
         }
     }
 }

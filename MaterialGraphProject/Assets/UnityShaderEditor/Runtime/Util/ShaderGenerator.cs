@@ -16,6 +16,7 @@ namespace UnityEngine.MaterialGraph
         public const string WorldSpacePosition = "worldPosition";
         public const string WorldSpaceViewDirection = "worldSpaceViewDirection";
         public const string ScreenPosition = "screenPosition";
+        public const string VertexColor = "vertexColor";
         public const string UV0 = "uv0";
     }
 
@@ -239,8 +240,7 @@ namespace UnityEngine.MaterialGraph
             vertexShaderBlock.AddShaderChunk("float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(v.vertex));", true);
             vertexShaderBlock.AddShaderChunk("float3 worldNormal = UnityObjectToWorldNormal(v.normal);", true);
 
-            bool bRequireBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
-
+            bool needBitangent = activeNodeList.OfType<IMayRequireBitangent>().Any(x => x.RequiresBitangent());
             bool needsWorldPos = activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection());
             if (needsWorldPos || activeNodeList.OfType<IMayRequireWorldPosition>().Any(x => x.RequiresWorldPosition()))
             {
@@ -249,7 +249,7 @@ namespace UnityEngine.MaterialGraph
                 shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpacePosition + " = IN.worldPos;", true);
             }
 
-            if (bRequireBitangent || activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
+            if (needBitangent || activeNodeList.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal()))
             {
                 shaderInputVisitor.AddShaderChunk("float3 worldNormal : TEXCOORD1;", true);
                 vertexShaderBlock.AddShaderChunk("o.worldNormal = worldNormal;", true);
@@ -280,16 +280,22 @@ namespace UnityEngine.MaterialGraph
                 shaderBodyVisitor.AddShaderChunk("half4 " + ShaderGeneratorNames.ScreenPosition + " = IN.screenPos;", true);
             }
 
-            if (bRequireBitangent || activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent()))
+            if (needBitangent || activeNodeList.OfType<IMayRequireTangent>().Any(x => x.RequiresTangent()))
             {
                 shaderInputVisitor.AddShaderChunk("float4 worldTangent : TEXCOORD4;", true);
                 vertexShaderBlock.AddShaderChunk("o.worldTangent = float4(UnityObjectToWorldDir(v.tangent.xyz), v.tangent.w);", true);
                 shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceTangent + " = normalize(IN.worldTangent.xyz);", true);
             }
 
-            if (bRequireBitangent)
+            if (needBitangent)
             {
                 shaderBodyVisitor.AddShaderChunk(string.Format("float3 {0} = cross({1}, {2}) * IN.worldTangent.w;", ShaderGeneratorNames.WorldSpaceBitangent, ShaderGeneratorNames.WorldSpaceNormal, ShaderGeneratorNames.WorldSpaceTangent), true);
+            }
+
+            if (activeNodeList.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor()))
+            {
+                vertexShaderBlock.AddShaderChunk("o.color = v.color;", true);
+                shaderBodyVisitor.AddShaderChunk("float4 " + ShaderGeneratorNames.VertexColor + " = IN.color;", true);
             }
 
             var generationMode = GenerationMode.Preview;
