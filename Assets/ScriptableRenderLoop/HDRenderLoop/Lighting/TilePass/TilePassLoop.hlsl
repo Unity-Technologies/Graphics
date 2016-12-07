@@ -164,12 +164,26 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
 #endif
 
 #ifdef PROCESS_ENV_LIGHT
-    uint envLightStart;
-    uint envLightCount;
-    GetCountAndStart(coord, LIGHTCATEGORY_ENV, linearDepth, envLightStart, envLightCount);
 
     float3 iblDiffuseLighting = float3(0.0, 0.0, 0.0);
     float3 iblSpecularLighting = float3(0.0, 0.0, 0.0);
+
+    // Only apply sky IBL if the sky texture is available.
+    if (_EnvLightSkyEnabled)
+    {
+        float3 localDiffuseLighting, localSpecularLighting;
+        float2 weight;
+        // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
+        context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
+        EnvLightData envLightSky = InitSkyEnvLightData(0); // The sky data are generated on the fly so the compiler can optimize the code
+        EvaluateBSDF_Env(context, V, positionWS, prelightData, envLightSky, bsdfData, localDiffuseLighting, localSpecularLighting, weight);
+        iblDiffuseLighting = lerp(iblDiffuseLighting, localDiffuseLighting, weight.x); // Should be remove by the compiler if it is smart as all is constant 0
+        iblSpecularLighting = lerp(iblSpecularLighting, localSpecularLighting, weight.y);
+    }
+
+    uint envLightStart;
+    uint envLightCount;
+    GetCountAndStart(coord, LIGHTCATEGORY_ENV, linearDepth, envLightStart, envLightCount);
 
     for (i = 0; i < envLightCount; ++i)
     {
@@ -185,9 +199,9 @@ void LightLoop( float3 V, float3 positionWS, Coordinate coord, PreLightData prel
     specularLighting += iblSpecularLighting;
 #endif
 
-    // Currently do lightmap with indirect specula
-    // TODO: test what is the most appropriate here...
-#ifdef PROCESS_ENV_LIGHT
+    // TODO: HACK: to avoid the message Fragment program 'Frag': sampler 'sampler_PreIntegratedFGD' has no matching texture and will be undefined.
+    // we sample the GI during direct lighting, so FGD texture is used...
+#ifdef LIGHTLOOP_TILE_DIRECT
     // Add indirect diffuse + emissive (if any)
     diffuseLighting += bakeDiffuseLighting;
 #endif

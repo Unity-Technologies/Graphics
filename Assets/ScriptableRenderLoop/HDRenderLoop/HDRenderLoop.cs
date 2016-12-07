@@ -58,8 +58,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public bool enableTonemap = true;
             public float exposure = 0;
-
-            public bool useSinglePassLightLoop = true;
         }
 
         DebugParameters m_DebugParameters = new DebugParameters();
