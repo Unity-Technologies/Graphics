@@ -19,12 +19,20 @@
 
 float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
 {
-    return 1.0 - LOAD_TEXTURE2D(depthTexture, pixCoord.xy).x;
+	float zdpth = LOAD_TEXTURE2D(depthTexture, pixCoord.xy).x;
+#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLCORE)
+	zdpth = 1.0 - zdpth;
+#endif
+	return zdpth;
 }
 
 float FetchDepthMSAA(Texture2DMS<float> depthTexture, uint2 pixCoord, uint sampleIdx)
 {
-    return 1.0 - LOAD_TEXTURE2D_MSAA(depthTexture, pixCoord.xy, sampleIdx).x;
+	float zdpth = LOAD_TEXTURE2D_MSAA(depthTexture, pixCoord.xy, sampleIdx).x;
+#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLCORE)
+    zdpth = 1.0 - zdpth;
+#endif
+	return zdpth;
 }
 
 #endif

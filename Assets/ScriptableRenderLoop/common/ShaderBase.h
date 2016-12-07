@@ -31,12 +31,20 @@
 
 float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
 {
-    return 1 - depthTexture.Load(uint3(pixCoord.xy, 0)).x;
+	float zdpth = depthTexture.Load(uint3(pixCoord.xy, 0)).x;
+#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLCORE)
+	zdpth = 1.0 - zdpth;
+#endif
+    return zdpth;
 }
 
 float FetchDepthMSAA(Texture2DMS<float> depthTexture, uint2 pixCoord, uint sampleIdx)
 {
-    return 1 - depthTexture.Load(uint3(pixCoord.xy, 0), sampleIdx).x;
+	float zdpth = depthTexture.Load(uint3(pixCoord.xy, 0), sampleIdx).x;
+#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLCORE)
+	zdpth = 1.0 - zdpth;
+#endif
+    return zdpth;
 }
 
 #endif
