@@ -45,10 +45,10 @@ UNITY_DECLARE_TEXCUBEARRAY(_pointCookieTextures);
 StructuredBuffer<DirectionalLight> g_dirLightData;
 
 
-#define VALVE_DECLARE_SHADOWMAP( tex ) Texture2D tex; SamplerComparisonState sampler##tex
-#define VALVE_SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, (coord).z )
+#define DECLARE_SHADOWMAP( tex ) Texture2D tex; SamplerComparisonState sampler##tex
+#define SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, (coord).z )
 
-VALVE_DECLARE_SHADOWMAP(g_tShadowBuffer);
+DECLARE_SHADOWMAP(g_tShadowBuffer);
 
 float ComputeShadow_PCF_3x3_Gaussian(float3 vPositionWs, float4x4 matWorldToShadow)
 {
@@ -63,23 +63,23 @@ float ComputeShadow_PCF_3x3_Gaussian(float3 vPositionWs, float4x4 matWorldToShad
     float objDepth = saturate(257.0 / 256.0 - vPositionTextureSpace.z);
 
     float4 v20Taps;
-    v20Taps.x = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.xy, objDepth)).x; //  1  1
-    v20Taps.y = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.zy, objDepth)).x; // -1  1
-    v20Taps.z = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.xw, objDepth)).x; //  1 -1
-    v20Taps.w = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.zw, objDepth)).x; // -1 -1
+    v20Taps.x = SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.xy, objDepth)).x; //  1  1
+    v20Taps.y = SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.zy, objDepth)).x; // -1  1
+    v20Taps.z = SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.xw, objDepth)).x; //  1 -1
+    v20Taps.w = SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms1.zw, objDepth)).x; // -1 -1
     float flSum = dot(v20Taps.xyzw, float4(0.25, 0.25, 0.25, 0.25));
     if ((flSum == 0.0) || (flSum == 1.0))
         return flSum;
     flSum *= g_vShadow3x3PCFTerms0.x * 4.0;
 
     float4 v33Taps;
-    v33Taps.x = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms2.xz, objDepth)).x; //  1  0
-    v33Taps.y = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms3.xz, objDepth)).x; // -1  0
-    v33Taps.z = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms3.zy, objDepth)).x; //  0 -1
-    v33Taps.w = VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms2.zy, objDepth)).x; //  0  1
+    v33Taps.x = SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms2.xz, objDepth)).x; //  1  0
+    v33Taps.y = SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms3.xz, objDepth)).x; // -1  0
+    v33Taps.z = SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms3.zy, objDepth)).x; //  0 -1
+    v33Taps.w = SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy + g_vShadow3x3PCFTerms2.zy, objDepth)).x; //  0  1
     flSum += dot(v33Taps.xyzw, g_vShadow3x3PCFTerms0.yyyy);
 
-    flSum += VALVE_SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy, objDepth)).x * g_vShadow3x3PCFTerms0.z;
+    flSum += SAMPLE_SHADOW(g_tShadowBuffer, float3(shadowMapCenter.xy, objDepth)).x * g_vShadow3x3PCFTerms0.z;
 
     return flSum;
 }
