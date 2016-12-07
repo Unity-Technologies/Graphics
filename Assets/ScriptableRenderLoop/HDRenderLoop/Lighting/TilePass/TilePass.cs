@@ -117,6 +117,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     lights.Clear();
                     envLights.Clear();
                     shadows.Clear();
+
+                    bounds.Clear();
+                    lightVolumes.Clear();
                 }
 
                 public void Allocate()
@@ -804,6 +807,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 var delta = combinedExtent - e;
                 ligthVolumeData.boxInnerDist = e;
                 ligthVolumeData.boxInvRange.Set(1.0f / delta.x, 1.0f / delta.y, 1.0f / delta.z);
+
+                m_lightList.bounds.Add(bound);
+                m_lightList.lightVolumes.Add(ligthVolumeData);
             }
 
             public override void PrepareLightsForGPU(CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
