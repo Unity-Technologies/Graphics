@@ -1,6 +1,7 @@
 
 Library/*
 Temp/*
+obj/*
 *.csproj
 *.sln
 *.suo
@@ -14,7 +15,3 @@ DataSource/*
 *.aspx
 *.sdf
 *.userprefs
-
-Assets/UnityHDRI.meta
-Assets/UnityHDRI/Gareoult/GareoultWhiteBalanced.exr
-obj/Debug/Assembly-CSharp.csproj.FileListAbsolute.txt

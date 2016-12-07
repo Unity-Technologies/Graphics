@@ -40,7 +40,9 @@
 
 // TODO: I haven't configure this sampler in the code, we should be able to do it (but Unity don't allow it for now...)
 // By default Unity provide MIG_MAG_LINEAR_POINT sampler, so it fit with our need.
-#ifdef LIT_DISPLAY_REFERENCE_IBL
+// TODO: to avoid the message Fragment program 'Frag' : sampler 'sampler_PreIntegratedFGD' has no matching texture and will be undefined.
+// We need to test this define LIGHTLOOP_TILE_DIRECT, this is a bad workaround but no alternative until we can setup sampler correctly...
+#if defined(LIT_DISPLAY_REFERENCE_IBL) || defined(LIGHTLOOP_TILE_DIRECT)
 // When reference mode is enabled, then we need to chose another sampler not related to cubemap code...
 SAMPLER2D(sampler_LtcGGXMatrix);
 #define SRL_BilinearSampler sampler_LtcGGXMatrix // Used for all textures
@@ -448,13 +450,10 @@ struct PreLightData
     // Aniso
     float TdotV;
     float BdotV;
-    
+
     float anisoGGXLambdaV;
 
-    // image based lighting
-    // These variables aim to be use with EvaluateBSDF_Env 
-    float3 iblNormalWS; // Normal to be use with image based lighting
-    float3 iblR;        // Reflection vector, same as above.
+    float3 iblDirWS;    // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
 
     float3 specularFGD; // Store preconvole BRDF for both specular and diffuse
     float diffuseFGD;
@@ -486,7 +485,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
 
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
 
-    float iblNdotV = preLightData.NdotV;
+    float  iblNdotV    = preLightData.NdotV;
     float3 iblNormalWS = bsdfData.normalWS;
 
     // Check if we precompute anisotropy too
@@ -497,16 +496,18 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
         preLightData.anisoGGXLambdaV = GetSmithJointGGXAnisoLambdaV(preLightData.TdotV, preLightData.BdotV, preLightData.NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
         // Tangent = highlight stretch (anisotropy) direction. Bitangent = grain (brush) direction.
         iblNormalWS = GetAnisotropicModifiedNormal(bsdfData.bitangentWS, bsdfData.normalWS, V, bsdfData.anisotropy);
-        
+
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NDotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
         // iblNdotV = GetNdotV(iblNormalWS, V);
     }
 
-    // We need to take into account the modified normal for faking anisotropic here.
-    preLightData.iblR = reflect(-V, iblNormalWS);
     GetPreIntegratedFGD(iblNdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
+
+    // We need to take into account the modified normal for faking anisotropic here.
+    float3 iblR = reflect(-V, iblNormalWS);
+    preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness);
 
     // #if SHADERPASS == SHADERPASS_GBUFFER
     // preLightData.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusion, coord.unPositionSS).x;
@@ -643,11 +644,12 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
                                 out float3 diffuseLighting,
                                 out float3 specularLighting)
 {
-    float3 L = lightData.direction;
+    float3 L = -lightData.forward; // Lights are pointing backward in Unity
     float illuminance = saturate(dot(bsdfData.normalWS, L));
 
-    diffuseLighting = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
+    diffuseLighting    = float3(0.0, 0.0, 0.0);
+    specularLighting   = float3(0.0, 0.0, 0.0);
+    float3 cookieColor = float3(1.0, 1.0, 1.0);
 
     [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
     {
@@ -656,11 +658,34 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         illuminance *= shadowAttenuation;
     }
 
+    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
+    {
+        float3 unL = positionWS - lightData.positionWS;
+
+        // Project 'unL' onto the light's axes.
+        float2 coord = float2(dot(unL, lightData.right), dot(unL, lightData.up));
+
+        // Rescale the texture.
+        coord.x *= lightData.invScaleX;
+        coord.y *= lightData.invScaleY;
+
+        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+        coord = coord * 0.5 + 0.5;
+
+        // Tile the texture if the 'repeat' wrap mode is enabled.
+        if (lightData.tileCookie) coord = frac(coord);
+
+        float4 cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
+
+        cookieColor  = cookie.rgb;
+        illuminance *= cookie.a;
+    }
+
     [branch] if (illuminance > 0.0f)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
-        diffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
-        specularLighting *= lightData.color * illuminance * lightData.specularScale;
+        diffuseLighting  *= (cookieColor * lightData.color) * (illuminance * lightData.diffuseScale);
+        specularLighting *= (cookieColor * lightData.color) * (illuminance * lightData.specularScale);
     }
 }
 
@@ -686,27 +711,53 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
     attenuation *= GetAngleAttenuation(L, -lightData.forward, lightData.angleScale, lightData.angleOffset);
     float illuminance = saturate(dot(bsdfData.normalWS, L)) * attenuation;
 
-    diffuseLighting = float3(0.0, 0.0, 0.0);
-    specularLighting = float3(0.0, 0.0, 0.0);
+    diffuseLighting    = float3(0.0, 0.0, 0.0);
+    specularLighting   = float3(0.0, 0.0, 0.0);
+    float3 cookieColor = float3(1.0, 1.0, 1.0);
 
     // TODO: measure impact of having all these dynamic branch here and the gain (or not) of testing illuminace > 0
 
-    /*
-    [branch] if (lightData.cookieIndex && illuminance > 0.0f)
+    [branch] if (lightData.cookieIndex >= 0 && illuminance > 0.0)
     {
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
-        illuminance *= SampleCookie(lightData.cookieIndex, lightToWorld, L);
-    }
-    */
 
-    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0f)
+        // Rotate 'L' into the light space.
+        // We perform the negation because lights are oriented backwards (-Z).
+        float3 coord = mul(-L, transpose(lightToWorld));
+
+        float4 cookie;
+
+        [branch] if (lightData.lightType == GPULIGHTTYPE_SPOT)
+        {
+            // Perform the perspective projection of the hemisphere onto the disk.
+            coord.xy /= coord.z;
+
+            // Rescale the projective coordinates to fit into the [-1, 1]^2 range.
+            float cotOuterHalfAngle = lightData.size.x;
+            coord.xy *= cotOuterHalfAngle;
+
+            // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+            coord.xy = coord.xy * 0.5 + 0.5;
+
+            cookie = SampleCookie2D(lightLoopContext, coord.xy, lightData.cookieIndex);
+        }
+        else // GPULIGHTTYPE_POINT
+        {
+            cookie = SampleCookieCube(lightLoopContext, coord, lightData.cookieIndex);
+        }
+
+        cookieColor  = cookie.rgb;
+        illuminance *= cookie.a;
+    }
+
+    [branch] if (lightData.IESIndex >= 0 && illuminance > 0.0)
     {
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
         float2 sphericalCoord = GetIESTextureCoordinate(lightToWorld, L);
         illuminance *= SampleIES(lightLoopContext, lightData.IESIndex, sphericalCoord, 0).r;
     }
 
-    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0f)
+    [branch] if (lightData.shadowIndex >= 0 && illuminance > 0.0)
     {
         float3 offset = float3(0.0, 0.0, 0.0); // GetShadowPosOffset(nDotL, normal);
         float shadowAttenuation = GetPunctualShadowAttenuation(lightLoopContext, positionWS + offset, lightData.shadowIndex, L, preLightData.unPositionSS);
@@ -715,11 +766,12 @@ void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
         illuminance *= shadowAttenuation;
     }
 
-    [branch] if (illuminance > 0.0f)
+    [branch] if (illuminance > 0.0)
     {
         BSDF(V, L, positionWS, preLightData, bsdfData, diffuseLighting, specularLighting);
-        diffuseLighting *= lightData.color * illuminance * lightData.diffuseScale;
-        specularLighting *= lightData.color * illuminance * lightData.specularScale;
+
+        diffuseLighting  *= (cookieColor * lightData.color) * (illuminance * lightData.diffuseScale);
+        specularLighting *= (cookieColor * lightData.color) * (illuminance * lightData.specularScale);
     }
 }
 
@@ -795,10 +847,10 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
 
     float3 unL = positionWS - lightData.positionWS;
 
-    // Pick the axis along which to expand the fade-out sphere into an ellipsoid.
+    // Pick the major axis of the ellipsoid.
     float3 axis = lightData.right;
 
-    // We define the ellipsoid s.t. r1 = r, r2 = (r + len / 2).
+    // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
     // TODO: This could be precomputed.
     float radius         = rsqrt(lightData.invSqrAttenuationRadius);
     float invAspectRatio = radius / (radius + (0.5 * len));
@@ -871,7 +923,7 @@ void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
-#endif
+#endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
 //-----------------------------------------------------------------------------
@@ -954,6 +1006,8 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
 // EvaluateBSDF_Area - Approximation with Linearly Transformed Cosines
 //-----------------------------------------------------------------------------
 
+// #define ELLIPSOIDAL_ATTENUATION
+
 void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
                        float3 V, float3 positionWS,
                        PreLightData preLightData, LightData lightData, BSDFData bsdfData,
@@ -972,17 +1026,27 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
 
     float3 unL = positionWS - lightData.positionWS;
 
-    // Pick the axis along which to expand the fade-out sphere into an ellipsoid.
-    float3 axis = (halfWidth >= halfHeight) ? lightData.right : lightData.up;
+    // Rotate the light direction into the light space.
+    float3x3 lightToWorld = float3x3(lightData.right, lightData.up, lightData.forward);
+    unL = mul(unL, transpose(lightToWorld));
 
-    // We define the ellipsoid s.t. r1 = r, r2 = (r + |w - h| / 2).
+    // Define the dimensions of the attenuation volume.
     // TODO: This could be precomputed.
-    float radius         = rsqrt(lightData.invSqrAttenuationRadius);
-    float invAspectRatio = radius / (radius + abs(halfWidth - halfHeight));
+    float  radius     = rsqrt(lightData.invSqrAttenuationRadius);
+    float3 invHalfDim = rcp(float3(radius + halfWidth,
+                                   radius + halfHeight,
+                                   radius));
 
     // Compute the light attenuation.
-    float intensity = GetEllipsoidalDistanceAttenuation(unL,  lightData.invSqrAttenuationRadius,
-                                                        axis, invAspectRatio);
+#ifdef ELLIPSOIDAL_ATTENUATION
+    // The attenuation volume is an axis-aligned ellipsoid s.t.
+    // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
+    float intensity = GetEllipsoidalDistanceAttenuation(unL, invHalfDim);
+#else
+    // The attenuation volume is an axis-aligned box s.t.
+    // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
+    float intensity = GetBoxDistanceAttenuation(unL, invHalfDim);
+#endif
 
     // Terminate if the shaded point is too far away.
     if (intensity == 0.0) return;
@@ -1036,7 +1100,7 @@ void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
         ltcValue *= lightData.specularScale;
         specularLighting = fresnelTerm * lightData.color * ltcValue;
     }
-#endif
+#endif // LIT_DISPLAY_REFERENCE_AREA
 }
 
 //-----------------------------------------------------------------------------
@@ -1201,51 +1265,48 @@ void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     // TODO: test the strech from Tomasz
     // float shrinkedRoughness = AnisotropicStrechAtGrazingAngle(bsdfData.roughness, bsdfData.perceptualRoughness, NdotV);
-    
-    // Note: As explain in GetPreLightData we use normalWS and not iblNormalWS here (in case of anisotropy)
-    float3 rayWS = GetSpecularDominantDir(bsdfData.normalWS, preLightData.iblR, bsdfData.roughness);
-
-    float3 R = rayWS;
-    weight = float2(1.0, 1.0);
 
     // In this code we redefine a bit the behavior of the reflcetion proble. We separate the projection volume (the proxy of the scene) form the influence volume (what pixel on the screen is affected)
 
     // 1. First determine the projection volume
-    
-    // In Unity the cubemaps are capture with the localToWorld transform of the component. 
+
+    // In Unity the cubemaps are capture with the localToWorld transform of the component.
     // This mean that location and oritention matter. So after intersection of proxy volume we need to convert back to world.
-    
+
     // CAUTION: localToWorld is the transform use to convert the cubemap capture point to world space (mean it include the offset)
     // the center of the bounding box is thus in locals space: positionLS - offsetLS
     // We use this formulation as it is the one of legacy unity that was using only AABB box.
 
+    float3 R = preLightData.iblDirWS;
     float3x3 worldToLocal = transpose(float3x3(lightData.right, lightData.up, lightData.forward)); // worldToLocal assume no scaling
     float3 positionLS = positionWS - lightData.positionWS;
     positionLS = mul(positionLS, worldToLocal).xyz - lightData.offsetLS; // We want to calculate the intersection from the center of the bounding box.
 
     if (lightData.envShapeType == ENVSHAPETYPE_BOX)
     {
-        float3 rayLS = mul(rayWS, worldToLocal);
+        float3 dirLS = mul(R, worldToLocal);
         float3 boxOuterDistance = lightData.innerDistance + float3(lightData.blendDistance, lightData.blendDistance, lightData.blendDistance);
-        float dist = BoxRayIntersectSimple(positionLS, rayLS, -boxOuterDistance, boxOuterDistance);
+        float dist = BoxRayIntersectSimple(positionLS, dirLS, -boxOuterDistance, boxOuterDistance);
 
         // No need to normalize for fetching cubemap
         // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.positionWS
-        R = (positionWS + dist * rayWS) - lightData.positionWS;
-        
+        R = (positionWS + dist * R) - lightData.positionWS;
+
         // TODO: add distance based roughness
-    } 
+    }
     else if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
     {
-        float3 rayLS = mul(rayWS, worldToLocal);
+        float3 dirLS = mul(R, worldToLocal);
         float sphereOuterDistance = lightData.innerDistance.x + lightData.blendDistance;
-        float dist = SphereRayIntersectSimple(positionLS, rayLS, sphereOuterDistance);
+        float dist = SphereRayIntersectSimple(positionLS, dirLS, sphereOuterDistance);
 
-        R = (positionWS + dist * rayWS) - lightData.positionWS;
+        R = (positionWS + dist * R) - lightData.positionWS;
     }
 
     // 2. Apply the influence volume (Box volume is used for culling whatever the influence shape)
     // TODO: In the future we could have an influence volume inside the projection volume (so with a different transform, in this case we will need another transform)
+    weight.y = 1.0;
+
     if (lightData.envShapeType == ENVSHAPETYPE_SPHERE)
     {
         float distFade = max(length(positionLS) - lightData.innerDistance.x, 0.0);

@@ -69,6 +69,7 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
                 float3 rotDirY = float3(sinPhi, 0, cosPhi);
                 dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
+                /*
                 Coordinate coord = GetCoordinate(input.positionCS.xy, _ScreenSize.zw);
 
                 // If the sky box is too far away (depth set to 0), the resulting look is too foggy.
@@ -111,10 +112,13 @@ Shader "Hidden/HDRenderLoop/SkyHDRI"
                     }
                 #endif
 
+                */
+
                 float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
+                return float4(skyColor, 1.0);
 
                 // Apply extinction to the scene color when performing alpha-blending.
-                return float4(skyColor * (skyTexWeight * extinction) + scatter, extinction);
+                //return float4(skyColor * (skyTexWeight * extinction) + scatter, extinction);
             }
 
             ENDHLSL

@@ -198,6 +198,10 @@ CBUFFER_END
 // TODO: move this to constant buffer by Pass
 float4		_ScreenSize;
 
+float4x4 GetWorldToViewMatrix()
+{
+    return unity_MatrixV;
+}
 
 float4x4 GetObjectToWorldMatrix()
 {
@@ -226,10 +230,14 @@ float GetOdddNegativeScale()
     return unity_WorldTransformParams.w;
 }
 
-
 float4x4 GetObjectToWorldViewMatrix()
 {
     return glstate_matrix_modelview0;
+}
+
+float3 TransformWorldToView(float3 positionWS)
+{
+    return mul(GetWorldToViewMatrix(), float4(positionWS, 1.0)).xyz;
 }
 
 float3 TransformObjectToWorld(float3 positionOS)
