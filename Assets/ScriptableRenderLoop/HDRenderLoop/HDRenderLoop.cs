@@ -133,6 +133,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public TextureSettings textureSettings
         {
             get { return m_TextureSettings; }
+            set { m_TextureSettings = value; }
         }
 
         // Various set of material use in render loop
