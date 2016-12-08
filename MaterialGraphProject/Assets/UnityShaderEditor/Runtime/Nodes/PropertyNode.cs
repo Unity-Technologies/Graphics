@@ -20,6 +20,11 @@ namespace UnityEngine.MaterialGraph
         [SerializeField]
         private ExposedState m_Exposed = ExposedState.NotExposed;
 
+        public override bool allowedInRemapGraph
+        {
+            get { return false; }
+        }
+
         public ExposedState exposedState
         {
             get

@@ -74,6 +74,13 @@ namespace UnityEngine.MaterialGraph
                 Debug.LogWarning("Attempting to add second SubGraphOutputNode to SubGraph. This is not allowed.");
                 return;
             }
+
+            if (node is AbstractMaterialNode)
+            {
+                var amn = (AbstractMaterialNode)node;
+                if (!amn.allowedInSubGraph)
+                    Debug.LogWarningFormat("Attempting to add {0} to Sub Graph. This is not allowed.", amn.GetType());
+            }
             base.AddNode(node);
         }
 
