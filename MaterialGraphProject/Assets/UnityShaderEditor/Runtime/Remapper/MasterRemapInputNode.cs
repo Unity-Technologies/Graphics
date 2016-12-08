@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Graphing;
@@ -6,7 +7,20 @@ namespace UnityEngine.MaterialGraph
 {
     [Title("Remapper/Remap Input Node")]
     public class MasterRemapInputNode : AbstractSubGraphIONode
+        , IGeneratesBodyCode
+        , IGeneratesFunction
+        , IMayRequireNormal
+        , IMayRequireTangent
+        , IMayRequireBitangent
+        , IMayRequireMeshUV
+        , IMayRequireScreenPosition
+        , IMayRequireViewDirection
+        , IMayRequireWorldPosition
+        , IMayRequireVertexColor
     {
+        [NonSerialized]
+        internal RemapMasterNode m_RemapTarget;
+
         public MasterRemapInputNode()
         {
             name = "Inputs";
@@ -40,18 +54,6 @@ namespace UnityEngine.MaterialGraph
 
         }
 
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            if (generationMode == GenerationMode.ForReals)
-                return;
-
-            foreach (var slot in GetOutputSlots<MaterialSlot>())
-            {
-                var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
-                visitor.AddShaderChunk("float" + outDimension + " " + GetVariableNameForSlot(slot.id) + ";", true);
-            }
-        }
-
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
             base.CollectPreviewMaterialProperties(properties);
@@ -66,6 +68,105 @@ namespace UnityEngine.MaterialGraph
                 }
                     );
             }
+        }
+
+        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            if (m_RemapTarget != null)
+                m_RemapTarget.GenerateNodeCode(visitor, generationMode);
+        }
+
+        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            if (m_RemapTarget != null)
+                m_RemapTarget.GenerateNodeFunction(visitor, generationMode);
+        }
+
+        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
+        {
+            if (m_RemapTarget != null)
+                m_RemapTarget.GeneratePropertyBlock(visitor, generationMode);
+        }
+
+        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        {
+            if (m_RemapTarget == null)
+            {
+                foreach (var slot in GetOutputSlots<MaterialSlot>())
+                {
+                    var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
+                    visitor.AddShaderChunk("float" + outDimension + " " + GetVariableNameForSlot(slot.id) + ";", true);
+                }
+            }
+            else
+            {
+                if (m_RemapTarget != null)
+                    m_RemapTarget.GeneratePropertyUsages(visitor, generationMode);
+            }
+        }
+
+        public bool RequiresNormal()
+        {
+            if (m_RemapTarget == null)
+                return false;
+
+            return m_RemapTarget.RequiresNormal();
+        }
+
+        public bool RequiresTangent()
+        {
+            if (m_RemapTarget == null)
+                return false;
+
+            return m_RemapTarget.RequiresTangent();
+        }
+
+        public bool RequiresBitangent()
+        {
+            if (m_RemapTarget == null)
+                return false;
+
+            return m_RemapTarget.RequiresBitangent();
+        }
+
+        public bool RequiresMeshUV()
+        {
+            if (m_RemapTarget == null)
+                return false;
+
+            return m_RemapTarget.RequiresMeshUV();
+        }
+
+        public bool RequiresScreenPosition()
+        {
+            if (m_RemapTarget == null)
+                return false;
+
+            return m_RemapTarget.RequiresScreenPosition();
+        }
+
+        public bool RequiresViewDirection()
+        {
+            if (m_RemapTarget == null)
+                return false;
+
+            return m_RemapTarget.RequiresViewDirection();
+        }
+
+        public bool RequiresWorldPosition()
+        {
+            if (m_RemapTarget == null)
+                return false;
+
+            return m_RemapTarget.RequiresWorldPosition();
+        }
+
+        public bool RequiresVertexColor()
+        {
+            if (m_RemapTarget == null)
+                return false;
+
+            return m_RemapTarget.RequiresVertexColor();
         }
     }
 }
