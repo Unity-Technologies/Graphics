@@ -287,12 +287,12 @@ namespace UnityEngine.MaterialGraph
             return subGraph.activeNodes.OfType<IMayRequireNormal>().Any(x => x.RequiresNormal());
         }
 
-        public bool RequiresMeshUV()
+        public bool RequiresMeshUV(int index)
         {
             if (subGraph == null)
                 return false;
 
-            return subGraph.activeNodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV());
+            return subGraph.activeNodes.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(index));
         }
 
         public bool RequiresScreenPosition()

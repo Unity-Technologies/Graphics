@@ -116,7 +116,7 @@ namespace UnityEngine.MaterialGraph
             if (uvSlot == null)
                 return;
 
-            var uvName = string.Format("{0}.xy", ShaderGeneratorNames.UV0);
+            var uvName = string.Format("{0}.xy", ShaderGeneratorNames.UV[0]);
             var edges = owner.GetEdges(uvSlot.slotReference).ToList();
 
             if (edges.Count > 0)
@@ -211,8 +211,13 @@ namespace UnityEngine.MaterialGraph
 
         public override PropertyType propertyType { get { return PropertyType.Texture2D; } }
 
-        public bool RequiresMeshUV()
+        public bool RequiresMeshUV(int index)
         {
+            if (index != 0)
+            {
+                return false;
+            }
+
             var uvSlot = FindInputSlot<MaterialSlot>(UvSlotId);
             if (uvSlot == null)
                 return true;
