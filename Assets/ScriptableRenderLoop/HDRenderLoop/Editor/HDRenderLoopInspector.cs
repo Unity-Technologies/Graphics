@@ -258,6 +258,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             if (EditorGUI.EndChangeCheck())
             {
+                renderLoop.textureSettings = textureParameters;
                 EditorUtility.SetDirty(renderLoop); // Repaint
             }
             EditorGUI.indentLevel--;
