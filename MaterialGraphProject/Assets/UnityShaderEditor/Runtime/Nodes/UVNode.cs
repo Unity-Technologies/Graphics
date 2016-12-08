@@ -4,7 +4,7 @@ namespace UnityEngine.MaterialGraph
 {
     interface IMayRequireMeshUV
     {
-        bool RequiresMeshUV();
+        bool RequiresMeshUV(int index);
     }
 
     [Title("Input/UV Node")]
@@ -29,12 +29,12 @@ namespace UnityEngine.MaterialGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + ShaderGeneratorNames.UV0 + ";", true);
+            visitor.AddShaderChunk(precision + "4 " + GetVariableNameForSlot(OutputSlotId) + " = " + ShaderGeneratorNames.UV[0] + ";", true);
         }
 
-        public bool RequiresMeshUV()
+        public bool RequiresMeshUV(int index)
         {
-            return true;
+            return index == 0;
         }
     }
 }

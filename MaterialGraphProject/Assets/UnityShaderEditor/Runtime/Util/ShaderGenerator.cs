@@ -17,7 +17,7 @@ namespace UnityEngine.MaterialGraph
         public const string WorldSpaceViewDirection = "worldSpaceViewDirection";
         public const string ScreenPosition = "screenPosition";
         public const string VertexColor = "vertexColor";
-        public const string UV0 = "uv0";
+        public static string[] UV = { "uv0", "uv1", "uv2", "uv3" };
     }
 
     public class ShaderGenerator
@@ -256,11 +256,14 @@ namespace UnityEngine.MaterialGraph
                 shaderBodyVisitor.AddShaderChunk("float3 " + ShaderGeneratorNames.WorldSpaceNormal + " = normalize(IN.worldNormal);", true);
             }
 
-            if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV()))
+            for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UV.Length; ++uvIndex)
             {
-                shaderInputVisitor.AddShaderChunk("half4 meshUV0 : TEXCOORD2;", true);
-                vertexShaderBlock.AddShaderChunk("o.meshUV0 = v.texcoord;", true);
-                shaderBodyVisitor.AddShaderChunk("half4 " + ShaderGeneratorNames.UV0 + " = IN.meshUV0;", true);
+                if (activeNodeList.OfType<IMayRequireMeshUV>().Any(x => x.RequiresMeshUV(uvIndex)))
+                {
+                    shaderInputVisitor.AddShaderChunk(string.Format("half4 meshUV{0} : TEXCOORD{1};", uvIndex, (uvIndex + 5)), true);
+                    vertexShaderBlock.AddShaderChunk(string.Format("o.meshUV{0} = v.texcoord{1};", uvIndex, uvIndex == 0 ? "" : uvIndex.ToString()), true);
+                    shaderBodyVisitor.AddShaderChunk(string.Format("half4 {0} = IN.meshUV{1};", ShaderGeneratorNames.UV[uvIndex], uvIndex), true);
+                }
             }
 
             if (activeNodeList.OfType<IMayRequireViewDirection>().Any(x => x.RequiresViewDirection()))
