@@ -43,7 +43,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly int[] shadowsCascadeCountValues = new int[] { 1, 2, 3, 4 };
             public readonly GUIContent shadowsCascades = new GUIContent("Cascade values");
 
-            public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop settings");
+            public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
             public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Punctual Light", "Area Light", "Env Light"};
             public readonly GUIContent splitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
             public readonly GUIContent bigTilePrepass = new GUIContent("Enable big tile prepass", "Toggle");
@@ -52,11 +52,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             
 
 
-            public readonly GUIContent textureSettings = new GUIContent("texture Settings");
+            public readonly GUIContent textureSettings = new GUIContent("Texture Settings");
 
-            public readonly GUIContent spotCookieSize = new GUIContent("spotCookie Size");
-            public readonly GUIContent pointCookieSize = new GUIContent("pointCookie Size");
-            public readonly GUIContent reflectionCubemapSize = new GUIContent("reflectionCubemap Size");              
+            public readonly GUIContent spotCookieSize = new GUIContent("Spot cookie size");
+            public readonly GUIContent pointCookieSize = new GUIContent("Point cookie size");
+            public readonly GUIContent reflectionCubemapSize = new GUIContent("Reflection cubemap size");              
         }
 
         private static Styles s_Styles = null;
@@ -131,13 +131,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public override void OnInspectorGUI()
+        private void DebugParametersUI(HDRenderLoop renderLoop)
         {
-            var renderLoop = target as HDRenderLoop;
-
-            if (!renderLoop)
-                return;
-
             var debugParameters = renderLoop.debugParameters;
 
             EditorGUILayout.LabelField(styles.debugParameters);
@@ -199,7 +194,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 EditorUtility.SetDirty(renderLoop); // Repaint
             }
             EditorGUI.indentLevel--;
+        }
 
+        private void SkyParametersUI(HDRenderLoop renderLoop)
+        {
             EditorGUILayout.Space();
             var skyParameters = renderLoop.skyParameters;
 
@@ -219,7 +217,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 EditorUtility.SetDirty(renderLoop); // Repaint
             }
             EditorGUI.indentLevel--;
+        }
 
+        private void ShadowParametersUI(HDRenderLoop renderLoop)
+        {
             EditorGUILayout.Space();
             var shadowParameters = renderLoop.shadowSettings;
 
@@ -244,7 +245,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 EditorUtility.SetDirty(renderLoop); // Repaint
             }
             EditorGUI.indentLevel--;
+        }
 
+        private void TextureParametersUI(HDRenderLoop renderLoop)
+        {
             EditorGUILayout.Space();
             var textureParameters = renderLoop.textureSettings;
 
@@ -262,8 +266,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 EditorUtility.SetDirty(renderLoop); // Repaint
             }
             EditorGUI.indentLevel--;
+        }
 
-
+        private void TilePassUI(HDRenderLoop renderLoop)
+        {
             EditorGUILayout.Space();
 
             // TODO: we should call a virtual method or something similar to setup the UI, inspector should not know about it
@@ -298,6 +304,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
                 EditorGUI.indentLevel--;
             }
+        }
+
+        public override void OnInspectorGUI()
+        {
+            var renderLoop = target as HDRenderLoop;
+
+            if (!renderLoop)
+                return;
+
+            DebugParametersUI(renderLoop);
+            SkyParametersUI(renderLoop);
+            ShadowParametersUI(renderLoop);
+            TextureParametersUI(renderLoop);
+            TilePassUI(renderLoop);
         }
     }
 }
