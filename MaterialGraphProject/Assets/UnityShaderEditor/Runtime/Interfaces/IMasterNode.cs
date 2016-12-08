@@ -5,9 +5,11 @@ namespace UnityEngine.MaterialGraph
 {
     public interface IMasterNode : INode
     {
-        string GetShader(
+        string GetFullShader(
             GenerationMode mode,
             out List<PropertyGenerator.TextureInfo> configuredTextures);
+
+        string GetSubShader(GenerationMode mode);
 
         string GetVariableNameForNode();
     }

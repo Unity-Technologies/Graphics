@@ -52,7 +52,7 @@ namespace UnityEngine.MaterialGraph
 
             var path = "Assets/GraphTemp.shader";
             List<PropertyGenerator.TextureInfo> configuredTextures;
-            var shaderString = m_MaterialGraph.masterNode.GetShader(GenerationMode.ForReals, out configuredTextures);
+            var shaderString = m_MaterialGraph.masterNode.GetFullShader(GenerationMode.ForReals, out configuredTextures);
             File.WriteAllText(path, shaderString);
             AssetDatabase.ImportAsset(path);
 
@@ -91,20 +91,18 @@ namespace UnityEngine.MaterialGraph
 
             var imported = shaderImporter.GetShader();
 
-	        if (m_GeneratedShader == null)
-	        {
-		        m_GeneratedShader = Instantiate(imported);
-	        }
-	        else
-	        {
-		        var oldID = m_GeneratedShader.GetInstanceID();
-		        DestroyImmediate(m_GeneratedShader,  true);
-		        var newAsset = Instantiate(imported, oldID);
-		        m_GeneratedShader = newAsset;
-	        }
-	        AssetDatabase.AddObjectToAsset(m_GeneratedShader, this);
+            if (m_GeneratedShader == null)
+            {
+                m_GeneratedShader = Instantiate(imported);
+                AssetDatabase.AddObjectToAsset(m_GeneratedShader, this);
+            }
+            else
+            {
+                AssetDatabase.CopyAsset(imported, m_GeneratedShader);
+                DestroyImmediate(imported, true);
+            }
             AssetDatabase.DeleteAsset(path);
-            
+
             return true;
         }
 #endif
