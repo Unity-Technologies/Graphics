@@ -216,7 +216,7 @@ void ImportanceSampleAnisoGGX(
     // weightOverPdf = F(H) * G(V, L) * (L.H) / ((N.H) * (N.V))
     // weightOverPdf = F(H) * 4 * (N.L) * V(V, L) * (L.H) / (N.H) with V(V, L) = G(V, L) / (4 * (N.L) * (N.V))
     // Remind (L.H) == (V.H)
-    // F is apply outside the function        
+    // F is apply outside the function
     float TdotV = dot(tangentX, V);
     float BdotV = dot(tangentY, V);
     float TdotL = saturate(dot(tangentX, L));
@@ -322,25 +322,22 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
         }
         else // Prefiltered BRDF importance sampling
         {
-            float NdotH = saturate(dot(N, H));
-            // Note: since L and V are symmetric around H, LdotH == VdotH
-            float LdotH = saturate(dot(L, H));
-
-            // Use pre - filtered importance sampling (i.e use lower mipmap
-            // level for fetching sample with low probability in order
-            // to reduce the variance ).
-            // ( Reference : GPU Gem3: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html)
+            // Use lower MIP-map levels for fetching samples with low probabilities
+            // in order to reduce the variance.
+            // Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
             //
-            // Since we pre - integrate the result for normal direction ,
-            // N == V and then NdotH == LdotH . This is why the BRDF pdf
-            // can be simplifed from :
-            // pdf = D * NdotH /(4* LdotH ) to pdf = D / 4;
+            // pdf = D * NdotH * jacobian, where jacobian = 1.0 / (4* LdotH).
+            //
+            // Since L and V are symmetric around H, LdotH == VdotH.
+            // Since we pre-integrate the result for the normal direction,
+            // N == V and then NdotH == LdotH. Therefore, the BRDF's pdf
+            // can be simplified:
+            // pdf = D * NdotH / (4 * LdotH) = D * 0.25;
             //
             // - OmegaS : Solid angle associated to a sample
             // - OmegaP : Solid angle associated to a pixel of the cubemap
 
-            float jacobian  = 1.0 / (4.0 * LdotH);
-            float pdf       = D_GGX(NdotH, roughness) * NdotH * jacobian;
+            float pdf       = D_GGX(NdotH, roughness) * 0.25;
             float omegaS    = 1.0 / (sampleCount * pdf);                      // Solid angle associated with the sample
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth); // Solid angle associated with the pixel of the cubemap
