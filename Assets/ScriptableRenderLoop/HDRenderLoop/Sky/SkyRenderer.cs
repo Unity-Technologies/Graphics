@@ -197,8 +197,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         private void RenderSky(Matrix4x4 invViewProjectionMatrix, SkyParameters skyParameters, Mesh skyMesh, RenderLoop renderLoop)
         {
-            Shader.EnableKeyword("PERFORM_SKY_OCCLUSION_TEST");
-
             m_RenderSkyPropertyBlock.SetTexture("_Cubemap", skyParameters.skyHDRI);
             m_RenderSkyPropertyBlock.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
             m_RenderSkyPropertyBlock.SetMatrix("_InvViewProjMatrix", invViewProjectionMatrix);
@@ -211,8 +209,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         private void RenderSkyToCubemap(SkyParameters skyParameters, RenderTexture target, RenderLoop renderLoop)
         {
-            Shader.DisableKeyword("PERFORM_SKY_OCCLUSION_TEST");
-
             for (int i = 0; i < 6; ++i)
             {
                 Utilities.SetRenderTarget(renderLoop, target, 0, (CubemapFace)i);
@@ -243,10 +239,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 RenderSkyToCubemap(skyParams, target, renderLoop);
                 // End temp
 
-                // 
                 //for (int f = 0; f < 6; f++)
                 //    Graphics.CopyTexture(input, f, 0, target, f, 0);
-
 
                 // Do the convolution on remaining mipmaps
                 float invOmegaP = (6.0f * input.width * input.width) / (4.0f * Mathf.PI); // Solid angle associated to a pixel of the cubemap;
@@ -263,7 +257,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     for (int face = 0; face < 6; ++face)
                     {
                         Utilities.SetRenderTarget(renderLoop, target, mip, (CubemapFace)face);
- 
+
                         var cmd = new CommandBuffer { name = "" };
                         cmd.DrawMesh(m_CubemapFaceMesh[face], Matrix4x4.identity, m_GGXConvolveMaterial, 0, 0, propertyBlock);
                         renderLoop.ExecuteCommandBuffer(cmd);
@@ -282,12 +276,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     // Trigger a rebuild of cubemap / convolution
                     // TODO: can we have some kind of hash value here ? +> use or override GetHashCode() + include a refresh rate value in parameters
-                    // TODO: we could apply multiplier/exposure and rotation on the final result (i.e on the sky ibl and on lightprobe / lightmap, but can be tricky as Unity seems to merge sky information with 
+                    // TODO: we could apply multiplier/exposure and rotation on the final result (i.e on the sky ibl and on lightprobe / lightmap, but can be tricky as Unity seems to merge sky information with
                     // other lighting into SH / lightmap.
                     if (skyParameters.skyResolution != m_bakedSkyParameters.skyResolution ||
                         skyParameters.exposure != m_bakedSkyParameters.exposure ||
                         skyParameters.rotation != m_bakedSkyParameters.rotation ||
-                        skyParameters.multiplier != m_bakedSkyParameters.multiplier)
+                        skyParameters.multiplier != m_bakedSkyParameters.multiplier ||
+                        skyParameters.skyHDRI != m_bakedSkyParameters.skyHDRI)
                     {
                         using (new Utilities.ProfilingSample("Sky Pass: Render Cubemap", renderLoop))
                         {
@@ -307,6 +302,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         }
 
                         // Cleanup all this...
+                        m_bakedSkyParameters.skyHDRI = skyParameters.skyHDRI;
                         m_bakedSkyParameters.skyResolution = skyParameters.skyResolution;
                         m_bakedSkyParameters.exposure = skyParameters.exposure;
                         m_bakedSkyParameters.rotation = skyParameters.rotation;

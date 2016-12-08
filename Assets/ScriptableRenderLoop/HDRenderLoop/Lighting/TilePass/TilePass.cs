@@ -898,7 +898,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                                 if (areaLightCount >= k_MaxAreaLightsOnSCreen)
                                     continue;
                                 lightCategory = LightCategory.Area;
-                                gpuLightType = GPULightType.Rectangle;
+                                gpuLightType = GPULightType.Line;
                                 lightVolumeType = LightVolumeType.Box;
                                 ++areaLightCount;
                                 break;
