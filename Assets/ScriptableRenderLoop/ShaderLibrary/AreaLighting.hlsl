@@ -160,7 +160,9 @@ float PolygonRadiance(float4x3 L, bool twoSided)
 
     sum *= INV_TWO_PI; // Normalization
 
-    return twoSided ? abs(sum) : max(sum, 0.0);
+    sum = twoSided ? abs(sum) : max(sum, 0.0);
+
+    return isfinite(sum) ? sum : 0.0;
 }
 
 // For polygonal lights.
