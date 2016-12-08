@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Graphing;
 
@@ -42,13 +43,24 @@ namespace UnityEngine.MaterialGraph
                 if (!amn.allowedInRemapGraph)
                     Debug.LogWarningFormat("Attempting to add {0} to Remap Graph. This is not allowed.", amn.GetType());
             }
-
-            if (node is IGenerateProperties)
-            {
-                Debug.LogWarning("Attempting to add second SubGraphInputNode to SubGraph. This is not allowed.");
-                return;
-            }
             base.AddNode(node);
+        }
+
+        public List<string> GetSubShadersFor(RemapMasterNode rmn, GenerationMode mode)
+        {
+            var subShaders = new List<string>();
+            try
+            {
+                inputNode.m_RemapTarget = rmn;
+                foreach (var node in GetNodes<IMasterNode>())
+                    subShaders.Add(node.GetSubShader(mode));
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            inputNode.m_RemapTarget = null;
+            return subShaders;
         }
     }
 }
