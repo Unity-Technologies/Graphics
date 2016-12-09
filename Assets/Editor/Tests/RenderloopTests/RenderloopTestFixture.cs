@@ -32,6 +32,16 @@ public class RenderLoopTestFixture : RenderPipeline
         renderLoop.Submit();
     }
 
+    public override void Build()
+    {
+        
+    }
+
+    public override void Cleanup()
+    {
+        
+    }
+
     public static void Run(TestDelegate renderCallback)
     {
         if (m_Instance == null)

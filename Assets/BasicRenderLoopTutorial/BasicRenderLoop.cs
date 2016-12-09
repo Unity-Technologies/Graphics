@@ -24,14 +24,12 @@ public class BasicRenderLoop : RenderPipeline
 
     private ShaderPassName shaderPassBasic;
 
-    public void OnEnable()
+    public override void Build()
     {
-        Rebuild();
     }
 
-    public override void Initialize()
+    public override void Cleanup()
     {
-        shaderPassBasic = new ShaderPassName("BasicPass");
     }
 
     // Main entry point for our scriptable render loop
@@ -59,7 +57,7 @@ public class BasicRenderLoop : RenderPipeline
             SetupLightShaderVariables (cull.visibleLights, loop);
 
             // Draw opaque objects using BasicPass shader pass
-            var settings = new DrawRendererSettings (cull, camera, shaderPassBasic);
+            var settings = new DrawRendererSettings (cull, camera, new ShaderPassName("BasicPass"));
             settings.sorting.flags = SortFlags.CommonOpaque;
             settings.inputFilter.SetQueuesOpaque ();
             loop.DrawRenderers (ref settings);

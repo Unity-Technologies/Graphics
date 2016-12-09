@@ -146,8 +146,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         int m_VelocityBuffer;
         int m_DistortionBuffer;
 
-        public bool m_Dirty = false;
-
         RenderTargetIdentifier m_CameraColorBufferRT;
         RenderTargetIdentifier m_CameraDepthBufferRT;
         RenderTargetIdentifier m_VelocityBufferRT;
@@ -169,19 +167,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // TODO TO CHECK: SebL I move allocation from Rebuild() to here, but there was a comment "// Our object can be garbage collected, so need to be allocate here", it is still true ?
         Lit.RenderLoop m_LitRenderLoop = new Lit.RenderLoop();
 
-        public void OnValidate()
+        public override void Build()
         {
-            // Calling direction Rebuild() here cause this warning:
-            // "SendMessage cannot be called during Awake, CheckConsistency, or OnValidate UnityEngine.Experimental.ScriptableRenderLoop.HDRenderLoop:OnValidate()"
-            // Workaround is to declare this dirty flag and call REbuild in Render()
-            m_Dirty = true;
-        }
-
-        public override void Rebuild()
-        {
-            // We call Cleanup() here because Rebuild() can be call by OnValidate(), i.e when inspector is touch
-            // Note that module don't need to do the same as the call here is propagated correctly
-            Cleanup();
+#if UNITY_EDITOR
+            UnityEditor.SupportedRenderingFeatures.active = new UnityEditor.SupportedRenderingFeatures
+            {
+                reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation
+            };
+#endif
 
             m_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
             m_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
@@ -224,20 +217,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_LitRenderLoop.Rebuild();
             m_lightLoop.Rebuild(m_TextureSettings);
-
-            m_Dirty = false;
-        }
-
-        public override void Initialize()
-        {
-#if UNITY_EDITOR
-            UnityEditor.SupportedRenderingFeatures.active = new UnityEditor.SupportedRenderingFeatures
-            {
-                reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation
-            };
-#endif
-
-            Rebuild();
         }
 
         public override void Cleanup()
@@ -615,11 +594,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {
-            if (m_Dirty)
-            {
-                Rebuild();
-            }
-
             if (!m_LitRenderLoop.isInit)
             {
                 m_LitRenderLoop.RenderInit(renderLoop);

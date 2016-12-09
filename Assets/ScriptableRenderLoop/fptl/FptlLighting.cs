@@ -113,19 +113,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         private Texture2D m_LightAttentuationTexture;
         private int m_shadowBufferID;
 
-        private void OnValidate()
-        {
-            Rebuild();
-        }
-
-        public override void Initialize()
-        {
-            Rebuild();
-        }
-
         public override void Cleanup()
         {
-            // RenderLoop.renderLoopDelegate -= ExecuteRenderLoop;
             if (m_DeferredMaterial) DestroyImmediate(m_DeferredMaterial);
             if (m_DeferredReflectionMaterial) DestroyImmediate(m_DeferredReflectionMaterial);
             if (m_BlitMaterial) DestroyImmediate(m_BlitMaterial);
@@ -174,10 +163,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public override void Rebuild()
+        public override void Build()
         {
-            ClearComputeBuffers();
-
             s_GBufferAlbedo = Shader.PropertyToID("_CameraGBufferTexture0");
             s_GBufferSpecRough = Shader.PropertyToID("_CameraGBufferTexture1");
             s_GBufferNormal = Shader.PropertyToID("_CameraGBufferTexture2");
