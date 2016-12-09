@@ -123,22 +123,21 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         protected MaterialProperty emissiveIntensity = null;
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
 
-        override protected void FindInputOptionProperties(MaterialProperty[] props)
+        // These are options that are shared with the LayeredLit shader. Don't put anything that can't be shared here:
+        // For instance, properties like BaseColor and such don't exist in the LayeredLit so don't put them here.
+        protected void FindMaterialOptionProperties(MaterialProperty[] props)
         {   
             smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
-            UVBase = FindProperty(kUVBase, props);
-            TexWorldScale = FindProperty(kTexWorldScale, props);
-            UVMappingMask = FindProperty(kUVMappingMask, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
             heightMapMode = FindProperty(kHeightMapMode, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
-            UVDetail = FindProperty(kUVDetail, props);
-            UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);    
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
 
-        override protected void FindInputProperties(MaterialProperty[] props)
+        override protected void FindMaterialProperties(MaterialProperty[] props)
         {
+            FindMaterialOptionProperties(props);
+
             baseColor = FindProperty(kBaseColor, props);
             baseColorMap = FindProperty(kBaseColorMap, props);
             metallic = FindProperty(kMetallic, props);
@@ -153,6 +152,12 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
 
+            UVBase = FindProperty(kUVBase, props);
+            UVDetail = FindProperty(kUVDetail, props);
+            TexWorldScale = FindProperty(kTexWorldScale, props);
+            UVMappingMask = FindProperty(kUVMappingMask, props);
+            UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);    
+            
             detailMap = FindProperty(kDetailMap, props);
             detailMask = FindProperty(kDetailMask, props);
             detailAlbedoScale = FindProperty(kDetailAlbedoScale, props);
@@ -284,18 +289,6 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
         }
 
-        protected virtual void SetupKeywordsForInputMaps(Material material)
-        {
-            SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
-            SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
-            SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
-            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-            SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
-            SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
-            SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
-            SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
-        }
-
         protected override bool ShouldEmissionBeEnabled(Material mat)
         {
             float emissiveIntensity = mat.GetFloat(kEmissiveIntensity);
@@ -303,8 +296,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             return emissiveIntensity > 0.0f || realtimeEmission;
         }
 
-        override protected void SetupInputMaterial(Material material)
+        override protected void SetupMaterialKeywords(Material material)
         {
+			SetupCommonOptionsKeywords(material);
+
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
             SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
@@ -312,10 +307,19 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
             SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", ((HeightmapMode)material.GetFloat(kHeightMapMode)) == HeightmapMode.Displacement);
             SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
-            SetKeyword(material, "_REQUIRE_UV3", ((UVDetailMapping)material.GetFloat(kUVDetail)) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
- 
-            SetupKeywordsForInputMaps(material);
+
+			SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
+			SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
+			SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
+			SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+			SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
+			SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
+			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
+			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
+
+			SetKeyword(material, "_REQUIRE_UV3", ((UVDetailMapping)material.GetFloat(kUVDetail)) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
+
         }
     }
 } // namespace UnityEditor
