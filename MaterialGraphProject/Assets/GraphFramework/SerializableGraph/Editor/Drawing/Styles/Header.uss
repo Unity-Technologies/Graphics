@@ -1,19 +1,24 @@
 HeaderDrawer {
     flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    padding-left: 5;
+    padding-right: 5;
+    padding-top: 5;
+    padding-bottom: 5;
+
 }
 
 HeaderDrawer #title {
+    flex: 2;
     text-color: #FFFFFF;
-	width: 200;
-	text-alignment: middle-center;
+	text-alignment: middle-left;
+    font-size: 12;
+    font-style: bold;
 }
 
 HeaderDrawer #expandButton {
-    text-color: #FFFFFF;
-    position-type: absolute;
-    position-top: 0;
-    position-left: 5;
-    width: 10;
-	text-alignment: middle-center;
-	height: 14;
+    flex: 1;
+    text-color: rgb(153, 153, 153);
+	text-alignment: middle-right;
 }

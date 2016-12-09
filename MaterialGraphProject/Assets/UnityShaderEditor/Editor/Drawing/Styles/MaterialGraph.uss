@@ -9,9 +9,9 @@
 }
 
 MaterialGraphView {
-	grid-background-color:#404749;
-	line-color:#20293F;
-	thick-line-color:#030C22;
+	grid-background-color:rgb(20, 21, 21);
+	line-color: rgb(20, 21, 21);
+	thick-line-color: rgb(20, 21, 21);
 	spacing:75.0;
 	thick-lines:10;
 }
