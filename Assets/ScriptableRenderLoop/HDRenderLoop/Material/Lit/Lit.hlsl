@@ -477,11 +477,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     PreLightData preLightData;
 
     // TODO: check Eric idea about doing that when writting into the GBuffer (with our forward decal)
-#if 0
-    preLightData.NdotV = GetShiftedNdotV(bsdfData.normalWS, V); // Note: May not work with speedtree...
-#else
-    preLightData.NdotV = GetNdotV(bsdfData.normalWS, V);
-#endif
+    preLightData.NdotV = GetShiftedNdotV(bsdfData.normalWS, V, false);
 
     preLightData.ggxLambdaV = GetSmithJointGGXLambdaV(preLightData.NdotV, bsdfData.roughness);
 
@@ -500,7 +496,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
         // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NDotV) and use iblNormalWS
         // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
         // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
-        // iblNdotV = GetNdotV(iblNormalWS, V);
+        // iblNdotV = GetShiftedNdotV(iblNormalWS, V), false);
     }
 
     GetPreIntegratedFGD(iblNdotV, bsdfData.perceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD);
@@ -1149,7 +1145,7 @@ float3 IntegrateDisneyDiffuseIBLRef(LightLoopContext lightLoopContext,
     float3 N        = bsdfData.normalWS;
     float3 tangentX = bsdfData.tangentWS;
     float3 tangentY = bsdfData.bitangentWS;
-    float  NdotV    = saturate(dot(N, V));
+    float  NdotV    = GetShiftedNdotV(N, V, false);
     float3 acc      = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
@@ -1191,7 +1187,7 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
     float3 N        = bsdfData.normalWS;
     float3 tangentX = bsdfData.tangentWS;
     float3 tangentY = bsdfData.bitangentWS;
-    float  NdotV    = saturate(dot(N, V));
+    float  NdotV    = GetShiftedNdotV(N, V, false);
     float3 acc      = float3(0.0, 0.0, 0.0);
 
     // Add some jittering on Hammersley2d
