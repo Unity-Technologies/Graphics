@@ -46,20 +46,37 @@ namespace UnityEngine.MaterialGraph
             base.AddNode(node);
         }
 
+        struct DisposeMeh : IDisposable
+        {
+            private readonly MasterRemapInputNode m_Graph;
+
+            public DisposeMeh(MasterRemapInputNode graph, RemapMasterNode master)
+            {
+                m_Graph = graph;
+                graph.m_RemapTarget = master;
+            }
+
+            public void Dispose()
+            {
+                m_Graph.m_RemapTarget = null;
+            }
+        }
+
         public List<string> GetSubShadersFor(RemapMasterNode rmn, GenerationMode mode)
         {
             var subShaders = new List<string>();
             try
             {
-                inputNode.m_RemapTarget = rmn;
-                foreach (var node in GetNodes<IMasterNode>())
-                    subShaders.Add(node.GetSubShader(mode));
+                using (new DisposeMeh(inputNode, rmn))
+                {
+                    foreach (var node in GetNodes<IMasterNode>())
+                        subShaders.Add(node.GetSubShader(mode));
+                }
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
             }
-            inputNode.m_RemapTarget = null;
             return subShaders;
         }
     }

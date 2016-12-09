@@ -109,6 +109,9 @@ namespace UnityEngine.MaterialGraph
         private bool m_HalfAsView;
 
         [SerializeField]
+        private int m_LOD = 200;
+
+        [SerializeField]
         private bool m_Expanded;
 
         public void Init()
@@ -129,6 +132,7 @@ namespace UnityEngine.MaterialGraph
             noForwardAdd = false;
             approxView = false;
             halfAsView = false;
+            lod = 200;
         }
 
         public void GetTags(ShaderGenerator visitor)
@@ -197,5 +201,6 @@ namespace UnityEngine.MaterialGraph
         public bool noForwardAdd { get { return m_NoForwardAdd; } set { m_NoForwardAdd = value; } }
         public bool approxView { get { return m_ApproxView; } set { m_ApproxView = value; } }
         public bool halfAsView { get { return m_HalfAsView; } set { m_HalfAsView = value; } }
+        public int lod { get { return m_LOD; } set { m_LOD = value; } }
     }
 }

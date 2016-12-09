@@ -6,7 +6,7 @@ ${Culling}
 ${ZTest}
 ${ZWrite}
 
-	LOD 200
+	LOD ${LOD}
 	
 	CGPROGRAM
 	#pragma target 3.0
