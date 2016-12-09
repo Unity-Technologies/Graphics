@@ -19,6 +19,8 @@ namespace UnityEditor.MaterialGraph.Drawing
         {
             CreateContainers();
 
+            AddToClassList("MaterialNode");
+
             onEnter += SchedulePolling;
             onLeave += UnschedulePolling;
         }

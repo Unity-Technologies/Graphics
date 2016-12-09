@@ -1,43 +1,71 @@
-NodeDrawer {
+.Node {
     flex-direction: column;
+	padding-top: 15;
+    height: 26;
 }
 
-NodeDrawer #slots {
+.Node #slots {
     flex-direction: row;
+	background-color: #444;
+	width: 200;
 }
 
-NodeDrawer #slots #input {
-    flex:1;
+.Node #slots #input {
+    flex: 1;
     flex-direction: column;
 }
 
-NodeDrawer #slots #output {
-    flex:1;
+.Node #slots #output {
+    flex: 1;
     flex-direction: column;
 }
 
-NodeDrawer #controls {
-    flex-direction: column;
-    padding-bottom: 2;
-}
-
-NodeDrawer #controls #element{
-    flex-direction: column;
-}
-
-NodeDrawer {
+.Node #slots .NodeAnchor {
     height: 26;
+	align-items: center;
 }
 
-NodeDrawer #preview {
+.Node #slots .NodeAnchor #connector {
+	background-color:#FF0;
+	border-color:#FF0;
+	/* width is currently hard-coded */
+	border-width: 4;
+	margin-left: 5;
+    margin-right: 5;
+}
+
+.Node #slots .NodeAnchor #connector.anchorHighlight {
+	background-color:#00F;
+}
+
+.Node #slots #input .NodeAnchor {
+	flex-direction: row;
+}
+
+.Node #slots #output .NodeAnchor {
+	flex-direction: row-reverse;
+}
+
+.Node #slots .NodeAnchor #type {
+	text-color:#FFF;
+	flex:1;
+}
+
+.Node #slots #input .NodeAnchor #type {
+    text-alignment: middle-left;
+}
+
+.Node #slots #output .NodeAnchor #type {
+    text-alignment: middle-right;
+}
+
+.Node #controls {
+	flex-direction: column;
+	padding-bottom: 2;
+	background-color: #444;
+}
+
+.Node #controls #element{
     flex-direction: column;
 }
 
-NodeDrawer #preview #image {
-    height: 200;
-    width: 200;
-}
-
-NodeAnchor {
-    height: 26;
-}

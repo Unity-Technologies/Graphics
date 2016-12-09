@@ -21,7 +21,7 @@ namespace UnityEditor.Graphing.Drawing
 		public NodeAnchor(NodeAnchorData data)
 		{
 			// currently we don't want to be styled as .graphElement since we're contained in a Node
-			classList = ClassList.empty;
+            classList = new ClassList("NodeAnchor");
 
 			m_CurrentConnector = m_RegularConnector;
 			AddManipulator(m_CurrentConnector);

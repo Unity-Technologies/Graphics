@@ -4,6 +4,7 @@ using UnityEngine.RMGUI;
 
 namespace UnityEditor.Graphing.Drawing
 {
+    [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/Header.uss")]
     public class HeaderDrawer : GraphElement
     {
         private VisualElement m_Title;
