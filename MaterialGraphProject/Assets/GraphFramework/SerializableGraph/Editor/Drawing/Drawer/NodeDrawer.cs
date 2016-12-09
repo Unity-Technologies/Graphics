@@ -23,7 +23,7 @@ namespace UnityEditor.Graphing.Drawing
 
             AddContainers();
 
-            AddToClassList("NodeDrawer");
+            AddToClassList("Node");
         }
 
         private void AddContainers()
