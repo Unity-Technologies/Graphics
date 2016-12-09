@@ -26,12 +26,10 @@ namespace UnityEditor.Graphing.Drawing
 
         protected GraphView graphView
         {
-            get { return m_GraphView; }
+            get { return m_GraphEditorDrawer.GraphView; }
         }
 
-        private GraphView m_GraphView;
-
-        private TitleBarDrawer m_TitleBarDrawer;
+        private GraphEditorDrawer m_GraphEditorDrawer;
 
         public virtual AbstractGraphDataSource CreateDataSource()
         {
@@ -45,16 +43,11 @@ namespace UnityEditor.Graphing.Drawing
 
         void OnEnable()
         {
-            m_GraphView = CreateGraphView();
-            m_GraphView.name = "Graph View";
             var source = CreateDataSource();
             source.Initialize(m_LastSelection);
 
-            m_TitleBarDrawer = new TitleBarDrawer(source.titleBar);
-            m_GraphView.dataSource = source;
-
-            rootVisualContainer.AddChild(m_TitleBarDrawer);
-            rootVisualContainer.AddChild(m_GraphView);
+            m_GraphEditorDrawer = new GraphEditorDrawer(CreateGraphView(), source);
+            rootVisualContainer.AddChild(m_GraphEditorDrawer);
         }
 
         void OnDisable()
@@ -86,10 +79,9 @@ namespace UnityEditor.Graphing.Drawing
 
                     var source = CreateDataSource();
                     source.Initialize(m_LastSelection);
-                    m_GraphView.dataSource = source;
-                    m_TitleBarDrawer.dataProvider = source.titleBar;
+                    m_GraphEditorDrawer.dataSource = source;
 
-                    m_GraphView.StretchToParentSize();
+                    //m_GraphView.StretchToParentSize();
                     Repaint();
                 }
             }
