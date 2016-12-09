@@ -28,6 +28,11 @@ namespace UnityEditor.Experimental
             builder.WriteLine(";");
             builder.WriteLineFormat("o.pos = mul({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
         }
+
+        public override int GetOutputType()
+        {
+            return 0;
+        }
     }
 
     public class VFXBillboardOutputShaderGeneratorModule : VFXOutputShaderGeneratorModule
@@ -57,6 +62,11 @@ namespace UnityEditor.Experimental
         }
 
         public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
+
+        public override int GetOutputType()
+        {
+            return 1;
+        }
 
         private bool CanHaveMotionVectors()
         {
@@ -508,6 +518,11 @@ namespace UnityEditor.Experimental
         }
 
         public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
+
+        public override int GetOutputType()
+        {
+            return 1;
+        }
 
         public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {

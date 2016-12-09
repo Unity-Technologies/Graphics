@@ -685,7 +685,7 @@ namespace UnityEditor.Experimental
 
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader,outputShader);
 
-            rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
+            rtData.outputType = (uint)outputGenerator.GetOutputType(); // This is temp
             rtData.hasKill = shaderMetaData.hasKill;
 
             rtData.outputBufferSize = outputBuffer != null ? outputBuffer.GetSizeInBytes(true) : 0;
@@ -1316,6 +1316,18 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
 
             builder.WriteCBuffer("outputUniforms", data.outputUniforms, data.outputParamToName);
+
+            bool quadPatches = outputGenerator.GetOutputType() == 1 && system.MaxNb > 16384;
+            // Data used not to fetch out of bounds elements when using indirect draw with quad patches
+            if (quadPatches && data.UseOutputData())
+            {
+                builder.WriteLine("CBUFFER_START(Uniform)");
+                builder.WriteLine("\tfloat systemIndex;");
+                builder.WriteLine("CBUFFER_END");
+                builder.WriteLine("ByteAddressBuffer nbElements;");
+                builder.WriteLine();
+            }
+
             builder.WriteSamplers(data.outputSamplers, data.outputParamToName);
 
             // Write generated texture samplers
@@ -1399,11 +1411,26 @@ namespace UnityEditor.Experimental
 
             outputGenerator.WriteIndex(builder, data);
 
-            if (data.hasKill && !data.UseOutputData())
-            {
-                builder.WriteLine("if (flags[index] == 1)");
-                builder.EnterScope();
+            bool skipElements = false;
+            if (data.hasKill)
+            { 
+                if(!data.UseOutputData())
+                {
+                    //if (!quadPatches)
+                        builder.WriteLine("if (flags[index] == 1)");
+                   // else
+                   //     builder.WriteLine("if (index < nbMax && flags[index] == 1)");
+                    skipElements = true;
+                }
+                else if (quadPatches)
+                {
+                    builder.WriteLine("if (index < nbElements.Load(asuint(systemIndex) << 2))");
+                    skipElements = true;
+                }
             }
+
+            if (skipElements)
+                builder.EnterScope();
 
             if (data.hasCull)
             {
@@ -1474,7 +1501,7 @@ namespace UnityEditor.Experimental
                 builder.ExitScope();
             }
 
-            if (data.hasKill && !data.UseOutputData())
+            if (skipElements)
             {
                 // clip the vertex if not alive
                 builder.ExitScope();
