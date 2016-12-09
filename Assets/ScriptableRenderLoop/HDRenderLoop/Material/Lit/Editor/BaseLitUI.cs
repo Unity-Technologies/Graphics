@@ -145,17 +145,16 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             EditorGUI.showMixedValue = false;
         }
 
-        protected void FindOptionProperties(MaterialProperty[] props)
+        protected void FindCommonOptionProperties(MaterialProperty[] props)
         {
             surfaceType = FindProperty(kSurfaceType, props);
             blendMode = FindProperty(kBlendMode, props);
             alphaCutoff = FindProperty(kAlphaCutoff, props);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props);
             doubleSidedMode = FindProperty(kDoubleSidedMode, props);
-            FindInputOptionProperties(props);
         }
 
-        protected void SetupMaterial(Material material)
+        protected void SetupCommonOptionsKeywords(Material material)
         {
             bool alphaTestEnable = material.GetFloat(kAlphaCutoffEnabled) == 1.0;
             SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
@@ -231,7 +230,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             }
 
             SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
-            SetupInputMaterial(material);
+
             SetupEmissionGIFlags(material);
         }
 
@@ -263,14 +262,14 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             if (EditorGUI.EndChangeCheck())
             {
                 foreach (var obj in m_MaterialEditor.targets)
-                    SetupMaterial((Material)obj);
+                    SetupMaterialKeywords((Material)obj);
             }
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            FindOptionProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
-            FindInputProperties(props);
+            FindCommonOptionProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
+			FindMaterialProperties(props);
 
             m_MaterialEditor = materialEditor;
             Material material = materialEditor.target as Material;
@@ -324,11 +323,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         const string kDoubleSidedMode = "_DoubleSidedMode";
         protected static string[] reservedProperties = new string[] { kSurfaceType, kBlendMode, kAlphaCutoff, kAlphaCutoffEnabled, kDoubleSidedMode };
 
-        protected abstract void FindInputProperties(MaterialProperty[] props);
-        protected abstract void ShaderInputGUI();
+        protected abstract void FindMaterialProperties(MaterialProperty[] props);
+		protected abstract void ShaderInputGUI();
         protected abstract void ShaderInputOptionsGUI();
-        protected abstract void FindInputOptionProperties(MaterialProperty[] props);
-        protected abstract void SetupInputMaterial(Material material);
+        protected abstract void SetupMaterialKeywords(Material material);
         protected abstract bool ShouldEmissionBeEnabled(Material material);
     }
 } // namespace UnityEditor

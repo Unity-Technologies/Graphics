@@ -15,7 +15,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
 
-        override protected void FindInputProperties(MaterialProperty[] props)
+        override protected void FindMaterialProperties(MaterialProperty[] props)
         {
             color = FindProperty("_Color", props);
             colorMap = FindProperty("_ColorMap", props);
@@ -43,12 +43,9 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         {
         }
 
-        protected override void FindInputOptionProperties(MaterialProperty[] props)
+        protected override void SetupMaterialKeywords(Material material)
         {
-        }
-
-        protected override void SetupInputMaterial(Material material)
-        {
+			SetupCommonOptionsKeywords(material);
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
         }
 
