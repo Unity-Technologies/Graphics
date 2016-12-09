@@ -1,31 +1,39 @@
 .Node {
-    flex-direction: column;
-	padding-top: 15;
-    height: 26;
-}
-
-.Node #slots {
     flex-direction: row;
-	background-color: #444;
-	width: 200;
+    align-items: stretch;
 }
 
-.Node #slots #input {
-    flex: 1;
+.Node .pane {
     flex-direction: column;
+    align-items: stretch;
+    padding-left: 4;
+    padding-right: 4;
+    padding-top: 2;
+    padding-bottom: 4;
+    border-radius: 2;
 }
 
-.Node #slots #output {
-    flex: 1;
-    flex-direction: column;
+.Node .pane.left {
+    width: 208;
+    background-color: rgb(45, 45, 45);
 }
 
-.Node #slots .NodeAnchor {
+.Node .pane.right {
+    background-color: rgb(32, 33, 33);
+    margin-left: 2;
+    padding-left: 8;
+}
+
+.Node .paneItem {
+    margin-top: 2;
+}
+
+.Node .NodeAnchor {
     height: 26;
 	align-items: center;
 }
 
-.Node #slots .NodeAnchor #connector {
+.Node .NodeAnchor #connector {
 	background-color:#FF0;
 	border-color:#FF0;
 	/* width is currently hard-coded */
@@ -34,35 +42,35 @@
     margin-right: 5;
 }
 
-.Node #slots .NodeAnchor #connector.anchorHighlight {
+.Node .NodeAnchor #connector.anchorHighlight {
 	background-color:#00F;
 }
 
-.Node #slots #input .NodeAnchor {
+.Node #input .NodeAnchor {
 	flex-direction: row;
 }
 
-.Node #slots #output .NodeAnchor {
+.Node #output .NodeAnchor {
 	flex-direction: row-reverse;
 }
 
-.Node #slots .NodeAnchor #type {
+.Node .NodeAnchor #type {
 	text-color:#FFF;
 	flex:1;
 }
 
-.Node #slots #input .NodeAnchor #type {
+.Node #input .NodeAnchor #type {
     text-alignment: middle-left;
 }
 
-.Node #slots #output .NodeAnchor #type {
+.Node #output .NodeAnchor #type {
     text-alignment: middle-right;
 }
 
 .Node #controls {
 	flex-direction: column;
 	padding-bottom: 2;
-	background-color: #444;
+    padding-left: 4;
 }
 
 .Node #controls #element{

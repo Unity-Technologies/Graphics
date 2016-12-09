@@ -32,7 +32,7 @@ namespace UnityEditor.MaterialGraph.Drawing
                 name = "preview", // for USS&Flexbox
                 pickingMode = PickingMode.Ignore,
             };
-            AddChild(m_PreviewContainer);
+            m_LeftContainer.AddChild(m_PreviewContainer);
 
             m_currentPreviewData = new List<NodePreviewDrawData>();
         }

@@ -4,14 +4,17 @@ using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.RMGUI;
 using UnityEditor.Graphing.Util;
+using UnityEngine.RMGUI.StyleSheets;
 
 namespace UnityEditor.Graphing.Drawing
 {
     public class NodeDrawer : GraphElement
     {
+        protected VisualContainer m_LeftContainer;
+        protected VisualContainer m_RightContainer;
         HeaderDrawer m_HeaderDrawer;
-        HeaderDrawData m_HeaderData;
-        VisualContainer m_SlotContainer;
+        VisualContainer m_InputContainer;
+        VisualContainer m_OutputContainer;
         List<AnchorDrawData> m_CurrentAnchors;
         VisualContainer m_ControlsContainer;
         List<ControlDrawData> m_CurrentControlDrawData;
@@ -20,45 +23,66 @@ namespace UnityEditor.Graphing.Drawing
         public NodeDrawer()
         {
             content = new GUIContent("");
-
             AddContainers();
-
-            AddToClassList("Node");
+            classList = new ClassList("Node");
         }
 
         private void AddContainers()
         {
-            // Add slots (with input & output sub-containers) container
-            m_SlotContainer = new VisualContainer
+            /* 
+             * Layout structure:
+             * node
+             * - left
+             * - - header
+             * - - input
+             * - - controls
+             * - right
+             * - - output
+             */
+
+            m_LeftContainer = new VisualContainer
             {
-                name = "slots", // for USS&Flexbox
+                classList = new ClassList("pane", "left"),
+                pickingMode = PickingMode.Ignore
+            };
+            AddChild(m_LeftContainer);
+
+            m_RightContainer = new VisualContainer
+            {
+                classList = new ClassList("pane", "right"),
+                pickingMode = PickingMode.Ignore
+            };
+            AddChild(m_RightContainer);
+
+            m_HeaderDrawer = new HeaderDrawer();
+            m_HeaderDrawer.AddToClassList("paneItem");
+            m_LeftContainer.AddChild(m_HeaderDrawer);
+
+            m_InputContainer = new VisualContainer
+            {
+                name = "input",
                 pickingMode = PickingMode.Ignore,
             };
-            AddChild(m_SlotContainer);
+            m_InputContainer.AddToClassList("paneItem");
+            m_LeftContainer.AddChild(m_InputContainer);
 
-            var inputs = new VisualContainer
-            {
-                name = "input", // for USS&Flexbox
-                pickingMode = PickingMode.Ignore,
-            };
-            m_SlotContainer.AddChild(inputs);
-
-            var outputs = new VisualContainer
-            {
-                name = "output", // for USS&Flexbox
-                pickingMode = PickingMode.Ignore,
-            };
-            m_SlotContainer.AddChild(outputs);
-
-            m_CurrentAnchors = new List<AnchorDrawData>();
-
-            // Add controls container
             m_ControlsContainer = new VisualContainer
             {
-                name = "controls", // for USS&Flexbox
+                name = "controls",
                 pickingMode = PickingMode.Ignore,
             };
-            AddChild(m_ControlsContainer);
+            m_ControlsContainer.AddToClassList("paneItem");
+            m_LeftContainer.AddChild(m_ControlsContainer);
+
+            m_OutputContainer = new VisualContainer
+            {
+                name = "output",
+                pickingMode = PickingMode.Ignore,
+            };
+            m_OutputContainer.AddToClassList("paneItem");
+            m_RightContainer.AddChild(m_OutputContainer);
+
+            m_CurrentAnchors = new List<AnchorDrawData>();
 
             m_CurrentControlDrawData = new List<ControlDrawData>();
         }
@@ -66,18 +90,7 @@ namespace UnityEditor.Graphing.Drawing
         private void AddHeader(NodeDrawData nodeData)
         {
             var headerData = nodeData.elements.OfType<HeaderDrawData>().FirstOrDefault();
-
-            if (m_HeaderData != null)
-            {
-                m_HeaderDrawer.dataProvider = headerData;
-                m_HeaderData = headerData;
-            }
-            else
-            {
-                m_HeaderDrawer = new HeaderDrawer(headerData);
-                InsertChild(0, m_HeaderDrawer);
-                m_HeaderData = headerData;
-            }
+            m_HeaderDrawer.dataProvider = headerData;
         }
 
         private void AddSlots(NodeDrawData nodeData)
@@ -87,25 +100,22 @@ namespace UnityEditor.Graphing.Drawing
             if (anchors.Count == 0)
                 return;
 
-            var inputsContainer = m_SlotContainer.GetChildAtIndex(0) as VisualContainer;
-            var outputsContainer = m_SlotContainer.GetChildAtIndex(1) as VisualContainer;
-
             if (anchors.ItemsReferenceEquals(m_CurrentAnchors) && m_CurrentExpanded == nodeData.expanded)
             {
                 return;
             }
 
             m_CurrentAnchors = anchors;
-            inputsContainer.ClearChildren();
-            outputsContainer.ClearChildren();
+            m_InputContainer.ClearChildren();
+            m_OutputContainer.ClearChildren();
 
             foreach (var anchor in anchors)
             {
                 var hidden = !nodeData.expanded && !anchor.connected;
                 if (!hidden && anchor.direction == Direction.Input)
-                    inputsContainer.AddChild(new NodeAnchor(anchor));
+                    m_InputContainer.AddChild(new NodeAnchor(anchor));
                 else if (!hidden && anchor.direction == Direction.Output)
-                    outputsContainer.AddChild(new NodeAnchor(anchor));
+                    m_OutputContainer.AddChild(new NodeAnchor(anchor));
             }
         }
 
