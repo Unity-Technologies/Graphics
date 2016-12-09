@@ -16,12 +16,12 @@ namespace UnityEditor.Graphing.Drawing
         [SerializeField]
         private List<GraphElementData> m_TempElements = new List<GraphElementData>();
 
-        [SerializeField]
-        private TitleBarDrawData m_TitleBar;
-
         private readonly Dictionary<Type, Type> m_DataMapper = new Dictionary<Type, Type>();
 
         public IGraphAsset graphAsset { get; private set; }
+
+        [SerializeField]
+        private TitleBarDrawData m_TitleBar;
 
         public TitleBarDrawData titleBar
         {
