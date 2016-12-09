@@ -158,13 +158,6 @@ Shader "HDRenderLoop/LayeredLit"
         [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
-
-        // Unused but to be able to share litUI.Sahder and layeredUI.Shader
-        [HideInInspector] _UVBase("UV Set for base", Float) = 0
-        [HideInInspector] _UVDetail("UV Set for base", Float) = 0
-        [HideInInspector] _TexWorldScale("Tiling", Float) = 1.0
-        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
     }
 
     HLSLINCLUDE

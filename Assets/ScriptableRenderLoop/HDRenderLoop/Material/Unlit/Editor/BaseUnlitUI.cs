@@ -65,20 +65,19 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
         protected MaterialEditor m_MaterialEditor;
 
-        public void FindOptionProperties(MaterialProperty[] props)
+        public void FindCommonOptionProperties(MaterialProperty[] props)
         {
             surfaceType = FindProperty(kSurfaceType, props);
             blendMode = FindProperty(kBlendMode, props);
             alphaCutoff = FindProperty(kAlphaCutoff, props);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props);
             doubleSidedMode = FindProperty(kDoubleSidedMode, props);
-            FindInputOptionProperties(props);
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            FindOptionProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
-            FindInputProperties(props);
+            FindCommonOptionProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
+            FindMaterialProperties(props);
 
             m_MaterialEditor = materialEditor;
             Material material = materialEditor.target as Material;
@@ -124,7 +123,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             if (EditorGUI.EndChangeCheck())
             {
                 foreach (var obj in m_MaterialEditor.targets)
-                    SetupMaterial((Material)obj);
+                    SetupMaterialKeywords((Material)obj);
             }
         }
 
@@ -166,9 +165,9 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             EditorGUI.showMixedValue = false;
         }
 
-        protected void SetupMaterial(Material material)
-        {
-            // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
+		protected void SetupCommonOptionsKeywords(Material material)
+		{
+			// Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
 
             bool alphaTestEnable = material.GetFloat(kAlphaCutoffEnabled) == 1.0;
@@ -229,7 +228,6 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             }
 
             SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
-            SetupInputMaterial(material);
 
             // Setup lightmap emissive flags
             MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
@@ -242,7 +240,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
                 material.globalIlluminationFlags = flags;
             }
-        }
+		}
 
         bool HasValidEmissiveKeyword(Material material)
         {
@@ -268,11 +266,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 m.DisableKeyword(keyword);
         }
 
-        protected abstract void FindInputProperties(MaterialProperty[] props);
+        protected abstract void FindMaterialProperties(MaterialProperty[] props);
         protected abstract void ShaderInputGUI();
         protected abstract void ShaderInputOptionsGUI();
-        protected abstract void FindInputOptionProperties(MaterialProperty[] props);
-        protected abstract void SetupInputMaterial(Material material);
+		protected abstract void SetupMaterialKeywords(Material material);
         protected abstract bool ShouldEmissionBeEnabled(Material material);
     }
 

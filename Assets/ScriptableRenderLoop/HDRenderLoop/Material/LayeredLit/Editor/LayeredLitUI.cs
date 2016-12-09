@@ -17,13 +17,6 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             Triplanar,
         }
 
-        public enum LayerUVDetailMapping
-        {
-            UV0,
-            UV1,
-            UV3
-        }
-
         private class StylesLayer
         {
             public readonly GUIContent[] layerLabels =
@@ -77,8 +70,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         MaterialProperty layerEmissiveColorMap = null;
         MaterialProperty layerEmissiveIntensity = null;
 
-        private void FindLayerProperties(MaterialProperty[] props)
+        override protected void FindMaterialProperties(MaterialProperty[] props)
         {
+			FindMaterialOptionProperties(props);
+
             layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerMaskVertexColor = FindProperty(kLayerMaskVertexColor, props);
             layerCount = FindProperty(kLayerCount, props);
@@ -451,8 +446,11 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             return layerChanged;
         }
 
-        protected override void SetupKeywordsForInputMaps(Material material)
+		protected override void SetupMaterialKeywords(Material material)
         {
+			SetupCommonOptionsKeywords(material);
+			SetupLayersKeywords(material);
+
             // Find first non null layer
             int i = 0;
             while (i < numLayer && (m_MaterialLayers[i] == null)) ++i;
@@ -468,9 +466,26 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
+
+			// We have to check for each layer if the UV3 is needed.
+			SetKeyword(material, "_REQUIRE_UV3", false);
+			for (int layer = 0; layer < numLayer; ++layer)
+			{
+				string uvBase = string.Format("{0}{1}", kUVBase, layer);
+				string uvDetail = string.Format("{0}{1}", kUVDetail, layer);
+
+				if (
+					 ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
+					 ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV3)
+					)
+				{
+					SetKeyword(material, "_REQUIRE_UV3", true);
+					break;
+				}
+			}
         }
 
-        void SetupMaterialForLayers(Material material)
+		void SetupLayersKeywords(Material material)
         {
             if (numLayer == 4)
             {
@@ -497,7 +512,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 string layerUVBaseParam = string.Format("{0}{1}", kUVBase, i);
                 LayerUVBaseMapping layerUVBaseMapping = (LayerUVBaseMapping)material.GetFloat(layerUVBaseParam);
                 string layerUVDetailParam = string.Format("{0}{1}", kUVDetail, i);
-                LayerUVDetailMapping layerUVDetailMapping = (LayerUVDetailMapping)material.GetFloat(layerUVDetailParam);
+                UVDetailMapping layerUVDetailMapping = (UVDetailMapping)material.GetFloat(layerUVDetailParam);
                 string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
 
                 float X, Y, Z, W;
@@ -516,9 +531,9 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 }
                 else
                 {
-                    X = (layerUVDetailMapping == LayerUVDetailMapping.UV0) ? 1.0f : 0.0f;
-                    Y = (layerUVDetailMapping == LayerUVDetailMapping.UV1) ? 1.0f : 0.0f;
-                    Z = (layerUVDetailMapping == LayerUVDetailMapping.UV3) ? 1.0f : 0.0f;
+                    X = (layerUVDetailMapping == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+                    Y = (layerUVDetailMapping == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+                    Z = (layerUVDetailMapping == UVDetailMapping.UV3) ? 1.0f : 0.0f;
                 }
                 layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, 0.0f); // W Reuse planar mode from base
             }
@@ -526,8 +541,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            FindOptionProperties(props);
-            FindLayerProperties(props);
+            FindCommonOptionProperties(props);
+            FindMaterialProperties(props);
 
             m_MaterialEditor = materialEditor;
 
@@ -567,8 +582,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
                 foreach (var obj in m_MaterialEditor.targets)
                 {
-                    SetupMaterial((Material)obj);
-                    SetupMaterialForLayers((Material)obj);
+					SetupMaterialKeywords((Material)obj);
                 }
 
                 SaveMaterialLayers(materialImporter);
