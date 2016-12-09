@@ -42,10 +42,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         MaterialPropertyBlock m_RenderSkyPropertyBlock = null;
 
-        GameObject[] m_CubemapFaceCamera = new GameObject[6];
+        Matrix4x4[] m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
         Mesh[] m_CubemapFaceMesh = new Mesh[6];
 
-        Mesh BuildSkyMesh(Camera camera, bool forceUVBottom)
+        Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix, bool forceUVBottom)
         {
             Vector4 vertData0 = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);
             Vector4 vertData1 = new Vector4(1.0f, -1.0f, 1.0f, 1.0f);
@@ -61,20 +61,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Get view vector based on the frustum, i.e (invert transform frustum get position etc...)
             Vector3[] eyeVectorData = new Vector3[4];
 
-            Matrix4x4 transformMatrix = camera.cameraToWorldMatrix * camera.projectionMatrix.inverse;
+            Matrix4x4 transformMatrix = cameraInvViewProjectionMatrix;
 
             Vector4 posWorldSpace0 = transformMatrix * vertData0;
             Vector4 posWorldSpace1 = transformMatrix * vertData1;
             Vector4 posWorldSpace2 = transformMatrix * vertData2;
             Vector4 posWorldSpace3 = transformMatrix * vertData3;
 
-            Vector3 temp = camera.GetComponent<Transform>().position;
-            Vector4 cameraPosition = new Vector4(temp.x, temp.y, temp.z, 0.0f);
+            Vector4 cameraPos = new Vector4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 0.0f);
 
-            Vector4 direction0 = (posWorldSpace0 / posWorldSpace0.w - cameraPosition);
-            Vector4 direction1 = (posWorldSpace1 / posWorldSpace1.w - cameraPosition);
-            Vector4 direction2 = (posWorldSpace2 / posWorldSpace2.w - cameraPosition);
-            Vector4 direction3 = (posWorldSpace3 / posWorldSpace3.w - cameraPosition);
+            Vector4 direction0 = (posWorldSpace0 / posWorldSpace0.w - cameraPos);
+            Vector4 direction1 = (posWorldSpace1 / posWorldSpace1.w - cameraPos);
+            Vector4 direction2 = (posWorldSpace2 / posWorldSpace2.w - cameraPos);
+            Vector4 direction3 = (posWorldSpace3 / posWorldSpace3.w - cameraPos);
 
             if (SystemInfo.graphicsUVStartsAtTop && !forceUVBottom)
             {
@@ -173,16 +172,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             for (int i = 0; i < 6; ++i)
             {
-                m_CubemapFaceCamera[i] = new GameObject();
-                m_CubemapFaceCamera[i].hideFlags = HideFlags.HideAndDontSave;
-
-                Camera camera = m_CubemapFaceCamera[i].AddComponent<Camera>();
-                camera.projectionMatrix = cubeProj;
-                Transform transform = camera.GetComponent<Transform>();
-                transform.LookAt(lookAtList[i], UpVectorList[i]);
+                Matrix4x4 lookAt = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], UpVectorList[i]);
+                m_faceCameraInvViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
 
                 // When rendering into a texture the render will be flip (due to legacy unity openGL behavior), so we need to flip UV here...
-                m_CubemapFaceMesh[i] = BuildSkyMesh(camera, true);
+                m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i], true);
             }
         }
 
@@ -193,12 +187,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Utilities.Destroy(m_GGXConvolveMaterial);
             Utilities.Destroy(m_SkyboxCubemapRT);
             Utilities.Destroy(m_SkyboxGGXCubemapRT);
-
-            for(int i = 0 ; i < 6 ; ++i)
-            {
-                Utilities.Destroy(m_CubemapFaceCamera[i]);
-            }
-
         }
 
         public bool IsSkyValid(SkyParameters parameters)
@@ -207,11 +195,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return parameters.skyHDRI != null;
         }
 
-        private void RenderSky(Camera camera, SkyParameters skyParameters, Mesh skyMesh, RenderLoop renderLoop)
+        private void RenderSky(Matrix4x4 invViewProjectionMatrix, SkyParameters skyParameters, Mesh skyMesh, RenderLoop renderLoop)
         {
             m_RenderSkyPropertyBlock.SetTexture("_Cubemap", skyParameters.skyHDRI);
             m_RenderSkyPropertyBlock.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
-            m_RenderSkyPropertyBlock.SetMatrix("_InvViewProjMatrix", Utilities.GetViewProjectionMatrix(camera).inverse);
+            m_RenderSkyPropertyBlock.SetMatrix("_InvViewProjMatrix", invViewProjectionMatrix);
 
             var cmd = new CommandBuffer { name = "" };
             cmd.DrawMesh(skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, 0, m_RenderSkyPropertyBlock);
@@ -224,8 +212,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             for (int i = 0; i < 6; ++i)
             {
                 Utilities.SetRenderTarget(renderLoop, target, 0, (CubemapFace)i);
-                Camera faceCamera = m_CubemapFaceCamera[i].GetComponent<Camera>();
-                RenderSky(faceCamera, skyParameters, m_CubemapFaceMesh[i], renderLoop);
+                RenderSky(m_faceCameraInvViewProjectionMatrix[i], skyParameters, m_CubemapFaceMesh[i], renderLoop);
             }
         }
 
@@ -324,7 +311,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     // Render the sky itself
                     Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer);
-                    RenderSky(camera, skyParameters, BuildSkyMesh(camera, false), renderLoop);
+                    Matrix4x4 invViewProjectionMatrix = Utilities.GetViewProjectionMatrix(camera).inverse;
+                    RenderSky(invViewProjectionMatrix, skyParameters, BuildSkyMesh(camera.GetComponent<Transform>().position, invViewProjectionMatrix, false), renderLoop);
                 }
             }
         }
