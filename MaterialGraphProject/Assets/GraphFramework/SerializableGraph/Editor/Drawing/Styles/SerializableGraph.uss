@@ -24,6 +24,12 @@
     padding-left: 8;
 }
 
+.Node .pane.right.empty {
+    margin-left: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .Node .paneItem {
     margin-top: 2;
 }
@@ -71,6 +77,7 @@
 	flex-direction: column;
 	padding-bottom: 2;
     padding-left: 4;
+    padding-right: 4;
 }
 
 .Node #controls #element{

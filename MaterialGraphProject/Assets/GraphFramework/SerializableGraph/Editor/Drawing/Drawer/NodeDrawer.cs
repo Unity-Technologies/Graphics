@@ -124,7 +124,13 @@ namespace UnityEditor.Graphing.Drawing
             var controlDrawData = nodeData.elements.OfType<ControlDrawData>().ToList();
 
             if (controlDrawData.Count == 0)
+            {
+                if (!m_RightContainer.classList.Contains("empty"))
+                    m_RightContainer.AddToClassList("empty");
                 return;
+            }
+
+            m_RightContainer.RemoveFromClassList("empty");
 
             if (!nodeData.expanded)
             {
