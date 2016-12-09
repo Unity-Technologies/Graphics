@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEngine.RMGUI;
 using UnityEngine.RMGUI.StyleSheets;
+using System.Linq;
+using UnityEditor.Graphing.Util;
+using System;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -65,13 +68,11 @@ namespace UnityEditor.Graphing.Drawing
         void UpdateContainer(VisualContainer container, IEnumerable<TitleBarButtonDrawData> itemDatas)
         {
             // The number of items can't change for now.
-            int i = 0;
-            foreach (var itemData in itemDatas)
+            foreach (var pair in itemDatas.Zip(container.children.OfType<TitleBarButtonDrawer>()))
             {
-                var item = container.GetChildAtIndex(i) as TitleBarButtonDrawer;
-                if (item != null)
-                    item.dataProvider = itemData;
-                i++;
+                var itemData = pair.Item1;
+                var item = pair.Item2;
+                item.dataProvider = itemData;
             }
         }
 
