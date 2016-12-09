@@ -142,6 +142,10 @@ PackedVaryings VertDefault(Attributes input)
     output.texCoord2 = input.uv2;
 #endif
 
+#ifdef _REQUIRE_UV3
+	output.texCoord3 = input.uv3;
+#endif
+
     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 
     float3x3 tangentToWorld = CreateTangentToWorld(normalWS, tangentWS.xyz, tangentWS.w);
