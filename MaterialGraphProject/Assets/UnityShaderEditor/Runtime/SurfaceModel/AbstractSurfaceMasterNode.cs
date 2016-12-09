@@ -81,6 +81,7 @@ namespace UnityEngine.MaterialGraph
             resultShader = resultShader.Replace("${Culling}", cullingVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
+            resultShader = resultShader.Replace("${LOD}", ""+m_MaterialOptions.lod);
 
             resultShader = resultShader.Replace("${VertexShaderDecl}", "vertex:vert");
             resultShader = resultShader.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(3));
@@ -224,6 +225,9 @@ namespace UnityEngine.MaterialGraph
                         continue;
 
                     shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
+
+                    if (slot.id == NormalSlotId)
+                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
                 }
             }
         }

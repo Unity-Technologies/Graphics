@@ -180,7 +180,7 @@ namespace UnityEngine.MaterialGraph
                 }
                 else
                 {
-                    shaderBody.AddShaderChunk("float4 " + inputNode.GetVariableNameForSlot(mappedSlot.id) + " = 0;", true);
+                    shaderBody.AddShaderChunk("float4 " + inputNode.GetVariableNameForSlot(mappedSlot.id) + " = " + inputNode.FindSlot<MaterialSlot>(mappedSlot.id).GetDefaultValue(GenerationMode.ForReals) + ";", true);
                 }
             }
         }
