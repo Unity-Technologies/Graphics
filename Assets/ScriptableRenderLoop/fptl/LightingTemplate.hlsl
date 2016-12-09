@@ -46,7 +46,11 @@ StructuredBuffer<DirectionalLight> g_dirLightData;
 
 
 #define DECLARE_SHADOWMAP( tex ) Texture2D tex; SamplerComparisonState sampler##tex
-#define SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, (coord).z )
+#ifdef REVERSE_ZBUF
+	#define SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, (coord).z )
+#else
+	#define SAMPLE_SHADOW( tex, coord ) tex.SampleCmpLevelZero( sampler##tex, (coord).xy, 1.0-(coord).z )
+#endif
 
 DECLARE_SHADOWMAP(g_tShadowBuffer);
 
