@@ -71,15 +71,26 @@ namespace UnityEngine.Experimental.VFX
             }
         }
 
-        public void Generate()
+        private void DestroyTexture(Texture2D texture)
+        {
+            if (texture != null && !EditorUtility.IsPersistent(m_ColorTexture))// Do we still have ownership on the texture or has it been serialized within a VFX asset ?
+                Object.DestroyImmediate(m_ColorTexture);
+        }
+
+        public void Generate(VFXAsset asset)
         {
             // gradients
             int colorHeight = m_ColorSignals.Count;
 
+            if (asset != null && m_ColorTexture != asset.GradientTexture)
+            {
+                DestroyTexture(m_ColorTexture);
+                m_ColorTexture = asset.GradientTexture;
+            }
+
             if (m_ColorTexture != null && m_ColorTexture.height != colorHeight)
             {
-                if (!EditorUtility.IsPersistent(m_ColorTexture)) // Do we still have ownership on the texture or has it been serialized within a VFX asset ?
-                    Object.DestroyImmediate(m_ColorTexture);
+                DestroyTexture(m_ColorTexture);
                 m_ColorTexture = null;
             }
 
@@ -104,6 +115,18 @@ namespace UnityEngine.Experimental.VFX
 
             // curves
             int floatHeight = m_FloatSignals.Count;
+
+            if (asset != null && m_FloatTexture != asset.CurveTexture)
+            {
+                DestroyTexture(m_FloatTexture);
+                m_FloatTexture = asset.CurveTexture;
+            }
+
+            if (m_ColorTexture != null && m_ColorTexture.height != colorHeight)
+            {
+                DestroyTexture(m_FloatTexture);
+                m_FloatTexture = null;
+            }
 
             if (m_FloatTexture != null && m_FloatTexture.height != floatHeight)
             {
@@ -196,7 +219,7 @@ namespace UnityEngine.Experimental.VFX
         public void Dispose()
         {
             RemoveAllValues();
-            Generate(); // This will destroy existing textures as all values were removed
+            Generate(null); // This will destroy existing textures as all values were removed
         }
 
         private void DiscretizeGradient(Gradient gradient,int y)
