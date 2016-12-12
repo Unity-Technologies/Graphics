@@ -51,10 +51,9 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 			}
 		}
 		
-		uint index = id.x << 2;
+		uint index = id.x * 5;
 		output[index + 0] = vertexCount;
 		output[index + 1] = instanceCount;
-		output[index + 2] = 0;
-		output[index + 3] = 0;
+		// 3 next uint (startIndex, BaseVertex and StartInstance) set to 0 at initialization
 	}
 }

@@ -128,10 +128,16 @@ namespace UnityEditor.Experimental
         {
             int size = 0;
             foreach (VFXAttribute attrib in m_Attribs)
-                size += VFXValue.TypeToSize(attrib.m_Type);
+            {
+                int typeSize = VFXValue.TypeToSize(attrib.m_Type);
+                
+                if (withPadding) // check natural alignment
+                    size = (size + typeSize - 1) & ~(typeSize - 1);
+                size += typeSize;
+            }
             if (withPadding)
-                size = (size + 3) & ~0x3; // size is multiple of dword
-            return size << 2;
+                size = (size + 3) & ~0x3; // size is multiple of 4 dwords
+            return size << 2; 
         }
 
         int m_Index;
