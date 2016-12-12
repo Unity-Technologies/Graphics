@@ -27,6 +27,11 @@ Shader "Hidden/VFX_1"
 				float outputUniform0;
 			CBUFFER_END
 			
+			CBUFFER_START(Uniform)
+				float systemIndex;
+			CBUFFER_END
+			ByteAddressBuffer nbElements;
+			
 			Texture2D outputSampler0Texture;
 			SamplerState sampleroutputSampler0Texture;
 			
@@ -76,34 +81,43 @@ Shader "Hidden/VFX_1"
 			{
 				ps_input o;
 				uint index = (id >> 2) + instanceID * 2048;
-				OutputData outputData = outputBuffer[index];
+				if (index < nbElements.Load(asuint(systemIndex) << 2))
+				{
+					OutputData outputData = outputBuffer[index];
+					
+					float3 local_front = (float3)0;
+					float3 local_side = (float3)0;
+					float3 local_up = (float3)0;
+					float3 local_color = (float3)0;
+					float local_alpha = (float)0;
+					
+					VFXBlockFaceCameraPlane( local_front,local_side,local_up);
+					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0);
+					
+					float2 size = outputData.size * 0.5f;
+					o.offsets.x = 2.0 * float(id & 1) - 1.0;
+					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+					
+					float3 position = outputData.position;
+					
+					float2 posOffsets = o.offsets.xy;
+					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
+					float3 side = local_side;
+					float3 up = local_up;
+					
+					position += side * (posOffsets.x * size.x);
+					position += up * (posOffsets.y * size.y);
+					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
+					
+					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+					o.col = float4(local_color.xyz,local_alpha);
+				}
+				else
+				{
+					o.pos = -1.0;
+					o.col = 0;
+				}
 				
-				float3 local_front = (float3)0;
-				float3 local_side = (float3)0;
-				float3 local_up = (float3)0;
-				float3 local_color = (float3)0;
-				float local_alpha = (float)0;
-				
-				VFXBlockFaceCameraPlane( local_front,local_side,local_up);
-				VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0);
-				
-				float2 size = outputData.size * 0.5f;
-				o.offsets.x = 2.0 * float(id & 1) - 1.0;
-				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-				
-				float3 position = outputData.position;
-				
-				float2 posOffsets = o.offsets.xy;
-				float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
-				float3 side = local_side;
-				float3 up = local_up;
-				
-				position += side * (posOffsets.x * size.x);
-				position += up * (posOffsets.y * size.y);
-				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-				
-				o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
-				o.col = float4(local_color.xyz,local_alpha);
 				return o;
 			}
 			

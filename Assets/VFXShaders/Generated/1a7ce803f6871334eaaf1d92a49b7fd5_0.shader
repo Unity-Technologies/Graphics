@@ -2,12 +2,10 @@ Shader "Hidden/VFX_0"
 {
 	SubShader
 	{
-		Tags { "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent" }
 		Pass
 		{
-			Blend SrcAlpha One
 			ZTest LEqual
-			ZWrite Off
+			ZWrite On
 			Cull Off
 			
 			CGPROGRAM
@@ -24,8 +22,14 @@ Shader "Hidden/VFX_0"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float4 outputUniform0;
+				float outputUniform0;
+				float4 outputUniform1;
 			CBUFFER_END
+			
+			CBUFFER_START(Uniform)
+				float systemIndex;
+			CBUFFER_END
+			ByteAddressBuffer nbElements;
 			
 			Texture2D outputSampler0Texture;
 			SamplerState sampleroutputSampler0Texture;
@@ -65,6 +69,11 @@ Shader "Hidden/VFX_0"
 				return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 			}
 			
+			void VFXBlockAngleConstant( inout float angle,float Value)
+			{
+				angle += Value;
+			}
+			
 			void VFXBlockSetAlphaCurveOverLifetime( inout float alpha,float age,float lifetime,float4 Curve)
 			{
 				float ratio = saturate(age / lifetime);
@@ -97,34 +106,60 @@ Shader "Hidden/VFX_0"
 			{
 				ps_input o;
 				uint index = (id >> 2) + instanceID * 2048;
-				OutputData outputData = outputBuffer[index];
+				if (index < nbElements.Load(asuint(systemIndex) << 2))
+				{
+					OutputData outputData = outputBuffer[index];
+					
+					float local_angle = (float)0;
+					float local_alpha = (float)0;
+					float3 local_front = (float3)0;
+					float3 local_side = (float3)0;
+					float3 local_up = (float3)0;
+					
+					VFXBlockAngleConstant( local_angle,outputUniform0);
+					VFXBlockSetAlphaCurveOverLifetime( local_alpha,outputData.age,outputData.lifetime,outputUniform1);
+					VFXBlockFaceCameraPlane( local_front,local_side,local_up);
+					VFXBlockSubPixelAA( local_alpha,outputData.position,outputData.size);
+					
+					float2 size = outputData.size * 0.5f;
+					o.offsets.x = 2.0 * float(id & 1) - 1.0;
+					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+					
+					float3 position = outputData.position;
+					
+					float2 posOffsets = o.offsets.xy;
+					float3 cameraPos = _WorldSpaceCameraPos.xyz;
+					float3 front = local_front;
+					float3 side = local_side;
+					float3 up = local_up;
+					
+					float2 sincosA;
+					sincos(radians(local_angle), sincosA.x, sincosA.y);
+					const float c = sincosA.y;
+					const float s = sincosA.x;
+					const float t = 1.0 - c;
+					const float x = front.x;
+					const float y = front.y;
+					const float z = front.z;
+					
+					float3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+										t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+										t * x * z - s * y, t * y * z + s * x, t * z * z + c);
+					
+					
+					position += mul(rot,side * posOffsets.x * size.x);
+					position += mul(rot,up * posOffsets.y * size.y);
+					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
+					
+					o.pos = mul (UNITY_MATRIX_VP, float4(position,1.0f));
+					o.col = float4(outputData.color.xyz,local_alpha);
+				}
+				else
+				{
+					o.pos = -1.0;
+					o.col = 0;
+				}
 				
-				float local_alpha = (float)0;
-				float3 local_front = (float3)0;
-				float3 local_side = (float3)0;
-				float3 local_up = (float3)0;
-				
-				VFXBlockSetAlphaCurveOverLifetime( local_alpha,outputData.age,outputData.lifetime,outputUniform0);
-				VFXBlockFaceCameraPlane( local_front,local_side,local_up);
-				VFXBlockSubPixelAA( local_alpha,outputData.position,outputData.size);
-				
-				float2 size = outputData.size * 0.5f;
-				o.offsets.x = 2.0 * float(id & 1) - 1.0;
-				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-				
-				float3 position = outputData.position;
-				
-				float2 posOffsets = o.offsets.xy;
-				float3 cameraPos = _WorldSpaceCameraPos.xyz;
-				float3 side = local_side;
-				float3 up = local_up;
-				
-				position += side * (posOffsets.x * size.x);
-				position += up * (posOffsets.y * size.y);
-				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-				
-				o.pos = mul (UNITY_MATRIX_VP, float4(position,1.0f));
-				o.col = float4(outputData.color.xyz,local_alpha);
 				return o;
 			}
 			
@@ -139,6 +174,7 @@ Shader "Hidden/VFX_0"
 				
 				float4 color = i.col;
 				color *= outputSampler0Texture.Sample(sampleroutputSampler0Texture,i.offsets);
+				if (color.a < 0.33333) discard;
 				
 				o.col = color;
 				return o;

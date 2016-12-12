@@ -1,9 +1,9 @@
 fileFormatVersion: 2
 guid: e02752da33963324c9218e2e45a1a0b1
-timeCreated: 1480956507
+timeCreated: 1481538544
 licenseType: Pro
 ComputeShaderImporter:
-  currentAPIMask: 393220
+  currentAPIMask: 4
   userData: 
   assetBundleName: 
   assetBundleVariant: 
