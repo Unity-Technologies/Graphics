@@ -242,7 +242,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return CreateLUT(k_LtcLUTResolution, k_LtcLUTResolution, format, pixels);
             }            
 
-            public void Build()
+            public void Rebuild()
             {
                 m_InitPreFGD = CreateEngineMaterial("Hidden/HDRenderLoop/PreIntegratedFGD");
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
@@ -260,7 +260,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 Utilities.Destroy(m_InitPreFGD);
 
-                // TODO: how to delete RenderTexture ? or do we need to do it ?
+                // TODO: how to delete RenderTexture ?
                 isInit = false;
             }
 
