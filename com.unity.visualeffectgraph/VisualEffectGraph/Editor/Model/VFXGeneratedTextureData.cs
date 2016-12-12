@@ -73,8 +73,8 @@ namespace UnityEngine.Experimental.VFX
 
         private void DestroyTexture(Texture2D texture)
         {
-            if (texture != null && !EditorUtility.IsPersistent(m_ColorTexture))// Do we still have ownership on the texture or has it been serialized within a VFX asset ?
-                Object.DestroyImmediate(m_ColorTexture);
+            if (texture != null && !EditorUtility.IsPersistent(texture))// Do we still have ownership on the texture or has it been serialized within a VFX asset ?
+                Object.DestroyImmediate(texture);
         }
 
         public void Generate(VFXAsset asset)

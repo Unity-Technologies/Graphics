@@ -25,45 +25,53 @@ CBUFFER_START(initUniforms)
 	float3 initUniform3;
 	float initUniform4;
 	float initUniform5;
-	float initUniform6;
-	float3 initUniform7;
+	float3 initUniform6;
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
 	float3 updateUniform0;
+	float4 updateUniform1;
+	float3 updateUniform2;
+	float updateUniform3;
+	float updateUniform4;
+	float updateUniform5;
+	float updateUniform6;
+	float updateUniform7;
 CBUFFER_END
+
+Texture2D curveTexture;
+SamplerState samplercurveTexture;
 
 struct Attribute0
 {
 	float3 position;
-	float age;
+	uint _PADDING_0;
 };
 
 struct Attribute1
+{
+	float2 size;
+};
+
+struct Attribute2
 {
 	float3 color;
 	uint _PADDING_0;
 };
 
-struct Attribute2
-{
-	float lifetime;
-};
-
 struct Attribute3
 {
-	float2 size;
+	float lifetime;
 };
 
 struct Attribute4
 {
 	float3 velocity;
-	uint _PADDING_0;
+	float age;
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
 RWStructuredBuffer<Attribute1> attribBuffer1;
-StructuredBuffer<Attribute1> attribBuffer1_RO;
 RWStructuredBuffer<Attribute2> attribBuffer2;
 StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
@@ -73,11 +81,11 @@ RWStructuredBuffer<Attribute4> attribBuffer4;
 struct OutputData
 {
 	float3 position;
-	float age;
+	uint _PADDING_0;
 	float3 color;
-	float lifetime;
+	uint _PADDING_1;
 	float2 size;
-	uint2 _PADDING_0;
+	uint2 _PADDING_2;
 };
 
 AppendStructuredBuffer<OutputData> outputBuffer;
@@ -93,6 +101,19 @@ float rand(inout uint seed)
 {
 	seed = 1664525 * seed + 1013904223;
 	return float(seed) / 4294967296.0;
+}
+
+// Non optimized generic function to allow curve edition without recompiling
+float sampleSignal(float4 curveData,float u) // sample curve
+{
+	float uNorm = (u * curveData.x) + curveData.y;
+	switch(asuint(curveData.w) >> 2)
+	{
+		case 1: uNorm = ((0.9921875 * frac(min(1.0f - 1e-5f,uNorm))) + 0.00390625); break; // clamp end
+		case 2: uNorm = ((0.9921875 * frac(max(0.0f,uNorm))) + 0.00390625); break; // clamp start
+		case 3: uNorm = ((0.9921875 * saturate(uNorm)) + 0.00390625); break; // clamp both
+	}
+	return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 }
 
 void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
@@ -112,11 +133,6 @@ void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float Max
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSizeConstantSquare( inout float2 size,float Size)
-{
-	size = float2(Size,Size);
-}
-
 void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
 {
 	velocity += Velocity;
@@ -125,6 +141,26 @@ void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
 void VFXBlockSetForceConstant( inout float3 velocity,float3 Force)
 {
 	velocity += Force * deltaTime;
+}
+
+void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float4 Curve)
+{
+	float ratio = saturate(age/lifetime);
+	float s = sampleSignal(Curve, ratio);
+	size = float2(s,s);
+}
+
+void VFXBlockSetForceConformToSphere( inout float3 velocity,float3 position,float3 Sphere_center,float Sphere_radius,float attractionSpeed,float attractionForce,float stickForce,float stickDistance)
+{
+	float3 dir = Sphere_center - position;
+	float distToCenter = length(dir);
+	float distToSurface = distToCenter - Sphere_radius;
+	dir /= distToCenter;
+	float spdNormal = dot(dir,velocity);
+	float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));
+	float tgtSpeed = sign(distToSurface) * attractionSpeed * ratio;
+	float deltaSpeed = tgtSpeed - spdNormal;
+	velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir;
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
@@ -152,10 +188,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		local_seed = seed;
 		
 		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0,initUniform1,local_seed);
-		VFXBlockSetColorRandom( attrib1.color,initUniform2,initUniform3,local_seed);
-		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform4,initUniform5,local_seed);
-		VFXBlockSizeConstantSquare( attrib3.size,initUniform6);
-		VFXBlockVelocityConstant( attrib4.velocity,initUniform7);
+		VFXBlockSetColorRandom( attrib2.color,initUniform2,initUniform3,local_seed);
+		VFXBlockSetLifetimeRandom( attrib3.lifetime,initUniform4,initUniform5,local_seed);
+		VFXBlockVelocityConstant( attrib4.velocity,initUniform6);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -176,18 +211,20 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		bool kill = false;
 		
 		Attribute0 attrib0 = attribBuffer0[index];
-		Attribute1 attrib1 = attribBuffer1_RO[index];
+		Attribute1 attrib1 = attribBuffer1[index];
 		Attribute2 attrib2 = attribBuffer2_RO[index];
 		Attribute3 attrib3 = attribBuffer3_RO[index];
 		Attribute4 attrib4 = attribBuffer4[index];
 		
 		
 		VFXBlockSetForceConstant( attrib4.velocity,updateUniform0);
+		VFXBlockSizeOverLifeCurve( attrib1.size,attrib4.age,attrib3.lifetime,updateUniform1);
+		VFXBlockSetForceConformToSphere( attrib4.velocity,attrib0.position,updateUniform2,updateUniform3,updateUniform4,updateUniform5,updateUniform6,updateUniform7);
 		
 		attrib0.position += attrib4.velocity * deltaTime;
 		
-		attrib0.age += deltaTime;
-		if (attrib0.age >= attrib2.lifetime)
+		attrib4.age += deltaTime;
+		if (attrib4.age >= attrib3.lifetime)
 			kill = true;
 		
 		if (kill)
@@ -198,14 +235,13 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		else
 		{
 			attribBuffer0[index] = attrib0;
+			attribBuffer1[index] = attrib1;
 			attribBuffer4[index] = attrib4;
 			
 			OutputData outputData = (OutputData)0;
 			outputData.position = attrib0.position;
-			outputData.age = attrib0.age;
-			outputData.color = attrib1.color;
-			outputData.lifetime = attrib2.lifetime;
-			outputData.size = attrib3.size;
+			outputData.color = attrib2.color;
+			outputData.size = attrib1.size;
 			outputBuffer.Append(outputData);
 		}
 	}

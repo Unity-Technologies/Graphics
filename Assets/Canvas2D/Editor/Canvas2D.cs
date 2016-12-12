@@ -113,7 +113,7 @@ namespace UnityEditor.Experimental
 
             m_RenderTexture = new RenderTexture(1024, 1024, 24, RenderTextureFormat.ARGB32);
             m_RenderTexture.useMipMap = true;
-            m_RenderTexture.generateMips = true;
+            m_RenderTexture.autoGenerateMips = true;
             m_RenderTexture.antiAliasing = 1;
             m_RenderTexture.filterMode = FilterMode.Trilinear;
             m_RenderTexture.Create();
