@@ -771,16 +771,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 var mat = probe.localToWorld;
 
-                // C is reflection volume center in world space (NOT same as cube map capture point)
-                var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
-                //Vector3 C = bnds.center;        // P + boxOffset;
-                var C = mat.MultiplyPoint(boxOffset);       // same as commented out line above when rot is identity
-
-                var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
-
                 Vector3 vx = mat.GetColumn(0);
                 Vector3 vy = mat.GetColumn(1);
                 Vector3 vz = mat.GetColumn(2);
+                Vector3 vw = mat.GetColumn(3);
+                vx.Normalize(); // Scale shouldn't affect the probe or its bounds
+                vy.Normalize();
+                vz.Normalize();
+
+                // C is reflection volume center in world space (NOT same as cube map capture point)
+                var e = bnds.extents;       // 0.5f * Vector3.Max(-boxSizes[p], boxSizes[p]);
+                var C = vx * boxOffset.x + vy * boxOffset.y + vz * boxOffset.z + vw;
+
+                var combinedExtent = e + new Vector3(blendDistance, blendDistance, blendDistance);
 
                 // transform to camera space (becomes a left hand coordinate frame in Unity since Determinant(worldToView)<0)
                 vx = worldToView.MultiplyVector(vx);
