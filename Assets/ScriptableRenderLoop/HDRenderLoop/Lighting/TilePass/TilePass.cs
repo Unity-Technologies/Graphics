@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public int debugViewTilesFlags = 0;
             public bool enableClustered = false;
             public bool disableFptlWhenClustered = true;    // still useful on opaques. Should be false by default to force tile on opaque.
-            public bool enableBigTilePrepass = false;
+            public bool enableBigTilePrepass = true;
             const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
             const bool k_UseAsyncCompute = true;        // should not use on mobile
 
@@ -209,7 +209,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return (camera.pixelHeight + (k_TileSize - 1)) / k_TileSize;
             }
 
-            public override void Build(TextureSettings textureSettings)
+            public override void Rebuild(TextureSettings textureSettings)
             {
                 m_lightList = new LightList();
                 m_lightList.Allocate();
