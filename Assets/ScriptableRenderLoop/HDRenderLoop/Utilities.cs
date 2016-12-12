@@ -165,14 +165,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
             var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, false);
-            var gpuVP = gpuProj * worldToViewMatrix;
+            var gpuVP = gpuProj *  worldToViewMatrix * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API.
 
             return gpuVP;
         }
 
         public static Matrix4x4 GetViewProjectionMatrix(Camera camera)
         {
-            return GetViewProjectionMatrix(camera.worldToCameraMatrix, camera.projectionMatrix);
+			// The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
+			// (different Z value ranges etc.)
+			var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+			var gpuVP = gpuProj * camera.worldToCameraMatrix;
+
+			return gpuVP;
         }
 
         public static Vector4 ComputeScreenSize(Camera camera)
