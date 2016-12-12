@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             RebuildTextures(skyParameters);
         }
 
-        public void Rebuild()
+        public void Build()
         {
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");

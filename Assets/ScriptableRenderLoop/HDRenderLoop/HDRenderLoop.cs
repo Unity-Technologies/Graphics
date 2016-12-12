@@ -152,10 +152,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         RenderTargetIdentifier m_DistortionBufferRT;
 
         // Detect when windows size is changing
-        int m_WidthOnRecord;
-        int m_HeightOnRecord;
+        int m_currentWidth;
+        int m_currentHeight;
 
-        // This must be allocate outside of Rebuild() else the option in the class can't be set in the inspector (as it will in this case recreate the class with default value)
+        // Keep these settings safe to recover when leaving the render pipeline
+        bool previousLightsUseLinearIntensity;
+        bool previousLightsUseCCT;
+
+        // This must be allocate outside of Build() else the option in the class can't be set in the inspector (as it will in this case recreate the class with default value)
         BaseLightLoop m_lightLoop = new TilePass.LightLoop();
 
         public BaseLightLoop lightLoop
@@ -164,7 +168,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 
         // TODO: Find a way to automatically create/iterate through deferred material
-        // TODO TO CHECK: SebL I move allocation from Rebuild() to here, but there was a comment "// Our object can be garbage collected, so need to be allocate here", it is still true ?
+        // TODO TO CHECK: SebL I move allocation from Build() to here, but there was a comment "// Our object can be garbage collected, so need to be allocate here", it is still true ?
         Lit.RenderLoop m_LitRenderLoop = new Lit.RenderLoop();
 
         public override void Build()
@@ -175,6 +179,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation
             };
 #endif
+            previousLightsUseLinearIntensity = UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity;
+            previousLightsUseCCT = UnityEngine.Rendering.GraphicsSettings.lightsUseCCT;
+            UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = true;
+            UnityEngine.Rendering.GraphicsSettings.lightsUseCCT = true;
 
             m_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
             m_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
@@ -183,7 +191,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_CameraDepthBufferRT = new RenderTargetIdentifier(m_CameraDepthBuffer);
 
             m_SkyRenderer = new SkyRenderer();
-            m_SkyRenderer.Rebuild();
+            m_SkyRenderer.Build();
 
             m_FinalPassMaterial  = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/FinalPass");
             m_DebugViewMaterialGBuffer = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/DebugViewMaterialGBuffer");
@@ -215,15 +223,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_DistortionBuffer = Shader.PropertyToID("_DistortionTexture");
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
 
-            m_LitRenderLoop.Rebuild();
-            m_lightLoop.Rebuild(m_TextureSettings);
+            m_LitRenderLoop.Build();
+            m_lightLoop.Build(m_TextureSettings);
         }
 
         public override void Cleanup()
         {
-            m_LitRenderLoop.Cleanup();
             m_lightLoop.Cleanup();
-
+            m_LitRenderLoop.Cleanup();
+ 
             Utilities.Destroy(m_FinalPassMaterial);
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
 
@@ -235,6 +243,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 #if UNITY_EDITOR
             UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
 #endif
+            UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = previousLightsUseLinearIntensity;
+            UnityEngine.Rendering.GraphicsSettings.lightsUseCCT = previousLightsUseCCT;
         }
 
         void InitAndClearBuffer(Camera camera, RenderLoop renderLoop)
@@ -562,9 +572,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // For now consider we have only one camera that go to this code, the main one.
             m_SkyRenderer.Resize(m_SkyParameters); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
 
-            if (camera.pixelWidth != m_WidthOnRecord || camera.pixelHeight != m_HeightOnRecord || m_lightLoop.NeedResize())
+            if (camera.pixelWidth != m_currentWidth || camera.pixelHeight != m_currentHeight || m_lightLoop.NeedResize())
             {
-                if (m_WidthOnRecord > 0 && m_HeightOnRecord > 0)
+                if (m_currentWidth > 0 && m_currentHeight > 0)
                 {
                     m_lightLoop.ReleaseResolutionDependentBuffers();
                 }
@@ -572,8 +582,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_lightLoop.AllocResolutionDependentBuffers(camera.pixelWidth, camera.pixelHeight);
 
                 // update recorded window resolution
-                m_WidthOnRecord = camera.pixelWidth;
-                m_HeightOnRecord = camera.pixelHeight;
+                m_currentWidth = camera.pixelWidth;
+                m_currentHeight = camera.pixelHeight;
             }
         }
 
