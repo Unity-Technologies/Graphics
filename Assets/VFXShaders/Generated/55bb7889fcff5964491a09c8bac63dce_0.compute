@@ -55,7 +55,7 @@ struct Attribute0
 struct Attribute1
 {
 	float3 position;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 struct Attribute2
@@ -74,6 +74,16 @@ StructuredBuffer<Attribute0> attribBuffer0_RO;
 RWStructuredBuffer<Attribute1> attribBuffer1;
 RWStructuredBuffer<Attribute2> attribBuffer2;
 RWStructuredBuffer<Attribute3> attribBuffer3;
+
+struct OutputData
+{
+	float3 position;
+	uint _PADDING_0;
+	float2 size;
+	uint2 _PADDING_1;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -237,6 +247,11 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			attribBuffer1[index] = attrib1;
 			attribBuffer2[index] = attrib2;
 			attribBuffer3[index] = attrib3;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.position = attrib1.position;
+			outputData.size = attrib2.size;
+			outputBuffer.Append(outputData);
 		}
 	}
 }

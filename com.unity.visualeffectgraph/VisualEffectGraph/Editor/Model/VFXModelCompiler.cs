@@ -55,6 +55,8 @@ namespace UnityEditor.Experimental
         public uint outputType; // tmp value to pass to C++
         public bool hasKill;
 
+        public int outputBufferSize;
+
         public VFXBufferDesc[] buffersDesc;
 
         public VFXSystemRuntimeData(ComputeShader computeShader,Shader shader)
@@ -122,12 +124,20 @@ namespace UnityEditor.Experimental
             return VFXAttribute.Writable(m_Usage,type);
         }
 
-        public int GetSizeInBytes()
+        public int GetSizeInBytes(bool withPadding = false)
         {
             int size = 0;
             foreach (VFXAttribute attrib in m_Attribs)
-                size += VFXValue.TypeToSize(attrib.m_Type) * 4;
-            return size;
+            {
+                int typeSize = VFXValue.TypeToSize(attrib.m_Type);
+                
+                if (withPadding) // check natural alignment
+                    size = (size + typeSize - 1) & ~(typeSize - 1);
+                size += typeSize;
+            }
+            if (withPadding)
+                size = (size + 3) & ~0x3; // size is multiple of 4 dwords
+            return size << 2; 
         }
 
         int m_Index;
@@ -172,6 +182,7 @@ namespace UnityEditor.Experimental
         public HashSet<VFXExpression> initSamplers;
         public HashSet<VFXExpression> updateSamplers;
 
+        public AttributeBuffer outputBuffer;
         public HashSet<VFXExpression> outputUniforms;
         public HashSet<VFXExpression> outputSamplers;
 
@@ -187,6 +198,11 @@ namespace UnityEditor.Experimental
         public bool HasAttribute(VFXAttribute attrib) // TODO Check against usage ?
         {
             return attribToBuffer.ContainsKey(attrib) || localAttribs.ContainsKey(attrib);
+        }
+
+        public bool UseOutputData()
+        {
+            return outputBuffer != null;
         }
     }
 
@@ -382,6 +398,79 @@ namespace UnityEditor.Experimental
                 for (int i = 0; i < buffer.Count; ++i)
                     attribToBuffer.Add(buffer[i], buffer);
 
+            //--------------------------------------------------------------------------
+            // OUTPUT BUFFER GENERATION
+            bool useOutputBuffer = updateHasKill && system.BlendingMode != BlendMode.kAlpha; // Let's not use indirect output with alpha blend till we have sorting
+            var outputAttribs = new List<VFXAttribute>();
+            AttributeBuffer outputBuffer = useOutputBuffer ? new AttributeBuffer(-1,VFXAttribute.Usage.kUpdateW | VFXAttribute.Usage.kOutputR) : null;
+            if (updateHasKill)
+            {
+                // Buckets by size
+                var attribsPerSize = new Queue<VFXAttribute>[4];
+                for (int i = 0; i < 4; ++i) // Assuming sizes cannot be more than 4 bytes
+                    attribsPerSize[i] = new Queue<VFXAttribute>();
+
+                // Gather output attributes and add to correct size bucket
+                foreach (var attrib in attribToBuffer)
+                    if (attrib.Value.Used(VFXContextDesc.Type.kTypeOutput))
+                    {
+                        VFXValue.TypeToSize(attrib.Key.m_Type);
+                        attribsPerSize[VFXValue.TypeToSize(attrib.Key.m_Type) - 1].Enqueue(attrib.Key);
+                    }
+
+                // First add 4 dwords types
+                while (attribsPerSize[3].Count > 0) 
+                    outputAttribs.Add(attribsPerSize[3].Dequeue());
+                // Then 3 paired with 1
+                while (attribsPerSize[2].Count > 0)
+                {
+                    outputAttribs.Add(attribsPerSize[2].Dequeue());
+                    if (attribsPerSize[0].Count > 0)
+                        outputAttribs.Add(attribsPerSize[0].Dequeue());
+                }
+                // 2 paired with 2 or two 1s
+                while (attribsPerSize[1].Count > 0)
+                {
+                    outputAttribs.Add(attribsPerSize[1].Dequeue());
+                    if (attribsPerSize[1].Count > 0)
+                        outputAttribs.Add(attribsPerSize[1].Dequeue());
+                    else
+                    {
+                        if (attribsPerSize[0].Count > 0)
+                            outputAttribs.Add(attribsPerSize[0].Dequeue());
+                        if (attribsPerSize[0].Count > 0)
+                            outputAttribs.Add(attribsPerSize[0].Dequeue());
+                    }
+                }
+                // Finally add the 1s
+                while (attribsPerSize[0].Count > 0)
+                    outputAttribs.Add(attribsPerSize[0].Dequeue());
+
+                // Debug log
+                int offset = 0;
+                Debug.Log("OUTPUT BUFFER:");
+                foreach (var attrib in outputAttribs)
+                {
+                    int size = VFXValue.TypeToSize(attrib.m_Type);
+                    int alignment = size == 3 ? 4 : size;
+                    int padding = (alignment - (offset % alignment)) % alignment;
+                    if (padding != 0)
+                        Debug.Log("_PADDING - " + padding);
+                    Debug.Log(attrib.m_Name+" - "+attrib.m_Type);
+                    offset += size + padding;
+
+                    if (useOutputBuffer)
+                        outputBuffer.Add(attrib);
+                }
+                // Pad the end to have size multiple of 4 dwords
+                if ((offset & 3) != 0)
+                {
+                    int padding = 4 - (offset & 3);
+                    Debug.Log("_PADDING - " + padding);
+                }
+            }
+            //--------------------------------------------------------------------------
+
             VFXEditor.Log("Nb Attributes : " + attribs.Count);
             VFXEditor.Log("Nb Attribute buffers: " + buffers.Count);
             for (int i = 0; i < buffers.Count; ++i)
@@ -537,6 +626,7 @@ namespace UnityEditor.Experimental
             shaderMetaData.colorTextureContexts = colorTextureContexts;
             shaderMetaData.floatTextureContexts = floatTextureContexts;
             shaderMetaData.extraUniforms = generatedUniforms;
+            shaderMetaData.outputBuffer = outputBuffer;
 
             ProgressBarHelper.IncrementStep("Compile system " + system.Id + ": Generate shader code");
             string shaderSource = WriteComputeShader(shaderMetaData,initGenerator,updateGenerator);
@@ -601,8 +691,11 @@ namespace UnityEditor.Experimental
 
             VFXSystemRuntimeData rtData = new VFXSystemRuntimeData(simulationShader,outputShader);
 
-            rtData.outputType = outputGenerator.GetSingleIndexBuffer(shaderMetaData) != null ? 1u : 0u; // This is temp
+            rtData.outputType = (uint)outputGenerator.GetOutputType(); // This is temp
             rtData.hasKill = shaderMetaData.hasKill;
+
+            rtData.outputBufferSize = outputBuffer != null ? outputBuffer.GetSizeInBytes(true) : 0;
+            Debug.Log("OUTPUTBUFFER SIZE: " + rtData.outputBufferSize);
 
             rtData.m_GeneratedTextureData = system.GeneratedTextureData;
             rtData.m_ColorTextureContexts = colorTextureContexts;
@@ -622,9 +715,9 @@ namespace UnityEditor.Experimental
                 string bufferName = "attribBuffer" + attribBuffer.Index;
                 if (attribBuffer.Used(VFXContextDesc.Type.kTypeInit))
                     bufferDesc.initName = bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeInit) ? "" : "_RO");
-                if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
+                if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate) || (outputBuffer != null && attribBuffer.Used(VFXContextDesc.Type.kTypeOutput)))
                     bufferDesc.updateName = bufferName + (attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate) ? "" : "_RO");
-                if (attribBuffer.Used(VFXContextDesc.Type.kTypeOutput))
+                if (outputBuffer == null && attribBuffer.Used(VFXContextDesc.Type.kTypeOutput))
                     bufferDesc.outputName = bufferName;
 
                 buffersDesc.Add(bufferDesc);
@@ -823,7 +916,7 @@ namespace UnityEditor.Experimental
                 builder.Write(attribBuffer.Index);
                 builder.WriteLine(";");
 
-                if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate) && !attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate))
+                if (!attribBuffer.Writable(VFXContextDesc.Type.kTypeUpdate) && (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate) || (data.UseOutputData() && attribBuffer.Used(VFXContextDesc.Type.kTypeOutput))))
                 {
                     builder.Write("StructuredBuffer<Attribute");
                     builder.Write(attribBuffer.Index);
@@ -834,6 +927,13 @@ namespace UnityEditor.Experimental
             }
             if (data.attributeBuffers.Count > 0)
                 builder.WriteLine();
+
+            if (data.UseOutputData())
+            {
+                builder.WriteAttributeBuffer(data.outputBuffer, true);
+                builder.WriteLine("AppendStructuredBuffer<OutputData> outputBuffer;");
+                builder.WriteLine();
+            }
 
             // Write deadlists
             if (data.hasKill)
@@ -1039,7 +1139,7 @@ namespace UnityEditor.Experimental
          
                 foreach (var attribBuffer in data.attributeBuffers)
                 {
-                    if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate))
+                    if (attribBuffer.Used(VFXContextDesc.Type.kTypeUpdate) || (data.UseOutputData() && attribBuffer.Used(VFXContextDesc.Type.kTypeOutput)))
                     {
                         builder.Write("Attribute");
                         builder.Write(attribBuffer.Index);
@@ -1090,7 +1190,6 @@ namespace UnityEditor.Experimental
                     builder.EnterScope();
                     builder.WriteLine("flags[index] = 0;");
                     builder.WriteLine("deadListOut.Append(index);");
-                    //builder.WriteLine("return;");
                     builder.ExitScope();
 
                     builder.WriteLine("else");
@@ -1107,6 +1206,21 @@ namespace UnityEditor.Experimental
                         builder.Write(attribBuffer.Index);
                         builder.WriteLine(";");
                     }
+                }
+
+                // Needs to push outputData to buffer
+                if (data.UseOutputData())
+                {
+                    builder.WriteLine();
+                    builder.WriteLine("OutputData outputData = (OutputData)0;");
+                    for (int i = 0; i < data.outputBuffer.Count; ++i)
+                    {
+                        VFXAttribute attrib = data.outputBuffer[i];
+                        builder.WriteFormat("outputData.{0} = ",attrib.m_Name);
+                        builder.WriteAttrib(attrib, data);
+                        builder.WriteLine(";");
+                    }
+                    builder.WriteLine("outputBuffer.Append(outputData);");
                 }
 
                 if (USE_DYNAMIC_AABB)
@@ -1208,6 +1322,18 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
 
             builder.WriteCBuffer("outputUniforms", data.outputUniforms, data.outputParamToName);
+
+            bool quadPatches = outputGenerator.GetOutputType() == 1 && system.MaxNb > 16384;
+            // Data used not to fetch out of bounds elements when using indirect draw with quad patches
+            if (quadPatches && data.UseOutputData())
+            {
+                builder.WriteLine("CBUFFER_START(Uniform)");
+                builder.WriteLine("\tfloat systemIndex;");
+                builder.WriteLine("CBUFFER_END");
+                builder.WriteLine("ByteAddressBuffer nbElements;");
+                builder.WriteLine();
+            }
+
             builder.WriteSamplers(data.outputSamplers, data.outputParamToName);
 
             // Write generated texture samplers
@@ -1222,21 +1348,29 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
-            foreach (AttributeBuffer buffer in data.attributeBuffers)
-                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
-                    builder.WriteAttributeBuffer(buffer);
+            if (data.UseOutputData())
+            {
+                builder.WriteAttributeBuffer(data.outputBuffer, true);
+                builder.WriteLine("StructuredBuffer<OutputData> outputBuffer;");
+            }
+            else
+            {
+                foreach (AttributeBuffer buffer in data.attributeBuffers)
+                    if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
+                        builder.WriteAttributeBuffer(buffer);
 
-            foreach (AttributeBuffer buffer in data.attributeBuffers)
-                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
-                {
-                    builder.Write("StructuredBuffer<Attribute");
-                    builder.Write(buffer.Index);
-                    builder.Write("> attribBuffer");
-                    builder.Write(buffer.Index);
-                    builder.WriteLine(";");
-                }
+                foreach (AttributeBuffer buffer in data.attributeBuffers)
+                    if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
+                    {
+                        builder.Write("StructuredBuffer<Attribute");
+                        builder.Write(buffer.Index);
+                        builder.Write("> attribBuffer");
+                        builder.Write(buffer.Index);
+                        builder.WriteLine(";");
+                    }
+            }
 
-            if (data.hasKill)
+            if (data.hasKill && !data.UseOutputData())
                 builder.WriteLine("StructuredBuffer<int> flags;");
 
             builder.WriteLine();
@@ -1283,11 +1417,26 @@ namespace UnityEditor.Experimental
 
             outputGenerator.WriteIndex(builder, data);
 
+            bool skipElements = false;
             if (data.hasKill)
-            {
-                builder.WriteLine("if (flags[index] == 1)");
-                builder.EnterScope();
+            { 
+                if(!data.UseOutputData())
+                {
+                    //if (!quadPatches)
+                        builder.WriteLine("if (flags[index] == 1)");
+                   // else
+                   //     builder.WriteLine("if (index < nbMax && flags[index] == 1)");
+                    skipElements = true;
+                }
+                else if (quadPatches)
+                {
+                    builder.WriteLine("if (index < nbElements.Load(asuint(systemIndex) << 2))");
+                    skipElements = true;
+                }
             }
+
+            if (skipElements)
+                builder.EnterScope();
 
             if (data.hasCull)
             {
@@ -1295,17 +1444,22 @@ namespace UnityEditor.Experimental
                 builder.WriteLine();
             }
 
-            foreach (var buffer in data.attributeBuffers)
-                if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
-                {
-                    builder.Write("Attribute");
-                    builder.Write(buffer.Index);
-                    builder.Write(" attrib");
-                    builder.Write(buffer.Index);
-                    builder.Write(" = attribBuffer");
-                    builder.Write(buffer.Index);
-                    builder.WriteLine("[index];");
-                }
+            if (data.UseOutputData())
+                builder.WriteLine("OutputData outputData = outputBuffer[index];");
+            else
+            {
+                foreach (var buffer in data.attributeBuffers)
+                    if (buffer.Used(VFXContextDesc.Type.kTypeOutput))
+                    {
+                        builder.Write("Attribute");
+                        builder.Write(buffer.Index);
+                        builder.Write(" attrib");
+                        builder.Write(buffer.Index);
+                        builder.Write(" = attribBuffer");
+                        builder.Write(buffer.Index);
+                        builder.WriteLine("[index];");
+                    }
+            }
             builder.WriteLine();
 
             builder.WriteLocalAttribDeclaration(data, VFXContextDesc.Type.kTypeOutput);
@@ -1328,7 +1482,7 @@ namespace UnityEditor.Experimental
 
                 if (hasColor)
                 {
-                    builder.WriteAttrib(CommonAttrib.Color, data);
+                    builder.WriteAttrib(CommonAttrib.Color, data, true);
                     builder.Write(".xyz,");
                 }
                 else
@@ -1336,7 +1490,7 @@ namespace UnityEditor.Experimental
 
                 if (hasAlpha)
                 {
-                    builder.WriteAttrib(CommonAttrib.Alpha, data);
+                    builder.WriteAttrib(CommonAttrib.Alpha, data, true);
                     builder.WriteLine(");");
                 }
                 else
@@ -1353,7 +1507,7 @@ namespace UnityEditor.Experimental
                 builder.ExitScope();
             }
 
-            if (data.hasKill)
+            if (skipElements)
             {
                 // clip the vertex if not alive
                 builder.ExitScope();

@@ -39,7 +39,7 @@ Shader "Hidden/VFX_1"
 			struct Attribute0
 			{
 				float3 position;
-				float _PADDING_;
+				uint _PADDING_0;
 			};
 			
 			struct Attribute1
@@ -87,7 +87,7 @@ Shader "Hidden/VFX_1"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
+				uint index = (id >> 2) + instanceID * 2048;
 				Attribute0 attrib0 = attribBuffer0[index];
 				Attribute1 attrib1 = attribBuffer1[index];
 				Attribute2 attrib2 = attribBuffer2[index];

@@ -45,7 +45,7 @@ struct Attribute1
 struct Attribute2
 {
 	float3 position;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 struct Attribute3
@@ -57,8 +57,20 @@ RWStructuredBuffer<Attribute0> attribBuffer0;
 RWStructuredBuffer<Attribute1> attribBuffer1;
 StructuredBuffer<Attribute1> attribBuffer1_RO;
 RWStructuredBuffer<Attribute2> attribBuffer2;
+StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
 StructuredBuffer<Attribute3> attribBuffer3_RO;
+
+struct OutputData
+{
+	float3 position;
+	float age;
+	float texIndex;
+	float lifetime;
+	uint2 _PADDING_0;
+};
+
+AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -140,6 +152,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		
 		Attribute0 attrib0 = attribBuffer0[index];
 		Attribute1 attrib1 = attribBuffer1_RO[index];
+		Attribute2 attrib2 = attribBuffer2_RO[index];
 		Attribute3 attrib3 = attribBuffer3_RO[index];
 		
 		
@@ -157,6 +170,13 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		else
 		{
 			attribBuffer0[index] = attrib0;
+			
+			OutputData outputData = (OutputData)0;
+			outputData.position = attrib2.position;
+			outputData.age = attrib0.age;
+			outputData.texIndex = attrib0.texIndex;
+			outputData.lifetime = attrib1.lifetime;
+			outputBuffer.Append(outputData);
 		}
 	}
 }

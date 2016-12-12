@@ -37,40 +37,19 @@ Shader "Hidden/VFX_4"
 			Texture2D curveTexture;
 			SamplerState samplercurveTexture;
 			
-			struct Attribute0
+			struct OutputData
 			{
 				float3 velocity;
 				float age;
-			};
-			
-			struct Attribute1
-			{
 				float3 position;
-				float _PADDING_;
-			};
-			
-			struct Attribute2
-			{
 				float lifetime;
-			};
-			
-			struct Attribute3
-			{
 				float3 color;
 				float texIndex;
-			};
-			
-			struct Attribute4
-			{
 				float alpha;
+				uint3 _PADDING_0;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<Attribute3> attribBuffer3;
-			StructuredBuffer<Attribute4> attribBuffer4;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
@@ -126,50 +105,37 @@ Shader "Hidden/VFX_4"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
-				if (flags[index] == 1)
-				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
-					Attribute3 attrib3 = attribBuffer3[index];
-					Attribute4 attrib4 = attribBuffer4[index];
-					
-					float3 local_front = (float3)0;
-					float3 local_side = (float3)0;
-					float3 local_up = (float3)0;
-					float2 local_size = (float2)0;
-					
-					VFXBlockOrientAlongVelocity( local_front,local_side,local_up,attrib0.velocity,attrib1.position);
-					VFXBlockSetAlphaCurveOverLifetime( attrib4.alpha,attrib0.age,attrib2.lifetime,outputUniform0);
-					VFXBlockSizeConstantSquare( local_size,outputUniform1);
-					VFXBlockApplyScaleRatioFromVelocity( local_size,attrib0.velocity,outputUniform2,outputUniform3);
-					
-					float2 size = local_size * 0.5f;
-					o.offsets.x = 2.0 * float(id & 1) - 1.0;
-					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-					
-					float3 position = attrib1.position;
-					
-					float2 posOffsets = o.offsets.xy;
-					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
-					float3 side = local_side;
-					float3 up = local_up;
-					
-					position += side * (posOffsets.x * size.x);
-					position += up * (posOffsets.y * size.y);
-					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-					o.flipbookIndex = attrib3.texIndex;
-					
-					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
-					o.col = float4(attrib3.color.xyz,attrib4.alpha);
-				}
-				else
-				{
-					o.pos = -1.0;
-					o.col = 0;
-				}
+				uint index = (id >> 2) + instanceID * 2048;
+				OutputData outputData = outputBuffer[index];
 				
+				float3 local_front = (float3)0;
+				float3 local_side = (float3)0;
+				float3 local_up = (float3)0;
+				float2 local_size = (float2)0;
+				
+				VFXBlockOrientAlongVelocity( local_front,local_side,local_up,outputData.velocity,outputData.position);
+				VFXBlockSetAlphaCurveOverLifetime( outputData.alpha,outputData.age,outputData.lifetime,outputUniform0);
+				VFXBlockSizeConstantSquare( local_size,outputUniform1);
+				VFXBlockApplyScaleRatioFromVelocity( local_size,outputData.velocity,outputUniform2,outputUniform3);
+				
+				float2 size = local_size * 0.5f;
+				o.offsets.x = 2.0 * float(id & 1) - 1.0;
+				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+				
+				float3 position = outputData.position;
+				
+				float2 posOffsets = o.offsets.xy;
+				float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
+				float3 side = local_side;
+				float3 up = local_up;
+				
+				position += side * (posOffsets.x * size.x);
+				position += up * (posOffsets.y * size.y);
+				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
+				o.flipbookIndex = outputData.texIndex;
+				
+				o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+				o.col = float4(outputData.color.xyz,outputData.alpha);
 				return o;
 			}
 			

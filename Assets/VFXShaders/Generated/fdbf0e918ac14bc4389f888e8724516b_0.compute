@@ -24,7 +24,7 @@ CBUFFER_END
 struct Attribute0
 {
 	float3 position;
-	float _PADDING_;
+	uint _PADDING_0;
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;

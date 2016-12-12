@@ -1,0 +1,59 @@
+#pragma kernel CSVFXIndirectArgs
+
+#include "HLSLSupport.cginc"
+
+CBUFFER_START(Uniform)
+	uint maxNb;
+CBUFFER_END
+ 
+#define NB_THREADS_PER_GROUP 64
+#define NB_INDICES_PER_INSTANCE 2048
+
+ByteAddressBuffer nbElements;		// Filled by GPU
+StructuredBuffer<uint> outputTypes; // Filled by CPU
+
+RWBuffer<uint> output;
+
+// Points
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x < maxNb) 
+	{
+		uint vertexCount = 0;
+		uint instanceCount = 0;
+
+		uint elementCount = nbElements.Load(id.x << 2);
+
+		switch(outputTypes[id.x])
+		{
+			case 0: // point
+			{
+				vertexCount = elementCount;
+				instanceCount = 1;
+				break;
+			}
+			
+			case 1: // quads
+			case 2:
+			{
+				if (elementCount > 16384) // Due to 16bits indices
+				{
+					vertexCount = NB_INDICES_PER_INSTANCE * 6;
+					instanceCount = (elementCount + (NB_INDICES_PER_INSTANCE - 1)) / NB_INDICES_PER_INSTANCE;
+				}
+				else
+				{
+					vertexCount = elementCount * 6;
+					instanceCount = 1;
+				}
+				break;
+			}
+		}
+		
+		uint index = id.x * 5;
+		output[index + 0] = vertexCount;
+		output[index + 1] = instanceCount;
+		// 3 next uint (startIndex, BaseVertex and StartInstance) set to 0 at initialization
+	}
+}

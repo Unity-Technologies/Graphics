@@ -132,7 +132,7 @@ Shader "Hidden/VFX_1"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
+				uint index = (id >> 2) + instanceID * 2048;
 				if (flags[index] == 1)
 				{
 					Attribute0 attrib0 = attribBuffer0[index];

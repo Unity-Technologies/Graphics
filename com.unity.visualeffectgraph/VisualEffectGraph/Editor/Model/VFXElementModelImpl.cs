@@ -340,18 +340,12 @@ namespace UnityEditor.Experimental
 
             m_TextureData.RemoveAllValues();
             m_TextureData.AddValues(signals);
-            m_TextureData.Generate();
-
+            
             VFXAsset asset = VFXEditor.asset;
+            m_TextureData.Generate(asset);
 
-            if (m_TextureData.HasColorTexture())
-                asset.SetGradientTexture(m_TextureData.ColorTexture);
-            else
-                asset.SetGradientTexture(null);
-            if (m_TextureData.HasFloatTexture())
-                asset.SetCurveTexture(m_TextureData.FloatTexture);
-            else
-                asset.SetCurveTexture(null);
+            asset.GradientTexture = m_TextureData.ColorTexture;
+            asset.CurveTexture = m_TextureData.FloatTexture;
 
             ProgressBarHelper.IncrementStep("Generate data: Update asset expressions");
             if (asset != null)
@@ -885,12 +879,14 @@ namespace UnityEditor.Experimental
                     m_ID,
                     MaxNb,
                     rtData.SimulationShader,
+                    //rtData.hasKill ? VFXEditor.SyncShader : null,
                     rtData.OutputShader,
                     rtData.buffersDesc,
                     rtData.outputType,
                     SpawnRate,
                     OrderPriority,
-                    rtData.hasKill
+                    rtData.hasKill,
+                    (uint)rtData.outputBufferSize
                 );
 
                 VFXEditor.ForeachComponents(c => c.vfxAsset = VFXEditor.asset);

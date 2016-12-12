@@ -29,20 +29,20 @@ Shader "Hidden/VFX_0"
 				float outputUniform3;
 			CBUFFER_END
 			
-			struct Attribute1
+			CBUFFER_START(Uniform)
+				float systemIndex;
+			CBUFFER_END
+			ByteAddressBuffer nbElements;
+			
+			struct OutputData
 			{
 				float3 position;
-				float _PADDING_;
-			};
-			
-			struct Attribute2
-			{
+				uint _PADDING_0;
 				float2 size;
+				uint2 _PADDING_1;
 			};
 			
-			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
@@ -70,25 +70,24 @@ Shader "Hidden/VFX_0"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
-				if (flags[index] == 1)
+				uint index = (id >> 2) + instanceID * 2048;
+				if (index < nbElements.Load(asuint(systemIndex) << 2))
 				{
 					bool kill = false;
 					
-					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
+					OutputData outputData = outputBuffer[index];
 					
 					float local_alpha = (float)0;
 					float3 local_color = (float3)0;
 					
-					VFXBlockCameraFade( local_alpha,attrib1.position,outputUniform0,kill);
+					VFXBlockCameraFade( local_alpha,outputData.position,outputUniform0,kill);
 					VFXBlockSetColorConstant( local_color,outputUniform1);
 					
-					float2 size = attrib2.size * 0.5f;
+					float2 size = outputData.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
 					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
 					
-					float3 position = attrib1.position;
+					float3 position = outputData.position;
 					
 					float3 posToCam = VFXCameraPos() - position;
 					float camDist = length(posToCam);

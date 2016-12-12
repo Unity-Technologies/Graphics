@@ -41,38 +41,18 @@ Shader "Hidden/VFX_2"
 			
 			sampler2D_float _CameraDepthTexture;
 			
-			struct Attribute0
+			struct OutputData
 			{
 				float3 position;
 				float age;
-			};
-			
-			struct Attribute1
-			{
-				float texIndex;
-			};
-			
-			struct Attribute2
-			{
-				float lifetime;
-			};
-			
-			struct Attribute4
-			{
-				float angle;
-			};
-			
-			struct Attribute5
-			{
 				float2 size;
+				float texIndex;
+				float lifetime;
+				float angle;
+				uint3 _PADDING_0;
 			};
 			
-			StructuredBuffer<Attribute0> attribBuffer0;
-			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
-			StructuredBuffer<Attribute4> attribBuffer4;
-			StructuredBuffer<Attribute5> attribBuffer5;
-			StructuredBuffer<int> flags;
+			StructuredBuffer<OutputData> outputBuffer;
 			
 			struct ps_input
 			{
@@ -130,63 +110,50 @@ Shader "Hidden/VFX_2"
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 			{
 				ps_input o;
-				uint index = (id >> 2) + instanceID * 16384;
-				if (flags[index] == 1)
-				{
-					Attribute0 attrib0 = attribBuffer0[index];
-					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
-					Attribute4 attrib4 = attribBuffer4[index];
-					Attribute5 attrib5 = attribBuffer5[index];
-					
-					float3 local_color = (float3)0;
-					float local_alpha = (float)0;
-					
-					VFXBlockSizeOverLifeCurve( attrib5.size,attrib0.age,attrib2.lifetime,outputUniform0);
-					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,attrib0.age,attrib2.lifetime,outputUniform1);
-					VFXBlockSetColorScale( local_color,outputUniform2);
-					
-					float2 size = attrib5.size * 0.5f;
-					o.offsets.x = 2.0 * float(id & 1) - 1.0;
-					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
-					
-					float3 position = attrib0.position;
-					
-					float2 posOffsets = o.offsets.xy;
-					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
-					float3 front = -UNITY_MATRIX_MV[2].xyz;
-					float3 side = UNITY_MATRIX_IT_MV[0].xyz;
-					float3 up = UNITY_MATRIX_IT_MV[1].xyz;
-					
-					float2 sincosA;
-					sincos(radians(attrib4.angle), sincosA.x, sincosA.y);
-					const float c = sincosA.y;
-					const float s = sincosA.x;
-					const float t = 1.0 - c;
-					const float x = front.x;
-					const float y = front.y;
-					const float z = front.z;
-					
-					float3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
-										t * x * y + s * z, t * y * y + c, t * y * z - s * x,
-										t * x * z - s * y, t * y * z + s * x, t * z * z + c);
-					
-					
-					position += mul(rot,side * posOffsets.x * size.x);
-					position += mul(rot,up * posOffsets.y * size.y);
-					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
-					o.flipbookIndex = attrib1.texIndex;
-					
-					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
-					o.projPos = ComputeScreenPos(o.pos); // For depth texture fetch
-					o.col = float4(local_color.xyz,local_alpha);
-				}
-				else
-				{
-					o.pos = -1.0;
-					o.col = 0;
-				}
+				uint index = (id >> 2) + instanceID * 2048;
+				OutputData outputData = outputBuffer[index];
 				
+				float3 local_color = (float3)0;
+				float local_alpha = (float)0;
+				
+				VFXBlockSizeOverLifeCurve( outputData.size,outputData.age,outputData.lifetime,outputUniform0);
+				VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform1);
+				VFXBlockSetColorScale( local_color,outputUniform2);
+				
+				float2 size = outputData.size * 0.5f;
+				o.offsets.x = 2.0 * float(id & 1) - 1.0;
+				o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
+				
+				float3 position = outputData.position;
+				
+				float2 posOffsets = o.offsets.xy;
+				float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
+				float3 front = -UNITY_MATRIX_MV[2].xyz;
+				float3 side = UNITY_MATRIX_IT_MV[0].xyz;
+				float3 up = UNITY_MATRIX_IT_MV[1].xyz;
+				
+				float2 sincosA;
+				sincos(radians(outputData.angle), sincosA.x, sincosA.y);
+				const float c = sincosA.y;
+				const float s = sincosA.x;
+				const float t = 1.0 - c;
+				const float x = front.x;
+				const float y = front.y;
+				const float z = front.z;
+				
+				float3x3 rot = float3x3(t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+									t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+									t * x * z - s * y, t * y * z + s * x, t * z * z + c);
+				
+				
+				position += mul(rot,side * posOffsets.x * size.x);
+				position += mul(rot,up * posOffsets.y * size.y);
+				o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
+				o.flipbookIndex = outputData.texIndex;
+				
+				o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+				o.projPos = ComputeScreenPos(o.pos); // For depth texture fetch
+				o.col = float4(local_color.xyz,local_alpha);
 				return o;
 			}
 			

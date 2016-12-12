@@ -24,9 +24,14 @@ namespace UnityEditor.Experimental
         public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             builder.Write("float3 worldPos = ");
-            builder.WriteAttrib(CommonAttrib.Position, data);
+            builder.WriteAttrib(CommonAttrib.Position, data, true);
             builder.WriteLine(";");
             builder.WriteLineFormat("o.pos = mul({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
+        }
+
+        public override int GetOutputType()
+        {
+            return 0;
         }
     }
 
@@ -57,6 +62,11 @@ namespace UnityEditor.Experimental
         }
 
         public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
+
+        public override int GetOutputType()
+        {
+            return 1;
+        }
 
         private bool CanHaveMotionVectors()
         {
@@ -128,7 +138,7 @@ namespace UnityEditor.Experimental
 
         public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {
-            builder.WriteLine("uint index = (id >> 2) + instanceID * 16384;");
+            builder.WriteLine("uint index = (id >> 2) + instanceID * 2048;");
         }
 
         public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
@@ -142,7 +152,7 @@ namespace UnityEditor.Experimental
         {
             builder.WriteLine("float2 sincosA;");
             builder.Write("sincos(radians(");
-            builder.WriteAttrib(CommonAttrib.Angle, data);
+            builder.WriteAttrib(CommonAttrib.Angle, data, true);
             builder.Write("), sincosA.x, sincosA.y);");
             builder.WriteLine();
             builder.WriteLine("const float c = sincosA.y;");
@@ -165,7 +175,7 @@ namespace UnityEditor.Experimental
             if (m_HasSize)
             {
                 builder.Write("float2 size = ");
-                builder.WriteAttrib(CommonAttrib.Size, data);
+                builder.WriteAttrib(CommonAttrib.Size, data, true);
                 builder.WriteLine(" * 0.5f;");
             }
             else
@@ -176,7 +186,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
 
             builder.Write("float3 position = ");
-            builder.WriteAttrib(CommonAttrib.Position, data);
+            builder.WriteAttrib(CommonAttrib.Position, data, true);
             builder.WriteLine(";");
             builder.WriteLine();
 
@@ -202,7 +212,7 @@ namespace UnityEditor.Experimental
             if (m_HasPivot)
             {
                 builder.Write("float2 posOffsets = o.offsets.xy - ");
-                builder.WriteAttrib(CommonAttrib.Pivot, data);
+                builder.WriteAttrib(CommonAttrib.Pivot, data, true);
                 builder.WriteLine(".xy;");
                 builder.WriteLine();
             }
@@ -222,7 +232,7 @@ namespace UnityEditor.Experimental
 
                     builder.WriteLine("float3 front = cameraPos - position;");
                     builder.Write("float3 up = normalize(");
-                    builder.WriteAttrib(CommonAttrib.Velocity, data);
+                    builder.WriteAttrib(CommonAttrib.Velocity, data, true);
                     builder.WriteLine(");");
                     builder.WriteLine("float3 side = normalize(cross(front,up));");
 
@@ -280,7 +290,7 @@ namespace UnityEditor.Experimental
                     {          
                         builder.Write("float3 front = ");
                         if (m_HasFront)
-                            builder.WriteAttrib(CommonAttrib.Front, data);
+                            builder.WriteAttrib(CommonAttrib.Front, data, true);
                         else
                             builder.Write("float3(0.0f,0.0f,1.0f)");
                         builder.WriteLine(";");
@@ -288,14 +298,14 @@ namespace UnityEditor.Experimental
                     
                     builder.Write("float3 side = ");
                     if (m_HasSide)
-                        builder.WriteAttrib(CommonAttrib.Side, data);
+                        builder.WriteAttrib(CommonAttrib.Side, data, true);
                     else
                         builder.Write("float3(1.0f,0.0f,0.0f)");
                     builder.WriteLine(";");
 
                     builder.Write("float3 up = ");
                     if (m_HasUp)
-                        builder.WriteAttrib(CommonAttrib.Up, data);
+                        builder.WriteAttrib(CommonAttrib.Up, data, true);
                     else
                         builder.Write("float3(0.0f,1.0f,0.0f)");
                     builder.WriteLine(";");
@@ -322,7 +332,7 @@ namespace UnityEditor.Experimental
             if (m_HasPivot)
             {
                 builder.Write("position -= front * ");
-                builder.WriteAttrib(CommonAttrib.Pivot, data);
+                builder.WriteAttrib(CommonAttrib.Pivot, data, true);
                 builder.WriteLine(".z;");
             }
 
@@ -332,7 +342,7 @@ namespace UnityEditor.Experimental
                 if (m_HasFlipBook)
                 {
                     builder.Write("o.flipbookIndex = ");
-                    builder.WriteAttrib(CommonAttrib.TexIndex, data);
+                    builder.WriteAttrib(CommonAttrib.TexIndex, data, true);
                     builder.WriteLine(";");
                 }
             }
@@ -509,9 +519,14 @@ namespace UnityEditor.Experimental
 
         public override int[] GetSingleIndexBuffer(ShaderMetaData data) { return new int[0]; } // tmp
 
+        public override int GetOutputType()
+        {
+            return 1;
+        }
+
         public override void WriteIndex(ShaderSourceBuilder builder, ShaderMetaData data)
         {
-            builder.WriteLine("uint index = (id >> 2) + instanceID * 16384;");
+            builder.WriteLine("uint index = (id >> 2) + instanceID * 2048;");
         }
 
         public override void WriteAdditionalVertexOutput(ShaderSourceBuilder builder, ShaderMetaData data)
@@ -536,7 +551,7 @@ namespace UnityEditor.Experimental
             if (m_HasSize)
             {
                 builder.Write("float2 size = ");
-                builder.WriteAttrib(CommonAttrib.Size, data);
+                builder.WriteAttrib(CommonAttrib.Size, data, true);
                 builder.WriteLine(" * 0.5f;");
             }
             else
@@ -547,7 +562,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
 
             builder.Write("float3 position = ");
-            builder.WriteAttrib(CommonAttrib.Position, data);
+            builder.WriteAttrib(CommonAttrib.Position, data, true);
             builder.WriteLine(";");
             builder.WriteLine();
 
