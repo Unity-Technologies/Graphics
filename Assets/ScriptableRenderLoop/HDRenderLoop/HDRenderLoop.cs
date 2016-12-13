@@ -179,10 +179,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 reflectionProbe = UnityEditor.SupportedRenderingFeatures.ReflectionProbe.Rotation
             };
 #endif
+            /*
             previousLightsUseLinearIntensity = UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity;
             previousLightsUseCCT = UnityEngine.Rendering.GraphicsSettings.lightsUseCCT;
             UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = true;
             UnityEngine.Rendering.GraphicsSettings.lightsUseCCT = true;
+            */
 
             m_CameraColorBuffer = Shader.PropertyToID("_CameraColorTexture");
             m_CameraDepthBuffer  = Shader.PropertyToID("_CameraDepthTexture");
