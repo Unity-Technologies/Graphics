@@ -79,7 +79,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
 
             float4 Frag(Varyings input) : SV_Target
             {
-				float4 unPositionSS = input.positionCS; // as input we have the vpos
+				float4 unPositionSS = input.positionCS; // input.positionCS is SV_Position
                 Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
 
                 // No need to manage inverse depth, this is handled by the projection matrix

@@ -7,7 +7,9 @@
 
 struct FragInput
 {
-    float4 unPositionSS; // This is the position return by VPOS (That is name positionCS in PackedVarying), only xy is use
+    // Contain value return by SV_POSITION (That is name positionCS in PackedVarying).
+    // xy: unormalized screen position at pixel center, z: device depth, w: depth in view space
+    float4 unPositionSS; // In case depth offset is use, positionWS.w is equal to depth offset
     float3 positionWS;
     float2 texCoord0;
     float2 texCoord1;
@@ -16,14 +18,25 @@ struct FragInput
     float3 tangentToWorld[3];
     float4 vertexColor;
 
-    // For velocity
-    // Note: Z component is not use
-    float4 positionCS; // This is the clip spae position. Warning, do not confuse with the value of positionCS in PackedVarying which is VPOS and store in unPositionSS
+    // CAUTION: Only use with velocity currently, null else
+    // Note: Z component is not use currently
+    // This is the clip space position. Warning, do not confuse with the value of positionCS in PackedVarying which is SV_POSITION and store in unPositionSS
+    float4 positionCS;
     float4 previousPositionCS;
+    // end velocity specific
 
     // For two sided lighting
     bool isFrontFace;
 };
+
+float applyDepthOffsetToFragInput(float depthOffset, inout FragInput fragInput)
+{
+    fragInput.unPositionSS.w += depthOffset;
+    fragInput.positionCS.w += depthOffset;
+    fragInput.previousPositionCS.w += depthOffset;
+
+    return 
+}
 
 void GetVaryingsDataDebug(uint paramId, FragInput input, inout float3 result, inout bool needLinearToSRGB)
 {

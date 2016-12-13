@@ -53,7 +53,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
 
             float4 Frag(Varyings input) : SV_Target
             {
-				float4 unPositionSS = input.positionCS; // as input we have the vpos
+				float4 unPositionSS = input.positionCS; // input.positionCS is SV_Position
 				Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
 
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
