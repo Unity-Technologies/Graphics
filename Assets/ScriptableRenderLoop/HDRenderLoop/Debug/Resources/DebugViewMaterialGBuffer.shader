@@ -28,7 +28,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
             TEXTURE2D(_CameraDepthTexture);
-			SAMPLER2D(sampler_CameraDepthTexture);
+            SAMPLER2D(sampler_CameraDepthTexture);
             int         _DebugViewMaterial;
 
             struct Attributes
@@ -53,8 +53,8 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
 
             float4 Frag(Varyings input) : SV_Target
             {
-				float4 unPositionSS = input.positionCS; // as input we have the vpos
-				Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
+                float4 unPositionSS = input.positionCS; // as input we have the vpos
+                Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
 
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
 
