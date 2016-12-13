@@ -1,14 +1,15 @@
 //-------------------------------------------------------------------------------------
-// FragInput
+// FragInputs
 // This structure gather all possible varying/interpolator for this shader.
 //-------------------------------------------------------------------------------------
 
 #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.cs.hlsl"
 
-struct FragInput
+struct FragInputs
 {
     // Contain value return by SV_POSITION (That is name positionCS in PackedVarying).
-    // xy: unormalized screen position at pixel center, z: device depth, w: depth in view space
+    // xy: unormalized screen position (offset by 0.5), z: device depth, w: depth in view space
+    // Note: SV_POSITION is the result of the clip space position provide to the vertex shaders that is transform by the viewport
     float4 unPositionSS; // In case depth offset is use, positionWS.w is equal to depth offset
     float3 positionWS;
     float2 texCoord0;
@@ -29,16 +30,13 @@ struct FragInput
     bool isFrontFace;
 };
 
-float applyDepthOffsetToFragInput(float depthOffset, inout FragInput fragInput)
+void ApplyDepthOffsetVS(float depthOffset, inout FragInputs fragInput)
 {
-    fragInput.unPositionSS.w += depthOffset;
     fragInput.positionCS.w += depthOffset;
     fragInput.previousPositionCS.w += depthOffset;
-
-    return 
 }
 
-void GetVaryingsDataDebug(uint paramId, FragInput input, inout float3 result, inout bool needLinearToSRGB)
+void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)
 {
     switch (paramId)
     {

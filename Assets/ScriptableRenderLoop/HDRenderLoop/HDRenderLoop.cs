@@ -390,9 +390,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // Render GBuffer opaque
             if (!debugParameters.useForwardRenderingOnly)
             {
-                Vector4 screenSize = Utilities.ComputeScreenSize(camera);
+                var invViewProj = Utilities.GetViewProjectionMatrix(camera).inverse;
+                var screenSize = Utilities.ComputeScreenSize(camera);
                 m_DebugViewMaterialGBuffer.SetVector("_ScreenSize", screenSize);
                 m_DebugViewMaterialGBuffer.SetFloat("_DebugViewMaterial", (float)debugParameters.debugViewMaterial);
+                m_DebugViewMaterialGBuffer.SetMatrix("_InvViewProjMatrix", invViewProj);
 
                 // m_gbufferManager.BindBuffers(m_DebugViewMaterialGBuffer);
                 // TODO: Bind depth textures

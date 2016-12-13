@@ -69,25 +69,26 @@ Shader "Hidden/HDRenderLoop/SkyProcedural"
                 float3 rotDirY = float3(sinPhi, 0, cosPhi);
                 dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
-                Coordinate coord = GetCoordinate(input.positionCS.xy, _ScreenSize.zw);
-
+               // input.positionCS is SV_Position
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+  
                 // If the sky box is too far away (depth set to 0), the resulting look is too foggy.
                 const float skyDepth = 0.01;
 
                 #ifdef PERFORM_SKY_OCCLUSION_TEST
                     // Determine whether the sky is occluded by the scene geometry.
                     // Do not perform blending with the environment map if the sky is occluded.
-                    float rawDepth     = max(skyDepth, LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).r);
+                    float rawDepth     = max(skyDepth, LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).r);
                     float skyTexWeight = (rawDepth > skyDepth) ? 0.0 : 1.0;
                 #else
                     float rawDepth     = skyDepth;
                     float skyTexWeight = 1.0;
                 #endif
 
-                float3 positionWS = UnprojectToWorld(rawDepth, coord.positionSS, _InvViewProjMatrix);
+                UpdatePositionInput(rawDepth, _InvViewProjMatrix, GetWorldToViewMatrix(), posInput);
 
                 float4 c1, c2, c3;
-                VolundTransferScatter(positionWS, c1, c2, c3);
+                VolundTransferScatter(posInput.positionWS, c1, c2, c3);
 
                 float4 coord1 = float4(c1.rgb + c3.rgb, max(0.f, 1.f - c1.a - c3.a));
                 float3 coord2 = c2.rgb;

@@ -79,24 +79,22 @@ Shader "Hidden/HDRenderLoop/Deferred"
 
             float4 Frag(Varyings input) : SV_Target
             {
-				float4 unPositionSS = input.positionCS; // input.positionCS is SV_Position
-                Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
+                // input.positionCS is SV_Position
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
+                UpdatePositionInput(depth, _InvViewProjMatrix, GetWorldToViewMatrix(), posInput);
+                float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
-                // No need to manage inverse depth, this is handled by the projection matrix
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
-                float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
-                float3 V = GetWorldSpaceNormalizeViewDir(positionWS);
-
-                FETCH_GBUFFER(gbuffer, _GBufferTexture, coord.unPositionSS);
+                FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 float3 bakeDiffuseLighting;
                 DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
 
-                PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
+                PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 float3 diffuseLighting;
                 float3 specularLighting;
-                LightLoop(V, positionWS, coord, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
+                LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
                 return float4(diffuseLighting + specularLighting, 1.0);
             }
