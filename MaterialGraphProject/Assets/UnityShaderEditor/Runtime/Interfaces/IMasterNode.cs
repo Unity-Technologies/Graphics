@@ -9,7 +9,7 @@ namespace UnityEngine.MaterialGraph
             GenerationMode mode,
             out List<PropertyGenerator.TextureInfo> configuredTextures);
 
-        string GetSubShader(GenerationMode mode);
+        string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor);
 
         string GetVariableNameForNode();
     }

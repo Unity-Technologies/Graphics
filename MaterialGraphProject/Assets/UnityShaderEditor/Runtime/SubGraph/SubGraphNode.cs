@@ -58,12 +58,7 @@ namespace UnityEngine.MaterialGraph
                     onModified(this, ModificationScope.Graph);
             }
         }
-
-        public override bool allowedInRemapGraph
-        {
-            get { return false; }
-        }
-
+        
         /*
        // SAVED FOR LATER
         if (serializedVersion<kCurrentSerializedVersion)

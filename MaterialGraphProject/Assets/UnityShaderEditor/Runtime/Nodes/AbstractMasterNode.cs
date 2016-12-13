@@ -25,6 +25,6 @@ namespace UnityEngine.MaterialGraph
         }
 
         public abstract string GetFullShader(GenerationMode mode, out List<PropertyGenerator.TextureInfo> configuredTextures);
-        public abstract string GetSubShader(GenerationMode mode);
+        public abstract string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor);
     }
 }

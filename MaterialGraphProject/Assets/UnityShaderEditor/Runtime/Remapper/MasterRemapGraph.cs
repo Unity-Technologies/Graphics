@@ -5,6 +5,12 @@ using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
+    public interface INodeGroupRemapper
+    {
+        void DepthFirstCollectNodesFromNodeSlotList(List<INode> nodeList, NodeUtils.IncludeSelf includeSelf);
+        bool IsValidSlotConnection(int id);
+    }
+
     [Serializable]
     public class MasterRemapGraph : AbstractMaterialGraph
     {
@@ -37,11 +43,15 @@ namespace UnityEngine.MaterialGraph
                 return;
             }
 
-            if (node is AbstractMaterialNode)
+            var materialNode = node as AbstractMaterialNode;
+            if (materialNode != null)
             {
-                var amn = (AbstractMaterialNode) node;
+                var amn = materialNode;
                 if (!amn.allowedInRemapGraph)
+                {
                     Debug.LogWarningFormat("Attempting to add {0} to Remap Graph. This is not allowed.", amn.GetType());
+                    return;
+                }
             }
             base.AddNode(node);
         }
@@ -62,7 +72,7 @@ namespace UnityEngine.MaterialGraph
             }
         }
 
-        public List<string> GetSubShadersFor(RemapMasterNode rmn, GenerationMode mode)
+        public List<string> GetSubShadersFor(RemapMasterNode rmn, GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
         {
             var subShaders = new List<string>();
             try
@@ -70,7 +80,7 @@ namespace UnityEngine.MaterialGraph
                 using (new DisposeMeh(inputNode, rmn))
                 {
                     foreach (var node in GetNodes<IMasterNode>())
-                        subShaders.Add(node.GetSubShader(mode));
+                        subShaders.Add(node.GetSubShader(mode, shaderPropertiesVisitor));
                 }
             }
             catch (Exception e)
@@ -79,5 +89,12 @@ namespace UnityEngine.MaterialGraph
             }
             return subShaders;
         }
+        
+        public void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        {
+            foreach (var node in GetNodes<AbstractMaterialNode>())
+                node.CollectPreviewMaterialProperties(properties);
+        }
+
     }
 }
