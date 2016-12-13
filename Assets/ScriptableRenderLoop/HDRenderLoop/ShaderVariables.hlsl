@@ -235,6 +235,11 @@ float4x4 GetObjectToWorldViewMatrix()
     return glstate_matrix_modelview0;
 }
 
+float4x4 GetViewToProjectionMatrix()
+{
+   //... return glstate_matrix_modelview0;
+}
+
 float3 TransformWorldToView(float3 positionWS)
 {
     return mul(GetWorldToViewMatrix(), float4(positionWS, 1.0)).xyz;

@@ -40,6 +40,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public Vector2 distortion;
             [SurfaceDataAttributes("Distortion Blur")]
             public float distortionBlur;           // Define the color buffer mipmap level to use
+
+            // Depth
+            [SurfaceDataAttributes("Depth Offset")]
+            public float depthOffset; // define the depth in unity unit to add in Z forward direction
         };
 
         //-----------------------------------------------------------------------------

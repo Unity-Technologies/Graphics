@@ -321,7 +321,7 @@ struct Coordinate
 // This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
 // This allow to easily share code.
 // If a compute shader call this function unPositionSS is an integer usually calculate like: uint2 unPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
-// else it is current unormalized screen coordinate like return by VPOS
+// else it is current unormalized screen coordinate like return by SV_Position
 Coordinate GetCoordinate(float2 unPositionSS, float2 invScreenSize)
 {
     Coordinate coord;
