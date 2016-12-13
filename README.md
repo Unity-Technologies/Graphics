@@ -12,6 +12,6 @@ There's a more detailed overview document here: [ScriptableRenderLoop google doc
 Did we mention it's a very WIP, no promises, may or might not ship feature, anything and everything in it can change? It totally is.
 
 
-### For Unity 5.6 beta users
+## For Unity 5.6 beta users
 
 * Unity 5.6 beta 1 should use an older revision of this project, [tagged unity-5.6.0b1](../../releases/tag/unity-5.6.0b1) (commit `acc230b` on 2016 Nov 23). "BasicRenderLoopScene" scene is the basic example, with the scriptable render loop defaulting to off; enable it by enabling the component on the camera.
