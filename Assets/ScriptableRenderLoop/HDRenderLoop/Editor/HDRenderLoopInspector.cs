@@ -25,12 +25,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public GUIContent[] debugViewMaterialStrings = null;
             public int[] debugViewMaterialValues = null;
 
-            public readonly GUIContent skyParameters = new GUIContent("Sky Parameters");
-            public readonly GUIContent skyResolution = new GUIContent("Sky Resolution");
-            public readonly GUIContent skyExposure = new GUIContent("Sky Exposure");
-            public readonly GUIContent skyRotation = new GUIContent("Sky Rotation");
-            public readonly GUIContent skyMultiplier = new GUIContent("Sky Multiplier");
-
             public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
 
             public readonly GUIContent shadowsEnabled = new GUIContent("Enabled");
@@ -196,29 +190,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             EditorGUI.indentLevel--;
         }
 
-        private void SkyParametersUI(HDRenderLoop renderLoop)
-        {
-            EditorGUILayout.Space();
-            var skyParameters = renderLoop.skyParameters;
-
-            EditorGUILayout.LabelField(styles.skyParameters);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
-
-            skyParameters.skyHDRI = (Texture)EditorGUILayout.ObjectField("Cubemap", skyParameters.skyHDRI, typeof(Cubemap), false);
-
-            skyParameters.skyResolution = (SkyResolution)EditorGUILayout.EnumPopup(styles.skyResolution, skyParameters.skyResolution);
-            skyParameters.exposure = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyExposure, skyParameters.exposure), 32), -32);
-            skyParameters.multiplier = Mathf.Max(EditorGUILayout.FloatField(styles.skyMultiplier, skyParameters.multiplier), 0);
-            skyParameters.rotation = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyRotation, skyParameters.rotation), 360), -360);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                EditorUtility.SetDirty(renderLoop); // Repaint
-            }
-            EditorGUI.indentLevel--;
-        }
-
         private void ShadowParametersUI(HDRenderLoop renderLoop)
         {
             EditorGUILayout.Space();
@@ -314,7 +285,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return;
 
             DebugParametersUI(renderLoop);
-            SkyParametersUI(renderLoop);
             ShadowParametersUI(renderLoop);
             TextureParametersUI(renderLoop);
             TilePassUI(renderLoop);
