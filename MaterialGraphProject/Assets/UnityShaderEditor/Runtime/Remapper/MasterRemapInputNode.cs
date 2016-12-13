@@ -7,16 +7,7 @@ namespace UnityEngine.MaterialGraph
 {
     [Title("Remapper/Remap Input Node")]
     public class MasterRemapInputNode : AbstractSubGraphIONode
-        , IGeneratesBodyCode
-        , IGeneratesFunction
-        , IMayRequireNormal
-        , IMayRequireTangent
-        , IMayRequireBitangent
-        , IMayRequireMeshUV
-        , IMayRequireScreenPosition
-        , IMayRequireViewDirection
-        , IMayRequireWorldPosition
-        , IMayRequireVertexColor
+        , INodeGroupRemapper
     {
         [NonSerialized]
         internal RemapMasterNode m_RemapTarget;
@@ -51,122 +42,62 @@ namespace UnityEngine.MaterialGraph
             {
                 onModified(this, ModificationScope.Graph);
             }
-
         }
 
-        public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
+        public void DepthFirstCollectNodesFromNodeSlotList(List<INode> nodeList, NodeUtils.IncludeSelf includeSelf)
         {
-            base.CollectPreviewMaterialProperties(properties);
-            foreach (var slot in GetOutputSlots<MaterialSlot>())
-            {
-                properties.Add(
-                    new PreviewProperty
-                {
-                    m_Name = GetVariableNameForSlot(slot.id),
-                    m_PropType = PropertyType.Vector4,
-                    m_Vector4 = slot.defaultValue
-                }
-                    );
-            }
+            NodeUtils.DepthFirstCollectNodesFromNode(nodeList, m_RemapTarget, NodeUtils.IncludeSelf.Exclude);
         }
 
-        public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
+        public bool IsValidSlotConnection(int slotId)
         {
-            if (m_RemapTarget != null)
-                m_RemapTarget.GenerateNodeCode(visitor, generationMode);
+            if (m_RemapTarget == null)
+                return false;
+
+            var slot = m_RemapTarget.FindSlot<MaterialSlot>(slotId);
+            if (slot == null)
+                return false;
+
+            var edge = m_RemapTarget.owner.GetEdges(slot.slotReference).FirstOrDefault();
+            if (edge == null)
+                return false;
+
+            var outputRef = edge.outputSlot;
+            var fromNode = m_RemapTarget.owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+            if (fromNode == null)
+                return false;
+
+            return true;
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
-        {
-            if (m_RemapTarget != null)
-                m_RemapTarget.GenerateNodeFunction(visitor, generationMode);
-        }
-
-        public override void GeneratePropertyBlock(PropertyGenerator visitor, GenerationMode generationMode)
-        {
-            if (m_RemapTarget != null)
-                m_RemapTarget.GeneratePropertyBlock(visitor, generationMode);
-        }
-
-        public override void GeneratePropertyUsages(ShaderGenerator visitor, GenerationMode generationMode)
+        public override string GetVariableNameForSlot(int slotId)
         {
             if (m_RemapTarget == null)
             {
-                foreach (var slot in GetOutputSlots<MaterialSlot>())
-                {
-                    var outDimension = ConvertConcreteSlotValueTypeToString(slot.concreteValueType);
-                    visitor.AddShaderChunk("float" + outDimension + " " + GetVariableNameForSlot(slot.id) + ";", true);
-                }
+                var defaultValueSlot = FindSlot<MaterialSlot>(slotId);
+                if (defaultValueSlot == null)
+                    throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
+
+                return defaultValueSlot.GetDefaultValue(GenerationMode.ForReals);
             }
-            else
-            {
-                if (m_RemapTarget != null)
-                    m_RemapTarget.GeneratePropertyUsages(visitor, generationMode);
-            }
-        }
 
-        public bool RequiresNormal()
-        {
-            if (m_RemapTarget == null)
-                return false;
+            var slot = m_RemapTarget.FindSlot<MaterialSlot>(slotId);
+            if (slot == null)
+                throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
 
-            return m_RemapTarget.RequiresNormal();
-        }
+            if (slot.isOutputSlot)
+                throw new Exception(string.Format("Attempting to use OutputSlot({0}) on remap node)", slotId));
 
-        public bool RequiresTangent()
-        {
-            if (m_RemapTarget == null)
-                return false;
+            var edge = m_RemapTarget.owner.GetEdges(slot.slotReference).FirstOrDefault();
+            if (edge == null)
+                return slot.GetDefaultValue(GenerationMode.ForReals);
 
-            return m_RemapTarget.RequiresTangent();
-        }
+            var outputRef = edge.outputSlot;
+            var fromNode = m_RemapTarget.owner.GetNodeFromGuid<AbstractMaterialNode>(outputRef.nodeGuid);
+            if (fromNode == null)
+                return slot.GetDefaultValue(GenerationMode.ForReals);
 
-        public bool RequiresBitangent()
-        {
-            if (m_RemapTarget == null)
-                return false;
-
-            return m_RemapTarget.RequiresBitangent();
-        }
-
-        public bool RequiresMeshUV()
-        {
-            if (m_RemapTarget == null)
-                return false;
-
-            return m_RemapTarget.RequiresMeshUV();
-        }
-
-        public bool RequiresScreenPosition()
-        {
-            if (m_RemapTarget == null)
-                return false;
-
-            return m_RemapTarget.RequiresScreenPosition();
-        }
-
-        public bool RequiresViewDirection()
-        {
-            if (m_RemapTarget == null)
-                return false;
-
-            return m_RemapTarget.RequiresViewDirection();
-        }
-
-        public bool RequiresWorldPosition()
-        {
-            if (m_RemapTarget == null)
-                return false;
-
-            return m_RemapTarget.RequiresWorldPosition();
-        }
-
-        public bool RequiresVertexColor()
-        {
-            if (m_RemapTarget == null)
-                return false;
-
-            return m_RemapTarget.RequiresVertexColor();
+            return fromNode.GetVariableNameForSlot(outputRef.slotId);
         }
     }
 }

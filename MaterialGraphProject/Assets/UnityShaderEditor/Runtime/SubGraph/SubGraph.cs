@@ -75,11 +75,15 @@ namespace UnityEngine.MaterialGraph
                 return;
             }
 
-            if (node is AbstractMaterialNode)
+            var materialNode = node as AbstractMaterialNode;
+            if (materialNode != null)
             {
-                var amn = (AbstractMaterialNode)node;
+                var amn = materialNode;
                 if (!amn.allowedInSubGraph)
+                {
                     Debug.LogWarningFormat("Attempting to add {0} to Sub Graph. This is not allowed.", amn.GetType());
+                    return;
+                }
             }
             base.AddNode(node);
         }
@@ -96,7 +100,7 @@ namespace UnityEngine.MaterialGraph
             {
                 var nodes = new List<INode>();
                 //Get the rest of the nodes for all the other slots
-                NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode, null, NodeUtils.IncludeSelf.Exclude);
+                NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode, NodeUtils.IncludeSelf.Exclude);
                 return nodes.OfType<AbstractMaterialNode>();
             }
         }

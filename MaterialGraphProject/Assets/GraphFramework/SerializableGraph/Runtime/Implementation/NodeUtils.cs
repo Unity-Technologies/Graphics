@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.MaterialGraph;
 
 namespace UnityEngine.Graphing
 {
@@ -65,43 +66,34 @@ namespace UnityEngine.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode(List<INode> nodeList, INode node, int? slotId = null, IncludeSelf includeSelf = IncludeSelf.Include)
-        {
-            DepthFirstCollectNodesFromNodeSlotList(nodeList, node, slotId.HasValue ? new List<int>() { slotId.Value } : null, includeSelf);
-        }
-
-        public static void DepthFirstCollectNodesFromNodeSlotList(List<INode> nodeList, INode node, List<int> slotId = null, IncludeSelf includeSelf = IncludeSelf.Include)
+        public static void DepthFirstCollectNodesFromNode(List<INode> nodeList, INode node, IncludeSelf includeSelf = IncludeSelf.Include)
         {
             // no where to start
             if (node == null)
                 return;
 
-            // allready added this node
+            // already added this node
             if (nodeList.Contains(node))
                 return;
 
-            // if we have a slot passed in but can not find it on the node abort
-            if (slotId != null && node.GetInputSlots<ISlot>().All(x => !slotId.Contains(x.id)))
+            var remapper = node as INodeGroupRemapper;
+            if (remapper != null)
+            {
+                remapper.DepthFirstCollectNodesFromNodeSlotList(nodeList, includeSelf);
                 return;
-
-            var validSlots = ListPool<int>.Get();
-            if (slotId != null)
-                slotId.ForEach(x => validSlots.Add(x));
-            else
-                validSlots.AddRange(node.GetInputSlots<ISlot>().Select(x => x.id));
-
-            foreach (var slot in validSlots)
+            }
+            
+            foreach (var slot in node.GetInputSlots<ISlot>().Select(x => x.id))
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
                     var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                    DepthFirstCollectNodesFromNodeSlotList(nodeList, outputNode);
+                    DepthFirstCollectNodesFromNode(nodeList, outputNode);
                 }
             }
 
             if (includeSelf == IncludeSelf.Include)
                 nodeList.Add(node);
-            ListPool<int>.Release(validSlots);
         }
 
         public static void CollectNodesNodeFeedsInto(List<INode> nodeList, INode node, IncludeSelf includeSelf = IncludeSelf.Include)
