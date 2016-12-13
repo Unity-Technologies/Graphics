@@ -73,22 +73,9 @@ struct Attribute4
 RWStructuredBuffer<Attribute0> attribBuffer0;
 RWStructuredBuffer<Attribute1> attribBuffer1;
 RWStructuredBuffer<Attribute2> attribBuffer2;
-StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
 StructuredBuffer<Attribute3> attribBuffer3_RO;
 RWStructuredBuffer<Attribute4> attribBuffer4;
-
-struct OutputData
-{
-	float3 position;
-	uint _PADDING_0;
-	float3 color;
-	uint _PADDING_1;
-	float2 size;
-	uint2 _PADDING_2;
-};
-
-AppendStructuredBuffer<OutputData> outputBuffer;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -212,7 +199,6 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		
 		Attribute0 attrib0 = attribBuffer0[index];
 		Attribute1 attrib1 = attribBuffer1[index];
-		Attribute2 attrib2 = attribBuffer2_RO[index];
 		Attribute3 attrib3 = attribBuffer3_RO[index];
 		Attribute4 attrib4 = attribBuffer4[index];
 		
@@ -237,12 +223,6 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 			attribBuffer0[index] = attrib0;
 			attribBuffer1[index] = attrib1;
 			attribBuffer4[index] = attrib4;
-			
-			OutputData outputData = (OutputData)0;
-			outputData.position = attrib0.position;
-			outputData.color = attrib2.color;
-			outputData.size = attrib1.size;
-			outputBuffer.Append(outputData);
 		}
 	}
 }

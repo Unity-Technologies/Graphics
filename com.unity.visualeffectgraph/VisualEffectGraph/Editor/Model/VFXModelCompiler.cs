@@ -1494,7 +1494,7 @@ namespace UnityEditor.Experimental
                     builder.WriteLine(");");
                 }
                 else
-                    builder.WriteLine("0.5);");
+                    builder.WriteLine("1.0);");
             }
 
             if (data.hasCull)
@@ -1543,7 +1543,7 @@ namespace UnityEditor.Experimental
             if (hasColor || hasAlpha)
                 builder.WriteLine("float4 color = i.col;");
             else
-                builder.WriteLine("float4 color = float4(1.0,1.0,1.0,0.5);");
+                builder.WriteLine("float4 color = float4(1.0,1.0,1.0,1.0);");
 
             outputGenerator.WritePixelShader(builder, data);
 
