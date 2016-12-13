@@ -245,8 +245,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 #if UNITY_EDITOR
             UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
 #endif
-            UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = previousLightsUseLinearIntensity;
-            UnityEngine.Rendering.GraphicsSettings.lightsUseCCT = previousLightsUseCCT;
+           // UnityEngine.Rendering.GraphicsSettings.lightsUseLinearIntensity = previousLightsUseLinearIntensity;
+           // UnityEngine.Rendering.GraphicsSettings.lightsUseCCT = previousLightsUseCCT;
         }
 
         void InitAndClearBuffer(Camera camera, RenderLoop renderLoop)
