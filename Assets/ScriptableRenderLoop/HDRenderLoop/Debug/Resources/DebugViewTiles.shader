@@ -89,16 +89,10 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 
             float4 Frag(float4 positionCS : SV_POSITION) : SV_Target
             {
-                Coordinate coord = GetCoordinate(positionCS.xy, _ScreenSize.zw);
-
-                #ifdef USE_CLUSTERED_LIGHTLIST
-                // Perform same calculation than in deferred.shader
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
-                float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
-                float linearDepth = TransformWorldToView(positionWS).z; // View space linear depth
-                #else
-                float linearDepth = 0.0; // unused
-                #endif
+                // positionCS is SV_Position
+                PositionInputs posInput = GetPositionInput(positionCS.xy, _ScreenSize.zw);
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
+                UpdatePositionInput(depth, _InvViewProjMatrix, GetWorldToViewMatrix(), posInput);
 
                 int n = 0;
                 for (int category = 0; category < LIGHTCATEGORY_COUNT; category++)
@@ -108,14 +102,14 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                     {
                         uint start;
                         uint count;
-                        GetCountAndStart(coord, category, linearDepth, start, count);
+                        GetCountAndStart(posInput, category, start, count);
                         n += count;
                     }
                 }
                 
                 if (n > 0)
                 {
-                    return OverlayHeatMap(int2(coord.unPositionSS.xy) & 15, n);
+                    return OverlayHeatMap(int2(posInput.unPositionSS.xy) & 15, n);
                 }
                 else
                 {
