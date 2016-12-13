@@ -29,7 +29,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
             TEXTURE2D(_CameraDepthTexture);
-			SAMPLER2D(sampler_CameraDepthTexture);
+            SAMPLER2D(sampler_CameraDepthTexture);
             int         _DebugViewMaterial;
 
             struct Attributes
