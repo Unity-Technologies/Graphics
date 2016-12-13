@@ -603,6 +603,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
             }
 
+            var invViewProj = Utilities.GetViewProjectionMatrix(camera).inverse;
+            var screenSize = Utilities.ComputeScreenSize(camera);
+
+            var cmd = new CommandBuffer { name = "Push Global Parameters" };
+
+            cmd.SetGlobalVector("_ScreenSize", screenSize);
+            cmd.SetGlobalMatrix("_InvViewProjMatrix", invViewProj);
+
+            renderLoop.ExecuteCommandBuffer(cmd);
+            cmd.Dispose();
+
             m_lightLoop.PushGlobalParams(camera, renderLoop);
         }
 
