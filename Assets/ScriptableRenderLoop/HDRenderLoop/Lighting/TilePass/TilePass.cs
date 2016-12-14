@@ -1201,52 +1201,44 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 #endif
 
-            public override void RenderDeferredLighting(Camera camera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT)
+            public override void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT)
             {
                 var bUseClusteredForDeferred = !usingFptl;
-
-                var invViewProj = Utilities.GetViewProjectionMatrix(camera).inverse;
-                var screenSize = Utilities.ComputeScreenSize(camera);
 
                 Vector2 mousePixelCoord = Input.mousePosition;
 #if UNITY_EDITOR
                 if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
                 {
                     mousePixelCoord = m_mousePosition;
-                    mousePixelCoord.y = (screenSize.y - 1.0f) - mousePixelCoord.y;
+                    mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
                 }
 #endif
 
-                m_DeferredDirectMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_DeferredDirectMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredDirectMaterial);
                 m_DeferredDirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_DeferredDirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 m_DeferredDirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredDirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                m_DeferredIndirectMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_DeferredIndirectMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredIndirectMaterial);
                 m_DeferredIndirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_DeferredIndirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One); // Additive
                 m_DeferredIndirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredIndirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                m_DeferredAllMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_DeferredAllMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredAllMaterial);
                 m_DeferredAllMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_DeferredAllMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 m_DeferredAllMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredAllMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                m_DebugViewTilesMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_DebugViewTilesMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewTilesMaterial);
                 m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", debugViewTilesFlags);
                 m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
                 m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                m_SingleDeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_SingleDeferredMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_SingleDeferredMaterial);
                 m_SingleDeferredMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_SingleDeferredMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
 

@@ -41,8 +41,6 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
             TEXTURE2D(_CameraDepthTexture);
             SAMPLER2D(sampler_CameraDepthTexture);
 
-            float4x4 _InvViewProjMatrix;
-
             uint _ViewTilesFlags;
             float2 _MousePixelCoord;
 
@@ -99,7 +97,7 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                 // positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(positionCS.xy, _ScreenSize.zw);
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
-                UpdatePositionInput(depth, _InvViewProjMatrix, GetWorldToViewMatrix(), posInput);
+                UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
  
                 int2 pixelCoord = posInput.unPositionSS.xy;
                 int2 tileCoord = pixelCoord / TILE_SIZE;
@@ -141,7 +139,7 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                 {
                     PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw);
                     float depthMouse = LOAD_TEXTURE2D(_CameraDepthTexture, mousePosInput.unPositionSS).x;
-                    UpdatePositionInput(depthMouse, _InvViewProjMatrix, GetWorldToViewMatrix(), mousePosInput);
+                    UpdatePositionInput(depthMouse, _InvViewProjMatrix, _ViewProjMatrix, mousePosInput);
 
                     int category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
                     int start;
