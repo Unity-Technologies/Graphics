@@ -537,15 +537,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-#if UNITY_EDITOR
-        public override void RenderSceneView(Camera camera, RenderLoop renderLoop)
-        {
-            base.RenderSceneView(camera, renderLoop);
-            renderLoop.PrepareForEditorRendering(camera, m_CameraDepthBufferRT);
-            renderLoop.Submit();
-        }
-#endif
-
         void FinalPass(RenderLoop renderLoop)
         {
             using (new Utilities.ProfilingSample("Final Pass", renderLoop))
@@ -718,6 +709,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     // RenderDistortion(cullResults, camera, renderLoop);
 
                     FinalPass(renderLoop);
+                }
+
+                // bind depth surface for editor grid/gizmo/selection rendering
+                if (camera.cameraType == CameraType.SceneView)
+                {
+                    var cmd = new CommandBuffer();
+                    cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, m_CameraDepthBufferRT);
+                    renderLoop.ExecuteCommandBuffer(cmd);
+                    cmd.Dispose();
                 }
 
                 renderLoop.Submit();

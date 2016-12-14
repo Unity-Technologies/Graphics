@@ -266,7 +266,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             cmd.GetTemporaryRT(s_GBufferZ, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
             cmd.GetTemporaryRT(s_CameraDepthTexture, width, height, 24, FilterMode.Point, RenderTextureFormat.Depth);
             cmd.GetTemporaryRT(s_CameraTarget, width, height, 0, FilterMode.Point, formatHDR, RenderTextureReadWrite.Default, 1, true); // rtv/uav
-
+            
             var colorMRTs = new RenderTargetIdentifier[4] { s_GBufferAlbedo, s_GBufferSpecRough, s_GBufferNormal, s_GBufferEmission };
             cmd.SetRenderTarget(colorMRTs, new RenderTargetIdentifier(s_GBufferZ));
             cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
@@ -347,7 +347,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return !disableFptl;
             }
         }
-
+        
         static void CopyDepthAfterGBuffer(RenderLoop loop)
         {
             var cmd = new CommandBuffer { name = "Copy depth" };
@@ -470,8 +470,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
             else
             {
-                cmd.Blit(0, s_CameraTarget, m_DeferredMaterial, 0);
-                cmd.Blit(0, s_CameraTarget, m_DeferredReflectionMaterial, 0);
+                cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredMaterial, 0);
+                cmd.Blit(BuiltinRenderTextureType.CameraTarget, s_CameraTarget, m_DeferredReflectionMaterial, 0);
             }
 
 
@@ -974,15 +974,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return numLightsOut + numProbesOut;
         }
 
-#if UNITY_EDITOR
-        public override void RenderSceneView(Camera camera, RenderLoop renderLoop)
-        {
-            base.RenderSceneView(camera, renderLoop);
-            renderLoop.PrepareForEditorRendering(camera, new RenderTargetIdentifier(s_CameraDepthTexture));
-            renderLoop.Submit();
-        }
-#endif
-
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {
             foreach (var camera in cameras)
@@ -1065,9 +1056,20 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // debug views.
             if (enableDrawLightBoundsDebug) DrawLightBoundsDebug(loop, cullResults.visibleLights.Length);
-
+            
             // present frame buffer.
             FinalPass(loop);
+
+            // bind depth surface for editor grid/gizmo/selection rendering
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                var cmd = new CommandBuffer();
+                cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, new RenderTargetIdentifier(s_CameraDepthTexture));
+                loop.ExecuteCommandBuffer(cmd);
+                cmd.Dispose();
+            }
+            loop.Submit();
+
         }
 
         void DrawLightBoundsDebug(RenderLoop loop, int numLights)
