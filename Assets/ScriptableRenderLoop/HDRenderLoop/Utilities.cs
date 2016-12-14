@@ -160,6 +160,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 disposed = true;
             }
         }
+
         public static Matrix4x4 GetViewProjectionMatrix(Matrix4x4 worldToViewMatrix, Matrix4x4 projectionMatrix)
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
@@ -170,19 +171,28 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return gpuVP;
         }
 
-        public static Matrix4x4 GetViewProjectionMatrix(Camera camera)
+        public static HDRenderLoop.HDCamera GetHDCamera(Camera camera)
         {
-			// The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
-			// (different Z value ranges etc.)
-			var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
-			var gpuVP = gpuProj * camera.worldToCameraMatrix;
+            HDRenderLoop.HDCamera hdCamera = new HDRenderLoop.HDCamera();
+            hdCamera.camera = camera;
+            hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
-			return gpuVP;
+            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
+            // (different Z value ranges etc.)
+            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            var gpuVP = gpuProj * camera.worldToCameraMatrix;
+
+            hdCamera.viewProjectionMatrix = gpuVP;
+            hdCamera.invViewProjectionMatrix = gpuVP.inverse;
+
+            return hdCamera;
         }
-
-        public static Vector4 ComputeScreenSize(Camera camera)
+        
+        public static void SetupMaterialHDCamera(HDRenderLoop.HDCamera hdCamera, Material material)
         {
-            return new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+            material.SetVector("_ScreenSize", hdCamera.screenSize);
+            material.SetMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
+            material.SetMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
         }
 
         // TEMP: These functions should be implemented C++ side, for now do it in C#

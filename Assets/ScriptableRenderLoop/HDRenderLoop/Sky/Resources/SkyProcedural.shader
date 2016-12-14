@@ -32,7 +32,6 @@ Shader "Hidden/HDRenderLoop/SkyProcedural"
             TEXTURECUBE(_Cubemap);
             SAMPLERCUBE(sampler_Cubemap);
 
-            float4x4 _InvViewProjMatrix;
             float4   _SkyParam; // x exposure, y multiplier, z rotation
 
             struct Attributes
@@ -85,7 +84,7 @@ Shader "Hidden/HDRenderLoop/SkyProcedural"
                     float skyTexWeight = 1.0;
                 #endif
 
-                UpdatePositionInput(rawDepth, _InvViewProjMatrix, GetWorldToViewMatrix(), posInput);
+                UpdatePositionInput(rawDepth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
                 float4 c1, c2, c3;
                 VolundTransferScatter(posInput.positionWS, c1, c2, c3);

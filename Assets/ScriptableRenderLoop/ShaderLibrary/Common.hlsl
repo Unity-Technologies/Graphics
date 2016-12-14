@@ -372,7 +372,7 @@ void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4 worlToViewProjectionMatrix, inout PositionInputs posInput)
+void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4 ViewProjectionMatrix, inout PositionInputs posInput)
 {
     posInput.depthRaw = depth;
 
@@ -382,7 +382,7 @@ void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4
     posInput.positionWS = hpositionWS.xyz / hpositionWS.w;
 
     // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
-    posInput.depthVS = mul(worlToViewProjectionMatrix, float4(posInput.positionWS, 1.0)).z;
+    posInput.depthVS = mul(ViewProjectionMatrix, float4(posInput.positionWS, 1.0)).w;
 
     posInput.positionCS *= posInput.depthVS;
 }
@@ -394,7 +394,8 @@ void ApplyDepthOffsetVS(float V, float depthOffsetVS, inout PositionInputs posIn
     // TODO: it is an approx, need a correct value where we use projection matrix to reproject the depth from VS
     posInput.depthRaw = posInput.positionCS.z / posInput.depthVS;
 
-    posInput.positionCS = float4((posInput.positionSS - 0.5) * float2(2.0, -2.0), posInput.depthRaw, 1.0) * posInput.depthVS;  
+    // TODO: Do we need to flip Y axis here on OGL ?
+    posInput.positionCS = float4(posInput.positionSS.xy * 2.0 - 1.0, posInput.depthRaw, 1.0) * posInput.depthVS;
     // Just add the offset along the view vector is sufficiant for world position
     posInput.positionWS += V * depthOffsetVS;
 }

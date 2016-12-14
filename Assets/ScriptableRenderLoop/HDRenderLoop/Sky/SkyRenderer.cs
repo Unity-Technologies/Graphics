@@ -42,6 +42,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         MaterialPropertyBlock m_RenderSkyPropertyBlock = null;
 
+        Vector4 m_screenSize;
+        Matrix4x4[] m_faceCameraViewProjectionMatrix = new Matrix4x4[6];
         Matrix4x4[] m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
         Mesh[] m_CubemapFaceMesh = new Mesh[6];
 
@@ -125,6 +127,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_SkyboxGGXCubemapRT.filterMode = FilterMode.Trilinear;
                 m_SkyboxGGXCubemapRT.Create();
             }
+
+            m_screenSize = new Vector4((float)skyParameters.skyResolution, (float)skyParameters.skyResolution, 1.0f / (float)skyParameters.skyResolution, 1.0f / (float)skyParameters.skyResolution);
         }
 
         // Sets the global MIP-mapped cubemap '_SkyTexture' in the shader.
@@ -173,7 +177,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             for (int i = 0; i < 6; ++i)
             {
                 Matrix4x4 lookAt = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], UpVectorList[i]);
-                m_faceCameraInvViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
+                m_faceCameraViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj);
+                m_faceCameraInvViewProjectionMatrix[i] = m_faceCameraViewProjectionMatrix[i].inverse;
 
                 // When rendering into a texture the render will be flip (due to legacy unity openGL behavior), so we need to flip UV here...
                 m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i], true);
@@ -195,10 +200,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return parameters.skyHDRI != null;
         }
 
-        private void RenderSky(Matrix4x4 invViewProjectionMatrix, SkyParameters skyParameters, Mesh skyMesh, RenderLoop renderLoop)
+        private void RenderSky(Vector4 screenSize, Matrix4x4 viewProjectionMatrix, Matrix4x4 invViewProjectionMatrix, SkyParameters skyParameters, Mesh skyMesh, RenderLoop renderLoop)
         {
             m_RenderSkyPropertyBlock.SetTexture("_Cubemap", skyParameters.skyHDRI);
             m_RenderSkyPropertyBlock.SetVector("_SkyParam", new Vector4(skyParameters.exposure, skyParameters.multiplier, skyParameters.rotation, 0.0f));
+            m_RenderSkyPropertyBlock.SetVector("_ScreenSize", screenSize);
+            m_RenderSkyPropertyBlock.SetMatrix("_ViewProjMatrix", viewProjectionMatrix);
             m_RenderSkyPropertyBlock.SetMatrix("_InvViewProjMatrix", invViewProjectionMatrix);
 
             var cmd = new CommandBuffer { name = "" };
@@ -212,7 +219,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             for (int i = 0; i < 6; ++i)
             {
                 Utilities.SetRenderTarget(renderLoop, target, 0, (CubemapFace)i);
-                RenderSky(m_faceCameraInvViewProjectionMatrix[i], skyParameters, m_CubemapFaceMesh[i], renderLoop);
+                RenderSky(m_screenSize, m_faceCameraViewProjectionMatrix[i], m_faceCameraInvViewProjectionMatrix[i], skyParameters, m_CubemapFaceMesh[i], renderLoop);
             }
         }
 
@@ -268,7 +275,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public void RenderSky(Camera camera, SkyParameters skyParameters, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
+        public void RenderSky(HDRenderLoop.HDCamera hdCamera, SkyParameters skyParameters, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
         {
             using (new Utilities.ProfilingSample("Sky Pass", renderLoop))
             {
@@ -311,8 +318,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     // Render the sky itself
                     Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer);
-                    Matrix4x4 invViewProjectionMatrix = Utilities.GetViewProjectionMatrix(camera).inverse;
-                    RenderSky(invViewProjectionMatrix, skyParameters, BuildSkyMesh(camera.GetComponent<Transform>().position, invViewProjectionMatrix, false), renderLoop);
+                    RenderSky(hdCamera.screenSize, hdCamera.viewProjectionMatrix, hdCamera.invViewProjectionMatrix, skyParameters, BuildSkyMesh(hdCamera.camera.GetComponent<Transform>().position, hdCamera.invViewProjectionMatrix, false), renderLoop);
                 }
             }
         }
