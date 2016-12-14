@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(HDRISkyParameters))]
-    public class TestClassEditor
+    public class HDRISkyParametersEditor
         : Editor
     {
         private class Styles

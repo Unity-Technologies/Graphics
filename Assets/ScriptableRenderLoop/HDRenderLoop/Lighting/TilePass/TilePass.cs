@@ -464,8 +464,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 bool hasDirectionalShadows = light.light.shadows != LightShadows.None && shadowOutput.GetShadowSliceCountLightIndex(lightIndex) != 0;
                 bool hasDirectionalNotReachMaxLimit = directionalShadowcount == 0; // Only one cascade shadow allowed
 
+                // If we have not found a directional shadow casting light yet, we register the last directional anyway as "sun".
+                if (directionalShadowcount == 0)
+                {
+                    m_CurrentSunLight = light.light;
+                }
+
                 if (hasDirectionalShadows && hasDirectionalNotReachMaxLimit) // Note  < MaxShadows should be check at shadowOutput creation
                 {
+                    // Always choose the directional shadow casting light if it exists.
+                    m_CurrentSunLight = light.light;
+
                     directionalLightData.shadowIndex = m_lightList.shadows.Count;
                     directionalShadowcount += GetShadows(light, lightIndex, ref shadowOutput);
 

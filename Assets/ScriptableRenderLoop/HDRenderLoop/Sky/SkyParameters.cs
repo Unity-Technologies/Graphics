@@ -65,7 +65,11 @@ public class SkyParameters : MonoBehaviour
         {
             int hash = 13;
             foreach (var p in m_Properties)
-                hash = hash * 23 + p.GetValue(this).GetHashCode();
+            {
+                System.Object obj = p.GetValue(this);
+                if(obj != null) // Sometimes it can be a null reference.
+                    hash = hash * 23 + obj.GetHashCode();
+            }
             return hash;
         }
     }
