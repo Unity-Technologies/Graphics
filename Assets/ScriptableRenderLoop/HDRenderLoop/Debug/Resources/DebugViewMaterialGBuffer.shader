@@ -23,8 +23,6 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.cs.hlsl"    
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Material/Material.hlsl"
-        
-            float4x4 _InvViewProjMatrix;
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
@@ -57,7 +55,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
 				// input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
-                UpdatePositionInput(depth, _InvViewProjMatrix, GetWorldToViewMatrix(), posInput);
+                UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
 
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;

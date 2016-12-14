@@ -54,8 +54,6 @@ Shader "Hidden/HDRenderLoop/Deferred"
  			TEXTURE2D(_CameraDepthTexture);
 			SAMPLER2D(sampler_CameraDepthTexture);
 
-            float4x4 _InvViewProjMatrix;
-
             struct Attributes
             {
                 float3 positionOS : POSITION;
@@ -82,7 +80,7 @@ Shader "Hidden/HDRenderLoop/Deferred"
                 // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
                 float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
-                UpdatePositionInput(depth, _InvViewProjMatrix, GetWorldToViewMatrix(), posInput);
+                UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
                 FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
