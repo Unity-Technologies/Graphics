@@ -1303,7 +1303,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("Cull Off");
             builder.WriteLine();
             builder.WriteLine("CGPROGRAM");
-            builder.WriteLine("#pragma target 5.0");
+            builder.WriteLine("#pragma target 4.5");
             builder.WriteLine();
             builder.WriteLine("#pragma vertex vert");
             builder.WriteLine("#pragma fragment frag");
