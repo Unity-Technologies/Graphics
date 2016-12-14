@@ -429,7 +429,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void RenderSky(Camera camera, RenderLoop renderLoop)
         {
-            m_SkyManager.RenderSky(camera, m_SkyParameters, m_CameraColorBufferRT, m_CameraDepthBufferRT, renderLoop);
+            m_SkyManager.RenderSky(camera, m_lightLoop.GetCurrentSunLight(), m_SkyParameters, m_CameraColorBufferRT, m_CameraDepthBufferRT, renderLoop);
         }
 
         void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop, bool renderOpaque)

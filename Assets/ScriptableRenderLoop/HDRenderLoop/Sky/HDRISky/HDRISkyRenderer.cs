@@ -9,13 +9,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     public class HDRISkyRenderer
         : SkyRenderer
     {
-        MaterialPropertyBlock   m_PropertyBlock = null;
         Material                m_SkyHDRIMaterial = null; // Renders a cubemap into a render texture (can be cube or 2D)
 
         override public void Build()
         {
-            m_SkyHDRIMaterial = Utilities.CreateEngineMaterial("HDRenderLoop/Sky/SkyHDRI");
-            m_PropertyBlock = new MaterialPropertyBlock();
+            m_SkyHDRIMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Sky/SkyHDRI");
         }
 
         override public void Cleanup()
@@ -54,12 +52,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return;
             }
 
-            m_PropertyBlock.SetTexture("_Cubemap", hdriSkyParams.skyHDRI);
-            m_PropertyBlock.SetVector("_SkyParam", new Vector4(hdriSkyParams.exposure, hdriSkyParams.multiplier, hdriSkyParams.rotation, 0.0f));
-            //m_RenderSkyPropertyBlock.SetMatrix("_InvViewProjMatrix", invViewProjectionMatrix);
+            m_SkyHDRIMaterial.SetTexture("_Cubemap", hdriSkyParams.skyHDRI);
+            m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(hdriSkyParams.exposure, hdriSkyParams.multiplier, hdriSkyParams.rotation, 0.0f));
 
             var cmd = new CommandBuffer { name = "" };
-            cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial, 0, 0, m_PropertyBlock);
+            cmd.DrawMesh(builtinParams.skyMesh, Matrix4x4.identity, m_SkyHDRIMaterial);
             builtinParams.renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
         }

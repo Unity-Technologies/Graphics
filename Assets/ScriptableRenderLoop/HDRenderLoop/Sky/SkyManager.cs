@@ -23,6 +23,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Matrix4x4    invViewProjMatrix;
         public Mesh         skyMesh;
         public RenderLoop   renderLoop;
+        public Light        sunLight;
     }
 
     public class SkyManager
@@ -269,13 +270,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public void RenderSky(Camera camera, SkyParameters skyParameters, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
+        public void RenderSky(Camera camera, Light sunLight, SkyParameters skyParameters, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
         {
             using (new Utilities.ProfilingSample("Sky Pass", renderLoop))
             {
                 if (IsSkyValid(skyParameters))
                 {
                     m_BuiltinParameters.renderLoop = renderLoop;
+                    m_BuiltinParameters.sunLight = sunLight;
 
                     if (skyParameters.GetHash() != m_SkyParametersHash)
                     {

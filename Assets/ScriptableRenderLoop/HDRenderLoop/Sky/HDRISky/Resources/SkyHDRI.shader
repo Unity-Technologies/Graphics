@@ -1,4 +1,4 @@
-Shader "HDRenderLoop/Sky/SkyHDRI"
+Shader "Hidden/HDRenderLoop/Sky/SkyHDRI"
 {
     SubShader
     {
