@@ -32,93 +32,101 @@ float4x4 glstate_matrix_inv_projection;
 
 
 CBUFFER_START(UnityPerCamera)
-    // Time (t = time since current level load) values from Unity
-    float4 _Time; // (t/20, t, t*2, t*3)
-    float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
-    float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
-    float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
+// Time (t = time since current level load) values from Unity
+float4 _Time; // (t/20, t, t*2, t*3)
+float4 _SinTime; // sin(t/8), sin(t/4), sin(t/2), sin(t)
+float4 _CosTime; // cos(t/8), cos(t/4), cos(t/2), cos(t)
+float4 unity_DeltaTime; // dt, 1/dt, smoothdt, 1/smoothdt
 
-#ifndef UNITY_SINGLE_PASS_STEREO
-    float3 _WorldSpaceCameraPos;
+#if !defined(USING_STEREO_MATRICES)
+float3 _WorldSpaceCameraPos;
 #endif
 
-    // x = 1 or -1 (-1 if projection is flipped)
-    // y = near plane
-    // z = far plane
-    // w = 1/far plane
-    float4 _ProjectionParams;
+// x = 1 or -1 (-1 if projection is flipped)
+// y = near plane
+// z = far plane
+// w = 1/far plane
+float4 _ProjectionParams;
 
-    // x = width
-    // y = height
-    // z = 1 + 1.0/width
-    // w = 1 + 1.0/height
-    float4 _ScreenParams;
+// x = width
+// y = height
+// z = 1 + 1.0/width
+// w = 1 + 1.0/height
+float4 _ScreenParams;
 
-    // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
-    // x = 1-far/near
-    // y = far/near
-    // z = x/far
-    // w = y/far
-    float4 _ZBufferParams;
+// Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
+// x = 1-far/near
+// y = far/near
+// z = x/far
+// w = y/far
+float4 _ZBufferParams;
 
-    // x = orthographic camera's width
-    // y = orthographic camera's height
-    // z = unused
-    // w = 1.0 if camera is ortho, 0.0 if perspective
-    float4 unity_OrthoParams;
+// x = orthographic camera's width
+// y = orthographic camera's height
+// z = unused
+// w = 1.0 if camera is ortho, 0.0 if perspective
+float4 unity_OrthoParams;
 CBUFFER_END
 
 
 CBUFFER_START(UnityPerCameraRare)
-    float4 unity_CameraWorldClipPlanes[6];
+float4 unity_CameraWorldClipPlanes[6];
 
-    // Projection matrices of the camera. Note that this might be different from projection matrix
-    // that is set right now, e.g. while rendering shadows the matrices below are still the projection
-    // of original camera.
-    float4x4 unity_CameraProjection;
-    float4x4 unity_CameraInvProjection;
-
-#ifndef UNITY_SINGLE_PASS_STEREO
-    float4x4 unity_WorldToCamera;
-    float4x4 unity_CameraToWorld;
+#if !defined(USING_STEREO_MATRICES)
+// Projection matrices of the camera. Note that this might be different from projection matrix
+// that is set right now, e.g. while rendering shadows the matrices below are still the projection
+// of original camera.
+float4x4 unity_CameraProjection;
+float4x4 unity_CameraInvProjection;
+float4x4 unity_WorldToCamera;
+float4x4 unity_CameraToWorld;
 #endif
 CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerDraw)
-#ifndef UNITY_SINGLE_PASS_STEREO
-    float4x4 glstate_matrix_mvp;
+#ifdef UNITY_USE_PREMULTIPLIED_MATRICES
+float4x4 glstate_matrix_mvp;
+float4x4 glstate_matrix_modelview0;
+float4x4 glstate_matrix_invtrans_modelview0;
 #endif
 
-    // Use center position for stereo rendering
-    float4x4 glstate_matrix_modelview0;
-    float4x4 glstate_matrix_invtrans_modelview0;
-
-    float4x4 unity_ObjectToWorld;
-    float4x4 unity_WorldToObject;
-    float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
-    float4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
+float4x4 unity_ObjectToWorld;
+float4x4 unity_WorldToObject;
+float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
+float4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
 CBUFFER_END
 
-#ifdef UNITY_SINGLE_PASS_STEREO
-CBUFFER_START(UnityPerEye)
-    float3 _WorldSpaceCameraPos;
-    float4x4 glstate_matrix_projection;
+#if defined(USING_STEREO_MATRICES)
+CBUFFER_START(UnityStereoGlobals)
+float4x4 unity_StereoMatrixP[2];
+float4x4 unity_StereoMatrixV[2];
+float4x4 unity_StereoMatrixInvV[2];
+float4x4 unity_StereoMatrixVP[2];
 
-    float4x4 unity_MatrixV;
-    float4x4 unity_MatrixVP;
+float4x4 unity_StereoCameraProjection[2];
+float4x4 unity_StereoCameraInvProjection[2];
+float4x4 unity_StereoWorldToCamera[2];
+float4x4 unity_StereoCameraToWorld[2];
 
-    float4x4 unity_WorldToCamera;
-    float4x4 unity_CameraToWorld;
+float3 unity_StereoWorldSpaceCameraPos[2];
+float4 unity_StereoScaleOffset[2];
 CBUFFER_END
+
+#ifdef UNITY_SUPPORT_MULTIVIEW
+#define unity_StereoEyeIndex UNITY_VIEWID
+UNITY_DECLARE_MULTIVIEW(2);
+#else
+CBUFFER_START(UnityStereoEyeIndex)
+int unity_StereoEyeIndex;
+CBUFFER_END
+#endif
+
 #endif
 
 CBUFFER_START(UnityPerDrawRare)
-    float4x4 glstate_matrix_transpose_modelview0;
-#ifdef UNITY_SINGLE_PASS_STEREO
-    float4x4 glstate_matrix_mvp;
-#endif
+float4x4 glstate_matrix_transpose_modelview0;
 CBUFFER_END
 
 
@@ -126,17 +134,21 @@ CBUFFER_END
 
 CBUFFER_START(UnityPerFrame)
 
-#ifndef UNITY_SINGLE_PASS_STEREO
-    float4x4 glstate_matrix_projection;
-    float4x4 unity_MatrixV;
-    float4x4 unity_MatrixVP;
+float4 glstate_lightmodel_ambient;
+float4 unity_AmbientSky;
+float4 unity_AmbientEquator;
+float4 unity_AmbientGround;
+float4 unity_IndirectSpecColor;
+
+#if !defined(USING_STEREO_MATRICES)
+float4x4 glstate_matrix_projection;
+float4x4 unity_MatrixV;
+float4x4 unity_MatrixInvV;
+float4x4 unity_MatrixVP;
+int unity_StereoEyeIndex;
 #endif
 
-    float4 glstate_lightmodel_ambient;
-    float4 unity_AmbientSky;
-    float4 unity_AmbientEquator;
-    float4 unity_AmbientGround;
-    float4 unity_IndirectSpecColor;
+float4 unity_ShadowColor;
 
 CBUFFER_END
 
@@ -196,11 +208,13 @@ CBUFFER_END
 // ----------------------------------------------------------------------------
 
 // TODO: move this to constant buffer by Pass
+float4x4 _InvViewProjMatrix;
+float4x4 _ViewProjMatrix; // Looks like using UNITY_MATRIX_VP in pixel shader doesn't work ??? need to setup my own...
 float4		_ScreenSize;
 
 float4x4 GetWorldToViewMatrix()
 {
-    return unity_MatrixV;
+    return UNITY_MATRIX_V;
 }
 
 float4x4 GetObjectToWorldMatrix()
@@ -216,7 +230,7 @@ float4x4 GetWorldToObjectMatrix()
 // Transform to homogenous clip space
 float4x4 GetWorldToHClipMatrix()
 {
-    return unity_MatrixVP;
+    return UNITY_MATRIX_VP;
 }
 
 // Transform from clip space to homogenous world space
@@ -228,11 +242,6 @@ float4x4 GetClipToHWorldMatrix()
 float GetOdddNegativeScale()
 {
     return unity_WorldTransformParams.w;
-}
-
-float4x4 GetObjectToWorldViewMatrix()
-{
-    return glstate_matrix_modelview0;
 }
 
 float3 TransformWorldToView(float3 positionWS)
@@ -248,11 +257,6 @@ float3 TransformObjectToWorld(float3 positionOS)
 float3 TransformWorldToObject(float3 positionWS)
 {
     return mul(GetWorldToObjectMatrix(), float4(positionWS, 1.0)).xyz;
-}
-
-float3 TransformObjectToView(float3 positionOS)
-{
-    return mul(GetObjectToWorldViewMatrix(), float4(positionOS, 1.0)).xyz;
 }
 
 float3 TransformObjectToWorldDir(float3 dirOS)

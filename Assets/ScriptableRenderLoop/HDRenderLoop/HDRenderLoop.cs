@@ -171,6 +171,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // TODO TO CHECK: SebL I move allocation from Build() to here, but there was a comment "// Our object can be garbage collected, so need to be allocate here", it is still true ?
         Lit.RenderLoop m_LitRenderLoop = new Lit.RenderLoop();
 
+        public struct HDCamera
+        {
+            public Camera camera;
+            public Vector4 screenSize;
+            public Matrix4x4 viewProjectionMatrix;
+            public Matrix4x4 invViewProjectionMatrix;
+        }
+
         public override void Build()
         {
 #if UNITY_EDITOR
@@ -374,7 +382,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void RenderDebugViewMaterial(CullResults cull, Camera camera, RenderLoop renderLoop)
+        void RenderDebugViewMaterial(CullResults cull, HDCamera hdCamera, RenderLoop renderLoop)
         {
             using (new Utilities.ProfilingSample("DebugView Material Mode Pass", renderLoop))
             // Render Opaque forward
@@ -383,17 +391,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 Shader.SetGlobalInt("_DebugViewMaterial", (int)debugParameters.debugViewMaterial);
 
-                RenderOpaqueRenderList(cull, camera, renderLoop, "DebugViewMaterial");
+                RenderOpaqueRenderList(cull, hdCamera.camera, renderLoop, "DebugViewMaterial");
             }
 
             // Render GBuffer opaque
             if (!debugParameters.useForwardRenderingOnly)
             {
-                var invViewProj = Utilities.GetViewProjectionMatrix(camera).inverse;
-                var screenSize = Utilities.ComputeScreenSize(camera);
-                m_DebugViewMaterialGBuffer.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewMaterialGBuffer);
                 m_DebugViewMaterialGBuffer.SetFloat("_DebugViewMaterial", (float)debugParameters.debugViewMaterial);
-                m_DebugViewMaterialGBuffer.SetMatrix("_InvViewProjMatrix", invViewProj);
 
                 // m_gbufferManager.BindBuffers(m_DebugViewMaterialGBuffer);
                 // TODO: Bind depth textures
@@ -405,7 +410,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // Render forward transparent
             {
-                RenderTransparentRenderList(cull, camera, renderLoop, "DebugViewMaterial");
+                RenderTransparentRenderList(cull, hdCamera.camera, renderLoop, "DebugViewMaterial");
             }
 
             // Last blit
@@ -417,7 +422,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        void RenderDeferredLighting(Camera camera, RenderLoop renderLoop)
+        void RenderDeferredLighting(HDCamera hdCamera, RenderLoop renderLoop)
         {
             if (debugParameters.useForwardRenderingOnly)
             {
@@ -426,12 +431,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // Bind material data
             m_LitRenderLoop.Bind();
-            m_lightLoop.RenderDeferredLighting(camera, renderLoop, m_CameraColorBuffer);
+            m_lightLoop.RenderDeferredLighting(hdCamera, renderLoop, m_CameraColorBuffer);
         }
 
-        void RenderSky(Camera camera, RenderLoop renderLoop)
+        void RenderSky(HDCamera hdCamera, RenderLoop renderLoop)
         {
-            m_SkyRenderer.RenderSky(camera, m_SkyParameters, m_CameraColorBufferRT, m_CameraDepthBufferRT, renderLoop);
+            m_SkyRenderer.RenderSky(hdCamera, m_SkyParameters, m_CameraColorBufferRT, m_CameraDepthBufferRT, renderLoop);
         }
 
         void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop, bool renderOpaque)
@@ -606,7 +611,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public void PushGlobalParams(Camera camera, RenderLoop renderLoop)
+        public void PushGlobalParams(HDCamera hdCamera, RenderLoop renderLoop)
         {
             if (m_SkyRenderer.IsSkyValid(m_SkyParameters))
             {
@@ -618,18 +623,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 0);
             }
 
-            var invViewProj = Utilities.GetViewProjectionMatrix(camera).inverse;
-            var screenSize = Utilities.ComputeScreenSize(camera);
-
             var cmd = new CommandBuffer { name = "Push Global Parameters" };
 
-            cmd.SetGlobalVector("_ScreenSize", screenSize);
-            cmd.SetGlobalMatrix("_InvViewProjMatrix", invViewProj);
+            cmd.SetGlobalVector("_ScreenSize", hdCamera.screenSize);
+            cmd.SetGlobalMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
+            cmd.SetGlobalMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
 
             renderLoop.ExecuteCommandBuffer(cmd);
             cmd.Dispose();
 
-            m_lightLoop.PushGlobalParams(camera, renderLoop);
+            m_lightLoop.PushGlobalParams(hdCamera.camera, renderLoop);
         }
 
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
@@ -662,6 +665,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 renderLoop.SetupCameraProperties(camera);
 
+                HDCamera hdCamera = Utilities.GetHDCamera(camera);
+
                 InitAndClearBuffer(camera, renderLoop);
 
                 RenderDepthPrepass(cullResults, camera, renderLoop);
@@ -674,7 +679,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 if (debugParameters.debugViewMaterial != 0)
                 {
-                    RenderDebugViewMaterial(cullResults, camera, renderLoop);
+                    RenderDebugViewMaterial(cullResults, hdCamera, renderLoop);
                 }
                 else
                 {
@@ -691,14 +696,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         m_lightLoop.PrepareLightsForGPU(cullResults, camera, ref shadows);
                         m_lightLoop.BuildGPULightLists(camera, renderLoop, m_CameraDepthBufferRT);
 
-                        PushGlobalParams(camera, renderLoop);
+                        PushGlobalParams(hdCamera, renderLoop);
                     }
-                    RenderDeferredLighting(camera, renderLoop);
+                    RenderDeferredLighting(hdCamera, renderLoop);
 
                     RenderForward(cullResults, camera, renderLoop, true);
                     RenderForwardOnly(cullResults, camera, renderLoop);
 
-                    RenderSky(camera, renderLoop);
+                    RenderSky(hdCamera, renderLoop);
 
                     RenderForward(cullResults, camera, renderLoop, false);
 
