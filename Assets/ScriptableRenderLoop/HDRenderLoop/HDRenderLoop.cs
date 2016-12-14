@@ -35,12 +35,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         }
 #endif
 
-        SkyManager m_SkyManager = null;
-        SkyParameters m_SkyParameters = null;
+        SkyManager m_SkyManager = new SkyManager();
+
         public SkyParameters skyParameters
         {
-            set { m_SkyParameters = value; }
-            get { return m_SkyParameters; }
+            set { m_SkyManager.skyParameters = value; }
+            get { return m_SkyManager.skyParameters; }
         }
 
         public class DebugParameters
@@ -191,7 +191,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_CameraColorBufferRT = new RenderTargetIdentifier(m_CameraColorBuffer);
             m_CameraDepthBufferRT = new RenderTargetIdentifier(m_CameraDepthBuffer);
 
-            m_SkyManager = new SkyManager();
+            if(m_SkyManager == null)
+                m_SkyManager = new SkyManager();
             m_SkyManager.Build();
 
             m_FinalPassMaterial  = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/FinalPass");
@@ -429,7 +430,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         void RenderSky(Camera camera, RenderLoop renderLoop)
         {
-            m_SkyManager.RenderSky(camera, m_lightLoop.GetCurrentSunLight(), m_SkyParameters, m_CameraColorBufferRT, m_CameraDepthBufferRT, renderLoop);
+            m_SkyManager.RenderSky(camera, m_lightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthBufferRT, renderLoop);
         }
 
         void RenderForward(CullResults cullResults, Camera camera, RenderLoop renderLoop, bool renderOpaque)
@@ -571,7 +572,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             // TODO: This is the wrong way to handle resize/allocation. We can have several different camera here, mean that the loop on camera will allocate and deallocate
             // the below buffer which is bad. Best is to have a set of buffer for each camera that is persistent and reallocate resource if need
             // For now consider we have only one camera that go to this code, the main one.
-            m_SkyManager.Resize(m_SkyParameters); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
+            m_SkyManager.Resize(); // TODO: Also a bad naming, here we just want to realloc texture if skyparameters change (usefull for lookdev)
 
             if (camera.pixelWidth != m_currentWidth || camera.pixelHeight != m_currentHeight || m_lightLoop.NeedResize())
             {
@@ -590,7 +591,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public void PushGlobalParams(Camera camera, RenderLoop renderLoop)
         {
-            if (m_SkyManager.IsSkyValid(m_SkyParameters))
+            if (m_SkyManager.IsSkyValid())
             {
                 m_SkyManager.SetGlobalSkyTexture();
                 Shader.SetGlobalInt("_EnvLightSkyEnabled", 1);

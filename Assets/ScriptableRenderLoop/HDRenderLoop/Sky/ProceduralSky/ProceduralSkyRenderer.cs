@@ -7,11 +7,11 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     public class ProceduralSkyRenderer
-        : SkyRenderer
+        : SkyRenderer<ProceduralSkyParameters>
     {
-        Material                m_ProceduralSkyMaterial = null; // Renders a cubemap into a render texture (can be cube or 2D)
-        Gradient                m_DefaultWorldRayleighColorRamp = null;
-        Gradient                m_DefaultWorldMieColorRamp = null;
+        Material m_ProceduralSkyMaterial = null; // Renders a cubemap into a render texture (can be cube or 2D)
+        Gradient m_DefaultWorldRayleighColorRamp = null;
+        Gradient m_DefaultWorldMieColorRamp = null;
 
         override public void Build()
         {
@@ -44,29 +44,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             Utilities.Destroy(m_ProceduralSkyMaterial);
         }
-        
-        ProceduralSkyParameters GetProceduralSkyParameters(SkyParameters parameters)
-        {
-            ProceduralSkyParameters proceduralSkyParameters = parameters as ProceduralSkyParameters;
-            if (proceduralSkyParameters == null)
-            {
-                Debug.LogWarning("ProceduralSkyRenderer needs an instance of ProceduralSkyParameters to be able to render.");
-                return null;
-            }
 
-            return proceduralSkyParameters;
-        }
 
         override public bool IsSkyValid(SkyParameters skyParameters)
         {
-            ProceduralSkyParameters proceduralSkyParams = GetProceduralSkyParameters(skyParameters);
-            if (proceduralSkyParams == null)
-            {
-                return false;
-            }
-
-            return true; // TODO: How is it valid?
+            //ProceduralSkyParameters proceduralSkyParams = GetParameters(skyParameters);
+            return true; // TODO: See with Evgenii what makes it valid or invalid.
         }
+
         void UpdateKeywords(bool enable, ProceduralSkyParameters param)
         {
             m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS_OCCLUSION");
@@ -187,11 +172,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters)
         {
-            ProceduralSkyParameters proceduralSkyParams = GetProceduralSkyParameters(skyParameters);
-            if (proceduralSkyParams == null)
-            {
-                return;
-            }
+            ProceduralSkyParameters proceduralSkyParams = GetParameters(skyParameters);
 
             // Define select preprocessor symbols.
             UpdateKeywords(true, proceduralSkyParams);

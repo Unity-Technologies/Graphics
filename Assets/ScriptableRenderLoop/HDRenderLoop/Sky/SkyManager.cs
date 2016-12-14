@@ -42,6 +42,24 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         int                     m_SkyParametersHash = 0;
         bool                    m_NeedUpdateEnvironment = false;
 
+        SkyParameters           m_SkyParameters = null;
+
+        public SkyParameters skyParameters
+        {
+            set
+            {
+                if (value == null || IsSkyParameterValid(value))
+                {
+                    m_SkyParameters = value;
+                }
+                else
+                {
+                    Debug.LogWarning("Sky renderer needs an instance of " + GetSkyParameterType().ToString() + " to be able to render.");
+                }
+            }
+            get { return m_SkyParameters; }
+        }
+
         protected Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix, bool forceUVBottom)
         {
             Vector4 vertData0 = new Vector4(-1.0f, -1.0f, 1.0f, 1.0f);
@@ -171,7 +189,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Shader.SetGlobalTexture("_SkyTexture", m_SkyboxGGXCubemapRT);
         }
 
-        public void Resize(SkyParameters skyParameters)
+        public void Resize()
         {
             // When loading RenderDoc, RenderTextures will go null
             RebuildTextures(skyParameters);
@@ -197,9 +215,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_Renderer.Cleanup();
         }
 
-        public bool IsSkyValid(SkyParameters parameters)
+        public bool IsSkyValid()
         {
-            return m_Renderer != null && m_Renderer.IsSkyValid(parameters);
+            return m_Renderer != null && m_Renderer.IsParameterValid(skyParameters) && m_Renderer.IsSkyValid(skyParameters);
         }
 
         private void RenderSkyToCubemap(BuiltinSkyParameters builtinParams, SkyParameters skyParameters, RenderTexture target)
@@ -271,11 +289,21 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
         }
 
-        public void RenderSky(Camera camera, Light sunLight, SkyParameters skyParameters, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
+        public bool IsSkyParameterValid(SkyParameters parameters)
+        {
+            return m_Renderer.IsParameterValid(parameters);
+        }
+
+        public Type GetSkyParameterType()
+        {
+            return m_Renderer.GetSkyParameterType();
+        }
+
+        public void RenderSky(Camera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
         {
             using (new Utilities.ProfilingSample("Sky Pass", renderLoop))
             {
-                if (IsSkyValid(skyParameters))
+                if (IsSkyValid())
                 {
                     m_BuiltinParameters.renderLoop = renderLoop;
                     m_BuiltinParameters.sunLight = sunLight;
@@ -318,22 +346,24 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 }
                 else
                 {
-                    if(m_SkyParametersHash != 0)
-                    {
-                        // Clear sky light probe
-                        RenderSettings.skybox = null;
-                        RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
-                        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
-                        RenderSettings.reflectionIntensity = 1.0f;
-                        RenderSettings.customReflection = null;
-                        DynamicGI.UpdateEnvironment();
+                    // Disabled for now.
+                    // We need to remove RenderSkyToCubemap from the RenderCubemapGGXConvolution first as it needs the skyparameter to be valid.
+                    //if(m_SkyParametersHash != 0)
+                    //{
+                    //    // Clear sky light probe
+                    //    RenderSettings.skybox = null;
+                    //    RenderSettings.ambientIntensity = 1.0f; // fix this to 1, this parameter should not exist!
+                    //    RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox; // Force skybox for our HDRI
+                    //    RenderSettings.reflectionIntensity = 1.0f;
+                    //    RenderSettings.customReflection = null;
+                    //    DynamicGI.UpdateEnvironment();
 
-                        // Clear temp cubemap and redo GGX from black
-                        Utilities.SetRenderTarget(renderLoop, m_SkyboxCubemapRT, ClearFlag.ClearColor);
-                        RenderCubemapGGXConvolution(renderLoop, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
+                    //    // Clear temp cubemap and redo GGX from black
+                    //    Utilities.SetRenderTarget(renderLoop, m_SkyboxCubemapRT, ClearFlag.ClearColor);
+                    //    RenderCubemapGGXConvolution(renderLoop, m_BuiltinParameters, skyParameters, m_SkyboxCubemapRT, m_SkyboxGGXCubemapRT);
 
-                        m_SkyParametersHash = 0;
-                    }
+                    //    m_SkyParametersHash = 0;
+                    //}
                 }
             }
         }
