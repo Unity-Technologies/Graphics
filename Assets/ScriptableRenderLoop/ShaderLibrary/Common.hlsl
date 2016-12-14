@@ -310,53 +310,93 @@ float4 PositivePow(float4 base, float4 power)
 // World position reconstruction / transformation
 // ----------------------------------------------------------------------------
 
-struct Coordinate
-{
-    // Normalize coordinates
-    float2  positionSS;
-    // Unormalize coordinates
-    uint2    unPositionSS;
-};
-
-// This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
-// This allow to easily share code.
-// If a compute shader call this function unPositionSS is an integer usually calculate like: uint2 unPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
-// else it is current unormalized screen coordinate like return by VPOS
-Coordinate GetCoordinate(float2 unPositionSS, float2 invScreenSize)
-{
-    Coordinate coord;
-    coord.positionSS = unPositionSS;
-#if SHADER_STAGE_COMPUTE
-    // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
-    coord.positionSS.xy += float2(0.5, 0.5);
-#endif
-    coord.positionSS *= invScreenSize;
-
-    coord.unPositionSS = uint2(unPositionSS);
-
-    return coord;
-}
-
-// screenPos is screen coordinate in [0..1] (return by Coordinate.positionSS)
-// depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
-// For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
-float3 UnprojectToWorld(float depth, float2 screenPos, float4x4 invViewProjectionMatrix)
-{
-    float4 positionCS   = float4(screenPos.xy * 2.0 - 1.0, depth, 1.0);
-    float4 hpositionWS  = mul(invViewProjectionMatrix, positionCS);
-
-    return hpositionWS.xyz / hpositionWS.w;
-}
-
 // Z buffer to linear 0..1 depth
 float Linear01Depth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.x * depth + zBufferParam.y);
 }
+
 // Z buffer to linear depth
 float LinearEyeDepth(float depth, float4 zBufferParam)
 {
     return 1.0 / (zBufferParam.z * depth + zBufferParam.w);
+}
+
+struct PositionInputs
+{
+    // Normalize screen position (offset by 0.5)
+    float2 positionSS;
+    // Unormalize screen position (offset by 0.5)
+    uint2 unPositionSS;
+
+    float depthRaw; // raw depth from depth buffer
+    float depthVS;
+
+    float4 positionCS;
+    float3 positionWS;
+};
+
+// This function is use to provide an easy way to sample into a screen texture, either from a pixel or a compute shaders.
+// This allow to easily share code.
+// If a compute shader call this function unPositionSS is an integer usually calculate like: uint2 unPositionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
+// else it is current unormalized screen coordinate like return by SV_Position
+PositionInputs GetPositionInput(float2 unPositionSS, float2 invScreenSize)
+{
+    PositionInputs posInput;
+    ZERO_INITIALIZE(PositionInputs, posInput);
+
+    posInput.positionSS = unPositionSS;
+#if SHADER_STAGE_COMPUTE
+    // In case of compute shader an extra half offset is added to the screenPos to shift the integer position to pixel center.
+    posInput.positionSS.xy += float2(0.5, 0.5);
+#endif
+    posInput.positionSS *= invScreenSize;
+
+    posInput.unPositionSS = uint2(unPositionSS);
+
+    return posInput;
+}
+
+// From forward
+// depthRaw and depthVS come directly form .zw of SV_Position
+void UpdatePositionInput(float depthRaw, float depthVS, float3 positionWS, inout PositionInputs posInput)
+{
+    posInput.depthRaw = depthRaw;
+    posInput.depthVS = depthVS;
+
+    // TODO: We revert for DX but maybe it is not the case of OGL ? Test the define ?
+    posInput.positionCS = float4((posInput.positionSS - 0.5) * float2(2.0, -2.0), depthRaw, 1.0) * depthVS; // depthVS is SV_Position.w
+    posInput.positionWS = positionWS;
+}
+
+// From deferred or compute shader
+// depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
+// For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
+void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4 worlToViewProjectionMatrix, inout PositionInputs posInput)
+{
+    posInput.depthRaw = depth;
+
+    // TODO: Do we need to flip Y axis here on OGL ?
+    posInput.positionCS = float4(posInput.positionSS.xy * 2.0 - 1.0, depth, 1.0);
+    float4 hpositionWS = mul(invViewProjectionMatrix, posInput.positionCS);
+    posInput.positionWS = hpositionWS.xyz / hpositionWS.w;
+
+    // The compiler should optimize this (less expensive than reconstruct depth VS from depth buffer)
+    posInput.depthVS = mul(worlToViewProjectionMatrix, float4(posInput.positionWS, 1.0)).z;
+
+    posInput.positionCS *= posInput.depthVS;
+}
+
+// depthOffsetVS is always in the direction of the view vector (V)
+void ApplyDepthOffsetVS(float V, float depthOffsetVS, inout PositionInputs posInput)
+{
+    posInput.depthVS += depthOffsetVS;
+    // TODO: it is an approx, need a correct value where we use projection matrix to reproject the depth from VS
+    posInput.depthRaw = posInput.positionCS.z / posInput.depthVS;
+
+    posInput.positionCS = float4((posInput.positionSS - 0.5) * float2(2.0, -2.0), posInput.depthRaw, 1.0) * posInput.depthVS;  
+    // Just add the offset along the view vector is sufficiant for world position
+    posInput.positionWS += V * depthOffsetVS;
 }
 
 //-----------------------------------------------------------------------------

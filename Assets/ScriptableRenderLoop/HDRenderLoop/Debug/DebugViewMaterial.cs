@@ -18,13 +18,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             VertexNormalWS,
             VertexColor,
             VertexColorAlpha,
+            // caution if you add something here, it must start below
         };
 
         // Number must be contiguous
         [GenerateHLSL]
         public enum DebugViewGbuffer
         {
-            Depth = DebugViewVarying.VertexColor + 1,
+            Depth = DebugViewVarying.VertexColorAlpha + 1,
             BakeDiffuseLighting,
         }
     }

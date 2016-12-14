@@ -89,12 +89,12 @@ PackedVaryings PackVaryings(Varyings input)
     return output;
 }
 
-FragInput UnpackVaryings(PackedVaryings input)
+FragInputs UnpackVaryings(PackedVaryings input)
 {
-    FragInput output;
-    ZERO_INITIALIZE(FragInput, output);
+    FragInputs output;
+    ZERO_INITIALIZE(FragInputs, output);
 
-    output.unPositionSS = input.positionCS;  // as input we have the vpos
+    output.unPositionSS = input.positionCS; // input.positionCS is SV_Position
     output.positionWS.xyz = input.interpolators[0].xyz;
     output.tangentToWorld[0] = input.interpolators[1].xyz;
     output.tangentToWorld[1] = input.interpolators[2].xyz;
