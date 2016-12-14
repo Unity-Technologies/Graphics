@@ -24,6 +24,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Debug/DebugViewMaterial.cs.hlsl"    
             #include "Assets/ScriptableRenderLoop/HDRenderLoop/Material/Material.hlsl"
         
+            float4x4 _InvViewProjMatrix;
 
             DECLARE_GBUFFER_TEXTURE(_GBufferTexture);
 
@@ -53,12 +54,12 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float4 unPositionSS = input.positionCS; // as input we have the vpos
-                Coordinate coord = GetCoordinate(unPositionSS.xy, _ScreenSize.zw);
+				// input.positionCS is SV_Position
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
+                UpdatePositionInput(depth, _InvViewProjMatrix, GetWorldToViewMatrix(), posInput);
 
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
-
-                FETCH_GBUFFER(gbuffer, _GBufferTexture, coord.unPositionSS);
+                FETCH_GBUFFER(gbuffer, _GBufferTexture, posInput.unPositionSS);
                 BSDFData bsdfData;
                 float3 bakeDiffuseLighting;
                 DECODE_FROM_GBUFFER(gbuffer, bsdfData, bakeDiffuseLighting);
@@ -69,7 +70,7 @@ Shader "Hidden/HDRenderLoop/DebugViewMaterialGBuffer"
 
                 if (_DebugViewMaterial == DEBUGVIEWGBUFFER_DEPTH)
                 {
-                    float linearDepth = frac(LinearEyeDepth(depth, _ZBufferParams) * 0.1);
+                    float linearDepth = frac(posInput.depthVS * 0.1);
                     result = linearDepth.xxx;
                 }
                 else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING)

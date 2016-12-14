@@ -96,21 +96,15 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 
             float4 Frag(float4 positionCS : SV_POSITION) : SV_Target
             {
-                Coordinate coord = GetCoordinate(positionCS.xy, _ScreenSize.zw);
-                
-                int2 pixelCoord = coord.unPositionSS.xy;
+                // positionCS is SV_Position
+                PositionInputs posInput = GetPositionInput(positionCS.xy, _ScreenSize.zw);
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
+                UpdatePositionInput(depth, _InvViewProjMatrix, GetWorldToViewMatrix(), posInput);
+ 
+                int2 pixelCoord = posInput.unPositionSS.xy;
                 int2 tileCoord = pixelCoord / TILE_SIZE;
                 int2 mouseTileCoord = _MousePixelCoord / TILE_SIZE;
                 int2 offsetInTile = pixelCoord - tileCoord * TILE_SIZE;
-                
-#ifdef USE_CLUSTERED_LIGHTLIST
-                // Perform same calculation than in deferred.shader
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
-                float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
-                float linearDepth = TransformWorldToView(positionWS).z; // View space linear depth
-#else
-                float linearDepth = 0.0; // unused
-#endif
 
                 int n = 0;
                 for (int category = 0; category < LIGHTCATEGORY_COUNT; category++)
@@ -120,37 +114,39 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                     {
                         uint start;
                         uint count;
-                        GetCountAndStart(coord, category, linearDepth, start, count);
+                        GetCountAndStart(posInput, category, start, count);
                         n += count;
                     }
                 }
                 
-                float4 result = 0.0f;
+                float4 result = float4(0.0, 0.0, 0.0, 0.0);
 
 				// Tile overlap counter
                 if (n > 0)
                 {
-                    result = OverlayHeatMap(int2(coord.unPositionSS.xy) & (TILE_SIZE - 1), n);
+                    result = OverlayHeatMap(int2(posInput.unPositionSS.xy) & (TILE_SIZE - 1), n);
                 }
 
 				// Highlight selected tile
-                if(all(mouseTileCoord == tileCoord))
+                if (all(mouseTileCoord == tileCoord))
                 {
                     bool border = any(offsetInTile == 0 || offsetInTile == TILE_SIZE - 1);
-                    float4 result2 = float4(1, 1, 1, border ? 1.0f : 0.5);
+                    float4 result2 = float4(1.0, 1.0, 1.0, border ? 1.0 : 0.5);
                     result = AlphaBlend(result, result2);
                 }
 
                 // Print light lists for selected tile at the bottom of the screen
                 int maxLights = 32;
-                if(tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
+                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
                 {
-                    Coordinate mouseCoord = GetCoordinate(_MousePixelCoord, _ScreenSize.zw);
+                    PositionInput mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw);
+                    float depthMouse = LOAD_TEXTURE2D(_CameraDepthTexture, mousePosInput.unPositionSS).x;
+                    UpdatePositionInput(depthMouse, _InvViewProjMatrix, GetWorldToViewMatrix(), mousePosInput);
 
                     int category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
                     int start;
                     int count;
-                    GetCountAndStart(mouseCoord, category, linearDepth, start, count);
+                    GetCountAndStart(mousePosInput, category, start, count);
 
                     float4 result2 = float4(.1,.1,.1,.9);
                     int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
@@ -166,12 +162,12 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                         n = FetchIndex(start, lightListIndex);
                     }
 
-                    if(n >= 0)
+                    if (n >= 0)
                     {
-                        if(SampleDebugFontNumber(offsetInTile, n))
-                            result2 = float4(0, 0, 0, 1);
-                        if(SampleDebugFontNumber(offsetInTile + 1, n))
-                            result2 = float4(1, 1, 1, 1);
+                        if (SampleDebugFontNumber(offsetInTile, n))
+                            result2 = float4(0.0, 0.0, 0.0, 1.0);
+                        if (SampleDebugFontNumber(offsetInTile + 1, n))
+                            result2 = float4(1.0, 1.0, 1.0, 1.0);
                     }
 
                     result = AlphaBlend(result, result2);

@@ -10,11 +10,16 @@
 
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
-    FragInput input = UnpackVaryings(packedInput);
+    FragInputs input = UnpackVaryings(packedInput);
+
+    // input.unPositionSS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+    // No position and depth in case of light transport
+    float3 V = float3(0, 0, 1); // No vector view in case of light transport
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
     LighTransportData lightTransportData = GetLightTransportData(surfaceData, builtinData, bsdfData);
