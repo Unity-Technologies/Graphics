@@ -7,7 +7,7 @@ using UnityEngine.Experimental.Rendering;
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     public class HDRISkyRenderer
-        : SkyRenderer
+        : SkyRenderer<HDRISkyParameters>
     {
         Material                m_SkyHDRIMaterial = null; // Renders a cubemap into a render texture (can be cube or 2D)
 
@@ -20,37 +20,15 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             Utilities.Destroy(m_SkyHDRIMaterial);
         }
-        
-        HDRISkyParameters GetHDRISkyParameters(SkyParameters parameters)
-        {
-            HDRISkyParameters hdriSkyParams = parameters as HDRISkyParameters;
-            if (hdriSkyParams == null)
-            {
-                Debug.LogWarning("HDRISkyRenderer needs an instance of HDRISkyParameters to be able to render.");
-                return null;
-            }
-
-            return hdriSkyParams;
-        }
 
         override public bool IsSkyValid(SkyParameters skyParameters)
         {
-            HDRISkyParameters hdriSkyParams = GetHDRISkyParameters(skyParameters);
-            if (hdriSkyParams == null)
-            {
-                return false;
-            }
-
-            return hdriSkyParams.skyHDRI != null;
+            return GetParameters(skyParameters).skyHDRI != null;
         }
 
         override public void RenderSky(BuiltinSkyParameters builtinParams, SkyParameters skyParameters)
         {
-            HDRISkyParameters hdriSkyParams = GetHDRISkyParameters(skyParameters);
-            if(hdriSkyParams == null)
-            {
-                return;
-            }
+            HDRISkyParameters hdriSkyParams = GetParameters(skyParameters);
 
             m_SkyHDRIMaterial.SetTexture("_Cubemap", hdriSkyParams.skyHDRI);
             m_SkyHDRIMaterial.SetVector("_SkyParam", new Vector4(hdriSkyParams.exposure, hdriSkyParams.multiplier, hdriSkyParams.rotation, 0.0f));
