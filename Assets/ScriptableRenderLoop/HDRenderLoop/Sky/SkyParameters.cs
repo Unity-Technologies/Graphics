@@ -16,21 +16,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         private FieldInfo[] m_Properties;
 
-        HDRenderLoop GetHDRenderLoop()
-        {
-            HDRenderLoop renderLoop = UnityEngine.Rendering.GraphicsSettings.GetRenderPipeline() as HDRenderLoop;
-            if (renderLoop == null)
-            {
-                Debug.LogWarning("SkyParameters component can only be used with HDRenderLoop custom RenderPipeline.");
-                return null;
-            }
-
-            return renderLoop;
-        }
-
         protected void OnEnable()
         {
-            HDRenderLoop renderLoop = GetHDRenderLoop();
+            HDRenderLoop renderLoop = Utilities.GetHDRenderLoop();
             if (renderLoop == null)
             {
                 return;
@@ -41,23 +29,23 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                             .GetFields(BindingFlags.Public | BindingFlags.Instance)
                             .ToArray();
 
-            if (renderLoop.skyParameters == null)
-                renderLoop.skyParameters = this;
-            else if (renderLoop.skyParameters != this)
+            if (renderLoop.skyManager.skyParameters == null || renderLoop.skyManager.skyParameters.GetType() != this.GetType()) // We allow override of parameters only if the type is different. It means that we changed the Sky Renderer and might need a new set of parameters.
+                renderLoop.skyManager.skyParameters = this;
+            else if (renderLoop.skyManager.skyParameters != this && renderLoop.skyManager.skyParameters.GetType() == this.GetType())
                 Debug.LogWarning("Tried to setup another SkyParameters component although there is already one enabled.");
         }
 
         protected void OnDisable()
         {
-            HDRenderLoop renderLoop = GetHDRenderLoop();
+            HDRenderLoop renderLoop = Utilities.GetHDRenderLoop();
             if (renderLoop == null)
             {
                 return;
             }
 
             // Reset the current sky parameter on the render loop
-            if (renderLoop.skyParameters == this)
-                renderLoop.skyParameters = null;
+            if (renderLoop.skyManager.skyParameters == this)
+                renderLoop.skyManager.skyParameters = null;
         }
 
         public int GetHash()

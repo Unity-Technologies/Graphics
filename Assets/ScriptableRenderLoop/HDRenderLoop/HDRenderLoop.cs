@@ -36,11 +36,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 #endif
 
         SkyManager m_SkyManager = new SkyManager();
-
-        public SkyParameters skyParameters
+        public SkyManager skyManager
         {
-            set { m_SkyManager.skyParameters = value; }
-            get { return m_SkyManager.skyParameters; }
+            get { return m_SkyManager; }
+        }
+
+        public void InstantiateSkyRenderer(Type skyRendererType)
+        {
+            m_SkyManager.InstantiateSkyRenderer(skyRendererType);
         }
 
         public class DebugParameters
