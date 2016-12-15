@@ -149,6 +149,7 @@ Shader "HDRenderLoop/Lit"
     float4 _BaseColor;
     TEXTURE2D(_BaseColorMap);
     SAMPLER2D(sampler_BaseColorMap);
+    float4 _BaseColorMap_ST;
 
     float _Metallic;
     float _Smoothness;

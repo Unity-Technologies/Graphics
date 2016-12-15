@@ -249,6 +249,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
 
+            m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap);
+
             EditorGUILayout.Space();
             GUILayout.Label(Styles.detailText, EditorStyles.boldLabel);
 
