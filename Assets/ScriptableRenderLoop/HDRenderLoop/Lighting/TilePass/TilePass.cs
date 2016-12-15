@@ -419,12 +419,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public Vector3 GetLightColor(VisibleLight light)
             {
-                // Linear intensity calculation (different from legacy Unity - match LinearLighting new option in 5.6)
-                var lightColorR = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.r);
-                var lightColorG = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.g);
-                var lightColorB = light.light.intensity * Mathf.GammaToLinearSpace(light.light.color.b);
-
-                return new Vector3(lightColorR, lightColorG, lightColorB);
+                return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
             }
 
             // Return number of added shadow
