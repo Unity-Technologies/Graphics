@@ -20,7 +20,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
     public class BuiltinSkyParameters
     {
+        public Matrix4x4    viewProjMatrix;
         public Matrix4x4    invViewProjMatrix;
+        public Vector4      screenSize;
         public Mesh         skyMesh;
         public RenderLoop   renderLoop;
         public Light        sunLight;
@@ -34,6 +36,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         Material                m_StandardSkyboxMaterial = null; // This is the Unity standard skybox material. Used to pass the correct cubemap to Enlighten.
         Material                m_GGXConvolveMaterial = null; // Apply GGX convolution to cubemap
 
+        Vector4                 m_CubemapScreenSize;
+        Matrix4x4[]             m_faceCameraViewProjectionMatrix = new Matrix4x4[6];
         Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
         Mesh[]                  m_CubemapFaceMesh = new Mesh[6];
 
@@ -162,6 +166,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_SkyboxGGXCubemapRT.filterMode = FilterMode.Trilinear;
                 m_SkyboxGGXCubemapRT.Create();
             }
+
+            m_CubemapScreenSize = new Vector4((float)skyParameters.resolution, (float)skyParameters.resolution, 1.0f / (float)skyParameters.resolution, 1.0f / (float)skyParameters.resolution);
         }
 
         void RebuildSkyMeshes()
@@ -191,7 +197,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 for (int i = 0; i < 6; ++i)
                 {
                     Matrix4x4 lookAt = Matrix4x4.LookAt(Vector3.zero, lookAtList[i], UpVectorList[i]);
-                    m_faceCameraInvViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
+                    m_faceCameraViewProjectionMatrix[i] = Utilities.GetViewProjectionMatrix(lookAt, cubeProj);
+                    m_faceCameraInvViewProjectionMatrix[i] = m_faceCameraViewProjectionMatrix[i].inverse;
 
                     // When rendering into a texture the render will be flip (due to legacy unity openGL behavior), so we need to flip UV here...
                     m_CubemapFaceMesh[i] = BuildSkyMesh(Vector3.zero, m_faceCameraInvViewProjectionMatrix[i], true);
@@ -246,6 +253,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 Utilities.SetRenderTarget(builtinParams.renderLoop, target, ClearFlag.ClearNone, 0, (CubemapFace)i);
 
                 builtinParams.invViewProjMatrix = m_faceCameraInvViewProjectionMatrix[i];
+                builtinParams.viewProjMatrix = m_faceCameraViewProjectionMatrix[i];
+                builtinParams.screenSize = m_CubemapScreenSize;
                 builtinParams.skyMesh = m_CubemapFaceMesh[i];
                 m_Renderer.RenderSky(builtinParams, skyParameters);
             }
@@ -318,7 +327,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             return (m_Renderer == null) ? null : m_Renderer.GetSkyParameterType();
         }
 
-        public void RenderSky(Camera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
+        public void RenderSky(HDRenderLoop.HDCamera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)
         {
             using (new Utilities.ProfilingSample("Sky Pass", renderLoop))
             {
@@ -359,8 +368,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     // Render the sky itself
                     Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer);
-                    m_BuiltinParameters.invViewProjMatrix = Utilities.GetViewProjectionMatrix(camera).inverse;
-                    m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix, false);
+                    m_BuiltinParameters.invViewProjMatrix = camera.invViewProjectionMatrix;
+                    m_BuiltinParameters.viewProjMatrix = camera.viewProjectionMatrix;
+                    m_BuiltinParameters.screenSize = camera.screenSize;
+                    m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix, false);
                     m_Renderer.RenderSky(m_BuiltinParameters, skyParameters);
                 }
                 else

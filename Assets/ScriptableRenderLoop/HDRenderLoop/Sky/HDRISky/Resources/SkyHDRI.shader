@@ -22,7 +22,6 @@ Shader "Hidden/HDRenderLoop/Sky/SkyHDRI"
             TEXTURECUBE(_Cubemap);
             SAMPLERCUBE(sampler_Cubemap);
 
-            float4x4 _InvViewProjMatrix;
             float4   _SkyParam; // x exposure, y multiplier, z rotation
 
             struct Attributes

@@ -33,10 +33,10 @@ PackedVaryings PackVaryings(Varyings input)
     return output;
 }
 
-FragInput UnpackVaryings(PackedVaryings input)
+FragInputs UnpackVaryings(PackedVaryings input)
 {
-    FragInput output;
-    ZERO_INITIALIZE(FragInput, output);
+    FragInputs output;
+    ZERO_INITIALIZE(FragInputs, output);
 
     output.unPositionSS = input.positionCS;
     output.texCoord0.xy = input.interpolators[0].xy;

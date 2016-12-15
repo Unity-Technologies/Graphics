@@ -3,7 +3,7 @@
 //-------------------------------------------------------------------------------------
 #include "../MaterialUtilities.hlsl"
 
-void GetBuiltinData(FragInput input, SurfaceData surfaceData, float alpha, out BuiltinData builtinData)
+void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, out BuiltinData builtinData)
 {
     // Builtin Data
     builtinData.opacity = alpha;
@@ -34,6 +34,8 @@ void GetBuiltinData(FragInput input, SurfaceData surfaceData, float alpha, out B
 
     builtinData.distortion = float2(0.0, 0.0);
     builtinData.distortionBlur = 0.0;
+
+    builtinData.depthOffset = 0.0;
 }
 
 // Gather all kind of mapping in one struct, allow to improve code readability
@@ -150,7 +152,7 @@ float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layer
 #define ADD_ZERO_IDX(Name) Name
 #include "LitSurfaceData.hlsl"
 
-void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
@@ -168,7 +170,9 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord(input, isTriplanar, layerTexCoord);
-    ApplyDisplacement(input, layerTexCoord);
+    // Transform view vector in tangent space
+    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
+    ApplyDisplacement(input, viewDirTS, layerTexCoord);
 
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData);
     GetBuiltinData(input, surfaceData, alpha, builtinData);
@@ -273,7 +277,7 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
-void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
@@ -303,10 +307,13 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord3(input, isTriplanar, layerTexCoord);
-    ApplyDisplacement0(input, layerTexCoord);
-    ApplyDisplacement1(input, layerTexCoord);
-    ApplyDisplacement2(input, layerTexCoord);
-    ApplyDisplacement3(input, layerTexCoord);
+
+    // Transform view vector in tangent space
+    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
+    ApplyDisplacement0(input, viewDirTS, layerTexCoord);
+    ApplyDisplacement1(input, viewDirTS, layerTexCoord);
+    ApplyDisplacement2(input, viewDirTS, layerTexCoord);
+    ApplyDisplacement3(input, viewDirTS, layerTexCoord);
 
     SurfaceData surfaceData0;
     SurfaceData surfaceData1;

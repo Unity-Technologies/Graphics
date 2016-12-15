@@ -82,11 +82,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public class LightLoop : BaseLightLoop
         {
-            public const int k_MaxDirectionalLightsOnSCreen = 10;
-            public const int k_MaxPunctualLightsOnSCreen = 512;
+            public const int k_MaxDirectionalLightsOnScreen = 10;
+            public const int k_MaxPunctualLightsOnScreen = 512;
             public const int k_MaxAreaLightsOnSCreen = 128;
-            public const int k_MaxLightsOnSCreen = k_MaxDirectionalLightsOnSCreen + k_MaxPunctualLightsOnSCreen + k_MaxAreaLightsOnSCreen;
-            public const int k_MaxEnvLightsOnSCreen = 64;
+            public const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnSCreen;
+            public const int k_MaxEnvLightsOnScreen = 64;
             public const int k_MaxShadowOnScreen = 16;
             public const int k_MaxCascadeCount = 4; //Should be not less than m_Settings.directionalLightCascadeCount;
 
@@ -214,9 +214,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_lightList = new LightList();
                 m_lightList.Allocate();
 
-                s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
-                s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnSCreen + k_MaxAreaLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
-                s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
+                s_DirectionalLightDatas = new ComputeBuffer(k_MaxDirectionalLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
+                s_LightDatas = new ComputeBuffer(k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
+                s_EnvLightDatas = new ComputeBuffer(k_MaxEnvLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 s_shadowDatas = new ComputeBuffer(k_MaxCascadeCount + k_MaxShadowOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ShadowData)));
 
                 m_CookieTexArray = new TextureCache2D();
@@ -233,9 +233,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(enableBigTilePrepass ? "TileLightListGen_SrcBigTile" : "TileLightListGen");
-                s_AABBBoundsBuffer = new ComputeBuffer(2 * k_MaxLightsOnSCreen, 3 * sizeof(float));
-                s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
-                s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnSCreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
+                s_AABBBoundsBuffer = new ComputeBuffer(2 * k_MaxLightsOnScreen, 3 * sizeof(float));
+                s_ConvexBoundsBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
+                s_LightVolumeDataBuffer = new ComputeBuffer(k_MaxLightsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
 
                 buildScreenAABBShader.SetBuffer(s_GenAABBKernel, "g_data", s_ConvexBoundsBuffer);
                 buildPerTileLightListShader.SetBuffer(s_GenListPerTileKernel, "g_vBoundsBuffer", s_AABBBoundsBuffer);
@@ -286,10 +286,19 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_SingleDeferredMaterial = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/Deferred");
                 m_SingleDeferredMaterial.EnableKeyword("LIGHTLOOP_SINGLE_PASS");
+
+#if UNITY_EDITOR
+                UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
+                UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
+#endif
             }
 
             public override void Cleanup()
             {
+#if UNITY_EDITOR
+                UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
+#endif
+
                 Utilities.SafeRelease(s_DirectionalLightDatas);
                 Utilities.SafeRelease(s_LightDatas);
                 Utilities.SafeRelease(s_EnvLightDatas);
@@ -836,7 +845,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 int punctualLightcount = 0;
                 int areaLightCount = 0;
 
-                var sortKeys = new uint[Math.Min(cullResults.visibleLights.Length, k_MaxLightsOnSCreen)];
+                var sortKeys = new uint[Math.Min(cullResults.visibleLights.Length, k_MaxLightsOnScreen)];
                 int sortCount = 0;
 
                 for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; lightIndex < numLights; ++lightIndex)
@@ -862,7 +871,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         switch (light.lightType)
                         {
                             case LightType.Point:
-                                if (punctualLightcount >= k_MaxPunctualLightsOnSCreen)
+                                if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
                                     continue;
                                 lightCategory = LightCategory.Punctual;
                                 gpuLightType = GPULightType.Point;
@@ -871,7 +880,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                                 break;
 
                             case LightType.Spot:
-                                if (punctualLightcount >= k_MaxPunctualLightsOnSCreen)
+                                if (punctualLightcount >= k_MaxPunctualLightsOnScreen)
                                     continue;
                                 lightCategory = LightCategory.Punctual;
                                 gpuLightType = GPULightType.Spot;
@@ -880,7 +889,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                                 break;
 
                             case LightType.Directional:
-                                if (directionalLightcount >= k_MaxDirectionalLightsOnSCreen)
+                                if (directionalLightcount >= k_MaxDirectionalLightsOnScreen)
                                     continue;
                                 lightCategory = LightCategory.Punctual;
                                 gpuLightType = GPULightType.Directional;
@@ -976,14 +985,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 // Redo everything but this time with envLights
                 int envLightCount = 0;
 
-                sortKeys = new uint[Math.Min(cullResults.visibleReflectionProbes.Length, k_MaxEnvLightsOnSCreen)];
+                sortKeys = new uint[Math.Min(cullResults.visibleReflectionProbes.Length, k_MaxEnvLightsOnScreen)];
                 sortCount = 0;
 
                 for (int probeIndex = 0, numProbes = cullResults.visibleReflectionProbes.Length; probeIndex < numProbes; probeIndex++)
                 {
                     var probe = cullResults.visibleReflectionProbes[probeIndex];
 
-                    if (envLightCount >= k_MaxEnvLightsOnSCreen)
+                    if (envLightCount >= k_MaxEnvLightsOnScreen)
                         continue;
 
                     // TODO: Support LightVolumeType.Sphere, currently in UI there is no way to specify a sphere influence volume                    
@@ -1193,42 +1202,52 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.Dispose();
             }
 
-            public override void RenderDeferredLighting(Camera camera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT)
+#if UNITY_EDITOR
+            private Vector2 m_mousePosition = Vector2.zero;
+            private void OnSceneGUI(UnityEditor.SceneView sceneview)
+            {
+                m_mousePosition = Event.current.mousePosition;
+            }
+#endif
+
+            public override void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT)
             {
                 var bUseClusteredForDeferred = !usingFptl;
 
-                var invViewProj = Utilities.GetViewProjectionMatrix(camera).inverse;
-                var screenSize = Utilities.ComputeScreenSize(camera);
+                Vector2 mousePixelCoord = Input.mousePosition;
+#if UNITY_EDITOR
+                if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+                {
+                    mousePixelCoord = m_mousePosition;
+                    mousePixelCoord.y = (hdCamera.screenSize.y - 1.0f) - mousePixelCoord.y;
+                }
+#endif
 
-                m_DeferredDirectMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_DeferredDirectMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredDirectMaterial);
                 m_DeferredDirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_DeferredDirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 m_DeferredDirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredDirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                m_DeferredIndirectMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_DeferredIndirectMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredIndirectMaterial);
                 m_DeferredIndirectMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_DeferredIndirectMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One); // Additive
                 m_DeferredIndirectMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredIndirectMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                m_DeferredAllMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_DeferredAllMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DeferredAllMaterial);
                 m_DeferredAllMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_DeferredAllMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                 m_DeferredAllMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DeferredAllMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                m_DebugViewTilesMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_DebugViewTilesMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_DebugViewTilesMaterial);
                 m_DebugViewTilesMaterial.SetInt("_ViewTilesFlags", debugViewTilesFlags);
+                m_DebugViewTilesMaterial.SetVector("_MousePixelCoord", mousePixelCoord);
                 m_DebugViewTilesMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                 m_DebugViewTilesMaterial.DisableKeyword(!bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
 
-                m_SingleDeferredMaterial.SetMatrix("_InvViewProjMatrix", invViewProj);
-                m_SingleDeferredMaterial.SetVector("_ScreenSize", screenSize);
+                Utilities.SetupMaterialHDCamera(hdCamera, m_SingleDeferredMaterial);
                 m_SingleDeferredMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
                 m_SingleDeferredMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
 
