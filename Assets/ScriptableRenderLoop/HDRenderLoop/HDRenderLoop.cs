@@ -202,8 +202,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_CameraColorBufferRT = new RenderTargetIdentifier(m_CameraColorBuffer);
             m_CameraDepthBufferRT = new RenderTargetIdentifier(m_CameraDepthBuffer);
 
-            if(m_SkyManager == null)
-                m_SkyManager = new SkyManager();
             m_SkyManager.Build();
 
             m_FinalPassMaterial  = Utilities.CreateEngineMaterial("Hidden/HDRenderLoop/FinalPass");
@@ -248,10 +246,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Utilities.Destroy(m_FinalPassMaterial);
             Utilities.Destroy(m_DebugViewMaterialGBuffer);
 
-            if (m_SkyManager != null)
-            {
-                m_SkyManager.Cleanup();
-            }
+            m_SkyManager.Cleanup();
 
 #if UNITY_EDITOR
             UnityEditor.SupportedRenderingFeatures.active = UnityEditor.SupportedRenderingFeatures.Default;
