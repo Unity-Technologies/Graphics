@@ -85,7 +85,7 @@ Shader "HDRenderLoop/Lit"
         [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
-        [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1,0,0,0)        
+        [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1,0,0,0)
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
     }
 
@@ -104,10 +104,10 @@ Shader "HDRenderLoop/Lit"
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    #pragma shader_feature _MAPPING_TRIPLANAR    
+    #pragma shader_feature _MAPPING_TRIPLANAR
     #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
-    #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT    
+    #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
     #pragma shader_feature _REQUIRE_UV2_OR_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
@@ -218,7 +218,7 @@ Shader "HDRenderLoop/Lit"
     float _TexWorldScale;
     float _UVMappingPlanar;
     float4 _UVMappingMask;
-    float4 _UVDetailsMappingMask;    
+    float4 _UVDetailsMappingMask;
 
     ENDHLSL
 
