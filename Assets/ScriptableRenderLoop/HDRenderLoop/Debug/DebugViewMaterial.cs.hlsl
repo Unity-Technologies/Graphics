@@ -20,8 +20,8 @@
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.Attributes.DebugViewGbuffer:  static fields
 //
-#define DEBUGVIEWGBUFFER_DEPTH (9)
-#define DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING (10)
+#define DEBUGVIEWGBUFFER_DEPTH (10)
+#define DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING (11)
 
 
 #endif

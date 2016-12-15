@@ -1,4 +1,4 @@
-void ADD_IDX(ComputeLayerTexCoord)(FragInput input, bool isTriplanar, inout LayerTexCoord layerTexCoord)
+void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isTriplanar, inout LayerTexCoord layerTexCoord)
 {
     // TODO: Do we want to manage local or world triplanar/planar
     //float3 position = localTriplanar ? TransformWorldToObject(input.positionWS) : input.positionWS;
@@ -38,14 +38,10 @@ void ADD_IDX(ComputeLayerTexCoord)(FragInput input, bool isTriplanar, inout Laye
     ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(ADD_IDX(layerTexCoord.base).uvXY, ADD_IDX(_DetailMap));
 }
 
-void ADD_IDX(ApplyDisplacement)(inout FragInput input, inout LayerTexCoord layerTexCoord)
+void ADD_IDX(ApplyDisplacement)(inout FragInputs input, float3 viewDirTS, inout LayerTexCoord layerTexCoord)
 {
 #ifdef _HEIGHTMAP
    #ifndef _HEIGHTMAP_AS_DISPLACEMENT
-    // Transform view vector in tangent space
-    // Hope the compiler can optimize this in case of multiple layer
-    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
-    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
     float height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
     float2 offset = ParallaxOffset(viewDirTS, height);
 
@@ -59,7 +55,7 @@ void ADD_IDX(ApplyDisplacement)(inout FragInput input, inout LayerTexCoord layer
     ADD_IDX(layerTexCoord.details).uvZX += offset;
     ADD_IDX(layerTexCoord.details).uvXY += offset;
 
-    // Only modify tex coord for first layer, this will be use by for builtin data (like lightmap)
+    // Only modify texcoord for first layer, this will be use by for builtin data (like lightmap)
     if (LAYER_INDEX == 0)
     {
         input.texCoord0 += offset;
@@ -72,7 +68,7 @@ void ADD_IDX(ApplyDisplacement)(inout FragInput input, inout LayerTexCoord layer
 }
 
 // Return opacity
-float ADD_IDX(GetSurfaceData)(FragInput input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData)
+float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData)
 {
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     float alpha = ADD_IDX(_BaseColor).a;

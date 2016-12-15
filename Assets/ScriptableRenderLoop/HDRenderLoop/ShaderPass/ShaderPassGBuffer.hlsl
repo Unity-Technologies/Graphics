@@ -7,17 +7,19 @@ void Frag(  PackedVaryings packedInput,
             OUTPUT_GBUFFER_VELOCITY(outVelocityBuffer)
 			)
 {
-    FragInput input = UnpackVaryings(packedInput);
-	float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
-	float3 positionWS = input.positionWS;
+    FragInputs input = UnpackVaryings(packedInput);
+
+    // input.unPositionSS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+    UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
 	SurfaceData surfaceData;
 	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+	GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
-	Coordinate coord = GetCoordinate(input.unPositionSS.xy, _ScreenSize.zw);
-	PreLightData preLightData = GetPreLightData(V, positionWS, coord, bsdfData);
+	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
 
 	ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, outGBuffer);

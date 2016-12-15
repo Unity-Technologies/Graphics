@@ -86,6 +86,9 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR:
         result = builtinData.distortionBlur.xxx;
         break;
+    case DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET:
+        result = builtinData.depthOffset.xxx * 10.0; // * 10 assuming 1 unity unity is 1m
+        break;
     }
 }
 

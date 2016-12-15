@@ -472,7 +472,7 @@ struct PreLightData
     float2 unPositionSS;
 };
 
-PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDFData bsdfData)
+PreLightData GetPreLightData(float3 V, PositionInputs posInput, BSDFData bsdfData)
 {
     PreLightData preLightData;
 
@@ -510,7 +510,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     preLightData.iblDirWS = GetSpecularDominantDir(bsdfData.normalWS, iblR, bsdfData.roughness);
 
     // #if SHADERPASS == SHADERPASS_GBUFFER
-    // preLightData.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusion, coord.unPositionSS).x;
+    // preLightData.ambientOcclusion = LOAD_TEXTURE2D(_AmbientOcclusion, posInput.unPositionSS).x;
     // #endif
 
     // Area light specific
@@ -537,7 +537,7 @@ PreLightData GetPreLightData(float3 V, float3 positionWS, Coordinate coord, BSDF
     preLightData.ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
 
     // Shadow
-    preLightData.unPositionSS = coord.unPositionSS;
+    preLightData.unPositionSS = posInput.unPositionSS;
 
     return preLightData;
 }
@@ -640,10 +640,12 @@ void BSDF(  float3 V, float3 L, float3 positionWS, PreLightData preLightData, BS
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
-                                float3 V, float3 positionWS, PreLightData preLightData, DirectionalLightData lightData, BSDFData bsdfData,
+                                float3 V, PositionInputs posInput, PreLightData preLightData, DirectionalLightData lightData, BSDFData bsdfData,
                                 out float3 diffuseLighting,
                                 out float3 specularLighting)
 {
+    float3 positionWS = posInput.positionWS;
+
     float3 L = -lightData.forward; // Lights are pointing backward in Unity
     float illuminance = saturate(dot(bsdfData.normalWS, L));
 
@@ -673,7 +675,8 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
         coord = coord * 0.5 + 0.5;
 
         // Tile the texture if the 'repeat' wrap mode is enabled.
-        if (lightData.tileCookie) coord = frac(coord);
+        if (lightData.tileCookie) 
+            coord = frac(coord);
 
         float4 cookie = SampleCookie2D(lightLoopContext, coord, lightData.cookieIndex);
 
@@ -694,10 +697,12 @@ void EvaluateBSDF_Directional(  LightLoopContext lightLoopContext,
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Punctual( LightLoopContext lightLoopContext,
-                            float3 V, float3 positionWS, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
+                            float3 V, PositionInputs posInput, PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                             out float3 diffuseLighting,
                             out float3 specularLighting)
 {
+    float3 positionWS = posInput.positionWS;
+
     // All punctual light type in the same formula, attenuation is neutral depends on light type.
     // light.positionWS is the normalize light direction in case of directional light and invSqrAttenuationRadius is 0
     // mean dot(unL, unL) = 1 and mean GetDistanceAttenuation() will return 1
@@ -831,10 +836,12 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
 //-----------------------------------------------------------------------------
 
 void EvaluateBSDF_Line(LightLoopContext lightLoopContext,
-                       float3 V, float3 positionWS,
+                       float3 V, PositionInputs posInput,
                        PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                        out float3 diffuseLighting, out float3 specularLighting)
 {
+    float3 positionWS = posInput.positionWS;
+
 #ifdef LIT_DISPLAY_REFERENCE_AREA
     IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
                           diffuseLighting, specularLighting);
@@ -1009,10 +1016,12 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
 // #define ELLIPSOIDAL_ATTENUATION
 
 void EvaluateBSDF_Area(LightLoopContext lightLoopContext,
-                       float3 V, float3 positionWS,
+                       float3 V, PositionInputs posInput,
                        PreLightData preLightData, LightData lightData, BSDFData bsdfData,
                        out float3 diffuseLighting, out float3 specularLighting)
 {
+    float3 positionWS = posInput.positionWS;
+
 #ifdef LIT_DISPLAY_REFERENCE_AREA
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           diffuseLighting, specularLighting);
@@ -1238,9 +1247,11 @@ float3 IntegrateSpecularGGXIBLRef(  LightLoopContext lightLoopContext,
 
 // _preIntegratedFGD and _CubemapLD are unique for each BRDF
 void EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
-                        float3 V, float3 positionWS, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
+                        float3 V, PositionInputs posInput, PreLightData preLightData, EnvLightData lightData, BSDFData bsdfData,
                         out float3 diffuseLighting, out float3 specularLighting, out float2 weight)
 {
+    float3 positionWS = posInput.positionWS;
+
 #ifdef LIT_DISPLAY_REFERENCE_IBL
 
     specularLighting = IntegrateSpecularGGXIBLRef(lightLoopContext, V, lightData, bsdfData);
