@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         {
             UV0,
             UV1,
+            UV2,
             UV3,
             Planar,
             Triplanar,
@@ -468,11 +469,21 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
 
 			// We have to check for each layer if the UV3 is needed.
+            SetKeyword(material, "_REQUIRE_UV2", false);
 			SetKeyword(material, "_REQUIRE_UV3", false);
 			for (int layer = 0; layer < numLayer; ++layer)
 			{
 				string uvBase = string.Format("{0}{1}", kUVBase, layer);
 				string uvDetail = string.Format("{0}{1}", kUVDetail, layer);
+
+				if (
+					 ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
+					 ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV2)
+					)
+				{
+					SetKeyword(material, "_REQUIRE_UV2", true);
+					break;
+				}
 
 				if (
 					 ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
@@ -503,6 +514,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
             }
 
+            const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR_";
             const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR_";
 
             for (int i = 0 ; i < numLayer; ++i)
@@ -513,29 +525,24 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 LayerUVBaseMapping layerUVBaseMapping = (LayerUVBaseMapping)material.GetFloat(layerUVBaseParam);
                 string layerUVDetailParam = string.Format("{0}{1}", kUVDetail, i);
                 UVDetailMapping layerUVDetailMapping = (UVDetailMapping)material.GetFloat(layerUVDetailParam);
-                string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
+                string currentLayerMappingPlanar = string.Format("{0}{1}", kLayerMappingPlanar, i);
+                string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);                
 
                 float X, Y, Z, W;
                 X = (layerUVBaseMapping == LayerUVBaseMapping.UV0) ? 1.0f : 0.0f;
                 Y = (layerUVBaseMapping == LayerUVBaseMapping.UV1) ? 1.0f : 0.0f;
-                Z = (layerUVBaseMapping == LayerUVBaseMapping.UV3) ? 1.0f : 0.0f;
-                W = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
+                Z = (layerUVBaseMapping == LayerUVBaseMapping.UV2) ? 1.0f : 0.0f;
+                W = (layerUVBaseMapping == LayerUVBaseMapping.UV3) ? 1.0f : 0.0f;
                 layerUVMappingMask[i].colorValue = new Color(X, Y, Z, W);
 
+                SetKeyword(material, currentLayerMappingPlanar, layerUVBaseMapping == LayerUVBaseMapping.Planar);
                 SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == LayerUVBaseMapping.Triplanar);
 
-                // If base is planar mode, detail is planar too
-                if (W > 0.0f)
-                {
-                    X = Y = Z = 0.0f;
-                }
-                else
-                {
-                    X = (layerUVDetailMapping == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-                    Y = (layerUVDetailMapping == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-                    Z = (layerUVDetailMapping == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-                }
-                layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, 0.0f); // W Reuse planar mode from base
+                X = (layerUVDetailMapping == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+                Y = (layerUVDetailMapping == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+                Z = (layerUVDetailMapping == UVDetailMapping.UV2) ? 1.0f : 0.0f;
+                W = (layerUVDetailMapping == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+                layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, W);
             }
         }
 
