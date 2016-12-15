@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Experimental;
@@ -28,6 +29,11 @@ namespace UnityEditor.Experimental
         public static VFXAttribute Front =              new VFXAttribute("front", VFXValueType.kFloat3);
         public static VFXAttribute Side =               new VFXAttribute("side", VFXValueType.kFloat3);
         public static VFXAttribute Up =                 new VFXAttribute("up", VFXValueType.kFloat3);
+    }
+
+    public static class CommonGlobalExpression
+    {
+        public static readonly VFXExpression DeltaTime = new VFXExpressionBuiltInValue(VFXExpressionOp.kVFXDeltaTimeOp);
     }
 
     public class VFXSystemRuntimeData
@@ -317,8 +323,8 @@ namespace UnityEditor.Experimental
             updateHasRand |= (updateGeneratorFlags & VFXBlockDesc.Flag.kHasRand) != 0;
             updateHasKill |= (updateGeneratorFlags & VFXBlockDesc.Flag.kHasKill) != 0;
 
-            VFXBlockDesc.Flag dummy = VFXBlockDesc.Flag.kNone;
-            if (!outputGenerator.UpdateAttributes(attribs, ref dummy))
+            VFXBlockDesc.Flag outputGeneratorFlags = VFXBlockDesc.Flag.kNone;
+            if (!outputGenerator.UpdateAttributes(attribs, ref outputGeneratorFlags))
                 return null;
 
             if (VFXEditor.Graph.systems.PhaseShift)
@@ -505,13 +511,13 @@ namespace UnityEditor.Experimental
 
             HashSet<VFXExpression> initUniforms = CollectUniforms(initBlocks, spaceRef);
             if (initGenerator != null)
-                initGenerator.UpdateUniforms(initUniforms);
+                initGenerator.UpdateUniforms(initUniforms, ref initGeneratorFlags);
             HashSet<VFXExpression> updateUniforms = CollectUniforms(updateBlocks, spaceRef);
             if (updateGenerator != null)
-                updateGenerator.UpdateUniforms(updateUniforms);
+                updateGenerator.UpdateUniforms(updateUniforms, ref updateGeneratorFlags);
             HashSet<VFXExpression> outputUniforms = CollectUniforms(outputBlocks, spaceRef);
             if (outputGenerator != null)
-                outputGenerator.UpdateUniforms(outputUniforms);
+                outputGenerator.UpdateUniforms(outputUniforms, ref outputGeneratorFlags);
 
             // Generate potential extra uniforms  
             Dictionary<VFXExpression, VFXExpression> initGeneratedUniforms = GenerateExtraUniforms(initBlocks, spaceRef);
@@ -552,7 +558,19 @@ namespace UnityEditor.Experimental
                         outputUniforms.Add(uniform.Value);
                 }
             }
- 
+
+            Action<VFXBlockDesc.Flag, List<VFXBlockModel>, HashSet<VFXExpression>> fnDeltaTime = delegate (VFXBlockDesc.Flag generatorFlag, List<VFXBlockModel> _blockList, HashSet<VFXExpression> _Uniform)
+            {
+                if ((VFXBlockDesc.Flag.kNeedsDeltaTime & generatorFlag) == generatorFlag || _blockList.Any(b => b.Desc.IsSet(VFXBlockDesc.Flag.kNeedsDeltaTime)))
+                {
+                    rawExpressions.Add(CommonGlobalExpression.DeltaTime);
+                    _Uniform.Add(CommonGlobalExpression.DeltaTime);
+                }
+            };
+            fnDeltaTime(initGeneratorFlags, initBlocks, initUniforms);
+            fnDeltaTime(updateGeneratorFlags, updateBlocks, updateUniforms);
+            fnDeltaTime(outputGeneratorFlags, outputBlocks, outputUniforms);
+
             // collect samplers
             HashSet<VFXExpression> initSamplers = CollectAndRemoveSamplers(initUniforms);
             HashSet<VFXExpression> updateSamplers = CollectAndRemoveSamplers(updateUniforms);
@@ -578,7 +596,7 @@ namespace UnityEditor.Experimental
             HashSet<VFXExpression> outputSamplers = CollectAndRemoveSamplers(outputUniforms);
 
             // TODO Change that!
-            outputGenerator.UpdateUniforms(rawExpressions);
+            outputGenerator.UpdateUniforms(rawExpressions, ref outputGeneratorFlags);
 
             // Associate VFXValue to generated name
             var paramToName = new Dictionary<VFXExpression, string>();
@@ -870,7 +888,6 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
 
             builder.WriteLine("CBUFFER_START(GlobalInfo)");
-            builder.WriteLine("\tfloat deltaTime;");
             builder.WriteLine("\tfloat totalTime;");
             builder.WriteLine("\tuint nbMax;");
             if (data.hasRand)

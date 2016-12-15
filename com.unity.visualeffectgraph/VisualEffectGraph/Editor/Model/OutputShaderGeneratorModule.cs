@@ -107,7 +107,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void UpdateUniforms(HashSet<VFXExpression> uniforms)
+        public override void UpdateUniforms(HashSet<VFXExpression> uniforms, ref VFXBlockDesc.Flag flags)
         {
             if (m_HasTexture)
             {
@@ -511,7 +511,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void UpdateUniforms(HashSet<VFXExpression> uniforms)
+        public override void UpdateUniforms(HashSet<VFXExpression> uniforms, ref VFXBlockDesc.Flag flags)
         {
             uniforms.Add(m_Values[MetallicSlot]);
             uniforms.Add(m_Values[SmoothnessSlot]);

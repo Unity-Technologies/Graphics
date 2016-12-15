@@ -399,7 +399,7 @@ namespace UnityEditor.Experimental
                     {
                         // Needs to fill the dependencies
                         VFXExpression[] parents = expr.GetParents();
-                        int nbParents = parents.Length;
+                        int nbParents = parents == null ? 0 : parents.Length;
                         int[] parentIds = new int[4];
                         for (int i = 0; i < nbParents; ++i)
                             parentIds[i] = m_Expressions[parents[i]].index;

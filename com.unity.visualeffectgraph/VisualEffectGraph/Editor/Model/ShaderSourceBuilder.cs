@@ -276,6 +276,13 @@ namespace UnityEditor.Experimental
                     }
             }
 
+            if (block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsDeltaTime))
+            {
+                Write(separator);
+                separator = ',';
+                fnWriteExpression(null, false, CommonGlobalExpression.DeltaTime);
+            }
+
             if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasRand))
             {
                 Write(separator);
@@ -345,7 +352,7 @@ namespace UnityEditor.Experimental
             Write(op);
             Write("= (");
             WriteAttrib(CommonAttrib.Phase, data);
-            Write(string.Format(" * {0}) * deltaTime"));
+            Write(string.Format(" * {0}) * ", data.outputParamToName[CommonGlobalExpression.DeltaTime]));
             WriteAttrib(CommonAttrib.Velocity, data);
             WriteLine(";");
         }
