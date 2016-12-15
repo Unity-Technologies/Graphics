@@ -228,10 +228,14 @@ namespace UnityEngine.Experimental.VFX
                 flag |= Flag.kHasKill;
             if (src.IndexOf("INVERSE") != -1) // TODO This should be done be transform
                 flag |= Flag.kNeedsInverseTransform;
-            if (src.IndexOf("deltaTime") != -1)
-                flag |= Flag.kNeedsDeltaTime;
-            if (src.IndexOf("totalTime") != -1)
-                flag |= Flag.kNeedsTotalTime;
+
+            foreach (var builtIn in CommonBuiltIn.Expressions)
+            {
+                if (src.IndexOf(builtIn.Name) != -1)
+                {
+                    flag |= builtIn.Flag;
+                }
+            }
 
             return flag;
         }
