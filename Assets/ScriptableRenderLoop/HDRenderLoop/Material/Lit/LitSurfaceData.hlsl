@@ -1,4 +1,4 @@
-void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isPlanar, bool isTriplanar, inout LayerTexCoord layerTexCoord)
+void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isTriplanar, inout LayerTexCoord layerTexCoord)
 {
     // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
     float2 uvBase = ADD_IDX(_UVMappingMask).x * input.texCoord0 +

@@ -303,7 +303,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _LAYER_MAPPING_TRIPLANAR_0
     isTriplanar = true;
 #endif
-    ComputeLayerTexCoord0(input,  isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord0(input, isTriplanar, layerTexCoord);
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_1
     isTriplanar = true;
