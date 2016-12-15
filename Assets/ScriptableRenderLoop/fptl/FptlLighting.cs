@@ -67,6 +67,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public bool enableBigTilePrepass = true;
         public bool enableDrawLightBoundsDebug = false;
         public bool enableDrawTileDebug = false;
+		public bool enableReflectionProbeDebug = false;
         public bool enableComputeLightEvaluation = false;
         const bool k_UseDepthBuffer = true;//      // only has an impact when EnableClustered is true (requires a depth-prepass)
         const bool k_UseAsyncCompute = true;        // should not use on mobile
@@ -364,10 +365,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             m_DeferredMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
             m_DeferredReflectionMaterial.EnableKeyword(bUseClusteredForDeferred ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-            if (enableDrawTileDebug)
-                m_DeferredMaterial.EnableKeyword("ENABLE_DEBUG");
-            else
-                m_DeferredMaterial.DisableKeyword("ENABLE_DEBUG");
+			if (enableDrawTileDebug) {
+				m_DeferredMaterial.EnableKeyword ("ENABLE_DEBUG");
+			} else {
+				m_DeferredMaterial.DisableKeyword ("ENABLE_DEBUG");
+			}
+
+			if (enableReflectionProbeDebug) {
+				m_DeferredReflectionMaterial.EnableKeyword ("ENABLE_DEBUG");
+			} else {
+				m_DeferredReflectionMaterial.DisableKeyword ("ENABLE_DEBUG");
+			}
 
             cmd.SetGlobalBuffer("g_vLightListGlobal", bUseClusteredForDeferred ? s_PerVoxelLightLists : s_LightList);       // opaques list (unless MSAA possibly)
 
