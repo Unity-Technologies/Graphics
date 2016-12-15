@@ -81,7 +81,7 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 
                 int2 coord = pixCoord - int2(1, 1);
 
-                float4 color = float4(pow(col.xyz, 2.2), 0.3*col.w);
+                float4 color = float4(PositivePow(col.xyz, 2.2), 0.3 * col.w);
                 if (numLights > 0)
                 {
                     if (SampleDebugFontNumber(coord, numLights))		// Shadow
@@ -100,7 +100,7 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                 UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
  
                 int2 pixelCoord = posInput.unPositionSS.xy;
-                int2 tileCoord = pixelCoord / TILE_SIZE;
+                int2 tileCoord = (float2)pixelCoord / TILE_SIZE;
                 int2 mouseTileCoord = _MousePixelCoord / TILE_SIZE;
                 int2 offsetInTile = pixelCoord - tileCoord * TILE_SIZE;
 

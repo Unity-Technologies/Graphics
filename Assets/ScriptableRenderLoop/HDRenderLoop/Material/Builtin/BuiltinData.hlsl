@@ -49,14 +49,15 @@ void DecodeVelocity(float4 inBuffer, out float2 velocity)
 
 void EncodeDistortion(float2 distortion, float distortionBlur, out float4 outBuffer)
 {
-    // RT - 16:16 float
-    outBuffer = float4(distortion, distortionBlur, 0.0);
+    // RT - 16:16:16:16 float
+    // distortionBlur in alpha for a different blend mode
+    outBuffer = float4(distortion, 0.0, distortionBlur);
 }
 
 void DecodeDistortion(float4 inBuffer, out float2 distortion, out float2 distortionBlur)
 {
     distortion = inBuffer.xy;
-    distortionBlur = inBuffer.z;
+    distortionBlur = inBuffer.a;
 }
 
 void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 result, inout bool needLinearToSRGB)

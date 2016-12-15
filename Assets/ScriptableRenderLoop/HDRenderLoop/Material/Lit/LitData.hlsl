@@ -3,7 +3,7 @@
 //-------------------------------------------------------------------------------------
 #include "../MaterialUtilities.hlsl"
 
-void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, out BuiltinData builtinData)
+void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, float depthOffset, out BuiltinData builtinData)
 {
     // Builtin Data
     builtinData.opacity = alpha;
@@ -32,10 +32,16 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, out 
 
     builtinData.velocity = CalculateVelocity(input.positionCS, input.previousPositionCS);
 
+#ifdef _DISTORTION_ON
+    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
+    builtinData.distortion = distortion.rg;
+    builtinData.distortionBlur = distortion.b;
+#else
     builtinData.distortion = float2(0.0, 0.0);
     builtinData.distortionBlur = 0.0;
+#endif
 
-    builtinData.depthOffset = 0.0;
+    builtinData.depthOffset = depthOffset;
 }
 
 // Gather all kind of mapping in one struct, allow to improve code readability
@@ -173,9 +179,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Transform view vector in tangent space
     float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
     ApplyDisplacement(input, viewDirTS, layerTexCoord);
+    float depthOffset = 0.0;
+
+#ifdef _DEPTHOFFSET_ON
+    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetAttribute(depthOffset, input);
+#endif
 
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData);
-    GetBuiltinData(input, surfaceData, alpha, builtinData);
+    GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
 
 #else
@@ -314,6 +326,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ApplyDisplacement1(input, viewDirTS, layerTexCoord);
     ApplyDisplacement2(input, viewDirTS, layerTexCoord);
     ApplyDisplacement3(input, viewDirTS, layerTexCoord);
+    float depthOffset = 0.0;
+
+#ifdef _DEPTHOFFSET_ON
+    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetAttribute(depthOffset, input);
+#endif
 
     SurfaceData surfaceData0;
     SurfaceData surfaceData1;
@@ -358,7 +376,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
     float alpha = PROP_BLEND_SCALAR(alpha, weights);
-    GetBuiltinData(input, surfaceData, alpha, builtinData);
+    GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
 
 #endif // #ifndef LAYERED_LIT_SHADER
