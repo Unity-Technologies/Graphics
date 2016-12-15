@@ -214,8 +214,8 @@ namespace UnityEditor.Experimental
                         }
                         else
                         {
-                            //Only one case possible : deltaTime
-                            Write("float deltaTime");
+                            var builtInExp = exp as VFXExpressionBuiltInValue;
+                            Write(builtInExp.Declaration);
                         }
 
                     },
@@ -281,6 +281,13 @@ namespace UnityEditor.Experimental
                 Write(separator);
                 separator = ',';
                 fnWriteExpression(null, false, CommonGlobalExpression.DeltaTime);
+            }
+
+            if (block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsTotalTime))
+            {
+                Write(separator);
+                separator = ',';
+                fnWriteExpression(null, false, CommonGlobalExpression.TotalTime);
             }
 
             if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasRand))

@@ -110,6 +110,7 @@ namespace UnityEngine.Experimental.VFX
             kHasKill = 1 << 1,
             kNeedsInverseTransform = 1 << 2,
             kNeedsDeltaTime = 1 << 3,
+            kNeedsTotalTime = 1 << 4,
         }
 
         private static readonly bool USE_SAFE_FUNCTION_NAME = false; // Set that to true to use longer but function names guaranteed with no collisions
@@ -229,6 +230,8 @@ namespace UnityEngine.Experimental.VFX
                 flag |= Flag.kNeedsInverseTransform;
             if (src.IndexOf("deltaTime") != -1)
                 flag |= Flag.kNeedsDeltaTime;
+            if (src.IndexOf("totalTime") != -1)
+                flag |= Flag.kNeedsTotalTime;
 
             return flag;
         }

@@ -34,6 +34,7 @@ namespace UnityEditor.Experimental
     public static class CommonGlobalExpression
     {
         public static readonly VFXExpression DeltaTime = new VFXExpressionBuiltInValue(VFXExpressionOp.kVFXDeltaTimeOp);
+        public static readonly VFXExpression TotalTime = new VFXExpressionBuiltInValue(VFXExpressionOp.kVFXTotalTimeOp);
     }
 
     public class VFXSystemRuntimeData
@@ -559,17 +560,23 @@ namespace UnityEditor.Experimental
                 }
             }
 
-            Action<VFXBlockDesc.Flag, List<VFXBlockModel>, HashSet<VFXExpression>> fnDeltaTime = delegate (VFXBlockDesc.Flag generatorFlag, List<VFXBlockModel> _blockList, HashSet<VFXExpression> _Uniform)
+            Action<VFXBlockDesc.Flag, List<VFXBlockModel>, HashSet<VFXExpression>> fnBuiltInExpression = delegate (VFXBlockDesc.Flag generatorFlag, List<VFXBlockModel> _blockList, HashSet<VFXExpression> _Uniform)
             {
                 if ((VFXBlockDesc.Flag.kNeedsDeltaTime & generatorFlag) == generatorFlag || _blockList.Any(b => b.Desc.IsSet(VFXBlockDesc.Flag.kNeedsDeltaTime)))
                 {
                     rawExpressions.Add(CommonGlobalExpression.DeltaTime);
                     _Uniform.Add(CommonGlobalExpression.DeltaTime);
                 }
+
+                if ((VFXBlockDesc.Flag.kNeedsTotalTime & generatorFlag) == generatorFlag || _blockList.Any(b => b.Desc.IsSet(VFXBlockDesc.Flag.kNeedsTotalTime)))
+                {
+                    rawExpressions.Add(CommonGlobalExpression.TotalTime);
+                    _Uniform.Add(CommonGlobalExpression.TotalTime);
+                }
             };
-            fnDeltaTime(initGeneratorFlags, initBlocks, initUniforms);
-            fnDeltaTime(updateGeneratorFlags, updateBlocks, updateUniforms);
-            fnDeltaTime(outputGeneratorFlags, outputBlocks, outputUniforms);
+            fnBuiltInExpression(initGeneratorFlags, initBlocks, initUniforms);
+            fnBuiltInExpression(updateGeneratorFlags, updateBlocks, updateUniforms);
+            fnBuiltInExpression(outputGeneratorFlags, outputBlocks, outputUniforms);
 
             // collect samplers
             HashSet<VFXExpression> initSamplers = CollectAndRemoveSamplers(initUniforms);
@@ -888,7 +895,6 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
 
             builder.WriteLine("CBUFFER_START(GlobalInfo)");
-            builder.WriteLine("\tfloat totalTime;");
             builder.WriteLine("\tuint nbMax;");
             if (data.hasRand)
                 builder.WriteLine("\tuint systemSeed;");

@@ -15,11 +15,26 @@ namespace UnityEngine.Experimental.VFX
             switch (op)
             {
                 case VFXExpressionOp.kVFXDeltaTimeOp:
+                case VFXExpressionOp.kVFXTotalTimeOp:
                     return VFXValueType.kFloat;
             }
             return VFXValueType.kNone;
         }
 
+        private static string GetDeclarationFromExpression(VFXExpressionOp op)
+        {
+            var valueType = GetTypeFromExpression(op);
+            switch (op)
+            {
+                case VFXExpressionOp.kVFXDeltaTimeOp:
+                    return VFXValue.TypeToName(valueType) + " deltaTime";
+                case VFXExpressionOp.kVFXTotalTimeOp:
+                    return VFXValue.TypeToName(valueType) + " totalTime";
+            }
+            return "unknownExpression";
+        }
+
+        public string Declaration { get { return GetDeclarationFromExpression(m_operation); } }
         public override VFXValueType ValueType { get { return GetTypeFromExpression(m_operation); } }
         public override VFXExpression Reduce() { return this; }
         public override void Invalidate() { }
