@@ -71,7 +71,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public static RenderTextureFormat GetDistortionBufferFormat()
             {
-                return RenderTextureFormat.ARGBHalf; // This format need to be blendable and include distortionBlur
+                // TODO: // This format need to be additive blendable and include distortionBlur, blend mode different for alpha value
+                return RenderTextureFormat.ARGBHalf; 
             }
 
             public static RenderTextureReadWrite GetDistortionBufferReadWrite()

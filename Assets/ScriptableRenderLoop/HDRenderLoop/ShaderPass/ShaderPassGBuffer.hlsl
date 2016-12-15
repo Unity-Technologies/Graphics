@@ -5,6 +5,9 @@
 void Frag(  PackedVaryings packedInput,
 			OUTPUT_GBUFFER(outGBuffer)
             OUTPUT_GBUFFER_VELOCITY(outVelocityBuffer)
+            #ifdef _DEPTHOFFSET_ON
+            float outputDepth : SV_Depth
+            #endif
 			)
 {
     FragInputs input = UnpackVaryings(packedInput);
@@ -22,6 +25,10 @@ void Frag(  PackedVaryings packedInput,
 	PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
 
-	ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, outGBuffer);
+    ENCODE_INTO_GBUFFER(surfaceData, bakeDiffuseLighting, outGBuffer);
     ENCODE_VELOCITY_INTO_GBUFFER(builtinData.velocity, outVelocityBuffer);
+
+#ifdef _DEPTHOFFSET_ON
+    outputDepth = posInput.rawDepth;
+#endif
 }
