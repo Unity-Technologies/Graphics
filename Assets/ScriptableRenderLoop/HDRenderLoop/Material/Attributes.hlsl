@@ -30,10 +30,10 @@ struct FragInputs
     bool isFrontFace;
 };
 
-void ApplyDepthOffsetVS(float depthOffset, inout FragInputs fragInput)
+void ApplyDepthOffsetAttribute(float depthOffsetVS, inout FragInputs fragInput)
 {
-    fragInput.positionCS.w += depthOffset;
-    fragInput.previousPositionCS.w += depthOffset;
+    fragInput.positionCS.w += depthOffsetVS;
+    fragInput.previousPositionCS.w += depthOffsetVS;
 }
 
 void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)
