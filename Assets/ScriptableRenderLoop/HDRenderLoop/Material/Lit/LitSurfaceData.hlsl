@@ -1,24 +1,32 @@
-void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isTriplanar, inout LayerTexCoord layerTexCoord)
+void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isPlanar, bool isTriplanar, inout LayerTexCoord layerTexCoord)
 {
+    // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
+    float2 uvBase = ADD_IDX(_UVMappingMask).x * input.texCoord0 +
+                    ADD_IDX(_UVMappingMask).y * input.texCoord1 + 
+                    ADD_IDX(_UVMappingMask).z * input.texCoord2 +
+                    ADD_IDX(_UVMappingMask).w * input.texCoord3;
+                    
+
+    float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * input.texCoord0 +
+                        ADD_IDX(_UVDetailsMappingMask).y * input.texCoord1 +
+                        ADD_IDX(_UVDetailsMappingMask).z * input.texCoord2 +
+                        ADD_IDX(_UVDetailsMappingMask).w * input.texCoord3;
+
+    // Note that if base is planar/triplanar, detail map is too
+
+    // planar
     // TODO: Do we want to manage local or world triplanar/planar
     //float3 position = localTriplanar ? TransformWorldToObject(input.positionWS) : input.positionWS;
     float3 position = input.positionWS;
     position *= ADD_IDX(_TexWorldScale);
 
-    // Handle uv0, uv1 and plnar XZ coordinate based on _CoordWeight weight (exclusif 0..1)
-    float2 uvBase = ADD_IDX(_UVMappingMask).x * input.texCoord0 +
-                    ADD_IDX(_UVMappingMask).y * input.texCoord1 + 
-                    ADD_IDX(_UVMappingMask).z * input.texCoord3 +
-                    ADD_IDX(_UVMappingMask).w * -position.xz;
+    if (isPlanar)
+    {
+        uvBase = -position.xz;
+        uvDetails = -position.xz;
+    }
 
     ADD_IDX(layerTexCoord.base).uv = TRANSFORM_TEX(uvBase, ADD_IDX(_BaseColorMap));
-
-    float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * input.texCoord0 +
-                        ADD_IDX(_UVDetailsMappingMask).y * input.texCoord1 +
-                        ADD_IDX(_UVDetailsMappingMask).z * input.texCoord3 +
-                        // Note that if base is planar, detail map is planar
-                        ADD_IDX(_UVMappingMask).w * -position.xz;
-
     ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(uvDetails, ADD_IDX(_DetailMap));
 
     // triplanar

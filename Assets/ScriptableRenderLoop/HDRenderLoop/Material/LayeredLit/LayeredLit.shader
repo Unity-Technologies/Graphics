@@ -144,20 +144,20 @@ Shader "HDRenderLoop/LayeredLit"
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
 
-        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase0("UV Set for base0", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase1("UV Set for base1", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase2("UV Set for base2", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase3("UV Set for base3", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase2("UV Set for base2", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase3("UV Set for base3", Float) = 0
 
         [HideInInspector] _UVMappingMask0("_UVMappingMask0", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask1("_UVMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask2("_UVMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)
 
-        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail0("UV Set for detail0", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail1("UV Set for detail1", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail2("UV Set for detail2", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail3("UV Set for detail3", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail0("UV Set for detail0", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail1("UV Set for detail1", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail2("UV Set for detail2", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail3("UV Set for detail3", Float) = 0
 
         [HideInInspector] _UVDetailsMappingMask0("_UVDetailsMappingMask0", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Color) = (1, 0, 0, 0)
@@ -176,13 +176,14 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_0
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_1
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_2
-    #pragma shader_feature _LAYER_MAPPING_TRIPLANAR_3
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR_0 _LAYER_MAPPING_TRIPLANAR_0
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR_1 _LAYER_MAPPING_TRIPLANAR_1
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR_2 _LAYER_MAPPING_TRIPLANAR_2
+    #pragma shader_feature _ _LAYER_MAPPING_PLANAR_3 _LAYER_MAPPING_TRIPLANAR_3
     #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
+    #pragma shader_feature _REQUIRE_UV2
     #pragma shader_feature _REQUIRE_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 

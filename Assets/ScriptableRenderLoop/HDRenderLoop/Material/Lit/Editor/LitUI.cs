@@ -41,6 +41,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         {
             UV0,
             UV1,
+            UV2,
             UV3
         }
 
@@ -183,8 +184,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
             float X, Y, Z, W;
             X = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-            W = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
-            UVMappingMask.colorValue = new Color(X, 0.0f, 0.0f, W);
+            UVMappingMask.colorValue = new Color(X, 0.0f, 0.0f, 0.0f);
             if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
             {
                 EditorGUI.indentLevel++;
@@ -196,18 +196,11 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 m_MaterialEditor.ShaderProperty(UVDetail, Styles.UVDetailMappingText.text);
             }
 
-            // If base is planar mode, detail is planar too
-            if (W > 0.0f)
-            {
-                X = Y = Z = 0.0f;
-            }
-            else
-            {
-                X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-                Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-                Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-            }
-            UVDetailsMappingMask.colorValue = new Color(X, Y, Z, 0.0f); // W Reuse planar mode from base
+            X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+            Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+            Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
+            W = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+            UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
 
             m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);
@@ -305,6 +298,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
             SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
+            SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
             SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", ((HeightmapMode)material.GetFloat(kHeightMapMode)) == HeightmapMode.Displacement);
@@ -320,8 +314,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
 
+            SetKeyword(material, "_REQUIRE_UV2", ((UVDetailMapping)material.GetFloat(kUVDetail)) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
 			SetKeyword(material, "_REQUIRE_UV3", ((UVDetailMapping)material.GetFloat(kUVDetail)) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
-
         }
     }
 } // namespace UnityEditor
