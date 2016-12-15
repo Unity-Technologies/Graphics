@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         Mesh[]                  m_CubemapFaceMesh = new Mesh[6];
 
         BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
-        SkyRenderer             m_Renderer = new HDRISkyRenderer();
+        SkyRenderer             m_Renderer = null;
         int                     m_SkyParametersHash = 0;
         bool                    m_NeedUpdateEnvironment = false;
 
@@ -48,16 +48,32 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             set
             {
-                if (value == null || IsSkyParameterValid(value))
+                if(m_Renderer != null)
                 {
-                    m_SkyParameters = value;
-                }
-                else
-                {
-                    Debug.LogWarning("Sky renderer needs an instance of " + GetSkyParameterType().ToString() + " to be able to render.");
+                    if (value == null || IsSkyParameterValid(value))
+                    {
+                        m_SkyParameters = value;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Sky renderer needs an instance of " + GetSkyParameterType().ToString() + " to be able to render.");
+                    }
                 }
             }
             get { return m_SkyParameters; }
+        }
+
+        public void InstantiateSkyRenderer(Type skyRendererType)
+        {
+            if(skyRendererType == null)
+            {
+                m_Renderer = null;
+            }
+            else if (m_Renderer == null || m_Renderer.GetType() != skyRendererType)
+            {
+                m_Renderer = Activator.CreateInstance(skyRendererType) as SkyRenderer;
+                m_Renderer.Build();
+            }
         }
 
         protected Mesh BuildSkyMesh(Vector3 cameraPosition, Matrix4x4 cameraInvViewProjectionMatrix, bool forceUVBottom)
@@ -198,7 +214,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public void Build()
         {
-            m_Renderer.Build();
+            if (m_Renderer != null)
+                m_Renderer.Build();
 
             // TODO: We need to have an API to send our sky information to Enlighten. For now use a workaround through skybox/cubemap material...
             m_StandardSkyboxMaterial = Utilities.CreateEngineMaterial("Skybox/Cubemap");
@@ -212,7 +229,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             Utilities.Destroy(m_SkyboxCubemapRT);
             Utilities.Destroy(m_SkyboxGGXCubemapRT);
 
-            m_Renderer.Cleanup();
+            if(m_Renderer != null)
+                m_Renderer.Cleanup();
         }
 
         public bool IsSkyValid()
@@ -291,12 +309,12 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public bool IsSkyParameterValid(SkyParameters parameters)
         {
-            return m_Renderer.IsParameterValid(parameters);
+            return m_Renderer != null && m_Renderer.IsParameterValid(parameters);
         }
 
         public Type GetSkyParameterType()
         {
-            return m_Renderer.GetSkyParameterType();
+            return (m_Renderer == null) ? null : m_Renderer.GetSkyParameterType();
         }
 
         public void RenderSky(Camera camera, Light sunLight, RenderTargetIdentifier colorBuffer, RenderTargetIdentifier depthBuffer, RenderLoop renderLoop)

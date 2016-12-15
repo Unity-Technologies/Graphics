@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
+    [DisallowMultipleComponent]
     public class HDRISkyParameters
         : SkyParameters
     {

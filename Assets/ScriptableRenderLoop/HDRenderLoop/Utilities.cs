@@ -229,5 +229,17 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             else
                 m.DisableKeyword(keyword);
         }
+
+        public static HDRenderLoop GetHDRenderLoop()
+        {
+            HDRenderLoop renderLoop = UnityEngine.Rendering.GraphicsSettings.GetRenderPipeline() as HDRenderLoop;
+            if (renderLoop == null)
+            {
+                Debug.LogWarning("SkyParameters component can only be used with HDRenderLoop custom RenderPipeline.");
+                return null;
+            }
+
+            return renderLoop;
+        }
     }
 }

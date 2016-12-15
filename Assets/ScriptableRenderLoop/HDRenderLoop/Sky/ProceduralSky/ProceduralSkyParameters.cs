@@ -5,6 +5,7 @@ using UnityEngine;
 namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     [ExecuteInEditMode]
+    [DisallowMultipleComponent]
     public class ProceduralSkyParameters
         : SkyParameters
     {
