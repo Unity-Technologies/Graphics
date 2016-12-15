@@ -156,10 +156,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_ProceduralSkyMaterial.SetFloat("_WorldMieDensity", -param.worldMieDensity / 100000f);
             m_ProceduralSkyMaterial.SetFloat("_HeightMieDensity", -param.heightMieDensity / 100000f);
 
-            // TODO : We can't pass the camera in builtinParams because when SkyManager call RenderSky for rendering into a cubemap we don't have an actual Camera.
-            // Maybe pass the rect/viewport directly?
-            var pixelRect = Camera.current ? Camera.current.pixelRect
-                                           : new Rect(0f, 0f, Screen.width, Screen.height);
+            //var pixelRect = Camera.current ? Camera.current.pixelRect
+            //                               : new Rect(0f, 0f, Screen.width, Screen.height);
+            var pixelRect = new Rect(0f, 0f, builtinParams.screenSize.x, builtinParams.screenSize.y);
             var scale = 1.0f; //(float)(int)occlusionDownscale;
             var depthTextureScaledTexelSize = new Vector4(scale / pixelRect.width,
                                                           scale / pixelRect.height,
