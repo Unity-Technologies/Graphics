@@ -248,6 +248,10 @@ Shader "HDRenderLoop/LayeredLit"
     // Set of users variables
     PROP_DECL(float4, _BaseColor);
     PROP_DECL_TEX2D(_BaseColorMap);
+    float4 _BaseColorMap0_ST;
+    float4 _BaseColorMap1_ST;
+    float4 _BaseColorMap2_ST;
+    float4 _BaseColorMap3_ST;
 
     PROP_DECL(float, _Metallic);
     PROP_DECL(float, _Smoothness);
@@ -471,8 +475,8 @@ Shader "HDRenderLoop/LayeredLit"
             #define SHADERPASS SHADERPASS_DISTORTION
             #define LAYERED_LIT_SHADER
             #include "../../Material/Material.hlsl"         
-            #include "LitData.hlsl"
-            #include "LitDistortionPass.hlsl"
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitDistortionPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
