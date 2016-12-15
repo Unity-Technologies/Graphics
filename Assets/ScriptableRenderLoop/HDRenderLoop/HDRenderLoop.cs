@@ -220,16 +220,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_gbufferManager.SetBufferDescription(gbufferIndex, "_GBufferTexture" + gbufferIndex, RTFormat[gbufferIndex], RTReadWrite[gbufferIndex]);
             }
 
-#pragma warning disable 162 // warning CS0162: Unreachable code detected
             m_VelocityBuffer = Shader.PropertyToID("_VelocityTexture");
-            if (ShaderConfig.VelocityInGbuffer == 1)
+            if (ShaderConfig.s_VelocityInGbuffer == 1)
             {
                 // If velocity is in GBuffer then it is in the last RT. Assign a different name to it.
                 m_gbufferManager.SetBufferDescription(m_gbufferManager.gbufferCount, "_VelocityTexture", Builtin.RenderLoop.GetVelocityBufferFormat(), Builtin.RenderLoop.GetVelocityBufferReadWrite());
                 m_gbufferManager.gbufferCount++;
             }
             m_VelocityBufferRT = new RenderTargetIdentifier(m_VelocityBuffer);
-#pragma warning restore 162
 
             m_DistortionBuffer = Shader.PropertyToID("_DistortionTexture");
             m_DistortionBufferRT = new RenderTargetIdentifier(m_DistortionBuffer);
@@ -497,10 +495,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         {
             using (new Utilities.ProfilingSample("Velocity Pass", renderLoop))
             {
-                // warning CS0162: Unreachable code detected // warning CS0429: Unreachable expression code detected
-    #pragma warning disable 162, 429
                 // If opaque velocity have been render during GBuffer no need to render it here
-                if ((ShaderConfig.VelocityInGbuffer == 0) || debugParameters.useForwardRenderingOnly)
+                if ((ShaderConfig.s_VelocityInGbuffer == 0) || debugParameters.useForwardRenderingOnly)
                     return ;
 
                 int w = camera.pixelWidth;
@@ -513,7 +509,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 cmd.Dispose();
 
                 RenderOpaqueRenderList(cullResults, camera, renderLoop, "MotionVectors");
-    #pragma warning restore 162, 429
             }
         }
 

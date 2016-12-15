@@ -22,8 +22,6 @@ public class BasicRenderLoop : RenderPipeline
     }
 #endif
 
-    private ShaderPassName shaderPassBasic;
-
     public override void Build()
     {
     }
