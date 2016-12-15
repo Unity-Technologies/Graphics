@@ -7,6 +7,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 {
     public class BaseLightLoop
     {
+        protected Light m_CurrentSunLight = null;
+
         // TODO: We should rather put the texture settings in LightLoop, but how do we serialize it ?
         public virtual void Build(TextureSettings textureSettings) {}
 
@@ -30,5 +32,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public virtual void RenderDeferredLighting(HDRenderLoop.HDCamera hdCamera, RenderLoop renderLoop, RenderTargetIdentifier cameraColorBufferRT) {}
 
         public virtual void RenderForward(Camera camera, RenderLoop renderLoop, bool renderOpaque) {}
+
+        public Light GetCurrentSunLight() { return m_CurrentSunLight;  }
     }
 }

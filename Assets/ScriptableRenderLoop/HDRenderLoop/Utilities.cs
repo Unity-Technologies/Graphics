@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // Render Target Management.
         public const ClearFlag kClearAll = ClearFlag.ClearDepth | ClearFlag.ClearColor;
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier buffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.ClearNone, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var cmd = new CommandBuffer();
             cmd.name = "";
@@ -238,6 +238,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m.EnableKeyword(keyword);
             else
                 m.DisableKeyword(keyword);
+        }
+
+        public static HDRenderLoop GetHDRenderLoop()
+        {
+            HDRenderLoop renderLoop = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderLoop;
+            if (renderLoop == null)
+            {
+                Debug.LogWarning("SkyParameters component can only be used with HDRenderLoop custom RenderPipeline.");
+                return null;
+            }
+
+            return renderLoop;
         }
     }
 }
