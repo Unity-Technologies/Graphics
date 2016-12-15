@@ -59,6 +59,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         protected const string kTexWorldScale = "_TexWorldScale";
         protected MaterialProperty UVMappingMask = null;
         protected const string kUVMappingMask = "_UVMappingMask";
+        protected MaterialProperty UVMappingPlanar = null;
+        protected const string kUVMappingPlanar = "_UVMappingPlanar";      
         protected MaterialProperty normalMapSpace = null;
         protected const string kNormalMapSpace = "_NormalMapSpace";
         protected MaterialProperty heightMapMode = null;
@@ -157,6 +159,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             UVDetail = FindProperty(kUVDetail, props);
             TexWorldScale = FindProperty(kTexWorldScale, props);
             UVMappingMask = FindProperty(kUVMappingMask, props);
+            UVMappingPlanar = FindProperty(kUVMappingPlanar, props);
             UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);    
             
             detailMap = FindProperty(kDetailMap, props);
@@ -185,6 +188,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             float X, Y, Z, W;
             X = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.UV0) ? 1.0f : 0.0f;
             UVMappingMask.colorValue = new Color(X, 0.0f, 0.0f, 0.0f);
+            UVMappingPlanar.floatValue = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
             if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
             {
                 EditorGUI.indentLevel++;
@@ -298,7 +302,6 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
             SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
-            SetKeyword(material, "_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Planar);
             SetKeyword(material, "_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVBase)) == UVBaseMapping.Triplanar);
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
             SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", ((HeightmapMode)material.GetFloat(kHeightMapMode)) == HeightmapMode.Displacement);
@@ -314,8 +317,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
 
-            SetKeyword(material, "_REQUIRE_UV2", ((UVDetailMapping)material.GetFloat(kUVDetail)) == UVDetailMapping.UV2 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
-			SetKeyword(material, "_REQUIRE_UV3", ((UVDetailMapping)material.GetFloat(kUVDetail)) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
+            SetKeyword(material, "_REQUIRE_UV2_OR_UV3", (
+                                                            ((UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3)
+                                                            && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0)
+                                                            );
         }
     }
 } // namespace UnityEditor

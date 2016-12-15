@@ -20,7 +20,7 @@ void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isPlanar, bool isTripl
     float3 position = input.positionWS;
     position *= ADD_IDX(_TexWorldScale);
 
-    if (isPlanar)
+    if (ADD_IDX(_UVMappingPlanar) > 0.0)
     {
         uvBase = -position.xz;
         uvDetails = -position.xz;
