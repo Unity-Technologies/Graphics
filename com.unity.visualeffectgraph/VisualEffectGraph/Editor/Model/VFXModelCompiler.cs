@@ -989,9 +989,9 @@ namespace UnityEditor.Experimental
 
             var functionNames = new HashSet<string>();
             foreach (var block in data.initBlocks)
-                builder.WriteFunction(block, functionNames, data.generatedTextureData);
+                builder.WriteFunction(block, functionNames, data);
             foreach (var block in data.updateBlocks)
-                builder.WriteFunction(block, functionNames, data.generatedTextureData);
+                builder.WriteFunction(block, functionNames, data);
 
             if (initGenerator != null)
                 initGenerator.WriteFunctions(builder, data);
@@ -1407,7 +1407,7 @@ namespace UnityEditor.Experimental
 
             var functionNames = new HashSet<string>();
             foreach (var block in data.outputBlocks)
-                builder.WriteFunction(block, functionNames, data.generatedTextureData);
+                builder.WriteFunction(block, functionNames, data);
 
             outputGenerator.WriteFunctions(builder, data);
 

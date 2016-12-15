@@ -171,8 +171,9 @@ namespace UnityEditor.Experimental
             }
         }
 
-        public void WriteFunction(VFXBlockModel block, HashSet<string> functions,VFXGeneratedTextureData texData)
+        public void WriteFunction(VFXBlockModel block, HashSet<string> functions, ShaderMetaData data)
         {
+            VFXGeneratedTextureData texData = data.generatedTextureData;
             if (!functions.Contains(block.Desc.FunctionName)) // if not already defined
             {
                 functions.Add(block.Desc.FunctionName);
@@ -192,65 +193,34 @@ namespace UnityEditor.Experimental
                 Write(block.Desc.FunctionName);
                 Write("(");
 
-                char separator = ' ';
-                foreach (var arg in block.Desc.Attributes)
-                {
-                    Write(separator);
-                    separator = ',';
-
-                    if (arg.m_Writable)
-                        Write("inout ");
-                    WriteType(arg.m_Type);
-                    Write(" ");
-                    Write(arg.m_Name);
-                }
-
-                List<VFXNamedValue> namedValues = new List<VFXNamedValue>();
-                for (int i = 0; i < block.GetNbSlots(); ++i)
-                {
-                    VFXPropertySlot slot = block.GetSlot(i);
-
-                    namedValues.Clear();
-                    slot.CollectNamedValues(namedValues); // We dont care about space reference here as it is just a matter of name and native type
-                    foreach (var arg in namedValues)
+                WriteGenericFunctionInterface(
+                    block,
+                    data,
+                    (arg) =>
                     {
-                        Write(separator);
-                        separator = ',';
-
-                        WriteType(arg.m_Value.ValueType);
+                        if (arg.m_Writable)
+                            Write("inout ");
+                        WriteType(arg.m_Type);
                         Write(" ");
                         Write(arg.m_Name);
-                    }
-
-                    // extra uniforms
-                    foreach (var arg in namedValues)
+                    },
+                    (arg, inv, exp) =>
                     {
-                        if (arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
+                        if (arg != null)
                         {
-                            Write(separator);
-                            separator = ',';
-
-                            WriteType(VFXValueType.kTransform);
-                            Write(" Inv");
+                            WriteType(arg.m_Value.ValueType);
+                            Write(inv ? " Inv" : " ");
                             Write(arg.m_Name);
                         }
-                    }
-                }
+                        else
+                        {
+                            //Only one case possible : deltaTime
+                            Write("float deltaTime");
+                        }
 
-                if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasRand))
-                {
-                    Write(separator);
-                    separator = ',';
-                    Write("inout uint seed");
-                }
-
-                if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasKill))
-                {
-                    Write(separator);
-                    separator = ',';
-                    Write("inout bool kill");
-                }
-
+                    },
+                    () => Write("inout bool kill")
+                );
                 WriteLine(")");
 
                 // function body
@@ -267,8 +237,62 @@ namespace UnityEditor.Experimental
             }
         }
 
+        public void WriteGenericFunctionInterface(VFXBlockModel block, ShaderMetaData data, Action<VFXAttribute> fnWriteAttribute, Action<VFXNamedValue, bool, VFXExpression> fnWriteExpression, Action fnKill)
+        {
+            char separator = ' ';
+            foreach (var arg in block.Desc.Attributes)
+            {
+                Write(separator);
+                separator = ',';
+                fnWriteAttribute(arg);
+            }
+
+            List<VFXNamedValue> namedValues = new List<VFXNamedValue>();
+            for (int i = 0; i < block.GetNbSlots(); ++i)
+            {
+                VFXPropertySlot slot = block.GetSlot(i);
+
+                namedValues.Clear();
+                slot.CollectNamedValues(namedValues, data.system.GetSpaceRef());
+                foreach (var arg in namedValues)
+                    if (arg.m_Value.IsValue())
+                    {
+                        Write(separator);
+                        separator = ',';
+                        fnWriteExpression(arg, false, arg.m_Value);
+                    }
+
+                // Write extra parameters
+                foreach (var arg in namedValues)
+                    if (arg.m_Value.IsValue() && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
+                    {
+                        VFXExpression extraValue = data.extraUniforms[arg.m_Value];
+                        if (extraValue.IsValue())
+                        {
+                            Write(separator);
+                            separator = ',';
+                            fnWriteExpression(arg, true, extraValue);
+                        }
+                    }
+            }
+
+            if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasRand))
+            {
+                Write(separator);
+                separator = ',';
+                fnWriteAttribute(CommonAttrib.Seed);
+            }
+
+            if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasKill))
+            {
+                Write(separator);
+                separator = ',';
+                fnKill();
+            }
+        }
+
         // TODO source shouldnt be a parameter but taken from block
-        private void WriteSourceWithSamplesResolved(string source,VFXBlockModel block,VFXGeneratedTextureData texData)
+        private void WriteSourceWithSamplesResolved(string source,VFXBlockModel block, VFXGeneratedTextureData texData)
         {
             int lastIndex = 0;
             int indexSample = 0;
@@ -290,61 +314,18 @@ namespace UnityEditor.Experimental
         {
             Dictionary<VFXExpression, string> paramToName = output ? data.outputParamToName : data.paramToName;
 
+            UnityEngine.Profiling.Profiler.BeginSample("WriteFunctionCall");
+
             Write(block.Desc.FunctionName);
             Write("(");
 
-            char separator = ' ';
-            foreach (var arg in block.Desc.Attributes)
-            {
-                Write(separator);
-                separator = ',';
-                WriteAttrib(arg, data, output);
-            }
-
-            List<VFXNamedValue> namedValues = new List<VFXNamedValue>();
-            for (int i = 0; i < block.GetNbSlots(); ++i)
-            {
-                VFXPropertySlot slot = block.GetSlot(i);
-
-                namedValues.Clear();
-                slot.CollectNamedValues(namedValues,data.system.GetSpaceRef());
-                foreach (var arg in namedValues)
-                    if (arg.m_Value.IsValue())
-                    {
-                        Write(separator);
-                        separator = ',';
-                        Write(paramToName[arg.m_Value]);
-                    }
-
-                // Write extra parameters
-                foreach (var arg in namedValues)
-                    if (arg.m_Value.IsValue() && arg.m_Value.ValueType == VFXValueType.kTransform && block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsInverseTransform))
-                    {
-                        VFXExpression extraValue = data.extraUniforms[arg.m_Value];
-                        if (extraValue.IsValue())
-                        {
-                            Write(separator);
-                            separator = ',';
-                            Write(paramToName[extraValue/*.Reduce()*/]);
-                        }
-                    }
-            }
-
-            if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasRand))
-            {
-                Write(separator);
-                separator = ',';
-                WriteAttrib(CommonAttrib.Seed, data);
-            }
-
-            if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasKill))
-            {
-                Write(separator);
-                separator = ',';
-                Write("kill");
-            }
-
+            WriteGenericFunctionInterface(block,
+                                            data,
+                                            (arg) => WriteAttrib(arg, data, output),
+                                            (arg, inv, exp) => Write(paramToName[exp]),
+                                            () => Write("kill"));
             WriteLine(");");
+            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         public void WriteAddPhaseShift(ShaderMetaData data)
@@ -364,23 +345,28 @@ namespace UnityEditor.Experimental
             Write(op);
             Write("= (");
             WriteAttrib(CommonAttrib.Phase, data);
-            Write(" * deltaTime) * ");
+            Write(string.Format(" * {0}) * deltaTime"));
             WriteAttrib(CommonAttrib.Velocity, data);
             WriteLine(";");
         }
 
         public void WriteAttrib(VFXAttribute attrib, ShaderMetaData data, bool output = false)
         {
+            Write(GenerateAttrib(attrib, data, output));
+        }
+
+        public string GenerateAttrib(VFXAttribute attrib, ShaderMetaData data, bool output = false)
+        {
             AttributeBuffer buffer;
             if (data.attribToBuffer.TryGetValue(attrib,out buffer))
             {
                 if (output && data.outputBuffer != null)
-                    WriteFormat("outputData.{0}", attrib.m_Name);
+                    return string.Format("outputData.{0}", attrib.m_Name);
                 else
-                    WriteFormat("attrib{0}.{1}", buffer.Index, attrib.m_Name);
+                    return string.Format("attrib{0}.{1}", buffer.Index, attrib.m_Name);
             }
             else // local attribute (dont even check if it is in the localAttrib dictionary but we should for consistency)
-                WriteFormat("local_{0}", attrib.m_Name);
+                return string.Format("local_{0}", attrib.m_Name);
         }
 
         public void WriteLocalAttribDeclaration(ShaderMetaData data,VFXContextDesc.Type context)
