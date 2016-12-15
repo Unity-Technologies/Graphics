@@ -6,10 +6,12 @@ void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isTriplanar, inout Lay
     position *= ADD_IDX(_TexWorldScale);
 
     // Handle uv0, uv1 and plnar XZ coordinate based on _CoordWeight weight (exclusif 0..1)
-    ADD_IDX(layerTexCoord.base).uv =    ADD_IDX(_UVMappingMask).x * input.texCoord0 +
-                                        ADD_IDX(_UVMappingMask).y * input.texCoord1 + 
-                                        ADD_IDX(_UVMappingMask).z * input.texCoord3 +
-                                        ADD_IDX(_UVMappingMask).w * -position.xz;
+    float2 uvBase = ADD_IDX(_UVMappingMask).x * input.texCoord0 +
+                    ADD_IDX(_UVMappingMask).y * input.texCoord1 + 
+                    ADD_IDX(_UVMappingMask).z * input.texCoord3 +
+                    ADD_IDX(_UVMappingMask).w * -position.xz;
+
+    ADD_IDX(layerTexCoord.base).uv = TRANSFORM_TEX(uvBase, ADD_IDX(_BaseColorMap));
 
     float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * input.texCoord0 +
                         ADD_IDX(_UVDetailsMappingMask).y * input.texCoord1 +
@@ -27,15 +29,19 @@ void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isTriplanar, inout Lay
     // In triplanar, if we are facing away from the world axis, a different axis will be flipped for each direction.
     // This is particularly problematic for tangent space normal maps which need to be in the right direction.
     // So we multiplying the offending coordinate by the sign of the normal.
-    ADD_IDX(layerTexCoord.base).uvYZ = float2(direction.x * position.z, position.y);
-    ADD_IDX(layerTexCoord.base).uvZX = -float2(position.x, direction.y * position.z);
-    ADD_IDX(layerTexCoord.base).uvXY = float2(-position.x, direction.z * position.y);
+    float2 uvYZ = float2(direction.x * position.z, position.y);
+    float2 uvZX = -float2(position.x, direction.y * position.z);
+    float2 uvXY = float2(-position.x, direction.z * position.y);
+
+    ADD_IDX(layerTexCoord.base).uvYZ = TRANSFORM_TEX(uvYZ, ADD_IDX(_BaseColorMap));
+    ADD_IDX(layerTexCoord.base).uvZX = TRANSFORM_TEX(uvZX, ADD_IDX(_BaseColorMap));
+    ADD_IDX(layerTexCoord.base).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap));
 
     ADD_IDX(layerTexCoord.details).isTriplanar = isTriplanar;
 
-    ADD_IDX(layerTexCoord.details).uvYZ = TRANSFORM_TEX(ADD_IDX(layerTexCoord.base).uvYZ, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvZX = TRANSFORM_TEX(ADD_IDX(layerTexCoord.base).uvZX, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(ADD_IDX(layerTexCoord.base).uvXY, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvYZ = TRANSFORM_TEX(uvYZ, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvZX = TRANSFORM_TEX(uvZX, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
 }
 
 void ADD_IDX(ApplyDisplacement)(inout FragInputs input, float3 viewDirTS, inout LayerTexCoord layerTexCoord)
