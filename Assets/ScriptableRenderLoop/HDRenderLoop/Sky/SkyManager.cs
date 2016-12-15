@@ -52,6 +52,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     if (value == null || IsSkyParameterValid(value))
                     {
+                        m_SkyParametersHash = 0;
                         m_SkyParameters = value;
                     }
                     else

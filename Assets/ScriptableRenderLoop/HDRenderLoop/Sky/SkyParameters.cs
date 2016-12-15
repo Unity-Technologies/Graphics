@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float multiplier = 1.0f;
         public SkyResolution resolution = SkyResolution.SkyResolution256;
 
-        private FieldInfo[] m_Properties;
+        protected FieldInfo[] m_Properties;
 
         protected void OnEnable()
         {
