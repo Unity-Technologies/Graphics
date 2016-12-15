@@ -470,9 +470,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
 
-			// We have to check for each layer if the UV3 is needed.
-            SetKeyword(material, "_REQUIRE_UV2", false);
-			SetKeyword(material, "_REQUIRE_UV3", false);
+            // We have to check for each layer if the UV2 or UV3 is needed.
+            bool UV2orUV3needed = false;
 			for (int layer = 0; layer < numLayer; ++layer)
 			{
 				string uvBase = string.Format("{0}{1}", kUVBase, layer);
@@ -485,10 +484,12 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                      ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV3)
                     )
 				{
-					SetKeyword(material, "_REQUIRE_UV2_OR_UV3", true);
-					break;
+                    UV2orUV3needed = true;
+                    break;
 				}
 			}
+
+            SetKeyword(material, "_REQUIRE_UV2_OR_UV3", UV2orUV3needed);
         }
 
 		void SetupLayersKeywords(Material material)
