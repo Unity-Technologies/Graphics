@@ -45,8 +45,7 @@ Shader "HDRenderLoop/Lit"
         //_CoatRoughness("CoatRoughness", Range(0.0, 1.0)) = 0
         //_CoatRoughnessMap("CoatRoughnessMap", 2D) = "white" {}
 
-        // _DistortionVectorMap("DistortionVectorMap", 2D) = "white" {}
-        // _DistortionBlur("DistortionBlur", Range(0.0, 1.0)) = 0
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
@@ -55,8 +54,10 @@ Shader "HDRenderLoop/Lit"
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
-        [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff]     _DistortionDepthTest("Distortion Only", Float) = 0.0
+        [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
+        [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
+        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
+        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -68,6 +69,7 @@ Shader "HDRenderLoop/Lit"
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
+        [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
         
         // Material Id
         [HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
@@ -96,6 +98,8 @@ Shader "HDRenderLoop/Lit"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature _ALPHATEST_ON
+    #pragma shader_feature _DISTORTION_ON
+    #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
@@ -199,6 +203,9 @@ Shader "HDRenderLoop/Lit"
     TEXTURE2D(_DiffuseLightingMap);
     SAMPLER2D(sampler_DiffuseLightingMap);
 
+    TEXTURE2D(_DistortionVectorMap);
+    SAMPLER2D(sampler_DistortionVectorMap);
+
     float3 _EmissiveColor;
     TEXTURE2D(_EmissiveColorMap);
     SAMPLER2D(sampler_EmissiveColorMap);
@@ -296,7 +303,8 @@ Shader "HDRenderLoop/Lit"
 
             Cull[_CullMode]
 
-            ZWrite On ZTest LEqual
+            ZWrite On 
+            ZTest LEqual
 
             HLSLPROGRAM
 
@@ -320,8 +328,8 @@ Shader "HDRenderLoop/Lit"
 
             Cull[_CullMode]
 
-            ZWrite On ZTest LEqual
-
+            ZWrite On 
+ 
             HLSLPROGRAM
 
             #pragma vertex Vert
@@ -344,7 +352,6 @@ Shader "HDRenderLoop/Lit"
 
             Cull[_CullMode]
 
-            ZTest LEqual
             ZWrite Off // TODO: Test Z equal here.
 
             HLSLPROGRAM
@@ -358,6 +365,31 @@ Shader "HDRenderLoop/Lit"
             #include "LitVelocityPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Distortion" // Name is not used
+            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
+
+            Blend One One
+            ZTest [_ZTestMode]
+            ZWrite off
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DISTORTION
+            #include "../../Material/Material.hlsl"         
+            #include "LitData.hlsl"
+            #include "LitDistortionPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
         }

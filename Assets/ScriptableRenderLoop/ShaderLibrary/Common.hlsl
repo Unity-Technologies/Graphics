@@ -388,7 +388,7 @@ void UpdatePositionInput(float depth, float4x4 invViewProjectionMatrix, float4x4
 }
 
 // depthOffsetVS is always in the direction of the view vector (V)
-void ApplyDepthOffsetVS(float V, float depthOffsetVS, inout PositionInputs posInput)
+void ApplyDepthOffsetPositionInput(float V, float depthOffsetVS, inout PositionInputs posInput)
 {
     posInput.depthVS += depthOffsetVS;
     // TODO: it is an approx, need a correct value where we use projection matrix to reproject the depth from VS

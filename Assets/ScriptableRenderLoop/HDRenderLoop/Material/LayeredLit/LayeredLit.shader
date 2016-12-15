@@ -101,14 +101,18 @@ Shader "HDRenderLoop/LayeredLit"
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         [ToggleOff]  _LayerMaskVertexColor("Use Vertex Color Mask", Float) = 0.0
 
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
+
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
-        [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff]     _DistortionDepthTest("Distortion Only", Float) = 0.0
+        [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
+        [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
+        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
+        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
-        [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
+        [ToggleOff] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -119,6 +123,7 @@ Shader "HDRenderLoop/LayeredLit"
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
+        [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
 
@@ -166,6 +171,8 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
     #pragma shader_feature _ALPHATEST_ON
+    #pragma shader_feature _DISTORTION_ON
+    #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
@@ -268,6 +275,9 @@ Shader "HDRenderLoop/LayeredLit"
 
     TEXTURE2D(_DiffuseLightingMap);
     SAMPLER2D(sampler_DiffuseLightingMap);
+
+    TEXTURE2D(_DistortionVectorMap);
+    SAMPLER2D(sampler_DistortionVectorMap);
 
     TEXTURE2D(_LayerMaskMap);
     SAMPLER2D(sampler_LayerMaskMap);
@@ -374,7 +384,6 @@ Shader "HDRenderLoop/LayeredLit"
 
             Cull[_CullMode]
 
-            ZTest LEqual
             ZWrite Off // TODO: Test Z equal here.
 
             HLSLPROGRAM
@@ -400,7 +409,8 @@ Shader "HDRenderLoop/LayeredLit"
 
             Cull[_CullMode]
 
-            ZWrite On ZTest LEqual
+            ZWrite On 
+            ZTest LEqual
 
             HLSLPROGRAM
 
@@ -425,7 +435,7 @@ Shader "HDRenderLoop/LayeredLit"
 
             Cull[_CullMode]
 
-            ZWrite On ZTest LEqual
+            ZWrite On 
 
             HLSLPROGRAM
 
@@ -439,6 +449,32 @@ Shader "HDRenderLoop/LayeredLit"
             #include "../Lit/LitDepthPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Distortion" // Name is not used
+            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
+
+            Blend One One
+            ZTest [_ZTestMode]
+            ZWrite off
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DISTORTION
+            #define LAYERED_LIT_SHADER
+            #include "../../Material/Material.hlsl"         
+            #include "LitData.hlsl"
+            #include "LitDistortionPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
         }
