@@ -134,7 +134,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             if (enableClustered)
             {
-                s_GlobalLightListAtomic.Release();
+				if (s_GlobalLightListAtomic != null)
+                	s_GlobalLightListAtomic.Release();
             }
 
             ClearComputeBuffers();
