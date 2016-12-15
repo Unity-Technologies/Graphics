@@ -167,7 +167,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_SkyboxGGXCubemapRT.Create();
             }
 
-            m_CubemapScreenSize = new Vector4((float)skyParameters.resolution, (float)skyParameters.resolution, 1.0f / (float)skyParameters.resolution, 1.0f / (float)skyParameters.resolution);
+            m_CubemapScreenSize = new Vector4((float)resolution, (float)resolution, 1.0f / (float)resolution, 1.0f / (float)resolution);
         }
 
         void RebuildSkyMeshes()

@@ -242,7 +242,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public static HDRenderLoop GetHDRenderLoop()
         {
-            HDRenderLoop renderLoop = UnityEngine.Rendering.GraphicsSettings.GetRenderPipeline() as HDRenderLoop;
+            HDRenderLoop renderLoop = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderLoop;
             if (renderLoop == null)
             {
                 Debug.LogWarning("SkyParameters component can only be used with HDRenderLoop custom RenderPipeline.");
