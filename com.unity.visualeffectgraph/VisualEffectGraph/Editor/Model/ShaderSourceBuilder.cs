@@ -214,8 +214,7 @@ namespace UnityEditor.Experimental
                         }
                         else
                         {
-                            var builtInExp = exp as VFXExpressionBuiltInValue;
-                            Write(builtInExp.Declaration);
+                            Write(CommonBuiltIn.DictionnaryExpression[exp].DeclarationName);
                         }
 
                     },
@@ -276,18 +275,14 @@ namespace UnityEditor.Experimental
                     }
             }
 
-            if (block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsDeltaTime))
+            foreach (var builtIn in CommonBuiltIn.Expressions)
             {
-                Write(separator);
-                separator = ',';
-                fnWriteExpression(null, false, CommonGlobalExpression.DeltaTime);
-            }
-
-            if (block.Desc.IsSet(VFXBlockDesc.Flag.kNeedsTotalTime))
-            {
-                Write(separator);
-                separator = ',';
-                fnWriteExpression(null, false, CommonGlobalExpression.TotalTime);
+                if (block.Desc.IsSet(builtIn.Flag))
+                {
+                    Write(separator);
+                    separator = ',';
+                    fnWriteExpression(null, false, builtIn.Expression);
+                }
             }
 
             if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasRand))
@@ -359,7 +354,7 @@ namespace UnityEditor.Experimental
             Write(op);
             Write("= (");
             WriteAttrib(CommonAttrib.Phase, data);
-            Write(string.Format(" * {0}) * ", data.outputParamToName[CommonGlobalExpression.DeltaTime]));
+            Write(string.Format(" * {0}) * ", data.outputParamToName[CommonBuiltIn.DeltaTime]));
             WriteAttrib(CommonAttrib.Velocity, data);
             WriteLine(";");
         }

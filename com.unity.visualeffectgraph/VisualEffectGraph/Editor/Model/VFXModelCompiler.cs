@@ -10,31 +10,25 @@ namespace UnityEditor.Experimental
 {
     public static class CommonAttrib
     {
-        public static VFXAttribute Seed =               new VFXAttribute("seed", VFXValueType.kUint);
-        public static VFXAttribute Position =           new VFXAttribute("position", VFXValueType.kFloat3);
-        public static VFXAttribute Velocity =           new VFXAttribute("velocity", VFXValueType.kFloat3);
-        public static VFXAttribute Color =              new VFXAttribute("color", VFXValueType.kFloat3);
-        public static VFXAttribute Alpha =              new VFXAttribute("alpha", VFXValueType.kFloat);
-        public static VFXAttribute Phase =              new VFXAttribute("phase", VFXValueType.kFloat);
-        public static VFXAttribute Size =               new VFXAttribute("size", VFXValueType.kFloat2);
-        public static VFXAttribute Lifetime =           new VFXAttribute("lifetime", VFXValueType.kFloat);
-        public static VFXAttribute Age =                new VFXAttribute("age", VFXValueType.kFloat);
-        public static VFXAttribute Angle =              new VFXAttribute("angle", VFXValueType.kFloat);
-        public static VFXAttribute AngularVelocity =    new VFXAttribute("angularVelocity", VFXValueType.kFloat);
-        public static VFXAttribute TexIndex =           new VFXAttribute("texIndex", VFXValueType.kFloat);
-        public static VFXAttribute Pivot =              new VFXAttribute("pivot", VFXValueType.kFloat3);
-        public static VFXAttribute ParticleId =         new VFXAttribute("particleId", VFXValueType.kUint);
+        public static readonly VFXAttribute Seed =               new VFXAttribute("seed", VFXValueType.kUint);
+        public static readonly VFXAttribute Position =           new VFXAttribute("position", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Velocity =           new VFXAttribute("velocity", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Color =              new VFXAttribute("color", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Alpha =              new VFXAttribute("alpha", VFXValueType.kFloat);
+        public static readonly VFXAttribute Phase =              new VFXAttribute("phase", VFXValueType.kFloat);
+        public static readonly VFXAttribute Size =               new VFXAttribute("size", VFXValueType.kFloat2);
+        public static readonly VFXAttribute Lifetime =           new VFXAttribute("lifetime", VFXValueType.kFloat);
+        public static readonly VFXAttribute Age =                new VFXAttribute("age", VFXValueType.kFloat);
+        public static readonly VFXAttribute Angle =              new VFXAttribute("angle", VFXValueType.kFloat);
+        public static readonly VFXAttribute AngularVelocity =    new VFXAttribute("angularVelocity", VFXValueType.kFloat);
+        public static readonly VFXAttribute TexIndex =           new VFXAttribute("texIndex", VFXValueType.kFloat);
+        public static readonly VFXAttribute Pivot =              new VFXAttribute("pivot", VFXValueType.kFloat3);
+        public static readonly VFXAttribute ParticleId =         new VFXAttribute("particleId", VFXValueType.kUint);
 
         // Output orientation
-        public static VFXAttribute Front =              new VFXAttribute("front", VFXValueType.kFloat3);
-        public static VFXAttribute Side =               new VFXAttribute("side", VFXValueType.kFloat3);
-        public static VFXAttribute Up =                 new VFXAttribute("up", VFXValueType.kFloat3);
-    }
-
-    public static class CommonGlobalExpression
-    {
-        public static readonly VFXExpression DeltaTime = new VFXExpressionBuiltInValue(VFXExpressionOp.kVFXDeltaTimeOp);
-        public static readonly VFXExpression TotalTime = new VFXExpressionBuiltInValue(VFXExpressionOp.kVFXTotalTimeOp);
+        public static readonly VFXAttribute Front =              new VFXAttribute("front", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Side =               new VFXAttribute("side", VFXValueType.kFloat3);
+        public static readonly VFXAttribute Up =                 new VFXAttribute("up", VFXValueType.kFloat3);
     }
 
     public class VFXSystemRuntimeData
@@ -562,16 +556,13 @@ namespace UnityEditor.Experimental
 
             Action<VFXBlockDesc.Flag, List<VFXBlockModel>, HashSet<VFXExpression>> fnBuiltInExpression = delegate (VFXBlockDesc.Flag generatorFlag, List<VFXBlockModel> _blockList, HashSet<VFXExpression> _Uniform)
             {
-                if ((VFXBlockDesc.Flag.kNeedsDeltaTime & generatorFlag) == generatorFlag || _blockList.Any(b => b.Desc.IsSet(VFXBlockDesc.Flag.kNeedsDeltaTime)))
+                foreach (var builtIn in CommonBuiltIn.Expressions)
                 {
-                    rawExpressions.Add(CommonGlobalExpression.DeltaTime);
-                    _Uniform.Add(CommonGlobalExpression.DeltaTime);
-                }
-
-                if ((VFXBlockDesc.Flag.kNeedsTotalTime & generatorFlag) == generatorFlag || _blockList.Any(b => b.Desc.IsSet(VFXBlockDesc.Flag.kNeedsTotalTime)))
-                {
-                    rawExpressions.Add(CommonGlobalExpression.TotalTime);
-                    _Uniform.Add(CommonGlobalExpression.TotalTime);
+                    if ((builtIn.Flag & generatorFlag) == generatorFlag || _blockList.Any(b => b.Desc.IsSet(builtIn.Flag)))
+                    {
+                        rawExpressions.Add(builtIn.Expression);
+                        _Uniform.Add(builtIn.Expression);
+                    }
                 }
             };
             fnBuiltInExpression(initGeneratorFlags, initBlocks, initUniforms);

@@ -309,7 +309,7 @@ namespace UnityEditor.Experimental
                     builder.WriteAttrib(CommonAttrib.Angle, data);
                     builder.Write(" += ");
                     builder.WriteAttrib(CommonAttrib.AngularVelocity, data);
-                    builder.WriteLine(string.Format(" * {0};", data.paramToName[CommonGlobalExpression.DeltaTime]));
+                    builder.WriteLine(string.Format(" * {0};", data.paramToName[CommonBuiltIn.DeltaTime]));
                     builder.WriteLine();
                 }
 
@@ -318,14 +318,14 @@ namespace UnityEditor.Experimental
                     builder.WriteAttrib(CommonAttrib.Position,data);
                     builder.Write(" += ");
                     builder.WriteAttrib(CommonAttrib.Velocity,data);
-                    builder.WriteLine(string.Format(" * {0};", data.paramToName[CommonGlobalExpression.DeltaTime]));
+                    builder.WriteLine(string.Format(" * {0};", data.paramToName[CommonBuiltIn.DeltaTime]));
                     builder.WriteLine();
                 }
 
                 if (m_NeedsAging)
                 {
                     builder.WriteAttrib(CommonAttrib.Age, data);
-                    builder.WriteLine(string.Format(" += {0};", data.paramToName[CommonGlobalExpression.DeltaTime]));
+                    builder.WriteLine(string.Format(" += {0};", data.paramToName[CommonBuiltIn.DeltaTime]));
 
                     if (m_NeedsReaping)
                     {

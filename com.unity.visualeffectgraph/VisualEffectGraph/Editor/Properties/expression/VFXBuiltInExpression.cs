@@ -1,41 +1,50 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
 namespace UnityEngine.Experimental.VFX
 {
+    public static class CommonBuiltIn
+    {
+        public class VFXBuiltInExpressionDesc
+        {
+            public VFXBuiltInExpressionDesc(VFXBlockDesc.Flag flag, VFXExpressionOp op, VFXValueType type, string name)
+            {
+                Flag = flag;
+                Expression = new VFXExpressionBuiltInValue(op, type);
+                Name = name;
+                DeclarationName = VFXValue.TypeToName(type) + " " + name;
+            }
+            public VFXBlockDesc.Flag Flag { get; private set; }
+            public VFXExpression Expression { get; private set; }
+            public string Name { get; private set; }
+            public string DeclarationName { get; private set; }
+        }
+
+        public static readonly ReadOnlyCollection<VFXBuiltInExpressionDesc> Expressions = new List<VFXBuiltInExpressionDesc>()
+        {
+            new VFXBuiltInExpressionDesc(VFXBlockDesc.Flag.kNeedsDeltaTime, VFXExpressionOp.kVFXDeltaTimeOp, VFXValueType.kFloat, "deltaTime"),
+            new VFXBuiltInExpressionDesc(VFXBlockDesc.Flag.kNeedsTotalTime, VFXExpressionOp.kVFXTotalTimeOp, VFXValueType.kFloat, "totalTime"),
+        }.AsReadOnly();
+
+        public static readonly VFXExpression DeltaTime = Expressions.First(o => o.Expression.Operation == VFXExpressionOp.kVFXDeltaTimeOp).Expression;
+        public static readonly Dictionary<VFXExpression, VFXBuiltInExpressionDesc> DictionnaryExpression = Expressions.ToDictionary(e => e.Expression, e => e);
+    }
+
     class VFXExpressionBuiltInValue : VFXExpression
     {
-        public VFXExpressionBuiltInValue(VFXExpressionOp op)
+        private VFXExpressionOp m_operation = VFXExpressionOp.kVFXDeltaTimeOp;
+        private VFXValueType m_type = VFXValueType.kNone;
+
+        public VFXExpressionBuiltInValue(VFXExpressionOp op, VFXValueType type)
         {
             m_operation = op;
+            m_type = type;
         }
 
-        private VFXExpressionOp m_operation = VFXExpressionOp.kVFXDeltaTimeOp;
         public override VFXExpressionOp Operation { get { return m_operation; } }
-
-        private static VFXValueType GetTypeFromExpression(VFXExpressionOp op)
-        {
-            switch (op)
-            {
-                case VFXExpressionOp.kVFXDeltaTimeOp:
-                case VFXExpressionOp.kVFXTotalTimeOp:
-                    return VFXValueType.kFloat;
-            }
-            return VFXValueType.kNone;
-        }
-
-        private static string GetDeclarationFromExpression(VFXExpressionOp op)
-        {
-            var valueType = GetTypeFromExpression(op);
-            switch (op)
-            {
-                case VFXExpressionOp.kVFXDeltaTimeOp:
-                    return VFXValue.TypeToName(valueType) + " deltaTime";
-                case VFXExpressionOp.kVFXTotalTimeOp:
-                    return VFXValue.TypeToName(valueType) + " totalTime";
-            }
-            return "unknownExpression";
-        }
-
-        public string Declaration { get { return GetDeclarationFromExpression(m_operation); } }
-        public override VFXValueType ValueType { get { return GetTypeFromExpression(m_operation); } }
+        public override VFXValueType ValueType { get { return m_type; } }
         public override VFXExpression Reduce() { return this; }
         public override void Invalidate() { }
 
