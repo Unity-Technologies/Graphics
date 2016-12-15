@@ -171,14 +171,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Be sure that the compiler is aware that we don't touch UV1 to UV3 for base layer in case of non layer shader
     // so it can remove code
     _UVMappingMask.yzw = float3(0.0, 0.0, 0.0);
-    bool isPlanar = false;
     bool isTriplanar = false;
 #ifdef _MAPPING_TRIPLANAR
     isTriplanar = true;
-#elif defined(_MAPPING_PLANAR)
-    isPlanar = true;
 #endif
-    ComputeLayerTexCoord(input, isPlanar, isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord(input, isTriplanar, layerTexCoord);
     // Transform view vector in tangent space
     float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
     ApplyDisplacement(input, viewDirTS, layerTexCoord);
@@ -302,35 +299,26 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     layerTexCoord.weights = ComputeTriplanarWeights(input.tangentToWorld[2].xyz);
 #endif
 
-    bool isPlanar = false;
     bool isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_0
     isTriplanar = true;
-#elif defined(_LAYER_MAPPING_PLANAR_0)
-    isPlanar = true;
 #endif
-    ComputeLayerTexCoord0(input, isPlanar,  isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord0(input,  isTriplanar, layerTexCoord);
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_1
     isTriplanar = true;
-#elif defined(_LAYER_MAPPING_PLANAR_1)
-    isPlanar = true;
 #endif
-    ComputeLayerTexCoord1(input, isPlanar, isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord1(input, isTriplanar, layerTexCoord);
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_2
     isTriplanar = true;
-#elif defined(_LAYER_MAPPING_PLANAR_2)
-    isPlanar = true;
 #endif
-    ComputeLayerTexCoord2(input, isPlanar, isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord2(input, isTriplanar, layerTexCoord);
     isTriplanar = false;
 #ifdef _LAYER_MAPPING_TRIPLANAR_3
     isTriplanar = true;
-#elif defined(_LAYER_MAPPING_PLANAR_3)
-    isPlanar = true;
 #endif
-    ComputeLayerTexCoord3(input, isPlanar, isTriplanar, layerTexCoord);
+    ComputeLayerTexCoord3(input, isTriplanar, layerTexCoord);
 
     // Transform view vector in tangent space
     float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
