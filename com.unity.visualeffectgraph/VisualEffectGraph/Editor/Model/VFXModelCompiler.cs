@@ -887,8 +887,6 @@ namespace UnityEditor.Experimental
 
             builder.WriteLine("CBUFFER_START(GlobalInfo)");
             builder.WriteLine("\tuint nbMax;");
-            if (data.hasRand)
-                builder.WriteLine("\tuint systemSeed;");
             builder.WriteLine("CBUFFER_END");
             builder.WriteLine();
 
@@ -1056,7 +1054,7 @@ namespace UnityEditor.Experimental
                 if (data.hasRand)
                 {
                     // Find rand attribute
-                    builder.WriteLine("uint seed = (id.x + spawnIndex) ^ systemSeed;");
+                    builder.WriteLineFormat("uint seed = (id.x + spawnIndex) ^ {0};", data.paramToName[CommonBuiltIn.SystemSeed]);
                     builder.WriteLine("seed = (seed ^ 61) ^ (seed >> 16);");
                     builder.WriteLine("seed *= 9;");
                     builder.WriteLine("seed = seed ^ (seed >> 4);");

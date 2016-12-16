@@ -26,9 +26,11 @@ namespace UnityEngine.Experimental.VFX
         {
             new VFXBuiltInExpressionDesc(VFXBlockDesc.Flag.kNeedsDeltaTime, VFXExpressionOp.kVFXDeltaTimeOp, VFXValueType.kFloat, "deltaTime"),
             new VFXBuiltInExpressionDesc(VFXBlockDesc.Flag.kNeedsTotalTime, VFXExpressionOp.kVFXTotalTimeOp, VFXValueType.kFloat, "totalTime"),
+            new VFXBuiltInExpressionDesc(VFXBlockDesc.Flag.kHasRand, VFXExpressionOp.kVFXSystemSeedOp, VFXValueType.kUint, "systemSeed")
         }.AsReadOnly();
 
         public static readonly VFXExpression DeltaTime = Expressions.First(o => o.Expression.Operation == VFXExpressionOp.kVFXDeltaTimeOp).Expression;
+        public static readonly VFXExpression SystemSeed = Expressions.First(o => o.Expression.Operation == VFXExpressionOp.kVFXSystemSeedOp).Expression;
         public static readonly Dictionary<VFXExpression, VFXBuiltInExpressionDesc> DictionnaryExpression = Expressions.ToDictionary(e => e.Expression, e => e);
     }
 
