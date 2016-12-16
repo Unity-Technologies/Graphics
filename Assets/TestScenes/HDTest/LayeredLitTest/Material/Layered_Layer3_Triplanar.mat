@@ -14,7 +14,8 @@ Material:
   m_LightmapFlags: 1
   m_CustomRenderQueue: -1
   stringTagMap: {}
-  disabledShaderPasses: []
+  disabledShaderPasses:
+  - DistortionVectors
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -79,6 +80,10 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DistortionVectorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -181,6 +186,7 @@ Material:
     - _BumpScale: 1
     - _CullMode: 0
     - _Cutoff: 0.5
+    - _DepthOffsetEnable: 0
     - _DetailAOScale0: 1
     - _DetailAOScale1: 1
     - _DetailAOScale2: 1
@@ -204,6 +210,7 @@ Material:
     - _DetailSmoothnessScale2: 1
     - _DetailSmoothnessScale3: 1
     - _DistortionDepthTest: 0
+    - _DistortionEnable: 0
     - _DistortionOnly: 0
     - _DoubleSidedMode: 1
     - _DstBlend: 0
@@ -249,7 +256,7 @@ Material:
     - _UVBase0: 0
     - _UVBase1: 0
     - _UVBase2: 0
-    - _UVBase3: 4
+    - _UVBase3: 5
     - _UVDetail: 0
     - _UVDetail0: 0
     - _UVDetail1: 0
@@ -259,7 +266,12 @@ Material:
     - _UVDetailsMappingMask1: 0
     - _UVDetailsMappingMask2: 0
     - _UVDetailsMappingMask3: 0
+    - _UVMappingPlanar0: 0
+    - _UVMappingPlanar1: 0
+    - _UVMappingPlanar2: 0
+    - _UVMappingPlanar3: 0
     - _UVSec: 0
+    - _ZTestMode: 8
     - _ZWrite: 1
     m_Colors:
     - _BaseColor0: {r: 1, g: 1, b: 1, a: 1}

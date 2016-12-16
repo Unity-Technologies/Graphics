@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
         public virtual void NewFrame() {}
 
-        public virtual void PrepareLightsForGPU(CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput) { }
+        public virtual void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput) { }
         
         // TODO: this should not be part of the interface but for now make something working
         public virtual void BuildGPULightLists(Camera camera, RenderLoop loop, RenderTargetIdentifier cameraDepthBufferRT) { }

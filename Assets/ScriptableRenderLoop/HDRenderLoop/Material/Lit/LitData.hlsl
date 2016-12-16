@@ -168,9 +168,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     layerTexCoord.weights = ComputeTriplanarWeights(input.tangentToWorld[2].xyz);
 #endif
 
-    // Be sure that the compiler is aware that we don't touch UV1 and UV3 for base layer in case of non layer shader
+    // Be sure that the compiler is aware that we don't touch UV1 to UV3 for base layer in case of non layer shader
     // so it can remove code
-    _UVMappingMask.yz = float2(0.0, 0.0);
+    _UVMappingMask.yzw = float3(0.0, 0.0, 0.0);
     bool isTriplanar = false;
 #ifdef _MAPPING_TRIPLANAR
     isTriplanar = true;

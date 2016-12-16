@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         {
             UV0,
             UV1,
+            UV2,
             UV3,
             Planar,
             Triplanar,
@@ -63,6 +64,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         MaterialProperty[] layerTexWorldScale = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVBase = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVMappingMask = new MaterialProperty[kMaxLayerCount];
+        MaterialProperty[] layerUVMappingPlanar = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetail = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
 
@@ -82,6 +84,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 layerTexWorldScale[i] = FindProperty(string.Format("{0}{1}", kTexWorldScale, i), props);
                 layerUVBase[i] = FindProperty(string.Format("{0}{1}", kUVBase, i), props);
                 layerUVMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVMappingMask, i), props);
+                layerUVMappingPlanar[i] = FindProperty(string.Format("{0}{1}", kUVMappingPlanar, i), props);
                 layerUVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, i), props);
                 layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, i), props);
             }
@@ -467,22 +470,26 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             SetKeyword(material, "_LAYER_MASK_VERTEX_COLOR", material.GetFloat(kLayerMaskVertexColor) != 0.0f);
 
-			// We have to check for each layer if the UV3 is needed.
-			SetKeyword(material, "_REQUIRE_UV3", false);
-			for (int layer = 0; layer < numLayer; ++layer)
-			{
-				string uvBase = string.Format("{0}{1}", kUVBase, layer);
-				string uvDetail = string.Format("{0}{1}", kUVDetail, layer);
+            // We have to check for each layer if the UV2 or UV3 is needed.
+            bool UV2orUV3needed = false;
+            for (int layer = 0; layer < numLayer; ++layer)
+            {
+                string uvBase = string.Format("{0}{1}", kUVBase, layer);
+                string uvDetail = string.Format("{0}{1}", kUVDetail, layer);
 
-				if (
-					 ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
-					 ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV3)
-					)
-				{
-					SetKeyword(material, "_REQUIRE_UV3", true);
-					break;
-				}
-			}
+                if (
+                        ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) ||
+                        ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV2) ||
+                        ((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) ||
+                        ((LayerUVBaseMapping)material.GetFloat(uvBase) == LayerUVBaseMapping.UV3)
+                    )
+                {
+                    UV2orUV3needed = true;
+                    break;
+                }
+            }
+
+            SetKeyword(material, "_REQUIRE_UV2_OR_UV3", UV2orUV3needed);
         }
 
 		void SetupLayersKeywords(Material material)
@@ -518,24 +525,18 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 float X, Y, Z, W;
                 X = (layerUVBaseMapping == LayerUVBaseMapping.UV0) ? 1.0f : 0.0f;
                 Y = (layerUVBaseMapping == LayerUVBaseMapping.UV1) ? 1.0f : 0.0f;
-                Z = (layerUVBaseMapping == LayerUVBaseMapping.UV3) ? 1.0f : 0.0f;
-                W = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
+                Z = (layerUVBaseMapping == LayerUVBaseMapping.UV2) ? 1.0f : 0.0f;
+                W = (layerUVBaseMapping == LayerUVBaseMapping.UV3) ? 1.0f : 0.0f;
                 layerUVMappingMask[i].colorValue = new Color(X, Y, Z, W);
+                layerUVMappingPlanar[i].floatValue = (layerUVBaseMapping == LayerUVBaseMapping.Planar) ? 1.0f : 0.0f;
 
                 SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == LayerUVBaseMapping.Triplanar);
 
-                // If base is planar mode, detail is planar too
-                if (W > 0.0f)
-                {
-                    X = Y = Z = 0.0f;
-                }
-                else
-                {
-                    X = (layerUVDetailMapping == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-                    Y = (layerUVDetailMapping == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-                    Z = (layerUVDetailMapping == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-                }
-                layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, 0.0f); // W Reuse planar mode from base
+                X = (layerUVDetailMapping == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+                Y = (layerUVDetailMapping == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+                Z = (layerUVDetailMapping == UVDetailMapping.UV2) ? 1.0f : 0.0f;
+                W = (layerUVDetailMapping == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+                layerUVDetailsMappingMask[i].colorValue = new Color(X, Y, Z, W);
             }
         }
 
