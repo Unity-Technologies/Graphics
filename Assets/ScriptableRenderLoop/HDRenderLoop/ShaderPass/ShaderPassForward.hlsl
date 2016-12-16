@@ -3,9 +3,9 @@
 #endif
 
 void Frag(  PackedVaryings packedInput,
-            outColor SV_Target
+            out float4 outColor : SV_Target
             #ifdef _DEPTHOFFSET_ON
-            float outputDepth : SV_Depth
+            , out float outputDepth : SV_Depth
             #endif
         )
 {
