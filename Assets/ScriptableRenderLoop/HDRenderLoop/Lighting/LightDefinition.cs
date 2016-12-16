@@ -95,6 +95,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public float bias;
         public float quality;
         public float unused;
+        public Vector4 invResolution;
     };
 
     [GenerateHLSL]
