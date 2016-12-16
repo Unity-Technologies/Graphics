@@ -838,7 +838,7 @@ namespace UnityEditor.Experimental
             foreach (var param in parameters)
                 if (!paramToName.ContainsKey(param))
                 {
-                    string fullName = name + counter;
+                    var fullName = string.Format("{0}{1}_{2}", name, counter, param.Operation.ToString());
                     paramToName.Add(param, fullName);
                     ++counter;
                 }
