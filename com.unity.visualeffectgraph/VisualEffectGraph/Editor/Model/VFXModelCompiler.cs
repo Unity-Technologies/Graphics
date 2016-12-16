@@ -885,24 +885,21 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
             builder.WriteLine();
 
-            builder.WriteLine("CBUFFER_START(GlobalInfo)");
-            builder.WriteLine("\tuint nbMax;");
-            builder.WriteLine("CBUFFER_END");
-            builder.WriteLine();
-
-            if (hasInit)
+            var implicitInitUniform = new ShaderSourceBuilder.Uniform[]
             {
-                builder.WriteLine("CBUFFER_START(SpawnInfo)");
-                builder.WriteLine("\tuint nbSpawned;");
-                builder.WriteLine("\tuint spawnIndex;");
-                builder.WriteLine("CBUFFER_END");
-                builder.WriteLine();
-            } 
+                new ShaderSourceBuilder.Uniform() { type = VFXValueType.kUint, name = "nbSpawned" },
+                new ShaderSourceBuilder.Uniform() { type = VFXValueType.kUint, name = "spawnIndex" },
+            };
+
+            var implicitUpdateUniform = new ShaderSourceBuilder.Uniform[]
+            {
+                new ShaderSourceBuilder.Uniform() { type = VFXValueType.kUint, name = "nbMax" },
+            };
 
             // Uniforms buffer
             builder.WriteCBuffer("GlobalUniforms", data.globalUniforms, data.paramToName);
-            builder.WriteCBuffer("initUniforms", data.initUniforms, data.paramToName);
-            builder.WriteCBuffer("updateUniforms", data.updateUniforms, data.paramToName);
+            builder.WriteCBuffer("initUniforms", data.initUniforms, data.paramToName, implicitInitUniform);
+            builder.WriteCBuffer("updateUniforms", data.updateUniforms, data.paramToName, implicitUpdateUniform);
 
             // Write samplers
             builder.WriteSamplers(data.globalSamplers, data.paramToName);

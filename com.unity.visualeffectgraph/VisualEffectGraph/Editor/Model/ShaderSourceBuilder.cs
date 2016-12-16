@@ -107,21 +107,48 @@ namespace UnityEditor.Experimental
             WriteLine();
         }
 
-        public void WriteCBuffer(string cbufferName, HashSet<VFXExpression> uniforms, Dictionary<VFXExpression, string> uniformsToName)
+        public struct Uniform
         {
-            if (uniforms.Count > 0)
+            public VFXValueType type;
+            public string name;
+        }
+        public void WriteCBuffer(string cbufferName, HashSet<VFXExpression> uniforms, Dictionary<VFXExpression, string> uniformsToName, Uniform[] additionnalUniforms = null)
+        {
+            var explicitUniformInput = uniforms.Select(u => new Uniform() { type = u.ValueType, name = uniformsToName[u] }).Concat(additionnalUniforms != null ? additionnalUniforms : new Uniform[] { });
+            var explicitUniformOrderedBySize = explicitUniformInput.OrderByDescending(t => VFXValue.TypeToSize(t.type)).ToList();
+
+            var explicitUniform = new List<List<Uniform>>();
+            while (explicitUniformOrderedBySize.Count > 0)
+            {
+                var poppedUniform = explicitUniformOrderedBySize.First(); explicitUniformOrderedBySize.RemoveAt(0);
+                var suitableEntry = explicitUniform.FirstOrDefault(entry => entry.Sum(e => VFXValue.TypeToSize(e.type)) + VFXValue.TypeToSize(poppedUniform.type) <= 4);
+                if (suitableEntry != null)
+                {
+                    suitableEntry.Add(poppedUniform);
+                }
+                else
+                {
+                    explicitUniform.Add(new List<Uniform>() { poppedUniform });
+                }
+            }
+
+            if (explicitUniform.Count > 0)
             {
                 Write("CBUFFER_START(");
                 Write(cbufferName);
                 WriteLine(")");
 
-                foreach (var uniform in uniforms)
+                foreach (var uniformPack in explicitUniform)
                 {
-                    Write('\t');
-                    WriteType(uniform.ValueType);
-                    Write(" ");
-                    Write(uniformsToName[uniform]);
-                    WriteLine(";");
+                    foreach (var uniform in uniformPack)
+                    {
+                        Write('\t');
+                        WriteType(uniform.type);
+                        Write(" ");
+                        Write(uniform.name);
+                        WriteLine(";");
+                    }
+                    WriteLine();
                 }
 
                 WriteLine("CBUFFER_END");
