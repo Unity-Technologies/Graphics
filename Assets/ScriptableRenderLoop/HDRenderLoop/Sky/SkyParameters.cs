@@ -9,12 +9,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     [ExecuteInEditMode]
     public class SkyParameters : MonoBehaviour
     {
-        public float rotation = 0.0f;
-        public float exposure = 0.0f;
-        public float multiplier = 1.0f;
-        public SkyResolution resolution = SkyResolution.SkyResolution256;
+        protected class Unhashed : System.Attribute {}
 
-        protected FieldInfo[] m_Properties;
+        public float                    rotation = 0.0f;
+        public float                    exposure = 0.0f;
+        public float                    multiplier = 1.0f;
+        public SkyResolution            resolution = SkyResolution.SkyResolution256;
+        public EnvironementUpdateMode   updateMode = EnvironementUpdateMode.OnChanged;
+        public float                    updatePeriod = 0.0f;
+
+        private FieldInfo[] m_Properties;
 
         protected void OnEnable()
         {
@@ -55,8 +59,9 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 int hash = 13;
                 foreach (var p in m_Properties)
                 {
+                    bool unhashedAttribute = p.GetCustomAttributes(typeof(Unhashed), true).Length != 0;
                     System.Object obj = p.GetValue(this);
-                    if (obj != null) // Sometimes it can be a null reference.
+                    if (obj != null && !unhashedAttribute) // Sometimes it can be a null reference.
                         hash = hash * 23 + obj.GetHashCode();
                 }
                 return hash;
