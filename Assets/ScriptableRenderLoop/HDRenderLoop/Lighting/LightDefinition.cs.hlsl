@@ -84,6 +84,7 @@ struct ShadowData
 	float bias;
 	float quality;
 	float unused;
+	float4 invResolution;
 };
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.EnvLightData
@@ -258,6 +259,10 @@ float GetQuality(ShadowData value)
 float GetUnused(ShadowData value)
 {
 	return value.unused;
+}
+float4 GetInvResolution(ShadowData value)
+{
+	return value.invResolution;
 }
 
 //

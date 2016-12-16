@@ -574,10 +574,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
 
         // Function to prepare light structure for GPU lighting
-        void PrepareLightsForGPU(CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
+        void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
         {
             // build per tile light lists
-            m_lightLoop.PrepareLightsForGPU(cullResults, camera, ref shadowOutput);
+            m_lightLoop.PrepareLightsForGPU(shadowSettings, cullResults, camera, ref shadowOutput);
         }
 
         void Resize(Camera camera)
@@ -686,7 +686,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                     using (new Utilities.ProfilingSample("Build Light list", renderLoop))
                     {
-                        m_lightLoop.PrepareLightsForGPU(cullResults, camera, ref shadows);
+                        m_lightLoop.PrepareLightsForGPU(m_ShadowSettings, cullResults, camera, ref shadows);
                         m_lightLoop.BuildGPULightLists(camera, renderLoop, m_CameraDepthBufferRT);
 
                         PushGlobalParams(hdCamera, renderLoop);
