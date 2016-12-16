@@ -423,7 +423,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             }
 
             // Return number of added shadow
-            public int GetShadows(VisibleLight light, int lightIndex, ref ShadowOutput shadowOutput)
+            public int GetShadows(VisibleLight light, int lightIndex, ref ShadowOutput shadowOutput, ShadowSettings shadowSettings)
             {
                 for (int sliceIndex = 0; sliceIndex < shadowOutput.GetShadowSliceCountLightIndex(lightIndex); ++sliceIndex)
                 {
@@ -433,14 +433,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     shadowData.worldToShadow = shadowOutput.shadowSlices[shadowSliceIndex].shadowTransform.transpose; // Transpose for hlsl reading ?
 
                     shadowData.bias = light.light.shadowBias;
-
+                    shadowData.invResolution = new Vector4(1.0f / shadowSettings.shadowAtlasWidth, 1.0f / shadowSettings.shadowAtlasHeight, 0.0f, 0.0f);
                     m_lightList.shadows.Add(shadowData);
                 }
 
                 return shadowOutput.GetShadowSliceCountLightIndex(lightIndex);
             }
 
-            public void GetDirectionalLightData(GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int directionalShadowcount)
+            public void GetDirectionalLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int directionalShadowcount)
             {
                 var directionalLightData = new DirectionalLightData();
 
@@ -480,7 +480,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_CurrentSunLight = light.light;
 
                     directionalLightData.shadowIndex = m_lightList.shadows.Count;
-                    directionalShadowcount += GetShadows(light, lightIndex, ref shadowOutput);
+                    directionalShadowcount += GetShadows(light, lightIndex, ref shadowOutput, shadowSettings);
 
                     // Fill split information for shaders
                     for (int s = 0; s < k_MaxCascadeCount; ++s)
@@ -492,7 +492,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_lightList.directionalLights.Add(directionalLightData);
             }
 
-            public void GetLightData(GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int shadowCount)
+            public void GetLightData(ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, AdditionalLightData additionalData, int lightIndex, ref ShadowOutput shadowOutput, ref int shadowCount)
             {
                 var lightData = new LightData();
 
@@ -561,7 +561,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 {
                     // When we have a point light, we assumed that there is 6 consecutive PunctualShadowData
                     lightData.shadowIndex = m_lightList.shadows.Count;
-                    shadowCount += GetShadows(light, lightIndex, ref shadowOutput);
+                    shadowCount += GetShadows(light, lightIndex, ref shadowOutput, shadowSettings);
                 }
 
                 if (additionalData.archetype != LightArchetype.Punctual)
@@ -828,7 +828,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m_lightList.lightVolumes.Add(ligthVolumeData);
             }
 
-            public override void PrepareLightsForGPU(CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
+            public override void PrepareLightsForGPU(ShadowSettings shadowSettings, CullResults cullResults, Camera camera, ref ShadowOutput shadowOutput)
             {
                 m_lightList.Clear();
 
@@ -960,13 +960,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     // Directional rendering side, it is separated as it is always visible so no volume to handle here
                     if (gpuLightType == GPULightType.Directional)
                     {
-                        GetDirectionalLightData(gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref directionalShadowcount);
+                        GetDirectionalLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref directionalShadowcount);
 
                         continue;
                     }
 
                     // Spot, point, rect, line light - Rendering side
-                    GetLightData(gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref shadowCount);
+                    GetLightData(shadowSettings, gpuLightType, light, additionalData, lightIndex, ref shadowOutput, ref shadowCount);
                     // Then culling side. Must be call in this order as we pass the created Light data to the function
                     GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], worldToView);
                 }

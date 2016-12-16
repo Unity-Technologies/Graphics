@@ -6,7 +6,7 @@ void Frag(  PackedVaryings packedInput,
 			OUTPUT_GBUFFER(outGBuffer)
             OUTPUT_GBUFFER_VELOCITY(outVelocityBuffer)
             #ifdef _DEPTHOFFSET_ON
-            float outputDepth : SV_Depth
+            , float outputDepth : SV_Depth
             #endif
 			)
 {

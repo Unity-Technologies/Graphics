@@ -41,6 +41,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         {
             UV0,
             UV1,
+            UV2,
             UV3
         }
 
@@ -58,6 +59,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         protected const string kTexWorldScale = "_TexWorldScale";
         protected MaterialProperty UVMappingMask = null;
         protected const string kUVMappingMask = "_UVMappingMask";
+        protected MaterialProperty UVMappingPlanar = null;
+        protected const string kUVMappingPlanar = "_UVMappingPlanar";      
         protected MaterialProperty normalMapSpace = null;
         protected const string kNormalMapSpace = "_NormalMapSpace";
         protected MaterialProperty heightMapMode = null;
@@ -156,6 +159,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             UVDetail = FindProperty(kUVDetail, props);
             TexWorldScale = FindProperty(kTexWorldScale, props);
             UVMappingMask = FindProperty(kUVMappingMask, props);
+            UVMappingPlanar = FindProperty(kUVMappingPlanar, props);
             UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);    
             
             detailMap = FindProperty(kDetailMap, props);
@@ -183,8 +187,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
             float X, Y, Z, W;
             X = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-            W = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
-            UVMappingMask.colorValue = new Color(X, 0.0f, 0.0f, W);
+            UVMappingMask.colorValue = new Color(X, 0.0f, 0.0f, 0.0f);
+            UVMappingPlanar.floatValue = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
             if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
             {
                 EditorGUI.indentLevel++;
@@ -196,18 +200,11 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 m_MaterialEditor.ShaderProperty(UVDetail, Styles.UVDetailMappingText.text);
             }
 
-            // If base is planar mode, detail is planar too
-            if (W > 0.0f)
-            {
-                X = Y = Z = 0.0f;
-            }
-            else
-            {
-                X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-                Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-                Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-            }
-            UVDetailsMappingMask.colorValue = new Color(X, Y, Z, 0.0f); // W Reuse planar mode from base
+            X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+            Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+            Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
+            W = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+            UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
 
             m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);
@@ -320,8 +317,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
 			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
 
-			SetKeyword(material, "_REQUIRE_UV3", ((UVDetailMapping)material.GetFloat(kUVDetail)) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
-
+            SetKeyword(material, "_REQUIRE_UV2_OR_UV3", (
+                                                            ((UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3)
+                                                            && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0)
+                                                            );
         }
     }
 } // namespace UnityEditor

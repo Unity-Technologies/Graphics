@@ -2,7 +2,12 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-float4 Frag(PackedVaryings packedInput) : SV_Target
+void Frag(  PackedVaryings packedInput,
+            out float4 outColor : SV_Target
+            #ifdef _DEPTHOFFSET_ON
+            , out float outputDepth : SV_Depth
+            #endif
+        )
 {
     FragInputs input = UnpackVaryings(packedInput);
 
@@ -23,6 +28,10 @@ float4 Frag(PackedVaryings packedInput) : SV_Target
     float3 bakeDiffuseLighting = GetBakedDiffuseLigthing(surfaceData, builtinData, bsdfData, preLightData);
     LightLoop(V, posInput, preLightData, bsdfData, bakeDiffuseLighting, diffuseLighting, specularLighting);
 
-	return float4(diffuseLighting + specularLighting, builtinData.opacity);
+    outColor = float4(diffuseLighting + specularLighting, builtinData.opacity);
+
+#ifdef _DEPTHOFFSET_ON
+    outputDepth = posInput.rawDepth;
+#endif
 }
 
