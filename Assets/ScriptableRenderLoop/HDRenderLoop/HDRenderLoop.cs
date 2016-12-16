@@ -430,6 +430,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_lightLoop.RenderDeferredLighting(hdCamera, renderLoop, m_CameraColorBuffer);
         }
 
+        void UpdateSkyEnvironment(HDCamera hdCamera, RenderLoop renderLoop)
+        {
+            m_SkyManager.UpdateEnvironment(hdCamera, m_lightLoop.GetCurrentSunLight(), renderLoop);
+        }
+
         void RenderSky(HDCamera hdCamera, RenderLoop renderLoop)
         {
             m_SkyManager.RenderSky(hdCamera, m_lightLoop.GetCurrentSunLight(), m_CameraColorBufferRT, m_CameraDepthBufferRT, renderLoop);
@@ -675,8 +680,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     using (new Utilities.ProfilingSample("Shadow Pass", renderLoop))
                     {
                         m_ShadowPass.Render(renderLoop, cullResults, out shadows);
-                    }
-
+                    } 
+                    
                     renderLoop.SetupCameraProperties(camera); // Need to recall SetupCameraProperties after m_ShadowPass.Render
 
                     using (new Utilities.ProfilingSample("Build Light list", renderLoop))
@@ -685,7 +690,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                         m_lightLoop.BuildGPULightLists(camera, renderLoop, m_CameraDepthBufferRT);
 
                         PushGlobalParams(hdCamera, renderLoop);
-                    }
+                    } 
+                    
+                    UpdateSkyEnvironment(hdCamera, renderLoop);
+
                     RenderDeferredLighting(hdCamera, renderLoop);
 
                     RenderForward(cullResults, camera, renderLoop, true);
