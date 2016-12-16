@@ -145,7 +145,7 @@ PackedVaryings VertDefault(Attributes input)
     output.texCoord2 = input.uv2;
 #endif
 
-#ifdef WANT_UV3
+#if WANT_UV3
 	output.texCoord3 = input.uv3;
 #endif
 
