@@ -182,6 +182,13 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public Matrix4x4 invViewProjectionMatrix;
         }
 
+        CommonSettings m_CommonSettings = null;
+        public CommonSettings commonSettings
+        {
+            set { m_CommonSettings = value; }
+            get { return m_CommonSettings; }
+        }
+
         public override void Build()
         {
 #if UNITY_EDITOR
@@ -628,6 +635,22 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_lightLoop.PushGlobalParams(hdCamera.camera, renderLoop);
         }
 
+        void UpdateCommonSettings()
+        {
+            if(m_CommonSettings == null)
+            {
+                m_ShadowSettings.maxShadowDistance = ShadowSettings.Default.maxShadowDistance;
+                m_ShadowSettings.directionalLightCascadeCount = ShadowSettings.Default.directionalLightCascadeCount;
+                m_ShadowSettings.directionalLightCascades = ShadowSettings.Default.directionalLightCascades;
+            }
+            else
+            {
+                m_ShadowSettings.directionalLightCascadeCount = m_CommonSettings.shadowCascadeCount;
+                m_ShadowSettings.directionalLightCascades = new Vector3(m_CommonSettings.shadowCascadeSplit0, m_CommonSettings.shadowCascadeSplit1, m_CommonSettings.shadowCascadeSplit2);
+                m_ShadowSettings.maxShadowDistance = m_CommonSettings.shadowMaxDistance;
+            }
+        }
+
         public override void Render(Camera[] cameras, RenderLoop renderLoop)
         {
             if (!m_LitRenderLoop.isInit)
@@ -637,6 +660,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             // Do anything we need to do upon a new frame.
             m_lightLoop.NewFrame();
+
+            UpdateCommonSettings();
 
             // Set Frame constant buffer
             // TODO...
