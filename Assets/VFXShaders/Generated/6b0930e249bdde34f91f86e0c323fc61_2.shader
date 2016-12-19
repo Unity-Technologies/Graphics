@@ -11,7 +11,7 @@ Shader "Hidden/VFX_2"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -24,14 +24,16 @@ Shader "Hidden/VFX_2"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float4 outputUniform0;
-				float outputUniform1;
-				float outputUniform2;
-				float2 outputUniform3;
+				float2 outputUniform3_kVFXValueOp;
+				float outputUniform2_kVFXValueOp;
+				float4 outputUniform0_kVFXValueOp;
+				float outputUniform1_kVFXValueOp;
+				uint outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
-			Texture2D outputSampler0Texture;
-			SamplerState sampleroutputSampler0Texture;
+			Texture2D outputSampler0_kVFXValueOpTexture;
+			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
 			Texture2D gradientTexture;
 			SamplerState samplergradientTexture;
@@ -116,9 +118,9 @@ Shader "Hidden/VFX_2"
 				float3 local_color = (float3)0;
 				float local_alpha = (float)0;
 				
-				VFXBlockSizeOverLifeCurve( outputData.size,outputData.age,outputData.lifetime,outputUniform0);
-				VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform1);
-				VFXBlockSetColorScale( local_color,outputUniform2);
+				VFXBlockSizeOverLifeCurve( outputData.size,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
+				VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform1_kVFXValueOp);
+				VFXBlockSetColorScale( local_color,outputUniform2_kVFXValueOp);
 				
 				float2 size = outputData.size * 0.5f;
 				o.offsets.x = 2.0 * float(id & 1) - 1.0;
@@ -167,16 +169,16 @@ Shader "Hidden/VFX_2"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				float2 dim = outputUniform3;
+				float2 dim = outputUniform3_kVFXValueOp;
 				float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU
 				float ratio = frac(i.flipbookIndex);
 				float index = i.flipbookIndex - ratio;
 				
 				float2 uv1 = GetSubUV(index,i.offsets.xy,dim,invDim);
-				float4 col1 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv1);
+				float4 col1 = outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,uv1);
 				
 				float2 uv2 = GetSubUV(index + 1.0,i.offsets.xy,dim,invDim);
-				float4 col2 = outputSampler0Texture.Sample(sampleroutputSampler0Texture,uv2);
+				float4 col2 = outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,uv2);
 				
 				color *= lerp(col1,col2,ratio);
 				

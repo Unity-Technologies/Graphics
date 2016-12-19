@@ -10,7 +10,7 @@ Shader "Hidden/VFX_0"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -23,10 +23,13 @@ Shader "Hidden/VFX_0"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float2 outputUniform0;
-				float3 outputUniform1;
-				float outputUniform2;
-				float outputUniform3;
+				float3 outputUniform1_kVFXCombine3fOp;
+				float outputUniform2_kVFXValueOp;
+				
+				float2 outputUniform0_kVFXCombine2fOp;
+				float outputUniform3_kVFXValueOp;
+				uint outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
 			CBUFFER_START(Uniform)
@@ -80,8 +83,8 @@ Shader "Hidden/VFX_0"
 					float local_alpha = (float)0;
 					float3 local_color = (float3)0;
 					
-					VFXBlockCameraFade( local_alpha,outputData.position,outputUniform0,kill);
-					VFXBlockSetColorConstant( local_color,outputUniform1);
+					VFXBlockCameraFade( local_alpha,outputData.position,outputUniform0_kVFXCombine2fOp,kill);
+					VFXBlockSetColorConstant( local_color,outputUniform1_kVFXCombine3fOp);
 					
 					float2 size = outputData.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
@@ -143,11 +146,11 @@ Shader "Hidden/VFX_0"
 				o.depth = -(1.0f + viewPos.z * _ZBufferParams.w) / (viewPos.z * _ZBufferParams.z);
 				float3 specColor = (float3)0;
 				float oneMinusReflectivity = 0;
-				float metalness = saturate(outputUniform2);
+				float metalness = saturate(outputUniform2_kVFXValueOp);
 				color.rgb = DiffuseAndSpecularFromMetallic(color.rgb,metalness,specColor,oneMinusReflectivity);
 				color.a = 0.0f;
 				float3 normal = normalize(viewPos - i.viewCenterPos) * float3(1,1,-1);
-				o.spec_smoothness = float4(specColor,outputUniform3);
+				o.spec_smoothness = float4(specColor,outputUniform3_kVFXValueOp);
 				o.normal = mul(unity_CameraToWorld, float4(normal,0.0f)) * 0.5f + 0.5f;
 				half3 ambient = color.xyz * 0.0f;//ShadeSHPerPixel(normal, float4(color.xyz, 1) * 0.1, float3(0, 0, 0));
 				o.emission = float4(ambient, 0);

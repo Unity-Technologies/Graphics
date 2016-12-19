@@ -6,27 +6,31 @@
 
 #define NB_THREADS_PER_GROUP 50
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform1_kVFXCombine3fOp;
+	float initUniform0_kVFXValueOp;
+	
+	float3 initUniform2_kVFXCombine3fOp;
+	float initUniform3_kVFXValueOp;
+	
+	float3 initUniform5_kVFXCombine3fOp;
+	float initUniform4_kVFXValueOp;
+	
+	float2 initUniform6_kVFXCombine2fOp;
+	float initUniform7_kVFXValueOp;
+	uint initUniform8_kVFXSystemSeedOp;
+	
 	uint nbSpawned;
 	uint spawnIndex;
+	uint2 initUniforms_PADDING_0;
+
 CBUFFER_END
 
-CBUFFER_START(initUniforms)
-	float initUniform0;
-	float3 initUniform1;
-	float3 initUniform2;
-	float initUniform3;
-	float initUniform4;
-	float3 initUniform5;
-	float2 initUniform6;
-	float initUniform7;
+CBUFFER_START(updateUniforms)
+	float updateUniform0_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint2 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
@@ -75,7 +79,7 @@ void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
 	lifetime = max(Lifetime,0.0f);
 }
 
-void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,inout uint seed)
+void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,uint systemSeed,uint seed)
 {
 	float u1 = 1.0 * RAND - 0.5;
 	float u2 = UNITY_TWO_PI * RAND;
@@ -83,7 +87,7 @@ void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,fl
 	position = VFXPositionOnCylinder(Cylinder,u1,u2,u3);
 }
 
-void VFXBlockVelocityRadialFromOrigin( float3 position,inout float3 velocity,float3 Origin,float2 MinMaxSpeed,inout uint seed)
+void VFXBlockVelocityRadialFromOrigin( float3 position,inout float3 velocity,float3 Origin,float2 MinMaxSpeed,uint systemSeed,uint seed)
 {
 	float3 dir = normalize(position - Origin);
 	float speed = lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);
@@ -110,7 +114,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -118,10 +122,10 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetLifetimeConstant( attrib0.lifetime,initUniform0);
-		VFXBlockPositionCylinder( attrib1.position,initUniform1,initUniform2,initUniform3,initUniform4,local_seed);
-		VFXBlockVelocityRadialFromOrigin( attrib1.position,attrib0.velocity,initUniform5,initUniform6,local_seed);
-		VFXBlockSizeConstantSquare( attrib2.size,initUniform7);
+		VFXBlockSetLifetimeConstant( attrib0.lifetime,initUniform0_kVFXValueOp);
+		VFXBlockPositionCylinder( attrib1.position,initUniform1_kVFXCombine3fOp,initUniform2_kVFXCombine3fOp,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockVelocityRadialFromOrigin( attrib1.position,attrib0.velocity,initUniform5_kVFXCombine3fOp,initUniform6_kVFXCombine2fOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockSizeConstantSquare( attrib2.size,initUniform7_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -146,9 +150,9 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		
 		
 		
-		attrib1.position += attrib0.velocity * deltaTime;
+		attrib1.position += attrib0.velocity * updateUniform0_kVFXDeltaTimeOp;
 		
-		attrib3.age += deltaTime;
+		attrib3.age += updateUniform0_kVFXDeltaTimeOp;
 		if (attrib3.age >= attrib0.lifetime)
 			kill = true;
 		

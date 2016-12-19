@@ -6,29 +6,26 @@
 
 #define NB_THREADS_PER_GROUP 20
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float initUniform0_kVFXValueOp;
+	float initUniform1_kVFXValueOp;
+	float initUniform2_kVFXValueOp;
+	float initUniform3_kVFXValueOp;
+	float4x4 initUniform4_kVFXTransformMatrixOp;
+	
+	uint initUniform5_kVFXSystemSeedOp;
 	uint nbSpawned;
 	uint spawnIndex;
-CBUFFER_END
+	uint initUniforms_PADDING_0;
 
-CBUFFER_START(initUniforms)
-	float initUniform0;
-	float initUniform1;
-	float initUniform2;
-	float initUniform3;
-	float4x4 initUniform4;
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float updateUniform0;
-	float updateUniform1;
+	float updateUniform0_kVFXValueOp;
+	float updateUniform1_kVFXValueOp;
+	float updateUniform2_kVFXDeltaTimeOp;
+	uint nbMax;
+	
 CBUFFER_END
 
 struct Attribute0
@@ -85,23 +82,23 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,inout uint seed)
+void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,uint systemSeed,uint seed)
 {
 	texIndex = lerp(MinIndex,MaxIndex,RAND);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSetPositionBox( inout float3 position,float4x4 box,inout uint seed)
+void VFXBlockSetPositionBox( inout float3 position,float4x4 box,uint systemSeed,uint seed)
 {
 	position = RAND3 - 0.5f;
 	position = mul(box,float4(position,1.0f)).xyz;
 }
 
-void VFXBlockSubUVAnimateRandomRate( inout float texIndex,float phase,float MinFramerate,float MaxFramerate)
+void VFXBlockSubUVAnimateRandomRate( inout float texIndex,float phase,float MinFramerate,float MaxFramerate,float deltaTime)
 {
 	texIndex += lerp(MinFramerate, MaxFramerate, phase) * deltaTime;
 }
@@ -121,7 +118,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform5_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -129,9 +126,9 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetSubUVRandom( attrib0.texIndex,initUniform0,initUniform1,local_seed);
-		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2,initUniform3,local_seed);
-		VFXBlockSetPositionBox( attrib2.position,initUniform4,local_seed);
+		VFXBlockSetSubUVRandom( attrib0.texIndex,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetPositionBox( attrib2.position,initUniform4_kVFXTransformMatrixOp,initUniform5_kVFXSystemSeedOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -156,9 +153,9 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute3 attrib3 = attribBuffer3_RO[index];
 		
 		
-		VFXBlockSubUVAnimateRandomRate( attrib0.texIndex,attrib3.phase,updateUniform0,updateUniform1);
+		VFXBlockSubUVAnimateRandomRate( attrib0.texIndex,attrib3.phase,updateUniform0_kVFXValueOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXDeltaTimeOp);
 		
-		attrib0.age += deltaTime;
+		attrib0.age += updateUniform2_kVFXDeltaTimeOp;
 		if (attrib0.age >= attrib1.lifetime)
 			kill = true;
 		

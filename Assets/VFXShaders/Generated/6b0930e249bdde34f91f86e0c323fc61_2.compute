@@ -6,33 +6,32 @@
 
 #define NB_THREADS_PER_GROUP 30
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform3_kVFXCombine3fOp;
+	float initUniform1_kVFXValueOp;
+	float4x4 initUniform0_kVFXTRSToMatrixOp;
+	
+	float3 initUniform4_kVFXCombine3fOp;
+	float initUniform2_kVFXValueOp;
+	
+	float initUniform5_kVFXValueOp;
+	float initUniform6_kVFXValueOp;
+	float initUniform7_kVFXValueOp;
+	float initUniform8_kVFXValueOp;
+	
+	uint initUniform9_kVFXSystemSeedOp;
 	uint nbSpawned;
 	uint spawnIndex;
-CBUFFER_END
+	uint initUniforms_PADDING_0;
 
-CBUFFER_START(initUniforms)
-	float4x4 initUniform0;
-	float initUniform1;
-	float initUniform2;
-	float3 initUniform3;
-	float3 initUniform4;
-	float initUniform5;
-	float initUniform6;
-	float initUniform7;
-	float initUniform8;
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float updateUniform0;
-	float updateUniform1;
+	float updateUniform0_kVFXValueOp;
+	float updateUniform1_kVFXValueOp;
+	float updateUniform2_kVFXDeltaTimeOp;
+	uint nbMax;
+	
 CBUFFER_END
 
 struct Attribute0
@@ -104,13 +103,13 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionBox( inout float3 position,float4x4 box,inout uint seed)
+void VFXBlockSetPositionBox( inout float3 position,float4x4 box,uint systemSeed,uint seed)
 {
 	position = RAND3 - 0.5f;
 	position = mul(box,float4(position,1.0f)).xyz;
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
@@ -120,23 +119,23 @@ void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
 	velocity += Velocity;
 }
 
-void VFXBlockVelocityRandomVector( inout float3 velocity,float3 Divergence,inout uint seed)
+void VFXBlockVelocityRandomVector( inout float3 velocity,float3 Divergence,uint systemSeed,uint seed)
 {
 	velocity += (RAND3 * 2 - 1) * Divergence;
 }
 
-void VFXBlockAngleRandom( inout float angle,float Min,float Max,inout uint seed)
+void VFXBlockAngleRandom( inout float angle,float Min,float Max,uint systemSeed,uint seed)
 {
 	angle += lerp(Min,Max,RAND);
 }
 
-void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,uint seed)
 {
 	float s = lerp(MinSize,MaxSize,RAND);
 	size = float2(s,s);
 }
 
-void VFXBlockSubUVAnimateRandomRate( inout float texIndex,float phase,float MinFramerate,float MaxFramerate)
+void VFXBlockSubUVAnimateRandomRate( inout float texIndex,float phase,float MinFramerate,float MaxFramerate,float deltaTime)
 {
 	texIndex += lerp(MinFramerate, MaxFramerate, phase) * deltaTime;
 }
@@ -158,7 +157,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform9_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -166,12 +165,12 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionBox( attrib0.position,initUniform0,local_seed);
-		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform1,initUniform2,local_seed);
-		VFXBlockVelocityConstant( attrib3.velocity,initUniform3);
-		VFXBlockVelocityRandomVector( attrib3.velocity,initUniform4,local_seed);
-		VFXBlockAngleRandom( attrib4.angle,initUniform5,initUniform6,local_seed);
-		VFXBlockSizeRandomSquare( attrib5.size,initUniform7,initUniform8,local_seed);
+		VFXBlockSetPositionBox( attrib0.position,initUniform0_kVFXTRSToMatrixOp,initUniform9_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform1_kVFXValueOp,initUniform2_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
+		VFXBlockVelocityConstant( attrib3.velocity,initUniform3_kVFXCombine3fOp);
+		VFXBlockVelocityRandomVector( attrib3.velocity,initUniform4_kVFXCombine3fOp,initUniform9_kVFXSystemSeedOp,local_seed);
+		VFXBlockAngleRandom( attrib4.angle,initUniform5_kVFXValueOp,initUniform6_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib5.size,initUniform7_kVFXValueOp,initUniform8_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -200,11 +199,11 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute5 attrib5 = attribBuffer5_RO[index];
 		
 		
-		VFXBlockSubUVAnimateRandomRate( attrib1.texIndex,attrib3.phase,updateUniform0,updateUniform1);
+		VFXBlockSubUVAnimateRandomRate( attrib1.texIndex,attrib3.phase,updateUniform0_kVFXValueOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXDeltaTimeOp);
 		
-		attrib0.position += attrib3.velocity * deltaTime;
+		attrib0.position += attrib3.velocity * updateUniform2_kVFXDeltaTimeOp;
 		
-		attrib0.age += deltaTime;
+		attrib0.age += updateUniform2_kVFXDeltaTimeOp;
 		if (attrib0.age >= attrib2.lifetime)
 			kill = true;
 		

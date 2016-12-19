@@ -6,25 +6,28 @@
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
-	uint nbSpawned;
-	uint spawnIndex;
-CBUFFER_END
-
 CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float3 initUniform1;
-	float initUniform2;
-	float initUniform3;
-	float initUniform4;
-	float initUniform5;
-	float initUniform6;
+	float3 initUniform0_kVFXCombine3fOp;
+	float initUniform2_kVFXValueOp;
+	
+	float3 initUniform1_kVFXCombine3fOp;
+	float initUniform3_kVFXValueOp;
+	
+	float initUniform4_kVFXValueOp;
+	float initUniform5_kVFXValueOp;
+	float initUniform6_kVFXValueOp;
+	uint nbSpawned;
+	
+	uint spawnIndex;
+	uint3 initUniforms_PADDING_0;
+
+CBUFFER_END
+
+CBUFFER_START(updateUniforms)
+	float updateUniform0_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint2 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
@@ -93,8 +96,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		
 		
 		local_particleId = spawnIndex + id.x;
-		VFXBlockPositionCylinderSurfaceSequence( attrib0.position,local_particleId,initUniform0,initUniform1,initUniform2,initUniform3,initUniform4,initUniform5);
-		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform6);
+		VFXBlockPositionCylinderSurfaceSequence( attrib0.position,local_particleId,initUniform0_kVFXCombine3fOp,initUniform1_kVFXCombine3fOp,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp);
+		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform6_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -118,7 +121,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		
 		
 		
-		attrib2.age += deltaTime;
+		attrib2.age += updateUniform0_kVFXDeltaTimeOp;
 		if (attrib2.age >= attrib1.lifetime)
 			kill = true;
 		

@@ -11,7 +11,7 @@ Shader "Hidden/VFX_2"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -24,7 +24,9 @@ Shader "Hidden/VFX_2"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float3 outputUniform0;
+				float3 outputUniform0_kVFXCombine3fOp;
+				uint outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
 			struct OutputData
@@ -54,11 +56,11 @@ Shader "Hidden/VFX_2"
 				
 				float3 local_color = (float3)0;
 				
-				VFXBlockSetColorConstant( local_color,outputUniform0);
+				VFXBlockSetColorConstant( local_color,outputUniform0_kVFXCombine3fOp);
 				
 				float3 worldPos = outputData.position;
 				o.pos = mul(UNITY_MATRIX_MVP, float4(worldPos,1.0f));
-				o.col = float4(local_color.xyz,0.5);
+				o.col = float4(local_color.xyz,1.0);
 				return o;
 			}
 			

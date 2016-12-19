@@ -6,22 +6,22 @@
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXCombine3fOp;
+	float initUniform1_kVFXValueOp;
+	
+	float initUniform2_kVFXValueOp;
+	uint initUniform3_kVFXSystemSeedOp;
 	uint nbSpawned;
 	uint spawnIndex;
+	
 CBUFFER_END
 
-CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float initUniform1;
-	float initUniform2;
+CBUFFER_START(updateUniforms)
+	float updateUniform0_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint2 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
@@ -67,7 +67,7 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
+void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;
@@ -94,7 +94,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform3_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -102,8 +102,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionSphereVolume( attrib0.position,initUniform0,initUniform1,local_seed);
-		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform2);
+		VFXBlockSetPositionSphereVolume( attrib0.position,initUniform0_kVFXCombine3fOp,initUniform1_kVFXValueOp,initUniform3_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform2_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -127,7 +127,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		
 		
 		
-		attrib2.age += deltaTime;
+		attrib2.age += updateUniform0_kVFXDeltaTimeOp;
 		if (attrib2.age >= attrib1.lifetime)
 			kill = true;
 		

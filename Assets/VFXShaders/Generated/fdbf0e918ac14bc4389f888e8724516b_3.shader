@@ -11,7 +11,7 @@ Shader "Hidden/VFX_3"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -24,8 +24,10 @@ Shader "Hidden/VFX_3"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float outputUniform0;
-				float3 outputUniform1;
+				float3 outputUniform1_kVFXCombine3fOp;
+				float outputUniform0_kVFXValueOp;
+				uint outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
 			CBUFFER_START(Uniform)
@@ -33,8 +35,8 @@ Shader "Hidden/VFX_3"
 			CBUFFER_END
 			ByteAddressBuffer nbElements;
 			
-			Texture2D outputSampler0Texture;
-			SamplerState sampleroutputSampler0Texture;
+			Texture2D outputSampler0_kVFXValueOpTexture;
+			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
 			Texture2D gradientTexture;
 			SamplerState samplergradientTexture;
@@ -114,9 +116,9 @@ Shader "Hidden/VFX_3"
 					float3 local_pivot = (float3)0;
 					
 					VFXBlockOrientAlongVelocity( local_front,local_side,local_up,outputData.velocity,outputData.position);
-					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0);
+					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,outputData.age,outputData.lifetime,outputUniform0_kVFXValueOp);
 					VFXBlockSubPixelAA( local_alpha,outputData.position,outputData.size);
-					VFXBlockSetPivot( local_pivot,outputUniform1);
+					VFXBlockSetPivot( local_pivot,outputUniform1_kVFXCombine3fOp);
 					
 					float2 size = outputData.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
@@ -158,7 +160,7 @@ Shader "Hidden/VFX_3"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				color *= outputSampler0Texture.Sample(sampleroutputSampler0Texture,i.offsets);
+				color *= outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,i.offsets);
 				
 				o.col = color;
 				return o;

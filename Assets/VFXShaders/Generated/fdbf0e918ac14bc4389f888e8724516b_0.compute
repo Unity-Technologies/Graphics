@@ -6,19 +6,19 @@
 
 #define NB_THREADS_PER_GROUP 1
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
-	uint nbSpawned;
-	uint spawnIndex;
-CBUFFER_END
-
 CBUFFER_START(initUniforms)
-	float3 initUniform0;
+	float3 initUniform0_kVFXCombine3fOp;
+	uint nbSpawned;
+	
+	uint spawnIndex;
+	uint3 initUniforms_PADDING_0;
+
+CBUFFER_END
+
+CBUFFER_START(updateUniforms)
+	uint nbMax;
+	uint3 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
@@ -46,7 +46,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		Attribute0 attrib0 = (Attribute0)0;
 		
 		
-		VFXBlockSetPositionPoint( attrib0.position,initUniform0);
+		VFXBlockSetPositionPoint( attrib0.position,initUniform0_kVFXCombine3fOp);
 		
 		attribBuffer0[index] = attrib0;
 	}

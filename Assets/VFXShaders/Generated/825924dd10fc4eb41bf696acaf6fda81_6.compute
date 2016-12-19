@@ -6,21 +6,20 @@
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float initUniform1_kVFXValueOp;
+	uint initUniform2_kVFXSystemSeedOp;
 	uint nbSpawned;
 	uint spawnIndex;
+	float4x4 initUniform0_kVFXTRSToMatrixOp;
+	
 CBUFFER_END
 
-CBUFFER_START(initUniforms)
-	float4x4 initUniform0;
-	float initUniform1;
+CBUFFER_START(updateUniforms)
+	float updateUniform0_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint2 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
@@ -66,7 +65,7 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionBox( inout float3 position,float4x4 box,inout uint seed)
+void VFXBlockSetPositionBox( inout float3 position,float4x4 box,uint systemSeed,uint seed)
 {
 	position = RAND3 - 0.5f;
 	position = mul(box,float4(position,1.0f)).xyz;
@@ -91,7 +90,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform2_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -99,8 +98,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionBox( attrib0.position,initUniform0,local_seed);
-		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform1);
+		VFXBlockSetPositionBox( attrib0.position,initUniform0_kVFXTRSToMatrixOp,initUniform2_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeConstant( attrib1.lifetime,initUniform1_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -124,7 +123,7 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		
 		
 		
-		attrib2.age += deltaTime;
+		attrib2.age += updateUniform0_kVFXDeltaTimeOp;
 		if (attrib2.age >= attrib1.lifetime)
 			kill = true;
 		
