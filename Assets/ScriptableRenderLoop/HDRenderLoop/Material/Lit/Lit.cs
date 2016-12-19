@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public enum GBufferMaterial
         {
             // Note: This count doesn't include the velocity buffer. On shader and csharp side the velocity buffer will be added by the framework
-            Count = (ShaderConfig.PackgbufferInU16 == 1) ? 2 : 4
+            Count = (ShaderConfig.k_PackgbufferInU16 == 1) ? 2 : 4
         };
 
         public partial class RenderLoop : Object
@@ -136,8 +136,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 RTFormat = new RenderTextureFormat[(int)GBufferMaterial.Count];
                 RTReadWrite = new RenderTextureReadWrite[(int)GBufferMaterial.Count];
 
-#pragma warning disable 162 // warning CS0162: Unreachable code detected
-                if (ShaderConfig.PackgbufferInU16 == 1)
+                if (ShaderConfig.s_PackgbufferInU16 == 1)
                 {
                     // TODO: Just discovered that Unity doesn't support unsigned 16 RT format.
                     RTFormat[0] = RenderTextureFormat.ARGBInt; RTReadWrite[0] = RenderTextureReadWrite.Linear;
@@ -150,7 +149,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     RTFormat[2] = RenderTextureFormat.ARGB32; RTReadWrite[2] = RenderTextureReadWrite.Linear;
                     RTFormat[3] = RenderTextureFormat.RGB111110Float; RTReadWrite[3] = RenderTextureReadWrite.Linear;
                 }
-#pragma warning restore 162
             }
 
             //-----------------------------------------------------------------------------
@@ -242,7 +240,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return CreateLUT(k_LtcLUTResolution, k_LtcLUTResolution, format, pixels);
             }            
 
-            public void Rebuild()
+            public void Build()
             {
                 m_InitPreFGD = CreateEngineMaterial("Hidden/HDRenderLoop/PreIntegratedFGD");
                 m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGBHalf);
@@ -260,7 +258,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             {
                 Utilities.Destroy(m_InitPreFGD);
 
-                // TODO: how to delete RenderTexture ?
+                // TODO: how to delete RenderTexture ? or do we need to do it ?
                 isInit = false;
             }
 

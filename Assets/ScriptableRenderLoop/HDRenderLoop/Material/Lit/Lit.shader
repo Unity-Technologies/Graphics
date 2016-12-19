@@ -45,8 +45,7 @@ Shader "HDRenderLoop/Lit"
         //_CoatRoughness("CoatRoughness", Range(0.0, 1.0)) = 0
         //_CoatRoughnessMap("CoatRoughnessMap", 2D) = "white" {}
 
-        // _DistortionVectorMap("DistortionVectorMap", 2D) = "white" {}
-        // _DistortionBlur("DistortionBlur", Range(0.0, 1.0)) = 0
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
         // Following options are for the GUI inspector and different from the input parameters above
         // These option below will cause different compilation flag.
@@ -55,8 +54,10 @@ Shader "HDRenderLoop/Lit"
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
-        [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff]     _DistortionDepthTest("Distortion Only", Float) = 0.0
+        [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
+        [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
+        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
+        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
         [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -68,6 +69,7 @@ Shader "HDRenderLoop/Lit"
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
+        [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
         
         // Material Id
         [HideInInspector] _MaterialId("_MaterialId", FLoat) = 0
@@ -78,10 +80,11 @@ Shader "HDRenderLoop/Lit"
         [Enum(UV0, 0, Planar, 1, TriPlanar, 2)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1,0,0,0)
+        [HideInInspector] _UVMappingPlanar("_UVMappingPlanar", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace("NormalMap space", Float) = 0
         [Enum(Parallax, 0, Displacement, 1)] _HeightMapMode("Heightmap usage", Float) = 0
         [Enum(DetailMapNormal, 0, DetailMapAOHeight, 1)] _DetailMapMode("DetailMap mode", Float) = 0
-        [Enum(UV0, 0, UV1, 1,  UV3, 2)] _UVDetail("UV Set for detail", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1,0,0,0)
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
     }
@@ -96,6 +99,8 @@ Shader "HDRenderLoop/Lit"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature _ALPHATEST_ON
+    #pragma shader_feature _DISTORTION_ON
+    #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
@@ -103,7 +108,7 @@ Shader "HDRenderLoop/Lit"
     #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
-    #pragma shader_feature _REQUIRE_UV3
+    #pragma shader_feature _REQUIRE_UV2_OR_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
     #pragma shader_feature _NORMALMAP  
@@ -145,6 +150,7 @@ Shader "HDRenderLoop/Lit"
     float4 _BaseColor;
     TEXTURE2D(_BaseColorMap);
     SAMPLER2D(sampler_BaseColorMap);
+    float4 _BaseColorMap_ST;
 
     float _Metallic;
     float _Smoothness;
@@ -199,6 +205,9 @@ Shader "HDRenderLoop/Lit"
     TEXTURE2D(_DiffuseLightingMap);
     SAMPLER2D(sampler_DiffuseLightingMap);
 
+    TEXTURE2D(_DistortionVectorMap);
+    SAMPLER2D(sampler_DistortionVectorMap);
+
     float3 _EmissiveColor;
     TEXTURE2D(_EmissiveColorMap);
     SAMPLER2D(sampler_EmissiveColorMap);
@@ -207,6 +216,7 @@ Shader "HDRenderLoop/Lit"
     float _AlphaCutoff;
 
     float _TexWorldScale;
+    float _UVMappingPlanar;
     float4 _UVMappingMask;
     float4 _UVDetailsMappingMask;
 
@@ -296,7 +306,8 @@ Shader "HDRenderLoop/Lit"
 
             Cull[_CullMode]
 
-            ZWrite On ZTest LEqual
+            ZWrite On 
+            ZTest LEqual
 
             HLSLPROGRAM
 
@@ -320,8 +331,8 @@ Shader "HDRenderLoop/Lit"
 
             Cull[_CullMode]
 
-            ZWrite On ZTest LEqual
-
+            ZWrite On 
+ 
             HLSLPROGRAM
 
             #pragma vertex Vert
@@ -344,7 +355,6 @@ Shader "HDRenderLoop/Lit"
 
             Cull[_CullMode]
 
-            ZTest LEqual
             ZWrite Off // TODO: Test Z equal here.
 
             HLSLPROGRAM
@@ -358,6 +368,31 @@ Shader "HDRenderLoop/Lit"
             #include "LitVelocityPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Distortion" // Name is not used
+            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
+
+            Blend One One
+            ZTest [_ZTestMode]
+            ZWrite off
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DISTORTION
+            #include "../../Material/Material.hlsl"         
+            #include "LitData.hlsl"
+            #include "LitDistortionPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
         }

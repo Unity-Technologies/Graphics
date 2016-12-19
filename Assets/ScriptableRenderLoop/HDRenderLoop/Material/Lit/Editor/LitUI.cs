@@ -41,6 +41,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         {
             UV0,
             UV1,
+            UV2,
             UV3
         }
 
@@ -58,6 +59,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         protected const string kTexWorldScale = "_TexWorldScale";
         protected MaterialProperty UVMappingMask = null;
         protected const string kUVMappingMask = "_UVMappingMask";
+        protected MaterialProperty UVMappingPlanar = null;
+        protected const string kUVMappingPlanar = "_UVMappingPlanar";      
         protected MaterialProperty normalMapSpace = null;
         protected const string kNormalMapSpace = "_NormalMapSpace";
         protected MaterialProperty heightMapMode = null;
@@ -123,22 +126,21 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         protected MaterialProperty emissiveIntensity = null;
         protected const string kEmissiveIntensity = "_EmissiveIntensity";
 
-        override protected void FindInputOptionProperties(MaterialProperty[] props)
+        // These are options that are shared with the LayeredLit shader. Don't put anything that can't be shared here:
+        // For instance, properties like BaseColor and such don't exist in the LayeredLit so don't put them here.
+        protected void FindMaterialOptionProperties(MaterialProperty[] props)
         {   
             smoothnessMapChannel = FindProperty(kSmoothnessTextureChannel, props);
-            UVBase = FindProperty(kUVBase, props);
-            TexWorldScale = FindProperty(kTexWorldScale, props);
-            UVMappingMask = FindProperty(kUVMappingMask, props);
             normalMapSpace = FindProperty(kNormalMapSpace, props);
             heightMapMode = FindProperty(kHeightMapMode, props);
             detailMapMode = FindProperty(kDetailMapMode, props);
-            UVDetail = FindProperty(kUVDetail, props);
-            UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);    
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
         }
 
-        override protected void FindInputProperties(MaterialProperty[] props)
+        override protected void FindMaterialProperties(MaterialProperty[] props)
         {
+            FindMaterialOptionProperties(props);
+
             baseColor = FindProperty(kBaseColor, props);
             baseColorMap = FindProperty(kBaseColorMap, props);
             metallic = FindProperty(kMetallic, props);
@@ -153,6 +155,13 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
 
+            UVBase = FindProperty(kUVBase, props);
+            UVDetail = FindProperty(kUVDetail, props);
+            TexWorldScale = FindProperty(kTexWorldScale, props);
+            UVMappingMask = FindProperty(kUVMappingMask, props);
+            UVMappingPlanar = FindProperty(kUVMappingPlanar, props);
+            UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);    
+            
             detailMap = FindProperty(kDetailMap, props);
             detailMask = FindProperty(kDetailMask, props);
             detailAlbedoScale = FindProperty(kDetailAlbedoScale, props);
@@ -178,8 +187,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
             float X, Y, Z, W;
             X = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-            W = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
-            UVMappingMask.colorValue = new Color(X, 0.0f, 0.0f, W);
+            UVMappingMask.colorValue = new Color(X, 0.0f, 0.0f, 0.0f);
+            UVMappingPlanar.floatValue = ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) ? 1.0f : 0.0f;
             if (((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Planar) || ((UVBaseMapping)UVBase.floatValue == UVBaseMapping.Triplanar))
             {
                 EditorGUI.indentLevel++;
@@ -191,18 +200,11 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 m_MaterialEditor.ShaderProperty(UVDetail, Styles.UVDetailMappingText.text);
             }
 
-            // If base is planar mode, detail is planar too
-            if (W > 0.0f)
-            {
-                X = Y = Z = 0.0f;
-            }
-            else
-            {
-                X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
-                Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
-                Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
-            }
-            UVDetailsMappingMask.colorValue = new Color(X, Y, Z, 0.0f); // W Reuse planar mode from base
+            X = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV0) ? 1.0f : 0.0f;
+            Y = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV1) ? 1.0f : 0.0f;
+            Z = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV2) ? 1.0f : 0.0f;
+            W = ((UVDetailMapping)UVDetail.floatValue == UVDetailMapping.UV3) ? 1.0f : 0.0f;
+            UVDetailsMappingMask.colorValue = new Color(X, Y, Z, W);
 
             m_MaterialEditor.ShaderProperty(detailMapMode, Styles.detailMapModeText.text);
             m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText.text);
@@ -244,6 +246,8 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             
             m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
 
+            m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap);
+
             EditorGUILayout.Space();
             GUILayout.Label(Styles.detailText, EditorStyles.boldLabel);
 
@@ -284,18 +288,6 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             base.AssignNewShaderToMaterial(material, oldShader, newShader);
         }
 
-        protected virtual void SetupKeywordsForInputMaps(Material material)
-        {
-            SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
-            SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
-            SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
-            SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-            SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
-            SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
-            SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
-            SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
-        }
-
         protected override bool ShouldEmissionBeEnabled(Material mat)
         {
             float emissiveIntensity = mat.GetFloat(kEmissiveIntensity);
@@ -303,8 +295,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             return emissiveIntensity > 0.0f || realtimeEmission;
         }
 
-        override protected void SetupInputMaterial(Material material)
+        override protected void SetupMaterialKeywords(Material material)
         {
+			SetupCommonOptionsKeywords(material);
+
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
             SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
@@ -312,10 +306,21 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
             SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", ((HeightmapMode)material.GetFloat(kHeightMapMode)) == HeightmapMode.Displacement);
             SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
-            SetKeyword(material, "_REQUIRE_UV3", ((UVDetailMapping)material.GetFloat(kUVDetail)) == UVDetailMapping.UV3 && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0);
             SetKeyword(material, "_EMISSIVE_COLOR", ((EmissiveColorMode)material.GetFloat(kEmissiveColorMode)) == EmissiveColorMode.UseEmissiveColor);
- 
-            SetupKeywordsForInputMaps(material);
+
+			SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap)); // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for ir
+			SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
+			SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap));
+			SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+			SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap));
+			SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
+			SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
+			SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
+
+            SetKeyword(material, "_REQUIRE_UV2_OR_UV3", (
+                                                            ((UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV2 || (UVDetailMapping)material.GetFloat(kUVDetail) == UVDetailMapping.UV3)
+                                                            && (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV0)
+                                                            );
         }
     }
 } // namespace UnityEditor

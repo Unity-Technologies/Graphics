@@ -6,16 +6,19 @@
 // Attribute/Varying
 //-------------------------------------------------------------------------------------
 
+#define WANT_UV2 (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL) || defined(_REQUIRE_UV2_OR_UV3)
+#define WANT_UV3 (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL) || defined(_REQUIRE_UV2_OR_UV3)
+
 struct Attributes
 {
     float3 positionOS   : POSITION;
     float3 normalOS     : NORMAL;
     float2 uv0          : TEXCOORD0;
     float2 uv1		    : TEXCOORD1;
-#if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
+#if WANT_UV2
     float2 uv2		    : TEXCOORD2;
 #endif
-#ifdef _REQUIRE_UV3
+#if WANT_UV3
     float2 uv3		    : TEXCOORD3;
 #endif
     float4 tangentOS    : TANGENT;  // Always present as we require it also in case of anisotropic lighting
@@ -30,10 +33,10 @@ struct Varyings
     float3 positionWS;
     float2 texCoord0;
     float2 texCoord1;
-#if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
+#if WANT_UV2
     float2 texCoord2;
 #endif
-#ifdef _REQUIRE_UV3
+#if WANT_UV3
     float2 texCoord3;
 #endif
     float3 tangentToWorld[3];
@@ -43,7 +46,7 @@ struct Varyings
 struct PackedVaryings
 {
     float4 positionCS : SV_Position;
-#if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL) || defined(_REQUIRE_UV3)
+#if (WANT_UV2) || (WANT_UV3)
     float4 interpolators[6] : TEXCOORD0;
 #else
     float4 interpolators[5] : TEXCOORD0;
@@ -73,14 +76,14 @@ PackedVaryings PackVaryings(Varyings input)
 
     output.interpolators[4] = input.color;
 
-#if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL) || defined(_REQUIRE_UV3)
+#if (WANT_UV2) || (WANT_UV3)
     output.interpolators[5] = float4(0.0, 0.0, 0.0, 0.0);
 
-#if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
+#if WANT_UV2
     output.interpolators[5].xy = input.texCoord2.xy;
 #endif
 
-#ifdef _REQUIRE_UV3
+#if WANT_UV3
     output.interpolators[5].zw = input.texCoord3.xy;
 #endif
 
@@ -89,12 +92,12 @@ PackedVaryings PackVaryings(Varyings input)
     return output;
 }
 
-FragInput UnpackVaryings(PackedVaryings input)
+FragInputs UnpackVaryings(PackedVaryings input)
 {
-    FragInput output;
-    ZERO_INITIALIZE(FragInput, output);
+    FragInputs output;
+    ZERO_INITIALIZE(FragInputs, output);
 
-    output.unPositionSS = input.positionCS;  // as input we have the vpos
+    output.unPositionSS = input.positionCS; // input.positionCS is SV_Position
     output.positionWS.xyz = input.interpolators[0].xyz;
     output.tangentToWorld[0] = input.interpolators[1].xyz;
     output.tangentToWorld[1] = input.interpolators[2].xyz;
@@ -105,10 +108,10 @@ FragInput UnpackVaryings(PackedVaryings input)
 
     output.vertexColor = input.interpolators[4];
 
-#if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
+#if WANT_UV2
     output.texCoord2 = input.interpolators[5].xy;
 #endif
-#ifdef _REQUIRE_UV3
+#if WANT_UV3
     output.texCoord3 = input.interpolators[5].zw;
 #endif
 
@@ -138,8 +141,12 @@ PackedVaryings VertDefault(Attributes input)
 
     output.texCoord0 = input.uv0;
     output.texCoord1 = input.uv1;
-#if (DYNAMICLIGHTMAP_ON) || (SHADERPASS == SHADERPASS_DEBUG_VIEW_MATERIAL)
+#if WANT_UV2
     output.texCoord2 = input.uv2;
+#endif
+
+#if WANT_UV3
+	output.texCoord3 = input.uv3;
 #endif
 
     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);

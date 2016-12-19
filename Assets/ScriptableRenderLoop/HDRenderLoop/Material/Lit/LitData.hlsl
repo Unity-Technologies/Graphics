@@ -3,7 +3,7 @@
 //-------------------------------------------------------------------------------------
 #include "../MaterialUtilities.hlsl"
 
-void GetBuiltinData(FragInput input, SurfaceData surfaceData, float alpha, out BuiltinData builtinData)
+void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, float depthOffset, out BuiltinData builtinData)
 {
     // Builtin Data
     builtinData.opacity = alpha;
@@ -32,8 +32,16 @@ void GetBuiltinData(FragInput input, SurfaceData surfaceData, float alpha, out B
 
     builtinData.velocity = CalculateVelocity(input.positionCS, input.previousPositionCS);
 
+#ifdef _DISTORTION_ON
+    float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
+    builtinData.distortion = distortion.rg;
+    builtinData.distortionBlur = distortion.b;
+#else
     builtinData.distortion = float2(0.0, 0.0);
     builtinData.distortionBlur = 0.0;
+#endif
+
+    builtinData.depthOffset = depthOffset;
 }
 
 // Gather all kind of mapping in one struct, allow to improve code readability
@@ -150,7 +158,7 @@ float3 SampleNormalLayerAG(TEXTURE2D_ARGS(layerTex, layerSampler), LayerUV layer
 #define ADD_ZERO_IDX(Name) Name
 #include "LitSurfaceData.hlsl"
 
-void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
@@ -160,18 +168,26 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     layerTexCoord.weights = ComputeTriplanarWeights(input.tangentToWorld[2].xyz);
 #endif
 
-    // Be sure that the compiler is aware that we don't touch UV1 and UV3 for base layer in case of non layer shader
+    // Be sure that the compiler is aware that we don't touch UV1 to UV3 for base layer in case of non layer shader
     // so it can remove code
-    _UVMappingMask.yz = float2(0.0, 0.0);
+    _UVMappingMask.yzw = float3(0.0, 0.0, 0.0);
     bool isTriplanar = false;
 #ifdef _MAPPING_TRIPLANAR
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord(input, isTriplanar, layerTexCoord);
-    ApplyDisplacement(input, layerTexCoord);
+    // Transform view vector in tangent space
+    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
+    ApplyDisplacement(input, viewDirTS, layerTexCoord);
+    float depthOffset = 0.0;
+
+#ifdef _DEPTHOFFSET_ON
+    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetAttribute(depthOffset, input);
+#endif
 
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData);
-    GetBuiltinData(input, surfaceData, alpha, builtinData);
+    GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
 
 #else
@@ -273,7 +289,7 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(surfaceData##0.##name, surfaceData##1.##name, surfaceData##2.##name, surfaceData##3.##name, mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
-void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
@@ -303,10 +319,19 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     isTriplanar = true;
 #endif
     ComputeLayerTexCoord3(input, isTriplanar, layerTexCoord);
-    ApplyDisplacement0(input, layerTexCoord);
-    ApplyDisplacement1(input, layerTexCoord);
-    ApplyDisplacement2(input, layerTexCoord);
-    ApplyDisplacement3(input, layerTexCoord);
+
+    // Transform view vector in tangent space
+    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
+    ApplyDisplacement0(input, viewDirTS, layerTexCoord);
+    ApplyDisplacement1(input, viewDirTS, layerTexCoord);
+    ApplyDisplacement2(input, viewDirTS, layerTexCoord);
+    ApplyDisplacement3(input, viewDirTS, layerTexCoord);
+    float depthOffset = 0.0;
+
+#ifdef _DEPTHOFFSET_ON
+    ApplyDepthOffsetPositionInput(V, builtinData.depthOffset, posInput);
+    ApplyDepthOffsetAttribute(depthOffset, input);
+#endif
 
     SurfaceData surfaceData0;
     SurfaceData surfaceData1;
@@ -351,7 +376,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
     surfaceData.specularColor = float3(0.0, 0.0, 0.0);
 
     float alpha = PROP_BLEND_SCALAR(alpha, weights);
-    GetBuiltinData(input, surfaceData, alpha, builtinData);
+    GetBuiltinData(input, surfaceData, alpha, depthOffset, builtinData);
 }
 
 #endif // #ifndef LAYERED_LIT_SHADER

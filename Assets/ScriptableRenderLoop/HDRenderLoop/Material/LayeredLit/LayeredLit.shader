@@ -101,14 +101,18 @@ Shader "HDRenderLoop/LayeredLit"
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         [ToggleOff]  _LayerMaskVertexColor("Use Vertex Color Mask", Float) = 0.0
 
+        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
+
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
 
-        [ToggleOff]     _DistortionOnly("Distortion Only", Float) = 0.0
-        [ToggleOff]     _DistortionDepthTest("Distortion Only", Float) = 0.0
+        [ToggleOff] _DistortionEnable("Enable Distortion", Float) = 0.0
+        [ToggleOff] _DistortionOnly("Distortion Only", Float) = 0.0
+        [ToggleOff] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 0.0
+        [ToggleOff] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
 
-        [ToggleOff]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
+        [ToggleOff] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
 
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -119,6 +123,7 @@ Shader "HDRenderLoop/LayeredLit"
         [HideInInspector] _DstBlend ("__dst", Float) = 0.0
         [HideInInspector] _ZWrite ("__zw", Float) = 1.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
+        [HideInInspector] _ZTestMode("_ZTestMode", Int) = 8
 
         [Enum(None, 0, DoubleSided, 1, DoubleSidedLigthingFlip, 2, DoubleSidedLigthingMirror, 3)] _DoubleSidedMode("Double sided mode", Float) = 0
 
@@ -139,32 +144,30 @@ Shader "HDRenderLoop/LayeredLit"
         _TexWorldScale2("Tiling", Float) = 1.0
         _TexWorldScale3("Tiling", Float) = 1.0
 
-        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase0("UV Set for base0", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase1("UV Set for base1", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase2("UV Set for base2", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2, Planar, 3, Triplanar, 4)] _UVBase3("UV Set for base3", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase0("UV Set for base0", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase1("UV Set for base1", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase2("UV Set for base2", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase3("UV Set for base3", Float) = 0
 
         [HideInInspector] _UVMappingMask0("_UVMappingMask0", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask1("_UVMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask2("_UVMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)
 
-        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail0("UV Set for detail0", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail1("UV Set for detail1", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail2("UV Set for detail2", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV3, 2)] _UVDetail3("UV Set for detail3", Float) = 0
+        [HideInInspector] _UVMappingPlanar0("_UVMappingPlanar0", Float) = 0.0
+        [HideInInspector] _UVMappingPlanar1("_UVMappingPlanar1", Float) = 0.0
+        [HideInInspector] _UVMappingPlanar2("_UVMappingPlanar2", Float) = 0.0
+        [HideInInspector] _UVMappingPlanar3("_UVMappingPlanar3", Float) = 0.0        
+
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail0("UV Set for detail0", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail1("UV Set for detail1", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail2("UV Set for detail2", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail3("UV Set for detail3", Float) = 0
 
         [HideInInspector] _UVDetailsMappingMask0("_UVDetailsMappingMask0", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
         [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
-
-        // Unused but to be able to share litUI.Sahder and layeredUI.Shader
-        [HideInInspector] _UVBase("UV Set for base", Float) = 0
-        [HideInInspector] _UVDetail("UV Set for base", Float) = 0
-        [HideInInspector] _TexWorldScale("Tiling", Float) = 1.0
-        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
     }
 
     HLSLINCLUDE
@@ -173,6 +176,8 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma only_renderers d3d11 // TEMP: unitl we go futher in dev
 
     #pragma shader_feature _ALPHATEST_ON
+    #pragma shader_feature _DISTORTION_ON
+    #pragma shader_feature _DEPTHOFFSET_ON
     #pragma shader_feature _ _DOUBLESIDED_LIGHTING_FLIP _DOUBLESIDED_LIGHTING_MIRROR
 
     #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
@@ -183,7 +188,7 @@ Shader "HDRenderLoop/LayeredLit"
     #pragma shader_feature _DETAIL_MAP_WITH_NORMAL
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE   
     #pragma shader_feature _HEIGHTMAP_AS_DISPLACEMENT
-    #pragma shader_feature _REQUIRE_UV3
+    #pragma shader_feature _REQUIRE_UV2_OR_UV3
     #pragma shader_feature _EMISSIVE_COLOR
 
     #pragma shader_feature _NORMALMAP
@@ -248,6 +253,10 @@ Shader "HDRenderLoop/LayeredLit"
     // Set of users variables
     PROP_DECL(float4, _BaseColor);
     PROP_DECL_TEX2D(_BaseColorMap);
+    float4 _BaseColorMap0_ST;
+    float4 _BaseColorMap1_ST;
+    float4 _BaseColorMap2_ST;
+    float4 _BaseColorMap3_ST;
 
     PROP_DECL(float, _Metallic);
     PROP_DECL(float, _Smoothness);
@@ -276,6 +285,9 @@ Shader "HDRenderLoop/LayeredLit"
     TEXTURE2D(_DiffuseLightingMap);
     SAMPLER2D(sampler_DiffuseLightingMap);
 
+    TEXTURE2D(_DistortionVectorMap);
+    SAMPLER2D(sampler_DistortionVectorMap);
+
     TEXTURE2D(_LayerMaskMap);
     SAMPLER2D(sampler_LayerMaskMap);
 
@@ -285,6 +297,7 @@ Shader "HDRenderLoop/LayeredLit"
     float _EmissiveIntensity;
 
     PROP_DECL(float, _TexWorldScale);
+    PROP_DECL(float, _UVMappingPlanar);  
     PROP_DECL(float4, _UVMappingMask);
     PROP_DECL(float4, _UVDetailsMappingMask);
 
@@ -381,7 +394,6 @@ Shader "HDRenderLoop/LayeredLit"
 
             Cull[_CullMode]
 
-            ZTest LEqual
             ZWrite Off // TODO: Test Z equal here.
 
             HLSLPROGRAM
@@ -407,7 +419,8 @@ Shader "HDRenderLoop/LayeredLit"
 
             Cull[_CullMode]
 
-            ZWrite On ZTest LEqual
+            ZWrite On 
+            ZTest LEqual
 
             HLSLPROGRAM
 
@@ -432,7 +445,7 @@ Shader "HDRenderLoop/LayeredLit"
 
             Cull[_CullMode]
 
-            ZWrite On ZTest LEqual
+            ZWrite On 
 
             HLSLPROGRAM
 
@@ -446,6 +459,32 @@ Shader "HDRenderLoop/LayeredLit"
             #include "../Lit/LitDepthPass.hlsl"
 
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Distortion" // Name is not used
+            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
+
+            Blend One One
+            ZTest [_ZTestMode]
+            ZWrite off
+            Cull [_CullMode]
+
+            HLSLPROGRAM
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #define SHADERPASS SHADERPASS_DISTORTION
+            #define LAYERED_LIT_SHADER
+            #include "../../Material/Material.hlsl"         
+            #include "../Lit/LitData.hlsl"
+            #include "../Lit/LitDistortionPass.hlsl"
+
+            #include "../../ShaderPass/ShaderPassDistortion.hlsl"
 
             ENDHLSL
         }

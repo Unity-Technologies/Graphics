@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         // Render Target Management.
         public const ClearFlag kClearAll = ClearFlag.ClearDepth | ClearFlag.ClearColor;
 
-        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier buffer, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
+        public static void SetRenderTarget(RenderLoop renderLoop, RenderTargetIdentifier buffer, ClearFlag clearFlag = ClearFlag.ClearNone, int miplevel = 0, CubemapFace cubemapFace = CubemapFace.Unknown)
         {
             var cmd = new CommandBuffer();
             cmd.name = "";
@@ -160,24 +160,39 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 disposed = true;
             }
         }
+
         public static Matrix4x4 GetViewProjectionMatrix(Matrix4x4 worldToViewMatrix, Matrix4x4 projectionMatrix)
         {
             // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
             // (different Z value ranges etc.)
             var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, false);
-            var gpuVP = gpuProj * worldToViewMatrix;
+            var gpuVP = gpuProj *  worldToViewMatrix * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API.
 
             return gpuVP;
         }
 
-        public static Matrix4x4 GetViewProjectionMatrix(Camera camera)
+        public static HDRenderLoop.HDCamera GetHDCamera(Camera camera)
         {
-            return GetViewProjectionMatrix(camera.worldToCameraMatrix, camera.projectionMatrix);
-        }
+            HDRenderLoop.HDCamera hdCamera = new HDRenderLoop.HDCamera();
+            hdCamera.camera = camera;
+            hdCamera.screenSize = new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
 
-        public static Vector4 ComputeScreenSize(Camera camera)
+            // The actual projection matrix used in shaders is actually massaged a bit to work across all platforms
+            // (different Z value ranges etc.)
+            var gpuProj = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            var gpuVP = gpuProj * camera.worldToCameraMatrix;
+
+            hdCamera.viewProjectionMatrix = gpuVP;
+            hdCamera.invViewProjectionMatrix = gpuVP.inverse;
+
+            return hdCamera;
+        }
+        
+        public static void SetupMaterialHDCamera(HDRenderLoop.HDCamera hdCamera, Material material)
         {
-            return new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight);
+            material.SetVector("_ScreenSize", hdCamera.screenSize);
+            material.SetMatrix("_ViewProjMatrix", hdCamera.viewProjectionMatrix);
+            material.SetMatrix("_InvViewProjMatrix", hdCamera.invViewProjectionMatrix);
         }
 
         // TEMP: These functions should be implemented C++ side, for now do it in C#
@@ -223,6 +238,18 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 m.EnableKeyword(keyword);
             else
                 m.DisableKeyword(keyword);
+        }
+
+        public static HDRenderLoop GetHDRenderLoop()
+        {
+            HDRenderLoop renderLoop = UnityEngine.Rendering.GraphicsSettings.renderPipeline as HDRenderLoop;
+            if (renderLoop == null)
+            {
+                Debug.LogWarning("SkyParameters component can only be used with HDRenderLoop custom RenderPipeline.");
+                return null;
+            }
+
+            return renderLoop;
         }
     }
 }

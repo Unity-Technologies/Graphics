@@ -2,15 +2,29 @@
 #error SHADERPASS_is_not_correctly_define
 #endif
 
-float4 Frag(PackedVaryings packedInput) : SV_Target
+void Frag(  PackedVaryings packedInput,
+            out float4 outColor : SV_Target
+            #ifdef _DEPTHOFFSET_ON
+            , out float outputDepth : SV_Depth
+            #endif
+        )
 {
-    FragInput input = UnpackVaryings(packedInput);
+    FragInputs input = UnpackVaryings(packedInput);
+
+    // input.unPositionSS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+    UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+    GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     // TODO: handle cubemap shadow
-    return float4(0.0, 0.0, 0.0, 0.0);
+    outColor = float4(0.0, 0.0, 0.0, 0.0);
+
+#ifdef _DEPTHOFFSET_ON
+    outputDepth = posInput.rawDepth;
+#endif
 }
 

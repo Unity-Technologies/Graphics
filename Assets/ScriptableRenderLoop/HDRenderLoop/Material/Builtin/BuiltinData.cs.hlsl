@@ -14,6 +14,7 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY (104)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION (105)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (106)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (107)
 
 //
 // UnityEngine.Experimental.ScriptableRenderLoop.Builtin.LighTransportData:  static fields
@@ -32,6 +33,7 @@ struct BuiltinData
 	float2 velocity;
 	float2 distortion;
 	float distortionBlur;
+	float depthOffset;
 };
 
 // Generated from UnityEngine.Experimental.ScriptableRenderLoop.Builtin.LighTransportData
