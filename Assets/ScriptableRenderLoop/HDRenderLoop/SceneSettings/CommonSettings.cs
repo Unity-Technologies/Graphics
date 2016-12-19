@@ -67,6 +67,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_ShadowCascadeSplit0 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit0));
             m_ShadowCascadeSplit1 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit1));
             m_ShadowCascadeSplit2 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit2));
+
+            OnSkyRendererChanged();
         }
 
         void OnSkyRendererChanged()
