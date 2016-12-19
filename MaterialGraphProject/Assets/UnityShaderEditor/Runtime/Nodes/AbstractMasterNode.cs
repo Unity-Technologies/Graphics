@@ -18,7 +18,13 @@ namespace UnityEngine.MaterialGraph
         {
             get { return true; }
         }
+        
+        public override bool allowedInSubGraph
+        {
+            get { return false; }
+        }
 
-        public abstract string GetShader(GenerationMode mode, out List<PropertyGenerator.TextureInfo> configuredTextures);
+        public abstract string GetFullShader(GenerationMode mode, out List<PropertyGenerator.TextureInfo> configuredTextures);
+        public abstract string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor);
     }
 }

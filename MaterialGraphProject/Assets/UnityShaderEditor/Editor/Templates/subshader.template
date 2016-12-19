@@ -1,0 +1,36 @@
+SubShader 
+{
+${Tags}
+${Blending}
+${Culling}
+${ZTest}
+${ZWrite}
+
+	LOD ${LOD}
+	
+	CGPROGRAM
+	#pragma target 3.0
+	#pragma surface surf ${LightingFunctionName} ${VertexShaderDecl}
+	#pragma glsl
+	#pragma debug
+
+${ShaderFunctions}
+${ShaderPropertyUsages}
+
+	struct Input 
+	{
+${ShaderInputs}
+	};
+
+	void vert (inout appdata_full v, out Input o)
+	{
+		UNITY_INITIALIZE_OUTPUT(Input,o);
+${VertexShaderBody}
+	}
+  
+	void surf (Input IN, inout ${SurfaceOutputStructureName} o) 
+	{
+${PixelShaderBody}
+	}
+	ENDCG
+}

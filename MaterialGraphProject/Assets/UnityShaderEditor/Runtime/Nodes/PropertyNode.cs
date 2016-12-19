@@ -19,7 +19,7 @@ namespace UnityEngine.MaterialGraph
 
         [SerializeField]
         private ExposedState m_Exposed = ExposedState.NotExposed;
-
+        
         public ExposedState exposedState
         {
             get
