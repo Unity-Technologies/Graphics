@@ -1,22 +1,32 @@
-void ADD_IDX(ComputeLayerTexCoord)(FragInput input, bool isTriplanar, inout LayerTexCoord layerTexCoord)
+void ADD_IDX(ComputeLayerTexCoord)(FragInputs input, bool isTriplanar, inout LayerTexCoord layerTexCoord)
 {
+    // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
+    float2 uvBase = ADD_IDX(_UVMappingMask).x * input.texCoord0 +
+                    ADD_IDX(_UVMappingMask).y * input.texCoord1 + 
+                    ADD_IDX(_UVMappingMask).z * input.texCoord2 +
+                    ADD_IDX(_UVMappingMask).w * input.texCoord3;
+                    
+
+    float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * input.texCoord0 +
+                        ADD_IDX(_UVDetailsMappingMask).y * input.texCoord1 +
+                        ADD_IDX(_UVDetailsMappingMask).z * input.texCoord2 +
+                        ADD_IDX(_UVDetailsMappingMask).w * input.texCoord3;
+
+    // Note that if base is planar/triplanar, detail map is too
+
+    // planar
     // TODO: Do we want to manage local or world triplanar/planar
     //float3 position = localTriplanar ? TransformWorldToObject(input.positionWS) : input.positionWS;
     float3 position = input.positionWS;
     position *= ADD_IDX(_TexWorldScale);
 
-    // Handle uv0, uv1 and plnar XZ coordinate based on _CoordWeight weight (exclusif 0..1)
-    ADD_IDX(layerTexCoord.base).uv =    ADD_IDX(_UVMappingMask).x * input.texCoord0 +
-                                        ADD_IDX(_UVMappingMask).y * input.texCoord1 + 
-                                        ADD_IDX(_UVMappingMask).z * input.texCoord3 +
-                                        ADD_IDX(_UVMappingMask).w * -position.xz;
+    if (ADD_IDX(_UVMappingPlanar) > 0.0)
+    {
+        uvBase = -position.xz;
+        uvDetails = -position.xz;
+    }
 
-    float2 uvDetails =  ADD_IDX(_UVDetailsMappingMask).x * input.texCoord0 +
-                        ADD_IDX(_UVDetailsMappingMask).y * input.texCoord1 +
-                        ADD_IDX(_UVDetailsMappingMask).z * input.texCoord3 +
-                        // Note that if base is planar, detail map is planar
-                        ADD_IDX(_UVMappingMask).w * -position.xz;
-
+    ADD_IDX(layerTexCoord.base).uv = TRANSFORM_TEX(uvBase, ADD_IDX(_BaseColorMap));
     ADD_IDX(layerTexCoord.details).uv = TRANSFORM_TEX(uvDetails, ADD_IDX(_DetailMap));
 
     // triplanar
@@ -27,25 +37,25 @@ void ADD_IDX(ComputeLayerTexCoord)(FragInput input, bool isTriplanar, inout Laye
     // In triplanar, if we are facing away from the world axis, a different axis will be flipped for each direction.
     // This is particularly problematic for tangent space normal maps which need to be in the right direction.
     // So we multiplying the offending coordinate by the sign of the normal.
-    ADD_IDX(layerTexCoord.base).uvYZ = float2(direction.x * position.z, position.y);
-    ADD_IDX(layerTexCoord.base).uvZX = -float2(position.x, direction.y * position.z);
-    ADD_IDX(layerTexCoord.base).uvXY = float2(-position.x, direction.z * position.y);
+    float2 uvYZ = float2(direction.x * position.z, position.y);
+    float2 uvZX = -float2(position.x, direction.y * position.z);
+    float2 uvXY = float2(-position.x, direction.z * position.y);
+
+    ADD_IDX(layerTexCoord.base).uvYZ = TRANSFORM_TEX(uvYZ, ADD_IDX(_BaseColorMap));
+    ADD_IDX(layerTexCoord.base).uvZX = TRANSFORM_TEX(uvZX, ADD_IDX(_BaseColorMap));
+    ADD_IDX(layerTexCoord.base).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_BaseColorMap));
 
     ADD_IDX(layerTexCoord.details).isTriplanar = isTriplanar;
 
-    ADD_IDX(layerTexCoord.details).uvYZ = TRANSFORM_TEX(ADD_IDX(layerTexCoord.base).uvYZ, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvZX = TRANSFORM_TEX(ADD_IDX(layerTexCoord.base).uvZX, ADD_IDX(_DetailMap));
-    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(ADD_IDX(layerTexCoord.base).uvXY, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvYZ = TRANSFORM_TEX(uvYZ, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvZX = TRANSFORM_TEX(uvZX, ADD_IDX(_DetailMap));
+    ADD_IDX(layerTexCoord.details).uvXY = TRANSFORM_TEX(uvXY, ADD_IDX(_DetailMap));
 }
 
-void ADD_IDX(ApplyDisplacement)(inout FragInput input, inout LayerTexCoord layerTexCoord)
+void ADD_IDX(ApplyDisplacement)(inout FragInputs input, float3 viewDirTS, inout LayerTexCoord layerTexCoord)
 {
 #ifdef _HEIGHTMAP
    #ifndef _HEIGHTMAP_AS_DISPLACEMENT
-    // Transform view vector in tangent space
-    // Hope the compiler can optimize this in case of multiple layer
-    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
-    float3 viewDirTS = TransformWorldToTangent(V, input.tangentToWorld);
     float height = SAMPLE_LAYER_TEXTURE2D(ADD_IDX(_HeightMap), ADD_ZERO_IDX(sampler_HeightMap), ADD_IDX(layerTexCoord.base)).r * ADD_IDX(_HeightScale) + ADD_IDX(_HeightBias);
     float2 offset = ParallaxOffset(viewDirTS, height);
 
@@ -59,7 +69,7 @@ void ADD_IDX(ApplyDisplacement)(inout FragInput input, inout LayerTexCoord layer
     ADD_IDX(layerTexCoord.details).uvZX += offset;
     ADD_IDX(layerTexCoord.details).uvXY += offset;
 
-    // Only modify tex coord for first layer, this will be use by for builtin data (like lightmap)
+    // Only modify texcoord for first layer, this will be use by for builtin data (like lightmap)
     if (LAYER_INDEX == 0)
     {
         input.texCoord0 += offset;
@@ -72,7 +82,7 @@ void ADD_IDX(ApplyDisplacement)(inout FragInput input, inout LayerTexCoord layer
 }
 
 // Return opacity
-float ADD_IDX(GetSurfaceData)(FragInput input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData)
+float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out SurfaceData surfaceData)
 {
 #ifdef _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
     float alpha = ADD_IDX(_BaseColor).a;

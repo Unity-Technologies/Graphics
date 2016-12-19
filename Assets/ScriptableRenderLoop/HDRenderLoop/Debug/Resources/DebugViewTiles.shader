@@ -38,16 +38,21 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
-            uint _ViewTilesFlags;
-
             TEXTURE2D(_CameraDepthTexture);
             SAMPLER2D(sampler_CameraDepthTexture);
 
-            float4x4 _InvViewProjMatrix;
+            uint _ViewTilesFlags;
+            float2 _MousePixelCoord;
+
 
             float4 Vert(float3 positionOS : POSITION): SV_POSITION
             {
                 return TransformWorldToHClip(TransformObjectToWorld(positionOS));
+            }
+
+            float4 AlphaBlend(float4 c0, float4 c1)	// c1 over c0
+            {
+                return float4(lerp(c0.rgb, c1.rgb, c1.a), c0.a + c1.a - c0.a * c1.a);
             }
 
             float4 OverlayHeatMap(uint2 pixCoord, uint numLights)
@@ -76,7 +81,7 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 
                 int2 coord = pixCoord - int2(1, 1);
 
-                float4 color = float4(pow(col.xyz, 2.2), 0.3*col.w);
+                float4 color = float4(PositivePow(col.xyz, 2.2), 0.3 * col.w);
                 if (numLights > 0)
                 {
                     if (SampleDebugFontNumber(coord, numLights))		// Shadow
@@ -89,16 +94,15 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
 
             float4 Frag(float4 positionCS : SV_POSITION) : SV_Target
             {
-                Coordinate coord = GetCoordinate(positionCS.xy, _ScreenSize.zw);
-
-                #ifdef USE_CLUSTERED_LIGHTLIST
-                // Perform same calculation than in deferred.shader
-                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, coord.unPositionSS).x;
-                float3 positionWS = UnprojectToWorld(depth, coord.positionSS, _InvViewProjMatrix);
-                float linearDepth = TransformWorldToView(positionWS).z; // View space linear depth
-                #else
-                float linearDepth = 0.0; // unused
-                #endif
+                // positionCS is SV_Position
+                PositionInputs posInput = GetPositionInput(positionCS.xy, _ScreenSize.zw);
+                float depth = LOAD_TEXTURE2D(_CameraDepthTexture, posInput.unPositionSS).x;
+                UpdatePositionInput(depth, _InvViewProjMatrix, _ViewProjMatrix, posInput);
+ 
+                int2 pixelCoord = posInput.unPositionSS.xy;
+                int2 tileCoord = (float2)pixelCoord / TILE_SIZE;
+                int2 mouseTileCoord = _MousePixelCoord / TILE_SIZE;
+                int2 offsetInTile = pixelCoord - tileCoord * TILE_SIZE;
 
                 int n = 0;
                 for (int category = 0; category < LIGHTCATEGORY_COUNT; category++)
@@ -108,19 +112,66 @@ Shader "Hidden/HDRenderLoop/DebugViewTiles"
                     {
                         uint start;
                         uint count;
-                        GetCountAndStart(coord, category, linearDepth, start, count);
+                        GetCountAndStart(posInput, category, start, count);
                         n += count;
                     }
                 }
                 
+                float4 result = float4(0.0, 0.0, 0.0, 0.0);
+
+				// Tile overlap counter
                 if (n > 0)
                 {
-                    return OverlayHeatMap(int2(coord.unPositionSS.xy) & 15, n);
+                    result = OverlayHeatMap(int2(posInput.unPositionSS.xy) & (TILE_SIZE - 1), n);
                 }
-                else
+
+				// Highlight selected tile
+                if (all(mouseTileCoord == tileCoord))
                 {
-                    return 0.0;
+                    bool border = any(offsetInTile == 0 || offsetInTile == TILE_SIZE - 1);
+                    float4 result2 = float4(1.0, 1.0, 1.0, border ? 1.0 : 0.5);
+                    result = AlphaBlend(result, result2);
                 }
+
+                // Print light lists for selected tile at the bottom of the screen
+                int maxLights = 32;
+                if (tileCoord.y < LIGHTCATEGORY_COUNT && tileCoord.x < maxLights + 3)
+                {
+                    PositionInputs mousePosInput = GetPositionInput(_MousePixelCoord, _ScreenSize.zw);
+                    float depthMouse = LOAD_TEXTURE2D(_CameraDepthTexture, mousePosInput.unPositionSS).x;
+                    UpdatePositionInput(depthMouse, _InvViewProjMatrix, _ViewProjMatrix, mousePosInput);
+
+                    int category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
+                    int start;
+                    int count;
+                    GetCountAndStart(mousePosInput, category, start, count);
+
+                    float4 result2 = float4(.1,.1,.1,.9);
+                    int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
+                    int lightListIndex = tileCoord.x - 2;
+
+                    int n = -1;
+                    if(tileCoord.x == 0)
+                    {
+                        n = count;
+                    }
+                    else if(lightListIndex >= 0 && lightListIndex < count)
+                    {
+                        n = FetchIndex(start, lightListIndex);
+                    }
+
+                    if (n >= 0)
+                    {
+                        if (SampleDebugFontNumber(offsetInTile, n))
+                            result2 = float4(0.0, 0.0, 0.0, 1.0);
+                        if (SampleDebugFontNumber(offsetInTile + 1, n))
+                            result2 = float4(1.0, 1.0, 1.0, 1.0);
+                    }
+
+                    result = AlphaBlend(result, result2);
+                }
+
+                return result;
             }
 
             ENDHLSL

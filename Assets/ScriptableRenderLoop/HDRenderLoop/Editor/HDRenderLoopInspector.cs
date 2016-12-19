@@ -20,16 +20,11 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public readonly GUIContent useForwardRenderingOnly = new GUIContent("Use Forward Rendering Only");
             public readonly GUIContent useDepthPrepass = new GUIContent("Use Depth Prepass");
+            public readonly GUIContent useDistortion = new GUIContent("Use Distortion");        
 
             public bool isDebugViewMaterialInit = false;
             public GUIContent[] debugViewMaterialStrings = null;
             public int[] debugViewMaterialValues = null;
-
-            public readonly GUIContent skyParameters = new GUIContent("Sky Parameters");
-            public readonly GUIContent skyResolution = new GUIContent("Sky Resolution");
-            public readonly GUIContent skyExposure = new GUIContent("Sky Exposure");
-            public readonly GUIContent skyRotation = new GUIContent("Sky Rotation");
-            public readonly GUIContent skyMultiplier = new GUIContent("Sky Multiplier");
 
             public readonly GUIContent shadowSettings = new GUIContent("Shadow Settings");
 
@@ -188,30 +183,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             debugParameters.displayTransparentObjects = EditorGUILayout.Toggle(styles.displayTransparentObjects, debugParameters.displayTransparentObjects);
             debugParameters.useForwardRenderingOnly = EditorGUILayout.Toggle(styles.useForwardRenderingOnly, debugParameters.useForwardRenderingOnly);
             debugParameters.useDepthPrepass = EditorGUILayout.Toggle(styles.useDepthPrepass, debugParameters.useDepthPrepass);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                EditorUtility.SetDirty(renderLoop); // Repaint
-            }
-            EditorGUI.indentLevel--;
-        }
-
-        private void SkyParametersUI(HDRenderLoop renderLoop)
-        {
-            EditorGUILayout.Space();
-            var skyParameters = renderLoop.skyParameters;
-
-            EditorGUILayout.LabelField(styles.skyParameters);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
-
-            skyParameters.skyHDRI = (Texture)EditorGUILayout.ObjectField("Cubemap", skyParameters.skyHDRI, typeof(Cubemap), false);
-
-            skyParameters.skyResolution = (SkyResolution)EditorGUILayout.EnumPopup(styles.skyResolution, skyParameters.skyResolution);
-            skyParameters.exposure = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyExposure, skyParameters.exposure), 32), -32);
-            skyParameters.multiplier = Mathf.Max(EditorGUILayout.FloatField(styles.skyMultiplier, skyParameters.multiplier), 0);
-            skyParameters.rotation = Mathf.Max(Mathf.Min(EditorGUILayout.FloatField(styles.skyRotation, skyParameters.rotation), 360), -360);
-
+            debugParameters.useDistortion = EditorGUILayout.Toggle(styles.useDistortion, debugParameters.useDistortion);
+            
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(renderLoop); // Repaint
@@ -314,7 +287,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return;
 
             DebugParametersUI(renderLoop);
-            SkyParametersUI(renderLoop);
             ShadowParametersUI(renderLoop);
             TextureParametersUI(renderLoop);
             TilePassUI(renderLoop);

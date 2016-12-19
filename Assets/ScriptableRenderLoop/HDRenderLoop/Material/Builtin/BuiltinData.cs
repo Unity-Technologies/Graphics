@@ -40,6 +40,10 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public Vector2 distortion;
             [SurfaceDataAttributes("Distortion Blur")]
             public float distortionBlur;           // Define the color buffer mipmap level to use
+
+            // Depth
+            [SurfaceDataAttributes("Depth Offset")]
+            public float depthOffset; // define the depth in unity unit to add in Z forward direction
         };
 
         //-----------------------------------------------------------------------------
@@ -67,7 +71,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
             public static RenderTextureFormat GetDistortionBufferFormat()
             {
-                return RenderTextureFormat.ARGBHalf; // This format need to be blendable and include distortionBlur
+                // TODO: // This format need to be additive blendable and include distortionBlur, blend mode different for alpha value
+                return RenderTextureFormat.ARGBHalf; 
             }
 
             public static RenderTextureReadWrite GetDistortionBufferReadWrite()

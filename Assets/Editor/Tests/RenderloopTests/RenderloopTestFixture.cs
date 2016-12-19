@@ -52,7 +52,7 @@ public class RenderLoopTestFixture : RenderPipeline
         var sceneCamera = Camera.main;
         var camObject = sceneCamera.gameObject;
 
-        GraphicsSettings.SetRenderPipeline(m_Instance);
+        GraphicsSettings.renderPipeline = m_Instance;
         s_Callback = renderCallback;
         Transform t = camObject.transform;
 
@@ -63,6 +63,6 @@ public class RenderLoopTestFixture : RenderPipeline
         SceneView.lastActiveSceneView.LookAtDirect(t.position + t.forward * camDist, t.rotation, size);
 
         sceneCamera.Render();
-        GraphicsSettings.SetRenderPipeline(null);
+        GraphicsSettings.renderPipeline = null;
     }
 }

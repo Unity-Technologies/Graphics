@@ -154,10 +154,44 @@ float GetDirectionalShadowAttenuation(LightLoopContext lightLoopContext, float3 
     positionTXS.z = 1.0 - positionTXS.z;
 #endif
 
+    float4 vShadow3x3PCFTerms0;
+    float4 vShadow3x3PCFTerms1;
+    float4 vShadow3x3PCFTerms2;
+    float4 vShadow3x3PCFTerms3;
+
+    float flTexelEpsilonX = shadowData.invResolution.x;
+    float flTexelEpsilonY = shadowData.invResolution.y;
+    vShadow3x3PCFTerms0 = float4(20.0f / 267.0f, 33.0f / 267.0f, 55.0f / 267.0f, 0.0f);
+    vShadow3x3PCFTerms1 = float4(flTexelEpsilonX, flTexelEpsilonY, -flTexelEpsilonX, -flTexelEpsilonY);
+    vShadow3x3PCFTerms2 = float4(flTexelEpsilonX, flTexelEpsilonY, 0.0f, 0.0f);
+    vShadow3x3PCFTerms3 = float4(-flTexelEpsilonX, -flTexelEpsilonY, 0.0f, 0.0f);
+
     // float3 shadowPosDX = ddx_fine(positionTXS);
     // float3 shadowPosDY = ddy_fine(positionTXS);
 
-    return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, positionTXS);
+    //return SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, positionTXS);
+
+    float4 v20Taps;
+    v20Taps.x = SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(positionTXS.xy + vShadow3x3PCFTerms1.xy, positionTXS.z)).x; //  1  1
+    v20Taps.y = SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(positionTXS.xy + vShadow3x3PCFTerms1.zy, positionTXS.z)).x; // -1  1
+    v20Taps.z = SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(positionTXS.xy + vShadow3x3PCFTerms1.xw, positionTXS.z)).x; //  1 -1
+    v20Taps.w = SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(positionTXS.xy + vShadow3x3PCFTerms1.zw, positionTXS.z)).x; // -1 -1
+    float flSum = dot(v20Taps.xyzw, float4(0.25, 0.25, 0.25, 0.25));
+    if ((flSum == 0.0) || (flSum == 1.0))
+        return flSum;
+    flSum *= vShadow3x3PCFTerms0.x * 4.0;
+
+    float4 v33Taps;
+    v33Taps.x = SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(positionTXS.xy + vShadow3x3PCFTerms2.xz, positionTXS.z)).x; //  1  0
+    v33Taps.y = SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(positionTXS.xy + vShadow3x3PCFTerms3.xz, positionTXS.z)).x; // -1  0
+    v33Taps.z = SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(positionTXS.xy + vShadow3x3PCFTerms3.zy, positionTXS.z)).x; //  0 -1
+    v33Taps.w = SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, float3(positionTXS.xy + vShadow3x3PCFTerms2.zy, positionTXS.z)).x; //  0  1
+    flSum += dot(v33Taps.xyzw, vShadow3x3PCFTerms0.yyyy);
+
+    flSum += SAMPLE_TEXTURE2D_SHADOW(g_tShadowBuffer, samplerg_tShadowBuffer, positionTXS).x * vShadow3x3PCFTerms0.z;
+
+    return flSum;
+
 }
 
 //-----------------------------------------------------------------------------

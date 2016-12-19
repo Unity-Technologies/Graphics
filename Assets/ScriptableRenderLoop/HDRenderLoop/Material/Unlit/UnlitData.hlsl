@@ -3,7 +3,7 @@
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 
-void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
     surfaceData.color = SAMPLE_TEXTURE2D(_ColorMap, sampler_ColorMap, input.texCoord0).rgb * _Color.rgb;
     float alpha = SAMPLE_TEXTURE2D(_ColorMap, sampler_ColorMap, input.texCoord0).a * _Color.a;
@@ -30,5 +30,7 @@ void GetSurfaceAndBuiltinData(FragInput input, out SurfaceData surfaceData, out 
 
     builtinData.distortion = float2(0.0, 0.0);
     builtinData.distortionBlur = 0.0;
+
+    builtinData.depthOffset = 0.0;
 }
 

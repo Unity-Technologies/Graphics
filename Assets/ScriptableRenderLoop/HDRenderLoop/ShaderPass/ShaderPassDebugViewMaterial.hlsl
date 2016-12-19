@@ -7,11 +7,16 @@ int _DebugViewMaterial;
 			
 float4 Frag(PackedVaryings packedInput) : SV_Target
 {
-    FragInput input = UnpackVaryings(packedInput);
+    FragInputs input = UnpackVaryings(packedInput);
+
+    // input.unPositionSS is SV_Position
+    PositionInputs posInput = GetPositionInput(input.unPositionSS.xy, _ScreenSize.zw);
+    UpdatePositionInput(input.unPositionSS.z, input.unPositionSS.w, input.positionWS, posInput);
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
 	SurfaceData surfaceData;
 	BuiltinData builtinData;
-	GetSurfaceAndBuiltinData(input, surfaceData, builtinData);
+	GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 
