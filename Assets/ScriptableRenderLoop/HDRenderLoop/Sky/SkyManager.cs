@@ -27,12 +27,14 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
     public class BuiltinSkyParameters
     {
-        public Matrix4x4    viewProjMatrix;
-        public Matrix4x4    invViewProjMatrix;
-        public Vector4      screenSize;
-        public Mesh         skyMesh;
-        public RenderLoop   renderLoop;
-        public Light        sunLight;
+        public Matrix4x4                viewProjMatrix;
+        public Matrix4x4                invViewProjMatrix;
+        public Vector4                  screenSize;
+        public Mesh                     skyMesh;
+        public RenderLoop               renderLoop;
+        public Light                    sunLight;
+        public RenderTargetIdentifier   colorBuffer;
+        public RenderTargetIdentifier   depthBuffer;
     }
 
     public class SkyManager
@@ -270,6 +272,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 builtinParams.viewProjMatrix = m_faceCameraViewProjectionMatrix[i];
                 builtinParams.screenSize = m_CubemapScreenSize;
                 builtinParams.skyMesh = m_CubemapFaceMesh[i];
+                builtinParams.colorBuffer = target;
+                builtinParams.depthBuffer = new RenderTargetIdentifier();
                 m_Renderer.RenderSky(builtinParams, skyParameters);
             }
         }
@@ -427,6 +431,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_BuiltinParameters.viewProjMatrix = camera.viewProjectionMatrix;
                     m_BuiltinParameters.screenSize = camera.screenSize;
                     m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix, false);
+                    m_BuiltinParameters.colorBuffer = colorBuffer;
+                    m_BuiltinParameters.depthBuffer = depthBuffer;
 
                     Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer);
                     m_Renderer.RenderSky(m_BuiltinParameters, skyParameters);
