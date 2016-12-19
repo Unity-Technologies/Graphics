@@ -6,7 +6,7 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
         {
             ZWrite Off
             ZTest LEqual
-            Blend One OneMinusSrcAlpha
+            Blend One OneMinusSrcAlpha, Zero One
 
             HLSLPROGRAM
             #pragma target 5.0
