@@ -6,43 +6,42 @@
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform1_kVFXTransformPosOp;
+	float initUniform0_kVFXValueOp;
+	
+	float initUniform2_kVFXValueOp;
+	uint initUniform3_kVFXSystemSeedOp;
 	uint nbSpawned;
 	uint spawnIndex;
-CBUFFER_END
-
-CBUFFER_START(GlobalUniforms)
-	float3 globalUniform0;
-	float globalUniform1;
-CBUFFER_END
-
-CBUFFER_START(initUniforms)
-	float initUniform0;
+	
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float4 updateUniform0;
-	float updateUniform1;
-	float4x4 updateUniform2;
-	float updateUniform3;
-	float updateUniform4;
-	float updateUniform5;
-	float updateUniform6;
-	float updateUniform7;
-	float updateUniform8;
-	float updateUniform9;
-	float4x4 updateUniform10;
+	float3 updateUniform1_kVFXTransformPosOp;
+	float updateUniform2_kVFXValueOp;
+	float4 updateUniform0_kVFXValueOp;
+	float4x4 updateUniform4_kVFXTransformMatrixOp;
+	float4x4 updateUniform12_kVFXInverseTRSOp;
+	
+	float updateUniform3_kVFXValueOp;
+	float updateUniform5_kVFXValueOp;
+	float updateUniform6_kVFXValueOp;
+	float updateUniform7_kVFXValueOp;
+	
+	float updateUniform8_kVFXValueOp;
+	float updateUniform9_kVFXValueOp;
+	float updateUniform10_kVFXValueOp;
+	float updateUniform11_kVFXValueOp;
+	
+	float updateUniform13_kVFXDeltaTimeOp;
+	uint nbMax;
+	uint2 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
-Texture3D updateSampler0Texture;
-SamplerState samplerupdateSampler0Texture;
+Texture3D updateSampler0_kVFXValueOpTexture;
+SamplerState samplerupdateSampler0_kVFXValueOpTexture;
 
 Texture2D curveTexture;
 SamplerState samplercurveTexture;
@@ -116,7 +115,7 @@ void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
 	lifetime = max(Lifetime,0.0f);
 }
 
-void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
+void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;
@@ -130,7 +129,7 @@ void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float
 	size = float2(s,s);
 }
 
-void VFXBlockCollideWithSphere( inout float3 position,inout float3 velocity,float3 Sphere_center,float Sphere_radius,float Elasticity)
+void VFXBlockCollideWithSphere( inout float3 position,inout float3 velocity,float3 Sphere_center,float Sphere_radius,float Elasticity,float deltaTime)
 {
 	float3 nextPos = position + velocity * deltaTime;
 	float3 dir = Sphere_center - nextPos;
@@ -148,7 +147,7 @@ void VFXBlockCollideWithSphere( inout float3 position,inout float3 velocity,floa
 	}
 }
 
-void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFXSampler3D VectorField,float4x4 Box,float4x4 InvBox,float Intensity,float DragCoefficient)
+void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFXSampler3D VectorField,float4x4 Box,float4x4 InvBox,float Intensity,float DragCoefficient,float deltaTime)
 {
 	float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
 	float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;
@@ -157,7 +156,7 @@ void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFX
 	velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));
 }
 
-void VFXBlockSetForceConformToSphere( inout float3 velocity,float3 position,float3 Sphere_center,float Sphere_radius,float attractionSpeed,float attractionForce,float stickForce,float stickDistance)
+void VFXBlockSetForceConformToSphere( inout float3 velocity,float3 position,float3 Sphere_center,float Sphere_radius,float attractionSpeed,float attractionForce,float stickForce,float stickDistance,float deltaTime)
 {
 	float3 dir = Sphere_center - position;
 	float distToCenter = length(dir);
@@ -170,7 +169,7 @@ void VFXBlockSetForceConformToSphere( inout float3 velocity,float3 position,floa
 	velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir;
 }
 
-void VFXBlockSetForceLinearDrag( inout float3 velocity,float DragCoefficient)
+void VFXBlockSetForceLinearDrag( inout float3 velocity,float DragCoefficient,float deltaTime)
 {
 	velocity *= max(0.0,(1.0 - DragCoefficient * deltaTime));
 }
@@ -190,7 +189,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform3_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -198,8 +197,8 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetLifetimeConstant( attrib0.lifetime,initUniform0);
-		VFXBlockSetPositionSphereSurface( attrib1.position,globalUniform0,globalUniform1,local_seed);
+		VFXBlockSetLifetimeConstant( attrib0.lifetime,initUniform0_kVFXValueOp);
+		VFXBlockSetPositionSphereSurface( attrib1.position,initUniform1_kVFXTransformPosOp,initUniform2_kVFXValueOp,initUniform3_kVFXSystemSeedOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -223,17 +222,17 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute2 attrib2 = attribBuffer2[index];
 		Attribute3 attrib3 = attribBuffer3[index];
 		
-		VFXSampler3D updateSampler0 = InitSampler(updateSampler0Texture,samplerupdateSampler0Texture);
+		VFXSampler3D updateSampler0_kVFXValueOp = InitSampler(updateSampler0_kVFXValueOpTexture,samplerupdateSampler0_kVFXValueOpTexture);
 		
-		VFXBlockSizeOverLifeCurve( attrib2.size,attrib3.age,attrib0.lifetime,updateUniform0);
-		VFXBlockCollideWithSphere( attrib1.position,attrib3.velocity,globalUniform0,globalUniform1,updateUniform1);
-		VFXBlockVectorFieldRelativeForce( attrib3.velocity,attrib1.position,updateSampler0,updateUniform2,updateUniform10,updateUniform3,updateUniform4);
-		VFXBlockSetForceConformToSphere( attrib3.velocity,attrib1.position,globalUniform0,globalUniform1,updateUniform5,updateUniform6,updateUniform7,updateUniform8);
-		VFXBlockSetForceLinearDrag( attrib3.velocity,updateUniform9);
+		VFXBlockSizeOverLifeCurve( attrib2.size,attrib3.age,attrib0.lifetime,updateUniform0_kVFXValueOp);
+		VFXBlockCollideWithSphere( attrib1.position,attrib3.velocity,updateUniform1_kVFXTransformPosOp,updateUniform2_kVFXValueOp,updateUniform3_kVFXValueOp,updateUniform13_kVFXDeltaTimeOp);
+		VFXBlockVectorFieldRelativeForce( attrib3.velocity,attrib1.position,updateSampler0_kVFXValueOp,updateUniform4_kVFXTransformMatrixOp,updateUniform12_kVFXInverseTRSOp,updateUniform5_kVFXValueOp,updateUniform6_kVFXValueOp,updateUniform13_kVFXDeltaTimeOp);
+		VFXBlockSetForceConformToSphere( attrib3.velocity,attrib1.position,updateUniform1_kVFXTransformPosOp,updateUniform2_kVFXValueOp,updateUniform7_kVFXValueOp,updateUniform8_kVFXValueOp,updateUniform9_kVFXValueOp,updateUniform10_kVFXValueOp,updateUniform13_kVFXDeltaTimeOp);
+		VFXBlockSetForceLinearDrag( attrib3.velocity,updateUniform11_kVFXValueOp,updateUniform13_kVFXDeltaTimeOp);
 		
-		attrib1.position += attrib3.velocity * deltaTime;
+		attrib1.position += attrib3.velocity * updateUniform13_kVFXDeltaTimeOp;
 		
-		attrib3.age += deltaTime;
+		attrib3.age += updateUniform13_kVFXDeltaTimeOp;
 		if (attrib3.age >= attrib0.lifetime)
 			kill = true;
 		

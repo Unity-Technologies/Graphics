@@ -11,7 +11,7 @@ Shader "Hidden/VFX_0"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -23,8 +23,8 @@ Shader "Hidden/VFX_0"
 			#include "HLSLSupport.cginc"
 			#include "../VFXCommon.cginc"
 			
-			Texture2D outputSampler0Texture;
-			SamplerState sampleroutputSampler0Texture;
+			Texture2D outputSampler0_kVFXValueOpTexture;
+			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
 			struct Attribute0
 			{
@@ -115,7 +115,7 @@ Shader "Hidden/VFX_0"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				color *= outputSampler0Texture.Sample(sampleroutputSampler0Texture,i.offsets);
+				color *= outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,i.offsets);
 				
 				o.col = color;
 				return o;

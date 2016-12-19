@@ -6,37 +6,41 @@
 
 #define NB_THREADS_PER_GROUP 256
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXTransformPosOp;
+	float initUniform1_kVFXValueOp;
+	
+	float3 initUniform2_kVFXCombine3fOp;
+	float initUniform4_kVFXValueOp;
+	
+	float3 initUniform3_kVFXCombine3fOp;
+	float initUniform5_kVFXValueOp;
+	
+	float3 initUniform6_kVFXTransformVecOp;
+	uint initUniform7_kVFXSystemSeedOp;
+	
 	uint nbSpawned;
 	uint spawnIndex;
-CBUFFER_END
+	uint2 initUniforms_PADDING_0;
 
-CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float initUniform1;
-	float3 initUniform2;
-	float3 initUniform3;
-	float initUniform4;
-	float initUniform5;
-	float3 initUniform6;
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float3 updateUniform0;
-	float4 updateUniform1;
-	float3 updateUniform2;
-	float updateUniform3;
-	float updateUniform4;
-	float updateUniform5;
-	float updateUniform6;
-	float updateUniform7;
+	float3 updateUniform0_kVFXTransformVecOp;
+	float updateUniform3_kVFXValueOp;
+	float4 updateUniform1_kVFXValueOp;
+	
+	float3 updateUniform2_kVFXTransformPosOp;
+	float updateUniform4_kVFXValueOp;
+	
+	float updateUniform5_kVFXValueOp;
+	float updateUniform6_kVFXValueOp;
+	float updateUniform7_kVFXValueOp;
+	float updateUniform8_kVFXDeltaTimeOp;
+	
+	uint nbMax;
+	uint3 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 Texture2D curveTexture;
@@ -103,19 +107,19 @@ float sampleSignal(float4 curveData,float u) // sample curve
 	return curveTexture.SampleLevel(samplercurveTexture,float2(uNorm,curveData.z),0)[asuint(curveData.w) & 0x3];
 }
 
-void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,inout uint seed)
+void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;
 	position = VFXPositionOnSphereSurface(Sphere,u1,u2);
 }
 
-void VFXBlockSetColorRandom( inout float3 color,float3 FirstColor,float3 AltColor,inout uint seed)
+void VFXBlockSetColorRandom( inout float3 color,float3 FirstColor,float3 AltColor,uint systemSeed,uint seed)
 {
 	color = lerp(FirstColor,AltColor,RAND3);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
@@ -125,7 +129,7 @@ void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
 	velocity += Velocity;
 }
 
-void VFXBlockSetForceConstant( inout float3 velocity,float3 Force)
+void VFXBlockSetForceConstant( inout float3 velocity,float3 Force,float deltaTime)
 {
 	velocity += Force * deltaTime;
 }
@@ -137,7 +141,7 @@ void VFXBlockSizeOverLifeCurve( inout float2 size,float age,float lifetime,float
 	size = float2(s,s);
 }
 
-void VFXBlockSetForceConformToSphere( inout float3 velocity,float3 position,float3 Sphere_center,float Sphere_radius,float attractionSpeed,float attractionForce,float stickForce,float stickDistance)
+void VFXBlockSetForceConformToSphere( inout float3 velocity,float3 position,float3 Sphere_center,float Sphere_radius,float attractionSpeed,float attractionForce,float stickForce,float stickDistance,float deltaTime)
 {
 	float3 dir = Sphere_center - position;
 	float distToCenter = length(dir);
@@ -166,7 +170,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform7_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -174,10 +178,10 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0,initUniform1,local_seed);
-		VFXBlockSetColorRandom( attrib2.color,initUniform2,initUniform3,local_seed);
-		VFXBlockSetLifetimeRandom( attrib3.lifetime,initUniform4,initUniform5,local_seed);
-		VFXBlockVelocityConstant( attrib4.velocity,initUniform6);
+		VFXBlockSetPositionSphereSurface( attrib0.position,initUniform0_kVFXTransformPosOp,initUniform1_kVFXValueOp,initUniform7_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetColorRandom( attrib2.color,initUniform2_kVFXCombine3fOp,initUniform3_kVFXCombine3fOp,initUniform7_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib3.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,initUniform7_kVFXSystemSeedOp,local_seed);
+		VFXBlockVelocityConstant( attrib4.velocity,initUniform6_kVFXTransformVecOp);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -203,13 +207,13 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute4 attrib4 = attribBuffer4[index];
 		
 		
-		VFXBlockSetForceConstant( attrib4.velocity,updateUniform0);
-		VFXBlockSizeOverLifeCurve( attrib1.size,attrib4.age,attrib3.lifetime,updateUniform1);
-		VFXBlockSetForceConformToSphere( attrib4.velocity,attrib0.position,updateUniform2,updateUniform3,updateUniform4,updateUniform5,updateUniform6,updateUniform7);
+		VFXBlockSetForceConstant( attrib4.velocity,updateUniform0_kVFXTransformVecOp,updateUniform8_kVFXDeltaTimeOp);
+		VFXBlockSizeOverLifeCurve( attrib1.size,attrib4.age,attrib3.lifetime,updateUniform1_kVFXValueOp);
+		VFXBlockSetForceConformToSphere( attrib4.velocity,attrib0.position,updateUniform2_kVFXTransformPosOp,updateUniform3_kVFXValueOp,updateUniform4_kVFXValueOp,updateUniform5_kVFXValueOp,updateUniform6_kVFXValueOp,updateUniform7_kVFXValueOp,updateUniform8_kVFXDeltaTimeOp);
 		
-		attrib0.position += attrib4.velocity * deltaTime;
+		attrib0.position += attrib4.velocity * updateUniform8_kVFXDeltaTimeOp;
 		
-		attrib4.age += deltaTime;
+		attrib4.age += updateUniform8_kVFXDeltaTimeOp;
 		if (attrib4.age >= attrib3.lifetime)
 			kill = true;
 		

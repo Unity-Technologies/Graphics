@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental
         }
 
         public virtual bool UpdateAttributes(Dictionary<VFXAttribute, VFXAttribute.Usage> attribs, ref VFXBlockDesc.Flag flags) { return true; }
-        public virtual void UpdateUniforms(HashSet<VFXExpression> uniforms) { }
+        public virtual void UpdateUniforms(HashSet<VFXExpression> uniforms, ref VFXBlockDesc.Flag flags) { }
         public virtual void WritePreBlock(ShaderSourceBuilder builder, ShaderMetaData data) { }
         public virtual void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data) { }
         public virtual void WriteFunctions(ShaderSourceBuilder builder, ShaderMetaData data) { }

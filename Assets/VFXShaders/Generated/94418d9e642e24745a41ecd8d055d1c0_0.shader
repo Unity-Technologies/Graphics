@@ -11,7 +11,7 @@ Shader "Hidden/VFX_0"
 			Cull Off
 			
 			CGPROGRAM
-			#pragma target 5.0
+			#pragma target 4.5
 			
 			#pragma vertex vert
 			#pragma fragment frag
@@ -24,11 +24,13 @@ Shader "Hidden/VFX_0"
 			#include "../VFXCommon.cginc"
 			
 			CBUFFER_START(outputUniforms)
-				float3 outputUniform0;
+				float3 outputUniform0_kVFXCombine3fOp;
+				uint outputUniforms_PADDING_0;
+			
 			CBUFFER_END
 			
-			Texture2D outputSampler0Texture;
-			SamplerState sampleroutputSampler0Texture;
+			Texture2D outputSampler0_kVFXValueOpTexture;
+			SamplerState sampleroutputSampler0_kVFXValueOpTexture;
 			
 			struct Attribute1
 			{
@@ -68,7 +70,7 @@ Shader "Hidden/VFX_0"
 					
 					float3 local_color = (float3)0;
 					
-					VFXBlockSetColorConstant( local_color,outputUniform0);
+					VFXBlockSetColorConstant( local_color,outputUniform0_kVFXCombine3fOp);
 					
 					float2 size = attrib2.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
@@ -107,7 +109,7 @@ Shader "Hidden/VFX_0"
 				ps_output o = (ps_output)0;
 				
 				float4 color = i.col;
-				color *= outputSampler0Texture.Sample(sampleroutputSampler0Texture,i.offsets);
+				color *= outputSampler0_kVFXValueOpTexture.Sample(sampleroutputSampler0_kVFXValueOpTexture,i.offsets);
 				
 				o.col = color;
 				return o;

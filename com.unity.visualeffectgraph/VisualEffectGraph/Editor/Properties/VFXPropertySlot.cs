@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.VFX
         void OnSlotEvent(VFXPropertySlot.Event type,VFXPropertySlot slot);
     }
 
-    public struct VFXNamedValue
+    public class VFXNamedValue
     {
         public VFXNamedValue(string name, VFXExpression value)
         {
@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.VFX
         }
 
         public VFXPropertySlot() {}
-
+        
         protected void Init<T>(VFXPropertySlot parent, VFXProperty desc) where T : VFXPropertySlot, new()
         {
             m_Desc = desc;

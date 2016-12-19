@@ -6,32 +6,32 @@
 
 #define NB_THREADS_PER_GROUP 200
 
-CBUFFER_START(GlobalInfo)
-	float deltaTime;
-	float totalTime;
-	uint nbMax;
-	uint systemSeed;
-CBUFFER_END
-
-CBUFFER_START(SpawnInfo)
+CBUFFER_START(initUniforms)
+	float3 initUniform0_kVFXTransformPosOp;
+	float initUniform2_kVFXValueOp;
+	
+	float3 initUniform1_kVFXTransformDirOp;
+	float initUniform3_kVFXValueOp;
+	
+	float initUniform4_kVFXValueOp;
+	float initUniform5_kVFXValueOp;
+	float initUniform6_kVFXValueOp;
+	float initUniform7_kVFXValueOp;
+	
+	float initUniform8_kVFXValueOp;
+	uint initUniform9_kVFXSystemSeedOp;
 	uint nbSpawned;
 	uint spawnIndex;
-CBUFFER_END
-
-CBUFFER_START(initUniforms)
-	float3 initUniform0;
-	float3 initUniform1;
-	float initUniform2;
-	float initUniform3;
-	float initUniform4;
-	float initUniform5;
-	float initUniform6;
-	float initUniform7;
-	float initUniform8;
+	
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float3 updateUniform0;
+	float3 updateUniform0_kVFXTransformVecOp;
+	float updateUniform1_kVFXDeltaTimeOp;
+	
+	uint nbMax;
+	uint3 updateUniforms_PADDING_0;
+
 CBUFFER_END
 
 struct Attribute0
@@ -87,19 +87,19 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockPositionCylinderSurface( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,inout uint seed)
+void VFXBlockPositionCylinderSurface( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,uint systemSeed,uint seed)
 {
 	float u1 = 1.0 * RAND - 0.5;
 	float u2 = UNITY_TWO_PI * RAND;
 	position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,inout uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,inout uint seed)
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,uint seed)
 {
 	float s = lerp(MinSize,MaxSize,RAND);
 	size = float2(s,s);
@@ -110,7 +110,7 @@ void VFXBlockApplyScaleRatio( inout float2 size,float Ratio)
 	size *= float2(1.0,Ratio);
 }
 
-void VFXBlockSetForceConstant( inout float3 velocity,float3 Force)
+void VFXBlockSetForceConstant( inout float3 velocity,float3 Force,float deltaTime)
 {
 	velocity += Force * deltaTime;
 }
@@ -130,7 +130,7 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ systemSeed;
+		uint seed = (id.x + spawnIndex) ^ initUniform9_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -138,10 +138,10 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockPositionCylinderSurface( attrib0.position,initUniform0,initUniform1,initUniform2,initUniform3,local_seed);
-		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform4,initUniform5,local_seed);
-		VFXBlockSizeRandomSquare( attrib2.size,initUniform6,initUniform7,local_seed);
-		VFXBlockApplyScaleRatio( attrib2.size,initUniform8);
+		VFXBlockPositionCylinderSurface( attrib0.position,initUniform0_kVFXTransformPosOp,initUniform1_kVFXTransformDirOp,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib2.size,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,initUniform9_kVFXSystemSeedOp,local_seed);
+		VFXBlockApplyScaleRatio( attrib2.size,initUniform8_kVFXValueOp);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
@@ -166,11 +166,11 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		Attribute3 attrib3 = attribBuffer3[index];
 		
 		
-		VFXBlockSetForceConstant( attrib3.velocity,updateUniform0);
+		VFXBlockSetForceConstant( attrib3.velocity,updateUniform0_kVFXTransformVecOp,updateUniform1_kVFXDeltaTimeOp);
 		
-		attrib0.position += attrib3.velocity * deltaTime;
+		attrib0.position += attrib3.velocity * updateUniform1_kVFXDeltaTimeOp;
 		
-		attrib0.age += deltaTime;
+		attrib0.age += updateUniform1_kVFXDeltaTimeOp;
 		if (attrib0.age >= attrib1.lifetime)
 			kill = true;
 		

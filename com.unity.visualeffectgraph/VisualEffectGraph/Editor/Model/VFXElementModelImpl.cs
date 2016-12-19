@@ -399,7 +399,7 @@ namespace UnityEditor.Experimental
                     {
                         // Needs to fill the dependencies
                         VFXExpression[] parents = expr.GetParents();
-                        int nbParents = parents.Length;
+                        int nbParents = parents == null ? 0 : parents.Length;
                         int[] parentIds = new int[4];
                         for (int i = 0; i < nbParents; ++i)
                             parentIds[i] = m_Expressions[parents[i]].index;
@@ -490,30 +490,29 @@ namespace UnityEditor.Experimental
                     if (rtData == null)
                         continue;
 
-                    foreach (var uniform in rtData.uniforms)
+                    for (int iPass = 0; iPass < (int)ShaderMetaData.Pass.kNum; ++iPass)
                     {
-                        int index = m_Expressions[uniform.Key].index;
-                        string name = uniform.Value;
-                        if (uniform.Key.ValueType == VFXValueType.kTexture2D || uniform.Key.ValueType == VFXValueType.kTexture3D)
-                            name += "Texture";
-                        if (uniform.Value.StartsWith("init"))
-                            asset.AddInitUniform(system.Id, name, index);
-                        else if (uniform.Value.StartsWith("update"))
-                            asset.AddUpdateUniform(system.Id, name, index);
-                        else if (uniform.Value.StartsWith("global"))
+                        var uniforms = rtData.uniforms[iPass];
+                        foreach (var uniform in uniforms)
                         {
-                            asset.AddInitUniform(system.Id, name, index);
-                            asset.AddUpdateUniform(system.Id, name, index);
-                        }
-                    }
+                            int index = m_Expressions[uniform.Key].index;
+                            string name = uniform.Value;
+                            if (uniform.Key.ValueType == VFXValueType.kTexture2D || uniform.Key.ValueType == VFXValueType.kTexture3D)
+                                name += "Texture";
 
-                    foreach (var uniform in rtData.outputUniforms)
-                    {
-                        int index = m_Expressions[uniform.Key].index;
-                        string name = uniform.Value;
-                        if (uniform.Key.ValueType == VFXValueType.kTexture2D || uniform.Key.ValueType == VFXValueType.kTexture3D)
-                            name += "Texture";
-                        asset.AddOutputUniform(system.Id, name, index);
+                            if (iPass == (int)ShaderMetaData.Pass.kInit)
+                            {
+                                asset.AddInitUniform(system.Id, name, index);
+                            }
+                            else if (iPass == (int)ShaderMetaData.Pass.kUpdate)
+                            {
+                                asset.AddUpdateUniform(system.Id, name, index);
+                            }
+                            else if (iPass == (int)ShaderMetaData.Pass.kOutput)
+                            {
+                                asset.AddOutputUniform(system.Id, name, index);
+                            }
+                        }
                     }
                 }
             }
