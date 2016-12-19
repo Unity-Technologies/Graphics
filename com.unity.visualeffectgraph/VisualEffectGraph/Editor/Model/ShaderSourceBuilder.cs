@@ -346,10 +346,8 @@ namespace UnityEditor.Experimental
             VFXBlockModel block,
             HashSet<string> functions,
             ShaderMetaData data,
-            bool output)
+            ShaderMetaData.Pass pass)
         {
-            Dictionary<VFXExpression, string> paramToName = output ? data.outputParamToName : data.paramToName;
-
             UnityEngine.Profiling.Profiler.BeginSample("WriteFunctionCall");
 
             Write(block.Desc.FunctionName);
@@ -357,8 +355,8 @@ namespace UnityEditor.Experimental
 
             WriteGenericFunctionInterface(block,
                                             data,
-                                            (arg) => WriteAttrib(arg, data, output),
-                                            (arg, inv, exp) => Write(paramToName[exp]),
+                                            (arg) => WriteAttrib(arg, data, pass),
+                                            (arg, inv, exp) => Write(data.paramToName[(int)pass][exp]),
                                             () => Write("kill"));
             WriteLine(");");
             UnityEngine.Profiling.Profiler.EndSample();
@@ -381,28 +379,23 @@ namespace UnityEditor.Experimental
             Write(op);
             Write("= (");
             WriteAttrib(CommonAttrib.Phase, data);
-            Write(string.Format(" * {0}) * ", data.outputParamToName[CommonBuiltIn.DeltaTime]));
+            Write(string.Format(" * {0}) * ", data.paramToName[(int)ShaderMetaData.Pass.kOutput][CommonBuiltIn.DeltaTime]));
             WriteAttrib(CommonAttrib.Velocity, data);
             WriteLine(";");
         }
 
-        public void WriteAttrib(VFXAttribute attrib, ShaderMetaData data, bool output = false)
-        {
-            Write(GenerateAttrib(attrib, data, output));
-        }
-
-        public string GenerateAttrib(VFXAttribute attrib, ShaderMetaData data, bool output = false)
+        public void WriteAttrib(VFXAttribute attrib, ShaderMetaData data, ShaderMetaData.Pass pass = ShaderMetaData.Pass.kInit)
         {
             AttributeBuffer buffer;
             if (data.attribToBuffer.TryGetValue(attrib,out buffer))
             {
-                if (output && data.outputBuffer != null)
-                    return string.Format("outputData.{0}", attrib.m_Name);
+                if (pass == ShaderMetaData.Pass.kOutput && data.outputBuffer != null)
+                    WriteFormat("outputData.{0}", attrib.m_Name);
                 else
-                    return string.Format("attrib{0}.{1}", buffer.Index, attrib.m_Name);
+                    WriteFormat("attrib{0}.{1}", buffer.Index, attrib.m_Name);
             }
-            else // local attribute (dont even check if it is in the localAttrib dictionary but we should for consistency)
-                return string.Format("local_{0}", attrib.m_Name);
+            else // local attribute (don't even check if it is in the localAttrib dictionary but we should for consistency)
+                WriteFormat("local_{0}", attrib.m_Name);
         }
 
         public void WriteLocalAttribDeclaration(ShaderMetaData data,VFXContextDesc.Type context)

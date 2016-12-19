@@ -21,10 +21,10 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data, ShaderMetaData.Pass passIgnored)
         {
             builder.Write("float3 worldPos = ");
-            builder.WriteAttrib(CommonAttrib.Position, data, true);
+            builder.WriteAttrib(CommonAttrib.Position, data, ShaderMetaData.Pass.kOutput);
             builder.WriteLine(";");
             builder.WriteLineFormat("o.pos = mul({0}, float4(worldPos,1.0f));", (data.system.WorldSpace ? "UNITY_MATRIX_VP" : "UNITY_MATRIX_MVP"));
         }
@@ -152,7 +152,7 @@ namespace UnityEditor.Experimental
         {
             builder.WriteLine("float2 sincosA;");
             builder.Write("sincos(radians(");
-            builder.WriteAttrib(CommonAttrib.Angle, data, true);
+            builder.WriteAttrib(CommonAttrib.Angle, data, ShaderMetaData.Pass.kOutput);
             builder.Write("), sincosA.x, sincosA.y);");
             builder.WriteLine();
             builder.WriteLine("const float c = sincosA.y;");
@@ -168,14 +168,14 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
         }
 
-        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data, ShaderMetaData.Pass passIgnored)
         {
             const bool CLAMP_SIZE = false; // false atm
 
             if (m_HasSize)
             {
                 builder.Write("float2 size = ");
-                builder.WriteAttrib(CommonAttrib.Size, data, true);
+                builder.WriteAttrib(CommonAttrib.Size, data, ShaderMetaData.Pass.kOutput);
                 builder.WriteLine(" * 0.5f;");
             }
             else
@@ -186,7 +186,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
 
             builder.Write("float3 position = ");
-            builder.WriteAttrib(CommonAttrib.Position, data, true);
+            builder.WriteAttrib(CommonAttrib.Position, data, ShaderMetaData.Pass.kOutput);
             builder.WriteLine(";");
             builder.WriteLine();
 
@@ -212,7 +212,7 @@ namespace UnityEditor.Experimental
             if (m_HasPivot)
             {
                 builder.Write("float2 posOffsets = o.offsets.xy - ");
-                builder.WriteAttrib(CommonAttrib.Pivot, data, true);
+                builder.WriteAttrib(CommonAttrib.Pivot, data, ShaderMetaData.Pass.kOutput);
                 builder.WriteLine(".xy;");
                 builder.WriteLine();
             }
@@ -232,7 +232,7 @@ namespace UnityEditor.Experimental
 
                     builder.WriteLine("float3 front = cameraPos - position;");
                     builder.Write("float3 up = normalize(");
-                    builder.WriteAttrib(CommonAttrib.Velocity, data, true);
+                    builder.WriteAttrib(CommonAttrib.Velocity, data, ShaderMetaData.Pass.kOutput);
                     builder.WriteLine(");");
                     builder.WriteLine("float3 side = normalize(cross(front,up));");
 
@@ -262,7 +262,7 @@ namespace UnityEditor.Experimental
 
                     builder.WriteLine("float3 front = cameraPos - position;");
                     builder.Write("float3 up = normalize(");
-                    builder.Write(data.outputParamToName[m_Values[FirstLockedAxisIndex]]);
+                    builder.Write(data.paramToName[(int)ShaderMetaData.Pass.kOutput][m_Values[FirstLockedAxisIndex]]);
                     builder.WriteLine(");");
                     builder.WriteLine("float3 side = normalize(cross(front,up));");
 
@@ -273,10 +273,10 @@ namespace UnityEditor.Experimental
                 case OrientMode.kFixed:
 
                     builder.Write("float3 front = ");
-                    builder.Write(data.outputParamToName[m_Values[SecondLockedAxisIndex]]);
+                    builder.Write(data.paramToName[(int)ShaderMetaData.Pass.kOutput][m_Values[SecondLockedAxisIndex]]);
                     builder.Write(";");
                     builder.Write("float3 up = normalize(");
-                    builder.Write(data.outputParamToName[m_Values[FirstLockedAxisIndex]]);
+                    builder.Write(data.paramToName[(int)ShaderMetaData.Pass.kOutput][m_Values[FirstLockedAxisIndex]]);
                     builder.WriteLine(");");
                     builder.WriteLine("float3 side = normalize(cross(front,up));");
 
@@ -290,7 +290,7 @@ namespace UnityEditor.Experimental
                     {          
                         builder.Write("float3 front = ");
                         if (m_HasFront)
-                            builder.WriteAttrib(CommonAttrib.Front, data, true);
+                            builder.WriteAttrib(CommonAttrib.Front, data, ShaderMetaData.Pass.kOutput);
                         else
                             builder.Write("float3(0.0f,0.0f,1.0f)");
                         builder.WriteLine(";");
@@ -298,14 +298,14 @@ namespace UnityEditor.Experimental
                     
                     builder.Write("float3 side = ");
                     if (m_HasSide)
-                        builder.WriteAttrib(CommonAttrib.Side, data, true);
+                        builder.WriteAttrib(CommonAttrib.Side, data, ShaderMetaData.Pass.kOutput);
                     else
                         builder.Write("float3(1.0f,0.0f,0.0f)");
                     builder.WriteLine(";");
 
                     builder.Write("float3 up = ");
                     if (m_HasUp)
-                        builder.WriteAttrib(CommonAttrib.Up, data, true);
+                        builder.WriteAttrib(CommonAttrib.Up, data, ShaderMetaData.Pass.kOutput);
                     else
                         builder.Write("float3(0.0f,1.0f,0.0f)");
                     builder.WriteLine(";");
@@ -332,7 +332,7 @@ namespace UnityEditor.Experimental
             if (m_HasPivot)
             {
                 builder.Write("position -= front * ");
-                builder.WriteAttrib(CommonAttrib.Pivot, data, true);
+                builder.WriteAttrib(CommonAttrib.Pivot, data, ShaderMetaData.Pass.kOutput);
                 builder.WriteLine(".z;");
             }
 
@@ -342,7 +342,7 @@ namespace UnityEditor.Experimental
                 if (m_HasFlipBook)
                 {
                     builder.Write("o.flipbookIndex = ");
-                    builder.WriteAttrib(CommonAttrib.TexIndex, data, true);
+                    builder.WriteAttrib(CommonAttrib.TexIndex, data, ShaderMetaData.Pass.kOutput);
                     builder.WriteLine(";");
                 }
             }
@@ -369,7 +369,7 @@ namespace UnityEditor.Experimental
 
         private static void WriteTex2DFetch(ShaderSourceBuilder builder, ShaderMetaData data, VFXValue texture, string uv, bool endLine)
         {
-            builder.WriteFormat("{0}Texture.Sample(sampler{0}Texture,{1})",data.outputParamToName[texture],uv);
+            builder.WriteFormat("{0}Texture.Sample(sampler{0}Texture,{1})",data.paramToName[(int)ShaderMetaData.Pass.kOutput][texture],uv);
             if (endLine)
                 builder.WriteLine(";");
         }
@@ -386,7 +386,7 @@ namespace UnityEditor.Experimental
             else if (m_HasFlipBook)
             {
                 builder.Write("float2 dim = ");
-                builder.Write(data.outputParamToName[m_Values[FlipbookDimIndex]]);
+                builder.Write(data.paramToName[(int)ShaderMetaData.Pass.kOutput][m_Values[FlipbookDimIndex]]);
                 builder.WriteLine(";");
                 builder.WriteLine("float2 invDim = 1.0 / dim; // TODO InvDim should be computed on CPU");
 
@@ -438,7 +438,7 @@ namespace UnityEditor.Experimental
                     builder.WriteLine();
 
                     builder.Write("float morphIntensity = ");
-                    builder.Write(data.outputParamToName[m_Values[MorphIntensityIndex]]);
+                    builder.Write(data.paramToName[(int)ShaderMetaData.Pass.kOutput][m_Values[MorphIntensityIndex]]);
                     builder.WriteLine(";");
                     builder.WriteLine("duv1 *= morphIntensity * ratio;");
                     builder.WriteLine("duv2 *= morphIntensity * (ratio - 1.0);");
@@ -546,12 +546,12 @@ namespace UnityEditor.Experimental
 
         public override bool CanUseDeferred() { return true; }
 
-        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data, ShaderMetaData.Pass passIgnored)
         {
             if (m_HasSize)
             {
                 builder.Write("float2 size = ");
-                builder.WriteAttrib(CommonAttrib.Size, data, true);
+                builder.WriteAttrib(CommonAttrib.Size, data, ShaderMetaData.Pass.kOutput);
                 builder.WriteLine(" * 0.5f;");
             }
             else
@@ -562,7 +562,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
 
             builder.Write("float3 position = ");
-            builder.WriteAttrib(CommonAttrib.Position, data, true);
+            builder.WriteAttrib(CommonAttrib.Position, data, ShaderMetaData.Pass.kOutput);
             builder.WriteLine(";");
             builder.WriteLine();
 
@@ -603,7 +603,7 @@ namespace UnityEditor.Experimental
 
             builder.WriteLine("float3 specColor = (float3)0;");
             builder.WriteLine("float oneMinusReflectivity = 0;");
-            builder.WriteLineFormat("float metalness = saturate({0});", data.outputParamToName[m_Values[MetallicSlot]]);
+            builder.WriteLineFormat("float metalness = saturate({0});", data.paramToName[(int)ShaderMetaData.Pass.kOutput][m_Values[MetallicSlot]]);
             builder.WriteLine("color.rgb = DiffuseAndSpecularFromMetallic(color.rgb,metalness,specColor,oneMinusReflectivity);");
 
             builder.WriteLine("color.a = 0.0f;"); // occlusion
@@ -611,7 +611,7 @@ namespace UnityEditor.Experimental
             //builder.WriteLine("float3 normal = float3(i.offsets.x,i.offsets.y,nDepthOffset - 1.0f);");
             builder.WriteLine("float3 normal = normalize(viewPos - i.viewCenterPos) * float3(1,1,-1);");
             //builder.WriteLine("color.xyz = mul(unity_CameraToWorld, float4(normal,0.0f)).xyz * 0.5f + 0.5f;");
-            builder.WriteLineFormat("o.spec_smoothness = float4(specColor,{0});",data.outputParamToName[m_Values[SmoothnessSlot]]);
+            builder.WriteLineFormat("o.spec_smoothness = float4(specColor,{0});",data.paramToName[(int)ShaderMetaData.Pass.kOutput][m_Values[SmoothnessSlot]]);
             builder.WriteLine("o.normal = mul(unity_CameraToWorld, float4(normal,0.0f)) * 0.5f + 0.5f;"); // -float4(normal,0.0f) * 0.5f + 0.5f;//
             //builder.WriteLine("color = (float4)0.0f;"); // occlusion
 
