@@ -309,7 +309,7 @@ namespace UnityEditor.Experimental
                     builder.WriteAttrib(CommonAttrib.Angle, data);
                     builder.Write(" += ");
                     builder.WriteAttrib(CommonAttrib.AngularVelocity, data);
-                    builder.WriteLine(" * deltaTime;");
+                    builder.WriteLine(string.Format(" * {0};", data.paramToName[(int)ShaderMetaData.Pass.kUpdate][CommonBuiltIn.DeltaTime]));
                     builder.WriteLine();
                 }
 
@@ -318,15 +318,15 @@ namespace UnityEditor.Experimental
                     builder.WriteAttrib(CommonAttrib.Position,data);
                     builder.Write(" += ");
                     builder.WriteAttrib(CommonAttrib.Velocity,data);
-                    builder.WriteLine(" * deltaTime;");
+                    builder.WriteLine(string.Format(" * {0};", data.paramToName[(int)ShaderMetaData.Pass.kUpdate][CommonBuiltIn.DeltaTime]));
                     builder.WriteLine();
                 }
 
                 if (m_NeedsAging)
                 {
                     builder.WriteAttrib(CommonAttrib.Age, data);
-                    builder.WriteLine(" += deltaTime;");
-                    
+                    builder.WriteLine(string.Format(" += {0};", data.paramToName[(int)ShaderMetaData.Pass.kUpdate][CommonBuiltIn.DeltaTime]));
+
                     if (m_NeedsReaping)
                     {
                         builder.Write("if (");
@@ -337,6 +337,14 @@ namespace UnityEditor.Experimental
                         builder.WriteLine("\tkill = true;");
                         builder.WriteLine();
                     }
+                }
+            }
+
+            public override void UpdateUniforms(HashSet<VFXExpression> uniforms, ref VFXBlockDesc.Flag flags)
+            {
+                if (m_NeedsAngularIntegration || m_NeedsIntegration || m_NeedsAging)
+                {
+                    flags |= VFXBlockDesc.Flag.kNeedsDeltaTime;
                 }
             }
 
