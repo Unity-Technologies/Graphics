@@ -35,6 +35,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         public Light                    sunLight;
         public RenderTargetIdentifier   colorBuffer;
         public RenderTargetIdentifier   depthBuffer;
+        public bool                     depthBufferIsValid;
     }
 
     public class SkyManager
@@ -163,7 +164,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
 
                 m_UpdateRequired = true; // Special case. Even if update mode is set to OnDemand, we need to regenerate the environment after destroying the texture.
             }
-            
+
             if (m_SkyboxCubemapRT == null)
             {
                 m_SkyboxCubemapRT = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.ARGBHalf);
@@ -273,7 +274,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 builtinParams.screenSize = m_CubemapScreenSize;
                 builtinParams.skyMesh = m_CubemapFaceMesh[i];
                 builtinParams.colorBuffer = target;
-                builtinParams.depthBuffer = new RenderTargetIdentifier();
+                builtinParams.depthBuffer = -1;
+                builtinParams.depthBufferIsValid = false;
                 m_Renderer.RenderSky(builtinParams, skyParameters);
             }
         }
@@ -433,6 +435,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix, false);
                     m_BuiltinParameters.colorBuffer = colorBuffer;
                     m_BuiltinParameters.depthBuffer = depthBuffer;
+                    m_BuiltinParameters.depthBufferIsValid = true;
 
                     Utilities.SetRenderTarget(renderLoop, colorBuffer, depthBuffer);
                     m_Renderer.RenderSky(m_BuiltinParameters, skyParameters);

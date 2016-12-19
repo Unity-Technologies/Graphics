@@ -6,7 +6,7 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
         {
             ZWrite Off
             ZTest LEqual
-            Blend One Zero
+            Blend One OneMinusSrcAlpha
 
             HLSLPROGRAM
             #pragma target 5.0
@@ -16,7 +16,6 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
             #pragma fragment Frag
 
             #pragma multi_compile _ ATMOSPHERICS_DEBUG
-            #pragma multi_compile _ ATMOSPHERICS_OCCLUSION_FULLSKY
             #pragma multi_compile _ PERFORM_SKY_OCCLUSION_TEST
 
             #ifndef PERFORM_SKY_OCCLUSION_TEST
@@ -70,7 +69,7 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
 
                // input.positionCS is SV_Position
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
-  
+
                 // If the sky box is too far away (depth set to 0), the resulting look is too foggy.
                 const float skyDepth = 0.01;
 
@@ -111,10 +110,11 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
                     }
                 #endif
 
-                float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
+                float3 skyColor = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y;
+                float3 atmosphereColor = skyColor * (skyTexWeight * extinction) + scatter;
 
-                // Apply extinction to the scene color when performing alpha-blending.
-                return float4(skyColor * (skyTexWeight * extinction) + scatter, extinction);
+                // Apply the atmosphere on top of the scene using premultiplied alpha blending.
+                return float4(ClampToFloat16Max(atmosphereColor), extinction);
             }
 
             ENDHLSL

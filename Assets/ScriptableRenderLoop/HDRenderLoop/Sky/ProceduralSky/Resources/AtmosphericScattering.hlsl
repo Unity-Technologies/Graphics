@@ -16,6 +16,7 @@ uniform float3      _SunDirection;
 uniform float       _ShadowBias;
 uniform float       _ShadowBiasIndirect;
 uniform float       _ShadowBiasClouds;
+uniform float2      _ShadowBiasSkyRayleighMie;
 uniform float       _OcclusionDepthThreshold;
 uniform float4      _OcclusionTexture_TexelSize;
 
@@ -46,20 +47,14 @@ uniform float       _HeightMieDensity;
 uniform float       _HeightSeaLevel;
 uniform float3      _HeightPlaneShift;
 uniform float       _HeightDistanceRcp;
-
-uniform float       _RayleighCoeffScale;
-uniform float3      _RayleighSunTintIntensity;
-uniform float2      _RayleighInScatterPct;
-
-uniform float       _MieCoeffScale;
-uniform float3      _MieSunTintIntensity;
-uniform float       _MiePhaseAnisotropy;
-
-uniform float       _HeightExtinctionFactor;
-uniform float       _RayleighExtinctionFactor;
-uniform float       _MieExtinctionFactor;
-
 uniform float4      _HeightRayleighColor;
+uniform float       _HeightExtinctionFactor;
+
+uniform float2      _RayleighInScatterPct;
+uniform float       _RayleighExtinctionFactor;
+
+uniform float       _MiePhaseAnisotropy;
+uniform float       _MieExtinctionFactor;
 
 SAMPLER2D(sampler_CameraDepthTexture)
 #define SRL_BilinearSampler sampler_CameraDepthTexture // Used for all textures
