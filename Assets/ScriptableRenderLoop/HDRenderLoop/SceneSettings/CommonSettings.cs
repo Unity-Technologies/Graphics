@@ -12,14 +12,25 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     public class CommonSettings 
         : MonoBehaviour
     {
-        [SerializeField]
-        private string m_SkyRendererTypeName = "";
+        [SerializeField] private string     m_SkyRendererTypeName = ""; // Serialize a string because serialize a Type.
+
+        [SerializeField] float              m_ShadowMaxDistance = ShadowSettings.Default.maxShadowDistance;
+        [SerializeField] int                m_ShadowCascadeCount = ShadowSettings.Default.directionalLightCascadeCount;
+        [SerializeField] float              m_ShadowCascadeSplit0 = ShadowSettings.Default.directionalLightCascades.x;
+        [SerializeField] float              m_ShadowCascadeSplit1 = ShadowSettings.Default.directionalLightCascades.y;
+        [SerializeField] float              m_ShadowCascadeSplit2 = ShadowSettings.Default.directionalLightCascades.z;
+
         public Type skyRendererType
         {
             set { m_SkyRendererTypeName = value != null ? value.FullName : ""; OnSkyRendererChanged(); }
             get { return m_SkyRendererTypeName == "" ? null : Assembly.GetAssembly(typeof(CommonSettings)).GetType(m_SkyRendererTypeName); }
         }
 
+        public float shadowMaxDistance { set { m_ShadowMaxDistance = value; OnValidate(); } get { return m_ShadowMaxDistance; } }
+        public int shadowCascadeCount { set { m_ShadowCascadeCount = value; OnValidate(); } get { return m_ShadowCascadeCount; } }
+        public float shadowCascadeSplit0 { set { m_ShadowCascadeSplit0 = value; OnValidate(); } get { return m_ShadowCascadeSplit0; } }
+        public float shadowCascadeSplit1 { set { m_ShadowCascadeSplit1 = value; OnValidate(); } get { return m_ShadowCascadeSplit1; } }
+        public float shadowCascadeSplit2 { set { m_ShadowCascadeSplit2 = value; OnValidate(); } get { return m_ShadowCascadeSplit2; } }
 
         void OnEnable()
         {
@@ -29,11 +40,33 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                 return;
             }
 
+            if (renderLoop.commonSettings == null)
+                renderLoop.commonSettings = this;
+            else if (renderLoop.commonSettings != this)
+                Debug.LogWarning("Only one CommonSettings can be setup at a time.");
+
             OnSkyRendererChanged();
         }
 
         void OnDisable()
         {
+            HDRenderLoop renderLoop = Utilities.GetHDRenderLoop();
+            if (renderLoop == null)
+            {
+                return;
+            }
+
+            if (renderLoop.commonSettings == this)
+                renderLoop.commonSettings = null;
+        }
+
+        void OnValidate()
+        {
+            m_ShadowMaxDistance = Mathf.Max(0.0f, m_ShadowMaxDistance);
+            m_ShadowCascadeCount = Math.Min(4, Math.Max(1, m_ShadowCascadeCount));
+            m_ShadowCascadeSplit0 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit0));
+            m_ShadowCascadeSplit1 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit1));
+            m_ShadowCascadeSplit2 = Mathf.Min(1.0f, Mathf.Max(0.0f, m_ShadowCascadeSplit2));
         }
 
         void OnSkyRendererChanged()
