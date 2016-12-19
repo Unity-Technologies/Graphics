@@ -38,6 +38,16 @@ namespace UnityEngine.MaterialGraph
             get { return PreviewMode.Preview2D; }
         }
 
+        public virtual bool allowedInSubGraph
+        {
+            get { return true; }
+        }
+
+        public virtual bool allowedInRemapGraph
+        {
+            get { return true; }
+        }
+
         protected virtual bool generateDefaultInputs
         {
             get { return true; }

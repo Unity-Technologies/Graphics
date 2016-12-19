@@ -35,36 +35,33 @@ namespace UnityEngine.MaterialGraph
         public abstract string GetSurfaceOutputName();
         public abstract string GetLightFunction();
 
-        public override string GetShader(
-            GenerationMode mode,
-            out List<PropertyGenerator.TextureInfo> configuredTextures)
+        public override string GetSubShader(GenerationMode mode, PropertyGenerator shaderPropertiesVisitor)
         {
-            var templateLocation = ShaderGenerator.GetTemplatePath("shader.template");
+            var templateLocation = ShaderGenerator.GetTemplatePath("subshader.template");
 
             if (!File.Exists(templateLocation))
-            {
-                configuredTextures = new List<PropertyGenerator.TextureInfo>();
                 return string.Empty;
-            }
+
+            var activeNodeList = new List<INode>();
+            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
+            foreach (var node in activeNodeList.OfType<AbstractMaterialNode>())
+                node.GeneratePropertyBlock(shaderPropertiesVisitor, mode);
 
             var templateText = File.ReadAllText(templateLocation);
-
             var shaderBodyVisitor = new ShaderGenerator();
             var shaderFunctionVisitor = new ShaderGenerator();
-            var shaderPropertiesVisitor = new PropertyGenerator();
             var shaderPropertyUsagesVisitor = new ShaderGenerator();
             var shaderInputVisitor = new ShaderGenerator();
             var vertexShaderBlock = new ShaderGenerator();
 
             GenerateSurfaceShaderInternal(
+                shaderPropertyUsagesVisitor,
                 shaderBodyVisitor,
                 shaderFunctionVisitor,
                 shaderInputVisitor,
                 vertexShaderBlock,
-                shaderPropertiesVisitor,
-                shaderPropertyUsagesVisitor,
                 mode);
-            
+
             var tagsVisitor = new ShaderGenerator();
             var blendingVisitor = new ShaderGenerator();
             var cullingVisitor = new ShaderGenerator();
@@ -77,9 +74,7 @@ namespace UnityEngine.MaterialGraph
             m_MaterialOptions.GetDepthTest(zTestVisitor);
             m_MaterialOptions.GetDepthWrite(zWriteVisitor);
 
-            var resultShader = templateText.Replace("${ShaderName}", GetType() + guid.ToString());
-            resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
-            resultShader = resultShader.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(2));
+            var resultShader = templateText.Replace("${ShaderPropertyUsages}", shaderPropertyUsagesVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${LightingFunctionName}", GetLightFunction());
             resultShader = resultShader.Replace("${SurfaceOutputStructureName}", GetSurfaceOutputName());
             resultShader = resultShader.Replace("${ShaderFunctions}", shaderFunctionVisitor.GetShaderString(2));
@@ -90,23 +85,42 @@ namespace UnityEngine.MaterialGraph
             resultShader = resultShader.Replace("${Culling}", cullingVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
             resultShader = resultShader.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
+            resultShader = resultShader.Replace("${LOD}", ""+m_MaterialOptions.lod);
 
             resultShader = resultShader.Replace("${VertexShaderDecl}", "vertex:vert");
             resultShader = resultShader.Replace("${VertexShaderBody}", vertexShaderBlock.GetShaderString(3));
 
+            return resultShader;
+        }
+
+        public override string GetFullShader(
+            GenerationMode mode,
+            out List<PropertyGenerator.TextureInfo> configuredTextures)
+        {
+            var templateLocation = ShaderGenerator.GetTemplatePath("shader.template");
+
+            if (!File.Exists(templateLocation))
+            {
+                configuredTextures = new List<PropertyGenerator.TextureInfo>();
+                return string.Empty;
+            }
+
+            var templateText = File.ReadAllText(templateLocation);
+            
+            var shaderPropertiesVisitor = new PropertyGenerator();
+            var resultShader = templateText.Replace("${ShaderName}", GetType() + guid.ToString());
+            resultShader = resultShader.Replace("${SubShader}", GetSubShader(mode, shaderPropertiesVisitor));
+            resultShader = resultShader.Replace("${ShaderPropertiesHeader}", shaderPropertiesVisitor.GetShaderString(2));
             configuredTextures = shaderPropertiesVisitor.GetConfiguredTexutres();
-
             return Regex.Replace(resultShader, @"\r\n|\n\r|\n|\r", Environment.NewLine);
-
         }
 
         private void GenerateSurfaceShaderInternal(
+           ShaderGenerator propertyUsages,
            ShaderGenerator shaderBody,
            ShaderGenerator nodeFunction,
            ShaderGenerator shaderInputVisitor,
            ShaderGenerator vertexShaderBlock,
-           PropertyGenerator shaderProperties,
-           ShaderGenerator propertyUsages,
            GenerationMode mode)
         {
             var activeNodeList = new List<INode>();
@@ -116,8 +130,7 @@ namespace UnityEngine.MaterialGraph
             {
                 if (node is IGeneratesFunction)
                     (node as IGeneratesFunction).GenerateNodeFunction(nodeFunction, mode);
-                
-                node.GeneratePropertyBlock(shaderProperties, mode);
+
                 node.GeneratePropertyUsages(propertyUsages, mode);
             }
 
@@ -183,7 +196,6 @@ namespace UnityEngine.MaterialGraph
                 shaderBody.AddShaderChunk("float4 " + ShaderGeneratorNames.VertexColor + " = IN.color;", true);
             }
 
-
             GenerateNodeCode(shaderBody, mode);
         }
 
@@ -192,7 +204,7 @@ namespace UnityEngine.MaterialGraph
             var nodes = ListPool<INode>.Get();
             
             //Get the rest of the nodes for all the other slots
-            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, null, NodeUtils.IncludeSelf.Exclude);
+            NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Exclude);
             for (var i = 0; i < nodes.Count; i++)
             {
                 var node = nodes[i];
@@ -210,7 +222,14 @@ namespace UnityEngine.MaterialGraph
                     if (fromNode == null)
                         continue;
 
+                    var remapper = fromNode as INodeGroupRemapper;
+                    if (remapper != null && !remapper.IsValidSlotConnection(outputRef.slotId))
+                        continue;
+
                     shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " = " + fromNode.GetVariableNameForSlot(outputRef.slotId) + ";", true);
+
+                    if (slot.id == NormalSlotId)
+                        shaderBody.AddShaderChunk("o." + slot.shaderOutputName + " += 1e-6;", true);
                 }
             }
         }

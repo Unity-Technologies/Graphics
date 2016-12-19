@@ -115,14 +115,14 @@ namespace UnityEditor.MaterialGraph.Drawing
         protected virtual string GetPreviewShaderString()
         {
             // TODO: this is a workaround right now.
-            if (m_Node is AbstractMasterNode)
+            if (m_Node is IMasterNode)
             {
-                var localNode = (AbstractMasterNode)m_Node;
+                var localNode = (IMasterNode)m_Node;
                 if (localNode == null)
                     return string.Empty;
                 
                 List<PropertyGenerator.TextureInfo> defaultTextures;
-                var resultShader =  ((AbstractMasterNode) m_Node).GetShader(GenerationMode.Preview, out defaultTextures);
+                var resultShader =  ((IMasterNode) m_Node).GetFullShader(GenerationMode.Preview, out defaultTextures);
                 m_GeneratedShaderMode = PreviewMode.Preview3D;
                 return resultShader;
             }

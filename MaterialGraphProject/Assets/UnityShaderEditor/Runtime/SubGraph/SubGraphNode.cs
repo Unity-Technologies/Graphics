@@ -58,6 +58,7 @@ namespace UnityEngine.MaterialGraph
                     onModified(this, ModificationScope.Graph);
             }
         }
+        
         /*
        // SAVED FOR LATER
         if (serializedVersion<kCurrentSerializedVersion)
