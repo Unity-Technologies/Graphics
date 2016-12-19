@@ -64,11 +64,10 @@ namespace UnityEditor.Experimental
             simulationShader = computeShader;
             outputShader = shader;
 
-            // FindKernel throws instead of setting value to -1
-            try { initKernel = simulationShader.FindKernel("CSVFXInit"); }
-            catch(Exception) { initKernel = -1; }
-            try { updateKernel = simulationShader.FindKernel("CSVFXUpdate"); }
-            catch(Exception) { updateKernel = -1; }
+            var CSVFXInit = "CSVFXInit";
+            var CSVFXUpdate = "CSVFXUpdate";
+            initKernel = simulationShader.HasKernel(CSVFXInit) ? simulationShader.FindKernel(CSVFXInit) : - 1;
+            updateKernel = simulationShader.HasKernel(CSVFXUpdate) ? simulationShader.FindKernel(CSVFXUpdate) : - 1;
         }
     }
 
@@ -1084,7 +1083,7 @@ namespace UnityEditor.Experimental
                     builder.WriteFunctionCall(block, functionNames, data, ShaderMetaData.Pass.kInit);
                 builder.WriteLine();
 
-                initGenerator.WritePostBlock(builder, data, ShaderMetaData.Pass.kInit);
+                initGenerator.WritePostBlock(builder, data);
 
                 // Remove phase shift
                 if (HasPhaseShift)
@@ -1184,7 +1183,7 @@ namespace UnityEditor.Experimental
                     builder.WriteFunctionCall(block, functionNames, data, ShaderMetaData.Pass.kUpdate);
                 builder.WriteLine(); 
 
-                updateGenerator.WritePostBlock(builder, data, ShaderMetaData.Pass.kUpdate);
+                updateGenerator.WritePostBlock(builder, data);
 
                 // Remove phase shift
                 if (HasPhaseShift)
@@ -1479,7 +1478,7 @@ namespace UnityEditor.Experimental
                 builder.WriteFunctionCall(block, functionNames, data, ShaderMetaData.Pass.kOutput);
             builder.WriteLine();
 
-            outputGenerator.WritePostBlock(builder, data, ShaderMetaData.Pass.kOutput);
+            outputGenerator.WritePostBlock(builder, data);
 
             // Soft particles
             if (system.HasSoftParticles())

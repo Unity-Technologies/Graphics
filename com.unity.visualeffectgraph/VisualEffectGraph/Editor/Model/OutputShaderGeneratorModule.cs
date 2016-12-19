@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental
             return true;
         }
 
-        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data, ShaderMetaData.Pass passIgnored)
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             builder.Write("float3 worldPos = ");
             builder.WriteAttrib(CommonAttrib.Position, data, ShaderMetaData.Pass.kOutput);
@@ -168,7 +168,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine();
         }
 
-        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data, ShaderMetaData.Pass passIgnored)
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             const bool CLAMP_SIZE = false; // false atm
 
@@ -546,7 +546,7 @@ namespace UnityEditor.Experimental
 
         public override bool CanUseDeferred() { return true; }
 
-        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data, ShaderMetaData.Pass passIgnored)
+        public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
         {
             if (m_HasSize)
             {

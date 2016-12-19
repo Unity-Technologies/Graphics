@@ -302,14 +302,14 @@ namespace UnityEditor.Experimental
                 return true;
             }
 
-            public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data, ShaderMetaData.Pass pass)
+            public override void WritePostBlock(ShaderSourceBuilder builder, ShaderMetaData data)
             {
                 if (m_NeedsAngularIntegration)
                 {
                     builder.WriteAttrib(CommonAttrib.Angle, data);
                     builder.Write(" += ");
                     builder.WriteAttrib(CommonAttrib.AngularVelocity, data);
-                    builder.WriteLine(string.Format(" * {0};", data.paramToName[(int)pass][CommonBuiltIn.DeltaTime]));
+                    builder.WriteLine(string.Format(" * {0};", data.paramToName[(int)ShaderMetaData.Pass.kUpdate][CommonBuiltIn.DeltaTime]));
                     builder.WriteLine();
                 }
 
@@ -318,14 +318,14 @@ namespace UnityEditor.Experimental
                     builder.WriteAttrib(CommonAttrib.Position,data);
                     builder.Write(" += ");
                     builder.WriteAttrib(CommonAttrib.Velocity,data);
-                    builder.WriteLine(string.Format(" * {0};", data.paramToName[(int)pass][CommonBuiltIn.DeltaTime]));
+                    builder.WriteLine(string.Format(" * {0};", data.paramToName[(int)ShaderMetaData.Pass.kUpdate][CommonBuiltIn.DeltaTime]));
                     builder.WriteLine();
                 }
 
                 if (m_NeedsAging)
                 {
                     builder.WriteAttrib(CommonAttrib.Age, data);
-                    builder.WriteLine(string.Format(" += {0};", data.paramToName[(int)pass][CommonBuiltIn.DeltaTime]));
+                    builder.WriteLine(string.Format(" += {0};", data.paramToName[(int)ShaderMetaData.Pass.kUpdate][CommonBuiltIn.DeltaTime]));
 
                     if (m_NeedsReaping)
                     {
