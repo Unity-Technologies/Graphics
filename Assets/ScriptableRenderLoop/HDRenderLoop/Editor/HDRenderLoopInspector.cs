@@ -32,12 +32,6 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             public readonly GUIContent shadowsAtlasWidth = new GUIContent("Atlas width");
             public readonly GUIContent shadowsAtlasHeight = new GUIContent("Atlas height");
 
-            public readonly GUIContent shadowsMaxShadowDistance = new GUIContent("Maximum shadow distance");
-            public readonly GUIContent shadowsDirectionalLightCascadeCount = new GUIContent("Directional cascade count");
-            public readonly GUIContent[] shadowsCascadeCounts = new GUIContent[] { new GUIContent("1"), new GUIContent("2"), new GUIContent("3"), new GUIContent("4") };
-            public readonly int[] shadowsCascadeCountValues = new int[] { 1, 2, 3, 4 };
-            public readonly GUIContent shadowsCascades = new GUIContent("Cascade values");
-
             public readonly GUIContent tileLightLoopSettings = new GUIContent("Tile Light Loop Settings");
             public readonly string[] tileLightLoopDebugTileFlagStrings = new string[] { "Punctual Light", "Area Light", "Env Light"};
             public readonly GUIContent splitLightEvaluation = new GUIContent("Split light and reflection evaluation", "Toggle");
@@ -204,15 +198,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             shadowParameters.enabled = EditorGUILayout.Toggle(styles.shadowsEnabled, shadowParameters.enabled);
             shadowParameters.shadowAtlasWidth = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasWidth, shadowParameters.shadowAtlasWidth));
             shadowParameters.shadowAtlasHeight = Mathf.Max(0, EditorGUILayout.IntField(styles.shadowsAtlasHeight, shadowParameters.shadowAtlasHeight));
-            shadowParameters.maxShadowDistance = Mathf.Max(0, EditorGUILayout.FloatField(styles.shadowsMaxShadowDistance, shadowParameters.maxShadowDistance));
-            shadowParameters.directionalLightCascadeCount = EditorGUILayout.IntPopup(styles.shadowsDirectionalLightCascadeCount, shadowParameters.directionalLightCascadeCount, styles.shadowsCascadeCounts, styles.shadowsCascadeCountValues);
 
-            EditorGUI.indentLevel++;
-            for (int i = 0; i < shadowParameters.directionalLightCascadeCount - 1; i++)
-            {
-                shadowParameters.directionalLightCascades[i] = Mathf.Max(0, EditorGUILayout.FloatField(shadowParameters.directionalLightCascades[i]));
-            }
-            EditorGUI.indentLevel--;
             if (EditorGUI.EndChangeCheck())
             {
                 EditorUtility.SetDirty(renderLoop); // Repaint
