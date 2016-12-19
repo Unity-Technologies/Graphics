@@ -149,7 +149,7 @@ void Swap(inout float4 a, inout float4 b)
 }
 
 #ifndef INTRINSIC_CUBEMAP_FACE_ID
-// TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ? 
+// TODO: implement this. Is the reference implementation of cubemapID provide by AMD the reverse of our ?
 /*
 float CubemapFaceID(float3 dir)
 {
@@ -262,7 +262,7 @@ float FastATanPos(float x)
 
 // 4 VGPR, 16 FR (12 FR, 1 QR), 2 scalar
 // input [-infinity, infinity] and output [-PI/2, PI/2]
-float FastATan(float x) 
+float FastATan(float x)
 {
     float t0 = FastATanPos(abs(x));
     return (x < 0.0) ? -t0 : t0;
@@ -404,25 +404,23 @@ void ApplyDepthOffsetPositionInput(float V, float depthOffsetVS, inout PositionI
 // various helper
 //-----------------------------------------------------------------------------
 
-// NdotV should not be negative for visible pixels, but it can happen due to perspective projection and normal mapping + decal
-// In this case this may cause weird artifact.
-// GetNdotV return a 'valid' data
-float GetNdotV(float3 N, float3 V)
+// NdotV should not be negative for visible pixels, but it can happen due to the
+// perspective projection and the normal mapping + decals. In that case, the normal
+// should be modified to become valid (i.e facing the camera) to avoid weird artifacts.
+// Note: certain applications (e.g. SpeedTree) make use of two-sided lighting.
+float GetShiftedNdotV(inout float3 N, float3 V, bool twoSided)
 {
-    return abs(dot(N, V)); // This abs allow to limit artifact
+    float NdotV = dot(N, V);
+    float limit = 1e-6;
+    
+    if (!twoSided && NdotV < limit)
+    {
+        // We do not renormalize the normal because { abs(length(N) - 1.0) < limit }.
+        N    += (-NdotV + limit) * V;
+        NdotV = limit;
+    }
+
+    return NdotV;
 }
 
-// NdotV should not be negative for visible pixels, but it can happen due to perspective projection and normal mapping + decal
-// In this case normal should be modified to become valid (i.e facing camera) and not cause weird artifacts.
-// but this operation adds few ALU and users may not want it. Alternative is to simply take the abs of NdotV (less correct but works too).
-// Note: This code is not compatible with two sided lighting used in SpeedTree (TODO: investigate).
-float GetShiftedNdotV(float3 N, float3 V)
-{
-    // The amount we shift the normal toward the view vector is defined by the dot product.
-    float shiftAmount = dot(N, V);
-    N = shiftAmount < 0.0 ? N + V * (-shiftAmount + 1e-5f) : N;
-    N = normalize(N);
-
-    return saturate(dot(N, V)); // TODO: this saturate should not be necessary here
-}
 #endif // UNITY_COMMON_INCLUDED

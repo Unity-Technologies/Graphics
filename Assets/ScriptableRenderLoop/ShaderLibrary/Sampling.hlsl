@@ -8,7 +8,7 @@
 // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 uint ReverseBits32(uint bits)
 {
-#if 0 // Shader model 5
+#if 1 // Shader model 5
     return reversebits(bits);
 #else
     bits = (bits << 16) | (bits >> 16);
@@ -94,7 +94,7 @@ void SampleSphere(  float2 u,
 
     Ns = UniformSampleSphere(u1, u2);
 
-    // Transform from unit sphere to world space 
+    // Transform from unit sphere to world space
     P = radius * Ns + localToWorld[3].xyz;
 
     // pdf is inverse of area
