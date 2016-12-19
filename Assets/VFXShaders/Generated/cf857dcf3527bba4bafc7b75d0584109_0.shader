@@ -16,36 +16,42 @@ Shader "Hidden/VFX_0"
 			#pragma vertex vert
 			#pragma fragment frag
 			
-			#define VFX_WORLD_SPACE
+			#define VFX_LOCAL_SPACE
 			
 			#include "UnityCG.cginc"
 			#include "UnityStandardUtils.cginc"
 			#include "HLSLSupport.cginc"
 			#include "../VFXCommon.cginc"
 			
+			CBUFFER_START(outputUniforms)
+				float outputUniform0;
+			CBUFFER_END
+			
 			Texture2D outputSampler0Texture;
 			SamplerState sampleroutputSampler0Texture;
 			
+			Texture2D gradientTexture;
+			SamplerState samplergradientTexture;
+			
 			struct Attribute0
 			{
-				float3 position;
-				uint _PADDING_0;
+				float lifetime;
 			};
 			
 			struct Attribute1
 			{
-				float2 size;
+				float3 position;
+				float age;
 			};
 			
-			struct Attribute2
+			struct Attribute3
 			{
-				float3 color;
-				uint _PADDING_0;
+				float2 size;
 			};
 			
 			StructuredBuffer<Attribute0> attribBuffer0;
 			StructuredBuffer<Attribute1> attribBuffer1;
-			StructuredBuffer<Attribute2> attribBuffer2;
+			StructuredBuffer<Attribute3> attribBuffer3;
 			StructuredBuffer<int> flags;
 			
 			struct ps_input
@@ -55,11 +61,17 @@ Shader "Hidden/VFX_0"
 				float2 offsets : TEXCOORD0;
 			};
 			
-			void VFXBlockFaceCameraPosition( inout float3 front,inout float3 side,inout float3 up,float3 position)
+			float4 sampleSignal(float v,float u) // sample gradient
 			{
-				front = normalize(VFXCameraPos() - position);
-	side = normalize(cross(front,VFXCameraMatrix()[1].xyz));
-	up = cross(side,front);
+				return gradientTexture.SampleLevel(samplergradientTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
+			}
+			
+			void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
+			{
+				float ratio = saturate(age / lifetime);
+	float4 rgba = sampleSignal(Gradient,ratio);
+	color = rgba.rgb;
+	alpha = rgba.a;
 			}
 			
 			ps_input vert (uint id : SV_VertexID, uint instanceID : SV_InstanceID)
@@ -70,31 +82,30 @@ Shader "Hidden/VFX_0"
 				{
 					Attribute0 attrib0 = attribBuffer0[index];
 					Attribute1 attrib1 = attribBuffer1[index];
-					Attribute2 attrib2 = attribBuffer2[index];
+					Attribute3 attrib3 = attribBuffer3[index];
 					
-					float3 local_front = (float3)0;
-					float3 local_side = (float3)0;
-					float3 local_up = (float3)0;
+					float3 local_color = (float3)0;
+					float local_alpha = (float)0;
 					
-					VFXBlockFaceCameraPosition( local_front,local_side,local_up,attrib0.position);
+					VFXBlockSetColorGradientOverLifetime( local_color,local_alpha,attrib1.age,attrib0.lifetime,outputUniform0);
 					
-					float2 size = attrib1.size * 0.5f;
+					float2 size = attrib3.size * 0.5f;
 					o.offsets.x = 2.0 * float(id & 1) - 1.0;
 					o.offsets.y = 2.0 * float((id & 2) >> 1) - 1.0;
 					
-					float3 position = attrib0.position;
+					float3 position = attrib1.position;
 					
 					float2 posOffsets = o.offsets.xy;
-					float3 cameraPos = _WorldSpaceCameraPos.xyz;
-					float3 side = local_side;
-					float3 up = local_up;
+					float3 cameraPos = mul(unity_WorldToObject,float4(_WorldSpaceCameraPos.xyz,1.0)).xyz; // TODO Put that in a uniform!
+					float3 side = UNITY_MATRIX_IT_MV[0].xyz;
+					float3 up = UNITY_MATRIX_IT_MV[1].xyz;
 					
 					position += side * (posOffsets.x * size.x);
 					position += up * (posOffsets.y * size.y);
 					o.offsets.xy = o.offsets.xy * 0.5 + 0.5;
 					
-					o.pos = mul (UNITY_MATRIX_VP, float4(position,1.0f));
-					o.col = float4(attrib2.color.xyz,1.0);
+					o.pos = mul (UNITY_MATRIX_MVP, float4(position,1.0f));
+					o.col = float4(local_color.xyz,local_alpha);
 				}
 				else
 				{
