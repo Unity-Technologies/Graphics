@@ -12,7 +12,9 @@ using System.IO;
 
 namespace UnityEditor.Experimental
 {
-    [InitializeOnLoad]
+    // Initial set up of shader. Now done and serialized directly in VFXManager
+    // TODO Remove that
+    /*[InitializeOnLoad]
     class VFXStartUp
     {
         static VFXStartUp()
@@ -21,7 +23,7 @@ namespace UnityEditor.Experimental
             ComputeShader indirectShader = AssetDatabase.LoadAssetAtPath<ComputeShader>(path);
             VFXComponent.SetIndirectCompute(indirectShader);
         }
-    }
+    }*/
 
     public class VFXEditor : EditorWindow
     {
