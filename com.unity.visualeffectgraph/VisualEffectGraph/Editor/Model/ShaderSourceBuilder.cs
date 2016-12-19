@@ -68,11 +68,11 @@ namespace UnityEditor.Experimental
             return m_Builder.ToString();
         }
 
-        private int WritePadding(int alignment,int offset,ref int index)
+        private int WritePadding(int alignment,int offset, ref int index, string prefix = "")
         {
             int padding = (alignment - (offset % alignment)) % alignment;
             if (padding != 0)
-                WriteLineFormat("uint{0} _PADDING_{1};", padding == 1 ? "" : padding.ToString(), index++);
+                WriteLineFormat("uint{0} {1}_PADDING_{2};", padding == 1 ? "" : padding.ToString(), string.IsNullOrEmpty(prefix) ? "" : prefix, index++);
             return padding;
         }
 
@@ -138,8 +138,10 @@ namespace UnityEditor.Experimental
                 Write(cbufferName);
                 WriteLine(")");
 
+                int paddingIndex = 0;
                 foreach (var uniformPack in explicitUniform)
                 {
+                    int constantSize = 0;
                     foreach (var uniform in uniformPack)
                     {
                         Write('\t');
@@ -147,7 +149,11 @@ namespace UnityEditor.Experimental
                         Write(" ");
                         Write(uniform.name);
                         WriteLine(";");
+                        constantSize += VFXValue.TypeToSize(uniform.type);
                     }
+                    Write('\t');
+                    WritePadding(4, constantSize, ref paddingIndex, cbufferName);
+
                     WriteLine();
                 }
 
