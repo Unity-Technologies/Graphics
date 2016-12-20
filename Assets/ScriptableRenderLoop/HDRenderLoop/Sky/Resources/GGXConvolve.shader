@@ -58,7 +58,7 @@ Shader "Hidden/HDRenderLoop/GGXConvolve"
                                             PerceptualRoughnessToRoughness(perceptualRoughness),
                                             _MipMapCount,
                                             _InvOmegaP,
-                                            64,
+                                            55, // Matches the size of the precomputed Fibonacci sequence
                                             true);
 
                 return val;
