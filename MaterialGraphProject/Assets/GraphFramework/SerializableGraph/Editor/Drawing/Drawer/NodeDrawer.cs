@@ -98,39 +98,43 @@ namespace UnityEditor.Graphing.Drawing
             var anchors = nodeData.elements.OfType<AnchorDrawData>().ToList();
 
             if (anchors.Count == 0)
-                return;
-
-            if (anchors.ItemsReferenceEquals(m_CurrentAnchors) && m_CurrentExpanded == nodeData.expanded)
             {
+                m_RightContainer.AddToClassList("empty");
                 return;
             }
+
+            if (anchors.ItemsReferenceEquals(m_CurrentAnchors) && m_CurrentExpanded == nodeData.expanded)
+                return;
 
             m_CurrentAnchors = anchors;
             m_InputContainer.ClearChildren();
             m_OutputContainer.ClearChildren();
 
+            int outputCount = 0;
+
             foreach (var anchor in anchors)
             {
                 var hidden = !nodeData.expanded && !anchor.connected;
                 if (!hidden && anchor.direction == Direction.Input)
+                {
                     m_InputContainer.AddChild(new NodeAnchor(anchor));
+                }
                 else if (!hidden && anchor.direction == Direction.Output)
+                {
+                    outputCount++;
                     m_OutputContainer.AddChild(new NodeAnchor(anchor));
+                }
             }
+
+            if (outputCount == 0)
+                m_RightContainer.AddToClassList("empty");
+            else
+                m_RightContainer.RemoveFromClassList("empty");
         }
 
         private void AddControls(NodeDrawData nodeData)
         {
             var controlDrawData = nodeData.elements.OfType<ControlDrawData>().ToList();
-
-            if (controlDrawData.Count == 0)
-            {
-                if (!m_RightContainer.classList.Contains("empty"))
-                    m_RightContainer.AddToClassList("empty");
-                return;
-            }
-
-            m_RightContainer.RemoveFromClassList("empty");
 
             if (!nodeData.expanded)
             {
@@ -183,15 +187,9 @@ namespace UnityEditor.Graphing.Drawing
             }
 
             if (!nodeData.expanded)
-            {
-                if (!classList.Contains("collapsed"))
-                    AddToClassList("collapsed");
-            }
+                AddToClassList("collapsed");
             else
-            {
-                if (classList.Contains("collapsed"))
-                    RemoveFromClassList("collapsed");
-            }
+                RemoveFromClassList("collapsed");
 
             AddHeader(nodeData);
             AddSlots(nodeData);
