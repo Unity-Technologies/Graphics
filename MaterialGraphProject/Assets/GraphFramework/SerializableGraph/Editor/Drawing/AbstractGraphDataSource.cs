@@ -40,6 +40,9 @@ namespace UnityEditor.Graphing.Drawing
                     drawableNodeData.OnModified(scope);
             }
 
+            if (scope == ModificationScope.Topological)
+                UpdateData();
+
             EditorUtility.SetDirty(graphAsset.GetScriptableObject());
         }
 

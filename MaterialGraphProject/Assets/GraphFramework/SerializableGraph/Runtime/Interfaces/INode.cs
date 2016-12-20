@@ -5,9 +5,10 @@ namespace UnityEngine.Graphing
 {
     public enum ModificationScope
     {
-        Nothing,
-        Node,
-        Graph
+        Nothing = 0,
+        Node = 1,
+        Graph = 2,
+        Topological = 3
     }
 
     public delegate void OnNodeModified(INode node, ModificationScope scope);
