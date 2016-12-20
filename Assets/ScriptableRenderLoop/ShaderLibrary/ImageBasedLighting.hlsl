@@ -305,7 +305,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float2 u    = Hammersley2d(i, sampleCount);
+        float2 u    = Hammersley2dSeq(i, sampleCount);
         u           = frac(u + randNum + 0.5);
 
         float3 H;
