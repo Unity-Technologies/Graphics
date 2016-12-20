@@ -74,7 +74,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
-			FindMaterialOptionProperties(props);
+            FindMaterialOptionProperties(props);
 
             layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerMaskVertexColor = FindProperty(kLayerMaskVertexColor, props);
@@ -110,7 +110,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
         void SynchronizeLayerProperties(int layerIndex)
         {
-			string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVDetailsMappingMask };
+            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVDetailsMappingMask };
 
             Material material = m_MaterialEditor.target as Material;
             Material layerMaterial = m_MaterialLayers[layerIndex];
@@ -124,41 +124,41 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                     string propertyName = ShaderUtil.GetPropertyName(layerShader, i);
                     string layerPropertyName = propertyName + layerIndex;
 
-					if(!exclusionList.Contains(propertyName))
-					{
-						if (material.HasProperty(layerPropertyName))
-						{
-							ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
-							switch (type)
-							{
-								case ShaderUtil.ShaderPropertyType.Color:
-								{
-									material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
-									break;
-								}
-								case ShaderUtil.ShaderPropertyType.Float:
-								case ShaderUtil.ShaderPropertyType.Range:
-								{
-									material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
-									break;
-								}
-								case ShaderUtil.ShaderPropertyType.Vector:
-								{
-									material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
-									break;
-								}
-								case ShaderUtil.ShaderPropertyType.TexEnv:
-								{
-									material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
-									material.SetTextureOffset(layerPropertyName, layerMaterial.GetTextureOffset(propertyName));
-									material.SetTextureScale(layerPropertyName, layerMaterial.GetTextureScale(propertyName));
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
+                    if(!exclusionList.Contains(propertyName))
+                    {
+                        if (material.HasProperty(layerPropertyName))
+                        {
+                            ShaderUtil.ShaderPropertyType type = ShaderUtil.GetPropertyType(layerShader, i);
+                            switch (type)
+                            {
+                                case ShaderUtil.ShaderPropertyType.Color:
+                                {
+                                    material.SetColor(layerPropertyName, layerMaterial.GetColor(propertyName));
+                                    break;
+                                }
+                                case ShaderUtil.ShaderPropertyType.Float:
+                                case ShaderUtil.ShaderPropertyType.Range:
+                                {
+                                    material.SetFloat(layerPropertyName, layerMaterial.GetFloat(propertyName));
+                                    break;
+                                }
+                                case ShaderUtil.ShaderPropertyType.Vector:
+                                {
+                                    material.SetVector(layerPropertyName, layerMaterial.GetVector(propertyName));
+                                    break;
+                                }
+                                case ShaderUtil.ShaderPropertyType.TexEnv:
+                                {
+                                    material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
+                                    material.SetTextureOffset(layerPropertyName, layerMaterial.GetTextureOffset(propertyName));
+                                    material.SetTextureScale(layerPropertyName, layerMaterial.GetTextureScale(propertyName));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         void InitializeMaterialLayers(AssetImporter materialImporter)
@@ -372,7 +372,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             m_MaterialEditor.ShaderProperty(layerUVBase[layerIndex], styles.UVBaseText);
             if (EditorGUI.EndChangeCheck())
             {
-				SynchronizeLayerProperties(layerIndex);
+                SynchronizeLayerProperties(layerIndex);
                 result = true;
             }
             if (((LayerUVBaseMapping)layerUVBase[layerIndex].floatValue == LayerUVBaseMapping.Planar) ||
@@ -388,7 +388,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 m_MaterialEditor.ShaderProperty(layerUVDetail[layerIndex], styles.UVDetailText);
                 if (EditorGUI.EndChangeCheck())
                 {
-					SynchronizeLayerProperties(layerIndex);
+                    SynchronizeLayerProperties(layerIndex);
                     result = true;
                 }
             }
@@ -449,10 +449,10 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             return layerChanged;
         }
 
-		protected override void SetupMaterialKeywords(Material material)
+        protected override void SetupMaterialKeywords(Material material)
         {
-			SetupCommonOptionsKeywords(material);
-			SetupLayersKeywords(material);
+            SetupCommonOptionsKeywords(material);
+            SetupLayersKeywords(material);
 
             // Find first non null layer
             int i = 0;
@@ -464,7 +464,12 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap + i));
                 SetKeyword(material, "_SPECULAROCCLUSIONMAP", material.GetTexture(kSpecularOcclusionMap + i));
                 SetKeyword(material, "_HEIGHTMAP", material.GetTexture(kHeightMap + i));
-				SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap + i));
+                SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap + i));
+
+                SetKeyword(material, "_DETAIL_MAP_WITH_NORMAL", ((DetailMapMode)material.GetFloat(kDetailMapMode)) == DetailMapMode.DetailWithNormal);
+                SetKeyword(material, "_HEIGHTMAP_AS_DISPLACEMENT", ((HeightmapMode)material.GetFloat(kHeightMapMode)) == HeightmapMode.Displacement);
+                SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", ((NormalMapSpace)material.GetFloat(kNormalMapSpace)) == NormalMapSpace.TangentSpace);
+                SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A", ((SmoothnessMapChannel)material.GetFloat(kSmoothnessTextureChannel)) == SmoothnessMapChannel.AlbedoAlpha);
             }
 
             SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
@@ -492,7 +497,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             SetKeyword(material, "_REQUIRE_UV2_OR_UV3", UV2orUV3needed);
         }
 
-		void SetupLayersKeywords(Material material)
+        void SetupLayersKeywords(Material material)
         {
             if (numLayer == 4)
             {
@@ -583,7 +588,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
                 foreach (var obj in m_MaterialEditor.targets)
                 {
-					SetupMaterialKeywords((Material)obj);
+                    SetupMaterialKeywords((Material)obj);
                 }
 
                 SaveMaterialLayers(materialImporter);
