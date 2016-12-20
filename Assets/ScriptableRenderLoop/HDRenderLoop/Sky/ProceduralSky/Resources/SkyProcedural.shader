@@ -101,7 +101,7 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
                 float miePh  = MiePhase(sunCos, _MiePhaseAnisotropy);
 
                 float2 occlusion  = float2(1.0, 1.0); // TODO.
-                float  extinction = coord1.a;         // TODO: is this extinction, or (1 - extinction)?
+                float  extinction = coord1.a;
                 float3 scatter    = coord1.rgb * occlusion.x + coord2 * miePh * occlusion.y;
 
                 #ifdef ATMOSPHERICS_DEBUG
