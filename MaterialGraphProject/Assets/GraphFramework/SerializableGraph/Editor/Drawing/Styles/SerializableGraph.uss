@@ -1,6 +1,16 @@
 .Node {
     flex-direction: row;
     align-items: stretch;
+	border-left: 4;
+	border-top: 4;
+	border-right: 4;
+	border-bottom: 4;
+	border-width: 2;
+	border-radius: 5;
+}
+
+.Node.selected {
+    border-color: rgb(210, 152, 0);
 }
 
 .Node .pane {
