@@ -21,9 +21,9 @@ float RadicalInverse_VdC(uint bits)
     return float(ReverseBits32(bits)) * 2.3283064365386963e-10; // 0x100000000
 }
 
-float2 Hammersley2d(uint i, uint maxSampleCount)
+float2 Hammersley2dSeq(uint i, uint sequenceLength)
 {
-    return float2(float(i) / float(maxSampleCount), RadicalInverse_VdC(i));
+    return float2(float(i) / float(sequenceLength), RadicalInverse_VdC(i));
 }
 
 static const float2 k_Hammersley2dSeq16[] = {
@@ -406,9 +406,9 @@ static const float2 k_Hammersley2dSeq256[] = {
     float2(0.99609375, 0.99609375)
 };
 
-// Loads sequence elements from one of the precomputed tables.
-// Valid sequence lengths: 16, 32, 64, 256. Returns 0 otherwise.
-float2 Hammersley2dSeq(uint i, uint sequenceLength)
+// Loads elements from one of the precomputed tables for sequence lengths of 16, 32, 64, 256.
+// Computes the values at runtime otherwise.
+float2 Hammersley2d(uint i, uint sequenceLength)
 {
     switch (sequenceLength)
     {
@@ -416,7 +416,7 @@ float2 Hammersley2dSeq(uint i, uint sequenceLength)
         case 32:  return k_Hammersley2dSeq32[i];
         case 64:  return k_Hammersley2dSeq64[i];
         case 256: return k_Hammersley2dSeq256[i];
-        default:  return float2(0.0, 0.0);
+        default:  return Hammersley2dSeq(i, sequenceLength);
     }
 }
 
