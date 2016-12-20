@@ -77,7 +77,7 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw);
 
                 // If the sky box is too far away (depth set to 0), the resulting look is too foggy.
-                const float skyDepth = 0.01;
+                const float skyDepth = 0.002;
 
                 #ifdef PERFORM_SKY_OCCLUSION_TEST
                     // Determine whether the sky is occluded by the scene geometry.
@@ -101,7 +101,7 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
                 float miePh  = MiePhase(sunCos, _MiePhaseAnisotropy);
 
                 float2 occlusion  = float2(1.0, 1.0); // TODO.
-                float  extinction = coord1.a;
+                float  extinction = coord1.a;         // TODO: is this extinction, or (1 - extinction)?
                 float3 scatter    = coord1.rgb * occlusion.x + coord2 * miePh * occlusion.y;
 
                 #ifdef ATMOSPHERICS_DEBUG
@@ -116,13 +116,20 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
                     }
                 #endif
 
-                float3 skyColor = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y;
-                float3 atmosphereColor = skyColor * (skyTexWeight * extinction) + scatter;
+                float3 skyColor = float3(0.0, 0.0, 0.0);
+                float  opacity  = extinction;
+
+                if (skyTexWeight == 1.0)
+                {
+                    skyColor  = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+                    skyColor *= exp2(_SkyParam.x) * _SkyParam.y;
+                    opacity   = 1.0; // Fully overwrite unoccluded scene regions.
+                }
+
+                float3 atmosphereColor = ClampToFloat16Max(skyColor * extinction + scatter);
 
                 // Apply the atmosphere on top of the scene using premultiplied alpha blending.
-                float opacity = (skyTexWeight == 1.0) ? 1.0 : extinction;
-
-                return float4(ClampToFloat16Max(atmosphereColor), opacity);
+                return float4(atmosphereColor, opacity);
             }
 
             ENDHLSL
