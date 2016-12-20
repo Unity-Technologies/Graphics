@@ -29,6 +29,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
     {
         public Matrix4x4                viewProjMatrix;
         public Matrix4x4                invViewProjMatrix;
+        public Vector3                  cameraPosWS;
         public Vector4                  screenSize;
         public Mesh                     skyMesh;
         public RenderLoop               renderLoop;
@@ -431,6 +432,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
                     m_BuiltinParameters.sunLight = sunLight;
                     m_BuiltinParameters.invViewProjMatrix = camera.invViewProjectionMatrix;
                     m_BuiltinParameters.viewProjMatrix = camera.viewProjectionMatrix;
+                    m_BuiltinParameters.cameraPosWS = camera.camera.transform.position;
                     m_BuiltinParameters.screenSize = camera.screenSize;
                     m_BuiltinParameters.skyMesh = BuildSkyMesh(camera.camera.GetComponent<Transform>().position, m_BuiltinParameters.invViewProjMatrix, false);
                     m_BuiltinParameters.colorBuffer = colorBuffer;

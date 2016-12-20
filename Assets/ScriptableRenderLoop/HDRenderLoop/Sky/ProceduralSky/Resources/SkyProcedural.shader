@@ -21,14 +21,23 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
             #include "Color.hlsl"
             #include "Common.hlsl"
             #include "CommonLighting.hlsl"
-            #include "Assets/ScriptableRenderLoop/HDRenderLoop/ShaderVariables.hlsl"
-            #define IS_RENDERING_SKY
-            #include "AtmosphericScattering.hlsl"
 
             TEXTURECUBE(_Cubemap);
             SAMPLERCUBE(sampler_Cubemap);
 
-            float4   _SkyParam; // x exposure, y multiplier, z rotation
+            // x exposure, y multiplier, z rotation
+            float4 _SkyParam;
+
+            // x = width, y = height, z = 1.0/width, w = 1.0/height
+            float4 _ScreenSize;
+
+            float4 _CameraPosWS;
+
+            float4x4 _InvViewProjMatrix;
+            float4x4 _ViewProjMatrix;
+
+            #define IS_RENDERING_SKY
+            #include "AtmosphericScattering.hlsl"
 
             struct Attributes
             {

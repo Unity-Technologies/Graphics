@@ -73,6 +73,8 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             m_ProceduralSkyMaterial.SetVector("_SkyParam", new Vector4(param.exposure, param.multiplier, param.rotation, 0.0f));
             m_ProceduralSkyMaterial.SetMatrix("_ViewProjMatrix", builtinParams.viewProjMatrix);
             m_ProceduralSkyMaterial.SetMatrix("_InvViewProjMatrix", builtinParams.invViewProjMatrix);
+            m_ProceduralSkyMaterial.SetVector("_CameraPosWS", builtinParams.cameraPosWS);
+            m_ProceduralSkyMaterial.SetVector("_ScreenSize", builtinParams.screenSize);
 
             m_ProceduralSkyMaterial.SetInt("_AtmosphericsDebugMode", (int)param.debugMode);
 
