@@ -24,7 +24,7 @@ namespace UnityEngine.MaterialGraph
 
             if (onModified != null)
             {
-                onModified(this, ModificationScope.Graph);
+                onModified(this, ModificationScope.Topological);
             }
 
             return -nextSlotId;
@@ -40,7 +40,7 @@ namespace UnityEngine.MaterialGraph
 
             if (onModified != null)
             {
-                onModified(this, ModificationScope.Graph);
+                onModified(this, ModificationScope.Topological);
             }
         }
 

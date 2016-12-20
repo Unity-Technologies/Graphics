@@ -96,7 +96,7 @@ namespace UnityEngine.MaterialGraph
                 OnEnable();
 
                 if (onModified != null)
-                    onModified(this, ModificationScope.Graph);
+                    onModified(this, ModificationScope.Topological);
             }
         }
 #else

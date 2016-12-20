@@ -41,7 +41,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             set
             {
                 // External changes can only set the modification scope higher, to prevent missing out on a previously set shader regeneration.
-                if (m_modificationScope == ModificationScope.Graph || (m_modificationScope == ModificationScope.Node && value == ModificationScope.Nothing))
+                if (m_modificationScope >= value)
                     return;
                 m_modificationScope = value;
             }
@@ -94,7 +94,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             if (m_modificationScope != ModificationScope.Nothing)
             {
                 bool status = false;
-                if (m_modificationScope == ModificationScope.Graph)
+                if (m_modificationScope >= ModificationScope.Graph)
                 {
                     previewGenerator.Reset();
 
