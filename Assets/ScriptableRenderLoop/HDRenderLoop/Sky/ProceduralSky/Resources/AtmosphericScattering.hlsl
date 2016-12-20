@@ -92,7 +92,7 @@ float3 WorldScale(float3 p) {
 
 void VolundTransferScatter(float3 worldPos, out float4 coords1, out float4 coords2, out float4 coords3) {
     const float3 scaledWorldPos = WorldScale(worldPos);
-    const float3 worldCamPos = WorldScale(_WorldSpaceCameraPos.xyz);
+    const float3 worldCamPos = WorldScale(_CameraPosWS.xyz);
 
     const float c_MieScaleHeight = 1200.f;
     const float worldRayleighDensity = 1.f;
@@ -102,7 +102,7 @@ void VolundTransferScatter(float3 worldPos, out float4 coords1, out float4 coord
     const float worldVecLen = length(worldVec);
     const float3 worldDir = worldVec / worldVecLen;
 
-    const float3 worldDirUnscaled = normalize(worldPos - _WorldSpaceCameraPos.xyz);
+    const float3 worldDirUnscaled = normalize(worldPos - _CameraPosWS.xyz);
 
     const float viewSunCos = dot(worldDirUnscaled, _SunDirection);
     const float rayleighPh = min(1.f, RayleighPhase(viewSunCos) * 12.f);
@@ -185,7 +185,7 @@ float2 UVFromPos(float2 pos) {
 #if defined(UNITY_PASS_FORWARDBASE)
     return pos;
 #else
-    return pos / _ScreenParams.xy;
+    return pos * _ScreenSize.zw;
 #endif
 }
 
