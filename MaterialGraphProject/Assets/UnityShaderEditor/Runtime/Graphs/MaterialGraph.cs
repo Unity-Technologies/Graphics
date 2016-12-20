@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using UnityEngine.Graphing;
 
 namespace UnityEngine.MaterialGraph
 {
@@ -26,6 +27,18 @@ namespace UnityEngine.MaterialGraph
                     return found;
 
                 return GetNodes<IMasterNode>().FirstOrDefault();
+            }
+            set
+            {
+                var previousMaster = masterNode;
+
+                if (value == null)
+                    m_ActiveMasterNodeGUID = Guid.NewGuid();
+                else
+                    m_ActiveMasterNodeGUID = value.guid;
+                
+                masterNode.onModified(masterNode, ModificationScope.Node);
+                previousMaster.onModified(previousMaster, ModificationScope.Node);
             }
         }
 

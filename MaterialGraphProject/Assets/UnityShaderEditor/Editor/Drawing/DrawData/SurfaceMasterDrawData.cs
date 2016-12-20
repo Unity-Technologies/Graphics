@@ -27,13 +27,15 @@ namespace UnityEditor.MaterialGraph.Drawing
     }
 
     [Serializable]
-    public class SurfaceMasterDrawData : MaterialNodeDrawData
+    public class SurfaceMasterDrawData : MasterNodeDrawData
     {
         protected override IEnumerable<GraphElementData> GetControlData()
         {
             var instance = CreateInstance<SurfaceMasterContolDrawData>();
             instance.Initialize(node);
-            return new List<GraphElementData> { instance };
+            var controls = new List<GraphElementData>(base.GetControlData());
+            controls.Add(instance);
+            return controls;
         }
     }
 }
