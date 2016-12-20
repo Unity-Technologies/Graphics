@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
+using System.Linq;
 
 namespace UnityEditor.Graphing.Drawing
 {
@@ -14,16 +15,31 @@ namespace UnityEditor.Graphing.Drawing
 
         public bool expanded = true;
 
+        [SerializeField]
         protected List<GraphElementData> m_Children = new List<GraphElementData>();
+
+        [SerializeField]
+        protected List<AnchorDrawData> m_Anchors = new List<AnchorDrawData>();
+
+        [SerializeField]
+        protected List<GraphElementData> m_Controls = new List<GraphElementData>();
 
         public IEnumerable<GraphElementData> elements
         {
-            get { return m_Children; }
+            get { return m_Children.Concat(m_Anchors.Cast<GraphElementData>()).Concat(m_Controls); }
         }
 
         public virtual void OnModified(ModificationScope scope)
         {
             expanded = node.drawState.expanded;
+
+            if (scope == ModificationScope.Topological)
+            {
+                var slots = node.GetSlots<ISlot>().ToList();
+                m_Anchors.RemoveAll(data => !slots.Contains(data.slot));
+                AddSlots(slots.Except(m_Anchors.Select(x => x.slot)));
+                m_Anchors.Sort((x, y) => slots.IndexOf(x.slot) - slots.IndexOf(y.slot));
+            }
         }
 
         public void CommitChanges()
@@ -38,6 +54,16 @@ namespace UnityEditor.Graphing.Drawing
             return new ControlDrawData[0];
         }
 
+        protected void AddSlots(IEnumerable<ISlot> slots)
+        {
+            foreach (var input in slots)
+            {
+                var data = CreateInstance<AnchorDrawData>();
+                data.Initialize(input);
+                m_Anchors.Add(data);
+            }
+        }
+
         public virtual void Initialize(INode inNode)
         {
             node = inNode;
@@ -49,19 +75,14 @@ namespace UnityEditor.Graphing.Drawing
             name = inNode.name;
             expanded = node.drawState.expanded;
 
-            var m_HeaderData = CreateInstance<HeaderDrawData>();
-            m_HeaderData.Initialize(inNode);
-            m_Children.Add(m_HeaderData);
+            var headerData = CreateInstance<HeaderDrawData>();
+            headerData.Initialize(inNode);
+            m_Children.Add(headerData);
 
-            foreach (var input in node.GetSlots<ISlot>())
-            {
-                var data = CreateInstance<AnchorDrawData>();
-                data.Initialize(input); 
-                m_Children.Add(data);
-            }
+            AddSlots(node.GetSlots<ISlot>());
 
             var controlData = GetControlData();
-            m_Children.AddRange(controlData);
+            m_Controls.AddRange(controlData);
 
             position = new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0);
             //position
