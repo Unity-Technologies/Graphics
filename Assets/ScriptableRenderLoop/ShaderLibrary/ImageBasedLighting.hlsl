@@ -285,6 +285,7 @@ float4 IntegrateGGXAndDisneyFGD(float3 V, float3 N, float roughness, uint sample
     return acc / sampleCount;
 }
 
+// 'sampleCount' must be 16, 32, 64 or 256.
 // Ref: Listing 19 in "Moving Frostbite to PBR"
 float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                     float3 V,
@@ -306,7 +307,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
     for (uint i = 0; i < sampleCount; ++i)
     {
         float2 u    = Hammersley2dSeq(i, sampleCount);
-        u           = frac(u + randNum + 0.5);
+        u           = frac(u + randNum);
 
         float3 H;
         float3 L;
