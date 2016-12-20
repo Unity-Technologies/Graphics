@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
             */
 
             // Expected to be valid for the sky pass, and invalid for the cube map generation pass.
-            if (builtinParams.depthBufferIsValid)
+            if (builtinParams.depthBuffer != BuiltinSkyParameters.invalidRTI)
             {
                 m_ProceduralSkyMaterial.EnableKeyword("PERFORM_SKY_OCCLUSION_TEST");
             }
