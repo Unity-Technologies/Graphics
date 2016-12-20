@@ -36,14 +36,22 @@ namespace UnityEngine.Experimental.VFX
 
     public partial class VFXUintType : VFXPrimitiveType<uint>
     {
+        static private uint ClampUInt32(long value)
+        {
+            if (value > uint.MaxValue)
+                return uint.MaxValue;
+            if (value < uint.MinValue)
+                return uint.MinValue;
+            return (uint)value;
+        }
         public override void OnCanvas2DGUI(VFXPropertySlot slot, Rect area)
         {
-            slot.Set<uint>((uint)EditorGUI.IntField(area, "", (int)slot.Get<uint>(true)),true);
+            slot.Set<uint>(ClampUInt32(EditorGUI.LongField(area, "", slot.Get<uint>(true))),true);
         }
 
         public override void OnInspectorGUI(VFXPropertySlot slot)
         {
-            slot.Set<uint>((uint)EditorGUILayout.IntField(slot.Name, (int)slot.Get<uint>(false)),false);
+            slot.Set<uint>(ClampUInt32(EditorGUILayout.LongField(slot.Name, slot.Get<uint>(false))), false);
         }
     }
 

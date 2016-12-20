@@ -112,9 +112,9 @@ namespace UnityEditor.Experimental
             public VFXValueType type;
             public string name;
         }
-        public void WriteCBuffer(string cbufferName, HashSet<VFXExpression> uniforms, Dictionary<VFXExpression, string> uniformsToName, Uniform[] additionnalUniforms = null)
+        public void WriteCBuffer(string cbufferName, HashSet<VFXExpression> uniforms, ShaderMetaData data, ShaderMetaData.Pass pass, Uniform[] additionnalUniforms = null)
         {
-            var explicitUniformInput = uniforms.Select(u => new Uniform() { type = u.ValueType, name = uniformsToName[u] }).Concat(additionnalUniforms != null ? additionnalUniforms : new Uniform[] { });
+            var explicitUniformInput = uniforms.Select(u => new Uniform() { type = u.ValueType, name = data.paramToName[(int)pass][u] }).Concat(additionnalUniforms != null ? additionnalUniforms : new Uniform[] { });
             var explicitUniformOrderedBySize = explicitUniformInput.OrderByDescending(t => VFXValue.TypeToSize(t.type)).ToList();
 
             var explicitUniform = new List<List<Uniform>>();
@@ -145,7 +145,7 @@ namespace UnityEditor.Experimental
                     foreach (var uniform in uniformPack)
                     {
                         Write('\t');
-                        WriteType(uniform.type);
+                        WriteType(pass == ShaderMetaData.Pass.kOutput ? ConvertSuitableOutputShaderType(uniform.type) : uniform.type);
                         Write(" ");
                         Write(uniform.name);
                         WriteLine(";");
@@ -348,6 +348,33 @@ namespace UnityEditor.Experimental
             Write(source, lastIndex, source.Length - lastIndex); // Write the rest of the source
         }
 
+        public VFXValueType ConvertSuitableOutputShaderType(VFXValueType input)
+        {
+            switch(input)
+            {
+                case VFXValueType.kInt:
+                case VFXValueType.kUint:
+                    return VFXValueType.kFloat;
+            }
+            return input;
+        }
+
+        public void WriteReintpretCastOutput(VFXValueType target, string name)
+        {
+            if (target == VFXValueType.kInt)
+            {
+                WriteFormat("asint({0})", name);
+            }
+            else if (target == VFXValueType.kUint)
+            {
+                WriteFormat("asuint({0})", name);
+            }
+            else
+            {
+                Write(name);
+            }
+        }
+
         public void WriteFunctionCall(
             VFXBlockModel block,
             HashSet<string> functions,
@@ -362,7 +389,18 @@ namespace UnityEditor.Experimental
             WriteGenericFunctionInterface(block,
                                             data,
                                             (arg) => WriteAttrib(arg, data, pass),
-                                            (arg, inv, exp) => Write(data.paramToName[(int)pass][exp]),
+                                            (arg, inv, exp) =>
+                                            {
+                                                var name = data.paramToName[(int)pass][exp];
+                                                if (pass != ShaderMetaData.Pass.kOutput)
+                                                {
+                                                    Write(name);
+                                                }
+                                                else
+                                                {
+                                                    WriteReintpretCastOutput(exp.ValueType, name);
+                                                }
+                                            },
                                             () => Write("kill"));
             WriteLine(");");
             UnityEngine.Profiling.Profiler.EndSample();

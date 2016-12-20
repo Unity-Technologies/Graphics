@@ -898,8 +898,8 @@ namespace UnityEditor.Experimental
             };
 
             // Uniforms buffer
-            builder.WriteCBuffer("initUniforms", data.initUniforms, data.paramToName[(int)ShaderMetaData.Pass.kInit], implicitInitUniform);
-            builder.WriteCBuffer("updateUniforms", data.updateUniforms, data.paramToName[(int)ShaderMetaData.Pass.kUpdate], implicitUpdateUniform);
+            builder.WriteCBuffer("initUniforms", data.initUniforms, data, ShaderMetaData.Pass.kInit, implicitInitUniform);
+            builder.WriteCBuffer("updateUniforms", data.updateUniforms, data, ShaderMetaData.Pass.kUpdate, implicitUpdateUniform);
 
             // Write samplers
             builder.WriteSamplers(data.initSamplers, data.paramToName[(int)ShaderMetaData.Pass.kInit]);
@@ -1329,7 +1329,7 @@ namespace UnityEditor.Experimental
             builder.WriteLine("#include \"../VFXCommon.cginc\"");
             builder.WriteLine();
 
-            builder.WriteCBuffer("outputUniforms", data.outputUniforms, data.paramToName[(int)ShaderMetaData.Pass.kOutput]);
+            builder.WriteCBuffer("outputUniforms", data.outputUniforms, data, ShaderMetaData.Pass.kOutput);
 
             bool quadPatches = outputGenerator.GetOutputType() == 1 && system.MaxNb > 16384;
             // Data used not to fetch out of bounds elements when using indirect draw with quad patches

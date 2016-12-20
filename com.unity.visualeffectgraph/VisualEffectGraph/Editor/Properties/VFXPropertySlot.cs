@@ -319,7 +319,7 @@ namespace UnityEngine.Experimental.VFX
                         break;
                     case VFXValueType.kUint:
                         reader.MoveToElement();
-                        Set((uint)reader.ReadElementContentAsInt());
+                        Set((uint)reader.ReadElementContentAsLong());
                         break;
                     case VFXValueType.kTexture2D:
                         reader.MoveToElement();
