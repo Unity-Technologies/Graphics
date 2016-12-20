@@ -120,7 +120,9 @@ Shader "Hidden/HDRenderLoop/Sky/SkyProcedural"
                 float3 atmosphereColor = skyColor * (skyTexWeight * extinction) + scatter;
 
                 // Apply the atmosphere on top of the scene using premultiplied alpha blending.
-                return float4(ClampToFloat16Max(atmosphereColor), extinction);
+                float opacity = (skyTexWeight == 1.0) ? 1.0 : extinction;
+
+                return float4(ClampToFloat16Max(atmosphereColor), opacity);
             }
 
             ENDHLSL
