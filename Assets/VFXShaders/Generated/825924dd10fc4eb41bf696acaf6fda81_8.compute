@@ -71,7 +71,7 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionMap( inout float3 position,VFXSampler2D tex,float4x4 box,float divergence,float3 posmapcenter,uint systemSeed,uint seed)
+void VFXBlockSetPositionMap( inout float3 position,VFXSampler2D tex,float4x4 box,float divergence,float3 posmapcenter,uint systemSeed,inout uint seed)
 {
 	float3 div = (RAND3 - 0.5f) * (divergence * 2.0f);
 	position = (div + SampleTexture(tex,RAND2).rgb) - posmapcenter;

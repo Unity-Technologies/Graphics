@@ -67,7 +67,7 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,uint seed)
+void VFXBlockSetPositionSphereVolume( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,inout uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;

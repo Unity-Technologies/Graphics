@@ -80,7 +80,7 @@ void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
 	lifetime = max(Lifetime,0.0f);
 }
 
-void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,uint systemSeed,uint seed)
+void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,uint systemSeed,inout uint seed)
 {
 	float u1 = 1.0 * RAND - 0.5;
 	float u2 = UNITY_TWO_PI * RAND;
@@ -88,7 +88,7 @@ void VFXBlockPositionCylinder( inout float3 position,float3 Cylinder_position,fl
 	position = VFXPositionOnCylinder(Cylinder,u1,u2,u3);
 }
 
-void VFXBlockVelocityRadialFromOrigin( float3 position,inout float3 velocity,float3 Origin,float2 MinMaxSpeed,uint systemSeed,uint seed)
+void VFXBlockVelocityRadialFromOrigin( float3 position,inout float3 velocity,float3 Origin,float2 MinMaxSpeed,uint systemSeed,inout uint seed)
 {
 	float3 dir = normalize(position - Origin);
 	float speed = lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);

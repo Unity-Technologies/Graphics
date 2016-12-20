@@ -96,19 +96,19 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockPositionCylinderSurface( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,uint systemSeed,uint seed)
+void VFXBlockPositionCylinderSurface( inout float3 position,float3 Cylinder_position,float3 Cylinder_direction,float Cylinder_radius,float Cylinder_height,uint systemSeed,inout uint seed)
 {
 	float u1 = 1.0 * RAND - 0.5;
 	float u2 = UNITY_TWO_PI * RAND;
 	position = VFXPositionOnCylinderSurface(Cylinder,u1,u2);
 }
 
-void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,uint systemSeed,uint seed)
+void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,uint systemSeed,inout uint seed)
 {
 	texIndex = lerp(MinIndex,MaxIndex,RAND);
 }
@@ -118,7 +118,7 @@ void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
 	velocity += Velocity;
 }
 
-void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,uint seed)
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,inout uint seed)
 {
 	float s = lerp(MinSize,MaxSize,RAND);
 	size = float2(s,s);

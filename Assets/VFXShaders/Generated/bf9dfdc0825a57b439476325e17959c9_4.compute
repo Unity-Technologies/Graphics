@@ -118,7 +118,7 @@ void VFXBlockVelocityConstant( inout float3 velocity,float3 Velocity)
 	velocity += Velocity;
 }
 
-void VFXBlockVelocityRadial( inout float3 velocity,float2 MinMaxAngle,float2 MinMaxSpeed,uint systemSeed,uint seed)
+void VFXBlockVelocityRadial( inout float3 velocity,float2 MinMaxAngle,float2 MinMaxSpeed,uint systemSeed,inout uint seed)
 {
 	float2 z = cos(radians(MinMaxAngle));
 	float u1 = lerp(z.x,z.y,RAND);
@@ -129,17 +129,17 @@ void VFXBlockVelocityRadial( inout float3 velocity,float2 MinMaxAngle,float2 Min
 	velocity += float3(sincosTheta,u1).xzy * lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);
 }
 
-void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,uint seed)
+void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
 }
 
-void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,uint systemSeed,uint seed)
+void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,uint systemSeed,inout uint seed)
 {
 	texIndex = lerp(MinIndex,MaxIndex,RAND);
 }
 
-void VFXBlockSetColorRandomGradient( inout float3 color,inout float alpha,float Gradient,uint systemSeed,uint seed)
+void VFXBlockSetColorRandomGradient( inout float3 color,inout float alpha,float Gradient,uint systemSeed,inout uint seed)
 {
 	float4 rgba = sampleSignal(Gradient,RAND);
 	color = rgba.rgb;

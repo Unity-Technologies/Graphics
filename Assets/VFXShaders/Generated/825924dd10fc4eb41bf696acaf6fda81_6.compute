@@ -65,7 +65,7 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionBox( inout float3 position,float4x4 box,uint systemSeed,uint seed)
+void VFXBlockSetPositionBox( inout float3 position,float4x4 box,uint systemSeed,inout uint seed)
 {
 	position = RAND3 - 0.5f;
 	position = mul(box,float4(position,1.0f)).xyz;

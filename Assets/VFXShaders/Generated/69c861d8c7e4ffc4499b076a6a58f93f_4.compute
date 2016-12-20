@@ -100,21 +100,21 @@ float rand(inout uint seed)
 	return float(seed) / 4294967296.0;
 }
 
-void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,uint seed)
+void VFXBlockSetPositionSphereSurface( inout float3 position,float3 Sphere_center,float Sphere_radius,uint systemSeed,inout uint seed)
 {
 	float u1 = 2.0 * RAND - 1.0;
 	float u2 = UNITY_TWO_PI * RAND;
 	position = VFXPositionOnSphereSurface(Sphere,u1,u2);
 }
 
-void VFXBlockVelocityRadialFromOrigin( float3 position,inout float3 velocity,float3 Origin,float2 MinMaxSpeed,uint systemSeed,uint seed)
+void VFXBlockVelocityRadialFromOrigin( float3 position,inout float3 velocity,float3 Origin,float2 MinMaxSpeed,uint systemSeed,inout uint seed)
 {
 	float3 dir = normalize(position - Origin);
 	float speed = lerp(MinMaxSpeed.x,MinMaxSpeed.y,RAND);
 	velocity += dir * speed;
 }
 
-void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,uint seed)
+void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,inout uint seed)
 {
 	float s = lerp(MinSize,MaxSize,RAND);
 	size = float2(s,s);
@@ -125,7 +125,7 @@ void VFXBlockSetLifetimeConstant( inout float lifetime,float Lifetime)
 	lifetime = max(Lifetime,0.0f);
 }
 
-void VFXBlockAngularVelocityRandom( inout float angularVelocity,float Min,float Max,uint systemSeed,uint seed)
+void VFXBlockAngularVelocityRandom( inout float angularVelocity,float Min,float Max,uint systemSeed,inout uint seed)
 {
 	angularVelocity = lerp(Min,Max,RAND);
 }
