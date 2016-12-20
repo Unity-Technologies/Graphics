@@ -322,7 +322,7 @@ namespace UnityEditor.Experimental
             {
                 Write(separator);
                 separator = ',';
-                fnWriteAttribute(CommonAttrib.Seed);
+                fnWriteAttribute(new VFXAttribute(CommonAttrib.Seed, true));
             }
 
             if (block.Desc.IsSet(VFXBlockDesc.Flag.kHasKill))
