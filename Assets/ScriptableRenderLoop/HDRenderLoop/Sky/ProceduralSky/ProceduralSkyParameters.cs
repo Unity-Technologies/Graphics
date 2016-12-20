@@ -41,16 +41,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         /*
         [Header("Scatter Occlusion")]
         public bool               useOcclusion             = false;
+        public bool               occlusionFullSky         = false;
+        public bool               occlusionDepthFixup      = true;
         public float              occlusionBias            = 0f;
-        public float              occlusionBiasIndirect    = 0.6f;
         public float              occlusionBiasClouds      = 0.3f;
+        public float              occlusionBiasIndirect    = 0.6f;
+        public float              occlusionBiasSkyMie      = 0.4f;
+        public float              occlusionBiasSkyRayleigh = 0.2f;
+        public float              occlusionDepthThreshold  = 25f;
         public OcclusionDownscale occlusionDownscale       = OcclusionDownscale.x2;
         public OcclusionSamples   occlusionSamples         = OcclusionSamples.x64;
-        public bool               occlusionDepthFixup      = true;
-        public float              occlusionDepthThreshold  = 25f;
-        public bool               occlusionFullSky         = false;
-        public float              occlusionBiasSkyRayleigh = 0.2f;
-        public float              occlusionBiasSkyMie      = 0.4f;
         */
 
         [Header("Other")]
