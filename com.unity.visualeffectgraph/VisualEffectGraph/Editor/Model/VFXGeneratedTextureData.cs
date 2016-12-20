@@ -88,7 +88,9 @@ namespace UnityEngine.Experimental.VFX
                 m_ColorTexture = asset.GradientTexture;
             }
 
-            if (m_ColorTexture != null && m_ColorTexture.height != colorHeight)
+            Func<int, int> GetExpectedColorHeight = (height) => Mathf.NextPowerOfTwo(colorHeight);
+
+            if (m_ColorTexture != null && m_ColorTexture.height != GetExpectedColorHeight(colorHeight))
             {
                 DestroyTexture(m_ColorTexture);
                 m_ColorTexture = null;
@@ -98,7 +100,7 @@ namespace UnityEngine.Experimental.VFX
             {
                 if (m_ColorTexture == null)
                 {
-                    m_ColorTexture = new Texture2D(TEXTURE_WIDTH, Mathf.NextPowerOfTwo(colorHeight), TextureFormat.RGBA32, false, false); // sRGB
+                    m_ColorTexture = new Texture2D(TEXTURE_WIDTH, GetExpectedColorHeight(colorHeight), TextureFormat.RGBA32, false, false); // sRGB
                     m_ColorTexture.wrapMode = TextureWrapMode.Clamp;
                 }
 
@@ -122,16 +124,11 @@ namespace UnityEngine.Experimental.VFX
                 m_FloatTexture = asset.CurveTexture;
             }
 
-            if (m_ColorTexture != null && m_ColorTexture.height != colorHeight)
+            Func<int, int> GetExpectedFloatHeight = (height) => Mathf.NextPowerOfTwo((height + 3) / 4);
+
+            if (m_FloatTexture != null && m_FloatTexture.height != GetExpectedFloatHeight(floatHeight))
             {
                 DestroyTexture(m_FloatTexture);
-                m_FloatTexture = null;
-            }
-
-            if (m_FloatTexture != null && m_FloatTexture.height != floatHeight)
-            {
-                if (!EditorUtility.IsPersistent(m_FloatTexture)) // Do we still have ownership on the texture or has it been serialized within a VFX asset ?
-                    Object.DestroyImmediate(m_FloatTexture);
                 m_FloatTexture = null;
             }
 
@@ -139,7 +136,7 @@ namespace UnityEngine.Experimental.VFX
             {
                 if (m_FloatTexture == null)
                 {
-                    m_FloatTexture = new Texture2D(TEXTURE_WIDTH, Mathf.NextPowerOfTwo((floatHeight + 3) / 4), TextureFormat.RGBAHalf, false, true); // Linear
+                    m_FloatTexture = new Texture2D(TEXTURE_WIDTH, GetExpectedFloatHeight(floatHeight), TextureFormat.RGBAHalf, false, true); // Linear
                     m_FloatTexture.wrapMode = TextureWrapMode.Repeat;
                 }
        
