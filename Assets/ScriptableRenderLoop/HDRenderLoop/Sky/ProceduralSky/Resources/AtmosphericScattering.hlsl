@@ -155,9 +155,9 @@ void VolundTransferScatter(float3 worldPos, out float4 coords1, out float4 coord
     coords2.a = mieScatter;
 }
 
-void VolundTransferScatter(float3 scaledWorldPos, out float4 coords1) {
-     float4 c1, c2, c3;
-     VolundTransferScatter(scaledWorldPos, c1, c2, c3);
+void VolundTransferScatter(float3 worldPos, out float4 coords1) {
+    float4 c1, c2, c3;
+    VolundTransferScatter(worldPos, c1, c2, c3);
 
 #ifdef IS_RENDERING_SKY
     coords1.rgb = c3.rgb;
@@ -182,7 +182,11 @@ void VolundTransferScatter(float3 scaledWorldPos, out float4 coords1) {
 }
 
 float2 UVFromPos(float2 pos) {
+#if defined(UNITY_PASS_FORWARDBASE)
+    return pos;
+#else
     return pos / _ScreenParams.xy;
+#endif
 }
 
 float3 VolundApplyScatter(float4 coords1, float2 pos, float3 color) {
@@ -202,9 +206,9 @@ float3 VolundApplyScatterAdd(float coords1, float3 color) {
     return color * coords1;
 }
 
-void VolundTransferScatterOcclusion(float3 scaledWorldPos, out float4 coords1, out float3 coords2) {
-     float4 c1, c2, c3;
-     VolundTransferScatter(scaledWorldPos, c1, c2, c3);
+void VolundTransferScatterOcclusion(float3 worldPos, out float4 coords1, out float3 coords2) {
+    float4 c1, c2, c3;
+    VolundTransferScatter(worldPos, c1, c2, c3);
 
     coords1.rgb = c1.rgb * _RayleighInScatterPct.x;
     coords1.a = max(0.f, 1.f - c1.a * _RayleighExtinctionFactor - c3.a * _HeightExtinctionFactor);
@@ -261,7 +265,9 @@ float VolundSampleScatterOcclusion(float2 pos) {
         float4 mfWeights = float4(fWeights.z * fWeights.y, fWeights.x * fWeights.y, fWeights.x * fWeights.w, fWeights.z * fWeights.w);
         return dot(occ, mfWeights * maskDepth) / dot(mfWeights, maskDepth);
     }
-#endif //defined(ATMOSPHERICS_OCCLUSION_EDGE_FIXUP)
+#else
+    return SAMPLE_TEXTURE2D(_OcclusionTexture, SRL_BilinearSampler, uv).r;
+#endif
 #else //defined(ATMOSPHERICS_OCCLUSION)
     return 1.f;
 #endif //defined(ATMOSPHERICS_OCCLUSION)
@@ -328,22 +334,34 @@ float4 VolundApplyCloudScatterOcclusion(float4 coords1, float3 coords2, float2 p
 // Original vert/frag macros
 #if defined(ATMOSPHERICS_OCCLUSION)
     #define VOLUND_SCATTER_COORDS(idx1, idx2) float4 scatterCoords1 : TEXCOORD##idx1; float3 scatterCoords2 : TEXCOORD##idx2;
-    #define VOLUND_TRANSFER_SCATTER(pos, o) o.scatterCoords1 = pos.xyzz; o.scatterCoords2 = pos.xyz;
-    #define VOLUND_APPLY_SCATTER(i, color) VolundTransferScatterOcclusion(i.scatterCoords1.xyz, i.scatterCoords1, i.scatterCoords2); color = VolundApplyScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
-    #define VOLUND_CLOUD_SCATTER(i, color) VolundTransferScatterOcclusion(i.scatterCoords1.xyz, i.scatterCoords1, i.scatterCoords2); color = VolundApplyCloudScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
+    #if defined(ATMOSPHERICS_PER_PIXEL)
+        #define VOLUND_TRANSFER_SCATTER(pos, o) o.scatterCoords1 = pos.xyzz; o.scatterCoords2 = pos.xyz;
+        #define VOLUND_APPLY_SCATTER(i, color) VolundTransferScatterOcclusion(i.scatterCoords1.xyz, i.scatterCoords1, i.scatterCoords2); color = VolundApplyScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
+        #define VOLUND_CLOUD_SCATTER(i, color) VolundTransferScatterOcclusion(i.scatterCoords1.xyz, i.scatterCoords1, i.scatterCoords2); color = VolundApplyCloudScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
+    #else
+        #define VOLUND_TRANSFER_SCATTER(pos, o) VolundTransferScatterOcclusion(pos, o.scatterCoords1, o.scatterCoords2)
+        #define VOLUND_APPLY_SCATTER(i, color) color = VolundApplyScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
+        #define VOLUND_CLOUD_SCATTER(i, color) color = VolundApplyCloudScatterOcclusion(i.scatterCoords1, i.scatterCoords2, i.pos.xy, color)
+    #endif
 #else
     #define VOLUND_SCATTER_COORDS(idx1, idx2) float4 scatterCoords1 : TEXCOORD##idx1;
-    #define VOLUND_TRANSFER_SCATTER(pos, o) o.scatterCoords1 = pos.xyzz;
-    #define VOLUND_APPLY_SCATTER(i, color) VolundTransferScatter(i.scatterCoords1.xyz, i.scatterCoords1); color = VolundApplyScatter(i.scatterCoords1, i.pos.xy, color);
-    #define VOLUND_CLOUD_SCATTER(i, color) VolundTransferScatter(i.scatterCoords1.xyz, i.scatterCoords1); color = VolundApplyCloudScatter(i.scatterCoords1, color);
+    #if defined(ATMOSPHERICS_PER_PIXEL)
+        #define VOLUND_TRANSFER_SCATTER(pos, o) o.scatterCoords1 = pos.xyzz;
+        #define VOLUND_APPLY_SCATTER(i, color) VolundTransferScatter(i.scatterCoords1.xyz, i.scatterCoords1); color = VolundApplyScatter(i.scatterCoords1, i.pos.xy, color);
+        #define VOLUND_CLOUD_SCATTER(i, color) VolundTransferScatter(i.scatterCoords1.xyz, i.scatterCoords1); color = VolundApplyCloudScatter(i.scatterCoords1, color);
+    #else
+        #define VOLUND_TRANSFER_SCATTER(pos, o) VolundTransferScatter(pos, o.scatterCoords1)
+        #define VOLUND_APPLY_SCATTER(i, color) color = VolundApplyScatter(i.scatterCoords1, i.pos.xy, color)
+        #define VOLUND_CLOUD_SCATTER(i, color) color = VolundApplyCloudScatter(i.scatterCoords1, color)
+    #endif
 #endif
 
 #if !defined(SURFACE_SCATTER_COORDS)
                                                 /* surface shader analysis currently forces us to include stuff even when unused */
                                                 /* we also have to convince the analyzer to not optimize out stuff we need */
-    #define SURFACE_SCATTER_COORDS              float3 scaledWorldPos; float4 scatterCoords1; float3 scatterCoords2;
+    #define SURFACE_SCATTER_COORDS              float3 worldPos; float4 scatterCoords1; float3 scatterCoords2;
     #define SURFACE_SCATTER_TRANSFER(pos, o)    o.scatterCoords1.r = o.scatterCoords2.r = pos.x;
-    #define SURFACE_SCATTER_APPLY(i, color)     color += (i.scaledWorldPos + i.scatterCoords1.xyz + i.scatterCoords2.xyz) * 0.000001f
+    #define SURFACE_SCATTER_APPLY(i, color)     color += (i.worldPos + i.scatterCoords1.xyz + i.scatterCoords2.xyz) * 0.000001f
 #endif
 
 #endif //FILE_ATMOSPHERICSCATTERING

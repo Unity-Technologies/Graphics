@@ -33,12 +33,16 @@ namespace UnityEngine.Experimental.ScriptableRenderLoop
         void SetKeywords(BuiltinSkyParameters builtinParams, ProceduralSkyParameters param)
         {
             // Ensure that all preprocessor symbols are initially undefined.
+            m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS");
+            m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS_PER_PIXEL");
             m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS_DEBUG");
             m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS_OCCLUSION");
             m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS_OCCLUSION_EDGE_FIXUP");
             m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS_OCCLUSION_FULLSKY");
             m_ProceduralSkyMaterial.DisableKeyword("ATMOSPHERICS_SUNRAYS");
             m_ProceduralSkyMaterial.DisableKeyword("PERFORM_SKY_OCCLUSION_TEST");
+
+            m_ProceduralSkyMaterial.EnableKeyword("ATMOSPHERICS_PER_PIXEL");
 
             /*
             if (useOcclusion)
