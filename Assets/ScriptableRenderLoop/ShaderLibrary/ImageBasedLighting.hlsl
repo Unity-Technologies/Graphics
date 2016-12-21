@@ -71,7 +71,7 @@ void ImportanceSampleCosDir(float2 u,
                             out float3 L)
 {
     // Cosine sampling - ref: http://www.rorydriscoll.com/2009/01/07/better-sampling/
-    float cosTheta = sqrt(max(0.0, 1.0 - u.x));
+    float cosTheta = sqrt(saturate(1.0 - u.x));
     float sinTheta = sqrt(u.x);
     float phi = TWO_PI * u.y;
 
@@ -92,7 +92,7 @@ void ImportanceSampleGGXDir(float2 u,
 {
     // GGX NDF sampling
     float cosThetaH = sqrt((1.0 - u.x) / (1.0 + (roughness * roughness - 1.0) * u.x));
-    float sinThetaH = sqrt(max(0.0, 1.0 - cosThetaH * cosThetaH));
+    float sinThetaH = sqrt(saturate(1.0 - cosThetaH * cosThetaH));
     float phiH      = TWO_PI * u.y;
 
     // Transform from spherical into cartesian
