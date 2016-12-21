@@ -411,8 +411,8 @@ void ApplyDepthOffsetPositionInput(float V, float depthOffsetVS, inout PositionI
 float GetShiftedNdotV(inout float3 N, float3 V, bool twoSided)
 {
     float NdotV = dot(N, V);
-    float limit = 1e-6;
-    
+    float limit = 1e-4;
+
     if (!twoSided && NdotV < limit)
     {
         // We do not renormalize the normal because { abs(length(N) - 1.0) < limit }.
