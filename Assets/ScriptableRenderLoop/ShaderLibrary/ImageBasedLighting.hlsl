@@ -105,15 +105,15 @@ void ImportanceSampleGGXDir(float2 u,
 }
 
 
-// Special case where N == V.
-void ImportanceSampleGGXDirIsotropic(float2 u,
-                                     float3 V,
-                                     float3 N,
-                                     float3 tangentX,
-                                     float3 tangentY,
-                                     float roughness,
-                                     out float3 L,
-                                     out float  NdotH)
+// Special case of ImportanceSampleGGXDir() where N == V.
+// Approximates GGX with a BRDF which is isotropic for all viewing angles.
+void ImportanceSampleGGXViewIndDir(float2 u,
+                                   float3 N,
+                                   float3 tangentX,
+                                   float3 tangentY,
+                                   float roughness,
+                                   out float3 L,
+                                   out float  NdotH)
 {
     // GGX NDF sampling
     float cosThetaH = sqrt((1.0 - u.x) / (1.0 + (roughness * roughness - 1.0) * u.x));
@@ -340,7 +340,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
         float3 L;
         float  NdotH;
-        ImportanceSampleGGXDirIsotropic(u, V, N, tangentX, tangentY, roughness, L, NdotH);
+        ImportanceSampleGGXViewIndDir(u, V, N, tangentX, tangentY, roughness, L, NdotH);
 
         float NdotL = saturate(dot(N, L));
 
