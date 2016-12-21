@@ -5,8 +5,8 @@
 // Sample generator
 //-----------------------------------------------------------------------------
 
-#include "Fibonacci2D.hlsl"
-#include "Hammersley2D.hlsl"
+#include "Fibonacci.hlsl"
+#include "Hammersley.hlsl"
 
 float Hash(uint s)
 {

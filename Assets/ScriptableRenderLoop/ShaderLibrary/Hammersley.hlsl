@@ -1,5 +1,5 @@
-#ifndef UNITY_HAMMERSLEY2D_INCLUDED
-#define UNITY_HAMMERSLEY2D_INCLUDED
+#ifndef UNITY_HAMMERSLEY_INCLUDED
+#define UNITY_HAMMERSLEY_INCLUDED
 
 // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 uint ReverseBits32(uint bits)
@@ -421,4 +421,4 @@ float2 Hammersley2d(uint i, uint sequenceLength)
     }
 }
 
-#endif // UNITY_HAMMERSLEY2D_INCLUDED
+#endif // UNITY_HAMMERSLEY_INCLUDED
