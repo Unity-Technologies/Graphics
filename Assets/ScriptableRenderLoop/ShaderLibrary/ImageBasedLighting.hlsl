@@ -126,7 +126,7 @@ void ImportanceSampleGGXViewIndDir(float2 u,
     // localN == localV == float3(0.0, 0.0, 1.0).
     NdotH = localH.z;
 
-    // Compute { L = reflect(-localV, H) }.
+    // Compute { L = reflect(-localV, localH) }.
     float VdotH = NdotH;
     L = float3(0.0, 0.0, -1.0) + 2.0 * VdotH * localH;
 
