@@ -136,7 +136,9 @@ public class TextureCacheCubemap : TextureCache
             m_CacheNoCubeArray = new Texture2DArray(m_PanoWidthTop, m_PanoHeightTop, numCubeMaps, TextureFormat.RGBAHalf, isMipMapped)
             {
                 hideFlags = HideFlags.HideAndDontSave,
-                wrapMode = TextureWrapMode.Repeat
+                wrapMode = TextureWrapMode.Repeat,
+                filterMode = FilterMode.Trilinear,
+                anisoLevel = 0
             };
 
             m_NumPanoMipLevels = isMipMapped ? GetNumMips(m_PanoWidthTop, m_PanoHeightTop) : 1;
