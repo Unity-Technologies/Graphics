@@ -340,7 +340,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
         float3 L;
         float  NdotH;
-        ImportanceSampleGGXViewIndDir(u, V, N, tangentX, tangentY, roughness, L, NdotH);
+        ImportanceSampleGGXViewIndDir(u, N, tangentX, tangentY, roughness, L, NdotH);
 
         float NdotL = saturate(dot(N, L));
 
