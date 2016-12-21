@@ -292,7 +292,7 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                     float roughness,
                     float mipmapcount,
                     float invOmegaP,
-                    uint sampleCount,
+                    uint sampleCount,      // Matches the size of the precomputed Fibonacci point set
                     bool prefilter = true) // static bool
 {
     float3 acc          = float3(0.0, 0.0, 0.0);
