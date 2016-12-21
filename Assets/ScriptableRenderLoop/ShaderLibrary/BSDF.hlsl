@@ -56,6 +56,17 @@ float D_GGX(float NdotH, float roughness)
     return INV_PI * D_GGXNoPI(NdotH, roughness);
 }
 
+float D_GGX_Inverse(float NdotH, float roughness)
+{
+    roughness = max(roughness, UNITY_MIN_ROUGHNESS);
+
+    float a2 = roughness * roughness;
+    float f  = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    float g  = (f * f) / a2;
+
+    return PI * g;
+}
+
 // Ref: http://jcgt.org/published/0003/02/03/paper.pdf
 float V_SmithJointGGX(float NdotL, float NdotV, float roughness)
 {

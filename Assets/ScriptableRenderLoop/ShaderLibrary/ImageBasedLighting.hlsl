@@ -367,8 +367,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // - OmegaS : Solid angle associated to a sample
             // - OmegaP : Solid angle associated to a pixel of the cubemap
 
-            float pdf       = D_GGX(NdotH, roughness) * 0.25;
-            float omegaS    = 1.0 / (sampleCount * pdf);                      // Solid angle associated with the sample
+            float invPdf    = D_GGX_Inverse(NdotH, roughness) * 4.0;
+            float omegaS    = rcp(sampleCount) * invPdf;                      // Solid angle associated with the sample
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth); // Solid angle associated with the pixel of the cubemap
             mipLevel        = 0.5 * log2(omegaS * invOmegaP) + 1.0;           // Clamp is not necessary as the hardware will do it
