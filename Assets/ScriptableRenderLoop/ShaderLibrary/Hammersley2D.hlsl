@@ -408,6 +408,7 @@ static const float2 k_Hammersley2dSeq256[] = {
 
 // Loads elements from one of the precomputed tables for sequence lengths of 16, 32, 64, 256.
 // Computes the values at runtime otherwise.
+// For sampling, the size of the point set is the same as the sequence length.
 float2 Hammersley2d(uint i, uint sequenceLength)
 {
     switch (sequenceLength)
