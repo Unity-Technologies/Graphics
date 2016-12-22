@@ -101,6 +101,23 @@ Shader "HDRenderLoop/LayeredLit"
         _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         [ToggleOff]  _LayerMaskVertexColor("Use Vertex Color Mask", Float) = 0.0
 
+        // Height based blend (layer 0 does not need it)
+        _UseHeightBasedBlend1("UseHeightBasedBlend1", Float) = 0.0
+        _UseHeightBasedBlend2("UseHeightBasedBlend2", Float) = 0.0
+        _UseHeightBasedBlend3("UseHeightBasedBlend3", Float) = 0.0
+
+        _HeightOffset1("_HeightOffset1", Range(-0.3, 0.3)) = 0.0
+        _HeightOffset2("_HeightOffset2", Range(-0.3, 0.3)) = 0.0
+        _HeightOffset3("_HeightOffset3", Range(-0.3, 0.3)) = 0.0
+
+        _HeightFactor1("_HeightFactor1", Range(0, 5)) = 1
+        _HeightFactor2("_HeightFactor2", Range(0, 5)) = 1
+        _HeightFactor3("_HeightFactor3", Range(0, 5)) = 1
+
+        _BlendSize1("_BlendSize1", Range(0, 0.05)) = 0.0
+        _BlendSize2("_BlendSize2", Range(0, 0.05)) = 0.0
+        _BlendSize3("_BlendSize3", Range(0, 0.05)) = 0.0
+
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
 
         _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
@@ -290,6 +307,19 @@ Shader "HDRenderLoop/LayeredLit"
 
     TEXTURE2D(_LayerMaskMap);
     SAMPLER2D(sampler_LayerMaskMap);
+
+    float _UseHeightBasedBlend1;
+    float _UseHeightBasedBlend2;
+    float _UseHeightBasedBlend3;
+    float _HeightOffset1;
+    float _HeightOffset2;
+    float _HeightOffset3;
+    float _HeightFactor1;
+    float _HeightFactor2;
+    float _HeightFactor3;
+    float _BlendSize1;
+    float _BlendSize2;
+    float _BlendSize3;
 
     float3 _EmissiveColor;
     TEXTURE2D(_EmissiveColorMap);
