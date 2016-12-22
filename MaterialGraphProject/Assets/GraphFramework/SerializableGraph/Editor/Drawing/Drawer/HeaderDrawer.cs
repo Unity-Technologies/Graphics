@@ -38,7 +38,7 @@ namespace UnityEditor.Graphing.Drawing
             m_ExpandButton = new VisualElement
             {
                 name = "expandButton",
-                content = new GUIContent("teeest")
+                content = new GUIContent("")
             };
             var clickable = new Clickable(OnExpandClick);
             m_ExpandButton.AddManipulator(clickable);

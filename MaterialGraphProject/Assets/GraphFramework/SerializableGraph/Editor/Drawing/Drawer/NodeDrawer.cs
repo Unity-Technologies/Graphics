@@ -12,13 +12,13 @@ namespace UnityEditor.Graphing.Drawing
     {
         protected VisualContainer m_LeftContainer;
         protected VisualContainer m_RightContainer;
-        HeaderDrawer m_HeaderDrawer;
-        VisualContainer m_InputContainer;
-        VisualContainer m_OutputContainer;
-        List<AnchorDrawData> m_CurrentAnchors;
-        VisualContainer m_ControlsContainer;
-        List<ControlDrawData> m_CurrentControlDrawData;
-        bool m_CurrentExpanded;
+        private HeaderDrawer m_HeaderDrawer;
+        private VisualContainer m_InputContainer;
+        private VisualContainer m_OutputContainer;
+        private List<AnchorDrawData> m_CurrentAnchors;
+        private VisualContainer m_ControlsContainer;
+        private List<ControlDrawData> m_CurrentControlDrawData;
+        private bool m_CurrentExpanded;
 
         public NodeDrawer()
         {
@@ -43,6 +43,7 @@ namespace UnityEditor.Graphing.Drawing
             m_LeftContainer = new VisualContainer
             {
                 classList = new ClassList("pane", "left"),
+                pickingMode = PickingMode.Ignore
             };
             {
                 m_HeaderDrawer = new HeaderDrawer();
