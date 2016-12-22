@@ -7,11 +7,12 @@
 #define NB_THREADS_PER_GROUP 20
 
 CBUFFER_START(initUniforms)
+	float4x4 initUniform4_kVFXTransformMatrixOp;
+	
 	float initUniform0_kVFXValueOp;
 	float initUniform1_kVFXValueOp;
 	float initUniform2_kVFXValueOp;
 	float initUniform3_kVFXValueOp;
-	float4x4 initUniform4_kVFXTransformMatrixOp;
 	
 	uint initUniform5_kVFXSystemSeedOp;
 	uint nbSpawned;

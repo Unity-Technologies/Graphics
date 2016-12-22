@@ -116,12 +116,13 @@ namespace UnityEngine.Experimental.VFX
         {
             switch (type)
             {
-                case VFXValueType.kFloat:   return 1;
-                case VFXValueType.kFloat2:  return 2;
-                case VFXValueType.kFloat3:  return 3;
-                case VFXValueType.kFloat4:  return 4;
-                case VFXValueType.kInt:     return 1;
-                case VFXValueType.kUint:    return 1;
+                case VFXValueType.kFloat:       return 1;
+                case VFXValueType.kFloat2:      return 2;
+                case VFXValueType.kFloat3:      return 3;
+                case VFXValueType.kFloat4:      return 4;
+                case VFXValueType.kInt:         return 1;
+                case VFXValueType.kUint:        return 1;
+                case VFXValueType.kTransform:   return 16;
                 default:
                     return 0;
             }

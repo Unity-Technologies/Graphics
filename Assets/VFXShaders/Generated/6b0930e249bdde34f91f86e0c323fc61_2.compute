@@ -7,9 +7,10 @@
 #define NB_THREADS_PER_GROUP 30
 
 CBUFFER_START(initUniforms)
+	float4x4 initUniform0_kVFXTRSToMatrixOp;
+	
 	float3 initUniform3_kVFXCombine3fOp;
 	float initUniform1_kVFXValueOp;
-	float4x4 initUniform0_kVFXTRSToMatrixOp;
 	
 	float3 initUniform4_kVFXCombine3fOp;
 	float initUniform2_kVFXValueOp;

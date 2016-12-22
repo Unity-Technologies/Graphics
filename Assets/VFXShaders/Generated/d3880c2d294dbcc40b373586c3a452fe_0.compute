@@ -29,10 +29,12 @@ CBUFFER_START(initUniforms)
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
+	float4x4 updateUniform2_kVFXTRSToMatrixOp;
+	
+	float4x4 updateUniform5_kVFXInverseTRSOp;
+	
 	float3 updateUniform0_kVFXTransformVecOp;
 	float updateUniform1_kVFXValueOp;
-	float4x4 updateUniform2_kVFXTRSToMatrixOp;
-	float4x4 updateUniform5_kVFXInverseTRSOp;
 	
 	float updateUniform3_kVFXValueOp;
 	float updateUniform4_kVFXValueOp;

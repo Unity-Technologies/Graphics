@@ -18,11 +18,13 @@ CBUFFER_START(initUniforms)
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
+	float4x4 updateUniform4_kVFXTransformMatrixOp;
+	
+	float4x4 updateUniform12_kVFXInverseTRSOp;
+	
 	float3 updateUniform1_kVFXTransformPosOp;
 	float updateUniform2_kVFXValueOp;
 	float4 updateUniform0_kVFXValueOp;
-	float4x4 updateUniform4_kVFXTransformMatrixOp;
-	float4x4 updateUniform12_kVFXInverseTRSOp;
 	
 	float updateUniform3_kVFXValueOp;
 	float updateUniform5_kVFXValueOp;
