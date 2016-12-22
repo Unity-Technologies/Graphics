@@ -39,5 +39,54 @@ namespace UnityEditor.Graphing.Drawing
 
             return EventPropagation.Stop;
         }
+
+        public override void OnDataChanged()
+        {
+            base.OnDataChanged();
+
+            var graphDataSource = dataSource as AbstractGraphDataSource;
+            if (graphDataSource == null) return;
+
+            var graphAsset = graphDataSource.graphAsset;
+            if (graphAsset == null || selection.Count != 0 || !graphAsset.drawingData.selection.Any()) return;
+
+            var selectedDrawers = graphDataSource.graphAsset.drawingData.selection
+                .Select(guid => contentViewContainer.children
+                            .OfType<NodeDrawer>()
+                            .FirstOrDefault(drawer => ((NodeDrawData) drawer.dataProvider).node.guid == guid));
+
+            foreach (var drawer in selectedDrawers)
+                AddToSelection(drawer);
+        }
+
+        private void PropagateSelection()
+        {
+            var graphDataSource = dataSource as AbstractGraphDataSource;
+            if (graphDataSource == null) return;
+
+            var selectedNodeGuids = selection.OfType<NodeDrawer>().Select(x => ((NodeDrawData) x.dataProvider).node.guid);
+            graphDataSource.graphAsset.drawingData.selection = selectedNodeGuids;
+
+            // TODO: Maybe put somewhere else
+            Selection.activeObject = graphDataSource.graphAsset.GetScriptableObject();
+        }
+
+        public override void AddToSelection(ISelectable selectable)
+        {
+            base.AddToSelection(selectable);
+            PropagateSelection();
+        }
+
+        public override void RemoveFromSelection(ISelectable selectable)
+        {
+            base.RemoveFromSelection(selectable);
+            PropagateSelection();
+        }
+
+        public override void ClearSelection()
+        {
+            base.ClearSelection();
+            PropagateSelection();
+        }
     }
 }

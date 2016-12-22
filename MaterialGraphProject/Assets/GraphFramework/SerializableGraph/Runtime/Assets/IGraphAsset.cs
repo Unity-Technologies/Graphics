@@ -4,6 +4,7 @@ namespace UnityEngine.Graphing
     {
         IGraph graph { get; }
         bool shouldRepaint { get; }
+        GraphDrawingData drawingData { get; }
         ScriptableObject GetScriptableObject();
         void OnEnable();
     }

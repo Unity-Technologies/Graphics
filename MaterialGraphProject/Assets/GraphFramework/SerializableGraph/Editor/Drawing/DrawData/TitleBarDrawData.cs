@@ -55,6 +55,7 @@ namespace UnityEditor.Graphing.Drawing
             if (m_graphAsset != null)
                 EditorGUIUtility.PingObject(m_graphAsset.GetScriptableObject());
         }
+        
         void UpdateAsset()
         {
             if (m_graphAsset != null && m_graphAsset is MaterialGraphAsset)
