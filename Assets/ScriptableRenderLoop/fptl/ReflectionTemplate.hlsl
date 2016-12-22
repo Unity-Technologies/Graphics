@@ -7,14 +7,14 @@
 #include "UnityPBSLighting.cginc"
 
 
-UNITY_DECLARE_TEXCUBEARRAY(_reflCubeTextures);
+UNITY_DECLARE_ABSTRACT_CUBE_ARRAY(_reflCubeTextures);
 UNITY_DECLARE_TEXCUBE(_reflRootCubeTexture);
 //uniform int _reflRootSliceIndex;
 uniform float _reflRootHdrDecodeMult;
 uniform float _reflRootHdrDecodeExp;
 
 
-half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, half4 hdr, Unity_GlossyEnvironmentData glossIn);
+half3 Unity_GlossyEnvironment (UNITY_ARGS_ABSTRACT_CUBE_ARRAY(tex), int sliceIndex, half4 hdr, Unity_GlossyEnvironmentData glossIn);
 
 half3 distanceFromAABB(half3 p, half3 aabbMin, half3 aabbMax)
 {
@@ -97,7 +97,7 @@ float3 ExecuteReflectionList(uint start, uint numReflProbes, float3 vP, float3 v
             g.roughness = percRoughness;
             g.reflUVW       = sampleDir;
 
-            half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBEARRAY(_reflCubeTextures), lgtDat.sliceIndex, float4(lgtDat.lightIntensity, lgtDat.decodeExp, 0.0, 0.0), g);
+            half3 env0 = Unity_GlossyEnvironment(UNITY_PASS_ABSTRACT_CUBE_ARRAY(_reflCubeTextures), lgtDat.sliceIndex, float4(lgtDat.lightIntensity, lgtDat.decodeExp, 0.0, 0.0), g);
 
 
             UnityIndirect ind;
@@ -128,7 +128,7 @@ float3 ExecuteReflectionList(uint start, uint numReflProbes, float3 vP, float3 v
 }
 
 
-half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, half4 hdr, Unity_GlossyEnvironmentData glossIn)
+half3 Unity_GlossyEnvironment (UNITY_ARGS_ABSTRACT_CUBE_ARRAY(tex), int sliceIndex, half4 hdr, Unity_GlossyEnvironmentData glossIn)
 {
 #if UNITY_GLOSS_MATCHES_MARMOSET_TOOLBAG2 && (SHADER_TARGET >= 30)
     // TODO: remove pow, store cubemap mips differently
@@ -154,7 +154,7 @@ half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBEARRAY(tex), int sliceIndex, hal
 
 
     half mip = perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
-    half4 rgbm = UNITY_SAMPLE_TEXCUBEARRAY_LOD(tex, float4(glossIn.reflUVW.xyz, sliceIndex), mip);
+    half4 rgbm = UNITY_SAMPLE_ABSTRACT_CUBE_ARRAY_LOD(tex, float4(glossIn.reflUVW.xyz, sliceIndex), mip);
 
     return DecodeHDR(rgbm, hdr);
 }

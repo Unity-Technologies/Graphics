@@ -40,7 +40,7 @@ CBUFFER_END
 //UNITY_DECLARE_TEX2D(_LightTextureB0);
 sampler2D _LightTextureB0;
 UNITY_DECLARE_TEX2DARRAY(_spotCookieTextures);
-UNITY_DECLARE_TEXCUBEARRAY(_pointCookieTextures);
+UNITY_DECLARE_ABSTRACT_CUBE_ARRAY(_pointCookieTextures);
 
 StructuredBuffer<DirectionalLight> g_dirLightData;
 
@@ -247,7 +247,7 @@ float3 ExecuteLightList(uint start, uint numLights, float3 vP, float3 vPw, float
             [branch]if(bHasCookie)
             {
                 float3 cookieCoord = -float3(dot(vL, lgtDat.lightAxisX.xyz), dot(vL, lgtDat.lightAxisY.xyz), dot(vL, lgtDat.lightAxisZ.xyz));    // negate to make vL a fromLight vector
-                cookieColor = UNITY_SAMPLE_TEXCUBEARRAY_LOD(_pointCookieTextures, float4(cookieCoord, lgtDat.sliceIndex), 0.0);
+                cookieColor = UNITY_SAMPLE_ABSTRACT_CUBE_ARRAY_LOD(_pointCookieTextures, float4(cookieCoord, lgtDat.sliceIndex), 0.0);
                 atten *= cookieColor.w;
             }
 
