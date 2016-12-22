@@ -88,7 +88,7 @@ namespace RMGUI.GraphView
 
 		public bool IsConnectable()
 		{
-			return direction == Direction.Output || !connected;
+			return true;
 		}
 
 		protected new void OnEnable()
