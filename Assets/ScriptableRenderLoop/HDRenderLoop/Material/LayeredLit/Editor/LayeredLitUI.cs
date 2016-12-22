@@ -38,6 +38,12 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("Tiling", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBaseText = new GUIContent("Base UV Mapping", "Base UV Mapping mode of the layer.");
             public readonly GUIContent UVDetailText = new GUIContent("Detail UV Mapping", "Detail UV Mapping mode of the layer.");
+            public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
+            public readonly GUIContent heightOffsetText = new GUIContent("HeightOffset", "Height offset from the previous layer.");
+            public readonly GUIContent heightFactorText = new GUIContent("Height Multiplier", "Scale applied to the height of the layer.");
+            public readonly GUIContent blendSizeText = new GUIContent("Blend Size", "Thickness over which the layer will be blended with the previous one.");
+
+
         }
 
         static StylesLayer s_Styles = null;
@@ -68,6 +74,15 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
         MaterialProperty[] layerUVDetail = new MaterialProperty[kMaxLayerCount];
         MaterialProperty[] layerUVDetailsMappingMask = new MaterialProperty[kMaxLayerCount];
 
+        const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
+        MaterialProperty[] useHeightBasedBlend = new MaterialProperty[kMaxLayerCount-1];
+        const string kHeightOffset = "_HeightOffset";
+        MaterialProperty[] heightOffset = new MaterialProperty[kMaxLayerCount-1];
+        const string kHeightFactor = "_HeightFactor";
+        MaterialProperty[] heightFactor = new MaterialProperty[kMaxLayerCount-1];
+        const string kBlendSize = "_BlendSize";
+        MaterialProperty[] blendSize = new MaterialProperty[kMaxLayerCount-1];
+
         MaterialProperty layerEmissiveColor = null;
         MaterialProperty layerEmissiveColorMap = null;
         MaterialProperty layerEmissiveIntensity = null;
@@ -87,6 +102,14 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 layerUVMappingPlanar[i] = FindProperty(string.Format("{0}{1}", kUVMappingPlanar, i), props);
                 layerUVDetail[i] = FindProperty(string.Format("{0}{1}", kUVDetail, i), props);
                 layerUVDetailsMappingMask[i] = FindProperty(string.Format("{0}{1}", kUVDetailsMappingMask, i), props);
+
+                if(i != 0)
+                {
+                    useHeightBasedBlend[i-1] = FindProperty(string.Format("{0}{1}", kUseHeightBasedBlend, i), props);
+                    heightOffset[i-1] = FindProperty(string.Format("{0}{1}", kHeightOffset, i), props);
+                    heightFactor[i-1] = FindProperty(string.Format("{0}{1}", kHeightFactor, i), props);
+                    blendSize[i-1] = FindProperty(string.Format("{0}{1}", kBlendSize, i), props);
+                }
             }
 
             layerEmissiveColor = FindProperty(kEmissiveColor, props);
@@ -110,7 +133,7 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
 
         void SynchronizeLayerProperties(int layerIndex)
         {
-            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVDetailsMappingMask };
+            string[] exclusionList = { kTexWorldScale, kUVBase, kUVMappingMask, kUVDetail, kUVMappingPlanar, kUVDetailsMappingMask };
 
             Material material = m_MaterialEditor.target as Material;
             Material layerMaterial = m_MaterialLayers[layerIndex];
@@ -393,6 +416,25 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
                 }
             }
 
+            if(layerIndex > 0)
+            {
+                int heightParamIndex = layerIndex - 1;
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = useHeightBasedBlend[heightParamIndex].hasMixedValue;
+                bool enabled = EditorGUILayout.Toggle(styles.useHeightBasedBlendText, useHeightBasedBlend[heightParamIndex].floatValue > 0.0f);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    useHeightBasedBlend[heightParamIndex].floatValue = enabled ? 1.0f : 0.0f;
+                }
+
+                if(enabled)
+                {
+                    m_MaterialEditor.ShaderProperty(heightOffset[heightParamIndex], styles.heightOffsetText);
+                    m_MaterialEditor.ShaderProperty(heightFactor[heightParamIndex], styles.heightFactorText);
+                    m_MaterialEditor.ShaderProperty(blendSize[heightParamIndex], styles.blendSizeText);
+                }
+            }
+
             EditorGUI.indentLevel--;
 
             return result;
@@ -595,11 +637,6 @@ namespace UnityEditor.Experimental.ScriptableRenderLoop
             }
 
             m_MaterialEditor.serializedObject.ApplyModifiedProperties();
-
-            if (layerChanged)
-            {
-                materialImporter.SaveAndReimport();
-            }
         }
     }
 } // namespace UnityEditor
