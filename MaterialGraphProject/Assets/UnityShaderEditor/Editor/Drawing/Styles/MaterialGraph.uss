@@ -8,7 +8,7 @@
 	width: 200;
 }
 
-MaterialGraphView {
+GridBackground {
 	grid-background-color:rgb(20, 21, 21);
 	line-color: rgb(20, 21, 21);
 	thick-line-color: rgb(20, 21, 21);
