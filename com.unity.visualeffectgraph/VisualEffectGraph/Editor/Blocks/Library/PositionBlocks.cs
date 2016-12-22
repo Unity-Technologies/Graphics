@@ -262,14 +262,23 @@ position = nPos * Box_size + Box_center;";
             CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
 
             Add(VFXProperty.Create<VFXSplineType>("Spline"));
+            Add(VFXProperty.Create<VFXFloatType>("radius"));
 
             Add(new VFXAttribute(CommonAttrib.Position, true));
+            Add(new VFXAttribute(CommonAttrib.Velocity, true));
+            Add(new VFXAttribute(CommonAttrib.Front, true));
+            Add(new VFXAttribute(CommonAttrib.Side, true));
+            Add(new VFXAttribute(CommonAttrib.Up, true));
 
             Source = @"
 float t = RAND;
 float3 center = SAMPLE_SPLINE_POSITION(Spline,t);
 float3 tangent = normalize(SAMPLE_SPLINE_TANGENT(Spline,t));
-position += PositionOnCylinderSurface(center,tangent,0.0f,0.25f,0.0f,RAND * UNITY_TWO_PI);";
+up = tangent;
+position = PositionOnCylinderSurface(center,tangent,0.0f,radius,0.0f,RAND * UNITY_TWO_PI);
+front = normalize(position - center);
+side = cross(front,up);
+velocity += tangent * RAND;";
         }
     }
 }

@@ -13,24 +13,36 @@ CBUFFER_START(initUniforms)
 	
 	float initUniform3_kVFXValueOp;
 	float initUniform4_kVFXValueOp;
-	uint initUniform5_kVFXSystemSeedOp;
-	uint nbSpawned;
+	float initUniform5_kVFXValueOp;
+	float initUniform6_kVFXValueOp;
 	
+	float initUniform7_kVFXValueOp;
+	uint initUniform8_kVFXSystemSeedOp;
+	uint nbSpawned;
 	uint spawnIndex;
-	uint3 initUniforms_PADDING_0;
-
+	
 CBUFFER_END
 
 CBUFFER_START(updateUniforms)
-	float updateUniform0_kVFXValueOp;
-	float updateUniform1_kVFXDeltaTimeOp;
+	float4x4 updateUniform0_kVFXTRSToMatrixOp;
+	
+	float4x4 updateUniform6_kVFXInverseTRSOp;
+	
+	float3 updateUniform3_kVFXCombine3fOp;
+	float updateUniform1_kVFXValueOp;
+	
+	float updateUniform2_kVFXValueOp;
+	float updateUniform4_kVFXValueOp;
+	float updateUniform5_kVFXValueOp;
+	float updateUniform7_kVFXDeltaTimeOp;
+	
 	uint nbMax;
-	uint updateUniforms_PADDING_0;
+	uint3 updateUniforms_PADDING_0;
 
 CBUFFER_END
 
-Texture2D gradientTexture;
-SamplerState samplergradientTexture;
+Texture3D updateSampler0_kVFXValueOpTexture;
+SamplerState samplerupdateSampler0_kVFXValueOpTexture;
 
 Texture2D curveTexture;
 SamplerState samplercurveTexture;
@@ -38,42 +50,44 @@ SamplerState samplercurveTexture;
 struct Attribute0
 {
 	float3 position;
-	uint _PADDING_0;
+	float age;
 };
 
 struct Attribute1
 {
-	float2 size;
+	float3 velocity;
+	float lifetime;
 };
 
 struct Attribute2
 {
-	float lifetime;
+	float3 up;
+	float texIndex;
 };
 
 struct Attribute3
 {
-	float3 color;
+	float3 side;
 	uint _PADDING_0;
 };
 
 struct Attribute4
 {
-	float alpha;
+	float3 front;
+	uint _PADDING_0;
 };
 
-struct Attribute5
+struct Attribute6
 {
-	float age;
+	float2 size;
 };
 
 RWStructuredBuffer<Attribute0> attribBuffer0;
 RWStructuredBuffer<Attribute1> attribBuffer1;
 RWStructuredBuffer<Attribute2> attribBuffer2;
-StructuredBuffer<Attribute2> attribBuffer2_RO;
 RWStructuredBuffer<Attribute3> attribBuffer3;
 RWStructuredBuffer<Attribute4> attribBuffer4;
-RWStructuredBuffer<Attribute5> attribBuffer5;
+RWStructuredBuffer<Attribute6> attribBuffer6;
 
 RWStructuredBuffer<int> flags;
 ConsumeStructuredBuffer<uint> deadListIn;
@@ -86,11 +100,6 @@ float rand(inout uint seed)
 {
 	seed = 1664525 * seed + 1013904223;
 	return float(seed) / 4294967296.0;
-}
-
-float4 sampleSignal(float v,float u) // sample gradient
-{
-	return gradientTexture.SampleLevel(samplergradientTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 }
 
 // Non optimized generic function to allow curve edition without recompiling
@@ -111,17 +120,26 @@ float3 sampleSpline(float v,float u)
 	return curveTexture.SampleLevel(samplercurveTexture,float2(((0.9921875 * saturate(u)) + 0.00390625),v),0);
 }
 
-void VFXBlockPositionSpline( inout float3 position,float2 Spline,uint systemSeed,inout uint seed)
+void VFXBlockPositionSpline( inout float3 position,inout float3 velocity,inout float3 front,inout float3 side,inout float3 up,float2 Spline,float radius,uint systemSeed,inout uint seed)
 {
 	float t = RAND;
 	float3 center = SAMPLE_SPLINE_POSITION(Spline,t);
 	float3 tangent = normalize(SAMPLE_SPLINE_TANGENT(Spline,t));
-	position += PositionOnCylinderSurface(center,tangent,0.0f,0.25f,0.0f,RAND * UNITY_TWO_PI);
+	up = tangent;
+	position = PositionOnCylinderSurface(center,tangent,0.0f,radius,0.0f,RAND * UNITY_TWO_PI);
+	front = normalize(position - center);
+	side = cross(front,up);
+	velocity += tangent * RAND;
 }
 
 void VFXBlockSetLifetimeRandom( inout float lifetime,float MinLifetime,float MaxLifetime,uint systemSeed,inout uint seed)
 {
 	lifetime = max(MinLifetime + RAND * (MaxLifetime-MinLifetime),0.0f);
+}
+
+void VFXBlockSetSubUVRandom( inout float texIndex,float MinIndex,float MaxIndex,uint systemSeed,inout uint seed)
+{
+	texIndex = lerp(MinIndex,MaxIndex,RAND);
 }
 
 void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uint systemSeed,inout uint seed)
@@ -130,12 +148,31 @@ void VFXBlockSizeRandomSquare( inout float2 size,float MinSize,float MaxSize,uin
 	size = float2(s,s);
 }
 
-void VFXBlockSetColorGradientOverLifetime( inout float3 color,inout float alpha,float age,float lifetime,float Gradient)
+void VFXBlockVectorFieldRelativeForce( inout float3 velocity,float3 position,VFXSampler3D VectorField,float4x4 Box,float4x4 InvBox,float Intensity,float DragCoefficient,float deltaTime)
 {
-	float ratio = saturate(age / lifetime);
-	float4 rgba = SAMPLE(Gradient,ratio);
-	color = rgba.rgb;
-	alpha = rgba.a;
+	float3 vectorFieldCoord = mul(INVERSE(Box), float4(position,1.0f)).xyz;
+	float3 value = SampleTexture(VectorField, vectorFieldCoord + 0.5f).xyz * 2.0f - 1.0f;
+	value = mul(Box,float4(value,0.0f)).xyz * Intensity;
+	float3 relativeForce = value - velocity;
+	velocity += relativeForce * min(1.0,(DragCoefficient * deltaTime));
+}
+
+void VFXBlockCollideWithSphere( inout float3 position,inout float3 velocity,float3 Sphere_center,float Sphere_radius,float Elasticity,float deltaTime)
+{
+	float3 nextPos = position + velocity * deltaTime;
+	float3 dir = Sphere_center - nextPos;
+	float sqrLength = dot(dir,dir);
+	if (sqrLength <= Sphere_radius * Sphere_radius)
+	{	
+		float dist = sqrt(sqrLength);
+		float3 n = dir / dist;	
+		float projVelocity = dot(n,velocity);
+		
+		if (projVelocity > 0)
+			velocity -= ((1 + Elasticity) * projVelocity) * n;
+			
+		position += n * (dist - Sphere_radius);
+	}
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
@@ -150,12 +187,12 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		Attribute2 attrib2 = (Attribute2)0;
 		Attribute3 attrib3 = (Attribute3)0;
 		Attribute4 attrib4 = (Attribute4)0;
-		Attribute5 attrib5 = (Attribute5)0;
+		Attribute6 attrib6 = (Attribute6)0;
 		
 		uint local_seed = (uint)0;
 		
 		
-		uint seed = (id.x + spawnIndex) ^ initUniform5_kVFXSystemSeedOp;
+		uint seed = (id.x + spawnIndex) ^ initUniform8_kVFXSystemSeedOp;
 		seed = (seed ^ 61) ^ (seed >> 16);
 		seed *= 9;
 		seed = seed ^ (seed >> 4);
@@ -163,16 +200,17 @@ void CSVFXInit(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID)
 		seed = seed ^ (seed >> 15);
 		local_seed = seed;
 		
-		VFXBlockPositionSpline( attrib0.position,initUniform0_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
-		VFXBlockSetLifetimeRandom( attrib2.lifetime,initUniform1_kVFXValueOp,initUniform2_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
-		VFXBlockSizeRandomSquare( attrib1.size,initUniform3_kVFXValueOp,initUniform4_kVFXValueOp,initUniform5_kVFXSystemSeedOp,local_seed);
+		VFXBlockPositionSpline( attrib0.position,attrib1.velocity,attrib4.front,attrib3.side,attrib2.up,initUniform0_kVFXValueOp,initUniform1_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetLifetimeRandom( attrib1.lifetime,initUniform2_kVFXValueOp,initUniform3_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockSetSubUVRandom( attrib2.texIndex,initUniform4_kVFXValueOp,initUniform5_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
+		VFXBlockSizeRandomSquare( attrib6.size,initUniform6_kVFXValueOp,initUniform7_kVFXValueOp,initUniform8_kVFXSystemSeedOp,local_seed);
 		
 		attribBuffer0[index] = attrib0;
 		attribBuffer1[index] = attrib1;
 		attribBuffer2[index] = attrib2;
 		attribBuffer3[index] = attrib3;
 		attribBuffer4[index] = attrib4;
-		attribBuffer5[index] = attrib5;
+		attribBuffer6[index] = attrib6;
 		
 		flags[index] = 1;
 	}
@@ -186,16 +224,18 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		uint index = id.x;
 		bool kill = false;
 		
-		Attribute2 attrib2 = attribBuffer2_RO[index];
-		Attribute3 attrib3 = attribBuffer3[index];
-		Attribute4 attrib4 = attribBuffer4[index];
-		Attribute5 attrib5 = attribBuffer5[index];
+		Attribute0 attrib0 = attribBuffer0[index];
+		Attribute1 attrib1 = attribBuffer1[index];
 		
+		VFXSampler3D updateSampler0_kVFXValueOp = InitSampler(updateSampler0_kVFXValueOpTexture,samplerupdateSampler0_kVFXValueOpTexture);
 		
-		VFXBlockSetColorGradientOverLifetime( attrib3.color,attrib4.alpha,attrib5.age,attrib2.lifetime,updateUniform0_kVFXValueOp);
+		VFXBlockVectorFieldRelativeForce( attrib1.velocity,attrib0.position,updateSampler0_kVFXValueOp,updateUniform0_kVFXTRSToMatrixOp,updateUniform6_kVFXInverseTRSOp,updateUniform1_kVFXValueOp,updateUniform2_kVFXValueOp,updateUniform7_kVFXDeltaTimeOp);
+		VFXBlockCollideWithSphere( attrib0.position,attrib1.velocity,updateUniform3_kVFXCombine3fOp,updateUniform4_kVFXValueOp,updateUniform5_kVFXValueOp,updateUniform7_kVFXDeltaTimeOp);
 		
-		attrib5.age += updateUniform1_kVFXDeltaTimeOp;
-		if (attrib5.age >= attrib2.lifetime)
+		attrib0.position += attrib1.velocity * updateUniform7_kVFXDeltaTimeOp;
+		
+		attrib0.age += updateUniform7_kVFXDeltaTimeOp;
+		if (attrib0.age >= attrib1.lifetime)
 			kill = true;
 		
 		if (kill)
@@ -205,9 +245,8 @@ void CSVFXUpdate(uint3 id : SV_DispatchThreadID,uint3 groupId : SV_GroupThreadID
 		}
 		else
 		{
-			attribBuffer3[index] = attrib3;
-			attribBuffer4[index] = attrib4;
-			attribBuffer5[index] = attrib5;
+			attribBuffer0[index] = attrib0;
+			attribBuffer1[index] = attrib1;
 		}
 	}
 }
