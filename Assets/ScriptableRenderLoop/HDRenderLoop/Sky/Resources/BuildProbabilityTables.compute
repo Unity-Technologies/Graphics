@@ -6,10 +6,9 @@
 
 #define textureSize 128                  // TODO: make this dynamic
 
-uint cubeFaceId;                         // Cubemap face index
+int cubeFaceId;                          // Cubemap face index
 
 TEXTURE2D(EnvMap)                        // Cubemap face
-SAMPLER2D(sampler_EnvMap)
 
 /* --- Output --- */
 
@@ -31,24 +30,25 @@ void BuildProabilityTables(uint3 groupId          : SV_GroupID,
                            uint  groupIndex       : SV_GroupIndex)
 {
     // A single thread group processes a row of 'textureSize' texels.
-    const uint  j = groupThreadId.y;
-    const float y = j / textureSize + (0.5 / textureSize);
+    int j = groupThreadId.y;
 
+    // TODO: reduce storage requirements.
     float temp[textureSize];
 
     // Compute the integral of the step function.
     float rowIntegralValue = 0.0;
 
+    // Suppress the D3D compiler warning.
+    int i;
+
     // TODO: run in parallel.
-    for (uint i = 0; i < textureSize; i++)
+    for (i = 0; i < textureSize; i++)
     {
         temp[i] = rowIntegralValue;
 
-        float x = i / textureSize + (0.5 / textureSize);
-
         // We use MIP level 1 to account for interpolation during light sampling.
         // Ref: PBRT v3, page 847.
-        float3 color     = SAMPLE_TEXTURE2D_LOD(EnvMap, sampler_EnvMap, float2(x, y), 1).rgb;
+        float3 color     = LOAD_TEXTURE2D_LOD(EnvMap, int2(i, j), 1).rgb;
         float  intensity = color.r + color.g + color.b;
 
         rowIntegralValue += intensity / textureSize;
@@ -59,9 +59,9 @@ void BuildProabilityTables(uint3 groupId          : SV_GroupID,
 
     // Compute the CDF. Note: the value at (i = textureSize) is implicitly 1.
     // TODO: run in parallel.
-    for (uint i = 0; i < textureSize; i++)
+    for (i = 0; i < textureSize; i++)
     {
-        conditionalDensities[uint2(i, j)] = temp[i] / rowIntegralValue;
+        conditionalDensities[int2(i, j)] = temp[i] / rowIntegralValue;
     }
 
     // Store the value of the integral.
@@ -74,18 +74,18 @@ void BuildProabilityTables(uint3 groupId          : SV_GroupID,
         float imgIntegralValue = 0.0;
 
         // TODO: run in parallel.
-        for (uint i = 0; i < textureSize; i++)
+        for (j = 0; j < textureSize; j++)
         {
-            temp[i] = imgIntegralValue;
+            temp[j] = imgIntegralValue;
 
-            imgIntegralValue += rowIntegralValues[i] / textureSize;
+            imgIntegralValue += rowIntegralValues[j] / textureSize;
         }
 
         // Compute marginal densities (normalize).
         // TODO: run in parallel.
-        for (uint i = 0; i < textureSize; i++)
+        for (j = 0; j < textureSize; j++)
         {
-            marginalRowDensities[uint2(i, cubeFaceId)] = temp[i] / imgIntegralValue;
+            marginalRowDensities[int2(cubeFaceId, j)] = temp[j] / imgIntegralValue;
         }
     }
 }
