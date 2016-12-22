@@ -71,7 +71,7 @@ void ImportanceSampleCosDir(float2 u,
                             out float3 L)
 {
     // Cosine sampling - ref: http://www.rorydriscoll.com/2009/01/07/better-sampling/
-    float cosTheta = sqrt(max(0.0, 1.0 - u.x));
+    float cosTheta = sqrt(saturate(1.0 - u.x));
     float sinTheta = sqrt(u.x);
     float phi = TWO_PI * u.y;
 
@@ -92,7 +92,7 @@ void ImportanceSampleGGXDir(float2 u,
 {
     // GGX NDF sampling
     float cosThetaH = sqrt((1.0 - u.x) / (1.0 + (roughness * roughness - 1.0) * u.x));
-    float sinThetaH = sqrt(max(0.0, 1.0 - cosThetaH * cosThetaH));
+    float sinThetaH = sqrt(saturate(1.0 - cosThetaH * cosThetaH));
     float phiH      = TWO_PI * u.y;
 
     // Transform from spherical into cartesian
@@ -102,6 +102,36 @@ void ImportanceSampleGGXDir(float2 u,
 
     // Convert sample from half angle to incident angle
     L = 2.0 * dot(V, H) * H - V;
+}
+
+
+// Special case of ImportanceSampleGGXDir() where N == V.
+// Approximates GGX with a BRDF which is isotropic for all viewing angles.
+void ImportanceSampleGGXViewIndDir(float2 u,
+                                   float3 N,
+                                   float3 tangentX,
+                                   float3 tangentY,
+                                   float roughness,
+                                   out float3 L,
+                                   out float  NdotH)
+{
+    // GGX NDF sampling
+    float cosThetaH = sqrt((1.0 - u.x) / (1.0 + (roughness * roughness - 1.0) * u.x));
+    float sinThetaH = sqrt(saturate(1.0 - cosThetaH * cosThetaH));
+    float phiH      = TWO_PI * u.y;
+
+    // Transform from spherical into Cartesian.
+    float3 localH = float3(sinThetaH * cos(phiH), sinThetaH * sin(phiH), cosThetaH);
+
+    // localN == localV == float3(0.0, 0.0, 1.0).
+    NdotH = localH.z;
+
+    // Compute { L = reflect(-localV, localH) }.
+    float VdotH = NdotH;
+    L = float3(0.0, 0.0, -1.0) + 2.0 * VdotH * localH;
+
+    // Local to world
+    L = tangentX * L.x + tangentY * L.y + N * L.z;
 }
 
 // ref: http://blog.selfshadow.com/publications/s2012-shading-course/burley/s2012_pbs_disney_brdf_notes_v3.pdf p26
@@ -292,11 +322,11 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
                     float roughness,
                     float mipmapcount,
                     float invOmegaP,
-                    uint sampleCount,
+                    uint sampleCount,      // Matches the size of the precomputed Fibonacci point set
                     bool prefilter = true) // static bool
 {
-    float3 acc          = float3(0.0, 0.0, 0.0);
-    float  accWeight    = 0;
+    float3 acc       = float3(0.0, 0.0, 0.0);
+    float  accWeight = 0;
 
     float2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
 
@@ -305,14 +335,14 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
 
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float2 u    = Hammersley2d(i, sampleCount);
-        u           = frac(u + randNum + 0.5);
+        float2 u = k_Fibonacci2dSeq55[i];
+        u        = frac(u + randNum);
 
-        float3 H;
         float3 L;
-        ImportanceSampleGGXDir(u, V, N, tangentX, tangentY, roughness, H, L);
+        float  NdotH;
+        ImportanceSampleGGXViewIndDir(u, N, tangentX, tangentY, roughness, L, NdotH);
 
-        float NdotL = saturate(dot(N,L));
+        float NdotL = saturate(dot(N, L));
 
         float mipLevel;
 
@@ -337,9 +367,8 @@ float4 IntegrateLD(TEXTURECUBE_ARGS(tex, sampl),
             // - OmegaS : Solid angle associated to a sample
             // - OmegaP : Solid angle associated to a pixel of the cubemap
 
-            float NdotH     = saturate(dot(N, H));
-            float pdf       = D_GGX(NdotH, roughness) * 0.25;
-            float omegaS    = 1.0 / (sampleCount * pdf);                      // Solid angle associated with the sample
+            float invPdf    = D_GGX_Inverse(NdotH, roughness) * 4.0;
+            float omegaS    = rcp(sampleCount) * invPdf;                      // Solid angle associated with the sample
             // invOmegaP is precomputed on CPU and provide as a parameter of the function
             // float omegaP = FOUR_PI / (6.0f * cubemapWidth * cubemapWidth); // Solid angle associated with the pixel of the cubemap
             mipLevel        = 0.5 * log2(omegaS * invOmegaP) + 1.0;           // Clamp is not necessary as the hardware will do it
