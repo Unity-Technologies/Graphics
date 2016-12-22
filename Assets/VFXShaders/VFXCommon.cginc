@@ -17,6 +17,8 @@
 #define RAND4 float4(RAND,RAND,RAND,RAND)
 #define KILL {kill = true;}
 #define SAMPLE sampleSignal
+#define SAMPLE_SPLINE_POSITION(v,u) sampleSpline(v.x,u)
+#define SAMPLE_SPLINE_TANGENT(v,y) sampleSpline(v.y,u)
 #define INVERSE(m) Inv##m
 
 struct VFXSampler2D

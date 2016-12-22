@@ -284,6 +284,9 @@ namespace UnityEngine.Experimental.VFX
                     case VFXValueType.kColorGradient:
                         SerializationUtils.WriteGradient(writer, Value.Get<Gradient>());
                         break;
+                    case VFXValueType.kSpline:
+                        SerializationUtils.WriteSpline(writer, Value.Get<List<Vector3>>());
+                        break;
                     default:
                         Debug.LogWarning("Cannot serialize value of type " + ValueType);
                         break;
@@ -336,6 +339,10 @@ namespace UnityEngine.Experimental.VFX
                     case VFXValueType.kColorGradient:
                         reader.MoveToElement();
                         Set(SerializationUtils.ReadGradient(reader));
+                        break;
+                    case VFXValueType.kSpline:
+                        reader.MoveToElement();
+                        Set(SerializationUtils.ReadSpline(reader));
                         break;
                     default:
                         Debug.LogWarning("Cannot deserialize value of type " + ValueType);

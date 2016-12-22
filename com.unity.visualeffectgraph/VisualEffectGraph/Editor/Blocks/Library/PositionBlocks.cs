@@ -251,4 +251,22 @@ nPos = nPos / Number - 0.5f;
 position = nPos * Box_size + Box_center;";
         }
     }
+
+    class VFXBlockPositionSpline : VFXBlockType
+    {
+        public VFXBlockPositionSpline()
+        {
+            Name = "Bezier spline";
+            Icon = "Curve";
+            Category = "Position";
+            CompatibleContexts = VFXContextDesc.Type.kInitAndUpdate;
+
+            Add(VFXProperty.Create<VFXSplineType>("Spline"));
+
+            Add(new VFXAttribute(CommonAttrib.Position, true));
+
+            Source = @"
+position += SAMPLE_SPLINE_POSITION(Spline,RAND);";
+        }
+    }
 }
