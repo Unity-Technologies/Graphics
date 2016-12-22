@@ -57,65 +57,140 @@ public class TextureCacheCubemap : TextureCache
 {
     private CubemapArray m_Cache;
 
+    // alternative panorama path intended for mobile
+    // the member variables below are only in use when m_IsNoCubeArray is true.
+    private bool m_IsNoCubeArray = false;
+    private Texture2DArray m_CacheNoCubeArray;
+    private RenderTexture[] m_StagingRTs;
+    private int m_NumPanoMipLevels;
+    private Material m_CubeBlitMaterial;
+    private int m_CubeMipLevelPropName;
+    private int m_cubeSrcTexPropName;
+    // alternative panorama path intended for mobile
+    // the member variables below are only in use when m_IsNoCubeArray is true.
+
+
     public override void TransferToSlice(int sliceIndex, Texture texture)
     {
-        var mismatch = (m_Cache.width != texture.width) || (m_Cache.height != texture.height);
-
-        if (texture is Cubemap)
-        {
-            mismatch |= (m_Cache.format != (texture as Cubemap).format);
-        }
-
-        if (mismatch)
-        {
-            bool failed = false;
-
-            for (int f = 0; f < 6; f++)
-            {
-                if (!Graphics.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f))
-                {
-                    failed = true;
-                    break;
-                }
-            }
-
-            if (failed)
-            {
-                Debug.LogErrorFormat(texture, "Unable to convert texture \"{0}\" to match renderloop settings ({1}x{2} {3})",
-                  texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
-            }
-        }
+        if(m_IsNoCubeArray)
+            TransferToPanoCache(sliceIndex, texture);
         else
         {
-            for (int f = 0; f < 6; f++)
-                Graphics.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
+            var mismatch = (m_Cache.width != texture.width) || (m_Cache.height != texture.height);
+
+            if (texture is Cubemap)
+            {
+                mismatch |= (m_Cache.format != (texture as Cubemap).format);
+            }
+
+            if (mismatch)
+            {
+                bool failed = false;
+
+                for (int f = 0; f < 6; f++)
+                {
+                    if (!Graphics.ConvertTexture(texture, f, m_Cache, 6 * sliceIndex + f))
+                    {
+                        failed = true;
+                        break;
+                    }
+                }
+
+                if (failed)
+                {
+                    Debug.LogErrorFormat(texture, "Unable to convert texture \"{0}\" to match renderloop settings ({1}x{2} {3})",
+                      texture.name, m_Cache.width, m_Cache.height, m_Cache.format);
+                }
+            }
+            else
+            {
+                for (int f = 0; f < 6; f++)
+                    Graphics.CopyTexture(texture, f, m_Cache, 6 * sliceIndex + f);
+            }
         }
     }
 
     public override Texture GetTexCache()
     {
-        return m_Cache;
+        return m_IsNoCubeArray ? (Texture) m_CacheNoCubeArray : m_Cache;
     }
 
     public bool AllocTextureArray(int numCubeMaps, int width, TextureFormat format, bool isMipMapped)
     {
-        var res = AllocTextureArray(6 * numCubeMaps);
-        m_NumMipLevels = GetNumMips(width, width);
-
-        m_Cache = new CubemapArray(width, numCubeMaps, format, isMipMapped)
+        var res = AllocTextureArray(numCubeMaps);
+        m_NumMipLevels = GetNumMips(width, width);      // will calculate same way whether we have cube array or not
+        
+        if(m_IsNoCubeArray)
         {
-            hideFlags = HideFlags.HideAndDontSave,
-            wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Trilinear,
-            anisoLevel = 0 // It is important to set 0 here, else unity force anisotropy filtering
-        };
+            if(!m_CubeBlitMaterial) m_CubeBlitMaterial = new Material(Shader.Find("Hidden/CubeToPano"));
+
+            int panoWidthTop = 4*width;
+            int panoHeightTop = 2*width;
+
+            // create panorama 2D array. Hardcoding the render target for now when m_IsNoCubeArray is true. No convenient way atm. to
+            // map from TextureFormat to RenderTextureFormat and don't want to deal with sRGB issues for now.
+            m_CacheNoCubeArray = new Texture2DArray(panoWidthTop, panoHeightTop, numCubeMaps, TextureFormat.RGBAHalf, isMipMapped)
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+                wrapMode = TextureWrapMode.Repeat,
+                filterMode = FilterMode.Trilinear,
+                anisoLevel = 0
+            };
+
+            m_NumPanoMipLevels = isMipMapped ? GetNumMips(panoWidthTop, panoHeightTop) : 1;
+            m_StagingRTs = new RenderTexture[m_NumPanoMipLevels];
+            for(int m=0; m<m_NumPanoMipLevels; m++)
+            {
+                m_StagingRTs[m] = new RenderTexture(Mathf.Max(1,panoWidthTop>>m), Mathf.Max(1,panoHeightTop>>m), 0, RenderTextureFormat.ARGBHalf);
+            }
+
+            if(m_CubeBlitMaterial)
+            {
+                m_CubeMipLevelPropName = Shader.PropertyToID("_cubeMipLvl");
+                m_cubeSrcTexPropName = Shader.PropertyToID("_srcCubeTexture");
+            }
+        }
+        else
+        {
+            m_Cache = new CubemapArray(width, numCubeMaps, format, isMipMapped)
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Trilinear,
+                anisoLevel = 0 // It is important to set 0 here, else unity force anisotropy filtering
+            };
+        }
 
         return res;
     }
 
     public void Release()
     {
-        Texture.DestroyImmediate(m_Cache);      // do I need this?
+        if(m_IsNoCubeArray)
+        {
+            Texture.DestroyImmediate(m_CacheNoCubeArray);
+            for(int m=0; m<m_NumPanoMipLevels; m++)
+            {
+                m_StagingRTs[m].Release();
+            }
+            m_StagingRTs=null;
+            if(m_CubeBlitMaterial) Material.DestroyImmediate(m_CubeBlitMaterial);
+        }
+        else Texture.DestroyImmediate(m_Cache);
+    }
+
+    private void TransferToPanoCache(int sliceIndex, Texture texture)
+    {
+        m_CubeBlitMaterial.SetTexture(m_cubeSrcTexPropName, texture);
+        for(int m=0; m<m_NumPanoMipLevels; m++)
+        {
+            m_CubeBlitMaterial.SetInt(m_CubeMipLevelPropName, Mathf.Min(m_NumMipLevels-1,m) );
+            Graphics.SetRenderTarget(m_StagingRTs[m]);
+            Graphics.Blit(null, m_CubeBlitMaterial, 0);
+        }
+
+        for(int m=0; m<m_NumPanoMipLevels; m++)
+            Graphics.CopyTexture(m_StagingRTs[m], 0, 0, m_CacheNoCubeArray, sliceIndex, m);
     }
 }
 
