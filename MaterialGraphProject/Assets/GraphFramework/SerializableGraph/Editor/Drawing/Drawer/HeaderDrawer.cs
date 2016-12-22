@@ -10,48 +10,38 @@ namespace UnityEditor.Graphing.Drawing
     {
         private VisualElement m_Title;
         private VisualElement m_ExpandButton;
-        private NodeExpander m_NodeExpander = new NodeExpander();
-
-        private HeaderDrawData m_dataProvider;
+        private HeaderDrawData m_DataProvider;
 
         public HeaderDrawData dataProvider
         {
-            get { return m_dataProvider; }
+            get { return m_DataProvider; }
             set
             {
-                if (m_dataProvider == value)
+                if (m_DataProvider == value)
                     return;
                 RemoveWatch();
-                m_dataProvider = value;
+                m_DataProvider = value;
                 OnDataChanged();
                 AddWatch();
             }
         }
 
-        protected override object toWatch
-        {
-            get { return m_dataProvider; }
-        }
-
         public HeaderDrawer()
         {
-            pickingMode = PickingMode.Ignore;
-            RemoveFromClassList("graphElement");
-
             m_Title = new VisualElement()
             {
                 name = "title",
-                content = new GUIContent(),
-                pickingMode = PickingMode.Ignore
+                content = new GUIContent()
             };
             AddChild(m_Title);
 
-            m_ExpandButton = new VisualElement()
+            m_ExpandButton = new VisualElement
             {
                 name = "expandButton",
-                content = new GUIContent("")
+                content = new GUIContent("teeest")
             };
-            m_ExpandButton.AddManipulator(m_NodeExpander);
+            var clickable = new Clickable(OnExpandClick);
+            m_ExpandButton.AddManipulator(clickable);
             AddChild(m_ExpandButton);
         }
 
@@ -64,19 +54,27 @@ namespace UnityEditor.Graphing.Drawing
         {
             base.OnDataChanged();
 
-            var headerData = dataProvider as HeaderDrawData;
-
-            if (headerData == null)
+            if (dataProvider == null)
             {
                 m_Title.content.text = "";
                 return;
             }
 
-            m_Title.content.text = headerData.title;
-            m_ExpandButton.content.text = headerData.expanded ? "Collapse" : "Expand";
-            m_NodeExpander.data = headerData;
+            m_Title.content.text = dataProvider.title;
+            m_ExpandButton.content.text = dataProvider.expanded ? "Collapse" : "Expand";
 
             this.Touch(ChangeType.Repaint);
+        }
+
+        private void OnExpandClick()
+        {
+            if (dataProvider == null) return;
+            dataProvider.expanded = !dataProvider.expanded;
+        }
+
+        protected override object toWatch
+        {
+            get { return m_DataProvider; }
         }
     }
 }
