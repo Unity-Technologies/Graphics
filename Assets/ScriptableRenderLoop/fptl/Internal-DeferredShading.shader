@@ -20,7 +20,7 @@ Pass
 
 
 CGPROGRAM
-#pragma target 5.0
+#pragma target 4.5
 #pragma vertex vert
 #pragma fragment frag
 

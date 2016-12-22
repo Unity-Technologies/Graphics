@@ -20,11 +20,12 @@ Pass
 
 
 CGPROGRAM
-#pragma target 5.0
+#pragma target 4.5
 #pragma vertex vert
 #pragma fragment frag
 
 #pragma multi_compile USE_FPTL_LIGHTLIST    USE_CLUSTERED_LIGHTLIST
+#pragma multi_compile __ ENABLE_DEBUG
 
 #include "UnityLightingCommon.cginc"
 
@@ -128,7 +129,10 @@ half4 frag (v2f i) : SV_Target
     uint numReflectionsProcessed = 0;
     float3 c = ExecuteReflectionList(numReflectionsProcessed, pixCoord, vP, data.normalWorld, Vworld, data.smoothness);
 
-    //c = OverlayHeatMap(numLightsProcessed, c);
+    #if ENABLE_DEBUG
+    	c = OverlayHeatMap(pixCoord & 15, numReflectionsProcessed, c);
+	#endif
+
     return float4(c,1.0);
 }
 
