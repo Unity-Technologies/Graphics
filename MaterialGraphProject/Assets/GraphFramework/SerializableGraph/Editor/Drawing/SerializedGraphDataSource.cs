@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
@@ -7,9 +8,9 @@ namespace UnityEditor.Graphing.Drawing
         protected SerializedGraphDataSource()
         {}
 
-        protected override void AddTypeMappings()
+        protected override void AddTypeMappings(Action<Type, Type> map)
         {
-            AddTypeMapping(typeof(SerializableNode), typeof(NodeDrawData));
+            map(typeof(SerializableNode), typeof(NodeDrawData));
         }
     }
 }
