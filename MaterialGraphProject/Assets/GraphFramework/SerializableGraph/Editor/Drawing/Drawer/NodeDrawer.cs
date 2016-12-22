@@ -43,8 +43,28 @@ namespace UnityEditor.Graphing.Drawing
             m_LeftContainer = new VisualContainer
             {
                 classList = new ClassList("pane", "left"),
-                pickingMode = PickingMode.Ignore
             };
+            {
+                m_HeaderDrawer = new HeaderDrawer();
+                m_HeaderDrawer.AddToClassList("paneItem");
+                m_LeftContainer.AddChild(m_HeaderDrawer);
+
+                m_InputContainer = new VisualContainer
+                {
+                    name = "input",
+                    pickingMode = PickingMode.Ignore,
+                };
+                m_InputContainer.AddToClassList("paneItem");
+                m_LeftContainer.AddChild(m_InputContainer);
+
+                m_ControlsContainer = new VisualContainer
+                {
+                    name = "controls",
+                    pickingMode = PickingMode.Ignore,
+                };
+                m_ControlsContainer.AddToClassList("paneItem");
+                m_LeftContainer.AddChild(m_ControlsContainer);
+            }
             AddChild(m_LeftContainer);
 
             m_RightContainer = new VisualContainer
@@ -52,38 +72,18 @@ namespace UnityEditor.Graphing.Drawing
                 classList = new ClassList("pane", "right"),
                 pickingMode = PickingMode.Ignore
             };
+            {
+                m_OutputContainer = new VisualContainer
+                {
+                    name = "output",
+                    pickingMode = PickingMode.Ignore,
+                };
+                m_OutputContainer.AddToClassList("paneItem");
+                m_RightContainer.AddChild(m_OutputContainer);
+            }
             AddChild(m_RightContainer);
 
-            m_HeaderDrawer = new HeaderDrawer();
-            m_HeaderDrawer.AddToClassList("paneItem");
-            m_LeftContainer.AddChild(m_HeaderDrawer);
-
-            m_InputContainer = new VisualContainer
-            {
-                name = "input",
-                pickingMode = PickingMode.Ignore,
-            };
-            m_InputContainer.AddToClassList("paneItem");
-            m_LeftContainer.AddChild(m_InputContainer);
-
-            m_ControlsContainer = new VisualContainer
-            {
-                name = "controls",
-                pickingMode = PickingMode.Ignore,
-            };
-            m_ControlsContainer.AddToClassList("paneItem");
-            m_LeftContainer.AddChild(m_ControlsContainer);
-
-            m_OutputContainer = new VisualContainer
-            {
-                name = "output",
-                pickingMode = PickingMode.Ignore,
-            };
-            m_OutputContainer.AddToClassList("paneItem");
-            m_RightContainer.AddChild(m_OutputContainer);
-
             m_CurrentAnchors = new List<AnchorDrawData>();
-
             m_CurrentControlDrawData = new List<ControlDrawData>();
         }
 

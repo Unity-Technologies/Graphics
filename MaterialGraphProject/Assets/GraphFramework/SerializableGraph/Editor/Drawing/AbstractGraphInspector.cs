@@ -10,7 +10,9 @@ namespace UnityEditor.Graphing.Drawing
             var asset = target as IGraphAsset;
             if (asset == null)
                 return;
-            EditorGUILayout.LabelField("Selected nodes", string.Join(", ", asset.drawingData.selection.Select(x => asset.graph.GetNodeFromGuid(x).name).ToArray()));
+
+            var selectedNodes = asset.drawingData.selection.Select(asset.graph.GetNodeFromGuid);
+            EditorGUILayout.LabelField("Selected nodes", string.Join(", ", selectedNodes.Select(x => x.name).ToArray()));
         }
     }
 }
