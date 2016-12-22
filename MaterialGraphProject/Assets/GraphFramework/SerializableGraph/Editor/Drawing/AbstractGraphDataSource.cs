@@ -9,14 +9,8 @@ using UnityEngine.Graphing;
 namespace UnityEditor.Graphing.Drawing
 {
     [Serializable]
-    public abstract class AbstractGraphDataSource : ScriptableObject, IGraphElementDataSource
+    public abstract class AbstractGraphDataSource : GraphViewPresenter
     {
-        [SerializeField]
-        private List<GraphElementData> m_Elements = new List<GraphElementData>();
-
-        [SerializeField]
-        private List<GraphElementData> m_TempElements = new List<GraphElementData>();
-
         private readonly TypeMapper m_DataMapper = new TypeMapper(typeof(NodeDrawData));
 
         public IGraphAsset graphAsset { get; private set; }
@@ -53,7 +47,7 @@ namespace UnityEditor.Graphing.Drawing
             var deletedElements = m_Elements
                 .OfType<NodeDrawData>()
                 .Where(nd => !graphAsset.graph.GetNodes<INode>().Contains(nd.node))
-                .OfType<GraphElementData>()
+                .OfType<GraphElementPresenter>()
                 .ToList();
 
             var deletedEdges = m_Elements.OfType<EdgeDrawData>()
@@ -132,7 +126,7 @@ namespace UnityEditor.Graphing.Drawing
             }
 
             // Add nodes marked for addition
-            m_Elements.AddRange(addedNodes.OfType<GraphElementData>());
+            m_Elements.AddRange(addedNodes.OfType<GraphElementPresenter>());
 
             // Find edges in the graph that are not being drawn and create edge data for them
             foreach (var edge in graphAsset.graph.edges)
@@ -163,7 +157,7 @@ namespace UnityEditor.Graphing.Drawing
                 }
             }
 
-            m_Elements.AddRange(drawableEdges.OfType<GraphElementData>());
+            m_Elements.AddRange(drawableEdges.OfType<GraphElementPresenter>());
         }
 
         protected abstract void AddTypeMappings(Action<Type, Type> map);
@@ -199,29 +193,9 @@ namespace UnityEditor.Graphing.Drawing
             UpdateData();
         }
 
-        public IEnumerable<GraphElementData> elements
-        {
-            get { return m_Elements.Union(m_TempElements); }
-        }
-        
-        public void AddTempElement(GraphElementData element)
-        {
-            m_TempElements.Add(element);
-        }
-
-        public void RemoveTempElement(GraphElementData element)
-        {
-            m_TempElements.Remove(element);
-        }
-
-        public void ClearTempElements()
-        {
-            m_TempElements.Clear();
-        }
-
         public void Connect(AnchorDrawData left, AnchorDrawData right)
         {
-            if (left && right)
+            if (left != null && right != null)
             {
                 graphAsset.graph.Connect(left.slot.slotReference, right.slot.slotReference);
                 EditorUtility.SetDirty(graphAsset.GetScriptableObject());
@@ -229,12 +203,17 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        public void AddElement(GraphElementData element)
+        public override void AddElement(EdgePresenter edge)
+        {
+            Connect(edge.output as AnchorDrawData, edge.input as AnchorDrawData);
+        }
+
+        public override void AddElement(GraphElementPresenter element)
         {
             throw new ArgumentException("Not supported on Serializable Graph, data comes from data store");
         }
 
-        public void RemoveElement(GraphElementData element)
+        public override void RemoveElement(GraphElementPresenter element)
         {
             throw new ArgumentException("Not supported on Serializable Graph, data comes from data store");
         }

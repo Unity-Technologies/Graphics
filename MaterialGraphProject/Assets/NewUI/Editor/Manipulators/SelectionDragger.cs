@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.RMGUI;
 
@@ -8,8 +9,7 @@ namespace RMGUI.GraphView
 	{
 		public SelectionDragger()
 		{
-			activateButton = MouseButton.LeftMouse;
-			activateModifiers = KeyModifiers.None;
+			activateButtons[(int)MouseButton.LeftMouse] = true;
 			panSpeed = new Vector2(1, 1);
 			clampToParentEdges = false;
 		}
@@ -39,8 +39,8 @@ namespace RMGUI.GraphView
 								return EventPropagation.Continue;
 						}
 
-						GraphElementData data = ce.dataProvider;
-						if (data != null && ((ce.dataProvider.capabilities & Capabilities.Movable) != Capabilities.Movable))
+						GraphElementPresenter presenter = ce.presenter;
+						if (presenter != null && ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable))
 							return EventPropagation.Continue;
 
 						this.TakeCapture();
@@ -54,19 +54,19 @@ namespace RMGUI.GraphView
 						foreach (ISelectable s in graphView.selection)
 						{
 							GraphElement ce = s as GraphElement;
-							if (ce == null || ce.dataProvider == null)
+							if (ce == null || ce.presenter == null)
 								continue;
 
-							GraphElementData data = ce.dataProvider;
-							if ((ce.dataProvider.capabilities & Capabilities.Movable) != Capabilities.Movable)
+							GraphElementPresenter presenter = ce.presenter;
+							if ((ce.presenter.capabilities & Capabilities.Movable) != Capabilities.Movable)
 								continue;
 
 							Matrix4x4 g = ce.globalTransform;
 							var scale = new Vector3(g.m00, g.m11, g.m22);
 
-							data.position = CalculatePosition(data.position.x + evt.delta.x * panSpeed.x / scale.x,
-																data.position.y + evt.delta.y * panSpeed.y / scale.y,
-																data.position.width, data.position.height);
+							presenter.position = CalculatePosition(presenter.position.x + evt.delta.x * panSpeed.x / scale.x,
+																   presenter.position.y + evt.delta.y * panSpeed.y / scale.y,
+																   presenter.position.width, presenter.position.height);
 						}
 
 						return EventPropagation.Stop;
@@ -76,6 +76,12 @@ namespace RMGUI.GraphView
 				case EventType.MouseUp:
 					if (CanStopManipulation(evt))
 					{
+						foreach (var presenter in graphView.selection.OfType<GraphElement>()
+																	 .Select(ge => ge.presenter)
+																	 .Where(pr => pr != null))
+						{
+							presenter.CommitChanges();
+						}
 						this.ReleaseCapture();
 						return EventPropagation.Stop;
 					}

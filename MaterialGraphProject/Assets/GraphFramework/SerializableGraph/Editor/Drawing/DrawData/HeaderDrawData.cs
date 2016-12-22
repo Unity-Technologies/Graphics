@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.Graphing;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    public class HeaderDrawData : GraphElementData
+    public class HeaderDrawData : GraphElementPresenter
     {
         protected HeaderDrawData()
         {}

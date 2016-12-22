@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 namespace UnityEditor.Graphing.Drawing
 {
     public class TitleBarButtonDrawData : ScriptableObject
@@ -8,6 +8,6 @@ namespace UnityEditor.Graphing.Drawing
         public string text;
         public ClickCallback onClick { get; set; }
 
-        protected TitleBarButtonDrawData() { }
+        protected TitleBarButtonDrawData() {}
     }
 }

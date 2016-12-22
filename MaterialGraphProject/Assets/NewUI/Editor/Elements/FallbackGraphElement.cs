@@ -13,8 +13,8 @@ namespace RMGUI.GraphView
 
 		public override void OnDataChanged()
 		{
-			var data = GetData<GraphElementData>();
-			content.text = "Fallback for " + data.GetType() + ". No GraphElement registered for this type in this view.";
+			var elementPresenter = GetPresenter<GraphElementPresenter>();
+			content.text = "Fallback for " + elementPresenter.GetType() + ". No GraphElement registered for this type in this view.";
 		}
 	}
 }

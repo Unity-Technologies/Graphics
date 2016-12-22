@@ -20,7 +20,7 @@ namespace UnityEditor.MaterialGraph.Drawing
 
             dataMapper[typeof(MaterialNodeDrawData)] = typeof(MaterialNodeDrawer);
             dataMapper[typeof(AnchorDrawData)] = typeof(NodeAnchor);
-            dataMapper[typeof(EdgeData)] = typeof(Edge);
+            dataMapper[typeof(EdgePresenter)] = typeof(Edge);
         }
 
         public virtual bool CanAddToNodeMenu(Type type)
@@ -84,7 +84,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             drawstate.position = new Rect(posObj.m_Pos.x, posObj.m_Pos.y, 0, 0);
             node.drawState = drawstate;
 
-            var graphDataSource = dataSource as AbstractGraphDataSource;
+            var graphDataSource = GetPresenter<AbstractGraphDataSource>();
             graphDataSource.AddNode(node);
         }
 
@@ -92,7 +92,7 @@ namespace UnityEditor.MaterialGraph.Drawing
         public EventPropagation Export()
         {
             var path = EditorUtility.SaveFilePanelInProject("Export shader to file...", "shader.shader", "shader", "Enter file name");
-           
+
             var ds = dataSource as AbstractGraphDataSource;
             if (ds != null && !string.IsNullOrEmpty(path))
             {

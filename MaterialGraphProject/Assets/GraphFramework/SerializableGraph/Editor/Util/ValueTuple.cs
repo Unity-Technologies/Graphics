@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 namespace UnityEditor.Graphing.Util
 {
     public struct ValueTuple<T1, T2>

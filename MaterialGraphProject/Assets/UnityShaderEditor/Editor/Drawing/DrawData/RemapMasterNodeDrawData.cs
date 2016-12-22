@@ -33,11 +33,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class RemapMasterNodeDrawData : MasterNodeDrawData
     {
-        protected override IEnumerable<GraphElementData> GetControlData()
+        protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
             var instance = CreateInstance<RemapMasterControlDrawData>();
             instance.Initialize(node);
-            var controls = new List<GraphElementData>(base.GetControlData());
+            var controls = new List<GraphElementPresenter>(base.GetControlData());
             controls.Add(instance);
             return controls;
         }

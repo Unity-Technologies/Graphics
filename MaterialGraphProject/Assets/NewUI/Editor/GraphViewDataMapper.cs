@@ -15,7 +15,7 @@ namespace RMGUI.GraphView
 			}
 			set
 			{
-				if (!t.IsSubclassOf(typeof(GraphElementData)))
+				if (!t.IsSubclassOf(typeof(GraphElementPresenter)))
 				{
 					throw new ArgumentException("The type passed as key does not derive from UnityEngine.Object.");
 				}
@@ -29,12 +29,12 @@ namespace RMGUI.GraphView
 			}
 		}
 
-		public GraphElement Create(GraphElementData data)
+		public GraphElement Create(GraphElementPresenter presenter)
 		{
 			Type viewType = null;
-			Type dataType = data.GetType();
+			Type dataType = presenter.GetType();
 
-			while (viewType == null && dataType != typeof(GraphElementData))
+			while (viewType == null && dataType != typeof(GraphElementPresenter))
 			{
 				if (!m_DataToViewDict.TryGetValue(dataType, out viewType))
 				{
@@ -48,7 +48,7 @@ namespace RMGUI.GraphView
 			}
 
 			var dataContainer = (GraphElement)Activator.CreateInstance(viewType);
-			dataContainer.dataProvider = data;
+			dataContainer.presenter = presenter;
 			return dataContainer;
 		}
 	}

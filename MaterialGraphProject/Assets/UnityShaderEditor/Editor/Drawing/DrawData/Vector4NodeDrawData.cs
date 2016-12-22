@@ -29,11 +29,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class Vector4NodeDrawData : PropertyNodeDrawData
     {
-        protected override IEnumerable<GraphElementData> GetControlData()
+        protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
             var instance = CreateInstance<Vector4ControlDrawData>();
             instance.Initialize(node);
-            return new List<GraphElementData>(base.GetControlData()) { instance };
+            return new List<GraphElementPresenter>(base.GetControlData()) { instance };
         }
     }
 }

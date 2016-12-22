@@ -5,6 +5,7 @@ using UnityEngine.MaterialGraph;
 
 namespace UnityEditor.Graphing.Drawing
 {
+    // TODO JOCE: Should most probably derive from GraphElementPresenter.
     public class TitleBarDrawData : ScriptableObject
     {
         List<TitleBarButtonDrawData> m_leftItems;
@@ -55,7 +56,7 @@ namespace UnityEditor.Graphing.Drawing
             if (m_graphAsset != null)
                 EditorGUIUtility.PingObject(m_graphAsset.GetScriptableObject());
         }
-        
+
         void UpdateAsset()
         {
             if (m_graphAsset != null && m_graphAsset is MaterialGraphAsset)

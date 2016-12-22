@@ -16,7 +16,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var masterNode = node as AbstractMasterNode;
             if (masterNode == null || !masterNode.canBeActiveMaster)
                 return;
-            
+
             using (new EditorGUI.DisabledScope(masterNode.isActiveMaster))
                 masterNode.isActiveMaster |= GUILayout.Button("Set active");
         }
@@ -33,11 +33,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class MasterNodeDrawData : MaterialNodeDrawData
     {
-        protected override IEnumerable<GraphElementData> GetControlData()
+        protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
             var instance = CreateInstance<MasterNodeControlDrawData>();
             instance.Initialize(node);
-            return new List<GraphElementData> { instance };
+            return new List<GraphElementPresenter> { instance };
         }
     }
 }

@@ -4,7 +4,7 @@ using RMGUI.GraphView;
 namespace UnityEditor.Graphing.Drawing
 {
     [Serializable]
-    public class EdgeDrawData : EdgeData
+    public class EdgeDrawData : EdgePresenter
     {
         protected EdgeDrawData()
         {}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using RMGUI.GraphView;
 using UnityEditor.Graphing.Drawing;
@@ -19,9 +19,9 @@ namespace UnityEditor.MaterialGraph.Drawing
                 return;
 
             subGraphNode.subGraphAsset = (MaterialSubGraphAsset)EditorGUILayout.MiniThumbnailObjectField(
-                new GUIContent("Subgraph"), 
-                subGraphNode.subGraphAsset, 
-                typeof(MaterialSubGraphAsset), null);
+                    new GUIContent("Subgraph"),
+                    subGraphNode.subGraphAsset,
+                    typeof(MaterialSubGraphAsset), null);
         }
 
         public override float GetHeight()
@@ -33,11 +33,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public class SubgraphNodeDrawData : MaterialNodeDrawData
     {
-        protected override IEnumerable<GraphElementData> GetControlData()
+        protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
             var instance = CreateInstance<SubgraphContolDrawData>();
             instance.Initialize(node);
-            return new List<GraphElementData> { instance };
+            return new List<GraphElementPresenter> { instance };
         }
     }
 }

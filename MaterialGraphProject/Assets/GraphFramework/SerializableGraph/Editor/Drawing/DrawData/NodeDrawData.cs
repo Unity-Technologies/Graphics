@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace UnityEditor.Graphing.Drawing
 {
-    public class NodeDrawData : GraphElementData
+    public class NodeDrawData : GraphElementPresenter
     {
         protected NodeDrawData()
         {}
@@ -16,17 +16,17 @@ namespace UnityEditor.Graphing.Drawing
         public bool expanded = true;
 
         [SerializeField]
-        protected List<GraphElementData> m_Children = new List<GraphElementData>();
+        protected List<GraphElementPresenter> m_Children = new List<GraphElementPresenter>();
 
         [SerializeField]
         protected List<AnchorDrawData> m_Anchors = new List<AnchorDrawData>();
 
         [SerializeField]
-        protected List<GraphElementData> m_Controls = new List<GraphElementData>();
+        protected List<GraphElementPresenter> m_Controls = new List<GraphElementPresenter>();
 
-        public IEnumerable<GraphElementData> elements
+        public IEnumerable<GraphElementPresenter> elements
         {
-            get { return m_Children.Concat(m_Anchors.Cast<GraphElementData>()).Concat(m_Controls); }
+            get { return m_Children.Concat(m_Anchors.Cast<GraphElementPresenter>()).Concat(m_Controls); }
         }
 
         public virtual void OnModified(ModificationScope scope)
@@ -42,14 +42,14 @@ namespace UnityEditor.Graphing.Drawing
             }
         }
 
-        public void CommitChanges()
+        public override void CommitChanges()
         {
             var drawData = node.drawState;
             drawData.position = position;
             node.drawState = drawData;
         }
 
-        protected virtual IEnumerable<GraphElementData> GetControlData()
+        protected virtual IEnumerable<GraphElementPresenter> GetControlData()
         {
             return new ControlDrawData[0];
         }

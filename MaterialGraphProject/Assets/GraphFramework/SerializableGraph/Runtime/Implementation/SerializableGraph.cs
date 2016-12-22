@@ -171,7 +171,7 @@ namespace UnityEngine.Graphing
 
             m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, null);
             m_SerializableEdges = null;
-            
+
             ValidateGraph();
         }
 

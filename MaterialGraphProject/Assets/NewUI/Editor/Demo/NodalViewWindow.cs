@@ -1,9 +1,8 @@
 using UnityEditor;
-using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
-	class NodalViewWindow : EditorWindow
+	class NodalViewWindow : GraphViewEditorWindow
 	{
 		[MenuItem("Window/GraphView Demo/Nodal UI")]
 		public static void ShowWindow()
@@ -11,20 +10,14 @@ namespace RMGUI.GraphView.Demo
 			GetWindow<NodalViewWindow>();
 		}
 
-		void OnEnable()
+		protected override GraphView BuildView()
 		{
-			var view = new NodesContentView
-			{
-				name = "theView",
-				dataSource = CreateInstance<NodesContentViewData>()
-			};
-			view.StretchToParentSize();
-            rootVisualContainer.AddChild(view);
+			return new NodesContentView();
 		}
 
-		void OnDisable()
+		protected override GraphViewPresenter BuildPresenters()
 		{
-            rootVisualContainer.ClearChildren();
+			return CreateInstance<NodesContentViewPresenter>();
 		}
 	}
 }

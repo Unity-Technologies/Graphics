@@ -1,11 +1,11 @@
-using System;
-using UnityEngine;
 using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView
 {
 	public abstract class DataWatchContainer : VisualContainer
 	{
+		IDataWatchHandle handle;
+
 		protected DataWatchContainer()
 		{
 			// trigger data source reset when entering leaving panel
@@ -24,25 +24,17 @@ namespace RMGUI.GraphView
 		{
 			var watch = toWatch as UnityEngine.Object;
 			if (watch != null && panel != null)
-				// TODO: consider a disposable handle?
-				DataWatchService.AddDataSpy(this, watch, OnDataChanged);
+			{
+				handle = panel.dataWatch.AddWatch(this, watch, OnDataChanged);
+			}
 		}
 
 		protected void RemoveWatch()
 		{
-			var watch = toWatch as UnityEngine.Object;
-			try
+			if (handle != null)
 			{
-				if (watch != null && panel != null)
-					DataWatchService.RemoveDataSpy(watch, OnDataChanged);
-			}
-			catch (Exception e)
-			{
-				Debug.LogException(e);
-				if (watch != null)
-				{
-					Debug.LogWarningFormat("No datawatch is registered to: {0} it is type {1}", watch.name, watch.GetType());
-				}
+				handle.Dispose();
+				handle = null;
 			}
 		}
 	}

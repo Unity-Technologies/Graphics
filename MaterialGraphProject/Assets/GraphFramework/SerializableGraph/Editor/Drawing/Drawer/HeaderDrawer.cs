@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using RMGUI.GraphView;
 using UnityEngine;
 using UnityEngine.RMGUI;

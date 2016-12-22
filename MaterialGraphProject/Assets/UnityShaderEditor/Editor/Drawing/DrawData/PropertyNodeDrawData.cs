@@ -16,7 +16,7 @@ namespace UnityEditor.MaterialGraph.Drawing
             var tNode = node as UnityEngine.MaterialGraph.PropertyNode;
             if (tNode == null)
                 return;
-            
+
             tNode.exposedState = (PropertyNode.ExposedState)EditorGUILayout.EnumPopup(new GUIContent("Exposed"), tNode.exposedState);
         }
 
@@ -29,11 +29,11 @@ namespace UnityEditor.MaterialGraph.Drawing
     [Serializable]
     public abstract class PropertyNodeDrawData : MaterialNodeDrawData
     {
-        protected override IEnumerable<GraphElementData> GetControlData()
+        protected override IEnumerable<GraphElementPresenter> GetControlData()
         {
             var instance = CreateInstance<PropertyControlDrawData>();
             instance.Initialize(node);
-            return new List<GraphElementData> { instance };
+            return new List<GraphElementPresenter> { instance };
         }
     }
 }

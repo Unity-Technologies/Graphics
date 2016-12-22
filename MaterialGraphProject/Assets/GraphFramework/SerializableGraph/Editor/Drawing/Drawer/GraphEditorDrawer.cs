@@ -1,9 +1,12 @@
-﻿using System;
+using System;
 using RMGUI.GraphView;
 using UnityEngine.RMGUI;
 
 namespace UnityEditor.Graphing.Drawing
 {
+    // TODO JOCE Remove all traces of dataSource
+
+    // TODO JOCE: Maybe this needs to dereive from something we already have?
     [StyleSheet("Assets/GraphFramework/SerializableGraph/Editor/Drawing/Styles/GraphEditor.uss")]
     public class GraphEditorDrawer : DataWatchContainer
     {
@@ -32,7 +35,7 @@ namespace UnityEditor.Graphing.Drawing
 
         public override void OnDataChanged()
         {
-            m_GraphView.dataSource = m_DataSource;
+            m_GraphView.presenter = m_DataSource;
             m_TitleBarDrawer.dataProvider = m_DataSource.titleBar;
         }
 

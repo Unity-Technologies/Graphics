@@ -1,6 +1,5 @@
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.RMGUI;
 
 namespace RMGUI.GraphView.Demo
 {
@@ -12,15 +11,16 @@ namespace RMGUI.GraphView.Demo
 								  new Vector3(0.0f, 0.0f, -1.0f),
 								  position.width / 2.0f);
 
-			if (GetData<CircleData>() != null && GetData<CircleData>().selected)
-			{
-				Color oldColor = Handles.color;
-				Handles.color = Color.yellow;
-				Handles.DrawWireDisc(new Vector3(position.x + position.width/2, position.y + position.height/2, 0.0f),
-									 new Vector3(0.0f, 0.0f, -1.0f),
-									 position.width/2.0f+2.0f);
-				Handles.color = oldColor;
-			}
+			var circlePresenter = GetPresenter<CirclePresenter>();
+			if (!circlePresenter.selected)
+				return;
+
+			Color oldColor = Handles.color;
+			Handles.color = Color.yellow;
+			Handles.DrawWireDisc(new Vector3(position.x + position.width/2, position.y + position.height/2, 0.0f),
+				new Vector3(0.0f, 0.0f, -1.0f),
+				position.width/2.0f+2.0f);
+			Handles.color = oldColor;
 		}
 
 		public override bool ContainsPoint(Vector2 localPoint)
